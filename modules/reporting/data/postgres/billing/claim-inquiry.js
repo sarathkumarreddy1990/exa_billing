@@ -14,7 +14,7 @@ const claimInquiryDataSetQueryTemplate = _.template(`
            COALESCE(p.patient_info->'ssn','') AS ssn,
            COALESCE(to_char(p.birth_date,'MM/DD/YYYY'),'') AS dob,
            COALESCE(p.patient_info->'c1HomePhone','') AS phone,
-           claim_totals.claim_balance_total,
+           COALESCE(claim_totals.claim_balance_total, 0::MONEY) AS claim_balance_total,
            bc.payer_type,
            NULLIF(ip.insurance_name,'')  AS insurance_name,
            NULLIF(ip.insurance_code,'')  AS insurance_code,
@@ -38,7 +38,7 @@ const claimInquiryDataSetQueryTemplate = _.template(`
            json_build_array(pi.coverage_level,ip.insurance_name,to_char(pi.valid_to_date,'MM/DD/YYYY'),pi.policy_number,pi.group_number),
            bp.name,
            (SELECT
-                claim_balance_total
+                COALESCE(claim_balance_total, 0::MONEY)
             FROM
                 billing.get_claim_totals(bc.id)) AS claim_balance,
            CASE
