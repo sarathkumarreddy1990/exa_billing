@@ -3261,13 +3261,8 @@ define(['jquery',
                                 'order_id': order_id
                             });
                             if (window.reportWindow) {
-                                commonjs.closeReportWindow();
-                                commonjs.openDocumentsAndReports({
-                                    'study_id': study_id,
-                                    'patient_name': data.patient_name,
-                                    'patient_id': patient_id,
-                                    'order_id': order_id
-                                });
+                                var queryParams = window.reportWindow.location.hash.split("?")[1];
+                                window.reportWindow.location.hash = '#patient/patientReport/all/' + btoa(patient_id) + '/' + btoa(order_id) + '/' + btoa(study_id) + '?' + queryParams;
                             }
                             $('#modal_div_container').scrollTop(0);
                         });
