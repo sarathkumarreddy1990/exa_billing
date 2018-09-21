@@ -92,7 +92,8 @@ module.exports = {
             ),
             payment_details as(
                 SELECT
-                    bp.payer_type
+                    bp.accounting_date as payment_dt
+                    ,bp.payer_type
                     , (  CASE bp.payer_type
                             WHEN 'insurance' THEN 
                                 pip.insurance_name

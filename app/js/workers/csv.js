@@ -36,7 +36,7 @@ var paymentsColumns = {
     "PAYMENT ID": "id",
     "REF. PAYMENT ID": "alternate_payment_id",
     "PAYMENT DATE": "payment_dt",
-    "ACCOUNTING DATE": "accounting_dt",
+    "ACCOUNTING DATE": "accounting_date",
     "PAYER TYPE": "payer_type",
     "PAYER NAME": "payer_name",
     "PAYMENT AMOUNT": "amount",

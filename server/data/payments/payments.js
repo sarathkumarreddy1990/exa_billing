@@ -21,7 +21,7 @@ module.exports = {
             payment_dt,
             payer_type,
             payer_name,
-            accounting_dt,
+            accounting_date,
             amount,
             available_balance,
             applied,
@@ -66,8 +66,8 @@ module.exports = {
             whereQuery.push(generator('payment_dt', payment_dt));
         }
 
-        if (accounting_dt) {
-            whereQuery.push(generator('accounting_dt', accounting_dt));
+        if (accounting_date) {
+            whereQuery.push(generator('accounting_date', accounting_date));
         }
 
         if (payer_type) {
@@ -197,7 +197,7 @@ module.exports = {
                             WHEN 'ordering_provider' THEN ref_provider.full_name
                             WHEN 'patient' THEN patients.full_name        END) AS payer_name
                     , payment_dt
-                    , accounting_dt
+                    , accounting_date::text 
                     , invoice_no
                     , alternate_payment_id
                     , payer_type
@@ -265,7 +265,7 @@ module.exports = {
                         , provider_contact_id
                         , payment_reason_id
                         , amount MONEY
-                        , accounting_dt AS accounting_date
+                        , accounting_date::text
                         , payment_dt AS payment_date
                         , alternate_payment_id AS display_id
                         , created_by AS payer_name
@@ -347,7 +347,7 @@ module.exports = {
                                 , provider_contact_id
                                 , payment_reason_id
                                 , amount
-                                , accounting_dt
+                                , accounting_date
                                 , created_by
                                 , payment_dt
                                 , invoice_no
@@ -366,7 +366,7 @@ module.exports = {
                                 , ${provider_contact_id}
                                 , ${payment_reason_id}
                                 , ${amount}
-                                , timezone(public.get_facility_tz(${facility_id}), ${accounting_date}::TIMESTAMP)
+                                , ${accounting_date}
                                 , ${user_id}
                                 , timezone(get_facility_tz(${facility_id}), now()::timestamp)
                                 , ${invoice_no}
@@ -385,7 +385,7 @@ module.exports = {
                                 , provider_group_id = ${provider_group_id}
                                 , provider_contact_id = ${provider_contact_id}
                                 , amount = ${amount}::money
-                                , accounting_dt = timezone(public.get_facility_tz(${facility_id}), ${accounting_date}::TIMESTAMP)
+                                , accounting_date = ${accounting_date}
                                 , invoice_no = ${invoice_no}
                                 , alternate_payment_id = ${display_id}
                                 , payer_type = ${payer_type}
