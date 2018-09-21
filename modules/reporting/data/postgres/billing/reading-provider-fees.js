@@ -8,20 +8,20 @@ const _ = require('lodash')
 // generate query template ***only once*** !!!
 
 const readingProviderFeesDataSetQueryTemplate = _.template(`
-    WITH reading_provider_fees AS( 
-        SELECT 
+    WITH reading_provider_fees AS(
+        SELECT
             bc.id as claim_id
             , pcc.display_description
             , pcc.display_code
             , bpa.amount
             , to_char(bp.accounting_dt, 'MM/DD/YYYY') as accounting_dt
             , to_char(bp.payment_dt, 'MM/DD/YYYY') as payment_dt
-            , CASE bp.payer_type 
+            , CASE bp.payer_type
                 WHEN 'patient' THEN get_full_name(pp.last_name, pp.first_name, pp.middle_name,pp.prefix_name, pp.suffix_name)
                 WHEN 'insurance' THEN pip.insurance_name
                 WHEN 'ordering_provider' THEN ppr.full_name
                 WHEN 'ordering_facility' THEN ppg.group_name END AS payer_name
-            , cppg.group_name AS group_name           
+            , render_provider.group_name
             , COALESCE(pplc.reading_provider_percent_level,0) AS reading_provider_percent_level
             , to_char(bc.claim_dt, 'MM/DD/YYYY') as claim_dt
         FROM billing.claims bc
@@ -34,17 +34,17 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
         LEFT JOIN public.provider_contacts ppc ON ppc.id = bp.provider_contact_id
         LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
         LEFT JOIN public.provider_groups ppg ON ppg.id = bp.provider_group_id
-        LEFT JOIN public.provider_contacts cppc ON cppc.id = bc.referring_provider_contact_id
-        LEFT JOIN public.provider_groups cppg ON cppg.id = cppc.provider_group_id
+        LEFT JOIN provider_contacts as rendering_pro_contact ON rendering_pro_contact.id=bc.rendering_provider_contact_id
+        LEFT JOIN provider_groups render_provider ON rendering_pro_contact.provider_group_id = render_provider.id
         LEFT JOIN public.cpt_code_provider_level_codes pccplc ON pccplc.cpt_code_id = pcc.id
         LEFT JOIN public.provider_level_codes pplc ON pplc.id = pccplc.provider_level_code_id
         INNER JOIN facilities f on f.id = bc.facility_id
         <% if (billingProID) { %> INNER JOIN billing.providers bpr ON bpr.id = bc.billing_provider_id <% } %>
-        WHERE 1=1 
+        WHERE 1=1
         AND  <%= companyId %>
         AND <%= claimDate %>
-        <% if (facilityIds) { %>AND <% print(facilityIds); } %>        
-        <% if(billingProID) { %> AND <% print(billingProID); } %>        
+        <% if (facilityIds) { %>AND <% print(facilityIds); } %>
+        <% if(billingProID) { %> AND <% print(billingProID); } %>
         <% if(providerGroupID) { %>AND <% print(providerGroupID);} %>
     )
     SELECT
@@ -52,10 +52,10 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
         CASE
             WHEN rpf.display_code !='' THEN
                 COALESCE(rpf.group_name, '- No Group Assigned -' )
-            ELSE '' 
+            ELSE ''
             END AS "Group Name"
         , COALESCE(rpf.display_code, '─ TOTAL ─'::TEXT ) AS "CPT Code"
-        , COALESCE(rpf.display_description,'---') AS "Description" 
+        , COALESCE(rpf.display_description,'---') AS "Description"
         , claim_dt AS "Claim Date"
         , rpf.payer_name AS "Payer Name"
         , SUM(rpf.amount ) AS "Amount"
@@ -63,8 +63,8 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
         , rpf.payment_dt AS "Payment Date"
         , round(rpf.reading_provider_percent_level,2) AS "Reading Fee %"
         , round(SUM((rpf.amount::numeric/100) * rpf.reading_provider_percent_level),2) AS "Reading Fee"
-    FROM     
-        reading_provider_fees rpf   
+    FROM
+        reading_provider_fees rpf
     GROUP BY
     GROUPING SETS (
         (group_name),
@@ -77,7 +77,7 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
          amount,
          accounting_dt,
          payment_dt,
-         reading_provider_percent_level )        
+         reading_provider_percent_level )
     )
 
     UNION ALL
@@ -95,7 +95,7 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
     , round(SUM((rpf.amount::numeric/100) * rpf.reading_provider_percent_level),2) AS "Reading Fee"
 FROM
     reading_provider_fees rpf
-     
+
 
 `);
 
@@ -116,7 +116,7 @@ const api = {
             dataHelper.getProviderGroupInfo(initialReportData.report.params.companyId, initialReportData.report.params.refProviderGroupList),
             // other data sets could be added here...
             (readingProviderFeesDataSet, providerInfo, providerGroupList) => {
-                // add report filters  
+                // add report filters
                 initialReportData.lookups.billingProviderInfo = providerInfo || [];
                 initialReportData.lookups.providerGroupList = providerGroupList || [];
                 initialReportData.filters = api.createReportFilters(initialReportData);
@@ -231,7 +231,7 @@ const api = {
         //  Provider Group Single or Multiple
         if (reportParams.refProviderGroupList) {
             params.push(reportParams.refProviderGroupList);
-            filters.providerGroupID = queryBuilder.whereIn('cppc.provider_group_id ', [params.length]);
+            filters.providerGroupID = queryBuilder.whereIn('rendering_pro_contact.provider_group_id ', [params.length]);
         }
 
 
