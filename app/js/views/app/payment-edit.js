@@ -1231,7 +1231,7 @@ define(['jquery',
 
                             self.setMoneyMask();
 
-                            if (gridObj.options && gridObj.options.customargs && gridObj.options.customargs.claimIdToSearch == self.claimID) {
+                            if (self.claimID && gridObj.options && gridObj.options.customargs && gridObj.options.customargs.claimIdToSearch == self.claimID) {
                                 self.order_payment_id = 0;
                                 rowID = $('#tblpendPaymentsGrid').jqGrid('getDataIDs');
                                 if (model && model.length) {
