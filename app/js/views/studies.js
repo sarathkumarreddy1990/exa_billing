@@ -257,8 +257,8 @@ define(['jquery',
                 self.indexTemplate = _.template(IndexHTML);
                 self.$el.html(self.indexTemplate({
                     gadget: '',
-                    customOrderStatus: [],
-                    customStudyStatus: []
+                    customOrderStatus: app.customOrderStatus,
+                    customStudyStatus: app.customStudyStatus
                 }));
 
                 $("#btnInsuranceClaim, #btnValidateOrder, #btnValidateExport, #btnClaimsRefresh, #btnClaimRefreshAll, #diveHomeIndex, #divStudyFooter").hide();

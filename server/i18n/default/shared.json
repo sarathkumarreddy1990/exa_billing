@@ -163,7 +163,8 @@
             "series": "Series",
             "faxReceiverName": "Recipient Name",
             "faxReceiverNumber": "Fax #",
-            "default": "Default"
+            "default": "Default",
+            "all": "All"
         },
         "status": {
             "approved": "APPROVED",

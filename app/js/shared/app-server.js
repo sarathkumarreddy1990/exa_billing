@@ -58,6 +58,20 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                         app.sessionTimeout = parseInt(app.sessionTimeout);
                     }
 
+                    app.customStudyStatus = [];
+                    app.customOrderStatus = [];
+
+                    if (Array.isArray(app.custom_study_status)) {
+                        app.custom_study_status.forEach(function (status) {
+                            if (status.order_related === true) {
+                                app.customOrderStatus.push(status);
+                            }
+                            else {
+                                app.customStudyStatus.push(status);
+                            }
+                        });
+                    }
+
                     _.extend(window.app, app);
 
                     commonjs.setAppSettingsReportQueueStatus();

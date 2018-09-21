@@ -267,7 +267,8 @@ define(['jquery',
                 self.ediWarning = _.template(ediWarning);
                 self.$el.html(self.indexTemplate({
                     gadget: '',
-                    customStudyStatus: []
+                    customStudyStatus: [],
+                    customOrderStatus: []
                 }));
                // $("#btnPaperClaimFormat").text('Paper Claims('+(localStorage.getItem('default_paperclaim_format')||'ORIGINAL')+')')
 

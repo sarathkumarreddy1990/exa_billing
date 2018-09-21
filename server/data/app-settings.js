@@ -300,7 +300,25 @@ module.exports = {
                         WHERE company_id = ${companyID} AND NOT has_deleted
                     )
                 ORDER BY modality_room_name ) AS modality_room
-                )
+                ),
+                cte_custom_study_status AS(
+                    SELECT Json_agg(Row_to_json(custom_study_status)) custom_study_status
+                    FROM  (
+                        SELECT DISTINCT
+                            status_code,
+                            status_desc,
+                            order_related
+                        FROM study_status
+                        INNER JOIN facilities ON (
+                            facilities.id = study_status.facility_id
+                            AND NOT facilities.has_deleted
+                        )
+                        WHERE
+                            can_edit
+                            AND NOT study_status.has_deleted
+                            AND company_id = ${companyID}
+                        ORDER BY status_code ASC 
+                    ) AS custom_study_status)
                SELECT *
                FROM   cte_company,
                       cte_facilities,
@@ -328,7 +346,8 @@ module.exports = {
                       cte_user_facilities,
                       cte_currentDate,
                       cte_insurance_provider_payer_types,
-                      cte_modality_rooms
+                      cte_modality_rooms,
+                      cte_custom_study_status
                `;
 
         return await query(sql);

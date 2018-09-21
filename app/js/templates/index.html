@@ -176,7 +176,7 @@
     <div class="statusMenu" id="divStatusSearch">
         <div class="header-status">
             <label style="padding-left: 25px !important;" class="checkbox">
-                <input id="chkAppointmentStatus" type="checkbox">
+                <input id="chkAppointmentStatus" type="checkbox" class="form-check-input">
                 <span i18n="billing.worklist.appointmentStatus"></span>
             </label>
         </div>
@@ -239,13 +239,19 @@
                         <span i18n="shared.status.precheckin">PRECHECKIN</span>
                     </label>
                 </li>
+                <% _.each(customOrderStatus, function(ordersStatus) { %>
+                    <li>
+                        <label class="checkbox-inline">
+                        <input class="status" data-value="<%= ordersStatus.status_desc %>" type="checkbox" value="<%= ordersStatus.status_code %>"><%=ordersStatus.status_desc.toUpperCase() %></label>
+                    </li>
+                    <% }); %>
             </ul>
         </div>
 
 
         <div class="header-status">
             <label style="padding-left: 25px !important;" class="checkbox">
-                <input id="chkStudyProgress" type="checkbox">
+                <input id="chkStudyProgress" type="checkbox" class="form-check-input">
                 <span i18n="billing.worklist.studyProgress"></span>
             </label>
         </div>
@@ -269,7 +275,7 @@
 
         <div class="header-status">
             <label style="padding-left: 25px !important;" class="checkbox">
-                <input id="chkRadStatus" type="checkbox">
+                <input id="chkRadStatus" type="checkbox" class="form-check-input">
                 <span i18n="billing.worklist.radStatus"></span>
             </label>
         </div>
@@ -317,7 +323,12 @@
                         <span i18n="shared.status.approved">APPROVED</span>
                     </label>
                 </li>
-
+                <% _.each(customStudyStatus, function(studyStatus) { %>
+                    <li>
+                        <label class="checkbox-inline">
+                        <input class="status" data-value="<%= studyStatus.status_desc %>" type="checkbox" value="<%= studyStatus.status_code %>"><%=studyStatus.status_desc.toUpperCase() %></label>
+                    </li>
+                    <% }); %>
             </ul>
         </div>
 
