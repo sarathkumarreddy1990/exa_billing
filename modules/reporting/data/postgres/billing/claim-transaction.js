@@ -8,21 +8,25 @@ const _ = require('lodash')
 // generate query template ***only once*** !!!
 
 const claimTransactionDataSetQueryTemplate = _.template(`
-WITH details AS(
+WITH claim_details AS(
+	SELECT
+        obc.id AS claim_id ,
+        opp.last_name AS pat_last_name ,
+        opp.first_name AS pat_first_name ,
+        to_char(obc.claim_dt,'MM/DD/YYYY') AS claim_date ,
+        max(cd.payment_dt) AS paid_date ,
+        SUM(obch.bill_fee * obch.units) AS charge_amount ,
+        obc.payer_type as payer_type,
+        opip.insurance_name AS insurance_name ,
+        opip.insurance_code AS insurance_code,
+        opr.full_name AS ref_doctor_name ,
+        opippt.description AS insurance_payer_type
+	FROM billing.claims obc
+    INNER JOIN billing.charges obch ON obch.claim_id = obc.id
+	INNER JOIN LATERAL  (
     SELECT
-        bc.id AS "Claim#",
-        pp.last_name AS "Last Name",
-        pp.first_name AS "First Name",
-        to_char(bc.claim_dt,'MM/DD/YYYY') AS "Claim Date",
-        MAX(to_char(bp.payment_dt,'MM/DD/YYYY'))           AS "Paid Date",
-        SUM(bch.bill_fee * bch.units) AS "Charge Amount",
-        (SELECT payments_applied_total FROM billing.get_claim_totals(bc.id)) AS  "Paid Amount",
-        CASE WHEN bc.payer_type = 'primary_insurance'  OR  bc.payer_type = 'secondary_insurance' OR bc.payer_type = 'tertiary_insurance' THEN (SELECT claim_balance_total FROM billing.get_claim_totals(bc.id)) END AS "Insurance Balance",
-
-        pip.insurance_name AS "Insurance (Paid)",
-        pip.insurance_code AS "Insurance (Cur)",
-        pr.full_name AS "Ref. Doctor",
-        pippt.description AS "Insurance Payer Type"
+         bch.id as charge_id,
+         MAX(to_char(bp.payment_dt,'MM/DD/YYYY')) as payment_dt
     FROM billing.claims bc
     INNER JOIN billing.charges bch ON bch.claim_id = bc.id
     INNER JOIN public.patients pp on pp.id = bc.patient_id
@@ -33,59 +37,78 @@ WITH details AS(
     LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
     LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
     LEFT JOIN public.providers pr ON  pr.id = ppc.provider_id
-     INNER JOIN public.facilities f ON f.id = bc.facility_id
-     LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
+    INNER JOIN public.facilities f ON f.id = bc.facility_id
+    LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
+	LEFT JOIN LATERAL(select pa.charge_id, true as have_payments from billing.payment_applications pa where pa.charge_id = bch.id) charge_payments on charge_payments.charge_id = bch.id
     <% if (billingProID) { %> INNER JOIN billing.providers bpp ON bpp.id = bc.billing_provider_id <% } %>
-        WHERE 1 = 1
-        AND <%=companyId%>
-
-        <% if(claimDate) { %> AND <%=claimDate%> <%}%>
-        <% if(CPTDate) { %> AND <%=CPTDate%> <%}%>
-        <% if(sumbittedDt) { %> AND <%=sumbittedDt%> <%}%>
-        <% if(insuranceIds) { %> AND <%=insuranceIds%> <%}%>
-        <% if(claimNoSearch) { %> AND <% print(claimNoSearch); } %>
-        <% if(insGroups) { %> AND <%=insGroups%> <%}%>
-
-        <% if (facilityIds) { %>AND <% print(facilityIds); } %>
-        <% if(billingProID) { %> AND <% print(billingProID); } %>
-        <% if(cptCodeLists) { %> AND <% print(cptCodeLists); } %>
-        <% if(referringProIds) { %>AND <% print(referringProIds);} %>
-
-        <%
-        if(patPaid && !insPaid && !unPaid) { %> AND ( bp.payer_type = 'patient')   <% }
+    WHERE 1 = 1
+    AND <%=companyId%>
+    <% if(claimDate) { %> AND <%=claimDate%> <%}%>
+    <% if(CPTDate) { %> AND <%=CPTDate%> <%}%>
+    <% if(sumbittedDt) { %> AND <%=sumbittedDt%> <%}%>
+    <% if(insuranceIds) { %> AND <%=insuranceIds%> <%}%>
+    <% if(claimNoSearch) { %> AND <% print(claimNoSearch); } %>
+    <% if(insGroups) { %> AND <%=insGroups%> <%}%>
+    <% if (facilityIds) { %>AND <% print(facilityIds); } %>
+    <% if(billingProID) { %> AND <% print(billingProID); } %>
+    <% if(cptCodeLists) { %> AND <% print(cptCodeLists); } %>
+    <% if(referringProIds) { %>AND <% print(referringProIds);} %>
+    <%
+		if(patPaid && !insPaid && !unPaid) { %> AND ( bp.payer_type = 'patient')   <% }
         else if(!patPaid && insPaid && !unPaid) { %> AND ( bp.payer_type = 'insurance') <% }
-        else if(!patPaid && !insPaid && unPaid)  { %> AND  NOT EXISTS (select 1  From billing.charges  ibch
-			INNER JOIN billing.payment_applications ibpa on ibch.id = ibpa.charge_id
-			WHERE ibch.claim_id = bc.id) <% }
-        else if(insPaid && patPaid && !unPaid)  { %> AND ( bp.payer_type = 'patient'  OR  bp.payer_type = 'insurance' ) <% }
-        else if(patPaid &&  unPaid && !insPaid)  { %> AND ( bp.payer_type = 'patient' OR NOT EXISTS (select 1  From billing.charges  ibch
-			INNER JOIN billing.payment_applications ibpa on ibch.id = ibpa.charge_id
-			WHERE ibch.claim_id = bc.id) ) <% }
-        else if(unPaid && insPaid && !patPaid)  { %> AND ( bp.payer_type = 'insurance' OR NOT EXISTS (select 1  From billing.charges  ibch
-			INNER JOIN billing.payment_applications ibpa on ibch.id = ibpa.charge_id
-			WHERE ibch.claim_id = bc.id)) <% }
-        else if(unPaid && insPaid && patPaid)  { %> AND ( bp.payer_type = 'patient' OR bp.payer_type = 'insurance' OR NOT EXISTS (select 1  From billing.charges  ibch
-			INNER JOIN billing.payment_applications ibpa on ibch.id = ibpa.charge_id
-			WHERE ibch.claim_id = bc.id) ) <% }
-        %>
-
-    GROUP BY bc.id,pip.insurance_name,pip.insurance_code,pp.last_name,pp.first_name,pr.full_name, pippt.description
-
+        else if(!patPaid && !insPaid && unPaid) { %> AND (charge_payments.have_payments is null)  <% }
+        else if(insPaid && patPaid && !unPaid) { %> AND (bp.payer_type = 'patient'  OR  bp.payer_type = 'insurance') <% }
+        else if(patPaid &&  unPaid && !insPaid) { %> AND (bp.payer_type = 'patient' OR charge_payments.have_payments is null) <% }
+        else if(unPaid && insPaid && !patPaid) { %> AND (bp.payer_type = 'insurance' OR charge_payments.have_payments is null) <% }
+        else if(unPaid && insPaid && patPaid) { %> AND (bp.payer_type = 'patient' OR bp.payer_type = 'insurance' OR charge_payments.have_payments is null) <% }
+    %>
+    GROUP BY bch.id
+   ) cd on cd.charge_id = obch.id
+    INNER JOIN public.patients opp on opp.id = obc.patient_id
+    LEFT JOIN public.patient_insurances oppi ON oppi.id =  obc.primary_patient_insurance_id
+    LEFT JOIN public.insurance_providers opip ON opip.id = oppi.insurance_provider_id
+    LEFT JOIN public.provider_contacts oppc ON oppc.id = obc.referring_provider_contact_id
+    LEFT JOIN public.providers opr ON  opr.id = oppc.provider_id
+    INNER JOIN public.facilities of ON of.id = obc.facility_id
+    LEFT JOIN public.insurance_provider_payer_types opippt ON opippt.id = opip.provider_payer_type_id
+    GROUP BY obc.id,opip.insurance_name,opip.insurance_code,opp.last_name,opp.first_name,opr.full_name, opippt.description
     <% if (orderBy == "claimId") { %>
-           ORDER BY  bc.id
-        <% } else if(orderBy == "serviceDate")  { %>
-               ORDER BY bc.claim_dt
-            <%} else if(orderBy == "commentDate"){ %>
-                ORDER BY  MAX(to_char(bp.payment_dt,'MM/DD/YYYY'))
-                <%} else if(orderBy == "firstName"){ %>
-                    ORDER BY pp.first_name
-                    <%} else if(orderBy == "lastName"){ %>
-                        ORDER BY pp.last_name
-                <%} else { %>
-                    ORDER BY pip.insurance_name
-                    <% } %>
-         )
-        SELECT * FROM details
+        ORDER BY  obc.id
+    <% } else if(orderBy == "serviceDate")  { %>
+        ORDER BY obc.claim_dt
+    <%} else if(orderBy == "commentDate"){ %>
+        ORDER BY cd.payment_dt
+    <%} else if(orderBy == "firstName"){ %>
+        ORDER BY opp.first_name
+    <%} else if(orderBy == "lastName"){ %>
+        ORDER BY opp.last_name
+    <%} else { %>
+        ORDER BY opip.insurance_name
+    <% } %>
+   ),
+   total_details as
+   (
+        SELECT
+        claim_id as "Claim#",
+        pat_last_name AS "Last Name",
+        pat_first_name AS  "First Name",
+        claim_date AS "Claim Date",
+        paid_date AS  "Paid Date",
+        charge_amount AS "Charge Amount",
+        bgct.payments_applied_total AS  "Paid Amount",
+        CASE WHEN payer_type = 'primary_insurance'
+                OR payer_type = 'secondary_insurance'
+                OR payer_type = 'tertiary_insurance'
+        THEN bgct.claim_balance_total
+        END AS "Insurance Balance",
+    insurance_code  AS "Insurance (Paid)",
+    insurance_name  AS "Insurance (Cur)",
+    ref_doctor_name AS "Ref. Doctor",
+    insurance_payer_type AS "Insurance Payer Type"
+    FROM claim_details
+    INNER JOIN  billing.get_claim_totals(claim_details.claim_id) bgct on true
+   )
+        SELECT * FROM total_details
         UNION ALL
         SELECT
              null
@@ -93,14 +116,14 @@ WITH details AS(
              , 'Total'
              , null
              , null
-             , (SELECT SUM("Charge Amount") FROM details)
-             , (SELECT SUM("Paid Amount") from details )
-             , (SELECT SUM("Insurance Balance")::money from details)
+             , (SELECT SUM("Charge Amount") FROM total_details)
+             , (SELECT SUM("Paid Amount") from total_details )
+             , (SELECT SUM("Insurance Balance")::money from total_details)
              ,'---'
              ,'---'
              ,'---'
              , null
-        WHERE (SELECT COUNT(*) FROM details) > 0
+        WHERE (SELECT COUNT(*) FROM total_details) > 0
 `);
 
 const api = {

@@ -6,7 +6,7 @@ var permissions = {
         var accessDeniedRightClickIDs = [];
         var billingScreenCodes = ['ADJC', 'BICO', 'BICL', 'CLST', 'BIPR', 'PRCQ', 'BILM', 'PARE', 'CASG', 'CASR', 'STCC', 'BIVA', 'PCA', 'EDRT', 'INSM', 'CLHO', 'BULG', 'BALG',
             'AGAR', 'AARD', 'CHRG', 'CLAY', 'CLIN', 'CLTR', 'CRBE', 'DICN', 'IVSL', 'MOSU', 'MNRC', 'PATS', 'PYMX', 'PAYT', 'PAIC', 'PBIC', 'PABI', 'PRCN', 'RPFR', 'REPC', 'REPS', 'TSUM', 'PACT',
-            'CLIM', 'HSTY', 'ECLM', 'CLMI', 'MASO', 'CLVA', 'ERAI', 'PAYM', 'APAY', 'DPAY', 'DCLM', 'PCLM', 'PATR'];
+            'CLIM', 'HSTY', 'ECLM', 'CLMI', 'MASO', 'CLVA', 'ERAI', 'PAYM', 'APAY', 'DPAY', 'DCLM', 'PCLM', 'PATR', 'TOSP'];
 
         mappingObject = {
             'ADJC': 'aAdjustmentCodes',
@@ -66,8 +66,16 @@ var permissions = {
             'DCLM': 'anc_delete_claim', // This rights used for Delete Charge also
             'PCLM': 'anc_patient_claim_inquiry'
         };
+
+        var tosPayments = (app.screens).indexOf('TOSP') > -1 && (app.screens).indexOf('PAYM') === -1 ? true : false ;
+
         accessDeniedScreens = _.difference(billingScreenCodes, app.screens);
+        if(tosPayments) {
+            accessDeniedScreens.splice( accessDeniedScreens.indexOf('PAYM'), 1 );
+        }
+        
         $('.access').remove();
+
         _.each(accessDeniedScreens, function (code) {
             var screenId = '';
             screenId = mappingObject[code];
@@ -80,7 +88,14 @@ var permissions = {
                 });
             }
         });
-        return { screenID: _.flatten(accessDeniedRightClickIDs), screenCode: accessDeniedScreens };
+
+        if(tosPayments) {
+            $('#aPayments').append('<span class="access">(Access Denied)</span>');
+            $('#aPayments').addClass('disabled');
+            $('#aPayments').attr('href', '#');
+        }
+
+        return { screenID: _.flatten(accessDeniedRightClickIDs), screenCode: _.difference(billingScreenCodes, app.screens) };
     },
 
     hideScreens: function (screenId) {

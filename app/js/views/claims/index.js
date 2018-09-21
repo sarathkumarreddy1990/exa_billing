@@ -687,6 +687,12 @@ define(['jquery',
 
             },
 
+            checkRelationshipActive: function (id) {
+                return $.grep(app.relationship_status, function (relationship) {
+                    return id == relationship.id;
+                }).length;
+            },
+
             bindEditClaimInsuranceDetails: function (claimData) {
                 var self = this;
 
@@ -703,7 +709,9 @@ define(['jquery',
                     $('#lblPriPhoenNo').html(claimData.p_phone_no);
                     $('#txtPriPolicyNo').val(claimData.p_policy_number);
                     $('#txtPriGroupNo').val(claimData.p_group_number);
-                    $("#ddlPriRelationShip").val(claimData.p_subscriber_relationship_id);
+                    if (this.checkRelationshipActive(claimData.p_subscriber_relationship_id)) {
+                        $("#ddlPriRelationShip").val(claimData.p_subscriber_relationship_id);
+                    }
                     var priSelf = ($('#ddlPriRelationShip option:selected').text()).toLowerCase();
                     ($.trim(priSelf) == 'self' || $.trim(priSelf) == 'select') ? $('#showPriSelf').hide() : $('#showPriSelf').show();
                     $('#txtPriSubFirstName').val(claimData.p_subscriber_firstname);
@@ -749,7 +757,9 @@ define(['jquery',
                     $('#lblSecPhoenNo').html(claimData.s_phone_no);
                     $('#txtSecPolicyNo').val(claimData.s_policy_number);
                     $('#txtSecGroupNo').val(claimData.s_group_number);
-                    $("#ddlSecRelationShip").val(claimData.s_subscriber_relationship_id);
+                    if (this.checkRelationshipActive(claimData.s_subscriber_relationship_id)) {
+                        $("#ddlSecRelationShip").val(claimData.s_subscriber_relationship_id);
+                    }
                     var secSelf = ($('#ddlSecRelationShip option:selected').text()).toLowerCase();
                     ($.trim(secSelf) == 'self' || $.trim(secSelf) == 'select') ? $('#showSecSelf').hide() : $('#showSecSelf').show();
                     $('#txtSecSubFirstName').val(claimData.s_subscriber_firstname);
@@ -793,7 +803,9 @@ define(['jquery',
                     $('#lblTerPhoenNo').html(claimData.t_phone_no);
                     $('#txtTerPolicyNo').val(claimData.t_policy_number);
                     $('#txtTerGroupNo').val(claimData.t_group_number);
-                    $("#ddlTerRelationShip").val(claimData.t_subscriber_relationship_id);
+                    if (this.checkRelationshipActive(claimData.t_subscriber_relationship_id)) {
+                        $("#ddlTerRelationShip").val(claimData.t_subscriber_relationship_id);
+                    }
                     var terSelf = ($('#ddlTerRelationShip option:selected').text()).toLowerCase();
                     ($.trim(terSelf) == 'self' || $.trim(terSelf) == 'select') ? $('#showTerSelf').hide() : $('#showTerSelf').show();
                     $('#txtTerSubFirstName').val(claimData.t_subscriber_firstname);
@@ -2429,7 +2441,9 @@ define(['jquery',
                     $('#lbl' + flag + 'PhoenNo').html(result.ins_phone_no ? result.ins_phone_no: '');
                     $('#txt' + flag + 'PolicyNo').val(result.policy_number);
                     $('#txt' + flag + 'GroupNo').val(result.group_number);
-                    $('#ddl' + flag + 'RelationShip').val(result.subscriber_relationship_id);
+                    if (this.checkRelationshipActive(result.subscriber_relationship_id)) {
+                        $('#ddl' + flag + 'RelationShip').val(result.subscriber_relationship_id);
+                    }
                     var priSelf = ($('#ddl' + flag + 'RelationShip'+' option:selected').text()).toLowerCase();
                     ($.trim(priSelf) == 'self' || $.trim(priSelf) == 'select') ? $('#show'+ flag + 'Self').hide() : $('#show'+ flag + 'Self').show();
                     $('#txt' + flag + 'SubFirstName').val(result.subscriber_firstname);
@@ -3261,13 +3275,8 @@ define(['jquery',
                                 'order_id': order_id
                             });
                             if (window.reportWindow) {
-                                commonjs.closeReportWindow();
-                                commonjs.openDocumentsAndReports({
-                                    'study_id': study_id,
-                                    'patient_name': data.patient_name,
-                                    'patient_id': patient_id,
-                                    'order_id': order_id
-                                });
+                                var queryParams = window.reportWindow.location.hash.split("?")[1];
+                                window.reportWindow.location.hash = '#patient/patientReport/all/' + btoa(patient_id) + '/' + btoa(order_id) + '/' + btoa(study_id) + '?' + queryParams;
                             }
                             $('#modal_div_container').scrollTop(0);
                         });

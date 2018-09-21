@@ -47,6 +47,11 @@ module.exports = {
 
         let permissionName = permissionsMap[screenNameInternal];
 
+        // EXA-10778 allowing TOS payments From RIS
+        if(permissionName === 'PAYM' && screens.indexOf('TOSP') > -1) {
+            return true;
+        }
+
         if (screens.indexOf(permissionName) > -1) {
             return true;
         }

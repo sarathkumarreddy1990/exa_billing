@@ -425,6 +425,7 @@ define([
                         } catch (err) {
                             commonjs.showError('Unable to process');
                         }
+                        commonjs.initializeScreen({ header: { screen: 'ERA PREVIEW', ext: 'eob preview' } });
                     },
                     error: function (err, response) {
                         commonjs.handleXhrError(err, response);
