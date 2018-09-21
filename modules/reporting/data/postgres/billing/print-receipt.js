@@ -36,20 +36,15 @@ WITH company_details AS (
         WHERE  <%= patient_id_det %>
 )
 ,charge_details AS (
-	SELECT
-	    TRIM(cpt_codes.display_description)                          AS cpt_description
-             , cpt_codes.display_code
-             , row_number() OVER (ORDER BY sc.id ASC) charge_index
-             , to_char(timezone(f.time_zone, s.study_dt), 'MM/DD/YYYY') AS study_dt
-	FROM  public.study_cpt sc
-    INNER JOIN public.studies AS s  ON s.id = sc.study_id
-    INNER JOIN public.facilities AS f  ON f.id = s.facility_id
-    INNER JOIN public.cpt_codes ON cpt_codes.id = sc.cpt_code_id
-    WHERE
-        NOT s.has_deleted
-        <% if(cptCodeId) { %>AND <% print(cptCodeId);} %>
-        AND NOT sc.has_deleted
-        AND NOT cpt_codes.has_deleted
+                SELECT
+                    TRIM(s.study_description)                          AS cpt_description
+                  , row_number() OVER (ORDER BY s.id ASC) charge_index
+                FROM
+                    studies s
+                INNER JOIN facilities AS f  ON f.id = s.facility_id
+                WHERE
+                    NOT s.has_deleted
+               <% if(study_id) { %>AND <% print(study_id);} %>
 )
 ,payments AS (
  SELECT
@@ -95,13 +90,20 @@ const api = {
     getReportData: (initialReportData) => {
         if (initialReportData.report.params.cptCodeIds) {
             initialReportData.report.params.cptCodeIds = initialReportData.report.params.cptCodeIds.map(Number);
+
+        }
+
+        if (initialReportData.report.params.studyIds) {
+            initialReportData.report.params.studyIds = initialReportData.report.params.studyIds.map(Number);
         }
 
         return Promise.join(
             dataHelper.getCptCodesInfo(initialReportData.report.params.companyId, initialReportData.report.params.cptCodeIds),
+            dataHelper.getStudyInfo(initialReportData.report.params.companyId, initialReportData.report.params.studyIds),
             api.createchargePaymentReceiptDataSet(initialReportData.report.params),
-            (cptCodesInfo, chargePaymentReceiptDataSet) => {
+            (cptCodesInfo,studyInfo, chargePaymentReceiptDataSet) => {
                 initialReportData.lookups.cptCodes = cptCodesInfo || [];
+                initialReportData.lookups.stuydIds = studyInfo || [];
                 initialReportData.dataSets.push(chargePaymentReceiptDataSet);
                 initialReportData.dataSetCount = initialReportData.dataSets.length;
                 return initialReportData;
@@ -128,7 +130,8 @@ const api = {
             cptCodeId: null,
             patient_id: null,
             patient_id_det: null,
-            payment_id: null
+            payment_id: null,
+            study_id: null
 
         };
 
@@ -147,6 +150,11 @@ const api = {
         if (reportParams.cptCodeIds) {
             params.push(reportParams.cptCodeIds);
             filters.cptCodeId = queryBuilder.whereIn('sc.id', [params.length]);
+        }
+
+        if (reportParams.studyIds) {
+            params.push(reportParams.studyIds);
+            filters.study_id = queryBuilder.whereIn('s.id', [params.length]);
         }
 
 

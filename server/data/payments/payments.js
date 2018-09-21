@@ -115,7 +115,7 @@ module.exports = {
         }
 
         if (from === 'ris') {
-            whereQuery.push(` payer_type = 'patient'`);
+            whereQuery.push(' payer_type = \'patient\'');
         }
 
         if (notes) {
@@ -1065,23 +1065,24 @@ module.exports = {
         let {
             payerId,
             cpt_code,
-            display_description,
             sortField,
             sortOrder,
             study_dt,
+            accession_no,
+            study_description,
             customDt
         } = params;
 
-        let whereQuery=[];
+
+        let whereQuery = [];
+
 
         params.sortOrder = params.sortOrder || ' ASC';
 
-        whereQuery.push(` o.patient_id = ${payerId}
-                                AND NOT sc.has_deleted
-                                AND NOT o.has_deleted
-                                AND NOT c.has_deleted
-                                AND o.order_status NOT IN ('CAN','NOS')
-                                AND s.study_status NOT IN ('CAN','NOS')`);
+        whereQuery.push(`  o.patient_id = '${payerId}'
+                                  AND NOT o.has_deleted
+                                  AND o.order_status NOT IN ('CAN','NOS')
+                                  AND studies.study_status NOT IN ('CAN','NOS') `);
 
         if(study_dt){
             whereQuery.push(generator('study_dt', study_dt));
@@ -1089,36 +1090,38 @@ module.exports = {
             whereQuery.push(generator('study_dt', customDt));
         }
 
-        if (cpt_code) {
-            whereQuery.push(`sc.cpt_code ILIKE '%${cpt_code}%'`);
+        if (accession_no){
+            whereQuery.push(` accession_no ILIKE '%${accession_no}%' `);
         }
 
-        if (display_description) {
-            whereQuery.push(`c.display_description ILIKE '%${display_description}%'`);
+        if(study_description){
+            whereQuery.push(` study_description ILIKE '%${study_description}%'`);
         }
 
-        const sql = SQL`
-                        SELECT
-                            sc.id,
-                            sc.cpt_code_id,
-                            sc.cpt_code,
-                            c.display_description,
-                            s.accession_no,
-                            s.study_dt::text,
-                            s.facility_id
-                        FROM
-                            study_cpt sc
-                            INNER JOIN
-                                studies s ON sc.study_id = s.id
-                            INNER JOIN
-                                orders o ON s.order_id = o.id
-                            INNER JOIN
-                                cpt_codes c ON sc.cpt_code_id = c.id
-                            `;
 
-        if (whereQuery.length) {
+        if (cpt_code){
+            whereQuery.push(` array_to_string(cc.cpt_code, ', ') LIKE '%${cpt_code}%' `);
+        }
+
+
+        let sql = SQL` SELECT     studies.id 
+                                    , studies.accession_no 
+                                    , studies.study_description 
+                                    , studies.study_dt::text 
+                                    , studies.facility_id 
+                                    , cc.cpt_code 
+                        FROM       studies 
+                        INNER JOIN orders o ON studies.order_id = o.id 
+                        JOIN lateral(  SELECT study_id, 
+                                              array_agg(scp.cpt_code) AS cpt_code 
+                                        FROM  study_cpt scp 
+                                        WHERE NOT scp.has_deleted 
+                                        GROUP BY 1 ) cc ON cc.study_id = studies.id 
+                        `;
+
+        if(whereQuery.length) {
             sql.append(SQL` WHERE `)
-                .append(whereQuery.join(' AND '));
+                .append(whereQuery.join( ' AND '));
         }
 
         sql.append(SQL` ORDER BY  `)
@@ -1128,5 +1131,4 @@ module.exports = {
 
         return await query(sql);
     }
-
 };

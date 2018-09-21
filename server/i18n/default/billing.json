@@ -200,7 +200,8 @@
             "allActivity": "All Activity",
             "activityByDate": "Activity By Date",
             "comment": "Include All Comments",
-            "unappliedPay": "Unapplied Payments"
+            "unappliedPay": "Unapplied Payments",
+            "studyDescription": "Study Description"
         },
         "refund": {
             "scheduleDate": "Schedule Date",
