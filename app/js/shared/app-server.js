@@ -58,11 +58,8 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                         app.sessionTimeout = parseInt(app.sessionTimeout);
                     }
 
-                    if (!app.customStudyStatus)
-                        app.customStudyStatus = [];
-                    
-                    if (!app.customOrderStatus)
-                        app.customOrderStatus = [];
+                    app.customStudyStatus = [];
+                    app.customOrderStatus = [];
 
                     if (Array.isArray(app.custom_study_status)) {
                         app.custom_study_status.forEach(function (status) {
