@@ -423,7 +423,7 @@ module.exports = {
                     , id
                     , ${screenName}
                     , 'claims'
-                    , 'New Followup for Claim created ' || insert_followup.id || '  Claim ID  ' ||  insert_followup.claim_id
+                    , 'New Follow Up created for Claim ID: ' ||  insert_followup.claim_id
                     , ${clientIp}
                     , json_build_object(
                         'old_values', COALESCE(old_values, '{}'),
@@ -441,7 +441,7 @@ module.exports = {
                     , id
                     , ${screenName}
                     , 'claims'
-                    , 'Follow Up Updated  ' || update_followup.id ||' Date ' || update_followup.followup_dt || ' Claim ID  ' || update_followup.claim_id
+                    , 'Update: Follow Up Date ( ' || update_followup.followup_dt || ' ) Updated for Claim ID: ' || update_followup.claim_id
                     , ${clientIp}
                     , json_build_object(
                         'old_values', COALESCE(old_values, '{}'),

@@ -375,7 +375,7 @@ module.exports = {
                                     , id
                                     , '${screenName}'
                                     , '${moduleName}'
-                                    , 'Follow Up Deleted  ' || update_followup.id || 'Claim ID  ' || update_followup.claim_id
+                                    , 'Follow Up Deleted for Claim ID: ' || update_followup.claim_id
                                     , '${clientIp}'
                                     , json_build_object(
                                         'old_values', COALESCE(old_values, '{}'),
@@ -429,7 +429,7 @@ module.exports = {
                         , id
                         , '${screenName}'
                         , '${moduleName}'
-                        , 'New Followup/Billing Notes for Claim created ' || insert_followup.id || 'Claim ID  ' ||  insert_followup.claim_id
+                        , 'New Followup/Billing Notes created for Claim ID: ' ||  insert_followup.claim_id
                         , '${clientIp}'
                         , json_build_object(
                             'old_values', COALESCE(old_values, '{}'),
@@ -447,7 +447,7 @@ module.exports = {
                         , id
                         , '${screenName}'
                         , '${moduleName}'
-                        , 'Follow Up Updated/Billing Notes  ' || update_followup.id || 'Claim ID  ' || update_followup.claim_id
+                        , 'Follow Up Updated/Billing Notes for Claim ID: ' || update_followup.claim_id
                         , '${clientIp}'
                         , json_build_object(
                             'old_values', COALESCE(old_values, '{}'),
