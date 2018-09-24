@@ -581,7 +581,7 @@ module.exports = {
 					FROM   patient_insurances
 					LEFT JOIN billing.insurance_provider_details  other_ins_details ON other_ins_details.insurance_provider_id = patient_insurances.insurance_provider_id
 									WHERE  patient_insurances.id =
-						(  CASE COALESCE(${params.payerType}, payer_type)
+						(  CASE payer_type
 						WHEN 'primary_insurance' THEN secondary_patient_insurance_id
 						WHEN 'secondary_insurance' THEN primary_patient_insurance_id
 						WHEN 'tertiary_insurance' THEN primary_patient_insurance_id
