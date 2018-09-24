@@ -702,7 +702,6 @@ define(['jquery',
                 self.provider_id = response.provider_contact_id;
                 self.provider_group_id = response.provider_group_id;
                 self.insurance_provider_id = response.insurance_provider_id;
-
                 // self.showAppliedByPaymentsGrid(paymentID, response.payer_type, self.payer_id);
                 if (!self.casCodesLoaded)
                     self.setCasGroupCodesAndReasonCodes();
@@ -711,7 +710,6 @@ define(['jquery',
                     self.loadSelectedGrid(e, paymentID, response.payer_type, self.payer_id);
                 });
                 self.showStudyCpt(self.payer_id,self.study_dt);
-               // $('#selectPayerType').focus();
             },
 
             showStudyCpt: function (payerId, study_dt) {

@@ -1080,9 +1080,9 @@ module.exports = {
         params.sortOrder = params.sortOrder || ' ASC';
 
         whereQuery.push(`  o.patient_id = '${payerId}'
-                                  AND NOT o.has_deleted
-                                  AND o.order_status NOT IN ('CAN','NOS')
-                                  AND studies.study_status NOT IN ('CAN','NOS') `);
+                           AND NOT o.has_deleted
+                           AND o.order_status NOT IN ('CAN','NOS')
+                           AND studies.study_status NOT IN ('CAN','NOS') `);
 
         if(study_dt){
             whereQuery.push(generator('study_dt', study_dt));
@@ -1104,19 +1104,23 @@ module.exports = {
         }
 
 
-        let sql = SQL` SELECT     studies.id 
-                                    , studies.accession_no 
-                                    , studies.study_description 
-                                    , studies.study_dt::text 
-                                    , studies.facility_id 
-                                    , cc.cpt_code 
-                        FROM       studies 
+        let sql = SQL` SELECT 
+                               studies.id 
+                             , studies.accession_no 
+                             , studies.study_description 
+                             , studies.study_dt::text 
+                             , studies.facility_id 
+                             , cc.cpt_code 
+                        FROM studies 
                         INNER JOIN orders o ON studies.order_id = o.id 
-                        JOIN lateral(  SELECT study_id, 
-                                              array_agg(scp.cpt_code) AS cpt_code 
-                                        FROM  study_cpt scp 
+                        JOIN lateral(
+                                        SELECT
+                                             study_id
+                                            , array_agg(scp.cpt_code) AS cpt_code 
+                                        FROM study_cpt scp 
                                         WHERE NOT scp.has_deleted 
-                                        GROUP BY 1 ) cc ON cc.study_id = studies.id 
+                                        GROUP BY study_id 
+                                      ) cc ON cc.study_id = studies.id 
                         `;
 
         if(whereQuery.length) {
