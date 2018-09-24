@@ -115,7 +115,7 @@ module.exports = {
         }
 
         if (from === 'ris') {
-            whereQuery.push(' payer_type = \'patient\'');
+            whereQuery.push(` payer_type = 'patient' `);
         }
 
         if (notes) {
