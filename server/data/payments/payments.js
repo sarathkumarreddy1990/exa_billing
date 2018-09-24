@@ -1073,36 +1073,7 @@ module.exports = {
             customDt
         } = params;
 
-
-        let whereQuery = [];
-
-
         params.sortOrder = params.sortOrder || ' ASC';
-
-        whereQuery.push(`  o.patient_id = '${payerId}'
-                           AND NOT o.has_deleted
-                           AND o.order_status NOT IN ('CAN','NOS')
-                           AND studies.study_status NOT IN ('CAN','NOS') `);
-
-        if(study_dt){
-            whereQuery.push(generator('study_dt', study_dt));
-        }else if(customDt){
-            whereQuery.push(generator('study_dt', customDt));
-        }
-
-        if (accession_no){
-            whereQuery.push(` accession_no ILIKE '%${accession_no}%' `);
-        }
-
-        if(study_description){
-            whereQuery.push(` study_description ILIKE '%${study_description}%'`);
-        }
-
-
-        if (cpt_code){
-            whereQuery.push(` array_to_string(cc.cpt_code, ', ') LIKE '%${cpt_code}%' `);
-        }
-
 
         let sql = SQL` SELECT 
                                studies.id 
@@ -1121,11 +1092,32 @@ module.exports = {
                                         WHERE NOT scp.has_deleted 
                                         GROUP BY study_id 
                                       ) cc ON cc.study_id = studies.id 
+                        WHERE o.patient_id = ${payerId}
+                           AND NOT o.has_deleted
+                           AND o.order_status NOT IN ('CAN','NOS')
+                           AND studies.study_status NOT IN ('CAN','NOS') 
                         `;
 
-        if(whereQuery.length) {
-            sql.append(SQL` WHERE `)
-                .append(whereQuery.join( ' AND '));
+        if(study_dt){
+            sql.append(` AND `)
+                .append(generator('study_dt', study_dt));
+        }
+        else if(customDt){
+            sql.append(` AND `)
+                .append(generator('study_dt', customDt));
+        }
+
+        if (accession_no){
+            sql.append(` AND  accession_no ILIKE '%${accession_no}%' `);
+        }
+
+        if(study_description){
+            sql.append(` AND study_description ILIKE '%${study_description}%'`);
+        }
+
+
+        if (cpt_code){
+            sql.append(` AND array_to_string(cc.cpt_code, ', ') LIKE '%${cpt_code}%' `);
         }
 
         sql.append(SQL` ORDER BY  `)
