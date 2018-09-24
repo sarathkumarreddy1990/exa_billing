@@ -4,58 +4,58 @@ var invoiceData = [
   {
     "claim_details": [
       {
-        "invoice_no": "1012",
-        "invoice_date": "submitted_dt",
-        "referring_physician_name": "El-Khal, Jamaal MD",
-        "reason_for_exam": "",
+        "invoice_no": "Invoice1",
+        "invoice_date": "YYYY-MM-DD",
+        "referring_physician_name": "Test, Provider ref",
+        "reason_for_exam": "TEST",
         "patient_adrress_details": {
-          "patient_address1": "JOHN DAVID HOME",
-          "patient_address2": "1ST STREET",
-          "patient_city": "RALEIGH",
-          "patient_state": "NC",
-          "patient_zip": "27601"
+          "patient_address1": "Test PAT Add1",
+          "patient_address2": "Test PAT Add2",
+          "patient_city": "Test PAT CITY",
+          "patient_state": "TEST PAT STATE",
+          "patient_zip": "11111"
         },
-        "claim_balance": "($210.00)",
-        "claim_dt": "2018-06-27T11:30:00-07:00",
-        "account_no": "MMD130431",
+        "claim_balance": "$0.00",
+        "claim_dt": "YYYY-MM-DDTHH:MM:SS-MS:00",
+        "account_no": "TestAcc1",
         "payment_details": "",
-        "facility_name": "AMI POMONA",
+        "facility_name": "Test Facility",
         "facility_adrress_details": {
-          "facility_address1": "1818 N. Orange Grove Ave",
-          "facility_address2": "Suite 101",
-          "facility_city": "Pomona",
-          "facility_state": "CA",
-          "facility_zip": "91767"
+          "facility_address1": "TEST FAC Add1",
+          "facility_address2": "TEST FAC Add2",
+          "facility_city": "TEST FAC CITY",
+          "facility_state": "TEST FAC STATE",
+          "facility_zip": "11111"
         },
-        "claim_no": 5457,
-        "patient_name": "David, John",
-        "birth_date": "1999-12-27",
+        "claim_no": "CLAIM01",
+        "patient_name": "TEST, PAT1",
+        "birth_date": "YYYY-MM-DD",
         "responsinble_party_address": {
-          "name": "EAST VALLEY_LA PUENTE",
-          "address": "17840 VILLACORTA",
-          "address2": "",
-          "city": "LA PUENTE",
-          "state": "CA",
-          "zip_code": "91744",
-          "phone_no": "(626)919-5724"
+          "name": "Test Responsible",
+          "address": "Test Responsible Add1",
+          "address2": "Test Responsible Add2",
+          "city": "Test Responsible CITY",
+          "state": "Test Responsible STATE",
+          "zip_code": "11111",
+          "phone_no": "(222)222-2222"
         },
         "billing_provider_details": {
-          "name": "MONISH LAXPATI MD INC",
-          "address": "1818 N ORANGE GROVE AVE #101",
-          "address2": "tt",
-          "city": "POMONA",
-          "state": "Alabama",
-          "zip_code": "91767",
-          "phone_no": "(747)542-4452"
+          "name": "Test Billing Provider",
+          "address": "Test Billing Add1",
+          "address2": "Test Billing Add2",
+          "city": "Test Billing CITY",
+          "state": "Test Billing State",
+          "zip_code": "11111",
+          "phone_no": "(333)333-3333"
         }
       }
     ],
     "charge_details": [
       {
-        "claim_no": 5457,
-        "display_code": "T1017",
-        "display_description": "CASE MANAGEMENT",
-        "service_date": "2018-06-28T13:40:00-07:00",
+        "claim_no": "CLAIM01",
+        "display_code": "CPT01",
+        "display_description": "Test CPT",
+        "service_date": "YYYY-MM-DDTHH:MM:SS-MS:00",
         "get_charge_icds": null,
         "modifier1": null,
         "modifier2": null,
@@ -67,24 +67,22 @@ var invoiceData = [
     ],
     "payment_details": [
       {
-        "payment_dt": "2018-07-18T03:56:48.217714-07:00",
+        "payment_dt": "YYYY-MM-DDTHH:MM:SS.MS-00:00",
         "payer_type": "patient",
-        "payer_name": "manoj, manoj",
-        "claim_id": 5457,
-        "payment_id": 1624,
-        "payments_applied_total": "$160.00",
-        "ajdustments_applied_total": "$20.00",
-        "amount_type" : "payment"
+        "payer_name": "Test, Patient",
+        "claim_id": "CLAIM01",
+        "payment_id": "PAYMENT01",
+        "payments_applied_total": "$01.00",
+        "ajdustments_applied_total": "$0.00"
       },
       {
-        "payment_dt": "2018-07-19T01:15:56.125805-07:00",
+        "payment_dt": "YYYY-MM-DDTHH:MM:SS.MS-00:00",
         "payer_type": "insurance",
-        "payer_name": "ATTYS APPEL & RIMBACH",
-        "claim_id": 5457,
-        "payment_id": 1626,
-        "payments_applied_total": "$200.00",
-        "ajdustments_applied_total": null,
-        "amount_type" : "adjustment"
+        "payer_name": "Test Insurance",
+        "claim_id": "CLAIM01",
+        "payment_id": "PAYMENT02",
+        "payments_applied_total": "$02.00",
+        "ajdustments_applied_total": null
       }
     ]
   }
