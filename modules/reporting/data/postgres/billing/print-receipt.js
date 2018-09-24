@@ -4,9 +4,7 @@ const _ = require('lodash')
     , dataHelper = require('../dataHelper')
     , queryBuilder = require('../queryBuilder')
     , logger = require('../../../../../logger');
-
 // generate query template ***only once*** !!!
-
 const chargePaymentReceiptDataSetQueryTemplate = _.template(`
 WITH company_details AS (
 	SELECT
@@ -28,7 +26,6 @@ WITH company_details AS (
          , p.patient_info->'c1State'                             AS state
          , p.patient_info->'c1Zip'                               AS zip
          , (SELECT NEXTVAL('billing.receipt_no_seq'))            AS receipt_no
-
 	FROM
         public.orders o
         INNER JOIN public.companies c ON c.id = o.company_id
@@ -36,19 +33,18 @@ WITH company_details AS (
         WHERE  <%= patient_id_det %>
 )
 ,charge_details AS (
-                SELECT
-                    TRIM(s.study_description)                          AS cpt_description
-                  , row_number() OVER (ORDER BY s.id ASC) charge_index
-                FROM
-                    studies s
-                INNER JOIN facilities AS f  ON f.id = s.facility_id
-                WHERE
-                    NOT s.has_deleted
-               <% if(study_id) { %>AND <% print(study_id);} %>
+	SELECT
+	    TRIM(s.study_description)      AS cpt_description          
+      , row_number() OVER (ORDER BY s.id ASC) charge_index            
+	FROM  public.studies s
+    INNER JOIN public.facilities AS f  ON f.id = s.facility_id
+    WHERE
+        NOT s.has_deleted
+        <% if(study_id) { %>AND <% print(study_id);} %>
 )
 ,payments AS (
  SELECT
-        p.accounting_dt::text
+        p.accounting_date::text
         ,p.mode
         ,p.card_number
         ,p.id AS payment_id
@@ -85,45 +81,37 @@ SELECT  ( SELECT COALESCE(json_agg(row_to_json(company_details)),'[]') company_d
                                              ) AS payments
                                 ) AS payments
 `);
-
 const api = {
     getReportData: (initialReportData) => {
         if (initialReportData.report.params.cptCodeIds) {
             initialReportData.report.params.cptCodeIds = initialReportData.report.params.cptCodeIds.map(Number);
-
         }
-
         if (initialReportData.report.params.studyIds) {
             initialReportData.report.params.studyIds = initialReportData.report.params.studyIds.map(Number);
         }
-
         return Promise.join(
             dataHelper.getCptCodesInfo(initialReportData.report.params.companyId, initialReportData.report.params.cptCodeIds),
             dataHelper.getStudyInfo(initialReportData.report.params.companyId, initialReportData.report.params.studyIds),
             api.createchargePaymentReceiptDataSet(initialReportData.report.params),
-            (cptCodesInfo,studyInfo, chargePaymentReceiptDataSet) => {
+            (cptCodesInfo, studyInfo, chargePaymentReceiptDataSet) => {
                 initialReportData.lookups.cptCodes = cptCodesInfo || [];
-                initialReportData.lookups.stuydIds = studyInfo || [];
+                initialReportData.lookups.studyId = studyInfo || [];
                 initialReportData.dataSets.push(chargePaymentReceiptDataSet);
                 initialReportData.dataSetCount = initialReportData.dataSets.length;
                 return initialReportData;
             });
     },
-
     transformReportData: (rawReportData) => {
         return Promise.resolve(rawReportData);
     },
-
     getJsReportOptions: (reportParams, reportDefinition) => {
         return reportDefinition.jsreport[reportParams.reportFormat];
     },
-
     createchargePaymentReceiptDataSet: (reportParams) => {
         const queryContext = api.getchargePaymentReceiptDataSetQueryContext(reportParams);
         const query = chargePaymentReceiptDataSetQueryTemplate(queryContext.templateData);
         return db.queryForReportData(query, queryContext.queryParams);
     },
-
     getchargePaymentReceiptDataSetQueryContext: (reportParams) => {
         const params = [];
         const filters = {
@@ -132,37 +120,24 @@ const api = {
             patient_id_det: null,
             payment_id: null,
             study_id: null
-
         };
-
         if (reportParams.patient_id) {
             params.push(reportParams.patient_id);
             filters.patient_id = queryBuilder.where('p.patient_id', '=', [params.length]);
             filters.patient_id_det = queryBuilder.where('p.id', '=', [params.length]);
         }
-
         if (reportParams.payment_id) {
             params.push(reportParams.payment_id);
             filters.payment_id = queryBuilder.where('p.id', '=', [params.length]);
-
         }
-
-        if (reportParams.cptCodeIds) {
-            params.push(reportParams.cptCodeIds);
-            filters.cptCodeId = queryBuilder.whereIn('sc.id', [params.length]);
-        }
-
         if (reportParams.studyIds) {
             params.push(reportParams.studyIds);
             filters.study_id = queryBuilder.whereIn('s.id', [params.length]);
         }
-
-
         return {
             queryParams: params,
             templateData: filters
         }
     }
 }
-
 module.exports = api;

@@ -2570,8 +2570,8 @@ define(['jquery',
                         patient_id: self.patient_id,
                         flag: 'payment-print-pdf'
                     }
+                    self.paymentEditPDF.onReportViewClick(e, paymentEditPDFArgs);
                 }
-                self.paymentEditPDF.onReportViewClick(e, paymentEditPDFArgs);
             },
 
             disableSelectedReasonCode: function (e) {
