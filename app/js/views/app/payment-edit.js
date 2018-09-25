@@ -368,6 +368,8 @@ define(['jquery',
                         dataType: 'json',
                         delay: 250,
                         data: function (params) {
+                            if (params.term === undefined && $('#select2-txtautoPayerPIP-container').text().toLowerCase() != 'select insurance')
+                                params.term = $('#select2-txtautoPayerPIP-container').text();
                             return {
                                 page: params.page || 1,
                                 q: params.term || '',
@@ -411,6 +413,10 @@ define(['jquery',
                     return res.insurance_name;
                 }
                 $('#select2-txtautoPayerPIP-container').html('Select Insurance');
+                $('#txtautoPayerPIP').on('select2:open', function (event) {
+                    if ($('#select2-txtautoPayerPIP-container') && $('#select2-txtautoPayerPIP-container').text().toLowerCase() != 'select insurance')
+                        $('#txtautoPayerPIP').data('select2').dropdown.$search.val($('#select2-txtautoPayerPIP-container').text());
+                });
             },
 
             bindInsuranceDetails: function (res) {
@@ -431,6 +437,8 @@ define(['jquery',
                         dataType: 'json',
                         delay: 250,
                         data: function (params) {
+                            if (params.term === undefined && $('#select2-txtautoPayerPP-container').text().toLowerCase() != 'select patient')
+                                params.term = $('#select2-txtautoPayerPP-container').text();
                             return {
                                 page: params.page || 1,
                                 q: params.term || '',
@@ -473,6 +481,10 @@ define(['jquery',
                     return res.full_name;
                 }
                 $('#select2-txtautoPayerPP-container').html('Select Patient');
+                $('#txtautoPayerPP').on('select2:open', function (event) {
+                    if ($('#select2-txtautoPayerPP-container') && $('#select2-txtautoPayerPP-container').text().toLowerCase() != 'select patient')
+                        $('#txtautoPayerPP').data('select2').dropdown.$search.val($('#select2-txtautoPayerPP-container').text());
+                });
             },
 
             setOFAutoComplete: function () {
@@ -484,6 +496,8 @@ define(['jquery',
                         dataType: 'json',
                         delay: 250,
                         data: function (params) {
+                            if (params.term === undefined && $('#select2-txtautoPayerPOF-container').text().toLowerCase() != 'select ordering facility')
+                                params.term = $('#select2-txtautoPayerPOF-container').text();
                             return {
                                 page: params.page || 1,
                                 q: params.term || '',
@@ -527,6 +541,10 @@ define(['jquery',
                     return res.group_name;
                 }
                 $('#select2-txtautoPayerPOF-container').html('Select Ordering facility');
+                $('#txtautoPayerPOF').on('select2:open', function (event) {
+                    if ($('#select2-txtautoPayerPOF-container') && $('#select2-txtautoPayerPOF-container').text().toLowerCase() != 'select ordering facility')
+                        $('#txtautoPayerPOF').data('select2').dropdown.$search.val($('#select2-txtautoPayerPOF-container').text());
+                });
             },
 
             setProviderAutoComplete: function () {
@@ -538,6 +556,8 @@ define(['jquery',
                         dataType: 'json',
                         delay: 250,
                         data: function (params) {
+                            if (params.term === undefined && $('#select2-txtautoPayerPR-container').text().toLowerCase() != 'select provider')
+                                params.term = $('#select2-txtautoPayerPR-container').text();
                             return {
                                 page: params.page || 1,
                                 q: params.term || '',
@@ -597,6 +617,10 @@ define(['jquery',
                     return res.full_name;
                 }
                 $('#select2-txtautoPayerPR-container').html('Select Provider');
+                $('#txtautoPayerPR').on('select2:open', function (event) {
+                    if ($('#select2-txtautoPayerPR-container') && $('#select2-txtautoPayerPR-container').text().toLowerCase() != 'select provider')
+                        $('#txtautoPayerPR').data('select2').dropdown.$search.val($('#select2-txtautoPayerPR-container').text());
+                });
             },
 
             getProviderAddressInfo: function (providerInfo) {
