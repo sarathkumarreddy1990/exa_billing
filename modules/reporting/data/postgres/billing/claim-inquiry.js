@@ -179,7 +179,7 @@ const claimInquiryDataSetQueryTemplate1 = _.template(`
                  WHEN bp.payer_type = 'ordering_provider' THEN
                        p.full_name
             END as comments,
-            to_char(bp.accounting_dt::date,'MM/DD/YYYY') as commented_dt,
+            to_char(bp.accounting_date,'MM/DD/YYYY') as commented_dt
             sum(pa.amount) as amount,
             u.username as commented_by,
             CASE amount_type
@@ -559,7 +559,7 @@ const api = {
         // Date filter  (CPT Date)
         if (reportParams.cmtFromDate != '' && reportParams.cmtToDate != '') {
             let filterDate = reportParams.cptDateOption ? reportParams.cptDateOption : 'payment_dt';
-            filters.cptPaymentDate = reportParams.cptDateOption == 'accounting_dt' ? false : true;
+            filters.cptPaymentDate = reportParams.cptDateOption !== 'accounting_date';
             if (reportParams.cptDateFrom === reportParams.toDate && (reportParams.cptDateFrom && reportParams.toDate)) {
                 params.push(reportParams.cptDateFrom);
                 filters.CPTDate = queryBuilder.whereDate('bp.' + filterDate, '=', [params.length]);

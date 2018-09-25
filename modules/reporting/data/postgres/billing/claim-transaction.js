@@ -331,7 +331,7 @@ const api = {
         // Date filter  (CPT Date)
         if (reportParams.cmtFromDate != '' && reportParams.cmtToDate != '') {
             let filterDate = reportParams.cptDateOption ? reportParams.cptDateOption : 'payment_dt';
-            filters.cptPaymentDate = reportParams.cptDateOption == 'accounting_dt' ? false : true;
+            filters.cptPaymentDate = reportParams.cptDateOption !== 'accounting_date';
             if (reportParams.cptDateFrom === reportParams.toDate && (reportParams.cptDateFrom && reportParams.toDate)) {
                 params.push(reportParams.cptDateFrom);
                 filters.CPTDate = queryBuilder.whereDateInTz('bp.' + filterDate, '=', [params.length], 'f.time_zone');
