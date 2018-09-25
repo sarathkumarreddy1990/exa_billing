@@ -15,13 +15,14 @@ WITH agg_claim AS(
     	, f.id as facility_id
         , bc.id AS claim_id
         , payer_type
-    	, (SELECT claim_balance_total FROM billing.get_claim_totals(bc.id)) as claim_balance
+        , (SELECT claim_balance_total FROM billing.get_claim_totals(bc.id)) as claim_balance
+        , primary_patient_insurance_id
+        , secondary_patient_insurance_id
+        , tertiary_patient_insurance_id
     FROM
     	billing.claims bc
     INNER JOIN public.facilities f ON f.id = bc.facility_id
-    LEFT JOIN public.patient_insurances ppi ON ppi.id = CASE WHEN payer_type = 'primary_insurance' THEN primary_patient_insurance_id
-                                                            WHEN payer_type = 'secondary_insurance' THEN secondary_patient_insurance_id
-                                                            WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id END
+    LEFT JOIN public.patient_insurances ppi ON ppi.id = bc.primary_patient_insurance_id
     LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
     LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
     <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
@@ -31,8 +32,69 @@ WITH agg_claim AS(
      <% if (facilityIds) { %>AND <% print(facilityIds); } %>
      <% if(billingProID) { %> AND <% print(billingProID); } %>
   )
-,
-charge_details AS(
+, ins_paid as (
+    SELECT bc.claim_id,
+         bp.insurance_provider_id,
+        COALESCE( bc.primary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id, false) is_primary,
+        COALESCE( bc.secondary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id, false) is_secondary,
+        COALESCE( bc.tertiary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id, false) is_tertiary
+    FROM agg_claim bc
+         INNER JOIN billing.charges bch ON  bch.claim_id = bc.claim_id
+         INNER JOIN billing.payment_applications bpa ON  bpa.charge_id = bch.id
+         INNER JOIN billing.payments bp ON  bp.id = bpa.payment_id
+         LEFT JOIN public.patient_insurances ppi ON ppi.id IN ( bc.primary_patient_insurance_id, bc.secondary_patient_insurance_id, bc.tertiary_patient_insurance_id )
+     WHERE bp.payer_type = 'insurance'
+     GROUP BY
+     bc.claim_id,
+     bp.insurance_provider_id,
+     COALESCE( bc.primary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id, false) ,
+     COALESCE( bc.secondary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id, false) ,
+     COALESCE( bc.tertiary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id, false)
+)
+, paid_insurance AS (
+    SELECT
+           claim_id
+         , insurance_provider_id
+         , is_primary
+         , is_secondary
+         , is_tertiary
+         , false is_others
+    FROM  ins_paid
+    WHERE (is_primary OR is_secondary OR is_tertiary)
+)
+, others_paid AS (
+    SELECT
+          claim_id
+            , insurance_provider_id
+        , false is_primary
+        , false is_secondary
+        , false is_tertiary
+        , NOT is_primary AND NOT is_secondary AND NOT is_tertiary is_others
+    FROM  ins_paid
+    WHERE NOT is_primary AND NOT is_secondary AND NOT is_tertiary
+    AND insurance_provider_id NOT IN (SELECT insurance_provider_id FROM paid_insurance WHERE ins_paid.claim_id = paid_insurance.claim_id)
+
+)
+, insurance_payment_details AS (
+    SELECT
+        paid_insurance.claim_id
+        , insurance_provider_id
+        , is_primary
+        , is_secondary
+        , is_tertiary
+        , is_others
+    FROM  paid_insurance
+    UNION ALL
+    SELECT
+        claim_id
+        , insurance_provider_id
+        , is_primary
+        , is_secondary
+        , is_tertiary
+        , is_others
+    FROM others_paid
+)
+, charge_details AS(
 	SELECT
         SUM(ch.bill_fee * ch.units) AS total_bill_fee
       , SUM(ch.allowed_amount * ch.units) AS expected_amount
@@ -52,7 +114,11 @@ charge_details AS(
     FROM agg_claim
     INNER JOIN billing.charges ch ON ch.claim_id = agg_claim.claim_id
     INNER JOIN billing.payment_applications bpa ON bpa.charge_id = ch.id
-    WHERE agg_claim.payer_type = 'primary_insurance'
+    INNER JOIN billing.payments pa ON pa.id = bpa.payment_id
+    INNER JOIN insurance_payment_details ON insurance_payment_details.insurance_provider_id = pa.insurance_provider_id
+    WHERE (insurance_payment_details.is_primary  OR insurance_payment_details.is_others) AND NOT insurance_payment_details.is_secondary AND NOT insurance_payment_details.is_tertiary
+    AND insurance_payment_details.claim_id = agg_claim.claim_id
+    AND pa.payer_type = 'insurance'
     GROUP BY agg_claim.claim_id
 ),
 sec_ins_payment AS (
@@ -62,7 +128,11 @@ sec_ins_payment AS (
     FROM agg_claim
     INNER JOIN billing.charges ch ON ch.claim_id = agg_claim.claim_id
 	INNER JOIN billing.payment_applications bpa ON bpa.charge_id = ch.id
-    WHERE agg_claim.payer_type = 'secondary_insurance'
+    INNER JOIN billing.payments pa ON pa.id = bpa.payment_id
+    INNER JOIN insurance_payment_details ON insurance_payment_details.insurance_provider_id = pa.insurance_provider_id
+    WHERE insurance_payment_details.is_secondary AND NOT insurance_payment_details.is_others AND NOT insurance_payment_details.is_primary AND NOT insurance_payment_details.is_tertiary
+    AND insurance_payment_details.claim_id = agg_claim.claim_id
+    AND pa.payer_type = 'insurance'
     GROUP BY agg_claim.claim_id
 ),
 ter_ins_payment AS (
@@ -72,7 +142,11 @@ ter_ins_payment AS (
     FROM agg_claim
     INNER JOIN billing.charges ch ON ch.claim_id = agg_claim.claim_id
     INNER JOIN billing.payment_applications bpa ON bpa.charge_id = ch.id
-    WHERE agg_claim.payer_type = 'tertiary_insurance'
+    INNER JOIN billing.payments pa ON pa.id = bpa.payment_id
+    INNER JOIN insurance_payment_details ON insurance_payment_details.insurance_provider_id = pa.insurance_provider_id
+    WHERE insurance_payment_details.is_tertiary AND NOT insurance_payment_details.is_others  AND NOT insurance_payment_details.is_primary AND NOT insurance_payment_details.is_secondary
+    AND insurance_payment_details.claim_id = agg_claim.claim_id
+    AND pa.payer_type = 'insurance'
     GROUP BY agg_claim.claim_id
 ),
 payment_details AS (
@@ -102,6 +176,8 @@ patient_payment AS(
     FROM agg_claim
     INNER JOIN billing.charges ch ON ch.claim_id = agg_claim.claim_id
     INNER JOIN billing.payment_applications bpa ON bpa.charge_id = ch.id AND bpa.amount_type = 'payment'
+    INNER JOIN billing.payments bp ON bp.id = bpa.payment_id
+    WHERE bp.payer_type = 'patient'
     GROUP BY agg_claim.claim_id
 )
 SELECT
@@ -151,7 +227,7 @@ LEFT JOIN ter_ins_payment ON agg_claim.claim_id = ter_ins_payment.claim_id
 LEFT JOIN total_credit ON agg_claim.claim_id = total_credit.claim_id
 LEFT JOIN charge_details ON agg_claim.claim_id = charge_details.claim_id
 LEFT JOIN patient_payment ON agg_claim.claim_id = patient_payment.claim_id
-    ORDER BY "Ins Class"
+    ORDER BY "Ins Class", "Facility Name" DESC
 `);
 
 const api = {
