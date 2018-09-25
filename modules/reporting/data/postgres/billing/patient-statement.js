@@ -56,7 +56,7 @@ WITH claim_data AS (
                 WHEN bp.payer_type = 'ordering_provider' THEN p.full_name
            END as comments,
            bp.accounting_date as commented_dt,
-           pa.amount as amount,
+           sum(pa.amount) as amount,
            u.username as commented_by,
            CASE amount_type
                 WHEN 'adjustment' THEN 'Adj'
@@ -77,6 +77,7 @@ WITH claim_data AS (
     LEFT JOIN public.provider_groups pg on pg.id = bp.provider_group_id
     LEFT JOIN public.provider_contacts pc on pc.id = bp.provider_contact_id
     LEFT JOIN public.providers p on p.id = pc.provider_id
+    GROUP BY bc.claim_id,amount_type,comments,bp.id,u.username,code
     ),
 
     main_detail_cte as (
