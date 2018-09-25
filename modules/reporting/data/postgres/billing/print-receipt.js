@@ -35,7 +35,8 @@ WITH company_details AS (
 ,charge_details AS (
 	SELECT
 	    TRIM(s.study_description)      AS cpt_description          
-      , row_number() OVER (ORDER BY s.id ASC) charge_index            
+      , row_number() OVER (ORDER BY s.id ASC) charge_index   
+      , to_char(timezone(f.time_zone, s.study_dt), 'MM/DD/YYYY') AS study_dt         
 	FROM  public.studies s
     INNER JOIN public.facilities AS f  ON f.id = s.facility_id
     WHERE
