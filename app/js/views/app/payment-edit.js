@@ -2582,20 +2582,20 @@ define(['jquery',
                 var self = this;
 
                 if (self.from === 'ris') {
-                    var studyCptIDs = [];
+                    var studyIds = [];
                     for (var i = 0; i < $("#tblStudyCpt").find('input[name=chkStudyCpt]:checked').length; i++) {
                         var rowId = $("#tblStudyCpt").find('input[name=chkStudyCpt]:checked')[i].parentNode.parentNode.id;
-                        studyCptIDs.push(rowId);
+                        studyIds.push(rowId);
                     }
 
-                    if (studyCptIDs && studyCptIDs.length == 0) {
+                    if (studyIds && studyIds.length == 0) {
                         commonjs.showWarning('Please Select Study CPT');
                         return false;
                     }
                     else {
                         self.paymentEditPDF = new paymentEditPDF({ el: $('#modal_div_container') });
                         var paymentPDFArgs = {
-                            studyCptIDs: studyCptIDs,
+                            studyIds: studyIds,
                             flag: 'RISPrintReceipt',
                             patient_id: self.patient_id,
                             payment_id: self.payment_id

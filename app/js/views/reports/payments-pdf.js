@@ -74,7 +74,7 @@ define([
                 this.viewModel.paymentOptions = $('#ddlPaymentOption').val();
                 if (reportArgs && reportArgs.flag == 'RISPrintReceipt') {
                     var urlParams = {
-                        studyIds: reportArgs.studyCptIDs,
+                        studyIds: reportArgs.studyIds,
                         patient_id: reportArgs.patient_id,
                         payment_id: reportArgs.payment_id
                     }
