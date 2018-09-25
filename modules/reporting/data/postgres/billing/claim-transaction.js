@@ -77,7 +77,7 @@ WITH claim_details AS(
     <% } else if(orderBy == "serviceDate")  { %>
         ORDER BY obc.claim_dt
     <%} else if(orderBy == "commentDate"){ %>
-        ORDER BY cd.payment_dt
+        ORDER BY paid_date
     <%} else if(orderBy == "firstName"){ %>
         ORDER BY opp.first_name
     <%} else if(orderBy == "lastName"){ %>
