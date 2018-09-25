@@ -179,7 +179,7 @@ const claimInquiryDataSetQueryTemplate1 = _.template(`
                  WHEN bp.payer_type = 'ordering_provider' THEN
                        p.full_name
             END as comments,
-            to_char(bp.accounting_date,'MM/DD/YYYY') as commented_dt
+            to_char(bp.accounting_date,'MM/DD/YYYY') as commented_dt,
             sum(pa.amount) as amount,
             u.username as commented_by,
             CASE amount_type
