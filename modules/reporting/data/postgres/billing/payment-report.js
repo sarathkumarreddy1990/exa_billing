@@ -324,7 +324,7 @@ const api = {
         if (reportParams.userRoleIds && reportParams.userRoleIds.length > 0) {
             if (reportParams.userRoleIds) {
                 params.push(reportParams.userRoleIds);
-                filters.userRoleIds = queryBuilder.whereIn('bp.created_by', [params.length]);
+                filters.userRoleIds = queryBuilder.whereIn('user_roles.id', [params.length]);
             }
         }
         filters.summaryType = reportParams.summaryType;
@@ -389,7 +389,7 @@ const api = {
         if (reportParams.userRoleIds && reportParams.userRoleIds.length > 0) {
             if (reportParams.userRoleIds) {
                 params.push(reportParams.userRoleIds);
-                filters.userRoleIds = queryBuilder.whereIn('bp.created_by', [params.length]);
+                filters.userRoleIds = queryBuilder.whereIn('user_roles.id', [params.length]);
             }
         }
         return {
