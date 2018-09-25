@@ -2024,16 +2024,12 @@ define(['jquery',
                             self.isRefundApplied = false;
                             self.casDeleted = [];
                             self.casSegmentsSelected = [];
-                            // if (paymentStatus != 'applied') {
-                            //     self.casSegmentsSelected = [];
-                            //     self.closeAppliedPendingPayments(e, paymentId);
-                            //     commonjs.hideDialog();
-                            // }
-                            // else {
+                            $('#txtDeduction').val("0.00");
+                            $('#txtCoInsurance').val("0.00");
+                            $('#txtCoPay').val("0.00");
                             paymentStatus != 'applied' ? paymentApplicationId = model[0].details.create_payment_applications.payment_application_id : paymentApplicationId;
                             self.getClaimBasedCharges(claimId, paymentId, 'applied', chargeId, paymentApplicationId, false);
                             $('.modal-footer button').focus();
-                            // }
                         },
                         error: function (err, response) {
                             targetObj.removeAttr('disabled');
