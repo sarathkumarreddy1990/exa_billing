@@ -175,7 +175,7 @@ module.exports = {
                 WHERE claims.id= ANY (${params.success_claimID}) ),
         `;
 
-        let getClaimComments =
+        let claimComments =
             SQL` , claim_details AS (
             SELECT
                   "claim_id",
@@ -187,7 +187,7 @@ module.exports = {
             )
         ),`;
 
-        let insertClaimComments =
+        let insertedClaimComments =
             SQL`insert_claim_comments as (
                     INSERT INTO billing.claim_comments
                     (
@@ -198,7 +198,7 @@ module.exports = {
                         created_dt
                     )
                     `;
-        let getpaymentComments = SQL`  SELECT
+        let paymentComments = SQL`  SELECT
                         claim_id,
                         ${params.type},
                         note,
@@ -223,11 +223,11 @@ module.exports = {
         if (params.isClaim) {
 
             if (!params.templateType) {
-                sql.append(getClaimComments);
+                sql.append(claimComments);
             }
 
-            sql.append(insertClaimComments);
-            sql.append(getpaymentComments);
+            sql.append(insertedClaimComments);
+            sql.append(paymentComments);
         }
 
         let updateData = SQL`UPDATE
