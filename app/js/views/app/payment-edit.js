@@ -371,7 +371,7 @@ define(['jquery',
                         dataType: 'json',
                         delay: 250,
                         data: function (params) {
-                            if (params.term === undefined && $select2Container.text() != placeHolder)
+                            if (params.term === undefined && $select2Container.text().toLowerCase() != placeHolder.toLowerCase())
                                 params.term = $select2Container.text();
                             return {
                                 page: params.page || 1,
@@ -418,7 +418,8 @@ define(['jquery',
                 $select2Container = $('#select2-txtautoPayerPIP-container');
                 $select2Container.html(placeHolder);
                 $txtautoPayerPIP.on('select2:open', function (event) {
-                    if ($select2Container && $select2Container.text() != placeHolder)
+                    placeHolder = i18n.get("billing.payments.selectInsurance");
+                    if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase())
                         $txtautoPayerPIP.data('select2').dropdown.$search.val($select2Container.text());
                 });
             },
@@ -444,7 +445,7 @@ define(['jquery',
                         dataType: 'json',
                         delay: 250,
                         data: function (params) {
-                            if (params.term === undefined && $select2Container.text() != placeHolder)
+                            if (params.term === undefined && $select2Container.text().toLowerCase() != placeHolder.toLowerCase())
                                 params.term = $select2Container.text();
                             return {
                                 page: params.page || 1,
@@ -490,7 +491,8 @@ define(['jquery',
                 $select2Container = $('#select2-txtautoPayerPP-container');
                 $select2Container.html(placeHolder);
                 $txtautoPayerPP.on('select2:open', function (event) {
-                    if ($select2Container && $select2Container.text() != placeHolder)
+                    placeHolder = i18n.get("billing.payments.selectPatient");
+                    if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase())
                         $txtautoPayerPP.data('select2').dropdown.$search.val($select2Container.text());
                 });
             },
@@ -507,7 +509,7 @@ define(['jquery',
                         dataType: 'json',
                         delay: 250,
                         data: function (params) {
-                            if (params.term === undefined && $select2Container.text() != placeHolder)
+                            if (params.term === undefined && $select2Container.text().toLowerCase() != placeHolder.toLowerCase())
                                 params.term = $select2Container.text();
                             return {
                                 page: params.page || 1,
@@ -554,7 +556,8 @@ define(['jquery',
                 $select2Container = $('#select2-txtautoPayerPOF-container');
                 $select2Container.html(placeHolder);
                 $txtautoPayerPOF.on('select2:open', function (event) {
-                    if ($select2Container && $select2Container.text() != placeHolder)
+                    placeHolder = i18n.get("billing.payments.selectOrderingFacility");
+                    if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase())
                         $txtautoPayerPOF.data('select2').dropdown.$search.val($select2Container.text());
                 });
             },
@@ -571,7 +574,7 @@ define(['jquery',
                         dataType: 'json',
                         delay: 250,
                         data: function (params) {
-                            if (params.term === undefined && $select2Container.text() != placeHolder)
+                            if (params.term === undefined && $select2Container.text().toLowerCase() != placeHolder.toLowerCase())
                                 params.term = $select2Container.text();
                             return {
                                 page: params.page || 1,
@@ -634,7 +637,8 @@ define(['jquery',
                 $select2Container = $('#select2-txtautoPayerPR-container');
                 $select2Container.html(placeHolder);
                 $txtautoPayerPR.on('select2:open', function (event) {
-                    if ($select2Container && $select2Container.text() != placeHolder)
+                    placeHolder = i18n.get("billing.payments.selectProvider");
+                    if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase())
                         $txtautoPayerPR.data('select2').dropdown.$search.val($select2Container.text());
                 });
             },
