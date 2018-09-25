@@ -738,7 +738,7 @@ define(['jquery',
                 self.changePayerMode(response.payment_mode, true);
 
                 commonjs.checkNotEmpty(response.accounting_date) ? self.dtpAccountingDate.date(response.accounting_date) : self.dtpAccountingDate.clear();
-
+                self.study_dt = self.dtpAccountingDate.date().format('YYYY-MM-DD');
                 self.payer_type = response.payer_type;
                 self.payment_id = paymentID;
                 self.patient_id = response.patient_id;
@@ -746,7 +746,6 @@ define(['jquery',
                 self.provider_id = response.provider_contact_id;
                 self.provider_group_id = response.provider_group_id;
                 self.insurance_provider_id = response.insurance_provider_id;
-
                 // self.showAppliedByPaymentsGrid(paymentID, response.payer_type, self.payer_id);
                 if (!self.casCodesLoaded)
                     self.setCasGroupCodesAndReasonCodes();
@@ -754,11 +753,10 @@ define(['jquery',
                 $('#claimsTabs a').on('click', function (e) {
                     self.loadSelectedGrid(e, paymentID, response.payer_type, self.payer_id);
                 });
-                self.showStudyCpt(self.payer_id);
-               // $('#selectPayerType').focus();
+                self.showStudyCpt(self.payer_id,self.study_dt);
             },
 
-            showStudyCpt: function (payerId) {
+            showStudyCpt: function (payerId, study_dt) {
                 var self = this;
                 self.gridLoaded = [];
                 this.studyCptTable = new customGrid();
@@ -766,8 +764,8 @@ define(['jquery',
                     gridelementid: '#tblStudyCpt',
                     custompager: this.studyCptPager,
                     emptyMessage: 'No Record found',
-                    colNames: ['', '', '', '', '', ''],
-                    i18nNames: ['', '', '', 'billing.COB.studyDate', 'billing.payments.cptCode', 'billing.payments.cptDescription'],
+                    colNames: ['', '', '', '', '', '', ''],
+                    i18nNames: ['', '', '', 'billing.COB.studyDate', 'billing.payments.accessionNo', 'billing.payments.studyDescription', 'billing.payments.cptCodes'],
                     colModel: [
                         {
                             name: 'as_chkStudyCpt',
@@ -786,8 +784,9 @@ define(['jquery',
                         { name: 'id', index: 'id', key: true, searchFlag: 'int', hidden: true },
                         { name: 'facility_id', searchFlag: 'int', hidden: true },
                         { name: 'study_dt', width: 70, formatter: self.studyDateFormatter },
-                        { name: 'cpt_code', width: 100 },
-                        { name: 'display_description', width: 300 },
+                        { name: 'accession_no', width: 70},
+                        { name: 'study_description', width: 100},
+                        { name: 'cpt_code', width: 70 }
                     ],
                     customizeSort: true,
                     sortable: {
@@ -807,10 +806,10 @@ define(['jquery',
                     disablereload: true,
                     customargs: {
                         payerId: payerId,
-                        customDt: moment().startOf('month').format('YYYY-MM-DD') + " - " + moment().endOf('month').format('YYYY-MM-DD')
+                        customDt: study_dt
                     },
                     onaftergridbind: function (model, gridObj) {
-                        self.bindDateRangeOnSearchBox(gridObj, 'tblStudyCpt');
+                        self.bindDateRangeOnSearchBox(gridObj, 'tblStudyCpt',study_dt);
                     },
                 });
 
@@ -846,7 +845,7 @@ define(['jquery',
                 });
             },
 
-            bindDateRangeOnSearchBox: function (gridObj, gridId) {
+            bindDateRangeOnSearchBox: function (gridObj, gridId,study_dt) {
                 var self = this, tabtype = 'order';
                 var columnsToBind = ['study_dt']
                 var drpOptions = { locale: { format: "L" } };
@@ -861,7 +860,13 @@ define(['jquery',
                     if (self.gridLoaded.indexOf(gridId) == -1) {
                         var fromDate = moment().startOf('month');
                         var toDate = moment().endOf('month');
-                        colElement.val(fromDate.format('L') + " - " + toDate.format('L'));
+                        if($.trim($("#txtAccountingDate").val()) == ""){
+                            colElement.val(study_dt);
+                        }
+                        else{
+                            colElement.val($.trim($("#txtAccountingDate").val()));
+                        }
+
                         self.gridLoaded.push(gridId)
                     }
 
@@ -2605,8 +2610,8 @@ define(['jquery',
                         patient_id: self.patient_id,
                         flag: 'payment-print-pdf'
                     }
+                    self.paymentEditPDF.onReportViewClick(e, paymentEditPDFArgs);
                 }
-                self.paymentEditPDF.onReportViewClick(e, paymentEditPDFArgs);
             },
 
             disableSelectedReasonCode: function (e) {

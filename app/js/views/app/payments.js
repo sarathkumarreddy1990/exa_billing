@@ -239,7 +239,7 @@ define(['jquery',
                             { name: 'invoice_no', hidden: true },
                             { name: 'display_id', width: 150, hidden: showGridColumn },
                             { name: 'payment_dt', width: 250, formatter: self.paymentDateFormatter, hidden: showGridColumn },
-                            { name: 'accounting_dt', width: 250, formatter: self.paymentAccountingDateFormatter },
+                            { name: 'accounting_date', width: 250, formatter: self.paymentAccountingDateFormatter },
                             { name: 'payer_type', width: 215, stype: 'select', formatter: self.payerTypeFormatter, searchoptions: { value: payerTypeValue } },
                             { name: 'payer_name', width: 300 },
                             { name: 'account_no', width:300, hidden: !showGridColumn },
@@ -367,7 +367,7 @@ define(['jquery',
 
             paymentAccountingDateFormatter: function (cellvalue, options, rowObject) {
                 var colValue;
-                colValue = (commonjs.checkNotEmpty(rowObject.accounting_dt) ? commonjs.convertToFacilityTimeZone(rowObject.facility_id, rowObject.accounting_dt).format('L') : '');
+                colValue = (commonjs.checkNotEmpty(rowObject.accounting_date) ? commonjs.getFormattedDate(rowObject.accounting_date) : '');
                 return colValue;
             },
 
@@ -478,7 +478,7 @@ define(['jquery',
 
             bindDateRangeOnSearchBox: function (gridObj) {
                 var self = this, tabtype = 'order';
-                var columnsToBind = ['payment_dt', 'accounting_dt']
+                var columnsToBind = ['payment_dt', 'accounting_date']
                 var drpOptions = { locale: { format: "L" } };
                 var currentFilter = 1;
                 _.each(columnsToBind, function (col) {
