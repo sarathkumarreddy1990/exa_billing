@@ -143,7 +143,7 @@ WITH claim_data AS (
         <% } %>
         type as payment_type,
         CASE type WHEN 'charge' THEN 1 ELSE 2 END AS sort_order,
-        charge_id as charge_id
+        charge_id
     FROM public.patients p
     INNER JOIN billing.claims bc on bc.patient_id = p.id
     INNER JOIN billing_comments pc on pc.id = bc.id
