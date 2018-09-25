@@ -217,6 +217,7 @@ module.exports = {
         });
 
         params.claimDetails = JSON.stringify(claimDetails);
+        params.notes = notes;
         let result = await data.changeClaimStatus(params);
         return result;
     },

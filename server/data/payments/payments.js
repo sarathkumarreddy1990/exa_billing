@@ -209,7 +209,7 @@ module.exports = {
                     , get_full_name(users.last_name, users.first_name) as user_full_name
                     , facilities.facility_name
                     , amount
-
+                    , COUNT(1) OVER (range unbounded preceding) AS total_records
                     , payment_totals.payment_balance_total AS available_balance
                     , payment_totals.payments_applied_total AS applied
                     , payment_totals.adjustments_applied_total AS adjustment_amount
