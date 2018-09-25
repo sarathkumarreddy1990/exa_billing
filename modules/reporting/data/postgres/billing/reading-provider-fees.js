@@ -14,7 +14,7 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
             , pcc.display_description
             , pcc.display_code
             , bpa.amount
-            , to_char(bp.accounting_dt, 'MM/DD/YYYY') as accounting_dt
+            , to_char(bp.accounting_date, 'MM/DD/YYYY') as accounting_date
             , to_char(bp.payment_dt, 'MM/DD/YYYY') as payment_dt
             , CASE bp.payer_type
                 WHEN 'patient' THEN get_full_name(pp.last_name, pp.first_name, pp.middle_name,pp.prefix_name, pp.suffix_name)
@@ -40,8 +40,7 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
         LEFT JOIN public.provider_level_codes pplc ON pplc.id = pccplc.provider_level_code_id
         INNER JOIN facilities f on f.id = bc.facility_id
         <% if (billingProID) { %> INNER JOIN billing.providers bpr ON bpr.id = bc.billing_provider_id <% } %>
-        WHERE 1=1
-        AND  <%= companyId %>
+        WHERE <%= companyId %>
         AND <%= claimDate %>
         <% if (facilityIds) { %>AND <% print(facilityIds); } %>
         <% if(billingProID) { %> AND <% print(billingProID); } %>
@@ -59,7 +58,7 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
         , claim_dt AS "Claim Date"
         , rpf.payer_name AS "Payer Name"
         , SUM(rpf.amount ) AS "Amount"
-        , rpf.accounting_dt AS "Accounting Date"
+        , rpf.accounting_date AS "Accounting Date"
         , rpf.payment_dt AS "Payment Date"
         , round(rpf.reading_provider_percent_level,2) AS "Reading Fee %"
         , round(SUM((rpf.amount::numeric/100) * rpf.reading_provider_percent_level),2) AS "Reading Fee"
@@ -75,7 +74,7 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
          display_description,
          payer_name,
          amount,
-         accounting_dt,
+         accounting_date,
          payment_dt,
          reading_provider_percent_level )
     )
@@ -221,11 +220,11 @@ const api = {
         // //  Claim Date
         if (reportParams.fromDate === reportParams.toDate) {
             params.push(reportParams.fromDate);
-            filters.claimDate = queryBuilder.whereDate('bp.accounting_dt', '=', [params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDate('bp.accounting_date', '=', [params.length]);
         } else {
             params.push(reportParams.fromDate);
             params.push(reportParams.toDate);
-            filters.claimDate = queryBuilder.whereDateBetween('bp.accounting_dt', [params.length - 1, params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDateBetween('bp.accounting_date', [params.length - 1, params.length]);
         }
 
         //  Provider Group Single or Multiple

@@ -73,7 +73,7 @@ WITH claim_data as(
          WHEN bp.payer_type = 'ordering_provider' THEN
                p.full_name
     END AS comments,
-    to_char(bp.accounting_dt,'MM/DD/YYYY') as commented_dt,
+    to_char(bp.accounting_date,'MM/DD/YYYY') as commented_dt,
     pa.amount as amount,
     u.username as commented_by,
     CASE amount_type
@@ -387,7 +387,7 @@ WITH claim_data as(
               , 0                              AS sort_order
               , 2
               FROM detail_cte
-              UNION 
+              UNION
 
 
           -- Details

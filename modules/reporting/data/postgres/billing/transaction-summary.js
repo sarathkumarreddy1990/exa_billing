@@ -10,7 +10,7 @@ const _ = require('lodash')
 const transactionSummaryDataSetQueryTemplate = _.template(`
 WITH transaction_summary_by_month as (
     SELECT
-        Date_trunc('month', bp.accounting_dt) AS txn_month,
+        Date_trunc('month', bp.accounting_date) AS txn_month,
         sum(CASE when amount_type = 'payment' then bpa.amount else 0::money end ) as payment_amount,
         sum(CASE when amount_type = 'adjustment' and coalesce(accounting_entry_type,'') != 'refund_debit' then bpa.amount else 0::money end ) as adjustment_amount,
         sum(CASE when amount_type = 'adjustment' and coalesce(accounting_entry_type,'') = 'refund_debit' then bpa.amount else 0::money end ) as refund_amount
@@ -22,10 +22,10 @@ WITH transaction_summary_by_month as (
     <% if (billingProID) { %> INNER JOIN billing.providers bbp ON bbp.id = bcl.billing_provider_id <% } %>
     LEFT JOIN billing.adjustment_codes bac ON bac.id = bpa.adjustment_code_id
     WHERE 1 = 1
-    AND <%= accounting_dt %>
+    AND <%= accounting_date %>
     <% if (facilityIds) { %>AND <% print(facilityIds); } %>
     <% if(billingProID) { %> AND <% print(billingProID); } %>
-    GROUP BY  (date_trunc('month', bp.accounting_dt))
+    GROUP BY  (date_trunc('month', bp.accounting_date))
     ),
     charge_summary AS(select
         Date_trunc('month', bc.claim_dt) AS txn_month,
@@ -62,7 +62,7 @@ WITH transaction_summary_by_month as (
 const transactionSummaryByDateDataSetQueryTemplate = _.template(`
 WITH transaction_summary_by_day as (
     SELECT
-        Date_trunc('day', bp.accounting_dt) AS txn_month,
+        Date_trunc('day', bp.accounting_date) AS txn_month,
         sum(CASE when amount_type = 'payment' then bpa.amount else 0::money end ) as payment_amount,
         sum(CASE when amount_type = 'adjustment' and coalesce(accounting_entry_type,'') != 'refund_debit' then bpa.amount else 0::money end ) as adjustment_amount,
         sum(CASE when amount_type = 'adjustment' and coalesce(accounting_entry_type,'') = 'refund_debit' then bpa.amount else 0::money end ) as refund_amount
@@ -74,10 +74,10 @@ WITH transaction_summary_by_day as (
     <% if (billingProID) { %> INNER JOIN billing.providers bbp ON bbp.id = bcl.billing_provider_id <% } %>
     LEFT JOIN billing.adjustment_codes bac ON bac.id = bpa.adjustment_code_id
     WHERE 1 = 1
-    AND <%= accounting_dt %>
+    AND <%= accounting_date %>
     <% if (facilityIds) { %>AND <% print(facilityIds); } %>
     <% if(billingProID) { %> AND <% print(billingProID); } %>
-    GROUP BY  (date_trunc('day', bp.accounting_dt))
+    GROUP BY  (date_trunc('day', bp.accounting_date))
     ),
     charge_summary AS(select
         Date_trunc('day', bc.claim_dt) AS txn_month,
@@ -204,7 +204,7 @@ const api = {
             claimDate: null,
             facilityIds: null,
             billingProID: null,
-            accounting_dt: null
+            accounting_date: null
 
         };
 
@@ -219,11 +219,11 @@ const api = {
         //  Accounting Date
         if (reportParams.fromDate === reportParams.toDate) {
             params.push(reportParams.fromDate);
-            filters.accounting_dt = queryBuilder.whereDateInTz('bp.accounting_dt', '=', [params.length], 'f.time_zone');
+            filters.accounting_date = queryBuilder.whereDate('bp.accounting_date', '=', [params.length]);
         } else {
             params.push(reportParams.fromDate);
             params.push(reportParams.toDate);
-            filters.accounting_dt = queryBuilder.whereDateInTzBetween('bp.accounting_dt', [params.length - 1, params.length], 'f.time_zone');
+            filters.accounting_date = queryBuilder.whereDateBetween('bp.accounting_date', [params.length - 1, params.length]);
         }
 
         //  Claim Date

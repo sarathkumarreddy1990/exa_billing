@@ -20,7 +20,7 @@ WITH paymentsPDF as (
          bp.alternate_payment_id,
          bp.facility_id,
          bp.payment_dt,
-         to_char(bp.accounting_dt, 'MM/DD/YYYY') as accounting_dt,
+         to_char(bp.accounting_date, 'MM/DD/YYYY') as accounting_date,
          bp.payer_type,
          bp.invoice_no,
          bp.amount AS amount,
@@ -126,7 +126,7 @@ WITH paymentsPDF as (
      notes AS "Note",
     cheque_card_number AS "CHK/CC#",
     payment_date AS "Payment Date",
-    accounting_dt  AS "Accounting Date",
+    accounting_date  AS "Accounting Date",
     COALESCE(status, '~~ TOTAL ~~') AS "Payment Status" ,
     SUM(amount) AS "Payment"
   FROM
@@ -143,7 +143,7 @@ WITH paymentsPDF as (
               account_no,
               cheque_card_number,
               payment_date,
-              accounting_dt ,
+              accounting_date ,
               notes,
               status)
            )
@@ -295,21 +295,21 @@ const api = {
             }
 
 
-            if (value == "accounting_dt") {
-                var accounting_dt_range = reportParams.filterData[i].split(' - ');
-                var accounting_from_date = accounting_dt_range[0] || "";
-                var accounting_to_date = accounting_dt_range[1] ||  "";
+            if (value == "accounting_date") {
+                var accounting_date_range = reportParams.filterData[i].split(' - ');
+                var accounting_from_date = accounting_date_range[0] || "";
+                var accounting_to_date = accounting_date_range[1] ||  "";
                 if (accounting_from_date && accounting_to_date == "") {
                     params.push(accounting_from_date);
-                    filters.accounting_date = queryBuilder.whereDate('bp.accounting_dt', '=', [params.length], 'f.time_zone');
+                    filters.accounting_date = queryBuilder.whereDate('bp.accounting_date', '=', [params.length]);
                 }
                 else if (accounting_from_date === accounting_to_date) {
                     params.push(accounting_from_date);
-                    filters.accounting_date = queryBuilder.whereDate('bp.accounting_dt', '=', [params.length], 'f.time_zone');
+                    filters.accounting_date = queryBuilder.whereDate('bp.accounting_date', '=', [params.length]);
                 } else {
                     params.push(accounting_from_date);
                     params.push(accounting_to_date);
-                    filters.accounting_date = queryBuilder.whereDateBetween('bp.accounting_dt', [params.length - 1, params.length], 'f.time_zone');
+                    filters.accounting_date = queryBuilder.whereDateBetween('bp.accounting_date', [params.length - 1, params.length]);
                 }
             }
 
