@@ -146,6 +146,7 @@ module.exports = {
 
                         _.map(_.reject(validCAS, { groupCode: 'PR' }), function (obj) {
 
+                            // In ERA file CAS have more than 7, but we have limit(7) to process the CAS values.
                             for (let i = 1; i <= 7; i++) {
                                 if (obj['monetaryAmount' + i]) {
                                     amountArray.push(parseFloat(obj['monetaryAmount' + i]));
