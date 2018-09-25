@@ -20,7 +20,8 @@ WITH claim_data AS (
            created_dt::date as commented_dt,
            null as amount,
            u.username as commented_by,
-           null as code
+           null as code,
+           null as charge_id
     FROM billing.claim_comments cc
     INNER JOIN claim_data cd on cd.claim_id = cc.claim_id
     INNER JOIN users u on u.id = cc.created_by
@@ -40,7 +41,8 @@ WITH claim_data AS (
            c.charge_dt::date as commented_dt,
            (c.bill_fee*c.units) as amount,
            u.username as commented_by,
-           cc.display_code as code
+           cc.display_code as code,
+           c.id as charge_id
     FROM billing.charges c
     INNER JOIN claim_data cd on cd.claim_id = c.claim_id
     INNER JOIN cpt_codes cc on cc.id = c.cpt_id
@@ -66,7 +68,8 @@ WITH claim_data AS (
                                      WHEN 'ordering_facility' THEN 'Ordering facility'
                                      WHEN 'ordering_provider' THEN 'Provider'
                                      END)
-                END as code
+                END as code,
+                null as charge_id
     FROM billing.payments bp
     INNER JOIN billing.payment_applications pa on pa.payment_id = bp.id
     INNER JOIN billing.charges AS bc on bc.id = pa.charge_id
@@ -139,7 +142,8 @@ WITH claim_data AS (
           bp.phone_number as billing_phoneno,
         <% } %>
         type as payment_type,
-        CASE type WHEN 'charge' THEN 1 ELSE 2 END AS sort_order
+        CASE type WHEN 'charge' THEN 1 ELSE 2 END AS sort_order,
+        charge_id as charge_id
     FROM public.patients p
     INNER JOIN billing.claims bc on bc.patient_id = p.id
     INNER JOIN billing_comments pc on pc.id = bc.id
@@ -262,6 +266,7 @@ WITH claim_data AS (
     , -1                   AS sort_order
     , -1                   AS statement_flag
     , ''                   AS anything_else
+    , ''                   AS charge_id
     UNION
 
     -- Billing Information
@@ -298,6 +303,7 @@ WITH claim_data AS (
     , 0
     , 0                              AS sort_order
     , 0
+    , null
     , null
     FROM detail_cte
     UNION
@@ -340,6 +346,7 @@ WITH claim_data AS (
     , sort_order
     , null
     <%= anythingElse %>
+    , charge_id::text
     FROM detail_cte
     UNION
 
@@ -376,6 +383,7 @@ WITH claim_data AS (
     , null
     , 5
     , 98   AS sort_order
+    , null
     , null
     , null
     FROM sum_encounter_cte
@@ -415,6 +423,7 @@ WITH claim_data AS (
     , 6
     , 99   AS sort_order
     , 0
+    , null
     , null
     FROM statement_cte
 
@@ -667,6 +676,7 @@ const api = {
               , 0                              AS sort_order
               , 1
               , null
+              , null
               FROM sum_statement_credit_cte
               UNION
               `;
@@ -706,6 +716,7 @@ const api = {
               , 0
               , 0                              AS sort_order
               , 2
+              , null
               , null
               FROM detail_cte
               UNION
@@ -747,6 +758,7 @@ const api = {
             , 99   AS sort_order
             , 1
             , null
+            , null
             FROM detail_cte
             `;
 
@@ -785,6 +797,7 @@ const api = {
             , 6
             , 99   AS sort_order
             , 2
+            , null
             , null
             FROM statement_cte
             `;
