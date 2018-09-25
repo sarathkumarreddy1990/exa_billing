@@ -88,7 +88,7 @@ SELECT
     pa.amount_type as type,
     bp.id as payment_id,
     bp.payment_dt::date as payment_date,
-    bp.accounting_dt::date as accounting_date,
+    bp.accounting_date as accounting_date,
     null::text as code,
     CASE WHEN bp.payer_type = 'patient' THEN
            pp.full_name
@@ -115,7 +115,7 @@ FROM claim_details cd
      LEFT JOIN public.provider_contacts  pc on pc.id = bp.provider_contact_id
      LEFT JOIN public.providers p on p.id = pc.provider_id
      GROUP by bp.id,cd.claim_id,cd.patient_name,cd.account_no,cd.claim_date, cd.referring_physician,
-     cd.reading_physician,cd.ordering_facility,cd.facility_code,bp.payment_dt,bp.accounting_dt,description,pa.amount_type,
+     cd.reading_physician,cd.ordering_facility,cd.facility_code,bp.payment_dt,bp.accounting_date,description,pa.amount_type,
      modifiers,created_on,get_full_name(u.last_name,u.first_name,u.middle_initial,null,u.suffix)
 )
 SELECT

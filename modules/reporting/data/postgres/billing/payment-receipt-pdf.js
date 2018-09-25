@@ -89,7 +89,7 @@ charge_details AS (
                                     p.full_name
                             END  as payer
                         , to_char(bp.payment_dt,'MM/DD/YYYY') as payment_date
-                        , to_char(bp.accounting_dt,'MM/DD/YYYY') as accounting_dt
+                        , to_char(bp.accounting_date,'MM/DD/YYYY') as accounting_date
                         , SUM(CASE WHEN pa.amount_type = 'payment' THEN pa.amount ELSE 0.00::money END)::text as payment_amount
                         , SUM(CASE
                             WHEN pa.amount_type ='payment' THEN

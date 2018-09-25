@@ -133,7 +133,7 @@ const detailQueryTemplate = _.template(`
             <% if (userRoleIds) { %>AND <% print(userRoleIds); } %>
             GROUP BY bp.id,bc.id )
                 SELECT
-                    to_char(p.accounting_dt, 'MM/DD/YYYY')   AS "Accounting Date",
+                    to_char(p.accounting_date, 'MM/DD/YYYY')   AS "Accounting Date",
                     f.facility_name  AS "Facility Name",
                     pd.payment_id AS "Payment ID",
          	        pd.claim_id AS "Claim  ID",
@@ -299,11 +299,11 @@ const api = {
         //  scheduled_dt
         if (reportParams.fromDate === reportParams.toDate) {
             params.push(reportParams.fromDate);
-            filters.claimDate = queryBuilder.whereDateInTz(' bp.accounting_dt', '=', [params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDate(' bp.accounting_date', '=', [params.length]);
         } else {
             params.push(reportParams.fromDate);
             params.push(reportParams.toDate);
-            filters.claimDate = queryBuilder.whereDateInTzBetween(' bp.accounting_dt', [params.length - 1, params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDateBetween(' bp.accounting_date', [params.length - 1, params.length]);
         }
 
         // billingProvider single or multiple
@@ -365,11 +365,11 @@ const api = {
         //  scheduled_dt
         if (reportParams.fromDate === reportParams.toDate) {
             params.push(reportParams.fromDate);
-            filters.claimDate = queryBuilder.whereDate('bp.accounting_dt', '=', [params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDate('bp.accounting_date', '=', [params.length]);
         } else {
             params.push(reportParams.fromDate);
             params.push(reportParams.toDate);
-            filters.claimDate = queryBuilder.whereDateBetween('bp.accounting_dt', [params.length - 1, params.length], 'f.time_zone');
+            filters.claimDate = queryBuilder.whereDateBetween('bp.accounting_date', [params.length - 1, params.length]);
         }
 
         // billingProvider single or multiple

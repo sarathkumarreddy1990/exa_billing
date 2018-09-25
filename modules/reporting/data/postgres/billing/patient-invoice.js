@@ -41,7 +41,7 @@ WITH claim_data as(
          WHEN bp.payer_type = 'ordering_provider' THEN
                p.full_name
     END as comments,
-    bp.accounting_dt::date as commented_dt,
+    bp.accounting_date as commented_dt,
     pa.amount as amount,
     u.username as commented_by,
     CASE amount_type 
