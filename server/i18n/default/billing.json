@@ -200,7 +200,11 @@
             "allActivity": "All Activity",
             "activityByDate": "Activity By Date",
             "comment": "Include All Comments",
-            "unappliedPay": "Unapplied Payments"
+            "unappliedPay": "Unapplied Payments",
+            "selectInsurance": "Select Insurance",
+            "selectPatient": "Select Patient",
+            "selectOrderingFacility": "Select Ordering Facility",
+            "selectProvider": "Select Provider"
         },
         "refund": {
             "scheduleDate": "Schedule Date",

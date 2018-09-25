@@ -362,14 +362,17 @@ define(['jquery',
 
             setInsuranceAutoComplete: function () {
                 var self = this;
-                $("#txtautoPayerPIP").select2({
+                var $txtautoPayerPIP = $("#txtautoPayerPIP");
+                var $select2Container = $('#select2-txtautoPayerPIP-container');
+                var placeHolder = i18n.get("billing.payments.selectInsurance");
+                $txtautoPayerPIP.select2({
                     ajax: {
                         url: "/exa_modules/billing/autoCompleteRouter/insurances",
                         dataType: 'json',
                         delay: 250,
                         data: function (params) {
-                            if (params.term === undefined && $('#select2-txtautoPayerPIP-container').text().toLowerCase() != 'select insurance')
-                                params.term = $('#select2-txtautoPayerPIP-container').text();
+                            if (params.term === undefined && $select2Container.text() != placeHolder)
+                                params.term = $select2Container.text();
                             return {
                                 page: params.page || 1,
                                 q: params.term || '',
@@ -412,10 +415,11 @@ define(['jquery',
                         self.bindInsuranceDetails(res);
                     return res.insurance_name;
                 }
-                $('#select2-txtautoPayerPIP-container').html('Select Insurance');
-                $('#txtautoPayerPIP').on('select2:open', function (event) {
-                    if ($('#select2-txtautoPayerPIP-container') && $('#select2-txtautoPayerPIP-container').text().toLowerCase() != 'select insurance')
-                        $('#txtautoPayerPIP').data('select2').dropdown.$search.val($('#select2-txtautoPayerPIP-container').text());
+                $select2Container = $('#select2-txtautoPayerPIP-container');
+                $select2Container.html(placeHolder);
+                $txtautoPayerPIP.on('select2:open', function (event) {
+                    if ($select2Container && $select2Container.text() != placeHolder)
+                        $txtautoPayerPIP.data('select2').dropdown.$search.val($select2Container.text());
                 });
             },
 
@@ -431,14 +435,17 @@ define(['jquery',
 
             setPatientAutoComplete: function () {
                 var self = this;
-                $("#txtautoPayerPP").select2({
+                var $txtautoPayerPP = $("#txtautoPayerPP");
+                var $select2Container = $('#select2-txtautoPayerPP-container');
+                var placeHolder = i18n.get("billing.payments.selectPatient");
+                $txtautoPayerPP.select2({
                     ajax: {
                         url: "/exa_modules/billing/autoCompleteRouter/patients",
                         dataType: 'json',
                         delay: 250,
                         data: function (params) {
-                            if (params.term === undefined && $('#select2-txtautoPayerPP-container').text().toLowerCase() != 'select patient')
-                                params.term = $('#select2-txtautoPayerPP-container').text();
+                            if (params.term === undefined && $select2Container.text() != placeHolder)
+                                params.term = $select2Container.text();
                             return {
                                 page: params.page || 1,
                                 q: params.term || '',
@@ -459,7 +466,7 @@ define(['jquery',
                         },
                         cache: true
                     },
-                    placeholder: 'Select Patient',
+                    placeholder: placeHolder,
                     escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
                     minimumInputLength: 0,
                     templateResult: formatRepo,
@@ -480,24 +487,28 @@ define(['jquery',
                         self.bindPatientDetails(res);
                     return res.full_name;
                 }
-                $('#select2-txtautoPayerPP-container').html('Select Patient');
-                $('#txtautoPayerPP').on('select2:open', function (event) {
-                    if ($('#select2-txtautoPayerPP-container') && $('#select2-txtautoPayerPP-container').text().toLowerCase() != 'select patient')
-                        $('#txtautoPayerPP').data('select2').dropdown.$search.val($('#select2-txtautoPayerPP-container').text());
+                $select2Container = $('#select2-txtautoPayerPP-container');
+                $select2Container.html(placeHolder);
+                $txtautoPayerPP.on('select2:open', function (event) {
+                    if ($select2Container && $select2Container.text() != placeHolder)
+                        $txtautoPayerPP.data('select2').dropdown.$search.val($select2Container.text());
                 });
             },
 
             setOFAutoComplete: function () {
                 var self = this;
+                var $txtautoPayerPOF = $("#txtautoPayerPOF");
+                var $select2Container = $('#select2-txtautoPayerPOF-container');
+                var placeHolder = i18n.get("billing.payments.selectOrderingFacility");
                 $('#s2id_txtautoPayerPOF a span').html('Select ordering facility');
-                $("#txtautoPayerPOF").select2({
+                $txtautoPayerPOF.select2({
                     ajax: {
                         url: "/exa_modules/billing/autoCompleteRouter/provider_group",
                         dataType: 'json',
                         delay: 250,
                         data: function (params) {
-                            if (params.term === undefined && $('#select2-txtautoPayerPOF-container').text().toLowerCase() != 'select ordering facility')
-                                params.term = $('#select2-txtautoPayerPOF-container').text();
+                            if (params.term === undefined && $select2Container.text() != placeHolder)
+                                params.term = $select2Container.text();
                             return {
                                 page: params.page || 1,
                                 q: params.term || '',
@@ -519,7 +530,7 @@ define(['jquery',
                         },
                         cache: true
                     },
-                    placeholder: 'Select ordering facility',
+                    placeholder: placeHolder,
                     escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
                     minimumInputLength: 0,
                     templateResult: formatRepo,
@@ -540,24 +551,28 @@ define(['jquery',
                         self.bindOfDetails(res);
                     return res.group_name;
                 }
-                $('#select2-txtautoPayerPOF-container').html('Select Ordering facility');
-                $('#txtautoPayerPOF').on('select2:open', function (event) {
-                    if ($('#select2-txtautoPayerPOF-container') && $('#select2-txtautoPayerPOF-container').text().toLowerCase() != 'select ordering facility')
-                        $('#txtautoPayerPOF').data('select2').dropdown.$search.val($('#select2-txtautoPayerPOF-container').text());
+                $select2Container = $('#select2-txtautoPayerPOF-container');
+                $select2Container.html(placeHolder);
+                $txtautoPayerPOF.on('select2:open', function (event) {
+                    if ($select2Container && $select2Container.text() != placeHolder)
+                        $txtautoPayerPOF.data('select2').dropdown.$search.val($select2Container.text());
                 });
             },
 
             setProviderAutoComplete: function () {
                 var self = this;
+                var $txtautoPayerPR = $("#txtautoPayerPR");
+                var $select2Container = $('#select2-txtautoPayerPR-container');
+                var placeHolder = i18n.get("billing.payments.selectProvider");
                 $('#s2id_txtautoPayerPR a span').html('Select provider');
-                $("#txtautoPayerPR").select2({
+                $txtautoPayerPR.select2({
                     ajax: {
                         url: "/exa_modules/billing/autoCompleteRouter/providers",
                         dataType: 'json',
                         delay: 250,
                         data: function (params) {
-                            if (params.term === undefined && $('#select2-txtautoPayerPR-container').text().toLowerCase() != 'select provider')
-                                params.term = $('#select2-txtautoPayerPR-container').text();
+                            if (params.term === undefined && $select2Container.text() != placeHolder)
+                                params.term = $select2Container.text();
                             return {
                                 page: params.page || 1,
                                 q: params.term || '',
@@ -579,7 +594,7 @@ define(['jquery',
                         },
                         cache: true
                     },
-                    placeholder: 'Select provider',
+                    placeholder: placeHolder,
                     escapeMarkup: function (markup) { return markup; },
                     minimumInputLength: 0,
                     templateResult: formatRepo,
@@ -616,10 +631,11 @@ define(['jquery',
                         self.bindProviderDetails(res);
                     return res.full_name;
                 }
-                $('#select2-txtautoPayerPR-container').html('Select Provider');
-                $('#txtautoPayerPR').on('select2:open', function (event) {
-                    if ($('#select2-txtautoPayerPR-container') && $('#select2-txtautoPayerPR-container').text().toLowerCase() != 'select provider')
-                        $('#txtautoPayerPR').data('select2').dropdown.$search.val($('#select2-txtautoPayerPR-container').text());
+                $select2Container = $('#select2-txtautoPayerPR-container');
+                $select2Container.html(placeHolder);
+                $txtautoPayerPR.on('select2:open', function (event) {
+                    if ($select2Container && $select2Container.text() != placeHolder)
+                        $txtautoPayerPR.data('select2').dropdown.$search.val($select2Container.text());
                 });
             },
 
