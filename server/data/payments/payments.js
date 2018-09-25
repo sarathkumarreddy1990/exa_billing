@@ -21,7 +21,7 @@ module.exports = {
             payment_dt,
             payer_type,
             payer_name,
-            accounting_dt,
+            accounting_date,
             amount,
             available_balance,
             applied,
@@ -66,8 +66,8 @@ module.exports = {
             whereQuery.push(generator('payment_dt', payment_dt));
         }
 
-        if (accounting_dt) {
-            whereQuery.push(generator('accounting_dt', accounting_dt));
+        if (accounting_date) {
+            whereQuery.push(generator('accounting_date', accounting_date));
         }
 
         if (payer_type) {
@@ -115,7 +115,7 @@ module.exports = {
         }
 
         if (from === 'ris') {
-            whereQuery.push(` payer_type = 'patient'`);
+            whereQuery.push(` payer_type = 'patient' `);
         }
 
         if (notes) {
@@ -197,7 +197,7 @@ module.exports = {
                             WHEN 'ordering_provider' THEN ref_provider.full_name
                             WHEN 'patient' THEN patients.full_name        END) AS payer_name
                     , payment_dt
-                    , accounting_dt
+                    , accounting_date::text 
                     , invoice_no
                     , alternate_payment_id
                     , payer_type
@@ -265,7 +265,7 @@ module.exports = {
                         , provider_contact_id
                         , payment_reason_id
                         , amount MONEY
-                        , accounting_dt AS accounting_date
+                        , accounting_date::text
                         , payment_dt AS payment_date
                         , alternate_payment_id AS display_id
                         , created_by AS payer_name
@@ -347,7 +347,7 @@ module.exports = {
                                 , provider_contact_id
                                 , payment_reason_id
                                 , amount
-                                , accounting_dt
+                                , accounting_date
                                 , created_by
                                 , payment_dt
                                 , invoice_no
@@ -366,7 +366,7 @@ module.exports = {
                                 , ${provider_contact_id}
                                 , ${payment_reason_id}
                                 , ${amount}
-                                , timezone(public.get_facility_tz(${facility_id}), ${accounting_date}::TIMESTAMP)
+                                , ${accounting_date}
                                 , ${user_id}
                                 , timezone(get_facility_tz(${facility_id}), now()::timestamp)
                                 , ${invoice_no}
@@ -385,7 +385,7 @@ module.exports = {
                                 , provider_group_id = ${provider_group_id}
                                 , provider_contact_id = ${provider_contact_id}
                                 , amount = ${amount}::money
-                                , accounting_dt = timezone(public.get_facility_tz(${facility_id}), ${accounting_date}::TIMESTAMP)
+                                , accounting_date = ${accounting_date}
                                 , invoice_no = ${invoice_no}
                                 , alternate_payment_id = ${display_id}
                                 , payer_type = ${payer_type}
@@ -1065,60 +1065,59 @@ module.exports = {
         let {
             payerId,
             cpt_code,
-            display_description,
             sortField,
             sortOrder,
             study_dt,
+            accession_no,
+            study_description,
             customDt
         } = params;
 
-        let whereQuery=[];
-
         params.sortOrder = params.sortOrder || ' ASC';
 
-        whereQuery.push(` o.patient_id = ${payerId}
-                                AND NOT sc.has_deleted
-                                AND NOT o.has_deleted
-                                AND NOT c.has_deleted
-                                AND o.order_status NOT IN ('CAN','NOS')
-                                AND s.study_status NOT IN ('CAN','NOS')`);
+        let sql = SQL` SELECT 
+                               studies.id 
+                             , studies.accession_no 
+                             , studies.study_description 
+                             , studies.study_dt::text 
+                             , studies.facility_id 
+                             , cc.cpt_code 
+                        FROM studies 
+                        INNER JOIN orders o ON studies.order_id = o.id 
+                        JOIN lateral(
+                                        SELECT
+                                             study_id
+                                            , array_agg(scp.cpt_code) AS cpt_code 
+                                        FROM study_cpt scp 
+                                        WHERE NOT scp.has_deleted 
+                                        GROUP BY study_id 
+                                      ) cc ON cc.study_id = studies.id 
+                        WHERE o.patient_id = ${payerId}
+                           AND NOT o.has_deleted
+                           AND o.order_status NOT IN ('CAN','NOS')
+                           AND studies.study_status NOT IN ('CAN','NOS') 
+                        `;
 
         if(study_dt){
-            whereQuery.push(generator('study_dt', study_dt));
-        }else if(customDt){
-            whereQuery.push(generator('study_dt', customDt));
+            sql.append(` AND `)
+                .append(generator('study_dt', study_dt));
+        }
+        else if(customDt){
+            sql.append(` AND `)
+                .append(generator('study_dt', customDt));
         }
 
-        if (cpt_code) {
-            whereQuery.push(`sc.cpt_code ILIKE '%${cpt_code}%'`);
+        if (accession_no){
+            sql.append(` AND  accession_no ILIKE '%${accession_no}%' `);
         }
 
-        if (display_description) {
-            whereQuery.push(`c.display_description ILIKE '%${display_description}%'`);
+        if(study_description){
+            sql.append(` AND study_description ILIKE '%${study_description}%'`);
         }
 
-        const sql = SQL`
-                        SELECT
-                            sc.id,
-                            sc.cpt_code_id,
-                            sc.cpt_code,
-                            c.display_description,
-                            s.accession_no,
-                            s.study_dt::text,
-                            s.facility_id
-                        FROM
-                            study_cpt sc
-                            INNER JOIN
-                                studies s ON sc.study_id = s.id
-                            INNER JOIN
-                                orders o ON s.order_id = o.id
-                            INNER JOIN
-                                cpt_codes c ON sc.cpt_code_id = c.id
-                            `;
 
-        if (whereQuery.length) {
-            sql.append(SQL` WHERE `)
-                .append(whereQuery.join(' AND '));
+        if (cpt_code){
+            sql.append(` AND array_to_string(cc.cpt_code, ', ') LIKE '%${cpt_code}%' `);
         }
 
         sql.append(SQL` ORDER BY  `)
@@ -1128,5 +1127,4 @@ module.exports = {
 
         return await query(sql);
     }
-
 };

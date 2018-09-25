@@ -619,6 +619,42 @@ const api = {
             retAmount = `(${retAmount})`;
 
         return retAmount;
+    },
+
+    getStudyInfo: (companyId, studyIds) => {
+        return new Promise((resolve, reject) => {
+            const sql = `
+                SELECT
+                    id
+                  , accession_no
+                  , study_description
+                FROM
+                    public.studies
+                WHERE
+                    company_id = $1
+                AND id = any ($2)
+                ORDER BY accession_no
+            `;
+            const params = [
+                companyId,
+                studyIds
+            ];
+            db.query(sql, params)
+                .then((pgResult) => {
+                    const studyInfo = [];
+                    if (pgResult.rows && pgResult.rows.length > 0) {
+                        _.forEach(pgResult.rows, (val) => {
+                            studyInfo.push({
+                                id: val.id,
+                                accession_no: val.accession_no,
+                                study_description: val.study_description,
+                            });
+                        });
+                    }
+                    return resolve(studyInfo);
+                })
+                .catch(error => logger.logError('EXA Reporting - Error on selecting studey info!', error));
+        });
     }
 };
 

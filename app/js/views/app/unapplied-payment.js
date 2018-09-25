@@ -64,7 +64,7 @@ function (
                         { name: 'payment_id', width: 100, search: false },
                         { name: 'display_id', width: 200, search: false  },
                         { name: 'payment_dt', width: 150, search: false, formatter: self.paymentDateFormatter },
-                        { name: 'accounting_dt', width: 200, search: false , formatter: self.paymentAccountingDateFormatter },
+                        { name: 'accounting_date', width: 200, search: false , formatter: self.paymentAccountingDateFormatter },
                         { name: 'payer_type', width: 200, search: false , formatter: self.payerTypeFormatter },
                         { name: 'payer_name', width: 300 },
                         { name: 'amount', width: 150, search: false  },
@@ -107,7 +107,7 @@ function (
 
         paymentAccountingDateFormatter: function (cellvalue, options, rowObject) {
             var colValue;
-            colValue = (commonjs.checkNotEmpty(rowObject.accounting_dt) ? commonjs.getFormattedUtcDate(rowObject.accounting_dt) : '');
+            colValue = (commonjs.checkNotEmpty(rowObject.accounting_date) ? commonjs.getFormattedUtcDate(rowObject.accounting_date) : '');
             return colValue;
         },
 

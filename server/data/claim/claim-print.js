@@ -92,7 +92,7 @@ module.exports = {
             ),
             payment_details as(
                 SELECT
-                    bp.payer_type
+                      bp.payer_type
                     , (  CASE bp.payer_type
                             WHEN 'insurance' THEN 
                                 pip.insurance_name
@@ -106,7 +106,7 @@ module.exports = {
                     , bpa.amount_type 
                     ,ch.claim_id
                     ,bp.id payment_id
-                    ,bp.accounting_dt as payment_dt
+                    ,bp.accounting_date as payment_dt
                     ,SUM(CASE WHEN bpa.amount_type = 'payment' THEN 
                                     bpa.amount 
                               ELSE 
