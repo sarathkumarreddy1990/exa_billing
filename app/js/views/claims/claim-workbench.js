@@ -525,7 +525,6 @@ define(['jquery',
                     if (uniquePayerName && uniquePayerName.length && uniquePayerName.length > 1) {
                         self.printInvoiceClaim('direct_invoice', claimIds, sortBy)
                         return;
-                    
                     }
                     else if (invoiceNo && invoiceNo[0] && invoiceNo[0].length > 0) {
                         paperClaim.print('direct_invoice', claimIds, {
@@ -549,7 +548,6 @@ define(['jquery',
                     });
                     return;
                 }
-
 
                 commonjs.showLoading();
 

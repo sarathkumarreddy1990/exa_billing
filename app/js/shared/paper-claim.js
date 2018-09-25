@@ -87,12 +87,11 @@ define([
                             return self.preparePdfWorker(templateType, template, claimData, options);
                         }
 
-                        self.updateClaimStatus(processedIDs, templateType, options,function (err, response) {
+                        self.updateClaimStatus(processedIDs, templateType, options, function (err, response) {
                             var invoiceNo = response.invoice_no;
                             claimData[0].invoiceNo = invoiceNo;
                             return self.preparePdfWorker(templateType, template, claimData);
                         });
-
 
                     });
                 });
