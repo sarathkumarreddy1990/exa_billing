@@ -63,8 +63,15 @@ module.exports = {
         _.each(claimLists, function (obj) {
 
             if (obj.claimPaymentInformation && obj.claimPaymentInformation.length > 1) {
-                let tempArray = obj.claimPaymentInformation.map(item => { return { claimPaymentInformation: [item] }; });
-                claimPaymentInformation = claimPaymentInformation.concat(tempArray);
+                obj.claimPaymentInformation.map(item => {
+                    claimPaymentInformation.push({ claimPaymentInformation: [item] });
+                });
+
+            } else if (obj.claimPaymentInformation && obj.claimPaymentInformation.length == 1) {
+                obj.claimPaymentInformation.map(item => {
+                    claimPaymentInformation.push({ claimPaymentInformation: [item] });
+                });
+
             }
 
             else if (obj.claimPaymentInformation && obj.claimPaymentInformation.length == 1) {
@@ -115,41 +122,39 @@ module.exports = {
                             }
                         }
 
-                        let serviceAdjustment = val.serviceAdjustment;
+                        /**
+                        *  Condition : Check valid CAS group and reason codes
+                        *  DESC : CAS group and reason codes not matched means shouldn't apply adjustment (Ex: adjustment = 0)
+                        */
+                        const serviceAdjustment = val.serviceAdjustment;
+                        const validCAS = [];
+
+                        _.map(serviceAdjustment, function (obj) {
+                            for (let j = 1; j <= 7; j++) {
+                                if (obj['reasonCode' + j] && _.filter(cas_details.cas_reason_codes, { code: obj['reasonCode' + j] }).length && _.filter(cas_details.cas_group_codes, { code: obj.groupCode }).length) {
+                                    const casObj = {};
+                                    casObj['groupCode'] = obj.groupCode;
+                                    casObj['reasonCode' + j] = obj['reasonCode' + j];
+                                    casObj['monetaryAmount' + j] = obj['monetaryAmount' + j];
+                                    validCAS.push(casObj);
+                                }
+                            }
+                        });
+
                         // reject CAS groupCode['PR'] for calculating adjustment
-                        let amountArray = [];
+                        const amountArray = [];
 
-                        _.map(_.reject(serviceAdjustment, { groupCode: 'PR' }), function (obj) {
+                        _.map(_.reject(validCAS, { groupCode: 'PR' }), function (obj) {
 
+                            // In ERA file CAS have more than 7, but we have limit(7) to process the CAS values.
                             for (let i = 1; i <= 7; i++) {
-
                                 if (obj['monetaryAmount' + i]) {
                                     amountArray.push(parseFloat(obj['monetaryAmount' + i]));
                                 }
                             }
                         });
 
-                        let adjustmentAmount = _.sum(amountArray);
-                        /**
-                        *  Condition : Check valid CAS group and reason codes
-                        *  DESC : CAS group and reason codes not matched means shouldn't apply adjustment (Ex: adjustment = 0)
-                        */
-                        let validCAS = _.filter(serviceAdjustment, function (obj) {
-
-                            for (let j = 1; j <= 7; j++) {
-
-                                if (obj['reasonCode' + j] && _.filter(cas_details.cas_reason_codes, function (cas) { return cas.code == obj['reasonCode' + j]; }).length == 0) {
-                                    return false;
-                                }
-                            }
-
-                            if (_.filter(cas_details.cas_group_codes, function (cas) { return cas.code == obj.groupCode; }).length == 0) {
-                                return false;
-                            }
-
-                            return true;
-
-                        });
+                        let adjustmentAmount = amountArray.length ? _.round(_.sum(amountArray), 2) : 0.00;
 
                         /**
                         *  Condition : Apply adjustment only for primary payer
@@ -161,7 +166,7 @@ module.exports = {
                         *  Condition : Check Is Valid CAS or Not
                         *  DESC : Is any one of CAS is not Valid, Then assigne adjustment amount = 0
                         */
-                        if (val.serviceAdjustment && (validCAS.length != serviceAdjustment.length)) {
+                        if (val.serviceAdjustment && (validCAS.length == 0)) {
                             adjustmentAmount = 0;
                         }
 
