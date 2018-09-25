@@ -612,10 +612,13 @@ function formatSingleClaim(claimData) {
             style: 'TableHead',
 			table: {
 			    widths: [15, 300, 200, 20, 15],
-			    heights: [0,0,0,11],
+			    heights: [5,0,0,11],
 				body: [
 					[//Ans
-					    {text: 'Corrected Claim', fontSize:12, bold: true, colSpan:3, normal: false, margin:[60, -10, 0, 0]}, {},{},{},{}
+					    {
+                            text: (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].originalReference) ?
+					        'Corrected Claim' : '', fontSize:12, bold: true, colSpan:3, normal: false, margin:[60, -10, 0, 0]
+                            }, {},{},{},{}
 					],
 					[
 					    {text: 'HEALTH INSURANCE CLAIM FORM', fontSize:12, bold: true, colSpan:2},{},
@@ -1404,7 +1407,7 @@ function formatSingleClaim(claimData) {
                     [//Other Insurance
                         {text: claimData.subscriber && claimData.subscriber[0].claim  && claimData.subscriber[0].claim[0].otherSubscriber ? getName(claimData.subscriber[0].claim[0].otherSubscriber[0], 28) : '',colSpan:3},
                         {},{},{},
-                        {text: claimData.subscriber && claimData.subscriber[0].claim ? getOtherSubscriberValue(claimData.subscriber[0].claim[0], 'planType', 28) : '', colSpan:3},
+                        { text: (claimData.subscriber && claimData.subscriber[0] && claimData.subscriber[0].planType) ? (claimData.subscriber[0].planType) : '', colSpan:3 },
                         {},{}
                     ],
                     [//Group Number
