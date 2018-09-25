@@ -466,6 +466,7 @@ WITH claim_data AS (
     <%= encounterAmount %>
     <%= statementFlag %>
     , anything_else
+    , null
     FROM all_cte
     ORDER BY
     pid
