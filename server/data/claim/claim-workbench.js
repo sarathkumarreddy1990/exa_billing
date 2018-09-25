@@ -144,20 +144,21 @@ module.exports = {
     changeClaimStatus: async (params) => {
 
         //let success_claimID = params.success_claimID.split(',');
-
-        let getClaimsDetails = SQL` ,getClaimsDetails as (
-                SELECT claims.id,payer_type, (  CASE payer_type
+    
+        let getClaimsDetails = SQL` ,claim_details as (
+                SELECT claims.id as claim_id, ${params.notes} || ' ' || 
+                (  CASE  COALESCE(${params.payerType}, payer_type)
                     WHEN 'primary_insurance' THEN insurance_providers.insurance_name
                     WHEN 'secondary_insurance' THEN insurance_providers.insurance_name
                     WHEN 'tertiary_insurance' THEN insurance_providers.insurance_name
                     WHEN 'ordering_facility' THEN provider_groups.group_name
                     WHEN 'referring_provider' THEN ref_provider.full_name
                     WHEN 'rendering_provider' THEN render_provider.full_name
-                    WHEN 'patient' THEN patients.full_name        END)   || '(' ||  payer_type  ||')' as payer_name
+                    WHEN 'patient' THEN patients.full_name        END)   || '(' || COALESCE(${params.payerType}, payer_type) ||')' as note
                 FROM billing.claims
 
                 LEFT JOIN patient_insurances ON patient_insurances.id =
-                        (  CASE payer_type
+                        (  CASE  COALESCE(${params.payerType}, payer_type)
                         WHEN 'primary_insurance' THEN primary_patient_insurance_id
                         WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
                         WHEN 'tertiary_insurance' THEN tertiary_patient_insurance_id
@@ -171,10 +172,10 @@ module.exports = {
                 LEFT JOIN provider_contacts as rendering_pro_contact ON rendering_pro_contact.id=claims.rendering_provider_contact_id
                 LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.provider_id
 
-                WHERE claims.id=${params.success_claimID[0]} )
+                WHERE claims.id= ANY (${params.success_claimID}) ),
         `;
 
-        let insertClaimComments =
+        let claimComments =
             SQL` , claim_details AS (
             SELECT
                   "claim_id",
@@ -184,34 +185,28 @@ module.exports = {
                 "claim_id" bigint,
                 "note" text
             )
-        ),
-        insert_claim_comments as (
-                INSERT INTO billing.claim_comments
-                (
-                    claim_id ,
-                    type ,
-                    note ,
-                    created_by,
-                    created_dt
-                )
-                `;
-        let getpaymentComments = SQL`  SELECT
+        ),`;
+
+        let insertedClaimComments =
+            SQL`insert_claim_comments as (
+                    INSERT INTO billing.claim_comments
+                    (
+                        claim_id ,
+                        type ,
+                        note ,
+                        created_by,
+                        created_dt
+                    )
+                    `;
+        let paymentComments = SQL`  SELECT
                         claim_id,
                         ${params.type},
-                        note || ( SELECT payer_name FROM getClaimsDetails),
+                        note,
                         ${params.userId},
                         now()
                     FROM
                     claim_details )`;
-
-        let getEDIpaymentComments = SQL`SELECT
-                                        claim_id,
-                                        ${params.type},
-                                        note,
-                                        ${params.userId},
-                                        now()
-                                        FROM
-                                    claim_details )`;
+      
         let sql = SQL`WITH getStatus AS
 						(
 							SELECT
@@ -226,13 +221,13 @@ module.exports = {
         }
 
         if (params.isClaim) {
-            sql.append(insertClaimComments);
 
-            if (params.templateType) {
-                sql.append(getpaymentComments);
-            } else {
-                sql.append(getEDIpaymentComments);
+            if (!params.templateType) {
+                sql.append(claimComments);
             }
+
+            sql.append(insertedClaimComments);
+            sql.append(paymentComments);
         }
 
         let updateData = SQL`UPDATE

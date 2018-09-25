@@ -522,15 +522,15 @@ define(['jquery',
                 var uniquePayerName = $.unique(selectedPayerName);
 
                 if (existingBillingMethod === 'direct_billing' && _.uniq(invoiceNo).length == 1) {
-                    if (invoiceNo && invoiceNo[0] && invoiceNo[0].length > 0) {
+                    if (uniquePayerName && uniquePayerName.length && uniquePayerName.length > 1) {
+                        self.printInvoiceClaim('direct_invoice', claimIds, sortBy)
+                        return;
+                    }
+                    else if (invoiceNo && invoiceNo[0] && invoiceNo[0].length > 0) {
                         paperClaim.print('direct_invoice', claimIds, {
                             sortBy: sortBy,
                             invoiceNo: invoiceNo[0]
                         });
-                        return;
-                    }
-                    else if (uniquePayerName && uniquePayerName.length && uniquePayerName.length > 1) {
-                        self.printInvoiceClaim('direct_invoice', claimIds, sortBy)
                         return;
                     }
                     else {
@@ -548,7 +548,6 @@ define(['jquery',
                     });
                     return;
                 }
-
 
                 commonjs.showLoading();
 
