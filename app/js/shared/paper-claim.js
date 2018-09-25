@@ -87,7 +87,7 @@ define([
                             return self.preparePdfWorker(templateType, template, claimData, options);
                         }
 
-                        self.updateClaimStatus(processedIDs, templateType, function (err, response) {
+                        self.updateClaimStatus(processedIDs, templateType, options,function (err, response) {
                             var invoiceNo = response.invoice_no;
                             claimData[0].invoiceNo = invoiceNo;
                             return self.preparePdfWorker(templateType, template, claimData);
@@ -230,14 +230,15 @@ define([
                 });
             };
 
-            this.updateClaimStatus = function (claimIDs, templateType, callback) {
+            this.updateClaimStatus = function (claimIDs, templateType, options, callback) {
 
                 $.ajax({
                     url: '/exa_modules/billing/claim_workbench/update_claim_status',
                     type: 'post',
                     data: {
                         claimIds: claimIDs.toString(),
-                        templateType: templateType
+                        templateType: templateType,
+                        payerType:options.payerType
                     }, success: function (data, response) {
                         $("#btnClaimsRefresh").click();
                         callback(null, data.length > 0 ? data[0] : {});
