@@ -33,7 +33,7 @@ WITH agg_claim AS(
      <% if(billingProID) { %> AND <% print(billingProID); } %>
   )
 , ins_paid as (
-    SELECT bc.claim_id,
+    SELECT DISTINCT bc.claim_id,
          bp.insurance_provider_id,
         COALESCE( bc.primary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id, false) is_primary,
         COALESCE( bc.secondary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id, false) is_secondary,
@@ -44,12 +44,6 @@ WITH agg_claim AS(
          INNER JOIN billing.payments bp ON  bp.id = bpa.payment_id
          LEFT JOIN public.patient_insurances ppi ON ppi.id IN ( bc.primary_patient_insurance_id, bc.secondary_patient_insurance_id, bc.tertiary_patient_insurance_id )
      WHERE bp.payer_type = 'insurance'
-     GROUP BY
-     bc.claim_id,
-     bp.insurance_provider_id,
-     COALESCE( bc.primary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id, false) ,
-     COALESCE( bc.secondary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id, false) ,
-     COALESCE( bc.tertiary_patient_insurance_id = ppi.id AND ppi.insurance_provider_id = bp.insurance_provider_id, false)
 )
 , paid_insurance AS (
     SELECT
