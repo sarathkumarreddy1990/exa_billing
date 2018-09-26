@@ -40,6 +40,7 @@ function customGrid ( datastore, gridID ) {
         if ( self.datastore === null ) {
             self.datastore = options.datastore;
         }
+        self.datastore.off();
         self.getData = getData(self.datastore, options.gridelementid);
         self.fromDate = options.fromDate || null;
         self.toDate = options.toDate || null;
