@@ -444,7 +444,7 @@ function ($, _, Backbone, UI, MainTemplate) {
                 'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : 'false',
                 'referringDocList': this.viewModel.referringDocList ? this.viewModel.referringDocList : [],
                 'refProviderGroupList': this.viewModel.refProviderGroupList ? this.viewModel.refProviderGroupList : [] ,
-                'payerTypeList': this.viewModel.payerTypeList ? this.viewModel.payerTypeList : [] ,
+                'payerTypeList': this.viewModel.payerTypeList || [] ,
                 'allRefProList': this.viewModel.allRefProList  ? true : false,
                 'refProviderFlag': $('#ddlProcedureBySelectBoxes').val() == 'refPro' ? true : false,
             }

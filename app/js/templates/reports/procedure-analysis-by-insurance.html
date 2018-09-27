@@ -6,7 +6,7 @@
         margin-left: 0;
     }
     .divListBox{
-        width: 150px;
+        width: 250px;
          margin-top:10px
     }
     .displayAlignLeft{
@@ -17,6 +17,9 @@
         width: 300px;
         height:40px;
         border: 1px solid;
+    }
+    .divUList{
+        width:150px;
     }
 </style>
 <form class="form-horizonta form-list" novalidate="" _lpchecked="1">
@@ -96,9 +99,9 @@
                         </select>
                     </div>
                 </div>
-                <div id="ddlProviderGroupBox" class="form-group form-inline" style="display:none; width:250px">
-                    <div style="width: 250px; margin-top:10px">
-                        <div style="width:150px; float:left;">
+                <div id="ddlProviderGroupBox" class="form-group form-inline" style="display:none;">
+                    <div class="divListBox">
+                        <div class="float-left divUList">
                             <select id="txtProviderGroupName"> </select>
                         </div>
                         <div>
@@ -128,9 +131,8 @@
                     </div>
                 </div>
                 <div id="ddlCPTCodeBoxDetails" class="form-group form-inline" style="display: none;">
-                    <div style="width:250px; margin-top:10px">
-
-                        <div style="width:150px; float:left;">
+                    <div class="divListBox">
+                        <div class="float-left divUList">
                             <select id="txtCPTCode"></select>
                         </div>
                         <div>
@@ -163,9 +165,9 @@
                     </div>
                 </div>
                 <div id="ddlInsuranceOptionBox" class="form-group form-inline" style="display: none;">
-                    <div style="width: 250px; margin-top:10px">
-                        <div style="width:150px; float:left;">
-                            <select id="txtInsuranceName" style="width: 250px; border:1px solid;margin-top:10px"> </select>
+                    <div class="divListBox">
+                        <div  class="float-left divUList">
+                            <select id="txtInsuranceName"> </select>
                         </div>
                         <div>
                             <a class="btn btn-primary displayAlignLeft" id="btnAddInsurance" title="Add Insurance">
@@ -195,8 +197,8 @@
                     </div>
                 </div>
                 <div id="ddlReferringPhysician" class="form-group form-inline" style="display:none;">
-                    <div style="width: 250px; margin-top:10px">
-                        <div style="width:150px; float:left;">
+                    <div class="divListBox">
+                        <div class="float-left divUList">
                             <select id="txtReferringPhysician"> </select>
                         </div>
                         <div>
@@ -228,8 +230,8 @@
                     </div>
                 </div>
                 <div id="ddlPayerTypeBox" class="form-group form-inline" style="display: none;">
-                    <div style="width:250px; margin-top:10px">
-                        <div style="width:150px; float:left;">
+                    <div class="divListBox">
+                        <div class="float-left divUList">
                             <select id="txtInsuranceProviderName"> </select>
                         </div>
                         <div>
