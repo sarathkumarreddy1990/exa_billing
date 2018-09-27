@@ -2723,7 +2723,6 @@ define(['jquery',
                                     $("#btnStudiesRefresh").click();
                                 }, 200);
 
-
                                 var claimHideInterval = setTimeout(function () {
                                     clearTimeout(claimHideInterval);
 
@@ -2745,7 +2744,6 @@ define(['jquery',
                                     }
 
                                 }, 800);
-
 
                                 saveButton.attr('disabled', false);
                             }
