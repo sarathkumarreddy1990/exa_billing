@@ -344,7 +344,7 @@ define(['jquery',
 
             initializeClaimEditForm: function (isFrom) {
                 var self = this;
-                if (!this.rendered && !commonjs.popupClosed)
+                if (!this.rendered)
                     this.render('claim');
                 self.bindclaimFormEvents(isFrom);
             },
@@ -361,10 +361,9 @@ define(['jquery',
                 self.options = options || {};
                 if (isFrom && isFrom != 'reload') {
                     self.openedFrom = isFrom
-                    commonjs.popupClosed = false;
-                } else {
-                    commonjs.showLoading();
                 }
+
+                commonjs.showLoading();
 
                 $.ajax({
                     type: 'GET',
@@ -412,7 +411,7 @@ define(['jquery',
                                 });
                             });
 
-                            if (commonjs.popupClosed) {
+                            if (commonjs.hasModalClosed()) {
                                 commonjs.hideLoading();
                                 return false;
                             }
@@ -1856,7 +1855,7 @@ define(['jquery',
                         var form = $('<form class="form-horizontal" style="margin-left:8%"> </form>');
 
                         // Before getting pokitdok response, showDialog closed means no need to open pokitdok response dialog
-                        if (commonjs.popupClosed) {
+                        if (commonjs.hasModalClosed()) {
                             commonjs.hideLoading();
                             return false;
                         }
@@ -2724,27 +2723,31 @@ define(['jquery',
                                     $("#btnStudiesRefresh").click();
                                 }, 200);
 
+
                                 var claimHideInterval = setTimeout(function () {
                                     clearTimeout(claimHideInterval);
 
-                                    saveButton.attr('disabled', false);
-                                    $('#chktblClaimGridAll_Claims_' + self.claim_Id).prop('checked', true);
-                                    // Call Edit claim API for rebind after save
-                                    commonjs.getClaimStudy(self.claim_Id, function (result) {
-                                        self.rendered = false;
-                                        self.clearDependentVariables();
-
-                                        // Ispopup(showDialog) closed means no need to call edit claim
-                                        if (!commonjs.popupClosed) {
+                                    // Ispopup(showDialog) closed means no need to call edit claim
+                                    if (!commonjs.hasModalClosed()) {
+                                        saveButton.attr('disabled', false);
+                                        $('#chktblClaimGridAll_Claims_' + self.claim_Id).prop('checked', true);
+                                        // Call Edit claim API for rebind after save
+                                        commonjs.getClaimStudy(self.claim_Id, function (result) {
+                                            self.rendered = false;
+                                            self.clearDependentVariables();
                                             self.showEditClaimForm(self.claim_Id, 'reload', {
                                                 'study_id': result && result.study_id ? result.study_id : 0,
                                                 'patient_name': self.cur_patient_name,
                                                 'patient_id': self.cur_patient_id,
                                                 'order_id': result && result.order_id ? result.order_id : 0
                                             });
-                                        }
-                                    });
+                                        });
+                                    }
+
                                 }, 800);
+
+
+                                saveButton.attr('disabled', false);
                             }
 
                             commonjs.hideLoading();

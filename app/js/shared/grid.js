@@ -1187,11 +1187,17 @@ define('grid', [
                     }
                     if (options.isClaimGrid || (gridData.claim_id && gridData.claim_id != '')) {
                         self.claimView = new claimsView();
-                        self.claimView.showEditClaimForm(gridData.claim_id, !options.isClaimGrid ? 'studies' : 'claims', {
-                            'study_id': study_id,
-                            'patient_name': gridData.patient_name,
-                            'patient_id': gridData.patient_id,
-                            'order_id': order_id
+                        commonjs.getClaimStudy(rowID, function (result) {
+                            if (result) {
+                                study_id = result.study_id;
+                                order_id = result.order_id;
+                            }
+                            self.claimView.showEditClaimForm(gridData.claim_id, !options.isClaimGrid ? 'studies' : 'claims', {
+                                'study_id': study_id,
+                                'patient_name': gridData.patient_name,
+                                'patient_id': gridData.patient_id,
+                                'order_id': order_id
+                            });
                         });
                     } else {
                         if (['ABRT', 'CAN', 'NOS'].indexOf(gridData.study_status) < 0 && !gridData.has_deleted) {

@@ -77,7 +77,6 @@ var commonjs = {
     studyFilters: Immutable.List(),
     loadedStudyFilters: Immutable.Map(),
     currentStudyFilter: '',
-    popupClosed: '',
     localCacheMaxErrorLimit: 0,
     filterData: {},
 
@@ -902,7 +901,6 @@ var commonjs = {
         var $siteModal = $(modalContainerId);
 
         $siteModal.on('hidden.bs.modal', function (event) {
-            commonjs.popupClosed = true;
             commonjs.disposeDialog(options);
         });
     },
@@ -5152,6 +5150,10 @@ var commonjs = {
 
             //$(document).on('keydown', null, shortcut, handlerFn);
         }
+    },
+
+    hasModalClosed: function () {
+        return $('#siteModal').is(':hidden')
     }
 };
 
