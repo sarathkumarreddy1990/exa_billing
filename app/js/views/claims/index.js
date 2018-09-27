@@ -2691,21 +2691,21 @@ define(['jquery',
             },
 
             saveClaimDetails: function () {
-                var self = this, saveButton = $('#btnSaveClaim');
+                var self = this, saveButton = $('#btnSaveClaim'), $claimProcess = $('.claimProcess');
 
                 if (self.validateClaimData()) {
                     self.setClaimDetails();
 
                     commonjs.showLoading();
-                    saveButton.attr('disabled', true);
-                    $('.claimProcess').attr('disabled', true);
+                    saveButton.prop('disabled', true);
+                    $claimProcess.prop('disabled', true);
 
                     self.model.save({}, {
                         success: function (model, response) {
                             if (response && response.message) {
                                 commonjs.showWarning(response.message);
-                                saveButton.attr('disabled', false);
-                                $('.claimProcess').attr('disabled', false);
+                                saveButton.prop('disabled', false);
+                                $claimProcess.prop('disabled', false);
                             } else {
 
                                 if (self.isEdit) {
@@ -2728,7 +2728,7 @@ define(['jquery',
 
                                     // Ispopup(showDialog) closed means no need to call edit claim
                                     if (!commonjs.hasModalClosed()) {
-                                        saveButton.attr('disabled', false);
+                                        saveButton.prop('disabled', false);
                                         $('#chktblClaimGridAll_Claims_' + self.claim_Id).prop('checked', true);
                                         // Call Edit claim API for rebind after save
                                         commonjs.getClaimStudy(self.claim_Id, function (result) {
@@ -2745,21 +2745,21 @@ define(['jquery',
 
                                 }, 800);
 
-                                saveButton.attr('disabled', false);
+                                saveButton.prop('disabled', false);
                             }
 
                             commonjs.hideLoading();
                         },
                         error: function (model, response) {
                             commonjs.handleXhrError(model, response);
-                            saveButton.attr('disabled', false);
-                            $('.claimProcess').attr('disabled', false);
+                            saveButton.prop('disabled', false);
+                            $claimProcess.prop('disabled', false);
                         }
                     });
                 }
                 else {
-                    saveButton.attr('disabled', false);
-                    $('.claimProcess').attr('disabled', false);
+                    saveButton.prop('disabled', false);
+                    $claimProcess.prop('disabled', false);
                 }
             },
 
