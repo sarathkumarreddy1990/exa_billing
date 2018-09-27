@@ -411,7 +411,7 @@ define(['jquery',
                                 });
                             });
 
-                            if (commonjs.hasModalClosed()) {
+                            if (commonjs.hasModalClosed() && isFrom === 'reload') {
                                 commonjs.hideLoading();
                                 return false;
                             }
