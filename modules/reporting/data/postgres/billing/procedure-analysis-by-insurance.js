@@ -41,7 +41,7 @@ with claim_details as (
         SELECT
             pip.insurance_name AS "Insurance",
             bp.name AS "Billing Provider",
-            --adj.description AS "Payer Type",
+            pippt.description AS "Payer Type",
             get_full_name (pp.last_name, pp.first_name, pp.middle_name, pp.prefix_name, pp.suffix_name) AS "Patient",
             pp.account_no AS "Account #",
             f.facility_name AS "Facility",
@@ -60,7 +60,7 @@ with claim_details as (
             COALESCE (ps.adj_o, 0::money) AS "Others Adj",
             (bch.bill_fee * bch.units ) - COALESCE (cpt_pymt_adj , 0::money) AS "Balance"
             <% if ( refProviderFlagValue === 'true' ) { %>
-           , ppr.full_name   AS "Ref. Name"
+           , ppr.full_name   AS "Referring Physician"
 
             <% } %>
         FROM
@@ -75,6 +75,7 @@ with claim_details as (
         INNER JOIN public.studies pss on pss.id = bcs.study_id
         INNER  JOIN public.patient_insurances AS ppi ON ppi.id =  bc.primary_patient_insurance_id
         LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
+        LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
         LEFT JOIN public.modalities pm on pm.id = pss.modality_id
         <% if ( refProviderFlagValue === 'true' ) { %>
             LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
@@ -90,6 +91,7 @@ with claim_details as (
        <% if(cptIds) { %>AND <% print(cptIds);} %>
        <% if(referringProID) { %>AND <% print(referringProID);} %>
        <% if(providerGroupID) { %>AND <% print(providerGroupID);} %>
+       <% if(payerIds) { %>AND <% print(payerIds);} %>
 
     )
     select * from claim_details
@@ -262,7 +264,8 @@ const api = {
             cptIds:null,
             refProviderFlagValue : null,
             referringProID: null,
-            providerGroupID: null
+            providerGroupID: null,
+            payerIds: null
 
         };
 
@@ -317,6 +320,12 @@ const api = {
         if(reportParams.refProviderGroupList)  {
             params.push(reportParams.refProviderGroupList);
             filters.providerGroupID = queryBuilder.whereIn('ppc.provider_group_id', [params.length]);
+        }
+
+        //Payer Type List
+        if (reportParams.payerTypeList && reportParams.payerTypeList.length > 0) {
+            params.push(reportParams.payerTypeList);
+            filters.payerIds = queryBuilder.whereIn(`pippt.id`, [params.length]);
         }
 
         return {

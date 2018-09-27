@@ -106,6 +106,7 @@ function ($, _, Backbone, UI, MainTemplate) {
             UI.bindReferringProviderAutoComplete('txtReferringPhysician', 'btnAddReferringPhysician', 'ulListReferringPhysicians');
             UI.bindInsuranceAutocomplete('txtInsuranceName', 'btnAddInsurance', 'ulListInsurance');
             UI.bindCPTCodeInformations('txtCPTCode', 'btnCPTCode', 'ulListCPTCodeDetails');
+            UI.bindInsuranceProviderAutocomplete('txtInsuranceProviderName', 'btnAddInsuranceProvider', 'ulListInsuranceProvider')
         },
 
         bindDateRangePicker: function () {
@@ -175,7 +176,7 @@ function ($, _, Backbone, UI, MainTemplate) {
             }).get();
 
             // Payer Type Mapping
-            this.viewModel.payerTypeList = $('ul#ulListPayerType li').map(function () {
+            this.viewModel.payerTypeList = $('ul#ulListInsuranceProvider li').map(function () {
                 return this.id;
             }).get();
 
@@ -239,7 +240,7 @@ function ($, _, Backbone, UI, MainTemplate) {
                 checkboxes.style.display = "none";
                 this.expanded = false;
             }
-        },      
+        },
         // Select all facility changes
         selectAllFacility: function (e) {
             if ($('#chkAllFacility').attr('checked')) {
@@ -353,16 +354,21 @@ function ($, _, Backbone, UI, MainTemplate) {
                 $('#divListProviderGroup').hide();
                 $('#ulListProviderGroup').empty();
                 this.viewModel.refProviderGroupList = [];
-                $('#ulListProviderGroup').data('ids', []);                  
+                $('#ulListProviderGroup').data('ids', []);
             }
         },
 
         // Binding Payer Type Auto Complete
         onPayerTypeBinding: function () {
-            if ($('#ddlPayerTypeOption').val() == 'S')
+            if ($('#ddlPayerTypeOption').val() == 'S'){
                 $('#ddlPayerTypeBox').show();
+                $('#divListPayerType').show();
+                $('#ulListInsuranceProvider').show();
+            }
             else {
                 $('#ddlPayerTypeBox').hide();
+                $('#divListPayerType').hide();
+                $('#ulListInsuranceProvider').hide();
                 $('#ulListPayerType').empty();
                 this.viewModel.payerTypeList = [];
                 $('#ulListPayerType').data('ids', []);
@@ -376,23 +382,22 @@ function ($, _, Backbone, UI, MainTemplate) {
                 $('#procedureByRefPro').show();
                 // Payer Type clear
                 $('#payerType').hide();
-                $('#ulListPayerType').empty();
+                $('#ulListInsuranceProvider').empty();
                 this.viewModel.payerTypeList = [];
-                $('#ulListPayerType').data('ids', []);
+                $('#ulListInsuranceProvider').data('ids', []);
                 $('#refProviderGroup').show();
                 // Insurance Div Hide
                 $('#procedureByInsurance').hide();
-                $('#ddlInsuranceBinding').val('All Insurnace');
                 $('#ddlInsuranceOptionBox').hide();
                 $('#divListInsurance').hide();
-                $('#ddlPayerTypeBox').hide();              
+                $('#ddlPayerTypeBox').hide();
                 $('#ulListInsurance').empty();
                 this.viewModel.insuranceOption = [];
                 $('#ulListInsurance').data('insuranceIds', []);
+                $('#divListPayerType').show();
 
                 // CPT Code div Hide
                 $('#procedureByCPTCodes').hide();
-                $('#ddlCPTCodeBinding').val('All CPTs');
                 $("#ddlCPTCodeBoxDetails").hide();
                 $("#divCPTCodes").hide();
                 $('#ulListCPTCodeDetails').empty();
@@ -402,7 +407,6 @@ function ($, _, Backbone, UI, MainTemplate) {
             else {
                 // Referring Provider then hide div
                 this.viewModel.allRefProList = false;
-                $('#ddlReferringPhysicianOption').val('All Ref. Provider')
                 $('#procedureByRefPro').hide();
                 $('#ulListProviderGroup').empty();
                 this.viewModel.refProviderGroupList= [];
@@ -416,7 +420,8 @@ function ($, _, Backbone, UI, MainTemplate) {
                 this.viewModel.refProviderGroupList = [];
                 this.viewModel.payerTypeList = [];
                 $('#ulListReferringPhysicians').data('referringPhysicianIds', []);
-                $('#ulListPayerType').data('ids', []);
+                $('#ulListInsuranceProvider').data('ids', []);
+                $('#ulListInsuranceProvider').hide();
                 $('#ddlProviderGroupBox').hide();
                 $('#divListProviderGroup').hide();
                 // Insurance Div Show
@@ -439,7 +444,7 @@ function ($, _, Backbone, UI, MainTemplate) {
                 'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : 'false',
                 'referringDocList': this.viewModel.referringDocList ? this.viewModel.referringDocList : [],
                 'refProviderGroupList': this.viewModel.refProviderGroupList ? this.viewModel.refProviderGroupList : [] ,
-                'payerTypeList': this.viewModel.payerTypeList ? this.viewModel.payerTypeList : [] ,                    
+                'payerTypeList': this.viewModel.payerTypeList ? this.viewModel.payerTypeList : [] ,
                 'allRefProList': this.viewModel.allRefProList  ? true : false,
                 'refProviderFlag': $('#ddlProcedureBySelectBoxes').val() == 'refPro' ? true : false,
             }
