@@ -230,24 +230,19 @@ define([
 
                             if (model && model.status == 100) {
                                 commonjs.showWarning(model.message);
-                            }
-                            else if (model && model.payer_id) {
-
+                            } else if (model && model.payer_id) {
                                 model.file_store_id = gridData.file_store_id;
                                 self.showProgressDialog(file_id, model, 'initialize');
-                            }
-                            else if (model && model.rows && model.rows.length) {
+                            } else if (model && model.rows && model.rows.length) {
                                 commonjs.hideDialog();
                                 self.reloadERAFilesLocal();
                                 $('.modal-dialog .btn-secondary, .modal-dialog  .close').removeClass('eraClose');
                             } else if (model && model.type && model.type == 'none') {
                                 model.file_store_id = gridData.file_store_id;
                                 self.showProgressDialog(file_id, model, 'initialize');
-                            }
-                            else if (model && model.name == 'error') {
+                            } else if (model && model.name == 'error') {
                                 var msg = model.table + ' ' + model.detail
                                 commonjs.showWarning(msg);
-                                //commonjs.showWarning('Already Payment Processed');
                             }
                             $('#btnProcessPayment').prop('disabled', false);
                             commonjs.hideLoading();
@@ -366,6 +361,7 @@ define([
                 var fileUploadedObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileNameUploaded');
                 var fileDuplicateObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileIsDuplicate');
                 var fileStoreExist = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileStoreExist');
+                var fileStatus = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileStatus');
 
                 var hdnPreviewFileName = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('hdnPreviewFileName');
 
@@ -376,26 +372,29 @@ define([
                 }
 
                 if (fileDuplicateObj.innerHTML == 'true') {
-                    commonjs.showWarning('This file has been already processed');
+                    commonjs.showWarning("messages.warning.era.fileAlreadyProcessed");
                     fileDuplicateObj.innerHTML = '';
                     fileUploadedObj.innerHTML = '';
                     return false;
-                }
-                else if (fileStoreExist && fileStoreExist.innerHTML == 'FILE_STORE_NOT_EXISTS') {
-                    commonjs.showWarning('File store not yet configured');
+                } else if (fileStoreExist && fileStoreExist.innerHTML == 'FILE_STORE_NOT_EXISTS') {
+                    commonjs.showWarning("messages.warning.era.fileStoreNotconfigured");
                     fileDuplicateObj.innerHTML = '';
                     fileUploadedObj.innerHTML = '';
                     fileStoreExist.innerHTML = '';
                     return false;
-                }
-                else if (fileStoreExist && fileStoreExist.innerHTML != '') {
+                } else if (fileStatus && fileStatus.innerHTML == 'INVALID_FILE') {
+                    commonjs.showWarning("messages.warning.era.invalidFileFormat");
+                    fileStatus.innerHTML = '';
+                    fileUploadedObj.innerHTML = '';
+                    fileStoreExist.innerHTML = '';
+                    return false;
+                } else if (fileStoreExist && fileStoreExist.innerHTML != '') {
                     commonjs.showWarning(fileStoreExist.innerHTML);
                     fileDuplicateObj.innerHTML = '';
                     fileUploadedObj.innerHTML = '';
                     fileStoreExist.innerHTML = '';
                     return false;
-                }
-                else {
+                } else {
                     this.pager.set({ "PageNo": 1 });
                     $('.ui-jqgrid-htable:visible').find('input, select').val('');
                     this.eobFilesTable.refreshAll();
