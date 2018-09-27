@@ -5,6 +5,19 @@
         display: inline-block;
         margin-left: 0;
     }
+    .divListBox{
+        width: 150px;
+         margin-top:10px
+    }
+    .displayAlignLeft{
+        margin-left:10px;
+    }
+    .ulListAlignment{
+        overflow: auto;
+        width: 300px;
+        height:40px;
+        border: 1px solid;
+    }
 </style>
 <form class="form-horizonta form-list" novalidate="" _lpchecked="1">
 
@@ -76,7 +89,7 @@
                     <label class="control-label">Ref. Pro Group</label>
                 </div>
                 <div class="form-content">
-                    <div class="input-group" style="width: 150px; margin-top:10px">
+                    <div class="input-group" class="divListBox">
                         <select id="ddlRefProviderGroupOption" class="form-control form-control-lg">
                             <option value="All">All Ref Pro Group</option>
                             <option value="S">Provider Group</option>
@@ -89,7 +102,7 @@
                             <select id="txtProviderGroupName"> </select>
                         </div>
                         <div>
-                            <a class="btn btn-primary" id="btnAddProviderGroup" title="Add Referring Physican Group" style="margin-left:10px;">
+                            <a class="btn btn-primary displayAlignLeft" id="btnAddProviderGroup" title="Add Referring Physican Group">
                                 <i class="icon-ic-plus"></i>
                             </a>
                         </div>
@@ -98,8 +111,7 @@
                 </div>
                 <div id="divListProviderGroup" style="display: none;">
                     <div>
-                        <ul id="ulListProviderGroup" class="ulSelectionList tagList" style="overflow: auto;width: 300px;height:40px; border: 1px solid;">
-                        </ul>
+                        <ul id="ulListProviderGroup" class="ulSelectionList tagList ulListAlignment">
                     </div>
                 </div>
             </div>
@@ -108,7 +120,7 @@
                     <label class="inline field-chk" i18n="report.cptCodes" />
                 </div>
                 <div class="form-content">
-                    <div class="input-group" style="width: 150px; margin-top:10px">
+                    <div class="input-group" class="divListBox">
                         <select id="ddlCPTCodeBinding" class="form-control form-control-lg">
                             <option value="All">All CPT's</option>
                             <option value="S">Selected</option>
@@ -122,7 +134,7 @@
                             <select id="txtCPTCode"></select>
                         </div>
                         <div>
-                            <a class="btn btn-primary" id="btnCPTCode" title="Add Insurance" style="margin-left:10px;">
+                            <a class="btn btn-primary displayAlignLeft" id="btnCPTCode" title="Add Insurance">
                                 <i class="icon-ic-plus"></i>
                             </a>
                         </div>
@@ -130,7 +142,7 @@
                 </div>
                 <div id="divCPTCodes" style="display: none;">
                     <div>
-                        <ul id="ulListCPTCodeDetails" class="ulSelectionList tagList" style="overflow: auto;width: 300px;height:40px; border: 1px solid;">
+                        <ul id="ulListCPTCodeDetails" class="ulSelectionList tagList ulListAlignment">
                         </ul>
                     </div>
                 </div>
@@ -143,7 +155,7 @@
                     <label class="control-label">Insurance</label>
                 </div>
                 <div class="form-content">
-                    <div class="input-group" style="width: 150px; margin-top:10px">
+                    <div class="input-group" class="divListBox">
                         <select id="ddlInsuranceBinding" class="form-control form-control-lg">
                             <option value="All">All Insurance</option>
                             <option value="S">Insurances</option>
@@ -156,7 +168,7 @@
                             <select id="txtInsuranceName" style="width: 250px; border:1px solid;margin-top:10px"> </select>
                         </div>
                         <div>
-                            <a class="btn btn-primary" id="btnAddInsurance" title="Add Insurance" style="margin-left:10px;">
+                            <a class="btn btn-primary displayAlignLeft" id="btnAddInsurance" title="Add Insurance">
                                 <i class="icon-ic-plus"></i>
                             </a>
                         </div>
@@ -164,7 +176,7 @@
                 </div>
                 <div id="divListInsurance" style="display: none;">
                     <div>
-                        <ul id="ulListInsurance" class="ulSelectionList tagList" style="overflow: auto;width: 300px;height:40px; border: 1px solid;">
+                        <ul id="ulListInsurance" class="ulSelectionList tagList ulListAlignment">
                         </ul>
                     </div>
                 </div>
@@ -175,7 +187,7 @@
                     <label class="control-label">Ref. Provider</label>
                 </div>
                 <div class="form-content">
-                    <div class="input-group" style="width: 150px; margin-top:10px">
+                    <div class="input-group" class="divListBox">
                         <select id="ddlReferringPhysicianOption" class="form-control form-control-lg">
                             <option value="All">All Ref. Pro</option>
                             <option value="S">Provider </option>
@@ -188,7 +200,7 @@
                             <select id="txtReferringPhysician"> </select>
                         </div>
                         <div>
-                            <a class="btn btn-primary" id="btnAddReferringPhysician" title="Add provider" style="margin-left:10px;">
+                            <a class="btn btn-primary displayAlignLeft" id="btnAddReferringPhysician" title="Add provider">
                                 <i class="icon-ic-plus"></i>
                             </a>
                         </div>
@@ -196,7 +208,7 @@
                 </div>
                 <div id="divReferringPhysician" style="display: none;">
                     <div>
-                        <ul id="ulListReferringPhysicians" class="ulSelectionList tagList" style="overflow: auto;width: 300px;height:40px; border: 1px solid;">
+                        <ul id="ulListReferringPhysicians" class="ulSelectionList tagList ulListAlignment">
                         </ul>
                     </div>
                 </div>
@@ -208,7 +220,7 @@
                     <label class="control-label">Payer Type</label>
                 </div>
                 <div class="form-content">
-                    <div class="input-group" style="width: 150px; margin-top:10px">
+                    <div class="input-group" class="divListBox">
                         <select id="ddlPayerTypeOption" class="form-control form-control-lg">
                             <option value="All">All Payer</option>
                             <option value="S">Payer Type</option>
@@ -221,7 +233,7 @@
                             <select id="txtInsuranceProviderName"> </select>
                         </div>
                         <div>
-                            <a class="btn btn-primary" id="btnAddInsuranceProvider" title="Add Payer Type" style="margin-left:10px;">
+                            <a class="btn btn-primary displayAlignLeft" id="btnAddInsuranceProvider" title="Add Payer Type">
                                 <i class="icon-ic-plus"></i>
                             </a>
                         </div>
@@ -229,7 +241,7 @@
                 </div>
                 <div id="divListPayerType" style="display: none;">
                     <div>
-                        <ul id="ulListInsuranceProvider" class="ulSelectionList tagList" style="overflow: auto;width: 300px;height:40px; border: 1px solid;">
+                        <ul id="ulListInsuranceProvider" class="ulSelectionList tagList ulListAlignment">
                         </ul>
                     </div>
                 </div>
