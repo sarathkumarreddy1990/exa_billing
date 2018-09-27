@@ -96,6 +96,14 @@ module.exports = {
         let tempString = buffer.toString();
         let bufferString = tempString.replace(/(?:\r\n|\r|\n)/g, '');
 
+        bufferString = bufferString.trim() || '';
+
+        if (bufferString.indexOf('ISA') == -1 || bufferString.indexOf('CLP') == -1) {
+            return {
+                status: 'INVALID_FILE',
+            };
+        }
+
         let fileMd5 = crypto.createHash('MD5').update(bufferString, 'utf8').digest('hex');
 
         const dataRes = await data.isProcessed(fileMd5, 1);

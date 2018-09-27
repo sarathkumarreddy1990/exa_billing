@@ -77,9 +77,7 @@ var commonjs = {
     studyFilters: Immutable.List(),
     loadedStudyFilters: Immutable.Map(),
     currentStudyFilter: '',
-
     localCacheMaxErrorLimit: 0,
-
     filterData: {},
 
     /**
@@ -5152,6 +5150,10 @@ var commonjs = {
 
             //$(document).on('keydown', null, shortcut, handlerFn);
         }
+    },
+
+    hasModalClosed: function () {
+        return $('#siteModal').is(':hidden')
     }
 };
 

@@ -39,6 +39,11 @@
                 "entertotime": "Enter ToTime",
                 "enterfromtime": "Enter FromTime",
                 "selectfromtodate": "Select From Date"
+            },
+            "era":{
+                "fileAlreadyProcessed":"This file has been already processed",
+                "fileStoreNotconfigured":"File store not yet configured",
+                "invalidFileFormat":"Invalid file format"
             }
         },
         "loadingMsg": {
