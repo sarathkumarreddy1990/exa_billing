@@ -954,8 +954,10 @@ define([
                 $('#btnPatientActivity').off().click(function (e) {
 
                     var patientActivityParams = self.createPatientActivityParams(claimId, patientId);
-                    self.patientActivityStatement.onReportViewClick(e, patientActivityParams);
-                    $('#modal_div_container').removeAttr('style');
+                    if(patientActivityParams) {
+                        self.patientActivityStatement.onReportViewClick(e, patientActivityParams);
+                        $('#modal_div_container').removeAttr('style');
+                    }
                 });
                 $('#btnFaxPatientActivity').off().click(function (e) {
 
