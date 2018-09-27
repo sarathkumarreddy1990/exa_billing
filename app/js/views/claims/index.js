@@ -411,6 +411,11 @@ define(['jquery',
                                 });
                             });
 
+                            if (commonjs.hasModalClosed() && isFrom === 'reload') {
+                                commonjs.hideLoading();
+                                return false;
+                            }
+
                             self.initializeClaimEditForm(isFrom);
 
                             /* Bind chargeLineItems events - started*/
@@ -1848,6 +1853,13 @@ define(['jquery',
                     },
                     success: function (model, response) {
                         var form = $('<form class="form-horizontal" style="margin-left:8%"> </form>');
+
+                        // Before getting pokitdok response, showDialog closed means no need to open pokitdok response dialog
+                        if (commonjs.hasModalClosed()) {
+                            commonjs.hideLoading();
+                            return false;
+                        }
+
                         if (model && model.result && typeof model.result == 'string') {
                             var data = JSON.parse(model.result)
                             if (data && data.error && data.error == 'invalid_client')
@@ -2679,21 +2691,21 @@ define(['jquery',
             },
 
             saveClaimDetails: function () {
-                var self = this, saveButton = $('#btnSaveClaim');
+                var self = this, saveButton = $('#btnSaveClaim'), $claimProcess = $('.claimProcess');
 
                 if (self.validateClaimData()) {
                     self.setClaimDetails();
 
                     commonjs.showLoading();
-                    saveButton.attr('disabled', true);
-                    $('.claimProcess').attr('disabled', true);
+                    saveButton.prop('disabled', true);
+                    $claimProcess.prop('disabled', true);
 
                     self.model.save({}, {
                         success: function (model, response) {
                             if (response && response.message) {
                                 commonjs.showWarning(response.message);
-                                saveButton.attr('disabled', false);
-                                $('.claimProcess').attr('disabled', false);
+                                saveButton.prop('disabled', false);
+                                $claimProcess.prop('disabled', false);
                             } else {
 
                                 if (self.isEdit) {
@@ -2714,34 +2726,40 @@ define(['jquery',
                                 var claimHideInterval = setTimeout(function () {
                                     clearTimeout(claimHideInterval);
 
-                                    saveButton.attr('disabled', false);
-                                    $('#chktblClaimGridAll_Claims_' + self.claim_Id).prop('checked', true);
-                                    // Call Edit claim API for rebind after save
-                                    commonjs.getClaimStudy(self.claim_Id, function (result) {
-                                        self.rendered = false;
-                                        self.clearDependentVariables();
-                                        self.showEditClaimForm(self.claim_Id, 'reload', {
-                                            'study_id': result && result.study_id ? result.study_id : 0,
-                                            'patient_name': self.cur_patient_name,
-                                            'patient_id': self.cur_patient_id,
-                                            'order_id': result && result.order_id ? result.order_id : 0
+                                    // Ispopup(showDialog) closed means no need to call edit claim
+                                    if (!commonjs.hasModalClosed()) {
+                                        saveButton.prop('disabled', false);
+                                        $('#chktblClaimGridAll_Claims_' + self.claim_Id).prop('checked', true);
+                                        // Call Edit claim API for rebind after save
+                                        commonjs.getClaimStudy(self.claim_Id, function (result) {
+                                            self.rendered = false;
+                                            self.clearDependentVariables();
+                                            self.showEditClaimForm(self.claim_Id, 'reload', {
+                                                'study_id': result && result.study_id ? result.study_id : 0,
+                                                'patient_name': self.cur_patient_name,
+                                                'patient_id': self.cur_patient_id,
+                                                'order_id': result && result.order_id ? result.order_id : 0
+                                            });
                                         });
-                                    });
+                                    }
+
                                 }, 800);
+
+                                saveButton.prop('disabled', false);
                             }
 
                             commonjs.hideLoading();
                         },
                         error: function (model, response) {
                             commonjs.handleXhrError(model, response);
-                            saveButton.attr('disabled', false);
-                            $('.claimProcess').attr('disabled', false);
+                            saveButton.prop('disabled', false);
+                            $claimProcess.prop('disabled', false);
                         }
                     });
                 }
                 else {
-                    saveButton.attr('disabled', false);
-                    $('.claimProcess').attr('disabled', false);
+                    saveButton.prop('disabled', false);
+                    $claimProcess.prop('disabled', false);
                 }
             },
 
