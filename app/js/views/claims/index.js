@@ -344,7 +344,7 @@ define(['jquery',
 
             initializeClaimEditForm: function (isFrom) {
                 var self = this;
-                if (!this.rendered)
+                if (!this.rendered && !commonjs.popupClosed)
                     this.render('claim');
                 self.bindclaimFormEvents(isFrom);
             },
@@ -361,9 +361,10 @@ define(['jquery',
                 self.options = options || {};
                 if (isFrom && isFrom != 'reload') {
                     self.openedFrom = isFrom
+                    commonjs.popupClosed = false;
+                } else {
+                    commonjs.showLoading();
                 }
-
-                commonjs.showLoading();
 
                 $.ajax({
                     type: 'GET',
@@ -410,6 +411,11 @@ define(['jquery',
                                     is_deleted: false,
                                 });
                             });
+
+                            if (commonjs.popupClosed) {
+                                commonjs.hideLoading();
+                                return false;
+                            }
 
                             self.initializeClaimEditForm(isFrom);
 
@@ -1848,6 +1854,13 @@ define(['jquery',
                     },
                     success: function (model, response) {
                         var form = $('<form class="form-horizontal" style="margin-left:8%"> </form>');
+
+                        // Before getting pokitdok response, showDialog closed means no need to open pokitdok response dialog
+                        if (commonjs.popupClosed) {
+                            commonjs.hideLoading();
+                            return false;
+                        }
+
                         if (model && model.result && typeof model.result == 'string') {
                             var data = JSON.parse(model.result)
                             if (data && data.error && data.error == 'invalid_client')
@@ -2720,12 +2733,16 @@ define(['jquery',
                                     commonjs.getClaimStudy(self.claim_Id, function (result) {
                                         self.rendered = false;
                                         self.clearDependentVariables();
-                                        self.showEditClaimForm(self.claim_Id, 'reload', {
-                                            'study_id': result && result.study_id ? result.study_id : 0,
-                                            'patient_name': self.cur_patient_name,
-                                            'patient_id': self.cur_patient_id,
-                                            'order_id': result && result.order_id ? result.order_id : 0
-                                        });
+
+                                        // Ispopup(showDialog) closed means no need to call edit claim
+                                        if (!commonjs.popupClosed) {
+                                            self.showEditClaimForm(self.claim_Id, 'reload', {
+                                                'study_id': result && result.study_id ? result.study_id : 0,
+                                                'patient_name': self.cur_patient_name,
+                                                'patient_id': self.cur_patient_id,
+                                                'order_id': result && result.order_id ? result.order_id : 0
+                                            });
+                                        }
                                     });
                                 }, 800);
                             }
