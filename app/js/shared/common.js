@@ -78,9 +78,7 @@ var commonjs = {
     loadedStudyFilters: Immutable.Map(),
     currentStudyFilter: '',
     popupClosed: '',
-
     localCacheMaxErrorLimit: 0,
-
     filterData: {},
 
     /**
