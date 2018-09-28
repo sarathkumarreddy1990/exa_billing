@@ -9,7 +9,7 @@ const _ = require('lodash')
 // generate query template ***only once*** !!!
 
 const paymentsPDFDataSetQueryTemplate = _.template(`
-WITH paymentsPDF as (
+WITH payments_pdf as (
     SELECT
          bp.id AS payment_id,
          get_full_name(pu.last_name,pu.first_name) AS user_full_name,
@@ -50,7 +50,7 @@ WITH paymentsPDF as (
         <% if (from === 'ris') { %>
             WHERE  bp.payer_type = 'patient'
         <% } %>
-    WHERE 1=1
+    WHERE <%= companyId %>
         <% if(payer_type_column) { %>
             AND payer_type = '<%= payer_type_column %>'
         <% } %>
@@ -129,10 +129,8 @@ WITH paymentsPDF as (
     accounting_date  AS "Accounting Date",
     COALESCE(status, '~~ TOTAL ~~') AS "Payment Status" ,
     SUM(amount) AS "Payment"
-  FROM
-        paymentsPDF
-     WHERE  1=1
-    <% if (paymentStatus) { %>AND <% print(paymentStatus); } %>
+  FROM payments_pdf
+    <% if (paymentStatus) { %> WHERE <% print(paymentStatus); } %>
   GROUP BY
      grouping sets(
         ( facility_name),
@@ -150,21 +148,20 @@ WITH paymentsPDF as (
 
            UNION ALL
 
-           SELECT
-           NULL AS "Facility Name",
-           NULL AS "Payment ID",
-           NULL AS "Patient Name",
-           NULL AS "MRN #",
-           NULL AS "Note",
-           NULL AS "CHK/CC#",
-           NULL AS "Payment Date",
-           NULL AS "Accounting Date",
-           'GRAND TOTAL'::TEXT AS "Payment Status" ,
-         SUM(amount) AS "Payment"
-         FROM
-               paymentsPDF
-               WHERE  1=1
-               <% if (paymentStatus) { %>AND <% print(paymentStatus); } %>
+        SELECT
+            NULL AS "Facility Name",
+            NULL AS "Payment ID",
+            NULL AS "Patient Name",
+            NULL AS "MRN #",
+            NULL AS "Note",
+            NULL AS "CHK/CC#",
+            NULL AS "Payment Date",
+            NULL AS "Accounting Date",
+            'GRAND TOTAL'::TEXT AS "Payment Status" ,
+            SUM(amount) AS "Payment"
+        FROM payments_pdf
+        <% if (paymentStatus) { %> WHERE  <% print(paymentStatus); } %>
+        HAVING count(*) > 0 -- "Total" should not print if no records are fetched. Hence having clause used.
 
 `);
 
@@ -242,6 +239,7 @@ const api = {
     getpaymentsPDFDataSetQueryContext: (reportParams) => {
         const params = [];
         const filters = {
+            companyId: null,
             paymentDate: null,
             paymentStatus: null,
             pageSize: null,
@@ -261,6 +259,10 @@ const api = {
             account_no : null,
             notes : null
         };
+
+        // company id
+        params.push(reportParams.companyId);
+        filters.companyId = queryBuilder.where('bp.company_id', '=', [params.length]);
 
         if (reportParams.paymentStatus) {
             params.push(reportParams.paymentStatus);
