@@ -8,6 +8,26 @@ const logger = require('../../../logger')
     const jsReportClient = require("jsreport-client")('http://localhost:5488/', 'jsradmin', 'JSR1q2w3e4r5t');
 let reqNum = 0;
 
+const lengthExceedsTemplate = `
+         <style>
+              .lengthExceeds {
+                 width: 100%;
+                 text-align: center;
+                 margin: 10% 0;
+                 min-height: 200px;
+                 color:red;
+          }
+         </style>
+         <div class="lengthExceeds">
+            <h3>Too many records for VIEW/PDF mode. Switch to non VIEW/PDF output.</h3>
+         </div>
+`;
+
+const recordLimits = {
+    'aged-ar-details': 10000,
+    'procedure-analysis-by-insurance': 10000
+};
+
 const api = {
 
     process: function (req, res, next) {
@@ -53,6 +73,15 @@ const api = {
             // ========================================================================================================
             // STAGE 3 - transform entire report
             .then((rawReportData) => {
+                const totalDataCount = rawReportData.dataSets[0].rowCount;
+                if (reportParams.reportFormat == 'html' || reportParams.reportFormat == 'pdf') {
+                    if (recordLimits[reportParams.reportId] && totalDataCount > recordLimits[reportParams.reportId]) {
+                        req.data = {
+                            code: 'LENGTH_EXCEEDS'
+                        };
+                        throw new Error('LENGTH EXCEED ERROR...');
+                    }
+                }
                 console.timeEnd(`${repInfo} s2___data`);
                 console.time(`${repInfo} s3___transform`);
                 return dataHandler.transformReportData(rawReportData);
@@ -125,7 +154,13 @@ const api = {
                 //res.writeHead(500, { 'content-type': 'text/plain' });
                 //res.end('An error occurred');
                 //return next(err);
-                return responseHandler.sendError(req, res);
+                //return responseHandler.sendError(req.data, res);
+
+                if(req.data && req.data.code === 'LENGTH_EXCEEDS') {
+                    return responseHandler.sendHtml(req, res, null, lengthExceedsTemplate);
+                }
+
+                return responseHandler.sendError(req, res, req.data);
             });
     },
 
