@@ -154,7 +154,6 @@ const api = {
                 //res.writeHead(500, { 'content-type': 'text/plain' });
                 //res.end('An error occurred');
                 //return next(err);
-                //return responseHandler.sendError(req.data, res);
 
                  if(req.data && req.data.code === 'LENGTH_EXCEEDS') {
                      return responseHandler.sendHtml(req, res, null, lengthExceedsTemplate);
