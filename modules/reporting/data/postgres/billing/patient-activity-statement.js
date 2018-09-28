@@ -34,37 +34,48 @@ WITH claim_data as(
      patient_insurances pis
      INNER JOIN insurance_providers AS ip ON ip.id = pis.insurance_provider_id
      INNER JOIN billing.claims bc ON bc.patient_id = pis.patient_id
+     INNER JOIN claim_data cd ON cd.claim_id = bc.id
      INNER JOIN facilities f on f.id = bc.facility_id
-
-          WHERE 1=1
-          AND <%= patientInsIds %>
-          <% if(reportBy == 'false') { %> AND <% print(claimDate); } %>
-        ORDER BY cov_level
+     ORDER BY cov_level
       ),
-     billing_comments as
+    billing_comments as
     (
     <% if (billingComments == "true")  { %>
     SELECT
           cc.claim_id AS id
         , 'claim' AS type
         , note AS comments
-        , to_char(created_dt ,'MM/DD/YYYY') AS commented_dt
+        , created_dt AS commented_dt
         , null AS amount
         , u.username AS commented_by
         , null AS code
+        , cc.id as charge_id
     FROM
           billing.claim_comments cc
     INNER JOIN claim_data cd on cd.claim_id = cc.claim_id
     INNER JOIN users u  on u.id = cc.created_by
+    <% if(reportBy == 'false') { %> WHERE <% print(commentDate); } %>
     UNION
     <% } %>
-    SELECT  c.claim_id as id,'charge' as type,cc.short_description as comments,to_char(c.charge_dt,'MM/DD/YYYY') AS commented_dt,(c.bill_fee*c.units) as amount,u.username as commented_by,cc.display_code as code from billing.charges c
-    INNER JOIN claim_data cd on cd.claim_id = c.claim_id
-    inner join cpt_codes cc on cc.id = c.cpt_id
-    inner join users u  on u.id = c.created_by
+    SELECT
+        c.claim_id as id,
+        'charge' as type,
+        cc.short_description as comments,
+        c.charge_dt  AS commented_dt,
+        (c.bill_fee*c.units) as amount,
+        u.username as commented_by,
+        cc.display_code as code,
+        c.id as charge_id
+    FROM billing.charges c
+    INNER JOIN claim_data cd ON cd.claim_id = c.claim_id
+    INNER JOIN cpt_codes cc ON cc.id = c.cpt_id
+    INNER JOIN users u  ON u.id = c.created_by
+    <% if(reportBy == 'false') { %> WHERE <% print(chargeDate); } %>
     UNION
-    select  bc.claim_id as id,amount_type as type,
-    CASE WHEN bp.payer_type = 'patient' THEN
+    SELECT
+      bc.claim_id as id,
+      amount_type as type,
+      CASE WHEN bp.payer_type = 'patient' THEN
                pp.full_name
          WHEN bp.payer_type = 'insurance' THEN
                pip.insurance_name
@@ -73,8 +84,8 @@ WITH claim_data as(
          WHEN bp.payer_type = 'ordering_provider' THEN
                p.full_name
     END AS comments,
-    to_char(bp.accounting_date,'MM/DD/YYYY') as commented_dt,
-    pa.amount as amount,
+    bp.accounting_date as commented_dt,
+    sum(pa.amount) as amount,
     u.username as commented_by,
     CASE amount_type
          WHEN 'adjustment' THEN 'Adj'
@@ -84,8 +95,9 @@ WITH claim_data as(
                              WHEN 'ordering_facility' THEN 'Ordering facility'
                              WHEN 'ordering_provider' THEN 'Provider'
                              END)
-    END as code
-    from
+    END as code,
+    null as charge_id
+    FROM
          billing.payments bp
     INNER JOIN billing.payment_applications pa on pa.payment_id = bp.id
     INNER JOIN billing.charges bc on bc.id = pa.charge_id
@@ -96,6 +108,9 @@ WITH claim_data as(
     LEFT JOIN public.provider_groups  pg on pg.id = bp.provider_group_id
     LEFT JOIN public.provider_contacts  pc on pc.id = bp.provider_contact_id
     LEFT JOIN public.providers p on p.id = pc.provider_id
+    <% if(reportBy == 'false') { %> WHERE <% print(accountDate); } %>
+    GROUP BY bc.claim_id,amount_type,comments,bp.id,u.username,code,pa.applied_dt
+    ORDER BY charge_id ASC
     ),
     main_detail_cte as (
     SELECT
@@ -145,7 +160,8 @@ WITH claim_data as(
         bp.zip_code_plus as billing_zip_plus,
         bp.phone_number as billing_phoneno,
         type as payment_type,
-        CASE type WHEN 'charge' THEN 1 ELSE 2 END AS sort_order
+        CASE type WHEN 'charge' THEN 1 ELSE 2 END AS sort_order,
+        charge_id
     FROM public.patients p
          INNER JOIN billing.claims bc on bc.patient_id = p.id
          INNER JOIN billing_comments pc on pc.id = bc.id
@@ -157,15 +173,12 @@ WITH claim_data as(
          secondary_patient_insurance_id
    WHEN  bc.payer_type = 'tertiary_insurance' THEN
          tertiary_patient_insurance_id
-   END)
-   WHERE 1 = 1
-   <% if(reportBy == 'false') { %> AND <% print(claimDate); } %>
-
-    order by first_name),
+   END)),
     detail_cte AS(
-    select * From main_detail_cte
+    SELECT
+     *
+    From main_detail_cte
     where (payment_type != 'adjustment' or (payment_type = 'adjustment' AND amount != 0::money))
-    AND sum_amount >=  <%= minAmount  %>::money
     ),
     sum_encounter_cte AS (
     SELECT
@@ -259,6 +272,7 @@ WITH claim_data as(
           , -1                   AS row_flag
           , -1                   AS sort_order
           , -1                   AS statement_flag
+          , ''                   AS charge_id
           UNION
           -- Coverage Info
 
@@ -301,6 +315,7 @@ WITH claim_data as(
       , 0
       , 0                              AS sort_order
       , 0
+      , null
       FROM patient_insurance
 
       UNION
@@ -343,6 +358,7 @@ WITH claim_data as(
               , 0
               , 0                              AS sort_order
               , 1
+              , null
               FROM sum_statement_credit_cte
               UNION
 
@@ -386,6 +402,7 @@ WITH claim_data as(
               , 0
               , 0                              AS sort_order
               , 2
+              , null
               FROM detail_cte
               UNION
 
@@ -402,7 +419,7 @@ WITH claim_data as(
           , city
           , state
           , zip
-          , enc_date::text
+          , to_char(enc_date ,'MM/DD/YYYY') AS enc_date
           , description
           , code
           , enc_id::text
@@ -425,10 +442,11 @@ WITH claim_data as(
           , null
           , pid
           , enc_id
-          , enc_date::date
+          , to_char(enc_date ,'MM/DD/YYYY')::date AS enc_date
           , row_flag
           , sort_order
           , null
+          , charge_id::text
           FROM detail_cte
           UNION
 
@@ -470,6 +488,7 @@ WITH claim_data as(
           , null
           , 5
           , 98   AS sort_order
+          , null
           , null
           FROM sum_encounter_cte
           UNION
@@ -513,6 +532,7 @@ WITH claim_data as(
           , 6
           , 99   AS sort_order
           , 0
+          , null
           FROM statement_cte
 
           UNION
@@ -555,6 +575,7 @@ WITH claim_data as(
               , 6
               , 99   AS sort_order
               , 2
+              , null
               FROM statement_cte
 
           )
@@ -606,6 +627,7 @@ WITH claim_data as(
           , enc_date
           , row_flag
           , statement_flag
+          , charge_id
           , c13
           , c28;
 
@@ -626,9 +648,6 @@ const api = {
         //     initialReportData.report.params.billingProviderIds = initialReportData.report.params.billingProvider === 'All' ? [] : initialReportData.report.params.billingProvider.split().map(Number);
         // }
 
-        if (initialReportData.report.params.minAmount) {
-            initialReportData.report.params.minAmount = parseFloat(initialReportData.report.params.minAmount);
-        }
 
         if (initialReportData.report.params.payToProvider && initialReportData.report.params.payToProvider !== undefined) {
             initialReportData.report.params.payToProvider = initialReportData.report.params.payToProvider === 'true';
@@ -677,8 +696,6 @@ const api = {
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
         }
 
-        // Min Amount
-        filtersUsed.push({ name: 'minAmount', label: 'Minumum Amount', value: params.minAmount });
 
         filtersUsed.push({ name: 'sDate', label: 'Statement Date', value: params.sDate });
 
@@ -716,6 +733,9 @@ const api = {
             billingProviderIds: null,
             reportBy: null,
             claimDate: null,
+            commentDate: null,
+            chargeDate: null,
+            accountDate: null,
             patientInsIds: null,
             billingComments: null
 
@@ -729,9 +749,6 @@ const api = {
         filters.patientIds = queryBuilder.where('bc.patient_id', '=', [params.length]);
         filters.patientInsIds = queryBuilder.where('pis.patient_id', '=', [params.length]);
 
-
-        // Min Amount
-        filters.minAmount = reportParams.minAmount || 0;
 
         // params.push(reportParams.sDate);
         // filters.sDate = `$${params.length}::date`;
@@ -747,6 +764,9 @@ const api = {
             params.push(reportParams.fromDate);
             params.push(reportParams.toDate);
             filters.claimDate = queryBuilder.whereDateBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
+            filters.commentDate = queryBuilder.whereDateBetween('cc.created_dt', [params.length - 1, params.length], 'f.time_zone');
+            filters.chargeDate = queryBuilder.whereDateBetween('c.charge_dt', [params.length - 1, params.length], 'f.time_zone');
+            filters.accountDate = queryBuilder.whereDateBetween('bp.accounting_date', [params.length - 1, params.length]);
         }
 
         filters.billingComments = reportParams.billingComments;
