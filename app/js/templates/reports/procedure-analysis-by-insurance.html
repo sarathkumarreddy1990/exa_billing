@@ -5,6 +5,22 @@
         display: inline-block;
         margin-left: 0;
     }
+    .divListBox{
+        width: 250px;
+         margin-top:10px
+    }
+    .displayAlignLeft{
+        margin-left:10px;
+    }
+    .ulListAlignment{
+        overflow: auto;
+        width: 300px;
+        height:40px;
+        border: 1px solid;
+    }
+    .divUList{
+        width:150px;
+    }
 </style>
 <form class="form-horizonta form-list" novalidate="" _lpchecked="1">
 
@@ -55,7 +71,7 @@
 
         <div class="col-2">
             <div class="form-group form-inline">
-                    <label class="control-label" i18n="report.procedureBy" />
+                <label class="control-label" i18n="report.procedureBy" />
                 </label>
                 <div class="selectBox ddl" id='showBillingProCheckboxes'>
                     <select id="ddlProcedureBySelectBoxes">
@@ -76,75 +92,72 @@
                     <label class="control-label">Ref. Pro Group</label>
                 </div>
                 <div class="form-content">
-                    <div class="input-group" style="width: 250px; margin-top:10px">
+                    <div class="input-group" class="divListBox">
                         <select id="ddlRefProviderGroupOption" class="form-control form-control-lg">
-                            <option value="All">All </option>
+                            <option value="All">All Ref Pro Group</option>
                             <option value="S">Provider Group</option>
                         </select>
                     </div>
                 </div>
-                <div id="ddlProviderGroupBox" class="form-group form-inline" style="display:none; width:220px">
-                    <div id="txtProviderGroupSelect">
-                        <label class="control-label" i18n="report.reportFilter.referringProviderGroup"></label>
+                <div id="ddlProviderGroupBox" class="form-group form-inline" style="display:none;">
+                    <div class="divListBox">
+                        <div class="float-left divUList">
+                            <select id="txtProviderGroupName"> </select>
+                        </div>
+                        <div>
+                            <a class="btn btn-primary displayAlignLeft" id="btnAddProviderGroup" title="Add Referring Physican Group">
+                                <i class="icon-ic-plus"></i>
+                            </a>
+                        </div>
+
                     </div>
-                    <div style="width: 250px; margin-top:10px">
-                        <select id="txtProviderGroupName"> </select>
-                        <a class="btn btn-primary" id="btnAddProviderGroup" title="Add Referring Physican Group">
-                            <i class="icon-ic-plus"></i>
-                        </a>
+                </div>
+                <div id="divListProviderGroup" style="display: none;">
+                    <div>
+                        <ul id="ulListProviderGroup" class="ulSelectionList tagList ulListAlignment">
                     </div>
                 </div>
             </div>
-
             <div class="form-group form-inline" id="procedureByCPTCodes">
                 <div class="col-form-label" style="max-width: 110px">
-                    <label class="inline field-chk" i18n="report.cptCodes"/>
+                    <label class="inline field-chk" i18n="report.cptCodes" />
                 </div>
                 <div class="form-content">
-                    <div class="input-group" style="width: 250px; margin-top:10px">
+                    <div class="input-group" class="divListBox">
                         <select id="ddlCPTCodeBinding" class="form-control form-control-lg">
                             <option value="All">All CPT's</option>
                             <option value="S">Selected</option>
                         </select>
                     </div>
                 </div>
-                <div id="ddlCPTCodeBoxDetails" class="form-group form-inline" style="display: none;">                   
-                    <div style="width: 250px; margin-top:10px">
-                        <select id="txtCPTCode" style="width: 250px; border:1px solid;margin-top:10px"> </select>
-                        <a class="btn btn-primary" id="btnCPTCode" title="Add Insurance">
-                            <i class="icon-ic-plus"></i>
-                        </a>
+                <div id="ddlCPTCodeBoxDetails" class="form-group form-inline" style="display: none;">
+                    <div class="divListBox">
+                        <div class="float-left divUList">
+                            <select id="txtCPTCode"></select>
+                        </div>
+                        <div>
+                            <a class="btn btn-primary displayAlignLeft" id="btnCPTCode" title="Add Insurance">
+                                <i class="icon-ic-plus"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div id="divCPTCodes" style="display: none;">
+                    <div>
+                        <ul id="ulListCPTCodeDetails" class="ulSelectionList tagList ulListAlignment">
+                        </ul>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-3">
-            <div id="divListProviderGroup" style="display: none;">
-                <div class="col-form-label" style="max-width: 110px;">
-                    <label class="inline field-chk">Ref. Provider Selected</label>
-                </div>
-                <div>
-                    <ul id="ulListProviderGroup" class="ulSelectionList tagList" style="overflow: auto;width: 330px;height:90px; border: 1px solid;">
-                    </ul>
-                </div>
-            </div>
-            <div id="divCPTCodes" style="display: none;">
-                <div class="col-form-label" style="max-width: 110px;">
-                    <label class="inline field-chk">CPT Code Selected</label>
-                </div>
-                <div>
-                    <ul id="ulListCPTCodeDetails" class="ulSelectionList tagList" style="overflow: auto;width: 330px;height:90px; border: 1px solid;">
-                    </ul>
-                </div>
-            </div>
-        </div>
+
         <div class="col-3">
             <div class="form-group form-inline" id="procedureByInsurance">
                 <div class="col-form-label" style="max-width: 110px">
                     <label class="control-label">Insurance</label>
                 </div>
                 <div class="form-content">
-                    <div class="input-group" style="width: 250px; margin-top:10px">
+                    <div class="input-group" class="divListBox">
                         <select id="ddlInsuranceBinding" class="form-control form-control-lg">
                             <option value="All">All Insurance</option>
                             <option value="S">Insurances</option>
@@ -152,14 +165,21 @@
                     </div>
                 </div>
                 <div id="ddlInsuranceOptionBox" class="form-group form-inline" style="display: none;">
-                    <div>
-                        <label class="control-label" i18n="report.reportFilter.insurances"></label>
+                    <div class="divListBox">
+                        <div  class="float-left divUList">
+                            <select id="txtInsuranceName"> </select>
+                        </div>
+                        <div>
+                            <a class="btn btn-primary displayAlignLeft" id="btnAddInsurance" title="Add Insurance">
+                                <i class="icon-ic-plus"></i>
+                            </a>
+                        </div>
                     </div>
-                    <div style="width: 250px; margin-top:10px">
-                        <select id="txtInsuranceName" style="width: 250px; border:1px solid;margin-top:10px"> </select>
-                        <a class="btn btn-primary" id="btnAddInsurance" title="Add Insurance">
-                            <i class="icon-ic-plus"></i>
-                        </a>
+                </div>
+                <div id="divListInsurance" style="display: none;">
+                    <div>
+                        <ul id="ulListInsurance" class="ulSelectionList tagList ulListAlignment">
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -169,73 +189,91 @@
                     <label class="control-label">Ref. Provider</label>
                 </div>
                 <div class="form-content">
-                    <div class="input-group" style="width: 250px; margin-top:10px">
+                    <div class="input-group" class="divListBox">
                         <select id="ddlReferringPhysicianOption" class="form-control form-control-lg">
-                            <option value="All">All </option>
+                            <option value="All">All Ref. Pro</option>
                             <option value="S">Provider </option>
                         </select>
                     </div>
                 </div>
-                <div id="ddlReferringPhysician" class="form-group form-inline" style="display:none; width:220px">
-                    <div>
-                        <label class="control-label" i18n="report.reportFilter.provider"></label>
+                <div id="ddlReferringPhysician" class="form-group form-inline" style="display:none;">
+                    <div class="divListBox">
+                        <div class="float-left divUList">
+                            <select id="txtReferringPhysician"> </select>
+                        </div>
+                        <div>
+                            <a class="btn btn-primary displayAlignLeft" id="btnAddReferringPhysician" title="Add provider">
+                                <i class="icon-ic-plus"></i>
+                            </a>
+                        </div>
                     </div>
-                    <div style="width: 250px; margin-top:10px">
-                        <select id="txtReferringPhysician"> </select>
-                        <a class="btn btn-primary" id="btnAddReferringPhysician" title="Add provider">
-                            <i class="icon-ic-plus"></i>
-                        </a>
+                </div>
+                <div id="divReferringPhysician" style="display: none;">
+                    <div>
+                        <ul id="ulListReferringPhysicians" class="ulSelectionList tagList ulListAlignment">
+                        </ul>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-3">
-            <div id="divReferringPhysician" style="display: none;">
-                <div class="col-form-label" style="max-width: 110px;">
-                    <label class="inline field-chk">Provider Selected</label>
+            <div class="form-group form-inline" id="payerType">
+                <div class="col-form-label" style="max-width: 110px">
+                    <label class="control-label">Payer Type</label>
                 </div>
-                <div>
-                    <ul id="ulListReferringPhysicians" class="ulSelectionList tagList" style="overflow: auto;width: 330px;height:90px; border: 1px solid;">
-                    </ul>
+                <div class="form-content">
+                    <div class="input-group" class="divListBox">
+                        <select id="ddlPayerTypeOption" class="form-control form-control-lg">
+                            <option value="All">All Payer</option>
+                            <option value="S">Payer Type</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="ddlPayerTypeBox" class="form-group form-inline" style="display: none;">
+                    <div class="divListBox">
+                        <div class="float-left divUList">
+                            <select id="txtInsuranceProviderName"> </select>
+                        </div>
+                        <div>
+                            <a class="btn btn-primary displayAlignLeft" id="btnAddInsuranceProvider" title="Add Payer Type">
+                                <i class="icon-ic-plus"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div id="divListPayerType" style="display: none;">
+                    <div>
+                        <ul id="ulListInsuranceProvider" class="ulSelectionList tagList ulListAlignment">
+                        </ul>
+                    </div>
                 </div>
             </div>
+    </div>
+    <!-- row: End buttons -->
 
-            <div id="divListInsurance" style="display: none;">
-                <div class="col-form-label" style="max-width: 110px;">
-                    <label class="inline field-chk">Insurance Selected</label>
-                </div>
-                <div>
-                    <ul id="ulListInsurance" class="ulSelectionList tagList" style="overflow: auto;width: 330px;height:90px; border: 1px solid;">
-                    </ul>
-                </div>
+    <!-- row: form buttons -->
+    <div class="col-xs-12 <!--col-xs-offset-1-->">
+        <div class="btn-toolbar" role="toolbar">
+            <div class="btn-group">
+                <button type="button" class="btn btn-primary" id="btnViewReport" data-rformat="html">
+                    <i class="fa fa-file"></i> View</button>
+                <button type="button" class="btn btn-primary" id="btnViewReportNewTabProAnaByIns" data-rformat="html">
+                    <i class="fa fa-external-link"></i>
+                </button>
             </div>
-
+            <div class="btn-group">
+                <button type="button" class="btn btn-primary" id="btnPdfReport" data-rformat="pdf">
+                    <i class="fa fa-file-pdf-o"></i> PDF</button>
+                <button type="button" class="btn btn-primary" id="btnExcelReport" data-rformat="xlsx">
+                    <i class="fa fa-file-excel-o"></i> Excel</button>
+                <button type="button" class="btn btn-primary" id="btnCsvReport" data-rformat="csv">
+                    <i class="fa fa-file-text-o"></i> CSV</button>
+                <button type="button" class="btn btn-primary" id="btnXmlReport" data-rformat="xml">
+                    <i class="fa fa-file-code-o"></i> XML</button>
+            </div>
         </div>
-        <!-- row: End buttons -->
-
-        <!-- row: form buttons -->
-        <div class="col-xs-12 <!--col-xs-offset-1-->">
-            <div class="btn-toolbar" role="toolbar">
-                <div class="btn-group">
-                    <button type="button" class="btn btn-primary" id="btnViewReport" data-rformat="html">
-                        <i class="fa fa-file"></i> View</button>
-                    <button type="button" class="btn btn-primary" id="btnViewReportNewTabProAnaByIns" data-rformat="html">
-                        <i class="fa fa-external-link"></i>
-                    </button>
-                </div>
-                <div class="btn-group">
-                    <button type="button" class="btn btn-primary" id="btnPdfReport" data-rformat="pdf">
-                        <i class="fa fa-file-pdf-o"></i> PDF</button>
-                    <button type="button" class="btn btn-primary" id="btnExcelReport" data-rformat="xlsx">
-                        <i class="fa fa-file-excel-o"></i> Excel</button>
-                    <button type="button" class="btn btn-primary" id="btnCsvReport" data-rformat="csv">
-                        <i class="fa fa-file-text-o"></i> CSV</button>
-                    <button type="button" class="btn btn-primary" id="btnXmlReport" data-rformat="xml">
-                        <i class="fa fa-file-code-o"></i> XML</button>
-                </div>
-            </div>
-        </div>
-        <!-- /row: form buttons -->
+    </div>
+    <!-- /row: form buttons -->
 
 </form>
 
