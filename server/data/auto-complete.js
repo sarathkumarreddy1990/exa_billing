@@ -161,17 +161,40 @@ module.exports = {
 
     getPatients: async function (params) {
 
-        let patient_q = ` AND full_name ILIKE '%${params.q}%' OR account_no ILIKE '%${params.q}%' `;
+        const patient_q = (params.q === '') ? `` : `
+            AND (
+                CASE
+                    WHEN trim('${params.q}') ~* ','
+                        THEN patients.full_name ~* (
+                            '('
+                            || trim(split_part(trim('${params.q}'), ',' , 1))
+                            || '.*,.*'
+                            || trim(split_part(trim('${params.q}'), ',' , 2))
+                            || '.*)|('
+                            || trim(split_part(trim('${params.q}'), ',' , 2))
+                            || '.*,.*'
+                            || trim(split_part(trim('${params.q}'), ',' , 1))
+                            || '.*)'
+                        )
+                    WHEN trim('${params.q}') ~* '\\d\\d/\\d\\d/\\d\\d\\d\\d'
+                        THEN patients.birth_date = to_date(trim('${params.q}'), 'mm/dd/yyyy')
+                    WHEN is_date('${params.q}') IS TRUE
+                        THEN patients.birth_date = '${params.q}'
+                    ELSE
+                        (patients.full_name ~* trim('${params.q}') OR patients.account_no ~* trim('${params.q}'))
+                END
+            )
+        `;
 
         const sql_patient = SQL`
-              SELECT
-              account_no,
-              gender,
-              patients.birth_date AS DOB,
-              patients.id,
-              full_name,
-              patients.owner_id,
-              total_records
+            SELECT
+                account_no,
+                gender,
+                patients.birth_date AS DOB,
+                patients.id,
+                full_name,
+                patients.owner_id,
+                total_records
             FROM (
                 SELECT
                     distinct(patients.id) as patients_id,
