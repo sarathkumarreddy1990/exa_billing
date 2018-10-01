@@ -110,9 +110,11 @@ module.exports = {
             whereQuery.push(`facility_name  ILIKE '%${facility_name}%' `);
         }
 
-        if (from == 'patient_claim') {
-            whereQuery.push(` patient_id = ${patientID} AND ( SELECT payment_status from billing.get_payment_totals(payments.id)) = 'unapplied' `);
+        if (from === 'patient_claim') {
+            whereQuery.push(` patient_id = ${patientID} AND payment_totals.payment_status = 'unapplied' `);
         }
+
+        const optionalSelect = from === 'patient_claim' ? `, COUNT(1) OVER (range unbounded preceding) AS total_records` : ``;
 
         if (from === 'ris') {
             whereQuery.push(` payer_type = 'patient' `);
@@ -128,12 +130,12 @@ module.exports = {
 
         let joinQuery = `
             INNER JOIN public.users ON users.id = payments.created_by
+            INNER JOIN billing.get_payment_totals(payments.id) payment_totals ON true
             LEFT JOIN public.patients ON patients.id = payments.patient_id
             LEFT JOIN public.provider_groups ON provider_groups.id = payments.provider_group_id
             LEFT JOIN public.provider_contacts ON provider_contacts.id = payments.provider_contact_id
             LEFT JOIN public.providers ref_provider ON provider_contacts.provider_id = ref_provider.id
             LEFT JOIN public.insurance_providers  ON insurance_providers.id = payments.insurance_provider_id
-            LEFT JOIN LATERAL (select * from billing.get_payment_totals(payments.id)) payment_totals  ON true
         `;
 
         if (default_facility_id) {
@@ -209,14 +211,15 @@ module.exports = {
                     , get_full_name(users.last_name, users.first_name) as user_full_name
                     , facilities.facility_name
                     , amount
-                    , COUNT(1) OVER (range unbounded preceding) AS total_records
                     , payment_totals.payment_balance_total AS available_balance
                     , payment_totals.payments_applied_total AS applied
                     , payment_totals.adjustments_applied_total AS adjustment_amount
-                    , payment_totals.payment_status AS current_status
-                FROM billing.payments`;
+                    , payment_totals.payment_status AS current_status `;
 
-        sql.append(joinQuery);
+        sql.append(optionalSelect)
+
+            .append(SQL` FROM billing.payments `)
+            .append(joinQuery);
 
         if (whereQuery.length) {
             sql.append(SQL` WHERE `)

@@ -617,7 +617,7 @@ function formatSingleClaim(claimData) {
 					[//Ans
 					    {
                             text: (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].originalReference) ?
-					        'Corrected Claim' : '', fontSize:12, bold: true, colSpan:3, normal: false, margin:[60, -10, 0, 0]
+					        'Corrected Claim' : '', fontSize:12, bold: true, colSpan:3, normal: false, margin:[60, -8, 0, 0]
                             }, {},{},{},{}
 					],
 					[
@@ -1625,7 +1625,7 @@ function formatSingleClaim(claimData) {
                                         {text: claimData.subscriber && claimData.subscriber[0].claim ? getKeyTrimValue(claimData.subscriber[0].claim[0], 'originalReference', 18) : '', alignment:"center"}
                                     ],
                                     [
-                                        {text: claimData.subscriber && claimData.subscriber[0].claim ? getKeyTrimValue(claimData.subscriber[0].claim[0], 'authorizationNo', 30) : '', alignment:"center", colSpan:2, margin:[0, 14, 0, 0]},
+                                        {text: claimData.subscriber && claimData.subscriber[0].claim ? getKeyTrimValue(claimData.subscriber[0].claim[0], 'authorizationNo', 30) : '', alignment:"center", colSpan:2, margin:[0, 07, 0, 0]},
                                         {}
                                     ]
                                 ]
@@ -1793,7 +1793,7 @@ function formatSingleClaim(claimData) {
             fontSize: 12,
             bold:"true",
             table: {
-                heights:[20, 20, 20, 20, 20,200],
+                heights:[20, 20, 20, 20, 20,110],
                 body:[
                     [{text:"1"}],
                     [{text:"2"}],

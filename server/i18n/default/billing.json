@@ -317,7 +317,8 @@
             "selectReason": "Please select the reason type",
             "reasonAmount": "Please enter amount for selected reason",
             "selectClaimStatus": "Please select claim status",
-            "selectResponsible": "Please select responsible"
+            "selectResponsible": "Please select responsible",
+            "eraFileNotFound": "The file or directory is not a reparse point"
         },
         "claims": {
             "claims": "Claims",

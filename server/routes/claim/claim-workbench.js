@@ -84,12 +84,12 @@ router.post('/validate_claims', async function (req, res) {
     httpHandler.send(req, res, data);
 });
 
-router.get('/charge/check_payment_details', async function (req, res) {
+router.get('/charge_check_payment_details', async function (req, res) {
     const data = await claimWorkbenchController.checkChargePaymentDetails(req.query);
     httpHandler.send(req, res, data);
 });
 
-router.get('/claim/check_payment_details', async function (req, res) {
+router.get('/claim_check_payment_details', async function (req, res) {
     const data = await claimWorkbenchController.checkPaymentDetails(req.query);
     httpHandler.send(req, res, data);
 });

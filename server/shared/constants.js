@@ -191,6 +191,8 @@ module.exports = {
         'patient': 'ECLM',
         'invoice_details': 'APAY',
         'apply_invoice_payments': 'APAY',
-        'update_claim_status': 'CLIM'
+        'update_claim_status': 'CLIM',
+        'charge_check_payment_details': 'CLIM',
+        'claim_check_payment_details': 'CLIM'
     }
 };

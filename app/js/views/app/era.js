@@ -492,6 +492,7 @@ define([
 
                                 try {
                                     var eraPreview = _.template(EraPreview);
+                                    ins.rawResponse = ins.rawResponse.err ? [] : ins.rawResponse;
                                     var previewHtml = eraPreview({ data: ins.rawResponse });
                                     $('#era-processed-preview').html(previewHtml);
                                 }
@@ -499,6 +500,7 @@ define([
                                     console.log(err);
                                 }
 
+                                commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
                                 $('#divResponseSection').height($(window).height() - 450);
                                 $('#era-processed-preview').height(($(window).height() - 360));
                             }
