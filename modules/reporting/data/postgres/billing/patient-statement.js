@@ -17,11 +17,11 @@ WITH claim_data AS (
     SELECT cc.claim_id as id,
            'claim' as type,
            note as comments,
-           created_dt::date as commented_dt,
+           created_dt as commented_dt,
            null as amount,
            u.username as commented_by,
            null as code,
-           null as charge_id
+           cc.id as charge_id
     FROM billing.claim_comments cc
     INNER JOIN claim_data cd on cd.claim_id = cc.claim_id
     INNER JOIN users u on u.id = cc.created_by
@@ -33,12 +33,12 @@ WITH claim_data AS (
         END
     )
 
-    UNION ALL
+    UNION
 
     SELECT c.claim_id as id,
            'charge' as type,
            cc.short_description as comments,
-           c.charge_dt::date as commented_dt,
+           c.charge_dt as commented_dt,
            (c.bill_fee*c.units) as amount,
            u.username as commented_by,
            cc.display_code as code,
@@ -48,7 +48,7 @@ WITH claim_data AS (
     INNER JOIN cpt_codes cc on cc.id = c.cpt_id
     INNER JOIN users u on u.id = c.created_by
 
-    UNION ALL
+    UNION
 
     SELECT bc.claim_id as id,
            amount_type as type,
@@ -80,7 +80,8 @@ WITH claim_data AS (
     LEFT JOIN public.provider_groups pg on pg.id = bp.provider_group_id
     LEFT JOIN public.provider_contacts pc on pc.id = bp.provider_contact_id
     LEFT JOIN public.providers p on p.id = pc.provider_id
-    GROUP BY bc.claim_id,amount_type,comments,bp.id,u.username,code
+    GROUP BY bc.claim_id,amount_type,comments,bp.id,u.username,code,pa.applied_dt
+    ORDER BY charge_id ASC
     ),
 
     main_detail_cte as (
@@ -103,7 +104,7 @@ WITH claim_data AS (
         p.patient_info->'c1City' AS city,
         p.patient_info->'c1State' AS state,
         p.patient_info->'c1Zip' AS zip,
-        to_char(commented_dt, 'MM/DD/YYYY') as enc_date,
+        commented_dt as enc_date,
         comments as description,
         pc.code,
         pc.id as enc_id,
@@ -324,7 +325,7 @@ WITH claim_data AS (
     , city
     , state
     , zip
-    , enc_date::text
+    , to_char(enc_date ,'MM/DD/YYYY') AS enc_date
     , description
     , code
     , enc_id::text
@@ -342,7 +343,7 @@ WITH claim_data AS (
     , null
     , pid
     , enc_id
-    , enc_date::date
+    , to_char(enc_date ,'MM/DD/YYYY')::date AS enc_date
     , row_flag
     , sort_order
     , null
@@ -476,6 +477,7 @@ WITH claim_data AS (
     , enc_date
     , row_flag
     , statement_flag
+    , charge_id
     , c13;
 
 `);
