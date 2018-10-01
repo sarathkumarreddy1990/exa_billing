@@ -110,11 +110,11 @@ module.exports = {
             whereQuery.push(`facility_name  ILIKE '%${facility_name}%' `);
         }
 
-        if (from == 'patient_claim') {
+        if (from === 'patient_claim') {
             whereQuery.push(` patient_id = ${patientID} AND payment_totals.payment_status = 'unapplied' `);
         }
 
-        const optionalSelect = from == 'patient_claim' ? `, COUNT(1) OVER (range unbounded preceding) AS total_records` : ``;
+        const optionalSelect = from === 'patient_claim' ? `, COUNT(1) OVER (range unbounded preceding) AS total_records` : ``;
 
         if (from === 'ris') {
             whereQuery.push(` payer_type = 'patient' `);
