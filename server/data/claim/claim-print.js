@@ -129,7 +129,6 @@ module.exports = {
                 WHERE 
                     CASE WHEN ${params.flag}='new' THEN  
                             ch.claim_id = ANY(${params.claimIds}) 
-                            AND (adj.accounting_entry_type != 'refund_debit' OR bpa.adjustment_code_id IS NULL) 
                             AND (CASE WHEN bpa.amount_type = 'adjustment' THEN 
                                         bpa.amount != 0.00::money 
                                       ELSE 
