@@ -1396,7 +1396,7 @@ define(['jquery',
                     }
                     if (rowData.id) {
                         $.ajax({
-                            url: '/exa_modules/billing/claim_workbench/charge/check_payment_details',
+                            url: '/exa_modules/billing/claim_workbench/charge_check_payment_details',
                             type: 'GET',
                             data: {
                                 charge_id: rowData.id,

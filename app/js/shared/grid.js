@@ -402,7 +402,7 @@ define('grid', [
                 if(confirm("Are you sure want to delete claims")){
 
                     $.ajax({
-                        url: '/exa_modules/billing/claim_workbench/claim/check_payment_details',
+                        url: '/exa_modules/billing/claim_workbench/claim_check_payment_details',
                         type: 'GET',
                         data: {
                             target_id: studyIds,
