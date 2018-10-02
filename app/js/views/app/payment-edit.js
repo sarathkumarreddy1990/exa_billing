@@ -1287,6 +1287,7 @@ define(['jquery',
                                     if (rowID && rowID.length) {
                                         var gridData = $('#tblpendPaymentsGrid').jqGrid('getRowData', rowID[0]);
                                         self.showApplyAndCas(gridData.claim_id, paymentID || self.payment_id, 'pending', gridData.charge_id, gridData);
+                                        self.claimID = "";
                                     }
                                 } else {
                                     commonjs.showWarning('Invalid claim id ' + gridObj.options.customargs.claimIdToSearch);
