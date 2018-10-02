@@ -178,7 +178,7 @@ module.exports = {
                         )
                     WHEN trim('${params.q}') ~* '\\d\\d/\\d\\d/\\d\\d\\d\\d'
                         THEN patients.birth_date = to_date(trim('${params.q}'), 'mm/dd/yyyy')
-                    WHEN is_date('${params.q}') IS TRUE
+                    WHEN trim('${params.q}') ~* '\\d\\d\\d\\d-\\d\\d\\-\\d\\d'
                         THEN patients.birth_date = to_date(trim('${params.q}'), 'yyyy-mm-dd')
                     ELSE
                         (patients.full_name ~* trim('${params.q}') OR patients.account_no ~* trim('${params.q}'))
