@@ -17,8 +17,16 @@ module.exports = {
                 SELECT
                     bc.invoice_no,
                     submitted_dt AS invoice_date,
+                    current_illness_date::text as current_illness_date,
+                    same_illness_first_date::text,
+                    unable_to_work_from_date::text,
+                    unable_to_work_to_date::text,
+                    hospitalization_from_date::text,
+                    hospitalization_to_date::text,
+                    is_auto_accident,
+                    is_other_accident,
+                    is_employed,
                     ppr.full_name as referring_physician_name,
-                    CASE WHEN bc.is_auto_accident THEN bc.current_illness_date ELSE NULL END AS current_illness_date,
                     json_build_object('patient_name',get_full_name(pp.last_name, pp.first_name)
                     ,'patient_address1',pp.patient_info->'c1AddressLine1',
                     'patient_address2', pp.patient_info->'c1AddressLine2',

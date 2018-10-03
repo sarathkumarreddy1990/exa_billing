@@ -223,7 +223,7 @@ function bindCharges(claimNo, data, columns) {
 					columns.forEach(function(column) {
 						if(column == 'get_charge_icds'){
 							dataRow.push(row[column]? row[column]+',': '');
-						}else if(column == 'claim_dt'){
+						}else if(column == 'claim_dt' || column == 'current_illness_date'){
 							dataRow.push(row[column]? Dateformat(row[column]): '');
 						}else if (column =="modifier1"){
 							dataRow.push(row[column]? row[column]+(row["modifier2"]?", "+row["modifier2"]:"")+(row["modifier3"]?", "+row["modifier3"]:"")+(row["modifier4"]?", "+row["modifier4"]:""): '');
@@ -323,7 +323,7 @@ function bindClaim(data, columns) {
 									table:
 									{
 										widths: [75, 90, 120, 257],
-										body:bindCharges(row.claim_no, ClaimDetails, ['claim_no', 'claim_dt', 'referring_physician_name', 'reason_for_exam'])
+										body:bindCharges(row.claim_no, ClaimDetails, ['claim_no', 'claim_dt', 'referring_physician_name', 'current_illness_date'])
 									},layout: 'noBorders'
 									, colSpan: 2
 								}
@@ -400,7 +400,7 @@ var dd = {
                 headerRows: 1,
                 body: [
                     [
-                        {text:"Claim #"}, {text:"Service Date"}, {text:"Refer. Phy."}, {text:"Reason For EXAM"}
+                        {text:"Claim #"}, {text:"Service Date"}, {text:"Refer. Phy."}, {text:"Date of Injury/Accident"}
                     ]
                 ]
             },layout: 'noBorders',
