@@ -281,25 +281,24 @@ const api = {
 
         _.each(reportParams.filterColumn, function (value, i) {
 
-             //  payment_dt
-             if (value == "payment_dt") {
-                let paymentDateRange = reportParams.filterData[i].split(' - ');
-                let paymentFromDate = paymentDateRange[0] || "";
-                let paymentToDate = paymentDateRange[1] || "";
-                if (paymentFromDate && paymentToDate == "") {
-                    params.push(paymentFromDate);
-                    filters.paymentDate = queryBuilder.whereDateInTz('bp.payment_dt', '=', [params.length], 'pf.time_zone');
-                }
-                else if (paymentFromDate === paymentToDate) {
-                    params.push(paymentFromDate);
-                    filters.paymentDate = queryBuilder.whereDateInTz('bp.payment_dt', '=', [params.length], 'pf.time_zone');
-                } else {
-                    params.push(paymentFromDate);
-                    params.push(paymentToDate);
-                    filters.paymentDate = queryBuilder.whereDateInTzBetween('bp.payment_dt', [params.length - 1, params.length], 'pf.time_zone');
-                }
-            }
-
+                 //  payment_dt
+              if (value == "payment_dt") {
+                  let paymentDateRange = reportParams.filterData[i].split(' - ');
+                  let paymentFromDate = paymentDateRange[0] || "";
+                  let paymentToDate = paymentDateRange[1] || "";
+                  if (paymentFromDate && paymentToDate == "") {
+                      params.push(paymentFromDate);
+                      filters.paymentDate = queryBuilder.whereDateInTz('bp.payment_dt', '=', [params.length], 'pf.time_zone');
+                  }
+                  else if (paymentFromDate === paymentToDate) {
+                      params.push(paymentFromDate);
+                      filters.paymentDate = queryBuilder.whereDateInTz('bp.payment_dt', '=', [params.length], 'pf.time_zone');
+                  } else {
+                      params.push(paymentFromDate);
+                      params.push(paymentToDate);
+                      filters.paymentDate = queryBuilder.whereDateInTzBetween('bp.payment_dt', [params.length - 1, params.length], 'pf.time_zone');
+                  }
+              }
 
             if (value == "accounting_date") {
                 var accounting_date_range = reportParams.filterData[i].split(' - ');
