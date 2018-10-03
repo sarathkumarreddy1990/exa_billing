@@ -1082,7 +1082,7 @@ module.exports = {
                                studies.id 
                              , studies.accession_no 
                              , studies.study_description 
-                             , studies.study_dt::text 
+                             , studies.study_dt
                              , studies.facility_id 
                              , cc.cpt_code 
                         FROM studies 
