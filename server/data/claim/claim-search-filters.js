@@ -260,13 +260,18 @@ const api = {
                 billing.claims
                 INNER JOIN facilities ON facilities.id=claims.facility_id
             ${permissionQuery}
-            ${api.getWLQueryJoin(tables, true, args.customArgs.filter_id, args.user_id) + args.filterQuery}
+            ${api.getWLQueryJoin(tables, true, args.customArgs.filter_id, args.user_id, args.isCount) + args.filterQuery}
             `;
         return query;
     },
-    getWLQueryJoin: function (columns, isInnerQuery, filterID, userID) {
+    getWLQueryJoin: function (columns, isInnerQuery, filterID, userID, isCount) {
         let tables = isInnerQuery ? columns : api.getTables(columns);
-        let r = ' INNER JOIN LATERAL billing.get_claim_totals(claims.id) bgct ON TRUE ';
+
+        let r = '';
+
+        if(!isCount) {
+            r = ' INNER JOIN LATERAL billing.get_claim_totals(claims.id) bgct ON TRUE '; 
+        }
 
         if (tables.patients) { r += ' INNER JOIN patients ON claims.patient_id = patients.id '; }
 
@@ -451,7 +456,7 @@ const api = {
             ${columns}
             FROM (${innerQuery}) as FinalClaims
             INNER JOIN billing.claims ON FinalClaims.claim_id = claims.id
-            ${api.getWLQueryJoin(columns, '', args.customArgs.filter_id, args.user_id)}
+            ${api.getWLQueryJoin(columns, '', args.customArgs.filter_id, args.user_id, args.isCount)}
             ORDER BY FinalClaims.number
             `
             ;
