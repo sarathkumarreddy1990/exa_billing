@@ -65,11 +65,7 @@
                     <% if (typeof val == 'object') { %>
                         <tr>
                             <td style='width: 20px; padding: 5px;'>
-                                <% if (index == 0) { %>
-                                    <%=index%>
-                                <% } else{ %>
-                                    <%= (index-1) %>
-                                <%}%>
+                                <%= index > 0 ? index - 1 : index %>
                             </td>
                             <td style='width: 20px; padding: 5px;'>
                                     <% var fieldName = ""; %>
@@ -95,11 +91,7 @@
                         <% }else {  %>
                             <tr>
                                 <td style='width: 20px; padding: 5px;'>
-                                    <% if (index == 0) { %>
-                                        <%=index%>
-                                    <% } else{ %>
-                                        <%= (index-1) %>
-                                    <%}%>
+                                    <%= index > 0 ? index - 1 : index %>
                                 </td>
                                 <td style='width: 20px; padding: 5px;'></td>
                                 <td style='padding: 5px; border-right: none;'>
