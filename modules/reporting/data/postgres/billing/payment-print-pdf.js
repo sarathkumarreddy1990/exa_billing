@@ -12,15 +12,15 @@ const paymentsPrintPDFDataSetQueryTemplate = _.template(`
 WITH payment_details AS(
     SELECT
           bp.id
-        , mode AS payment_mode
-        , card_name AS cardname
-        , card_number AS cardnumber
-        , payer_type AS payertype
+        , mode
+        , card_name
+        , card_number
+        , payer_type
         , bp.amount AS amount
         , patients.id AS patient_id
-        , payment_balance_total AS available_balance
-        , payments_applied_total AS applied
-        , adjustments_applied_total AS adjustment_amount
+        , payment_balance_total
+        , payments_applied_total
+        , adjustments_applied_total
         , to_char(bp.payment_dt,'MM/DD/YYYY') AS payment_dt
         , (CASE payer_type
                 WHEN 'insurance' THEN insurance_providers.insurance_name
@@ -43,10 +43,10 @@ WITH payment_details AS(
     ),
     patient_details AS(
     SELECT
-        to_char(claim_dt,'MM/DD/YYYY') AS claim_date,
+        to_char(to_facility_date(bc.facility_id, claim_dt),'MM/DD/YYYY') AS claim_date,
         pp.id AS patient_id,
-        coalesce(pp.account_no, '─ ─ Total ─ ─') AS account_no,
-        pp.full_name AS full_name,
+        COALESCE(pp.account_no, '─ ─ Total ─ ─') AS account_no,
+        pp.full_name,
         SUM(amount) AS pay_amount,
         bc.claim_dt
     FROM
@@ -54,30 +54,31 @@ WITH payment_details AS(
     INNER JOIN public.patients pp ON pp.id = bc.patient_id
     INNER JOIN billing.charges bch ON bch.claim_id = bc.id
     INNER JOIN billing.payment_applications bpa on bpa.charge_id = bch.id
+    INNER JOIN facilities f ON f.id = bc.facility_id
     WHERE
         <%= paymentApplicationId %> AND bpa.amount_type = 'payment'
     GROUP BY
-        GROUPING SETS ( (pp.full_name,pp.account_no,bc.claim_dt,pp.id),())
+        GROUPING SETS ( (pp.full_name,pp.account_no,bc.claim_dt,pp.id, bc.facility_id),())
     )
     SELECT
-        id,
-        cardname,
-        cardnumber,
-        payment_mode,
-        payertype,
-        payer_name,
-        amount,
-        available_balance,
-        applied,
-        adjustment_amount,
-        payment_dt,
-        pd.account_no,
-        pd.full_name ,
-        claim_date,
-        pay_amount
+         id,
+         card_name,
+         card_number,
+         mode,
+         payer_type,
+         payer_name,
+         amount,
+         payment_balance_total AS available_balance,
+         payments_applied_total AS applied,
+         adjustments_applied_total AS adjustment_amount,
+         payment_dt,
+         pd.account_no,
+         pd.full_name ,
+         claim_date,
+         pay_amount
     FROM payment_details
     FULL JOIN patient_details pd ON pd.patient_id = payment_details.patient_id
-    WHERE 1 != (SELECT count(1) FROM patient_details)
+    WHERE EXISTS (SELECT 1  FROM patient_details having count(1) > 1 )
     ORDER BY
         pd.account_no DESC
 
