@@ -215,24 +215,24 @@ function bindPatient(claimNo, data, columns) {
 }
 function bindCharges(claimNo, data, columns) {
 	var body = [];
-	if(data&&data.length){
+	if (data && data.length) {
 		data.forEach(function(row) {
 			var dataRow = [];
-			if(row['claim_no'] === claimNo){
-				if(columns&&columns.length){
+			if (row['claim_no'] === claimNo) {
+				if (columns && columns.length) {
 					columns.forEach(function(column) {
-						if(column === 'get_charge_icds'){
-							dataRow.push(row[column]? row[column]+',': '');
-						}else if(column === 'claim_dt' || column === 'current_illness_date'){
-							dataRow.push(row[column]? Dateformat(row[column]): '');
-						}else if (column === "modifier1"){
-							dataRow.push(row[column]? row[column]+(row["modifier2"]?", "+row["modifier2"]:"")+(row["modifier3"]?", "+row["modifier3"]:"")+(row["modifier4"]?", "+row["modifier4"]:""): '');
-						}else {
-							dataRow.push(row[column]? row[column]: '');
+						if (column === 'get_charge_icds') {
+							dataRow.push(row[column] ? row[column] + ',' : '');
+						} else if(column === 'claim_dt' || column === 'current_illness_date') {
+							dataRow.push(row[column] ? Dateformat(row[column]) : '');
+						} else if (column === "modifier1") {
+							dataRow.push(row[column] ? row[column] + (row["modifier2"] ? ", " + row["modifier2"] : "") + (row["modifier3"] ? ", " + row["modifier3"] : "") + (row["modifier4"] ? ", " + row["modifier4"] : "") : '');
+						} else {
+							dataRow.push(row[column] ? row[column] : '');
 						}
 					});
 					body.push(dataRow);
-				}else{
+				} else {
 					body.push("");
 				}
 			}
