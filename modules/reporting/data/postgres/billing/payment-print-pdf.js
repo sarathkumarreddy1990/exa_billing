@@ -9,52 +9,57 @@ const _ = require('lodash')
 
 const paymentsPrintPDFDataSetQueryTemplate = _.template(`
 
-
-with payment_details AS(
-
-    select        
-        bp.id , 
-        mode AS payment_mode,
-        card_name as cardname,
-        card_number as cardnumber,
-        payer_type as payertype,         
-        bpa.amount as amount,
-        patients.id as patient_id,
-                              (select payment_balance_total from billing.get_payment_totals(bp.id)) AS available_balance
-                            , (select payments_applied_total from billing.get_payment_totals(bp.id)) AS applied       
-                            , (select adjustments_applied_total from billing.get_payment_totals(bp.id)) AS adjustment_amount                                
-                            , to_char(bp.payment_dt,'MM/DD/YYYY') as payment_dt
-                            , (  CASE payer_type 
-                                WHEN 'insurance' THEN insurance_providers.insurance_name
-	                            WHEN 'ordering_facility' THEN provider_groups.group_name
-	                            WHEN 'ordering_provider' THEN ref_provider.full_name
-	                            WHEN 'patient' THEN patients.full_name        END) AS payer_name    
-     FROM billing.payments bp
-             INNER JOIN billing.payment_applications bpa ON  bpa.payment_id = bp.id
-            LEFT JOIN public.patients ON patients.id = bp.patient_id    
-            LEFT JOIN public.provider_groups ON provider_groups.id = bp.provider_group_id
-            LEFT JOIN public.provider_contacts ON provider_contacts.id = bp.provider_contact_id
-            LEFT JOIN public.providers ref_provider ON provider_contacts.provider_id = ref_provider.id
-            LEFT JOIN public.insurance_providers  ON insurance_providers.id = bp.insurance_provider_id
-            LEFT JOIN public.facilities ON facilities.id = bp.facility_id
-            where 1=1  AND <%= paymentId %> AND bpa.amount_type = 'payment'
+WITH payment_details AS(
+    SELECT
+          bp.id
+        , mode AS payment_mode
+        , card_name AS cardname
+        , card_number AS cardnumber
+        , payer_type AS payertype
+        , bp.amount AS amount
+        , patients.id AS patient_id
+        , payment_balance_total AS available_balance
+        , payments_applied_total AS applied
+        , adjustments_applied_total AS adjustment_amount
+        , to_char(bp.payment_dt,'MM/DD/YYYY') AS payment_dt
+        , (CASE payer_type
+                WHEN 'insurance' THEN insurance_providers.insurance_name
+	            WHEN 'ordering_facility' THEN provider_groups.group_name
+	            WHEN 'ordering_provider' THEN ref_provider.full_name
+                WHEN 'patient' THEN patients.full_name
+          END) AS payer_name
+     FROM
+        billing.payments bp
+    INNER JOIN billing.get_payment_totals(bp.id) ON true
+    INNER JOIN billing.payment_applications bpa ON  bpa.payment_id = bp.id
+    LEFT JOIN public.patients ON patients.id = bp.patient_id
+    LEFT JOIN public.provider_groups ON provider_groups.id = bp.provider_group_id
+    LEFT JOIN public.provider_contacts ON provider_contacts.id = bp.provider_contact_id
+    LEFT JOIN public.providers ref_provider ON provider_contacts.provider_id = ref_provider.id
+    LEFT JOIN public.insurance_providers  ON insurance_providers.id = bp.insurance_provider_id
+    LEFT JOIN public.facilities ON facilities.id = bp.facility_id
+    WHERE
+        <%= paymentId %> AND bpa.amount_type = 'payment' LIMIT 1
     ),
     patient_details AS(
-    SELECT 
-    to_char(claim_dt,'MM/DD/YYYY') as claim_date,
-    pp.id as patient_id,
-    coalesce(pp.account_no, '─ ─ Total ─ ─') as account_no,
-     pp.full_name as full_name,
-     SUM(amount) as pay_amount,
-    bc.claim_dt 
-    FROM billing.claims bc 
-    INNER JOIN public.patients pp ON pp.id = bc.patient_id 
-    INNER JOIN billing.charges bch ON bch.claim_id = bc.id 
+    SELECT
+        to_char(claim_dt,'MM/DD/YYYY') AS claim_date,
+        pp.id AS patient_id,
+        coalesce(pp.account_no, '─ ─ Total ─ ─') AS account_no,
+        pp.full_name AS full_name,
+        SUM(amount) AS pay_amount,
+        bc.claim_dt
+    FROM
+        billing.claims bc
+    INNER JOIN public.patients pp ON pp.id = bc.patient_id
+    INNER JOIN billing.charges bch ON bch.claim_id = bc.id
     INNER JOIN billing.payment_applications bpa on bpa.charge_id = bch.id
-    where 1=1 AND <%= paymentApplicationId %> AND bpa.amount_type = 'payment'
-    GROUP BY grouping sets ( (pp.full_name,pp.account_no,bc.claim_dt,pp.id),())
+    WHERE
+        <%= paymentApplicationId %> AND bpa.amount_type = 'payment'
+    GROUP BY
+        GROUPING SETS ( (pp.full_name,pp.account_no,bc.claim_dt,pp.id),())
     )
-    select 
+    SELECT
         id,
         cardname,
         cardnumber,
@@ -70,9 +75,11 @@ with payment_details AS(
         pd.full_name ,
         claim_date,
         pay_amount
-    from 
-    payment_details    
+    FROM payment_details
     FULL JOIN patient_details pd ON pd.patient_id = payment_details.patient_id
+    WHERE 1 != (SELECT count(1) FROM patient_details)
+    ORDER BY
+        pd.account_no DESC
 
 `);
 
@@ -87,7 +94,7 @@ const api = {
             api.createpaymentsPrintPDFDataSet(initialReportData.report.params),
             // other data sets could be added here...
             (paymentsPrintPDFDataSet) => {
-                // add report filters                
+                // add report filters
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
                 // add report specific data sets
@@ -160,7 +167,7 @@ const api = {
         params.push(reportParams.pamentIds);
         filters.paymentId = queryBuilder.where('bp.id', '=', [params.length]);
         filters.paymentApplicationId = queryBuilder.where('bpa.payment_id', '=', [params.length]);
-        
+
 
         return {
             queryParams: params,
