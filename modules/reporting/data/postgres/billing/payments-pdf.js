@@ -281,21 +281,24 @@ const api = {
 
         _.each(reportParams.filterColumn, function (value, i) {
 
-            //  scheduled_dt
-            if (value == "payment_dt") {
-                var payment_dt_range = reportParams.filterData[i].split(' - ');
-                var payment_from_date = payment_dt_range[0];
-                var payment_to_date = payment_dt_range[1];
-                if (payment_from_date === payment_to_date) {
-                    params.push(payment_from_date);
-                    filters.paymentDate = queryBuilder.whereDate('bp.payment_dt', '=', [params.length], 'f.time_zone');
-                } else {
-                    params.push(payment_from_date);
-                    params.push(payment_to_date);
-                    filters.paymentDate = queryBuilder.whereDateBetween('bp.payment_dt', [params.length - 1, params.length], 'f.time_zone');
-                }
-            }
-
+                 //  payment_dt
+              if (value == "payment_dt") {
+                  let paymentDateRange = reportParams.filterData[i].split(' - ');
+                  let paymentFromDate = paymentDateRange[0] || "";
+                  let paymentToDate = paymentDateRange[1] || "";
+                  if (paymentFromDate && paymentToDate == "") {
+                      params.push(paymentFromDate);
+                      filters.paymentDate = queryBuilder.whereDateInTz('bp.payment_dt', '=', [params.length], 'pf.time_zone');
+                  }
+                  else if (paymentFromDate === paymentToDate) {
+                      params.push(paymentFromDate);
+                      filters.paymentDate = queryBuilder.whereDateInTz('bp.payment_dt', '=', [params.length], 'pf.time_zone');
+                  } else {
+                      params.push(paymentFromDate);
+                      params.push(paymentToDate);
+                      filters.paymentDate = queryBuilder.whereDateInTzBetween('bp.payment_dt', [params.length - 1, params.length], 'pf.time_zone');
+                  }
+              }
 
             if (value == "accounting_date") {
                 var accounting_date_range = reportParams.filterData[i].split(' - ');
