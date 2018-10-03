@@ -17,7 +17,7 @@ module.exports = {
                 SELECT
                     bc.invoice_no,
                     submitted_dt AS invoice_date,
-                    current_illness_date::text as current_illness_date,
+                    current_illness_date::text,
                     same_illness_first_date::text,
                     unable_to_work_from_date::text,
                     unable_to_work_to_date::text,
