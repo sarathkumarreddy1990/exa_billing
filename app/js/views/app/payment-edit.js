@@ -583,7 +583,7 @@ define(['jquery',
                                 pageSize: 10,
                                 sortField: "p.last_name",
                                 sortOrder: "asc",
-                                company_id: 1
+                                company_id: app.companyID
                             };
                         },
                         processResults: function (data, params) {
