@@ -1588,7 +1588,7 @@ define([
                                 sortField: "group_name",
                                 sortOrder: "ASC",
                                 groupType: 'OF',
-                                company_id: 1
+                                company_id: app.companyID
                             };
                         },
                         processResults: function (data, params) {
