@@ -423,7 +423,7 @@ define([
                             return {
                                 page: params.page || 1,
                                 q: params.term || '',
-                                pageSize: 30,
+                                pageSize: 10,
                                 sortField: "role_name",
                                 sortOrder: "ASC",
                                 company_id: app.companyID
