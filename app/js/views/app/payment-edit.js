@@ -379,7 +379,7 @@ define(['jquery',
                                 pageSize: 10,
                                 sortField: "insurance_code",
                                 sortOrder: "ASC",
-                                company_id: 1
+                                company_id: app.companyID
                             };
                         },
                         processResults: function (data, params) {
@@ -453,7 +453,7 @@ define(['jquery',
                                 pageSize: 10,
                                 sortField: "full_name",
                                 sortOrder: "ASC",
-                                company_id: 1
+                                company_id: app.companyID
                             };
                         },
                         processResults: function (data, params) {
@@ -518,7 +518,7 @@ define(['jquery',
                                 sortField: "group_name",
                                 sortOrder: "ASC",
                                 groupType: 'OF',
-                                company_id: 1
+                                company_id: app.companyID
                             };
                         },
                         processResults: function (data, params) {
