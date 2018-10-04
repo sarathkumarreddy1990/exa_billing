@@ -320,7 +320,7 @@ define([
                             return {
                                 results: data,
                                 pagination: {
-                                    more: (params.page * 30) < data[0].total_records
+                                    more: (params.page * 10) < data[0].total_records
                                 }
                             };
                         },
