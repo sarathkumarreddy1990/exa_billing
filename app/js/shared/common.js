@@ -5157,7 +5157,13 @@ var commonjs = {
     },
 
     getTotalRecords: function (data, params) {
-        return data && data.length ? (params.page * 10) < data[0].total_records : 0;
+        params.page = params.page || 1;
+        return {
+            results: data,
+            pagination: {
+                more: commonjs.getTotalRecords(data, params)
+            }
+        };
     }
 };
 

@@ -1569,13 +1569,7 @@ define(['jquery',
                             };
                         },
                         processResults: function (data, params) {
-                            params.page = params.page || 1;
-                            return {
-                                results: data,
-                                pagination: {
-                                    more: commonjs.getTotalRecords(data, params)
-                                }
-                            };
+                            return commonjs.getTotalRecords(data, params);
                         },
                         cache: true
                     },
@@ -1702,13 +1696,7 @@ define(['jquery',
                             };
                         },
                         processResults: function (data, params) {
-                            params.page = params.page || 1;
-                            return {
-                                results: data,
-                                pagination: {
-                                    more: commonjs.getTotalRecords(data, params)
-                                }
-                            };
+                            return commonjs.getTotalRecords(data, params);
                         },
                         cache: true
                     },
@@ -1781,13 +1769,7 @@ define(['jquery',
                             };
                         },
                         processResults: function (data, params) {
-                            params.page = params.page || 1;
-                            return {
-                                results: data,
-                                pagination: {
-                                    more: commonjs.getTotalRecords(data, params)
-                                }
-                            };
+                            return commonjs.getTotalRecords(data, params);
                         },
                         cache: true
                     },
@@ -2137,13 +2119,7 @@ define(['jquery',
                             };
                         },
                         processResults: function (data, params) {
-                            params.page = params.page || 1;
-                            return {
-                                results: data,
-                                pagination: {
-                                    more: commonjs.getTotalRecords(data, params)
-                                }
-                            };
+                            return commonjs.getTotalRecords(data, params);
                         },
                         cache: true
                     },
@@ -2195,13 +2171,7 @@ define(['jquery',
                             };
                         },
                         processResults: function (data, params) {
-                            params.page = params.page || 1;
-                            return {
-                                results: data,
-                                pagination: {
-                                    more: commonjs.getTotalRecords(data, params)
-                                }
-                            };
+                            return commonjs.getTotalRecords(data, params);
                         },
                         cache: true
                     },
