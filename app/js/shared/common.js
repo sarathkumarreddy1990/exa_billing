@@ -5161,7 +5161,7 @@ var commonjs = {
         return {
             results: data,
             pagination: {
-                more: commonjs.getTotalRecords(data, params)
+                more: data && data.length ? (params.page * 10) < data[0].total_records : 0
             }
         };
     }
