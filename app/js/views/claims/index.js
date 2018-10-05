@@ -2710,9 +2710,55 @@ define(['jquery',
                                     clearTimeout(claimRefreshInterval);
 
                                     commonjs.showStatus("messages.status.successfullyCompleted");
-                                    console.log(self.claim_Id);
-                                    $("#btnClaimsRefresh").click();
-                                    $("#btnStudiesRefresh").click();
+
+                                    // Change grid values after claim creation instead of refreshing studies grid
+                                    if (self.openedFrom === 'studies') {
+
+                                        var billedStatusFilter = $('#gs_billed_status').val();
+                                        var tblID = 'tblGridAll_Studies';
+                                        var $studyGrid = $('#' + tblID + ' tr#' + self.cur_study_id, parent.document);
+                                        var $td = $studyGrid.children('td');
+
+                                        // If studies grid has Unbilled filter means remove row from grid
+                                        if (billedStatusFilter === 'unbilled') {
+                                            $studyGrid.remove();
+                                        } else {
+
+                                            // Otherwise done row changes
+                                            var colorCodeDetails = commonjs.getClaimColorCodeForStatus('billed', 'study');
+                                            var color_code = colorCodeDetails && colorCodeDetails.length && colorCodeDetails[0].color_code || 'transparent';
+                                            var cells = [
+                                                {
+                                                    'field': 'billed_status',
+                                                    'data': 'Billed',
+                                                    'css': {
+                                                        "backgroundColor": color_code
+                                                    }
+                                                },
+                                                {
+                                                    'field': 'claim_id',
+                                                    'data': self.claim_Id
+                                                },
+                                                {
+                                                    'field': 'as_edit',
+                                                    'data': "<i class='icon-ic-edit' title='Edit'></i>"
+                                                }
+                                            ];
+
+                                            for (var i = 0; i < cells.length; ++i) {
+
+                                                var $cell = $td.filter('[aria-describedby="' + tblID + '_' + cells[i].field + '"]');
+                                                $cell.html(cells[i].data)
+                                                    .attr('title', $.jgrid.stripHtml(cells[i].data));
+
+                                                if (typeof cells[i].css === 'object') {
+                                                    $cell.css(cells[i].css);
+                                                }
+                                            }
+
+                                        }
+                                    }
+
                                 }, 200);
 
                                 var claimHideInterval = setTimeout(function () {

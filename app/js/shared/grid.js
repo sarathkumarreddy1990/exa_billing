@@ -143,27 +143,28 @@ define('grid', [
             for (var r = 0; r < selectedCount; r++) {
                 var rowId = $checkedInputs[r].parentNode.parentNode.id;
                 _storeEle = getData(rowId, store, gridID);
+                var gridData = $(gridID).jqGrid('getRowData', rowId);
                 studyArray.push(rowId);
                 var study = {
                     study_id: rowId,
-                    patient_id: _storeEle.patient_id,
+                    patient_id: gridData.patient_id,
                     facility_id: _storeEle.facility_id,
                     study_date: _storeEle.study_dt,
                     patient_name: _storeEle.patient_name,
                     account_no: _storeEle.account_no,
                     patient_dob: _storeEle.birth_date,
                     accession_no: _storeEle.accession_no,
-                    billed_status:_storeEle.billed_status,
-                    claim_id:_storeEle.claim_id,
-                    invoice_no:_storeEle.invoice_no,
-                    payer_type:_storeEle.payer_type,
-                    billing_method:_storeEle.billing_method
+                    billed_status: _storeEle.billed_status,
+                    claim_id: gridData.claim_id,
+                    invoice_no: _storeEle.invoice_no,
+                    payer_type: _storeEle.payer_type,
+                    billing_method: _storeEle.billing_method
                 };
-                if (_storeEle.billed_status == 'billed') {
+                if (gridData.billed_status.toLocaleLowerCase() == 'billed') {
                     isbilled_status = true;
                 }
 
-                if (_storeEle.billed_status == 'unbilled') {
+                if (gridData.billed_status.toLocaleLowerCase() == 'unbilled') {
                     isUnbilled_status = true;
                 }
                 selectedStudies.push(study);
@@ -659,18 +660,21 @@ define('grid', [
             batchClaimArray = [];
             for (var r = 0; r < selectedCount; r++) {
                 var rowId = $checkedInputs[r].parentNode.parentNode.id;
-                studyStoreValue = getData(rowId, studyDataStore, gridID);
-                if (!studyStoreValue.study_cpt_id) {
+                var gridData = $(gridID).jqGrid('getRowData', rowId);
+
+                if (!gridData.study_cpt_id) {
                     commonjs.showWarning("Please select charges record for batch claim ");
                     return false;
                 }
-                if (studyStoreValue.billed_status == 'billed') {
+
+                if (gridData.billed_status.toLocaleLowerCase() == 'billed') {
                     commonjs.showWarning("Please select Unbilled record for batch claim");
                     return false;
                 }
+
                 batchClaimArray.push({
-                    patient_id :studyStoreValue.patient_id,
-                    study_id :studyStoreValue.study_id
+                    patient_id: gridData.patient_id,
+                    study_id: gridData.study_id
                 });
             }
 
@@ -1181,18 +1185,19 @@ define('grid', [
                     var gridData = getData(rowID, studyStore, gridID);
                     var study_id = 0;
                     var order_id = 0;
+                    var gridRowData = $(gridID).jqGrid('getRowData', rowID);
 
                     if ($('#chk' + gridID.slice(1) + '_' + rowID).length > 0) {
                         $('#chk' + gridID.slice(1) + '_' + rowID).prop('checked', true);
                     }
-                    if (options.isClaimGrid || (gridData.claim_id && gridData.claim_id != '')) {
+                    if (options.isClaimGrid || (gridRowData.claim_id && gridRowData.claim_id != '')) {
                         self.claimView = new claimsView();
                         commonjs.getClaimStudy(rowID, function (result) {
                             if (result) {
                                 study_id = result.study_id;
                                 order_id = result.order_id;
                             }
-                            self.claimView.showEditClaimForm(gridData.claim_id, !options.isClaimGrid ? 'studies' : 'claims', {
+                            self.claimView.showEditClaimForm(gridRowData.claim_id, !options.isClaimGrid ? 'studies' : 'claims', {
                                 'study_id': study_id,
                                 'patient_name': gridData.patient_name,
                                 'patient_id': gridData.patient_id,
