@@ -79,19 +79,19 @@ module.exports = {
                         ,claim_details AS (
                                     SELECT
                                         orders.facility_id,
-                                        studies_details.accident_date AS current_illness_date,
-                                        order_info->'similarIll' AS same_illness_first_date,
-                                        order_info->'wTo' AS unable_to_work_to_date,
-                                        order_info->'wFrom' AS unable_to_work_from_date,
-                                        order_info->'hTo' AS hospitalization_to_date,
-                                        order_info->'hFrom' AS hospitalization_from_date,
+                                        NULLIF(order_info->'currentDate','')::DATE AS current_illness_date,
+                                        NULLIF(order_info->'similarIll','')::DATE AS same_illness_first_date,
+                                        NULLIF(order_info->'wTo','')::DATE AS unable_to_work_to_date,
+                                        NULLIF(order_info->'wFrom','')::DATE AS unable_to_work_from_date,
+                                        NULLIF(order_info->'hTo','')::DATE AS hospitalization_to_date,
+                                        NULLIF(order_info->'hFrom','')::DATE AS hospitalization_from_date,
                                         COALESCE(NULLIF(order_info->'outsideLab',''), 'false')::boolean AS service_by_outside_lab,
                                         order_info->'original_ref' AS original_reference,
                                         order_info->'authorization_no' AS authorization_no,
                                         order_info->'frequency_code' AS frequency,
-                                        studies_details.oa AS is_other_accident,
-                                        studies_details.aa AS is_auto_accident,
-                                        studies_details.emp AS is_employed,
+                                        COALESCE(NULLIF(order_info->'oa',''), 'false')::boolean AS is_other_accident,
+                                        COALESCE(NULLIF(order_info->'aa',''), 'false')::boolean AS is_auto_accident,
+                                        COALESCE(NULLIF(order_info->'emp',''), 'false')::boolean AS is_employed,
                                         referring_provider.ref_prov_full_name,
                                         referring_provider.referring_provider_contact_id,
                                         (   SELECT
@@ -142,11 +142,7 @@ module.exports = {
                                         JOIN LATERAL (
                                             SELECT
                                                 p.full_name AS reading_phy_full_name,
-                                                pc.id AS rendering_provider_contact_id,
-                                                COALESCE ( NULLIF(cpt.authorization_info->'Primary', '')::json->>'aa', 'false')::boolean AS aa,
-                                                COALESCE ( NULLIF(cpt.authorization_info->'Primary', '')::json->>'oa', 'false')::boolean AS oa,
-                                                COALESCE ( NULLIF(cpt.authorization_info->'Primary', '')::json->>'emp', 'false')::boolean AS emp,
-                                                COALESCE ( NULLIF(NULLIF(cpt.authorization_info->'Primary', '')::json->>'accident_date',''), null)  AS accident_date
+                                                pc.id AS rendering_provider_contact_id
                                             FROM
                                                 public.studies s
                                                 LEFT JOIN public.study_transcriptions st ON st.study_id = s.id
