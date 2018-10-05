@@ -34,7 +34,7 @@ define([
                 ]});
                 this.model.fetch({
                     success: function (model, response) {
-                        var fieldData = {}, eJson, iJson, pJson;
+                        var fieldData = {};
                         var eJsonResponse = iJsonResponse = pJsonResponse = [];
                         if (response && response[0]) {
                             eJsonResponse = response[0].edi_validation || [];
