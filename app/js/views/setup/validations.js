@@ -185,19 +185,14 @@ define([
             },
 
             parsingtoJson: function (obj) {
-                var json = [];
-                for (var i = 0; i < obj.length; i++) {
-                    if (obj[i].getAttribute("id").indexOf("Grp") < 0) {
-                        if (obj[i].checked) {
-                            var property = {
-                                "field": obj[i].getAttribute("id").slice(3),
-                                "enabled": true
-                            }
-                            json.push(property);
+                return obj.map(function (index, field) {
+                    if ((field.getAttribute("id").indexOf("Grp") < 0) && field.checked) {
+                        return {
+                            "field": field.getAttribute("id").slice(3),
+                            "enabled": true
                         }
                     }
-                }
-                return json;
+                }).toArray();
             },
 
             findGroup: function (id) {
