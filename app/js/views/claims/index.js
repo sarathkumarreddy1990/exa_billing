@@ -841,7 +841,7 @@ define(['jquery',
 
             showClaimForm: function (options, isFrom) {
                 var self = this;
-                var selectedStudyIds = JSON.parse(window.localStorage.getItem('selected_studies'));
+                self.selectedStudyIds = JSON.parse(window.localStorage.getItem('selected_studies'));
                 var primaryStudyDetails = JSON.parse(window.localStorage.getItem('primary_study_details'));
                 self.selectedOrderIds = JSON.parse(window.localStorage.getItem('selected_orders'));
                 self.cur_patient_id = primaryStudyDetails.patient_id ? parseInt(primaryStudyDetails.patient_id) : null;
@@ -861,7 +861,7 @@ define(['jquery',
                     this.render('studies');
 
                 self.studyDate = commonjs.getConvertedFacilityTime(primaryStudyDetails.study_date, '', 'L', primaryStudyDetails.facility_id);
-                self.getLineItemsAndBind(selectedStudyIds);
+                self.getLineItemsAndBind(self.selectedStudyIds);
                 if(options && options == 'patientSearch'){
                     self.bindDetails();
                     self.bindTabMenuEvents();
@@ -2708,56 +2708,63 @@ define(['jquery',
 
                                 var claimRefreshInterval = setTimeout(function () {
                                     clearTimeout(claimRefreshInterval);
-
                                     commonjs.showStatus("messages.status.successfullyCompleted");
 
                                     // Change grid values after claim creation instead of refreshing studies grid
-                                    if (self.openedFrom === 'studies') {
+                                    var selectedStudies = self.selectedStudyIds ? self.selectedStudyIds.split(",").map(Number) :
+                                        self.cur_study_id ? self.cur_study_id.split(",").map(Number) : null;
 
-                                        var billedStatusFilter = $('#gs_billed_status').val();
-                                        var tblID = 'tblGridAll_Studies';
-                                        var $studyGrid = $('#' + tblID + ' tr#' + self.cur_study_id, parent.document);
-                                        var $td = $studyGrid.children('td');
+                                    if (self.openedFrom === 'studies' && selectedStudies) {
 
-                                        // If studies grid has Unbilled filter means remove row from grid
-                                        if (billedStatusFilter === 'unbilled') {
-                                            $studyGrid.remove();
-                                        } else {
+                                        for (var i = 0; i < selectedStudies.length; ++i) {
 
-                                            // Otherwise done row changes
-                                            var colorCodeDetails = commonjs.getClaimColorCodeForStatus('billed', 'study');
-                                            var color_code = colorCodeDetails && colorCodeDetails.length && colorCodeDetails[0].color_code || 'transparent';
-                                            var cells = [
-                                                {
-                                                    'field': 'billed_status',
-                                                    'data': 'Billed',
-                                                    'css': {
-                                                        "backgroundColor": color_code
+                                            var billedStatusFilter = $('#gs_billed_status').val();
+                                            var tblID = 'tblGridAll_Studies';
+                                            var $studyGrid = $('#' + tblID + ' tr#' + selectedStudies[i], parent.document);
+                                            var $td = $studyGrid.children('td');
+
+                                            // If studies grid has Unbilled filter means remove row from grid
+                                            if (billedStatusFilter === 'unbilled') {
+                                                $studyGrid.remove();
+                                            } else {
+
+                                                // Otherwise done row changes
+                                                var colorCodeDetails = commonjs.getClaimColorCodeForStatus('billed', 'study');
+                                                var color_code = colorCodeDetails && colorCodeDetails.length && colorCodeDetails[0].color_code || 'transparent';
+                                                var cells = [
+                                                    {
+                                                        'field': 'billed_status',
+                                                        'data': 'Billed',
+                                                        'css': {
+                                                            "backgroundColor": color_code
+                                                        }
+                                                    },
+                                                    {
+                                                        'field': 'claim_id',
+                                                        'data': self.claim_Id
+                                                    },
+                                                    {
+                                                        'field': 'as_edit',
+                                                        'data': "<i class='icon-ic-edit' title='Edit'></i>"
                                                     }
-                                                },
-                                                {
-                                                    'field': 'claim_id',
-                                                    'data': self.claim_Id
-                                                },
-                                                {
-                                                    'field': 'as_edit',
-                                                    'data': "<i class='icon-ic-edit' title='Edit'></i>"
+                                                ];
+
+                                                for (var j = 0; j < cells.length; ++j) {
+
+                                                    var $cell = $td.filter('[aria-describedby="' + tblID + '_' + cells[j].field + '"]');
+                                                    $cell.html(cells[j].data)
+                                                        .attr('title', $.jgrid.stripHtml(cells[j].data));
+
+                                                    if (typeof cells[j].css === 'object') {
+                                                        $cell.css(cells[j].css);
+                                                    }
                                                 }
-                                            ];
 
-                                            for (var i = 0; i < cells.length; ++i) {
-
-                                                var $cell = $td.filter('[aria-describedby="' + tblID + '_' + cells[i].field + '"]');
-                                                $cell.html(cells[i].data)
-                                                    .attr('title', $.jgrid.stripHtml(cells[i].data));
-
-                                                if (typeof cells[i].css === 'object') {
-                                                    $cell.css(cells[i].css);
-                                                }
                                             }
-
                                         }
                                     }
+                                    // Change grid values after claim creation instead of refreshing studies grid
+
 
                                 }, 200);
 

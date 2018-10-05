@@ -692,8 +692,36 @@ define('grid', [
                     },
                     success: function (data, response) {
                         commonjs.showStatus('Batch Claim created successfully');
-                        $("#btnStudiesRefresh").click();
                         commonjs.hideLoading();
+
+                        var claim_id = data && data.length && data[0].create_claim_charge || null;
+
+                         // Change grid values after claim creation instead of refreshing studies grid
+                        if (claim_id) {
+
+                            var claimsTable = new customGrid(studyDataStore, gridID);
+                            claimsTable.options = { gridelementid: gridID }
+                            var changeGrid = initChangeGrid(claimsTable);
+                            var cells = [];
+
+                            cells = cells.concat(changeGrid.getClaimId(claim_id));
+                            cells = cells.concat(changeGrid.getBillingStatus('Billed'));
+                            cells = cells.concat(changeGrid.setEditIcon());
+
+                            for (var r = 0; r < batchClaimArray.length; r++) {
+                                var rowId = batchClaimArray[r].study_id;
+                                var $row = $tblGrid.find('#' + rowId);
+                                var setCell = changeGrid.setCell($row);
+
+                                setCell(cells);
+                                // If studies grid has Unbilled filter means remove row from grid
+                                if ($('#gs_billed_status').val() === 'unbilled') {
+                                    $row.remove();
+                                }
+
+                            }
+                        }
+
                     },
                     error: function (err, response) {
                         commonjs.handleXhrError(err, response);
