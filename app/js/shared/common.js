@@ -5312,3 +5312,7 @@ $(document).ajaxSuccess(function (event, xhr, settings) {
         layout.setupDataUpdated = true;
     }
 });
+
+function page(data, params) {
+    return data && data.length ? (params.page * 10) < data[0].total_records : 0;
+}

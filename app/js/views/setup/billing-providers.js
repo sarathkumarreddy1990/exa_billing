@@ -448,7 +448,7 @@ define(['jquery',
                             return {
                                 results: data,
                                 pagination: {
-                                    more: data && data.length ? (params.page * 10) < data[0].total_records : 0
+                                    more: commonjs.page(data, params)
                                 }
                             };
                         },
