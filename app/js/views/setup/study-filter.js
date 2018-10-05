@@ -1596,7 +1596,7 @@ define([
                             return {
                                 results: data,
                                 pagination: {
-                                    more: commonjs.page(data, params)
+                                    more: commonjs.getTotalRecords(data, params)
                                 }
                             };
                         },

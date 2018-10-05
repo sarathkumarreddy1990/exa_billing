@@ -1573,7 +1573,7 @@ define(['jquery',
                             return {
                                 results: data,
                                 pagination: {
-                                    more: commonjs.page(data, params)
+                                    more: commonjs.getTotalRecords(data, params)
                                 }
                             };
                         },
@@ -1706,7 +1706,7 @@ define(['jquery',
                             return {
                                 results: data,
                                 pagination: {
-                                    more: commonjs.page(data, params)
+                                    more: commonjs.getTotalRecords(data, params)
                                 }
                             };
                         },
@@ -1785,7 +1785,7 @@ define(['jquery',
                             return {
                                 results: data,
                                 pagination: {
-                                    more: commonjs.page(data, params)
+                                    more: commonjs.getTotalRecords(data, params)
                                 }
                             };
                         },
@@ -2141,7 +2141,7 @@ define(['jquery',
                             return {
                                 results: data,
                                 pagination: {
-                                    more: commonjs.page(data, params)
+                                    more: commonjs.getTotalRecords(data, params)
                                 }
                             };
                         },
@@ -2199,7 +2199,7 @@ define(['jquery',
                             return {
                                 results: data,
                                 pagination: {
-                                    more: commonjs.page(data, params)
+                                    more: commonjs.getTotalRecords(data, params)
                                 }
                             };
                         },
