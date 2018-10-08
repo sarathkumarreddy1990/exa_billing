@@ -1022,7 +1022,7 @@ const util = {
             //      (studies.study_received_dt BETWEEN '2017-03-08T00:00:00-05:00' AND '2017-03-08T23:59:59-05:00')   -- preformatted, today
             if (filterObj.date.condition === 'Preformatted' && fromTime) {  // Handle special case for preformatted
 
-                let filterColumn = filterFlag =='claims' ?'claims.facility_id':'studies.facility_id';
+                let filterColumn = filterFlag == 'claims' ? 'claims.facility_id' : 'studies.facility_id';
 
                 drQuery = util.getRelationOperator(query) + ` ( ${scheduleDtColumn} IS NOT NULL AND to_facility_date(${filterColumn}, ${scheduleDtColumn}) BETWEEN ('${fromDate}')::date AND ('${toDate}')::date)`;
 
