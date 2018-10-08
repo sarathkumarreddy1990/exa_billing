@@ -178,7 +178,7 @@ const util = {
 
         return dateRange;
     },
-    getClaimFilterQuery: function (filterObj) {
+    getClaimFilterQuery: function (filterObj, filterFlag) {
         let query = '';
 
         if (filterObj) {
@@ -188,7 +188,7 @@ const util = {
             }
 
             if (filterObj.date) {
-                query += util.getDateRangeQuery(query, filterObj);
+                query += util.getDateRangeQuery(query, filterObj, filterFlag);
             }
 
             if (filterObj.ClaimInformation) {
@@ -700,10 +700,10 @@ const util = {
                 if (filterObj.studyInformation.billedstatus) {
 
                     let obj = filterObj.studyInformation.billedstatus;
-                    let billedstatusQuery = '';     
+                    let billedstatusQuery = '';
 
                     billedstatusQuery +=( obj == 'billed' ? ' EXISTS (SELECT  1 FROM billing.charges_studies where studies.id = charges_studies.study_id) ' : '  NOT EXISTS (SELECT  1 FROM billing.charges_studies where studies.id = charges_studies.study_id)');
-                    
+
                     query += util.getRelationOperator(query) + '(' + billedstatusQuery + ')';
                 }
 
@@ -921,6 +921,9 @@ const util = {
             case 'Last 30 Days':
                 fromDate = moment().subtract(29, 'days');
                 break;
+            case 'Last 90 Days':
+                fromDate = moment().subtract(89, 'days');
+                break;
             case 'Next 7 Days':
                 toDate = moment().add(6, 'days');
                 break;
@@ -945,7 +948,7 @@ const util = {
         return dateRange;
     },
 
-    getDateRangeQuery: function (query, filterObj) {
+    getDateRangeQuery: function (query, filterObj, filterFlag) {
         let drQuery,
             scheduleDtColumn,
             preformatted,
@@ -1018,7 +1021,11 @@ const util = {
             // Just compare date+time+tz string directly. For example:
             //      (studies.study_received_dt BETWEEN '2017-03-08T00:00:00-05:00' AND '2017-03-08T23:59:59-05:00')   -- preformatted, today
             if (filterObj.date.condition === 'Preformatted' && fromTime) {  // Handle special case for preformatted
-                drQuery = util.getRelationOperator(query) + ` (  ${scheduleDtColumn} BETWEEN ' ${fromDate} ' AND '${toDate}') `;
+
+                let filterColumn = filterFlag =='claims' ?'claims.facility_id':'studies.facility_id';
+
+                drQuery = util.getRelationOperator(query) + ` ( ${scheduleDtColumn} IS NOT NULL AND to_facility_date(${filterColumn}, ${scheduleDtColumn}) BETWEEN ('${fromDate}')::date AND ('${toDate}')::date)`;
+
                 // time is IN THE timestamp !!!
                 //+ " AND  (";
                 //drQuery += (fromTime)?  scheduleDtColumn + "::time > '" + fromTime + "'::time AND " + scheduleDtColumn + "::time < '" + toTime + "'::time)" : scheduleDtColumn + "::time < '" + toTime + "'::time)";
