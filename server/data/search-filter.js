@@ -1112,6 +1112,18 @@ const api = {
                 isFrom: 'Studies',
                 statOverride: statOverride
             };
+
+            let column = JSON.parse(args.filterCol);
+            let data = JSON.parse(args.filterData);
+
+            if (column.indexOf('study_dt') == -1 && (args.customArgs.filter_id == 'All_Studies')) {
+                data.push(moment().subtract(29, 'days').format('YYYY-MM-DD') + ' - ' + moment().format('YYYY-MM-DD'));
+                column.push('study_dt');
+            }
+
+            args.filterCol = JSON.stringify(column);
+            args.filterData = JSON.stringify(data);
+
             const response = await filterValidator.generateQuery(colModel, args.filterCol, args.filterData, query_options);
             args.filterQuery = response;
 

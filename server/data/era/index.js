@@ -321,12 +321,17 @@ module.exports = {
                                         FROM (
                                                 SELECT
                                                       *
-                                                      , ( SELECT array_agg(claim_id) FROM update_claim_status_and_payer LIMIT 1 )
                                                 FROM
-                                                insert_payment_adjustment
+                                                    insert_payment_adjustment
 
                                             ) AS insert_payment_adjustment
                             ) AS insert_payment_adjustment
+                            ,(
+                                SELECT 
+                                    array_agg(claim_id) 
+                                FROM 
+                                    update_claim_status_and_payer 
+                             )  AS update_claim_status_and_payer
                         `;
 
         return await query(sql);

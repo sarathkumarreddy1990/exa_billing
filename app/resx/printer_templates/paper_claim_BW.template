@@ -113,7 +113,7 @@ function getCPTValues(data) {
                 { text: getPointerValue(cptvalues[pos]), border: [true, false, true, true]},
                 { text: getDecimalNumericValue(getKeyValue(cptvalues[pos], 'totalBillFee')), border: [true, false, true, true], margin:[-3, 0,0,0]},
                 { text: getDecimalPointsValue(getKeyValue(cptvalues[pos], 'totalBillFee')), border: [true, false, true, true]},
-                { text: getKeyTrimValue(cptvalues[pos], 'unit', 3), border: [true, false, true, true]},
+                { text: getKeyTrimValue(cptvalues[pos], 'unit', 6), border: [true, false, true, true]},
                 {text:"",  border: [true, false, true, true]}, { text: 'NPI', alignment: 'center' , border: [true, false, true, true]},
                 { text: data.subscriber[0].claim[0].renderingProvider ? getKeyTrimValue(data.subscriber[0].claim[0].renderingProvider[0], 'NPINO', 12) : '' , border: [true, false, true, true]},
             ]);
@@ -1625,7 +1625,7 @@ function formatSingleClaim(claimData) {
                                         {text: claimData.subscriber && claimData.subscriber[0].claim ? getKeyTrimValue(claimData.subscriber[0].claim[0], 'originalReference', 18) : '', alignment:"center"}
                                     ],
                                     [
-                                        {text: claimData.subscriber && claimData.subscriber[0].claim ? getKeyTrimValue(claimData.subscriber[0].claim[0], 'authorizationNo', 30) : '', alignment:"center", colSpan:2, margin:[0, 07, 0, 0]},
+                                        {text: claimData.subscriber && claimData.subscriber[0].claim ? getKeyTrimValue(claimData.subscriber[0].claim[0], 'authorizationNo', 30) : '', alignment:"center", colSpan:2, margin:[0, 14, 0, 0]},
                                         {}
                                     ]
                                 ]

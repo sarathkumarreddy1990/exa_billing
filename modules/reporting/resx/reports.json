@@ -1434,6 +1434,9 @@
         "category": "billing",
         "title": "Payment Received",
         "description": "",
+        "flags" : {
+            "hideDetailTableCaption": true
+        },
         "jsreport": {
             "pdf": {
                 "template": {

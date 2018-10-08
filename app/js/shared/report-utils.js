@@ -113,13 +113,7 @@ define([
                             };
                         },
                         processResults: function (data, params) {
-                            params.page = params.page || 1;
-                            return {
-                                results: data,
-                                pagination: {
-                                    more: (params.page * 30) < data[0].total_records
-                                }
-                            };
+                            return commonjs.getTotalRecords(data, params);
                         },
                         cache: true
                     },
@@ -186,13 +180,7 @@ define([
                         },
 
                         processResults: function (data, params) {
-                            params.page = params.page || 1;
-                            return {
-                                results: data,
-                                pagination: {
-                                    more: (params.page * 30) < data[0].total_records
-                                }
-                            };
+                            return commonjs.getTotalRecords(data, params);
                         },
                         cache: true
                     },
@@ -259,13 +247,7 @@ define([
                             };
                         },
                         processResults: function (data, params) {
-                            params.page = params.page || 1;
-                            return {
-                                results: data,
-                                pagination: {
-                                    more: (params.page * 30) < data[0].total_records
-                                }
-                            };
+                            return commonjs.getTotalRecords(data, params);
                         },
                         cache: true
                     },
@@ -357,13 +339,7 @@ define([
                             };
                         },
                         processResults: function (data, params) {
-                            params.page = params.page || 1;
-                            return {
-                                results: data,
-                                pagination: {
-                                    more: (params.page * 30) < data[0].total_records
-                                }
-                            };
+                            return commonjs.getTotalRecords(data, params);
                         },
                         cache: true
                     },
@@ -423,20 +399,14 @@ define([
                             return {
                                 page: params.page || 1,
                                 q: params.term || '',
-                                pageSize: 30,
+                                pageSize: 10,
                                 sortField: "role_name",
                                 sortOrder: "ASC",
                                 company_id: app.companyID
                             };
                         },
                         processResults: function (data, params) {
-                            params.page = params.page || 1;
-                            return {
-                                results: data,
-                                pagination: {
-                                    more: (params.page * 30) < data[0].total_records
-                                }
-                            };
+                            return commonjs.getTotalRecords(data, params);
                         },
                         cache: true
                     },
@@ -533,13 +503,7 @@ define([
                             };
                         },
                         processResults: function (data, params) {
-                            params.page = params.page || 1;
-                            return {
-                                results: data,
-                                pagination: {
-                                    more: (params.page * 30) < data[0].total_records
-                                }
-                            };
+                            return commonjs.getTotalRecords(data, params);
                         },
                         cache: true
                     },
@@ -603,13 +567,7 @@ define([
                             };
                         },
                         processResults: function (data, params) {
-                            params.page = params.page || 1;
-                            return {
-                                results: data,
-                                pagination: {
-                                    more: (params.page * 30) < data[0].total_records
-                                }
-                            };
+                            return commonjs.getTotalRecords(data, params);
                         },
                         cache: true
                     },
@@ -674,13 +632,7 @@ define([
                             };
                         },
                         processResults: function (data, params) {
-                            params.page = params.page || 1;
-                            return {
-                                results: data,
-                                pagination: {
-                                    more: (params.page * 30) < data[0].total_records
-                                }
-                            };
+                            return commonjs.getTotalRecords(data, params);
                         },
                         cache: true
                     },
