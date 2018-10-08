@@ -124,7 +124,7 @@ function getTableContents(claimData) {
                         text: claimData.subscriber[0].claim[0].serviceLine[i].totalBillFee && claimData.subscriber[0].claim[0].serviceLine[i].totalBillFee.split(".") &&
                             claimData.subscriber[0].claim[0].serviceLine[i].totalBillFee.split(".")[1] ? claimData.subscriber[0].claim[0].serviceLine[i].totalBillFee.split(".")[1].toString().substring(0, 2) : ''
                     },
-                    { text: claimData.subscriber[0].claim[0].serviceLine[i].unit ? claimData.subscriber[0].claim[0].serviceLine[i].unit.toString().substring(0, 3) : '' }, {}, {},
+                    { text: claimData.subscriber[0].claim[0].serviceLine[i].unit ? claimData.subscriber[0].claim[0].serviceLine[i].unit.toString().substring(0, 5) : '' }, {}, {},
                     {
                         text: claimData.subscriber[0].claim[0].renderingProvider && claimData.subscriber[0].claim[0].renderingProvider[0].NPINO ?
                             claimData.subscriber[0].claim[0].renderingProvider[0].NPINO.toString().substring(0, 12) : ''
