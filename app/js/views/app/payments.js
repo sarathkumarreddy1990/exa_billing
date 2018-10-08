@@ -290,7 +290,10 @@ define(['jquery',
                         disablereload: true,
                         customargs: {
                             paymentStatus: $("#ulPaymentStatus").val(),
-                            from : self.from === 'ris'? 'ris' : ''
+                            from : self.from === 'ris'? 'ris' : '',
+                            toDate : moment().format("L"),
+                            fromDate : moment().subtract(29, 'days').format("L"),
+                            filterByDateType : 'accounting_date'
                         },
                         afterInsertRow: function (rowid, rowdata) {
                             if (rowdata.current_status) {
@@ -489,6 +492,11 @@ define(['jquery',
                     var colSelector = '#gs_' + col;
 
                     var colElement = $(colSelector);
+                    if ((col == 'accounting_date') && !colElement.val()) {
+                        var toDate = moment(),
+                            fromDate = moment().subtract(29, 'days');
+                        colElement.val(fromDate.format("L") + " - " + toDate.format("L"));
+                    }
 
                     var drp = commonjs.bindDateRangePicker(colElement, drpOptions, rangeSetName, function (start, end, format) {
                         if (start && end) {
