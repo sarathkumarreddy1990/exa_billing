@@ -480,9 +480,7 @@ const api = {
             args.filterCol = JSON.stringify(column);
             args.filterData = JSON.stringify(data);
         }
-
-
-
+        
         if (column.indexOf('claim_balance') > -1) {
 
             let colIndex = column.indexOf('claim_balance');
