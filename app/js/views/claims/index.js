@@ -246,6 +246,11 @@ define(['jquery',
                     return;
                 }
 
+                if (!$('#ddlBillingProvider').val()) {
+                    commonjs.showWarning("shared.warning.selectbillingProvider");
+                    $('#ddlBillingProvider').focus();
+                    return;
+                }
 
                 $.each($('#ddlServiceType'+ins+' :selected'), function (index, value) {
                     serviceTypeCodes.push($(value).val())
