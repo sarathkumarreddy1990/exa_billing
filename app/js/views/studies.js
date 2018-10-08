@@ -1267,9 +1267,6 @@ define(['jquery',
                     // EXA-9228 passing value to identify home page refresh, to set initial page size .
                     filter.refresh(isFromDatepicker || true);
                 }
-                else {
-                    self.loadTabContents();
-                }
                 if (typeof callback === 'function') {
                     return callback(filter);
                 }
@@ -1323,7 +1320,6 @@ define(['jquery',
                 // commonjs.isHomePageVisited = false;
                 var filter = commonjs.loadedStudyFilters.get(commonjs.currentStudyFilter);
                 if (!filter) {
-                    self.loadTabContents();
                     return;
                 }
 
