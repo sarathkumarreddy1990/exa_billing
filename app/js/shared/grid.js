@@ -160,11 +160,11 @@ define('grid', [
                     payer_type: _storeEle.payer_type,
                     billing_method: _storeEle.billing_method
                 };
-                if (gridData.billed_status.toLocaleLowerCase() == 'billed') {
+                if (gridData.billed_status && gridData.billed_status.toLocaleLowerCase() == 'billed') {
                     isbilled_status = true;
                 }
 
-                if (gridData.billed_status.toLocaleLowerCase() == 'unbilled') {
+                if (gridData.billed_status && gridData.billed_status.toLocaleLowerCase() == 'unbilled') {
                     isUnbilled_status = true;
                 }
                 selectedStudies.push(study);
@@ -667,7 +667,7 @@ define('grid', [
                     return false;
                 }
 
-                if (gridData.billed_status.toLocaleLowerCase() == 'billed') {
+                if (gridData.billed_status && gridData.billed_status.toLocaleLowerCase() == 'billed') {
                     commonjs.showWarning("Please select Unbilled record for batch claim");
                     return false;
                 }
