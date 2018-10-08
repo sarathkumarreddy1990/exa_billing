@@ -126,6 +126,8 @@
             "insurance": "Insurance",
             "patient": "Patient",
             "orderingFacility": "Ordering Facility",
+            "insuranceProvider": "Insurance Provider",
+            "providers": "Providers",
             "provider": "Provider",
             "electronic": "Electronic",
             "directingBilling": "Direct Billing(Invoice)",
