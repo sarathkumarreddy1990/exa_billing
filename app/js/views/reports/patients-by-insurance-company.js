@@ -49,7 +49,6 @@ define([
                 "change #ddlInsuranceBinding": "onInsuranceBinding",
                 'change #noDateSpecify': 'onNoDateSpecified',
                 'change #claimDateDiv': 'onClaimDateSearch',
-                'change #insuranceActive': 'onInsuranceIsActive'
                 'change .chkInsurance': 'onInsuranceIsActive'
             },
 
