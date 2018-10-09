@@ -270,8 +270,8 @@ const api = {
 
         let r = '';
 
-        if(!isCount) {
-            r = ' INNER JOIN LATERAL billing.get_claim_totals(claims.id) bgct ON TRUE '; 
+        if (!isCount || (columns && columns.bgct)) {
+            r = ' INNER JOIN LATERAL billing.get_claim_totals(claims.id) bgct ON TRUE ';
         }
 
         if (tables.patients) { r += ' INNER JOIN patients ON claims.patient_id = patients.id '; }
