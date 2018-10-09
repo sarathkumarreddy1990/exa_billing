@@ -55,10 +55,10 @@ define([
                 var fileUploadedObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileNameUploaded');
                 var fileDuplicateObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileIsDuplicate');
                 var fileStoreExist = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileStoreExist');
-
-                fileDuplicateObj.innerHTML = '';
-                fileUploadedObj.innerHTML = '';
-                fileStoreExist.innerHTML = '';
+                
+                if (fileDuplicateObj) fileDuplicateObj.innerHTML = '';
+                if (fileUploadedObj) fileUploadedObj.innerHTML = '';
+                if (fileStoreExist) fileStoreExist.innerHTML = '';
             },
 
             getEobFilesList: function () {
@@ -170,7 +170,8 @@ define([
             },
 
             afterEraGridBind: function (dataset, e, self) {
-                var fileUploadedObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileNameUploaded');
+                var fileUploadedObj = document && document.getElementById("ifrEobFileUpload") && document.getElementById("ifrEobFileUpload").contentWindow
+                    && document.getElementById("ifrEobFileUpload").contentWindow.document && document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileNameUploaded');
 
                 if (fileUploadedObj && fileUploadedObj.innerHTML) {
                     $('#tblEOBFileList #' + fileUploadedObj.innerHTML).dblclick();
