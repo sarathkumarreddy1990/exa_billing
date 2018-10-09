@@ -60,6 +60,9 @@
         "field": "patient_lastName",
         "enabled": false
     }, {
+        "field": "patient_gender",
+        "enabled": false
+    }, {
         "field": "patient_state",
         "enabled": false
     }, {
@@ -112,6 +115,9 @@
         "enabled": false
     }, {
         "field": "subscriber_lastName",
+        "enabled": false
+    }, {
+        "field": "subscriber_gender",
         "enabled": false
     }, {
         "field": "subscriber_state",
@@ -196,6 +202,9 @@
         "field": "patient_lastName",
         "enabled": false
     }, {
+        "field": "patient_gender",
+        "enabled": false
+    }, {
         "field": "patient_state",
         "enabled": false
     }, {
@@ -248,6 +257,9 @@
         "enabled": false
     }, {
         "field": "subscriber_lastName",
+        "enabled": false
+    }, {
+        "field": "subscriber_gender",
         "enabled": false
     }, {
         "field": "subscriber_state",
@@ -312,6 +324,9 @@
         "enabled": false
     }, {
         "field": "patient_lastName",
+        "enabled": false
+    }, {
+        "field": "patient_gender",
         "enabled": false
     }, {
         "field": "patient_state",

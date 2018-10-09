@@ -30,6 +30,7 @@ module.exports = {
 						, COALESCE (NULLIF(p.last_name, ''), '') AS "patient_lastName"
 						, COALESCE (NULLIF(p.middle_name, ''), '') AS "patient_middleName"
 						, COALESCE (NULLIF(p.suffix_name, ''), '') AS "patient_suffixName"
+						, COALESCE (NULLIF(p.gender, ''), '') AS "patient_gender"
 						, p.full_name AS patient_name
 						, p.patient_info->'c1State' AS "patient_state"
 						, p.patient_info->'c1Zip' AS "patient_zipCode"
@@ -122,6 +123,7 @@ module.exports = {
 									, COALESCE (NULLIF(p_pi.subscriber_middlename, ''), '')  AS "p_subscriber_middleName"
 									, COALESCE (NULLIF(p_pi.subscriber_name_suffix, ''), '')  AS "p_subscriber_suffixName"
 									, COALESCE (NULLIF(p_pi.subscriber_lastname, ''), '') AS "p_subscriber_lastName"
+									, COALESCE (NULLIF(p_pi.subscriber_gender, ''), '') AS "p_subscriber_gender"
 									, p_pi.subscriber_state AS "p_subscriber_state"
 									, p_pi.subscriber_zipcode AS "p_subscriber_zipCode"
 
@@ -132,6 +134,7 @@ module.exports = {
 									, COALESCE (NULLIF(s_pi.subscriber_middlename, ''), '')  AS "s_subscriber_middleName"
 									, COALESCE (NULLIF(s_pi.subscriber_name_suffix, ''), '')  AS "s_subscriber_suffixName"
 									, COALESCE (NULLIF(s_pi.subscriber_lastname, ''), '') AS "s_subscriber_lastName"
+									, COALESCE (NULLIF(s_pi.subscriber_gender, ''), '') AS "s_subscriber_gender"
 									, s_pi.subscriber_state AS "s_subscriber_state"
 									, s_pi.subscriber_zipcode AS "s_subscriber_zipCode"
 
@@ -142,6 +145,7 @@ module.exports = {
 									, COALESCE (NULLIF(t_pi.subscriber_middlename, ''), '')  AS "t_subscriber_middleName"
 									, COALESCE (NULLIF(t_pi.subscriber_name_suffix, ''), '')  AS "t_subscriber_suffixName"
 									, COALESCE (NULLIF(t_pi.subscriber_lastname, ''), '') AS "t_subscriber_lastName"
+									, COALESCE (NULLIF(t_pi.subscriber_gender, ''), '') AS "t_subscriber_gender"
 									, t_pi.subscriber_state AS "t_subscriber_state"
 									, t_pi.subscriber_zipcode AS "t_subscriber_zipCode"
 									, (SELECT array_agg(row_to_json(pointer)) AS charge_pointer FROM (
