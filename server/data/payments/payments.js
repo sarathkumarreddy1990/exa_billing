@@ -46,10 +46,6 @@ module.exports = {
             account_no
         } = params;
 
-        if (fromDate && toDate) {
-            whereQuery.push(`${filterByDateType} BETWEEN  '${fromDate}'::date AND '${toDate}'::date`);
-        }
-
         if (paymentStatus) {
             whereQuery.push(`(select payment_status from billing.get_payment_totals(payments.id))=ANY(string_to_array('${params.paymentStatus}',','))`);
         }
@@ -75,6 +71,10 @@ module.exports = {
             
             if (accountingDateFilter) {
                 whereQuery.push(accountingDateFilter);
+            }
+        } else {
+            if (fromDate && toDate) {
+                whereQuery.push(`${filterByDateType} BETWEEN  '${fromDate}'::date AND '${toDate}'::date`);
             }
         }
 
