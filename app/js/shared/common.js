@@ -785,6 +785,10 @@ var commonjs = {
         });
     },
 
+    removeIframeHeader: function () {
+        $('iframe#site_modal_iframe_container, iframe#ifSettings').contents().find('head').append('<style>header.header{display:none;}nav.sub-top-nav, nav#subSetupMenu {display: none;}</style>');
+    },
+
     bindListCheckAll: function (controlName, checkAllName) {
         // Bind single item click
         $('#' + controlName + ' label').unbind().click(function () {

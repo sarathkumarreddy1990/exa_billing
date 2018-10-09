@@ -83,6 +83,14 @@ define(['jquery',
                 "keyup #searchPatient .search-field": "applySearch",
                 "click #anc_first": "onpaging",
                 "click #anc_previous": "onpaging",
+                "click .selectInsurance": "searchInsurance",
+                "click .searchProvider": "searchProvider",
+                "click .selectPatientSave": "searchPatient",
+                "click .selectOrderingFac": "searchOrderingFac",
+                'click .btnInsuranceSelectSave': 'saveInsuranceProviderGrid',
+                'click .btnRefProviderSelectSave': 'saveProviderGrid',
+                'click .btnPatientSelectSave': 'savePatientGrid',
+                'click .btnOFSelectSave': 'saveOFGrid',
                 "click #anc_next": "onpaging",
                 "click #anc_last": "onpaging",
                 "dblclick .selectionpatient": "selectPatient",
@@ -97,6 +105,13 @@ define(['jquery',
                 'click #btnPaymentPendingRefreshOnly': 'refreshInvociePendingPayment',
                 'click #btnPaymentApplyAll': 'checkAllPendingPayments',
                 'keypress #claimId, #invoiceNo': 'searchInvoiceOrClaim'
+            },
+
+            usermessage: {
+                selectCarrier: commonjs.geti18NString("billing.payments.searchCarrier"),
+                selectPatient: commonjs.geti18NString("billing.payments.searchPatient"),
+                selectOrderingFacility: commonjs.geti18NString("billing.payments.searchOrderingFacility"),
+                selectProvider: commonjs.geti18NString("billing.payments.searchProvider")
             },
 
             initialize: function (options) {
@@ -416,6 +431,71 @@ define(['jquery',
                     if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase())
                         $txtautoPayerPIP.data('select2').dropdown.$search.val($select2Container.text());
                 });
+            },
+
+            saveInsuranceProviderGrid: function (e) {
+                if (insuranceArray && insuranceArray.length > 0 && insuranceArray[0].insurance_name) {
+                    this.payer_id = parseInt(insuranceArray[0].insurance_id) || 0;
+                    this.insurance_provider_id = insuranceArray[0].insurance_id;
+                    this.payerCode = insuranceArray[0].insurance_code ? insuranceArray[0].insurance_code : '';
+                    this.payerName = insuranceArray[0].insurance_name;
+                    this.payerType = 'insurance';
+                    coverage_level = 'Primary Insurance';
+                    $("#hdnPayerID").val(insuranceArray[0].insurance_id);
+                    $("#lblAutoInsurance").html(insuranceArray[0].insurance_name);
+                    $('#select2-txtautoPayerPIP-container').html(insuranceArray[0].insurance_code || '');
+                } else {
+                    $("#lblAutoInsurance").html('');
+                    $('#select2-txtautoPayerPIP-container').html(this.usermessage.selectCarrier);
+                }
+                $('#siteModal').modal('hide');
+            },
+
+            saveProviderGrid: function (e) {
+                if (providerArray && providerArray.length > 0 && providerArray[0].full_name) {
+                    this.payer_id = parseInt(providerArray[0].provider_contact_id) || 0;
+                    this.payerCode = providerArray[0].provider_code;
+                    this.provider_id = providerArray[0].provider_contact_id;
+                    this.payerName = providerArray[0].full_name;
+                    this.payerType = 'Ordering Provider';
+                    coverage_level = 'Providers';
+                    $('#select2-txtautoPayerPR-container').html(providerArray[0].full_name);
+                } else
+                    $('#select2-txtautoPayerPR-container').html(this.usermessage.selectProvider);
+                $('#siteModal').modal('hide');
+            },
+
+            savePatientGrid: function (e) {
+                if (patientArray && patientArray.length > 0 && patientArray[0].patient_name) {
+                    this.payer_id = parseInt(patientArray[0].patient_id) || 0;
+                    this.patient_id = this.payer_id;
+                    this.payerCode = '';
+                    this.payerName = patientArray[0].patient_name;
+                    this.payerType = 'patient';
+                    coverage_level = 'Patient';
+                    $("#hdnPayerID").val(patientArray[0].patient_id);
+                    $("#lblAutoPatient").html(patientArray[0].patient_name);
+                    $('#select2-txtautoPayerPP-container').html(patientArray[0].account_no);
+                } else {
+                    $("#lblAutoPatient").html('');
+                    $('#select2-txtautoPayerPP-container').html(this.usermessage.selectPatient);
+                }
+                $('#siteModal').modal('hide');
+            },
+
+            saveOFGrid: function (e) {
+                if (orderingFacilityArray && orderingFacilityArray.length > 0 && orderingFacilityArray[0].group_name) {
+                    this.payer_id = parseInt(orderingFacilityArray[0].provider_group_id) || 0;
+                    this.provider_group_id = this.payer_id;
+                    this.payerCode = orderingFacilityArray[0].group_code || '';
+                    this.payerName = orderingFacilityArray[0].group_name;
+                    this.payerType = 'ordering_facility';
+                    coverage_level = 'Odering Facility';
+                    $("#hdnPayerID").val(orderingFacilityArray[0].provider_group_id);
+                    $('#select2-txtautoPayerPOF-container').html(orderingFacilityArray[0].group_name);
+                } else
+                    $('#select2-txtautoPayerPOF-container').html(this.usermessage.selectOrderingFacility);
+                $('#siteModal').modal('hide');
             },
 
             bindInsuranceDetails: function (res) {
@@ -2369,6 +2449,52 @@ define(['jquery',
                     }
                     self.bindGrid(false);
                 }
+            },
+
+            searchProvider: function (e) {
+                commonjs.showDialog({
+                    header: 'Providers',
+                    i18nHeader: 'billing.payments.providers',
+                    width: '75%',
+                    height: '80%',
+                    needShrink: true,
+                    url: '/vieworder#setup/provider/all/familyHistory',
+                    onLoad: 'commonjs.removeIframeHeader()'
+                });
+            },
+
+            searchOrderingFac: function (e) {
+                commonjs.showDialog({
+                    header: 'Ordering Facility',
+                    i18nHeader: 'billing.payments.orderingFacility',
+                    width: '75%',
+                    height: '80%',
+                    needShrink: true,
+                    url: '/vieworder#setup/orderingFacility/all/familyHistory',
+                    onLoad: 'commonjs.removeIframeHeader()'
+                });
+            },
+
+            searchInsurance: function (e) {
+                commonjs.showDialog({
+                    header: 'Insurance Provider',
+                    i18nHeader: 'billing.payments.insuranceProvider',
+                    width: '75%',
+                    height: '70%',
+                    needShrink: true,
+                    url: '/vieworder#setup/insuranceProvider/all/familyHistory',
+                    onLoad: 'commonjs.removeIframeHeader()'
+                });
+            },
+
+            searchPatient: function (e) {
+                commonjs.showDialog({
+                    header: 'Patient',
+                    i18nHeader: 'billing.payments.patient',
+                    width: '75%',
+                    height: '80%',
+                    url: '/vieworder#patient/search/all/payments'
+                });
             },
 
             selectPatient: function (e) {
