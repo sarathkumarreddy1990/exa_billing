@@ -59,6 +59,9 @@ define([
                     url: '/exa_modules/billing/setup/x12/' + this.templateFlag,
                     type: 'GET',
                     success: function (data, response) {
+                        if (!self.checkEditorIsOn())
+                            return;
+                            
                         $('#divTemlateList').empty();
                         if (self.templateFlag == 'edi') {
                             if (data && data.length > 0) {
@@ -141,6 +144,9 @@ define([
                         url: '/exa_modules/billing/setup/x12/' + this.templateFlag + '/' + templateName,
                         type: 'GET',
                         success: function (data) {
+                            if (!self.checkEditorIsOn())
+                                return;
+
                             if(data.err) {
                                 return commonjs.showWarning(data.err);
                             }
@@ -180,6 +186,9 @@ define([
                     url: '/exa_modules/billing/setup/x12/default/' + this.templateFlag,
                     type: 'GET',
                     success: function (data) {
+                        if (!self.checkEditorIsOn())
+                            return;
+
                         if(data && data.err) {
                             return commonjs.showWarning(err);
                         }
@@ -291,6 +300,10 @@ define([
                 $('#divListTemplateContainer').show();
             },
 
+            checkEditorIsOn: function () {
+                return $('#editor').length;
+            },
+               
             saveDefinitionData: function () {
                 var templateName = $('#dropdownMenuButton').html();
                 var editor = ace.edit('editor');
