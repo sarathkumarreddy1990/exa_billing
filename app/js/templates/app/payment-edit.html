@@ -68,42 +68,43 @@
                         <label for="chkpayerInsurance" class="control-label col-sm-4"></label>
                         <div class="col-sm-5">
                             <div id="divPayerInsurnace" class="payerFields">
-                                <input type="hidden" id="hdnPayerID" class="form-control">
-                                <select id="txtautoPayerPIP" tabindex="2"></select>
-                                <div class="hideProp">
+                                <span>
+                                    <input type="hidden" id="hdnPayerID" class="form-control">
+                                    <select id="txtautoPayerPIP" tabindex="2"></select>
                                     <a disabled='disabled' class="btn btn-primary selectInsurance" id="spnSearchPayerInsurance" title="Search">
-                                        <i class="icon-ic-search"></i>Search</a>
-                                    <input type="button" class="btnInsuranceSelectSave" style="display: none;" id="btnInsuranceSelectSave">
-                                    <span id="lblAutoInsurance>" disabled> </span>
-                                </div>
+                                        <i class="icon-ic-search"></i>
+                                    </a>
+                                    <input type="button" class="btnInsuranceSelectSave d-none" id="btnInsuranceSelectSave">
+                                    <span id="lblAutoInsurance" disabled> </span>
+                                </span>
                             </div>
                             <div id="divPayerPatient" style="display:none;" class="payerFields">
-                                <select id="txtautoPayerPP" style="width:450px;" tabindex="2"></select>
-                                <div class="hideProp">
-                                    <select id="txtautoPayerPP"></select>
+                                <span>
+                                    <select id="txtautoPayerPP" style="width:450px;" tabindex="2"></select>
                                     <a disabled='disabled' class="btn btn-primary selectPatientSave" id="spnSearchPayerPatient" title="Search">
                                         <i class="icon-ic-search"></i>
                                     </a>
+                                    <input type="button" class="btnPatientSelectSave d-none" id="btnPatientSelectSave">
                                     <span id="lblAutoPatient"> </span>
-                                </div>
+                                </span>
                             </div>
                             <div id="divPayerOrderFacility" style="display:none;" class="payerFields">
-                                <select id="txtautoPayerPOF" tabindex="2"></select>
-                                <div class="hideProp">
+                                <span>
+                                    <select id="txtautoPayerPOF" tabindex="2"></select>
                                     <a disabled='disabled' class="btn btn-primary selectOrderingFac" id="spnSearchPayerPOF" title="Search">
                                         <i class="icon-ic-search"></i>
                                     </a>
-                                    <input type="button" class="btnOFSelectSave" style="display: none;" id="btnOFSelectSave">
-                                </div>
+                                    <input type="button" class="btnOFSelectSave d-none" id="btnOFSelectSave">
+                                </span>
                             </div>
                             <div id="divPayerProvider" style="display:none;" class="payerFields">
-                                <select id="txtautoPayerPR" tabindex="2"></select>
-                                <div class="hideProp">
+                                <span>
+                                    <select id="txtautoPayerPR" tabindex="2"></select>
                                     <a disabled='disabled' class="btn btn-primary searchProvider" id="spnSearchPayerPR" title="Search">
                                         <i class="icon-ic-search"></i>
                                     </a>
-                                    <input type="button" class="btnRefProviderSelectSave" style="display: none;" id="btnRefProviderSelectSave">
-                                </div>
+                                    <input type="button" class="btnRefProviderSelectSave d-none" id="btnRefProviderSelectSave">
+                                </span>
                             </div>
                         </div>
                     </div>
