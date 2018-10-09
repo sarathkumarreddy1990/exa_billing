@@ -68,11 +68,11 @@ module.exports = {
     eligibility: async (params) => {
         const payerInfoResponse = await data.getProviderInfo(params.billingProviderId, params.insuranceProviderId);
 
-        if (!payerInfoResponse.length) {
+        if (payerInfoResponse && !payerInfoResponse.length) {
             throw new Error('Unknown provider..');
         }
 
-        const payerInfo = payerInfoResponse[0];
+        const payerInfo = payerInfoResponse && payerInfoResponse.length && payerInfoResponse[0] || {};
 
         /// TODO: need to rescratch
         let pokitdokSecretKey = await data.getKeys();
