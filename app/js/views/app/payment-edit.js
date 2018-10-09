@@ -108,10 +108,10 @@ define(['jquery',
             },
 
             usermessage: {
-                selectCarrier: "Search Carrier",
-                selectPatient: "Search Patient",
-                selectOrderingFacility: "Search Ordering Facility",
-                selectProvider: "Search Provider"
+                selectCarrier: commonjs.geti18NString("billing.payments.searchCarrier"),
+                selectPatient: commonjs.geti18NString("billing.payments.searchPatient"),
+                selectOrderingFacility: commonjs.geti18NString("billing.payments.searchOrderingFacility"),
+                selectProvider: commonjs.geti18NString("billing.payments.searchProvider")
             },
 
             initialize: function (options) {

@@ -207,7 +207,11 @@
             "selectInsurance": "Select Insurance",
             "selectPatient": "Select Patient",
             "selectOrderingFacility": "Select Ordering Facility",
-            "selectProvider": "Select Provider"
+            "selectProvider": "Select Provider",
+            "searchCarrier": "Search Carrier",
+            "searchPatient": "Search Patient",
+            "searchOrderingFacility": "Search Ordering Facility",
+            "searchProvider": "Search Provider"
         },
         "refund": {
             "scheduleDate": "Schedule Date",
