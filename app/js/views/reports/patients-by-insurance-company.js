@@ -50,6 +50,7 @@ define([
                 'change #noDateSpecify': 'onNoDateSpecified',
                 'change #claimDateDiv': 'onClaimDateSearch',
                 'change #insuranceActive': 'onInsuranceIsActive'
+                'change .chkInsurance': 'onInsuranceIsActive'
             },
 
             initialize: function (options) {
@@ -89,7 +90,7 @@ define([
                 });
                 // Binding Billing Provider MultiSelect
                 UI.bindBillingProvider();
-                UI.bindInsuranceAutocomplete('txtInsuranceName', 'btnAddInsurance', 'ulListInsurance');
+                UI.bindInsuranceAutocomplete('txtInsuranceName', 'btnAddInsurance', 'ulListInsurance', false);
             },
 
             bindDateRangePicker: function () {
@@ -187,7 +188,7 @@ define([
             },
 
             onInsuranceIsActive: function() {
-               var insuranceActive  = $("input[name='insuranceActiveInactive']:checked").val();
+                var insuranceActive  = $("#insuranceActive").is(':checked');
                 UI.bindInsuranceAutocomplete('txtInsuranceName', 'btnAddInsurance', 'ulListInsurance', insuranceActive)
             },
 

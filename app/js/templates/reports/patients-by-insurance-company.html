@@ -16,7 +16,7 @@
         width:250px;
     }
 </style>
-<form class="form-horizontal form-list" novalidate="" _lpchecked="1" id="patientsByInsuranceCompanyForm">
+<form class="form-horizontal form-list" novalidate="" _lpchecked="1" id="patientsByInsuranceCompanyForm" style="margin-top:10px;">
     <!-- row: form elements -->
     <div class="row">
         <!-- col: form elements -->
@@ -57,12 +57,12 @@
             <div class="form-group form-inline" id="procedureByInsurance">
                 <div class="form-content">
                     <div class="input-group divDropDown">
-                        <div id="insuranceActive">
+                        <div>
                                <b><label class="control-label" i18n="report.showInactive" /></b>
-                                <input type="radio" id="insuranceInActive" name="insuranceActiveInactive" value="active" checked>
-                                <b><label for="insuranceInActive" class="inline field-chk insuranceInActive" i18n="report.inActiveNo"/></b>
-                                <input type="radio" id="insuranceActive" name="insuranceActiveInactive" value="inActive">
-                                <b><label for="insuranceActive" class="inline field-chk insuranceActive" i18n="report.inActiveYes"/></b>
+                                <input type="radio" id="insuranceInActive" name="insuranceActiveInactive" class="chkInsurance" value="inActive" checked>
+                                <b><label for="insuranceInActive" class="inline field-chk" i18n="report.inActiveNo"/></b>
+                                <input type="radio" id="insuranceActive" name="insuranceActiveInactive" class="chkInsurance" value="active">
+                                <b><label for="insuranceActive" class="inline field-chk " i18n="report.inActiveYes"/></b>
                             </div>
                         <select id="ddlInsuranceBinding" class="form-control form-control-lg">
                             <option value="All">All Insurance</option>
