@@ -95,7 +95,7 @@ define([
             },
 
             // Insurance Auto Complete
-            bindInsuranceAutocomplete: function (userMessage, btnAdd, ulList) {
+            bindInsuranceAutocomplete: function (userMessage, btnAdd, ulList, isActive) {
                 var self = this;
                 $("#txtInsuranceName").select2({
                     ajax: {
@@ -109,7 +109,8 @@ define([
                                 pageSize: 10,
                                 sortField: "insurance_code",
                                 sortOrder: "ASC",
-                                company_id: app.companyID
+                                company_id: app.companyID,
+                                isActive : isActive
                             };
                         },
                         processResults: function (data, params) {

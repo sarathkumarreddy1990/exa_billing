@@ -40,6 +40,11 @@
         "insuranceProvider": "Insurance Provider",
         "cpt": "CPT",
         "commentDate" : "Comment Date",
-        "providerGroups" : "Provider Group"
+        "providerGroups" : "Provider Group",
+        "claimDateBetween": "Claim Date",
+        "noDateSpecified":"No Date Specified",
+        "showInactive" : "Show In Active",
+        "inActiveYes" : "Yes",
+        "inActiveNo" : "No"
     }
 }
