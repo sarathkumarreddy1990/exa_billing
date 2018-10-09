@@ -86,7 +86,8 @@ define([
                             paymentStatus: reportArgs.paymentStatus || " ",
                             filterFlag: "paymentsExportPDFFlag",
                             filterData: JSON.parse(reportArgs.filterData),
-                            filterColumn: JSON.parse(reportArgs.filterColumn)
+                            filterColumn: JSON.parse(reportArgs.filterColumn),
+                            from : reportArgs.from || ''
                         }
                     }
                     else {

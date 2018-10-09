@@ -5158,6 +5158,16 @@ var commonjs = {
 
     hasModalClosed: function () {
         return $('#siteModal').is(':hidden')
+    },
+
+    getTotalRecords: function (data, params) {
+        params.page = params.page || 1;
+        return {
+            results: data,
+            pagination: {
+                more: data && data.length ? (params.page * 10) < data[0].total_records : 0
+            }
+        };
     }
 };
 

@@ -209,7 +209,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "name": "claim_dt",
                         "searchFlag": "datetime",
                         "formatter": claimDateFormatter,
-                        "width": 100
+                        "width": 200
                     }
                 },
                 "Patient Name": {

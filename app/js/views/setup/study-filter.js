@@ -1588,17 +1588,11 @@ define([
                                 sortField: "group_name",
                                 sortOrder: "ASC",
                                 groupType: 'OF',
-                                company_id: 1
+                                company_id: app.companyID
                             };
                         },
                         processResults: function (data, params) {
-                            params.page = params.page || 1;
-                            return {
-                                results: data,
-                                pagination: {
-                                    more: (params.page * 30) < data[0].total_records
-                                }
-                            };
+                            return commonjs.getTotalRecords(data, params);
                         },
                         cache: true
                     },
