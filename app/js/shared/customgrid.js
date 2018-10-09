@@ -824,6 +824,7 @@ function customGrid ( datastore, gridID ) {
                 var searchColumns = [];
                 var searchCondition = ' AND ';
                 var searchoptionsalt = null;
+                var validateMoney = null;
                 for (var i = 0; i < self.options.colModel.length; i++) {
                     if (!self.options.colModel[i].hidden && element.name == self.options.colModel[i].name) {
                         searchFlag = self.options.colModel[i].searchFlag;
@@ -840,11 +841,14 @@ function customGrid ( datastore, gridID ) {
                         if (typeof(self.options.colModel[i].searchoptionsalt) != 'undefined')
                             searchoptionsalt = self.options.colModel[i].searchoptionsalt;
 
+                        if (typeof (self.options.colModel[i].validateMoney) != 'undefined')
+                            validateMoney = self.options.colModel[i].validateMoney;
+
                         break;
                     }
                 }
 
-                var filterValue = self.getFilterValue(element.name, defaultValue, searchoptionsalt);
+                var filterValue = self.getFilterValue(element.name, defaultValue, searchoptionsalt, validateMoney);
 
                 if ( /mu_last_updated|check_indate|(.*_(dt|date)$)/.test(element.name) ) {
                     var dates = getDates(filterValue);
@@ -1334,11 +1338,17 @@ function customGrid ( datastore, gridID ) {
         this.fetchGrid();
     };
 
-    this.getFilterValue = function (uiFieldID, defaultValue, searchoptionsalt) {
+    this.getFilterValue = function (uiFieldID, defaultValue, searchoptionsalt, validateMoney) {
         var fieldValue = $.trim($('#gview_' + this.options.gridelementid.replace('#', '') + ' #gs_' + uiFieldID).val());
         if (searchoptionsalt) {
             searchoptionsalt = searchoptionsalt.value;
             fieldValue = searchoptionsalt[fieldValue];
+        }
+
+        if (validateMoney) {
+            var regExpr = /[0-9]+(\.[0-9]+)?/;
+            if (!regExpr.test(fieldValue))
+                return '';
         }
 
         if (typeof fieldValue == 'undefined' || fieldValue == "" || fieldValue == "Select") {
