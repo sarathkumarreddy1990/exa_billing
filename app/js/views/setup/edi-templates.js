@@ -182,6 +182,7 @@ define([
             },
 
             getDefaultTemplate: function() {
+                var self = this;
                 $.ajax({
                     url: '/exa_modules/billing/setup/x12/default/' + this.templateFlag,
                     type: 'GET',
