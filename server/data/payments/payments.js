@@ -59,11 +59,19 @@ module.exports = {
         }
 
         if (payment_dt) {
-            whereQuery.push(generator('payment_dt', payment_dt));
+            const paymentFilter = generator('payment_dt', payment_dt);
+
+            if (paymentFilter) {
+                whereQuery.push(paymentFilter);
+            }
         }
 
         if (accounting_date) {
-            whereQuery.push(generator('accounting_date', accounting_date));
+            const accountingDateFilter = generator('accounting_date', accounting_date);
+            
+            if (accountingDateFilter) {
+                whereQuery.push(accountingDateFilter);
+            }
         } else {
             if (fromDate && toDate) {
                 whereQuery.push(`${filterByDateType} BETWEEN  '${fromDate}'::date AND '${toDate}'::date`);
