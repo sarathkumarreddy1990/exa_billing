@@ -412,7 +412,8 @@
                 "next30days": "Next 30 Days",
                 "lastmonth": "Last Month",
                 "thismonth": "This Month",
-                "thisyear": "This Year"
+                "thisyear": "This Year",
+                "last90days": "Last 90 Days"
             },
             "nav": {
                 "tabDateTime": "Date/Time",
