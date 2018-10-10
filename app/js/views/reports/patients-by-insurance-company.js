@@ -47,6 +47,9 @@ define([
                 'click #btnCsvReport': 'onReportViewClick',
                 'click #btnXmlReport': 'onReportViewClick',
                 "change #ddlInsuranceBinding": "onInsuranceBinding",
+                'change #noDateSpecify': 'onNoDateSpecified',
+                'change #claimDateDiv': 'onClaimDateSearch',
+                'change .chkInsurance': 'onInsuranceIsActive'
             },
 
             initialize: function (options) {
@@ -86,7 +89,7 @@ define([
                 });
                 // Binding Billing Provider MultiSelect
                 UI.bindBillingProvider();
-                UI.bindInsuranceAutocomplete('txtInsuranceName', 'btnAddInsurance', 'ulListInsurance');
+                UI.bindInsuranceAutocomplete('txtInsuranceName', 'btnAddInsurance', 'ulListInsurance', false);
             },
 
             bindDateRangePicker: function () {
@@ -176,12 +179,31 @@ define([
                 this.viewModel.allBillingProvider = this.selectedBillingProList && this.selectedBillingProList.length === $("#ddlBillingProvider option").length;
             },
 
+            onNoDateSpecified: function(){
+              $('#divReportDate').hide();
+              $('#optionComment').show();
+              this.viewModel.dateFrom = "";
+              this.viewModel.dateTo="";
+            },
+
+            onInsuranceIsActive: function() {
+                var insuranceActive  = $("#insuranceActive").is(':checked');
+                UI.bindInsuranceAutocomplete('txtInsuranceName', 'btnAddInsurance', 'ulListInsurance', insuranceActive)
+            },
+
+            onClaimDateSearch: function(){
+              $('#divReportDate').show();
+              $('#optionComment').hide();
+              this.viewModel.dateFrom = commonjs.getFacilityCurrentDateTime(app.facilityID);
+              this.viewModel.dateTo = this.viewModel.dateFrom.clone();
+            },
+
             getReportParams: function () {
                 return urlParams = {
                     'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
                     'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
-                    'fromDate': this.viewModel.dateFrom.format('YYYY-MM-DD'),
-                    'toDate': this.viewModel.dateTo.format('YYYY-MM-DD'),
+                    'fromDate': this.viewModel && this.viewModel.dateFrom && this.viewModel.dateFrom.format('YYYY-MM-DD'),
+                    'toDate': this.viewModel && this.viewModel.dateTo && this.viewModel.dateTo.format('YYYY-MM-DD'),
                     'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
                     'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
                     'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
