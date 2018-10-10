@@ -43,7 +43,7 @@
         "providerGroups" : "Provider Group",
         "claimDateBetween": "Claim Date",
         "noDateSpecified":"No Date Specified",
-        "showInactive" : "Show In Active",
+        "showInactive" : "Show Inactive",
         "inActiveYes" : "Yes",
         "inActiveNo" : "No"
     }
