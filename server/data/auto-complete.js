@@ -147,7 +147,7 @@ module.exports = {
                             WHERE
                                 NOT has_deleted AND company_id = ${params.company_id} `;
 
-        if (params.isActive == 'false') {
+        if (params.isInActive == 'false') {
             insurance_sql.append(`AND is_active`);
         }
 

@@ -110,7 +110,7 @@ define([
                                 sortField: "insurance_code",
                                 sortOrder: "ASC",
                                 company_id: app.companyID,
-                                isActive : isActive
+                                isInActive : isActive
                             };
                         },
                         processResults: function (data, params) {
