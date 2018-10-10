@@ -5182,7 +5182,14 @@ var commonjs = {
                 $cell.css(cells[j].css);
             }
         }
+    },
+
+    getPlaceHolderForSearch: function () {
+        $select2Container1 = $('.select2-container--open');
+        var $searchfield = $select2Container1.children().find('.select2-search__field');
+        $searchfield.prop('placeholder', 'Type to search');
     }
+    
 };
 
 
