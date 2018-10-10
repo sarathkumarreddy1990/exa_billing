@@ -275,9 +275,9 @@ const util = {
 
                     if(obj.value && obj.value.charAt(0) === '|') {
                         obj.value =  (obj.value).slice(1);
-                        BalanceQuery += ` (SELECT claim_balance_total FROM billing.get_claim_totals(claims.id))::numeric > '0'::numeric AND (SELECT claim_balance_total FROM billing.get_claim_totals(claims.id))::numeric  < ` +  obj.value + `::numeric`;
+                        BalanceQuery += ` (bgct.claim_balance_total)::numeric > '0'::numeric AND (bgct.claim_balance_total)::numeric  <= ` +  obj.value + `::numeric`;
                     } else {
-                        BalanceQuery += '  (SELECT claim_balance_total FROM BILLING.get_claim_totals(claims.id))::numeric' + obj.value + '::numeric';
+                        BalanceQuery += '  (bgct.claim_balance_total)::numeric' + obj.value + '::numeric';
                     }
 
                     query += util.getRelationOperator(query) + BalanceQuery;
