@@ -480,13 +480,16 @@ const api = {
             args.filterCol = JSON.stringify(column);
             args.filterData = JSON.stringify(data);
         }
-        
+
         if (column.indexOf('claim_balance') > -1) {
 
             let colIndex = column.indexOf('claim_balance');
 
             for (let i = 0; i < colModel.length; i++) {
                 if (colModel[i].name == 'claim_balance') {
+                    let colValue = data[colIndex].slice(1);
+                    data[colIndex] = data[colIndex].charAt(0);
+
                     switch (data[colIndex]) {
                         case '=':
                             colModel[i].searchFlag = '='; //Equals
@@ -497,12 +500,16 @@ const api = {
                         case '>':
                             colModel[i].searchFlag = 'gt'; //Greated that
                             break;
+                        case '|':
+                            colModel[i].searchFlag = 'bw'; //0 < x < 5
+                            break;
                         case 'default':
                             colModel[i].searchFlag = '='; //Equals by default
                             break;
                     }
 
-                    data[colIndex] = '0';
+                    data[colIndex] = colValue;
+                    //data[colIndex] = '0';
                     args.filterData = JSON.stringify(data);
                     break;
                 }
