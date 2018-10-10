@@ -291,9 +291,9 @@ define(['jquery',
                         customargs: {
                             paymentStatus: $("#ulPaymentStatus").val(),
                             from : self.from === 'ris'? 'ris' : '',
-                            toDate : moment().format("L"),
-                            fromDate : moment().subtract(29, 'days').format("L"),
-                            filterByDateType : 'accounting_date'
+                            toDate : moment().format('MM/DD/YYYY'),
+                            fromDate : moment().subtract(29, 'days').format('MM/DD/YYYY'),
+                            filterByDateType : 'accounting_date'                              
                         },
                         afterInsertRow: function (rowid, rowdata) {
                             if (rowdata.current_status) {
@@ -325,8 +325,8 @@ define(['jquery',
                     sortOrder: self.pager.get("SortOrder"),
                     default_facility_id: app.userInfo.default_facility_id,
                     from: from,
-                    toDate : moment().format("L"),
-                    fromDate : moment().subtract(29, 'days').format("L"),
+                    toDate : moment().format('MM/DD/YYYY'),
+                    fromDate : moment().subtract(29, 'days').format('MM/DD/YYYY'),
                     filterByDateType : 'accounting_date'
                 };
 
