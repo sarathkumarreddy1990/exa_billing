@@ -509,7 +509,6 @@ const api = {
                     }
 
                     data[colIndex] = colValue;
-                    //data[colIndex] = '0';
                     args.filterData = JSON.stringify(data);
                     break;
                 }
