@@ -473,9 +473,12 @@ define([
                 $('#modal_div_container').empty();
                 $('#modal_div_container').append(self.template);
                 $('#modal_div_container').show();
-                if (this.opener == "studies")
+                if (this.opener == "studies"){
+                    $('#ddlDatePreformatted option:contains("last 30 days")').prop("selected",true);
                     $('#divTab').show();
+                }
                 else {
+                    $('#ddlDatePreformatted option:contains("last 90 days")').prop("selected",true);
                     $("#claimFilter").show();
                     $("#divDateTime>table").appendTo("#divClaimDateTime");
                     $("#divClaimDateTime>table").css({'height':'125px','margin-left': '3%'});
@@ -1636,8 +1639,10 @@ define([
                     $('#txtFilterOrder').val('');
                     $('#chkDisplayAsTab').prop('checked', false);
                     $('#chkDisplayAsDDL').prop('checked', true);
+                    $('#rbtStudyDate').prop('checked', true);
+                    $('#rbtPreformatted').prop('checked', true);
                 }
-            
+                
                 $('#txtLastTime').val('');
 
                 $('#txtPatientName').val('');
@@ -1692,7 +1697,6 @@ define([
                 $('#txtAttorney').val('');
                 $('#txtStudyID').val('');
 
-                toggleOption('rbtStudyDate', false);
                 toggleOption('rbtIsPatientName', false);
                 toggleOption('showRisOrders', false);
                 toggleOption('showDCMStudies', false);
@@ -1724,8 +1728,7 @@ define([
             uncheckRadioButtons: function () {
                 var $inputs = $("#studyFiltersForm").find('input');
                 var $radioButtons = $inputs.filter('[type=radio]');
-                $radioButtons.filter('[name=DateTime]').prop('checked', false);
-                $radioButtons.filter('[name=DateOperations]').prop('checked', false);
+                $radioButtons.filter('[id=rbtStudyDate]').prop('checked',true);
                 $radioButtons.filter('[name=PatientName]').prop('checked', false);
                 $radioButtons.filter('[name=PatientID]').prop('checked', false);
                 $radioButtons.filter('[name=Institution]').prop('checked', false);
