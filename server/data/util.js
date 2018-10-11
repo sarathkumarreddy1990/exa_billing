@@ -275,7 +275,7 @@ const util = {
 
                     if(obj.value && obj.value.charAt(0) === '|') {
                         obj.value =  (obj.value).slice(1);
-                        BalanceQuery += ` (bgct.claim_balance_total)::numeric > '0'::numeric AND (bgct.claim_balance_total)::numeric  <= ` +  obj.value + `::numeric`;
+                        BalanceQuery += ` (bgct.claim_balance_total)::numeric > 0 AND (bgct.claim_balance_total)::numeric  <= ` +  obj.value + `::numeric`;
                     } else {
                         BalanceQuery += '  (bgct.claim_balance_total)::numeric' + obj.value + '::numeric';
                     }
