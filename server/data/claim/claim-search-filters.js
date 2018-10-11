@@ -330,7 +330,14 @@ const api = {
 
         if(tables.claim_comment){
             r += ` LEFT JOIN LATERAL (
-                SELECT created_dt FROM billing.claim_comments cc WHERE cc.claim_id = claims.id AND cc.type = 'patient_statement' ORDER BY created_dt ASC LIMIT 1
+                    SELECT
+                        created_dt
+                    FROM billing.claim_comments cc
+                    WHERE
+                        cc.claim_id = claims.id
+                        AND cc.type = 'patient_statement'
+                    ORDER BY created_dt ASC
+                    LIMIT 1
             ) AS claim_comment ON TRUE `;
 
         }

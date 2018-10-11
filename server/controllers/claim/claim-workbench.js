@@ -182,7 +182,7 @@ module.exports = {
 
     updateStatus: async function (params) {
         params.claim_status = 'PP';
-        params.type = params.templateType === 'patient_invoice' ? 'patient_statement':'auto' ;
+        params.type = params.templateType === 'patient_invoice' ? 'patient_statement':'auto';
         params.isClaim = true;
         let claimIds = params.claimIds.split(',');
         params.success_claimID = claimIds;
