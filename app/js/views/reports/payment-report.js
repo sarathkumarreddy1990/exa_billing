@@ -79,7 +79,7 @@ define([
                 // For Facility Filter with Multiple Select
                 $('#ddlFacilityFilter,  #ddlUsersOption, #ddlUsersRoleOption').multiselect({
                     maxHeight: 200,
-                    buttonWidth: '300px',
+                    buttonWidth: '250px',
                     width: '300px',
                     enableFiltering: true,
                     includeSelectAllOption: true,
@@ -89,7 +89,7 @@ define([
                 // For Payment Option select without Multiple filter
                 $('#ddlPaymentOption, #ddlSummaryOption').multiselect({
                     maxHeight: '200px',
-                    buttonWidth: '220px',
+                    buttonWidth: '200px',
                     width: '200px'
                 });
                 // Binding Billing Provider MultiSelect
@@ -288,6 +288,7 @@ define([
                     'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
                     'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
                     'summaryType': $('#ddlSummaryOption').val(),
+                    'paymentStatus':$('#ddlPaymentOption').val()
                 };
             }
         });

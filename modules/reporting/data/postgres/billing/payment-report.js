@@ -46,12 +46,14 @@ const summaryQueryTemplate = _.template(`
                          INNER JOIN public.user_roles ON  public.user_roles.id = ANY(public.user_groups.user_roles) AND public.user_roles.is_active
                       <% } %>
                    <%  } %>
+                <% if (paymentStatus) { %>  INNER JOIN LATERAL billing.get_payment_totals(bp.id) AS payment_totals ON TRUE   <% } %>
                 WHERE 1=1
                 AND <%= claimDate %>
                 <% if (facilityIds) { %>AND <% print(facilityIds); } %>
                 <% if(billingProID) { %> AND <% print(billingProID); } %>
                 <% if (userIds) { %>AND <% print(userIds); } %>
                 <% if (userRoleIds) { %>AND <% print(userRoleIds); } %>
+                <% if (paymentStatus) { %>AND  <% print(paymentStatus); } %>
                 GROUP BY
                      bp.payer_type, bp.id
           )
@@ -125,12 +127,14 @@ const detailQueryTemplate = _.template(`
                      INNER JOIN public.user_roles ON  public.user_roles.id = ANY(public.user_groups.user_roles) AND public.user_roles.is_active
                   <% } %>
                <%  } %>
+               <% if (paymentStatus) { %>  INNER JOIN LATERAL billing.get_payment_totals(bp.id) AS payment_totals ON TRUE   <% } %>
             WHERE 1=1
             AND <%= claimDate %>
             <% if (facilityIds) { %>AND <% print(facilityIds); } %>
             <% if(billingProID) { %> AND <% print(billingProID); } %>
             <% if (userIds) { %>AND <% print(userIds); } %>
             <% if (userRoleIds) { %>AND <% print(userRoleIds); } %>
+            <% if (paymentStatus) { %>AND  <% print(paymentStatus); } %>
             GROUP BY bp.id,bc.id )
                 SELECT
                     to_char(p.accounting_date, 'MM/DD/YYYY')   AS "Accounting Date",
@@ -267,6 +271,14 @@ const api = {
             filtersUsed.push({ name: 'User Roles', label: 'User Roles', value: 'All' });
         }
 
+        // Payment Status
+        if (params.paymentStatus) {
+            filtersUsed.push({ name: 'Payment Status', label: 'Payment Status', value: params.paymentStatus });
+        }
+        else {
+            filtersUsed.push({ name: 'Payment Status', label: 'Payment Status', value: 'All' });
+        }
+
 
         filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
         filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
@@ -286,7 +298,8 @@ const api = {
             facilityIds: null,
             billingProID: null,
             userIds: null,
-            userRoleIds: null
+            userRoleIds: null,
+            paymentStatus: null
         };
 
 
@@ -328,6 +341,13 @@ const api = {
             }
         }
         filters.summaryType = reportParams.summaryType;
+
+        // Payment Status
+        if (reportParams.paymentStatus) {
+            params.push(reportParams.paymentStatus)
+            filters.paymentStatus =  queryBuilder.whereIn('payment_totals.payment_status', [params.length]);
+        }
+        
         return {
             queryParams: params,
             templateData: filters
@@ -352,7 +372,8 @@ const api = {
             billingProID: null,
             userIds: null,
             userRoleIds: null,
-            summaryType: null
+            summaryType: null,
+            paymentStatus: null
         };
 
 
@@ -392,6 +413,13 @@ const api = {
                 filters.userRoleIds = queryBuilder.whereIn('user_roles.id', [params.length]);
             }
         }
+
+        // Payment Status
+        if (reportParams.paymentStatus) {
+            params.push(reportParams.paymentStatus)
+            filters.paymentStatus =  queryBuilder.whereIn('payment_totals.payment_status', [params.length]);
+        }
+
         return {
             queryParams: params,
             templateData: filters
