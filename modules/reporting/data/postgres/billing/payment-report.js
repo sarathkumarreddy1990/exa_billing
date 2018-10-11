@@ -47,8 +47,8 @@ const summaryQueryTemplate = _.template(`
                       <% } %>
                    <%  } %>
                 <% if (paymentStatus) { %>  INNER JOIN LATERAL billing.get_payment_totals(bp.id) AS payment_totals ON TRUE   <% } %>
-                WHERE 1=1
-                AND <%= claimDate %>
+                WHERE
+                <%= claimDate %>
                 <% if (facilityIds) { %>AND <% print(facilityIds); } %>
                 <% if(billingProID) { %> AND <% print(billingProID); } %>
                 <% if (userIds) { %>AND <% print(userIds); } %>
@@ -127,14 +127,12 @@ const detailQueryTemplate = _.template(`
                      INNER JOIN public.user_roles ON  public.user_roles.id = ANY(public.user_groups.user_roles) AND public.user_roles.is_active
                   <% } %>
                <%  } %>
-               <% if (paymentStatus) { %>  INNER JOIN LATERAL billing.get_payment_totals(bp.id) AS payment_totals ON TRUE   <% } %>
-            WHERE 1=1
-            AND <%= claimDate %>
+            WHERE
+            <%= claimDate %>
             <% if (facilityIds) { %>AND <% print(facilityIds); } %>
             <% if(billingProID) { %> AND <% print(billingProID); } %>
             <% if (userIds) { %>AND <% print(userIds); } %>
             <% if (userRoleIds) { %>AND <% print(userRoleIds); } %>
-            <% if (paymentStatus) { %>AND  <% print(paymentStatus); } %>
             GROUP BY bp.id,bc.id )
                 SELECT
                     to_char(p.accounting_date, 'MM/DD/YYYY')   AS "Accounting Date",
@@ -193,6 +191,7 @@ const detailQueryTemplate = _.template(`
                 LEFT join public.Provider_contacts pc on pc.id = provider_contact_id
                 LEFT join public.Providers pr on pr.id = pc.provider_id
                 LEFT join public.patients pp on pp.id = c.patient_id
+                <% if (paymentStatus) { %> WHERE <% print(paymentStatus); } %>
             `);
 
 const api = {
