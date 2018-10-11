@@ -1,12 +1,36 @@
-<form class="form-horizontal form-list" novalidate="" _lpchecked="1" id="patientsByInsuranceCompanyForm">
+<style>
+    .divListBox{
+         width: 250px;
+         margin-top:10px
+    }
+    .divUList{
+        width:180px;
+    }
+    .ulList{
+        overflow: auto;
+        width: 330px;
+        height:65px;
+        border: 1px solid;
+    }
+    .divDropDown {
+        width:250px;
+    }
+</style>
+<form class="form-horizontal form-list" novalidate="" _lpchecked="1" id="patientsByInsuranceCompanyForm" style="margin-top:10px;">
     <!-- row: form elements -->
     <div class="row">
         <!-- col: form elements -->
         <div class="col-3">
             <div class="form-group form-inline">
                 <div>
-                    <label class="control-label" for="txtDateRangeFromTo" i18n="report.claimDate" />
-                    <div id="divReportDate" class="input-group">
+                    <div id="dateSearch" style="margin-top:10px;">
+                        <input type="radio" id="claimDateDiv" name="claimDateSearch" value="claimDateDiv" checked>
+                        <label for="claimDateDiv" class="inline field-chk claimDateSearch" i18n="report.claimDateBetween"> </label>
+                        <input type="radio" id="noDateSpecify" name="claimDateSearch" value="noDateSpecify">
+                        <label for="noDateSpecify" class="inline field-chk noDateSpecify" i18n="report.noDateSpecified"> </label><br>
+                        <span id="optionComment" style="display: none;"> <b> -- NOTE: May return thousands of results </b></span>
+                    </div>
+                    <div id="divReportDate" class="input-group"  style="margin-top:5px;">
                         <input type="text" id="txtDateRangeFromTo" class="form-control" required="required" name="dateRange">
                         <span class="input-group-addon add-on datePickerSpanReport">
                             <i class="fa fa-calendar"></i>
@@ -32,27 +56,35 @@
         <div class="col-3">
             <div class="form-group form-inline" id="procedureByInsurance">
                 <div class="form-content">
-                    <div class="input-group" style="width: 250px; margin-top:10px">
-                        <label class="control-label" i18n="report.insurance" />
+                    <div class="input-group divDropDown">
+                        <div>
+                               <b><label class="control-label" i18n="report.showInactive" /></b>
+                                <input type="radio" id="insuranceInActive" name="insuranceActiveInactive" class="chkInsurance" value="inActive" checked>
+                                <b><label for="insuranceInActive" class="inline field-chk" i18n="report.inActiveNo"/></b>
+                                <input type="radio" id="insuranceActive" name="insuranceActiveInactive" class="chkInsurance" value="active">
+                                <b><label for="insuranceActive" class="inline field-chk " i18n="report.inActiveYes"/></b>
+                            </div>
                         <select id="ddlInsuranceBinding" class="form-control form-control-lg">
                             <option value="All">All Insurance</option>
                             <option value="S">Insurances</option>
                         </select>
                     </div>
                 </div>
-                <div id="ddlInsuranceOptionBox" class="form-group form-inline" style="display: none;">
-                    <div>
-                        <label class="control-label" i18n="report.reportFilter.insurances"></label>
-                    </div>
-                    <div style="width: 250px; margin-top:10px">
-                        <select id="txtInsuranceName" style="width: 250px; border:1px solid;margin-top:10px"> </select>
-                        <a class="btn btn-primary" id="btnAddInsurance" title="Add Insurance">
-                            <i class="icon-ic-plus"></i>
-                        </a>
+                <div id="ddlInsuranceOptionBox" class="form-group form-inline
+                " style="display: none;">
+                    <div class="divListBox">
+                        <div class="float-left divUList">
+                            <select id="txtInsuranceName"> </select>
+                        </div>
+                        <div>
+                            <a class="btn btn-primary" id="btnAddInsurance" title="Add Insurance">
+                                <i class="icon-ic-plus"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+            </div>
 
         <div class="col-3">
             <div id="divListInsurance" style="display: none;">
@@ -60,7 +92,7 @@
                     <label class="inline field-chk">Insurance Selected</label>
                 </div>
                 <div>
-                    <ul id="ulListInsurance" class="ulSelectionList tagList" style="overflow: auto;width: 330px;height:90px; border: 1px solid;">
+                    <ul id="ulListInsurance" class="ulSelectionList tagList ulList">
                     </ul>
                 </div>
             </div>

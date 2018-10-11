@@ -26,7 +26,9 @@ with patientByInsCompanyDetailQuery as (
     INNER JOIN facilities f on f.id = bc.facility_id
     WHERE  1 = 1
          AND <%= companyId %>
-         AND <%= claimDate %>
+         <% if (claimDate) { %>
+             AND <%= claimDate %>
+         <% } %>
          <% if (facilityIds) { %>AND <% print(facilityIds); } %>
          <% if(insuranceProviderIds) { %>AND <% print(insuranceProviderIds);} %>
     GROUP BY ip.insurance_code,pi.coverage_level,"Patient","DOB","Gender",policy_number,ip.insurance_name,group_number
@@ -156,13 +158,15 @@ const api = {
         }
 
         // //  Claim Date
-        if (reportParams.fromDate === reportParams.toDate) {
-            params.push(reportParams.fromDate);
-            filters.claimDate = queryBuilder.whereDateInTz('bc.claim_dt', '=', [params.length], 'f.time_zone');
-        } else {
-            params.push(reportParams.fromDate);
-            params.push(reportParams.toDate);
-            filters.claimDate = queryBuilder.whereDateInTzBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
+        if (reportParams.fromDate != '' || reportParams.toDate != '') {
+            if (reportParams.fromDate === reportParams.toDate) {
+                params.push(reportParams.fromDate);
+                filters.claimDate = queryBuilder.whereDateInTz('bc.claim_dt', '=', [params.length], 'f.time_zone');
+            } else {
+                params.push(reportParams.fromDate);
+                params.push(reportParams.toDate);
+                filters.claimDate = queryBuilder.whereDateInTzBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
+            }
         }
 
         //InsuranceProvider filter

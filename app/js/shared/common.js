@@ -785,6 +785,10 @@ var commonjs = {
         });
     },
 
+    removeIframeHeader: function () {
+        $('iframe#site_modal_iframe_container, iframe#ifSettings').contents().find('head').append('<style>header.header{display:none;}nav.sub-top-nav, nav#subSetupMenu {display: none;}</style>');
+    },
+
     bindListCheckAll: function (controlName, checkAllName) {
         // Bind single item click
         $('#' + controlName + ' label').unbind().click(function () {
@@ -5154,6 +5158,16 @@ var commonjs = {
 
     hasModalClosed: function () {
         return $('#siteModal').is(':hidden')
+    },
+
+    getTotalRecords: function (data, params) {
+        params.page = params.page || 1;
+        return {
+            results: data,
+            pagination: {
+                more: data && data.length ? (params.page * 10) < data[0].total_records : 0
+            }
+        };
     }
 };
 

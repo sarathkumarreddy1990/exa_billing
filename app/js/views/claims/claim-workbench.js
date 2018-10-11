@@ -320,7 +320,7 @@ define(['jquery',
                     commonjs.blinkStat('#emergencyAccess', 1500);
             },
 
-            bindDateRangeOnSearchBox: function (gridObj, tabtype) {
+            bindDateRangeOnSearchBox: function (gridObj, tabtype, defaultDateFilter) {
                 var self = this;
                 var drpTabColumnSet = [
                     {
@@ -354,6 +354,16 @@ define(['jquery',
                     if (!colElement.length) {
                         return; // skips current iteration only !
                     }
+
+
+                    if ((defaultDateFilter === 'claim_dt' && col == 'claim_dt'
+                        && (gridObj.options.filterid == 'All_Claims' || gridObj.options.filterid === "Follow_up_queue"))
+                        && !colElement.val()) {
+                        var toDate = moment(),
+                            fromDate = moment().subtract(89, 'days');
+                        colElement.val(fromDate.format("L") + " - " + toDate.format("L"));
+                    }
+
                     var drp = commonjs.bindDateRangePicker(colElement, drpOptions, rangeSetName, function (start, end, format) {
                         if (start && end) {
                             currentFilter.dateString = start.format('LL') + ' - ' + end.format('LL');
@@ -1273,7 +1283,7 @@ define(['jquery',
                             var updateStudiesPager = function (model, gridObj) {
                                 $('#chkclaimsHeader_' + filterID).prop('checked', false);
                                 self.setGridPager(filterID, gridObj, false);
-                                self.bindDateRangeOnSearchBox(gridObj, 'claims');
+                                self.bindDateRangeOnSearchBox(gridObj, 'claims','claim_dt');
                                 self.afterGridBindclaims(model, gridObj);
                                 commonjs.nextRowID = 0;
                                 commonjs.previousRowID = 0;
@@ -1305,9 +1315,9 @@ define(['jquery',
                             $('#btnValidateExport').off().click(function (e) {
                                 $('#btnValidateExport').css('display', 'none');
                                 var filter_current_id = $('#claimsTabs').find('.active a').attr('data-container')
-                                var filter = commonjs.loadedStudyFilters.get(filter_current_id)
-                                filterData= JSON.stringify(filter.pager.get('FilterData')),
-                                filterCol =JSON.stringify(filter.pager.get('FilterCol'));
+                                var filter = commonjs.loadedStudyFilters.get(filter_current_id),
+                                    filterData = filter && filter.pager && JSON.stringify(filter.pager.get('FilterData')),
+                                    filterCol = filter && filter.pager && JSON.stringify(filter.pager.get('FilterCol'));
                                 table.renderStudy(true, filterData, filterCol);
                             });
                         };
@@ -1626,9 +1636,6 @@ define(['jquery',
                     // EXA-9228 passing value to identify home page refresh, to set initial page size .
                     filter.refresh(isFromDatepicker || true);
                 }
-                else {
-                    self.loadTabContents();
-                }
                 if (typeof callback === 'function') {
                     return callback(filter);
                 }
@@ -1702,15 +1709,17 @@ define(['jquery',
                         resp = resp && (resp.length >=1) && resp[1].rows && resp[1].rows[0] ? resp[1].rows[0] : {};
                         if (resp) {
                             app.claim_user_settings = Object.assign({}, app.claim_user_settings, resp);
-                            var fid = filter.options.filterid;
-                            var isprior = filter.options.isPrior;
+                            var fid = filter && filter.options && filter.options.filterid;
+                            var isprior = filter && filter.options && filter.options.isPrior;
                             var $currentstudyTab = $(document.getElementById('studyTabs')).find('a').filter('[href="#divClaimGridContainer' + fid + '"]');
                             var isDicomSearch = $currentstudyTab.attr('data-showDicom') === "true";
                             var isRisOrderSearch = $currentstudyTab.attr('data-showRisOrder') === "true";
                             var showEncOnly = $currentstudyTab.attr('data-showEncOnly') === "true";
-                            filter.options.isDicomSearch = isDicomSearch;
-                            filter.options.isRisOrderSearch = isRisOrderSearch;
-                            filter.options.showEncOnly = showEncOnly;
+                            if (filter && filter.options) {
+                                filter.options.isDicomSearch = isDicomSearch;
+                                filter.options.isRisOrderSearch = isRisOrderSearch;
+                                filter.options.showEncOnly = showEncOnly;
+                            }
                             $('input:checkbox[name=showDicom]').prop('checked', isDicomSearch);
                             $('input:checkbox[name=showRis]').prop('checked', isRisOrderSearch);
                             filter.customGridTable.jqGrid('GridUnload');

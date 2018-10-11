@@ -833,6 +833,42 @@ define('change-grid', [ 'jquery' ], function ( jQuery ) {
             ];
         };
 
+        var getClaimId = function (value) {
+
+            return [
+                {
+                    'field': 'claim_id',
+                    'data': value
+                }
+            ];
+        };
+
+        var getBillingStatus = function ( value ) {
+
+            var colorCodeDetails = commonjs.getClaimColorCodeForStatus('billed', 'study');
+            var color_code = colorCodeDetails && colorCodeDetails.length && colorCodeDetails[0].color_code || 'transparent';
+
+            return [
+                {
+                    'field': 'billed_status',
+                    'data': value,
+                    'css': {
+                        "backgroundColor": color_code
+                    }
+                }
+            ];
+        };
+
+        var setEditIcon = function () {
+
+            return [
+                {
+                    'field': 'as_edit',
+                    'data': "<i class='icon-ic-edit' title='Edit'></i>"
+                }
+            ];
+        };
+
         return {
             getRow: getRow,
             setCell: setCell,
@@ -867,7 +903,10 @@ define('change-grid', [ 'jquery' ], function ( jQuery ) {
             getOrderType: getOrderType,
             getResponsible: getResponsible,
             setFinalStatus: setFinalStatus,
-            getClaimNo: getClaimNo
+            getClaimNo: getClaimNo,
+            getClaimId: getClaimId,
+            getBillingStatus: getBillingStatus,
+            setEditIcon: setEditIcon
         };
     };
 });

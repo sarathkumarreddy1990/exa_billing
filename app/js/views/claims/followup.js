@@ -101,13 +101,7 @@ define(['jquery',
                         };
                     },
                     processResults: function (data, params) {
-                        params.page = params.page || 1;
-                        return {
-                            results: data,
-                            pagination: {
-                                more: (params.page * 10) < data[0].total_records
-                            }
-                        };
+                        return commonjs.getTotalRecords(data, params);
                     },
                     cache: true
                 },

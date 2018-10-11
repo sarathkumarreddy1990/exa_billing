@@ -1,6 +1,7 @@
 const studyfilterdata = require('./../study-filters');
 const filterValidator = require('./../filter-validator')();
 const config = require('../../config');
+const moment = require('moment');
 const { query, SQL } = require('./../index');
 const util = require('./../util');
 
@@ -163,7 +164,7 @@ const api = {
 
     getCombinedQuery: (joined_filters) => {
         const queries = joined_filters.reduce((queries, { filter_info }) => {
-            const sqlQuery = util.getClaimFilterQuery(filter_info);
+            const sqlQuery = util.getClaimFilterQuery(filter_info, 'claims');
 
             if (sqlQuery) {
                 queries.push(sqlQuery);
@@ -269,8 +270,8 @@ const api = {
 
         let r = '';
 
-        if(!isCount) {
-            r = ' INNER JOIN LATERAL billing.get_claim_totals(claims.id) bgct ON TRUE '; 
+        if (!isCount || (columns && columns.bgct)) {
+            r = ' INNER JOIN LATERAL billing.get_claim_totals(claims.id) bgct ON TRUE ';
         }
 
         if (tables.patients) { r += ' INNER JOIN patients ON claims.patient_id = patients.id '; }
@@ -473,6 +474,13 @@ const api = {
         let column = JSON.parse(args.filterCol);
         let data = JSON.parse(args.filterData);
 
+        if (column.indexOf('claim_dt') == -1 && (args.customArgs.filter_id == 'Follow_up_queue' || args.customArgs.filter_id == 'All_Claims') ) {
+            data.push(moment().subtract(89, 'days').format('YYYY-MM-DD') + ' - ' + moment().format('YYYY-MM-DD'));
+            column.push('claim_dt');
+            args.filterCol = JSON.stringify(column);
+            args.filterData = JSON.stringify(data);
+        }
+        
         if (column.indexOf('claim_balance') > -1) {
 
             let colIndex = column.indexOf('claim_balance');
@@ -539,7 +547,7 @@ const api = {
         // const filter_query = joined_filter_info && api.getCombinedQuery(joined_filter_info) || '';
         const newFilter = {};
 
-        newFilter.perms_filter = util.getClaimFilterQuery(filter.perm_filter, args.user_id, args.statOverride);
+        newFilter.perms_filter = util.getClaimFilterQuery(filter.perm_filter, 'claims', args.user_id, args.statOverride);
         let responseUserSetting = [newFilter];
 
         let permission_query = SQL`

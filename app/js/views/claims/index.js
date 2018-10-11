@@ -246,6 +246,11 @@ define(['jquery',
                     return;
                 }
 
+                if (!$('#ddlBillingProvider').val()) {
+                    commonjs.showWarning("shared.warning.selectbillingProvider");
+                    $('#ddlBillingProvider').focus();
+                    return;
+                }
 
                 $.each($('#ddlServiceType'+ins+' :selected'), function (index, value) {
                     serviceTypeCodes.push($(value).val())
@@ -841,7 +846,7 @@ define(['jquery',
 
             showClaimForm: function (options, isFrom) {
                 var self = this;
-                var selectedStudyIds = JSON.parse(window.localStorage.getItem('selected_studies'));
+                self.selectedStudyIds = JSON.parse(window.localStorage.getItem('selected_studies'));
                 var primaryStudyDetails = JSON.parse(window.localStorage.getItem('primary_study_details'));
                 self.selectedOrderIds = JSON.parse(window.localStorage.getItem('selected_orders'));
                 self.cur_patient_id = primaryStudyDetails.patient_id ? parseInt(primaryStudyDetails.patient_id) : null;
@@ -861,7 +866,7 @@ define(['jquery',
                     this.render('studies');
 
                 self.studyDate = commonjs.getConvertedFacilityTime(primaryStudyDetails.study_date, '', 'L', primaryStudyDetails.facility_id);
-                self.getLineItemsAndBind(selectedStudyIds);
+                self.getLineItemsAndBind(self.selectedStudyIds);
                 if(options && options == 'patientSearch'){
                     self.bindDetails();
                     self.bindTabMenuEvents();
@@ -1569,13 +1574,7 @@ define(['jquery',
                             };
                         },
                         processResults: function (data, params) {
-                            params.page = params.page || 1;
-                            return {
-                                results: data,
-                                pagination: {
-                                    more: data && data.length ? (params.page * 30) < data[0].total_records : 0
-                                }
-                            };
+                            return commonjs.getTotalRecords(data, params);
                         },
                         cache: true
                     },
@@ -1702,13 +1701,7 @@ define(['jquery',
                             };
                         },
                         processResults: function (data, params) {
-                            params.page = params.page || 1;
-                            return {
-                                results: data,
-                                pagination: {
-                                    more: data && data.length ? (params.page * 30) < data[0].total_records : 0
-                                }
-                            };
+                            return commonjs.getTotalRecords(data, params);
                         },
                         cache: true
                     },
@@ -1781,13 +1774,7 @@ define(['jquery',
                             };
                         },
                         processResults: function (data, params) {
-                            params.page = params.page || 1;
-                            return {
-                                results: data,
-                                pagination: {
-                                    more: data && data.length ? (params.page * 30) < data[0].total_records : 0
-                                }
-                            };
+                            return commonjs.getTotalRecords(data, params);
                         },
                         cache: true
                     },
@@ -2137,13 +2124,7 @@ define(['jquery',
                             };
                         },
                         processResults: function (data, params) {
-                            params.page = params.page || 1;
-                            return {
-                                results: data,
-                                pagination: {
-                                    more: data && data.length ? (params.page * 30) < data[0].total_records : 0
-                                }
-                            };
+                            return commonjs.getTotalRecords(data, params);
                         },
                         cache: true
                     },
@@ -2195,13 +2176,7 @@ define(['jquery',
                             };
                         },
                         processResults: function (data, params) {
-                            params.page = params.page || 1;
-                            return {
-                                results: data,
-                                pagination: {
-                                    more: data && data.length ? (params.page * 30) < data[0].total_records : 0
-                                }
-                            };
+                            return commonjs.getTotalRecords(data, params);
                         },
                         cache: true
                     },
@@ -2708,11 +2683,64 @@ define(['jquery',
 
                                 var claimRefreshInterval = setTimeout(function () {
                                     clearTimeout(claimRefreshInterval);
-
                                     commonjs.showStatus("messages.status.successfullyCompleted");
-                                    console.log(self.claim_Id);
-                                    $("#btnClaimsRefresh").click();
-                                    $("#btnStudiesRefresh").click();
+
+                                    // Change grid values after claim creation instead of refreshing studies grid
+                                    var selectedStudies = self.selectedStudyIds ? self.selectedStudyIds.split(",").map(Number) :
+                                        self.cur_study_id ? self.cur_study_id.split(",").map(Number) : null;
+
+                                    if (self.openedFrom === 'studies' && selectedStudies) {
+
+                                        for (var i = 0; i < selectedStudies.length; ++i) {
+
+                                            var billedStatusFilter = $('#gs_billed_status').val();
+                                            var tblID = 'tblGridAll_Studies';
+                                            var $studyGrid = $('#' + tblID + ' tr#' + selectedStudies[i], parent.document);
+                                            var $td = $studyGrid.children('td');
+
+                                            // If studies grid has Unbilled filter means remove row from grid
+                                            if (billedStatusFilter === 'unbilled') {
+                                                $studyGrid.remove();
+                                            } else {
+
+                                                // Otherwise done row changes
+                                                var colorCodeDetails = commonjs.getClaimColorCodeForStatus('billed', 'study');
+                                                var color_code = colorCodeDetails && colorCodeDetails.length && colorCodeDetails[0].color_code || 'transparent';
+                                                var cells = [
+                                                    {
+                                                        'field': 'billed_status',
+                                                        'data': 'Billed',
+                                                        'css': {
+                                                            "backgroundColor": color_code
+                                                        }
+                                                    },
+                                                    {
+                                                        'field': 'claim_id',
+                                                        'data': self.claim_Id
+                                                    },
+                                                    {
+                                                        'field': 'as_edit',
+                                                        'data': "<i class='icon-ic-edit' title='Edit'></i>"
+                                                    }
+                                                ];
+
+                                                for (var j = 0; j < cells.length; ++j) {
+
+                                                    var $cell = $td.filter('[aria-describedby="' + tblID + '_' + cells[j].field + '"]');
+                                                    $cell.html(cells[j].data)
+                                                        .attr('title', $.jgrid.stripHtml(cells[j].data));
+
+                                                    if (typeof cells[j].css === 'object') {
+                                                        $cell.css(cells[j].css);
+                                                    }
+                                                }
+
+                                            }
+                                        }
+                                    }
+                                    // Change grid values after claim creation instead of refreshing studies grid
+
+
                                 }, 200);
 
                                 var claimHideInterval = setTimeout(function () {

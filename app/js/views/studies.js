@@ -307,7 +307,7 @@ define(['jquery',
 
             },
 
-            bindDateRangeOnSearchBox: function (gridObj, tabtype) {
+            bindDateRangeOnSearchBox: function (gridObj, tabtype, defaultDateFilter) {
                 var self = this;
                 var drpTabColumnSet = [
                     {
@@ -345,6 +345,16 @@ define(['jquery',
                     if (!colElement.length) {
                         return; // skips current iteration only !
                     }
+
+
+                    if ((defaultDateFilter === 'study_dt' && col == 'study_dt'
+                        && (gridObj.options.filterid == 'All_Studies'))
+                        && !colElement.val()) {
+                        var toDate = moment(),
+                            fromDate = moment().subtract(29, 'days');
+                        colElement.val(fromDate.format("L") + " - " + toDate.format("L"));
+                    }
+
                     var drp = commonjs.bindDateRangePicker(colElement, drpOptions, rangeSetName, function (start, end, format) {
                         if (start && end) {
                             currentFilter.dateString = start.format('LL') + ' - ' + end.format('LL');
@@ -915,7 +925,7 @@ define(['jquery',
                             var updateStudiesPager = function (model, gridObj) {
                                 $('#chkStudyHeader_' + filterID).prop('checked', false);
                                 self.setGridPager(filterID, gridObj, false);
-                                self.bindDateRangeOnSearchBox(gridObj, 'study');
+                                self.bindDateRangeOnSearchBox(gridObj, 'study' ,'study_dt');
                                 self.afterGridBindStudy(model, gridObj);
                                 self.initializeStatusCodes(gridObj, 'study');
                                 commonjs.nextRowID = 0;
@@ -1267,9 +1277,6 @@ define(['jquery',
                     // EXA-9228 passing value to identify home page refresh, to set initial page size .
                     filter.refresh(isFromDatepicker || true);
                 }
-                else {
-                    self.loadTabContents();
-                }
                 if (typeof callback === 'function') {
                     return callback(filter);
                 }
@@ -1323,7 +1330,6 @@ define(['jquery',
                 // commonjs.isHomePageVisited = false;
                 var filter = commonjs.loadedStudyFilters.get(commonjs.currentStudyFilter);
                 if (!filter) {
-                    self.loadTabContents();
                     return;
                 }
 
