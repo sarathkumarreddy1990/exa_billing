@@ -833,7 +833,7 @@ const api = {
                 `COALESCE(tat.level,-1)
                     AS tat_level`
             ],
-            product('BILLING') && [                
+            product('BILLING') && [
                 `orders.order_info-> 'payer_type'
                     AS payer_type`, // Billing
                 'orders.id as claim_no', // Billing

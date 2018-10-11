@@ -1112,7 +1112,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     },
                 },
                 "field_code": "vehicle_name"
-            },            
+            },
             "Technologist": {
                 "id": 36,
                 "field_name": "Technologist",
