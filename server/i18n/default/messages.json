@@ -12,7 +12,8 @@
             "serversideerror": "Server error",
             "someerror": "Internal error",
             "accessdenied": "No rights",
-            "invalidDateTimeError": "Invalid datetime format in selected records"
+            "invalidDateTimeError": "Invalid datetime format in selected records",
+            "gridIdNotExists": "Error on getting grid id"
         },
         "warning": {
             "claims": {
@@ -30,7 +31,9 @@
                 "missingClaimStatus": "Please select claim status",
                 "missingResponsible": "Please select responsible",
                 "problemAlreadyExists": "Problem already exists",
-                "icdLimitExists": "Cannot add more than 12 ICD"
+                "icdLimitExists": "Cannot add more than 12 ICD",
+                "selectClaimToValidate" : "Please select claim to Validate",
+                "claimValidationFailed" : "Some records failed on validation"
             },
             "setup": {
                 "selectitemstodelete": "Select Message To Delete",

@@ -384,7 +384,8 @@ define('grid', [
                         'study_id': study_id,
                         'patient_name': selectedStudies[0].patient_name,
                         'patient_id': selectedStudies[0].patient_id,
-                        'order_id': 0
+                        'order_id': 0,
+                        'grid_id': gridID
                     });
                 });
 
@@ -627,7 +628,7 @@ define('grid', [
                             window.localStorage.setItem('selected_studies', JSON.stringify(studyIds));
 
                             self.claimView = new claimsView();
-                            self.claimView.showClaimForm(studyIds, 'studies');
+                            self.claimView.showClaimForm({ 'grid_id': gridID }, 'studies');
 
                         });
                     }
@@ -642,7 +643,8 @@ define('grid', [
                             'study_id': selectedStudies[0].claim_id,
                             'patient_name': selectedStudies[0].patient_name,
                             'patient_id': selectedStudies[0].patient_id,
-                            'order_id': 0
+                            'order_id': 0,
+                            'grid_id': gridID
                         });
                     });
                 }
@@ -837,7 +839,8 @@ define('grid', [
                                 'study_id': rowID,
                                 'patient_name': gridData.patient_name,
                                 'patient_id': gridData.patient_id,
-                                'order_id': gridData.order_id
+                                'order_id': gridData.order_id,
+                                'grid_id': gridID
                             });
 
                             return false;
@@ -1229,7 +1232,8 @@ define('grid', [
                                 'study_id': study_id,
                                 'patient_name': gridData.patient_name,
                                 'patient_id': gridData.patient_id,
-                                'order_id': order_id
+                                'order_id': order_id,
+                                'grid_id': gridID
                             });
                         });
                     } else {
@@ -1249,7 +1253,7 @@ define('grid', [
                             window.localStorage.setItem('primary_study_details', JSON.stringify(study));
                             window.localStorage.setItem('selected_studies', JSON.stringify(rowID));
                             self.claimView = new claimsView();
-                            self.claimView.showClaimForm(null, 'studies');
+                            self.claimView.showClaimForm({ 'grid_id': gridID }, 'studies');
                         }
                     }
                 },
