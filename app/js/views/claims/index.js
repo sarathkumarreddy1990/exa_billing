@@ -2661,6 +2661,10 @@ define(['jquery',
             saveClaimDetails: function () {
                 var self = this, saveButton = $('#btnSaveClaim'), $claimProcess = $('.claimProcess');
 
+                var currentFilter = commonjs.studyFilters.find(function (filter) {
+                    return filter.filter_id == commonjs.currentStudyFilter;
+                });
+
                 if (self.validateClaimData()) {
                     self.setClaimDetails();
 
@@ -2698,16 +2702,14 @@ define(['jquery',
                                         for (var i = 0; i < selectedStudies.length; ++i) {
 
                                             var billedStatusFilter = $('#gs_billed_status').val();
-
                                             var $studyGrid = $('#' + tblID + ' tr#' + selectedStudies[i], parent.document);
                                             var $td = $studyGrid.children('td');
-
                                             // If studies grid has Unbilled filter means remove row from grid
-                                            if (billedStatusFilter === 'unbilled') {
+                                            var isBilledStatus = currentFilter.filter_info && currentFilter.filter_info.studyInformation && currentFilter.filter_info.studyInformation.billedstatus === 'unbilled' || false;
+
+                                            if (billedStatusFilter === 'unbilled' || isBilledStatus) {
                                                 $studyGrid.remove();
                                             } else {
-
-
                                                 // Otherwise done row changes
                                                 var colorCodeDetails = commonjs.getClaimColorCodeForStatus('billed', 'study');
                                                 var color_code = colorCodeDetails && colorCodeDetails.length && colorCodeDetails[0].color_code || 'transparent';
