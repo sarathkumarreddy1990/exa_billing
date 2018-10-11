@@ -172,11 +172,6 @@ const colModel = [
         searchFlag: '%'
     },
     {
-        name: 'payer_name',
-        searchColumns: ["orders.order_info->'payer_name'"],
-        searchFlag: 'hstore'
-    },
-    {
         name: 'ordering_facility',
         searchColumns: ["orders.order_info->'ordering_facility'"],
         searchFlag: 'hstore'
@@ -467,7 +462,6 @@ const api = {
             case 'days_left': return `studies.study_info->'preOrderDays'`;
             case 'ordering_facility': return `orders.order_info->'ordering_facility'`;
             case 'technologist_name': return 'providers.full_name';
-            case 'payer_name': return `orders.order_info->'payer_name'`;
             case 'claim_status': return `orders.order_info->'claim_status'`;
             case 'check_indate': return `text_to_isots(studies.study_info->'Check-InDt')`;             // optimization! use sutom immutable function (instead of timestamptz) and corresponding index to improve query time
             case 'approving_provider_ref': return 'approving_provider_ref.full_name';
@@ -839,9 +833,7 @@ const api = {
                 `COALESCE(tat.level,-1)
                     AS tat_level`
             ],
-            product('BILLING') && [
-                `orders.order_info-> 'payer_name'
-                    AS payer_name`, // Billing
+            product('BILLING') && [                
                 `orders.order_info-> 'payer_type'
                     AS payer_type`, // Billing
                 'orders.id as claim_no', // Billing

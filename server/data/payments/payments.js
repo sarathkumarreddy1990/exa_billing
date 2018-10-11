@@ -115,7 +115,7 @@ module.exports = {
         }
 
         if (facility_name) {
-            whereQuery.push(`facility_name  ILIKE '%${facility_name}%' `);
+            whereQuery.push(`payments.facility_id = ${facility_name} `); //eg:facility_name =1 for search column
         }
 
         if (from === 'patient_claim') {

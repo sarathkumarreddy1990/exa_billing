@@ -732,19 +732,6 @@
             "field_code": "vehicle_name"
         },
         {
-            "id": 35,
-            "field_name": "Responsible",
-            "i18n_name": "setup.userSettings.payerName",
-            "field_info": {
-                "custom_name": "Responsible",
-                "name": "payer_name",
-                "width": 100,
-                "search": true,
-                "sortable": true
-            },
-            "field_code": "payer_name"
-        },
-        {
             "id": 36,
             "field_name": "Technologist",
             "i18n_name": "setup.userSettings.technologist",

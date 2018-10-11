@@ -43,13 +43,13 @@ const colModel = [
     },
     {
         name: 'billing_provider',
-        searchFlag: '%',
-        searchColumns: ['billing_providers.name']
+        searchFlag: 'int',
+        searchColumns: ['billing_providers.id']
     },
     {
         name: 'place_of_service',
-        searchFlag: '%',
-        searchColumns: ['places_of_service.description']
+        searchFlag: 'int',
+        searchColumns: ['places_of_service.id']
     },
     {
         name: 'referring_providers',
@@ -120,8 +120,8 @@ const colModel = [
     },
     {
         name: 'clearing_house',
-        searchColumns: [`edi_clearinghouses.name`],
-        searchFlag: '%'
+        searchColumns: [`edi_clearinghouses.id`],
+        searchFlag: 'int'
     },
     {
         name: 'edi_template',
