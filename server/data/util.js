@@ -273,8 +273,12 @@ const util = {
                     let obj = filterObj.ClaimInformation.balance;
                     let BalanceQuery = '';
 
-
-                    BalanceQuery += '  (select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from BILLING.get_claim_totals(claims.id))::numeric' + obj.value + '::numeric';
+                    if(obj.value && obj.value.charAt(0) === '|') {
+                        obj.value =  (obj.value).slice(1);
+                        BalanceQuery += ` (bgct.claim_balance_total)::numeric > 0 AND (bgct.claim_balance_total)::numeric  <= ` +  obj.value + `::numeric`;
+                    } else {
+                        BalanceQuery += '  (bgct.claim_balance_total)::numeric' + obj.value + '::numeric';
+                    }
 
                     query += util.getRelationOperator(query) + BalanceQuery;
 

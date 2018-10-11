@@ -57,7 +57,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         var billingClassesValue = commonjs.makeValue(app.billing_classes, ":All;", "id", "description");
         var claimStatusValue = commonjs.makeValue(app.claim_status, ":All;", "id", "description");
         var billedStatus = ':All;billed:Billed;unbilled:Unbilled';
-        var balanceSearchList = ':All;=:= 0;>:> 0;<:< 0';
+        var balanceSearchList = ':All; =0:= 0; >0:> 0; <0:< 0; |5:0 < 5; |10:0 - 10; |15:0 - 15; |20:0 - 20; |25:0 - 25; |30 :0 - 30';
         var studyFlagArray = app.studyflag;
         var isNoneExist = false;
 
