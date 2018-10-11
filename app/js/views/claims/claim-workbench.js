@@ -325,7 +325,7 @@ define(['jquery',
                 var drpTabColumnSet = [
                     {
                         forTab: "claims",
-                        columns: ["current_illness_date", "claim_dt", "followup_date", "birth_date", 'submitted_dt']
+                        columns: ["current_illness_date", "claim_dt", "followup_date", "birth_date", 'submitted_dt', 'first_statement_dt']
                     }
                 ];
                 var columnsToBind = _.find(drpTabColumnSet,function (val) {

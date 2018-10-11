@@ -982,6 +982,9 @@ const util = {
                 case 'claim_dt':
                     scheduleDtColumn = 'claims.claim_dt';
                     break;
+                case 'first_statement_dt':
+                    scheduleDtColumn = 'claim_comment.created_dt';
+                    break;
             }
         }
         else {
