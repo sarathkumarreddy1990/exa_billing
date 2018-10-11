@@ -290,10 +290,10 @@ define(['jquery',
                         disablereload: true,
                         customargs: {
                             paymentStatus: $("#ulPaymentStatus").val(),
-                            from : self.from === 'ris'? 'ris' : '',
-                            toDate : moment().format("L"),
-                            fromDate : moment().subtract(29, 'days').format("L"),
-                            filterByDateType : 'accounting_date'
+                            from: self.from === 'ris' ? 'ris' : '',
+                            toDate: moment().format('YYYY-MM-DD'),
+                            fromDate: moment().subtract(29, 'days').format('YYYY-MM-DD'),
+                            filterByDateType: 'accounting_date'
                         },
                         afterInsertRow: function (rowid, rowdata) {
                             if (rowdata.current_status) {
@@ -324,7 +324,10 @@ define(['jquery',
                     sortField: self.pager.get("SortField"),
                     sortOrder: self.pager.get("SortOrder"),
                     default_facility_id: app.userInfo.default_facility_id,
-                    from: from
+                    from: from,
+                    toDate: moment().format('YYYY-MM-DD'),
+                    fromDate: moment().subtract(29, 'days').format('YYYY-MM-DD'),
+                    filterByDateType: 'accounting_date'
                 };
 
                 jQuery.ajax({
