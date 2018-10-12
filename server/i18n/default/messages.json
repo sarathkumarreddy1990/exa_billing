@@ -9,7 +9,7 @@
             "claimStatusChanged": "Claim Status has been changed",
             "billingCodeChanged": "Billing Code has been changed",
             "billingClassChanged": "Billing Class has been changed",
-            "claimPayerCompleted": "Payer Changed Succesfully"
+            "claimPayerCompleted": "Payer Changed successfully"
         },
         "errors": {
             "notconnected": "Not connected",
