@@ -320,7 +320,7 @@ module.exports = {
                         ORDER BY status_code ASC ) AS custom_study_status
                     ),
                 cte_vehicle_list AS(
-                    SELECT Json_agg(Row_to_json(vehicles)) vehicles
+                    SELECT COALESCE(Json_agg(Row_to_json(vehicles)),'[]') vehicles
                     FROM (
                         SELECT
                             id
@@ -329,7 +329,7 @@ module.exports = {
                         WHERE NOT has_deleted ) AS vehicles
                 ),
                 cte_clearing_house AS(
-                    SELECT Json_agg(Row_to_json(clearing_house)) clearing_house
+                    SELECT COALESCE(Json_agg(Row_to_json(clearing_house)),'[]') clearing_house
                     FROM  (
                         SELECT
                             id

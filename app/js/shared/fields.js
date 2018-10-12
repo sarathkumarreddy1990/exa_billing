@@ -8,15 +8,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             return "Pending";
         }
         return cellvalue;
-    };
-
-    var genderObj = {
-        '': 'All',
-        'M': 'Male',
-        'F': 'Female',
-        'O': 'Other',
-        'U': 'Unknown'
-    };
+    };    
 
     var orderTypes = {
         "P": "Pre-order",
@@ -64,6 +56,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         var billingProviders = commonjs.makeValue(app.billing_providers, ":All;", "id", "full_name");
         var placeOfService = commonjs.makeValue(app.places_of_service, ":All;", "id", "description");
         var vehicles = commonjs.makeValue(app.vehicles, ":All;", "id", "vehicle_name");
+        var gender = commonjs.makeValue(commonjs.bindArray(app.gender, false), ":All;");
         var isNoneExist = false;
 
         for ( var i = 0; i < studyFlagArray.length; i++ ) {
@@ -729,14 +722,11 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 "field_info": {
                     "custom_name": "Gender",
                     "name": "gender",
-                    "width": 100,
-                    "formatter": function ( cellvalue ) {
-                        return cellvalue && genderObj[ cellvalue.charAt(0).toUpperCase() ] || '';
-                    },
+                    "width": 100,                    
                     "stype": "select",
                     "searchoptions": {
-                        "value": genderObj,
-                        "tempvalue": genderObj
+                        "value": gender,
+                        "tempvalue": gender
                     }
                 },
                 "field_code": "gender"

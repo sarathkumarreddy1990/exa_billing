@@ -4950,6 +4950,9 @@ var commonjs = {
         var Collection = Backbone.Collection.extend({
             model: Backbone.Model.extend({})
         });
+        
+        if (!(array && array.length)) return { '': 'All' };
+
         array = new Collection(array).toJSON();
         var i = 0;
         var count = array.length;
