@@ -69,7 +69,7 @@ WITH claim_data AS (
                                      WHEN 'ordering_provider' THEN 'Provider'
                                      END)
                 END as code,
-                null as charge_id
+                ROW_NUMBER () OVER (ORDER BY bp.id) as charge_id  -- Require rownumber for each selected row
     FROM billing.payments bp
     INNER JOIN billing.payment_applications pa on pa.payment_id = bp.id
     INNER JOIN billing.charges AS bc on bc.id = pa.charge_id
