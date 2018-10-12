@@ -4946,7 +4946,7 @@ var commonjs = {
      * ":All;BD:BD;CT:CT;DR:DR;dsd:dsd;MG:MG;MR:MR;NM:NM;OT:OT;RF:RF;SC:SC;US:US;XA:XA"
      *
      */
-    makeValue: function (array, val, propOne, propTwo) {        
+    makeValue: function (array, val, propOne, propTwo) {
         if (!(array && array.length)) return { '': 'All' };
 
         var Collection = Backbone.Collection.extend({
