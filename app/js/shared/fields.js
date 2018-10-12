@@ -539,9 +539,35 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                       "width": 200
                     }
 
-                  }
-
-
+                },
+                "Ordering Facility": {
+                    "id": 30,
+                    "field_name": "Ordering Facility",
+                    "i18n_name": "setup.userSettings.orderingFacility",
+                    "field_info": {
+                        "custom_name": "Ordering Facility",
+                        "name": "ordering_facility_name",
+                        "width": 250,
+                        "defaultValue": ""
+                    },
+                    "field_code": "ordering_facility_name"
+                },
+                "Facility": {
+                    "id": 31,
+                    "field_name": "Facility",
+                    "i18n_name": "setup.userSettings.facility",
+                    "field_info": {
+                        "custom_name": "Facility",
+                        "name": "facility_name",
+                        "width": 200,
+                        "stype": "select",
+                        "searchoptions": {
+                            "value": facilityValue,
+                            "tempvalue": facilityValue
+                        }
+                    },
+                    "field_code": "facility_name"
+                }
             });
         }else{
         return Immutable.Map({

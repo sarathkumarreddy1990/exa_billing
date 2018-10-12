@@ -157,6 +157,16 @@ const colModel = [
         name: 'assigned_to',
         searchColumns: ['users.id'],
         searchFlag: '='
+    },
+    {
+        name: 'facility_name',
+        searchColumns: ['claims.facility_id'],
+        searchFlag: 'int'
+    },
+    {
+        name: 'ordering_facility_name',
+        searchColumns: ['provider_groups.group_name'],
+        searchFlag: '%'
     }
 ];
 
@@ -211,6 +221,8 @@ const api = {
             case 'place_of_service': return 'places_of_service.description';
             case 'referring_providers': return 'ref_provider.full_name';
             case 'rendering_provider': return 'render_provider.full_name';
+            case 'ordering_facility_name': return 'provider_groups.group_name';
+            case 'facility_name': return 'facilities.facility_name';
             case 'billing_fee': return 'bgct.charges_bill_fee_total';
             case 'invoice_no': return 'claims.invoice_no';
             case 'billing_method': return 'claims.billing_method';
@@ -345,6 +357,8 @@ const api = {
             'places_of_service.description AS place_of_service',
             'ref_provider.full_name as   referring_providers',
             'render_provider.full_name as   rendering_provider',
+            'provider_groups.group_name as   ordering_facility_name',
+            'facilities.facility_name as facility_name',
             'bgct.charges_bill_fee_total as billing_fee',
             'claims.current_illness_date::text as current_illness_date',
             'claims.id As claim_no',
@@ -457,6 +471,7 @@ const api = {
             ${columns}
             FROM (${innerQuery}) as FinalClaims
             INNER JOIN billing.claims ON FinalClaims.claim_id = claims.id
+            INNER JOIN facilities ON facilities.id = claims.facility_id
             ${api.getWLQueryJoin(columns, '', args.customArgs.filter_id, args.user_id, args.isCount)}
             ORDER BY FinalClaims.number
             `
