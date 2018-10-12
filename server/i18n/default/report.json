@@ -49,7 +49,7 @@
         "paymentStatus": "Payment  Status",
         "applied": "Fully Applied",
         "unapplied": "Unapplied",
-        "partialApplied": "Partial Applied",
+        "partialApplied": "Partially Applied",
         "overApplied": "Over Applied"
     }
 }
