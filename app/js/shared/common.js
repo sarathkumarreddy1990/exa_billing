@@ -4948,11 +4948,10 @@ var commonjs = {
      */
     makeValue: function (array, val, propOne, propTwo) {        
         if (!(array && array.length)) return { '': 'All' };
-        
+
         var Collection = Backbone.Collection.extend({
             model: Backbone.Model.extend({})
         });
-
         array = new Collection(array).toJSON();
         var i = 0;
         var count = array.length;
