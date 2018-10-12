@@ -4,7 +4,12 @@
             "validatedSuccessfully": "Validated Successfully",
             "successfullyCompleted": "Successfully completed",
             "successfullyUpdated": "Successfully updated",
-            "responseUpdated": "Responsible and Billing method changed to default"
+            "responseUpdated": "Responsible and Billing method changed to default",
+            "batchClaimCompleted": "Batch Claim created successfully",
+            "claimStatusChanged": "Claim Status has been changed",
+            "billingCodeChanged": "Billing Code has been changed",
+            "billingClassChanged": "Billing Class has been changed",
+            "claimPayerCompleted": "Payer Changed successfully"
         },
         "errors": {
             "notconnected": "Not connected",
@@ -12,7 +17,8 @@
             "serversideerror": "Server error",
             "someerror": "Internal error",
             "accessdenied": "No rights",
-            "invalidDateTimeError": "Invalid datetime format in selected records"
+            "invalidDateTimeError": "Invalid datetime format in selected records",
+            "gridIdNotExists": "Error on getting grid id"
         },
         "warning": {
             "claims": {
@@ -30,7 +36,12 @@
                 "missingClaimStatus": "Please select claim status",
                 "missingResponsible": "Please select responsible",
                 "problemAlreadyExists": "Problem already exists",
-                "icdLimitExists": "Cannot add more than 12 ICD"
+                "icdLimitExists": "Cannot add more than 12 ICD",
+                "selectClaimToValidate" : "Please select claim to Validate",
+                "claimValidationFailed" : "Some records failed on validation",
+                "selectClaimToCreate":"Please select record for batch claim",
+                "selectSingleRecord":"Please select single billed status",
+                "selectUnbilledRecord":"Please select same unbilled status or single billed status"
             },
             "setup": {
                 "selectitemstodelete": "Select Message To Delete",
