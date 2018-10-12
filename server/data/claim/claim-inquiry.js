@@ -259,11 +259,12 @@ module.exports = {
                             , CASE code
                                 WHEN 'charge' THEN 1
                                 WHEN 'auto' THEN 2
-                                WHEN 'payment' THEN 3
-                                WHEN 'adjustment' THEN 4
-                                WHEN 'refund' THEN 5
-                                WHEN 'co_insurance' THEN 6
-                                WHEN 'deductible' THEN 7 END
+                                WHEN 'patient_statement' THEN 3
+                                WHEN 'payment' THEN 4
+                                WHEN 'adjustment' THEN 5
+                                WHEN 'refund' THEN 6
+                                WHEN 'co_insurance' THEN 7
+                                WHEN 'deductible' THEN 8 END
                     ) AS id
                 FROM agg
                 ORDER BY
@@ -271,11 +272,12 @@ module.exports = {
                     , CASE code
                         WHEN 'charge' THEN 1
                         WHEN 'auto' THEN 2
-                        WHEN 'payment' THEN 3
-                        WHEN 'adjustment' THEN 4
-                        WHEN 'refund' THEN 5
-                        WHEN 'co_insurance' THEN 6
-                        WHEN 'deductible' THEN 7 END `;
+                        WHEN 'patient_statement' THEN 3
+                        WHEN 'payment' THEN 4
+                        WHEN 'adjustment' THEN 5
+                        WHEN 'refund' THEN 6
+                        WHEN 'co_insurance' THEN 7
+                        WHEN 'deductible' THEN 8 END `;
 
         return await query(sql);
     },

@@ -157,6 +157,11 @@ const colModel = [
         name: 'assigned_to',
         searchColumns: ['users.id'],
         searchFlag: '='
+    },
+    {
+        name: 'first_statement_dt',
+        searchColumns: ['claim_comment.created_dt'],
+        searchFlag: 'daterange'
     }
 ];
 
@@ -239,6 +244,7 @@ const api = {
             case 'gender': return 'patients.gender';
             case 'billing_notes': return '(claims.billing_notes  IS NULL) ,claims.billing_notes ';
             case 'submitted_dt': return 'claims.submitted_dt';
+            case 'first_statement_dt': return 'claim_comment.created_dt';
         }
 
         return args;
@@ -322,6 +328,20 @@ const api = {
 
         if (tables.billing_classes) { r += '  LEFT JOIN billing.billing_classes ON claims.billing_class_id = billing_classes.id '; }
 
+        if(tables.claim_comment){
+            r += ` LEFT JOIN LATERAL (
+                    SELECT
+                        created_dt
+                    FROM billing.claim_comments cc
+                    WHERE
+                        cc.claim_id = claims.id
+                        AND cc.type = 'patient_statement'
+                    ORDER BY created_dt ASC
+                    LIMIT 1
+            ) AS claim_comment ON TRUE `;
+
+        }
+
         return r;
     },
 
@@ -369,7 +389,8 @@ const api = {
             'claims.billing_notes',
             'patients.gender',
             'patients.id as patient_id',
-            'invoice_no'
+            'invoice_no',
+            'claim_comment.created_dt AS first_statement_dt'
         ];
 
         if(args.customArgs.filter_id=='Follow_up_queue'){

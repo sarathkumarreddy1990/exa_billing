@@ -601,6 +601,12 @@ define([
                                         case "scheduled_dt":
                                             $('#rbtScheduledDate').prop('checked', true);
                                             break;
+                                        case "claim_dt":
+                                            $('#rtbClaimDate').prop('checked', true);
+                                            break;
+                                        case "first_statement_dt":
+                                            $('#rtbFirstStatementDate').prop('checked', true);
+                                            break;
                                         default:
                                             $('#rbtStudyDate').prop('checked', true);
                                             break;
@@ -1273,7 +1279,7 @@ define([
                             toDate: $('#txtDateTo').val() ? $('#txtDateTo').val() : null,
                             toDateTime: $('#txtToTimeDate').val() ? $('#txtToTimeDate').val() : null,
                             isStudyDate: $('#rbtStudyDate').is(":checked"),
-                            dateType:  "claim_dt"
+                            dateType:  $('input[name=claimdate]:checked').val()
                         },
                         ClaimInformation: {
                             claimStatus: {
@@ -1320,7 +1326,7 @@ define([
                                     $('#btnClaimsCompleteRefresh').click();
                                 commonjs.hideLoading();
                                 self.showGrid();
-                            }                            
+                            }
                         },
                         error: function (model, response) {
                             commonjs.handleXhrError(model, response);
@@ -1642,7 +1648,7 @@ define([
                     $('#rbtStudyDate').prop('checked', true);
                     $('#rbtPreformatted').prop('checked', true);
                 }
-                
+
                 $('#txtLastTime').val('');
 
                 $('#txtPatientName').val('');
