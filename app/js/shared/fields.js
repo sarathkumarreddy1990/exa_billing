@@ -8,7 +8,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             return "Pending";
         }
         return cellvalue;
-    };    
+    };
 
     var orderTypes = {
         "P": "Pre-order",
@@ -722,7 +722,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 "field_info": {
                     "custom_name": "Gender",
                     "name": "gender",
-                    "width": 100,                    
+                    "width": 100,
                     "stype": "select",
                     "searchoptions": {
                         "value": gender,
