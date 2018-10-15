@@ -2826,7 +2826,7 @@ define(['jquery',
                 self.claimInquiryView.render({
                     'claim_id': id,
                     'patient_id': patient_id,
-                    'isFrom': 'payments'
+                    'source': 'payments'
                 });
             },
 

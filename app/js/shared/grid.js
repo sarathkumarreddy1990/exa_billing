@@ -486,7 +486,7 @@ define('grid', [
                         'claim_id': studyIds,
                         'patient_id': selectedStudies[0].patient_id,
                         'grid_id': gridID,
-                        'isFrom': 'claims'
+                        'source': 'claims'
                     });
 
                 });
@@ -907,7 +907,7 @@ define('grid', [
                         self.claimInquiryView.render({
                             'claim_id': rowID,
                             'grid_id': gridID,
-                            'isFrom': 'claims'
+                            'source': 'claims'
                         });
                     }
                 },

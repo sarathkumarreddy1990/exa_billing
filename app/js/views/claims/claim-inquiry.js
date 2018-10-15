@@ -88,7 +88,7 @@ define([
                 this.rendered = true;
                 this.options = options || {};
                 var claimId = this.options.claim_id
-                var isFromClaimScreen = this.options.isFrom && this.options.isFrom === 'claims'
+                var isFromClaimScreen = this.options.source && this.options.source === 'claims'
 
                 commonjs.showDialog({
                     header: 'Claim Inquiry',
@@ -1082,7 +1082,6 @@ define([
                 var isReadOnly = $('#txtCIBillingComment').prop('readonly');
 
                 $('#txtCIBillingComment').prop('readonly', !isReadOnly);
-
             },
 
             getPaymentofCharge: function (charge_id) {
