@@ -44,7 +44,7 @@
         "claimDateBetween": "Claim Date",
         "noDateSpecified":"No Date Specified",
         "showInactive" : "Show Inactive",
-        "inActiveYes" : "Yes",
+        "inactiveYes" : "Yes",
         "inactiveNo" : "No",
         "paymentStatus": "Payment  Status",
         "applied": "Fully Applied",
