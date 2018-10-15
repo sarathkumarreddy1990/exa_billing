@@ -531,8 +531,8 @@ define([
                             return false;
                         }
                         if ($(this).attr('data-id')) {
-                            if(Array.from($('#ulListOrdFacility li a')).reduce(function (prevResult, selectedItem) {
-                                return prevResult || $(selectedItem).attr('data-id') === $('#btnAddOrdFacility').attr('data-id');
+                            if(Array.from($('#ulListOrdFacility li a')).some(function (prevResult) {
+                                return $(prevResult).attr('data-id') === $('#btnAddOrdFacility').attr('data-id');
                             }, false)) {
                                 commonjs.showError("Ordering Facility is already selected");
                                 return false;
@@ -583,7 +583,7 @@ define([
                     });
 
                     /* Bind add button for ordering facilities - SMH */
-                    $('#btnAddClaimOrdFacility').unbind('click').click(function () {
+                    $('#btnAddClaimOrdFacility').off('click').on('click', function (e) {
                         if ($('#select2-ddlClaimOrdFacility-container').text() === '') return;
                         if ($('#s2id_txtListClaimOrdFacility > a.select2-default').length > 0) {
                             return false;
@@ -592,8 +592,8 @@ define([
                         if ($(this).attr('data-id')) {
                             var isExists = false;
 
-                            if(Array.from($('#ulListClaimOrdFacility li a')).reduce(function (prevResult, selectedItem) {
-                                return prevResult || $(selectedItem).attr('data-id') === $('#btnAddClaimOrdFacility').attr('data-id');
+                            if(Array.from($('#ulListClaimOrdFacility li a')).some(function (prevResult) {
+                                return $(prevResult).attr('data-id') === $('#btnAddClaimOrdFacility').attr('data-id');
                             }, false)) {
                                 commonjs.showError("Ordering Facility is already selected");
                                 return false;
@@ -631,6 +631,12 @@ define([
                                             break;
                                         case "scheduled_dt":
                                             $('#rbtScheduledDate').prop('checked', true);
+                                            break;
+                                        case "claim_dt":
+                                            $('#rtbClaimDate').prop('checked', true);
+                                            break;
+                                        case "first_statement_dt":
+                                            $('#rtbFirstStatementDate').prop('checked', true);
                                             break;
                                         default:
                                             $('#rbtStudyDate').prop('checked', true);
@@ -1173,9 +1179,10 @@ define([
                 }
                 var arrOrdFacility = [];
                 $('#ulListOrdFacility li').each(function (i, selected) {
-                    var jsonFlag = {};
-                    jsonFlag.id = selected.id;
-                    jsonFlag.text = $(selected).text();
+                    var jsonFlag = {
+                        id: selected.id,
+                        text: $(selected).text()
+                    };
                     arrOrdFacility.push(jsonFlag);
                 });
                 if (arrOrdFacility.length > 0 && !self.validateRadioButton('ordFacility', 'ordFacility')) {
@@ -1183,9 +1190,10 @@ define([
                 }
                 var arrClaimOrdFacility = [];
                 $('#ulListClaimOrdFacility li').each(function (i, selected) {
-                    var jsonFlag = {};
-                    jsonFlag.id = selected.id;
-                    jsonFlag.text = $(selected).text();
+                    var jsonFlag = {
+                        id: selected.id,
+                        text: $(selected).text()
+                    };
                     arrClaimOrdFacility.push(jsonFlag);
                 });
                 if (arrClaimOrdFacility.length > 0 && !self.validateRadioButton('ordFacility', 'ordFacility')) {
@@ -1344,7 +1352,7 @@ define([
                             toDate: $('#txtDateTo').val() ? $('#txtDateTo').val() : null,
                             toDateTime: $('#txtToTimeDate').val() ? $('#txtToTimeDate').val() : null,
                             isStudyDate: $('#rbtStudyDate').is(":checked"),
-                            dateType:  "claim_dt"
+                            dateType:  $('input[name=claimdate]:checked').val()
                         },
                         ClaimInformation: {
                             claimStatus: {
@@ -1399,7 +1407,7 @@ define([
                                     $('#btnClaimsCompleteRefresh').click();
                                 commonjs.hideLoading();
                                 self.showGrid();
-                            }                            
+                            }
                         },
                         error: function (model, response) {
                             commonjs.handleXhrError(model, response);
@@ -1658,8 +1666,8 @@ define([
 
             setOrderingFacilityAutoComplete: function () {
                 var self = this;
-                var $OrdFacility = self.opener == "studies" ? $("#ddlOrdFacility") : $("#ddlClaimOrdFacility");
-                $OrdFacility.select2({
+                var $orderingFacility = self.opener == "studies" ? $("#ddlOrdFacility") : $("#ddlClaimOrdFacility");
+                $orderingFacility.select2({
                     ajax: {
                         url: "/exa_modules/billing/autoCompleteRouter/provider_group",
                         dataType: 'json',

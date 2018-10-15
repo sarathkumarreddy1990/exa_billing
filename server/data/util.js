@@ -60,7 +60,7 @@ const util = {
                 return 'ALL';
         }
     },
-    getConditionalOperator: function (condition, value, isKey, Filter) {
+    getConditionalOperator: function (condition, value, isKey, Filter, field) {
 
         if (Filter == 'patients' || Filter == 'patientID' || Filter == 'readPhy' || Filter == 'study_desc' || Filter === 'attorney') {
             switch (condition) {
@@ -87,6 +87,14 @@ const util = {
                     return isKey
                         ? ` NOT ILIKE ${value}`
                         : ` NOT ILIKE '%${value}%'`;
+            }
+        }
+        else if (Filter == 'array') {
+            switch (condition) {
+                case 'Is':
+                    return isKey ? `${field} = ${value}` : `${field} = '${value}'`;
+                case 'IsNot':
+                    return isKey ? ` NOT ${field} = ${value}` : ` NOT ${field} = '${value}'`;
             }
         }
         else {
@@ -291,7 +299,7 @@ const util = {
 
                     if (obj && obj.list && obj.list.length) {
                         let facilityArray = _.map(obj.list, (x) => x.id);
-                        facilityQuery = ` claims.facility_id ` + util.getConditionalOperator(obj.condition, `ANY(ARRAY[` + facilityArray + `])`, true, '');
+                        facilityQuery = util.getConditionalOperator(obj.condition, `ANY(ARRAY[` + facilityArray + `])`, true, 'array', ` claims.facility_id `);
 
                         if (obj.condition == 'IsNot') {
                             facilityQuery += ' OR claims.facility_id IS NULL';
@@ -307,8 +315,8 @@ const util = {
                     let orderingFacilityQuery = '';
 
                     if (obj && obj.list && obj.list.length) {
-                        let facilityArray = _.map(obj.list, (x) => x.id);
-                        orderingFacilityQuery = ` claims.ordering_facility_id ` + util.getConditionalOperator(obj.condition, `ANY(ARRAY[` + facilityArray + `])`, true, '');
+                        let orderingFacilityArray = _.map(obj.list, (x) => x.id);
+                        orderingFacilityQuery = util.getConditionalOperator(obj.condition, `ANY(ARRAY[` + orderingFacilityArray + `])`, true, 'array', ` claims.ordering_facility_id `);
 
                         if (obj.condition == 'IsNot') {
                             orderingFacilityQuery += ' OR claims.ordering_facility_id IS NULL';
@@ -1016,6 +1024,9 @@ const util = {
                     break;
                 case 'claim_dt':
                     scheduleDtColumn = 'claims.claim_dt';
+                    break;
+                case 'first_statement_dt':
+                    scheduleDtColumn = 'claim_comment.created_dt';
                     break;
             }
         }
