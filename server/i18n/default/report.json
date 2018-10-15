@@ -28,7 +28,7 @@
         "userRole": "User Role",
         "payertype": "Payer Type",
         "paymentMode": "Payment Mode",
-        "summary": "Summary",
+        "summary": "Report Summary",
         "statementstate": "Statement Date",
         "statementmode": "Statement Mode",
         "minamount": "Min Amount",
@@ -44,7 +44,12 @@
         "claimDateBetween": "Claim Date",
         "noDateSpecified":"No Date Specified",
         "showInactive" : "Show Inactive",
-        "inActiveYes" : "Yes",
-        "inActiveNo" : "No"
+        "inactiveYes" : "Yes",
+        "inactiveNo" : "No",
+        "paymentStatus": "Payment  Status",
+        "applied": "Fully Applied",
+        "unapplied": "Unapplied",
+        "partialApplied": "Partially Applied",
+        "overApplied": "Over Applied"
     }
 }
