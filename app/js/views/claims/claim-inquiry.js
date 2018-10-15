@@ -83,8 +83,13 @@ define([
                 }
             },
 
-            render: function (cid, patientId, from) {
+            render: function (options) {
+
                 this.rendered = true;
+                this.options = options || {};
+                var claimId = this.options.claim_id
+                var isFromClaimScreen = this.options.isFrom && this.options.isFrom === 'claims'
+
                 commonjs.showDialog({
                     header: 'Claim Inquiry',
                     width: '90%',
@@ -95,7 +100,7 @@ define([
                 this.bindEvents();
                 this.followDate =  commonjs.bindDateTimePicker("divFollowUpDate", { format: 'L', minDate: moment().startOf('day') });
                 this.followDate.date();
-                this.claimInquiryDetails(cid, false, from);
+                this.claimInquiryDetails(claimId, false, isFromClaimScreen);
                 $('#modal_div_container').removeAttr('style');
             },
 
@@ -124,7 +129,7 @@ define([
 
             },
 
-            claimInquiryDetails: function (claimID, fromTogglePreNext, from) {
+            claimInquiryDetails: function (claimID, fromTogglePreNext, isFromClaimScreen) {
                 var self = this;
                 self.claim_id = claimID;
 
@@ -136,7 +141,7 @@ define([
                     },
                     success: function (data, response) {
 
-                        if (from) {
+                        if (!isFromClaimScreen) {
                             $('#headerbtn').hide(); //to hide the prevoius/next button in claim inquiry when  from payments section
                         }
 
@@ -197,7 +202,7 @@ define([
                             self.getFollowupDate();
                             $('.claimProcess').prop('disabled', false);
                             $('#gview_tblCIClaimComments .ui-search-toolbar').hide();
-                            $('#divClaimInquiry').height(from ? $(window).height() - 220 : $(window).height() - 260);
+                            $('#divClaimInquiry').height(isFromClaimScreen ? $(window).height() - 220 : $(window).height() - 260);
                         }
                     },
                     error: function (err) {
@@ -767,7 +772,7 @@ define([
                     if (comment != '')
                         self.saveClaimComment(commentId, comment);
                     else
-                        commonjs.showWarning("Please add comments");
+                        commonjs.showWarning("messages.warning.claims.missingCommentValidation");
                 });
 
             },
@@ -781,7 +786,7 @@ define([
                         'id': commentId
                     },
                     success: function (data, response) {
-                        commonjs.showStatus('Comment Deleted Successfully');
+                        commonjs.showStatus("messages.status.commentDeleted");
                         self.showClaimCommentsGrid();
                     },
                     error: function (err) {
@@ -824,7 +829,7 @@ define([
                             'from': 'tmt'
                         },
                         success: function (data, response) {
-                            commonjs.showStatus('Record Saved Successfully');
+                            commonjs.showStatus("messages.status.recordSaved");
                             $('#siteModalNested').find('#btnCICommentSave').prop('disabled', false)
                             self.closeSaveComment();
                             self.showClaimCommentsGrid();
@@ -846,7 +851,7 @@ define([
                             'claim_id': self.claim_id
                         },
                         success: function (data, response) {
-                            commonjs.showStatus('Record Saved Successfully');
+                            commonjs.showStatus("messages.status.recordSaved");
                             $('#siteModalNested').find('#btnCICommentSave').prop('disabled', false)
                             self.closeSaveComment();
                             self.showClaimCommentsGrid();
@@ -885,8 +890,8 @@ define([
                         'notes': notes
                     },
                     success: function (data, response) {
-                        commonjs.showStatus('Record Saved Successfully');
-                        $('#txtCIBillingComment').attr('readonly', 'readonly');
+                        commonjs.showStatus("messages.status.recordSaved");
+                        $('#txtCIBillingComment').prop('readonly', true);
 
                     },
                     error: function (err) {
@@ -1031,15 +1036,15 @@ define([
             validateFromAndToDate: function (objFromDate, objToDate) {
                 var validationResult = commonjs.validateDateTimePickerRange(objFromDate, objToDate, false);
                 if($('#txtDate').val() == '' && $('#txtOtherDate').val() == ''){
-                    commonjs.showWarning('Please select date range')
+                    commonjs.showWarning("messages.warning.claims.dateRangeValidation")
                     return false;
                 }
                 if($('#txtDate').val() == ''){
-                    commonjs.showWarning('Please select from Date')
+                    commonjs.showWarning("messages.warning.claims.fromDateRangeValidation")
                     return false;
                 }
                 if($('#txtOtherDate').val() == ''){
-                    commonjs.showWarning('Please select to date')
+                    commonjs.showWarning("messages.warning.claims.dateRangeValidation")
                     return false;
                 }
                 if (!validationResult.valid) {
@@ -1073,14 +1078,11 @@ define([
             },
 
             billingCommentsReadonly: function () {
-                var self = this;
 
-                if ($('#txtCIBillingComment').prop('readonly')) {
-                    $('#txtCIBillingComment').removeAttr('readonly');
-                }
-                else {
-                    $('#txtCIBillingComment').attr('readonly', 'readonly');
-                }
+                var isReadOnly = $('#txtCIBillingComment').prop('readonly');
+
+                $('#txtCIBillingComment').prop('readonly', !isReadOnly);
+
             },
 
             getPaymentofCharge: function (charge_id) {
@@ -1109,7 +1111,7 @@ define([
 
                         }
                         else {
-                            commonjs.showStatus('No Payment to Show');
+                            commonjs.showStatus("messages.status.noMorePayment");
                         }
                     },
                     error: function (err) {
@@ -1145,7 +1147,7 @@ define([
                             });
                         }
                         else {
-                            commonjs.showStatus('No Payment to Show');
+                            commonjs.showStatus("messages.status.noMorePayment");
                         }
                     },
                     error: function (err) {
@@ -1157,9 +1159,9 @@ define([
             applyToggleInquiry: function (e) {
 
                 var self = this;
-                var $tblGrid = $('#tblClaimGridAll_Claims');
+                var $tblGrid = self.options.grid_id || null;
 
-                if (self.claim_id) {
+                if (self.claim_id && $tblGrid) {
 
                     var rowData = $($tblGrid, parent.document).find('tr#' + self.claim_id);
                     var nextRowData = $(e.target).attr('id') == 'btnPreviousInquiry' ? rowData.prev() : rowData.next();
@@ -1169,13 +1171,13 @@ define([
                         $(e.target).prop('disabled', true);
                         $($tblGrid, parent.document).closest('tr').find('tr#' + rowId);
 
-                        self.claimInquiryDetails(rowId, true, false);
+                        self.claimInquiryDetails(rowId, true, true);
                     } else {
-                        commonjs.showWarning('No more order found')
+                        commonjs.showWarning("messages.warning.claims.orderNotFound");
                     }
 
                 } else {
-                    commonjs.showWarning('Error on process claim');
+                    commonjs.showWarning("messages.errors.gridIdNotExists");
                 }
             },
 

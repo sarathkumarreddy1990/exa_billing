@@ -2823,7 +2823,11 @@ define(['jquery',
 
             showClaimInquiry: function (id, patient_id, from) {
                 self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
-                self.claimInquiryView.render(id, patient_id, from);
+                self.claimInquiryView.render({
+                    'claim_id': id,
+                    'patient_id': patient_id,
+                    'isFrom': 'payments'
+                });
             },
 
             getAppliedBalance: function (paymentId) {
