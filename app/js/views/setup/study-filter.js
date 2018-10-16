@@ -782,17 +782,11 @@ define([
                                     $('#ulListOrdFacility').empty();
                                     if (studyInfoJson.ordering_facility && studyInfoJson.ordering_facility.condition) {
                                         $("input:radio[name=ordFacility][value=" + studyInfoJson.ordering_facility.condition + "]").prop('checked', true);
-                                        var interval = 0;
-                                        var setSelection = function () {
-                                            for (var j = 0; j < studyInfoJson.ordering_facility.list.length; j++) {
-                                                if ($('#ulListOrdFacility li a[data-id="' + studyInfoJson.ordering_facility.list[j].id + '"]').length === 0) {
-                                                    $('#ulListOrdFacility').append('<li id="' + studyInfoJson.ordering_facility.list[j].id + '"><span>' + studyInfoJson.ordering_facility.list[j].text + '</span><a class="remove" data-id="' + studyInfoJson.ordering_facility.list[j].id + '"><span class="icon-ic-close"></span></a></li>')
-                                                }
+                                        for (var j = 0; j < studyInfoJson.ordering_facility.list.length; j++) {
+                                            if ($('#ulListOrdFacility li a[data-id="' + studyInfoJson.ordering_facility.list[j].id + '"]').length === 0) {
+                                                $('#ulListOrdFacility').append('<li id="' + studyInfoJson.ordering_facility.list[j].id + '"><span>' + studyInfoJson.ordering_facility.list[j].text + '</span><a class="remove" data-id="' + studyInfoJson.ordering_facility.list[j].id + '"><span class="icon-ic-close"></span></a></li>')
                                             }
-                                            clearInterval(interval);
                                         }
-                                        // create an interval so that this code will run when the select is populated.
-                                        interval = setInterval(setSelection, 100);
                                     }
 
                                     $("input:radio[name=BodyPart][value=" + studyInfoJson.bodyPart.condition + "]").prop('checked', true);
