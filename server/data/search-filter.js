@@ -94,7 +94,7 @@ const colModel = [
     {
         name: 'gender',
         searchColumns: ['patients.gender'],
-        searchFlag: '%'
+        searchFlag: 'left%'
     },
     {
         name: 'accession_no',
