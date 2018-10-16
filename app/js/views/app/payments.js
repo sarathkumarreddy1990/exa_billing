@@ -317,6 +317,7 @@ define(['jquery',
                 }
                 commonjs.docResize();
                 commonjs.processPostRender({screen: 'Claim Workbench'});
+                commonjs.processPostRender({screen: 'Payments'});
             },
 
             getTotalAmount: function (from) {
