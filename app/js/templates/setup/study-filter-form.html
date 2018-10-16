@@ -227,7 +227,19 @@
                         <tbody>
                             <tr>
                                 <td>
-                                    <input type="radio" id="rbtPreformatted" name="DateTime" value="Preformatted"  class="form-check-input" checked/>
+                                    <div class="form-check-inline">
+                                        <input type="radio" class="form-check-input" id="rtbClaimDate" name="claimdate" value="claim_dt" checked>
+                                        <label class="form-check-label" for="rtbClaimDate" i18n="setup.studyFilters.claimDate"></label>
+                                    </div>
+                                    <div class="form-check-inline">
+                                        <input type="radio" class="form-check-input" id="rtbFirstStatementDate" name="claimdate" value="first_statement_dt">
+                                        <label class="form-check-label" for="rtbFirstStatementDate" i18n="setup.studyFilters.firstStatementDate"> </label>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input type="radio" id="rbtPreformatted" name="DateTime" value="Preformatted"  class="form-check-input"/>
                                     <label class="form-check-label" for="rbtPreformatted" i18n="setup.studyFilters.preformatted">preformatted</label>
                                 </td>
                                 <td>

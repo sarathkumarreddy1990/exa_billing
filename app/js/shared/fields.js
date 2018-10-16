@@ -551,7 +551,21 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                       "width": 200
                     }
 
-                  }
+                  },
+                  "First Statement Date": {
+                    "id": 29,
+                    "field_code": "first_statement_dt",
+                    "field_name": "First Statement Date",
+                    "i18n_name": "setup.userSettings.firstStatementDate",
+                    "field_info": {
+                        "name": "first_statement_dt",
+                        "formatter": function (cellvalue) {
+                            return commonjs.checkNotEmpty(cellvalue) ? commonjs.getFormattedUtcDate(cellvalue) : '';
+                        },
+                        "width": "150",
+                        "searchFlag": "datetime"
+                    }
+                }
 
 
             });

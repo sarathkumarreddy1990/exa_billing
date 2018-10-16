@@ -330,6 +330,18 @@
                 "width": 100
             },
             "id": 28
+        },
+        {
+            "field_code": "first_statement_dt",
+            "field_name": "First Statement Date",
+            "i18n_name": "setup.userSettings.firstStatementDate",
+            "field_info": {
+                "name": "first_statement_dt",
+                "searchFlag": "datetime",
+                "formatter": "self.claimDateFormatter",
+                "width": 200
+            },
+            "id": 29
         }
     ],
     "study_fields": [
