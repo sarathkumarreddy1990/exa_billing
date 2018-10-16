@@ -9,7 +9,10 @@
             "claimStatusChanged": "Claim Status has been changed",
             "billingCodeChanged": "Billing Code has been changed",
             "billingClassChanged": "Billing Class has been changed",
-            "claimPayerCompleted": "Payer Changed successfully"
+            "claimPayerCompleted": "Payer Changed successfully",
+            "noMorePayment": "No Payment to Show",
+            "commentDeleted": "Comment Deleted Successfully",
+            "recordSaved": "Record Saved Successfully"
         },
         "errors": {
             "notconnected": "Not connected",
@@ -18,7 +21,11 @@
             "someerror": "Internal error",
             "accessdenied": "No rights",
             "invalidDateTimeError": "Invalid datetime format in selected records",
-            "gridIdNotExists": "Error on getting grid id"
+            "gridIdNotExists": "Error on getting grid id",
+            "errorOnChargeDeletion": "Problem on deleting charge",
+            "invalidPokitdokIp": "Invalid Pokitdok Client Ip",
+            "errorOnClaimValidation": "Error on claim validation",
+            "errorOnNextPrev": "Error on process claim"
         },
         "warning": {
             "claims": {
@@ -41,7 +48,24 @@
                 "claimValidationFailed" : "Some records failed on validation",
                 "selectClaimToCreate":"Please select record for batch claim",
                 "selectSingleRecord":"Please select single billed status",
-                "selectUnbilledRecord":"Please select same unbilled status or single billed status"
+                "orderNotFound":"No more order found",
+                "missingCommentValidation":"Please add comments",
+                "dateRangeValidation":"Please select date range",
+                "fromDateRangeValidation":"Please select from Date",
+                "toDateRangeValidation":"Please select to Date",
+                "claimChargeRequired":"Claim should have one charge",
+                "chargeDeleteValidation":"Charge has payment, please unapply before delete",
+                "selectICDCode": "Please select one icd code",
+                "selectClaimDate" : "Please select claim date",
+                "selectPriInsurance" : "Please select primary insurance",
+                "selectSecInsurance" : "Please select secondary insurance",
+                "modifiersRequired" : "Please enter modifiers in required position",
+                "pointerRequired" : "Please enter valid pointer in required position",
+                "modifierValidation" : "Please enter valid modifiers in required position",
+                "unitsValidation" : "Please enter valid unit(s)",
+                "selectCPTValidation" : "Please select any cpt code in added line items",
+                "selectStudyValidation" : "Please select study"
+
             },
             "setup": {
                 "selectitemstodelete": "Select Message To Delete",
@@ -62,7 +86,8 @@
             "pleaseWait": "Please wait...",
             "searching": "Searching...",
             "gettingCharts": "Getting charts. Please wait...",
-            "savingPrintOrderInfoDefaults": "Saving defaults ..."
+            "savingPrintOrderInfoDefaults": "Saving defaults ...",
+            "connectingPokitdok": "Connecting pokitdok. please wait..."
         },
         "confirm": {
             "button": {
@@ -79,12 +104,16 @@
                 "problemReferenced": "Problem Referenced",
                 "problemReferencedAreYouSure": "Problem is being referenced in Charge Payments.  Are you sure that you want to delete?",
                 "insuranceReferencedAreYouSure": "This insurance assigned as current Responsible.  Are you sure that you want to delete?",
-                "insuranceAreYouSure": "Are you sure that you want to delete?",
+                "deletionConfirmation": "Are you sure that you want to delete?",
                 "mediCarePayer": "Please select medicare payer type",
                 "ruleNode": "This node does not contain any rule",
                 "ruleSaved": "Rule Saved successfully",
                 "ruleUpdated": "Rule Updated successfully",
-                "ruleDeleted": "Rule deleted successfully"
+                "ruleDeleted": "Rule deleted successfully",
+                "duplicateCode": "Code already exists. Do you want to add",
+                "icdConvertion9to10": "Do you want to show the corresponding ICD-10 codes for ICD-9",
+                "changeAddressDetails": "You Need to Change address details?",
+                "claimWithOutExam": "The selected patient does not examine. Do you want to process without studying?"
             },
             "payments": {
                 "overwriteRefund": "Overwrite Refund",
