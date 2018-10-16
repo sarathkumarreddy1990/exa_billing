@@ -280,6 +280,9 @@ define(['jquery',
                                 $("#divAmountTotal").html('');
                                 $("#divAppliedTotal").html('');
                                 $("#divAdjTotal").html('');
+                                $("#divAmountTotal").html('$0.00');
+                                $("#divAppliedTotal").html('$0.00');
+                                $("#divAdjTotal").html('$0.00');
                             }
                         },
                         disablesearch: false,
@@ -313,6 +316,7 @@ define(['jquery',
                     this.paymentTable.refresh();
                 }
                 commonjs.docResize();
+                commonjs.processPostRender({screen: 'Claim Workbench'});
             },
 
             getTotalAmount: function (from) {
