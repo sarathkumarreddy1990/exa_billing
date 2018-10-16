@@ -316,7 +316,6 @@ define(['jquery',
                     this.paymentTable.refresh();
                 }
                 commonjs.docResize();
-                commonjs.processPostRender({screen: 'Claim Workbench'});
                 commonjs.processPostRender({screen: 'Payments'});
             },
 
