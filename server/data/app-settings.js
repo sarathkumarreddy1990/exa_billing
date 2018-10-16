@@ -18,7 +18,6 @@ module.exports = {
                                     FROM   facilities
                                     WHERE  company_id=${companyID}
                                     AND    NOT has_deleted
-                                    AND    is_active
                                     ORDER BY
                                         facility_name )AS facilities )
                     , cte_company AS(
@@ -317,7 +316,7 @@ module.exports = {
                             can_edit
                             AND NOT study_status.has_deleted
                             AND company_id = ${companyID}
-                        ORDER BY status_code ASC 
+                        ORDER BY status_code ASC
                     ) AS custom_study_status)
                SELECT *
                FROM   cte_company,
