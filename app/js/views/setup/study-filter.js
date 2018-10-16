@@ -534,7 +534,7 @@ define([
                             if(Array.from($('#ulListOrdFacility li a')).some(function (prevResult) {
                                 return $(prevResult).attr('data-id') === $('#btnAddOrdFacility').attr('data-id');
                             }, false)) {
-                                commonjs.showError("Ordering Facility is already selected");
+                                commonjs.showError("billing.payments.alreadySelectedOF");
                                 return false;
                             }
 
@@ -595,7 +595,7 @@ define([
                             if(Array.from($('#ulListClaimOrdFacility li a')).some(function (prevResult) {
                                 return $(prevResult).attr('data-id') === $('#btnAddClaimOrdFacility').attr('data-id');
                             }, false)) {
-                                commonjs.showError("Ordering Facility is already selected");
+                                commonjs.showError("billing.payments.alreadySelectedOF");
                                 return false;
                             }
 

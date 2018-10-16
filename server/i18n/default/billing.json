@@ -211,7 +211,8 @@
             "searchCarrier": "Search Carrier",
             "searchPatient": "Search Patient",
             "searchOrderingFacility": "Search Ordering Facility",
-            "searchProvider": "Search Provider"
+            "searchProvider": "Search Provider",
+            "alreadySelectedOF": "Ordering Facility is already selected"
         },
         "refund": {
             "scheduleDate": "Schedule Date",
