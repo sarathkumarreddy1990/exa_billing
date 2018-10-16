@@ -893,17 +893,11 @@ define([
                                     var claimOrderingFacilityJson = response.filter_info.ClaimInformation.ordering_facility || [];
                                     if (claimOrderingFacilityJson && claimOrderingFacilityJson.condition) {
                                         $("input:radio[name=ordFacility][value=" + claimOrderingFacilityJson.condition + "]").prop('checked', true);
-                                        var interval = 0;
-                                        var setSelection = function () {
-                                            for (var j = 0; j < claimOrderingFacilityJson.list.length; j++) {
-                                                if ($('#ulListClaimOrdFacility li a[data-id="' + claimOrderingFacilityJson.list[j].id + '"]').length === 0) {
-                                                    $('#ulListClaimOrdFacility').append('<li id="' + claimOrderingFacilityJson.list[j].id + '"><span>' + claimOrderingFacilityJson.list[j].text + '</span><a class="remove" data-id="' + claimOrderingFacilityJson.list[j].id + '"><span class="icon-ic-close"></span></a></li>')
-                                                }
+                                        for (var j = 0; j < claimOrderingFacilityJson.list.length; j++) {
+                                            if ($('#ulListClaimOrdFacility li a[data-id="' + claimOrderingFacilityJson.list[j].id + '"]').length === 0) {
+                                                $('#ulListClaimOrdFacility').append('<li id="' + claimOrderingFacilityJson.list[j].id + '"><span>' + claimOrderingFacilityJson.list[j].text + '</span><a class="remove" data-id="' + claimOrderingFacilityJson.list[j].id + '"><span class="icon-ic-close"></span></a></li>')
                                             }
-                                            clearInterval(interval);
-                                        };
-                                        // create an interval so that this code will run when the select is populated.
-                                        interval = setInterval(setSelection, 100);
+                                        }
                                     }
                                 }
                             }
