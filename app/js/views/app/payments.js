@@ -277,9 +277,6 @@ define(['jquery',
                                 self.getTotalAmount(self.from);
                             }
                             else {
-                                $("#divAmountTotal").html('');
-                                $("#divAppliedTotal").html('');
-                                $("#divAdjTotal").html('');
                                 $("#divAmountTotal").html('$0.00');
                                 $("#divAppliedTotal").html('$0.00');
                                 $("#divAdjTotal").html('$0.00');
