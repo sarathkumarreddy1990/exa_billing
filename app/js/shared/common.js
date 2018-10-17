@@ -4947,6 +4947,8 @@ var commonjs = {
      *
      */
     makeValue: function (array, val, propOne, propTwo) {
+        if (!(array && array.length)) return { '': 'All' };
+
         var Collection = Backbone.Collection.extend({
             model: Backbone.Model.extend({})
         });

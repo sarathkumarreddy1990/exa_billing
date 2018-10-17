@@ -201,6 +201,9 @@ define(['jquery',
                     sort: true
                 });
 
+                var payment_mode = { "": "All", "Cash": "Cash", "Card": "Card", "Check": "Check", "EFT": "EFT", "Adjustment": "Adjustments" };
+                var facilities = commonjs.makeValue(commonjs.getCurrentUsersFacilitiesFromAppSettings(), ":All;", "id", "facility_name");
+
                 $('#liPendingPayments').removeClass('active');
                 $('#divPayments,#ulPaymentTab #liPayments').addClass('active');
                 $('#ulPaymentTab #liPendingPayments').hide();
@@ -249,8 +252,8 @@ define(['jquery',
                             { name: 'adjustment_amount', width: 215, hidden: showGridColumn, validateMoney : true },
                             { name: 'notes', width: 215, hidden: !showGridColumn },
                             { name: 'user_full_name', width: 215 },
-                            { name: 'payment_mode', width: 200, formatter: self.paymentModeFormatter },
-                            { name: 'facility_name', width: 200 },
+                            { name: 'payment_mode', width: 215, stype: 'select', formatter: self.paymentModeFormatter, stype: 'select', "searchoptions": { "value": payment_mode, "tempvalue": payment_mode } },
+                            { name: 'facility_name', width: 200, stype: 'select', "searchoptions": { "value": facilities, "tempvalue": facilities } },
                             { name: 'total_amount', hidden: true },
                             { name: 'total_applied', hidden: true },
                             { name: 'total_adjustment', hidden: true }
