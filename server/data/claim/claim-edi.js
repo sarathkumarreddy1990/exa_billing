@@ -658,7 +658,7 @@ module.exports = {
 					modifier3.code as "modifier3",
 					modifier4.code as "modifier4",
 					sum(pa.amount)::numeric::text as "paidAmount",
-					max(payments.accounting_date) as "accountingDt",
+                    to_char(max(payments.accounting_date), 'YYYYMMDD') as "accountingDt",
 					charges.units as "unit"
 					,(SELECT Json_agg(Row_to_json(lineAdjustment)) "lineAdjustment"
 									FROM
