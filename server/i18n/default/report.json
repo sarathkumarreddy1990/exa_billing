@@ -28,7 +28,7 @@
         "userRole": "User Role",
         "payertype": "Payer Type",
         "paymentMode": "Payment Mode",
-        "summary": "Summary",
+        "summary": "Report Summary",
         "statementstate": "Statement Date",
         "statementmode": "Statement Mode",
         "minamount": "Min Amount",
@@ -40,6 +40,16 @@
         "insuranceProvider": "Insurance Provider",
         "cpt": "CPT",
         "commentDate" : "Comment Date",
-        "providerGroups" : "Provider Group"
+        "providerGroups" : "Provider Group",
+        "claimDateBetween": "Claim Date",
+        "noDateSpecified":"No Date Specified",
+        "showInactive" : "Show Inactive",
+        "inactiveYes" : "Yes",
+        "inactiveNo" : "No",
+        "paymentStatus": "Payment  Status",
+        "applied": "Fully Applied",
+        "unapplied": "Unapplied",
+        "partialApplied": "Partially Applied",
+        "overApplied": "Over Applied"
     }
 }

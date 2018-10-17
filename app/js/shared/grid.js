@@ -171,19 +171,13 @@ define('grid', [
             }
 
             if (isbilled_status && isUnbilled_status) {
-                commonjs.showWarning("Please select same unbilled status or single billed status");
+                commonjs.showWarning('messages.warning.claims.selectUnbilledRecord');
                 $divObj.hide();
                 return false;
             }
 
             if (isbilled_status && selectedStudies.length > 1) {
-                commonjs.showWarning("Please select single billed status");
-                $divObj.hide();
-                return false;
-            }
-
-            if (isbilled_status && selectedStudies.length > 1) {
-                commonjs.showWarning("Please select single billed status");
+                commonjs.showWarning('messages.warning.claims.selectSingleRecord');
                 $divObj.hide();
                 return false;
             }
@@ -204,6 +198,8 @@ define('grid', [
                         }
                     }
                 });
+
+                // Claim status updation
                 $.each(app.claim_status, function (index, claimStatus) {
                     var $claimStatusLink = $(commonjs.getRightClickMenu('ancclaimStatus_' + claimStatus.id,'setup.rightClickMenu.billingCode',true,claimStatus.description ,false));
                         $claimStatusLink.click(function () {
@@ -217,8 +213,28 @@ define('grid', [
                                     process:"Claim Status"
                                 },
                                 success: function (data, response) {
-                                    commonjs.showStatus('Claim Status has been changed');
-                                    $("#btnClaimsRefresh").click();
+
+                                    if (data && data.length) {
+                                        commonjs.showStatus('messages.status.claimStatusChanged');
+                                        var colorCodeDetails = commonjs.getClaimColorCodeForStatus(claimStatus.code, 'claim');
+                                        var color_code = colorCodeDetails && colorCodeDetails.length && colorCodeDetails[0].color_code || 'transparent';
+                                        var tblId = gridID.replace(/#/, '');
+                                        var cells = [
+                                            {
+                                                'field': 'claim_status',
+                                                'data': claimStatus.description,
+                                                'css': {
+                                                    "backgroundColor": color_code
+                                                }
+                                            }
+                                        ];
+
+                                        _.each(data, function (obj) {
+                                            var $claimGrid = $(gridID + ' tr#' + obj.id);
+                                            var $td = $claimGrid.children('td');
+                                            commonjs.setGridCellValue(cells, $td, tblId)
+                                        });
+                                    }
                                 },
                                 error: function (err, response) {
                                     commonjs.handleXhrError(err, response);
@@ -229,6 +245,7 @@ define('grid', [
                 });
                 $('#ul_change_claim_status').append(liArray);
 
+                // Billing Code status updation
                 var liBillingCode = commonjs.getRightClickMenu('ul_change_billing_code','setup.rightClickMenu.billingCode',false,'Change Billing Code',true);
                 $divObj.append(liBillingCode);
                 self.checkSubMenuRights('li_ul_change_billing_code');
@@ -247,8 +264,14 @@ define('grid', [
                                     process:"Billing Code"
                                 },
                                 success: function (data, response) {
-                                    commonjs.showStatus('Billing Code has been changed');
-                                    $("#btnClaimsRefresh").click();
+
+                                    if (data && data.length) {
+                                        commonjs.showStatus('messages.status.billingCodeChanged');
+                                        _.each(data, function (obj) {
+                                            $target.jqGrid('setCell', obj.id, 'billing_code', billing_code.description);
+                                        });
+                                    }
+
                                 },
                                 error: function (err, response) {
                                     commonjs.handleXhrError(err, response);
@@ -259,7 +282,7 @@ define('grid', [
                 });
                 $('#ul_change_billing_code').append(liArrayBillingCode);
 
-
+                // Billing class updation
                 var liBillingClass = commonjs.getRightClickMenu('ul_change_billing_class','setup.rightClickMenu.billingClass',false,'Change Billing Class',true);
                 $divObj.append(liBillingClass);
                 self.checkSubMenuRights('li_ul_change_billing_class');
@@ -277,8 +300,12 @@ define('grid', [
                                         process:"Billing Class"
                                     },
                                     success: function (data, response) {
-                                        commonjs.showStatus('Billing Classes has been changed');
-                                        $("#btnClaimsRefresh").click();
+                                        if (data && data.length) {
+                                            commonjs.showStatus('messages.status.billingClassChanged');
+                                            _.each(data, function (obj) {
+                                                $target.jqGrid('setCell', obj.id, 'billing_class', billing_class.description);
+                                            });
+                                        }
                                     },
                                     error: function (err, response) {
                                         commonjs.handleXhrError(err, response);
@@ -352,7 +379,7 @@ define('grid', [
                                         },
                                         success: function (data, response) {
                                             if(data) {
-                                                commonjs.showStatus("Payer Changed Succesfully");
+                                                commonjs.showStatus('messages.status.claimPayerCompleted');
                                                 $target.jqGrid('setCell',rowID,'payer_type', payer_type);
                                             }
                                         },
@@ -384,7 +411,8 @@ define('grid', [
                         'study_id': study_id,
                         'patient_name': selectedStudies[0].patient_name,
                         'patient_id': selectedStudies[0].patient_id,
-                        'order_id': 0
+                        'order_id': 0,
+                        'grid_id': gridID
                     });
                 });
 
@@ -454,9 +482,14 @@ define('grid', [
                     }
 
                     self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
-                    self.claimInquiryView.render(studyIds,selectedStudies[0].patient_id, false);
-                });
+                    self.claimInquiryView.render({
+                        'claim_id': studyIds,
+                        'patient_id': selectedStudies[0].patient_id,
+                        'grid_id': gridID,
+                        'source': 'claims'
+                    });
 
+                });
 
                 var liPatientClaimInquiry = commonjs.getRightClickMenu('anc_patient_claim_inquiry','setup.rightClickMenu.patientClaims',false,'Patient Claims',false);
                 if(studyArray.length == 1)
@@ -627,7 +660,7 @@ define('grid', [
                             window.localStorage.setItem('selected_studies', JSON.stringify(studyIds));
 
                             self.claimView = new claimsView();
-                            self.claimView.showClaimForm(studyIds, 'studies');
+                            self.claimView.showClaimForm({ 'grid_id': gridID }, 'studies');
 
                         });
                     }
@@ -642,7 +675,8 @@ define('grid', [
                             'study_id': selectedStudies[0].claim_id,
                             'patient_name': selectedStudies[0].patient_name,
                             'patient_id': selectedStudies[0].patient_id,
-                            'order_id': 0
+                            'order_id': 0,
+                            'grid_id': gridID
                         });
                     });
                 }
@@ -657,6 +691,10 @@ define('grid', [
         self.batchClaim = function () {
             var $checkedInputs = $tblGrid.find('input').filter('[name=chkStudy]:checked');
             var selectedCount = $checkedInputs.length;
+            var currentFilter = commonjs.studyFilters.find(function (filter) {
+                return filter.filter_id == commonjs.currentStudyFilter;
+            });
+
             batchClaimArray = [];
             for (var r = 0; r < selectedCount; r++) {
                 var rowId = $checkedInputs[r].parentNode.parentNode.id;
@@ -691,7 +729,7 @@ define('grid', [
                         company_id: app.companyID
                     },
                     success: function (data, response) {
-                        commonjs.showStatus('Batch Claim created successfully');
+                        commonjs.showStatus('messages.status.batchClaimCompleted');
                         commonjs.hideLoading();
 
                         var claim_id = data && data.length && data[0].create_claim_charge || null;
@@ -714,8 +752,10 @@ define('grid', [
                                 var setCell = changeGrid.setCell($row);
 
                                 setCell(cells);
-                                // If studies grid has Unbilled filter means remove row from grid
-                                if ($('#gs_billed_status').val() === 'unbilled') {
+                                // In user filter Billed Status selected as unbilled means, After claim creation hide from grid.
+                                var isBilledStatus = currentFilter.filter_info && currentFilter.filter_info.studyInformation && currentFilter.filter_info.studyInformation.billedstatus === 'unbilled' || false;
+
+                                if ($('#gs_billed_status').val() === 'unbilled' || isBilledStatus) {
                                     $row.remove();
                                 }
 
@@ -728,8 +768,8 @@ define('grid', [
                         commonjs.hideLoading();
                     }
                 });
-            }else{
-                commonjs.showWarning("Please select record for batch claim");
+            } else {
+                commonjs.showWarning('messages.warning.claims.selectClaimToCreate');
             }
         },
 
@@ -837,7 +877,8 @@ define('grid', [
                                 'study_id': rowID,
                                 'patient_name': gridData.patient_name,
                                 'patient_id': gridData.patient_id,
-                                'order_id': gridData.order_id
+                                'order_id': gridData.order_id,
+                                'grid_id': gridID
                             });
 
                             return false;
@@ -863,7 +904,11 @@ define('grid', [
                             'needShrink': true
                         });
                         self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
-                        self.claimInquiryView.render(rowID, '', false);
+                        self.claimInquiryView.render({
+                            'claim_id': rowID,
+                            'grid_id': gridID,
+                            'source': 'claims'
+                        });
                     }
                 },
                 {
@@ -1229,7 +1274,8 @@ define('grid', [
                                 'study_id': study_id,
                                 'patient_name': gridData.patient_name,
                                 'patient_id': gridData.patient_id,
-                                'order_id': order_id
+                                'order_id': order_id,
+                                'grid_id': gridID
                             });
                         });
                     } else {
@@ -1249,7 +1295,7 @@ define('grid', [
                             window.localStorage.setItem('primary_study_details', JSON.stringify(study));
                             window.localStorage.setItem('selected_studies', JSON.stringify(rowID));
                             self.claimView = new claimsView();
-                            self.claimView.showClaimForm(null, 'studies');
+                            self.claimView.showClaimForm({ 'grid_id': gridID }, 'studies');
                         }
                     }
                 },

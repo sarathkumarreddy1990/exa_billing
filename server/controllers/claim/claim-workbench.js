@@ -200,7 +200,7 @@ module.exports = {
                 notes = 'Paper claim (B&W) to ';
                 break;
             case 'patient_invoice':
-                notes = 'Patient Payment  to ';
+                notes = 'Patient Invoice  printed ';
                 break;
         }
 

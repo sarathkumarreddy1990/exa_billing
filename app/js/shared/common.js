@@ -4947,6 +4947,8 @@ var commonjs = {
      *
      */
     makeValue: function (array, val, propOne, propTwo) {
+        if (!(array && array.length)) return { '': 'All' };
+
         var Collection = Backbone.Collection.extend({
             model: Backbone.Model.extend({})
         });
@@ -5168,7 +5170,28 @@ var commonjs = {
                 more: data && data.length ? (params.page * 10) < data[0].total_records : 0
             }
         };
+    },
+
+    setGridCellValue: function(cells, $td, tblID){
+
+        for (var j = 0; j < cells.length; ++j) {
+
+            var $cell = $td.filter('[aria-describedby="' + tblID + '_' + cells[j].field + '"]');
+            $cell.html(cells[j].data)
+                .attr('title', $.jgrid.stripHtml(cells[j].data));
+
+            if (typeof cells[j].css === 'object') {
+                $cell.css(cells[j].css);
+            }
+        }
+    },
+
+    getPlaceHolderForSearch: function () {
+        $select2Container1 = $('.select2-container--open');
+        var $searchfield = $select2Container1.children().find('.select2-search__field');
+        $searchfield.prop('placeholder', 'Type to search');
     }
+    
 };
 
 

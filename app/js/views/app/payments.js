@@ -201,6 +201,9 @@ define(['jquery',
                     sort: true
                 });
 
+                var payment_mode = { "": "All", "Cash": "Cash", "Card": "Card", "Check": "Check", "EFT": "EFT", "Adjustment": "Adjustments" };
+                var facilities = commonjs.makeValue(commonjs.getCurrentUsersFacilitiesFromAppSettings(), ":All;", "id", "facility_name");
+
                 $('#liPendingPayments').removeClass('active');
                 $('#divPayments,#ulPaymentTab #liPayments').addClass('active');
                 $('#ulPaymentTab #liPendingPayments').hide();
@@ -243,14 +246,14 @@ define(['jquery',
                             { name: 'payer_type', width: 215, stype: 'select', formatter: self.payerTypeFormatter, searchoptions: { value: payerTypeValue } },
                             { name: 'payer_name', width: 300 },
                             { name: 'account_no', width:300, hidden: !showGridColumn },
-                            { name: 'amount', width: 215 },
-                            { name: 'applied', width: 215, hidden: showGridColumn },
-                            { name: 'available_balance', width: 215 },
-                            { name: 'adjustment_amount', width: 215, hidden: showGridColumn },
+                            { name: 'amount', width: 215, validateMoney : true },
+                            { name: 'applied', width: 215, hidden: showGridColumn, validateMoney : true },
+                            { name: 'available_balance', width: 215, validateMoney : true },
+                            { name: 'adjustment_amount', width: 215, hidden: showGridColumn, validateMoney : true },
                             { name: 'notes', width: 215, hidden: !showGridColumn },
                             { name: 'user_full_name', width: 215 },
-                            { name: 'payment_mode', width: 200, formatter: self.paymentModeFormatter },
-                            { name: 'facility_name', width: 200 },
+                            { name: 'payment_mode', width: 215, stype: 'select', formatter: self.paymentModeFormatter, stype: 'select', "searchoptions": { "value": payment_mode, "tempvalue": payment_mode } },
+                            { name: 'facility_name', width: 200, stype: 'select', "searchoptions": { "value": facilities, "tempvalue": facilities } },
                             { name: 'total_amount', hidden: true },
                             { name: 'total_applied', hidden: true },
                             { name: 'total_adjustment', hidden: true }
@@ -290,10 +293,10 @@ define(['jquery',
                         disablereload: true,
                         customargs: {
                             paymentStatus: $("#ulPaymentStatus").val(),
-                            from : self.from === 'ris'? 'ris' : '',
-                            toDate : moment().format("L"),
-                            fromDate : moment().subtract(29, 'days').format("L"),
-                            filterByDateType : 'accounting_date'
+                            from: self.from === 'ris' ? 'ris' : '',
+                            toDate: moment().format('YYYY-MM-DD'),
+                            fromDate: moment().subtract(29, 'days').format('YYYY-MM-DD'),
+                            filterByDateType: 'accounting_date'
                         },
                         afterInsertRow: function (rowid, rowdata) {
                             if (rowdata.current_status) {
@@ -324,7 +327,10 @@ define(['jquery',
                     sortField: self.pager.get("SortField"),
                     sortOrder: self.pager.get("SortOrder"),
                     default_facility_id: app.userInfo.default_facility_id,
-                    from: from
+                    from: from,
+                    toDate: moment().format('YYYY-MM-DD'),
+                    fromDate: moment().subtract(29, 'days').format('YYYY-MM-DD'),
+                    filterByDateType: 'accounting_date'
                 };
 
                 jQuery.ajax({
