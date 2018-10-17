@@ -643,7 +643,8 @@ module.exports = {
 					,(SELECT Json_agg(Row_to_json(lineAdjudication)) "lineAdjudication"
 									FROM
 					(SELECT
-					display_code as "cpt",
+                    display_code as "cpt",
+                    to_char(max(payments.accounting_date), 'YYYYMMDD') as "accountingDt",
                     charges.id as "chargeID",
                     insurance_info->'PayerID' as "claimPayerID",
                     (SELECT insurance_info->'PayerID' FROM    patient_insurances p_pi
@@ -658,7 +659,6 @@ module.exports = {
 					modifier3.code as "modifier3",
 					modifier4.code as "modifier4",
 					sum(pa.amount)::numeric::text as "paidAmount",
-					max(payments.accounting_date) as "accountingDt",
 					charges.units as "unit"
 					,(SELECT Json_agg(Row_to_json(lineAdjustment)) "lineAdjustment"
 									FROM
