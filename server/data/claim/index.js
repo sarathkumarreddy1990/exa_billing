@@ -730,11 +730,13 @@ module.exports = {
                                 ,study_dt
                                 ,facilities.facility_name
                             FROM studies
-                            LEFT JOIN orders ON orders.id=studies.order_id
-                            INNER JOIN facilities ON studies.facility_id=facilities.id
+                                LEFT JOIN orders ON orders.id=studies.order_id
+                                INNER JOIN facilities ON studies.facility_id=facilities.id
                             WHERE
-                            studies.has_deleted=False AND studies.patient_id = ${id}
-                            AND NOT EXISTS ( SELECT 1 FROM billing.charges_studies WHERE study_id = studies.id )
+                                NOT studies.has_deleted
+                                AND study_dt IS NOT NULL
+                                AND studies.patient_id = ${id}
+                                AND NOT EXISTS ( SELECT 1 FROM billing.charges_studies WHERE study_id = studies.id )
                             ORDER BY id ASC
                     ) AS charge
             ) charge_details
