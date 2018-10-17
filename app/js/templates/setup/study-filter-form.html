@@ -1307,118 +1307,204 @@
                     <b><label i18n="setup.claimFilter.DateTime"></label></b>
                 </div>
             </div>
-            <div class="form-group row col-md-12" id="divClaimInformation">
-                <b><label for="txtInsurance" i18n="setup.claimFilter.claimStatus"></label></b>
-                <div class="col-form-label col-md-12 col-sm-12 form-inline">
-                    <div class="col-md-2 col-sm-2">
-                        <div class="form-group row">
-                            <div class="form-list col-md-6 col-sm-6">
-                                <input type="radio" id="rbtISClaimInfo" name="ClaimInfo" value="Is" class="form-check-input">
-                                <label for="rbtISClaimInfo" class="form-check-label"
-                                       i18n="setup.studyFilters.is"></label>
+            <ul class="form-list col-md-6 col-sm-6">
+                <li>
+                    <div class="form-group row col-md-12" id="divClaimInformation">
+                        <b><label for="txtInsurance" i18n="setup.claimFilter.claimStatus"></label></b>
+                        <div class="col-form-label col-md-12 col-sm-12 form-inline">
+                            <div class="col-md-2 col-sm-2">
+                                <div class="form-group row">
+                                    <div class="form-list col-md-6 col-sm-6">
+                                        <input type="radio" id="rbtISClaimInfo" name="ClaimInfo" value="Is" class="form-check-input">
+                                        <label for="rbtISClaimInfo" class="form-check-label" i18n="setup.studyFilters.is"></label>
+                                    </div>
+                                    <div class="form-list col-md-6 col-sm-6">
+                                        <input type="radio" id="rbtISNotClaimInfo" name="ClaimInfo" value="IsNot" class="form-check-input">
+                                        <label for="rbtISNotClaimInfo" class="form-check-label" i18n="setup.studyFilters.isNot"></label>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="form-list col-md-6 col-sm-6">
-                                <input type="radio" id="rbtISNotClaimInfo" name="ClaimInfo" value="IsNot" class="form-check-input">
-                                <label for="rbtISNotClaimInfo" class="form-check-label"
-                                       i18n="setup.studyFilters.isNot"></label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-8 col-sm-8">
-                        <div class="row">
-                            <div class="col-form-label col-md-4 col-sm-4">
-                                <select multiple="multiple" id="listClaimInfo" class="form-control"
-                                        style="height:80px; width:220px"></select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="form-group row col-md-12" id="divBillingMethod">
-                <b><label for="txtInsurance" i18n="setup.claimFilter.billingMethod"></label></b>
-                <div class="col-form-label col-md-12 col-sm-12 form-inline">
-                    <div class="col-md-2 col-sm-2">
-                        <div class="form-group row">
-                            <div class="form-list col-md-6 col-sm-6">
-                                <input type="radio" id="rbtISBillingMethod" name="BillingMethod" value="Is" class="form-check-input">
-                                <label for="rbtISBillingMethod" class="form-check-label"
-                                       i18n="setup.studyFilters.is"></label>
-                            </div>
-                            <div class="form-list col-md-6 col-sm-6">
-                                <input type="radio" id="rbtISNotBillingMethod" name="BillingMethod" value="IsNot" class="form-check-input">
-                                <label for="rbtISNotBillingMethod" class="form-check-label"
-                                       i18n="setup.studyFilters.isNot"></label>
+                            <div class="col-md-8 col-sm-8">
+                                <div class="row">
+                                    <div class="col-form-label col-md-4 col-sm-4">
+                                        <select multiple="multiple" id="listClaimInfo" class="form-control" style="height:80px; width:220px"></select>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-8 col-sm-8">
-                        <div class="row">
-                            <div class="col-form-label col-md-4 col-sm-4">
-                                <select multiple="multiple" id="listBillingMethod" class="form-control"
-                                        style="height:80px; width:220px"></select>
+                    <div class="form-group row col-md-12" id="divBillingMethod">
+                        <b><label for="txtInsurance" i18n="setup.claimFilter.billingMethod"></label></b>
+                        <div class="col-form-label col-md-12 col-sm-12 form-inline">
+                            <div class="col-md-2 col-sm-2">
+                                <div class="form-group row">
+                                    <div class="form-list col-md-6 col-sm-6">
+                                        <input type="radio" id="rbtISBillingMethod" name="BillingMethod" value="Is" class="form-check-input">
+                                        <label for="rbtISBillingMethod" class="form-check-label" i18n="setup.studyFilters.is"></label>
+                                    </div>
+                                    <div class="form-list col-md-6 col-sm-6">
+                                        <input type="radio" id="rbtISNotBillingMethod" name="BillingMethod" value="IsNot" class="form-check-input">
+                                        <label for="rbtISNotBillingMethod" class="form-check-label" i18n="setup.studyFilters.isNot"></label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-8 col-sm-8">
+                                <div class="row">
+                                    <div class="col-form-label col-md-4 col-sm-4">
+                                        <select multiple="multiple" id="listBillingMethod" class="form-control" style="height:80px; width:220px"></select>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-            <div class="form-group row col-md-12" id="divPayerType">
-                <b><label for="txtInsurance" i18n="setup.claimFilter.payerType"></label></b>
-                <div class="col-form-label col-md-12 col-sm-12 form-inline">
-                    <div class="col-md-2 col-sm-2">
-                        <div class="form-group row">
-                            <div class="form-list col-md-6 col-sm-6">
-                                <input type="radio" id="rbtISPayerType" name="PayerType" value="Is" class="form-check-input">
-                                <label for="rbtISPayerType" class="form-check-label"
-                                       i18n="setup.studyFilters.is"></label>
+                    <div class="form-group row col-md-12" id="divPayerType">
+                        <b><label for="txtInsurance" i18n="setup.claimFilter.payerType"></label></b>
+                        <div class="col-form-label col-md-12 col-sm-12 form-inline">
+                            <div class="col-md-2 col-sm-2">
+                                <div class="form-group row">
+                                    <div class="form-list col-md-6 col-sm-6">
+                                        <input type="radio" id="rbtISPayerType" name="PayerType" value="Is" class="form-check-input">
+                                        <label for="rbtISPayerType" class="form-check-label" i18n="setup.studyFilters.is"></label>
+                                    </div>
+                                    <div class="form-list col-md-6 col-sm-6">
+                                        <input type="radio" id="rbtISNotPayerType" name="PayerType" value="IsNot" class="form-check-input">
+                                        <label for="rbtISNotPayerType" class="form-check-label" i18n="setup.studyFilters.isNot"></label>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="form-list col-md-6 col-sm-6">
-                                <input type="radio" id="rbtISNotPayerType" name="PayerType" value="IsNot" class="form-check-input">
-                                <label for="rbtISNotPayerType" class="form-check-label"
-                                       i18n="setup.studyFilters.isNot"></label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-8 col-sm-8">
-                        <div class="row">
-                            <div class="col-form-label col-md-4 col-sm-4">
-                                <select multiple="multiple" id="listPayerType" class="form-control"
-                                        style="height:80px; width:220px"></select>
+                            <div class="col-md-8 col-sm-8">
+                                <div class="row">
+                                    <div class="col-form-label col-md-4 col-sm-4">
+                                        <select multiple="multiple" id="listPayerType" class="form-control" style="height:80px; width:220px"></select>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-            <div class="form-group row col-md-12" id="divBalance">
-                <b><label for="txtInsurance" i18n="setup.claimFilter.balance"></label></b>
-                <div class="col-form-label col-md-12 col-sm-12 form-inline">
-                    <div class="col-md-2 col-sm-2">
-                        <div class="form-group row">
-                            <div class="form-list col-md-6 col-sm-6">
-                                <input type="radio" id="rbtISBalance" name="Balance" value="Is" class="form-check-input">
-                                <label for="rbtISBalance" class="form-check-label"
-                                       i18n="setup.studyFilters.is"></label>
+                    <div class="form-group row col-md-12" id="divBalance">
+                        <b><label for="txtInsurance" i18n="setup.claimFilter.balance"></label></b>
+                        <div class="col-form-label col-md-12 col-sm-12 form-inline">
+                            <div class="col-md-2 col-sm-2">
+                                <div class="form-group row">
+                                    <div class="form-list col-md-6 col-sm-6">
+                                        <input type="radio" id="rbtISBalance" name="Balance" value="Is" class="form-check-input">
+                                        <label for="rbtISBalance" class="form-check-label" i18n="setup.studyFilters.is"></label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-8 col-sm-8">
+                                <div class="row">
+                                    <div class="col-form-label col-md-4 col-sm-4">
+                                        <select id="listBalance" class="form-control fc-short">
+                                            <option value="">Select</option>
+                                            <option value=">0">>0</option>
+                                            <option value="<0">
+                                                <0</option> <option value="=0">=0
+                                            </option>
+                                            <option value="|5">0-5</option>
+                                            <option value="|10">0-10</option>
+                                            <option value="|15">0-15</option>
+                                            <option value="|20">0-20</option>
+                                            <option value="|25">0-25</option>
+                                            <option value="|30">0-30</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-8 col-sm-8">
-                        <div class="row">
-                            <div class="col-form-label col-md-4 col-sm-4">
-                                <select id="listBalance" class="form-control fc-short">
-                                    <option value="">Select</option>
-                                    <option value=">0">>0</option>
-                                    <option value="<0"><0</option>
-                                    <option value="=0">=0</option>
-                                    <option value="|5">0-5</option>
-                                    <option value="|10">0-10</option>
-                                    <option value="|15">0-15</option>
-                                    <option value="|20">0-20</option>
-                                    <option value="|25">0-25</option>
-                                    <option value="|30">0-30</option>
-                                </select>
-                            </div>
+                </li>
+            </ul>
+            <ul class="form-list col-md-5 col-sm-5">
+                <li>
+                    <div>
+                        <div>
+                            <b><label for="listClaimFacility" i18n="setup.studyFilters.facility"></label></b>
                         </div>
+                        <table style="width:100%;">
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-2 col-sm-2 col-form-label">
+                                            <input type="radio" id="rbtIsClaimFacility" name="Facility" class="form-check-input" value="Is">
+                                            <label for="rbtIsClaimFacility" class="field-chk studyfilterLabel" i18n="setup.studyFilters.is"></label>
+                                        </div>
+                                        <div class="col-md-2 col-sm-2 col-form-label">
+                                            <input type="radio" id="rbtIsNotClaimFacility" name="Facility" class="form-check-input"
+                                                value="IsNot">
+                                            <label for="rbtIsNotClaimFacility" class="field-chk studyfilterLabel" i18n="setup.studyFilters.isNot"></label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="row">
+                                            <div class="col-form-label col-md-12 col-sm-12">
+                                                <select multiple="multiple" id="listClaimFacility" class="form-control" style="height:80px; width:220px">
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        &nbsp;
+                                    </td>
+                                    <td>
+            
+                                    </td>
+                                    <td>
+            
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                </div>
-            </div>
+                </li>
+                <li>
+                    <div>
+                        <div><b><label for="txtListClaimOrdFacility" i18n="setup.studyFilters.orderingFacility"></label></b></div>
+                        <table style="width:100%;">
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-2 col-sm-2 col-form-label">
+                                            <input type="radio" id="rbtIsClaimOrdFacility" name="ordFacility" class="form-check-input"
+                                                value="Is">
+                                            <label for="rbtIsClaimOrdFacility" class="field-chk studyfilterLabel" i18n="setup.studyFilters.is"></label>
+                                        </div>
+                                        <div class="col-md-2 col-sm-2 col-form-label">
+                                            <input type="radio" id="rbtIsNotClaimOrdFacility" name="ordFacility" class="form-check-input"
+                                                value="IsNot">
+                                            <label for="rbtIsNotClaimOrdFacility" class="field-chk studyfilterLabel" i18n="setup.studyFilters.isNot"></label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <ul id="ulListClaimOrdFacility" class="tagList" style="min-width:220px;height:140px;"></ul>
+                                            <div class="form-group row">
+                                                <div class="col-md-10 col-sm-10">
+                                                    <select id="ddlClaimOrdFacility" class="form-control select-box"></select></div>
+                                                <a class="btn btn-primary" id="btnAddClaimOrdFacility" title="Add Ordering Facility"
+                                                    style="padding-left: 10px; padding-right: 10px;">
+                                                    <i class="icon-ic-plus"></i></a>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        &nbsp;
+                                    </td>
+                                    <td>
+                                    </td>
+                                    <td>
+            
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </li>
+            </ul>
         </div>
+    </div>
 </form>
