@@ -569,7 +569,7 @@ define([
              // On change while select claim
             onChangeClaimSelection: function () {
                 var userListBox = $('#ddlClaimSelectBoxes').val();
-                if (userListBox.indexOf('UnPaid') > -1) {
+                if (userListBox.indexOf('Unpaid') > -1) {
                     $("#ddlUsers, #ddlUsersBox, #divUsers").addClass("invisible");
                     $('#ulListUsers').empty();
                     this.viewModel.userNames = [];
