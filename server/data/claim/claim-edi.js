@@ -116,38 +116,38 @@ module.exports = {
 									, t_ip.insurance_info->'ZipCode' AS "t_insurance_pro_zipCode"
 									, t_ip.insurance_name AS "t_insurance_pro_companyName"
 
-									, p_pi.subscriber_address_line1 AS "p_subscriber_addressLine1"
-									, p_pi.subscriber_city AS "p_subscriber_city"
+									, COALESCE (NULLIF(p_pi.subscriber_address_line1,'Migration Address'),'') AS "p_subscriber_addressLine1"
+									, COALESCE (NULLIF(p_pi.subscriber_city,'Migration City'),'') AS "p_subscriber_city"
 									, p_pi.subscriber_dob AS "p_subscriber_dob"
 									, COALESCE (NULLIF(p_pi.subscriber_firstname, ''), '')  AS "p_subscriber_firstName"
 									, COALESCE (NULLIF(p_pi.subscriber_middlename, ''), '')  AS "p_subscriber_middleName"
 									, COALESCE (NULLIF(p_pi.subscriber_name_suffix, ''), '')  AS "p_subscriber_suffixName"
 									, COALESCE (NULLIF(p_pi.subscriber_lastname, ''), '') AS "p_subscriber_lastName"
-									, COALESCE (NULLIF(p_pi.subscriber_gender, ''), '') AS "p_subscriber_gender"
-									, p_pi.subscriber_state AS "p_subscriber_state"
-									, p_pi.subscriber_zipcode AS "p_subscriber_zipCode"
+									, COALESCE (NULLIF(p_pi.subscriber_gender, 'Migration Gender'), '') AS "p_subscriber_gender"
+									, COALESCE (NULLIF(p_pi.subscriber_state,'Migration State'), '') AS "p_subscriber_state"
+									, COALESCE (NULLIF(p_pi.subscriber_zipcode, 'Migration ZipCode'), '') AS "p_subscriber_zipCode"
 
-									, s_pi.subscriber_address_line1 AS "s_subscriber_addressLine1"
-									, s_pi.subscriber_city AS "s_subscriber_city"
+									, COALESCE (NULLIF(s_pi.subscriber_address_line1 , 'Migration Address'), '') AS "s_subscriber_addressLine1"
+									, COALESCE (NULLIF(s_pi.subscriber_city , 'Migration City'), '') AS "s_subscriber_city"
 									, s_pi.subscriber_dob AS "s_subscriber_dob"
 									, COALESCE (NULLIF(s_pi.subscriber_firstname, ''), '')  AS "s_subscriber_firstName"
 									, COALESCE (NULLIF(s_pi.subscriber_middlename, ''), '')  AS "s_subscriber_middleName"
 									, COALESCE (NULLIF(s_pi.subscriber_name_suffix, ''), '')  AS "s_subscriber_suffixName"
 									, COALESCE (NULLIF(s_pi.subscriber_lastname, ''), '') AS "s_subscriber_lastName"
-									, COALESCE (NULLIF(s_pi.subscriber_gender, ''), '') AS "s_subscriber_gender"
-									, s_pi.subscriber_state AS "s_subscriber_state"
-									, s_pi.subscriber_zipcode AS "s_subscriber_zipCode"
+									, COALESCE (NULLIF(s_pi.subscriber_gender, 'Migration Gender'), '') AS "s_subscriber_gender"
+									, COALESCE (NULLIF(s_pi.subscriber_state,'Migration State') , '') AS "s_subscriber_state"
+									, COALESCE (NULLIF(s_pi.subscriber_zipcode , 'Migration ZipCode'),'') AS "s_subscriber_zipCode"
 
-									, t_pi.subscriber_address_line1 AS "t_subscriber_addressLine1"
-									, t_pi.subscriber_city AS "t_subscriber_city"
+									, COALESCE (NULLIF(t_pi.subscriber_address_line1, 'Migration Address'),'') AS "t_subscriber_addressLine1"
+									, COALESCE (NULLIF(t_pi.subscriber_city, 'Migration City'),'') AS "t_subscriber_city"
 									, t_pi.subscriber_dob AS "t_subscriber_dob"
 									, COALESCE (NULLIF(t_pi.subscriber_firstname, ''), '')  AS "t_subscriber_firstName"
 									, COALESCE (NULLIF(t_pi.subscriber_middlename, ''), '')  AS "t_subscriber_middleName"
 									, COALESCE (NULLIF(t_pi.subscriber_name_suffix, ''), '')  AS "t_subscriber_suffixName"
 									, COALESCE (NULLIF(t_pi.subscriber_lastname, ''), '') AS "t_subscriber_lastName"
-									, COALESCE (NULLIF(t_pi.subscriber_gender, ''), '') AS "t_subscriber_gender"
-									, t_pi.subscriber_state AS "t_subscriber_state"
-									, t_pi.subscriber_zipcode AS "t_subscriber_zipCode"
+									, COALESCE (NULLIF(t_pi.subscriber_gender, 'Migration Gender'), '') AS "t_subscriber_gender"
+									, COALESCE (NULLIF(t_pi.subscriber_state , 'Migration State'), '') AS "t_subscriber_state"
+									, COALESCE (NULLIF(t_pi.subscriber_zipcode , 'Migration ZipCode'), '') AS "t_subscriber_zipCode"
 									, (SELECT array_agg(row_to_json(pointer)) AS charge_pointer FROM (
 										SELECT ch.id, pointer1, claim_id, cpt.ref_code, cpt.display_description FROM billing.charges ch INNER JOIN public.cpt_codes cpt ON ch.cpt_id = cpt.id WHERE ch.claim_id = bc.id
 														 ) pointer) AS charge_pointer
@@ -642,7 +642,7 @@ module.exports = {
 					group_info->'cliaNumber' as "cliaNumber"
 					,(SELECT Json_agg(Row_to_json(lineAdjudication)) "lineAdjudication"
 									FROM
-					(SELECT
+                 (SELECT
                     display_code as "cpt",
                     to_char(max(payments.accounting_date), 'YYYYMMDD') as "accountingDt",
                     charges.id as "chargeID",
