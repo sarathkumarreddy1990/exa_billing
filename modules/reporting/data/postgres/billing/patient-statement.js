@@ -8,9 +8,12 @@ const _ = require('lodash')
 // generate query template ***only once*** !!!
 const patientStatementDataSetQueryTemplate = _.template(`
 WITH claim_data AS (
-    SELECT id AS claim_id
-    FROM billing.claims
-    WHERE payer_type = 'patient'
+    SELECT
+        bc.id AS claim_id
+    FROM billing.claims bc
+    INNER JOIN billing.claim_status bcs ON bcs.id = bc.claim_status_id
+    WHERE bc.payer_type = 'patient'
+    AND bcs.code NOT IN ('PV','CR','CIC')
     ),
 
     billing_comments AS (
