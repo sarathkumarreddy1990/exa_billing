@@ -18,7 +18,6 @@ module.exports = {
                                     FROM   facilities
                                     WHERE  company_id=${companyID}
                                     AND    NOT has_deleted
-                                    AND    is_active
                                     ORDER BY
                                         facility_name )AS facilities )
                     , cte_company AS(
