@@ -673,32 +673,38 @@ module.exports = {
 											INNER JOIN   billing.cas_reason_codes ON cas_reason_codes.id=cas_reason_code_id
 											INNER JOIN 	billing.payment_applications	 ON payment_applications.id=cas_payment_application_details.payment_application_id
 											INNER JOIN billing.payments ON  billing.payments.id=payment_applications.payment_id and payer_type='insurance' AND
-											payment_applications.charge_id = charges.id 		AND payment_applications.amount_type = 'adjustment'
-											WHERE
-												   cas_group_codes.code= gc.code	 ) as CAS )
-
-
+											payment_applications.charge_id = charges.id AND payment_applications.amount_type = 'adjustment'
+											INNER JOIN LATERAL ( SELECT
+                                                                                            i_pi.insurance_provider_id
+                                                                                            FROM patient_insurances i_pi
+                                                                                            WHERE i_pi.id = claims.primary_patient_insurance_id
+											                    ) AS ipi ON ipi.insurance_provider_id = payments.insurance_provider_id
+											WHERE cas_group_codes.code= gc.code ) AS CAS )
 											FROM  billing.cas_payment_application_details
-											INNER JOIN   billing.cas_group_codes ON cas_group_codes.id=cas_group_code_id
-											INNER JOIN 	billing.payment_applications	 ON payment_applications.id=cas_payment_application_details.payment_application_id
-												INNER JOIN billing.payments ON  billing.payments.id=payment_applications.payment_id and payer_type='insurance' AND
-							payment_applications.charge_id = charges.id 		AND payment_applications.amount_type = 'adjustment'
-							group by cas_group_codes.code )
-					as lineAdjustment)
-
-					FROM  billing.payment_applications pa
-					INNER JOIN billing.payments ON  billing.payments.id=pa.payment_id and payer_type='insurance'
-									WHERE  charge_id=charges.id AND pa.amount_type = 'payment'  )
-					as lineAdjudication)
-					FROM   billing.charges
-							inner join cpt_codes on cpt_codes.id=cpt_id
-					LEFT join modifiers as modifier1 on modifier1.id=modifier1_id
-					LEFT join modifiers as modifier2 on modifier2.id=modifier2_id
-					LEFT join modifiers as modifier3 on modifier3.id=modifier3_id
-					LEFT join modifiers as modifier4 on modifier4.id=modifier4_id
-					WHERE  claim_id=claims.id order by charges.id ASC)
-					as serviceLine)
-					)AS claim
+											INNER JOIN billing.cas_group_codes ON cas_group_codes.id = cas_group_code_id
+											INNER JOIN billing.payment_applications ON payment_applications.id = cas_payment_application_details.payment_application_id
+											INNER JOIN billing.payments ON billing.payments.id = payment_applications.payment_id
+											                            AND payer_type='insurance'
+											                            AND payment_applications.charge_id = charges.id
+											                            AND payment_applications.amount_type = 'adjustment'
+											                            GROUP BY cas_group_codes.code ) AS lineAdjustment)
+                                        FROM billing.payment_applications pa
+                                        INNER JOIN billing.payments ON billing.payments.id=pa.payment_id AND payer_type='insurance'
+                                        INNER JOIN LATERAL ( SELECT
+                                                                i_pi.insurance_provider_id
+                                                            FROM patient_insurances i_pi
+                                                            WHERE i_pi.id = claims.primary_patient_insurance_id
+                                                            ) AS ipi ON ipi.insurance_provider_id = payments.insurance_provider_id
+                                        WHERE charge_id = charges.id AND pa.amount_type = 'payment') AS lineAdjudication)
+					FROM billing.charges
+					INNER JOIN cpt_codes ON cpt_codes.id=cpt_id
+					LEFT JOIN modifiers AS modifier1 ON modifier1.id=modifier1_id
+					LEFT JOIN modifiers AS modifier2 ON modifier2.id=modifier2_id
+					LEFT JOIN modifiers AS modifier3 ON modifier3.id=modifier3_id
+					LEFT JOIN modifiers AS modifier4 ON modifier4.id=modifier4_id
+					WHERE  claim_id=claims.id ORDER BY charges.id ASC)
+					AS serviceLine)
+					) AS claim
 					)
 					) AS subscriber)
 					SELECT claims.id,*
