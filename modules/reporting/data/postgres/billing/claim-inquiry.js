@@ -539,7 +539,7 @@ const api = {
         if (reportParams.insurancePayerTypeOption && reportParams.insurancePayerTypeOption.length > 0) {
             filters.insPaid = _.includes(reportParams.insurancePayerTypeOption, 'InsPaid');
             filters.patPaid = _.includes(reportParams.insurancePayerTypeOption, 'PatPaid');
-            filters.unPaid = _.includes(reportParams.insurancePayerTypeOption, 'UnPaid');
+            filters.unPaid = _.includes(reportParams.insurancePayerTypeOption, 'Unpaid');
         }
         //  claim Date
         if (reportParams.fromDate != '' && reportParams.toDate != '') {
@@ -602,7 +602,7 @@ const api = {
         if (reportParams.insurancePayerTypeOption && reportParams.insurancePayerTypeOption.length > 0) {
             filters.insPaid = _.includes(reportParams.insurancePayerTypeOption, 'InsPaid');
             filters.patPaid = _.includes(reportParams.insurancePayerTypeOption, 'PatPaid');
-            filters.unPaid = _.includes(reportParams.insurancePayerTypeOption, 'UnPaid');
+            filters.unPaid = _.includes(reportParams.insurancePayerTypeOption, 'Unpaid');
         }
         if (reportParams.claimFrom && reportParams.claimTo) {
             params.push(reportParams.claimFrom);

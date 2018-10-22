@@ -10,13 +10,6 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         return cellvalue;
     };
 
-    var genderObj = {
-        'M': 'Male',
-        'F': 'Female',
-        'O': 'Other',
-        'U': 'Unknown'
-    };
-
     var orderTypes = {
         "P": "Pre-order",
         "S": "Schedule",
@@ -59,6 +52,11 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         var billedStatus = ':All;billed:Billed;unbilled:Unbilled';
         var balanceSearchList = ':All; =0:= 0; >0:> 0; <0:< 0; |5:0 < 5; |10:0 - 10; |15:0 - 15; |20:0 - 20; |25:0 - 25; |30 :0 - 30';
         var studyFlagArray = app.studyflag;
+        var clearingHouse = commonjs.makeValue(app.clearing_house, ":All;", "id", "name");
+        var billingProviders = commonjs.makeValue(app.billing_providers, ":All;", "id", "full_name");
+        var placeOfService = commonjs.makeValue(app.places_of_service, ":All;", "id", "description");
+        var vehicles = commonjs.makeValue(app.vehicles, ":All;", "id", "vehicle_name");
+        var gender = commonjs.makeValue(commonjs.bindArray(app.gender, false), ":All;");
         var isNoneExist = false;
 
         for ( var i = 0; i < studyFlagArray.length; i++ ) {
@@ -268,7 +266,11 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_info": {
                         "name": "place_of_service",
                         "width": 200,
-                        "searchFlag": "%"
+                        "stype": "select",
+                        "searchoptions": {
+                            "value": placeOfService,
+                            "tempvalue": placeOfService
+                        },
                     }
 
                 },
@@ -331,7 +333,12 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "i18n_name": "billing.fileInsurance.clearingHouse",
                     "field_info": {
                         "name": "clearing_house",
-                        "width": 80
+                        "width": 80,
+                        "stype": "select",
+                        "searchoptions": {
+                            "value": clearingHouse,
+                            "tempvalue":clearingHouse
+                        },
                     }
                 },
                 "Payer Name": {
@@ -524,7 +531,12 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "i18n_name": "shared.fields.billingProvider",
                     "field_info": {
                         "name": "billing_provider",
-                        "width": 200
+                        "width": 200,
+                        "stype": "select",
+                        "searchoptions": {
+                            "value": billingProviders,
+                            "tempvalue": billingProviders
+                        }
                     }
                 },
                 "Submitted Date":{
@@ -553,9 +565,35 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "width": "150",
                         "searchFlag": "datetime"
                     }
+                },
+                "Ordering Facility": {
+                    "id": 30,
+                    "field_name": "Ordering Facility",
+                    "i18n_name": "setup.userSettings.orderingFacility",
+                    "field_info": {
+                        "custom_name": "Ordering Facility",
+                        "name": "ordering_facility_name",
+                        "width": 250,
+                        "defaultValue": ""
+                    },
+                    "field_code": "ordering_facility_name"
+                },
+                "Facility": {
+                    "id": 31,
+                    "field_name": "Facility",
+                    "i18n_name": "setup.userSettings.facility",
+                    "field_info": {
+                        "custom_name": "Facility",
+                        "name": "facility_name",
+                        "width": 200,
+                        "stype": "select",
+                        "searchoptions": {
+                            "value": facilityValue,
+                            "tempvalue": facilityValue
+                        }
+                    },
+                    "field_code": "facility_name"
                 }
-
-
             });
         }else{
         return Immutable.Map({
@@ -725,10 +763,11 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "custom_name": "Gender",
                     "name": "gender",
                     "width": 100,
-                    "formatter": function ( cellvalue ) {
-                        return cellvalue && genderObj[ cellvalue.charAt(0).toUpperCase() ] || '';
-                    },
-                    "defaultValue": ""
+                    "stype": "select",
+                    "searchoptions": {
+                        "value": gender,
+                        "tempvalue": gender
+                    }
                 },
                 "field_code": "gender"
             },
@@ -1095,27 +1134,14 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "name": "vehicle_name",
                     "width": 200,
                     "search": true,
-                    "sortable": true
+                    "sortable": true,
+                    "stype": "select",
+                    "searchoptions": {
+                        "value": vehicles,
+                        "tempvalue": vehicles
+                    },
                 },
                 "field_code": "vehicle_name"
-            },
-            "Responsible": {
-                "id": 35,
-                "field_name": "Responsible",
-                "i18n_name": "setup.userSettings.responsible",
-                "field_info": {
-                    "custom_name": "Responsible",
-                    "name": "payer_name",
-                    "width": 100,
-                    "formatter": function ( cellvalue, options, rowObject ) {
-                        return cellvalue ?
-                               cellvalue + "(" + commonjs.getPayerType(rowObject.payer_type) + ")" :
-                               '';
-                    },
-                    "search": true,
-                    "sortable": true
-                },
-                "field_code": "payer_name"
             },
             "Technologist": {
                 "id": 36,

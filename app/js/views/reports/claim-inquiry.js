@@ -83,8 +83,8 @@ define([
                 "click #chkAllFacility": "selectAllFacility",
                 "click #showCheckboxesClaim": "showCheckboxesClaim",
                 "click #showInsGroupCheckboxes": "showInsuranceGroupList",
-                'change #ddlUsersOption': 'onOptionChangeSelectUser'
-                //'change #ddlReferringPhysicianOption': 'onOptionChangeSelectRefPhysician'
+                "change #ddlUsersOption": "onOptionChangeSelectUser",
+                "change #ddlClaimSelectBoxes": "onChangeClaimSelection"
             },
 
             usermessage: {
@@ -565,6 +565,22 @@ define([
                 }
 
             },
+
+             // On change while select claim
+            onChangeClaimSelection: function () {
+                var userListBox = $('#ddlClaimSelectBoxes').val();
+                if (userListBox.indexOf('Unpaid') > -1) {
+                    $("#ddlUsers, #ddlUsersBox, #divUsers").addClass("invisible");
+                    $('#ulListUsers').empty();
+                    this.viewModel.userNames = [];
+                    this.viewModel.userIds = [];
+                    $('#ulListUsers').data('userIds', [])
+                }
+                else {
+                    $("#ddlUsers, #ddlUsersBox, #divUsers").removeClass("invisible");
+                }
+            },
+
             // Binding default facility Group
             selectDefaultFacility: function () {
                 // if there is only 1 facility select it, otherwise use default facility id

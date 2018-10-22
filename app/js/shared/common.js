@@ -4947,6 +4947,8 @@ var commonjs = {
      *
      */
     makeValue: function (array, val, propOne, propTwo) {
+        if (!(array && array.length)) return { '': 'All' };
+
         var Collection = Backbone.Collection.extend({
             model: Backbone.Model.extend({})
         });
@@ -5182,7 +5184,14 @@ var commonjs = {
                 $cell.css(cells[j].css);
             }
         }
+    },
+
+    getPlaceHolderForSearch: function () {
+        $select2Container1 = $('.select2-container--open');
+        var $searchfield = $select2Container1.children().find('.select2-search__field');
+        $searchfield.prop('placeholder', 'Type to search');
     }
+    
 };
 
 
