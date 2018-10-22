@@ -332,7 +332,7 @@ module.exports = {
         }
 
         if (claim_date) {
-            whereQuery.push(`claim_dt::date ='${claim_date}'::date`);
+            whereQuery.push(`to_facility_date(bc.facility_id, claim_dt) = '${claim_date}'::date`);
         }
 
         const sql = SQL`SELECT
