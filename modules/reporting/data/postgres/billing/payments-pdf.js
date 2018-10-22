@@ -96,8 +96,8 @@ WITH payments_pdf as (
     <% if(userName) { %>
         AND  get_full_name(pu.last_name, pu.first_name)  ILIKE '%<%= userName %>%'
     <%}%>
-    <% if(facilityName) { %>
-        AND  pf.id = <%= facilityName %>
+    <% if(facilityId) { %>
+        AND  pf.id = <%= facilityId %>
     <%}%>
     <% if(paymentMode) { %>
         AND  mode ILIKE '%<%= paymentMode %>%'
@@ -258,7 +258,7 @@ const api = {
             userName: null,
             paymentMode: null,
             applied: null,
-            facilityName: null,
+            facilityId: null,
             accounting_date: null,
             payment_amount:null,
             accountNo : null,
@@ -340,7 +340,7 @@ const api = {
             }
 
             if (value == "facility_name") {
-                filters.facilityName = reportParams.filterData[i];
+                filters.facilityId = reportParams.filterData[i];
             }
 
             if (value == "payment_mode") {
