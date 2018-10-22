@@ -789,14 +789,17 @@ define(['jquery',
                     this.showPendingPaymentsGrid(this.payment_id, response.payer_type, response.patient_id, response.patient_id);
                 }
 
-                if (response.payer_type === "patient")
+                if (response.payer_type === "patient") {
                     self.payer_id = response.patient_id;
-                else if (response.payer_type === "ordering_facility")
-                    self.payer_id = response.provider_group_id;
-                else if (response.payer_type === "insurance")
-                    self.payer_id = response.insurance_provider_id;
-                else if (response.payer_type === "ordering_provider")
-                    self.payer_id = response.provider_contact_id;
+                } else {
+                    $('#btnPrintReceipt').hide();
+                    if (response.payer_type === "ordering_facility")
+                        self.payer_id = response.provider_group_id;
+                    else if (response.payer_type === "insurance")
+                        self.payer_id = response.insurance_provider_id;
+                    else if (response.payer_type === "ordering_provider")
+                        self.payer_id = response.provider_contact_id;
+                }
 
                 $('#liPendingPaymentsPat a').click();
                 // self.showPendingPaymentsGridInvoice(paymentID, response.payer_type, self.payer_id);
