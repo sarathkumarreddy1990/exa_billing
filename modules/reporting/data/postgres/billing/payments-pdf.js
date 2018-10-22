@@ -97,7 +97,7 @@ WITH payments_pdf as (
         AND  get_full_name(pu.last_name, pu.first_name)  ILIKE '%<%= userName %>%'
     <%}%>
     <% if(facilityName) { %>
-        AND  facility_name  ILIKE '%<%= facilityName %>%'
+        AND  pf.id = <%= facilityName %>
     <%}%>
     <% if(paymentMode) { %>
         AND  mode ILIKE '%<%= paymentMode %>%'
