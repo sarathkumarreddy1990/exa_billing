@@ -427,6 +427,7 @@ define(['jquery',
                 $select2Container = $('#select2-txtautoPayerPIP-container');
                 $select2Container.html(placeHolder);
                 $txtautoPayerPIP.on('select2:open', function (event) {
+                    commonjs.getPlaceHolderForSearch();
                     placeHolder = i18n.get("billing.payments.selectInsurance");
                     if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase())
                         $txtautoPayerPIP.data('select2').dropdown.$search.val($select2Container.text());
@@ -559,6 +560,7 @@ define(['jquery',
                 $select2Container = $('#select2-txtautoPayerPP-container');
                 $select2Container.html(placeHolder);
                 $txtautoPayerPP.on('select2:open', function (event) {
+                    commonjs.getPlaceHolderForSearch();
                     placeHolder = i18n.get("billing.payments.selectPatient");
                     if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase())
                         $txtautoPayerPP.data('select2').dropdown.$search.val($select2Container.text());
@@ -618,6 +620,7 @@ define(['jquery',
                 $select2Container = $('#select2-txtautoPayerPOF-container');
                 $select2Container.html(placeHolder);
                 $txtautoPayerPOF.on('select2:open', function (event) {
+                    commonjs.getPlaceHolderForSearch();
                     placeHolder = i18n.get("billing.payments.selectOrderingFacility");
                     if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase())
                         $txtautoPayerPOF.data('select2').dropdown.$search.val($select2Container.text());
@@ -693,6 +696,7 @@ define(['jquery',
                 $select2Container = $('#select2-txtautoPayerPR-container');
                 $select2Container.html(placeHolder);
                 $txtautoPayerPR.on('select2:open', function (event) {
+                    commonjs.getPlaceHolderForSearch();
                     placeHolder = i18n.get("billing.payments.selectProvider");
                     if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase())
                         $txtautoPayerPR.data('select2').dropdown.$search.val($select2Container.text());

@@ -1,6 +1,5 @@
-const
-    moment = require('moment')
-    ;
+const moment = require('moment');
+const _ = require('lodash');
 
 const util = {
     getArrayOperator: function (condition, value, column, Filter) {
@@ -61,7 +60,7 @@ const util = {
                 return 'ALL';
         }
     },
-    getConditionalOperator: function (condition, value, isKey, Filter) {
+    getConditionalOperator: function (condition, value, isKey, Filter, field) {
 
         if (Filter == 'patients' || Filter == 'patientID' || Filter == 'readPhy' || Filter == 'study_desc' || Filter === 'attorney') {
             switch (condition) {
@@ -88,6 +87,14 @@ const util = {
                     return isKey
                         ? ` NOT ILIKE ${value}`
                         : ` NOT ILIKE '%${value}%'`;
+            }
+        }
+        else if (Filter == 'array') {
+            switch (condition) {
+                case 'Is':
+                    return isKey ? `${field} = ${value}` : `${field} = '${value}'`;
+                case 'IsNot':
+                    return isKey ? ` NOT ${field} = ${value}` : ` NOT ${field} = '${value}'`;
             }
         }
         else {
@@ -284,6 +291,42 @@ const util = {
 
 
                 }
+
+
+                if (filterObj.ClaimInformation.facility) {
+                    let obj = filterObj.ClaimInformation.facility;
+                    let facilityQuery = '';
+
+                    if (obj && obj.list && obj.list.length) {
+                        let facilityArray = _.map(obj.list, (x) => x.id);
+                        facilityQuery = util.getConditionalOperator(obj.condition, `ANY(ARRAY[` + facilityArray + `])`, true, 'array', ` claims.facility_id `);
+
+                        if (obj.condition == 'IsNot') {
+                            facilityQuery += ' OR claims.facility_id IS NULL';
+                        }
+
+                        query += util.getRelationOperator(query) + '(' + facilityQuery + ')';
+                    }
+                }
+
+
+                if (filterObj.ClaimInformation.ordering_facility) {
+                    let obj = filterObj.ClaimInformation.ordering_facility;
+                    let orderingFacilityQuery = '';
+
+                    if (obj && obj.list && obj.list.length) {
+                        let orderingFacilityArray = _.map(obj.list, (x) => x.id);
+                        orderingFacilityQuery = util.getConditionalOperator(obj.condition, `ANY(ARRAY[` + orderingFacilityArray + `])`, true, 'array', ` claims.ordering_facility_id `);
+
+                        if (obj.condition == 'IsNot') {
+                            orderingFacilityQuery += ' OR claims.ordering_facility_id IS NULL';
+                        }
+
+                        query += util.getRelationOperator(query) + '(' + orderingFacilityQuery + ')';
+                    }
+                    
+                }
+
             }
         }
 
