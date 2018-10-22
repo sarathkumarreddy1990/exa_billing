@@ -278,7 +278,8 @@ module.exports = {
             pageNo,
             pageSize,
             payment,
-            payerType
+            payerType,
+            claim_date
         } = params;
 
 
@@ -330,12 +331,16 @@ module.exports = {
             whereQuery.push(`((SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total + refund_amount) from billing.get_claim_totals(bc.id)) = (${balance})::money)`);
         }
 
+        if (claim_date) {
+            whereQuery.push(`to_facility_date(bc.facility_id, claim_dt) = '${claim_date}'::date`);
+        }
+
         const sql = SQL`SELECT
             ROW_NUMBER () OVER (ORDER BY bc.id) as id,
             bc.id AS claim_id,
             bc.invoice_no,
             get_full_name(pp.last_name,pp.first_name) AS full_name,
-            bc.claim_dt,
+            bc.claim_dt AS claim_date,
             max(bpa.id) as payment_application_id,
             (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) as bill_fee,
             CASE WHEN 'patient' = ${payerType} THEN
