@@ -589,7 +589,8 @@ module.exports = {
                         SELECT json_agg(row_to_json(cas)) AS cas_details
                             FROM ( SELECT
                                     cas.amount,
-                                    rc.code
+                                    rc.code,
+                                    rc.description 
                                 FROM billing.cas_payment_application_details cas
                                 INNER JOIN billing.cas_reason_codes rc ON rc.id = cas.cas_reason_code_id
                                 WHERE  cas.payment_application_id = pa.payment_application_adjustment_id
@@ -631,7 +632,8 @@ module.exports = {
                         SELECT json_agg(row_to_json(cas)) AS cas_details
                             FROM ( SELECT
                                     cas.amount,
-                                    rc.code
+                                    rc.code,
+                                    rc.description
                                 FROM billing.cas_payment_application_details cas
                                 INNER JOIN billing.cas_reason_codes rc ON rc.id = cas.cas_reason_code_id
                                 WHERE  cas.payment_application_id = pa_adjustment.id

@@ -11,6 +11,10 @@
             width: 100%;
             margin-bottom: 10px;
         }
+        .row-height tr{
+            line-height: 8px;
+            font-size: 13px;
+        }
     </style>
     <form>
         <div class="row">
@@ -175,6 +179,17 @@
                        </tr>
                    </thead>
                    <tbody id="tBodyCIPayment"></tbody>
+               </table>
+
+               <table id="tblCASDesc"  class="table table-bordered row-height">
+                    <thead>
+                        <tr>
+                            <th> CAS Code </th>
+                            <th> CAS Description </th>
+                        </tr>
+                    </thead>
+                   <tbody id="tBodyCASRef">
+                   </tbody>
                </table>
             </div>
         </div>
