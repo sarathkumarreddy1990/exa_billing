@@ -457,10 +457,11 @@ define(['jquery',
                                 self.bindCPTSelectionEvents('#divCptCode_' + index);
                                 self.bindCPTSelectionEvents('#divCptDescription_' + index);
 
-                                $('#txtModifier1_' + index).val(data.modifier1_id ? self.getModifierCode(data.modifier1_id) : "").attr('data-id',data.modifier1_id);
-                                $('#txtModifier2_' + index).val(data.modifier2_id ? self.getModifierCode(data.modifier2_id) : "").attr('data-id',data.modifier2_id);
-                                $('#txtModifier3_' + index).val(data.modifier3_id ? self.getModifierCode(data.modifier3_id) : "").attr('data-id',data.modifier3_id);
-                                $('#txtModifier4_' + index).val(data.modifier1_id ? self.getModifierCode(data.modifier4_id) : "").attr('data-id',data.modifier4_id);
+                                $('#txtModifier1_' + index).val(data.modifier1_id ? self.getModifierCode(data.modifier1_id) : "").attr('data-id', data.modifier1_id);
+                                $('#txtModifier2_' + index).val(data.modifier2_id ? self.getModifierCode(data.modifier2_id) : "").attr('data-id', data.modifier2_id);
+                                $('#txtModifier3_' + index).val(data.modifier3_id ? self.getModifierCode(data.modifier3_id) : "").attr('data-id', data.modifier3_id);
+                                $('#txtModifier4_' + index).val(data.modifier1_id ? self.getModifierCode(data.modifier4_id) : "").attr('data-id', data.modifier4_id);
+                                $('#checkExclude_' + index).prop('checked', data.is_exclude);
                             });
 
                             if (isFrom && (isFrom == 'studies' || self.openedFrom == 'studies' || self.openedFrom == 'patient'))
@@ -2632,7 +2633,8 @@ define(['jquery',
                         charge_dt: self.cur_study_date || null,
                         study_id: rowData.study_id || null,
                         is_deleted: false,
-                        isEdit: $('#txtBillFee_' + id).attr('edit')
+                        isEdit: $('#txtBillFee_' + id).attr('edit'),
+                        is_exclude: $('#checkExclude_' + id).is(':checked'),
                     });
                     var charges = claim_model.charges[claim_model.charges.length - 1];
                     if(charges) {

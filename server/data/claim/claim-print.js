@@ -94,7 +94,7 @@ module.exports = {
                 LEFT join modifiers as modifier2 on modifier2.id=modifier2_id
                 LEFT join modifiers as modifier3 on modifier3.id=modifier3_id
                 LEFT join modifiers as modifier4 on modifier4.id=modifier4_id
-                WHERE  CASE WHEN ${params.flag}='new' THEN  bch.claim_id = ANY(${params.claimIds})
+                WHERE NOT bch.is_exclude AND CASE WHEN ${params.flag}='new' THEN  bch.claim_id = ANY(${params.claimIds})
                             WHEN ${params.flag}='invoice'  THEN  bch.claim_id in(SELECT claims.id FROM billing.claims WHERE invoice_no=${params.invoiceNo}) END
 
             ),
@@ -134,7 +134,7 @@ module.exports = {
                 LEFT JOIN public.provider_contacts ppc ON ppc.id = bp.provider_contact_id
                 LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
                 LEFT JOIN billing.adjustment_codes adj ON adj.id = bpa.adjustment_code_id
-                WHERE 
+                WHERE NOT ch.is_exclude AND
                     CASE WHEN ${params.flag}='new' THEN  
                             ch.claim_id = ANY(${params.claimIds}) 
                             AND (CASE WHEN bpa.amount_type = 'adjustment' THEN 
