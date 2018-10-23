@@ -2179,7 +2179,7 @@ define(['jquery',
                                 sortField: "insurance_code",
                                 sortOrder: "ASC",
                                 company_id: app.companyID,
-                                isInActive: false
+                                isInactive: false
                             };
                         },
                         processResults: function (data, params) {
