@@ -2170,13 +2170,16 @@ define(['jquery',
                         dataType: 'json',
                         delay: 250,
                         data: function (params) {
+                            if (params.term === undefined && $select2Container.text())
+                                params.term = $select2Container.text();
                             return {
                                 page: params.page || 1,
                                 q: params.term || '',
                                 pageSize: 10,
                                 sortField: "insurance_code",
                                 sortOrder: "ASC",
-                                company_id: app.companyID
+                                company_id: app.companyID,
+                                isInActive: false
                             };
                         },
                         processResults: function (data, params) {
@@ -2207,6 +2210,12 @@ define(['jquery',
                         self.bindInsurance(element_id, res);
                     return res.insurance_name;
                 }
+                var $select2Container = $("#" +'select2-'+element_id+'-container');
+                $("#" + element_id).on('select2:open', function (event) {
+                    commonjs.getPlaceHolderForSearch();
+                    if ($select2Container && $select2Container.text())
+                        $("#" + element_id).data('select2').dropdown.$search.val($select2Container.text());
+                });
             },
 
             bindInsurance: function (element_id, res) {

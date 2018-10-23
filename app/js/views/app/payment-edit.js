@@ -394,7 +394,8 @@ define(['jquery',
                                 pageSize: 10,
                                 sortField: "insurance_code",
                                 sortOrder: "ASC",
-                                company_id: app.companyID
+                                company_id: app.companyID,
+                                isInActive: false
                             };
                         },
                         processResults: function (data, params) {
