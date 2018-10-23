@@ -1067,11 +1067,6 @@ define(['jquery',
                     $('#txtCheque').focus();
                     return false;
                 }
-                if ($('#selectPaymentMode').val() === 'card' && $.trim($("#txtCardName").val()) == "") {
-                    commonjs.showWarning('Please enter card name');
-                    $('#txtCardName').focus();
-                    return false;
-                }
                 if ($('#selectPaymentMode').val() === 'check' && $.trim($("#txtCheque").val()) == "") {
                     commonjs.showWarning('Please enter cheque#');
                     $('#txtCheque').focus();
