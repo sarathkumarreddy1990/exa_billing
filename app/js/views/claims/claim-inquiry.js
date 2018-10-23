@@ -911,44 +911,59 @@ define([
                 return pointer;
             },
 
-            patientInquiryForm: function (claimId, patientId, patientName) {
+            patientInquiryForm: function (claimId, patientId, patientName, gridID, isFrom) {
                 var self = this;
-                commonjs.showDialog({
-                    'header': 'Patient Claims',
-                    'width': '85%',
-                    'height': '75%',
-                    'needShrink': true
-                });
-                setTimeout(function () {
-                    var billingProviderList = app.billing_providers,reportBy
-                        ddlBillingProvider = $('#ddlBillingProvider');
-                    ddlBillingProvider.empty();
-                    ddlBillingProvider.append("<option value='0'>Select</option>")
-                    if (billingProviderList && billingProviderList.length > 0) {
-                        for (var b = 0; b < billingProviderList.length; b++) {
-                            ddlBillingProvider.append($('<option/>', {
-                                value: billingProviderList[b].id,
-                                text: billingProviderList[b].full_name
-                            }));
+                self.grid_id = gridID;
+                self.claim_id = claimId;
+
+                if (isFrom) {
+
+                    commonjs.showDialog({
+                        'header': 'Patient Claims',
+                        'width': '85%',
+                        'height': '75%',
+                        'needShrink': true
+                    });
+                    setTimeout(function () {
+                        var billingProviderList = app.billing_providers,reportBy
+                            ddlBillingProvider = $('#ddlBillingProvider');
+                        ddlBillingProvider.empty();
+                        ddlBillingProvider.append("<option value='0'>Select</option>")
+                        if (billingProviderList && billingProviderList.length > 0) {
+                            for (var b = 0; b < billingProviderList.length; b++) {
+                                ddlBillingProvider.append($('<option/>', {
+                                    value: billingProviderList[b].id,
+                                    text: billingProviderList[b].full_name
+                                }));
+                            }
                         }
-                    }
-                }, 300);
+                    }, 300);
 
 
-                this.$el.html(this.claimPatientTemplate());
-                 var headerName = 'Patient Claims: ' + patientName ;
-                 $(parent.document).find('#spanModalHeader').html(headerName)
-                this.fromDate =  commonjs.bindDateTimePicker("divFDate", { format: 'L' });
-                this.fromDate.date();
-                this.toDate =  commonjs.bindDateTimePicker("divTDate", { format: 'L' });
-                this.toDate.date();
-                $('#radActivityAllStatus').prop('checked', true);
-                $('#activityDetails').hide();
+                    this.$el.html(this.claimPatientTemplate());
+                    this.fromDate =  commonjs.bindDateTimePicker("divFDate", { format: 'L' });
+                    this.fromDate.date();
+                    this.toDate =  commonjs.bindDateTimePicker("divTDate", { format: 'L' });
+                    this.toDate.date();
+                    $('#radActivityAllStatus').prop('checked', true);
+                    $('#activityDetails').hide();
+                }
+
+
+                $(".patientClaimProcess").off().click(function (e) {
+                    self.processPatientClaim(e);
+                });
+
+                var headerName = 'Patient Claims: ' + patientName ;
+                $(parent.document).find('#spanModalHeader').html(headerName)
+
                 if(this.screenCode.indexOf('PACT') > -1)
                     $('#btnPatientActivity').attr('disabled', true); // if Patient Activity report have rights then only can access this report
                 self.showPatientClaimsGrid(claimId, patientId, 0);
 
-                $('#ddlBillingProvider').on().change(function () {
+                $('.patientClaimProcess').prop('disabled', false);
+
+                $('#ddlBillingProvider').off().change(function () {
                     self.changePatientIngrid(claimId, patientId);
                 });
 
@@ -979,6 +994,31 @@ define([
                         $('#divFaxRecipient').hide();
                     });
                 });
+            },
+
+            processPatientClaim: function(e) {
+                var self = this;
+
+                $('#txtOtherFaxNumber, #txtOtherFaxName, #txtDate, #txtOtherDate').val('')
+
+                if (self.claim_id && self.grid_id) {
+
+                    var rowData = $(self.grid_id, parent.document).find('tr#' + self.claim_id);
+                    var nextRowData = $(e.target).attr('id') == 'btnPrevPatientClaim' ? rowData.prev() : rowData.next();
+
+                    if (nextRowData.attr('id') && nextRowData.length > 0) {
+                        var rowId = nextRowData.attr('id');
+                        $(e.target).prop('disabled', true);
+                        var data = $(self.grid_id, parent.document).getRowData(rowId);
+                        self.patientInquiryForm(rowId, data.patient_id, data.patient_name, self.grid_id, false)
+
+                    } else {
+                        commonjs.showWarning("messages.warning.claims.orderNotFound");
+                    }
+
+                } else {
+                    commonjs.showWarning("messages.warning.claims.errorOnNextPrev");
+                }
             },
 
             createPatientActivityParams: function(claimId, patientId) {
