@@ -12,7 +12,8 @@
             "claimPayerCompleted": "Payer Changed successfully",
             "noMorePayment": "No Payment to Show",
             "commentDeleted": "Comment Deleted Successfully",
-            "recordSaved": "Record Saved Successfully"
+            "recordSaved": "Record Saved Successfully",
+            "defaultTabChanged": "Default Tab Changed"
         },
         "errors": {
             "notconnected": "Not connected",
