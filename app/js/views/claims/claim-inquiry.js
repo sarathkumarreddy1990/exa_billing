@@ -911,12 +911,12 @@ define([
                 return pointer;
             },
 
-            patientInquiryForm: function (claimId, patientId, patientName, gridID, isFrom) {
+            patientInquiryForm: function (claimId, patientId, patientName, gridID, isFromClaim) {
                 var self = this;
                 self.grid_id = gridID;
                 self.claim_id = claimId;
 
-                if (isFrom) {
+                if (isFromClaim) {
 
                     commonjs.showDialog({
                         'header': 'Patient Claims',
