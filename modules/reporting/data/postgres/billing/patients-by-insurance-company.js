@@ -26,7 +26,7 @@ with patientByInsCompanyDetailQuery as (
     INNER JOIN facilities f on f.id = bc.facility_id
     WHERE
           <%= companyId %>
-         <% if (insuranceActive == 'false') { %>
+          <% if (insuranceActive == 'false') { %>
             AND ip.is_active
          <% } %>
          <% if (claimDate) { %>

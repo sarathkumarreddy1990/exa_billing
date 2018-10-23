@@ -186,10 +186,10 @@ define([
               this.viewModel.dateTo="";
             },
 
-            onInsuranceIsActive: function() {
-                var insuranceActive  = $("#insuranceActive").is(':checked');
+            onInsuranceIsActive: function () {
+                var insuranceActive = $("#insuranceActive").is(':checked');
                 UI.bindInsuranceAutocomplete('txtInsuranceName', 'btnAddInsurance', 'ulListInsurance', insuranceActive);
-                 $('#ulListInsurance').empty();
+                $('#ulListInsurance').empty();
                 this.viewModel.insuranceOption = [];
                 $('#ulListInsurance').data('insuranceIds', []);
             },
@@ -211,7 +211,7 @@ define([
                     'allBillingProvider': this.viewModel.allBillingProvider || '',
                     'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
                     'insuranceProviderIds': this.viewModel.insuranceOption || '',
-                    'insuranceActive' : $("#insuranceActive").is(':checked')
+                    'insuranceActive': $("#insuranceActive").is(':checked')
                 };
             }
         });
