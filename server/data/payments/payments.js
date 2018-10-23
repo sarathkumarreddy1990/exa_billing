@@ -490,7 +490,7 @@ module.exports = {
             logDescription,
             is_payerChanged } = params;
 
-        adjustmentId = adjustmentId ? adjustmentId : null;
+        adjustmentId = adjustmentId || null;
         logDescription = `Claim updated Id : ${params.claimId}`;
 
         const sql = SQL`WITH claim_comment_details AS(
