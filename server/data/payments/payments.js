@@ -483,10 +483,13 @@ module.exports = {
     createPaymentapplications: async function (params) {
         let { user_id,
             paymentId,
+            is_claimDenied,
             line_items,
             adjustmentId,
             auditDetails,
-            logDescription } = params;
+            logDescription,
+            is_payerChanged } = params;
+
         adjustmentId = adjustmentId ? adjustmentId : null;
         logDescription = `Claim updated Id : ${params.claimId}`;
 
@@ -509,7 +512,12 @@ module.exports = {
                                     UPDATE billing.claims
                                     SET
                                         billing_notes = ${params.billingNotes}
-                                      , payer_type = ${params.payerType}
+                                      , payer_type =(
+                                                    CASE
+                                                        WHEN ${is_payerChanged} = true AND ${is_claimDenied} = false THEN ${params.payerType}
+                                                    ELSE payer_type
+                                                    END
+                                                    )
                                     WHERE
                                         id = ${params.claimId}
                                     RETURNING *,
@@ -575,7 +583,7 @@ module.exports = {
                                 WHERE id IS NOT NULL
                             ),
                             change_responsible_party AS (
-                                    SELECT billing.change_responsible_party(${params.claimId},0,${params.companyId},null, ${params.claimStatusID}) AS result
+                                    SELECT billing.change_responsible_party(${params.claimId},0,${params.companyId},null, ${params.claimStatusID}, ${is_payerChanged}) AS result
                             ),
                             create_audit_study_status AS (
                                 SELECT billing.create_audit(
@@ -715,7 +723,12 @@ module.exports = {
                             UPDATE billing.claims
                             SET
                                 billing_notes = ${params.billingNotes}
-                              , payer_type = ${params.payerType}
+                                , payer_type =(
+                                    CASE
+                                        WHEN ${params.is_payerChanged} = true AND ${params.is_claimDenied} = false THEN ${params.payerType}
+                                    ELSE payer_type
+                                    END
+                                    )
                             WHERE
                                 id = ${params.claimId}
                             RETURNING *,
@@ -743,7 +756,7 @@ module.exports = {
                             FROM claim_comment_details
                             RETURNING *, '{}'::jsonb old_values),
                             change_responsible_party AS (
-                                    SELECT billing.change_responsible_party(${params.claimId},0,${params.companyId},null, ${params.claimStatusID}) AS result
+                                    SELECT billing.change_responsible_party(${params.claimId},0,${params.companyId},null, ${params.claimStatusID}, ${params.is_payerChanged}) AS result
                             ),
                         update_cas_application AS(
                                     UPDATE billing.cas_payment_application_details bcpad
