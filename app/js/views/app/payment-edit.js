@@ -1036,7 +1036,7 @@ define(['jquery',
                 var self = this;
                 var amount = $.trim($("#txtAmount").val());
                 if ($('#selectPayerType').val() === '0') {
-                    commonjs.showWarning("Please select payer type");
+                    commonjs.showWarning("messages.warning.payments.selectPayerType");
                     $('#selectPayerType').focus();
                     return false;
                 }
@@ -1044,36 +1044,36 @@ define(['jquery',
                     return false;
                 }
                 if ($.trim($("#txtAccountingDate").val()) == "") {
-                    commonjs.showWarning("Please select accounting date");
+                    commonjs.showWarning("messages.warning.payments.selectAccountingDate");
                     return false;
                 }
                 if (amount == "") {
-                    commonjs.showWarning("Please enter amount");
+                    commonjs.showWarning("messages.warning.payments.enterAmount");
                     $("#txtAmount").focus();
                     return false;
                 }
                 if (amount == "" || (amount.indexOf('-') > 0)) {
-                    commonjs.showWarning("Please enter valid amount");
+                    commonjs.showWarning("messages.warning.payments.enterValidAmount");
                     $('#txtAmount').focus();
                     return false;
                 }
                 if ($('#selectPaymentMode').val() === '0') {
-                    commonjs.showWarning("Please select payment mode");
+                    commonjs.showWarning("messages.warning.payments.selectPaymentMode");
                     $('#selectPaymentMode').focus();
                     return false;
                 }
                 if ($('#selectPaymentMode').val() === 'card' && $.trim($("#txtCheque").val()) == "") {
-                    commonjs.showWarning('Please enter card#');
+                    commonjs.showWarning('messages.warning.payments.enterCardNo');
                     $('#txtCheque').focus();
                     return false;
                 }
                 if ($('#selectPaymentMode').val() === 'check' && $.trim($("#txtCheque").val()) == "") {
-                    commonjs.showWarning('Please enter cheque#');
+                    commonjs.showWarning('messages.warning.payments.enterChequeNo');
                     $('#txtCheque').focus();
                     return false;
                 }
                 if ($("#chkIpInvoice").is(':checked') && $.trim($("#txtInvoice").val()) == "") {
-                    commonjs.showWarning("Please enter invoice #");
+                    commonjs.showWarning('messages.warning.payments.enterInvoiceNo');
                     return false;
                 }
                 return true;
