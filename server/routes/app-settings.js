@@ -12,6 +12,7 @@ router.get('/', async function (req, res) {
     const data = await appSettingsController.getData(req.params);
 
     if (data.rows && data.rows.length > 0) {
+        data.rows[0].sessionID = req.session.id;
         data.rows[0].screens = req.session.screens;
     }
 

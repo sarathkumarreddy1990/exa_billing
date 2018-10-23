@@ -28,6 +28,7 @@ module.exports = {
             adjustment_amount,
             user_full_name,
             payment_mode,
+            card_number,
             facility_name,
             sortOrder,
             sortField,
@@ -112,6 +113,10 @@ module.exports = {
 
         if (payment_mode) {
             whereQuery.push(`mode ILIKE '%${payment_mode}%'`);
+        }
+        
+        if (card_number) {
+            whereQuery.push(`card_number ILIKE '%${card_number}%'`);
         }
 
         if (facility_name) {
