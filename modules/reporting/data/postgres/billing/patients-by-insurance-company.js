@@ -24,8 +24,11 @@ with patientByInsCompanyDetailQuery as (
     INNER JOIN billing.claims bc ON bc.patient_id = p.id
     INNER JOIN insurance_providers AS ip ON ip.id = pi.insurance_provider_id
     INNER JOIN facilities f on f.id = bc.facility_id
-    WHERE  1 = 1
-         AND <%= companyId %>
+    WHERE
+          <%= companyId %>
+         <% if (insuranceActive == 'false') { %>
+            AND ip.is_active
+         <% } %>
          <% if (claimDate) { %>
              AND <%= claimDate %>
          <% } %>
@@ -143,8 +146,8 @@ const api = {
             companyId: null,
             claimDate: null,
             facilityIds: null,
-            insuranceProviderIds: null
-
+            insuranceProviderIds: null,
+            insuranceActive: null
         };
 
         // company id
@@ -174,6 +177,10 @@ const api = {
             params.push(reportParams.insuranceProviderIds);
             filters.insuranceProviderIds = queryBuilder.whereIn('ip.id', [params.length]);
         }
+
+        // Show Active or Inactive Insurance
+        filters.insuranceActive = reportParams.insuranceActive;
+
         return {
             queryParams: params,
             templateData: filters

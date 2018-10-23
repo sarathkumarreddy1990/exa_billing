@@ -188,7 +188,10 @@ define([
 
             onInsuranceIsActive: function() {
                 var insuranceActive  = $("#insuranceActive").is(':checked');
-                UI.bindInsuranceAutocomplete('txtInsuranceName', 'btnAddInsurance', 'ulListInsurance', insuranceActive)
+                UI.bindInsuranceAutocomplete('txtInsuranceName', 'btnAddInsurance', 'ulListInsurance', insuranceActive);
+                 $('#ulListInsurance').empty();
+                this.viewModel.insuranceOption = [];
+                $('#ulListInsurance').data('insuranceIds', []);
             },
 
             onClaimDateSearch: function(){
@@ -200,14 +203,15 @@ define([
 
             getReportParams: function () {
                 return urlParams = {
-                    'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
-                    'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
+                    'facilityIds': this.selectedFacilityList || [],
+                    'allFacilities': this.viewModel.allFacilities || '',
                     'fromDate': this.viewModel && this.viewModel.dateFrom && this.viewModel.dateFrom.format('YYYY-MM-DD'),
                     'toDate': this.viewModel && this.viewModel.dateTo && this.viewModel.dateTo.format('YYYY-MM-DD'),
-                    'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
-                    'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
+                    'billingProvider': this.selectedBillingProList || [],
+                    'allBillingProvider': this.viewModel.allBillingProvider || '',
                     'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
-                    'insuranceProviderIds': this.viewModel.insuranceOption ? this.viewModel.insuranceOption : ''
+                    'insuranceProviderIds': this.viewModel.insuranceOption || '',
+                    'insuranceActive' : $("#insuranceActive").is(':checked')
                 };
             }
         });
