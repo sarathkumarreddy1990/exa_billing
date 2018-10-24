@@ -888,7 +888,7 @@ define([
                                     $('#ulListClaimOrdFacility').empty();
                                     var claimOrderingFacilityJson = response.filter_info.ClaimInformation.ordering_facility || [];
                                     if (claimOrderingFacilityJson && claimOrderingFacilityJson.condition) {
-                                        $("input:radio[name=claimordFacility][value=" + claimOrderingFacilityJson.condition + "]").prop('checked', true);
+                                        $("input:radio[name=claimOrdFacility][value=" + claimOrderingFacilityJson.condition + "]").prop('checked', true);
                                         for (var j = 0; j < claimOrderingFacilityJson.list.length; j++) {
                                             if ($('#ulListClaimOrdFacility li a[data-id="' + claimOrderingFacilityJson.list[j].id + '"]').length === 0) {
                                                 $('#ulListClaimOrdFacility').append('<li id="' + claimOrderingFacilityJson.list[j].id + '"><span>' + claimOrderingFacilityJson.list[j].text + '</span><a class="remove" data-id="' + claimOrderingFacilityJson.list[j].id + '"><span class="icon-ic-close"></span></a></li>')
@@ -1186,7 +1186,7 @@ define([
                     };
                     arrClaimOrdFacility.push(jsonFlag);
                 });
-                if (arrClaimOrdFacility.length > 0 && !self.validateRadioButton('claimordFacility', 'ordFacility')) {
+                if (arrClaimOrdFacility.length > 0 && !self.validateRadioButton('claimOrdFacility', 'ordFacility')) {
                     return;
                 }
                 if ($.trim($('#txtAccession').val()) && !self.validateRadioButton('Accession', 'Accession')) {
@@ -1366,7 +1366,7 @@ define([
                                 list: arrClaimFacility
                             },
                             ordering_facility: {
-                                condition: $('input[name=claimordFacility]:checked').val(),
+                                condition: $('input[name=claimOrdFacility]:checked').val(),
                                 list: arrClaimOrdFacility
                             }
                         }
@@ -1836,7 +1836,7 @@ define([
                 $radioButtons.filter('[name=Balance]').prop('checked', false);
                 $radioButtons.filter('[name=studyFacility]').prop('checked', false);
                 $radioButtons.filter('[name=studyOrdFacility]').prop('checked', false);
-                $radioButtons.filter('[name=claimordFacility]').prop('checked', false);
+                $radioButtons.filter('[name=claimOrdFacility]').prop('checked', false);
             },
 
             summary: function () {
