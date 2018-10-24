@@ -15,5 +15,9 @@ module.exports = {
 
     delete: async function (args) {
         return await data.delete(args);
+    },
+    
+    setSelectedTab: async function (args) {
+        return await data.setSelectedTab(args);
     }
 };

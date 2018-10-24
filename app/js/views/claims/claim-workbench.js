@@ -831,13 +831,11 @@ define(['jquery',
                         var $claimsTabTarget = $claimsTabsItems.eq(0);
                         var $link;
 
-                        // Check for how long tab cookie has been there, if more than 8 hours, use default tab
-                        if (( diff === undefined || diff > 480 ) && !isDefaultTab && app.defaultTab) {
-                            $link = $claimsTabs.children('#liclaimsTab' + app.defaultTab);
+                        if (app.default_claim_tab) {
+                            $link = $claimsTabs.children('#liclaimsTab' + app.default_claim_tab);
                             if ($link.length > 0) {
                                 // Default tab targeted - go there
                                 $claimsTabTarget = $link;
-                                isDefaultTab = true;
                             }
                         }
                         if (( typeof $link === 'undefined' || $link.length === 0 ) && id.length > 0) {
