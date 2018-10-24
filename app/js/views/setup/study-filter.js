@@ -783,7 +783,7 @@ define([
                                     $('#ulListOrdFacility').empty();
                                     self.ordering_facility = studyInfoJson.ordering_facility;
                                     if (studyInfoJson.ordering_facility && studyInfoJson.ordering_facility.condition) {
-                                        $("input:radio[name=studyordFacility][value=" + studyInfoJson.ordering_facility.condition + "]").prop('checked', true);
+                                        $("input:radio[name=studyOrdFacility][value=" + studyInfoJson.ordering_facility.condition + "]").prop('checked', true);
                                         for (var j = 0; j < studyInfoJson.ordering_facility.list.length; j++) {
                                             if ($('#ulListOrdFacility li a[data-id="' + studyInfoJson.ordering_facility.list[j].id + '"]').length === 0) {
                                                 $('#ulListOrdFacility').append('<li id="' + studyInfoJson.ordering_facility.list[j].id + '"><span>' + studyInfoJson.ordering_facility.list[j].text + '</span><a class="remove" data-id="' + studyInfoJson.ordering_facility.list[j].id + '"><span class="icon-ic-close"></span></a></li>')
@@ -1175,7 +1175,7 @@ define([
                     };
                     arrOrdFacility.push(jsonFlag);
                 });
-                if (arrOrdFacility.length > 0 && !self.validateRadioButton('studyordFacility', 'ordFacility')) {
+                if (arrOrdFacility.length > 0 && !self.validateRadioButton('studyOrdFacility', 'ordFacility')) {
                     return;
                 }
                 var arrClaimOrdFacility = [];
@@ -1312,7 +1312,7 @@ define([
                             billedstatus: $('#ddlBilledStatus').val(),
                             attorney: attorneys,
                             ordering_facility: {
-                                condition: $('input[name=studyordFacility]:checked').val(),
+                                condition: $('input[name=studyOrdFacility]:checked').val(),
                                 list: arrOrdFacility
                             }
                         },
@@ -1835,7 +1835,7 @@ define([
                 $radioButtons.filter('[name=PayerType]').prop('checked', false);
                 $radioButtons.filter('[name=Balance]').prop('checked', false);
                 $radioButtons.filter('[name=studyFacility]').prop('checked', false);
-                $radioButtons.filter('[name=studyordFacility]').prop('checked', false);
+                $radioButtons.filter('[name=studyOrdFacility]').prop('checked', false);
                 $radioButtons.filter('[name=claimordFacility]').prop('checked', false);
             },
 
@@ -1885,7 +1885,7 @@ define([
                     })
                 }
 
-                $('#lblOrdFacility').text('Ordering Facility : ' + (ordFacList && ordFacList.length ?  $('input[name=studyordFacility]:checked').val() + ' ' +  ordFacList : ''));
+                $('#lblOrdFacility').text('Ordering Facility : ' + (ordFacList && ordFacList.length ?  $('input[name=studyOrdFacility]:checked').val() + ' ' +  ordFacList : ''));
                 $('#lblSummaryModality').text('Modality :' + this.listBoxSelectedArray('listModality', 'Modality'));
                 $('#lblSummaryStatus').text('Status :' + this.listBoxSelectedArray('listStatus', 'Status'));
                 $('#lblSummaryVehicle').text('Vehicle :' + this.listBoxSelectedArray('listVehicle', 'Vehicle'));
