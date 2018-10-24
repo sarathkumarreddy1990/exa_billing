@@ -123,6 +123,7 @@ define('grid', [
             var target = event.currentTarget;
             var $target = $(target);
             var studyArray = [];
+            var orderIds = [];
             var selectedStudies = [];
             var divObj = 'studyRightMenu';
             var $divObj = $(document.getElementById(divObj));
@@ -145,6 +146,7 @@ define('grid', [
                 _storeEle = getData(rowId, store, gridID);
                 var gridData = $(gridID).jqGrid('getRowData', rowId);
                 studyArray.push(rowId);
+                orderIds.push(_storeEle.order_id);
                 var study = {
                     study_id: rowId,
                     patient_id: gridData.patient_id,
@@ -658,6 +660,7 @@ define('grid', [
                             window.localStorage.setItem('selected_studies', null);
                             window.localStorage.setItem('primary_study_details', JSON.stringify(selectedStudies[0]));
                             window.localStorage.setItem('selected_studies', JSON.stringify(studyIds));
+                            window.localStorage.setItem('selected_orders', JSON.stringify(orderIds));
 
                             self.claimView = new claimsView();
                             self.claimView.showClaimForm({ 'grid_id': gridID }, 'studies');
@@ -712,7 +715,8 @@ define('grid', [
 
                 batchClaimArray.push({
                     patient_id: gridData.patient_id,
-                    study_id: gridData.study_id
+                    study_id: gridData.study_id,
+                    order_id: gridData.order_id
                 });
             }
 
