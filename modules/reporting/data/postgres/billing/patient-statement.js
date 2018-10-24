@@ -477,17 +477,17 @@ WITH claim_data AS (
     , c14
     <% if (reportFormat == 'xlsx' || reportFormat == 'csv' ) { %>
         -- Query for XLSX and CSC format remove special characters like ($  and ,) from the amount column
-         , regexp_replace(c15, '[^a-zA-Z0-9.]', '', 'g') AS c15
-         , regexp_replace(c16, '[^a-zA-Z0-9.]', '', 'g') AS c16
-         , regexp_replace(c17, '[^a-zA-Z0-9.]', '', 'g') AS c17
-         , regexp_replace(c18, '[^a-zA-Z0-9.]', '', 'g') AS c18
-         , regexp_replace(c19, '[^a-zA-Z0-9.]', '', 'g') AS c19
-         , regexp_replace(c20, '[^a-zA-Z0-9.]', '', 'g') AS c20
-         , regexp_replace(c21, '[^a-zA-Z0-9.]', '', 'g') AS c21
-         , regexp_replace(c22, '[^a-zA-Z0-9.]', '', 'g') AS c22
-         , regexp_replace(c23, '[^a-zA-Z0-9.]', '', 'g') AS c23
-         , regexp_replace(c24, '[^a-zA-Z0-9.]', '', 'g') AS c24
-         , regexp_replace(c25, '[^a-zA-Z0-9.]', '', 'g') AS c25
+         , regexp_replace(c15, '[$|,]', '', 'g') AS c15
+         , regexp_replace(c16, '[$|,]', '', 'g') AS c16
+         , regexp_replace(c17, '[$|,]', '', 'g') AS c17
+         , regexp_replace(c18, '[$|,]', '', 'g') AS c18
+         , regexp_replace(c19, '[$|,]', '', 'g') AS c19
+         , regexp_replace(c20, '[$|,]', '', 'g') AS c20
+         , regexp_replace(c21, '[$|,]', '', 'g') AS c21
+         , regexp_replace(c22, '[$|,]', '', 'g') AS c22
+         , regexp_replace(c23, '[$|,]', '', 'g') AS c23
+         , regexp_replace(c24, '[$|,]', '', 'g') AS c24
+         , regexp_replace(c25, '[$|,]', '', 'g') AS c25
        <% } else { %>
          , c15
          , c16
