@@ -1810,33 +1810,9 @@ define([
             uncheckRadioButtons: function () {
                 var $inputs = $("#studyFiltersForm").find('input');
                 var $radioButtons = $inputs.filter('[type=radio]');
+                $radioButtons.filter('[class="clearField"]').prop('checked', false)
                 $radioButtons.filter('[id=rbtStudyDate]').prop('checked',true);
-                $radioButtons.filter('[name=PatientName]').prop('checked', false);
-                $radioButtons.filter('[name=PatientID]').prop('checked', false);
-                $radioButtons.filter('[name=Institution]').prop('checked', false);
-                $radioButtons.filter('[name=Status]').prop('checked', false);
                 $inputs.filter('[name=LastChangedByMe]').prop('checked', false);
-                $radioButtons.filter('[name=State]').prop('checked', false);
-                $radioButtons.filter('[name=Modality]').prop('checked', false);
-                $radioButtons.filter('[name=BodyPart]').prop('checked', false);
-                $radioButtons.filter('[name=Flag]').prop('checked', false);
-                $radioButtons.filter('[name=StudyID]').prop('checked', false);
-                $radioButtons.filter('[name=Accession]').prop('checked', false);
-                $radioButtons.filter('[name=ReadPhy]').prop('checked', false);
-                $radioButtons.filter('[name=RefPhy]').prop('checked', false);
-                $radioButtons.filter('[name=ImageDelivery]').prop('checked', false);
-                $radioButtons.filter('[name=Facility]').prop('checked', false);
-                $radioButtons.filter('[name=Vehicle]').prop('checked', false);
-                $radioButtons.filter('[name=StudyDescription]').prop('checked', false);
-                $radioButtons.filter('[name=Attorney]').prop('checked', false);
-                $radioButtons.filter('[name=InsProv]').prop('checked', false);
-                $radioButtons.filter('[name=ClaimInfo]').prop('checked', false);
-                $radioButtons.filter('[name=BillingMethod]').prop('checked', false);
-                $radioButtons.filter('[name=PayerType]').prop('checked', false);
-                $radioButtons.filter('[name=Balance]').prop('checked', false);
-                $radioButtons.filter('[name=studyFacility]').prop('checked', false);
-                $radioButtons.filter('[name=studyOrdFacility]').prop('checked', false);
-                $radioButtons.filter('[name=claimOrdFacility]').prop('checked', false);
             },
 
             summary: function () {
