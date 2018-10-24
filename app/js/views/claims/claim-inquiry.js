@@ -20,7 +20,8 @@ define([
     'text!templates/claims/invoice-age-summary.html',
     // 'text!templates/faxDialog.html',
     'collections/claim-patient-log',
-    'views/app/unapplied-payment'
+    'views/app/unapplied-payment',
+    'text!templates/claims/claim-inquiry-cas.html'
 ], function (
     $,
     _,
@@ -43,7 +44,8 @@ define([
     claimInvoiceAgeHTML,
     // faxDialogHtml,
     claimPatientLogList,
-    unappliedPaymentView
+    unappliedPaymentView,
+    casTemplate
 ) {
         var paperClaim = new PaperClaim(true);
 
@@ -57,6 +59,7 @@ define([
             claimPatientLogTemplate: _.template(claimPatientLogHTML),
             claimInvoiceTemplate: _.template(claimInvoiceHTML),
             invoiceAgingSummaryTemplate: _.template(claimInvoiceAgeHTML),
+            casTemplate: _.template(casTemplate),
             payCmtGrid: '',
             claim_id: null,
             events: {
@@ -1095,11 +1098,13 @@ define([
                     },
                     success: function (data, response) {
                         $("#tBodyCIPayment").empty();
+                        $('#tBodyCASRef').empty();
 
                         if (data.length > 0) {
-
                             var paymentCASRow = self.paymentTemplate({ rows: data });
                             $('#tBodyCIPayment').append(paymentCASRow);
+
+                            self.showCASDescription(data); // to show description of CAS code
 
                             commonjs.showNestedDialog({
                                 header: 'Payment of Charge Details',
@@ -1132,11 +1137,14 @@ define([
                     },
                     success: function (data, response) {
                         $("#tBodyCIPayment").empty();
+                        $('#tBodyCASRef').empty();
 
                         if (data.length > 0) {
 
                             var paymentCASRow = self.paymentTemplate({ rows: data });
                             $('#tBodyCIPayment').append(paymentCASRow);
+
+                            self.showCASDescription(data); // to show description of CAS code
 
                             commonjs.showNestedDialog({
                                 header: 'Payment Details',
@@ -1153,6 +1161,21 @@ define([
                         commonjs.handleXhrError(err);
                     }
                 })
+            },
+
+            showCASDescription: function (data) {
+                var self = this;
+                var casDesc = []
+
+                _.each(data, function(cas) {
+                    if(cas.cas_details)
+                        casDesc.push(cas.cas_details);
+                })
+                casDesc = _.flatten(casDesc)
+                var refCASDescription  = _.uniq(casDesc, 'code');
+
+                var casRef = self.casTemplate({cas: refCASDescription});
+                $('#tBodyCASRef').append(casRef);
             },
 
             applyToggleInquiry: function (e) {
