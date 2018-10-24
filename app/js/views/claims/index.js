@@ -858,6 +858,11 @@ define(['jquery',
                 self.cur_study_id = primaryStudyDetails.study_id || null;
                 self.isEdit = self.claim_Id ? true : false;
                 self.facilityId = primaryStudyDetails.facility_id;
+                if (options) {
+                    options.study_id = primaryStudyDetails.study_id || null;
+                    options.order_id = (self.selectedOrderIds && self.selectedOrderIds[0]) ? parseInt(self.selectedOrderIds[0]) : null;
+                    options.patient_id = primaryStudyDetails.patient_id ? parseInt(primaryStudyDetails.patient_id) : null;
+                }
                 self.options = options || {};
                 if (isFrom && isFrom != 'reload') {
                     self.openedFrom = isFrom
@@ -2689,7 +2694,7 @@ define(['jquery',
                                     self.claim_Id = response && response.length && response[0].result ? response[0].result : null
                                 }
 
-                                var tblID = self.options.grid_id || '';
+                                var tblID = self.options && self.options.grid_id || '';
                                     tblID = tblID.replace(/#/, '');
 
                                 var claimRefreshInterval = setTimeout(function () {
@@ -2767,7 +2772,7 @@ define(['jquery',
                                                 'patient_name': self.cur_patient_name,
                                                 'patient_id': self.cur_patient_id,
                                                 'order_id': result && result.order_id ? result.order_id : 0,
-                                                'grid_id': self.options.grid_id || null
+                                                'grid_id': self.options && self.options.grid_id || null
                                             });
                                         });
                                     }
@@ -3765,6 +3770,8 @@ define(['jquery',
 
                 // bind claim details
                 self.bindDetails();
+
+                $('#btPatientDocuemnt').hide();
 
                 //binding claim form events
                 self.bindTabMenuEvents();
