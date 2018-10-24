@@ -220,8 +220,8 @@ define(['jquery',
                         gridelementid: '#tblpaymentsGrid',
                         custompager: this.pager,
                         emptyMessage: 'No Record found',
-                        colNames: ['<span  id="spnStatus" class="icon-ic-worklist" onclick="commonjs.popOverActions(event)" ></span>', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                        i18nNames: ['', '', '', 'billing.payments.paymentID', '', 'billing.payments.referencePaymentID', 'billing.payments.paymentDate', 'billing.payments.accountingDate', 'billing.payments.payertype', 'billing.payments.payerName', 'billing.payments.patientMRN', 'billing.payments.paymentAmount', 'billing.payments.paymentApplied', 'billing.payments.balance', 'billing.payments.adjustment', 'billing.COB.notes', 'billing.payments.postedBy', 'billing.payments.paymentmode', 'billing.payments.facility_name', '', '', ''],
+                        colNames: ['<span  id="spnStatus" class="icon-ic-worklist" onclick="commonjs.popOverActions(event)" ></span>', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                        i18nNames: ['', '', '', 'billing.payments.paymentID', '', 'billing.payments.referencePaymentID', 'billing.payments.paymentDate', 'billing.payments.accountingDate', 'billing.payments.payertype', 'billing.payments.payerName', 'billing.payments.patientMRN', 'billing.payments.paymentAmount', 'billing.payments.paymentApplied', 'billing.payments.balance', 'billing.payments.adjustment', 'billing.COB.notes', 'billing.payments.postedBy', 'billing.payments.paymentmode', 'billing.payments.chequeCardNo', 'billing.payments.facility_name', '', '', ''],
                         colModel: [
                             {
                                 name: 'edit', width: 50, sortable: false, search: false,
@@ -253,6 +253,7 @@ define(['jquery',
                             { name: 'notes', width: 215, hidden: !showGridColumn },
                             { name: 'user_full_name', width: 215 },
                             { name: 'payment_mode', width: 215, stype: 'select', formatter: self.paymentModeFormatter, stype: 'select', "searchoptions": { "value": payment_mode, "tempvalue": payment_mode } },
+                            { name: 'card_number', width: 215 },
                             { name: 'facility_name', width: 200, stype: 'select', "searchoptions": { "value": facilities, "tempvalue": facilities } },
                             { name: 'total_amount', hidden: true },
                             { name: 'total_applied', hidden: true },
@@ -280,9 +281,9 @@ define(['jquery',
                                 self.getTotalAmount(self.from);
                             }
                             else {
-                                $("#divAmountTotal").html('');
-                                $("#divAppliedTotal").html('');
-                                $("#divAdjTotal").html('');
+                                $("#divAmountTotal").html('$0.00');
+                                $("#divAppliedTotal").html('$0.00');
+                                $("#divAdjTotal").html('$0.00');
                             }
                         },
                         disablesearch: false,
@@ -316,6 +317,7 @@ define(['jquery',
                     this.paymentTable.refresh();
                 }
                 commonjs.docResize();
+                commonjs.processPostRender({screen: 'Payments'});
             },
 
             getTotalAmount: function (from) {

@@ -789,14 +789,17 @@ define(['jquery',
                     this.showPendingPaymentsGrid(this.payment_id, response.payer_type, response.patient_id, response.patient_id);
                 }
 
-                if (response.payer_type === "patient")
+                if (response.payer_type === "patient") {
                     self.payer_id = response.patient_id;
-                else if (response.payer_type === "ordering_facility")
-                    self.payer_id = response.provider_group_id;
-                else if (response.payer_type === "insurance")
-                    self.payer_id = response.insurance_provider_id;
-                else if (response.payer_type === "ordering_provider")
-                    self.payer_id = response.provider_contact_id;
+                } else {
+                    $('#btnPrintReceipt').hide();
+                    if (response.payer_type === "ordering_facility")
+                        self.payer_id = response.provider_group_id;
+                    else if (response.payer_type === "insurance")
+                        self.payer_id = response.insurance_provider_id;
+                    else if (response.payer_type === "ordering_provider")
+                        self.payer_id = response.provider_contact_id;
+                }
 
                 $('#liPendingPaymentsPat a').click();
                 // self.showPendingPaymentsGridInvoice(paymentID, response.payer_type, self.payer_id);
@@ -1434,8 +1437,8 @@ define(['jquery',
                     gridelementid: '#tblAppliedPaymentsGrid',
                     custompager: this.appliedPager,
                     emptyMessage: 'No Record found',
-                    colNames: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                    i18nNames: ['', '', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.payments.billFee', 'billing.payments.patientPaid', 'billing.payments.payerPaid', 'billing.payments.adjustment', 'billing.payments.thisAdj', 'billing.payments.thisPayment', 'billing.payments.balance', 'billing.payments.cptCodes', 'patient_id', 'facility_id', ''],
+                    colNames: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    i18nNames: ['', '', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.fileInsurance.claimDt', 'billing.payments.billFee', 'billing.payments.patientPaid', 'billing.payments.payerPaid', 'billing.payments.adjustment', 'billing.payments.thisAdj', 'billing.payments.thisPayment', 'billing.payments.balance', 'billing.payments.cptCodes', 'patient_id', 'facility_id', ''],
                     colModel: [
                         {
                             name: 'edit', width: 20, sortable: false, search: false,
@@ -1465,6 +1468,7 @@ define(['jquery',
                         { name: 'claim_id', width: 100 },
                         { name: 'invoice_no', width: 100 },
                         { name: 'full_name', width: 200 },
+                        { name: 'claim_date', width: 150, formatter: self.claimDateFormatter },
                         { name: 'bill_fee', width: 100 },
                         { name: 'patient_paid', sortable: false, search: false, width: 100 },
                         { name: 'others_paid', sortable: false, search: false, width: 100 },

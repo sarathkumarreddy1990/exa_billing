@@ -37,7 +37,8 @@ WITH payments_pdf as (
               WHEN payer_type = 'ordering_provider' THEN ppr.full_name
          END payer_name,
          pf.facility_name,
-         to_char(to_facility_date(bp.facility_id, bp.payment_dt),'MM/DD/YYYY') AS payment_date
+         to_char(to_facility_date(bp.facility_id, bp.payment_dt),'MM/DD/YYYY') AS payment_date,
+         InitCap(bp.mode) AS payment_mode
     FROM
          billing.payments bp
     INNER JOIN public.users pu ON pu.id = bp.created_by
@@ -96,8 +97,8 @@ WITH payments_pdf as (
     <% if(userName) { %>
         AND  get_full_name(pu.last_name, pu.first_name)  ILIKE '%<%= userName %>%'
     <%}%>
-    <% if(facilityName) { %>
-        AND  facility_name  ILIKE '%<%= facilityName %>%'
+    <% if(facilityId) { %>
+        AND  pf.id = <%= facilityId %>
     <%}%>
     <% if(paymentMode) { %>
         AND  mode ILIKE '%<%= paymentMode %>%'
@@ -128,6 +129,8 @@ WITH payments_pdf as (
     cheque_card_number      AS "CHK/CC#",
     payment_date            AS "Payment Date",
     accounting_date         AS "Accounting Date",
+    payment_mode            AS "Payment Mode",
+    user_full_name          AS "Posted By",
     COALESCE(INITCAP(status), '~~ TOTAL ~~') AS "Payment Status" ,
     SUM(amount)             AS "Payment"
   FROM payments_pdf
@@ -139,10 +142,12 @@ WITH payments_pdf as (
               payment_id,
               patient_full_name,
               account_no,
+              notes,              
               cheque_card_number,
               payment_date,
-              accounting_date ,
-              notes,
+              accounting_date,
+              payment_mode,
+              user_full_name,
               status)
            )
 
@@ -157,6 +162,8 @@ WITH payments_pdf as (
             NULL AS "CHK/CC#",
             NULL AS "Payment Date",
             NULL AS "Accounting Date",
+            NULL AS "Payment Mode",
+            NULL AS "Posted By",
             'GRAND TOTAL'::TEXT AS "Payment Status" ,
             SUM(amount) AS "Payment"
         FROM payments_pdf
@@ -258,7 +265,7 @@ const api = {
             userName: null,
             paymentMode: null,
             applied: null,
-            facilityName: null,
+            facilityId: null,
             accounting_date: null,
             payment_amount:null,
             accountNo : null,
@@ -340,7 +347,7 @@ const api = {
             }
 
             if (value == "facility_name") {
-                filters.facilityName = reportParams.filterData[i];
+                filters.facilityId = reportParams.filterData[i];
             }
 
             if (value == "payment_mode") {

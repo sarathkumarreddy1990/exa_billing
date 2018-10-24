@@ -282,7 +282,7 @@ function formatRedForm(claimData) {
             margin: [5, 8, 0, 0],
             table: {
                 widths: [157, 43, 90, 50, 170, 32],
-                heights: [18, 22, 22, 22, 22, 22, 22, 20, 40, 28],
+                heights: [18, 22, 22, 22, 20, 20, 18, 18, 40, 25],
                 body: [
                     [//Ans
                         { text: claimData.subscriber && claimData.subscriber[0].patient ? getName(claimData.subscriber[0].patient[0]).substring(0, 28) : '', colSpan: 2 },
@@ -313,7 +313,7 @@ function formatRedForm(claimData) {
                         [
                             {
                                 style: 'myTable',
-                                margin: [-12, 0, 0, 0],
+                                margin: [-15, 0, 0, 0],
                                 table: {
                                     widths: [30, 30],
                                     heights: [10],
@@ -338,7 +338,7 @@ function formatRedForm(claimData) {
                         [
                             {
                                 style: 'myTable',
-                                margin: [15, 5, 0, 0],
+                                margin: [13, 5, 0, 0],
                                 table: {
                                     widths: [30, 26, 30, 27],
                                     heights: [10],
@@ -411,12 +411,12 @@ function formatRedForm(claimData) {
                         },
                         {
                             text: (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].relatedCauseCode1.toString() &&
-                                claimData.subscriber[0].claim[0].relatedCauseCode1.toString().toUpperCase() === "FALSE") ? '√' : '', margin: [-20, 0, 0, 0]
+                                claimData.subscriber[0].claim[0].relatedCauseCode1.toString().toUpperCase() === "FALSE") ? '√' : '', margin: [-25, 0, 0, 0]
                         },
                         [
                             {
                                 style: 'myTable',
-                                margin: [15, 0, 0, 0],
+                                margin: [5, 0, 0, 0],
                                 table: {
                                     widths: [15, 15, 25],
                                     heights: [10],
@@ -442,7 +442,7 @@ function formatRedForm(claimData) {
                         [
                             {
                                 style: 'myTable',
-                                margin: [-50, 0, 0, 0],
+                                margin: [-67, -5, 0, 0],
                                 table: {
                                     widths: [42, 20],
                                     heights: [10],
@@ -464,7 +464,7 @@ function formatRedForm(claimData) {
                         },
                         {
                             text: (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].relatedCauseCode2.toString() &&
-                                claimData.subscriber[0].claim[0].relatedCauseCode2.toString().toUpperCase() === 'FALSE') ? '√' : '', margin: [-20, 0, 0, 0]
+                                claimData.subscriber[0].claim[0].relatedCauseCode2.toString().toUpperCase() === 'FALSE') ? '√' : '', margin: [-25, 0, 0, 0]
                         },
                         { text: "", colSpan: 2 }, {}
                     ],
@@ -476,7 +476,7 @@ function formatRedForm(claimData) {
                         },
                         {
                             text: (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].relatedCauseCode3.toString() &&
-                                claimData.subscriber[0].claim[0].relatedCauseCode3.toString().toUpperCase() === 'FALSE') ? '√' : '', margin: [-20, 0, 0, 0]
+                                claimData.subscriber[0].claim[0].relatedCauseCode3.toString().toUpperCase() === 'FALSE') ? '√' : '', margin: [-25, 0, 0, 0]
                         },
                         { text: claimData.subscriber && claimData.subscriber[0].planName ? (claimData.subscriber[0].planName).toString().substring(0, 30) : '', margin: [0, 0, 0, 0] },
                         {}
@@ -490,7 +490,7 @@ function formatRedForm(claimData) {
                         [
                             {
                                 style: 'myTable',
-                                margin: [3, 0, 0, 0],
+                                margin: [0, 0, 0, 0],
                                 table: {
                                     widths: [23, 24],
                                     heights: [10],
@@ -515,7 +515,7 @@ function formatRedForm(claimData) {
                         [
                             {
                                 style: 'myTable',
-                                margin: [35, 0, 0, 0],
+                                margin: [25, 0, 0, 0],
                                 table: {
                                     widths: [35, 15],
                                     heights: [10],
@@ -542,9 +542,9 @@ function formatRedForm(claimData) {
         },
         {
             style: 'myTable',
-            margin: [0, -3, 0, 0],
+            margin: [10, -3, 0, 0],
             table: {
-                widths: [25, 20, 50, 80, 0, 45, 13, 13, 62, 10, 15, 15, 30, 11, 15, 15, 35],
+                widths: [25, 20, 50, 80, 0, 45, 13, 13, 62, 10, 15, 15, 20, 11, 15, 15, 35],
                 heights: [20, 0, 18, 22, 0],
                 body: [
                     [
@@ -648,11 +648,11 @@ function formatRedForm(claimData) {
                         {}, {}, {}, {}, {}, {}, {}, {},
                         {
                             text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].outSideLab &&
-                                claimData.subscriber[0].claim[0].outSideLab.toString().toUpperCase() === 'TRUE' ? '√' : '', alignment: 'center'
+                                claimData.subscriber[0].claim[0].outSideLab.toString().toUpperCase() === 'TRUE' ? '√' : '', alignment: 'center', margin:[-35,0,0,0]
                         }, {},
                         {
                             text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].outSideLab.toString() &&
-                            claimData.subscriber[0].claim[0].outSideLab.toString().toUpperCase() === 'FALSE' ? '√' : '', alignment: 'center', margin:[-10,0,0,0] },
+                            claimData.subscriber[0].claim[0].outSideLab.toString().toUpperCase() === 'FALSE' ? '√' : '', alignment: 'center', margin:[-15,0,0,0] },
                         { text: '', colSpan: 3, alignment: 'right' }, {}, {},
                         { text: '', alignment: 'left', colSpan: 2 }, {}
                     ],
@@ -662,7 +662,7 @@ function formatRedForm(claimData) {
         },
         {
             style: 'myTable',
-            margin: [20, 0, 0, 0],
+            margin: [20, -8, 0, 0],
             table: {
                 widths: [90, 90, 90, 90, 70, 120],
                 heights: [0, 10, 10, 10],
@@ -671,7 +671,7 @@ function formatRedForm(claimData) {
                         { text: '' },
                         { text: '' },
                         { text: '' },
-                        { text: claimData?getICDCodeType(claimData): "" , margin: [-8, -10, 0, 0] },
+                        { text: claimData?getICDCodeType(claimData): "" , margin: [-8, -8, 0, 0] },
                         { text: claimData.subscriber && claimData.subscriber[0].claim ? (getResubmissionCode(claimData.subscriber[0].claim[0], 'claimFrequencyCode').toString().toUpperCase()) : '' },
                         {
                             text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0] && claimData.subscriber[0].claim[0].originalReference ?
@@ -752,9 +752,9 @@ function formatRedForm(claimData) {
         {
             style: 'myTable',
             alignment: 'center',
-            margin: [2, 7, 0, 0],
+            margin: [4, 7, 0, 0],
             table: {
-                widths: [10, 10, 25, 10, 10, 25, 15, 15, 35, 18, 18, 18, 18, 30, 30, 15, 20, 10, 15, 75],
+                widths: [10, 10, 25, 10, 10, 25, 15, 15, 35, 16, 16, 16, 16, 25, 30, 15, 20, 10, 15, 75],
                 heights: [8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8],
                 body: [
 
@@ -779,7 +779,7 @@ function formatRedForm(claimData) {
             style: 'myTable',
             margin: [8, 13, 0, 0],
             table: {
-                widths: [106, 7, 22, 102, 30, 45, 0, 45, 15, 0, 35, 10, 55, 10],
+                widths: [106, 7, 22, 102, 30, 45, 0, 35, 15, 0, 35, 10, 55, 10],
                 heights: [22, 20, 15],
                 body: [
                     [
@@ -824,7 +824,7 @@ function formatRedForm(claimData) {
 							), colSpan: 5
                         },
                         {}, {}, {}, {},
-                        { text: claimData.billingProvider && claimData.billingProvider.phoneNo ? (getph(claimData.billingProvider.phoneNo)) : '', colSpan: 2 , margin:[-30, -8, 0, 0]}, {}
+                        { text: claimData.billingProvider && claimData.billingProvider.phoneNo ? (getph(claimData.billingProvider.phoneNo)) : '', colSpan: 2 , margin:[-35, -8, 0, 0]}, {}
                     ],
                 ],
             }, layout: 'noBorders'
@@ -988,6 +988,6 @@ var dd = {
         height: 792
     },
     pageOrientation: 'portrait',
-    pageMargins: [15, 22, 0, 0]
+    pageMargins: [20, 32, 0, 0]
 
 };
