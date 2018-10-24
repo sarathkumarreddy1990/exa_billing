@@ -1068,7 +1068,7 @@ define(['jquery',
                     return false;
                 }
                 if ($('#selectPaymentMode').val() === 'check' && $.trim($("#txtCheque").val()) == "") {
-                    commonjs.showWarning('messages.warning.payments.enterChequeNo');
+                    commonjs.showWarning('messages.warning.payments.enterCheckNo');
                     $('#txtCheque').focus();
                     return false;
                 }
