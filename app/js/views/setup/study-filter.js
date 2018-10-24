@@ -1725,9 +1725,7 @@ define([
                 }
 
                 $('#txtLastTime').val('');
-
                 $('#txtPatientName').val('');
-
                 $('#txtPatientID').val('');
                 $('#listPatientName option').remove();
                 $('#listPatientID option').remove();
