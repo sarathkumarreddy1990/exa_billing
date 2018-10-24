@@ -13,7 +13,7 @@ WITH claim_data AS (
     FROM billing.claims bc
     INNER JOIN billing.claim_status bcs ON bcs.id = bc.claim_status_id
     WHERE bc.payer_type = 'patient'
-    AND bcs.code NOT IN ('PV','CR','CIC')
+    AND bcs.code NOT IN ('PV','CR','CIC','D')
     ),
 
     billing_comments AS (
