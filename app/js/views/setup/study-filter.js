@@ -1887,7 +1887,7 @@ define([
                     })
                 }
 
-                $('#lblOrdFacility').text('Ordering Facility : ' + (ordFacList ?  $('input[name=studyordFacility]:checked').val() + ' ' +  ordFacList : ''));
+                $('#lblOrdFacility').text('Ordering Facility : ' + (ordFacList && ordFacList.length ?  $('input[name=studyordFacility]:checked').val() + ' ' +  ordFacList : ''));
                 $('#lblSummaryModality').text('Modality :' + this.listBoxSelectedArray('listModality', 'Modality'));
                 $('#lblSummaryStatus').text('Status :' + this.listBoxSelectedArray('listStatus', 'Status'));
                 $('#lblSummaryVehicle').text('Vehicle :' + this.listBoxSelectedArray('listVehicle', 'Vehicle'));
