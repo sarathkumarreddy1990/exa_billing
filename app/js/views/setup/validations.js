@@ -34,37 +34,25 @@ define([
                 ]});
                 this.model.fetch({
                     success: function (model, response) {
-                        if (!response) {
-                            response = [];
-                        }
-
-                        if (!response[0] || (!response[0].edi_validation || !response[0].invoice_validation || !response[0].patient_validation)) {
-
-                            if (response.length == 0) {
-                                response = [{}];
-                            }
-                            $.getJSON("billing/static/resx/validation_fields.json", function (data) {
-                                if (!response[0].edi_validation || !response[0].edi_validation.length) {
-                                    response[0].edi_validation = data[0].edi_validation;
-                                }
-                                if (!response[0].invoice_validation || !response[0].invoice_validation.length) {
-                                    response[0].invoice_validation = data[0].invoice_validation;
-                                }
-                                if (!response[0].patient_validation || !response[0].patient_validation.length) {
-                                    response[0].patient_validation = data[0].patient_validation;
-                                }
-                                self.bindValidationFields(response[0]);
-                            });
-                        }
-                        else {
-                            self.bindValidationFields(response[0]);
+                        var fieldData = {};
+                        var eJsonResponse = iJsonResponse = pJsonResponse = [];
+                        if (response && response[0]) {
+                            eJsonResponse = response[0].edi_validation || [];
+                            iJsonResponse = response[0].invoice_validation || [];
+                            pJsonResponse = response[0].patient_validation || [];
                             self.id = response[0].id;
                         }
+                        $.getJSON("billing/static/resx/validation_fields.json", function (data) {
+                            fieldData.edi_validation = self.getValidationFields(data[0].edi_validation, eJsonResponse);
+                            fieldData.invoice_validation = self.getValidationFields(data[0].invoice_validation, iJsonResponse);
+                            fieldData.patient_validation = self.getValidationFields(data[0].patient_validation, pJsonResponse);
+                            self.bindValidationFields(fieldData);
+                            commonjs.processPostRender();
+                        });
                         $("#validateElectronic").addClass("activeValTag").siblings().removeClass("activeValTag");
                         $('#divElectricValidation').show();
                         $('#divInvoiceValidation').hide();
                         $('#divPatientValidation').hide();
-                        commonjs.processPostRender();
                     }
                 });
 
@@ -197,17 +185,14 @@ define([
             },
 
             parsingtoJson: function (obj) {
-                var json = [];
-                for (var i = 0; i < obj.length; i++) {
-                    if (obj[i].getAttribute("id").indexOf("Grp") < 0) {
-                        var property = {
-                            "field": obj[i].getAttribute("id").slice(3),
-                            "enabled": obj[i].checked
+                return obj.map(function (index, field) {
+                    if ((field.getAttribute("id").indexOf("Grp") < 0) && field.checked) {
+                        return {
+                            "field": field.getAttribute("id").slice(3),
+                            "enabled": true
                         }
-                        json.push(property);
                     }
-                }
-                return json;
+                }).toArray();
             },
 
             findGroup: function (id) {
@@ -241,6 +226,17 @@ define([
                 this.getHtml(eJson, $('#divElectricValidation'), 'ele');
                 this.getHtml(iJson, $('#divInvoiceValidation'), 'inv');
                 this.getHtml(pJson, $('#divPatientValidation'), 'pat');
+            } ,
+
+            getValidationFields: function (existingFields, enabledFields) {
+                return existingFields.map(function (fieldData) {
+                    return {
+                        field: fieldData.field,
+                        enabled: !!enabledFields.filter(function (enabledField) {
+                            return enabledField.enabled && enabledField.field === fieldData.field
+                        }).length
+                    }
+                });
             }
 
         });

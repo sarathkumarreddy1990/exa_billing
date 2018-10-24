@@ -325,7 +325,7 @@ define(['jquery',
                 var drpTabColumnSet = [
                     {
                         forTab: "claims",
-                        columns: ["current_illness_date", "claim_dt", "followup_date", "birth_date", 'submitted_dt']
+                        columns: ["current_illness_date", "claim_dt", "followup_date", "birth_date", 'submitted_dt', 'first_statement_dt']
                     }
                 ];
                 var columnsToBind = _.find(drpTabColumnSet,function (val) {
@@ -1315,9 +1315,9 @@ define(['jquery',
                             $('#btnValidateExport').off().click(function (e) {
                                 $('#btnValidateExport').css('display', 'none');
                                 var filter_current_id = $('#claimsTabs').find('.active a').attr('data-container')
-                                var filter = commonjs.loadedStudyFilters.get(filter_current_id)
-                                filterData= JSON.stringify(filter.pager.get('FilterData')),
-                                filterCol =JSON.stringify(filter.pager.get('FilterCol'));
+                                var filter = commonjs.loadedStudyFilters.get(filter_current_id),
+                                    filterData = filter && filter.pager && JSON.stringify(filter.pager.get('FilterData')),
+                                    filterCol = filter && filter.pager && JSON.stringify(filter.pager.get('FilterCol'));
                                 table.renderStudy(true, filterData, filterCol);
                             });
                         };
@@ -1636,9 +1636,6 @@ define(['jquery',
                     // EXA-9228 passing value to identify home page refresh, to set initial page size .
                     filter.refresh(isFromDatepicker || true);
                 }
-                else {
-                    self.loadTabContents();
-                }
                 if (typeof callback === 'function') {
                     return callback(filter);
                 }
@@ -1712,15 +1709,17 @@ define(['jquery',
                         resp = resp && (resp.length >=1) && resp[1].rows && resp[1].rows[0] ? resp[1].rows[0] : {};
                         if (resp) {
                             app.claim_user_settings = Object.assign({}, app.claim_user_settings, resp);
-                            var fid = filter.options.filterid;
-                            var isprior = filter.options.isPrior;
+                            var fid = filter && filter.options && filter.options.filterid;
+                            var isprior = filter && filter.options && filter.options.isPrior;
                             var $currentstudyTab = $(document.getElementById('studyTabs')).find('a').filter('[href="#divClaimGridContainer' + fid + '"]');
                             var isDicomSearch = $currentstudyTab.attr('data-showDicom') === "true";
                             var isRisOrderSearch = $currentstudyTab.attr('data-showRisOrder') === "true";
                             var showEncOnly = $currentstudyTab.attr('data-showEncOnly') === "true";
-                            filter.options.isDicomSearch = isDicomSearch;
-                            filter.options.isRisOrderSearch = isRisOrderSearch;
-                            filter.options.showEncOnly = showEncOnly;
+                            if (filter && filter.options) {
+                                filter.options.isDicomSearch = isDicomSearch;
+                                filter.options.isRisOrderSearch = isRisOrderSearch;
+                                filter.options.showEncOnly = showEncOnly;
+                            }
                             $('input:checkbox[name=showDicom]').prop('checked', isDicomSearch);
                             $('input:checkbox[name=showRis]').prop('checked', isRisOrderSearch);
                             filter.customGridTable.jqGrid('GridUnload');
@@ -1855,17 +1854,19 @@ define(['jquery',
                 var self=this;
                 var filterID = commonjs.currentStudyFilter;
                 var filter = commonjs.loadedStudyFilters.get(filterID);
+                var selectedClaimIds =[];
+                var selectedClaimsRows = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked');
 
-                var claimIds =[],existingBillingMethod='';
-                for (var i = 0; i < $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked').length; i++) {
-                    var rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;
-                    claimIds.push(rowId);
-                }
+                _.each(selectedClaimsRows, function (rowObj) {
+                    var rowId = rowObj.parentNode.parentNode.id;
+                    selectedClaimIds.push(rowId);
+                });
 
-                if(claimIds&&claimIds.length==0){
-                    commonjs.showWarning('Please select claims');
+                if (!selectedClaimIds.length) {
+                    commonjs.showWarning(commonjs.geti18NString("messages.warning.claims.selectClaimToValidate"));
                     return false;
                 }
+
                 if ($('#chkStudyHeader_' + filterID).is(':checked')) {
                     self.selectAllClaim(filter, filterID, 'VALIDATE');
                 } else {
@@ -1874,23 +1875,45 @@ define(['jquery',
                         url: '/exa_modules/billing/claim_workbench/validate_claims',
                         type: 'POST',
                         data: {
-                            claim_ids: claimIds
+                            claim_ids: selectedClaimIds
                         },
                         success: function (data, response) {
-                            $("#btnValidateOrder").attr("disabled", false);
+                            $("#btnValidateOrder").prop("disabled", false);
                             if (data) {
                                 commonjs.hideLoading();
 
-                                if (!data.invalidClaim_data.length) {
+                                if (data.validClaim_data && data.validClaim_data.rows && data.validClaim_data.rows.length) {
                                     commonjs.showStatus(commonjs.geti18NString("messages.status.validatedSuccessfully"));
-                                    $("#btnClaimsRefresh").click();
+
+                                    var pending_submission_status = app.claim_status.filter(function (obj) {
+                                        return obj.id === parseInt(data.validClaim_data.rows[0].claim_status_id)
+                                    });
+                                    var statusDetail = commonjs.getClaimColorCodeForStatus(pending_submission_status[0].code, 'claim');
+                                    var color_code = statusDetail && statusDetail[0] && statusDetail[0].color_code || 'transparent';
+                                    var $gridId = filter.options.gridelementid || '';
+                                    $gridId = $gridId.replace(/#/, '');
+
+                                    if ($gridId) {
+                                        _.each(data.validClaim_data.rows, function (obj) {
+                                            $('#' + $gridId + ' tr#' + obj.id, parent.document).find('td[aria-describedby=' + $gridId + '_claim_status]').text(pending_submission_status && pending_submission_status[0].description).css("background-color", color_code);
+                                        });
+                                    } else {
+                                        commonjs.showWarning(commonjs.geti18NString("messages.errors.gridIdNotExists"));
+                                    }
+
                                 }
-                                else
+
+                                if(data.invalidClaim_data.length && data.validClaim_data.rows && data.validClaim_data.rows.length){
+                                    commonjs.showWarning(commonjs.geti18NString("messages.warning.claims.claimValidationFailed"));
+                                }
+
+                                if (data.invalidClaim_data.length) {
                                     commonjs.showDialog({ header: 'Validation Results', i18nHeader: 'billing.claims.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });
+                                }
                             }
                         },
                         error: function (err, response) {
-                            $("#btnValidateOrder").attr("disabled", false);
+                            $("#btnValidateOrder").prop("disabled", false);
                             commonjs.handleXhrError(err, response);
                         }
                     });

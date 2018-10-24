@@ -108,7 +108,14 @@ module.exports = {
                                         providers.full_name as fac_reading_phy_full_name,
                                         facility_info->'service_facility_id' as service_facility_id,
                                         facility_info->'service_facility_name' as service_facility_name,
-                                        facility_info->'billing_provider_id' as fac_billing_provider_id,
+                                        (
+                                            SELECT
+                                                default_provider_id
+                                            FROM
+                                                billing.facility_settings
+                                            WHERE
+                                                facility_id = orders.facility_id
+                                        ) AS fac_billing_provider_id,
                                         order_info -> 'ordering_facility_id' AS ordering_facility_id,
                                         order_info -> 'ordering_facility' AS ordering_facility_name,
                                         orders.order_status AS order_status,
@@ -723,11 +730,13 @@ module.exports = {
                                 ,study_dt
                                 ,facilities.facility_name
                             FROM studies
-                            LEFT JOIN orders ON orders.id=studies.order_id
-                            INNER JOIN facilities ON studies.facility_id=facilities.id
+                                LEFT JOIN orders ON orders.id=studies.order_id
+                                INNER JOIN facilities ON studies.facility_id=facilities.id
                             WHERE
-                            studies.has_deleted=False AND studies.patient_id = ${id}
-                            AND NOT EXISTS ( SELECT 1 FROM billing.charges_studies WHERE study_id = studies.id )
+                                NOT studies.has_deleted
+                                AND study_dt IS NOT NULL
+                                AND studies.patient_id = ${id}
+                                AND NOT EXISTS ( SELECT 1 FROM billing.charges_studies WHERE study_id = studies.id )
                             ORDER BY id ASC
                     ) AS charge
             ) charge_details
@@ -742,7 +751,7 @@ module.exports = {
 				            ,p.gender AS patient_gender
 				            ,p.account_no AS patient_account_no
                             ,f.id AS facility_id
-                            ,COALESCE(NULLIF(f.facility_info->'billing_provider_id',''),'0')::numeric AS billing_provider_id
+                            ,fs.default_provider_id AS billing_provider_id
                             ,COALESCE(NULLIF(f.facility_info->'service_facility_id',''),'0')::numeric AS service_facility_id
                             ,COALESCE(NULLIF(f.facility_info->'rendering_provider_id',''),'0')::numeric AS rendering_provider_id
                             ,facility_info->'service_facility_name' as service_facility_name
@@ -753,6 +762,7 @@ module.exports = {
                         INNER JOIN facilities f ON f.id = p.facility_id
                         LEFT JOIN provider_contacts fac_prov_cont ON f.facility_info->'rendering_provider_id'::text = fac_prov_cont.id::text
                         LEFT JOIN providers fac_prov ON fac_prov.id = fac_prov_cont.provider_id
+                        LEFT JOIN billing.facility_settings fs ON fs.facility_id = p.facility_id
                         WHERE p.id = ${id}
                     ) AS patient_default_details
             ) patient_info `;

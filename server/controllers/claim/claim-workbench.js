@@ -200,7 +200,7 @@ module.exports = {
                 notes = 'Paper claim (B&W) to ';
                 break;
             case 'patient_invoice':
-                notes = 'Patient Payment  to ';
+                notes = 'Patient Invoice  printed ';
                 break;
         }
 
@@ -237,7 +237,7 @@ module.exports = {
         let error_data;
         params.success_claimID = [];
         let pointers;
-        let defaultSubsInsValidationFields = ['subscriber_addressLine1', 'subscriber_city', 'subscriber_dob', 'subscriber_firstName', 'subscriber_lastName', 'subscriber_state', 'subscriber_zipCode', 'insurance_pro_address1', 'insurance_pro_city', 'insurance_pro_payerID', 'insurance_pro_state', 'insurance_pro_zipCode', 'insurance_pro_companyName'];
+        let defaultSubsInsValidationFields = ['subscriber_addressLine1', 'subscriber_city', 'subscriber_dob', 'subscriber_gender', 'subscriber_firstName', 'subscriber_lastName', 'subscriber_state', 'subscriber_zipCode', 'insurance_pro_address1', 'insurance_pro_city', 'insurance_pro_payerID', 'insurance_pro_state', 'insurance_pro_zipCode', 'insurance_pro_companyName'];
 
         _.each(claimDetails, (currentClaim) => {
             let validationFields = currentClaim.validation_fields;

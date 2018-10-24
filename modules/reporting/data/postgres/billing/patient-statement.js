@@ -69,7 +69,7 @@ WITH claim_data AS (
                                      WHEN 'ordering_provider' THEN 'Provider'
                                      END)
                 END as code,
-                null as charge_id
+                ROW_NUMBER () OVER (ORDER BY bp.id) as charge_id  -- Require rownumber for each selected row
     FROM billing.payments bp
     INNER JOIN billing.payment_applications pa on pa.payment_id = bp.id
     INNER JOIN billing.charges AS bc on bc.id = pa.charge_id
@@ -87,6 +87,7 @@ WITH claim_data AS (
     main_detail_cte as (
     SELECT
         p.id as pid,
+        bc.id as claim_id,
         sum((CASE type WHEN 'charge' then amount
                       WHEN 'payment' then amount
                       WHEN 'adjustment' then amount
@@ -161,7 +162,26 @@ WITH claim_data AS (
     <% } %>
 
     ORDER BY first_name),
-
+    create_comments AS (
+        INSERT INTO billing.claim_comments
+            (
+                  claim_id
+                , type
+                , note
+                , created_by
+                , created_dt
+            )
+            (
+                SELECT
+                      DISTINCT claim_id
+                    , 'patient_statement'
+                    , 'Patient Statement  Printed  for ' || full_name || ' (patient)'
+                    , <%= userId %>
+                    , now()
+                FROM main_detail_cte
+                WHERE row_flag = 1
+            )
+    ),
     detail_cte AS (
     SELECT *
     FROM main_detail_cte
@@ -604,8 +624,11 @@ const api = {
             facilityIds: null,
             statementDate: null,
             patientLastnameFrom: null,
-            patientLastnameTo: null
+            patientLastnameTo: null,
+            userId: null
         };
+
+        filters.userId = reportParams.userId;
 
         // patients
         if (reportParams.patientOption === 'S' && reportParams.patientIds) {

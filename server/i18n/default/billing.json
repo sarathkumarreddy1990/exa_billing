@@ -126,6 +126,8 @@
             "insurance": "Insurance",
             "patient": "Patient",
             "orderingFacility": "Ordering Facility",
+            "insuranceProvider": "Insurance Provider",
+            "providers": "Providers",
             "provider": "Provider",
             "electronic": "Electronic",
             "directingBilling": "Direct Billing(Invoice)",
@@ -205,7 +207,12 @@
             "selectInsurance": "Select Insurance",
             "selectPatient": "Select Patient",
             "selectOrderingFacility": "Select Ordering Facility",
-            "selectProvider": "Select Provider"
+            "selectProvider": "Select Provider",
+            "searchCarrier": "Search Carrier",
+            "searchPatient": "Search Patient",
+            "searchOrderingFacility": "Search Ordering Facility",
+            "searchProvider": "Search Provider",
+            "alreadySelectedOF": "Ordering Facility is already selected"
         },
         "refund": {
             "scheduleDate": "Schedule Date",

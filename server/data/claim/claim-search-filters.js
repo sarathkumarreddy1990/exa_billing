@@ -43,13 +43,13 @@ const colModel = [
     },
     {
         name: 'billing_provider',
-        searchFlag: '%',
-        searchColumns: ['billing_providers.name']
+        searchFlag: 'int',
+        searchColumns: ['billing_providers.id']
     },
     {
         name: 'place_of_service',
-        searchFlag: '%',
-        searchColumns: ['places_of_service.description']
+        searchFlag: 'int',
+        searchColumns: ['places_of_service.id']
     },
     {
         name: 'referring_providers',
@@ -120,8 +120,8 @@ const colModel = [
     },
     {
         name: 'clearing_house',
-        searchColumns: [`edi_clearinghouses.name`],
-        searchFlag: '%'
+        searchColumns: [`edi_clearinghouses.id`],
+        searchFlag: 'int'
     },
     {
         name: 'edi_template',
@@ -157,6 +157,21 @@ const colModel = [
         name: 'assigned_to',
         searchColumns: ['users.id'],
         searchFlag: '='
+    },
+    {
+        name: 'first_statement_dt',
+        searchColumns: ['claim_comment.created_dt'],
+        searchFlag: 'daterange'
+    },
+    {
+        name: 'facility_name',
+        searchColumns: ['claims.facility_id'], //since search column assigned as facility_id in grid dropdown
+        searchFlag: 'int'
+    },
+    {
+        name: 'ordering_facility_name',
+        searchColumns: ['provider_groups.group_name'],
+        searchFlag: '%'
     }
 ];
 
@@ -211,6 +226,8 @@ const api = {
             case 'place_of_service': return 'places_of_service.description';
             case 'referring_providers': return 'ref_provider.full_name';
             case 'rendering_provider': return 'render_provider.full_name';
+            case 'ordering_facility_name': return 'provider_groups.group_name';
+            case 'facility_name': return 'facilities.facility_name';
             case 'billing_fee': return 'bgct.charges_bill_fee_total';
             case 'invoice_no': return 'claims.invoice_no';
             case 'billing_method': return 'claims.billing_method';
@@ -239,6 +256,7 @@ const api = {
             case 'gender': return 'patients.gender';
             case 'billing_notes': return '(claims.billing_notes  IS NULL) ,claims.billing_notes ';
             case 'submitted_dt': return 'claims.submitted_dt';
+            case 'first_statement_dt': return 'claim_comment.created_dt';
         }
 
         return args;
@@ -270,8 +288,8 @@ const api = {
 
         let r = '';
 
-        if(!isCount) {
-            r = ' INNER JOIN LATERAL billing.get_claim_totals(claims.id) bgct ON TRUE '; 
+        if (!isCount || (columns && columns.bgct)) {
+            r = ' INNER JOIN LATERAL billing.get_claim_totals(claims.id) bgct ON TRUE ';
         }
 
         if (tables.patients) { r += ' INNER JOIN patients ON claims.patient_id = patients.id '; }
@@ -322,6 +340,20 @@ const api = {
 
         if (tables.billing_classes) { r += '  LEFT JOIN billing.billing_classes ON claims.billing_class_id = billing_classes.id '; }
 
+        if(tables.claim_comment){
+            r += ` LEFT JOIN LATERAL (
+                    SELECT
+                        created_dt
+                    FROM billing.claim_comments cc
+                    WHERE
+                        cc.claim_id = claims.id
+                        AND cc.type = 'patient_statement'
+                    ORDER BY created_dt ASC
+                    LIMIT 1
+            ) AS claim_comment ON TRUE `;
+
+        }
+
         return r;
     },
 
@@ -345,6 +377,8 @@ const api = {
             'places_of_service.description AS place_of_service',
             'ref_provider.full_name as   referring_providers',
             'render_provider.full_name as   rendering_provider',
+            'provider_groups.group_name as   ordering_facility_name',
+            'facilities.facility_name as facility_name',
             'bgct.charges_bill_fee_total as billing_fee',
             'claims.current_illness_date::text as current_illness_date',
             'claims.id As claim_no',
@@ -369,7 +403,8 @@ const api = {
             'claims.billing_notes',
             'patients.gender',
             'patients.id as patient_id',
-            'invoice_no'
+            'invoice_no',
+            'claim_comment.created_dt AS first_statement_dt'
         ];
 
         if(args.customArgs.filter_id=='Follow_up_queue'){
@@ -457,6 +492,7 @@ const api = {
             ${columns}
             FROM (${innerQuery}) as FinalClaims
             INNER JOIN billing.claims ON FinalClaims.claim_id = claims.id
+            INNER JOIN facilities ON facilities.id = claims.facility_id
             ${api.getWLQueryJoin(columns, '', args.customArgs.filter_id, args.user_id, args.isCount)}
             ORDER BY FinalClaims.number
             `
@@ -480,13 +516,16 @@ const api = {
             args.filterCol = JSON.stringify(column);
             args.filterData = JSON.stringify(data);
         }
-        
+
         if (column.indexOf('claim_balance') > -1) {
 
             let colIndex = column.indexOf('claim_balance');
 
             for (let i = 0; i < colModel.length; i++) {
                 if (colModel[i].name == 'claim_balance') {
+                    let colValue = data[colIndex].slice(1);
+                    data[colIndex] = data[colIndex].charAt(0);
+
                     switch (data[colIndex]) {
                         case '=':
                             colModel[i].searchFlag = '='; //Equals
@@ -497,12 +536,15 @@ const api = {
                         case '>':
                             colModel[i].searchFlag = 'gt'; //Greated that
                             break;
+                        case '|':
+                            colModel[i].searchFlag = 'bw'; //0 < x < 5
+                            break;
                         case 'default':
                             colModel[i].searchFlag = '='; //Equals by default
                             break;
                     }
 
-                    data[colIndex] = '0';
+                    data[colIndex] = colValue;
                     args.filterData = JSON.stringify(data);
                     break;
                 }

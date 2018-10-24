@@ -330,6 +330,42 @@
                 "width": 100
             },
             "id": 28
+        },
+        {
+            "field_code": "first_statement_dt",
+            "field_name": "First Statement Date",
+            "i18n_name": "setup.userSettings.firstStatementDate",
+            "field_info": {
+                "name": "first_statement_dt",
+                "searchFlag": "datetime",
+                "formatter": "self.claimDateFormatter",
+                "width": 200
+            },
+            "id": 29
+        },
+        {
+            "id": 30,
+            "field_name": "Ordering Facility",
+            "i18n_name": "setup.userSettings.orderingFacility",
+            "field_info": {
+                "custom_name": "Ordering Facility",
+                "name": "ordering_facility_name",
+                "width": 250,
+                "defaultValue": ""
+            },
+            "field_code": "ordering_facility_name"
+        },
+        {
+            "id": 31,
+            "field_name": "Facility",
+            "i18n_name": "setup.userSettings.facility",
+            "field_info": {
+                "custom_name": "Facility",
+                "name": "facility_name",
+                "width": 200,
+                "stype": "select"
+            },
+            "field_code": "facility_name"
         }
     ],
     "study_fields": [
@@ -730,19 +766,6 @@
                 "sortable": true
             },
             "field_code": "vehicle_name"
-        },
-        {
-            "id": 35,
-            "field_name": "Responsible",
-            "i18n_name": "setup.userSettings.payerName",
-            "field_info": {
-                "custom_name": "Responsible",
-                "name": "payer_name",
-                "width": 100,
-                "search": true,
-                "sortable": true
-            },
-            "field_code": "payer_name"
         },
         {
             "id": 36,

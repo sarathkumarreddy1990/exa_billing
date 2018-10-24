@@ -1,6 +1,5 @@
-const
-    moment = require('moment')
-    ;
+const moment = require('moment');
+const _ = require('lodash');
 
 const util = {
     getArrayOperator: function (condition, value, column, Filter) {
@@ -61,7 +60,7 @@ const util = {
                 return 'ALL';
         }
     },
-    getConditionalOperator: function (condition, value, isKey, Filter) {
+    getConditionalOperator: function (condition, value, isKey, Filter, field) {
 
         if (Filter == 'patients' || Filter == 'patientID' || Filter == 'readPhy' || Filter == 'study_desc' || Filter === 'attorney') {
             switch (condition) {
@@ -88,6 +87,14 @@ const util = {
                     return isKey
                         ? ` NOT ILIKE ${value}`
                         : ` NOT ILIKE '%${value}%'`;
+            }
+        }
+        else if (Filter == 'array') {
+            switch (condition) {
+                case 'Is':
+                    return isKey ? `${field} = ${value}` : `${field} = '${value}'`;
+                case 'IsNot':
+                    return isKey ? ` NOT ${field} = ${value}` : ` NOT ${field} = '${value}'`;
             }
         }
         else {
@@ -273,13 +280,53 @@ const util = {
                     let obj = filterObj.ClaimInformation.balance;
                     let BalanceQuery = '';
 
-
-                    BalanceQuery += '  (select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from BILLING.get_claim_totals(claims.id))::numeric' + obj.value + '::numeric';
+                    if(obj.value && obj.value.charAt(0) === '|') {
+                        obj.value =  (obj.value).slice(1);
+                        BalanceQuery += ` (bgct.claim_balance_total)::numeric > 0 AND (bgct.claim_balance_total)::numeric  <= ` +  obj.value + `::numeric`;
+                    } else {
+                        BalanceQuery += '  (bgct.claim_balance_total)::numeric' + obj.value + '::numeric';
+                    }
 
                     query += util.getRelationOperator(query) + BalanceQuery;
 
 
                 }
+
+
+                if (filterObj.ClaimInformation.facility) {
+                    let obj = filterObj.ClaimInformation.facility;
+                    let facilityQuery = '';
+
+                    if (obj && obj.list && obj.list.length) {
+                        let facilityArray = _.map(obj.list, (x) => x.id);
+                        facilityQuery = util.getConditionalOperator(obj.condition, `ANY(ARRAY[` + facilityArray + `])`, true, 'array', ` claims.facility_id `);
+
+                        if (obj.condition == 'IsNot') {
+                            facilityQuery += ' OR claims.facility_id IS NULL';
+                        }
+
+                        query += util.getRelationOperator(query) + '(' + facilityQuery + ')';
+                    }
+                }
+
+
+                if (filterObj.ClaimInformation.ordering_facility) {
+                    let obj = filterObj.ClaimInformation.ordering_facility;
+                    let orderingFacilityQuery = '';
+
+                    if (obj && obj.list && obj.list.length) {
+                        let orderingFacilityArray = _.map(obj.list, (x) => x.id);
+                        orderingFacilityQuery = util.getConditionalOperator(obj.condition, `ANY(ARRAY[` + orderingFacilityArray + `])`, true, 'array', ` claims.ordering_facility_id `);
+
+                        if (obj.condition == 'IsNot') {
+                            orderingFacilityQuery += ' OR claims.ordering_facility_id IS NULL';
+                        }
+
+                        query += util.getRelationOperator(query) + '(' + orderingFacilityQuery + ')';
+                    }
+                    
+                }
+
             }
         }
 
@@ -977,6 +1024,9 @@ const util = {
                     break;
                 case 'claim_dt':
                     scheduleDtColumn = 'claims.claim_dt';
+                    break;
+                case 'first_statement_dt':
+                    scheduleDtColumn = 'claim_comment.created_dt';
                     break;
             }
         }

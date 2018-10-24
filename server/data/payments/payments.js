@@ -59,11 +59,19 @@ module.exports = {
         }
 
         if (payment_dt) {
-            whereQuery.push(generator('payment_dt', payment_dt));
+            const paymentFilter = generator('payment_dt', payment_dt);
+
+            if (paymentFilter) {
+                whereQuery.push(paymentFilter);
+            }
         }
 
         if (accounting_date) {
-            whereQuery.push(generator('accounting_date', accounting_date));
+            const accountingDateFilter = generator('accounting_date', accounting_date);
+            
+            if (accountingDateFilter) {
+                whereQuery.push(accountingDateFilter);
+            }
         } else {
             if (fromDate && toDate) {
                 whereQuery.push(`${filterByDateType} BETWEEN  '${fromDate}'::date AND '${toDate}'::date`);
@@ -107,7 +115,7 @@ module.exports = {
         }
 
         if (facility_name) {
-            whereQuery.push(`facility_name  ILIKE '%${facility_name}%' `);
+            whereQuery.push(`payments.facility_id = ${facility_name} `); //eg:facility_name =1 for search column
         }
 
         if (from === 'patient_claim') {

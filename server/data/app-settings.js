@@ -317,8 +317,31 @@ module.exports = {
                             can_edit
                             AND NOT study_status.has_deleted
                             AND company_id = ${companyID}
-                        ORDER BY status_code ASC 
-                    ) AS custom_study_status)
+                        ORDER BY status_code ASC ) AS custom_study_status
+                    ),
+                cte_vehicle_list AS(
+                    SELECT COALESCE(Json_agg(Row_to_json(vehicles)),'[]') vehicles
+                    FROM (
+                        SELECT
+                            id
+                            , vehicle_name
+                        FROM vehicles
+                        WHERE NOT has_deleted ) AS vehicles
+                ),
+                cte_clearing_house AS(
+                    SELECT COALESCE(Json_agg(Row_to_json(clearing_house)),'[]') clearing_house
+                    FROM  (
+                        SELECT
+                            id
+                            , company_id
+                            , inactivated_dt
+                            , code
+                            , name
+                            , receiver_name
+                            , receiver_id
+                            , communication_info
+                        FROM billing.edi_clearinghouses ) AS clearing_house
+                )
                SELECT *
                FROM   cte_company,
                       cte_facilities,
@@ -347,7 +370,9 @@ module.exports = {
                       cte_currentDate,
                       cte_insurance_provider_payer_types,
                       cte_modality_rooms,
-                      cte_custom_study_status
+                      cte_custom_study_status,
+                      cte_clearing_house,
+                      cte_vehicle_list
                `;
 
         return await query(sql);

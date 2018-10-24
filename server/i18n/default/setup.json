@@ -145,6 +145,7 @@
             "ageTimeOfStudy": "Age-Time of Study",
             "refPhy": "Ref.Physician",
             "studyDate": "Study Date",
+            "firstStatementDate": "First Statement Date",
             "facility": "Facility",
             "readPhy": "Reading Physician",
             "institution": "Institution",
@@ -300,7 +301,9 @@
             "payer_city": "Payer-City",
             "payer_name": "Payer-Name",
             "payer_state": "Payer-State",
-            "payer_zip_code": "Payer-Zip Code"
+            "payer_zip_code": "Payer-Zip Code",
+            "patient_gender": "Patient Gender",
+            "subscriber_gender": "Subscriber Gender"
         },
         "studyFilters": {
             "attorney": "Attorney",
@@ -334,6 +337,8 @@
             "dateTo": "Date To",
             "dateOperationsBy": "Date Operations By",
             "studyDate": "Study Date",
+            "claimDate": "Claim Date",
+            "firstStatementDate": "First Statement Date",
             "studyReceivedDate": "Study Received Date",
             "scheduledDate": "Scheduled Date",
             "statusChangeDate": "Status Change Date",
@@ -410,7 +415,8 @@
                 "next30days": "Next 30 Days",
                 "lastmonth": "Last Month",
                 "thismonth": "This Month",
-                "thisyear": "This Year"
+                "thisyear": "This Year",
+                "last90days": "Last 90 Days"
             },
             "nav": {
                 "tabDateTime": "Date/Time",
