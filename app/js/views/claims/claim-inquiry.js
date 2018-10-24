@@ -924,11 +924,13 @@ define([
                         'height': '75%',
                         'needShrink': true
                     });
+
                     setTimeout(function () {
-                        var billingProviderList = app.billing_providers,reportBy
-                            ddlBillingProvider = $('#ddlBillingProvider');
+                        var billingProviderList = app.billing_providers,
+                        var ddlBillingProvider = $('#ddlBillingProvider');
                         ddlBillingProvider.empty();
-                        ddlBillingProvider.append("<option value='0'>Select</option>")
+                        ddlBillingProvider.append("<option value='0'>Select</option>");
+
                         if (billingProviderList && billingProviderList.length > 0) {
                             for (var b = 0; b < billingProviderList.length; b++) {
                                 ddlBillingProvider.append($('<option/>', {
@@ -938,7 +940,6 @@ define([
                             }
                         }
                     }, 300);
-
 
                     this.$el.html(this.claimPatientTemplate());
                     this.fromDate =  commonjs.bindDateTimePicker("divFDate", { format: 'L' });
