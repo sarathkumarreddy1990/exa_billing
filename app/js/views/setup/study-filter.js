@@ -507,6 +507,7 @@ define([
                     $('#txtLastTime, #ddlLast, #txtFromTimeLast, #txtToTimeLast, #ddlDatePreformatted').prop('disabled', 'disabled');
                 });
                 $('#btnSaveStudyFilter').unbind().click(function (e) {
+                    self.previous = ""
                     self.saveStudyFilter(id);
                 });
                 $('#btnClearData').unbind().click(function (e) {
@@ -769,7 +770,7 @@ define([
                                     }
 
                                     if (studyInfoJson.facility && studyInfoJson.facility.condition) {
-                                        $("input:radio[name=Facility][value=" + studyInfoJson.facility.condition + "]").prop('checked', true);
+                                        $("input:radio[name=studyFacility][value=" + studyInfoJson.facility.condition + "]").prop('checked', true);
                                         for (var j = 0; j < studyInfoJson.facility.list.length; j++) {
                                             $('#listFacility option').each(function (i, selected) {
                                                 if (studyInfoJson.facility.list[j].id == $(selected).val()) {
@@ -780,8 +781,9 @@ define([
                                     }
 
                                     $('#ulListOrdFacility').empty();
+                                    self.ordering_facility = studyInfoJson.ordering_facility;
                                     if (studyInfoJson.ordering_facility && studyInfoJson.ordering_facility.condition) {
-                                        $("input:radio[name=ordFacility][value=" + studyInfoJson.ordering_facility.condition + "]").prop('checked', true);
+                                        $("input:radio[name=studyordFacility][value=" + studyInfoJson.ordering_facility.condition + "]").prop('checked', true);
                                         for (var j = 0; j < studyInfoJson.ordering_facility.list.length; j++) {
                                             if ($('#ulListOrdFacility li a[data-id="' + studyInfoJson.ordering_facility.list[j].id + '"]').length === 0) {
                                                 $('#ulListOrdFacility').append('<li id="' + studyInfoJson.ordering_facility.list[j].id + '"><span>' + studyInfoJson.ordering_facility.list[j].text + '</span><a class="remove" data-id="' + studyInfoJson.ordering_facility.list[j].id + '"><span class="icon-ic-close"></span></a></li>')
@@ -873,7 +875,7 @@ define([
 
                                     var claimFacilityJson = response.filter_info.ClaimInformation.facility || [];
                                     if (claimFacilityJson && claimFacilityJson.condition) {
-                                        $("input:radio[name=Facility][value=" + claimFacilityJson.condition + "]").prop('checked', true);
+                                        $("input:radio[name=claimFacility][value=" + claimFacilityJson.condition + "]").prop('checked', true);
                                         for (var j = 0; j < claimFacilityJson.list.length; j++) {
                                             $('#listClaimFacility option').each(function (i, selected) {
                                                 if (claimFacilityJson.list[j].id == $(selected).val()) {
@@ -886,7 +888,7 @@ define([
                                     $('#ulListClaimOrdFacility').empty();
                                     var claimOrderingFacilityJson = response.filter_info.ClaimInformation.ordering_facility || [];
                                     if (claimOrderingFacilityJson && claimOrderingFacilityJson.condition) {
-                                        $("input:radio[name=ordFacility][value=" + claimOrderingFacilityJson.condition + "]").prop('checked', true);
+                                        $("input:radio[name=claimordFacility][value=" + claimOrderingFacilityJson.condition + "]").prop('checked', true);
                                         for (var j = 0; j < claimOrderingFacilityJson.list.length; j++) {
                                             if ($('#ulListClaimOrdFacility li a[data-id="' + claimOrderingFacilityJson.list[j].id + '"]').length === 0) {
                                                 $('#ulListClaimOrdFacility').append('<li id="' + claimOrderingFacilityJson.list[j].id + '"><span>' + claimOrderingFacilityJson.list[j].text + '</span><a class="remove" data-id="' + claimOrderingFacilityJson.list[j].id + '"><span class="icon-ic-close"></span></a></li>')
@@ -1100,7 +1102,7 @@ define([
                     jsonFacility.text = $(selected).text();
                     arrFacility.push(jsonFacility);
                 });
-                if (arrFacility.length > 0 && !self.validateRadioButton('Facility', 'Facility')) {
+                if (arrFacility.length > 0 && !self.validateRadioButton('studyFacility', 'Facility')) {
                     return;
                 }
 
@@ -1111,7 +1113,7 @@ define([
                     jsonFacility.text = $(selected).text();
                     arrClaimFacility.push(jsonFacility);
                 });
-                if (arrClaimFacility.length > 0 && !self.validateRadioButton('Facility', 'Facility')) {
+                if (arrClaimFacility.length > 0 && !self.validateRadioButton('claimFacility', 'Facility')) {
                     return;
                 }
 
@@ -1173,7 +1175,7 @@ define([
                     };
                     arrOrdFacility.push(jsonFlag);
                 });
-                if (arrOrdFacility.length > 0 && !self.validateRadioButton('ordFacility', 'ordFacility')) {
+                if (arrOrdFacility.length > 0 && !self.validateRadioButton('studyordFacility', 'ordFacility')) {
                     return;
                 }
                 var arrClaimOrdFacility = [];
@@ -1184,7 +1186,7 @@ define([
                     };
                     arrClaimOrdFacility.push(jsonFlag);
                 });
-                if (arrClaimOrdFacility.length > 0 && !self.validateRadioButton('ordFacility', 'ordFacility')) {
+                if (arrClaimOrdFacility.length > 0 && !self.validateRadioButton('claimordFacility', 'ordFacility')) {
                     return;
                 }
                 if ($.trim($('#txtAccession').val()) && !self.validateRadioButton('Accession', 'Accession')) {
@@ -1271,7 +1273,7 @@ define([
                                 list: arrModality
                             },
                             facility: {
-                                condition: $('input[name=Facility]:checked').val(),
+                                condition: $('input[name=studyFacility]:checked').val(),
                                 list: arrFacility
                             },
                             status: {
@@ -1310,7 +1312,7 @@ define([
                             billedstatus: $('#ddlBilledStatus').val(),
                             attorney: attorneys,
                             ordering_facility: {
-                                condition: $('input[name=ordFacility]:checked').val(),
+                                condition: $('input[name=studyordFacility]:checked').val(),
                                 list: arrOrdFacility
                             }
                         },
@@ -1360,11 +1362,11 @@ define([
                                 value: $('#listBalance').val()
                             },
                             facility: {
-                                condition: $('input[name=Facility]:checked').val(),
+                                condition: $('input[name=claimFacility]:checked').val(),
                                 list: arrClaimFacility
                             },
                             ordering_facility: {
-                                condition: $('input[name=ordFacility]:checked').val(),
+                                condition: $('input[name=claimordFacility]:checked').val(),
                                 list: arrClaimOrdFacility
                             }
                         }
@@ -1721,7 +1723,7 @@ define([
                     $('#rbtStudyDate').prop('checked', true);
                     $('#rbtPreformatted').prop('checked', true);
                 }
-                
+
                 $('#txtLastTime').val('');
 
                 $('#txtPatientName').val('');
@@ -1734,9 +1736,12 @@ define([
                 $('#txtAttorney').val('');
                 $('#txtStudyDescription').val('');
                 $('#txtInstitutionStudyFilter').val('');
+                $('#lblOrdFacility').text('');
 
                 $('#ulListOrdFacility').empty();
                 $('#listOrdFacility option').remove();
+
+                $('#ulListClaimOrdFacility').empty();
 
                 $('#listFacility option').remove();
                 $('#listInstitution option').remove();
@@ -1831,6 +1836,9 @@ define([
                 $radioButtons.filter('[name=BillingMethod]').prop('checked', false);
                 $radioButtons.filter('[name=PayerType]').prop('checked', false);
                 $radioButtons.filter('[name=Balance]').prop('checked', false);
+                $radioButtons.filter('[name=studyFacility]').prop('checked', false);
+                $radioButtons.filter('[name=studyordFacility]').prop('checked', false);
+                $radioButtons.filter('[name=claimordFacility]').prop('checked', false);
             },
 
             summary: function () {
@@ -1870,7 +1878,16 @@ define([
                 if (this.listBoxAllArray('listInstitution').length > 0) {
                     $('#lblSummaryInstitution').text('Institution :' + $('input[name=Institution]:checked').val() + ' ' + this.listBoxAllArray('listInstitution'));
                 }
-                $('#lblFacility').text('Facility :' + this.listBoxSelectedArray('listFacility', 'Facility'));
+                $('#lblFacility').text('Facility :' + this.listBoxSelectedArray('listFacility', 'studyFacility'));
+
+                var ordFacList  = [];
+                if(self.ordering_facility && self.ordering_facility.list) {
+                    _.each(self.ordering_facility.list, function(ordFac, index) {
+                        ordFacList.push(ordFac.text)
+                    })
+                }
+
+                $('#lblOrdFacility').text('Ordering Facility : ' + (ordFacList ?  $('input[name=studyordFacility]:checked').val() + ' ' +  ordFacList : ''));
                 $('#lblSummaryModality').text('Modality :' + this.listBoxSelectedArray('listModality', 'Modality'));
                 $('#lblSummaryStatus').text('Status :' + this.listBoxSelectedArray('listStatus', 'Status'));
                 $('#lblSummaryVehicle').text('Vehicle :' + this.listBoxSelectedArray('listVehicle', 'Vehicle'));
@@ -1948,6 +1965,9 @@ define([
                             break;
                         case 'liInsurance':
                             ($('#lblSummaryInsurance').text().length > 11) ? $('#liInsurance').show() : $('#liInsurance').hide();
+                            break;
+                        case 'liOrdFacility':
+                            ($('#lblOrdFacility').text().length > 30) ? $('#liOrdFacility').show() : $('#liOrdFacility').hide();
                             break;
                     }
                 });

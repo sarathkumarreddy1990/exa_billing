@@ -146,6 +146,7 @@
                                 <li id="liReadPhy"><label id="lblSummaryReadPhy"></label></li>
                                 <li id="liInsurance"><label id="lblSummaryInsurance"></label></li>
                                 <li id="liFacility"><label id="lblFacility"></label></li>
+                                <li id="liOrdFacility"><label id="lblOrdFacility"></label></li>
                             </ul>
                         </div>
                     </div>
@@ -819,13 +820,13 @@
                                         <tr>
                                             <td>
                                                 <div class="col-md-2 col-sm-2 col-form-label">
-                                                    <input type="radio" id="rbtIsFacility" name="Facility" class="form-check-input"
+                                                    <input type="radio" id="rbtIsFacility" name="studyFacility" class="form-check-input"
                                                            value="Is">
                                                     <label for="rbtIsFacility" class="field-chk studyfilterLabel"
                                                            i18n="setup.studyFilters.is"></label>
                                                 </div>
                                                 <div class="col-md-2 col-sm-2 col-form-label">
-                                                    <input type="radio" id="rbtIsNotFacility" name="Facility" class="form-check-input"
+                                                    <input type="radio" id="rbtIsNotFacility" name="studyFacility" class="form-check-input"
                                                            value="IsNot">
                                                     <label for="rbtIsNotFacility" class="field-chk studyfilterLabel"
                                                            i18n="setup.studyFilters.isNot"></label>
@@ -864,13 +865,13 @@
                                         <tr>
                                             <td>
                                                 <div class="col-md-2 col-sm-2 col-form-label">
-                                                    <input type="radio" id="rbtIsOrdFacility" name="ordFacility" class="form-check-input"
+                                                    <input type="radio" id="rbtIsOrdFacility" name="studyordFacility" class="form-check-input"
                                                            value="Is">
                                                     <label for="rbtIsOrdFacility" class="field-chk studyfilterLabel"
                                                            i18n="setup.studyFilters.is"></label>
                                                 </div>
                                                 <div class="col-md-2 col-sm-2 col-form-label">
-                                                    <input type="radio" id="rbtIsNotOrdFacility" name="ordFacility" class="form-check-input"
+                                                    <input type="radio" id="rbtIsNotOrdFacility" name="studyordFacility" class="form-check-input"
                                                            value="IsNot">
                                                     <label for="rbtIsNotOrdFacility"
                                                            class="field-chk studyfilterLabel"
@@ -1426,11 +1427,11 @@
                                 <tr>
                                     <td>
                                         <div class="col-md-2 col-sm-2 col-form-label">
-                                            <input type="radio" id="rbtIsClaimFacility" name="Facility" class="form-check-input" value="Is">
+                                            <input type="radio" id="rbtIsClaimFacility" name="claimFacility" class="form-check-input" value="Is">
                                             <label for="rbtIsClaimFacility" class="field-chk studyfilterLabel" i18n="setup.studyFilters.is"></label>
                                         </div>
                                         <div class="col-md-2 col-sm-2 col-form-label">
-                                            <input type="radio" id="rbtIsNotClaimFacility" name="Facility" class="form-check-input"
+                                            <input type="radio" id="rbtIsNotClaimFacility" name="claimFacility" class="form-check-input"
                                                 value="IsNot">
                                             <label for="rbtIsNotClaimFacility" class="field-chk studyfilterLabel" i18n="setup.studyFilters.isNot"></label>
                                         </div>
@@ -1449,10 +1450,10 @@
                                         &nbsp;
                                     </td>
                                     <td>
-            
+
                                     </td>
                                     <td>
-            
+
                                     </td>
                                 </tr>
                             </tbody>
@@ -1467,12 +1468,12 @@
                                 <tr>
                                     <td>
                                         <div class="col-md-2 col-sm-2 col-form-label">
-                                            <input type="radio" id="rbtIsClaimOrdFacility" name="ordFacility" class="form-check-input"
+                                            <input type="radio" id="rbtIsClaimOrdFacility" name="claimordFacility" class="form-check-input"
                                                 value="Is">
                                             <label for="rbtIsClaimOrdFacility" class="field-chk studyfilterLabel" i18n="setup.studyFilters.is"></label>
                                         </div>
                                         <div class="col-md-2 col-sm-2 col-form-label">
-                                            <input type="radio" id="rbtIsNotClaimOrdFacility" name="ordFacility" class="form-check-input"
+                                            <input type="radio" id="rbtIsNotClaimOrdFacility" name="claimordFacility" class="form-check-input"
                                                 value="IsNot">
                                             <label for="rbtIsNotClaimOrdFacility" class="field-chk studyfilterLabel" i18n="setup.studyFilters.isNot"></label>
                                         </div>
@@ -1497,7 +1498,7 @@
                                     <td>
                                     </td>
                                     <td>
-            
+
                                     </td>
                                 </tr>
                             </tbody>
