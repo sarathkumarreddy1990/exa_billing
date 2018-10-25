@@ -24,5 +24,9 @@ router.delete('/', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.post('/set_default_tab', async function (req, res) {
+    const data = await studyFilterController.setSelectedTab(req.body);
+    httpHandler.sendRows(req, res, data);
+});
 
 module.exports = router;

@@ -361,7 +361,11 @@ define([
                 var self = this;
                 $('#tblStudyFilterGrid').show();
                 $('#divStudyFilterForm').hide();
-                $(this.el).html(this.studyFiltersGridTemplate());
+                $(this.el).html(this.studyFiltersGridTemplate({grid_filters:app.grid_filter,screenName:this.opener}));
+                if (self.opener == 'claims')
+                    $('#ddlStudyDefaultTab').val(app.default_claim_tab);
+                else
+                    $('#ddlStudyDefaultTab').val(app.default_study_tab);
                 this.studyFilterTable = new customGrid();
                 this.studyFilterTable.render({
                     gridelementid: '#tblStudyFilterGrid',
@@ -401,6 +405,9 @@ define([
                                         success: function (model, response) {
                                             self.studyFilterTable.refreshAll();
                                             commonjs.showStatus("Deleted Succesfully")
+                                            $("#ddlStudyDefaultTab option[value='"+model.id+"']")[0].remove();
+                                            if (window.appLayout && window.appLayout.refreshAppSettings)
+                                                window.appLayout.refreshAppSettings();
                                         },
                                         error: function (model, response) {
                                         }
@@ -464,6 +471,9 @@ define([
                 });
                 $("#reloadStudyFilter").unbind().click(function (e) {
                     self.showGrid();
+                });
+                $("#ddlStudyDefaultTab").unbind().change(function (e) {
+                    self.setDafaultTab();
                 });
             },
 
@@ -1397,6 +1407,9 @@ define([
                                     $('#btnClaimsCompleteRefresh').click();
                                 commonjs.hideLoading();
                                 self.showGrid();
+                                $('#ddlStudyDefaultTab').append("<option value=" + response[0].id + ">" + filterName + "</option>");
+                                if (window.appLayout && window.appLayout.refreshAppSettings)
+                                    window.appLayout.refreshAppSettings();
                             }
                         },
                         error: function (model, response) {
@@ -1960,6 +1973,33 @@ define([
                 }
                 else
                     $('#divSummary').show();
+            },
+            setDafaultTab: function () {
+                var self = this;
+                var selectedTab = $('#ddlStudyDefaultTab').val();
+                var settings = self.opener == 'studies' ? app.study_user_settings : app.claim_user_settings ;
+                $.ajax({
+                    url: "/exa_modules/billing/setup/study_filters/set_default_tab",
+                    type: "POST",
+                    data: {
+                        selectedTab: selectedTab,
+                        userID: app.userID,
+                        gridName: self.opener,
+                        defaultColumn: settings.default_column,
+                        orderBy: settings.default_column_order_by,
+                        fieldOrder: settings.field_order
+                    },
+                    success: function () {
+                        commonjs.showStatus("messages.status.defaultTabChanged");
+                        if (self.opener == 'claims')
+                            app.default_claim_tab = $('#ddlStudyDefaultTab').val();
+                        else
+                            app.default_study_tab = $('#ddlStudyDefaultTab').val();
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
             },
 
             listBoxAllArray: function (listID) {

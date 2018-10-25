@@ -340,7 +340,21 @@ module.exports = {
                             , receiver_id
                             , communication_info
                         FROM billing.edi_clearinghouses ) AS clearing_house
-                )
+                ),
+                cte_grid_filter AS(
+                    SELECT json_agg(row_to_json(grid_filter))grid_filter
+                        FROM
+                            (
+                                SELECT
+                                    id AS user_setting_id
+                                    , user_id
+                                    , filter_order
+                                    , filter_type
+                                    , filter_name
+                                    , filter_info
+                                FROM billing.grid_filters
+                                WHERE (user_id= ${userID}  OR is_global_filter)
+                            ) AS grid_filter)
                SELECT *
                FROM   cte_company,
                       cte_facilities,
@@ -371,7 +385,8 @@ module.exports = {
                       cte_modality_rooms,
                       cte_custom_study_status,
                       cte_clearing_house,
-                      cte_vehicle_list
+                      cte_vehicle_list,
+                      cte_grid_filter
                `;
 
         return await query(sql);
