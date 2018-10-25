@@ -36,7 +36,7 @@ charge_details AS (
 
     SELECT
         get_full_name(pp.last_name, pp.first_name) AS patient_name
-      , (pp.patient_info->'c1AddressLine1'::text) || ' , ' || (pp.patient_info->'c1AddressLine2'::text) ||' , '|| (pp.patient_info->'c1City'::text) AS address
+      , (pp.patient_info->'c1AddressLine1'::text) || ' ' || (pp.patient_info->'c1AddressLine2'::text) ||' '|| (pp.patient_info->'c1City'::text) AS address
       , (pp.patient_info->'c1WorkPhone'::text)  AS phone_number
       , bc.id AS claim_id
       , to_char(date(timezone(facilities.time_zone,claim_dt)), 'MM/DD/YYYY') AS claim_dt
@@ -116,21 +116,15 @@ charge_details AS (
                                             0.00::MONEY
                                         END)
                           )AS total_payment_unapplied
-                       , claim_info.claim_id
-                        , (select SUM (payment_insurance_total + payment_patient_total) from BILLING.get_claim_payments(claim_info.claim_id)) AS paid_amount
-                        , (select payments_applied_total from BILLING.get_claim_payments(claim_info.claim_id)) AS payment_applied
+                        , claim_info.claim_id
+                        , SUM (bgcp.payment_insurance_total + bgcp.payment_patient_total) AS paid_amount
+                        , bgcp.payments_applied_total AS payment_applied
                     FROM
                         billing.payments bp
                         INNER JOIN billing.payment_applications pa on pa.payment_id = bp.id
                         INNER JOIN billing.charges ch on ch.id = pa.charge_id
                         INNER JOIN billing.claims bc on bc.id = ch.claim_id
-                         LEFT JOIN public.patients pp on pp.id = bp.patient_id
-                         LEFT JOIN public.insurance_providers pip on pip.id = bp.insurance_provider_id
-                         LEFT JOIN public.provider_groups  pg on pg.id = bp.provider_group_id
-                         LEFT JOIN public.provider_contacts  pc on pc.id = bp.provider_contact_id
-                         LEFT JOIN public.providers p on p.id = pc.provider_id
-                         LEFT JOIN billing.adjustment_codes adj ON adj.id = pa.adjustment_code_id
-                         JOIN LATERAL (
+                        INNER JOIN LATERAL (
                             SELECT
                                  max( bch.claim_id) AS claim_id
                             FROM
@@ -139,6 +133,14 @@ charge_details AS (
                             WHERE
                             <%= paymentId %>
                          ) AS claim_info on True
+                         INNER JOIN billing.get_claim_payments(claim_info.claim_id,false) bgcp ON TRUE
+                         LEFT JOIN public.patients pp on pp.id = bp.patient_id
+                         LEFT JOIN public.insurance_providers pip on pip.id = bp.insurance_provider_id
+                         LEFT JOIN public.provider_groups  pg on pg.id = bp.provider_group_id
+                         LEFT JOIN public.provider_contacts  pc on pc.id = bp.provider_contact_id
+                         LEFT JOIN public.providers p on p.id = pc.provider_id
+                         LEFT JOIN billing.adjustment_codes adj ON adj.id = pa.adjustment_code_id
+
 
                     WHERE
                         ch.claim_id = claim_info.claim_id
@@ -155,7 +157,8 @@ charge_details AS (
                         bp.id ,
                         pp.account_no,
                         get_full_name(pp.last_name, pp.first_name),
-                        claim_info.claim_id, pp.full_name, pip.insurance_name, pg.group_name, p.full_name
+                        claim_info.claim_id, pp.full_name, pip.insurance_name, pg.group_name, p.full_name,
+                        bgcp.payments_applied_total
 )
 
         SELECT
