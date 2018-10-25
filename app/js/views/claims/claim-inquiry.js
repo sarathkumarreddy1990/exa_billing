@@ -1021,7 +1021,8 @@ define([
                         deliveryAddress: $('#txtOtherFaxNumber').val(),
                         reportUrl: reportUrl,
                         patientId: patientActivityParams.patientId,
-                        claimId: patientActivityParams.claimID
+                        claimId: patientActivityParams.claimID,
+                        documentName: 'Patient Claims'
                     },
                     success: function (data, response) {
                         commonjs.showStatus(commonjs.geti18NString("messages.status.reportFaxedSuccessfully"));
