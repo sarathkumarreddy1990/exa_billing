@@ -35,11 +35,14 @@ WITH patient_dtails AS (
 charge_details AS (
 
     SELECT
-       bc.id AS claim_id,
-       to_char(bc.claim_dt,'MM/DD/YYYY') as claim_dt,
-       pcc.display_code,
-       pcc.display_description,
-       billing.get_charge_icds(ch.id)
+        get_full_name(pp.last_name, pp.first_name) AS patient_name
+      , (pp.patient_info->'c1AddressLine1'::text) || ' , ' || (pp.patient_info->'c1AddressLine2'::text) ||' , '|| (pp.patient_info->'c1City'::text) AS address
+      , (pp.patient_info->'c1WorkPhone'::text)  AS phone_number
+      , bc.id AS claim_id
+      , to_char(date(timezone(facilities.time_zone,claim_dt)), 'MM/DD/YYYY') AS claim_dt
+      , pcc.display_code
+      , pcc.display_description
+      , billing.get_charge_icds(ch.id)
       , to_char(ch.charge_dt, 'MM/DD/YYYY') as commented_dt
       , ( ch.bill_fee * ch.units) AS charge_amount
       , billing.get_charge_icds(ch.id) AS charge_pointer
@@ -60,6 +63,7 @@ charge_details AS (
     INNER JOIN billing.claims bc on bc.id = ch.claim_id
     INNER JOIN public.cpt_codes pcc on pcc.id = ch.cpt_id
     INNER JOIN public.patients pp on bc.patient_id = pp.id
+    INNER JOIN facilities ON facilities.id=bc.facility_id
     INNER JOIN lateral billing.get_claim_totals(bc.id) bgct ON true
     INNER JOIN lateral billing.get_claim_patient_other_payment(bc.id) bhcpop ON true
     JOIN LATERAL (
