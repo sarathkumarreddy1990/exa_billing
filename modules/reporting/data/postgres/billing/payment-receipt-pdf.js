@@ -39,7 +39,7 @@ charge_details AS (
       , (pp.patient_info->'c1AddressLine1'::text) || ' ' || (pp.patient_info->'c1AddressLine2'::text) ||' '|| (pp.patient_info->'c1City'::text) AS address
       , (pp.patient_info->'c1WorkPhone'::text)  AS phone_number
       , bc.id AS claim_id
-      , to_char(date(timezone(facilities.time_zone,claim_dt)), 'MM/DD/YYYY') AS claim_dt
+      , to_char(to_facility_date(bc.facility_id,claim_dt), 'MM/DD/YYYY') AS claim_dt
       , pcc.display_code
       , pcc.display_description
       , billing.get_charge_icds(ch.id)
@@ -63,7 +63,6 @@ charge_details AS (
     INNER JOIN billing.claims bc on bc.id = ch.claim_id
     INNER JOIN public.cpt_codes pcc on pcc.id = ch.cpt_id
     INNER JOIN public.patients pp on bc.patient_id = pp.id
-    INNER JOIN facilities ON facilities.id=bc.facility_id
     INNER JOIN lateral billing.get_claim_totals(bc.id) bgct ON true
     INNER JOIN lateral billing.get_claim_patient_other_payment(bc.id) bhcpop ON true
     JOIN LATERAL (
