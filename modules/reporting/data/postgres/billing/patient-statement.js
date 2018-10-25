@@ -167,14 +167,14 @@ WITH claim_data AS (
     ORDER BY first_name),
 
     detail_cte AS (
-    SELECT *
-    FROM main_detail_cte
-    WHERE ( CASE
-                WHEN payment_type = 'adjustment' THEN amount != 0::money
-                ELSE true
-            END )
-    AND sum_amount >=  <%= minAmount  %>::money
-    AND sum_amount != 0::money
+        SELECT *
+        FROM main_detail_cte
+        WHERE ( CASE
+                    WHEN payment_type = 'adjustment' THEN amount != 0::money
+                    ELSE true
+                END )
+        AND sum_amount >=  <%= minAmount  %>::money
+        AND sum_amount != 0::money
     ),
 
     create_comments AS (
