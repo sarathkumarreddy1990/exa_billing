@@ -842,12 +842,29 @@ module.exports = {
     deleteInsuranceProvider: async (params) => {
 
         const {
-            is_current_responsible,
+            userId,
+            claim_id,
+            clientIp,
+            companyId,
             payer_type,
-            claim_id
+            entityName,
+            screenName,
+            moduleName,
+            is_current_responsible,
         } = params;
 
-        let sqlQry = SQL`
+        let payer ='';
+
+        if(payer_type == 'primary_insurance'){
+            payer = 'Primary Insuraces';
+        } else if(payer_type == 'secondary_insurance'){
+            payer = 'Secondary Insuraces ';
+        } else if(payer_type == 'tertiary_insurance'){
+            payer = 'Tertiary Insuraces ';
+        }
+
+        let description = `${payer} Deleted from claim ${claim_id}, Responsible and Billing method changed to patient `;
+        let sql = SQL`WITH update_claim AS(
             UPDATE billing.claims
                 SET
                 primary_patient_insurance_id =
@@ -871,9 +888,29 @@ module.exports = {
                         WHEN 'true' THEN 'patient_payment' ELSE billing_method
                     END
             WHERE id = ${claim_id}
-            RETURNING id,xmin as claim_row_version `;
+            RETURNING xmin as claim_row_version ,*,
+            (
+                SELECT row_to_json(old_row)
+                FROM   (SELECT *
+                        FROM   billing.claims
+                        WHERE  id = ${claim_id}) old_row
+            ) old_values),
+            claim_update_audit_cte AS (
+                SELECT billing.create_audit (
+                        ${companyId},
+                        ${entityName || screenName},
+                        ${claim_id},
+                        ${screenName},
+                        ${moduleName},
+                        ${description},
+                        ${clientIp || '127.0.0.1'},
+                    json_build_object(
+                        'old_values', COALESCE(uc.old_values, '{}'),
+                        'new_values', ( SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM ( SELECT * FROM update_claim) temp_row))::jsonb,
+                        ${userId || 0}) id,claim_row_version
+                FROM update_claim uc)
+                SELECT * FROM claim_update_audit_cte `;
 
-        return await query(sqlQry);
-
+        return await query(sql);
     }
 };
