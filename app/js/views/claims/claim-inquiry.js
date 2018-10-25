@@ -930,7 +930,7 @@ define([
 
                     setTimeout(function () {
                         var billingProviderList = app.billing_providers,
-                        var ddlBillingProvider = $('#ddlBillingProvider');
+                        ddlBillingProvider = $('#ddlBillingProvider');
                         ddlBillingProvider.empty();
                         ddlBillingProvider.append("<option value='0'>Select</option>");
 
