@@ -12,7 +12,8 @@
             "claimPayerCompleted": "Payer Changed successfully",
             "noMorePayment": "No Payment to Show",
             "commentDeleted": "Comment Deleted Successfully",
-            "recordSaved": "Record Saved Successfully"
+            "recordSaved": "Record Saved Successfully",
+            "defaultTabChanged": "Default Tab Changed"
         },
         "errors": {
             "notconnected": "Not connected",
@@ -79,6 +80,16 @@
                 "fileAlreadyProcessed":"This file has been already processed",
                 "fileStoreNotconfigured":"File store not yet configured",
                 "invalidFileFormat":"Invalid file format"
+            },
+            "payments":{
+                "selectPayerType":"Please select payer type",
+                "selectAccountingDate":"Please select accounting date",
+                "enterAmount":"Please enter amount",
+                "enterValidAmount":"Please enter valid amount",
+                "selectPaymentMode":"Please select payment mode",
+                "enterCardNo":"Please enter card#",
+                "enterCheckNo":"Please enter check#",
+                "enterInvoiceNo":"Please enter invoice #"
             }
         },
         "loadingMsg": {

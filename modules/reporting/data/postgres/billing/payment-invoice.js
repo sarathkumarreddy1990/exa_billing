@@ -8,58 +8,74 @@ const _ = require('lodash')
 // generate query template ***only once*** !!!
 
 const claimInquiryDataSetQueryTemplate = _.template(`
-with claim_data as (
+WITH claim_data AS (
     SELECT
-    bc.id as claim_id,
-      get_full_name(pp.last_name,pp.first_name) as patient_name,
-     pp.patient_info->'c1AddressLine1' AS address1,
-           pp.patient_info->'c1AddressLine2' AS address2,
-           pp.patient_info->'c1City' AS city,
-           pp.patient_info->'c1State' AS state,
-           pp.patient_info->'c1Zip' AS zip,
-      pp.account_no,
-      pc.company_name as company_name,
-      bc.id as claim_no,
-      pf.facility_name,
-      bc.facility_id as facility_id,
-      pf.facility_info->'facility_address1' as facility_address1,
-      pf.facility_info->'facility_city' as facility_city,
-      pf.facility_info->'facility_state' as facility_state,
-      pf.facility_info->'facility_zip' as facility_zip,
-      pf.facility_info->'federal_tax_id' as tax_id,
-      pf.facility_info->'abbreviated_receipt' as abbreviated_receipt,
-      (SELECT claim_balance_total FROM billing.get_claim_totals(bc.id)) As claim_balance,
-      (SELECT payments_applied_total FROM billing.get_claim_totals(bc.id)) As applied,
-      to_char(bc.claim_dt,'MM/DD/YYYY'),
-      bp.name,
-      bp.address_line1,
-      bp.city,
-      bp.state,
-      bp.zip_code,
-      bp.federal_tax_id,
-      bp.npi_no,
-      pm1.code                                             	AS "M1"
-      , pm2.code                                              AS "M2"
-      , pm3.code                                              AS "M3"
-      , pm4.code                                              AS "M4"
-      , bch.units
-      , pcc.display_code
-      , pcc.display_description
-      ,  billing.get_charge_icds(bch.id)
-      , pp.id
-      , (bch.bill_fee*bch.units)								AS "Charge"
-   FROM billing.claims bc
-   INNER JOIN billing.charges bch on bch.claim_id = bc.id
+        bc.id                                      AS claim_id
+      , get_full_name(pp.last_name,pp.first_name)  AS patient_name
+      , pp.patient_info->'c1AddressLine1'          AS address1
+      , pp.patient_info->'c1AddressLine2'          AS address2
+      , pp.patient_info->'c1City'                  AS city
+      , pp.patient_info->'c1State'                 AS state
+      , pp.patient_info->'c1Zip'                   AS zip
+      , pp.account_no                              AS account_no
+      , pc.company_name                            AS company_name
+      , pf.facility_name                           AS facility_name
+      , bc.facility_id                             AS facility_id
+      , pf.facility_info->'facility_address1'      AS facility_address1
+      , pf.facility_info->'facility_city'          AS facility_city
+      , pf.facility_info->'facility_state'         AS facility_state
+      , pf.facility_info->'facility_zip'           AS facility_zip
+      , pf.facility_info->'federal_tax_id'         AS tax_id
+      , pf.facility_info->'abbreviated_receipt'    AS abbreviated_receipt
+      , to_char(timezone(pf.time_zone, bc.claim_dt)::date, 'MM/DD/YYYY')
+                                                   AS  claim_date
+      , bp.name                                    AS billing_pro_name
+      , bp.address_line1                           AS billing_pro_address
+      , bp.city                                    AS billing_pro_city
+      , bp.state                                   AS billing_pro_state
+      , bp.zip_code                                AS billing_pro_zip
+      , bp.federal_tax_id                          AS federal_tax_id
+      , bp.npi_no                                  AS npi_no
+      , pm1.code                                   AS m1
+      , pm2.code                                   AS m2
+      , pm3.code                                   AS m3
+      , pm4.code                                   AS m4
+      , bch.units                                  AS units
+      , pcc.display_code                           AS display_code
+      , pcc.display_description                    AS display_description
+      , billing.get_charge_icds(bch.id)            AS charge_icds
+      , pp.id                                      AS patient_id
+      , (bch.bill_fee*bch.units)		           AS Charge
+      , gcd.claim_balance_total                    AS total_balance
+      , gcd.adjustments_applied_total              AS adjustmet
+      , gcd.charges_bill_fee_total                 AS total_charges
+      , payments_applied_total                     AS total_payments
+      , total_claim_details.claim_balance_total    AS total_account_balance
+   FROM
+        billing.claims bc
+   INNER JOIN billing.get_claim_totals (bc.id) gcd ON true
+   INNER JOIN billing.charges bch ON bch.claim_id = bc.id
    INNER JOIN  public.cpt_codes pcc ON pcc.id = bch.cpt_id
    INNER JOIN public.patients pp ON pp.id = bc.patient_id
    INNER JOIN public.facilities pf ON pf.id = bc.facility_id
    INNER JOIN public.companies pc ON pc.id = bc.company_id
    INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
-   LEFT JOIN public.modifiers pm1 on pm1.id = bch.modifier1_id
-LEFT JOIN public.modifiers pm2 on pm2.id = bch.modifier2_id
-LEFT JOIN public.modifiers pm3 on pm3.id = bch.modifier3_id
-LEFT JOIN public.modifiers pm4 on pm4.id = bch.modifier4_id
-   where 1=1 AND <%= companyId %> AND  <%= claimIds %>
+   INNER JOIN LATERAL  (
+    SELECT
+        SUM(gct.claim_balance_total) as claim_balance_total
+    FROM billing.claims
+    INNER JOIN patients ON claims.patient_id = patients.id
+    INNER JOIN  billing.get_claim_totals(claims.id) gct ON true
+    WHERE
+        patients.id = bc.patient_id
+   ) total_claim_details ON true
+   LEFT JOIN public.modifiers pm1 ON pm1.id = bch.modifier1_id
+   LEFT JOIN public.modifiers pm2 ON pm2.id = bch.modifier2_id
+   LEFT JOIN public.modifiers pm3 ON pm3.id = bch.modifier3_id
+   LEFT JOIN public.modifiers pm4 ON pm4.id = bch.modifier4_id
+   WHERE
+      <%= companyId %> AND
+      <%= claimIds %>
     )
     select * from claim_data
 `);

@@ -361,7 +361,11 @@ define([
                 var self = this;
                 $('#tblStudyFilterGrid').show();
                 $('#divStudyFilterForm').hide();
-                $(this.el).html(this.studyFiltersGridTemplate());
+                $(this.el).html(this.studyFiltersGridTemplate({grid_filters:app.grid_filter,screenName:this.opener}));
+                if (self.opener == 'claims')
+                    $('#ddlStudyDefaultTab').val(app.default_claim_tab);
+                else
+                    $('#ddlStudyDefaultTab').val(app.default_study_tab);
                 this.studyFilterTable = new customGrid();
                 this.studyFilterTable.render({
                     gridelementid: '#tblStudyFilterGrid',
@@ -401,6 +405,9 @@ define([
                                         success: function (model, response) {
                                             self.studyFilterTable.refreshAll();
                                             commonjs.showStatus("Deleted Succesfully")
+                                            $("#ddlStudyDefaultTab option[value='"+model.id+"']")[0].remove();
+                                            if (window.appLayout && window.appLayout.refreshAppSettings)
+                                                window.appLayout.refreshAppSettings();
                                         },
                                         error: function (model, response) {
                                         }
@@ -465,6 +472,9 @@ define([
                 $("#reloadStudyFilter").unbind().click(function (e) {
                     self.showGrid();
                 });
+                $("#ddlStudyDefaultTab").unbind().change(function (e) {
+                    self.setDafaultTab();
+                });
             },
 
             showForm: function (id) {
@@ -507,6 +517,7 @@ define([
                     $('#txtLastTime, #ddlLast, #txtFromTimeLast, #txtToTimeLast, #ddlDatePreformatted').prop('disabled', 'disabled');
                 });
                 $('#btnSaveStudyFilter').unbind().click(function (e) {
+                    self.previous = ""
                     self.saveStudyFilter(id);
                 });
                 $('#btnClearData').unbind().click(function (e) {
@@ -769,7 +780,7 @@ define([
                                     }
 
                                     if (studyInfoJson.facility && studyInfoJson.facility.condition) {
-                                        $("input:radio[name=Facility][value=" + studyInfoJson.facility.condition + "]").prop('checked', true);
+                                        $("input:radio[name=studyFacility][value=" + studyInfoJson.facility.condition + "]").prop('checked', true);
                                         for (var j = 0; j < studyInfoJson.facility.list.length; j++) {
                                             $('#listFacility option').each(function (i, selected) {
                                                 if (studyInfoJson.facility.list[j].id == $(selected).val()) {
@@ -780,8 +791,9 @@ define([
                                     }
 
                                     $('#ulListOrdFacility').empty();
+                                    self.ordering_facility = studyInfoJson.ordering_facility;
                                     if (studyInfoJson.ordering_facility && studyInfoJson.ordering_facility.condition) {
-                                        $("input:radio[name=ordFacility][value=" + studyInfoJson.ordering_facility.condition + "]").prop('checked', true);
+                                        $("input:radio[name=studyOrdFacility][value=" + studyInfoJson.ordering_facility.condition + "]").prop('checked', true);
                                         for (var j = 0; j < studyInfoJson.ordering_facility.list.length; j++) {
                                             if ($('#ulListOrdFacility li a[data-id="' + studyInfoJson.ordering_facility.list[j].id + '"]').length === 0) {
                                                 $('#ulListOrdFacility').append('<li id="' + studyInfoJson.ordering_facility.list[j].id + '"><span>' + studyInfoJson.ordering_facility.list[j].text + '</span><a class="remove" data-id="' + studyInfoJson.ordering_facility.list[j].id + '"><span class="icon-ic-close"></span></a></li>')
@@ -873,7 +885,7 @@ define([
 
                                     var claimFacilityJson = response.filter_info.ClaimInformation.facility || [];
                                     if (claimFacilityJson && claimFacilityJson.condition) {
-                                        $("input:radio[name=Facility][value=" + claimFacilityJson.condition + "]").prop('checked', true);
+                                        $("input:radio[name=claimFacility][value=" + claimFacilityJson.condition + "]").prop('checked', true);
                                         for (var j = 0; j < claimFacilityJson.list.length; j++) {
                                             $('#listClaimFacility option').each(function (i, selected) {
                                                 if (claimFacilityJson.list[j].id == $(selected).val()) {
@@ -886,7 +898,7 @@ define([
                                     $('#ulListClaimOrdFacility').empty();
                                     var claimOrderingFacilityJson = response.filter_info.ClaimInformation.ordering_facility || [];
                                     if (claimOrderingFacilityJson && claimOrderingFacilityJson.condition) {
-                                        $("input:radio[name=ordFacility][value=" + claimOrderingFacilityJson.condition + "]").prop('checked', true);
+                                        $("input:radio[name=claimOrdFacility][value=" + claimOrderingFacilityJson.condition + "]").prop('checked', true);
                                         for (var j = 0; j < claimOrderingFacilityJson.list.length; j++) {
                                             if ($('#ulListClaimOrdFacility li a[data-id="' + claimOrderingFacilityJson.list[j].id + '"]').length === 0) {
                                                 $('#ulListClaimOrdFacility').append('<li id="' + claimOrderingFacilityJson.list[j].id + '"><span>' + claimOrderingFacilityJson.list[j].text + '</span><a class="remove" data-id="' + claimOrderingFacilityJson.list[j].id + '"><span class="icon-ic-close"></span></a></li>')
@@ -1100,7 +1112,7 @@ define([
                     jsonFacility.text = $(selected).text();
                     arrFacility.push(jsonFacility);
                 });
-                if (arrFacility.length > 0 && !self.validateRadioButton('Facility', 'Facility')) {
+                if (arrFacility.length > 0 && !self.validateRadioButton('studyFacility', 'Facility')) {
                     return;
                 }
 
@@ -1111,7 +1123,7 @@ define([
                     jsonFacility.text = $(selected).text();
                     arrClaimFacility.push(jsonFacility);
                 });
-                if (arrClaimFacility.length > 0 && !self.validateRadioButton('Facility', 'Facility')) {
+                if (arrClaimFacility.length > 0 && !self.validateRadioButton('claimFacility', 'Facility')) {
                     return;
                 }
 
@@ -1173,7 +1185,7 @@ define([
                     };
                     arrOrdFacility.push(jsonFlag);
                 });
-                if (arrOrdFacility.length > 0 && !self.validateRadioButton('ordFacility', 'ordFacility')) {
+                if (arrOrdFacility.length > 0 && !self.validateRadioButton('studyOrdFacility', 'ordFacility')) {
                     return;
                 }
                 var arrClaimOrdFacility = [];
@@ -1184,7 +1196,7 @@ define([
                     };
                     arrClaimOrdFacility.push(jsonFlag);
                 });
-                if (arrClaimOrdFacility.length > 0 && !self.validateRadioButton('ordFacility', 'ordFacility')) {
+                if (arrClaimOrdFacility.length > 0 && !self.validateRadioButton('claimOrdFacility', 'ordFacility')) {
                     return;
                 }
                 if ($.trim($('#txtAccession').val()) && !self.validateRadioButton('Accession', 'Accession')) {
@@ -1271,7 +1283,7 @@ define([
                                 list: arrModality
                             },
                             facility: {
-                                condition: $('input[name=Facility]:checked').val(),
+                                condition: $('input[name=studyFacility]:checked').val(),
                                 list: arrFacility
                             },
                             status: {
@@ -1310,7 +1322,7 @@ define([
                             billedstatus: $('#ddlBilledStatus').val(),
                             attorney: attorneys,
                             ordering_facility: {
-                                condition: $('input[name=ordFacility]:checked').val(),
+                                condition: $('input[name=studyOrdFacility]:checked').val(),
                                 list: arrOrdFacility
                             }
                         },
@@ -1360,11 +1372,11 @@ define([
                                 value: $('#listBalance').val()
                             },
                             facility: {
-                                condition: $('input[name=Facility]:checked').val(),
+                                condition: $('input[name=claimFacility]:checked').val(),
                                 list: arrClaimFacility
                             },
                             ordering_facility: {
-                                condition: $('input[name=ordFacility]:checked').val(),
+                                condition: $('input[name=claimOrdFacility]:checked').val(),
                                 list: arrClaimOrdFacility
                             }
                         }
@@ -1395,6 +1407,9 @@ define([
                                     $('#btnClaimsCompleteRefresh').click();
                                 commonjs.hideLoading();
                                 self.showGrid();
+                                $('#ddlStudyDefaultTab').append("<option value=" + response[0].id + ">" + filterName + "</option>");
+                                if (window.appLayout && window.appLayout.refreshAppSettings)
+                                    window.appLayout.refreshAppSettings();
                             }
                         },
                         error: function (model, response) {
@@ -1721,11 +1736,9 @@ define([
                     $('#rbtStudyDate').prop('checked', true);
                     $('#rbtPreformatted').prop('checked', true);
                 }
-                
+
                 $('#txtLastTime').val('');
-
                 $('#txtPatientName').val('');
-
                 $('#txtPatientID').val('');
                 $('#listPatientName option').remove();
                 $('#listPatientID option').remove();
@@ -1734,9 +1747,12 @@ define([
                 $('#txtAttorney').val('');
                 $('#txtStudyDescription').val('');
                 $('#txtInstitutionStudyFilter').val('');
+                $('#lblOrdFacility').text('');
 
                 $('#ulListOrdFacility').empty();
                 $('#listOrdFacility option').remove();
+
+                $('#ulListClaimOrdFacility').empty();
 
                 $('#listFacility option').remove();
                 $('#listInstitution option').remove();
@@ -1807,30 +1823,9 @@ define([
             uncheckRadioButtons: function () {
                 var $inputs = $("#studyFiltersForm").find('input');
                 var $radioButtons = $inputs.filter('[type=radio]');
+                $radioButtons.filter('[class="clearField"]').prop('checked', false)
                 $radioButtons.filter('[id=rbtStudyDate]').prop('checked',true);
-                $radioButtons.filter('[name=PatientName]').prop('checked', false);
-                $radioButtons.filter('[name=PatientID]').prop('checked', false);
-                $radioButtons.filter('[name=Institution]').prop('checked', false);
-                $radioButtons.filter('[name=Status]').prop('checked', false);
                 $inputs.filter('[name=LastChangedByMe]').prop('checked', false);
-                $radioButtons.filter('[name=State]').prop('checked', false);
-                $radioButtons.filter('[name=Modality]').prop('checked', false);
-                $radioButtons.filter('[name=BodyPart]').prop('checked', false);
-                $radioButtons.filter('[name=Flag]').prop('checked', false);
-                $radioButtons.filter('[name=StudyID]').prop('checked', false);
-                $radioButtons.filter('[name=Accession]').prop('checked', false);
-                $radioButtons.filter('[name=ReadPhy]').prop('checked', false);
-                $radioButtons.filter('[name=RefPhy]').prop('checked', false);
-                $radioButtons.filter('[name=ImageDelivery]').prop('checked', false);
-                $radioButtons.filter('[name=Facility]').prop('checked', false);
-                $radioButtons.filter('[name=Vehicle]').prop('checked', false);
-                $radioButtons.filter('[name=StudyDescription]').prop('checked', false);
-                $radioButtons.filter('[name=Attorney]').prop('checked', false);
-                $radioButtons.filter('[name=InsProv]').prop('checked', false);
-                $radioButtons.filter('[name=ClaimInfo]').prop('checked', false);
-                $radioButtons.filter('[name=BillingMethod]').prop('checked', false);
-                $radioButtons.filter('[name=PayerType]').prop('checked', false);
-                $radioButtons.filter('[name=Balance]').prop('checked', false);
             },
 
             summary: function () {
@@ -1870,7 +1865,16 @@ define([
                 if (this.listBoxAllArray('listInstitution').length > 0) {
                     $('#lblSummaryInstitution').text('Institution :' + $('input[name=Institution]:checked').val() + ' ' + this.listBoxAllArray('listInstitution'));
                 }
-                $('#lblFacility').text('Facility :' + this.listBoxSelectedArray('listFacility', 'Facility'));
+                $('#lblFacility').text('Facility :' + this.listBoxSelectedArray('listFacility', 'studyFacility'));
+
+                var ordFacList  = [];
+                if(self.ordering_facility && self.ordering_facility.list) {
+                    _.each(self.ordering_facility.list, function(ordFac, index) {
+                        ordFacList.push(ordFac.text)
+                    })
+                }
+
+                $('#lblOrdFacility').text('Ordering Facility : ' + (ordFacList && ordFacList.length ?  $('input[name=studyOrdFacility]:checked').val() + ' ' +  ordFacList : ''));
                 $('#lblSummaryModality').text('Modality :' + this.listBoxSelectedArray('listModality', 'Modality'));
                 $('#lblSummaryStatus').text('Status :' + this.listBoxSelectedArray('listStatus', 'Status'));
                 $('#lblSummaryVehicle').text('Vehicle :' + this.listBoxSelectedArray('listVehicle', 'Vehicle'));
@@ -1949,6 +1953,9 @@ define([
                         case 'liInsurance':
                             ($('#lblSummaryInsurance').text().length > 11) ? $('#liInsurance').show() : $('#liInsurance').hide();
                             break;
+                        case 'liOrdFacility':
+                            ($('#lblOrdFacility').text().length > 30) ? $('#liOrdFacility').show() : $('#liOrdFacility').hide();
+                            break;
                     }
                 });
             },
@@ -1966,6 +1973,33 @@ define([
                 }
                 else
                     $('#divSummary').show();
+            },
+            setDafaultTab: function () {
+                var self = this;
+                var selectedTab = $('#ddlStudyDefaultTab').val();
+                var settings = self.opener == 'studies' ? app.study_user_settings : app.claim_user_settings ;
+                $.ajax({
+                    url: "/exa_modules/billing/setup/study_filters/set_default_tab",
+                    type: "POST",
+                    data: {
+                        selectedTab: selectedTab,
+                        userID: app.userID,
+                        gridName: self.opener,
+                        defaultColumn: settings.default_column,
+                        orderBy: settings.default_column_order_by,
+                        fieldOrder: settings.field_order
+                    },
+                    success: function () {
+                        commonjs.showStatus("messages.status.defaultTabChanged");
+                        if (self.opener == 'claims')
+                            app.default_claim_tab = $('#ddlStudyDefaultTab').val();
+                        else
+                            app.default_study_tab = $('#ddlStudyDefaultTab').val();
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
             },
 
             listBoxAllArray: function (listID) {

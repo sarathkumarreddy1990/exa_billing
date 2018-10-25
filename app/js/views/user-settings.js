@@ -31,12 +31,12 @@ define([
                 this.$el.html(template);
                 if (window.location && window.location.hash.split('/')[1] == 'studies') {
                     self.gridFilterName = 'studies';
-                    self.default_tab = 'All Studies';
+                    self.default_tab = app.default_study_tab;
                     $('#divPrinterTemplates').hide();
                 }
                 if (window.location && window.location.hash.split('/')[1] == 'claim_workbench') {
                     self.gridFilterName = 'claims';
-                    self.default_tab = 'All Claims';
+                    self.default_tab = app.default_claim_tab;
                     $('#divPrinterTemplates').show();
                 }
                 var height = $('#modal_div_container').height() - 70;
