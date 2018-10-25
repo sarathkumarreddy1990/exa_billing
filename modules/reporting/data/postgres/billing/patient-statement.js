@@ -169,7 +169,10 @@ WITH claim_data AS (
     detail_cte AS (
     SELECT *
     FROM main_detail_cte
-    WHERE (CASE WHEN payment_type = 'adjustment' THEN amount != 0::money ELSE true END)
+    WHERE ( CASE
+                WHEN payment_type = 'adjustment' THEN amount != 0::money
+                ELSE true
+            END )
     AND sum_amount >=  <%= minAmount  %>::money
     AND sum_amount != 0::money
     ),
