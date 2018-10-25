@@ -8,14 +8,14 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
             var studySetting = {
                 default_column: 'study_dt',
                 default_column_order_by: "Desc",
-                default_tab: 'All Studies',
+                default_tab: 'All_Studies',
                 field_order: [1, 10, 15, 50, 65],
                 grid_name: "studies"
             };
             var claimSetting = {
                 default_column: 'claim_id',
                 default_column_order_by: "Desc",
-                default_tab: 'All Claims',
+                default_tab: 'All_Claims',
                 field_order: [1, 19, 2, 12, 22, 27, 11, 17],
                 grid_name: "claims"
             };
@@ -42,6 +42,8 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
 
                     app.study_user_settings = _.where(app.usersettings, { grid_name: 'studies' })[0];
                     app.claim_user_settings = _.where(app.usersettings, { grid_name: 'claims' })[0];
+                    app.default_study_tab = app.study_user_settings.default_tab;
+                    app.default_claim_tab = app.claim_user_settings.default_tab;
                     var sys_config = app.company.sys_config;
                     app.bodyParts = (typeof sys_config.sys_body_parts == "string") ? sys_config.sys_body_parts.split(',') : [];
                     app.priorities = (typeof sys_config.sys_priorities == "string") ? sys_config.sys_priorities.split(',') : [];

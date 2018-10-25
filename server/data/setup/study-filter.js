@@ -157,6 +157,98 @@ module.exports = {
 
         return await query(get_data);
     },
+    setSelectedTab: async function (params) {
+        const {
+            selectedTab
+            , userId
+            , gridName
+            , defaultColumn
+            , orderBy
+            , fieldOrder
+            , companyId
+            , screenName
+            , moduleName
+            , clientIp
+        } = params;
+
+        const sql = SQL` WITH update_user_settings AS (
+            UPDATE
+                billing.user_settings
+            SET
+                default_tab = ${selectedTab}
+            WHERE
+                user_id = ${userId}
+                AND grid_name = ${gridName}
+            RETURNING *,
+            (
+                SELECT row_to_json(old_row)
+                FROM   (SELECT *
+                        FROM   billing.user_settings
+                        WHERE  user_id = ${userId} and grid_name = ${gridName}) old_row
+            ) old_values
+        ),
+        create_user_settings AS (
+            INSERT INTO billing.user_settings(
+                default_column
+                , default_column_order_by
+                , default_tab
+                , field_order
+                , grid_name
+                , user_id
+                , company_id
+                , default_date_range
+            )
+            SELECT
+                ${defaultColumn}
+                , ${orderBy}
+                , ${selectedTab}
+                , ${fieldOrder}
+                , ${gridName}
+                , ${userId}
+                , ${companyId}
+                , 'this_year'
+            WHERE NOT EXISTS ( SELECT id FROM update_user_settings )
+            RETURNING *, '{}'::jsonb old_values
+        ),
+        update_audit_user_settings AS (
+            SELECT billing.create_audit(
+                ${companyId}
+              , 'user settings'
+              , id
+              , ${screenName}
+              , ${moduleName}
+              , 'Default Tab for ' || ${gridName} || '  grid in User Settings Updated '
+              , ${clientIp}
+              , json_build_object(
+                  'old_values', COALESCE(old_values, '{}'),
+                  'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_user_settings ) temp_row)
+                )::jsonb
+              , ${userId}
+            ) AS id
+          FROM update_user_settings
+          WHERE id IS NOT NULL
+        ),
+        create_audit_user_settings AS (
+            SELECT billing.create_audit(
+                ${companyId}
+              , 'user settings'
+              , id
+              , ${screenName}
+              , ${moduleName}
+              , 'User Settings created: ' || ${gridName} || '  grid'
+              , ${clientIp}
+              , json_build_object(
+                  'old_values', COALESCE(old_values, '{}'),
+                  'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM create_user_settings ) temp_row)
+                )::jsonb
+              , ${userId}
+            ) AS id
+          FROM create_user_settings
+          WHERE id IS NOT NULL
+        )
+        SELECT * FROM update_audit_user_settings UNION SELECT * FROM create_audit_user_settings `;
+        return await query(sql);
+    },
 
     delete: async function (params) {
         let delete_data = SQL` DELETE FROM billing.grid_filters WHERE id = ${params.id} RETURNING  * ,'{}'::jsonb old_values `;
