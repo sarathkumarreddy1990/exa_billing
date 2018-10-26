@@ -702,7 +702,7 @@ module.exports = {
 					LEFT JOIN modifiers AS modifier2 ON modifier2.id=modifier2_id
 					LEFT JOIN modifiers AS modifier3 ON modifier3.id=modifier3_id
 					LEFT JOIN modifiers AS modifier4 ON modifier4.id=modifier4_id
-					WHERE claim_id=claims.id AND NOT charges.is_exclude ORDER BY charges.id ASC)
+					WHERE claim_id=claims.id AND NOT charges.is_excluded ORDER BY charges.id ASC)
 					AS serviceLine)
 					) AS claim
 					)

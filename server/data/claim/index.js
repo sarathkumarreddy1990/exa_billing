@@ -578,7 +578,7 @@ module.exports = {
                                 , ch.units
                                 , ch.charge_dt
                                 , ch.bill_fee::numeric
-                                , is_exclude
+                                , is_excluded
                                 , ch.allowed_amount::numeric as allowed_fee
                                 , ch.authorization_no
                                 , (ch.units * ch.bill_fee)::numeric as total_bill_fee
