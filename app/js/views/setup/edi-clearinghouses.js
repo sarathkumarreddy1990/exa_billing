@@ -297,9 +297,9 @@ define(['jquery',
 
             save: function () {
                 var communication_info = {
-                    authorizationInformation: $('#txtAuthInfo').val() == '' ? '\xa0' : $('#txtAuthInfo').val().replace(/ /g, '\xa0'),
+                    authorizationInformation: $('#txtAuthInfo').val(),
                     authorizationInformationQualifier: $('#txtAuthInfoQualifier').val(),
-                    securityInformation: $('#txtSecurityInfo').val() == '' ? '\xa0' : $('#txtSecurityInfo').val().replace(/ /g, '\xa0'),
+                    securityInformation: $('#txtSecurityInfo').val(),
                     securityInformationQualifier: $('#txtSecurityAuthQualifier').val(),
                     interchangeSenderId: $('#txtSenderID').val(),
                     interchangeSenderIdQualifier: $('#txtSenderIDQualifier').val(),
