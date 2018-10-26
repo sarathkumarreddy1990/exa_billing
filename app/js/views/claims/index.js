@@ -460,7 +460,7 @@ define(['jquery',
                                 $('#txtModifier1_' + index).val(data.modifier1_id ? self.getModifierCode(data.modifier1_id) : "").attr('data-id', data.modifier1_id);
                                 $('#txtModifier2_' + index).val(data.modifier2_id ? self.getModifierCode(data.modifier2_id) : "").attr('data-id', data.modifier2_id);
                                 $('#txtModifier3_' + index).val(data.modifier3_id ? self.getModifierCode(data.modifier3_id) : "").attr('data-id', data.modifier3_id);
-                                $('#txtModifier4_' + index).val(data.modifier1_id ? self.getModifierCode(data.modifier4_id) : "").attr('data-id', data.modifier4_id);
+                                $('#txtModifier4_' + index).val(data.modifier4_id ? self.getModifierCode(data.modifier4_id) : "").attr('data-id', data.modifier4_id);
                                 $('#checkExclude_' + index).prop('checked', data.is_excluded);
                             });
 
