@@ -258,10 +258,10 @@ function bindTotal(claimNo, data, columns) {
                         sum = parseFloat(sum) + parseFloat(temp[i]);
                     }
                 } else {
-                    body.push("$ 0.00");
+                    body.push("$0.00");
                 }
             } else {
-                body.push("$ 0.00");
+                body.push("$0.00");
             }
         });
         dataRow.push(sum ? "$" + parseFloat(sum).toFixed('2') : '$0.00');
@@ -288,7 +288,7 @@ function bindGrandTotal(data, columns) {
                     sum = parseFloat(sum) + parseFloat(temp[i]);
                 }
             } else {
-                body.push("$ 0.00");
+                body.push("$0.00");
             }
         });
         dataRow.push(sum ? "$" + parseFloat(sum).toFixed('2') : '$0.00');
