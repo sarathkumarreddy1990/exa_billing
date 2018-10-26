@@ -96,7 +96,7 @@ function Dateformat(data) {
 
 function header(data, columns, value) {
     var body = [];
-    for (i = 0; i < 1; i++) {
+    for (var i = 0; i < 1; i++) {
         {
             var dataRow = [];
             for (var key in data[i][value]) {
