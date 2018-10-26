@@ -856,11 +856,11 @@ module.exports = {
         let payer ='';
 
         if(payer_type == 'primary_insurance'){
-            payer = 'Primary Insuraces';
+            payer = 'Primary Insurances';
         } else if(payer_type == 'secondary_insurance'){
-            payer = 'Secondary Insuraces ';
+            payer = 'Secondary Insurances';
         } else if(payer_type == 'tertiary_insurance'){
-            payer = 'Tertiary Insuraces ';
+            payer = 'Tertiary Insurances';
         }
 
         let description = `${payer} Deleted from claim ${claim_id}, Responsible and Billing method changed to patient `;
