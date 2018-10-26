@@ -128,7 +128,7 @@ define(['jquery',
                     $('.editClaimRelated').hide();
                 }
 
-                if (isFrom == 'patient') {
+                if (isFrom == 'patientSearch') {
                     $('.woClaimRelated').hide();
                 } else {
                     $('#divPatient').hide();
@@ -136,7 +136,7 @@ define(['jquery',
 
                 $('#siteModal').removeAttr('tabindex'); //removed tabIndex attr for select2 search text can't editable
 
-                if (isFrom != 'patient') {
+                if (isFrom != 'patientSearch') {
                     self.bindDetails();
                     self.bindTabMenuEvents();
                 }
@@ -463,7 +463,7 @@ define(['jquery',
                                 $('#txtModifier4_' + index).val(data.modifier1_id ? self.getModifierCode(data.modifier4_id) : "").attr('data-id',data.modifier4_id);
                             });
 
-                            if (isFrom && (isFrom == 'studies' || self.openedFrom == 'studies' || self.openedFrom == 'patient'))
+                            if (isFrom && (isFrom === 'studies' || self.openedFrom === 'studies' || self.openedFrom === 'patientSearch'))
                                 $('.claimProcess').hide(); // hide Next/Prev btn if opened from studies worklist
 
                             // trigger blur event for update Total bill fee, balance etc.
@@ -890,7 +890,7 @@ define(['jquery',
                 var self = this;
 
                 if (!this.rendered)
-                    this.render('patient');
+                    this.render('patientSearch');
 
                 // Patient search events
                 $('#anc_first, #anc_previous, #anc_next, #anc_last').off().click(function (e) {
@@ -2781,7 +2781,8 @@ define(['jquery',
                                                 'patient_name': self.cur_patient_name,
                                                 'patient_id': self.cur_patient_id,
                                                 'order_id': result && result.order_id ? result.order_id : 0,
-                                                'grid_id': self.options && self.options.grid_id || null
+                                                'grid_id': self.options && self.options.grid_id || null,
+                                                'from': self.options && self.options.from || self.openedFrom || null
                                             });
                                         });
                                     }
@@ -3295,12 +3296,13 @@ define(['jquery',
                                     });
                                     var statusDetail = commonjs.getClaimColorCodeForStatus(pending_submission_status[0].code, 'claim');
                                     var color_code = statusDetail && statusDetail[0] && statusDetail[0].color_code || 'transparent';
-                                    var $gridId = self.options.grid_id || '';
+                                    var $gridId = self.options && self.options.grid_id || '';
+                                    var pageSource = self.options && self.options.from || '';
                                         $gridId = $gridId.replace(/#/, '');
 
                                     if ($gridId) {
                                         $('#' + $gridId + ' tr#' + self.claim_Id, parent.document).find('td[aria-describedby=' + $gridId + '_claim_status]').text(pending_submission_status && pending_submission_status[0].description).css("background-color", color_code);
-                                    } else {
+                                    } else if (pageSource !== 'patientSearch' && $gridId == '') {
                                         commonjs.showWarning(commonjs.geti18NString("messages.errors.gridIdNotExists"));
                                     }
                                 }
@@ -3739,7 +3741,7 @@ define(['jquery',
                                             window.localStorage.setItem('selected_studies', JSON.stringify(studyIds));
 
                                             $('#divPageLoading').show();
-                                            self.showClaimForm({ from: 'patientSearch' }, 'patient');
+                                            self.showClaimForm({ from: 'patientSearch' }, 'patientSearch');
 
                                             setTimeout(function () {
                                                 $('#divPageLoading').hide();
@@ -3822,7 +3824,7 @@ define(['jquery',
                     $('.woClaimRelated').show();
                 }, 200);
 
-                self.openedFrom = 'patient';
+                self.openedFrom = 'patientSearch';
 
             },
 
