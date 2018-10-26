@@ -1699,27 +1699,57 @@ define(['jquery',
                         $.each(payerTypes, function (index, payerObj) {
 
                             if (payerObj.patient_id) {
-                                responsibleObjArray.push({ id: payerObj.patient_id, text: payerObj.patient_name + '(Patient)', payer_type: 'patient' , selected: payerObj.payer_type === 'patient' });
+                                responsibleObjArray.push({
+                                    id: payerObj.patient_id,
+                                    text: payerObj.patient_name + '(Patient)',
+                                    payer_type: 'patient',
+                                    selected: payerObj.payer_type === 'patient'
+                                });
                             }
 
                             if (payerObj.primary && payerObj.primary != 'null' && payerObj.primary_ins_provider_name != null) {
-                                responsibleObjArray.push({ id: payerObj.primary, text: payerObj.primary_ins_provider_name + '(' + payerObj.primary_ins_provider_code + ')(Primary Insurance)', payer_type: 'primary_insurance' , selected: payerObj.payer_type === 'primary_insurance' });
+                                responsibleObjArray.push({
+                                    id: payerObj.primary,
+                                    text: payerObj.primary_ins_provider_name + '(' + payerObj.primary_ins_provider_code + ')(Primary Insurance)',
+                                    payer_type: 'primary_insurance',
+                                    selected: payerObj.payer_type === 'primary_insurance'
+                                });
                             }
 
                             if (payerObj.secondary && payerObj.secondary != 'null' && payerObj.secondary_ins_provider_name != null) {
-                                responsibleObjArray.push({ id: payerObj.secondary, text: payerObj.secondary_ins_provider_name + '(' + payerObj.secondary_ins_provider_code + ')(Secondary Insurance)', payer_type: 'secondary_insurance' , selected: payerObj.payer_type === 'secondary_insurance' });
+                                responsibleObjArray.push({
+                                    id: payerObj.secondary,
+                                    text: payerObj.secondary_ins_provider_name + '(' + payerObj.secondary_ins_provider_code + ')(Secondary Insurance)',
+                                    payer_type: 'secondary_insurance',
+                                    selected: payerObj.payer_type === 'secondary_insurance'
+                                });
                             }
 
                             if (payerObj.tertiary && payerObj.tertiary != 'null' && payerObj.tertiary_ins_provider_name != null) {
-                                responsibleObjArray.push({ id: payerObj.tertiary, text: payerObj.tertiary_ins_provider_name + '(' + payerObj.tertiary_ins_provider_code + ')(Tertiary Insurance)', payer_type: 'tertiary_insurance' , selected: payerObj.payer_type === 'tertiary_insurance' });
+                                responsibleObjArray.push({
+                                    id: payerObj.tertiary,
+                                    text: payerObj.tertiary_ins_provider_name + '(' + payerObj.tertiary_ins_provider_code + ')(Tertiary Insurance)',
+                                    payer_type: 'tertiary_insurance',
+                                    selected: payerObj.payer_type === 'tertiary_insurance'
+                                });
                             }
 
                             if (payerObj.order_facility_id && payerObj.ordering_facility_name != null) {
-                                responsibleObjArray.push({ id: payerObj.order_facility_id, text: payerObj.ordering_facility_name + '(Ordering Facility)', payer_type: 'ordering_facility' , selected: payerObj.payer_type === 'ordering_facility' });
+                                responsibleObjArray.push({
+                                    id: payerObj.order_facility_id,
+                                    text: payerObj.ordering_facility_name + '(Ordering Facility)',
+                                    payer_type: 'ordering_facility',
+                                    selected: payerObj.payer_type === 'ordering_facility'
+                                });
                             }
 
                             if (payerObj.referring_provider_contact_id && payerObj.provider_name != null) {
-                                responsibleObjArray.push({ id: payerObj.referring_provider_contact_id, text: payerObj.provider_name + '(Provider)', payer_type: 'referring_provider' , selected: payerObj.payer_type === 'referring_provider' });
+                                responsibleObjArray.push({
+                                    id: payerObj.referring_provider_contact_id,
+                                    text: payerObj.provider_name + '(Provider)',
+                                    payer_type: 'referring_provider',
+                                    selected: payerObj.payer_type === 'referring_provider'
+                                });
                             }
                         });
 
@@ -1727,9 +1757,15 @@ define(['jquery',
 
                         $ddlResponsible.select2({
                             data: responsibleObjArray,
-                            templateSelection : function(data){
+                            templateSelection: function (data) {
                                 var isEdit = self.currentResponsible !== data.payer_type
-                                $(data.element).attr({ 'data-payer_type': data.payer_type, selected: true, is_edit: isEdit });
+
+                                $(data.element).attr({
+                                    'data-payer_type': data.payer_type,
+                                    selected: true,
+                                    is_edit: isEdit
+                                });
+
                                 return data.text;
                             }
                         })
