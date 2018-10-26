@@ -514,7 +514,7 @@ module.exports = {
                                         billing_notes = ${params.billingNotes}
                                       , payer_type =(
                                                     CASE
-                                                        WHEN ${is_payerChanged} = true AND ${is_claimDenied} = false THEN ${params.payerType}
+                                                        WHEN ${is_payerChanged} AND NOT ${is_claimDenied} THEN ${params.payerType}
                                                     ELSE payer_type
                                                     END
                                                     )
@@ -725,7 +725,7 @@ module.exports = {
                                 billing_notes = ${params.billingNotes}
                                 , payer_type =(
                                     CASE
-                                        WHEN ${params.is_payerChanged} = true AND ${params.is_claimDenied} = false THEN ${params.payerType}
+                                        WHEN ${params.is_payerChanged} AND NOT ${params.is_claimDenied} THEN ${params.payerType}
                                     ELSE payer_type
                                     END
                                     )
