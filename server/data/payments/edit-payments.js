@@ -41,7 +41,7 @@ module.exports = {
         }
 
         if (claim_date) {
-            whereQuery.push(`claim_dt::date ='${claim_date}'::date`);
+            whereQuery.push(`to_facility_date(bc.facility_id, claim_dt) = '${claim_date}'::date`);
         }
 
         if (account_no) {
@@ -72,8 +72,7 @@ module.exports = {
                     bc.id,
                     bc.invoice_no,
                     get_full_name(pp.last_name,pp.first_name) AS full_name,
-                    claim_dt AS claim_date,
-                    bc.claim_dt,
+                    bc.claim_dt AS claim_date,
                     pp.account_no,
                     array_agg(pcc.display_code) AS display_description,
                     (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) AS billing_fee,
