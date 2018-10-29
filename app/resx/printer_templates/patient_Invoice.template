@@ -1,19 +1,17 @@
 //Author:PSPriya
 //Patient Invoice TEMPLATE
-var invoiceData = [
-  {
-    "claim_details": [
-      {
+var invoiceData = [{
+    "claim_details": [{
         "invoice_no": "Invoice1",
         "invoice_date": "YYYY-MM-DD",
         "referring_physician_name": "Test, Provider ref",
         "reason_for_exam": "TEST",
         "patient_adrress_details": {
-          "patient_address1": "Test PAT Add1",
-          "patient_address2": "Test PAT Add2",
-          "patient_city": "Test PAT CITY",
-          "patient_state": "TEST PAT STATE",
-          "patient_zip": "11111"
+            "patient_address1": "Test PAT Add1",
+            "patient_address2": "Test PAT Add2",
+            "patient_city": "Test PAT CITY",
+            "patient_state": "TEST PAT STATE",
+            "patient_zip": "11111"
         },
         "claim_balance": "$0.00",
         "claim_dt": "YYYY-MM-DDTHH:MM:SS-MS:00",
@@ -21,37 +19,35 @@ var invoiceData = [
         "payment_details": "",
         "facility_name": "Test Facility",
         "facility_adrress_details": {
-          "facility_address1": "TEST FAC Add1",
-          "facility_address2": "TEST FAC Add2",
-          "facility_city": "TEST FAC CITY",
-          "facility_state": "TEST FAC STATE",
-          "facility_zip": "11111"
+            "facility_address1": "TEST FAC Add1",
+            "facility_address2": "TEST FAC Add2",
+            "facility_city": "TEST FAC CITY",
+            "facility_state": "TEST FAC STATE",
+            "facility_zip": "11111"
         },
         "claim_no": "CLAIM01",
         "patient_name": "TEST, PAT1",
         "birth_date": "YYYY-MM-DD",
         "responsinble_party_address": {
-          "name": "Test Responsible",
-          "address": "Test Responsible Add1",
-          "address2": "Test Responsible Add2",
-          "city": "Test Responsible CITY",
-          "state": "Test Responsible STATE",
-          "zip_code": "11111",
-          "phone_no": "(222)222-2222"
+            "name": "Test Responsible",
+            "address": "Test Responsible Add1",
+            "address2": "Test Responsible Add2",
+            "city": "Test Responsible CITY",
+            "state": "Test Responsible STATE",
+            "zip_code": "11111",
+            "phone_no": "(222)222-2222"
         },
         "billing_provider_details": {
-          "name": "Test Billing Provider",
-          "address": "Test Billing Add1",
-          "address2": "Test Billing Add2",
-          "city": "Test Billing CITY",
-          "state": "Test Billing State",
-          "zip_code": "11111",
-          "phone_no": "(333)333-3333"
+            "name": "Test Billing Provider",
+            "address": "Test Billing Add1",
+            "address2": "Test Billing Add2",
+            "city": "Test Billing CITY",
+            "state": "Test Billing State",
+            "zip_code": "11111",
+            "phone_no": "(333)333-3333"
         }
-      }
-    ],
-    "charge_details": [
-      {
+    }],
+    "charge_details": [{
         "claim_no": "CLAIM01",
         "display_code": "CPT01",
         "display_description": "Test CPT",
@@ -63,10 +59,8 @@ var invoiceData = [
         "modifier4": null,
         "units": 1,
         "bill_fee": "$0.00"
-      }
-    ],
-    "payment_details": [
-      {
+    }],
+    "payment_details": [{
         "payment_dt": "YYYY-MM-DDTHH:MM:SS.MS-00:00",
         "payer_type": "patient",
         "payer_name": "Test, Patient",
@@ -74,8 +68,7 @@ var invoiceData = [
         "payment_id": "PAYMENT01",
         "payments_applied_total": "$01.00",
         "ajdustments_applied_total": "$0.00"
-      },
-      {
+    }, {
         "payment_dt": "YYYY-MM-DDTHH:MM:SS.MS-00:00",
         "payer_type": "insurance",
         "payer_name": "Test Insurance",
@@ -83,402 +76,394 @@ var invoiceData = [
         "payment_id": "PAYMENT02",
         "payments_applied_total": "$02.00",
         "ajdustments_applied_total": null
-      }
-    ]
-  }
-]
+    }]
+}]
 var ClaimDetails = invoiceData[0].claim_details;
 var chargeDetails = invoiceData[0].charge_details;
 var PaymentDetails = invoiceData[0].payment_details;
-function Dateformat(data){
-	data = data.substr(5,2)+'/'+data.substr(8,2)+'/'+data.substr(0,4);
-	return data;
+
+function Dateformat(data) {
+    data = data.substr(5, 2) + '/' + data.substr(8, 2) + '/' + data.substr(0, 4);
+    return data;
 }
+
 function bindHead(claimNo, data, columns, value) {
-	var body = [];
-	for(i=0; i<data.length; i++){
-		if(data[i]['claim_no']===claimNo)
-		{
+    var body = [];
+    for (var i = 0; i < data.length; i++) {
+        if (data[i]['claim_no'] === claimNo) {
             var dataRow = [];
-            for(var key in data[i][value])
-            {
-				{
-				if (key === 'name'||key ==='address'||key==='phone_no'){
-                    dataRow.push(data[i][value][key]? data[i][value][key]: '');
-				} else if (key === 'city'){
-					dataRow.push(
-					    (data[i][value]['address2']?(data[i][value]['address2']+"\n"):"")+
-					    (data[i][value][key]? data[i][value][key]: '')+'  '+
-					    (data[i][value]['state']?data[i][value]['state']:"")+'  '+
-					    (data[i][value]['zip_code']?+data[i][value]['zip_code']:"")
-					    );
-				}else if (key === 'facility_address1'){
-                    dataRow.push(data[i]["facility_name"]? data[i]["facility_name"]+'\n'+data[i][value][key]+' \n'+(data[i][value]['facility_address2']?data[i][value]['facility_address2']:""): '');
-				} else if (key === 'facility_city'){
-				     dataRow.push(data[i][value][key]? data[i][value][key]+'  '+(data[i][value]['facility_state']?data[i][value]['facility_state']:"")+'  '+(data[i][value]['facility_zip']?+data[i][value]['facility_zip']:""): '');
-				}else if (key === 'patient_address1'){
-				     dataRow.push(data[i]["patient_name"]? data[i]["patient_name"]+"\n"+data[i][value][key]+(data[i][value]['patient_address2']?("\n"+data[i][value]['patient_address2']):""): '');
-				}else if (key === 'patient_city'){
-				     dataRow.push(data[i][value][key]? data[i][value][key]+'  '+(data[i][value]['patient_state']?data[i][value]['patient_state']:"")+'  '+(data[i][value]['patient_zip']?data[i][value]['patient_zip']:""): '');
-				}
-				}
-		    }
-			body.push(dataRow)
-		}
-	}
-	return body;
+            for (var key in data[i][value]) {
+                {
+                    if (key === 'name' || key === 'address' || key === 'phone_no') {
+                        dataRow.push(data[i][value][key] ? data[i][value][key] : '');
+                    } else if (key === 'city') {
+                        dataRow.push(
+                            (data[i][value]['address2'] ? (data[i][value]['address2'] + "\n") : "") +
+                            (data[i][value][key] ? data[i][value][key] : '') + '  ' +
+                            (data[i][value]['state'] ? data[i][value]['state'] : "") + '  ' +
+                            (data[i][value]['zip_code'] ? +data[i][value]['zip_code'] : "")
+                        );
+                    } else if (key === 'facility_address1') {
+                        dataRow.push(data[i]["facility_name"] ? data[i]["facility_name"] + '\n' + data[i][value][key] + ' \n' + (data[i][value]['facility_address2'] ? data[i][value]['facility_address2'] : "") : '');
+                    } else if (key === 'facility_city') {
+                        dataRow.push(data[i][value][key] ? data[i][value][key] + '  ' + (data[i][value]['facility_state'] ? data[i][value]['facility_state'] : "") + '  ' + (data[i][value]['facility_zip'] ? +data[i][value]['facility_zip'] : "") : '');
+                    } else if (key === 'patient_address1') {
+                        dataRow.push(data[i]["patient_name"] ? data[i]["patient_name"] + "\n" + data[i][value][key] + (data[i][value]['patient_address2'] ? ("\n" + data[i][value]['patient_address2']) : "") : '');
+                    } else if (key === 'patient_city') {
+                        dataRow.push(data[i][value][key] ? data[i][value][key] + '  ' + (data[i][value]['patient_state'] ? data[i][value]['patient_state'] : "") + '  ' + (data[i][value]['patient_zip'] ? data[i][value]['patient_zip'] : "") : '');
+                    }
+                }
+            }
+            body.push(dataRow)
+        }
+    }
+    return body;
 }
 
 function bindBalance(claimNo, data, columns) {
-	var body = [];
-	data.forEach(function(row) {
+    var body = [];
+    data.forEach(function(row) {
         var dataRow = [];
-        if(row['claim_no']===claimNo){
+        if (row['claim_no'] === claimNo) {
             columns.forEach(function(column) {
-                if(column === 'claim_balance'){
-                    dataRow.push(column? 'Pay this amount: '+row[column] : '');
-                }else if (column === 'claim_dt'){
-                    dataRow.push(column? 'Date: '+Dateformat(row[column]) : '');
-                }else if(column === 'Header'){
-                    dataRow.push(column? 'INVOICE' : '');
-                }else if (column === 'account_no'){
-                    dataRow.push(column? 'Patient: '+row[column]+"\n"+(row['patient_name']?row['patient_name']:"") : '');
+                if (column === 'claim_balance') {
+                    dataRow.push(column ? 'Pay this amount: ' + row[column] : '');
+                } else if (column === 'claim_dt') {
+                    dataRow.push(column ? 'Date: ' + Dateformat(row[column]) : '');
+                } else if (column === 'Header') {
+                    dataRow.push(column ? 'INVOICE' : '');
+                } else if (column === 'account_no') {
+                    dataRow.push(column ? 'Patient: ' + row[column] + "\n" + (row['patient_name'] ? row['patient_name'] : "") : '');
                 }
             });
             body.push(dataRow);
-		}
-	});
-	return body;
+        }
+    });
+    return body;
 }
 
 function bindClaim(claimNo, data, columns) {
-	var body = [];
-	if(data&&data.length){
-		data.forEach(function(row) { 
-			var dataRow = [];
-			if(row['claim_no']===claimNo){
-				if(columns&&columns.length){
-					columns.forEach(function(column) {
-						if(column == 'get_charge_icds'){
-							dataRow.push(row[column]? row[column]+',': '');
-						}else if(column == 'service_date'){
-							dataRow.push(row[column]? Dateformat(row[column]): '');
-						}else if (column == "patient_name"){
-							dataRow.push(row[column]? "Patient Address:\n"+row[column]: '');
-						}else {
-							dataRow.push(row[column]? row[column]: '');
-						}
-					});
-					body.push(dataRow);
-				}
-			}
-		});
-	}
-	return body;
+    var body = [];
+    if (data && data.length) {
+        data.forEach(function(row) {
+            var dataRow = [];
+            if (row && row['claim_no'] && row['claim_no'] === claimNo) {
+                if (columns && columns.length) {
+                    columns.forEach(function(column) {
+                        if (column == 'get_charge_icds') {
+                            dataRow.push(row[column] ? row[column] + ',' : '');
+                        } else if (column == 'service_date') {
+                            dataRow.push(row[column] ? Dateformat(row[column]) : '');
+                        } else if (column == "patient_name") {
+                            dataRow.push(row[column] ? "Patient Address:\n" + row[column] : '');
+                        } else {
+                            dataRow.push(row[column] ? row[column] : '');
+                        }
+                    });
+                    body.push(dataRow);
+                } else {
+                    body.push("");
+                }
+            }
+        });
+    } else {
+        body.push("");
+    }
+    if (!body.length) body.push("");
+    return body;
 }
-function bindpayment(claimNo,data, columns,amount_type) {
-	var body = [];
-	if(data&&data.length){
-		data.forEach(function(row) { 
-			var dataRow = [];
-			if(row['claim_id']===claimNo && row['amount_type'] == amount_type){
-				if(columns&&columns.length){
-					columns.forEach(function(column) {
-						if(column == 'payment_dt'){
-							dataRow.push(row[column]? Dateformat(row[column]): '');
-						}else if(column == 'payments_applied_total'){
-							dataRow.push(row[column]? row[column]: '');
-                        }else if((column == 'ajdustments_applied_total' && row[column] != "$0.00")) {
-                            dataRow.push(row[column]? row[column]: '');   
-                        }else if(column == 'amount_type' && row[column] == 'payment') {
+
+function bindpayment(claimNo, data, columns, amount_type) {
+    var body = [];
+    if (data && data.length) {
+        data.forEach(function(row) {
+            var dataRow = [];
+            if ((row && row['claim_id'] && row['claim_id'] === claimNo) && (row && row['amount_type'] && row['amount_type'] == amount_type)) {
+                if (columns && columns.length) {
+                    columns.forEach(function(column) {
+                        if (column == 'payment_dt') {
+                            dataRow.push(row[column] ? Dateformat(row[column]) : '');
+                        } else if (column == 'payments_applied_total') {
+                            dataRow.push(row[column] ? row[column] : '');
+                        } else if ((column == 'ajdustments_applied_total' && row[column] != "$0.00")) {
+                            dataRow.push(row[column] ? row[column] : '');
+                        } else if (column == 'amount_type' && row[column] == 'payment') {
                             dataRow.push('Payment');
-                        }else if(column == 'amount_type' && row[column] == 'adjustment') {
+                        } else if (column == 'amount_type' && row[column] == 'adjustment') {
                             dataRow.push('Adjustment');
-						}else{
-							dataRow.push(row[column]? row[column]: '');
-						}
-					});
-					body.push(dataRow?dataRow:"");
-				}else{
-					body.push("");
-				}
-			}
-		});
-	}else{
-		body.push("");
-	}
-    if(!body.length) body.push("");
-	return body;
+                        } else {
+                            dataRow.push(row[column] ? row[column] : '');
+                        }
+                    });
+                    body.push(dataRow ? dataRow : "");
+                } else {
+                    body.push("");
+                }
+            }
+        });
+    } else {
+        body.push("");
+    }
+    if (!body.length) body.push("");
+    return body;
 }
 
 function bindInvoice(data, columns) {
-    if(typeof claimData !== 'undefined') {
+    if (typeof claimData !== 'undefined') {
         ClaimDetails = claimData.claim_details;
         chargeDetails = claimData.charge_details;
         PaymentDetails = claimData.payment_details
-        data=ClaimDetails;
-        var payment= "payment";
+        data = ClaimDetails;
+        var payment = "payment";
         var adjustment = "adjustment";
     }
-	var body = [];
-	data.forEach(function(row) {
-        var dataRow = [];
-        columns.forEach(function(column) {
-            if(column === 'Temp') {
-                dataRow.push('');
-            }else {
-                dataRow.push('');
-            }
-            if(column === 'Temp') {
-                body.push(dataRow);
-                body.push(
-                    {
-                        style: 'myTable',
-                        table:
-                        {
-                            widths: [255],
-                            body:[
-                                [
-                                    {text:"Billing Provider Address", bold:'true'}
-                                ],
-                                [
-                                    {
+    var body = [];
+    if (data && data.length) {
+        data.forEach(function(row) {
+            var dataRow = [];
+            if (columns && columns.length) {
+                columns.forEach(function(column) {
+                    if (column === 'Temp') {
+                        dataRow.push('');
+                    } else {
+                        dataRow.push('');
+                    }
+                    if (column === 'Temp') {
+                        body.push(dataRow);
+                        body.push({
+                            style: 'myTable',
+                            table: {
+                                widths: [255],
+                                body: [
+                                    [{
+                                        text: "Billing Provider Address",
+                                        bold: 'true'
+                                    }],
+                                    [{
                                         style: 'myTable',
-                                        margin: [0,-5,0,0],
-                                        table:
-                                        {
+                                        margin: [0, -5, 0, 0],
+                                        table: {
                                             heights: [60],
-                                            body:[
+                                            body: [
                                                 bindHead(
                                                     row.claim_no,
-                                                    ClaimDetails,
-                                                    ["name", "address", "city", "state", "phone_no"],
+                                                    ClaimDetails, ["name", "address", "city", "state", "phone_no"],
                                                     'billing_provider_details'
                                                 )
                                             ]
-                                        },layout: 'noBorders'
-                                    },
-                                ],
-                                [
-                                    {text:"Patient Address", bold:'true'}
-                                ],
-                                [
-                                    {
+                                        },
+                                        layout: 'noBorders'
+                                    }, ],
+                                    [{
+                                        text: "Patient Address",
+                                        bold: 'true'
+                                    }],
+                                    [{
                                         style: 'myTable',
-                                        margin: [0,-5,0,0],
-                                        table:
-                                        {
+                                        margin: [0, -5, 0, 0],
+                                        table: {
                                             heights: [50],
-                                            body:[
+                                            body: [
                                                 bindHead(
-                                                    row.claim_no, 
-                                                    ClaimDetails, 
-                                                    ["patient_address1", "patient_address2", "patient_city"], 
+                                                    row.claim_no,
+                                                    ClaimDetails, ["patient_address1", "patient_address2", "patient_city"],
                                                     'patient_adrress_details'
                                                 )
                                             ]
-                                        },layout: 'noBorders'
-                                    }
-                                ],
-                            ]
-                        },layout: 'noBorders'
-                    }
-                );
-                body.push(
-                    {
-                        style: 'myTable',
-                        margin: [360,-120,0,0],
-                        alignment: "right",
-                        table:
-                        {
-                            widths: [150],
-                            heights: [0, 120],
-                            body:[
-                                [{text: "Invoice", bold:"true"},],
-                                [
-                                    bindBalance(
-                                        row.claim_no, 
-                                        ClaimDetails, 
-                                        ["claim_balance", "claim_dt", "account_no"]
-                                    )
+                                        },
+                                        layout: 'noBorders'
+                                    }],
                                 ]
-                            ]
-                        },layout: 'noBorders'
-                    }
-                );
-                body.push( 
-                    {
-                        style: 'myTable',
-                        table: 
-                        {
-                            widths: [400, 90],
-                            body:
-                            [
-                                [
-                                    {
+                            },
+                            layout: 'noBorders'
+                        });
+                        body.push({
+                            style: 'myTable',
+                            margin: [360, -120, 0, 0],
+                            alignment: "right",
+                            table: {
+                                widths: [150],
+                                heights: [0, 120],
+                                body: [
+                                    [{
+                                        text: "Invoice",
+                                        bold: "true"
+                                    }, ],
+                                    [
+                                        bindBalance(
+                                            row.claim_no,
+                                            ClaimDetails, ["claim_balance", "claim_dt", "account_no"]
+                                        )
+                                    ]
+                                ]
+                            },
+                            layout: 'noBorders'
+                        });
+                        body.push({
+                            style: 'myTable',
+                            table: {
+                                widths: [400, 90],
+                                body: [
+                                    [{
                                         style: 'myTable',
-                                        bold:"true",
+                                        bold: "true",
                                         fontSize: 10,
-                                        table: 
-                                        {
-                                        widths: [55, 75, 65, 130, 135],
-                                        body:[
-                                            [
-                                                {text:"PLEASE DETACH AND RETURN TOP PORTION WITH YOUR PAYMENT", colSpan:5, alignment:"center", bold:"", fontSize: 10.5}, {},{},{},{}
-                                            ],
-                                            [
-                                                {text:"Encounter"}, 
-                                                {text:"Date"},
-                                                {text:"Code"},
-                                                {text:"Description"},
-                                                {text:"Amount", alignment:"right"}
+                                        table: {
+                                            widths: [55, 75, 65, 130, 135],
+                                            body: [
+                                                [{
+                                                    text: "PLEASE DETACH AND RETURN TOP PORTION WITH YOUR PAYMENT",
+                                                    colSpan: 5,
+                                                    alignment: "center",
+                                                    bold: "",
+                                                    fontSize: 10.5
+                                                }, {}, {}, {}, {}],
+                                                [{
+                                                    text: "Encounter"
+                                                }, {
+                                                    text: "Date"
+                                                }, {
+                                                    text: "Code"
+                                                }, {
+                                                    text: "Description"
+                                                }, {
+                                                    text: "Amount",
+                                                    alignment: "right"
+                                                }]
                                             ]
-                                        ]
-                                        },layout: 'noBorders', colSpan:2
-                                    },{}
-                                ],
-                                [
-                                    {
+                                        },
+                                        layout: 'noBorders',
+                                        colSpan: 2
+                                    }, {}],
+                                    [{
                                         style: 'myTable',
-                                        table: 
-                                        {
+                                        table: {
                                             widths: [55, 75, 65, 150],
-                                            body:bindClaim(row.claim_no, chargeDetails, ['claim_no', 'service_date','display_code', 'display_description'])
-                                        },layout: 'noBorders'
-                                    },
-                                    {
+                                            body: bindClaim(row.claim_no, chargeDetails, ['claim_no', 'service_date', 'display_code', 'display_description'])
+                                        },
+                                        layout: 'noBorders'
+                                    }, {
                                         style: 'myTable',
-                                        alignment:"right",
-                                        table: 
-                                        {
+                                        alignment: "right",
+                                        table: {
                                             widths: [85],
-                                            body:bindClaim(row.claim_no, chargeDetails, [ "bill_fee"])
-                                        },layout: 'noBorders'
-                                    }
-                                ],
-                                
-                            ]
-                        },layout: 'noBorders',
-                        
-                    }
-                );
-                body.push(
-                    {
-                        style: 'myTable',
-                        table: 
-                        {
-                            widths: [400, 90],
-                            body:
-                            [
-                                [
-                                    {
-                                        style: 'myTable',
-                                        table: 
-                                        {
-                                            widths: [55, 75, 65, 150],
-                                            body:bindpayment(row.claim_no,PaymentDetails, ["claim_id",'payment_dt', "amount_type","payer_name"],payment)
-                                        },layout: 'noBorders'
-                                    },
-                                    {
-                                        style: 'myTable',
-                                        alignment:"right",
-                                        table: 
-                                        {
-                                            widths: [85],
-                                            body:bindpayment(row.claim_no,PaymentDetails, ["payments_applied_total"], payment)
-                                        },layout: 'noBorders'
-                                    },
-                                ],
-                                [
-                                    {
-                                        style: 'myTable',
-                                        table: 
-                                        {
-                                            widths: [55, 75, 65, 150],
-                                            body:bindpayment(row.claim_no,PaymentDetails, ["claim_id",'payment_dt', "amount_type","payer_name"],adjustment)
-                                        },layout: 'noBorders'
-                                    },
-                                    {
-                                        style: 'myTable',
-                                        alignment:"right",
-                                        table: 
-                                        {
-                                            widths: [85],
-                                            body:bindpayment(row.claim_no,PaymentDetails, ["ajdustments_applied_total"], adjustment)
-                                        },layout: 'noBorders'
-                                    },
-                                ],
-                                [
-                                    {
-                                        style: 'myTable',
-                                        table: 
-                                        {
-                                            widths: [55, 75, 65, 150, 85],
-                                            body:[
-                                                [
-                                                    {},{},{},{text:"Total", alignment:"right"}, {}
+                                            body: bindClaim(row.claim_no, chargeDetails, ["bill_fee"])
+                                        },
+                                        layout: 'noBorders'
+                                    }],
+
+                                ]
+                            },
+                            layout: 'noBorders',
+
+                        });
+                        body.push({
+                                style: 'myTable',
+                                table: {
+                                    widths: [400, 90],
+                                    body: [
+                                        [{
+                                            style: 'myTable',
+                                            table: {
+                                                widths: [55, 75, 65, 150],
+                                                body: bindpayment(row.claim_no, PaymentDetails, ["claim_id", 'payment_dt', "amount_type", "payer_name"], payment)
+                                            },
+                                            layout: 'noBorders'
+                                        }, {
+                                            style: 'myTable',
+                                            alignment: "right",
+                                            table: {
+                                                widths: [85],
+                                                body: bindpayment(row.claim_no, PaymentDetails, ["payments_applied_total"], payment)
+                                            },
+                                            layout: 'noBorders'
+                                        }, ],
+                                        [{
+                                            style: 'myTable',
+                                            table: {
+                                                widths: [55, 75, 65, 150],
+                                                body: bindpayment(row.claim_no, PaymentDetails, ["claim_id", 'payment_dt', "amount_type", "payer_name"], adjustment)
+                                            },
+                                            layout: 'noBorders'
+                                        }, {
+                                            style: 'myTable',
+                                            alignment: "right",
+                                            table: {
+                                                widths: [85],
+                                                body: bindpayment(row.claim_no, PaymentDetails, ["ajdustments_applied_total"], adjustment)
+                                            },
+                                            layout: 'noBorders'
+                                        }, ],
+                                        [{
+                                            style: 'myTable',
+                                            table: {
+                                                widths: [55, 75, 65, 150, 85],
+                                                body: [
+                                                    [{}, {}, {}, {
+                                                        text: "Total",
+                                                        alignment: "right"
+                                                    }, {}]
                                                 ]
-                                            ]
-                                        },layout: 'noBorders'
-                                    },
-                                    {
-                                        style: 'myTable',
-                                        alignment:"right",
-                                        table: 
-                                        {
-                                            widths: [85],
-                                            body:bindClaim(row.claim_no, ClaimDetails, [ "claim_balance"])
-                                        },layout: 'noBorders'
-                                    }
-                                ],
-                            ]
-                        },layout: 'noBorders'
+                                            },
+                                            layout: 'noBorders'
+                                        }, {
+                                            style: 'myTable',
+                                            alignment: "right",
+                                            table: {
+                                                widths: [85],
+                                                body: bindClaim(row.claim_no, ClaimDetails, ["claim_balance"])
+                                            },
+                                            layout: 'noBorders'
+                                        }],
+                                    ]
+                                },
+                                layout: 'noBorders'
+                            }
+
+                        );
+                        body.push({
+                                style: 'myTable',
+                                table: {
+                                    widths: [300, 200],
+                                    body: [
+                                        [{
+                                            text: "Balance is due in full. We accept major credit cards.",
+                                            fontSize: 11
+                                        }, {
+                                            text: "MAKE CHECKS PAYABLE TO:",
+                                            fontSize: 11,
+                                            bold: "true"
+                                        }],
+                                        [{}, {
+                                            style: 'myTable',
+                                            table: {
+                                                body: [
+                                                    bindHead(
+                                                        row.claim_no,
+                                                        ClaimDetails, ["facility_address1", "facility_address2", "facility_city"],
+                                                        'facility_adrress_details'
+                                                    )
+                                                ],
+                                            },
+                                            layout: 'noBorders'
+                                        }],
+                                    ]
+                                },
+                                layout: 'noBorders'
+                            }
+
+                        );
                     }
-                    
-                );
-                body.push(
-                    {
-                        style: 'myTable',
-                        table: 
-                        {
-                            widths: [300, 200],
-                            body:
-                            [
-                                [
-                                    {
-                                        text:"Balance is due in full. We accept major credit cards.", fontSize: 11
-                                    },
-                                    {
-                                        text:"MAKE CHECKS PAYABLE TO:", fontSize: 11, bold:"true"
-                                    }
-                                ],
-                                [
-                                    {},
-                                    {
-                                        style: 'myTable',
-                                        table: 
-                                        {
-                                            body:
-                                            [
-                                                bindHead(
-                                                row.claim_no, 
-                                                    ClaimDetails, 
-                                                    ["facility_address1", "facility_address2", "facility_city"], 
-                                                    'facility_adrress_details' 
-                                                )
-                                            ],
-                                        },layout: 'noBorders'
-                                    }
-                                ],
-                            ]
-                        },layout: 'noBorders'
-                    }
-                    
-                );
+                });
+            } else {
+                body.push("");
             }
         });
-	});
-	return body;
+    } else {
+        body.push("");
+    }
+    if (!body.length) body.push("");
+    return body;
 }
 
 var dd = {
@@ -486,18 +471,18 @@ var dd = {
         bindInvoice(ClaimDetails, ["Temp"]),
     ],
     styles: {
-		myTable: {
-		    fontSize: 9.5,
-			margin: [0, 0, 0, 0],
-		},
-	},
-	defaultStyle: {
-		//alignment: 'justify'
-	},
-	pageSize: {
+        myTable: {
+            fontSize: 9.5,
+            margin: [0, 0, 0, 0],
+        },
+    },
+    defaultStyle: {
+        //alignment: 'justify'
+    },
+    pageSize: {
         width: 612,
         height: 792
     },
     pageOrientation: 'portrait',
-    pageMargins: [ 40, 30, 0, 0 ]
+    pageMargins: [40, 30, 0, 0]
 }

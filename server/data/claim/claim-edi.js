@@ -418,9 +418,9 @@ module.exports = {
 							FROM   (
 									SELECT claims.id as "claimNumber",
 										frequency as "claimFrequencyCode",
-										(select charges_bill_fee_total from BILLING.get_claim_payments(claims.id))::numeric::text as "claimTotalCharge",
-										(select payment_insurance_total from BILLING.get_claim_payments(claims.id))::numeric::text as "claimPaymentInsurance",
-										(select payment_patient_total from BILLING.get_claim_payments(claims.id))::numeric::text as "claimPaymentPatient",
+										bgcp.charges_bill_fee_total::numeric::text AS "claimTotalCharge",
+										bgcp.payment_insurance_total::numeric::text AS "claimPaymentInsurance",
+										bgcp.payment_patient_total::numeric::text AS "claimPaymentPatient",
 										(SELECT places_of_service.code FROM  places_of_service WHERE  places_of_service.id=claims.place_of_service_id) as "POS",
 										to_char(date(timezone(facilities.time_zone,claim_dt)), 'YYYYMMDD') as "claimDate",							date(timezone(facilities.time_zone,claim_dt))::text as "claimDt",
 										is_employed as  "relatedCauseCode1",
@@ -702,7 +702,7 @@ module.exports = {
 					LEFT JOIN modifiers AS modifier2 ON modifier2.id=modifier2_id
 					LEFT JOIN modifiers AS modifier3 ON modifier3.id=modifier3_id
 					LEFT JOIN modifiers AS modifier4 ON modifier4.id=modifier4_id
-					WHERE  claim_id=claims.id ORDER BY charges.id ASC)
+					WHERE claim_id=claims.id AND NOT charges.is_excluded ORDER BY charges.id ASC)
 					AS serviceLine)
 					) AS claim
 					)
@@ -716,6 +716,7 @@ module.exports = {
 					)
 
 					FROM billing.claims
+					INNER JOIN LATERAL billing.get_claim_payments(claims.id, true) bgcp ON TRUE
 					INNER JOIN facilities ON facilities.id=claims.facility_id
 					INNER JOIN patients ON patients.id=claims.patient_id
 					INNER JOIN    patient_insurances pi  ON  pi.id =
