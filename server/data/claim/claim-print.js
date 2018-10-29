@@ -94,7 +94,7 @@ module.exports = {
                 LEFT join modifiers as modifier2 on modifier2.id=modifier2_id
                 LEFT join modifiers as modifier3 on modifier3.id=modifier3_id
                 LEFT join modifiers as modifier4 on modifier4.id=modifier4_id
-                WHERE  CASE WHEN ${params.flag}='new' THEN  bch.claim_id = ANY(${params.claimIds})
+                WHERE CASE WHEN ${params.flag}='new' THEN  bch.claim_id = ANY(${params.claimIds})
                             WHEN ${params.flag}='invoice'  THEN  bch.claim_id in(SELECT claims.id FROM billing.claims WHERE invoice_no=${params.invoiceNo}) END
 
             ),
