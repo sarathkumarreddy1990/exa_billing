@@ -252,7 +252,7 @@ function bindTotal(claimNo, data, columns) {
             if (row && row['claim_no'] && row['claim_no'] === claimNo) {
                 if (row['bill_fee']) {
                     temp.push(row['bill_fee'])
-                    for (i = 0; i < temp.length; i++) {
+                    for (var i = 0; i < temp.length; i++) {
                         temp[i] = temp[i].substr(1);
                         temp[i] = temp[i].replace(/\$|,/g, "");
                         sum = parseFloat(sum) + parseFloat(temp[i]);
@@ -282,7 +282,7 @@ function bindGrandTotal(data, columns) {
             if (row['bill_fee']) {
                 var temp = [];
                 temp.push(row['bill_fee'])
-                for (i = 0; i < temp.length; i++) {
+                for (var i = 0; i < temp.length; i++) {
                     temp[i] = temp[i].substr(1);
                     temp[i] = temp[i].replace(/\$|,/g, "");
                     sum = parseFloat(sum) + parseFloat(temp[i]);

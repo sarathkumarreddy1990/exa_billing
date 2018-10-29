@@ -89,7 +89,7 @@ function Dateformat(data) {
 
 function bindHead(claimNo, data, columns, value) {
     var body = [];
-    for (i = 0; i < data.length; i++) {
+    for (var i = 0; i < data.length; i++) {
         if (data[i]['claim_no'] === claimNo) {
             var dataRow = [];
             for (var key in data[i][value]) {
