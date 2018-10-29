@@ -1022,7 +1022,7 @@ define([
                         reportUrl: reportUrl,
                         patientId: patientActivityParams.patientId,
                         claimId: patientActivityParams.claimID,
-                        documentName: 'Patient Claims'
+                        documentName: 'Patient Activity'
                     },
                     success: function (data, response) {
                         commonjs.showStatus(commonjs.geti18NString("messages.status.reportFaxedSuccessfully"));
