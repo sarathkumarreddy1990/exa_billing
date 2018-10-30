@@ -48,19 +48,16 @@ const summaryQueryTemplate = _.template(`
                    <%  } %>
                 <% if (paymentStatus) { %>  INNER JOIN LATERAL billing.get_payment_totals(bp.id) AS payment_totals ON TRUE   <% } %>
                 <% if (adjustmentCodeIds || allAdjustmentCode) { %>
-                INNER JOIN LATERAL (
+                    INNER JOIN LATERAL (
                         SELECT
-                            CASE
-                             WHEN adjustment_code_id IS NULL THEN false
-                             ELSE
-                             true
-                            END AS has_adjustment
-                        FROM billing.payments i_bp
-                        INNER JOIN billing.payment_applications i_bpa on i_bpa.payment_id = i_bp.id
-                        WHERE i_bpa.id = bpa.id
-                        <% if (adjustmentCodeIds) { %> AND  <% print(adjustmentCodeIds); } %>
-                        <% if (allAdjustmentCode) { %> AND  i_bpa.adjustment_code_id IS NOT NULL   <% } %>
-                ) have_adjustment ON true
+                           DISTINCT i_bpa.payment_id as payment_id,
+                           i_bpa.charge_id as charge_id,
+                           CASE when adjustment_code_id is null then false else true END as has_adjustment
+                        FROM  billing.payment_applications i_bpa
+                        WHERE i_bpa.payment_id = bp.id
+                      AND  i_bpa.adjustment_code_id is not null
+                      <% if (adjustmentCodeIds) { %> AND  <% print(adjustmentCodeIds); } %>
+                    )have_adjustment on have_adjustment.payment_id = bp.id and have_adjustment.charge_id = bpa.charge_id
                 <% } %>
                 WHERE
                 <%= claimDate %>
@@ -142,20 +139,19 @@ const detailQueryTemplate = _.template(`
                      INNER JOIN public.user_roles ON  public.user_roles.id = ANY(public.user_groups.user_roles) AND public.user_roles.is_active
                   <% } %>
                <%  } %>
-               INNER JOIN LATERAL (
-                SELECT
-                    CASE
-                     WHEN adjustment_code_id IS NULL THEN false
-                     ELSE
-                     true
-                    END AS has_adjustment
-                FROM billing.payments i_bp
-                INNER JOIN billing.payment_applications i_bpa on i_bpa.payment_id = i_bp.id
-                WHERE i_bpa.id = bpa.id
-                <% if (adjustmentCodeIds) { %> AND  <% print(adjustmentCodeIds); } %>
-                <% if (allAdjustmentCode) { %> AND  i_bpa.adjustment_code_id IS NOT NULL   <% } %>
-               ) have_adjustment ON true
-        WHERE
+               <% if (adjustmentCodeIds || allAdjustmentCode) { %>
+                INNER JOIN LATERAL (
+                    SELECT
+                       DISTINCT i_bpa.payment_id as payment_id,
+                       i_bpa.charge_id as charge_id,
+                       CASE when adjustment_code_id is null then false else true END as has_adjustment
+                    FROM  billing.payment_applications i_bpa
+                    WHERE i_bpa.payment_id = bp.id
+                  AND  i_bpa.adjustment_code_id is not null
+                  <% if (adjustmentCodeIds) { %> AND  <% print(adjustmentCodeIds); } %>
+                )have_adjustment on have_adjustment.payment_id = bp.id and have_adjustment.charge_id = bpa.charge_id
+               <% } %>
+           WHERE
             <%= claimDate %>
             <% if (facilityIds) { %>AND <% print(facilityIds); } %>
             <% if(billingProID) { %> AND <% print(billingProID); } %>
