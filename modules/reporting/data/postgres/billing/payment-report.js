@@ -47,7 +47,17 @@ const summaryQueryTemplate = _.template(`
                       <% } %>
                    <%  } %>
                 <% if (paymentStatus) { %>  INNER JOIN LATERAL billing.get_payment_totals(bp.id) AS payment_totals ON TRUE   <% } %>
-                <% if (adjustmentCodeIds || allAdjustmentCode) { %>  INNER JOIN billing.adjustment_codes adj ON adj.id = bpa.adjustment_code_id <% } %>
+                <% if (adjustmentCodeIds || allAdjustmentCode) { %>
+                INNER JOIN LATERAL (
+                        SELECT
+                            DISTINCT i_bp.id AS payment_id
+                        FROM billing.payments i_bp
+                        INNER JOIN billing.payment_applications i_bpa on i_bpa.payment_id = i_bp.id
+                        WHERE i_bp.id = bp.id
+                        <% if (adjustmentCodeIds) { %> AND  <% print(adjustmentCodeIds); } %>
+                        <% if (allAdjustmentCode) { %> AND  i_bpa.adjustment_code_id IS NOT NULL   <% } %>
+                ) have_adjustment ON true
+                <% } %>
                 WHERE
                 <%= claimDate %>
                 <% if (facilityIds) { %>AND <% print(facilityIds); } %>
@@ -55,8 +65,6 @@ const summaryQueryTemplate = _.template(`
                 <% if (userIds) { %>AND <% print(userIds); } %>
                 <% if (userRoleIds) { %>AND <% print(userRoleIds); } %>
                 <% if (paymentStatus) { %>AND  <% print(paymentStatus); } %>
-                <% if (adjustmentCodeIds) { %>AND  <% print(adjustmentCodeIds); } %>
-
                 GROUP BY
                      bp.payer_type, bp.id
           )
@@ -130,14 +138,21 @@ const detailQueryTemplate = _.template(`
                      INNER JOIN public.user_roles ON  public.user_roles.id = ANY(public.user_groups.user_roles) AND public.user_roles.is_active
                   <% } %>
                <%  } %>
-               <% if (adjustmentCodeIds || allAdjustmentCode) { %>  INNER JOIN billing.adjustment_codes adj ON adj.id = bpa.adjustment_code_id <% } %>
-            WHERE
+            INNER JOIN LATERAL (
+                SELECT
+                    DISTINCT i_bp.id AS payment_id
+                FROM billing.payments i_bp
+                INNER JOIN billing.payment_applications i_bpa on i_bpa.payment_id = i_bp.id
+                WHERE i_bp.id = bp.id
+                <% if (adjustmentCodeIds) { %> AND  <% print(adjustmentCodeIds); } %>
+                <% if (allAdjustmentCode) { %> AND  i_bpa.adjustment_code_id IS NOT NULL   <% } %>
+            ) have_adjustment ON true
+        WHERE
             <%= claimDate %>
             <% if (facilityIds) { %>AND <% print(facilityIds); } %>
             <% if(billingProID) { %> AND <% print(billingProID); } %>
             <% if (userIds) { %>AND <% print(userIds); } %>
             <% if (userRoleIds) { %>AND <% print(userRoleIds); } %>
-            <% if (adjustmentCodeIds) { %>AND <% print(adjustmentCodeIds); } %>
 
             GROUP BY bp.id,bc.id )
                 SELECT
@@ -370,7 +385,7 @@ const api = {
         // Adjustment Code ID
         if (reportParams.adjustmentCodeIds) {
             params.push(reportParams.adjustmentCodeIds);
-            filters.adjustmentCodeIds = queryBuilder.whereIn('adj.id', [params.length]);
+            filters.adjustmentCodeIds = queryBuilder.whereIn('i_bpa.adjustment_code_id', [params.length]);
         }
 
          // Select All Adjustment Code
@@ -454,7 +469,7 @@ const api = {
          // Adjustment Code ID
             if (reportParams.adjustmentCodeIds) {
                 params.push(reportParams.adjustmentCodeIds);
-                filters.adjustmentCodeIds = queryBuilder.whereIn('adj.id', [params.length]);
+                filters.adjustmentCodeIds = queryBuilder.whereIn('i_bpa.adjustment_code_id', [params.length]);
             }
 
          // Select All Adjustment Code
