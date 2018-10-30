@@ -143,6 +143,14 @@ define(['jquery',
                 $("#divAppliedTotal").html(' <i class="fa fa-spinner loading-spinner"></i>');
                 $("#divAdjTotal").html(' <i class="fa fa-spinner loading-spinner"></i>');
                 self.pager.set({ "PageNo": 1 });
+                self.paymentTable.options.customargs = {
+                    paymentStatus: $("#ulPaymentStatus").val(),
+                    from: self.from === 'ris' ? 'ris' : '',
+                    toDate: moment().format('YYYY-MM-DD'),
+                    fromDate: moment().subtract(29, 'days').format('YYYY-MM-DD'),
+                    filterByDateType: 'accounting_date'
+                };
+
                 self.paymentTable.refreshAll();
             },
 
@@ -154,7 +162,11 @@ define(['jquery',
 
                 self.pager.set({ "PageNo": 1 });
                 self.paymentTable.options.customargs = {
-                    paymentStatus: $("#ulPaymentStatus").val()
+                    paymentStatus: $("#ulPaymentStatus").val(),
+                    from: self.from === 'ris' ? 'ris' : '',
+                    toDate: moment().format('YYYY-MM-DD'),
+                    fromDate: moment().subtract(29, 'days').format('YYYY-MM-DD'),
+                    filterByDateType: 'accounting_date'
                 };
                 self.pager.set({ "PageNo": 1 });
                 self.paymentTable.refresh();
@@ -178,8 +190,7 @@ define(['jquery',
                     commonjs.paymentStatus = [];
                     commonjs.paymentFilterFields = [];
                     self.gridLoaded = false;
-                    $("#ulPaymentStatus").val('');
-                    $("#ulPaymentStatus").multiselect("refresh");
+                    $('#ulPaymentStatus').multiselect("selectAll", false).multiselect("refresh");
                 }
                 //If any status filtered previously
                 else if (commonjs.paymentStatus && commonjs.paymentStatus.length) {
