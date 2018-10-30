@@ -527,6 +527,7 @@ define([
                     self.previous = "";
                     self.showGrid();
                 });
+                $('#rbtPreformatted').prop('checked', true);
 
                 if (this.opener == "studies") {
                     /* Bind tag remove - SMH */
@@ -558,6 +559,8 @@ define([
                         $(this).closest('li').remove();
                         $('#txtStudyDescription').focus();
                     });
+
+                    $('.claimDate').hide();
 
                     $('#btnAddStudyDescription').unbind('click').click(function () {
                         if ($('#txtStudyDescription').val().length === 0) {
@@ -599,6 +602,8 @@ define([
                         if ($('#s2id_txtListClaimOrdFacility > a.select2-default').length > 0) {
                             return false;
                         }
+
+                        $('.claimDate').show();
 
                         if ($(this).attr('data-id')) {
                             var isExists = false;
