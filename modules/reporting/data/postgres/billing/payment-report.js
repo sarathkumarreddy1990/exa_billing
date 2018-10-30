@@ -50,10 +50,14 @@ const summaryQueryTemplate = _.template(`
                 <% if (adjustmentCodeIds || allAdjustmentCode) { %>
                 INNER JOIN LATERAL (
                         SELECT
-                            DISTINCT i_bp.id AS payment_id
+                            CASE
+                             WHEN adjustment_code_id IS NULL THEN false
+                             ELSE
+                             true
+                            END AS has_adjustment
                         FROM billing.payments i_bp
                         INNER JOIN billing.payment_applications i_bpa on i_bpa.payment_id = i_bp.id
-                        WHERE i_bp.id = bp.id
+                        WHERE i_bpa.id = bpa.id
                         <% if (adjustmentCodeIds) { %> AND  <% print(adjustmentCodeIds); } %>
                         <% if (allAdjustmentCode) { %> AND  i_bpa.adjustment_code_id IS NOT NULL   <% } %>
                 ) have_adjustment ON true
@@ -138,15 +142,19 @@ const detailQueryTemplate = _.template(`
                      INNER JOIN public.user_roles ON  public.user_roles.id = ANY(public.user_groups.user_roles) AND public.user_roles.is_active
                   <% } %>
                <%  } %>
-            INNER JOIN LATERAL (
+               INNER JOIN LATERAL (
                 SELECT
-                    DISTINCT i_bp.id AS payment_id
+                    CASE
+                     WHEN adjustment_code_id IS NULL THEN false
+                     ELSE
+                     true
+                    END AS has_adjustment
                 FROM billing.payments i_bp
                 INNER JOIN billing.payment_applications i_bpa on i_bpa.payment_id = i_bp.id
-                WHERE i_bp.id = bp.id
+                WHERE i_bpa.id = bpa.id
                 <% if (adjustmentCodeIds) { %> AND  <% print(adjustmentCodeIds); } %>
                 <% if (allAdjustmentCode) { %> AND  i_bpa.adjustment_code_id IS NOT NULL   <% } %>
-            ) have_adjustment ON true
+               ) have_adjustment ON true
         WHERE
             <%= claimDate %>
             <% if (facilityIds) { %>AND <% print(facilityIds); } %>
