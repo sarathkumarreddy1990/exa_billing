@@ -93,7 +93,7 @@ define([
                             }
                         },
                         { name: 'id', index: 'id',  width: 50, searchFlag: 'int', searchFlag: '%' },
-                        { name: 'payment_id', width: 100, searchFlag: '%' },
+                        { name: 'payment_id', width: 100, searchFlag: '%', paymentIDFormatter: true },
                         { name: 'uploaded_file_name', width: 400, searchFlag: 'hstore', searchoptions: { defaultValue: commonjs.filterData['uploaded_file_name'] } },
                         {
                             name: 'size', width: 100, search: false, searchoptions: { defaultValue: commonjs.filterData['size'] }, formatter: function (cellvalue, options, rowObject) {
