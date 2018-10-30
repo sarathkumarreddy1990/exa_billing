@@ -367,10 +367,6 @@ define([
                 }
 
                 $('#btnAddUsers').unbind('click').click(function () {
-                    if ($('#select2-txtUsers-container > a.select2-default').length > 0) {
-                        commonjs.showWarning('Please select one Users to add');
-                        return false;
-                    }
                     if ($('#ulListUsers li a[data-id="' + $('#txtUsers').select2('data')[0].id + '"]').length) {
                         commonjs.showWarning("User is already selected");
                         return false;
@@ -434,10 +430,6 @@ define([
                 }
 
                 $('#btnAddUsersRole').unbind('click').click(function () {
-                    if ($('#select2-txtUsersRole-container > a.select2-default').length > 0) {
-                        commonjs.showWarning('Please select one Users Role to add');
-                        return false;
-                    }
                     if ($('#ulListUsersRole li a[data-id="' + $('#txtUsersRole').select2('data')[0].id + '"]').length) {
                         commonjs.showWarning("User Role is already selected");
                         return false;
@@ -678,6 +670,70 @@ define([
                 });
 
                 $('#' + ulListCPTCode).delegate('a.remove', 'click', function () {
+                    $(this).closest('li').remove();
+                });
+            },
+
+
+            // Adjustment Code Auto Complete
+
+            adjustmentCodeAutoComplete: function (adjustmentMsg, btnAdd, ulList) {
+                var self = this;
+                $("#txtAdjustmentCode").select2({
+                    ajax: {
+                        url: "/exa_modules/billing/autoCompleteRouter/adjustment_code",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                page: params.page || 1,
+                                q: params.term || '',
+                                pageSize: 10,
+                                sortField: "code",
+                                sortOrder: "ASC",
+                                company_id: app.companyID
+                            };
+                        },
+                        processResults: function (data, params) {
+                            return commonjs.getTotalRecords(data, params);
+                        },
+                        cache: true
+                    },
+                    placeholder: 'Select Adj. Code',
+                    escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                    minimumInputLength: 0,
+                    templateResult: formatRepo,
+                    templateSelection: formatRepoSelection
+                });
+                function formatRepo(repo) {
+                    if (repo.loading) {
+                        return repo.code;
+                    }
+                    var markup = "<table><tr>";
+                    markup += "<td  data-id='" + repo.id + " ' title='" + repo.code + "(" + repo.code + ")'> <div>" + repo.description + '(' + repo.code +')' + "</div>";
+                    markup += "</td></tr></table>";
+                    return markup;
+
+                }
+                function formatRepoSelection(res) {
+                    if (res && res.id) {
+                        return res.description;
+                    }
+                }
+
+                $('#btnAddAdjustmentCode').unbind('click').click(function () {
+                    if ($('#ulListAdjustmentCode li a[data-id="' + $('#txtAdjustmentCode').select2('data')[0].id + '"]').length) {
+                        commonjs.showWarning("Adjustment Code is already selected");
+                        return false;
+                    }
+
+                    var data_id = $('#txtAdjustmentCode').select2('data')[0].id;
+                    var bind_text = $('#txtAdjustmentCode').select2('data')[0].description;
+                    $('#ulListAdjustmentCode').append('<li id="' + data_id + '"><span style="background:#3c91f0; color:white; border:1px solid black">' + bind_text + '</span><a class="remove" data-id="' + $('#txtAdjustmentCode').select2('data')[0].id + '"><span class="icon-ic-close" style="margin-left:8px;"></span></a></li>')
+                    $('#txtAdjustmentCode a span').html('Select Adjustment Code');
+                });
+
+                $('#ulListAdjustmentCode').delegate('a.remove', 'click', function () {
                     $(this).closest('li').remove();
                 });
             },

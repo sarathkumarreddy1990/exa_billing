@@ -2,6 +2,22 @@
     .ddlOptions{
        width: 325px;
     }
+    .userLbl{
+        max-width: 110px;
+    }
+    .ulListBindBox{
+        overflow: auto;
+        width: 270px;
+        height:90px;
+        border: 1px solid;
+    }
+    .txtUserBox, .txtAdjustmeCodeBox{
+        width: 190px;
+    }
+    .ddlUserBox, .ulListBox{
+        display:none;
+    }
+
 </style>
 <form novalidate="" _lpchecked="1">
 
@@ -78,7 +94,7 @@
 
     </div>
     <!--users -->
-    <div class="row" style="height: 135px;">
+    <div class="row" style="height: auto;">
         <div class="col-3">
             <div class="form-group form-inline">
                 <div class="form-content">
@@ -91,28 +107,27 @@
                     </div>
                 </div>
             </div>
-            <div id="ddlUsersBox" class="form-group form-inline" style="display:none;width :700px;">               
-                <div style="width: 250px; border:1px solid;margin-top:10px">
+
+            <div id="ddlUsersBox" class="form-group form-inline ddlUserBox">
+                <div class="float-left txtUserBox">
                     <select id="txtUsers"> </select>
+                </div>
+                <div>
                     <a class="btn btn-primary" id="btnAddUsers" title="Add Users">
                         <i class="icon-ic-plus"></i>
                     </a>
                 </div>
             </div>
-        </div>
-        <div class="col-3">
-            <div id="divUsers" style="display: none;">
-                <div class="col-form-label" style="max-width: 110px;">
-                    <label class="inline field-chk">Users Selected</label>
-                </div>
+            <div id="divUsers" class="ulListBox">
                 <div class="form-content">
                     <div>
-                        <ul id="ulListUsers" class="ulSelectionList tagList" style="overflow: auto;width: 330px;height:90px; border: 1px solid;">
+                        <ul id="ulListUsers" class="ulSelectionList tagList ulListBindBox">
                         </ul>
                     </div>
                 </div>
             </div>
         </div>
+
         <div class="col-3">
             <div class="form-group form-inline">
                 <div class="form-content">
@@ -125,24 +140,20 @@
                     </div>
                 </div>
             </div>
-
-            <div id="ddlUsersRoleBox" class="form-group form-inline" style="display:none;width :700px;">              
-                <div style="width: 250px; border:1px solid;margin-top:10px">
+            <div id="ddlUsersRoleBox" class="form-group form-inline ddlUserBox">
+                <div class="float-left txtUserBox">
                     <select id="txtUsersRole"> </select>
+                </div>
+                <div>
                     <a class="btn btn-primary" id="btnAddUsersRole" tayment reportitle="Add Users Role">
                         <i class="icon-ic-plus"></i>
                     </a>
                 </div>
             </div>
-        </div>
-        <div class="col-3">
-            <div id="divUsersRole" style="display: none;">
-                <div class="col-form-label" style="max-width: 110px;">
-                    <label class="inline field-chk">User Role Selected</label>
-                </div>
+            <div id="divUsersRole" class="ulListBox">
                 <div class="form-content">
                     <div>
-                        <ul id="ulListUsersRole" class="ulSelectionList tagList" style="overflow: auto;width: 330px;height:90px; border: 1px solid;">
+                        <ul id="ulListUsersRole" class="ulSelectionList tagList ulListBindBox">
                         </ul>
                     </div>
                 </div>
@@ -150,8 +161,39 @@
             </div>
         </div>
         <!-- /col: form elements -->
+        <div class="col-3">
+            <div class="form-group form-inline">
+                <div class="form-content">
+                    <label class="inline field-chk" i18n="report.adjustmentCode" />
+                    <div class="input-group">
+                        <select id="ddlAdjustmentCodeOption" class="form-control form-control-lg">
+                            <option value="All">All Paymemts</option>
+                            <option value="allAdjustment">All Adjustment Code</option>
+                            <option value="S">Select Adjustment Code </option>
+                        </select>
+                    </div>
+                </div>
+            </div>
 
-
+            <div id="ddlAdjustmentCodeBox" class="form-group form-inline ddlUserBox">
+                <div class="float-left txtAdjustmeCodeBox">
+                    <select id="txtAdjustmentCode"> </select>
+                </div>
+                <div>
+                    <a class="btn btn-primary" id="btnAddAdjustmentCode" tayment reportitle="Add Adjustment Code">
+                        <i class="icon-ic-plus"></i>
+                    </a>
+                </div>
+            </div>
+            <div id="divAdjustmentCodes" class="ulListBox">
+                <div class="form-content">
+                    <div>
+                        <ul id="ulListAdjustmentCode" class="ulSelectionList tagList ulListBindBox">
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     <!-- /row: form elements -->
 

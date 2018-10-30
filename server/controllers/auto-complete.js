@@ -38,5 +38,9 @@ module.exports = {
 
     getProviderGroupDetail: (params) => {
         return data.getProviderGroupDetail(params);
+    },
+
+    getAdjustmentCodes: (params) => {
+        return data.getAdjustmentCodes(params);
     }
 };
