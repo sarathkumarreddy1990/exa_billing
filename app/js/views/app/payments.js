@@ -145,7 +145,7 @@ define(['jquery',
                 self.pager.set({ "PageNo": 1 });
                 self.paymentTable.options.customargs = {
                     paymentStatus: $("#ulPaymentStatus").val(),
-                    from: self.from === 'ris' ? 'ris' : '',
+                    from: self.from || '',
                     toDate: moment().format('YYYY-MM-DD'),
                     fromDate: moment().subtract(29, 'days').format('YYYY-MM-DD'),
                     filterByDateType: 'accounting_date'
@@ -163,7 +163,7 @@ define(['jquery',
                 self.pager.set({ "PageNo": 1 });
                 self.paymentTable.options.customargs = {
                     paymentStatus: $("#ulPaymentStatus").val(),
-                    from: self.from === 'ris' ? 'ris' : '',
+                    from: self.from || '',
                     toDate: moment().format('YYYY-MM-DD'),
                     fromDate: moment().subtract(29, 'days').format('YYYY-MM-DD'),
                     filterByDateType: 'accounting_date'
