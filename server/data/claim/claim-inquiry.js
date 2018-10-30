@@ -589,7 +589,8 @@ module.exports = {
                         SELECT json_agg(row_to_json(cas)) AS cas_details
                             FROM ( SELECT
                                     cas.amount,
-                                    rc.code
+                                    rc.code,
+                                    rc.description 
                                 FROM billing.cas_payment_application_details cas
                                 INNER JOIN billing.cas_reason_codes rc ON rc.id = cas.cas_reason_code_id
                                 WHERE  cas.payment_application_id = pa.payment_application_adjustment_id
@@ -631,7 +632,8 @@ module.exports = {
                         SELECT json_agg(row_to_json(cas)) AS cas_details
                             FROM ( SELECT
                                     cas.amount,
-                                    rc.code
+                                    rc.code,
+                                    rc.description
                                 FROM billing.cas_payment_application_details cas
                                 INNER JOIN billing.cas_reason_codes rc ON rc.id = cas.cas_reason_code_id
                                 WHERE  cas.payment_application_id = pa_adjustment.id
@@ -671,15 +673,16 @@ module.exports = {
                         , claim_dt
                         , claims.facility_id
                         , claim_status.description as claim_status
-                        , (select adjustments_applied_total from billing.get_claim_payments(claims.id)) AS ajdustments_applied_total
-                        , (select payment_patient_total from billing.get_claim_payments(claims.id)) AS total_patient_payment
-                        , (select payment_insurance_total from billing.get_claim_payments(claims.id)) AS total_insurance_payment
-                        , (select charges_bill_fee_total from BILLING.get_claim_payments(claims.id)) as billing_fee
-                        , (select charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) from BILLING.get_claim_payments(claims.id)) as claim_balance
+                        , bgcp.adjustments_applied_total
+                        , bgcp.payment_patient_total AS total_patient_payment
+                        , bgcp.payment_insurance_total AS total_insurance_payment
+                        , bgcp.charges_bill_fee_total AS billing_fee
+                        , bgcp.charges_bill_fee_total - (bgcp.payments_applied_total + bgcp.adjustments_applied_total) AS claim_balance
                         , COUNT(1) OVER (range unbounded preceding) AS total_records
                         ,(select Row_to_json(agg_arr) agg_arr FROM (SELECT * FROM billing.get_age_patient_claim (patients.id, ${billProvId}::bigint ) )as agg_arr) as age_summary
                     FROM billing.claims
                     INNER JOIN patients ON claims.patient_id = patients.id
+                    INNER JOIN LATERAL billing.get_claim_payments(claims.id, false) bgcp ON TRUE
                     LEFT JOIN provider_contacts  ON provider_contacts.id=claims.referring_provider_contact_id
                     LEFT JOIN providers as ref_provider ON ref_provider.id=provider_contacts.id
                     LEFT JOIN provider_contacts as rendering_pro_contact ON rendering_pro_contact.id=claims.rendering_provider_contact_id

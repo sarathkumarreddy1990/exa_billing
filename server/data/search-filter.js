@@ -173,8 +173,8 @@ const colModel = [
     },
     {
         name: 'ordering_facility',
-        searchColumns: ["orders.order_info->'ordering_facility'"],
-        searchFlag: 'hstore'
+        searchColumns: ["provider_groups.group_name"],
+        searchFlag: '%'
     },
     {
         name: 'technologist_name',
@@ -460,7 +460,7 @@ const api = {
             case 'requesting_date': return `to_timestamp(orders.order_info->'requestingDate', 'MM/DD/YYYY')`;
             case 'days_count': return `studies.study_info->'preOrderDays'`;
             case 'days_left': return `studies.study_info->'preOrderDays'`;
-            case 'ordering_facility': return `orders.order_info->'ordering_facility'`;
+            case 'ordering_facility': return `provider_groups.group_name`;
             case 'technologist_name': return 'providers.full_name';
             case 'claim_status': return `orders.order_info->'claim_status'`;
             case 'check_indate': return `text_to_isots(studies.study_info->'Check-InDt')`;             // optimization! use sutom immutable function (instead of timestamptz) and corresponding index to improve query time
@@ -550,6 +550,10 @@ const api = {
         if (tables.patients) {r += ' INNER JOIN patients ON studies.patient_id = patients.id ';}
 
         if (tables.orders || imp_orders){ r += ' INNER JOIN orders ON studies.order_id = orders.id ';}
+
+        if (tables.provider_groups) {
+            r += 'LEFT JOIN public.provider_groups ON provider_groups.id = studies.provider_group_id ';
+        }
 
         if (tables.tat) {r += `
                             LEFT JOIN LATERAL (
@@ -754,7 +758,7 @@ const api = {
                             ), '') AS manually_verified_by`,
             `timezone(facilities.time_zone, COALESCE(orders.order_info->'manually_verified_dt', NULL)::timestamp)::text
                 AS manually_verified_dt`,
-            `orders.order_info-> 'ordering_facility'
+            `provider_groups.group_name
                 AS ordering_facility`,
             `orders.order_info-> 'requestingDate'
                 AS requesting_date`,

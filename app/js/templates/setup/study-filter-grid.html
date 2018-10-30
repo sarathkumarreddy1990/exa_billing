@@ -1,12 +1,34 @@
-<div align="right">
-        <input type="button" value="Add" i18n="shared.buttons.add" id="addStudyFilter" class="btn btn-danger">
-        <input type="button" value="Reload" i18n="shared.buttons.reload" id="reloadStudyFilter" class="btn">
+<div class="row">
+    <div class="col-sm-2 col-md-2" style="text-align:right">
+            <label class="control-label" for="ddlStudyDefaultTab" i18n="shared.fields.defaultTab"></label>
     </div>
+    <div class="col-sm-2 col-md-2">
+            <select id="ddlStudyDefaultTab" name="repeats" class="input-large">
+                <% if (screenName == 'studies') { %>
+                    <option value="All_Studies">All Studies</option>
+                <%} else if(screenName == 'claims') { %>
+                    <option value="All_Claims">All Claims</option>
+                    <option value="Follow_up_queue">Follow Up Queue</option>
+                <% } %>
+                <% _.each(grid_filters, function(grid_filter) { %>
+                    <% if (screenName == 'studies' && grid_filter.filter_type == 'studies') { %>
+                            <option value="<%= grid_filter.user_setting_id %>"><%= grid_filter.filter_name %></option>
+                    <%} else if(screenName == 'claims' && grid_filter.filter_type == 'claims') { %>
+                            <option value="<%= grid_filter.user_setting_id %>"><%= grid_filter.filter_name %></option>
+                    <% } %>
+                <% }); %>
+            </select>
+    </div>
+    <div class="col-sm-8 col-md-8">
+        <input type="button" value="Reload" i18n="shared.buttons.reload" id="reloadStudyFilter" class="float-right btn" />
+        <input type="button" value="Add" i18n="shared.buttons.add" id="addStudyFilter" class="float-right btn btn-danger mr-1" />
+    </div>
+</div>
 <div id="divStudyFilterGrid">
-    <div>
-        <table id="tblStudyFilterGrid"></table>
-        <div id="gridPager_studyFilter"></div>
-    </div>
+<div>
+    <table id="tblStudyFilterGrid"></table>
+    <div id="gridPager_studyFilter"></div>
+</div>
 </div>
 <div id="divStudyFilterForm">
 </div>

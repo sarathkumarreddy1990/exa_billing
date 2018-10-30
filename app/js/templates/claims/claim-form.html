@@ -41,7 +41,7 @@
                 <button type="button" class="btn top-buffer claimProcess" id="btnPrevClaim">PREV</button>
                 <button type="button" class="btn top-buffer claimProcess" id="btnNextClaim">NEXT</button>
             </li>
-            <li class="editClaimRelated" >
+            <li>
                 <button type="button" class="btn top-buffer" id="btPatientDocuemnt">DOCUMENTS AND REPORTS</button>
             </li>
             <li class="editClaimRelated" >
@@ -184,6 +184,7 @@
                                         <th>Allowed</th>
                                         <th>Total Allowed</th>
                                         <th>Auth No</th>
+                                        <th>Exclude</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tBodyCharge">
@@ -254,6 +255,9 @@
                                                 </td>
                                                 <td>
                                                     <input id="txtAuthInfo_<%= row.data_row_id %>" type="text" class="form-control " value="<%= row.authorization_no %>">
+                                                </td>
+                                                <td>
+                                                    <input id="checkExclude_<%= row.data_row_id %>" type="checkbox">
                                                 </td>
                                             </tr> 
                                     <% }); %>

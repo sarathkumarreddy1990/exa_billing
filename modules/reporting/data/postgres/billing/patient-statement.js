@@ -13,7 +13,7 @@ WITH claim_data AS (
     FROM billing.claims bc
     INNER JOIN billing.claim_status bcs ON bcs.id = bc.claim_status_id
     WHERE bc.payer_type = 'patient'
-    AND bcs.code NOT IN ('PV','CR','CIC')
+    AND bcs.code NOT IN ('PV','CR','CIC','D')
     ),
 
     billing_comments AS (
@@ -124,10 +124,7 @@ WITH claim_data AS (
           END) * (CASE WHEN type in ('payment','adjustment') then -1
                   ELSE 1
                   END)) AS amount,
-        case when type = 'charge' then amount end as charge,
-        case when type = 'payment' then amount end as payment,
-        case when type = 'adjustment' then amount end as adjustment,
-
+        <%= claimAmount %>
         <% if (payToProvider == true) {%>
           bp.name as billing_provider_name,
           bp.pay_to_address_line1 as billing_proaddress1,
@@ -165,6 +162,18 @@ WITH claim_data AS (
     <% } %>
 
     ORDER BY first_name),
+
+    detail_cte AS (
+        SELECT *
+        FROM main_detail_cte
+        WHERE ( CASE
+                    WHEN payment_type = 'adjustment' THEN amount != 0::money
+                    ELSE true
+                END )
+        AND sum_amount >=  <%= minAmount  %>::money
+        AND sum_amount != 0::money
+    ),
+
     create_comments AS (
         INSERT INTO billing.claim_comments
             (
@@ -181,16 +190,9 @@ WITH claim_data AS (
                     , 'Patient Statement  Printed  for ' || full_name || ' (patient)'
                     , <%= userId %>
                     , now()
-                FROM main_detail_cte
+                FROM detail_cte
                 WHERE row_flag = 1
             )
-    ),
-    detail_cte AS (
-    SELECT *
-    FROM main_detail_cte
-    WHERE (CASE WHEN payment_type = 'adjustment' THEN amount != 0::money ELSE true END)
-    AND sum_amount >=  <%= minAmount  %>::money
-    AND sum_amount != 0::money
     ),
 
     date_cte AS (
@@ -207,8 +209,8 @@ WITH claim_data AS (
     SELECT
         dc.pid,
         dc.enc_id,
-        coalesce(payment_type_date1, payment_type_date2) AS bucket_date,
-        sum(dc.amount) AS enc_total_amount
+        COALESCE (payment_type_date1, payment_type_date2) AS bucket_date,
+        <%= encounterTotal %> AS enc_total_amount
     FROM detail_cte dc
     INNER JOIN date_cte dtc ON  dtc.pid = dc.pid
     GROUP BY
@@ -229,30 +231,24 @@ WITH claim_data AS (
     FROM sum_encounter_cte
     GROUP BY pid
     ),
-
     statement_cte AS (
-    SELECT
-        coalesce(statement_total_amount, 0::money) AS statement_total_amount,
-        coalesce(current_amount,0::money) AS current_amount,
-        coalesce(over30_amount,0::money) AS over30_amount,
-        coalesce(over60_amount,0::money) AS over60_amount,
-        coalesce(over90_amount,0::money) AS over90_amount,
-        coalesce(over120_amount,0::money) AS over120_amount,
-        (SELECT description
-         FROM billing.messages
-         WHERE company_id = 1
-         AND CODE = (SELECT CASE
-                     WHEN over120_amount IS NOT NULL THEN '>120'
-                     WHEN over90_amount IS NOT NULL THEN '91-120'
-                     WHEN over60_amount IS NOT NULL THEN '61-90'
-                     WHEN over30_amount IS NOT NULL THEN '31-60'
-                     WHEN current_amount IS NOT NULL THEN '0-30'
-                     ELSE 'collections'
-                     END)
-        ) AS billing_msg,
-        pid AS pid
-    FROM sum_statement_credit_cte
-    ),
+        SELECT
+            <%= statmentAging %>
+            (SELECT description
+             FROM billing.messages
+             WHERE company_id = 1
+             AND CODE = (SELECT CASE
+                         WHEN over120_amount IS NOT NULL THEN '>120'
+                         WHEN over90_amount IS NOT NULL THEN '91-120'
+                         WHEN over60_amount IS NOT NULL THEN '61-90'
+                         WHEN over30_amount IS NOT NULL THEN '31-60'
+                         WHEN current_amount IS NOT NULL THEN '0-30'
+                         ELSE 'collections'
+                         END)
+            ) AS billing_msg,
+            pid AS pid
+        FROM sum_statement_credit_cte
+        ),
 
     all_cte AS (
     -- 1st Header, Billing Provider, update the columns in the dataset
@@ -628,7 +624,8 @@ const api = {
             statementDate: null,
             patientLastnameFrom: null,
             patientLastnameTo: null,
-            userId: null
+            userId: null,
+            reportFormat: null
         };
 
         filters.userId = reportParams.userId;
@@ -653,6 +650,9 @@ const api = {
 
         // Min Amount
         filters.minAmount = reportParams.minAmount || 0;
+
+         // Excel Report (xlsx)
+         filters.reportFormat = reportParams.reportFormat
 
         params.push(reportParams.sDate);
         filters.sDate = `$${params.length}::date`;
@@ -839,6 +839,22 @@ const api = {
             ELSE null
             END
             `;
+            filters.statmentAging  = `
+                COALESCE(statement_total_amount, 0::money) AS statement_total_amount,
+                COALESCE(current_amount,0::money) AS current_amount,
+                COALESCE(over30_amount,0::money) AS over30_amount,
+                COALESCE(over60_amount,0::money) AS over60_amount,
+                COALESCE(over90_amount,0::money) AS over90_amount,
+                COALESCE(over120_amount,0::money) AS over120_amount,
+           `;
+           filters.claimAmount = `
+                CASE WHEN type = 'charge' THEN amount end AS charge,
+                CASE WHEN type = 'payment' THEN amount end AS payment,
+                CASE WHEN type = 'adjustment' THEN amount end AS adjustment,
+            `;
+            filters.encounterTotal = `
+                SUM(dc.amount)
+            `;
         }
         else {
             filters.rowFlag = ``;
@@ -850,6 +866,22 @@ const api = {
             filters.billingMsg = ``;
             filters.CR = `|| ' CR'`;
             filters.anythingElse = `, null`;
+            filters.statmentAging = `
+                    COALESCE(statement_total_amount::NUMERIC, 0) AS statement_total_amount,
+                    COALESCE(current_amount::NUMERIC,0) AS current_amount,
+                    COALESCE(over30_amount::NUMERIC,0) AS over30_amount,
+                    COALESCE(over60_amount::NUMERIC,0) AS over60_amount,
+                    COALESCE(over90_amount::NUMERIC,0) AS over90_amount,
+                    COALESCE(over120_amount::NUMERIC,0) AS over120_amount,
+            `;
+            filters.claimAmount = `
+                CASE WHEN type = 'charge' THEN amount::NUMERIC END AS charge,
+                CASE WHEN type = 'payment' THEN amount::NUMERIC END AS payment,
+                CASE WHEN type = 'adjustment' THEN amount::NUMERIC END AS adjustment,
+            `;
+             filters.encounterTotal = `
+                SUM(dc.amount::NUMERIC)
+            `;
         }
 
         return {

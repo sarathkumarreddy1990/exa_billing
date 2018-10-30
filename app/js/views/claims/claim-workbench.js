@@ -831,13 +831,11 @@ define(['jquery',
                         var $claimsTabTarget = $claimsTabsItems.eq(0);
                         var $link;
 
-                        // Check for how long tab cookie has been there, if more than 8 hours, use default tab
-                        if (( diff === undefined || diff > 480 ) && !isDefaultTab && app.defaultTab) {
-                            $link = $claimsTabs.children('#liclaimsTab' + app.defaultTab);
+                        if (app.default_claim_tab) {
+                            $link = $claimsTabs.children('#liclaimsTab' + app.default_claim_tab);
                             if ($link.length > 0) {
                                 // Default tab targeted - go there
                                 $claimsTabTarget = $link;
-                                isDefaultTab = true;
                             }
                         }
                         if (( typeof $link === 'undefined' || $link.length === 0 ) && id.length > 0) {
@@ -1892,10 +1890,25 @@ define(['jquery',
                                     var color_code = statusDetail && statusDetail[0] && statusDetail[0].color_code || 'transparent';
                                     var $gridId = filter.options.gridelementid || '';
                                     $gridId = $gridId.replace(/#/, '');
+                                    var cells = [
+                                        {
+                                            'field': 'claim_status',
+                                            'data': pending_submission_status && pending_submission_status[0].description || '',
+                                            'css': {
+                                                "backgroundColor": color_code
+                                            }
+                                        },
+                                        {
+                                            'field': 'claim_status_code',
+                                            'data': pending_submission_status && pending_submission_status[0].code || ''
+                                        }
+                                    ];
 
                                     if ($gridId) {
                                         _.each(data.validClaim_data.rows, function (obj) {
-                                            $('#' + $gridId + ' tr#' + obj.id, parent.document).find('td[aria-describedby=' + $gridId + '_claim_status]').text(pending_submission_status && pending_submission_status[0].description).css("background-color", color_code);
+                                            var $claimGrid = $('#' + $gridId + ' tr#' + obj.id);
+                                            var $td = $claimGrid.children('td');
+                                            commonjs.setGridCellValue(cells, $td, $gridId)
                                         });
                                     } else {
                                         commonjs.showWarning(commonjs.geti18NString("messages.errors.gridIdNotExists"));

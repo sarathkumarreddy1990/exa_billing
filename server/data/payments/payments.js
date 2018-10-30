@@ -28,6 +28,7 @@ module.exports = {
             adjustment_amount,
             user_full_name,
             payment_mode,
+            card_number,
             facility_name,
             sortOrder,
             sortField,
@@ -112,6 +113,10 @@ module.exports = {
 
         if (payment_mode) {
             whereQuery.push(`mode ILIKE '%${payment_mode}%'`);
+        }
+        
+        if (card_number) {
+            whereQuery.push(`card_number ILIKE '%${card_number}%'`);
         }
 
         if (facility_name) {
@@ -478,11 +483,14 @@ module.exports = {
     createPaymentapplications: async function (params) {
         let { user_id,
             paymentId,
+            is_claimDenied,
             line_items,
             adjustmentId,
             auditDetails,
-            logDescription } = params;
-        adjustmentId = adjustmentId ? adjustmentId : null;
+            logDescription,
+            is_payerChanged } = params;
+
+        adjustmentId = adjustmentId || null;
         logDescription = `Claim updated Id : ${params.claimId}`;
 
         const sql = SQL`WITH claim_comment_details AS(
@@ -504,7 +512,12 @@ module.exports = {
                                     UPDATE billing.claims
                                     SET
                                         billing_notes = ${params.billingNotes}
-                                      , payer_type = ${params.payerType}
+                                      , payer_type =(
+                                                    CASE
+                                                        WHEN ${is_payerChanged} AND NOT ${is_claimDenied} THEN ${params.payerType}
+                                                    ELSE payer_type
+                                                    END
+                                                    )
                                     WHERE
                                         id = ${params.claimId}
                                     RETURNING *,
@@ -570,7 +583,7 @@ module.exports = {
                                 WHERE id IS NOT NULL
                             ),
                             change_responsible_party AS (
-                                    SELECT billing.change_responsible_party(${params.claimId},0,${params.companyId},null, ${params.claimStatusID}) AS result
+                                    SELECT billing.change_responsible_party(${params.claimId},0,${params.companyId},null, ${params.claimStatusID}, ${is_payerChanged}) AS result
                             ),
                             create_audit_study_status AS (
                                 SELECT billing.create_audit(
@@ -710,7 +723,12 @@ module.exports = {
                             UPDATE billing.claims
                             SET
                                 billing_notes = ${params.billingNotes}
-                              , payer_type = ${params.payerType}
+                                , payer_type =(
+                                    CASE
+                                        WHEN ${params.is_payerChanged} AND NOT ${params.is_claimDenied} THEN ${params.payerType}
+                                    ELSE payer_type
+                                    END
+                                    )
                             WHERE
                                 id = ${params.claimId}
                             RETURNING *,
@@ -738,7 +756,7 @@ module.exports = {
                             FROM claim_comment_details
                             RETURNING *, '{}'::jsonb old_values),
                             change_responsible_party AS (
-                                    SELECT billing.change_responsible_party(${params.claimId},0,${params.companyId},null, ${params.claimStatusID}) AS result
+                                    SELECT billing.change_responsible_party(${params.claimId},0,${params.companyId},null, ${params.claimStatusID}, ${params.is_payerChanged}) AS result
                             ),
                         update_cas_application AS(
                                     UPDATE billing.cas_payment_application_details bcpad
