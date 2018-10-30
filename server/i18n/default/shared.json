@@ -165,8 +165,7 @@
             "faxReceiverNumber": "Fax #",
             "default": "Default",
             "all": "All",
-            "defaultTab": "Default Tab",
-            "paymentId":"Payment Id"
+            "defaultTab": "Default Tab"
         },
         "status": {
             "approved": "APPROVED",
