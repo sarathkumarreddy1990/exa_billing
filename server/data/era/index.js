@@ -1,12 +1,15 @@
 const { query, SQL } = require('./../index');
+const _ = require('lodash');
 
 module.exports = {
 
     getEraFiles: async function (params) {
 
         let whereQuery = [];
+        let filterCondition = '';
+        let paymentIds = [];
         params.sortOrder = params.sortOrder || ' ASC';
-        params.sortField = params.sortField == 'id' ? ' edi_files.id ' : params.sortField;
+        params.sortField = params.sortField == 'id' ? ' ef.id ' : params.sortField;
         let {
             id,
             size,
@@ -16,48 +19,69 @@ module.exports = {
             sortField,
             pageNo,
             pageSize,
-            uploaded_file_name
+            uploaded_file_name,
+            payment_id
         } = params;
 
         if (id) {
-            whereQuery.push(` id = ${id} `);
+            whereQuery.push(` ef.id = ${id} `);
         }
 
         if (uploaded_file_name) {
-            whereQuery.push(` uploaded_file_name ILIKE '%${uploaded_file_name}%' `);
+            whereQuery.push(` ef.uploaded_file_name ILIKE '%${uploaded_file_name}%' `);
         }
 
         if (size) {
-            whereQuery.push(` file_size = ${size}`);
+            whereQuery.push(` ef.file_size = ${size}`);
         }
 
         if (updated_date_time) {
-            whereQuery.push(` created_dt::date = '${updated_date_time}'::date`);
+            whereQuery.push(` ef.created_dt::date = '${updated_date_time}'::date`);
         }
 
         if (current_status) {
-            whereQuery.push(` status = replace('${current_status}', '\\', '')`);
+            whereQuery.push(` ef.status = replace('${current_status}', '\\', '')`);
+        }
+
+        paymentIds = payment_id && payment_id.split(`,`) || [];
+        paymentIds = _.filter(paymentIds, e => e !== '');
+
+        if (paymentIds.length) {
+            filterCondition = ` AND efp.payment_id = ANY(ARRAY[${paymentIds}]) `;
+            whereQuery.push(' file_payments.payment_id IS NOT NULL ');
         }
 
         const sql = SQL`
-            SELECT
-                id,
-                id AS file_name,
-                file_store_id,
-                created_dt AS updated_date_time,
-                status AS current_status,
-                file_type,
-                file_path,
-                file_size AS size,
-                file_md5,
-                uploaded_file_name,
-                COUNT(1) OVER (range unbounded preceding) AS total_records
-            FROM
-                billing.edi_files
-            WHERE
-                company_id =  ${params.customArgs.companyID}
+                SELECT
+                    ef.id,
+                    ef.id AS file_name,
+                    ef.file_store_id,
+                    ef.created_dt AS updated_date_time,
+                    ef.status AS current_status,
+                    ef.file_type,
+                    ef.file_path,
+                    ef.file_size AS size,
+                    ef.file_md5,
+                    ef.uploaded_file_name,
+                    file_payments.payment_id,
+                    COUNT(1) OVER (range unbounded preceding) AS total_records
+                FROM
+                    billing.edi_files ef
+                    LEFT JOIN LATERAL (
+                        SELECT
+                            array_agg(efp.payment_id) as payment_id
+                        FROM
+                            billing.edi_file_payments efp
+                        WHERE
+                            efp.edi_file_id = ef.id `;
 
-        `;
+        if (paymentIds.length) {
+            sql.append(filterCondition);
+        }
+
+        sql.append(SQL`) AS file_payments ON true
+                WHERE
+                    company_id =  ${params.customArgs.companyID} `);
 
         if (whereQuery.length) {
             sql.append(SQL` AND `);
@@ -327,10 +351,10 @@ module.exports = {
                                             ) AS insert_payment_adjustment
                             ) AS insert_payment_adjustment
                             ,(
-                                SELECT 
-                                    array_agg(claim_id) 
-                                FROM 
-                                    update_claim_status_and_payer 
+                                SELECT
+                                    array_agg(claim_id)
+                                FROM
+                                    update_claim_status_and_payer
                              )  AS update_claim_status_and_payer
                         `;
 

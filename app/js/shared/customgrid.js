@@ -1355,6 +1355,10 @@ function customGrid ( datastore, gridID ) {
             return '';
         }
 
+        if (this.options.gridelementid === "#tblEOBFileList") {
+            fieldValue = fieldValue && fieldValue.replace(/[^0-9,]/g, '') || '';
+        }
+
         return fieldValue.replace(/'/g, "''").replace(/_/g, '\\_');
     };
 

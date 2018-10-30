@@ -55,7 +55,7 @@ define([
                 var fileUploadedObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileNameUploaded');
                 var fileDuplicateObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileIsDuplicate');
                 var fileStoreExist = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileStoreExist');
-                
+
                 if (fileDuplicateObj) fileDuplicateObj.innerHTML = '';
                 if (fileUploadedObj) fileUploadedObj.innerHTML = '';
                 if (fileStoreExist) fileStoreExist.innerHTML = '';
@@ -69,8 +69,8 @@ define([
                     gridelementid: '#tblEOBFileList',
                     custompager: this.pager,
                     emptyMessage: 'No Record found',
-                    colNames: ['', '', '', 'Id', 'File Name', 'Size', 'File Updated Date/Time', 'Status'],
-                    i18nNames: ['', '', '', 'home.pendingStudies.fileName', 'home.viewerCommonOptions.size', 'home.pendingStudies.fileUpdatedDateTime', 'shared.fields.status'],
+                    colNames: ['', '', '', 'Id', 'Payment Id','File Name', 'Size', 'File Updated Date/Time', 'Status'],
+                    i18nNames: ['', '', '', 'shared.fields.paymentId','home.pendingStudies.fileName', 'home.viewerCommonOptions.size', 'home.pendingStudies.fileUpdatedDateTime', 'shared.fields.status'],
                     colModel: [
                         { name: 'id', index: 'id', key: true, hidden: true, searchFlag: '%', search: false },
                         { name: 'file_store_id', hidden: true, searchFlag: '%', search: false },
@@ -92,7 +92,8 @@ define([
                                 }
                             }
                         },
-                        { name: 'id', index: 'id', searchFlag: 'int', searchFlag: '%' },
+                        { name: 'id', index: 'id',  width: 50, searchFlag: 'int', searchFlag: '%' },
+                        { name: 'payment_id', width: 100, searchFlag: '%' },
                         { name: 'uploaded_file_name', width: 400, searchFlag: 'hstore', searchoptions: { defaultValue: commonjs.filterData['uploaded_file_name'] } },
                         {
                             name: 'size', width: 100, search: false, searchoptions: { defaultValue: commonjs.filterData['size'] }, formatter: function (cellvalue, options, rowObject) {
