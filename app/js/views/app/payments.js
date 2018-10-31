@@ -275,6 +275,7 @@ define(['jquery',
                             self.editPayment(rowID, self.from);
                         },
                         onaftergridbind: function (model, gridObj) {
+                            commonjs.paymentsList = model;
                             if (model && model.length) {
                                 self.bindDateRangeOnSearchBox(gridObj);
                                 self.setMoneyMask();
