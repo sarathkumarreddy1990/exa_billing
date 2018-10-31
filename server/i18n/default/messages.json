@@ -89,7 +89,8 @@
                 "selectPaymentMode":"Please select payment mode",
                 "enterCardNo":"Please enter card#",
                 "enterCheckNo":"Please enter check#",
-                "enterInvoiceNo":"Please enter invoice #"
+                "enterInvoiceNo":"Please enter invoice #",
+                "noRecords":"No more record found"
             }
         },
         "loadingMsg": {
