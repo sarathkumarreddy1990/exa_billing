@@ -2955,12 +2955,12 @@ define(['jquery',
             },
 
             nextPrevPayment: function (e) {
-                $('.nextPrevPayment').attr('disabled', 'disabled');
+                $('.nextPrevPayment').prop('disabled', true);
                 var self = this, index = -1, data, button = '';
                 index = _.findIndex(commonjs.paymentsList, function (x) { return x.id == self.payment_id; });
                 button = $(e.target).attr('id') == 'btnPaymentPrev' ? 'prev' : 'next';
-                if (button == 'prev') data = commonjs.paymentsList[index - 1];
-                else if (button == 'next') data = commonjs.paymentsList[index + 1];
+                if ($(e.target).attr('id') === 'btnPaymentPrev') data = commonjs.paymentsList[index - 1];
+                else data = commonjs.paymentsList[index + 1];
                 var rowId = data && data.id;
                 if (rowId != undefined) {
                     if (self.from === 'ris')
@@ -2968,8 +2968,8 @@ define(['jquery',
                     else
                         Backbone.history.navigate('#billing/payments/edit/' + rowId, true);
                 }
-                else commonjs.showWarning('No more record found');
-                $('.nextPrevPayment').removeAttr('disabled');
+                else commonjs.showWarning("messages.warning.payments.noRecords");
+                $('.nextPrevPayment').prop('disabled', false);
             }
 
         });
