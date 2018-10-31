@@ -2956,11 +2956,10 @@ define(['jquery',
 
             nextPrevPayment: function (e) {
                 $('.nextPrevPayment').prop('disabled', true);
-                var self = this, index = -1, data, button = '';
+                var self = this, index = -1, data;
                 index = _.findIndex(commonjs.paymentsList, function (x) { return x.id == self.payment_id; });
-                button = $(e.target).attr('id') == 'btnPaymentPrev' ? 'prev' : 'next';
                 if ($(e.target).attr('id') === 'btnPaymentPrev') data = commonjs.paymentsList[index - 1];
-                else data = commonjs.paymentsList[index + 1];
+                else if ($(e.target).attr('id') === 'btnPaymentNext') data = commonjs.paymentsList[index + 1];
                 var rowId = data && data.id;
                 if (rowId != undefined) {
                     if (self.from === 'ris')
