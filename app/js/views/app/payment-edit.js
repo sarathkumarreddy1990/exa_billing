@@ -2962,12 +2962,9 @@ define(['jquery',
                 else if ($(e.target).attr('id') === 'btnPaymentNext') data = commonjs.paymentsList[index + 1];
                 var rowId = data && data.id;
                 if (rowId != undefined) {
-                    if (self.from === 'ris')
-                        Backbone.history.navigate('#billing/payments/edit/' + self.from + '/' + rowId, true);
-                    else
-                        Backbone.history.navigate('#billing/payments/edit/' + rowId, true);
-                }
-                else commonjs.showWarning("messages.warning.payments.noRecords");
+                    if (self.from === 'ris') Backbone.history.navigate('#billing/payments/edit/' + self.from + '/' + rowId, true);
+                    else Backbone.history.navigate('#billing/payments/edit/' + rowId, true);
+                } else commonjs.showWarning("messages.warning.payments.noRecords");
                 $('.nextPrevPayment').prop('disabled', false);
             }
 
