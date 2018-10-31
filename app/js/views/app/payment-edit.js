@@ -104,7 +104,8 @@ define(['jquery',
                 'click #btnPrintReceipt': 'paymentPrintReceiptPDF',
                 'click #btnPaymentPendingRefreshOnly': 'refreshInvociePendingPayment',
                 'click #btnPaymentApplyAll': 'checkAllPendingPayments',
-                'keypress #claimId, #invoiceNo': 'searchInvoiceOrClaim'
+                'keypress #claimId, #invoiceNo': 'searchInvoiceOrClaim',
+                'click .nextPrevPayment': 'nextPrevPayment'
             },
 
             usermessage: {
@@ -267,6 +268,8 @@ define(['jquery',
                     $('#btnPaymentPrint').hide();
                     $('#btnPrintReceipt').hide();
                     $('#btnPaymentRefClick').hide();
+                    $('#btnPaymentPrev').hide();
+                    $('#btnPaymentNext').hide();
                     $('#selectPayerType').focus();
                     if (from === 'ris') {
                         $('#selectPayerType').val('patient');
@@ -2949,6 +2952,24 @@ define(['jquery',
                 $(".ui-jqgrid-htable thead:first tr.ui-search-toolbar input[name=billing_fee],[name=balance],[name=bill_fee],[name=adjustment],[name=this_adjustment],[name=payment]").addClass('floatbox');
                 $(".ui-jqgrid-htable thead:first tr.ui-search-toolbar input[name=claim_id]").addClass('integerbox');
                 commonjs.validateControls();
+            },
+
+            nextPrevPayment: function (e) {
+                $('.nextPrevPayment').attr('disabled', 'disabled');
+                var self = this, index = -1, data, button = '';
+                index = _.findIndex(commonjs.paymentsList, function (x) { return x.id == self.payment_id; });
+                button = $(e.target).attr('id') == 'btnPaymentPrev' ? 'prev' : 'next';
+                if (button == 'prev') data = commonjs.paymentsList[index - 1];
+                else if (button == 'next') data = commonjs.paymentsList[index + 1];
+                var rowId = data && data.id;
+                if (rowId != undefined) {
+                    if (self.from === 'ris')
+                        Backbone.history.navigate('#billing/payments/edit/' + self.from + '/' + rowId, true);
+                    else
+                        Backbone.history.navigate('#billing/payments/edit/' + rowId, true);
+                }
+                else commonjs.showWarning('No more record found');
+                $('.nextPrevPayment').removeAttr('disabled');
             }
 
         });

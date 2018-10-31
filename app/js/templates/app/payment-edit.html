@@ -38,10 +38,15 @@
     #divPendingPaymentsContainer .ui-jqgrid-bdiv{
         overflow-x: hidden !important;
     }
+
+    #nextPrev {
+        padding: 10px;
+        text-align: right;
+    }
 </style>
 
 <div class="form-group row">
-    <div class="col-lg-12">
+    <div class="col-lg-10">
         <form id="PaymentForm" class="form-horizontals" style="margin-top: 25px;">
             <div class="row">
                 <div class="col">
@@ -233,6 +238,10 @@
                     </div>
                 </div>
             </div>
+    </div>
+    <div class="col-lg-2" id="nextPrev">
+        <input type="button" id="btnPaymentPrev" class="btn btn-default nextPrevPayment" i18n="billing.fileInsurance.previous" tabindex="22">
+        <input type="button" id="btnPaymentNext" class="btn btn-default nextPrevPayment" i18n="billing.fileInsurance.next" tabindex="23">
     </div>
     </form>
 </div>
