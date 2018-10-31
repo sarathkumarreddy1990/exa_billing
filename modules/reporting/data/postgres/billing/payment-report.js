@@ -47,7 +47,7 @@ const summaryQueryTemplate = _.template(`
                       <% } %>
                    <%  } %>
                 <% if (paymentStatus) { %>  INNER JOIN LATERAL billing.get_payment_totals(bp.id) AS payment_totals ON TRUE   <% } %>
-                <% if (adjustmentCodeIds || allAdjustmentCode) { %>
+                <% if (adjustmentCodeIds || allAdjustmentCode == 'true') { %>
                     INNER JOIN LATERAL (
                         SELECT
                            DISTINCT i_bpa.payment_id as payment_id,
@@ -139,7 +139,7 @@ const detailQueryTemplate = _.template(`
                      INNER JOIN public.user_roles ON  public.user_roles.id = ANY(public.user_groups.user_roles) AND public.user_roles.is_active
                   <% } %>
                <%  } %>
-               <% if (adjustmentCodeIds || allAdjustmentCode) { %>
+               <% if (adjustmentCodeIds || allAdjustmentCode == 'true') { %>
                 INNER JOIN LATERAL (
                     SELECT
                        DISTINCT i_bpa.payment_id as payment_id,
@@ -157,7 +157,6 @@ const detailQueryTemplate = _.template(`
             <% if(billingProID) { %> AND <% print(billingProID); } %>
             <% if (userIds) { %>AND <% print(userIds); } %>
             <% if (userRoleIds) { %>AND <% print(userRoleIds); } %>
-
             GROUP BY bp.id,bc.id )
                 SELECT
                     to_char(p.accounting_date, 'MM/DD/YYYY')   AS "Accounting Date",

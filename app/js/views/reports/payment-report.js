@@ -245,7 +245,7 @@ define([
                     'userRoleName': $('#ddlUsersRoleOption').val() == 'S' ? userRoleNameArray : '',
                     'adjustmentCode': $('#ddlAdjustmentCodeOption').val() == 'S' ? adjustmentCodeArray : '',
                     'adjustmentCodeIds': $('#ddlAdjustmentCodeOption').val() == 'S' ? adjustmentCodeIds : '',
-                    'allAdjustmentCode': $('#ddlAdjustmentCodeOption').val() == 'allAdjustment' ? 'allAdjustment' : '',
+                    'allAdjustmentCode': $('#ddlAdjustmentCodeOption').val() == 'allAdjustment' || '',
                     'facilityIds': this.selectedFacilityList || [],
                     'allFacilities': this.viewModel.allFacilities || '',
                     'fromDate': this.viewModel.dateFrom.format('YYYY-MM-DD'),
