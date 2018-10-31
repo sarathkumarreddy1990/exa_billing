@@ -2972,8 +2972,8 @@ define(['jquery',
                     }
                 } else {
                     commonjs.showWarning("messages.warning.payments.noRecords");
+                    $('.nextPrevPayment').prop('disabled', false);
                 }
-                $('.nextPrevPayment').prop('disabled', false);
             }
 
         });
