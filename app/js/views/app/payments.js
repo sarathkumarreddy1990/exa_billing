@@ -245,7 +245,7 @@ define(['jquery',
                             { name: 'accounting_date', width: 250, formatter: self.paymentAccountingDateFormatter },
                             { name: 'payer_type', width: 215, stype: 'select', formatter: self.payerTypeFormatter, searchoptions: { value: payerTypeValue } },
                             { name: 'payer_name', width: 300 },
-                            { name: 'account_no', width:300, hidden: !showGridColumn },
+                            { name: 'account_no', width: 300, formatter: self.accountNumFormatter },
                             { name: 'amount', width: 215, validateMoney : true },
                             { name: 'applied', width: 215, hidden: showGridColumn, validateMoney : true },
                             { name: 'available_balance', width: 215, validateMoney : true },
@@ -368,6 +368,10 @@ define(['jquery',
                     Backbone.history.navigate('#billing/payments/edit/'+ from + '/' + rowId, true);
                 else
                     Backbone.history.navigate('#billing/payments/edit/'+ rowId, true);
+            },
+
+            accountNumFormatter: function (cellvalue, options, rowObject) {
+                return rowObject.payer_type === "patient" ? rowObject.account_no : '';
             },
 
             paymentDateFormatter: function (cellvalue, options, rowObject) {
