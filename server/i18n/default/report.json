@@ -54,7 +54,7 @@
         "userSelected" : "Users Selected",
         "adjustmentCode" : "Select Adjustment Code",
         "allPayments" : "All Paymemts",
-        "allAdjustmentCode" : "All Adjustment Code",
+        "allAdjustmentCode" : "All Adjustment Codes",
         "adjustmentCodeSelected" : "Adjustment Code already selected"
     }
 }
