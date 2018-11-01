@@ -730,7 +730,7 @@ define([
                     var data_id = $('#txtAdjustmentCode').select2('data')[0].id;
                     var bind_text = $('#txtAdjustmentCode').select2('data')[0].description;
                     $('#ulListAdjustmentCode').append('<li id="' + data_id + '"><span style="background:#3c91f0; color:white; border:1px solid black">' + bind_text + '</span><a class="remove" data-id="' + $('#txtAdjustmentCode').select2('data')[0].id + '"><span class="icon-ic-close" style="margin-left:8px;"></span></a></li>')
-                    $('#txtAdjustmentCode a span').html('Select Adjustment Code');
+                    $('#txtAdjustmentCode a span').html("report.adjustmentCode");
                 });
 
                 $('#ulListAdjustmentCode').delegate('a.remove', 'click', function () {
