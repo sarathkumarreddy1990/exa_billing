@@ -52,6 +52,9 @@
         "partialApplied": "Partially Applied",
         "overApplied": "Over Applied",
         "userSelected" : "Users Selected",
-        "adjustmentCode" : "Select Adjustment Code"
+        "adjustmentCode" : "Select Adjustment Code",
+        "allPayments" : "All Paymemts",
+        "allAdjustmentCode" : "All Adjustment Code",
+        "adjustmentCodeSelected" : "Adjustment Code already selected"
     }
 }

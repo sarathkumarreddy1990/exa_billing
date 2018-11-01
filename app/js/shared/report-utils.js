@@ -721,9 +721,9 @@ define([
                     }
                 }
 
-                $('#btnAddAdjustmentCode').unbind('click').click(function () {
+                $('#btnAddAdjustmentCode').off('click').click(function () {
                     if ($('#ulListAdjustmentCode li a[data-id="' + $('#txtAdjustmentCode').select2('data')[0].id + '"]').length) {
-                        commonjs.showWarning("Adjustment Code is already selected");
+                        commonjs.showWarning("report.adjustmentCodeSelected");
                         return false;
                     }
 
