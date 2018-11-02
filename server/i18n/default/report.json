@@ -50,6 +50,11 @@
         "applied": "Fully Applied",
         "unapplied": "Unapplied",
         "partialApplied": "Partially Applied",
-        "overApplied": "Over Applied"
+        "overApplied": "Over Applied",
+        "userSelected" : "Users Selected",
+        "adjustmentCode" : "Select Adjustment Code",
+        "allPayments" : "All Payments",
+        "allAdjustmentCode" : "All Adjustment Codes",
+        "adjustmentCodeSelected" : "Adjustment Code already selected"
     }
 }

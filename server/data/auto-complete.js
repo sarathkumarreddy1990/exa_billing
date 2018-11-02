@@ -402,5 +402,31 @@ module.exports = {
             .append(SQL` OFFSET ${((params.page - 1) * params.pageSize)}`);
 
         return await query(provider_group_sql);
+    },
+
+    getAdjustmentCodes: async function (params) {
+
+        let adj_code_search = ` AND (code ILIKE '%${params.q}%' OR description ILIKE '%${params.q}%' ) `;
+
+        const adj_code_sql = SQL`SELECT
+                                       id
+                                     , code
+                                     , description
+                                     , accounting_entry_type
+                                     , COUNT(1) OVER (range unbounded preceding) AS total_records
+                                FROM billing.adjustment_codes AS bac
+                                WHERE
+                                bac.inactivated_dt IS NULL AND bac.company_id = ${params.company_id} `;
+
+        if (params.q != '') {
+            adj_code_sql.append(adj_code_search);
+        }
+
+        adj_code_sql.append(SQL` ORDER BY  ${params.sortField} `)
+            .append(params.sortOrder)
+            .append(SQL` LIMIT ${params.pageSize}`)
+            .append(SQL` OFFSET ${((params.page - 1) * params.pageSize)}`);
+
+        return await query(adj_code_sql);
     }
 };
