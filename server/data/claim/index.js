@@ -260,6 +260,7 @@ module.exports = {
                             WHERE
                                 patient_id = ${params.patient_id} AND (valid_to_date >= (${params.claim_date})::date  OR valid_to_date IS NULL)
                                 AND (valid_from_date <= (${params.claim_date})::date OR valid_from_date IS NULL)
+                                AND CASE WHEN EXISTS(SELECT patient_ins_id FROM order_level_beneficiary) THEN patient_insurances.id = ANY(SELECT UNNEST(patient_ins_id) FROM order_level_beneficiary) ELSE TRUE END
                                 GROUP BY coverage_level
                         ) as expiry ON TRUE
                         WHERE
