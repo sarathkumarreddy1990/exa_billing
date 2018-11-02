@@ -380,7 +380,6 @@ define(['jquery',
 
                         if (model && model.length > 0) {
                             var claimDetails = model[0];
-
                             self.cur_patient_acc_no = claimDetails.patient_account_no;
                             self.cur_patient_name = claimDetails.patient_full_name;
                             self.cur_patient_dob = claimDetails.patient_dob;
@@ -395,7 +394,6 @@ define(['jquery',
 
                             $('.claimProcess').attr('disabled', false);
                             $('#btnSaveClaim').prop('disabled', false);
-
                             /* Bind claim charge Details*/
                             $('#tBodyCharge').empty();
                             claimDetails.claim_charges = claimDetails.claim_charges || [];
@@ -424,14 +422,12 @@ define(['jquery',
                             }
 
                             self.initializeClaimEditForm(isFrom);
-
                             /* Bind chargeLineItems events - started*/
                             if(self.screenCode.indexOf('DCLM') > -1) {
                                 $('span[id^="spDeleteCharge"]').removeClass('removecharge');
                                 $('span[id^="spDeleteCharge"]').css('color','#DCDCDC');
                             }
                             self.assignLineItemsEvents();
-
                             self.assignModifierEvent();
                             app.modifiers_in_order = true;
                             commonjs.validateControls();
@@ -2773,7 +2769,6 @@ define(['jquery',
 
                                     // Ispopup(showDialog) closed means no need to call edit claim
                                     if (!commonjs.hasModalClosed()) {
-
                                         $('#chk' + tblID + '_' + self.claim_Id).prop('checked', true);
                                         // Call Edit claim API for rebind after save
                                         commonjs.getClaimStudy(self.claim_Id, function (result) {
