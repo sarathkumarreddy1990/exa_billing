@@ -296,7 +296,6 @@ const api = {
             insGroups: null,
             cptPaymentDate: null,
             cptCodeLists: null,
-            CPTDate_count: null,
             orderBy: null,
             claimNoSearch: null
         };
@@ -334,12 +333,11 @@ const api = {
             filters.cptPaymentDate = reportParams.cptDateOption !== 'accounting_date';
             if (reportParams.cptDateFrom === reportParams.toDate && (reportParams.cptDateFrom && reportParams.toDate)) {
                 params.push(reportParams.cptDateFrom);
-                filters.CPTDate = queryBuilder.whereDateInTz('bp.' + filterDate, '=', [params.length], 'f.time_zone');
+                filters.CPTDate = reportParams.cptDateOption === 'accounting_date' ? queryBuilder.whereDate('bp.' + filterDate, '=', [params.length]) : queryBuilder.whereDateInTz('bp.' + filterDate, '=', [params.length], 'f.time_zone');
             } else {
                 params.push(reportParams.cmtFromDate);
                 params.push(reportParams.cmtToDate);
-                filters.CPTDate = queryBuilder.whereDateInTzBetween('bp.' + filterDate, [params.length - 1, params.length], 'f.time_zone');
-                filters.CPTDate_count = queryBuilder.whereDateInTzBetween('bp.' + filterDate, [params.length - 1, params.length]);
+                filters.CPTDate = filters.CPTDate = reportParams.cptDateOption === 'accounting_date' ? queryBuilder.whereDateBetween('bp.' + filterDate, [params.length - 1, params.length]) : queryBuilder.whereDateInTzBetween('bp.' + filterDate, [params.length - 1, params.length], 'f.time_zone');
             }
         }
 
