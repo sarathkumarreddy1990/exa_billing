@@ -759,6 +759,7 @@ module.exports = {
                             ,facility_info->'service_facility_name' as service_facility_name
                             ,fac_prov_cont.id AS rendering_provider_contact_id
                             ,fac_prov.full_name AS rendering_provider_full_name
+                            ,f.place_of_service_id AS fac_place_of_service_id
                         FROM
                             patients p
                         INNER JOIN facilities f ON f.id = p.facility_id

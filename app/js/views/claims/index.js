@@ -3807,6 +3807,7 @@ define(['jquery',
                 self.group_id = patient_details.service_facility_id ? parseInt(patient_details.service_facility_id) : null;
                 self.group_name = service_facility_name;
 
+                $('#ddlPOSType').val(patient_details.fac_place_of_service_id || '');
                 $('#ddlBillingProvider').val(patient_details.billing_provider_id || '');
                 $('#ddlFacility').val(patient_details.facility_id || '');
                 $('#select2-ddlRenderingProvider-container').html(renderingProvider);
