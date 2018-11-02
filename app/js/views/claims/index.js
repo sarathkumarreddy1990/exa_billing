@@ -392,7 +392,7 @@ define(['jquery',
                             self.facilityId = claimDetails.facility_id; // claim facility_date
                             self.studyDate = commonjs.getConvertedFacilityTime(claimDetails.claim_dt, '', 'L', claimDetails.facility_id);
 
-                            $('.claimProcess').attr('disabled', false);
+                            $('.claimProcess').prop('disabled', false);
                             $('#btnSaveClaim').prop('disabled', false);
                             /* Bind claim charge Details*/
                             $('#tBodyCharge').empty();
