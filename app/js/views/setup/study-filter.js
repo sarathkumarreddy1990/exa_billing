@@ -1759,6 +1759,7 @@ define([
 
                 $('#ulListClaimOrdFacility').empty();
 
+                $('#listClaimFacility option').remove();
                 $('#listFacility option').remove();
                 $('#listInstitution option').remove();
                 $('#listModality option').remove();
