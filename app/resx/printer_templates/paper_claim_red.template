@@ -679,19 +679,19 @@ function formatRedForm(claimData) {
                     [
                         {
                             text: (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].icd && claimData.subscriber[0].claim[0].icd[0]
-                                && claimData.subscriber[0].claim[0].icd[0].code) ? ((claimData.subscriber[0].claim[0].icd[0].code).toString().substring(0, 7).replace(/\.|,/g, "")) : '', margin: [0, -10, 0, 0]
+                                && claimData.subscriber[0].claim[0].icd[0].code) ? ((claimData.subscriber[0].claim[0].icd[0].code).toString().replace(/\.|,/g, "")) : '', margin: [0, -10, 0, 0]
                         },
                         {
                             text: (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].icd && claimData.subscriber[0].claim[0].icd[1]
-                                && claimData.subscriber[0].claim[0].icd[1].code) ? ((claimData.subscriber[0].claim[0].icd[1].code).toString().substring(0, 7).replace(/\.|,/g, "")) : '', margin: [0, -10, 0, 0]
+                                && claimData.subscriber[0].claim[0].icd[1].code) ? ((claimData.subscriber[0].claim[0].icd[1].code).toString().replace(/\.|,/g, "")) : '', margin: [0, -10, 0, 0]
                         },
                         {
                             text: (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].icd && claimData.subscriber[0].claim[0].icd[2]
-                                && claimData.subscriber[0].claim[0].icd[2].code) ? ((claimData.subscriber[0].claim[0].icd[2].code).toString().substring(0, 7).replace(/\.|,/g, "")) : '', margin: [0, -10, 0, 0]
+                                && claimData.subscriber[0].claim[0].icd[2].code) ? ((claimData.subscriber[0].claim[0].icd[2].code).toString().replace(/\.|,/g, "")) : '', margin: [0, -10, 0, 0]
                         },
                         {
                             text: (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].icd && claimData.subscriber[0].claim[0].icd[3]
-                                && claimData.subscriber[0].claim[0].icd[3].code) ? ((claimData.subscriber[0].claim[0].icd[3].code).toString().substring(0, 7).replace(/\.|,/g, "")) : '', margin: [0, -10, 0, 0]
+                                && claimData.subscriber[0].claim[0].icd[3].code) ? ((claimData.subscriber[0].claim[0].icd[3].code).toString().replace(/\.|,/g, "")) : '', margin: [0, -10, 0, 0]
                         },
                         { text: claimData.subscriber && claimData.subscriber[0].claim ? (getResubmissionCode(claimData.subscriber[0].claim[0], 'claimFrequencyCode').toString().toUpperCase()) : '' , margin: [0, -10, 0, 0]},
                         {
@@ -703,19 +703,19 @@ function formatRedForm(claimData) {
                     [
                         {
                             text: (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].icd && claimData.subscriber[0].claim[0].icd[4]
-                                && claimData.subscriber[0].claim[0].icd[4].code) ? ((claimData.subscriber[0].claim[0].icd[4].code).toString().substring(0, 7).replace(/\.|,/g, "")) : '', margin: [0, -12, 0, 0]
+                                && claimData.subscriber[0].claim[0].icd[4].code) ? ((claimData.subscriber[0].claim[0].icd[4].code).toString().replace(/\.|,/g, "")) : '', margin: [0, -12, 0, 0]
                         },
                         {
                             text: (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].icd && claimData.subscriber[0].claim[0].icd[5]
-                                && claimData.subscriber[0].claim[0].icd[5].code) ? ((claimData.subscriber[0].claim[0].icd[5].code).toString().substring(0, 7).replace(/\.|,/g, "")) : '', margin: [0, -12, 0, 0]
+                                && claimData.subscriber[0].claim[0].icd[5].code) ? ((claimData.subscriber[0].claim[0].icd[5].code).toString().replace(/\.|,/g, "")) : '', margin: [0, -12, 0, 0]
                         },
                         {
                             text: (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].icd && claimData.subscriber[0].claim[0].icd[6]
-                                && claimData.subscriber[0].claim[0].icd[6].code) ? ((claimData.subscriber[0].claim[0].icd[6].code).toString().substring(0, 7).replace(/\.|,/g, "")) : '', margin: [0, -12, 0, 0]
+                                && claimData.subscriber[0].claim[0].icd[6].code) ? ((claimData.subscriber[0].claim[0].icd[6].code).toString().replace(/\.|,/g, "")) : '', margin: [0, -12, 0, 0]
                         },
                         {
                             text: (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].icd && claimData.subscriber[0].claim[0].icd[7]
-                                && claimData.subscriber[0].claim[0].icd[7].code) ? ((claimData.subscriber[0].claim[0].icd[7].code).toString().substring(0, 7).replace(/\.|,/g, "")) : '', margin: [0, -12, 0, 0], colspan: 3
+                                && claimData.subscriber[0].claim[0].icd[7].code) ? ((claimData.subscriber[0].claim[0].icd[7].code).toString().replace(/\.|,/g, "")) : '', margin: [0, -12, 0, 0], colspan: 3
                         },
                         {}, {}
 
@@ -723,19 +723,19 @@ function formatRedForm(claimData) {
                     [
                         {
                             text: (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].icd && claimData.subscriber[0].claim[0].icd[8]
-                                && claimData.subscriber[0].claim[0].icd[8].code) ? ((claimData.subscriber[0].claim[0].icd[8].code).toString().substring(0, 7).replace(/\.|,/g, "")) : '', margin: [0, -14, 0, 0]
+                                && claimData.subscriber[0].claim[0].icd[8].code) ? ((claimData.subscriber[0].claim[0].icd[8].code).toString().replace(/\.|,/g, "")) : '', margin: [0, -14, 0, 0]
                         },
                         {
                             text: (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].icd && claimData.subscriber[0].claim[0].icd[9]
-                                && claimData.subscriber[0].claim[0].icd[9].code) ? ((claimData.subscriber[0].claim[0].icd[9].code).toString().substring(0, 7).replace(/\.|,/g, "")) : '', margin: [0, -14, 0, 0]
+                                && claimData.subscriber[0].claim[0].icd[9].code) ? ((claimData.subscriber[0].claim[0].icd[9].code).toString().replace(/\.|,/g, "")) : '', margin: [0, -14, 0, 0]
                         },
                         {
                             text: (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].icd && claimData.subscriber[0].claim[0].icd[10]
-                                && claimData.subscriber[0].claim[0].icd[10].code) ? ((claimData.subscriber[0].claim[0].icd[10].code).toString().substring(0, 7).replace(/\.|,/g, "")) : '', margin: [0, -14, 0, 0]
+                                && claimData.subscriber[0].claim[0].icd[10].code) ? ((claimData.subscriber[0].claim[0].icd[10].code).toString().replace(/\.|,/g, "")) : '', margin: [0, -14, 0, 0]
                         },
                         {
                             text: (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].icd && claimData.subscriber[0].claim[0].icd[11]
-                                && claimData.subscriber[0].claim[0].icd[11].code) ? ((claimData.subscriber[0].claim[0].icd[11].code).toString().substring(0, 7).replace(/\.|,/g, "")) : '', margin: [0, -14, 0, 0]
+                                && claimData.subscriber[0].claim[0].icd[11].code) ? ((claimData.subscriber[0].claim[0].icd[11].code).toString().replace(/\.|,/g, "")) : '', margin: [0, -14, 0, 0]
                         },
                         {
                             text: (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0] && claimData.subscriber[0].claim[0].authorizationNo)
