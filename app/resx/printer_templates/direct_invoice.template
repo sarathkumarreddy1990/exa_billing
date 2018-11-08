@@ -260,8 +260,6 @@ function bindTotal(claimNo, data, columns) {
                 } else {
                     body.push("$0.00");
                 }
-            } else {
-                body.push("$0.00");
             }
         });
         dataRow.push(sum ? "$" + parseFloat(sum).toFixed('2') : '$0.00');
