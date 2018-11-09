@@ -555,18 +555,18 @@ const api = {
             r += 'LEFT JOIN public.provider_groups ON provider_groups.id = studies.provider_group_id ';
         }
 
-        if(tables.billing_codes || tables.billing_classes)
-        r += ` LEFT JOIN (
-                    SELECT 
-                        study_id, 
-                        MAX(charge_id) AS charge_id
-                    FROM 
-                        billing.charges_studies
-                        GROUP BY study_id
-                ) cs ON cs.study_id = studies.id
-                LEFT JOIN billing.charges ON charges.id = cs.charge_id
-                LEFT JOIN billing.claims ON claims.id = charges.claim_id  `;
-
+        if (tables.billing_codes || tables.billing_classes) {
+            r += ` LEFT JOIN (
+                        SELECT 
+                            study_id, 
+                            MAX(charge_id) AS charge_id
+                        FROM 
+                            billing.charges_studies
+                            GROUP BY study_id
+                    ) cs ON cs.study_id = studies.id
+                    LEFT JOIN billing.charges ON charges.id = cs.charge_id
+                    LEFT JOIN billing.claims ON claims.id = charges.claim_id  `;
+        }
 
         if (tables.billing_codes) {
             r += ` LEFT JOIN billing.billing_codes ON claims.billing_code_id = billing_codes.id `;
