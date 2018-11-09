@@ -85,19 +85,9 @@ define([
                             reportArgsFilterData = JSON.parse(reportArgs.filterData),
                             reportArgsFilterColumn = JSON.parse(reportArgs.filterColumn);
                         if (reportArgsFilterData["length"]) {
-                            if (reportArgs.from != "ris") {
-                                reportArgsFilterData;
-                                reportArgsFilterColumn;
-                            }
-                            else {
-                                if (reportArgsFilterData["length"] == 1) {
-                                    reportArgsFilterData.push(defaultDateRange);
-                                    reportArgsFilterColumn.push("accounting_date");
-                                }
-                                else {
-                                    reportArgsFilterData;
-                                    reportArgsFilterColumn;
-                                }
+                            if (reportArgsFilterData["length"] == 1) {
+                                reportArgsFilterData.push(defaultDateRange);
+                                reportArgsFilterColumn.push("accounting_date");
                             }
                         } else {
                             reportArgsFilterData.push(defaultDateRange);
