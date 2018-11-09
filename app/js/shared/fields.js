@@ -1718,8 +1718,37 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "tempvalue": billedStatus
                     }
                 }
-            }
-
+            },
+            "Billing Class": {
+                "id": 66,
+                "field_code": "billing_class",
+                "field_name": "Billing Class",
+                "i18n_name": "billing.fileInsurance.billingClass",
+                "field_info": {
+                    "name": "billing_class",
+                    "width": 120,
+                    "stype": "select",
+                    "searchoptions": {
+                        "value": billingClassesValue,
+                        "tempvalue":billingClassesValue
+                     }
+                }
+            },
+            "Billing Code": {
+                "id": 67,
+                "field_code": "billing_code",
+                "field_name": "Billing Code",
+                "i18n_name": "billing.fileInsurance.billingCode",
+                "field_info": {
+                    "name": "billing_code",
+                    "width": 100,
+                    "stype": "select",
+                    "searchoptions": {
+                        "value": billingCodeValue,
+                        "tempvalue":billingCodeValue
+                    }
+                }
+            },
         });
 
     }
