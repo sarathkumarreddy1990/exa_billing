@@ -84,15 +84,16 @@ define([
                         var defaultDateRange = moment().subtract(29, 'days').format('YYYY-MM-DD') + ' - ' + moment().format('YYYY-MM-DD'),
                             reportArgsFilterData = JSON.parse(reportArgs.filterData),
                             reportArgsFilterColumn = JSON.parse(reportArgs.filterColumn);
-                        if (reportArgsFilterData["length"]) {
-                            if (reportArgsFilterData["length"] == 1) {
+                            if (reportArgsFilterData["length"] == 1 && reportArgs.from == "ris") {
                                 reportArgsFilterData.push(defaultDateRange);
                                 reportArgsFilterColumn.push("accounting_date");
-                            }
-                        } else {
-                            reportArgsFilterData.push(defaultDateRange);
-                            reportArgsFilterColumn = ["accounting_date"];
-                        }
+                              }
+
+                            if (!reportArgsFilterData["length"]) {
+                                reportArgsFilterData.push(defaultDateRange);
+                                reportArgsFilterColumn = ["accounting_date"];
+                              }
+
                         var urlParams = {
                             pamentIds: reportArgs.payment_id,
                             paymentStatus: reportArgs.paymentStatus || " ",
