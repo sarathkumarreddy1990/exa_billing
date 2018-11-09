@@ -80,14 +80,36 @@ define([
                     }
                 }
                 else {
-                    if (reportArgs &&  reportArgs.filterFlag == true) {
+                    if (reportArgs && reportArgs.filterFlag == true) {
+                        var defaultDateRange = moment().subtract(29, 'days').format('YYYY-MM-DD') + ' - ' + moment().format('YYYY-MM-DD'),
+                            reportArgsFilterData = JSON.parse(reportArgs.filterData),
+                            reportArgsFilterColumn = JSON.parse(reportArgs.filterColumn);
+                        if (reportArgsFilterData["length"]) {
+                            if (reportArgs.from != "ris") {
+                                reportArgsFilterData;
+                                reportArgsFilterColumn;
+                            }
+                            else {
+                                if (reportArgsFilterData["length"] == 1) {
+                                    reportArgsFilterData.push(defaultDateRange);
+                                    reportArgsFilterColumn.push("accounting_date");
+                                }
+                                else {
+                                    reportArgsFilterData;
+                                    reportArgsFilterColumn;
+                                }
+                            }
+                        } else {
+                            reportArgsFilterData.push(defaultDateRange);
+                            reportArgsFilterColumn = ["accounting_date"];
+                        }
                         var urlParams = {
                             pamentIds: reportArgs.payment_id,
                             paymentStatus: reportArgs.paymentStatus || " ",
                             filterFlag: "paymentsExportPDFFlag",
-                            filterData: JSON.parse(reportArgs.filterData),
-                            filterColumn: JSON.parse(reportArgs.filterColumn),
-                            from : reportArgs.from || ''
+                            filterData: reportArgsFilterData,
+                            filterColumn: reportArgsFilterColumn,
+                            from: reportArgs.from || ''
                         }
                     }
                     else {
