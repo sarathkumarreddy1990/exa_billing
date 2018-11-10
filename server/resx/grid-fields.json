@@ -1129,10 +1129,7 @@
                 "name": "billing_class",
                 "width": "120",
                 "searchFlag": "%",
-                "stype": "select",
-                "searchoptions": {
-                    "value": "self.billingClassList"
-                }
+                "stype": "select"
             }
         },
         {
@@ -1144,10 +1141,7 @@
                 "name": "billing_code",
                 "width": 100,
                 "searchFlag": "%",
-                "stype": "select",
-                "searchoptions": {
-                    "value": "self.billingCodeList"
-                }
+                "stype": "select"
             }
         }
     ]
