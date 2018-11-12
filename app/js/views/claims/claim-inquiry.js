@@ -105,6 +105,7 @@ define([
                 this.followDate.date();
                 this.claimInquiryDetails(claimId, false, isFromClaimScreen);
                 $('#modal_div_container').removeAttr('style');
+                commonjs.isMaskValidate();
             },
 
             bindEvents: function () {
@@ -951,6 +952,7 @@ define([
                     this.toDate.date();
                     $('#radActivityAllStatus').prop('checked', true);
                     $('#activityDetails').hide();
+                    commonjs.isMaskValidate();
                 }
 
 

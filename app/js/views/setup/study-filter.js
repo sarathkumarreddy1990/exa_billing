@@ -503,6 +503,7 @@ define([
                 self.dtpFromTimeLast = commonjs.bindDateTimePicker("divFromTimeLast", dtpTimeOptions);
                 self.dtpToTimeLast = commonjs.bindDateTimePicker("divToTimeLast", dtpTimeOptions);
 
+                commonjs.isMaskValidate();
                 this.setupLists();
                 $('#rbtPreformatted').unbind().change(function (e) {
                     $('#ddlDatePreformatted').prop('disabled', false);

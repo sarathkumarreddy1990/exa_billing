@@ -210,6 +210,7 @@ define([
                 this.dtpFrom.date(startFrom);
                 this.dtpTo = commonjs.bindDateTimePicker('divToDate', this.dtpOptions);
                 this.dtpTo.date(endTo);
+                commonjs.isMaskValidate();
             },
 
             exportExcel: function() {

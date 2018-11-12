@@ -92,6 +92,7 @@ define([
                     self.viewModel.dateFrom = null;
                     self.viewModel.dateTo = null;
                 });
+                commonjs.isMaskValidate();
             },
 
             onReportViewClick: function (e) {

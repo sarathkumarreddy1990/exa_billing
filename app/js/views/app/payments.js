@@ -113,6 +113,7 @@ define(['jquery',
                 self.dtpPayTo = commonjs.bindDateTimePicker("divPaymentToDate", { format: 'L', useCurrent: false });
                 self.dtpPayFrom.date(startFrom);
                 self.dtpPayTo.date(endTo);
+                commonjs.isMaskValidate();
             },
 
             render: function (opener) {
