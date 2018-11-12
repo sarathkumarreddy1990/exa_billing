@@ -324,7 +324,6 @@ const util = {
 
                         query += util.getRelationOperator(query) + '(' + orderingFacilityQuery + ')';
                     }
-
                 }
 
             }
