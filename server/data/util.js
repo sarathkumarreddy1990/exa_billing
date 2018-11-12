@@ -324,7 +324,7 @@ const util = {
 
                         query += util.getRelationOperator(query) + '(' + orderingFacilityQuery + ')';
                     }
-                    
+
                 }
 
             }
@@ -529,9 +529,9 @@ const util = {
                     if (l > 0) {
                         for (let i = 0; i < l; i++) {
                             if (i == 0) {
-                                insProvQuery += ' ' + util.getArrayOperator(obj[i].condition, obj[i].value, 'orders.insurance_providers', 'insProv');
+                                insProvQuery += ' ' + util.getArrayOperator(obj[i].condition, obj[i].value, util.insuranceProviderName(), 'insProv');
                             } else {
-                                insProvQuery += util.getConditionalRelationOperator(obj[i].condition) + ' ' + util.getArrayOperator(obj[i].condition, obj[i].value, 'orders.insurance_providers', 'insProv');
+                                insProvQuery += util.getConditionalRelationOperator(obj[i].condition) + ' ' + util.getArrayOperator(obj[i].condition, obj[i].value, util.insuranceProviderName(), 'insProv');
                             }
                         }
 
@@ -1089,6 +1089,14 @@ const util = {
         //console.log("STUDY FILTER: getDateRangeQuery: '%s'", drQuery);
 
         return drQuery;
+    },
+
+    insuranceProviderName:function () {
+        return ` ARRAY[
+            COALESCE( (SELECT insurance_name FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = orders.primary_patient_insurance_id) LIMIT 1), null),
+            COALESCE( (SELECT insurance_name FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = orders.secondary_patient_insurance_id) LIMIT 1), null),
+            COALESCE( (SELECT insurance_name FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = orders.tertiary_patient_insurance_id) LIMIT 1), null)
+            ] `;
     }
 
 };
