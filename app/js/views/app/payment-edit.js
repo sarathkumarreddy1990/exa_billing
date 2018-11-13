@@ -2055,6 +2055,11 @@ define(['jquery',
                             $('#txtAmount' + rowVal).val(parseFloat(appln.amount).toFixed(2));
                         });
                     }
+                    else {
+                        for (var k = 1; k <= 7; k++) {
+                            $('#selectGroupCode' + k).attr('cas_id', '');
+                        }
+                    }
                     $('#divPaymentCAS').attr('data-charge_id', chargeId).show();
                     commonjs.validateControls();
                     commonjs.isMaskValidate();
@@ -2972,8 +2977,8 @@ define(['jquery',
                     }
                 } else {
                     commonjs.showWarning("messages.warning.payments.noRecords");
-                    $('.nextPrevPayment').prop('disabled', false);
                 }
+                $('.nextPrevPayment').prop('disabled', false);
             }
 
         });
