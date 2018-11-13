@@ -82,6 +82,7 @@ define(['jquery',
                     includeSelectAllOption: true,
                     enableCaseInsensitiveFiltering: true
                 });
+                commonjs.isMaskValidate();
             },
 
 

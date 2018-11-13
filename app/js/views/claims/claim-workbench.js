@@ -386,6 +386,7 @@ define(['jquery',
                     colElement.on("cancel.daterangepicker", function (ev, drp) {
                         self.refreshClaims(true);
                     });
+                    commonjs.isMaskValidate();
                 }); // end _.each
             },
             clearAllSelectedRows: function () {

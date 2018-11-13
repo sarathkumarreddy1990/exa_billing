@@ -178,6 +178,7 @@ define(['jquery',
                 self.secDOB.date();
                 self.terDOB = commonjs.bindDateTimePicker('divTerDOB', { format: 'L' });
                 self.terDOB.date();
+                commonjs.isMaskValidate();
 
             },
 

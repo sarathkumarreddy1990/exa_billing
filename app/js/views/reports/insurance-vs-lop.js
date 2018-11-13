@@ -90,6 +90,7 @@ define([
                     self.viewModel.dateFrom = null;
                     self.viewModel.dateTo = null;
                 });
+                commonjs.isMaskValidate();
             },
 
             onStudyStatusesChange: function (e) {
