@@ -377,6 +377,7 @@ define(['jquery',
                     colElement.on("cancel.daterangepicker", function (ev, drp) {
                         self.refreshStudies(true);
                     });
+                    commonjs.isMaskValidate();
                 }); // end _.each
             },
 

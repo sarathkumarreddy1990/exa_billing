@@ -47,6 +47,18 @@ const summaryQueryTemplate = _.template(`
                       <% } %>
                    <%  } %>
                 <% if (paymentStatus) { %>  INNER JOIN LATERAL billing.get_payment_totals(bp.id) AS payment_totals ON TRUE   <% } %>
+                <% if (adjustmentCodeIds || allAdjustmentCode == 'true') { %>
+                    INNER JOIN LATERAL (
+                        SELECT
+                           DISTINCT i_bpa.payment_id as payment_id,
+                           i_bpa.charge_id as charge_id,
+                           CASE when adjustment_code_id is null then false else true END as has_adjustment
+                        FROM  billing.payment_applications i_bpa
+                        WHERE i_bpa.payment_id = bp.id
+                      AND  i_bpa.adjustment_code_id is not null
+                      <% if (adjustmentCodeIds) { %> AND  <% print(adjustmentCodeIds); } %>
+                    )have_adjustment on have_adjustment.payment_id = bp.id and have_adjustment.charge_id = bpa.charge_id
+                <% } %>
                 WHERE
                 <%= claimDate %>
                 <% if (facilityIds) { %>AND <% print(facilityIds); } %>
@@ -127,7 +139,19 @@ const detailQueryTemplate = _.template(`
                      INNER JOIN public.user_roles ON  public.user_roles.id = ANY(public.user_groups.user_roles) AND public.user_roles.is_active
                   <% } %>
                <%  } %>
-            WHERE
+               <% if (adjustmentCodeIds || allAdjustmentCode == 'true') { %>
+                INNER JOIN LATERAL (
+                    SELECT
+                       DISTINCT i_bpa.payment_id as payment_id,
+                       i_bpa.charge_id as charge_id,
+                       CASE when adjustment_code_id is null then false else true END as has_adjustment
+                    FROM  billing.payment_applications i_bpa
+                    WHERE i_bpa.payment_id = bp.id
+                  AND  i_bpa.adjustment_code_id is not null
+                  <% if (adjustmentCodeIds) { %> AND  <% print(adjustmentCodeIds); } %>
+                )have_adjustment on have_adjustment.payment_id = bp.id and have_adjustment.charge_id = bpa.charge_id
+               <% } %>
+           WHERE
             <%= claimDate %>
             <% if (facilityIds) { %>AND <% print(facilityIds); } %>
             <% if(billingProID) { %> AND <% print(billingProID); } %>
@@ -209,13 +233,17 @@ const api = {
             initialReportData.report.params.userRoleIds = initialReportData.report.params.userRoleIds.map(Number);
         }
 
+        // convert adjustmentCodeIds array of string to integer
+        if (initialReportData.report.params.adjustmentCodeIds &&  initialReportData.report.params.adjustmentCodeIds.length) {
+            initialReportData.report.params.adjustmentCodeIds = initialReportData.report.params.adjustmentCodeIds.map(Number);
+        }
+
         return Promise.join(
             api.createSummaryDataSet(initialReportData.report.params),
             api.createDetailDataSet(initialReportData.report.params),
             // other data sets could be added here...
             dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
             (summaryDataSet, detailDataSet, providerInfo) => {
-
                 initialReportData.lookups.billingProviderInfo = providerInfo || [];
                 initialReportData.dataSets.push(detailDataSet);
                 initialReportData.dataSets[0].summaryDataSets = [summaryDataSet];
@@ -278,6 +306,14 @@ const api = {
             filtersUsed.push({ name: 'Payment Status', label: 'Payment Status', value: 'All' });
         }
 
+        // Adjustment Code
+        if (params.adjustmentCodeIds && params.adjustmentCodeIds.length) {
+            filtersUsed.push({ name: 'Adjustment Code', label: 'Adjustment Code', value: params.adjustmentCode });
+        }
+        else {
+            filtersUsed.push({ name: 'Adjustment Code', label: 'Adjustment Code', value: 'All' });
+        }
+
 
         filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
         filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
@@ -298,7 +334,9 @@ const api = {
             billingProID: null,
             userIds: null,
             userRoleIds: null,
-            paymentStatus: null
+            paymentStatus: null,
+            adjustmentCodeIds:null,
+            allAdjustmentCode: null
         };
 
 
@@ -346,7 +384,16 @@ const api = {
             params.push(reportParams.paymentStatus)
             filters.paymentStatus =  queryBuilder.whereIn('payment_totals.payment_status', [params.length]);
         }
-        
+
+        // Adjustment Code ID
+        if (reportParams.adjustmentCodeIds) {
+            params.push(reportParams.adjustmentCodeIds);
+            filters.adjustmentCodeIds = queryBuilder.whereIn('i_bpa.adjustment_code_id', [params.length]);
+        }
+
+         // Select All Adjustment Code
+         filters.allAdjustmentCode = reportParams.allAdjustmentCode;
+
         return {
             queryParams: params,
             templateData: filters
@@ -372,7 +419,9 @@ const api = {
             userIds: null,
             userRoleIds: null,
             summaryType: null,
-            paymentStatus: null
+            paymentStatus: null,
+            adjustmentCodeIds: null,
+            allAdjustmentCode: null
         };
 
 
@@ -405,6 +454,7 @@ const api = {
                 filters.userIds = queryBuilder.whereIn('bp.created_by', [params.length]);
             }
         }
+
         // User Role id
         if (reportParams.userRoleIds && reportParams.userRoleIds.length > 0) {
             if (reportParams.userRoleIds) {
@@ -418,6 +468,16 @@ const api = {
             params.push(reportParams.paymentStatus)
             filters.paymentStatus =  queryBuilder.whereIn('payment_totals.payment_status', [params.length]);
         }
+
+         // Adjustment Code ID
+            if (reportParams.adjustmentCodeIds) {
+                params.push(reportParams.adjustmentCodeIds);
+                filters.adjustmentCodeIds = queryBuilder.whereIn('i_bpa.adjustment_code_id', [params.length]);
+            }
+
+         // Select All Adjustment Code
+            filters.allAdjustmentCode = reportParams.allAdjustmentCode;
+
 
         return {
             queryParams: params,

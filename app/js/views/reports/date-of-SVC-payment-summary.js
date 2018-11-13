@@ -88,6 +88,7 @@ define([
                     self.viewModel.dateFrom = start;
                     self.viewModel.dateTo = end;
                 });
+                commonjs.isMaskValidate();
             },
 
             onReportViewClick: function (e) {

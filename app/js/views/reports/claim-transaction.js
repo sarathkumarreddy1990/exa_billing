@@ -202,6 +202,7 @@ define([
                     self.viewModel.billCreatedDateFrom = null;
                     self.viewModel.billCreatedDateTo = null;
                 });
+                commonjs.isMaskValidate();
             },
 
             onReportViewClick: function (e) {

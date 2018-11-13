@@ -94,6 +94,7 @@ define([
                     enableCaseInsensitiveFiltering: true
                 });
                 this.onNumberKeyPress();
+                commonjs.isMaskValidate();
             },
 
             getSelectedFacility: function (e) {

@@ -30,7 +30,9 @@ define([
                 userIds: null,
                 userNames: null,
                 userRoleIds: null,
-                UserRoleName: null
+                UserRoleName: null,
+                adjustmentCodeIds : null,
+                adjustmentCode: null
             },
             selectedBillingProList: [],
             selectedFacilityList: [],
@@ -40,12 +42,13 @@ define([
 
                 'change #ddlUsersOption': 'onOptionChangeSelectUser',
                 'change #ddlUsersRoleOption': 'onOptionChangeSelectUserRole',
+                'change #ddlAdjustmentCodeOption': 'onOptionChangeSelectAdjustmentCode',
                 'click #btnViewReport': 'onReportViewClick',
                 'click #btnViewReportNewTabPaymentRep': 'onReportViewClick',
                 'click #btnPdfReport': 'onReportViewClick',
                 'click #btnExcelReport': 'onReportViewClick',
                 'click #btnCsvReport': 'onReportViewClick',
-                'click #btnXmlReport': 'onReportViewClick'
+                'click #btnXmlReport': 'onReportViewClick',
             },
 
             initialize: function (options) {
@@ -77,7 +80,7 @@ define([
                 this.drpStudyDt.setStartDate(this.viewModel.dateFrom);
                 this.drpStudyDt.setEndDate(this.viewModel.dateTo);
                 // For Facility Filter with Multiple Select
-                $('#ddlFacilityFilter,  #ddlUsersOption, #ddlUsersRoleOption').multiselect({
+                $('#ddlFacilityFilter,  #ddlUsersOption, #ddlUsersRoleOption, #ddlAdjustmentCodeOption').multiselect({
                     maxHeight: 200,
                     buttonWidth: '250px',
                     width: '300px',
@@ -96,6 +99,7 @@ define([
                 UI.bindBillingProvider();
                 UI.listUsersAutoComplete('Select Users', 'btnAddUsers', 'ulListUsers');
                 UI.listUsersRoleAutoComplete('Select Users Role', 'btnAddUsersRole', 'ulListUsersRole');
+                UI.adjustmentCodeAutoComplete('Select Adj Code', 'btnAddAdjustmentCode', 'ulListAdjustmentCode');
 
             },
 
@@ -111,6 +115,7 @@ define([
                     self.viewModel.dateFrom = null;
                     self.viewModel.dateTo = null;
                 });
+                commonjs.isMaskValidate();
             },
 
             onOptionChangeSelectUser: function () {
@@ -147,6 +152,23 @@ define([
                 }
             },
 
+            onOptionChangeSelectAdjustmentCode: function () {
+                var self = this;
+                if ($('#ddlAdjustmentCodeOption').val() == 'S') {
+                    $("#ddlAdjustmentCodeBox").show();
+                    $("#divAdjustmentCodes").show();
+                    $('#txtAdjustmentCode').text("Select Adj Code");
+                }
+                else {
+                    $("#ddlAdjustmentCodeBox").hide();
+                    $("#divAdjustmentCodes").hide();
+                    this.viewModel.adjustmentCode = [];
+                    this.viewModel.adjustmentCodeIds = [];
+                    $('#ulListAdjustmentCode').data('this.viewModel.adjustmentCodeIds', []);
+                    $('#ulListAdjustmentCode').html('');
+                }
+            },
+
             onReportViewClick: function (e) {
                 var btnClicked = e && e.target ? $(e.target) : null;
                 this.getSelectedFacility();
@@ -176,72 +198,7 @@ define([
                     commonjs.showWarning('Please select date range!');
                     return;
                 }
-
-                if ($('#ddlUsersOption').val() == 'S' && $('#ulListUsers li').length == 0) {
-                    $('#txtUsers a span').val('Select User');
-                    commonjs.showWarning('Please select at atleast one user');
-                    return;
-                }
-
-                if ($('#ddlUsersRoleOption').val() == 'S' && $('#ulListUsersRole li').length == 0) {
-                    $('#txtUsersRole a span').val('Select User Role');
-                    commonjs.showWarning('Please select at atleast one user Role');
-                    return;
-                }
                 return true;
-            },
-
-            setUsersAutoComplete: function () {
-                var self = this;
-                self.ACSelect.user.ID = "";
-                self.ACSelect.user.username = "";
-                commonjs.setAutocompleteInfinite({
-                    containerID: "#txtSelectUser",
-                    placeHolder: "user Details",
-                    inputLength: 0,
-                    URL: "/usersAutoCompleteBilling",
-                    data: function (term, page) {
-                        var textValue = $('#s2id_txtSelectUser a span').text();
-                        return {
-                            pageNo: page,
-                            pageSize: 10,
-                            q: term,
-                            sortField: "id",
-                            sortOrder: "desc"
-
-                        };
-                    },
-
-                    results: function (data, page) {
-                        var more = data.result.length > 0 ? (page * 10) < data.result[0].total_records : false;
-                        return { results: data.result, more: more };
-                    },
-                    formatID: function (obj) {
-                        return obj.id;
-                    },
-                    formatResult: function (res) {
-                        var user = '<div class="userListChkBox ddl"><input class="userListBox ddl" id=userList_' + res.userID + ' type="checkbox" name="allUserList" value="' + res.userID + '"><label class="checkbox-inline" id="billingProvider_' + res.userID + '" for="billingProvider_' + res.userID + '"> ' + res.user_name + '</label> </input></div>';
-                        return user;
-                    },
-                    formatSelection: function (res) {
-                        self.ACSelect.user.ID = res.id;
-                        self.ACSelect.user.username = res.user_name;
-                        if ($('#liFollowUpQueue').hasClass('active'))
-                            self.setFollowUpGridArgs();
-                        return res.user_name;
-
-                    }
-                });
-                $('#txtSelectUser a span').html(app.userInfo.userFullName);
-                self.ACSelect.user.ID = app.user_id;
-                self.ACSelect.user.username = app.userInfo.userFullName;
-                $('#s2id_txtSelectUser a span').html(app.userInfo.userFullName);
-                $('#txtSelectUser').on('select2-removed', function (event) {
-                    $('#txtSelectUser a span').html(self.usermessage.selectUser);
-                    self.ACSelect.user.ID = "";
-                    self.ACSelect.user.username = "";
-                    $('#s2id_txtSelectUser a span').html(self.usermessage.selectUser);
-                });
             },
 
             getSelectedFacility: function (e) {
@@ -264,8 +221,9 @@ define([
                 this.selectedBillingProList = billing_pro;
                 this.viewModel.allBillingProvider = this.selectedBillingProList && this.selectedBillingProList.length === $("#ddlBillingProvider option").length;
             },
+
             getReportParams: function () {
-                var usersArray = [], userNameArray = [], usersRoleArray = [], userRoleNameArray = [];
+                var usersArray = [], userNameArray = [], usersRoleArray = [], userRoleNameArray = [], adjustmentCodeArray = [], adjustmentCodeIds = [];
                 $('#ulListUsers li a').each(function () {
                     usersArray.push(~~$(this).attr('data-id'));
                     userNameArray.push($(this).closest('li').find('span').text());
@@ -275,17 +233,26 @@ define([
                     usersRoleArray.push(~~$(this).attr('data-id'));
                     userRoleNameArray.push($(this).closest('li').find('span').text());
                 });
+
+                $('#ulListAdjustmentCode li a').each(function () {
+                    adjustmentCodeIds.push(~~$(this).attr('data-id'));
+                    adjustmentCodeArray.push($(this).closest('li').find('span').text());
+                });
+
                 return urlParams = {
                     'userIds': $('#ddlUsersOption').val() == 'S' ? usersArray : '',
                     'userName': $('#ddlUsersOption').val() == 'S' ? userNameArray : '',
                     'userRoleIds': $('#ddlUsersRoleOption').val() == 'S' ? usersRoleArray : '',
                     'userRoleName': $('#ddlUsersRoleOption').val() == 'S' ? userRoleNameArray : '',
-                    'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
-                    'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
+                    'adjustmentCode': $('#ddlAdjustmentCodeOption').val() == 'S' ? adjustmentCodeArray : '',
+                    'adjustmentCodeIds': $('#ddlAdjustmentCodeOption').val() == 'S' ? adjustmentCodeIds : '',
+                    'allAdjustmentCode': $('#ddlAdjustmentCodeOption').val() == 'allAdjustment' || '',
+                    'facilityIds': this.selectedFacilityList || [],
+                    'allFacilities': this.viewModel.allFacilities || '',
                     'fromDate': this.viewModel.dateFrom.format('YYYY-MM-DD'),
                     'toDate': this.viewModel.dateTo.format('YYYY-MM-DD'),
-                    'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
-                    'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
+                    'billingProvider': this.selectedBillingProList || [],
+                    'allBillingProvider': this.viewModel.allBillingProvider || '',
                     'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
                     'summaryType': $('#ddlSummaryOption').val(),
                     'paymentStatus':$('#ddlPaymentOption').val()

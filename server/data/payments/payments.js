@@ -144,7 +144,7 @@ module.exports = {
         let joinQuery = `
             INNER JOIN public.users ON users.id = payments.created_by
             INNER JOIN billing.get_payment_totals(payments.id) payment_totals ON true
-            LEFT JOIN public.patients ON patients.id = payments.patient_id
+            LEFT JOIN public.patients ON patients.id = payments.patient_id AND payer_type = 'patient'
             LEFT JOIN public.provider_groups ON provider_groups.id = payments.provider_group_id
             LEFT JOIN public.provider_contacts ON provider_contacts.id = payments.provider_contact_id
             LEFT JOIN public.providers ref_provider ON provider_contacts.provider_id = ref_provider.id

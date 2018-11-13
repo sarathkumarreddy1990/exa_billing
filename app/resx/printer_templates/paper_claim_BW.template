@@ -40,7 +40,7 @@ function getICDCodes(data) {
     let icd = data.subscriber && data.subscriber[0].claim && data.subscriber[0].claim[0].icd;
     let icdvalues = [];
     for (let i = 0; i < 12; i++) {
-        if (icd && icd[i] && icd[i].code) icdvalues.push(getSubstring(icd[i].code, 7));
+        if (icd && icd[i] && icd[i].code) icdvalues.push(icd[i].code);
         else icdvalues.push(' ');
     }
     return icdvalues;

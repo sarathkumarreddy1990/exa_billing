@@ -104,6 +104,7 @@ define([
                     self.viewModel.dateFrom = null;
                     self.viewModel.dateTo = null;
                 });
+                commonjs.isMaskValidate();
             },
 
              // Binding Insurance information

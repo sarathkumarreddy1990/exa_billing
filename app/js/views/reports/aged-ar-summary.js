@@ -81,6 +81,7 @@ define([
                     includeSelectAllOption: true,
                     enableCaseInsensitiveFiltering: true
                 });
+                commonjs.isMaskValidate();
             },
 
             onReportViewClick: function (e) {
@@ -113,6 +114,7 @@ define([
                     self.viewModel.dateFrom = null;
                     //   self.viewModel.dateTo = null;
                 });
+                commonjs.isMaskValidate();
             },
 
             hasValidViewModel: function () {

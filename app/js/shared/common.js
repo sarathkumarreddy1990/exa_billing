@@ -606,6 +606,10 @@ var commonjs = {
             default:
         }
 
+        if(!dtpTarget.find('input').hasClass("maskDateLocale")){
+            dtpTarget.find('input').addClass("maskDateLocale");
+        }
+
         dtpTarget.datetimepicker(options);
         dtpTarget.on("dp.change", function (e) {
             if (e && e.date) {

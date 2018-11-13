@@ -29,6 +29,7 @@ define(['jquery',
             $('#siteModal').removeAttr('tabindex'); //removed tabIndex attr for select2 search text can't editable
             this.bindEvents(claimIDs);
             $('#modal_div_container').removeAttr('style');
+            commonjs.isMaskValidate();
         },
 
         bindEvents: function (claimIDs) {

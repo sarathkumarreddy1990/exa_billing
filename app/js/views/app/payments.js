@@ -113,6 +113,7 @@ define(['jquery',
                 self.dtpPayTo = commonjs.bindDateTimePicker("divPaymentToDate", { format: 'L', useCurrent: false });
                 self.dtpPayFrom.date(startFrom);
                 self.dtpPayTo.date(endTo);
+                commonjs.isMaskValidate();
             },
 
             render: function (opener) {
@@ -143,6 +144,14 @@ define(['jquery',
                 $("#divAppliedTotal").html(' <i class="fa fa-spinner loading-spinner"></i>');
                 $("#divAdjTotal").html(' <i class="fa fa-spinner loading-spinner"></i>');
                 self.pager.set({ "PageNo": 1 });
+                self.paymentTable.options.customargs = {
+                    paymentStatus: $("#ulPaymentStatus").val(),
+                    from: self.from || '',
+                    toDate: moment().format('YYYY-MM-DD'),
+                    fromDate: moment().subtract(29, 'days').format('YYYY-MM-DD'),
+                    filterByDateType: 'accounting_date'
+                };
+
                 self.paymentTable.refreshAll();
             },
 
@@ -154,7 +163,11 @@ define(['jquery',
 
                 self.pager.set({ "PageNo": 1 });
                 self.paymentTable.options.customargs = {
-                    paymentStatus: $("#ulPaymentStatus").val()
+                    paymentStatus: $("#ulPaymentStatus").val(),
+                    from: self.from || '',
+                    toDate: moment().format('YYYY-MM-DD'),
+                    fromDate: moment().subtract(29, 'days').format('YYYY-MM-DD'),
+                    filterByDateType: 'accounting_date'
                 };
                 self.pager.set({ "PageNo": 1 });
                 self.paymentTable.refresh();
@@ -178,8 +191,7 @@ define(['jquery',
                     commonjs.paymentStatus = [];
                     commonjs.paymentFilterFields = [];
                     self.gridLoaded = false;
-                    $("#ulPaymentStatus").val('');
-                    $("#ulPaymentStatus").multiselect("refresh");
+                    $('#ulPaymentStatus').multiselect("selectAll", false).multiselect("refresh");
                 }
                 //If any status filtered previously
                 else if (commonjs.paymentStatus && commonjs.paymentStatus.length) {
@@ -245,7 +257,7 @@ define(['jquery',
                             { name: 'accounting_date', width: 250, formatter: self.paymentAccountingDateFormatter },
                             { name: 'payer_type', width: 215, stype: 'select', formatter: self.payerTypeFormatter, searchoptions: { value: payerTypeValue } },
                             { name: 'payer_name', width: 300 },
-                            { name: 'account_no', width:300, hidden: !showGridColumn },
+                            { name: 'account_no', width: 300, formatter: self.accountNumFormatter },
                             { name: 'amount', width: 215, validateMoney : true },
                             { name: 'applied', width: 215, hidden: showGridColumn, validateMoney : true },
                             { name: 'available_balance', width: 215, validateMoney : true },
@@ -369,6 +381,10 @@ define(['jquery',
                     Backbone.history.navigate('#billing/payments/edit/'+ from + '/' + rowId, true);
                 else
                     Backbone.history.navigate('#billing/payments/edit/'+ rowId, true);
+            },
+
+            accountNumFormatter: function (cellvalue, options, rowObject) {
+                return rowObject.payer_type === "patient" ? rowObject.account_no : '';
             },
 
             paymentDateFormatter: function (cellvalue, options, rowObject) {
