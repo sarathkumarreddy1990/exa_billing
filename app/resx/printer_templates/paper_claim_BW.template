@@ -622,19 +622,21 @@ function formatSingleClaim(claimData) {
 					],
 					[
 					    {text: 'HEALTH INSURANCE CLAIM FORM', fontSize:12, bold: true, colSpan:2},{},
-					    { text: claimData.subscriber && claimData.subscriber[0].payer ? getKeyTrimValue(claimData.subscriber[0].payer, 'payerName', 30) : '' , bold:true , fontSize: 8, colSpan:3},{},{}
+					    {
+							text: ( claimData.subscriber && claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'AT'? '': ( claimData.subscriber && claimData.subscriber[0].payer ? getKeyTrimValue(claimData.subscriber[0].payer, 'payerName', 30) : '' ) ) , bold:true , fontSize: 8, colSpan:3
+						},{},{}
 					 ],
 					 [
 					    {text: 'APPROVED BY NATIONAL UNIFORM CLAIM COMMITTEE (NUCC)02/12', colSpan:2},{},
-					    { text: claimData.subscriber && claimData.subscriber[0].payer ? getKeyTrimValue(claimData.subscriber[0].payer, 'insuranceprovideraddressline1', 30) : '' , bold:true , fontSize: 8, colSpan:3},{},{}
+					    {
+							text: ( claimData.subscriber && claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'AT'? '': ( claimData.subscriber && claimData.subscriber[0].payer ? getKeyTrimValue(claimData.subscriber[0].payer, 'insuranceprovideraddressline1', 30) : '') ) , bold:true , fontSize: 8, colSpan:3
+						},{},{}
 					 ],
 					 [
 					    {image: 'PICAImage', fit: [20, 20], margin: [0, 0, 0, 0]},
 					    {text:"PICA"},
 					    {
-                            text: (claimData.subscriber && claimData.subscriber[0].payer ? (getSubstring((getKeyValue(claimData.subscriber[0].payer, 'payerCity') + ' ' +
-                                getKeyValue(claimData.subscriber[0].payer, 'payerState') + ' ' + getKeyValue(claimData.subscriber[0].payer, 'payerZIPCode')), 30)) : ' '), bold:true
-                                ,fontSize: 8
+                            text: ( claimData.subscriber && claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'AT'? '': (claimData.subscriber && claimData.subscriber[0].payer ? (getSubstring((getKeyValue(claimData.subscriber[0].payer, 'payerCity') + ' ' + getKeyValue(claimData.subscriber[0].payer, 'payerState') + ' ' + getKeyValue(claimData.subscriber[0].payer, 'payerZIPCode')), 30)) : ' ') ), bold:true, fontSize: 8
                         },{text:"PICA", alignment:"right"},
                         {image: 'PICAImage', fit: [20, 20], margin: [0, 0, 0, 0]}
 					 ],
