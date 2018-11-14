@@ -5,14 +5,14 @@
         <td>
             <span id="spDeleteCharge_<%= row.data_row_id %>" class="icon  icon-ic-close removecharge"></span>
         </td>
-        <td style="display: none">
-            <span class="charges__accession-num" id="spAccessionNo_<%= row.data_row_id %>">
-                <%= row.accession_no %>
-            </span>
-        </td>
         <td>
             <span class="scheduleDate" id="spScheduleDate_<%= row.data_row_id %>">
                 <%= row.charge_dt %>
+            </span>
+        </td>
+        <td>
+            <span class="charges__accession-num" id="spAccessionNo_<%= row.data_row_id %>">
+                <%= row.accession_no %>
             </span>
         </td>
         <td class="charges__cpt-code">
@@ -36,7 +36,7 @@
             <input id="ddlPointer4_<%= row.data_row_id %>" class="form-control inputModifiers typeahead diagCodes" data-type="P4" data-value="<%= row.data_row_id %>"
                    type="text">
         </td>
-    
+
         <td>
             <input type="text" id="txtModifier1_<%= row.data_row_id %>" class="form-control inputModifiers modifiers" data-type="M1" data-value="<%= row.data_row_id %>">
         </td>
@@ -72,4 +72,3 @@
             <input id="checkExclude_<%= row.data_row_id %>" type="checkbox">
         </td>
     </tr>
-    

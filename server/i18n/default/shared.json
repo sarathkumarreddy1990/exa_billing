@@ -149,9 +149,17 @@
             "paperclaimOrg": "Paper Claim (RED)",
             "paperclaimFull": "Paper Claim (B & W)",
             "reloaddefault":"Reload Default Template",
-            "sendFax": "Send Fax"
+            "sendFax": "Send Fax",
+            "documentReports": "DOCUMENTS AND REPORTS"
         },
-        "screens": {},
+        "screens": {
+            "charges":"Charges",
+            "claims":"Claims",
+            "insurance":"Insurance",
+            "additionalInfo":"Additional Info",
+            "billingSummary":"Billing Summary"
+
+        },
         "fields": {
             "inactive": "Inactive",
             "isSystemStatus": "System Status",
@@ -165,7 +173,27 @@
             "faxReceiverNumber": "Fax #",
             "default": "Default",
             "all": "All",
-            "defaultTab": "Default Tab"
+            "defaultTab": "Default Tab",
+            "paymentId": "Payment ID",
+            "date":"Date",
+            "accession":"Accession#",
+            "cptCode":"CPT Code",
+            "cptDesc":"CPT Description",
+            "p1":"P1",
+            "p2":"P2",
+            "p3":"P3",
+            "p4":"P4",
+            "m1":"M1",
+            "m2":"M2",
+            "m3":"M3",
+            "m4":"M4",
+            "units":"Units",
+            "billFee":"Bill Fee",
+            "totalBillFee":"Total Bill Fee",
+            "allowed":"Allowed",
+            "totalAllowed":"Total Allowed",
+            "authNo":"Auth No",
+            "exclude":"exclude"
         },
         "status": {
             "approved": "APPROVED",
