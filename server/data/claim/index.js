@@ -585,6 +585,7 @@ module.exports = {
                                 , (ch.units * ch.bill_fee)::numeric as total_bill_fee
                                 , (ch.units * ch.allowed_amount)::numeric as total_allowed_fee
                                 , chs.study_id
+                                , (SELECT accession_no FROM public.studies WHERE id = chs.study_id )
                                 , (SELECT EXISTS (SELECT * FROM billing.payment_applications WHERE charge_id = ch.id )) as payment_exists
                             FROM billing.charges ch
                                 INNER JOIN public.cpt_codes cpt ON ch.cpt_id = cpt.id
