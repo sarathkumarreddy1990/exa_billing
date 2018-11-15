@@ -488,7 +488,10 @@ define(['jquery',
                         paymentStatus: $("#ulPaymentStatus").val(),
                         from: self.from,
                         filterData: filterData,
-                        filterCol: filterCol
+                        filterCol: filterCol,
+                        toDate: moment().format('YYYY-MM-DD'),
+                        fromDate: moment().subtract(29, 'days').format('YYYY-MM-DD'),
+                        filterByDateType: 'accounting_date'
                     },
                     success: function (data, response) {
                         commonjs.prepareCsvWorker({
