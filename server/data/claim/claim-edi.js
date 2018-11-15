@@ -193,7 +193,29 @@ module.exports = {
         params.payerType = params.payerType || null;
 
         let sql = SQL`
-
+            WITH claim_details AS (
+                SELECT
+                    claims.id AS claim_id
+                    , sum(charges.bill_fee * charges.units) AS charges_bill_fee_total
+                FROM billing.claims
+                INNER JOIN billing.charges ON charges.claim_id = claims.id
+                INNER JOIN patients ON patients.id = claims.patient_id
+                WHERE claims.id= ANY(${claimIds}) AND NOT is_excluded
+                GROUP BY claims.id
+            )
+            , payment_details AS (
+                SELECT
+                    cd.claim_id
+                    , max(charges_bill_fee_total) AS charges_bill_fee_total
+                    , coalesce(sum(pa.amount) FILTER (WHERE pa.amount_type = 'payment' AND payer_type='insurance'),0::money) AS payment_insurance_total
+                    , coalesce(sum(pa.amount) FILTER (WHERE pa.amount_type = 'payment' AND payer_type='patient'),0::money) AS payment_patient_total
+                FROM claim_details AS cd
+                INNER JOIN billing.charges AS c ON c.claim_id = cd.claim_id
+                LEFT JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
+                LEFT JOIN billing.payments AS p ON pa.payment_id = p.id
+                WHERE NOT is_excluded
+                GROUP BY cd.claim_id
+            )
             SELECT
 			relationship_status.description as subscriber_relationship,
 			claims.id as claim_id,
@@ -418,9 +440,9 @@ module.exports = {
 							FROM   (
 									SELECT claims.id as "claimNumber",
 										frequency as "claimFrequencyCode",
-										bgcp.charges_bill_fee_total::numeric::text AS "claimTotalCharge",
-										bgcp.payment_insurance_total::numeric::text AS "claimPaymentInsurance",
-										bgcp.payment_patient_total::numeric::text AS "claimPaymentPatient",
+										pd.charges_bill_fee_total::numeric::text AS "claimTotalCharge",
+										pd.payment_insurance_total::numeric::text AS "claimPaymentInsurance",
+										pd.payment_patient_total::numeric::text AS "claimPaymentPatient",
 										(SELECT places_of_service.code FROM  places_of_service WHERE  places_of_service.id=claims.place_of_service_id) as "POS",
 										to_char(date(timezone(facilities.time_zone,claim_dt)), 'YYYYMMDD') as "claimDate",							date(timezone(facilities.time_zone,claim_dt))::text as "claimDt",
 										is_employed as  "relatedCauseCode1",
@@ -716,7 +738,7 @@ module.exports = {
 					)
 
 					FROM billing.claims
-					INNER JOIN LATERAL billing.get_claim_payments(claims.id, true) bgcp ON TRUE
+					INNER JOIN payment_details pd ON pd.claim_id = claims.id
 					INNER JOIN facilities ON facilities.id=claims.facility_id
 					INNER JOIN patients ON patients.id=claims.patient_id
 					INNER JOIN    patient_insurances pi  ON  pi.id =
