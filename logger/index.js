@@ -1,5 +1,6 @@
-const ln = require('ln');
-const path = require('path');
+const ln = require('ln')
+    , path = require('path')
+    , moment = require('moment');
 
 const getFilePath = () => {
     const logPath = path.join(__dirname, '../../log');
@@ -18,7 +19,7 @@ const getFilePath = () => {
  * j: json
  */
 const getFormatter = (json) => {
-    return `${json.p} ${json.t} ${ln.LEVEL[json.l]} ${json.m} ${json.j ? JSON.stringify(json.j) : ''}\r`;
+    return `${json.p} ${moment(json.t).format()} ${ln.LEVEL[json.l]} ${json.m} ${json.j ? JSON.stringify(json.j) : ''}\r`;
 };
 
 const appenders = [{
