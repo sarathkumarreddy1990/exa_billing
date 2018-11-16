@@ -93,8 +93,8 @@ define(['jquery',
                         },
                         {
                             name: 'billing_method',
-                            "stype": "select", 
-                            searchoptions: { value: billingMethodValue }, 
+                            "stype": "select",
+                            searchoptions: { value: billingMethodValue },
                             formatter: self.billingMethodFormatter
                         },
                         {
@@ -165,7 +165,7 @@ define(['jquery',
                         success: function (model, response) {
                             if (response && response.length > 0) {
                                 var data = response[0];
-                                
+
                                 if (data) {
                                     $('#lblInsuranceName ').html(data.insurance_name ? data.insurance_name : '');
                                     $('#ddlClaimClearingHouse').val(data.claimclearinghouse ? data.claimclearinghouse : '');
@@ -290,18 +290,15 @@ define(['jquery',
                 else{
                     $('#clearingHouse').hide();
                 }
-                    
+
             },
 
             changeEDICode: function () {
                 var ediCode = $('#selectPayerEDICode').val();
                 var ediVal = '';
                 switch (ediCode) {
-                    case '-1':
                     case 'A':
-                    case 'Y':
-                    case 'M':
-                        ediVal = ''
+                        ediVal = 'AT'
                         break;
                     case 'C':
                         ediVal = 'MB'
@@ -326,6 +323,7 @@ define(['jquery',
                         break;
                     case 'default':
                         ediVal = ''
+                        break;
                 }
                 $('#txtClaimFileIndicatorCode').val(ediVal);
             }
