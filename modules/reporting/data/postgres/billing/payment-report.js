@@ -183,12 +183,11 @@ const detailQueryTemplate = _.template(`
                      CASE
                       WHEN
                          p.payer_type = 'patient' THEN
-                         get_full_name(pp.last_name,
-                                    pp.first_name,
-                                    pp.middle_name,
-                                    pp.prefix_name,
-                                    pp.suffix_name
-                                )
+                         get_full_name(p_pp.last_name,
+                                        p_pp.first_name,
+                                        p_pp.middle_name,
+                                        p_pp.prefix_name,
+                                        p_pp.suffix_name)
                        WHEN
                         p.payer_type = 'insurance' THEN ip.insurance_name
                        WHEN
@@ -215,6 +214,7 @@ const detailQueryTemplate = _.template(`
                 LEFT join public.Provider_contacts pc on pc.id = provider_contact_id
                 LEFT join public.Providers pr on pr.id = pc.provider_id
                 LEFT join public.patients pp on pp.id = c.patient_id
+                LEFT join public.patients p_pp on p_pp.id = p.patient_id
                 <% if (paymentStatus) { %> WHERE <% print(paymentStatus); } %>
             `);
 
