@@ -45,7 +45,7 @@
             <input type="hidden" id="hdnOrderId" />
             <input type="hidden" id="hdnPaymentId" />
             <table id="tblApplyPendingPayments" class="table-bordered scroll" style="text-align: center;">
-                <thead id="thApplyPendingPayments" style="background: #f5f5f5;">
+                <thead id="thApplyPendingPayments" class="thGrid">
                     <td>
                         <span i18n="billing.payments.cptCode"></span>
                     </td>
@@ -200,9 +200,8 @@
         </div>
     </div>
 </div>
-<div id="divPaymentCAS" class="divBackgroundPayment form-horizontal commonBorder" style="display: none; position: absolute; border-radius:10px;z-index:10000; width: 97.5%; padding:20px;background-color: white;
-          text-align: center;top: 2%;border: 1px solid #dee2e6;">
-    <div class="row modal-header" style="margin-bottom: 10px;">
+<div id="divPaymentCAS" class="p-2 text-center divBackgroundPayment form-horizontal commonBorder position-absolute border border-white rounded paymentCAS" style="display: none; z-index:10000; width: 98%; top: 2%;">
+    <div class="modal-header mb-2">
         <div class="col">
             <span class="cobAmount" i18n="billing.COB.groupCode"></span>
         </div>
