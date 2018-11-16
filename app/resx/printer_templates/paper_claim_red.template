@@ -491,7 +491,7 @@ function formatRedForm(claimData) {
                                 style: 'myTable',
                                 margin: [-5, 0, 0, 0],
                                 table: {
-                                    widths: [23, 24],
+                                    widths: [28, 24],
                                     heights: [10],
                                     body: [
                                         [
@@ -804,7 +804,7 @@ function formatRedForm(claimData) {
 							(
 								( claimData.subscriber[0].claim[0].servicefacility[0] ?
 									(
-										(claimData.subscriber[0].claim[0].servicefacility[0] ? 
+										(claimData.subscriber[0].claim[0].servicefacility[0] ?
 										    (claimData.subscriber[0].claim[0].servicefacility[0].lastName? ((claimData.subscriber[0].claim[0].servicefacility[0].lastName).toString().toUpperCase().substring(0, 26)) : '') :'')+ "\n"+
 										(claimData.subscriber[0].claim[0].servicefacility[0].addressLine1 ? claimData.subscriber[0].claim[0].servicefacility[0].addressLine1.toString().toUpperCase().substring(0, 26) :"")+"\n"+
 										(
