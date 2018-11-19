@@ -590,7 +590,7 @@ module.exports = {
                             FROM ( SELECT
                                     cas.amount,
                                     rc.code,
-                                    rc.description 
+                                    rc.description
                                 FROM billing.cas_payment_application_details cas
                                 INNER JOIN billing.cas_reason_codes rc ON rc.id = cas.cas_reason_code_id
                                 WHERE  cas.payment_application_id = pa.payment_application_adjustment_id
@@ -658,9 +658,31 @@ module.exports = {
             billProvId
         } = params;
 
-        let billProvWhereQuery = billProvId && billProvId != 0 && billProvId != '' ? `AND billing.claims.billing_provider_id = ${billProvId}` : '';
+        let billProvWhereQuery = billProvId && billProvId != 0 && billProvId != '' ? `AND claims.billing_provider_id = ${billProvId}` : '';
 
-        let sql = SQL`SELECT
+        let sql = SQL` WITH claim_details AS (
+                            SELECT
+                                claims.id AS claim_id
+                                , sum(charges.bill_fee * charges.units) AS charges_bill_fee_total
+                            FROM billing.claims
+                            INNER JOIN billing.charges ON charges.claim_id = claims.id
+                            INNER JOIN patients ON patients.id = claims.patient_id
+                            WHERE patients.id = ${patientId}
+                            GROUP BY claims.id)
+                        , payment_details AS (
+                            SELECT
+                                cd.claim_id
+                                , max(charges_bill_fee_total) AS charges_bill_fee_total
+                                , coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment'),0::money)    AS payments_applied_total
+                                , coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment'),0::money) AS adjustments_applied_total
+                                , coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment' AND payer_type='insurance'),0::money)    AS payment_insurance_total
+                                , coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment' AND payer_type='patient'),0::money)    AS payment_patient_total
+                            FROM claim_details AS cd
+                            INNER JOIN billing.charges AS c ON c.claim_id = cd.claim_id
+                            LEFT JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
+                            LEFT JOIN billing.payments AS p ON pa.payment_id = p.id
+                            GROUP BY cd.claim_id)
+                        SELECT
                         claims.id as claim_id
                         ,(  CASE payer_type
                             WHEN 'primary_insurance' THEN insurance_providers.insurance_name
@@ -673,16 +695,16 @@ module.exports = {
                         , claim_dt
                         , claims.facility_id
                         , claim_status.description as claim_status
-                        , bgcp.adjustments_applied_total
-                        , bgcp.payment_patient_total AS total_patient_payment
-                        , bgcp.payment_insurance_total AS total_insurance_payment
-                        , bgcp.charges_bill_fee_total AS billing_fee
-                        , bgcp.charges_bill_fee_total - (bgcp.payments_applied_total + bgcp.adjustments_applied_total) AS claim_balance
+                        , pd.adjustments_applied_total
+                        , pd.payment_patient_total AS total_patient_payment
+                        , pd.payment_insurance_total AS total_insurance_payment
+                        , pd.charges_bill_fee_total AS billing_fee
+                        , pd.charges_bill_fee_total - (pd.payments_applied_total + pd.adjustments_applied_total) AS claim_balance
                         , COUNT(1) OVER (range unbounded preceding) AS total_records
                         ,(select Row_to_json(agg_arr) agg_arr FROM (SELECT * FROM billing.get_age_patient_claim (patients.id, ${billProvId}::bigint ) )as agg_arr) as age_summary
                     FROM billing.claims
                     INNER JOIN patients ON claims.patient_id = patients.id
-                    INNER JOIN LATERAL billing.get_claim_payments(claims.id, false) bgcp ON TRUE
+                    INNER JOIN payment_details pd ON pd.claim_id = claims.id
                     LEFT JOIN provider_contacts  ON provider_contacts.id=claims.referring_provider_contact_id
                     LEFT JOIN providers as ref_provider ON ref_provider.id=provider_contacts.id
                     LEFT JOIN provider_contacts as rendering_pro_contact ON rendering_pro_contact.id=claims.rendering_provider_contact_id
@@ -696,7 +718,7 @@ module.exports = {
                     LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id
                     LEFT JOIN provider_groups ON claims.ordering_facility_id = provider_groups.id
                     LEFT JOIN billing.claim_status  ON claim_status.id=claims.claim_status_id
-                     WHERE patients.id=${patientId}
+                    WHERE patients.id = ${patientId}
                     `;
 
         if (billProvWhereQuery) {
