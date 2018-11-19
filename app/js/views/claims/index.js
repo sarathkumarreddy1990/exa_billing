@@ -1953,7 +1953,7 @@ define(['jquery',
                         } else {
                             self.claimICDLists.push({
                                 id: null,
-                                icd_id: self.ICDID,
+                                icd_id: parseInt(self.ICDID),
                                 claim_id: self.claim_Id || null,
                                 is_deleted: false
                             });
