@@ -86,34 +86,32 @@ function getDecimalPointsValue(data) {
     );
 }
 
-function getCPTValues(data) {
+function getCPTValues(data, servicelineList) {
     let cpt = [];
     let cptvalues = [];
     totalBillFee = 0.00;
-    cptvalues = data.subscriber && data.subscriber[0].claim && data.subscriber[0].claim[0].serviceLine ? data.subscriber[0].claim[0].serviceLine : [];
-    for (let pos = 0; pos < cptvalues.length; pos++) {
-         totalBillFee = (parseFloat(totalBillFee) + (data.subscriber && data.subscriber[0].claim && data.subscriber[0].claim[0].serviceLine ? parseFloat(getFeeValue(data.subscriber[0].claim[0].serviceLine[pos], 'totalBillFee')) : 0 ));
-    }
-    for (let pos = start; pos < end; pos++) {
-        if (cptvalues && cptvalues[pos]) {
+    cptvalues = servicelineList;
+    for (let i = 0; i < 6; i++) {
+        if (cptvalues && cptvalues[i]) {
+			totalBillFee = (parseFloat(totalBillFee) + (cptvalues ? parseFloat(getFeeValue(cptvalues[i], 'totalBillFee')) : 0 ));
             cpt.push([
-                { text: (cptvalues[pos].studyDate?((cptvalues[pos].studyDate).toString().substring(4,6)):""), border: [true, false, true, true]},
-                { text: (cptvalues[pos].studyDate?((cptvalues[pos].studyDate).toString().substring(6, 8)):""), border: [true, false, true, true]},
-                { text: (cptvalues[pos].studyDate?((cptvalues[pos].studyDate).toString().substring(0,4)):""), border: [true, false, true, true]},
-                { text: (cptvalues[pos].studyDate?((cptvalues[pos].studyDate).toString().substring(4,6)):""), border: [true, false, true, true]},
-                { text: (cptvalues[pos].studyDate?((cptvalues[pos].studyDate).toString().substring(6,8)):""), border: [true, false, true, true]},
-                { text: (cptvalues[pos].studyDate?((cptvalues[pos].studyDate).toString().substring(0,4)):""), border: [true, false, true, true]},
-                { text: getKeyValue(data.subscriber[0].claim[0], 'POS'), border: [true, false, true, true]},
+                { text: (cptvalues[i].studyDate?((cptvalues[i].studyDate).toString().substring(4,6)):""), border: [true, false, true, true]},
+                { text: (cptvalues[i].studyDate?((cptvalues[i].studyDate).toString().substring(6, 8)):""), border: [true, false, true, true]},
+                { text: (cptvalues[i].studyDate?((cptvalues[i].studyDate).toString().substring(0,4)):""), border: [true, false, true, true]},
+                { text: (cptvalues[i].studyDate?((cptvalues[i].studyDate).toString().substring(4,6)):""), border: [true, false, true, true]},
+                { text: (cptvalues[i].studyDate?((cptvalues[i].studyDate).toString().substring(6,8)):""), border: [true, false, true, true]},
+                { text: (cptvalues[i].studyDate?((cptvalues[i].studyDate).toString().substring(0,4)):""), border: [true, false, true, true]},
+                { text: getKeyValue(data.subscriber[0].claim[0], 'i'), border: [true, false, true, true]},
                 {text:"", border: [true, false, true, true]},
-                { text: getKeyValue(cptvalues[pos], 'examCpt'), border: [true, false, true, true]},
-                { text: getKeyValue(cptvalues[pos], 'mod1'), border: [true, false, true, true]},
-                { text: getKeyValue(cptvalues[pos], 'mod2'), border: [true, false, true, true]},
-                { text: getKeyValue(cptvalues[pos], 'mod3'), border: [true, false, true, true]},
-                { text: getKeyValue(cptvalues[pos], 'mod4'), border: [true, false, true, true]},
-                { text: getPointerValue(cptvalues[pos]), border: [true, false, true, true]},
-                { text: getDecimalNumericValue(getKeyValue(cptvalues[pos], 'totalBillFee')), border: [true, false, true, true], margin:[-3, 0,0,0]},
-                { text: getDecimalPointsValue(getKeyValue(cptvalues[pos], 'totalBillFee')), border: [true, false, true, true]},
-                { text: getKeyTrimValue(cptvalues[pos], 'unit', 6), border: [true, false, true, true]},
+                { text: getKeyValue(cptvalues[i], 'examCpt'), border: [true, false, true, true]},
+                { text: getKeyValue(cptvalues[i], 'mod1'), border: [true, false, true, true]},
+                { text: getKeyValue(cptvalues[i], 'mod2'), border: [true, false, true, true]},
+                { text: getKeyValue(cptvalues[i], 'mod3'), border: [true, false, true, true]},
+                { text: getKeyValue(cptvalues[i], 'mod4'), border: [true, false, true, true]},
+                { text: getPointerValue(cptvalues[i]), border: [true, false, true, true]},
+                { text: getDecimalNumericValue(getKeyValue(cptvalues[i], 'totalBillFee')), border: [true, false, true, true], margin:[-3, 0,0,0]},
+                { text: getDecimalPointsValue(getKeyValue(cptvalues[i], 'totalBillFee')), border: [true, false, true, true]},
+                { text: getKeyTrimValue(cptvalues[i], 'unit', 6), border: [true, false, true, true]},
                 {text:"",  border: [true, false, true, true]}, { text: 'NPI', alignment: 'center' , border: [true, false, true, true]},
                 { text: data.subscriber[0].claim[0].renderingProvider ? getKeyTrimValue(data.subscriber[0].claim[0].renderingProvider[0], 'NPINO', 12) : '' , border: [true, false, true, true]},
             ]);
@@ -122,8 +120,8 @@ function getCPTValues(data) {
     return cpt;
 }
 
-function getCPTBlock(claimData) {
-    let cpt = getCPTValues(claimData);
+function getCPTBlock(claimData, servicelineList) {
+    let cpt = getCPTValues(claimData, servicelineList);
     return [
         [
             {
@@ -605,7 +603,7 @@ function getPageBreak() {
     return {text: '', pageBreak: 'before'};
 }
 
-function formatSingleClaim(claimData) {
+function formatSingleClaim(claimData, servicelineList) {
     let totalPaid = getClaimResponsible(claimData);
     return [
         {
@@ -1048,7 +1046,7 @@ function formatSingleClaim(claimData) {
 			table: {
 			    widths: [12, 12, 15, 12, 12, 15, 25, 11, 41, 13 ,13 ,13 ,13 , 32, 28, 14, 20, 12, 14, 84],
 			    heights: [0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
-                body: getCPTBlock(claimData)
+                body: getCPTBlock(claimData, servicelineList)
 			}
 		},
 		{
@@ -1811,8 +1809,8 @@ function formatSingleClaim(claimData) {
 
 
 
-function mergeData(claim) {
-    var blocks = formatSingleClaim(claim);
+function mergeData(claim, servicelineList, pageBrk) {
+    var blocks = formatSingleClaim(claim, servicelineList, pageBrk);
 
     if(typeof mailMerge === 'undefined') {
         return blocks;
@@ -1826,54 +1824,37 @@ function mergeData(claim) {
     return blocks;
 }
 
+function split(array, count) {
+	var res = [];
+	while (array.length) {
+		res.push(array.splice(0, count));
+	}
+	return res;
+}
+
 function claimTable(claims) {
     var blocks = [];
-
     claims.forEach(function (claim, index) {
         totalBillFee = 0;
-        start = 0;
-        if (claim && claim.data[0].subscriber && claim.data[0].subscriber[0].claim && claim.data[0].subscriber[0].claim[0].serviceLine &&
-            claim.data[0].subscriber[0].claim[0].serviceLine.length > 6 && claim.data[0].subscriber[0].claim[0].serviceLine.length < 13) {
-            for (let i = 0; i < 2; i++) {
-                pageBrk = 'after';
-                if (i === 1) {
-                    pageBrk = 'none';
-                    start = 6;
-                    end = 12;
-                }
-                blocks = blocks.concat(mergeData(claim.data[0]));
-                if (index < claims.length - 1) {
-                    blocks.push({ text: '', pageBreak: 'after' });
-                }
-            }
-
-        } else if (claim && claim.data[0].subscriber && claim.data[0].subscriber[0].claim && claim.data[0].subscriber[0].claim[0].serviceLine &&
-            claim.data[0].subscriber[0].claim[0].serviceLine.length > 12 && claim.data[0].subscriber[0].claim[0].serviceLine.length < 16) {
-            for (let i = 0; i <= 2; i++) {
-                pageBrk = 'after';
-                if (i === 1) {
-                    start = 6;
-                    end = 12;
-                }
-                if (i === 2) {
-                    pageBrk = 'none';
-                    start = 12;
-                    end = 18;
-                }
-                blocks = blocks.concat(mergeData(claim.data[0]));
-                if (index < claims.length - 1) {
-                    blocks.push({ text: '', pageBreak: 'after' });
-                }
-            }
-
-        } else {
-            blocks = blocks.concat(mergeData(claim.data[0]));
-            if (index < claims.length - 1) {
-                blocks.push({ text: '', pageBreak: 'after' });
-            }
-        }
+        var isLastClaim = (index == (claims.length-1)) ? true : false;
+		var servicelinelist = claim && claim.data[0].subscriber && claim.data[0].subscriber[0].claim && claim.data[0].subscriber[0].claim[0].serviceLine;
+		if (servicelinelist) {
+			var splitedServiceLinelist = split(servicelinelist, 6);
+			pageBrk = 'after';
+			if (splitedServiceLinelist && splitedServiceLinelist.length) {
+				for (let i = 0; i < splitedServiceLinelist.length; i++) {
+					pageBrk = 'after';
+					if (isLastClaim && (i == (splitedServiceLinelist.length-1))) {
+						pageBrk = 'none';
+					}
+					blocks = blocks.concat(mergeData(claim.data[0], splitedServiceLinelist[i], pageBrk));
+				}
+			} else {
+				pageBrk = 'none';
+				blocks = blocks.concat(mergeData(claim.data[0], [], pageBrk));
+			}
+		}
     });
-
     return blocks;
 }
 
