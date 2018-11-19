@@ -18,6 +18,7 @@ WITH claim_data as(
     WHERE 1=1
     AND <%= patientIds %>
     <% if(billingProviderIds) { %> AND <% print(billingProviderIds); } %>
+    <% if(reportBy == 'false') { %> AND <% print(claimDate); } %>
     ),
     patient_insurance AS (
         select
@@ -54,7 +55,6 @@ WITH claim_data as(
           billing.claim_comments cc
     INNER JOIN claim_data cd on cd.claim_id = cc.claim_id
     INNER JOIN users u  on u.id = cc.created_by
-    <% if(reportBy == 'false') { %> WHERE <% print(commentDate); } %>
     UNION
     <% } %>
     SELECT
@@ -70,7 +70,6 @@ WITH claim_data as(
     INNER JOIN claim_data cd ON cd.claim_id = c.claim_id
     INNER JOIN cpt_codes cc ON cc.id = c.cpt_id
     INNER JOIN users u  ON u.id = c.created_by
-    <% if(reportBy == 'false') { %> WHERE <% print(chargeDate); } %>
     UNION
     SELECT
       bc.claim_id as id,
@@ -108,7 +107,6 @@ WITH claim_data as(
     LEFT JOIN public.provider_groups  pg on pg.id = bp.provider_group_id
     LEFT JOIN public.provider_contacts  pc on pc.id = bp.provider_contact_id
     LEFT JOIN public.providers p on p.id = pc.provider_id
-    <% if(reportBy == 'false') { %> WHERE <% print(accountDate); } %>
     GROUP BY bc.claim_id,amount_type,comments,bp.id,u.username,code,pa.applied_dt
     ORDER BY charge_id ASC
     ),
