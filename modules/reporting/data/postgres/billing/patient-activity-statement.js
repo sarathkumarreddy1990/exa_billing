@@ -18,6 +18,7 @@ WITH claim_data as(
     WHERE 1=1
     AND <%= patientIds %>
     <% if(billingProviderIds) { %> AND <% print(billingProviderIds); } %>
+    <% if(reportBy == 'false') { %> AND <% print(claimDate); } %>
     ),
     patient_insurance AS (
         select
@@ -54,7 +55,6 @@ WITH claim_data as(
           billing.claim_comments cc
     INNER JOIN claim_data cd on cd.claim_id = cc.claim_id
     INNER JOIN users u  on u.id = cc.created_by
-    <% if(reportBy == 'false') { %> WHERE <% print(commentDate); } %>
     UNION
     <% } %>
     SELECT
@@ -70,7 +70,6 @@ WITH claim_data as(
     INNER JOIN claim_data cd ON cd.claim_id = c.claim_id
     INNER JOIN cpt_codes cc ON cc.id = c.cpt_id
     INNER JOIN users u  ON u.id = c.created_by
-    <% if(reportBy == 'false') { %> WHERE <% print(chargeDate); } %>
     UNION
     SELECT
       bc.claim_id as id,
@@ -108,7 +107,6 @@ WITH claim_data as(
     LEFT JOIN public.provider_groups  pg on pg.id = bp.provider_group_id
     LEFT JOIN public.provider_contacts  pc on pc.id = bp.provider_contact_id
     LEFT JOIN public.providers p on p.id = pc.provider_id
-    <% if(reportBy == 'false') { %> WHERE <% print(accountDate); } %>
     GROUP BY bc.claim_id,amount_type,comments,bp.id,u.username,code,pa.applied_dt
     ORDER BY charge_id ASC
     ),
@@ -231,6 +229,16 @@ WITH claim_data as(
           , pid AS pid
           FROM sum_statement_credit_cte
           ),
+          -- Selected Claim id based billing_provider_name fetch
+          billing_provider_cte AS (
+            SELECT
+                bp.name AS billing_provider_name
+            FROM
+                billing.providers bp
+            INNER JOIN billing.claims bc on bc.billing_provider_id = bp.id
+            WHERE
+                <% if(billingProviderIds) { %> <% print(billingProviderIds); } else { %>  bc.id =  <%= claimId %> <% } %>
+          ),
           all_cte AS (
           -- 1st Header, Billing Provider, update the columns in the dataset
           -- 2nd Header, Patient
@@ -273,6 +281,7 @@ WITH claim_data as(
           , -1                   AS sort_order
           , -1                   AS statement_flag
           , ''                   AS charge_id
+          , null                 AS c32
           UNION
           -- Coverage Info
 
@@ -316,6 +325,7 @@ WITH claim_data as(
       , 0                              AS sort_order
       , 0
       , null
+      , null
       FROM patient_insurance
 
       UNION
@@ -358,6 +368,7 @@ WITH claim_data as(
               , 0
               , 0                              AS sort_order
               , 1
+              , null
               , null
               FROM sum_statement_credit_cte
               UNION
@@ -403,6 +414,7 @@ WITH claim_data as(
               , 0                              AS sort_order
               , 2
               , null
+              , null
               FROM detail_cte
               UNION
 
@@ -447,6 +459,7 @@ WITH claim_data as(
           , sort_order
           , null
           , charge_id::text
+          , null
           FROM detail_cte
           UNION
 
@@ -488,6 +501,7 @@ WITH claim_data as(
           , null
           , 5
           , 98   AS sort_order
+          , null
           , null
           , null
           FROM sum_encounter_cte
@@ -533,6 +547,7 @@ WITH claim_data as(
           , 99   AS sort_order
           , 0
           , null
+          , null
           FROM statement_cte
 
           UNION
@@ -576,8 +591,54 @@ WITH claim_data as(
               , 99   AS sort_order
               , 2
               , null
+              , null
               FROM statement_cte
 
+        UNION
+        -- Billing Provider Information based on claim Id
+
+              SELECT
+                null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , 0
+              , null
+              , 6
+              , 99   AS sort_order
+              , 2
+              , null
+              , billing_provider_name
+              FROM
+                billing_provider_cte
           )
 
           -- Main Query, added rowFlag and encounterAmount for HTML and PDF
@@ -619,6 +680,7 @@ WITH claim_data as(
           , row_flag
           , CASE row_flag WHEN 1 THEN c15 WHEN 2 THEN c16 WHEN 3 THEN c17 ELSE '' END AS enc_amount
           ,  CASE  WHEN c28 IS NOT NULL then 12 else statement_flag end as statement_flag
+          , c32
           FROM all_cte
           ORDER BY
             pid
@@ -737,8 +799,8 @@ const api = {
             chargeDate: null,
             accountDate: null,
             patientInsIds: null,
-            billingComments: null
-
+            billingComments: null,
+            claimId: null
         };
 
         // company id
@@ -778,6 +840,8 @@ const api = {
         }
 
         filters.reportBy =  reportParams.reportBy;
+
+        filters.claimId = reportParams.claimId;
 
         return {
             queryParams: params,

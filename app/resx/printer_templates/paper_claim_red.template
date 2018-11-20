@@ -1,7 +1,6 @@
 let totalBill = 0;
 let pageBrk = 'none';
 let cpt = [];
-let start = 0, end = 6;
 let payerDets = [];
 function getTick(data, code, fromOthers) {
     if (fromOthers && data && data.subscriber && data.subscriber[0].claimFilingCode !== 'MB' && data.subscriber[0].claimFilingCode !== 'MC' &&
@@ -65,21 +64,20 @@ function getResubmissionCode(data, field) {
     return '';
 }
 
-function getTableContents(claimData) {
+function getTableContents(claimData, servicelineList) {
     let cptRows = [];
 
-    for (let i = start; i < end; i++) {
-        if (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].serviceLine &&
-            claimData.subscriber[0].claim[0].serviceLine[i] && claimData.subscriber[0].claim[0].serviceLine[i].examCpt) {
+    for (let i = 0; i < 6; i++) {
+        if(servicelineList[i] && servicelineList[i].examCpt) {
             let claimDate = claimData.subscriber[0].claim[0].claimDate ? claimData.subscriber[0].claim[0].claimDate.toString() : '';
             cptRows.push([
-                {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
-                { text: claimData.subscriber[0].claimFilingCode ? (claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'WC' ? 'OB' : '') : '' },
-                {
-                    text: claimData.subscriber[0].claimFilingCode && (claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'WC') &&
-                        claimData.subscriber[0].claim[0].renderingProvider && claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo ? claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo : ''
-                }
-            ],
+                    {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
+                    { text: claimData.subscriber[0].claimFilingCode ? (claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'WC' ? 'OB' : '') : '' },
+                    {
+                        text: claimData.subscriber[0].claimFilingCode && (claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'WC') &&
+                            claimData.subscriber[0].claim[0].renderingProvider && claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo ? claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo : ''
+                    }
+                ],
                 [
                     {
                         text: claimDate ?(claimDate.toString().substring(4,6)) : ''
@@ -100,30 +98,30 @@ function getTableContents(claimData) {
                         text: claimDate ?(claimDate.toString().substring(0,4)) : ''
                     },
                     { text: claimData.subscriber[0].claim[0].POS ? claimData.subscriber[0].claim[0].POS.toString().substring(0, 3) : '' }, { text: '' },
-                    { text: claimData.subscriber[0].claim[0].serviceLine[i].examCpt ? claimData.subscriber[0].claim[0].serviceLine[i].examCpt.toString().substring(0, 5) : '' },
-                    { text: claimData.subscriber[0].claim[0].serviceLine[i].mod1 ? claimData.subscriber[0].claim[0].serviceLine[i].mod1.toString().substring(0, 2) : '' },
-                    { text: claimData.subscriber[0].claim[0].serviceLine[i].mod2 ? claimData.subscriber[0].claim[0].serviceLine[i].mod2.toString().substring(0, 2) : '' },
-                    { text: claimData.subscriber[0].claim[0].serviceLine[i].mod3 ? claimData.subscriber[0].claim[0].serviceLine[i].mod3.toString().substring(0, 2) : '' },
-                    { text: claimData.subscriber[0].claim[0].serviceLine[i].mod4 ? claimData.subscriber[0].claim[0].serviceLine[i].mod4.toString().substring(0, 2) : '' },
+                    { text: servicelineList[i].examCpt ? servicelineList[i].examCpt.toString().substring(0, 5) : '' },
+                    { text: servicelineList[i].mod1 ? servicelineList[i].mod1.toString().substring(0, 2) : '' },
+                    { text: servicelineList[i].mod2 ? servicelineList[i].mod2.toString().substring(0, 2) : '' },
+                    { text: servicelineList[i].mod3 ? servicelineList[i].mod3.toString().substring(0, 2) : '' },
+                    { text: servicelineList[i].mod4 ? servicelineList[i].mod4.toString().substring(0, 2) : '' },
                     {
-                        text: ((claimData.subscriber[0].claim[0].serviceLine[i].pointer1 ? numToAlphabet(claimData.subscriber[0].claim[0].serviceLine[i].pointer1) : '') +
-                            (claimData.subscriber[0].claim[0].serviceLine[i].pointer2 ? numToAlphabet(claimData.subscriber[0].claim[0].serviceLine[i].pointer2) : '') +
-                            (claimData.subscriber[0].claim[0].serviceLine[i].pointer3 ? numToAlphabet(claimData.subscriber[0].claim[0].serviceLine[i].pointer3) : '') +
-                            (claimData.subscriber[0].claim[0].serviceLine[i].pointer4 ? numToAlphabet(claimData.subscriber[0].claim[0].serviceLine[i].pointer4) : '')) ?
-                            ((claimData.subscriber[0].claim[0].serviceLine[i].pointer1 ? numToAlphabet(claimData.subscriber[0].claim[0].serviceLine[i].pointer1) : '') +
-                                (claimData.subscriber[0].claim[0].serviceLine[i].pointer2 ? numToAlphabet(claimData.subscriber[0].claim[0].serviceLine[i].pointer2) : '') +
-                                (claimData.subscriber[0].claim[0].serviceLine[i].pointer3 ? numToAlphabet(claimData.subscriber[0].claim[0].serviceLine[i].pointer3) : '') +
-                                (claimData.subscriber[0].claim[0].serviceLine[i].pointer4 ? numToAlphabet(claimData.subscriber[0].claim[0].serviceLine[i].pointer4) : '')).toString().substring(0, 4) : ''
+                        text: ((servicelineList[i].pointer1 ? numToAlphabet(servicelineList[i].pointer1) : '') +
+                                (servicelineList[i].pointer2 ? numToAlphabet(servicelineList[i].pointer2) : '') +
+                                (servicelineList[i].pointer3 ? numToAlphabet(servicelineList[i].pointer3) : '') +
+                                (servicelineList[i].pointer4 ? numToAlphabet(servicelineList[i].pointer4) : '')) ?
+                                    ((servicelineList[i].pointer1 ? numToAlphabet(servicelineList[i].pointer1) : '') +
+                                        (servicelineList[i].pointer2 ? numToAlphabet(servicelineList[i].pointer2) : '') +
+                                        (servicelineList[i].pointer3 ? numToAlphabet(servicelineList[i].pointer3) : '') +
+                                        (servicelineList[i].pointer4 ? numToAlphabet(servicelineList[i].pointer4) : '')).toString().substring(0, 4) : ''
                     },
                     {
-                        text: claimData.subscriber[0].claim[0].serviceLine[i].totalBillFee && claimData.subscriber[0].claim[0].serviceLine[i].totalBillFee.split(".") &&
-                            claimData.subscriber[0].claim[0].serviceLine[i].totalBillFee.split(".")[0] ? claimData.subscriber[0].claim[0].serviceLine[i].totalBillFee.split(".")[0].toString().substring(0, 8) : ''
+                        text: servicelineList[i].totalBillFee && servicelineList[i].totalBillFee.split(".") &&
+                            servicelineList[i].totalBillFee.split(".")[0] ? servicelineList[i].totalBillFee.split(".")[0].toString().substring(0, 8) : ''
                     },
                     {
-                        text: claimData.subscriber[0].claim[0].serviceLine[i].totalBillFee && claimData.subscriber[0].claim[0].serviceLine[i].totalBillFee.split(".") &&
-                            claimData.subscriber[0].claim[0].serviceLine[i].totalBillFee.split(".")[1] ? claimData.subscriber[0].claim[0].serviceLine[i].totalBillFee.split(".")[1].toString().substring(0, 2) : ''
+                        text: servicelineList[i].totalBillFee && servicelineList[i].totalBillFee.split(".") &&
+                            servicelineList[i].totalBillFee.split(".")[1] ? servicelineList[i].totalBillFee.split(".")[1].toString().substring(0, 2) : ''
                     },
-                    { text: claimData.subscriber[0].claim[0].serviceLine[i].unit ? claimData.subscriber[0].claim[0].serviceLine[i].unit.toString().substring(0, 5) : '' }, {}, {},
+                    { text: servicelineList[i].unit ? servicelineList[i].unit.toString().substring(0, 5) : '' }, {}, {},
                     {
                         text: claimData.subscriber[0].claim[0].renderingProvider && claimData.subscriber[0].claim[0].renderingProvider[0].NPINO ?
                             claimData.subscriber[0].claim[0].renderingProvider[0].NPINO.toString().substring(0, 12) : ''
@@ -137,7 +135,6 @@ function getTableContents(claimData) {
                 { text: '' }
             ],
                 [
-
                     { text: '' },
                     { text: '' },
                     { text: '' },
@@ -163,14 +160,15 @@ function getTableContents(claimData) {
     return cptRows;
 }
 
-function getTotalBill(claimData) {
+function getTotalBill(claimData, servicelineList) {
     let _totalBill = 0;
-    if (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].serviceLine) {
-        for (let i = 0; i < claimData.subscriber[0].claim[0].serviceLine.length; i++) {
-            if (claimData.subscriber[0].claim[0].serviceLine[i] && claimData.subscriber[0].claim[0].serviceLine[i].examCpt)
-                _totalBill += claimData.subscriber[0].claim[0].serviceLine[i].totalBillFee ? +claimData.subscriber[0].claim[0].serviceLine[i].totalBillFee : 0.00;
-        }
-    }
+	if (servicelineList[i]){
+		for (let i = 0; i < 6; i++) {
+			if (servicelineList[i] && servicelineList[i].examCpt) {
+				_totalBill += servicelineList[i].totalBillFee ? +servicelineList[i].totalBillFee : 0.00;
+			}
+		}
+	}
     return _totalBill;
 }
 
@@ -239,10 +237,10 @@ function getPayerDetails(claimData) {
 }
 
 
-function formatRedForm(claimData) {
-    cpt = getTableContents(claimData);
+function formatRedForm(claimData, servicelineList, pageBrk) {
+    cpt = getTableContents(claimData, servicelineList);
     payerDets = getPayerDetails(claimData);
-    totalBill = getTotalBill(claimData);
+    totalBill = getTotalBill(claimData, servicelineList);
     return ([
         {
             style: 'myTable',
@@ -491,7 +489,7 @@ function formatRedForm(claimData) {
                                 style: 'myTable',
                                 margin: [-5, 0, 0, 0],
                                 table: {
-                                    widths: [23, 24],
+                                    widths: [28, 24],
                                     heights: [10],
                                     body: [
                                         [
@@ -804,7 +802,7 @@ function formatRedForm(claimData) {
 							(
 								( claimData.subscriber[0].claim[0].servicefacility[0] ?
 									(
-										(claimData.subscriber[0].claim[0].servicefacility[0] ? 
+										(claimData.subscriber[0].claim[0].servicefacility[0] ?
 										    (claimData.subscriber[0].claim[0].servicefacility[0].lastName? ((claimData.subscriber[0].claim[0].servicefacility[0].lastName).toString().toUpperCase().substring(0, 26)) : '') :'')+ "\n"+
 										(claimData.subscriber[0].claim[0].servicefacility[0].addressLine1 ? claimData.subscriber[0].claim[0].servicefacility[0].addressLine1.toString().toUpperCase().substring(0, 26) :"")+"\n"+
 										(
@@ -890,8 +888,8 @@ function getSecondaryAmountPaid(claimData) {
     return total;
 }
 
-function mergeData(claim) {
-    var blocks = formatRedForm(claim);
+function mergeData(claim, servicelineList, pageBrk) {
+    var blocks = formatRedForm(claim, servicelineList, pageBrk);
     if (typeof mailMerge === 'undefined') {
         return blocks;
     }
@@ -901,50 +899,36 @@ function mergeData(claim) {
     return blocks;
 }
 
+function split(array, count) {
+	var res = [];
+	while (array.length) {
+		res.push(array.splice(0, count));
+	}
+	return res;
+}
+
 function claimTable(claims) {
     var blocks = [];
     claims.forEach(function (claim, index) {
         totalBill = 0;
-        if (claim && claim.data[0].subscriber && claim.data[0].subscriber[0].claim && claim.data[0].subscriber[0].claim[0].serviceLine &&
-            claim.data[0].subscriber[0].claim[0].serviceLine.length > 6 && claim.data[0].subscriber[0].claim[0].serviceLine.length < 13) {
-            for (let i = 0; i < 2; i++) {
-                pageBrk = 'after';
-                if (i === 1) {
-                    pageBrk = 'none';
-                    start = 6;
-                    end = 12;
-                }
-                blocks = blocks.concat(mergeData(claim.data[0]));
-                if (index < claims.length - 1) {
-                    blocks.push({ text: '', pageBreak: 'after' });
-                }
-            }
-
-        } else if (claim && claim.data[0].subscriber && claim.data[0].subscriber[0].claim && claim.data[0].subscriber[0].claim[0].serviceLine &&
-            claim.data[0].subscriber[0].claim[0].serviceLine.length > 12 && claim.data[0].subscriber[0].claim[0].serviceLine.length < 16) {
-            for (let i = 0; i <= 2; i++) {
-                pageBrk = 'after';
-                if (i === 1) {
-                    start = 6;
-                    end = 12;
-                }
-                if (i === 2) {
-                    pageBrk = 'none';
-                    start = 12;
-                    end = 18;
-                }
-                blocks = blocks.concat(mergeData(claim.data[0]));
-                if (index < claims.length - 1) {
-                    blocks.push({ text: '', pageBreak: 'after' });
-                }
-            }
-
-        } else {
-            blocks = blocks.concat(mergeData(claim.data[0]));
-            if (index < claims.length - 1) {
-                blocks.push({ text: '', pageBreak: 'after' });
-            }
-        }
+		var isLastClaim = (index == (claims.length-1)) ? true : false;
+		var servicelinelist = claim && claim.data[0].subscriber && claim.data[0].subscriber[0].claim && claim.data[0].subscriber[0].claim[0].serviceLine;
+		if (servicelinelist) {
+			var splitedServiceLinelist = split(servicelinelist, 6);
+			pageBrk = 'after';
+			if (splitedServiceLinelist && splitedServiceLinelist.length) {
+				for (let i = 0; i < splitedServiceLinelist.length; i++) {
+					pageBrk = 'after';
+					if (isLastClaim && (i == (splitedServiceLinelist.length-1))) {
+						pageBrk = 'none';
+					}
+					blocks = blocks.concat(mergeData(claim.data[0], splitedServiceLinelist[i], pageBrk));
+				}
+			} else {
+				pageBrk = 'none';
+				blocks = blocks.concat(mergeData(claim.data[0], [], pageBrk));
+			}
+		}
     });
     return blocks;
 }
