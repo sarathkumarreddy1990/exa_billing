@@ -143,8 +143,6 @@ module.exports = {
 
     changeClaimStatus: async (params) => {
 
-        //let success_claimID = params.success_claimID.split(',');
-
         let getClaimsDetails = SQL` ,claim_details as (
                 SELECT claims.id as claim_id, ${params.notes} || ' ' ||
                 (  CASE  COALESCE(${params.payerType}, payer_type)
