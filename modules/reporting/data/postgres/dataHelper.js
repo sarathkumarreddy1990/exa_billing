@@ -655,6 +655,42 @@ const api = {
                 })
                 .catch(error => logger.logError('EXA Reporting - Error on selecting studey info!', error));
         });
+    },
+
+    getInsuranceGroupInfo: (companyId, insuranceGroupIds) => {
+        return new Promise((resolve, reject) => {
+            const sql = `
+                SELECT
+                    id
+                  , code
+                  , description
+                FROM
+                    insurance_provider_payer_types
+                WHERE
+                    company_id = $1
+                AND id = any ($2)
+                ORDER BY code
+            `;
+            const params = [
+                companyId,
+                insuranceGroupIds
+            ];
+            db.query(sql, params)
+                .then((pgResult) => {
+                    const insuranceGroupInfo = [];
+                    if (pgResult.rows && pgResult.rows.length > 0) {
+                        _.forEach(pgResult.rows, (val) => {
+                            insuranceGroupInfo.push({
+                                id: val.id,
+                                code: val.code,
+                                description: val.description,
+                            });
+                        });
+                    }
+                    return resolve(insuranceGroupInfo);
+                })
+                .catch(error => logger.logError('EXA Reporting - Error on selecting Insurance Group Info!', error));
+        });
     }
 };
 
