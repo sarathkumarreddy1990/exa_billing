@@ -503,11 +503,6 @@ define(['jquery',
                     return false;
                 }
 
-                if (existingBillingMethod === 'direct_billing' && _.uniq(invoiceNo).length > 1) {
-                    commonjs.showWarning('Please select claims with same invoice no ');
-                    return false;
-                }
-
                 /// Possible values for template type --
                 /// "direct_invoice"
                 /// "paper_claim_full"
@@ -532,7 +527,7 @@ define(['jquery',
                 }
                 var uniquePayerName = $.unique(selectedPayerName);
 
-                if (existingBillingMethod === 'direct_billing' && _.uniq(invoiceNo).length == 1) {
+                if (existingBillingMethod === 'direct_billing') {
                     if (uniquePayerName && uniquePayerName.length && uniquePayerName.length > 1) {
                         self.printInvoiceClaim('direct_invoice', claimIds, sortBy)
                         return;

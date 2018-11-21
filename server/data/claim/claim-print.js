@@ -69,8 +69,7 @@ module.exports = {
                 LEFT JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id
                 LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
                 LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
-                WHERE  CASE WHEN ${params.flag}='new' THEN  bc.id = ANY(${params.claimIds})
-                            WHEN ${params.flag}='invoice'  THEN  bc.id in(SELECT claims.id FROM billing.claims WHERE invoice_no=${params.invoiceNo})  END
+                WHERE  bc.id = ANY(${params.claimIds})
 
             `
             .append(` ORDER BY ${params.sortBy}) ,`)
@@ -94,38 +93,37 @@ module.exports = {
                 LEFT join modifiers as modifier2 on modifier2.id=modifier2_id
                 LEFT join modifiers as modifier3 on modifier3.id=modifier3_id
                 LEFT join modifiers as modifier4 on modifier4.id=modifier4_id
-                WHERE CASE WHEN ${params.flag}='new' THEN  bch.claim_id = ANY(${params.claimIds})
-                            WHEN ${params.flag}='invoice'  THEN  bch.claim_id in(SELECT claims.id FROM billing.claims WHERE invoice_no=${params.invoiceNo}) END
+                WHERE bch.claim_id = ANY(${params.claimIds})
 
             ),
             payment_details as(
                 SELECT
                       bp.payer_type
                     , (  CASE bp.payer_type
-                            WHEN 'insurance' THEN 
+                            WHEN 'insurance' THEN
                                 pip.insurance_name
-                            WHEN 'ordering_facility' THEN 
+                            WHEN 'ordering_facility' THEN
                                 ppg.group_name
-                            WHEN 'ordering_provider' THEN 
+                            WHEN 'ordering_provider' THEN
                                 ppr.full_name
-                            WHEN 'patient' THEN 
-                                patients.full_name 
+                            WHEN 'patient' THEN
+                                patients.full_name
                         END ) AS payer_name
-                    , bpa.amount_type 
+                    , bpa.amount_type
                     ,ch.claim_id
                     ,bp.id payment_id
                     ,bp.accounting_date as payment_dt
-                    ,SUM(CASE WHEN bpa.amount_type = 'payment' THEN 
-                                    bpa.amount 
-                              ELSE 
-                                    0.00::money 
+                    ,SUM(CASE WHEN bpa.amount_type = 'payment' THEN
+                                    bpa.amount
+                              ELSE
+                                    0.00::money
                         END) AS payments_applied_total
-                    ,SUM(CASE WHEN bpa.amount_type = 'adjustment' THEN 
-                                    bpa.amount  
-                              ELSE 
-                                    0.00::money 
+                    ,SUM(CASE WHEN bpa.amount_type = 'adjustment' THEN
+                                    bpa.amount
+                              ELSE
+                                    0.00::money
                         END)  AS ajdustments_applied_total
-                FROM billing.payments bp 
+                FROM billing.payments bp
                 INNER JOIN billing.payment_applications bpa ON bpa.payment_id = bp.id
                 INNER JOIN billing.charges ch ON ch.id = bpa.charge_id
                 LEFT JOIN public.patients ON patients.id = bp.patient_id
@@ -134,20 +132,14 @@ module.exports = {
                 LEFT JOIN public.provider_contacts ppc ON ppc.id = bp.provider_contact_id
                 LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
                 LEFT JOIN billing.adjustment_codes adj ON adj.id = bpa.adjustment_code_id
-                WHERE 
-                    CASE WHEN ${params.flag}='new' THEN  
-                            ch.claim_id = ANY(${params.claimIds}) 
-                            AND (CASE WHEN bpa.amount_type = 'adjustment' THEN 
-                                        bpa.amount != 0.00::money 
-                                      ELSE 
-                                        TRUE  
-                                END)
-                         WHEN ${params.flag}='invoice' THEN  
-                            ch.claim_id in(SELECT claims.id FROM billing.claims WHERE invoice_no=${params.invoiceNo}) 
-                         ELSE 
-                            TRUE
-                    END
-                GROUP BY 
+                WHERE
+                        ch.claim_id = ANY(${params.claimIds})
+                        AND (CASE WHEN bpa.amount_type = 'adjustment' THEN
+                                    bpa.amount != 0.00::money
+                                    ELSE
+                                    TRUE
+                            END)
+                GROUP BY
                     bpa.applied_dt
                     ,payer_name,bp.id
                     ,bpa.amount_type
