@@ -409,7 +409,8 @@
             "90days": "90 Days",
             "120days": "120 Days",
             "summary": "Summary",
-            "current": "Current"
+            "current": "Current",
+            "notes": "Notes"
         },
         "patientInsurance": {
             "coverage": "Coverage",
