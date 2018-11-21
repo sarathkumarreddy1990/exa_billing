@@ -1119,6 +1119,30 @@
                 "width": 200
             },
             "id": 65
+        },
+        {
+            "id": 66,
+            "field_code": "billing_class",
+            "field_name": "Billing Class",
+            "i18n_name": "setup.userSettings.billingClass",
+            "field_info": {
+                "name": "billing_class",
+                "width": "120",
+                "searchFlag": "%",
+                "stype": "select"
+            }
+        },
+        {
+            "id": 67,
+            "field_code": "billing_code",
+            "field_name": "Billing Code",
+            "i18n_name": "setup.userSettings.billingCode",
+            "field_info": {
+                "name": "billing_code",
+                "width": 100,
+                "searchFlag": "%",
+                "stype": "select"
+            }
         }
     ]
 }
