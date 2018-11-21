@@ -150,7 +150,8 @@
             "paperclaimFull": "Paper Claim (B & W)",
             "reloaddefault":"Reload Default Template",
             "sendFax": "Send Fax",
-            "documentReports": "DOCUMENTS AND REPORTS"
+            "documentReports": "DOCUMENTS AND REPORTS",
+            "notes": "NOTES"
         },
         "screens": {
             "charges":"Charges",
