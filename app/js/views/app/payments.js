@@ -34,6 +34,7 @@ define(['jquery',
             pendPaymentTable: null,
             pendPaymentTable1: null,
             appliedPaymentTable: null,
+            isCleared: false,
             paymentsGridTemplate: _.template(paymentsGrid),
 
             events: {
@@ -140,6 +141,7 @@ define(['jquery',
 
             refreshPayments: function () {
                 var self = this;
+                self.isCleared = false;
                 $("#divAmountTotal").html(' <i class="fa fa-spinner loading-spinner"></i>');
                 $("#divAppliedTotal").html(' <i class="fa fa-spinner loading-spinner"></i>');
                 $("#divAdjTotal").html(' <i class="fa fa-spinner loading-spinner"></i>');
@@ -147,8 +149,8 @@ define(['jquery',
                 self.paymentTable.options.customargs = {
                     paymentStatus: $("#ulPaymentStatus").val(),
                     from: self.from || '',
-                    toDate: moment().format('YYYY-MM-DD'),
-                    fromDate: moment().subtract(29, 'days').format('YYYY-MM-DD'),
+                    toDate: !self.isCleared ? moment().format('YYYY-MM-DD') : "",
+                    fromDate: !self.isCleared ? moment().subtract(29, 'days').format('YYYY-MM-DD') : "",
                     filterByDateType: 'accounting_date'
                 };
 
@@ -165,8 +167,8 @@ define(['jquery',
                 self.paymentTable.options.customargs = {
                     paymentStatus: $("#ulPaymentStatus").val(),
                     from: self.from || '',
-                    toDate: moment().format('YYYY-MM-DD'),
-                    fromDate: moment().subtract(29, 'days').format('YYYY-MM-DD'),
+                    toDate: !self.isCleared ? moment().format('YYYY-MM-DD') : "",
+                    fromDate: !self.isCleared ? moment().subtract(29, 'days').format('YYYY-MM-DD') : "",
                     filterByDateType: 'accounting_date'
                 };
                 self.pager.set({ "PageNo": 1 });
@@ -287,8 +289,8 @@ define(['jquery',
                             self.editPayment(rowID, self.from);
                         },
                         onaftergridbind: function (model, gridObj) {
+                            self.bindDateRangeOnSearchBox(gridObj);
                             if (model && model.length) {
-                                self.bindDateRangeOnSearchBox(gridObj);
                                 self.setMoneyMask();
                                 self.getTotalAmount(self.from);
                             }
@@ -307,8 +309,8 @@ define(['jquery',
                         customargs: {
                             paymentStatus: $("#ulPaymentStatus").val(),
                             from: self.from === 'ris' ? 'ris' : '',
-                            toDate: moment().format('YYYY-MM-DD'),
-                            fromDate: moment().subtract(29, 'days').format('YYYY-MM-DD'),
+                            toDate: !self.isCleared ? moment().format('YYYY-MM-DD') : "",
+                            fromDate: !self.isCleared ? moment().subtract(29, 'days').format('YYYY-MM-DD') : "",
                             filterByDateType: 'accounting_date'
                         },
                         afterInsertRow: function (rowid, rowdata) {
@@ -342,8 +344,8 @@ define(['jquery',
                     sortOrder: self.pager.get("SortOrder"),
                     default_facility_id: app.userInfo.default_facility_id,
                     from: from,
-                    toDate: moment().format('YYYY-MM-DD'),
-                    fromDate: moment().subtract(29, 'days').format('YYYY-MM-DD'),
+                    toDate: !self.isCleared ?moment().format('YYYY-MM-DD') : "",
+                    fromDate: !self.isCleared ? moment().subtract(29, 'days').format('YYYY-MM-DD') : "",
                     filterByDateType: 'accounting_date'
                 };
 
@@ -487,7 +489,10 @@ define(['jquery',
                         paymentStatus: $("#ulPaymentStatus").val(),
                         from: self.from,
                         filterData: filterData,
-                        filterCol: filterCol
+                        filterCol: filterCol,
+                        toDate: !self.isCleared ? moment().format('YYYY-MM-DD') : "",
+                        fromDate: !self.isCleared ? moment().subtract(29, 'days').format('YYYY-MM-DD') : "",
+                        filterByDateType: 'accounting_date'
                     },
                     success: function (data, response) {
                         commonjs.prepareCsvWorker({
@@ -516,7 +521,7 @@ define(['jquery',
                     var colSelector = '#gs_' + col;
 
                     var colElement = $(colSelector);
-                    if ((col == 'accounting_date') && !colElement.val()) {
+                    if ((col == 'accounting_date') && !colElement.val() && !self.isCleared) {
                         var toDate = moment(),
                             fromDate = moment().subtract(29, 'days');
                         colElement.val(fromDate.format("L") + " - " + toDate.format("L"));
@@ -539,7 +544,8 @@ define(['jquery',
                         gridObj.refresh();
                     });
                     colElement.on("cancel.daterangepicker", function (ev, drp) {
-                        gridObj.refresh();
+                        self.isCleared = true;
+                        self.searchPayments();
                     });
                 });
             }
