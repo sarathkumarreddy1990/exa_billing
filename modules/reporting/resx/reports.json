@@ -1542,5 +1542,38 @@
                 }
             }
         }
+    },
+    {
+        "id": "payments-realization-rate-analysis",
+        "category": "billing",
+        "title": "Payment Realization Rate Analysis",
+        "description": " This report needs to toggle for filtering zero balance accounts vs. accounts with a balance remaining.",
+        "jsreport": {
+            "html": {
+                "template": {
+                    "name": "default-table-html"
+                }
+            },
+            "pdf": {
+                "template": {
+                    "name": "default-table-pdf"
+                }
+            },
+            "xlsx": {
+                "template": {
+                    "name": "default-table-excel"
+                }
+            },
+            "csv": {
+                "template": {
+                    "name": "default-table-csv"
+                }
+            },
+            "xml": {
+                "template": {
+                    "name": "default-table-xml"
+                }
+            }
+        }
     }
 ]
