@@ -156,42 +156,33 @@ define(['jquery',
             // Insurance List Box for (All, selected Insurance, Insurance Group)
             // Insurance List Box for (All, selected Insurance, Insurance Group)
             onInsuranceOptionChange: function () {
+                $("#ddlOptionBox").hide();
+                $("#ddlOptionBoxList").hide();
+                $("#ddlInsuranceGroupBox").hide();
+                $("#ddlInsuranceGroupBoxList").hide();
+                $('#ulListInsurance').empty();
+                $('#ulListInsuranceProvider').empty();
+                this.viewModel.insuranceIds = [];
+                this.viewModel.insuranceGroupIds = [];
+                $('#ulListInsurance').data('insuranceIds', []);
+                $('#ulListInsuranceProvider').data('insuranceGroupIds', []);
+                $('input[id=chkAllInsGroup]').prop('checked', false);
+                $('input[class=insGrpChk]').prop('checked', false);
+                this.selectedInsGrpList = [];
+
                 if ($('#ddlInsuranceOption').val() == 'S') {
                     $("#ddlOptionBox").show();
                     $("#ddlOptionBoxList").show();
-                    $("#ddlInsuranceGroupBox").hide();
-                    $("#ddlInsuranceGroupBoxList").hide();
-                    $('input[id=chkAllInsGroup]').prop('checked', false);
-                    $('input[class=insGrpChk]').prop('checked', false);
-                    $('#ulListInsuranceProvider').empty();
-                    this.viewModel.insuranceGroupIds = [];
-                    $('#ulListInsurance').data('insuranceGroupIds', []);
-                    this.selectedInsGrpList = [];
                 }
                 else if ($('#ddlInsuranceOption').val() == 'G') {
-                    $("#ddlOptionBox").hide();
-                    $("#ddlOptionBoxList").hide();
                     $("#ddlInsuranceGroupBox").show();
                     $("#ddlInsuranceGroupBoxList").show();
-                    $('#ulListInsurance').empty();
-                    $('#ulListInsuranceProvider').empty();
-                    this.viewModel.insuranceIds = [];
-                    $('#ulListInsurance').data('insuranceIds', []);
                 }
-                else {
+                else{
                     $("#ddlOptionBox").hide();
                     $("#ddlOptionBoxList").hide();
                     $("#ddlInsuranceGroupBox").hide();
                     $("#ddlInsuranceGroupBoxList").hide();
-                    $('#ulListInsurance').empty();
-                    $('#ulListInsuranceProvider').empty();
-                    this.viewModel.insuranceIds = [];
-                    this.viewModel.insuranceGroupIds = [];
-                    $('#ulListInsurance').data('insuranceIds', []);
-                    $('#ulListInsuranceProvider').data('insuranceGroupIds', []);
-                    $('input[id=chkAllInsGroup]').prop('checked', false);
-                    $('input[class=insGrpChk]').prop('checked', false);
-                    this.selectedInsGrpList = []; // empty the selected insurance group list
                 }
             },
 
