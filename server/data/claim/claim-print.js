@@ -134,10 +134,9 @@ module.exports = {
                 LEFT JOIN billing.adjustment_codes adj ON adj.id = bpa.adjustment_code_id
                 WHERE
                         ch.claim_id = ANY(${params.claimIds})
-                        AND (CASE WHEN bpa.amount_type = 'adjustment' THEN
-                                    bpa.amount != 0.00::money
-                                    ELSE
-                                    TRUE
+                        AND (CASE
+                                WHEN bpa.amount_type = 'adjustment' THEN bpa.amount != 0.00::money
+                                ELSE TRUE
                             END)
                 GROUP BY
                     bpa.applied_dt
