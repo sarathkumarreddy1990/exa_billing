@@ -65,6 +65,21 @@ define('grid', [
             return chooseScreen(id, data, event, gridID);
         };
 
+        var initializeEditForm = function (studyInfo) {
+            var claimView = new claimsView();
+            var gridName = options.isClaimGrid ? 'claims' : 'studies';
+
+            if (studyInfo.order_id) {
+                claimView.showEditClaimForm(studyInfo.studyIds, gridName, studyInfo);
+            } else {
+                commonjs.getClaimStudy(studyInfo.studyIds, function (result) {
+                    studyInfo.study_id = (result && result.study_id) ? result.study_id : 0;
+                    studyInfo.order_id = (result && result.order_id) ? result.order_id : 0;
+                    claimView.showEditClaimForm(studyInfo.studyIds, gridName, studyInfo);
+                });
+            }
+        };
+
         var validateClaimSelection = function (row_id, enabled, _element, store) {
 
             var isPatientMatch, isStudyDateMatch, isStudyIdMatch;
@@ -408,13 +423,13 @@ define('grid', [
                     if ($('#anc_edit_claim').hasClass('disabled')) {
                         return false;
                     }
-                    self.claimView = new claimsView();
-                    self.claimView.showEditClaimForm(studyIds, 'claims', {
-                        'study_id': study_id,
-                        'patient_name': selectedStudies[0].patient_name,
-                        'patient_id': selectedStudies[0].patient_id,
-                        'order_id': 0,
-                        'grid_id': gridID
+                    return initializeEditForm({
+                        studyIds: studyIds,
+                        study_id: study_id,
+                        patient_name: selectedStudies[0].patient_name,
+                        patient_id: selectedStudies[0].patient_id,
+                        order_id: order_id,
+                        grid_id: gridID
                     });
                 });
 
@@ -673,14 +688,14 @@ define('grid', [
                     $divObj.append(liEditClaim);
                     self.checkRights('anc_edit_claim');
                     $('#anc_edit_claim').off().click(function () {
-                        self.claimView = new claimsView();
-                        self.claimView.showEditClaimForm(selectedStudies[0].claim_id, 'studies', {
-                            'study_id': selectedStudies[0].claim_id,
-                            'patient_name': selectedStudies[0].patient_name,
-                            'patient_id': selectedStudies[0].patient_id,
-                            'order_id': 0,
-                            'grid_id': gridID
-                        });
+                        return initializeEditForm({
+                            studyIds: selectedStudies[0].claim_id,
+                            study_id: selectedStudies[0].study_id,
+                            patient_name: selectedStudies[0].patient_name,
+                            patient_id: selectedStudies[0].patient_id,
+                            order_id: order_id,
+                            grid_id: gridID
+                        })
                     });
                 }
 
@@ -875,17 +890,16 @@ define('grid', [
                     customAction: function (rowID, e, that) {
                         if(screenCode.indexOf('ECLM') > -1)
                             return false;
-                        var gridData = $('#'+e.currentTarget.id).jqGrid('getRowData', rowID);
-                            self.claimView = new claimsView();
-                            self.claimView.showEditClaimForm(gridData.claim_id, !options.isClaimGrid ? 'studies' : 'claims', {
-                                'study_id': rowID,
-                                'patient_name': gridData.patient_name,
-                                'patient_id': gridData.patient_id,
-                                'order_id': gridData.order_id,
-                                'grid_id': gridID
-                            });
+                        var gridData = $('#' + e.currentTarget.id).jqGrid('getRowData', rowID);
 
-                            return false;
+                        return initializeEditForm({
+                            studyIds: gridData.claim_id,
+                            study_id: rowID,
+                            patient_name: gridData.patient_name,
+                            patient_id: gridData.patient_id,
+                            order_id: gridData.order_id,
+                            grid_id: gridID
+                        });
 
                     }
                 },
@@ -1269,7 +1283,7 @@ define('grid', [
                     }
                     if (options.isClaimGrid || (gridRowData.claim_id && gridRowData.claim_id != '')) {
                         self.claimView = new claimsView();
-                        commonjs.getClaimStudy(rowID, function (result) {
+                        commonjs.getClaimStudy(gridRowData.claim_id, function (result) {
                             if (result) {
                                 study_id = result.study_id;
                                 order_id = result.order_id;
