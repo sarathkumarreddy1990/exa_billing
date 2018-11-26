@@ -946,6 +946,10 @@ define(['jquery',
                    commonjs.openDocumentsAndReports(self.options);
                 });
 
+                $("#btnPatientNotes").off().click(function (e) {
+                    commonjs.openNotes(self.options);
+                });
+
                 $(".claimProcess").off().click(function (e) {
                     self.processClaim(e);
                 });
@@ -3781,6 +3785,7 @@ define(['jquery',
                 self.bindDetails();
 
                 $('#btPatientDocuemnt').hide();
+                $('#btnPatientNotes').hide();
 
                 //binding claim form events
                 self.bindTabMenuEvents();

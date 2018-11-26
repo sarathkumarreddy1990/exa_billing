@@ -791,7 +791,16 @@ var commonjs = {
     },
 
     removeIframeHeader: function () {
-        $('iframe#site_modal_iframe_container, iframe#ifSettings').contents().find('head').append('<style>header.header{display:none;}nav.sub-top-nav, nav#subSetupMenu {display: none;}</style>');
+        var content = '<style>' +
+            'header.header{display:none;}' +
+            'nav.sub-top-nav' +
+            ',nav#subSetupMenu {display: none;}' +
+            '</style>';
+        var frame = $('iframe#site_modal_iframe_container, iframe#ifSettings');
+        if (frame.length)
+            $(frame).contents().find('head').append(content);
+        else
+            $('iframe#site_modal_iframe_container_nested, iframe#ifSettings').contents().find('head').append(content);
     },
 
     bindListCheckAll: function (controlName, checkAllName) {
@@ -4120,6 +4129,12 @@ var commonjs = {
 
         var url = '/vieworder#patient/patientReport/all/' + btoa(patient_id) + '/' + btoa(order_id) + '/' + btoa(study_id);
         this.openWindow(url);
+    },
+
+    openNotes: function (options) {
+       var patient_id = options.patient_id;
+       var url = '/exa#patient/notes/0/0/' + btoa(patient_id) + '/?billing';
+        commonjs.showNestedDialog({ header: 'Notes', i18nHeaders: 'billings.claims.notes', width: '90%', height: '60%', onLoad: 'commonjs.removeIframeHeader()', url: url });
     },
 
     openWindow: function (url) {

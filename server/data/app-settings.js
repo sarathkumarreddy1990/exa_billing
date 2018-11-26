@@ -128,7 +128,8 @@ module.exports = {
                 , cte_sites AS(
                                 SELECT id as siteID,
                                     stat_level_config,
-                                    tat_config
+                                    tat_config,
+                                    country_alpha_3_code
                                     FROM   sites
                                     WHERE  id=${siteID})
                 , cte_employment_status AS(

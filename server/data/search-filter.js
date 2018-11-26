@@ -225,13 +225,13 @@ const colModel = [
     },
     {
         name: 'billing_code',
-        searchColumns: ['adj2.description'],
-        searchFlag: '%'
+        searchColumns: ['billing_codes.id'],
+        searchFlag: '='
     },
     {
         name: 'billing_class',
-        searchColumns: ['adj3.description'],
-        searchFlag: '%'
+        searchColumns: ['billing_classes.id'],
+        searchFlag: '='
     },
     {
         name: 'scheduled_dt',
@@ -376,8 +376,8 @@ const api = {
             case 'station': return "study_info->'station'";
             case 'has_deleted': return 'studies.has_deleted';
             case 'send_status': return "studies.study_info->'send_status'";
-            case 'billing_code': return "orders.order_info->'billing_code'";
-            case 'billing_class': return "orders.order_info->'billing_class'";
+            case 'billing_code': return 'billing_codes.description';
+            case 'billing_class': return 'billing_classes.description';
             case 'fax_status': return "studies.study_info->'fax_status'";
             case 'no_of_instances': return 'studies.no_of_instances';
             case 'department': return "studies.study_info->'department'";
@@ -553,6 +553,27 @@ const api = {
 
         if (tables.provider_groups) {
             r += 'LEFT JOIN public.provider_groups ON provider_groups.id = studies.provider_group_id ';
+        }
+
+        if (tables.billing_codes || tables.billing_classes) {
+            r += ` LEFT JOIN (
+                        SELECT 
+                            study_id, 
+                            MAX(charge_id) AS charge_id
+                        FROM 
+                            billing.charges_studies
+                            GROUP BY study_id
+                    ) cs ON cs.study_id = studies.id
+                    LEFT JOIN billing.charges ON charges.id = cs.charge_id
+                    LEFT JOIN billing.claims ON claims.id = charges.claim_id  `;
+        }
+
+        if (tables.billing_codes) {
+            r += ` LEFT JOIN billing.billing_codes ON claims.billing_code_id = billing_codes.id `;
+        }
+
+        if (tables.billing_classes) {
+            r += ` LEFT JOIN billing.billing_classes ON claims.billing_class_id = billing_classes.id `;
         }
 
         if (tables.tat) {r += `
@@ -842,8 +863,8 @@ const api = {
                     AS payer_type`, // Billing
                 'orders.id as claim_no', // Billing
                 ` '' AS claim_status`,
-                ` '' AS billing_code`,
-                ` '' AS billing_class`
+                ` billing_codes.description AS billing_code`,
+                ` billing_classes.description AS billing_class`
             ],
             product('MU') && [
                 'orders.mu_last_updated',
