@@ -529,9 +529,8 @@ const api = {
     setBalanceFilterFlag: function (args, colModel) {
         let column = JSON.parse(args.filterCol);
         let data = JSON.parse(args.filterData);
-        args.isDatePickerClear = column.indexOf('claim_dt') == -1 && args.isDatePickerClear === 'true' ? true : false;
 
-        if (!args.isDatePickerClear && column.indexOf('claim_dt') == -1 && (args.customArgs.filter_id == 'Follow_up_queue' || args.customArgs.filter_id == 'All_Claims') ) {
+        if (args.isDatePickerClear !== 'true' && column.indexOf('claim_dt') == -1  && (args.customArgs.filter_id == 'Follow_up_queue' || args.customArgs.filter_id == 'All_Claims') ) {
             data.push(moment().subtract(89, 'days').format('YYYY-MM-DD') + ' - ' + moment().format('YYYY-MM-DD'));
             column.push('claim_dt');
             args.filterCol = JSON.stringify(column);
