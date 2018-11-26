@@ -172,6 +172,11 @@ const colModel = [
         name: 'ordering_facility_name',
         searchColumns: ['provider_groups.group_name'],
         searchFlag: '%'
+    },
+    {
+        name: 'charge_description',
+        searchColumns: ['charge_details.charge_description'],
+        searchFlag: '%'
     }
 ];
 
@@ -257,6 +262,7 @@ const api = {
             case 'billing_notes': return '(claims.billing_notes  IS NULL) ,claims.billing_notes ';
             case 'submitted_dt': return 'claims.submitted_dt';
             case 'first_statement_dt': return 'claim_comment.created_dt';
+            case 'charge_description': return `nullif(charge_details.charge_description,'')`;
         }
 
         return args;
@@ -340,6 +346,18 @@ const api = {
 
         if (tables.billing_classes) { r += '  LEFT JOIN billing.billing_classes ON claims.billing_class_id = billing_classes.id '; }
 
+        if(tables.charge_details) {
+            r += ` LEFT JOIN LATERAL (
+                        SELECT
+                            i_bch.claim_id,
+                            i_ps.study_description AS charge_description
+                        FROM billing.charges i_bch
+                        INNER JOIN billing.charges_studies i_bcs ON i_bcs.charge_id = i_bch.id
+                        INNER JOIN public.studies i_ps ON i_ps.id = i_bcs.study_id
+                        WHERE i_bch.claim_id = claims.id
+                        ORDER BY i_ps.id DESC
+                        LIMIT 1 ) charge_details ON charge_details.claim_id = claims.id `;}
+
         if(tables.claim_comment){
             r += ` LEFT JOIN LATERAL (
                     SELECT
@@ -404,7 +422,8 @@ const api = {
             'patients.gender',
             'patients.id as patient_id',
             'invoice_no',
-            'claim_comment.created_dt AS first_statement_dt'
+            'claim_comment.created_dt AS first_statement_dt',
+            'charge_details.charge_description'
         ];
 
         if(args.customArgs.filter_id=='Follow_up_queue'){
