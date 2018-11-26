@@ -356,7 +356,8 @@ const api = {
                         INNER JOIN public.studies i_ps ON i_ps.id = i_bcs.study_id
                         WHERE i_bch.claim_id = claims.id
                         ORDER BY i_ps.id DESC
-                        LIMIT 1 ) charge_details ON charge_details.claim_id = claims.id `;}
+                        LIMIT 1 ) charge_details ON charge_details.claim_id = claims.id `;
+        }
 
         if(tables.claim_comment){
             r += ` LEFT JOIN LATERAL (
