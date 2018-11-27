@@ -92,6 +92,7 @@ define([
                     enableCaseInsensitiveFiltering: true
                 });
                 commonjs.isMaskValidate();
+                $('#btnAddInsuranceProvider, #btnAddInsurance').attr("title", commonjs.geti18NString("report.addInsurance"));
             },
 
             onReportViewClick: function (e) {
