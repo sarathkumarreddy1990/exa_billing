@@ -154,7 +154,6 @@ define(['jquery',
             },
 
             // Insurance List Box for (All, selected Insurance, Insurance Group)
-            // Insurance List Box for (All, selected Insurance, Insurance Group)
             onInsuranceOptionChange: function () {
                 $("#ddlOptionBox").hide();
                 $("#ddlOptionBoxList").hide();
