@@ -81,12 +81,6 @@ define([
                             commonjs.showWarning('Unable to process few claims - ' + discardedIDs.toString());
                         }
 
-                        if (options && options.invoiceNo) {
-                            var invoiceNo = options.invoiceNo;
-                            claimData[0].invoiceNo = invoiceNo;
-                            return self.preparePdfWorker(templateType, template, claimData, options);
-                        }
-
                         self.updateClaimStatus(processedIDs, templateType, options, function (err, response) {
                             var invoiceNo = response.invoice_no;
                             claimData[0].invoiceNo = invoiceNo;
@@ -201,8 +195,7 @@ define([
                         payerType: options.payerType || '',
                         payerId: options.payerId || '',
                         sortBy: options.sortBy || '',
-                        invoiceNo: options.invoiceNo,
-                        flag: options.invoiceNo ? 'invoice' : 'new'
+                        invoiceNo: options.invoiceNo
                     }, success: function (data, response) {
                         callback(null, data);
                     }, error: function (err, response) {

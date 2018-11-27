@@ -143,10 +143,8 @@ module.exports = {
 
     changeClaimStatus: async (params) => {
 
-        //let success_claimID = params.success_claimID.split(',');
-    
         let getClaimsDetails = SQL` ,claim_details as (
-                SELECT claims.id as claim_id, ${params.notes} || ' ' || 
+                SELECT claims.id as claim_id, ${params.notes} || ' ' ||
                 (  CASE  COALESCE(${params.payerType}, payer_type)
                     WHEN 'primary_insurance' THEN insurance_providers.insurance_name
                     WHEN 'secondary_insurance' THEN insurance_providers.insurance_name
@@ -172,7 +170,7 @@ module.exports = {
                 LEFT JOIN provider_contacts as rendering_pro_contact ON rendering_pro_contact.id=claims.rendering_provider_contact_id
                 LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.provider_id
 
-                WHERE claims.id= ANY (${params.success_claimID}) ),
+                WHERE claims.id= ANY (${params.success_claimID}) )
         `;
 
         let claimComments =
@@ -185,10 +183,10 @@ module.exports = {
                 "claim_id" bigint,
                 "note" text
             )
-        ),`;
+        )`;
 
         let insertedClaimComments =
-            SQL`insert_claim_comments as (
+            SQL`, insert_claim_comments as (
                     INSERT INTO billing.claim_comments
                     (
                         claim_id ,
@@ -206,7 +204,17 @@ module.exports = {
                         now()
                     FROM
                     claim_details )`;
-      
+
+        let invoiceComments = SQL`  SELECT
+                    claim_id,
+                    ${params.type},
+                    note ||' -- Invoice No ' || update_status.invoice_no ,
+                    ${params.userId},
+                    now()
+                FROM
+                claim_details
+                INNER JOIN  update_status ON update_status.id = claim_details.claim_id  )`;
+
         let sql = SQL`WITH getStatus AS
 						(
 							SELECT
@@ -220,30 +228,20 @@ module.exports = {
             sql.append(getClaimsDetails);
         }
 
-        if (params.isClaim) {
-
-            if (!params.templateType) {
-                sql.append(claimComments);
-            }
-
-            sql.append(insertedClaimComments);
-            sql.append(paymentComments);
-        }
-
-        let updateData = SQL`UPDATE
+        let updateData = SQL` , update_status AS ( UPDATE
 							billing.claims bc
                         SET claim_status_id = (SELECT id FROM getStatus),
                             invoice_no = (SELECT NEXTVAL('billing.invoice_no_seq')),
                             submitted_dt=timezone(get_facility_tz(bc.facility_id::int), now()::timestamp)
 						WHERE bc.id = ANY(${params.success_claimID})
-                        RETURNING bc.id,invoice_no`;
+                        RETURNING bc.id,invoice_no )`;
 
-        let updateEDIData = SQL`UPDATE
+        let updateEDIData = SQL` , update_status AS ( UPDATE
                             billing.claims bc
                         SET claim_status_id = (SELECT id FROM getStatus) ,
                         submitted_dt=timezone(get_facility_tz(bc.facility_id::int), now()::timestamp)
                         WHERE bc.id = ANY(${params.success_claimID})
-                        RETURNING bc.id`;
+                        RETURNING bc.id ) `;
 
 
         if (params.templateType && params.templateType != 'patient_invoice') {
@@ -251,6 +249,35 @@ module.exports = {
         } else {
             sql.append(updateEDIData);
         }
+
+        if (params.isClaim) {
+
+            if (!params.templateType) {
+                sql.append(claimComments);
+            }
+
+            sql.append(insertedClaimComments);
+
+            if (params.templateType && params.templateType != 'patient_invoice') {
+                sql.append(invoiceComments);
+            } else {
+                sql.append(paymentComments);
+            }
+
+        }
+
+        if (params.templateType && params.templateType != 'patient_invoice') {
+            sql.append(SQL` SELECT
+                            claim_details.claim_id AS id
+                          , invoice_no
+                    FROM claim_details
+                    INNER JOIN update_status ON update_status.id = claim_details.claim_id `);
+        } else {
+            sql.append(SQL` SELECT
+                          claim_details.claim_id AS id
+                    FROM claim_details `);
+        }
+
 
         return await query(sql);
     },
