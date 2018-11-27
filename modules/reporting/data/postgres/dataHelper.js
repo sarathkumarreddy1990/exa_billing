@@ -665,7 +665,7 @@ const api = {
                  , code
                  , description
                FROM
-                   insurance_provider_payer_types
+                   public.insurance_provider_payer_types
                WHERE
                    company_id = $1
                AND id = any ($2)
