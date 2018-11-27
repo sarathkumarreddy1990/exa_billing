@@ -162,7 +162,7 @@ function getTableContents(claimData, servicelineList) {
 
 function getTotalBill(claimData, servicelineList) {
     let _totalBill = 0;
-	if (servicelineList[i]){
+	if (servicelineList){
 		for (let i = 0; i < 6; i++) {
 			if (servicelineList[i] && servicelineList[i].examCpt) {
 				_totalBill += servicelineList[i].totalBillFee ? +servicelineList[i].totalBillFee : 0.00;
