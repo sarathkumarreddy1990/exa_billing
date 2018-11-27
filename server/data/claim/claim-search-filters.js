@@ -294,7 +294,7 @@ const api = {
 
         let r = '';
 
-        if (!isCount || (columns && columns.bgct)) {
+        if ((!isCount && columns && tables.bgct) || (isCount && tables.bgct)) {
             r = ' INNER JOIN LATERAL billing.get_claim_totals(claims.id) bgct ON TRUE ';
         }
 
