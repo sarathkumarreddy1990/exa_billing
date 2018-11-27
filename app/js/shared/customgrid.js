@@ -148,7 +148,7 @@ function customGrid ( datastore, gridID ) {
                     $chkSendStudy.prop('checked', !$chkSendStudy.is(':checked'));
                 }
 
-                if ($tblGrid.find('input[name=chkStudy]:checked').length == $tblGrid.find('input[name=chkStudy]').length) {
+                if ($tblGrid.find('input[name=chkStudy]:checked').length === $tblGrid.find('input[name=chkStudy]').length) {
                     $('#chkStudyHeader_' + self.options.filterid).prop('checked', true);
                 } else {
                     $('#chkStudyHeader_' + self.options.filterid).prop('checked', false);
