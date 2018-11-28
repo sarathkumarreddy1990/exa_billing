@@ -210,31 +210,31 @@
 
             <ul id="tabsCompany" class="nav tn-menu tn-menu-a" style="width:100%">
                 <li id="liCoverage" class="nav-item">
-                    <a href="#Coverage" data-container="All_Claims" class="nav-link active show" data-toggle="tab" i18n="billing.patientInsurance.coverage"
+                    <a href="#Coverage" data-container="All_Claims" class="nav-link active show" data-toggle="tab" i18n="patient.patientInsurance.coverage"
                         title="All Claims">coverage</a>
                 </li>
                 <li id="liOutOfPocket" class="nav-item">
-                    <a href="#OutofPocket" data-container="Follow_up_queue" i18n="billing.patientInsurance.outofpocket" class="nav-link" data-toggle="tab"
+                    <a href="#OutofPocket" data-container="Follow_up_queue" i18n="patient.patientInsurance.outofpocket" class="nav-link" data-toggle="tab"
                         title="Follow-Up Queue">out of Pocket</a>
                 </li>
                 <li id="liCoInsurance" class="nav-item">
-                    <a href="#CoInsurance" data-container="Follow_up_queue" i18n="billing.patientInsurance.coInsurance" class="nav-link" data-toggle="tab"
+                    <a href="#CoInsurance" data-container="Follow_up_queue" i18n="patient.patientInsurance.coInsurance" class="nav-link" data-toggle="tab"
                         title="Follow-Up Queue">CoInsurance</a>
                 </li>
                 <li id="liCoPay" class="nav-item">
-                    <a href="#CoPay" data-container="Follow_up_queue" i18n="billing.patientInsurance.coPay" class="nav-link" data-toggle="tab"
+                    <a href="#CoPay" data-container="Follow_up_queue" i18n="patient.patientInsurance.coPay" class="nav-link" data-toggle="tab"
                         title="Follow-Up Queue">CoPay</a>
                 </li>
                 <li id="liLimitations" class="nav-item">
-                    <a href="#Limitations" data-container="Follow_up_queue" i18n="billing.patientInsurance.limitations" class="nav-link" data-toggle="tab"
+                    <a href="#Limitations" data-container="Follow_up_queue" i18n="patient.patientInsurance.limitations" class="nav-link" data-toggle="tab"
                         title="Follow-Up Queue">Limitations</a>
                 </li>
                 <li id="liRequestDetails" class="nav-item">
-                    <a href="#RequestDetails" data-container="Follow_up_queue" i18n="billing.patientInsurance.requestdetails" class="nav-link"
+                    <a href="#RequestDetails" data-container="Follow_up_queue" i18n="patient.patientInsurance.requestdetails" class="nav-link"
                         data-toggle="tab" title="Follow-Up Queue">Request Details</a>
                 </li>
                 <li id="liPharmacy" class="nav-item">
-                    <a href="#Pharmacy" data-container="Follow_up_queue" i18n="billing.patientInsurance.pharmacy" class="nav-link" data-toggle="tab"
+                    <a href="#Pharmacy" data-container="Follow_up_queue" i18n="patient.patientInsurance.pharmacy" class="nav-link" data-toggle="tab"
                         title="Follow-Up Queue">Pharmacy</a>
                 </li>
             </ul>
@@ -263,7 +263,7 @@
                                 </div>
                                 <div class="form-group row">
                                     <label class="col-sm-5 col-form-label">Group Number</label>
-                            
+
                                     <div class="col-form-label">
                                         <label class="logFields1">
                                             <%= InsuranceData && InsuranceData.coverage && InsuranceData.coverage.coverage_details && InsuranceData.coverage.coverage_details.group_or_policy_number ? InsuranceData.coverage.coverage_details.group_or_policy_number: '-' %>
@@ -280,7 +280,7 @@
                                 </div>
                                 <div class="form-group row">
                                     <label class="col-sm-5 col-form-label">Plan Number</label>
-                            
+
                                     <div class="col-form-label">
                                         <label class="logFields1">
                                             <%= InsuranceData && InsuranceData.coverage && InsuranceData.coverage.plan_number ? InsuranceData.coverage.plan_number : '-' %>
@@ -299,7 +299,7 @@
                                 </div>
                                 <div class="form-group row">
                                     <label class="col-sm-5 col-form-label">Group Description</label>
-                            
+
                                     <div class="col-form-label">
                                         <label class="logFields1">
                                             <%= InsuranceData && InsuranceData.coverage && InsuranceData.coverage.coverage_details && InsuranceData.coverage.coverage_details.plan_description ? InsuranceData.coverage.coverage_details.plan_description: '-' %>
@@ -308,7 +308,7 @@
                                 </div>
                                 <div class="form-group row">
                                     <label class="col-sm-5 col-form-label">Plan End Date</label>
-                            
+
                                     <div class="col-form-label">
                                         <label class="logFields1">
                                             <%= InsuranceData && InsuranceData.coverage && InsuranceData.coverage.plan_end_date ? InsuranceData.coverage.plan_end_date : '-' %>
@@ -317,7 +317,7 @@
                                 </div>
                                 <div class="form-group row">
                                     <label class="col-sm-5 col-form-label">Plan Description</label>
-                            
+
                                     <div class="col-form-label">
                                         <label class="logFields1">
                                             <%= InsuranceData && InsuranceData.coverage && InsuranceData.coverage.plan_description ? InsuranceData.coverage.plan_description : '-' %>
@@ -326,7 +326,7 @@
                                 </div>
                                 <div class="form-group row">
                                     <label class="col-sm-5 col-form-label">Service Date</label>
-                            
+
                                     <div class="col-form-label">
                                         <label class="logFields1">
                                             <%= InsuranceData && InsuranceData.coverage && InsuranceData.coverage.service_date ? InsuranceData.coverage.service_date : '-' %>
@@ -337,7 +337,7 @@
                         <div class="col-xs-12">
                             <div class="form-group row">
                                 <label class="col-sm-5 col-form-label">Messages</label>
-                        
+
                                 <div class="col-form-label">
                                     <% var v_msgs = [{message: '-'}]; %>
                                         <% v_msgs = (InsuranceData && InsuranceData.coverage && InsuranceData.coverage.messages) ? InsuranceData.coverage.messages : v_msgs; %>
@@ -1005,11 +1005,11 @@
                                 <tr>
                                     <th>
                                         <b>
-                                            <span i18n="billing.patientInsurance.field">field</span>
+                                            <span i18n="patient.patientInsurance.field">field</span>
                                         </b>field</th>
                                     <th>
                                         <b>
-                                            <span i18n="billing.patientInsurance.failedReason">failedReason</span>
+                                            <span i18n="patient.patientInsurance.failedReason">failedReason</span>
                                         </b>failedReason</th>
                                 </tr>
                             </thead>

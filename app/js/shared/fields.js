@@ -356,7 +356,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "id": 14,
                     "field_code": "claim_balance",
                     "field_name": "Balance",
-                    "i18n_name": "billing.claims.balance",
+                    "i18n_name": "billing.fileInsurance.balance",
                     "field_info": {
                         "name": "claim_balance",
                         "sortable": false,
