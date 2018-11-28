@@ -833,12 +833,12 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 (options.isClaimGrid ? '<input type="checkbox" title="Select all studies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />' : ''),
-                '', '', '', '', '','','','','','','','','','','','','','','Assigned To',''
+                '', '', '', '', '','','','','','','','','','','','','','','Assigned To','',''
 
             ]);
 
             i18nName = i18nName.concat([
-                '', '', '', '', '', '','','','','','','','','','','','','','','billing.claims.assignedTo',''
+                '', '', '', '', '', '','','','','','','','','','','','','','','billing.claims.assignedTo','',''
             ]);
 
             colModel = colModel.concat([
@@ -1076,6 +1076,15 @@ define('grid', [
                 {
                     name: 'assigned_id',
                     hidden: true,
+                },
+                {
+                    name: 'charge_description',
+                    width: 200,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: true,
+                    isIconCol: true
                 },
             ]);
 

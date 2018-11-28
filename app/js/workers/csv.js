@@ -29,7 +29,8 @@ var claimColumns = {
     "Notes": "billing_notes",
     "Responsible Party": "payer_name",
     "Submitted Date": "submitted_dt",
-    "Date of Injury": "current_illness_date"
+    "Date of Injury": "current_illness_date",
+    "Charge Description":"charge_description"
 };
 
 var paymentsColumns = {

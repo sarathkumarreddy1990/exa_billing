@@ -1,9 +1,23 @@
-<form class="form-horizonta form-list" novalidate="" _lpchecked="1">
-
+<style>
+    .ddlInsuranceBox {
+        width: 250px;
+        border: 1px solid;
+    }
+    .ulListBox {
+        overflow: auto;
+        width: 235px;
+        height: 66px;
+        border: 1px solid;
+    }
+    .bindInsurance {
+        max-width: 230px;
+    }
+</style>
+<form class="form-horizonta form-list mt-2" novalidate="" _lpchecked="1">
         <!-- row: form elements -->
         <div class="row">
             <!-- col: form elements -->
-            <div class="col-3">
+            <div class="col">
                 <div class="form-group form-inline">
                     <div class="col-form-label">
                         <label class="control-label field-required" for="txtDateRange" i18n="report.reportFilter.arCutoffDate" />
@@ -17,8 +31,14 @@
                         </div>
                     </div>
                 </div>
+                <div class="pt-2 ml-3">
+                    <label class="checkbox-inline" for="incPat">
+                        <input type="checkbox" id="incPat" value="IncludePatient" style="display: inline">
+                        <span i18n="report.reportFilter.reportByPrimaryPayer"> </span>
+                    </label>
+                </div>
             </div>
-            <div class="col-3">
+            <div class="col">
                 <div class="form-group form-inline">
                     <div class="col-form-label" class="multiselect">
                         <label class="control-label" i18n="report.reportFilter.facilities">
@@ -32,8 +52,14 @@
                         </select>
                     </div>
                 </div>
+                <div class="pt-2 ml-3">
+                    <label class="checkbox-inline" for="excCreBal">
+                        <input type="checkbox" id="excCreBal" value="ExcludeCreditBalance" style="display: inline">
+                        <span i18n="report.reportFilter.excludeCreditBalance"> </span>
+                    </label>
+                </div>
             </div>
-            <div class="col-3">
+            <div class="col">
                 <div class="form-group form-inline">
                     <div class="col-form-label" class="multiselect">
                         <label class="control-label" i18n="report.reportFilter.billingProviders">
@@ -42,21 +68,53 @@
                     </div>
                 </div>
             </div>
-
-            <div class="col-3">
-                <div style="padding-top:10px">
-                    <label class="checkbox-inline" for="incPat">
-                        <input type="checkbox" id="incPat" value="IncludePatient" style="display: inline"> <span i18n="report.reportFilter.reportByPrimaryPayaer"> </span>
-                    </label>
+            <div class="col">
+                <div class="form-group form-inline">
+                    <div>
+                        <label class="control-label" i18n="report.reportFilter.selectInsurance" />
+                        <div class="input-group">
+                            <select id="ddlInsuranceOption" class="form-control form-control-lg">
+                                <option value="All">All Insurance</option>
+                                <option value="S">Insurances</option>
+                                <option value="G">Insurance Group</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="ddlOptionBox" class="form-group form-inline pt-2" style="display: none;">
+                        <div class="bindInsurance">
+                            <label class="control-label" i18n="report.reportFilter.selectInsurance"></label>
+                            <a class="btn btn-primary" id="btnAddInsurance">
+                                <i class="icon-ic-plus"></i>
+                            </a>
+                            <select id="txtInsuranceName" class="ddlInsuranceBox"> </select>
+                        </div>
+                    </div>
+                    <div id="ddlInsuranceGroupBox" class="ddl form-group form-inline pt-2" style="display: none;">
+                        <div class="bindInsurance">
+                            <label class="control-label" i18n="report.reportFilter.insuranceProvider"></label>
+                            <a class="btn btn-primary" id="btnAddInsuranceProvider">
+                                <i class="icon-ic-plus" ></i>
+                            </a>
+                            <select id="txtInsuranceProviderName" class="ddlInsuranceBox"> </select>
+                        </div>
+                    </div>
                 </div>
-                <div style="padding-top:10px">
-                    <label class="checkbox-inline" for="excCreBal">
-                        <input type="checkbox" id="excCreBal" value="ExcludeCreditBalance" style="display: inline"><span i18n="report.reportFilter.excludeCreditBalance"> </span>
-                    </label>
+            </div>
+            <div class="col mt-3">
+                <div id="ddlOptionBoxList" style="display: none;">
+                    <div id="divListInsurance">
+                        <ul id="ulListInsurance" class="ulSelectionList tagList ulListBox"></ul>
+                        </ul>
+                    </div>
+                </div>
+                <div id="ddlInsuranceGroupBoxList" style="display: none;">
+                    <div id="divListInsuranceProvider">
+                        <ul id="ulListInsuranceProvider" class="ulSelectionList tagList ulListBox">
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
-
         <!-- row: form buttons -->
         <div class="col-xs-12 <!--col-xs-offset-1-->">
             <div class="btn-toolbar" role="toolbar">

@@ -148,53 +148,10 @@ function customGrid ( datastore, gridID ) {
                     $chkSendStudy.prop('checked', !$chkSendStudy.is(':checked'));
                 }
 
-                if ($tblGrid.find('#chkFileInsurance_' + rowid).length > 0 && ((e.target || e.srcElement).type != 'checkbox')) {
-                    $tblGrid.find('#chkFileInsurance_' + rowid).prop('checked', !($tblGrid.find('#chkFileInsurance_' + rowid).is(':checked')));
-                    var allChecked = true;
-                    $('#divGrid_fileInsurance').find('.fileInsuranceChk').each(function (index, element) {
-                        if (!element.checked) {
-                            allChecked = false;
-                            return false;
-                        }
-                    });
-                    $('#divGrid_fileInsurance').find('.selectToFile').attr('checked', allChecked);
-                }
-
-                if ($tblGrid.find('#chkReadyToValidate_' + rowid).length > 0 && ((e.target || e.srcElement).type != 'checkbox')) {
-                    $tblGrid.find('#chkReadyToValidate_' + rowid).prop('checked', !($tblGrid.find('#chkReadyToValidate_' + rowid).is(':checked')));
-                    var allChecked = true;
-                    $('#divGrid_ReadyToValidate').find('.studyChk').each(function (index, element) {
-                        if (!element.checked) {
-                            allChecked = false;
-                            return false;
-                        }
-                    });
-                    $('#validateMenu').hide();
-                    $('#divGrid_ReadyToValidate').find('.selectAllToValidate').attr('checked', allChecked);
-                }
-
-                if ($tblGrid.find('#chkSubmitStudy_' + rowid).length > 0 && ((e.target || e.srcElement).type != 'checkbox')) {
-                    $tblGrid.find('#chkSubmitStudy_' + rowid).prop('checked', !($tblGrid.find('#chkSubmitStudy_' + rowid).is(':checked')));
-                    var allChecked = true;
-                    $('#divGrid_submitted').find('.studyChk').each(function (index, element) {
-                        if (!element.checked) {
-                            allChecked = false;
-                            return false;
-                        }
-                    });
-                    $('#divGrid_submitted').find('.selectAllToSubmit').attr('checked', allChecked);
-                }
-
-                if ($tblGrid.find('#chkfollowup_' + rowid).length > 0 && ((e.target || e.srcElement).type != 'checkbox')) {
-                    $tblGrid.find('#chkfollowup_' + rowid).prop('checked', !($tblGrid.find('#chkfollowup_' + rowid).is(':checked')));
-                    var allChecked = true;
-                    $('#divGrid_followup').find('.studyChk').each(function (index, element) {
-                        if (!element.checked) {
-                            allChecked = false;
-                            return false;
-                        }
-                    });
-                    $('#divGrid_followup').find('.selectAllToValidate').attr('checked', allChecked);
+                if ($tblGrid.find('input[name=chkStudy]:checked').length === $tblGrid.find('input[name=chkStudy]').length) {
+                    $('#chkStudyHeader_' + self.options.filterid).prop('checked', true);
+                } else {
+                    $('#chkStudyHeader_' + self.options.filterid).prop('checked', false);
                 }
 
                 if ( typeof self.options.beforeSelectRow === "undefined" ) {
@@ -210,52 +167,14 @@ function customGrid ( datastore, gridID ) {
                                     $chkSendStudy.prop('checked', true);
                                 }
                             }
-                            if ($tblGrid.find('#chkFileInsurance_' + rowid)) {
-                                if ($tblGrid.find('#chkFileInsurance_' + rowid).length > 0 && ((e.target || e.srcElement).type != 'checkbox')) {
-                                    $tblGrid.find('#chkFileInsurance_' + rowid).prop('checked', true);
-                                }
-                            }
-                        } else if (self.options.colModel[i].className == 'icon-ic-delete') {
-
                         } else {
                             if (!($tblGrid.find('#' + rowid).find('.linkSpan').length > 0)) {
                                 Backbone.history.navigate(self.options.colModel[i].route + rowid, true);
                             }
                         }
                     }
-
-                    if ($tblGrid.find('input[name=chkStudy]:checked').length == $tblGrid.find('input[name=chkStudy]').length) {
-                        $('#chkStudyHeader_' + self.options.filterid).prop('checked', true);
-                    } else {
-                        $('#chkStudyHeader_' + self.options.filterid).prop('checked', false);
-                    }
-                    if ($tblGrid.find('input[name=chkFileInsurance]:checked').length == $tblGrid.find('input[name=chkFileInsurance]').length) {
-                        $('#chkAllToToFile').prop('checked', true);
-                    } else {
-                        $('#chkAllToToFile').prop('checked', false);
-                    }
-                    if ($tblGrid.find('input[name=chkSubmittedStudy]:checked').length == $tblGrid.find('input[name=chkSubmittedStudy]').length) {
-                        $('#chkAllToToSubmit').prop('checked', true);
-                    }
-                    else {
-                        $('#chkAllToToSubmit').prop('checked', false);
-                    }
-                    if ($tblGrid.find('input[name=studyValidateChk]:checked').length == $tblGrid.find('input[name=studyValidateChk]').length) {
-                        $('#chkAllToToValidate').prop('checked', true);
-                    }
-                    else {
-                        $('#chkAllToToValidate').prop('checked', false);
-                    }
                 } else {
                     self.options.beforeSelectRow(rowid, e, self.options);
-                }
-
-                if ((self.options.gridelementid == "#tblReadingPhysicianRR" || self.options.gridelementid == "#tblReferringProviderFieldRR") && $tblGrid.find('#' + rowid).length > 0 && $tblGrid.find('#' + rowid).find('.checkboxRR').length > 0 && ((e.target || e.srcElement).type != 'checkbox')) {
-                    $tblGrid.find('#' + rowid).find('.checkboxRR').prop('checked', !$tblGrid.find('#' + rowid).find('.checkboxRR').is(':checked'));
-                }
-                if (self.options.gridelementid == "#tblUnassignedOrders") {
-                    $('#tblUnassignedOrders tr').removeClass('customRowSelect');
-                    $tblGrid.find('#' + rowid).addClass('customRowSelect')
                 }
             },
 

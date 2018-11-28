@@ -133,6 +133,7 @@
             "payerName": "Payer Name",
             "id": "Id",
             "studyDescription": "Study Description",
+            "chargeDescription": "Charge Description",
             "station": "Station",
             "studyReceivedDate": "Study Received Date",
             "bodyPart": "Body Part",
