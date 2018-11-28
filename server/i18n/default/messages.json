@@ -1,0 +1,136 @@
+{
+    "messages": {
+        "status": {
+            "validatedSuccessfully": "Validated Successfully",
+            "successfullyCompleted": "Successfully completed",
+            "successfullyUpdated": "Successfully updated",
+            "responseUpdated": "Responsible and Billing method changed to default",
+            "batchClaimCompleted": "Batch Claim created successfully",
+            "claimStatusChanged": "Claim Status has been changed",
+            "billingCodeChanged": "Billing Code has been changed",
+            "billingClassChanged": "Billing Class has been changed",
+            "claimPayerCompleted": "Payer Changed successfully",
+            "noMorePayment": "No Payment to Show",
+            "commentDeleted": "Comment Deleted Successfully",
+            "recordSaved": "Record Saved Successfully",
+            "defaultTabChanged": "Default Tab Changed"
+        },
+        "errors": {
+            "notconnected": "Not connected",
+            "requestnotfound": "Request not found",
+            "serversideerror": "Server error",
+            "someerror": "Internal error",
+            "accessdenied": "No rights",
+            "invalidDateTimeError": "Invalid datetime format in selected records",
+            "gridIdNotExists": "Error on getting grid id",
+            "errorOnChargeDeletion": "Problem on deleting charge",
+            "invalidPokitdokIp": "Invalid Pokitdok Client Ip",
+            "errorOnClaimValidation": "Error on claim validation",
+            "errorOnNextPrev": "Error on process claim"
+        },
+        "warning": {
+            "claims": {
+                "selectfacility": "Please select facility",
+                "selectbillingProvider": "Please select billing provider",
+                "chargeValidation": "Without charge can not create claim ,please add/select any one charge",
+                "samePatientValidate": "Please select study with same patient",
+                "sameStudyDtValidate": "Please select study with same study date",
+                "sameFacilityValidate": "Please select study with same facility",
+                "priInsValidation": "Please enter mandatory details for primary insurance",
+                "secInsValidation": "Please enter mandatory details for secondary insurance",
+                "terInsValidation": "Please enter mandatory details for tertiary insurance",
+                "priMissingValidation": "Without primary insurance, Claim can not create secondary insurance",
+                "secMissingValidation": "Without secondary insurance, Claim can not create tertiary insurance",
+                "missingClaimStatus": "Please select claim status",
+                "missingResponsible": "Please select responsible",
+                "problemAlreadyExists": "Problem already exists",
+                "icdLimitExists": "Cannot add more than 12 ICD",
+                "selectClaimToValidate" : "Please select claim to Validate",
+                "claimValidationFailed" : "Some records failed on validation",
+                "selectClaimToCreate":"Please select record for batch claim",
+                "selectSingleRecord":"Please select single billed status",
+                "orderNotFound":"No more order found",
+                "missingCommentValidation":"Please add comments",
+                "dateRangeValidation":"Please select date range",
+                "fromDateRangeValidation":"Please select from Date",
+                "toDateRangeValidation":"Please select to Date",
+                "claimChargeRequired":"Claim should have one charge",
+                "chargeDeleteValidation":"Charge has payment, please unapply before delete",
+                "selectICDCode": "Please select one icd code",
+                "selectClaimDate" : "Please select claim date",
+                "selectPriInsurance" : "Please select primary insurance",
+                "selectSecInsurance" : "Please select secondary insurance",
+                "modifiersRequired" : "Please enter modifiers in required position",
+                "pointerRequired" : "Please enter valid pointer in required position",
+                "modifierValidation" : "Please enter valid modifiers in required position",
+                "unitsValidation" : "Please enter valid unit(s)",
+                "selectCPTValidation" : "Please select any cpt code in added line items",
+                "selectStudyValidation" : "Please select study"
+
+            },
+            "setup": {
+                "selectitemstodelete": "Select Message To Delete",
+                "entertextandselect": "Enter Text and Select",
+                "enter": "Enter",
+                "entertotime": "Enter ToTime",
+                "enterfromtime": "Enter FromTime",
+                "selectfromtodate": "Select From Date"
+            },
+            "era":{
+                "fileAlreadyProcessed":"This file has been already processed",
+                "fileStoreNotconfigured":"File store not yet configured",
+                "invalidFileFormat":"Invalid file format"
+            },
+            "payments":{
+                "selectPayerType":"Please select payer type",
+                "selectAccountingDate":"Please select accounting date",
+                "enterAmount":"Please enter amount",
+                "enterValidAmount":"Please enter valid amount",
+                "selectPaymentMode":"Please select payment mode",
+                "enterCardNo":"Please enter card#",
+                "enterCheckNo":"Please enter check#",
+                "enterInvoiceNo":"Please enter invoice #"
+            }
+        },
+        "loadingMsg": {
+            "default": "Loading ...",
+            "pleaseWait": "Please wait...",
+            "searching": "Searching...",
+            "gettingCharts": "Getting charts. Please wait...",
+            "savingPrintOrderInfoDefaults": "Saving defaults ...",
+            "connectingPokitdok": "Connecting pokitdok. please wait..."
+        },
+        "confirm": {
+            "button": {
+                "yes": "Yes",
+                "no": "No",
+                "cancel": "Cancel",
+                "close": "Close",
+                "leave": "Leave",
+                "stay": "Stay"
+            },
+            "success": "Success",
+            "error": "Error",
+            "billing": {
+                "problemReferenced": "Problem Referenced",
+                "problemReferencedAreYouSure": "Problem is being referenced in Charge Payments.  Are you sure that you want to delete?",
+                "insuranceReferencedAreYouSure": "This insurance assigned as current Responsible.  Are you sure that you want to delete?",
+                "deletionConfirmation": "Are you sure that you want to delete?",
+                "mediCarePayer": "Please select medicare payer type",
+                "ruleNode": "This node does not contain any rule",
+                "ruleSaved": "Rule Saved successfully",
+                "ruleUpdated": "Rule Updated successfully",
+                "ruleDeleted": "Rule deleted successfully",
+                "duplicateCode": "Code already exists. Do you want to add",
+                "icdConvertion9to10": "Do you want to show the corresponding ICD-10 codes for ICD-9",
+                "changeAddressDetails": "You Need to Change address details?",
+                "claimWithOutExam": "The selected patient does not examine. Do you want to process without studying?"
+            },
+            "payments": {
+                "overwriteRefund": "Overwrite Refund",
+                "overwriteRefundAreYouSure": "This payment in refund mode want to overwrite this payment ?",
+                "overwriteAnyRefundAreYouSure": "One of the payment in refund mode want to overwrite ?"
+            }
+        }
+    }
+}

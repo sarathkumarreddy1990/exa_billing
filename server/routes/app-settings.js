@@ -2,6 +2,7 @@ const Router = require('express-promise-router');
 const router = new Router();
 
 const appSettingsController = require('../controllers/app-settings');
+const i18nData = require('../shared/i18n');
 const httpHandler = require('../shared/http');
 
 router.get('/', async function (req, res) {
@@ -16,6 +17,22 @@ router.get('/', async function (req, res) {
     }
 
     httpHandler.sendRows(req, res, data);
+});
+
+router.get('/i18n/:culture', async function (req, res) {
+
+    let { culture } = req.params;
+
+    if (!culture) {
+        return httpHandler.sendError(req, res, { code: 'INVALID LANG' }, null);
+    }
+
+    if (culture === 'undefined.json') {
+        culture = 'default.json';
+    }
+
+    let data = await i18nData.getI18nData(culture);
+    httpHandler.send(req, res, data);
 });
 
 module.exports = router;
