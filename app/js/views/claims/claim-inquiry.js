@@ -485,7 +485,7 @@ define([
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
                     colNames: ['', 'Logged date', 'Screen', 'User', 'Log Description'],
-                    i18nNames: ['', 'setup.log.logDt', 'setup.common.screen', 'setup.billingprovider.Username', 'setup.log.logDescription'],
+                    i18nNames: ['', 'setup.log.logDt', 'setup.common.screen', 'setup.billingProvider.Username', 'setup.log.logDescription'],
                     colModel: [
                         { name: 'id', index: 'id', key: true, hidden: true },
                         {
