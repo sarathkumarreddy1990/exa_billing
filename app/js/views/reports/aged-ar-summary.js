@@ -76,12 +76,12 @@ define([
                 // bind DRP and initialize it
                 // this.bindDateRangePicker();
                 // this.drpStudyDt.setStartDate(this.viewModel.dateFrom);
-                // this.drpStudyDt.setEndDate(this.viewModel.dateTo);              
+                // this.drpStudyDt.setEndDate(this.viewModel.dateTo);
 
                 this.viewModel.fromDate = commonjs.bindDateTimePicker("txtFromDate", { format: "L" });
                 this.viewModel.fromDate.date(commonjs.getFacilityCurrentDateTime(app.facilityID));
-                UI.bindInsuranceAutocomplete(commonjs.geti18NString("report.selectInsurance"), 'btnAddInsurance', 'ulListInsurance');
-                UI.bindInsuranceProviderAutocomplete(commonjs.geti18NString("report.selectInsuranceProvider"), 'btnAddInsuranceProvider', 'ulListInsuranceProvider');
+                UI.bindInsuranceAutocomplete(commonjs.geti18NString("report.reportFilter.selectInsurance"), 'btnAddInsurance', 'ulListInsurance');
+                UI.bindInsuranceProviderAutocomplete(commonjs.geti18NString("report.reportFilter.selectInsuranceProvider"), 'btnAddInsuranceProvider', 'ulListInsuranceProvider');
                 UI.bindBillingProvider();
                 $('#ddlFacilityFilter,  #ddlInsuranceOption').multiselect({
                     maxHeight: 200,
@@ -92,7 +92,7 @@ define([
                     enableCaseInsensitiveFiltering: true
                 });
                 commonjs.isMaskValidate();
-                $('#btnAddInsuranceProvider, #btnAddInsurance').attr("title", commonjs.geti18NString("report.addInsurance"));
+                $('#btnAddInsuranceProvider, #btnAddInsurance').attr("title", commonjs.geti18NString("report.reportFilter.addInsurance"));
             },
 
             onReportViewClick: function (e) {
