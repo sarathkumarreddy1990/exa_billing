@@ -723,14 +723,14 @@ define([
 
                 $('#btnAddAdjustmentCode').off('click').click(function () {
                     if ($('#ulListAdjustmentCode li a[data-id="' + $('#txtAdjustmentCode').select2('data')[0].id + '"]').length) {
-                        commonjs.showWarning("report.adjustmentCodeSelected");
+                        commonjs.showWarning("report.reportFilter.adjustmentCodeSelected");
                         return false;
                     }
 
                     var data_id = $('#txtAdjustmentCode').select2('data')[0].id;
                     var bind_text = $('#txtAdjustmentCode').select2('data')[0].description;
                     $('#ulListAdjustmentCode').append('<li id="' + data_id + '"><span style="background:#3c91f0; color:white; border:1px solid black">' + bind_text + '</span><a class="remove" data-id="' + $('#txtAdjustmentCode').select2('data')[0].id + '"><span class="icon-ic-close" style="margin-left:8px;"></span></a></li>')
-                    $('#txtAdjustmentCode a span').html("report.adjustmentCode");
+                    $('#txtAdjustmentCode a span').html("report.reportFilter.adjustmentCode");
                 });
 
                 $('#ulListAdjustmentCode').delegate('a.remove', 'click', function () {

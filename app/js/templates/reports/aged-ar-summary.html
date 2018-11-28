@@ -6,7 +6,7 @@
             <div class="col-3">
                 <div class="form-group form-inline">
                     <div class="col-form-label">
-                        <label class="control-label field-required" for="txtDateRange" i18n="report.arCutoffDate" />
+                        <label class="control-label field-required" for="txtDateRange" i18n="report.reportFilter.arCutoffDate" />
                     </div>
                     <div>
                         <div id="divFromDate" class="input-group">
@@ -21,7 +21,7 @@
             <div class="col-3">
                 <div class="form-group form-inline">
                     <div class="col-form-label" class="multiselect">
-                        <label class="control-label" i18n="report.facilities">
+                        <label class="control-label" i18n="report.reportFilter.facilities">
                         </label>
                         <select id="ddlFacilityFilter" multiple="multiple">
                             <% _.each(facilities.toJSON(), function(facility) { %>
@@ -36,27 +36,27 @@
             <div class="col-3">
                 <div class="form-group form-inline">
                     <div class="col-form-label" class="multiselect">
-                        <label class="control-label" i18n="report.billingProviders">
+                        <label class="control-label" i18n="report.reportFilter.billingProviders">
                         </label>
                         <select id="ddlBillingProvider" multiple="multiple" />
                     </div>
                 </div>
             </div>
-    
+
             <div class="col-3">
                 <div style="padding-top:10px">
                     <label class="checkbox-inline" for="incPat">
-                        <input type="checkbox" id="incPat" value="IncludePatient" style="display: inline"> <span i18n="report.reportByPrimaryPayaer"> </span>
+                        <input type="checkbox" id="incPat" value="IncludePatient" style="display: inline"> <span i18n="report.reportFilter.reportByPrimaryPayaer"> </span>
                     </label>
                 </div>
                 <div style="padding-top:10px">
                     <label class="checkbox-inline" for="excCreBal">
-                        <input type="checkbox" id="excCreBal" value="ExcludeCreditBalance" style="display: inline"><span i18n="report.excludeCreditBalance"> </span>
+                        <input type="checkbox" id="excCreBal" value="ExcludeCreditBalance" style="display: inline"><span i18n="report.reportFilter.excludeCreditBalance"> </span>
                     </label>
                 </div>
             </div>
         </div>
-    
+
         <!-- row: form buttons -->
         <div class="col-xs-12 <!--col-xs-offset-1-->">
             <div class="btn-toolbar" role="toolbar">
@@ -83,8 +83,8 @@
         </div>
         <!-- /row: form buttons -->
     </form>
-    
-    
+
+
     <!-- row: iframe -->
     <div class="col-xs-12 form-top-padding" id="divReportFrame" style="overflow: auto; text-align: center">
         <iframe id="reportFrame" frameBorder="0" style="width: 100%; min-height:100px"></iframe>
