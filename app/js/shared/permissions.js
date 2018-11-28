@@ -6,7 +6,7 @@ var permissions = {
         var accessDeniedRightClickIDs = [];
         var billingScreenCodes = ['ADJC', 'BICO', 'BICL', 'CLST', 'BIPR', 'PRCQ', 'BILM', 'PARE', 'CASG', 'CASR', 'STCC', 'BIVA', 'PCA', 'EDRT', 'INSM', 'CLHO', 'BULG', 'BALG',
             'AGAR', 'AARD', 'CHRG', 'CLAY', 'CLIN', 'CLTR', 'CRBE', 'DICN', 'IVSL', 'MOSU', 'MNRC', 'PATS', 'PYMX', 'PAYT', 'PAIC', 'PBIC', 'PABI', 'PRCN', 'RPFR', 'REPC', 'REPS', 'TSUM', 'PACT',
-            'CLIM', 'HSTY', 'ECLM', 'CLMI', 'MASO', 'CLVA', 'ERAI', 'PAYM', 'APAY', 'DPAY', 'DCLM', 'PCLM', 'PATR', 'TOSP'];
+            'CLIM', 'HSTY', 'ECLM', 'CLMI', 'MASO', 'CLVA', 'ERAI', 'PAYM', 'APAY', 'DPAY', 'DCLM', 'PCLM', 'PATR', 'TOSP', 'PRRA'];
 
         mappingObject = {
             'ADJC': 'aAdjustmentCodes',
@@ -64,7 +64,8 @@ var permissions = {
             'APAY': 'divPendingPay',
             'DPAY': 'btnPaymentDelete',
             'DCLM': 'anc_delete_claim', // This rights used for Delete Charge also
-            'PCLM': 'anc_patient_claim_inquiry'
+            'PCLM': 'anc_patient_claim_inquiry',
+            'PRRA': 'aPaymentsRealizationRateAnalysis'
         };
 
         var tosPayments = (app.screens).indexOf('TOSP') > -1 && (app.screens).indexOf('PAYM') === -1 ? true : false ;
@@ -73,7 +74,7 @@ var permissions = {
         if(tosPayments) {
             accessDeniedScreens.splice( accessDeniedScreens.indexOf('PAYM'), 1 );
         }
-        
+
         $('.access').remove();
 
         _.each(accessDeniedScreens, function (code) {

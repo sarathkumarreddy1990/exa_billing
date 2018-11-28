@@ -74,7 +74,8 @@ var layout = {
         'User Log': '#aUserLog',
         'EDI Templates': '#aEDITemplate',
         'Paper Claim Templates': '#aPaperClaimTemplate',
-        'Printer Templates': '#aPrinterTemplate'
+        'Printer Templates': '#aPrinterTemplate',
+        'Payments Realization Rate Analysis': '#aPaymentsRealizationRateAnalysis'
         /// To be added
     },
 

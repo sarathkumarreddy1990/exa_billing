@@ -65,7 +65,8 @@ module.exports = {
         'reading-provider-fees': 'Reading Provider Fees Report',
         'referring-provider-count': 'Referring Provider Count Report',
         'referring-provider-summary': 'Referring Provider Summary Report',
-        'transaction-summary': 'Transaction Summary Report'
+        'transaction-summary': 'Transaction Summary Report',
+        'payments-realization-rate-analysis' : 'Payments Realization Rate Analysis'
     },
 
     entityNames: {
@@ -193,6 +194,7 @@ module.exports = {
         'apply_invoice_payments': 'APAY',
         'update_claim_status': 'CLIM',
         'charge_check_payment_details': 'CLIM',
-        'claim_check_payment_details': 'CLIM'
+        'claim_check_payment_details': 'CLIM',
+        'payments-realization-rate-analysis': 'PRRA'
     }
 };
