@@ -1682,8 +1682,8 @@ function formatSingleClaim(claimData, servicelineList) {
                                 widths:[ 40, 14],
                                 body: [
                                     [
-                                        {image: getImage(claimData.subscriber && claimData.subscriber[0].acceptAssignment && claimData.subscriber[0].acceptAssignment.toString().toUpperCase() === 'TRUE'), fit: [8, 8]},
-                                        {image: getImage(claimData.subscriber && claimData.subscriber[0].acceptAssignment.toString() && claimData.subscriber[0].acceptAssignment.toString().toUpperCase() === 'FALSE'), fit: [8, 8]}
+                                        {image: getImage('tickImage'), fit: [8, 8]},
+                                        {text: ''}
                                     ]
                                 ]
                             },layout: 'noBorders'
