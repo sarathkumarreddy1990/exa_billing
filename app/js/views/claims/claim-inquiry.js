@@ -90,15 +90,25 @@ define([
 
                 this.rendered = true;
                 this.options = options || {};
+                this.editOff = options.editOff === "true" ? true : false;
                 var claimId = this.options.claim_id
                 var isFromClaimScreen = this.options.source && this.options.source === 'claims'
 
-                commonjs.showDialog({
-                    header: 'Claim Inquiry',
-                    width: '90%',
-                    height: '85%',
-                    html: this.inquiryTemplate()
-                });
+                $(this.el).html(this.inquiryTemplate());
+                if (this.options.source !== 'web')
+                    commonjs.showDialog({
+                        header: 'Claim Inquiry',
+                        i18nHeader: 'billing.fileInsurance.claimInquiry',
+                        width: '90%',
+                        height: '85%',
+                        html: this.inquiryTemplate()
+                    });
+                else
+                    $('.navbar').remove();
+
+                if (this.editOff) {
+                    $('#btnCISaveIsInternal,#txtCIFollowUpDate,#txtCIBillingComment,#btnCIAddComment').prop('disabled', true);
+                }
 
                 this.bindEvents();
                 this.followDate =  commonjs.bindDateTimePicker("divFollowUpDate", { format: 'L', minDate: moment().startOf('day') });
@@ -206,7 +216,11 @@ define([
                             self.getFollowupDate();
                             $('.claimProcess').prop('disabled', false);
                             $('#gview_tblCIClaimComments .ui-search-toolbar').hide();
-                            $('#divClaimInquiry').height(isFromClaimScreen ? $(window).height() - 220 : $(window).height() - 260);
+                            if (self.options.source === 'web') {
+                                $('#divClaimInqiry').height($('#modalBody').height() - ($('.modal-header').height() + $('.modal-footer').height() + 40));
+                            } else {
+                                $('#divClaimInquiry').height(isFromClaimScreen ? $(window).height() - 220 : $(window).height() - 260);
+                            }
                         }
                     },
                     error: function (err) {
@@ -674,7 +688,7 @@ define([
                                 }
                             },
                             formatter: function (cellvalue, options, rowObject) {
-                                if (rowObject.code && commentType.indexOf(rowObject.code) == -1)
+                                if (rowObject.code && commentType.indexOf(rowObject.code) == -1 && !self.editOff)
                                     return "<i class='icon-ic-delete' title='Delete'></i>"
                                 else
                                     return "";
@@ -688,7 +702,7 @@ define([
                                 self.getClaimComment(gridData.row_id);
                             },
                             formatter: function (cellvalue, options, rowObject) {
-                                if (rowObject.code && rowObject.code != null && commentType.indexOf(rowObject.code) == -1)
+                                if (rowObject.code && rowObject.code != null && commentType.indexOf(rowObject.code) == -1 && !self.editOff)
                                     return "<i class='icon-ic-edit' title='Edit'></i>"
                                 else
                                     return "";
