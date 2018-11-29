@@ -728,7 +728,7 @@ define('grid', [
 
                 var selectedIds = JSON.stringify(batchClaimArray)
                 commonjs.showLoading();
-                var param;
+                var param ;
                 if ($('#chkStudyHeader_' + filterID).is(':checked')) {
 
                     param = {
@@ -749,7 +749,7 @@ define('grid', [
                     }
                 } else {
                     param = {
-                        study_ids: selectedIds,
+                        studyDetails: selectedIds,
                         company_id: app.companyID,
                         isAllStudies: false
                     }

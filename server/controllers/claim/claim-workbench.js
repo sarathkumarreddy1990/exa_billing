@@ -408,19 +408,19 @@ module.exports = {
 
         if (params.isAllStudies == 'true') {
             const studyData = await studiesController.getData(params);
-            let study_ids = [];
+            let studyDetails = [];
 
             _.map(studyData.rows, (study) => {
-                study_ids.push({
+                studyDetails.push({
                     patient_id: study.patient_id,
                     study_id: study.study_id,
                     order_id: study.order_id
                 });
             });
 
-            let validCharges = await data.validateBatchClaimCharge(JSON.stringify(study_ids));
+            let validCharges = await data.validateBatchClaimCharge(JSON.stringify(studyDetails));
 
-            if(study_ids.length !== parseInt(validCharges.rows[0].count)) {
+            if(studyDetails.length !== parseInt(validCharges.rows[0].count)) {
                 let responseData = {
                     code:'55802'
                     , message: 'No charge in claim'
@@ -432,7 +432,7 @@ module.exports = {
                 return await responseData;
             }
 
-            params.study_ids = JSON.stringify(study_ids);
+            params.studyDetails = JSON.stringify(studyDetails);
         }
 
         return await data.createBatchClaims(params);

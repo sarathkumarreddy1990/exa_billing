@@ -482,7 +482,7 @@ module.exports = {
 
     createBatchClaims: async function (params) {
         let {
-            study_ids,
+            studyDetails,
             auditDetails
         } = params;
 
@@ -491,7 +491,7 @@ module.exports = {
                         SELECT
 		                    patient_id, study_id, order_id
 	                    FROM
-	                        json_to_recordset(${study_ids}) AS study_ids
+	                        json_to_recordset(${studyDetails}) AS study_ids
 		                    (
 		                        patient_id bigint,
                                 study_id bigint,
@@ -617,12 +617,12 @@ module.exports = {
         return await query(sql);
     },
 
-    validateBatchClaimCharge: async(study_ids) => {
+    validateBatchClaimCharge: async(study_data) => {
         const sql = SQL`WITH batch_claim_details AS (
                         SELECT
                              study_id
                         FROM
-                            json_to_recordset(${study_ids}) AS study_ids
+                            json_to_recordset(${study_data}) AS study_ids
                             (
                                 study_id bigint
                             )
