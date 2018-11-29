@@ -615,5 +615,24 @@ module.exports = {
                     SELECT * FROM update_audit_invoice `;
 
         return await query(sql);
+    },
+
+    validateBatchClaimCharge: async(study_ids) => {
+        const sql = SQL`WITH batch_claim_details AS (
+                        SELECT
+                             study_id
+                        FROM
+                            json_to_recordset(${study_ids}) AS study_ids
+                            (
+                                study_id bigint
+                            )
+                    )
+                    SELECT
+                        COUNT(DISTINCT s.id)
+                    FROM public.studies s
+                    INNER JOIN public.study_cpt cpt ON cpt.study_id = s.id
+                    INNER JOIN public.cpt_codes codes ON codes.id = cpt.cpt_code_id
+                    WHERE s.id = ANY(SELECT * FROM batch_claim_details)`;
+        return await query(sql.text, sql.values);
     }
 };

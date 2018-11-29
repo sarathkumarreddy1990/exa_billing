@@ -1294,6 +1294,10 @@ var commonjs = {
                 commonjs.showError('Unable to connect EDI Server');
                 break;
 
+            case '55802':
+                commonjs.showError('Please select charges record for batch claim');
+                break;
+
             case 'HANDLED_EXCEPTION':
                 commonjs.showError(errorMessage || 'Error :(');
                 break;

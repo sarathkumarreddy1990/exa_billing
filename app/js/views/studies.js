@@ -196,7 +196,9 @@ define(['jquery',
                 "click #btnValidateExport": "underConstruction",
                 "click #btnCreateNew": "createNewClaim",
                 "click #btnStudiesRefreshAll": "refreshAllStudies",
-                "click #btnStudiesCompleteRefresh": "completeRefresh"
+                "click #btnStudiesCompleteRefresh": "completeRefresh",
+                "click #btnClearAllStudy": "clearAllSelectedRows",
+                "click #btnSelectAllStudy": "selectAllRows"
             },
 
             initialize: function (options) {
