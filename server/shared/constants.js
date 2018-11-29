@@ -66,7 +66,8 @@ module.exports = {
         'referring-provider-count': 'Referring Provider Count Report',
         'referring-provider-summary': 'Referring Provider Summary Report',
         'transaction-summary': 'Transaction Summary Report',
-        'payments-realization-rate-analysis' : 'Payments Realization Rate Analysis'
+        'payments-realization-rate-analysis' : 'Payments Realization Rate Analysis',
+        'update_claim_status': 'Claim Status'
     },
 
     entityNames: {
@@ -94,7 +95,9 @@ module.exports = {
         claim_inquiry: 'claim_comments',
         audit_log: 'Audit Log',
         user_log: 'User Log',
-        claims: 'Claims'
+        claims: 'Claims',
+        update_claim_status: 'Claims',
+        validate_claims:'Claims'
     },
 
     permissionsMap: {
