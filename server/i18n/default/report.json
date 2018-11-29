@@ -16,7 +16,7 @@
         "serviceDate": "Service Date",
         "payDate": "Pay Date",
         "billCreatedDate": "Bill Created Date",
-        "selectInsurance": "Select Insur",
+        "selectInsurance": "Select Insurance",
         "selectUsers": "Select Users",
         "claim": "Select Claim",
         "reportFilterBy": "Report Filter (Order By)",
@@ -51,6 +51,14 @@
         "unapplied": "Unapplied",
         "partialApplied": "Partially Applied",
         "overApplied": "Over Applied",
-        "selectInsuranceProvider": "Select Insurance Provider"
+        "userSelected" : "Users Selected",
+        "adjustmentCode" : "Select Adjustment Code",
+        "allPayments" : "All Payments",
+        "allAdjustmentCode" : "All Adjustment Codes",
+        "adjustmentCodeSelected" : "Adjustment Code already selected",
+        "note": "-- NOTE: May return thousands of results",
+        "selectInsuranceProvider": "Select Insurance Provider",
+        "addInsurance" : "Add Insurance"
+
     }
 }

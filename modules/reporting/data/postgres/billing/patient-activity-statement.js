@@ -237,7 +237,11 @@ WITH claim_data as(
                 billing.providers bp
             INNER JOIN billing.claims bc on bc.billing_provider_id = bp.id
             WHERE
-                <% if(billingProviderIds) { %> <% print(billingProviderIds); } else { %>  bc.id =  <%= claimId %> <% } %>
+            <% if(claimId) { %>
+                   <% if(billingProviderIds) { %> <% print(billingProviderIds); } else { %>  bc.id =  <%= claimId %> <% } %>
+            <% } else { %>
+                 <%= patientIds %>
+            <% } %>
           ),
           all_cte AS (
           -- 1st Header, Billing Provider, update the columns in the dataset
