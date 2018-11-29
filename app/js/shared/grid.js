@@ -728,90 +728,77 @@ define('grid', [
 
                 var selectedIds = JSON.stringify(batchClaimArray)
                 commonjs.showLoading();
-
+                var param;
                 if ($('#chkStudyHeader_' + filterID).is(':checked')) {
-                    jQuery.ajax({
-                        url: "/exa_modules/billing/claim_workbench/claims/batch",
-                        type: "POST",
-                        data: {
-                            "filterData": filterData,
-                            "filterCol": filterCol,
-                            "sortField": filterContent.pager.get('SortField'),
-                            "sortOrder": filterContent.pager.get('SortOrder'),
-                            company_id: app.companyID,
-                            user_id: app.userID,
-                            pageNo: 1,
-                            pageSize: 1000,
-                            isAllStudies: true,
-                            isDatePickerClear: isDatePickerClear,
-                            customArgs: {
-                                filter_id: filterID,
-                                isClaimGrid: false
-                            }
-                        },
-                        success: function (data, response) {
-                            self.handleBatchClaimResponse(data, currentFilter);
-                        },
-                        error: function(err, response) {
-                            commonjs.handleXhrError(err, response);
-                            commonjs.hideLoading();
+
+                    param = {
+                        "filterData": filterData,
+                        "filterCol": filterCol,
+                        "sortField": filterContent.pager.get('SortField'),
+                        "sortOrder": filterContent.pager.get('SortOrder'),
+                        company_id: app.companyID,
+                        user_id: app.userID,
+                        pageNo: 1,
+                        pageSize: 1000,
+                        isAllStudies: true,
+                        isDatePickerClear: isDatePickerClear,
+                        customArgs: {
+                            filter_id: filterID,
+                            isClaimGrid: false
                         }
-                    });
+                    }
                 } else {
+                    param = {
+                        study_ids: selectedIds,
+                        company_id: app.companyID,
+                        isAllStudies: false
+                    }
+                }
                     $.ajax({
                         url: '/exa_modules/billing/claim_workbench/claims/batch',
                         type: 'POST',
-                        data: {
-                            study_ids: selectedIds,
-                            company_id: app.companyID,
-                            isAllStudies: false
-                        },
+                        data: param,
                         success: function (data, response) {
-                            self.handleBatchClaimResponse(data, currentFilter);
+                            commonjs.showStatus('messages.status.batchClaimCompleted');
+                            commonjs.hideLoading();
+
+                            var claim_id = data && data.length && data[0].create_claim_charge || null;
+
+                            // Change grid values after claim creation instead of refreshing studies grid
+                            if (claim_id) {
+
+                                var claimsTable = new customGrid(studyDataStore, gridID);
+                                claimsTable.options = { gridelementid: gridID }
+                                var changeGrid = initChangeGrid(claimsTable);
+                                var cells = [];
+
+                                cells = cells.concat(changeGrid.getClaimId(claim_id));
+                                cells = cells.concat(changeGrid.getBillingStatus('Billed'));
+                                cells = cells.concat(changeGrid.setEditIcon());
+
+                                for (var r = 0; r < batchClaimArray.length; r++) {
+                                    var rowId = batchClaimArray[r].study_id;
+                                    var $row = $tblGrid.find('#' + rowId);
+                                    var setCell = changeGrid.setCell($row);
+
+                                    setCell(cells);
+                                    // In user filter Billed Status selected as unbilled means, After claim creation hide from grid.
+                                    var isBilledStatus = currentFilter.filter_info && currentFilter.filter_info.studyInformation && currentFilter.filter_info.studyInformation.billedstatus === 'unbilled' || false;
+
+                                    if ($('#gs_billed_status').val() === 'unbilled' || isBilledStatus) {
+                                        $row.remove();
+                                    }
+
+                                }
+                            }
                         },
                         error: function (err, response) {
                             commonjs.handleXhrError(err, response);
                             commonjs.hideLoading();
                         }
                     });
-                }
             } else {
                 commonjs.showWarning('messages.warning.claims.selectClaimToCreate');
-            }
-        },
-
-        self.handleBatchClaimResponse = function(data, currentFilter) {
-            commonjs.showStatus('messages.status.batchClaimCompleted');
-            commonjs.hideLoading();
-
-            var claim_id = data && data.length && data[0].create_claim_charge || null;
-
-             // Change grid values after claim creation instead of refreshing studies grid
-            if (claim_id) {
-
-                var claimsTable = new customGrid(studyDataStore, gridID);
-                claimsTable.options = { gridelementid: gridID }
-                var changeGrid = initChangeGrid(claimsTable);
-                var cells = [];
-
-                cells = cells.concat(changeGrid.getClaimId(claim_id));
-                cells = cells.concat(changeGrid.getBillingStatus('Billed'));
-                cells = cells.concat(changeGrid.setEditIcon());
-
-                for (var r = 0; r < batchClaimArray.length; r++) {
-                    var rowId = batchClaimArray[r].study_id;
-                    var $row = $tblGrid.find('#' + rowId);
-                    var setCell = changeGrid.setCell($row);
-
-                    setCell(cells);
-                    // In user filter Billed Status selected as unbilled means, After claim creation hide from grid.
-                    var isBilledStatus = currentFilter.filter_info && currentFilter.filter_info.studyInformation && currentFilter.filter_info.studyInformation.billedstatus === 'unbilled' || false;
-
-                    if ($('#gs_billed_status').val() === 'unbilled' || isBilledStatus) {
-                        $row.remove();
-                    }
-
-                }
             }
         },
 
