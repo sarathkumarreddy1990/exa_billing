@@ -6,7 +6,7 @@
         <div class="col-xs-4">
             <div class="form-group form-inline">
                 <div class="col-form-label">
-                    <label class="control-label field-required" for="txtDateRange" i18n="report.claimDate" />
+                    <label class="control-label field-required" for="txtDateRange" i18n="report.reportFilter.claimDate" />
                 </div>
                 <div>
                     <div id="divReportDate" class="input-group">
@@ -22,7 +22,7 @@
         <div class="col-xs-4">
             <div class="form-group form-inline">
                 <div class="col-form-label" class="multiselect">
-                    <label class="control-label" i18n="report.facilities" />
+                    <label class="control-label" i18n="report.reportFilter.facilities" />
                     <select id="ddlFacilityFilter" multiple="multiple">
                         <% _.each(facilities.toJSON(), function(facility) { %>
                             <option value='<%= facility.id %>'>
@@ -36,7 +36,7 @@
         <div class="col-xs-4">
             <div class="form-group form-inline">
                 <div class="col-form-label" class="multiselect">
-                    <label class="control-label" i18n="report.billingProviders" />
+                    <label class="control-label" i18n="report.reportFilter.billingProviders" />
                     <select id="ddlBillingProvider" multiple="multiple" />
                 </div>
             </div>

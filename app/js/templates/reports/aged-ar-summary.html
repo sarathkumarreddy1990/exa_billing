@@ -20,7 +20,7 @@
             <div class="col">
                 <div class="form-group form-inline">
                     <div class="col-form-label">
-                        <label class="control-label field-required" for="txtDateRange" i18n="report.arCutoffDate" />
+                        <label class="control-label field-required" for="txtDateRange" i18n="report.reportFilter.arCutoffDate" />
                     </div>
                     <div>
                         <div id="divFromDate" class="input-group">
@@ -34,14 +34,14 @@
                 <div class="pt-2 ml-3">
                     <label class="checkbox-inline" for="incPat">
                         <input type="checkbox" id="incPat" value="IncludePatient" style="display: inline">
-                        <span i18n="report.reportByPrimaryPayer"> </span>
+                        <span i18n="report.reportFilter.reportByPrimaryPayer"> </span>
                     </label>
                 </div>
             </div>
             <div class="col">
                 <div class="form-group form-inline">
                     <div class="col-form-label" class="multiselect">
-                        <label class="control-label" i18n="report.facilities">
+                        <label class="control-label" i18n="report.reportFilter.facilities">
                         </label>
                         <select id="ddlFacilityFilter" multiple="multiple">
                             <% _.each(facilities.toJSON(), function(facility) { %>
@@ -55,14 +55,14 @@
                 <div class="pt-2 ml-3">
                     <label class="checkbox-inline" for="excCreBal">
                         <input type="checkbox" id="excCreBal" value="ExcludeCreditBalance" style="display: inline">
-                        <span i18n="report.excludeCreditBalance"> </span>
+                        <span i18n="report.reportFilter.excludeCreditBalance"> </span>
                     </label>
                 </div>
             </div>
             <div class="col">
                 <div class="form-group form-inline">
                     <div class="col-form-label" class="multiselect">
-                        <label class="control-label" i18n="report.billingProviders">
+                        <label class="control-label" i18n="report.reportFilter.billingProviders">
                         </label>
                         <select id="ddlBillingProvider" multiple="multiple" />
                     </div>
@@ -71,7 +71,7 @@
             <div class="col">
                 <div class="form-group form-inline">
                     <div>
-                        <label class="control-label" i18n="report.selectInsurance" />
+                        <label class="control-label" i18n="report.reportFilter.selectInsurance" />
                         <div class="input-group">
                             <select id="ddlInsuranceOption" class="form-control form-control-lg">
                                 <option value="All">All Insurance</option>
@@ -82,7 +82,7 @@
                     </div>
                     <div id="ddlOptionBox" class="form-group form-inline pt-2" style="display: none;">
                         <div class="bindInsurance">
-                            <label class="control-label" i18n="report.selectInsurance"></label>
+                            <label class="control-label" i18n="report.reportFilter.selectInsurance"></label>
                             <a class="btn btn-primary" id="btnAddInsurance">
                                 <i class="icon-ic-plus"></i>
                             </a>
@@ -91,7 +91,7 @@
                     </div>
                     <div id="ddlInsuranceGroupBox" class="ddl form-group form-inline pt-2" style="display: none;">
                         <div class="bindInsurance">
-                            <label class="control-label" i18n="report.insuranceProvider"></label>
+                            <label class="control-label" i18n="report.reportFilter.insuranceProvider"></label>
                             <a class="btn btn-primary" id="btnAddInsuranceProvider">
                                 <i class="icon-ic-plus" ></i>
                             </a>

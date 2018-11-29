@@ -46,7 +46,7 @@
         <div class="col-3">
             <div class="form-group form-inline">
                 <div class="col-form-label" class="multiselect">
-                    <label class="control-label" i18n="report.facilities" />
+                    <label class="control-label" i18n="report.reportFilter.facilities" />
                     <select id="ddlFacilityFilter" multiple="multiple">
                         <% _.each(facilities.toJSON(), function(facility) { %>
                             <option value='<%= facility.id %>'>
@@ -62,7 +62,7 @@
             <div class="form-group form-inline">
 
                 <div class="col-form-label" class="multiselect">
-                    <label class="control-label" i18n="report.billingProviders" />
+                    <label class="control-label" i18n="report.reportFilter.billingProviders" />
                     </label>
                     <select id="ddlBillingProvider" multiple="multiple" />
                 </div>
@@ -71,7 +71,7 @@
 
         <div class="col-2">
             <div class="form-group form-inline">
-                <label class="control-label" i18n="report.procedureBy" />
+                <label class="control-label" i18n="report.reportFilter.procedureBy" />
                 </label>
                 <div class="selectBox ddl" id='showBillingProCheckboxes'>
                     <select id="ddlProcedureBySelectBoxes">
@@ -120,7 +120,7 @@
             </div>
             <div class="form-group form-inline" id="procedureByCPTCodes">
                 <div class="col-form-label" style="max-width: 110px">
-                    <label class="inline field-chk" i18n="report.cptCodes" />
+                    <label class="inline field-chk" i18n="report.reportFilter.cptCodes" />
                 </div>
                 <div class="form-content">
                     <div class="input-group" class="divListBox">
