@@ -69,7 +69,7 @@ module.exports = {
 
         if (accounting_date) {
             const accountingDateFilter = generator('accounting_date', accounting_date);
-            
+
             if (accountingDateFilter) {
                 whereQuery.push(accountingDateFilter);
             }
@@ -114,7 +114,7 @@ module.exports = {
         if (payment_mode) {
             whereQuery.push(`mode ILIKE '%${payment_mode}%'`);
         }
-        
+
         if (card_number) {
             whereQuery.push(`card_number ILIKE '%${card_number}%'`);
         }
@@ -212,7 +212,7 @@ module.exports = {
                             WHEN 'ordering_provider' THEN ref_provider.full_name
                             WHEN 'patient' THEN patients.full_name        END) AS payer_name
                     , payment_dt
-                    , accounting_date::text 
+                    , accounting_date::text
                     , invoice_no
                     , alternate_payment_id
                     , payer_type
@@ -259,6 +259,23 @@ module.exports = {
                 .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
         }
 
+        if (from === 'tos_payment') {
+
+            let query = ` SELECT
+                    payments.id AS payment_id,
+                    payments.patient_id,
+                    payments.accounting_date
+                FROM billing.payments
+                ${joinQuery} `;
+
+            if (whereQuery.length) {
+                query += ` WHERE ${whereQuery.join(' AND ')} `;
+            }
+
+            query += ` ORDER BY ${sortField} ${sortOrder} `;
+
+            return query;
+        }
 
         return await query(sql);
     },
@@ -1104,27 +1121,27 @@ module.exports = {
 
         params.sortOrder = params.sortOrder || ' ASC';
 
-        let sql = SQL` SELECT 
-                               studies.id 
-                             , studies.accession_no 
-                             , studies.study_description 
+        let sql = SQL` SELECT
+                               studies.id
+                             , studies.accession_no
+                             , studies.study_description
                              , studies.study_dt
-                             , studies.facility_id 
-                             , cc.cpt_code 
-                        FROM studies 
-                        INNER JOIN orders o ON studies.order_id = o.id 
+                             , studies.facility_id
+                             , cc.cpt_code
+                        FROM studies
+                        INNER JOIN orders o ON studies.order_id = o.id
                         JOIN lateral(
                                         SELECT
                                              study_id
-                                            , array_agg(scp.cpt_code) AS cpt_code 
-                                        FROM study_cpt scp 
-                                        WHERE NOT scp.has_deleted 
-                                        GROUP BY study_id 
-                                      ) cc ON cc.study_id = studies.id 
+                                            , array_agg(scp.cpt_code) AS cpt_code
+                                        FROM study_cpt scp
+                                        WHERE NOT scp.has_deleted
+                                        GROUP BY study_id
+                                      ) cc ON cc.study_id = studies.id
                         WHERE o.patient_id = ${payerId}
                            AND NOT o.has_deleted
                            AND o.order_status NOT IN ('CAN','NOS')
-                           AND studies.study_status NOT IN ('CAN','NOS') 
+                           AND studies.study_status NOT IN ('CAN','NOS')
                         `;
 
         if(study_dt){
@@ -1153,6 +1170,81 @@ module.exports = {
             .append(sortField)
             .append(' ')
             .append(sortOrder);
+
+        return await query(sql);
+    },
+
+    getTOSPaymentDetails: async function (params) {
+
+        const paymentquery = await this.getPayments(params);
+
+        const sql = SQL`WITH
+                        payment_details AS ( `;
+
+        sql.append(paymentquery);
+
+        sql.append(SQL` )
+	                    ,claims_details AS (
+                            SELECT
+                                bc.id AS claim_id,
+                                bc.patient_id,
+                                bc.invoice_no,
+                                bc.claim_dt,
+                                pd.payment_id
+                            FROM billing.claims bc
+                            INNER JOIN payment_details pd ON pd.patient_id = bc.patient_id
+                            WHERE
+                                (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) > 0::money
+                                AND bc.claim_dt::date = pd.accounting_date
+                        )
+                        , charges AS (
+                            SELECT
+                                c.id as charge_id,
+                                sum(c.bill_fee * c.units)       AS charges_bill_fee_total,
+                                (
+                                    SELECT
+                                        ( coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment'),0::money)  +
+			                              coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment'),0::money)
+			                            ) as charge_applied_total
+                                    FROM
+                                       billing.charges
+                                       INNER JOIN billing.payment_applications AS pa ON pa.charge_id = charges.id
+                                       INNER JOIN billing.payments AS p ON pa.payment_id = p.id
+                                    WHERE charges.id = c.id
+                                ),
+                                cd.claim_id,
+                                cd.invoice_no,
+                                cd.claim_dt,
+                                cd.patient_id,
+                                pc.display_code AS cpt_code,
+                                cd.payment_id
+                            FROM
+                                billing.charges AS c
+                                INNER JOIN claims_details AS cd ON cd.claim_id = c.claim_id
+                                INNER JOIN public.cpt_codes AS pc ON pc.id = c.cpt_id
+                                GROUP BY
+                                c.id
+                                , cd.claim_id
+                                , cd.patient_id
+                                , cd.invoice_no
+                                , cd.claim_dt
+                                , pc.display_code
+                                , cd.payment_id
+                        )
+                        SELECT
+                            charges.* ,
+                            ( charges_bill_fee_total - COALESCE(charge_applied_total,'0') )::numeric AS balance ,
+                            ( SELECT payment_balance_total::numeric FROM billing.get_payment_totals(charges.payment_id) ),
+                            pp.account_no,
+                            pp.prefix_name AS patient_prefix,
+                            pp.first_name AS patient_fname,
+                            pp.middle_name AS patient_mname,
+                            pp.last_name AS patient_lname,
+                            pp.suffix_name AS patient_suffix
+                        FROM
+                            charges
+                        INNER JOIN public.patients pp on pp.id = charges.patient_id
+                        ORDER BY claim_id, charge_id `);
 
         return await query(sql);
     }
