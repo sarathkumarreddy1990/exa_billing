@@ -715,7 +715,7 @@ module.exports = {
 					)
 
 					FROM billing.claims
-                    INNER JOIN LATERAL billing.get_claim_payments(claims.id, true) bgcp ON TRUE
+					INNER JOIN LATERAL billing.get_claim_payments(claims.id, true) bgcp ON TRUE
 					INNER JOIN facilities ON facilities.id=claims.facility_id
 					INNER JOIN patients ON patients.id=claims.patient_id
 					INNER JOIN    patient_insurances pi  ON  pi.id =
