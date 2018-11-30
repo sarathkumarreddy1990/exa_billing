@@ -353,7 +353,7 @@ module.exports = {
             appliedResult = await Promise.all(results).then(function (response) {
                 return response;
             }).catch(function (err) {
-                logger.error(`Process started for TOS Payment.. - ${err}`);
+                logger.error(`Error on processing TOS Payment.. - ${err}`);
                 return err;
             });
 
