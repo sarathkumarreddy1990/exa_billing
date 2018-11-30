@@ -4013,30 +4013,10 @@ var commonjs = {
     processPostRender: function (args) {
         var screenTitle = (args && args.screen != '') ? args.screen : 'PACS-Title';
 
-        var cultureCode = 'es_us';
+        i18n.loadConfig(function() {
+            commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
+        });
 
-        switch (cultureCode.substring(0, 2)) {
-            case 'es':
-                cultureCode = "es_us";
-                break;
-
-            case 'fr':
-                cultureCode = "fr_fr";
-                break;
-
-            case 'hr':
-                cultureCode = "hr_hr";
-                break;
-
-            // case 'th':
-            //     cultureCode = "th_th";
-
-            default:
-                cultureCode = "default";
-        }
-
-        app.currentCulture = cultureCode;
-        commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
         commonjs.setMultiselectSearchIcon();
     },
 
@@ -5211,7 +5191,7 @@ var commonjs = {
         var $searchfield = $select2Container1.children().find('.select2-search__field');
         $searchfield.prop('placeholder', 'Type to search');
     }
-    
+
 };
 
 
@@ -5313,7 +5293,8 @@ var facilityModules = {
         readingProviderFees: 'Reading Provider Fees',
         transactionSummary: 'Transaction Summary',
         agedARDetail: 'Aged AR Detail',
-        paymentPDF: 'Payments Received'
+        paymentPDF: 'Payments Received',
+        paymentsRealizationRateAnalysis: 'Payments Realization Rate Analysis'
     }
 };
 

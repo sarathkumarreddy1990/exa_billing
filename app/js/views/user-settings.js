@@ -219,7 +219,9 @@ define([
                         self.billingDisplayFields = _.reject(self.billingDisplayFields, function(obj){ return obj.field_code === 'billed_status'; });
 
                         for (var i = 0; i < self.billingDisplayFields.length; i++) {
-                            $('<option/>').val(self.billingDisplayFields[i].field_code).html(self.billingDisplayFields[i].field_name).appendTo('#ddlBillingDefaultColumns');
+                            if(self.billingDisplayFields[i].field_code != 'charge_description'){
+                                $('<option/>').val(self.billingDisplayFields[i].field_code).html(self.billingDisplayFields[i].field_name).appendTo('#ddlBillingDefaultColumns');
+                            }
                         }
 
                         $('#ddlBillingDefaultColumns').val(result_data.default_column);

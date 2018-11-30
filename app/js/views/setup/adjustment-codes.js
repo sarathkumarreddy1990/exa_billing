@@ -52,7 +52,7 @@ define(['jquery',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
                     colNames: ['', '', '', '', '', '', ''],
-                    i18nNames: ['', '', '', 'setup.common.code', 'setup.common.description', 'setup.adjustmentcodes.entryType', 'is_active'],
+                    i18nNames: ['', '', '', 'setup.common.code', 'setup.common.description', 'setup.adjustmentCode.entryType', 'is_active'],
                     colModel: [
                         {
                             name: 'id',
@@ -147,7 +147,7 @@ define(['jquery',
                         Backbone.history.navigate('#setup/adjustment_codes/new', true);
                     }},
                     {value: 'Reload', class: 'btn', i18n: 'shared.buttons.reload', clickEvent: function () {
-                        self.pager.set({"PageNo": 1}); 
+                        self.pager.set({"PageNo": 1});
                         self.adjustmentCodesTable.refreshAll();
                         commonjs.showStatus("Reloaded Successfully");
                     }}
@@ -244,7 +244,7 @@ define(['jquery',
                             }
                         },
                         error: function (model, response) {
-                            commonjs.handleXhrError(model, response); 
+                            commonjs.handleXhrError(model, response);
                         }
                     });
             },

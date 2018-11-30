@@ -494,7 +494,7 @@ module.exports = {
                     , cpi.subscriber_city AS p_subscriber_city
                     , cpi.subscriber_state AS p_subscriber_state
                     , cpi.assign_benefits_to_patient AS p_assign_benefits_to_patient
-                    , cpi.subscriber_dob AS p_subscriber_dob
+                    , cpi.subscriber_dob::text AS p_subscriber_dob
                     , cpi.valid_from_date AS p_valid_from_date
                     , cpi.valid_to_date AS p_valid_to_date
                     , cpi.medicare_insurance_type_code AS p_medicare_insurance_type_code
@@ -523,7 +523,7 @@ module.exports = {
                     , csi.subscriber_city AS s_subscriber_city
                     , csi.subscriber_state AS s_subscriber_state
                     , csi.assign_benefits_to_patient AS s_assign_benefits_to_patient
-                    , csi.subscriber_dob AS s_subscriber_dob
+                    , csi.subscriber_dob::text AS s_subscriber_dob
                     , csi.valid_from_date AS s_valid_from_date
                     , csi.valid_to_date AS s_valid_to_date
                     , csi.medicare_insurance_type_code AS s_medicare_insurance_type_code
@@ -552,7 +552,7 @@ module.exports = {
                     , cti.subscriber_city AS t_subscriber_city
                     , cti.subscriber_state AS t_subscriber_state
                     , cti.assign_benefits_to_patient AS t_assign_benefits_to_patient
-                    , cti.subscriber_dob AS t_subscriber_dob
+                    , cti.subscriber_dob::text AS t_subscriber_dob
                     , cti.valid_from_date AS t_valid_from_date
                     , cti.valid_to_date AS t_valid_to_date
                     , cti.medicare_insurance_type_code AS t_medicare_insurance_type_code

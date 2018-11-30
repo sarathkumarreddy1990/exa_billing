@@ -57,7 +57,7 @@ define(['jquery',
                     custompager: new Pager(),
                     emptyMessage: 'No Record found',
                     colNames: ['', '', '', '', '', '', '', ''],
-                    i18nNames: ['', '', '', 'shared.common.code', 'shared.common.name', 'setup.billingprovider.address', 'setup.billingprovider.phoneno', 'in_active'],
+                    i18nNames: ['', '', '', 'shared.common.code', 'shared.common.name', 'setup.billingProvider.address', 'setup.billingProvider.phoneno', 'in_active'],
                     colModel: [
                         {
                             name: 'id',
@@ -574,7 +574,7 @@ define(['jquery',
                     type: "DELETE",
                     data: {
                         id : rowData.id,
-                        provider_id : self.model.id 
+                        provider_id : self.model.id
                     },
                     success: function (model, response) {
                         $('#tblProviderIDCodesGrid').jqGrid('delRowData', rowID);
@@ -599,7 +599,7 @@ define(['jquery',
                 $('#txtPayerAssProId').val('');
                 $('#ddlIdCodeQualifier').val('');
                 $('#select2-ddlInsuranceProvider-container').html('');
-                $('#divIDCodesForm').hide(); 
+                $('#divIDCodesForm').hide();
                 self.editProviderIDCodeData = null;
             },
 
@@ -617,10 +617,10 @@ define(['jquery',
                     data.id = rowData.id;
                     data.insuranceProviderId = rowData.insurance_provider_id;
                     type = 'PUT';
-                } 
+                }
                 if (!data.payerAssignedProviderId) {
                     return commonjs.showStatus("Please Enter Payer Assigned Provider ID");
-                } 
+                }
                 if(!data.qualifierId) {
                     return commonjs.showStatus("Please Select ID Code Qualifier");
                 }
@@ -639,7 +639,7 @@ define(['jquery',
                         self.clearIDCodesForm();
                         self.bindProviderIDCodes();
                     },
-                    error: function (model, response) { 
+                    error: function (model, response) {
 
                     }
                 });
@@ -678,8 +678,8 @@ define(['jquery',
                         return false;
                     else
                         return true;
-                    
-                } 
+
+                }
                 else if ($.inArray($('#ddlInsuranceProvider').val(), idarray) == -1) {
                     return false;
                 }

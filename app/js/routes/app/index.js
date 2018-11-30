@@ -6,7 +6,8 @@ define([
     'routes/app/studies',
     'routes/app/claims',
     'routes/app/payments',
-    'routes/app/era'
+    'routes/app/era',
+    'routes/app/claim-inquiry'
 ], function (
     Backbone,
     BackboneSubroute,
@@ -15,7 +16,8 @@ define([
     StudiesRoute,
     ClaimWorkBenchRoute,
     PaymentsRoute,
-    EraRoute
+    EraRoute,
+    ClaimInquiryRoute
 ) {
         return Backbone.SubRoute.extend({
             routes: {
@@ -23,7 +25,8 @@ define([
                 "claim_workbench/*subroute": "startClaimWorkbench",
                 "payments/*subroute": "startPayments",
                 "era/*subroute": "startEra",
-                "invoice_report/*subroute": "startInvoiceReports"
+                "invoice_report/*subroute": "startInvoiceReports",
+                "claim_inquiry/*subroute": "startClaimInquiry"
             },
 
             accessDeniedTemplate: _.template(AccessDeniedTemplate),
@@ -74,6 +77,15 @@ define([
                 if (this.checkLicense('Era') && !this.eraRouter) {
                     this.defaultArgs.routePrefix = 'billing/era/';
                     this.eraRouter = new EraRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startClaimInquiry: function () {
+                if (this.checkLicense('Patient Claim Inquiry') && !this.claimInquiryRouter) {
+                    this.defaultArgs.routePrefix = 'billing/claim_inquiry/';
+                    this.claimInquiryRouter = new ClaimInquiryRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();
                 }

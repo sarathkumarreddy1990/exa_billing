@@ -2,8 +2,7 @@ const _ = require('lodash')
     , Promise = require('bluebird')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
-    , queryBuilder = require('../queryBuilder')
-    , logger = require('../../../../../logger');
+    , queryBuilder = require('../queryBuilder');
 
 // generate query template ***only once*** !!!
 
@@ -67,6 +66,7 @@ WHEN payer_type = 'patient' THEN 'Patient'
 WHEN payer_type = 'ordering_facility' THEN 'Ordering Facility'
 END AS "Responsible Party",
 <% } %>
+pippt.description AS "Insurance Group",
 <% if(incPatDetail == 'true') { %>
 CASE WHEN primary_patient_insurance_id is not null THEN pip.insurance_name
 ELSE
@@ -148,7 +148,9 @@ COALESCE(CASE WHEN gcd.age > 90 and gcd.age <=120 THEN gcd.balance END,0::money)
       <% if (facilityIds) { %>AND <% print(facilityIds); } %>
       <% if(billingProID) { %> AND <% print(billingProID); } %>
       <% if(excCreditBal == 'true'){ %> AND  gcd.balance::money > '0' <% } %>
-      GROUP BY "Payer Name","Facility","Claim ID","Cut-off Date","Billing Pro Name","Patient Name","Claim Date","Account #","Responsible Party","EDI","Provider Type", gcd.age,gcd.balance
+      <% if(insGroups) { %> AND <%=insGroups%> <%}%>
+      <% if(insuranceIds) { %> AND <%=insuranceIds%> <%}%>
+      GROUP BY "Payer Name","Facility","Claim ID","Cut-off Date","Billing Pro Name","Patient Name","Claim Date","Account #","Responsible Party","Insurance Group","EDI","Provider Type", gcd.age,gcd.balance
 ),
 aged_ar_sum AS ( SELECT
        null::text as "Facility",
@@ -160,6 +162,7 @@ aged_ar_sum AS ( SELECT
        null::varchar(64) as "Account #",
        "Responsible Party_order_by" ,
        null::text as "Responsible Party",
+       null::text as "Insurance Group",
        "Payer Name",
        null::text as "EDI",
        ('A/R Total')::TEXT as "Provider Type",
@@ -201,6 +204,7 @@ aged_ar_total AS ( SELECT
     null::varchar(64) as "Account #",
     null::bigint "Responsible Party_order_by" ,
     null::text as "Responsible Party",
+    null::text as "Insurance Group",
     null::text AS "Payer Name",
     null::text as "EDI",
     ('- Total -')::text as "Provider Type",
@@ -248,7 +252,8 @@ SELECT
 	 , "Patient Name"
 	 , "Claim Date"
 	 , "Account #"
-	 , "Responsible Party"
+     , "Responsible Party"
+     , "Insurance Group"
 	 , "Payer Name"
 	 , "EDI"
 	 , "Provider Type"
@@ -288,13 +293,26 @@ const api = {
      * This method is called by controller pipline after report data is initialized (common lookups are available).
      */
     getReportData: (initialReportData) => {
+        initialReportData.filters = api.createReportFilters(initialReportData);
+        //convert array of insuranceProviderIds array of string to integer
+        if (initialReportData.report.params.insuranceIds) {
+            initialReportData.report.params.insuranceIds = initialReportData.report.params.insuranceIds.map(Number);
+        }
+
+        if (initialReportData.report.params.insuranceGroupIds) {
+            initialReportData.report.params.insuranceGroupIds = initialReportData.report.params.insuranceGroupIds.map(Number);
+        }
         return Promise.join(
             api.createagedARDetailsDataSet(initialReportData.report.params),
             dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
+            dataHelper.getInsuranceProvidersInfo(initialReportData.report.params.companyId, initialReportData.report.params.insuranceIds),
+            dataHelper.getInsuranceGroupInfo(initialReportData.report.params.companyId, initialReportData.report.params.insuranceGroupIds),
             // other data sets could be added here...
-            (agedARDetailsDataSet, providerInfo) => {
+            (agedARDetailsDataSet, providerInfo, insuranceProvidersInfo, providerGroupInfo) => {
                 // add report filters
                 initialReportData.lookups.billingProviderInfo = providerInfo || [];
+                initialReportData.lookups.insuranceProviders = insuranceProvidersInfo || [];
+                initialReportData.lookups.providerGroup = providerGroupInfo || [];
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
                 // add report specific data sets
@@ -349,8 +367,21 @@ const api = {
             //const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
             const billingProviderInfo = _(lookups.billingProviderInfo).filter(f => params.billingProvider && params.billingProvider.map(Number).indexOf(parseInt(f.id, 10)) > -1).map(f => f.name).value();
             filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
-
         }
+        if (params.insuranceIds && params.insuranceIds.length) {
+            const insuranceInfo = _(lookups.insuranceProviders).map(f => f.name).value();
+            filtersUsed.push({ name: 'insurance', label: 'Insurance', value: insuranceInfo });
+        }
+        else
+            filtersUsed.push({ name: 'insurance', label: 'Insurance', value: 'All' });
+
+        if (params.insuranceGroupIds && params.insuranceGroupIds.length) {
+            const insuranceGroupInfo = _(lookups.providerGroup).map(f => f.description).value();
+            filtersUsed.push({ name: 'insuranceGroup', label: 'Insurance Group', value: insuranceGroupInfo });
+        }
+        else
+            filtersUsed.push({ name: 'insuranceGroup', label: 'Insurance Group', value: 'All' });
+
 
         filtersUsed.push({ name: 'Cut Off Date', label: 'Date From', value: params.fromDate });
 
@@ -379,7 +410,9 @@ const api = {
             claimDate: null,
             facilityIds: null,
             billingProID: null,
-            excCreditBal: null
+            excCreditBal: null,
+            insuranceIds: null,
+            insGroups: null
         };
 
         // company id
@@ -404,6 +437,18 @@ const api = {
         filters.excelExtented = reportParams.excelExtended;
         filters.excCreditBal = reportParams.excCreditBal
         filters.incPatDetail = reportParams.incPatDetail
+
+        // Insurance Id Mapping
+        if (reportParams.insuranceIds && reportParams.insuranceIds.length) {
+            params.push(reportParams.insuranceIds);
+            filters.insuranceIds = queryBuilder.whereIn(`pip.id`, [params.length]);
+        }
+
+        // Insurance Group ID Mapping
+        if (reportParams.insuranceGroupIds && reportParams.insuranceGroupIds.length) {
+            params.push(reportParams.insuranceGroupIds);
+            filters.insGroups = queryBuilder.whereIn(`pippt.id`, [params.length]);
+        }
 
         return {
             queryParams: params,

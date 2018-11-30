@@ -593,6 +593,18 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         }
                     },
                     "field_code": "facility_name"
+                },
+                "Charge Description": {
+                    "id": 10,
+                    "field_name": "Charge Description",
+                    "i18n_name": "setup.userSettings.chargeDescription",
+                    "field_info": {
+                        "custom_name": "Charge Description",
+                        "name": "charge_description",
+                        "width": 250,
+                        "defaultValue": ""
+                    },
+                    "field_code": "charge_description"
                 }
             });
         }else{

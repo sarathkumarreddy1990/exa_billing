@@ -13,7 +13,7 @@ WITH study_cte AS (
       bc.id AS claim_id,
       ps.id AS study_id,
       ps.modality_id,
-      bc.claim_dt,
+      bc.claim_dt::DATE,
       unnest(ARRAY [ bc.primary_patient_insurance_id, bc.secondary_patient_insurance_id, bc.tertiary_patient_insurance_id ]) AS patient_insurance_id
     FROM
       public.studies AS ps
@@ -21,13 +21,12 @@ WITH study_cte AS (
       INNER JOIN billing.charges bch ON bch.id = bcs.charge_id
       INNER JOIN billing.claims bc ON bc.id = bch.claim_id
       <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
-    WHERE 1=1
-    AND NOT ps.has_deleted
+    WHERE NOT ps.has_deleted
     AND ps.accession_no NOT ILIKE '%.c'
-      AND  <%= companyId %>
+      AND <%= companyId %>
       AND <%= claimDate %>
       <% if (facilityIds) { %>AND <% print(facilityIds); } %>
-      <% if(billingProID) { %> AND <% print(billingProID); } %>
+      <% if (billingProID) { %> AND <% print(billingProID); } %>
   ),
   insurance_flag_cte AS (
     SELECT
