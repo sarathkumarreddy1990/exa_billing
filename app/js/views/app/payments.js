@@ -556,10 +556,9 @@ define(['jquery',
                 var self =this;
                 var paymentStatus = $("#ulPaymentStatus").val();
                 var payerType = $('#gs_payer_type').val();
-                $('#btnTOSPayment').prop('disabled',true);
 
                 if (!paymentStatus.length) {
-                    commonjs.showWarning('messages.warning.payments.selectPaymentStatus');
+                    commonjs.showWarning('messages.warning.payments.selectUnappliedStatus');
                     return false;
                 }
 
@@ -604,7 +603,6 @@ define(['jquery',
                             if (data[0].message) {
                                 commonjs.showWarning(data[0].message);
                             } else {
-                                commonjs.showStatus(data.length + ' claims are applied');
                                 commonjs.showStatus('messages.status.tosSuccessfullyCompleted');
                                 self.paymentTable.refresh();
                             }
@@ -619,6 +617,7 @@ define(['jquery',
                     }
                 };
 
+                $('#btnTOSPayment').prop('disabled',true);
                 commonjs.showLoading();
                 $.ajax(tos_request);
 

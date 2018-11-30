@@ -272,8 +272,7 @@ module.exports = {
                 query += ` WHERE ${whereQuery.join(' AND ')} `;
             }
 
-            query += ` ORDER BY ${sortField} ${sortOrder} `;
-
+            query += ` ORDER BY payments.id `;
             return query;
         }
 
