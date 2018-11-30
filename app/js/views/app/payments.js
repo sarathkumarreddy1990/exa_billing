@@ -551,7 +551,7 @@ define(['jquery',
                 });
             },
 
-            applyTOSPayment: function(){
+            applyTOSPayment: _.debounce(function (e) {
 
                 var self =this;
                 var paymentStatus = $("#ulPaymentStatus").val();
@@ -616,7 +616,7 @@ define(['jquery',
 
                 $.ajax(tos_request);
 
-            }
+            }, 500)
 
         });
 
