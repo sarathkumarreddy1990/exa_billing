@@ -358,11 +358,11 @@ module.exports = {
             });
 
         } else {
-            logger.info('No claims data found for TOS Payment..');
+            logger.info('No matching records found for TOS Payment..');
 
             appliedResult = [{
                 status: false,
-                message: 'No claims found'
+                message: 'No matching records found for these selection criteria'
             }];
         }
 
