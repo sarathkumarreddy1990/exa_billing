@@ -556,6 +556,7 @@ define(['jquery',
                 var self =this;
                 var paymentStatus = $("#ulPaymentStatus").val();
                 var payerType = $('#gs_payer_type').val();
+                $('#btnTOSPayment').prop('disabled',true);
 
                 if (!paymentStatus.length) {
                     commonjs.showWarning('messages.warning.payments.selectPaymentStatus');
@@ -607,13 +608,18 @@ define(['jquery',
                                 commonjs.showStatus('messages.status.tosSuccessfullyCompleted');
                                 self.paymentTable.refresh();
                             }
+                            commonjs.hideLoading();
                         }
+                        $('#btnTOSPayment').prop('disabled',false);
                     },
                     error: function (err, response) {
                         commonjs.handleXhrError(err, response);
+                        commonjs.hideLoading();
+                        $('#btnTOSPayment').prop('disabled',false);
                     }
                 };
 
+                commonjs.showLoading();
                 $.ajax(tos_request);
 
             }, 500)
