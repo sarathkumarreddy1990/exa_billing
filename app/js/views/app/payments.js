@@ -44,7 +44,7 @@ define(['jquery',
                 "click #btnGenerateExcel": "exportExcel",
                 "click #btnGeneratePDF": "generatePDF",
                 "change #ulPaymentStatus": 'searchPayments',
-                "click #btnTOSPayment": "applyTOSPayment",
+                "click #btnTOSPayment": "applyTOSPayment"
             },
 
             initialize: function (options) {
@@ -579,7 +579,7 @@ define(['jquery',
                     filterByDateType: 'accounting_date',
                     sortOrder: self.pager.get("SortOrder"),
                     sortField: self.pager.get("SortField"),
-                    paymentStatus: $("#ulPaymentStatus").val()
+                    paymentStatus: paymentStatus
                 };
 
                 if (filterCol.indexOf('accounting_date') === -1) {
@@ -599,7 +599,6 @@ define(['jquery',
                     data: dataSet,
                     success: function (data, response) {
                         if (data && data.length) {
-
                             if (data[0].message) {
                                 commonjs.showWarning(data[0].message);
                             } else {
