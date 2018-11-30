@@ -557,7 +557,7 @@ define(['jquery',
                 var paymentStatus = $("#ulPaymentStatus").val();
                 var payerType = $('#gs_payer_type').val();
 
-                if(paymentStatus.length === 0){
+                if (!paymentStatus.length) {
                     commonjs.showWarning('messages.warning.payments.selectPaymentStatus');
                     return false;
                 }
@@ -567,7 +567,8 @@ define(['jquery',
                     return false;
                 }
 
-                if(paymentStatus.length != 1 && paymentStatus.indexOf('unapplied') != 0){
+                // Condition : Validate if unapplied status not selected
+                if(paymentStatus.length != 1 || paymentStatus.indexOf('unapplied') === -1){
                     commonjs.showWarning('messages.warning.payments.selectUnappliedStatus');
                     return false;
                 }

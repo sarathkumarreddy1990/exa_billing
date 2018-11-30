@@ -1193,8 +1193,9 @@ module.exports = {
                                 pd.payment_id
                             FROM billing.claims bc
                             INNER JOIN payment_details pd ON pd.patient_id = bc.patient_id
+                            INNER JOIN billing.get_claim_totals(bc.id) ON true
                             WHERE
-                                (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) > 0::money
+                                (charges_bill_fee_total - (payments_applied_total + adjustments_applied_total)) > 0::money
                                 AND bc.claim_dt::date = pd.accounting_date
                         )
                         , charges AS (
@@ -1203,15 +1204,10 @@ module.exports = {
                                 sum(c.bill_fee * c.units)       AS charges_bill_fee_total,
                                 (
                                     SELECT
-                                        ( coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment'),0::money)  +
-			                              coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment'),0::money)
-			                            ) as charge_applied_total
+                                        other_payment + other_adjustment
                                     FROM
-                                       billing.charges
-                                       INNER JOIN billing.payment_applications AS pa ON pa.charge_id = charges.id
-                                       INNER JOIN billing.payments AS p ON pa.payment_id = p.id
-                                    WHERE charges.id = c.id
-                                ),
+                                        billing.get_charge_other_payment_adjustment(c.id)
+                                ) AS charge_applied_total,
                                 cd.claim_id,
                                 cd.invoice_no,
                                 cd.claim_dt,
