@@ -349,7 +349,11 @@ module.exports = {
                     if (data.name && ['error', 'RequestError'].indexOf(data.name) > -1) {
                         reject(data);
                     } else {
-                        resolve(data);
+                        resolve(data.rows.length && data.rows[0].insert_payment_adjustment ? data.rows[0].insert_payment_adjustment :
+                            [{
+                                status: true,
+                                message: 'payment processed '
+                            }]);
                     }
                 });
             });
@@ -358,20 +362,20 @@ module.exports = {
 
             appliedResult = await Promise.all(requests).catch(function (err) {
                 logger.error(`Error on processing TOS Payment.. - ${err}`);
+                return err;
             });
 
         } else {
             logger.info('No matching records found for TOS Payment..');
 
-            appliedResult = {
-                rows: [{
-                    status: false,
-                    message: 'No matching records found for these selection criteria'
-                }]
-            };
+            appliedResult = [{
+                status: false,
+                message: 'No matching records found for these selection criteria'
+            }];
+
         }
 
-        return appliedResult;
+        return appliedResult.name && ['error', 'RequestError'].indexOf(appliedResult.name) > -1 ? appliedResult : { rows: appliedResult };
     }
 
 };
