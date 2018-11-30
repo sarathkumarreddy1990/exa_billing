@@ -700,7 +700,7 @@ define('grid', [
             var filterContent = commonjs.loadedStudyFilters.get(filterID);
             filterData = JSON.stringify(filterContent.pager.get('FilterData'));
             filterCol = JSON.stringify(filterContent.pager.get('FilterCol'));
-            var isDatePickerClear = filterCol.indexOf('study_dt') === -1 ? true : false
+            var isDatePickerClear = filterCol.indexOf('study_dt') === -1;
 
             batchClaimArray = [];
             for (var r = 0; r < selectedCount; r++) {
@@ -732,10 +732,10 @@ define('grid', [
                 if ($('#chkStudyHeader_' + filterID).is(':checked')) {
 
                     param = {
-                        "filterData": filterData,
-                        "filterCol": filterCol,
-                        "sortField": filterContent.pager.get('SortField'),
-                        "sortOrder": filterContent.pager.get('SortOrder'),
+                        filterData: filterData,
+                        filterCol: filterCol,
+                        sortField: filterContent.pager.get('SortField'),
+                        sortOrder: filterContent.pager.get('SortOrder'),
                         company_id: app.companyID,
                         user_id: app.userID,
                         pageNo: 1,
@@ -772,9 +772,9 @@ define('grid', [
                                 var changeGrid = initChangeGrid(claimsTable);
                                 var cells = [];
 
-                                cells = cells.concat(changeGrid.getClaimId(claim_id));
-                                cells = cells.concat(changeGrid.getBillingStatus('Billed'));
-                                cells = cells.concat(changeGrid.setEditIcon());
+                                cells = cells.concat(changeGrid.getClaimId(claim_id))
+                                        .concat(changeGrid.getBillingStatus('Billed'))
+                                        .concat(changeGrid.setEditIcon());
 
                                 for (var r = 0; r < batchClaimArray.length; r++) {
                                     var rowId = batchClaimArray[r].study_id;
@@ -1232,7 +1232,7 @@ define('grid', [
                 var searchFilterFlag = grid.getGridParam("postData")._search;
                 var colHeader = studyFields.colName;
                 var current_filter_id = $('#claimsTabs').find('.active a').attr('data-container')
-                var isDatePickerClear = filterCol.indexOf('claim_dt') === -1 ? true : false
+                var isDatePickerClear = filterCol.indexOf('claim_dt') === -1;
 
                 if (options.filterid != 'Follow_up_queue') {
                     commonjs.showLoading();
