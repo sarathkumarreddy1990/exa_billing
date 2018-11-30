@@ -346,7 +346,7 @@ module.exports = {
                 return new Promise(async (resolve, reject) => {
                     const data = await self.createInvoicePaymentapplications(params, chargeDetails);
 
-                    if (['error', 'RequestError'].indexOf(data.name) > -1) {
+                    if (data.name && ['error', 'RequestError'].indexOf(data.name) > -1) {
                         reject(data);
                     } else {
                         resolve(data);
