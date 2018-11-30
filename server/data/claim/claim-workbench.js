@@ -305,11 +305,11 @@ module.exports = {
 
         if (templateType && templateType != 'patient_invoice') {
             sql.append(updateData);
-            sql.append(updateClaimAuditData);
         } else {
             sql.append(updateEDIData);
-            sql.append(updateClaimAuditData);
         }
+
+        sql.append(updateClaimAuditData);
 
         if (isClaim) {
 
