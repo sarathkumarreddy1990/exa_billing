@@ -1201,13 +1201,8 @@ module.exports = {
                         , charges AS (
                             SELECT
                                 c.id as charge_id,
-                                sum(c.bill_fee * c.units)       AS charges_bill_fee_total,
-                                (
-                                    SELECT
-                                        other_payment + other_adjustment
-                                    FROM
-                                        billing.get_charge_other_payment_adjustment(c.id)
-                                ) AS charge_applied_total,
+                                SUM(c.bill_fee * c.units) AS charges_bill_fee_total,
+                                SUM(other_payment + other_adjustment) AS charge_applied_total ,
                                 cd.claim_id,
                                 cd.invoice_no,
                                 cd.claim_dt,
@@ -1217,6 +1212,7 @@ module.exports = {
                             FROM
                                 billing.charges AS c
                                 INNER JOIN claims_details AS cd ON cd.claim_id = c.claim_id
+                                INNER JOIN billing.get_charge_other_payment_adjustment(c.id) ON true
                                 INNER JOIN public.cpt_codes AS pc ON pc.id = c.cpt_id
                                 GROUP BY
                                 c.id
@@ -1229,8 +1225,8 @@ module.exports = {
                         )
                         SELECT
                             charges.* ,
-                            ( charges_bill_fee_total - COALESCE(charge_applied_total,'0') )::numeric AS balance ,
-                            ( SELECT payment_balance_total::numeric FROM billing.get_payment_totals(charges.payment_id) ),
+                            ( charges_bill_fee_total - COALESCE(charge_applied_total,'0') )::numeric AS balance,
+                            payment_balance_total::numeric,
                             pp.account_no,
                             pp.prefix_name AS patient_prefix,
                             pp.first_name AS patient_fname,
@@ -1240,6 +1236,7 @@ module.exports = {
                         FROM
                             charges
                         INNER JOIN public.patients pp on pp.id = charges.patient_id
+                        INNER JOIN billing.get_payment_totals(charges.payment_id) ON true
                         ORDER BY claim_id, charge_id `);
 
         return await query(sql);
