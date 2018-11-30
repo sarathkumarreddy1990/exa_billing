@@ -326,7 +326,6 @@ module.exports = {
      */
     applyTOSPayment: async function(params){
         const self = this;
-        const results = [];
         let appliedResult;
 
         logger.info('Getting claim datas for TOS Payment..');
@@ -342,28 +341,34 @@ module.exports = {
              */
             let chargeDetailsByGroup = _.groupBy(chargeDetails, 'payment_id');
 
-            _.each(chargeDetailsByGroup, function (chargeDetails, index) {
-
+            let requests = _.map(chargeDetailsByGroup, (chargeDetails, index) => {
                 params.paymentId = index; // index was payment id
-                results.push(self.createInvoicePaymentapplications(params, chargeDetails));
+                return new Promise(async (resolve, reject) => {
+                    const data = await self.createInvoicePaymentapplications(params, chargeDetails);
+
+                    if (['error', 'RequestError'].indexOf(data.name) > -1) {
+                        reject(data);
+                    } else {
+                        resolve(data);
+                    }
+                });
             });
 
             logger.info('Process started for TOS Payment..');
 
-            appliedResult = await Promise.all(results).then(function (response) {
-                return response;
-            }).catch(function (err) {
+            appliedResult = await Promise.all(requests).catch(function (err) {
                 logger.error(`Error on processing TOS Payment.. - ${err}`);
-                return err;
             });
 
         } else {
             logger.info('No matching records found for TOS Payment..');
 
-            appliedResult = [{
-                status: false,
-                message: 'No matching records found for these selection criteria'
-            }];
+            appliedResult = {
+                rows: [{
+                    status: false,
+                    message: 'No matching records found for these selection criteria'
+                }]
+            };
         }
 
         return appliedResult;

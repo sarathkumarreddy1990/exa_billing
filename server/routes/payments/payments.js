@@ -66,7 +66,8 @@ router.get('/study_cpt_details', async function (req, res) {
 router.post('/apply_tos_payments', async function (req, res) {
     logger.info('Initiating TOS payment..');
     const data = await paymentsController.applyTOSPayment(req.body);
-    httpHandler.send(req, res, data);
+    logger.info('TOS payment process done..');
+    httpHandler.sendRows(req, res, data);
 });
 
 module.exports = router;
