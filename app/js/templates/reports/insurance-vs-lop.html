@@ -1,9 +1,9 @@
 <form class="form-horizonta form-list" novalidate="" _lpchecked="1">
 
     <!-- row: form elements -->
-    <div class="col-xs-12 col-md-12 col-lg-12">
+    <div class="row">
         <!-- col: form elements -->
-        <div class="col-xs-4">
+        <div class="col">
             <div class="form-group form-inline">
                 <div class="col-form-label">
                     <label class="control-label field-required" for="txtDateRange" i18n="report.claimDate" />
@@ -19,7 +19,7 @@
             </div>
 
         </div>
-        <div class="col-xs-4">
+        <div class="col">
             <div class="form-group form-inline">
                 <div class="col-form-label" class="multiselect">
                     <label class="control-label" i18n="report.facilities" />
@@ -33,7 +33,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-xs-4">
+        <div class="col">
             <div class="form-group form-inline">
                 <div class="col-form-label" class="multiselect">
                     <label class="control-label" i18n="report.billingProviders" />
@@ -41,18 +41,11 @@
                 </div>
             </div>
         </div>
-        <!-- /col: form elements -->
-        <div class="col-xs-3" style="display:none;">
+        <div class="col">
             <div class="form-group form-inline">
-                <div class="col-form-label">
-                    <label class="control-label field-required report__select-label" for="ddlStudyStatuses" i18n="report.reportFilter.studyStatuses">
-                    </label>
-                    <span id="selStudyStatusesCount" class="control-label report__select-label"></span>
-                </div>
-                <div class="col-form-content">
-                    <select id="ddlStudyStatuses" class="form-control multiselect" name="studyStatuses[]" required="required" multiple="multiple"
-                        size="8">
-                    </select>
+                <div class="col-form-label" class="multiselect">
+                    <label class="control-label" i18n="report.studyStatus" />
+                    <select id="ddlStudyStatus" multiple="multiple" />
                 </div>
             </div>
         </div>

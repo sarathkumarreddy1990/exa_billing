@@ -1,6 +1,18 @@
 const { query, SQL } = require('./index');
 
 module.exports = {
+    getStudyStatus: async function (params) {
+        const sql_status = `WITH distinct_cte AS (
+                               SELECT DISTINCT status_code,status_desc FROM study_status
+                            )
+
+                            SELECT status_code,array_agg(status_desc) AS status_desc
+                            FROM distinct_cte
+                            GROUP BY status_code
+                            ORDER BY status_desc`;
+
+        return await query(sql_status);
+    },
 
     getCptAutoCompleteDetails: async function (params) {
 

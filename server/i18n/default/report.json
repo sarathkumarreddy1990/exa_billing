@@ -1,5 +1,6 @@
 {
     "report": {
+        "studyStatus": "Study Status",
         "all": "All",
         "selected": "Selected",
         "patientLastnameFrom": "Last Name From",
