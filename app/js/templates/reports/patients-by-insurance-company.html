@@ -25,9 +25,9 @@
                 <div>
                     <div id="dateSearch" style="margin-top:10px;">
                         <input type="radio" id="claimDateDiv" name="claimDateSearch" value="claimDateDiv" checked>
-                        <label for="claimDateDiv" class="inline field-chk claimDateSearch" i18n="report.claimDateBetween"> </label>
+                        <label for="claimDateDiv" class="inline field-chk claimDateSearch" i18n="report.reportFilter.claimDateBetween"> </label>
                         <input type="radio" id="noDateSpecify" name="claimDateSearch" value="noDateSpecify">
-                        <label for="noDateSpecify" class="inline field-chk noDateSpecify" i18n="report.noDateSpecified"> </label><br>
+                        <label for="noDateSpecify" class="inline field-chk noDateSpecify" i18n="report.reportFilter.noDateSpecified"> </label><br>
                         <span id="optionComment" style="display: none;"> <b> -- NOTE: May return thousands of results </b></span>
                     </div>
                     <div id="divReportDate" class="input-group"  style="margin-top:5px;">
@@ -42,7 +42,7 @@
         <div class="col-3">
             <div class="form-group form-inline">
                 <div class="col-form-label" class="multiselect">
-                    <label class="control-label" i18n="report.facilities" />
+                    <label class="control-label" i18n="report.reportFilter.facilities" />
                     <select id="ddlFacilityFilter" multiple="multiple">
                         <% _.each(facilities.toJSON(), function(facility) { %>
                             <option value='<%= facility.id %>'>
@@ -58,11 +58,11 @@
                 <div class="form-content">
                     <div class="input-group divDropDown">
                         <div>
-                               <b><label class="control-label" i18n="report.showInactive" /></b>
+                               <b><label class="control-label" i18n="report.reportFilter.showInactive" /></b>
                                 <input type="radio" id="insuranceInActive" name="insuranceActiveInactive" class="chkInsurance" value="inActive" checked>
-                                <b><label for="insuranceInActive" class="inline field-chk" i18n="report.inactiveNo"/></b>
+                                <b><label for="insuranceInActive" class="inline field-chk" i18n="report.reportFilter.inactiveNo"/></b>
                                 <input type="radio" id="insuranceActive" name="insuranceActiveInactive" class="chkInsurance" value="active">
-                                <b><label for="insuranceActive" class="inline field-chk " i18n="report.inactiveYes"/></b>
+                                <b><label for="insuranceActive" class="inline field-chk " i18n="report.reportFilter.inactiveYes"/></b>
                             </div>
                         <select id="ddlInsuranceBinding" class="form-control form-control-lg">
                             <option value="All">All Insurance</option>

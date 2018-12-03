@@ -776,7 +776,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
             style: 'myTable',
             margin: [8, 9, 0, 0],
             table: {
-                widths: [103, 8, 22, 102, 30, 45, 0, 35, 15, 0, 35, 15, 55, 10],
+                widths: [103, 8, 22, 102, 30, 45, 0, 35, 15, 0, 35, 45, 55, 10],
                 heights: [22, 0],
                 body: [
                     [
@@ -784,8 +784,8 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                         { text: '' },
                         { text: '√' },
                         { text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].claimNumber ? claimData.subscriber[0].claim[0].claimNumber.toString().substring(0, 14) : '' },
-                        { text: (claimData.subscriber && claimData.subscriber[0].acceptAssignment && claimData.subscriber[0].acceptAssignment.toString().toUpperCase() === 'TRUE')? '√': "" },
-                        { text: (claimData.subscriber && claimData.subscriber[0].acceptAssignment && claimData.subscriber[0].acceptAssignment.toString().toUpperCase() === 'FALSE')? '√': "" },
+                        { text: '√'},
+                        { text: "" },
                         { text: '' },
                         { text: totalBill && totalBill.toString().split(".")[0] ? parseInt(totalBill.toString().split(".")[0], 10).toString().substring(0, 8) : '0.' },
                         { text: totalBill && totalBill.toString().split(".")[1] ? totalBill.toString().split(".")[1].substring(0, 2) : '00' },
@@ -822,7 +822,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
 							), colSpan: 5
                         },
                         {}, {}, {}, {},
-                        { text: claimData.billingProvider && claimData.billingProvider.phoneNo ? (getph(claimData.billingProvider.phoneNo)) : '', colSpan: 2 , margin:[-35, -10, 0, 0]}, {}
+                        { text: claimData.billingProvider && claimData.billingProvider.phoneNo ? (getph(claimData.billingProvider.phoneNo)) : '', colSpan: 2 , margin:[-65, -10, 0, 0]}, {}
                     ],
                 ],
             }, layout: 'noBorders'

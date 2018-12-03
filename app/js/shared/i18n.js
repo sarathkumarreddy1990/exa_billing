@@ -1,6 +1,8 @@
 var i18n = {
     defaultLang: 'default',
     currentLang: 'default',
+    config: {},
+    rules: [],
     text: {},
 
     getLang: function () {
@@ -9,6 +11,17 @@ var i18n = {
 
     setLang: function (lang) {
         this.currentLang = lang;
+        app.currentCulture = lang;
+    },
+
+    autoSetLang: function () {
+        var browserLang = browserLocale.replace('-', '_').toLowerCase();
+        var currentCulture = _.find(this.config.cultures, ['isoCode', browserLang]);
+        this.currentLang = currentCulture ? currentCulture.name : this.defaultLang;
+        if (!app) {
+            app = {};
+        }
+        app.currentCulture = this.currentLang;
     },
 
     loadDefaultLanguage: function (cb) {
@@ -22,11 +35,29 @@ var i18n = {
 
     load: function (cb, reqLang) {
         var self = this, lang = reqLang ? reqLang : this.getLang();
-        $.getJSON('billing/app_settings/i18n/' + lang + '.json',function (data) {
+        $.getJSON('../i18n/' + lang + '.json',function (data) {
             self.put(lang, data).t(undefined, cb);
         }).fail(function () {
-                self.put(lang, {}).t(undefined, cb);
+            self.put(lang, {}).t(undefined, cb);
+        });
+
+        return this;
+    },
+
+    loadConfig: function (cb) {
+        var self = this;
+
+        if (self.config !== '') {
+            $.getJSON('../i18n/config.json', function (data) {
+                i18n.config = data.i18nConfig;
+                i18n.rules = i18n.config.rules[app.country_alpha_3_code];
+                i18n.autoSetLang();
+                if (cb) {
+                    cb();
+                }
             });
+        }
+
         return this;
     },
 
@@ -41,6 +72,10 @@ var i18n = {
     },
 
     get: function (key, useDefault) {
+        _.each(this.rules, function(rule) {
+            key = rule.default === key ? rule.replace : key;
+        });
+
         var keys = key ? key.split('.') : '',
             lang = this.getLang(),
             obj = this.text[lang];
