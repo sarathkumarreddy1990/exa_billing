@@ -12,18 +12,19 @@ define([
                     type: 'GET',
                     async: false,
                     success: function (data, response) {
-                        var statusList = data && data.length > 0 ? data : [],
-                            ddlStudyStatus = $('#ddlStudyStatus');
-                        ddlStudyStatus.empty();
+                        var statusList = data && data.length > 0 ? data : [];
+                        var $ddlStudyStatus = $('#ddlStudyStatus');
+
+                        $ddlStudyStatus.empty();
                         for (var b = 0; b < statusList.length; b++) {
-                            ddlStudyStatus.append($('<option/>', {
+                            $ddlStudyStatus.append($('<option/>', {
                                 value: statusList[b].status_code,
                                 text: statusList[b].status_desc
                             }));
                         }
 
                         // For Multi Select drop down
-                        $('#ddlStudyStatus').multiselect({
+                        $ddlStudyStatus.multiselect({
                             maxHeight: 200,
                             buttonWidth: '250px',
                             enableFiltering: true,
