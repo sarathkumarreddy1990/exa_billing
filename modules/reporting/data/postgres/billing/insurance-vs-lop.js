@@ -159,7 +159,7 @@ const api = {
                 FROM distinct_cte
                 GROUP BY status_code
                   ) AS table_name`}),
-            api.createInsuranceVSLOPDataSet(initialReportData.report.params),            
+            api.createInsuranceVSLOPDataSet(initialReportData.report.params),
             dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
             // other data sets could be added here...
             (studyStatusInfo, InsuranceVSLOPDataSet, providerInfo) => {
