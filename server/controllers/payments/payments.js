@@ -1,5 +1,6 @@
 const data = require('../../data/payments/payments');
 const eraData = require('../../data/era/index');
+const logger = require('../../../logger');
 const _ = require('lodash');
 
 module.exports = {
@@ -234,7 +235,7 @@ module.exports = {
         return result;
     },
 
-    createInvoicePaymentapplications: async function (params) {
+    createInvoicePaymentapplications: async function (params, chargeDetails) {
 
         let auditDetails = {
             company_id: params.companyId,
@@ -248,11 +249,17 @@ module.exports = {
         let flag = true;
         let lineItems = [];
         let totalPaymentAmount = 0;
+        let claimCharges;
 
-        let claimCharges = await data.getClaimCharges(params);
+        if (params.from === 'tos_payment') {
+            claimCharges = chargeDetails;
+        } else {
+            claimCharges = await data.getClaimCharges(params);
+            claimCharges = claimCharges.rows && claimCharges.rows.length ? claimCharges.rows : [];
+        }
 
-        claimCharges = claimCharges.rows && claimCharges.rows.length ? claimCharges.rows : [];
-        let paymentAmount = claimCharges.length && claimCharges[0].payment_balance_total || 0;
+
+        let paymentAmount = claimCharges.length && parseFloat(claimCharges[0].payment_balance_total) || 0;
 
         _.each(claimCharges, function (item) {
 
@@ -292,6 +299,7 @@ module.exports = {
                     patient_mname: item.patient_mname || '',
                     patient_prefix: item.patient_prefix || '',
                     patient_suffix: item.patient_suffix || '',
+                    claim_index : claimIds.indexOf(claimNumber),
                     code: null  // ERA purpose adjustment code value is null
                 });
             }
@@ -301,7 +309,7 @@ module.exports = {
         params.claimComments = [];
         params.audit_details = auditDetails;
         paymentDetails.id = params.paymentId;
-        paymentDetails.isFrom = 'PAYMENT';
+        paymentDetails.isFrom = params.from === 'tos_payment' ? 'TOS_PAYMENT' : 'PAYMENT';
         paymentDetails.created_by = parseInt(params.userId);
         paymentDetails.company_id = parseInt(params.companyId);
         paymentDetails.uploaded_file_name = ''; // Assign empty for ERA argument
@@ -309,6 +317,65 @@ module.exports = {
         let result = await eraData.createPaymentApplication(params, paymentDetails);
 
         return result;
+    },
+
+    /**
+     * POST /apply_tos_payment
+     * @param {object} args - req.body or req.query
+     * @returns {Promise} - a pending promise with the row data of the query
+     */
+    applyTOSPayment: async function(params){
+        const self = this;
+        let appliedResult;
+
+        logger.info('Getting claim datas for TOS Payment..');
+
+        let chargeDetails = await data.getTOSPaymentDetails(params);
+
+        chargeDetails = chargeDetails.rows && chargeDetails.rows.length ? chargeDetails.rows : [];
+
+        if (chargeDetails.length) {
+
+            /**
+             * Group the claim data by payment Id
+             */
+            let chargeDetailsByGroup = _.groupBy(chargeDetails, 'payment_id');
+
+            let requests = _.map(chargeDetailsByGroup, (chargeDetails, index) => {
+                params.paymentId = index; // index was payment id
+                return new Promise(async (resolve, reject) => {
+                    const data = await self.createInvoicePaymentapplications(params, chargeDetails);
+
+                    if (data.name && ['error', 'RequestError'].indexOf(data.name) > -1) {
+                        reject(data);
+                    } else {
+                        resolve(data.rows.length && data.rows[0].insert_payment_adjustment ? data.rows[0].insert_payment_adjustment :
+                            [{
+                                status: true,
+                                message: 'payment processed '
+                            }]);
+                    }
+                });
+            });
+
+            logger.info('Process started for TOS Payment..');
+
+            appliedResult = await Promise.all(requests).catch(function (err) {
+                logger.error(`Error on processing TOS Payment.. - ${err}`);
+                return err;
+            });
+
+        } else {
+            logger.info('No matching records found for TOS Payment..');
+
+            appliedResult = [{
+                status: false,
+                message: 'No matching records found for these selection criteria'
+            }];
+
+        }
+
+        return appliedResult.name && ['error', 'RequestError'].indexOf(appliedResult.name) > -1 ? appliedResult : { rows: appliedResult };
     }
 
 };
