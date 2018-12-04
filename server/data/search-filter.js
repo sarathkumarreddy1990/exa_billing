@@ -1133,7 +1133,7 @@ const api = {
             let column = JSON.parse(args.filterCol);
             let data = JSON.parse(args.filterData);
 
-            if (column.indexOf('study_dt') == -1 && (args.customArgs.filter_id == 'All_Studies')) {
+            if (args.isDatePickerClear !== 'true' && column.indexOf('study_dt') == -1 && args.customArgs.filter_id == 'All_Studies') {
                 data.push(moment().subtract(29, 'days').format('YYYY-MM-DD') + ' - ' + moment().format('YYYY-MM-DD'));
                 column.push('study_dt');
             }
