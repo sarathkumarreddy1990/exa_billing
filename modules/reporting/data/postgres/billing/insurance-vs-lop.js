@@ -27,6 +27,7 @@ WITH study_cte AS (
       AND <%= claimDate %>
       <% if (facilityIds) { %>AND <% print(facilityIds); } %>
       <% if (billingProID) { %> AND <% print(billingProID); } %>
+      <% if (studyStatusCodes) { %>AND <% print(studyStatusCodes); } %>
   ),
   insurance_flag_cte AS (
     SELECT
@@ -89,7 +90,7 @@ WITH study_cte AS (
               other_sum AS other,
               not_assigned_sum AS not_assigned,
               insurance_sum + lop_sum + other_sum + not_assigned_sum AS total,
-              NULL::DATE AS sort_calim_date
+              NULL::DATE AS sort_claim_date
             FROM
               modality_sum_cte AS c
             LEFT JOIN modalities AS m ON c.modality_id = m.id
@@ -102,7 +103,7 @@ WITH study_cte AS (
           other_sum AS other,
           not_assigned_sum AS not_assigned,
           insurance_sum + lop_sum + other_sum + not_assigned_sum AS total,
-          NULL::DATE AS sort_calim_date
+          NULL::DATE AS sort_claim_date
         FROM
           grand_sum_cte
         UNION
@@ -114,7 +115,7 @@ WITH study_cte AS (
           coalesce(c.other_count, 0) AS other,
           coalesce(c.not_assigned_count, 0) AS not_assigned,
           coalesce(c.insurance_count, 0) + coalesce(c.lop_count, 0) + coalesce(c.other_count, 0) + coalesce(c.not_assigned_count, 0) AS total,
-          c.claim_dt AS sort_calim_date
+          c.claim_dt AS sort_claim_date
         FROM
           count_cte AS c
         LEFT JOIN modalities AS m ON c.modality_id = m.id
@@ -135,7 +136,7 @@ WITH study_cte AS (
    FROM union_cte
    ORDER BY
          modality_code
-       , sort_calim_date
+       , sort_claim_date
 `);
 
 const api = {
@@ -145,15 +146,27 @@ const api = {
      * This method is called by controller pipline after report data is initialized (common lookups are available).
      */
     getReportData: (initialReportData) => {
+        initialReportData.report.params.allStudyStatuses = initialReportData.report.params.allStudyStatuses === 'true';       
+
         return Promise.join(
+            dataHelper.getReportInfo({ids: initialReportData.report.params.studyStatusCodes, codeName: 'code', columnName: 'name',
+                tableName: `
+                (WITH distinct_cte AS (
+                SELECT DISTINCT status_code,status_desc
+                FROM study_status)
+
+                SELECT status_code AS id, status_code AS code, array_agg(status_desc) AS name
+                FROM distinct_cte
+                GROUP BY status_code
+                  ) AS table_name`}),
             api.createInsuranceVSLOPDataSet(initialReportData.report.params),
             dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
             // other data sets could be added here...
-            (InsuranceVSLOPDataSet, providerInfo) => {
+            (studyStatusInfo, InsuranceVSLOPDataSet, providerInfo) => {
                 // add report filters
                 initialReportData.lookups.billingProviderInfo = providerInfo || [];
+                initialReportData.lookups.studyStatuses = studyStatusInfo || [];
                 initialReportData.filters = api.createReportFilters(initialReportData);
-
                 // add report specific data sets
                 initialReportData.dataSets.push(InsuranceVSLOPDataSet);
                 initialReportData.dataSetCount = initialReportData.dataSets.length;
@@ -203,6 +216,9 @@ const api = {
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
         }
 
+        const studyStatuses = params.allStudyStatuses ? 'All' : _(lookups.studyStatuses).map(f => f.name).value();
+        filtersUsed.push({ name: 'studyStatuses', label: 'Study Statuses', value: studyStatuses });
+
         // Billing provider Filter
         if (params.allBillingProvider == 'true')
             filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
@@ -234,7 +250,8 @@ const api = {
             companyId: null,
             claimDate: null,
             facilityIds: null,
-            billingProID: null
+            billingProID: null,
+            studyStatusCodes: null
         };
 
         // company id
@@ -261,6 +278,12 @@ const api = {
         if (reportParams.billingProvider) {
             params.push(reportParams.billingProvider);
             filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
+        }
+
+        //study statuses
+        if (!reportParams.allStudyStatuses && reportParams.studyStatusCodes) {
+          params.push(reportParams.studyStatusCodes);
+          filters.studyStatusCodes = queryBuilder.whereIn('ps.study_status', [params.length]);
         }
 
         return {

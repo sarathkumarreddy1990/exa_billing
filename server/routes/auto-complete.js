@@ -4,6 +4,11 @@ const router = new Router();
 const autoCompleteController = require('../controllers/auto-complete');
 const httpHandler = require('../shared/http');
 
+router.get('/getStudyStatus', async function (req, res) {
+    const data = await autoCompleteController.getStudyStatus(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
 router.get('/', async function (req, res) {
     const data = await autoCompleteController.getCptAutoCompleteDetails(req.query);
     httpHandler.sendRows(req, res, data);
