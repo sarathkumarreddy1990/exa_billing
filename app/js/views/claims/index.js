@@ -4027,7 +4027,7 @@ define(['jquery',
                     $("#editClaimShowPatientAlerts").attr("title", "This patient has " + alertCount + " alerts");
                  } else {
                     $("#alertBadge").css("visibility", "hidden");
-                    $("#editClaimShowPatientAlerts").attr('title', 'patient.patient.noPatientAlerts');
+                    $("#editClaimShowPatientAlerts").attr('title', 'patient.patient.patientHasNoAlerts');
                 }
 
             },
@@ -4035,7 +4035,7 @@ define(['jquery',
             showPatientAlerts: function() {
                 var self = this;
                 if(self.alertCount <= 0 ) {
-                    commonjs.showWarning('patient.patient.noPatientAlerts');
+                    commonjs.showWarning('patient.patient.patientHasNoAlerts');
                     return false;
                 }
 
