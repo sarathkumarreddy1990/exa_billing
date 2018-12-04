@@ -4017,9 +4017,9 @@ define(['jquery',
 
             showAlertBadge: function() {
                 var self = this;
-                var preDefinedAlerts = self.patientAlerts && self.patientAlerts.alerts || [];
+                var predefinedAlerts = self.patientAlerts && self.patientAlerts.alerts || [];
                 var otherAlerts = self.patientAlerts && self.patientAlerts.others || [];
-                var alertCount = _.size(preDefinedAlerts) + _.size(otherAlerts);
+                var alertCount = _.size(predefinedAlerts) + _.size(otherAlerts);
                 self.alertCount = alertCount || 0;
 
                 if (alertCount > 0) {
