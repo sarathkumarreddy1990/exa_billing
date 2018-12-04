@@ -1269,11 +1269,11 @@ var commonjs = {
                 break;
 
             case '23503':
-                commonjs.showError('Dependent records found');
+                commonjs.showError('messages.errors.dependentrecordfound');
                 break;
 
             case '23505':
-                var errMessage = 'Duplicate record found';
+                var errMessage = 'messages.errors.duplicateRecord';
                 if (exaInternalErrors && exaInternalErrors.constraints && exaInternalErrors.constraints[err.constraint]) {
                     errMessage = exaInternalErrors.constraints[err.constraint];
                 }
@@ -1291,11 +1291,11 @@ var commonjs = {
                 break;
 
             case '55801':
-                commonjs.showError('Unable to connect EDI Server');
+                commonjs.showError('messages.errors.ediServer');
                 break;
 
             case '55802':
-                commonjs.showError('Please select charges record for batch claim');
+                commonjs.showError('messages.errors.selectClaimToCreate');
                 break;
 
             case 'HANDLED_EXCEPTION':
