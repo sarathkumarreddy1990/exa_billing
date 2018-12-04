@@ -106,57 +106,87 @@ module.exports = {
 
     /// TODO: bad fn name -- need to rename
     updateValidateClaimStatus: async (params) => {
-        params.screenName = params.entityName = params.moduleName = 'claims';
-        params.logDescriptions = ' Validate claims for ';
-        let sql = SQL`WITH getStatus AS
-						(
+        let {
+            userId,
+            clientIp,
+            companyId,
+            screenName,
+            entityName,
+            moduleName,
+            success_claimID
+        } = params;
+
+        let sql = SQL`WITH getStatus AS (
 							SELECT
-								id
-							FROM
-								billing.claim_status
-							WHERE code  = 'PS'
-						)
-						,update_cte AS (UPDATE
-							billing.claims bc
-						SET claim_status_id = (SELECT id FROM getStatus)
-						WHERE bc.id = ANY(${params.success_claimID})
-                        RETURNING bc.id,bc.xmin as claim_row_version,'{}'::jsonb old_values, claim_status_id)
-                    SELECT billing.create_audit(
-                            ${params.companyId}
-                          , ${params.screenName}
-                          , id
-                          , ${params.screenName}
-                          , ${params.moduleName}
-                          , ${params.logDescriptions} || id
-                          , ${params.clientIp}
-                          , json_build_object(
-                              'old_values', COALESCE(old_values, '{}'),
-                              'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_cte LIMIT 1 ) temp_row)
-                              )::jsonb
-                          , ${params.userId}
-                          ) AS id, claim_row_version, claim_status_id
-                          FROM update_cte
-                          WHERE id IS NOT NULL`;
+							    id
+							FROM billing.claim_status
+							WHERE code = 'PS')
+						, update_cte AS (
+                            UPDATE billing.claims bc
+                            SET
+                                claim_status_id = (SELECT id FROM getStatus)
+						    WHERE bc.id = ANY(${success_claimID})
+                            RETURNING *,
+                                      bc.xmin as claim_row_version,
+                                      (SELECT row_to_json(old_row) FROM (
+                                          SELECT
+                                            *
+                                          FROM billing.claims i_bc
+                                          WHERE i_bc.id = bc.id) old_row
+                                      ) old_values
+                            )
+                            SELECT billing.create_audit(
+                                  ${companyId}
+                                , ${entityName}
+                                , uc.id
+                                , ${screenName}
+                                , ${moduleName}
+                                , 'Claim has validated and status changed to Pending Submission Id: ' || uc.id
+                                , ${clientIp}
+                                , json_build_object(
+                                    'old_values', COALESCE(old_values, '{}'),
+                                    'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_cte i_uc WHERE i_uc.id = uc.id) temp_row)
+                                    )::jsonb
+                                , ${userId}
+                                ) AS id, claim_row_version, claim_status_id
+                                FROM update_cte uc
+                                WHERE id IS NOT NULL`;
 
         return await query(sql);
     },
 
     changeClaimStatus: async (params) => {
+        let {
+            type,
+            notes,
+            userId,
+            isClaim,
+            clientIp,
+            payerType,
+            companyId,
+            screenName,
+            moduleName,
+            entityName,
+            claim_status,
+            claimDetails,
+            templateType,
+            success_claimID
+        } = params;
 
         let getClaimsDetails = SQL` ,claim_details as (
-                SELECT claims.id as claim_id, ${params.notes} || ' ' ||
-                (  CASE  COALESCE(${params.payerType}, payer_type)
+                SELECT claims.id as claim_id, ${notes} || ' ' ||
+                (  CASE  COALESCE(${payerType}, payer_type)
                     WHEN 'primary_insurance' THEN insurance_providers.insurance_name
                     WHEN 'secondary_insurance' THEN insurance_providers.insurance_name
                     WHEN 'tertiary_insurance' THEN insurance_providers.insurance_name
                     WHEN 'ordering_facility' THEN provider_groups.group_name
                     WHEN 'referring_provider' THEN ref_provider.full_name
                     WHEN 'rendering_provider' THEN render_provider.full_name
-                    WHEN 'patient' THEN patients.full_name        END)   || '(' || COALESCE(${params.payerType}, payer_type) ||')' as note
+                    WHEN 'patient' THEN patients.full_name        END)   || '(' || COALESCE(${payerType}, payer_type) ||')' as note
                 FROM billing.claims
 
                 LEFT JOIN patient_insurances ON patient_insurances.id =
-                        (  CASE  COALESCE(${params.payerType}, payer_type)
+                        (  CASE  COALESCE(${payerType}, payer_type)
                         WHEN 'primary_insurance' THEN primary_patient_insurance_id
                         WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
                         WHEN 'tertiary_insurance' THEN tertiary_patient_insurance_id
@@ -170,7 +200,7 @@ module.exports = {
                 LEFT JOIN provider_contacts as rendering_pro_contact ON rendering_pro_contact.id=claims.rendering_provider_contact_id
                 LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.provider_id
 
-                WHERE claims.id= ANY (${params.success_claimID}) )
+                WHERE claims.id= ANY (${success_claimID}) )
         `;
 
         let claimComments =
@@ -178,7 +208,7 @@ module.exports = {
             SELECT
                   "claim_id",
                  "note"
-            FROM json_to_recordset(${params.claimDetails}) AS claimDetails
+            FROM json_to_recordset(${claimDetails}) AS claimDetails
             (
                 "claim_id" bigint,
                 "note" text
@@ -196,20 +226,22 @@ module.exports = {
                         created_dt
                     )
                     `;
-        let paymentComments = SQL`  SELECT
+        let paymentComments = SQL`
+                    SELECT
                         claim_id,
-                        ${params.type},
+                        ${type},
                         note,
-                        ${params.userId},
+                        ${userId},
                         now()
                     FROM
                     claim_details )`;
 
-        let invoiceComments = SQL`  SELECT
+        let invoiceComments = SQL`
+                SELECT
                     claim_id,
-                    ${params.type},
+                    ${type},
                     note ||' -- Invoice No ' || update_status.invoice_no ,
-                    ${params.userId},
+                    ${userId},
                     now()
                 FROM
                 claim_details
@@ -221,44 +253,73 @@ module.exports = {
 								id
 							FROM
 								billing.claim_status
-							WHERE code  = ${params.claim_status}
+							WHERE code  = ${claim_status}
                         )`;
 
-        if (params.templateType) {
+        if (templateType) {
             sql.append(getClaimsDetails);
         }
 
-        let updateData = SQL` , update_status AS ( UPDATE
-							billing.claims bc
-                        SET claim_status_id = (SELECT id FROM getStatus),
-                            invoice_no = (SELECT NEXTVAL('billing.invoice_no_seq')),
-                            submitted_dt=timezone(get_facility_tz(bc.facility_id::int), now()::timestamp)
-						WHERE bc.id = ANY(${params.success_claimID})
-                        RETURNING bc.id,invoice_no )`;
+        let updateData = SQL` , update_status AS(
+                                    UPDATE
+                                        billing.claims bc
+                                    SET claim_status_id = (SELECT id FROM getStatus),
+                                        invoice_no = (SELECT NEXTVAL('billing.invoice_no_seq')),
+                                        submitted_dt=timezone(get_facility_tz(bc.facility_id::int), now()::timestamp)
+                                    WHERE bc.id = ANY(${success_claimID})
+                                    RETURNING *,
+                                    (SELECT row_to_json(old_row) FROM (
+                                                  SELECT
+                                                    *
+                                                  FROM billing.claims i_bc
+                                                  WHERE i_bc.id = bc.id) old_row
+                                    ) old_values) `;
 
-        let updateEDIData = SQL` , update_status AS ( UPDATE
-                            billing.claims bc
-                        SET claim_status_id = (SELECT id FROM getStatus) ,
-                        submitted_dt=timezone(get_facility_tz(bc.facility_id::int), now()::timestamp)
-                        WHERE bc.id = ANY(${params.success_claimID})
-                        RETURNING bc.id ) `;
+        let updateEDIData = SQL`, update_status AS (
+                                    UPDATE billing.claims bc
+                                    SET claim_status_id = (SELECT id FROM getStatus),
+                                        submitted_dt=timezone(get_facility_tz(bc.facility_id::int), now()::timestamp)
+                                    WHERE bc.id = ANY(${success_claimID})
+                                    RETURNING *,
+                                    (SELECT row_to_json(old_row) FROM (
+                                                SELECT
+                                                   *
+                                                FROM billing.claims i_bc
+                                                WHERE i_bc.id = bc.id) old_row
+                                    ) old_values) `;
 
+        let updateClaimAuditData =SQL`, update_claim_audit_cte AS(
+                                        SELECT billing.create_audit (
+                                            ${companyId},
+                                            ${entityName},
+                                            us.id,
+                                            ${screenName},
+                                            ${moduleName},
+                                            ' Claim status has changed during claim process (Paper/EDI) ID :' || us.id,
+                                            ${clientIp},
+                                            json_build_object(
+                                                'old_values', COALESCE(us.old_values, '{}'),
+                                                'new_values', ( SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM ( SELECT * FROM update_status i_us where i_us.id = us.id) temp_row))::jsonb,
+                                            ${userId}) id
+                                        FROM update_status us) `;
 
-        if (params.templateType && params.templateType != 'patient_invoice') {
+        if (templateType && templateType != 'patient_invoice') {
             sql.append(updateData);
         } else {
             sql.append(updateEDIData);
         }
 
-        if (params.isClaim) {
+        sql.append(updateClaimAuditData);
 
-            if (!params.templateType) {
+        if (isClaim) {
+
+            if (!templateType) {
                 sql.append(claimComments);
             }
 
             sql.append(insertedClaimComments);
 
-            if (params.templateType && params.templateType != 'patient_invoice') {
+            if (templateType && templateType != 'patient_invoice') {
                 sql.append(invoiceComments);
             } else {
                 sql.append(paymentComments);
@@ -266,16 +327,27 @@ module.exports = {
 
         }
 
-        if (params.templateType && params.templateType != 'patient_invoice') {
-            sql.append(SQL` SELECT
+        if (templateType && templateType != "patient_invoice") {
+            sql.append(SQL`
+                        SELECT
                             claim_details.claim_id AS id
                           , invoice_no
-                    FROM claim_details
-                    INNER JOIN update_status ON update_status.id = claim_details.claim_id `);
+                        FROM claim_details
+                        INNER JOIN update_status ON update_status.id = claim_details.claim_id
+                        UNION
+                        SELECT
+                            null,
+                            null
+                        FROM update_claim_audit_cte`);
         } else {
-            sql.append(SQL` SELECT
-                          claim_details.claim_id AS id
-                    FROM claim_details `);
+            sql.append(SQL`
+                        SELECT
+                            claim_details.claim_id AS id
+                        FROM claim_details
+                        UNION
+                        SELECT
+                            null
+                        FROM update_claim_audit_cte`);
         }
 
 
