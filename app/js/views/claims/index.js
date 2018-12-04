@@ -4027,7 +4027,7 @@ define(['jquery',
                     $("#editClaimShowPatientAlerts").attr("title", "This patient has " + alertCount + " alerts");
                  } else {
                     $("#alertBadge").css("visibility", "hidden");
-                    $("#editClaimShowPatientAlerts").attr('title', 'patient.patient.patientHasNoAlerts');
+                    $("#editClaimShowPatientAlerts").attr('title', i18n.get('patient.patient.patientHasNoAlerts'));
                 }
 
             },
