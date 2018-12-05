@@ -4055,7 +4055,16 @@ define(['jquery',
             },
 
             addPatientAlert: function() {
-                return $(parent.document).find('#spanModalHeader').append('<span id="editClaimShowPatientAlerts" class="alertLabel ml-3"> <a><i class="icon-ic-alerts"></i> <span i18n="shared.screens.patient.alerts">Alerts</span></a> <div id="alertBadge" class="alertBadge"></div> </span>');
+
+                return $(parent.document).find('#spanModalHeader')
+                    .append($('<span>').attr({
+                        id: 'editClaimShowPatientAlerts',
+                        class: 'alertLabel ml-3'
+                    })
+                    .append($('<a>')
+                    .append($('<i>').attr({class: 'icon-ic-alerts'}))
+                    .append($('<span>').attr({'i18n': 'shared.screens.patient.alerts'}).text(' Alerts'))
+                    .append($('<div>').attr({'id': 'alertBadge', class: 'alertBadge'}))));
             }
 
         });
