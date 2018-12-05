@@ -441,8 +441,7 @@ define(['jquery',
 
                             /* Header Details */
                             $(parent.document).find('#spanModalHeader').html('Edit : <STRONG>' + claimDetails.patient_full_name + '</STRONG> (Acc#:' + claimDetails.patient_account_no + '), ' + moment(claimDetails.patient_dob).format('L') + ', ' + claimDetails.patient_gender);
-                            $(parent.document).find('#spanModalHeader').append('<span id="editClaimShowPatientAlerts" class="alertLabel ml-3"> <a><i class="icon-ic-alerts"></i> <span>Alerts</span></a> <div id="alertBadge" class="alertBadge">0</div> </span>');
-
+                            self.addPatientAlert();
                             /* Patient Alert data Bind Started */
                             self.patientAlerts = claimDetails.alerts;
                             self.showAlertBadge();
@@ -1022,8 +1021,7 @@ define(['jquery',
                                 var diagnosisCodes = [];
 
                                 $(parent.document).find('#spanModalHeader').html('Claim Creation : <STRONG>' + _defaultDetails.patient_name + '</STRONG> (Acc#:' + _defaultDetails.patient_account_no + '), <i>' + _defaultDetails.patient_dob + '</i>,  ' + _defaultDetails.patient_gender);
-                                $(parent.document).find('#spanModalHeader').append('<span id="editClaimShowPatientAlerts" class="alertLabel ml-3"> <a><i class="icon-ic-alerts"></i> <span>Alerts</span></a> <div id="alertBadge" class="alertBadge"></div> </span>');
-
+                                self.addPatientAlert();
                                 /* Patient Alert data Bind Started */
                                 self.patientAlerts = _defaultDetails.alerts;
                                 self.showAlertBadge();
@@ -3847,8 +3845,7 @@ define(['jquery',
                 setTimeout(function () {
                     $('#divPageLoading').hide();
                     $(parent.document).find('#spanModalHeader').html('Claim Creation : <STRONG>' + patient_details.patient_name + '</STRONG> (Acc#:' + patient_details.patient_account_no + '), <i>' + patient_details.patient_dob + '</i>, '+ patient_details.patient_gender);
-                    $(parent.document).find('#spanModalHeader').append('<span id="editClaimShowPatientAlerts" class="alertLabel ml-3"> <a><i class="icon-ic-alerts"></i> <span >Alerts</span></a> <div id="alertBadge" class="alertBadge"></div> </span>');
-                    // i18n="shared.screens.patient.alerts"
+                    self.addPatientAlert();
                     $('#divPatient').hide();
                     $('.woClaimRelated').show();
                     self.showAlertBadge();
@@ -4055,6 +4052,10 @@ define(['jquery',
                 $('#editClaimShowPatientAlerts').off().click(function () {
                     self.showPatientAlerts();
                 });
+            },
+
+            addPatientAlert: function() {
+                return $(parent.document).find('#spanModalHeader').append('<span id="editClaimShowPatientAlerts" class="alertLabel ml-3"> <a><i class="icon-ic-alerts"></i> <span i18n="shared.screens.patient.alerts">Alerts</span></a> <div id="alertBadge" class="alertBadge"></div> </span>');
             }
 
         });
