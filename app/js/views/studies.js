@@ -180,6 +180,7 @@ define(['jquery',
             studiesTable: null,
             studyFilters: null,
             isAdmin: false,
+            datePickerCleared: false,
             ae_titles: [],
             autorefreshInterval: 3000,
             autorefresh: false,
@@ -349,7 +350,7 @@ define(['jquery',
                     }
 
 
-                    if ((defaultDateFilter === 'study_dt' && col == 'study_dt'
+                    if ((!self.datePickerCleared && defaultDateFilter === 'study_dt' && col == 'study_dt'
                         && (gridObj.options.filterid == 'All_Studies'))
                         && !colElement.val()) {
                         var toDate = moment(),
@@ -376,7 +377,8 @@ define(['jquery',
                     colElement.on("apply.daterangepicker", function (ev, drp) {
                         self.refreshStudies(true);
                     });
-                    colElement.on("cancel.daterangepicker", function (ev, drp) {
+                    colElement.on("cancel.daterangepicker", function () {
+                        self.datePickerCleared = true;
                         self.refreshStudies(true);
                     });
                     commonjs.isMaskValidate();
@@ -904,6 +906,7 @@ define(['jquery',
             },
             setTabContents: function (filterID, isPrior, isDicomSearch, isRisOrderSearch, showEncOnly) {
                 var self = this;
+                self.datePickerCleared = false // to bind the date by default(three months) -- EXA-11340
                 if (filterID) {
                     var filter = commonjs.loadedStudyFilters.get(filterID);
                     commonjs.currentStudyFilter = filterID;
@@ -1029,7 +1032,8 @@ define(['jquery',
                                 order_id: commonjs.prior_order_id ? commonjs.prior_order_id : 0,
                                 showOnlyPhyOrders: $('#showOnlyPhyOrders').prop('checked'),
                                 showOnlyOFOrders: $('#showOnlyOFOrders').prop('checked'),
-                                isPrior: filterObj.options.isPrior
+                                isPrior: filterObj.options.isPrior,
+                                isDatePickerClear: self.datePickerCleared
                             }
 
                         },
@@ -1215,6 +1219,7 @@ define(['jquery',
                     filter.options.customargs.isRisOrderSearch = filter.options.isRisOrderSearch = isRisOrderSearch;
                     filter.options.customargs.isAuthorizationSearch = filter.options.isAuthorizationSearch = $('#showPreOrder').is(':checked');
                     filter.options.customargs.isAuthorizationExpSearch = filter.options.isAuthorizationExpSearch = $('#showLeftPreOrder').is(':checked');
+                    filter.options.customargs.isDatePickerClear = self.datePickerCleared;
 
                     if ($('#showPreOrder').is(':checked') || $('#showLeftPreOrder').is(':checked')) {
                         filter.options.customargs.showOnlyPhyOrders = filter.options.showOnlyPhyOrders = false;

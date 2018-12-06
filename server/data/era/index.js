@@ -339,6 +339,8 @@ module.exports = {
                                     ,billing.change_responsible_party(claim_id, claim_status_code, ${paymentDetails.company_id}, original_reference, 0, false)
                                 FROM
                                     matched_claims
+                                WHERE
+                                    'TOS_PAYMENT' != ${paymentDetails.isFrom}
                             )
                             SELECT
 	                        ( SELECT json_agg(row_to_json(insert_payment_adjustment)) insert_payment_adjustment

@@ -294,7 +294,7 @@ const api = {
 
         let r = '';
 
-        if (!isCount || (columns && columns.bgct)) {
+        if ((!isCount && columns && tables.bgct) || (isCount && tables.bgct)) {
             r = ' INNER JOIN LATERAL billing.get_claim_totals(claims.id) bgct ON TRUE ';
         }
 
@@ -530,7 +530,7 @@ const api = {
         let column = JSON.parse(args.filterCol);
         let data = JSON.parse(args.filterData);
 
-        if (column.indexOf('claim_dt') == -1 && (args.customArgs.filter_id == 'Follow_up_queue' || args.customArgs.filter_id == 'All_Claims') ) {
+        if (args.isDatePickerClear !== 'true' && column.indexOf('claim_dt') == -1  && (args.customArgs.filter_id == 'Follow_up_queue' || args.customArgs.filter_id == 'All_Claims') ) {
             data.push(moment().subtract(89, 'days').format('YYYY-MM-DD') + ' - ' + moment().format('YYYY-MM-DD'));
             column.push('claim_dt');
             args.filterCol = JSON.stringify(column);

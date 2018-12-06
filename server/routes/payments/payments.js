@@ -3,6 +3,7 @@ const router = new Router();
 
 const paymentsController = require('../../controllers/payments/payments');
 const httpHandler = require('../../shared/http');
+const logger = require('../../../logger');
 
 router.get('/', async function (req, res) {
     req.query.isGetTotal = false;
@@ -59,6 +60,13 @@ router.post('/apply_invoice_payments', async function (req, res) {
 
 router.get('/study_cpt_details', async function (req, res) {
     const data = await paymentsController.getStudyCpt(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
+router.post('/apply_tos_payments', async function (req, res) {
+    logger.info('Initiating TOS payment..');
+    const data = await paymentsController.applyTOSPayment(req.body);
+    logger.info('TOS payment process done..');
     httpHandler.sendRows(req, res, data);
 });
 
