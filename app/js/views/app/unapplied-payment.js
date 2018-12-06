@@ -27,15 +27,22 @@ function (
             this.unappliedPaymentList = new unappliedPaymentList();
         },
 
-        render: function (patientID) {
+        render: function (patientID, isFromClaimInquiry) {
             this.rendered = true;
-            commonjs.showNestedDialog({
-                header: 'Unapplied Payments',
-                width: '80%',
-                height: '55%',
-                html: this.unappliedTemplate()
-            });
-            this.bindGrid(patientID);
+
+            if (!isFromClaimInquiry) {
+                commonjs.showNestedDialog({
+                    header: 'Unapplied Payments',
+                    i18nHeader: 'billing.payments.unappliedPayments',
+                    width: '80%',
+                    height: '55%',
+                    html: this.unappliedTemplate()
+                });
+            } else {
+                $('#divUnappliedPayment').html(this.unappliedTemplate());
+            }
+               
+            this.bindGrid(patientID, isFromClaimInquiry);
         },
 
         // showUnappliedPayment: function(patientID) {
@@ -47,7 +54,7 @@ function (
                 
         // },
 
-        bindGrid: function (patientID) {
+        bindGrid: function (patientID, isFromClaimInquiry) {
 
             var self = this;
 
@@ -91,7 +98,8 @@ function (
                     pager: '#gridPager_UnAppliedpayments' 
                 });
                 setTimeout(function () {
-                    $("#tblUnAppliedpaymentsGrid").setGridWidth($(".modal-body").width()-100);
+                    var modalBodyWidth = isFromClaimInquiry ? $('#modalBodyNested').width() : ($(".modal-body").width() - 100);
+                    $("#tblUnAppliedpaymentsGrid").setGridWidth(modalBodyWidth);
                     $("#tblUnAppliedpaymentsGrid").setGridHeight(($(window).height() - 500));
                 }, 200);
             }
