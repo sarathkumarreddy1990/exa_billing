@@ -457,7 +457,7 @@ module.exports = {
                     , c.xmin as claim_row_version
                     , p.account_no AS patient_account_no
                     , p.birth_date::text AS patient_dob
-                    , p.full_name AS patient_full_name
+                    , p.full_name AS patient_name
                     , p.gender AS patient_gender
                     , p.alerts
                     , ref_pr.full_name AS ref_prov_full_name
