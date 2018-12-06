@@ -439,10 +439,8 @@ define(['jquery',
                             commonjs.isMaskValidate();
                             /* Bind chargeLineItems events - Ended */
 
-                            /* Header Details - Started */
                             self.addPatientDeails(claimDetails, 'edit')
                             self.addPatientAlert();
-                            /* Header Details - Ended */
 
                             /* Patient Alert data Bind Started */
                             self.patientAlerts = claimDetails.alerts;
@@ -1022,10 +1020,8 @@ define(['jquery',
                                 var _diagnosisProblems = modelDetails.problems && modelDetails.problems.length > 0 ? modelDetails.problems : [];
                                 var diagnosisCodes = [];
 
-                                /* Header Details - Started */
                                 self.addPatientDeails(_defaultDetails, 'create')
                                 self.addPatientAlert();
-                                /* Header Details - Ended */
 
                                 /* Patient Alert data Bind Started */
                                 self.patientAlerts = _defaultDetails.alerts;
@@ -3849,10 +3845,8 @@ define(['jquery',
 
                 setTimeout(function () {
                     $('#divPageLoading').hide();
-                    /* Header Details - Started */
                     self.addPatientDeails(patient_details, 'create');
                     self.addPatientAlert();
-                    /* Header Details - Ended */
                     $('#divPatient').hide();
                     $('.woClaimRelated').show();
                     self.showAlertBadge();
@@ -4061,6 +4055,7 @@ define(['jquery',
                 });
             },
 
+            // Binding Header Patient Details
             addPatientDeails: function(patient_details, from) {
                 var headerTopic = from === 'create' ? 'Claim Creation : ' : 'Edit : ';
 
@@ -4073,6 +4068,7 @@ define(['jquery',
                     .append(' '+ patient_details.patient_gender);
             },
 
+            // Binding Header Patient Alert Details
             addPatientAlert: function() {
                 return $(parent.document).find('#spanModalHeader')
                     .append($('<span>').attr({
