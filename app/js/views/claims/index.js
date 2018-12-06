@@ -4062,9 +4062,7 @@ define(['jquery',
                     .append(' Acc#: ')
                     .append(patient_details.patient_account_no + ' ')
                     .append($('<i/>').text(moment(patient_details.patient_dob).format('L')))
-                    .append(' '+ patient_details.patient_gender);
-
-                $(parent.document).find('#spanModalHeader')
+                    .append(' '+ patient_details.patient_gender)
                     .append($('<span>').attr({
                         id: 'editClaimShowPatientAlerts',
                         class: 'alertLabel ml-3'
