@@ -439,8 +439,7 @@ define(['jquery',
                             commonjs.isMaskValidate();
                             /* Bind chargeLineItems events - Ended */
 
-                            self.addPatientDeails(claimDetails, 'edit')
-                            self.addPatientAlert();
+                            self.addPatientHeaderDetails(claimDetails, 'edit')
 
                             /* Patient Alert data Bind Started */
                             self.patientAlerts = claimDetails.alerts;
@@ -1020,8 +1019,7 @@ define(['jquery',
                                 var _diagnosisProblems = modelDetails.problems && modelDetails.problems.length > 0 ? modelDetails.problems : [];
                                 var diagnosisCodes = [];
 
-                                self.addPatientDeails(_defaultDetails, 'create')
-                                self.addPatientAlert();
+                                self.addPatientHeaderDetails(_defaultDetails, 'create')
 
                                 /* Patient Alert data Bind Started */
                                 self.patientAlerts = _defaultDetails.alerts;
@@ -3845,8 +3843,7 @@ define(['jquery',
 
                 setTimeout(function () {
                     $('#divPageLoading').hide();
-                    self.addPatientDeails(patient_details, 'create');
-                    self.addPatientAlert();
+                    self.addPatientHeaderDetails(patient_details, 'create');
                     $('#divPatient').hide();
                     $('.woClaimRelated').show();
                     self.showAlertBadge();
@@ -4056,21 +4053,18 @@ define(['jquery',
             },
 
             // Binding Header Patient Details
-            addPatientDeails: function(patient_details, from) {
+            addPatientHeaderDetails: function(patient_details, from) {
                 var headerTopic = from === 'create' ? 'Claim Creation : ' : 'Edit : ';
 
-                return $(parent.document).find('#spanModalHeader')
+                $(parent.document).find('#spanModalHeader')
                     .text(headerTopic)
                     .append($('<STRONG/>').text( patient_details.patient_name))
                     .append(' Acc#: ')
                     .append(patient_details.patient_account_no + ' ')
                     .append($('<i/>').text(moment(patient_details.patient_dob).format('L')))
                     .append(' '+ patient_details.patient_gender);
-            },
 
-            // Binding Header Patient Alert Details
-            addPatientAlert: function() {
-                return $(parent.document).find('#spanModalHeader')
+                $(parent.document).find('#spanModalHeader')
                     .append($('<span>').attr({
                         id: 'editClaimShowPatientAlerts',
                         class: 'alertLabel ml-3'
