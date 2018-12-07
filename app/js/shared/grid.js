@@ -739,7 +739,7 @@ define('grid', [
                         company_id: app.companyID,
                         user_id: app.userID,
                         pageNo: 1,
-                        pageSize: 1000,
+                        pageSize: 100,
                         isAllStudies: true,
                         isDatePickerClear: isDatePickerClear,
                         customArgs: {
