@@ -12,6 +12,8 @@ define([
             drpStudyDt: null,
             mainTemplate: _.template(InsuranceVsLOPTemplate),
             viewModel: {
+                selectedStudyStatusList: null,
+                allStudyStatuses: false,
                 dateFrom: null,
                 dateTo: null,
                 studyStatusCodes: null,
@@ -76,6 +78,7 @@ define([
                 });
                 // Binding Billing Provider MultiSelect
                 UI.bindBillingProvider();
+                UI.bindStudyStatus();
             },
 
             bindDateRangePicker: function () {
@@ -109,13 +112,24 @@ define([
             },
 
             // multi select facilities - worked
+            getSelectedStudyStatus: function (e) {
+                var selected = $("#ddlStudyStatus option:selected");
+                var studyStatuses = [];
+                selected.each(function () {
+                    studyStatuses.push($(this).val());
+                });
+                this.selectedStudyStatusList = studyStatuses;
+                this.viewModel.allStudyStatuses = this.selectedStudyStatusList && this.selectedStudyStatusList.length === $("#ddlStudyStatus option").length;
+            },
+
+            // multi select facilities - worked
             getSelectedFacility: function (e) {
                 var selected = $("#ddlFacilityFilter option:selected");
                 var facilities = [];
                 selected.each(function () {
                     facilities.push($(this).val());
                 });
-                this.selectedFacilityList = facilities
+                this.selectedFacilityList = facilities;
                 this.viewModel.allFacilities = this.selectedFacilityList && this.selectedFacilityList.length === $("#ddlFacilityFilter option").length;
             },
 
@@ -134,6 +148,7 @@ define([
                 var btnClicked = e && e.target ? $(e.target) : null;
                 this.getSelectedFacility();
                 this.getBillingProvider();
+                this.getSelectedStudyStatus();
                 if (btnClicked && btnClicked.prop('tagName') === 'I') {
                     btnClicked = btnClicked.parent(); // in case FA icon 'inside'' button was clicked...
                 }
@@ -163,9 +178,10 @@ define([
 
             getReportParams: function () {
                 return urlParams = {
+                    'studyStatusCodes': this.selectedStudyStatusList || [],
+                    'allStudyStatuses': this.viewModel.allStudyStatuses || '',
                     'fromDate': this.viewModel.dateFrom.format('YYYY-MM-DD'),
                     'toDate': this.viewModel.dateTo.format('YYYY-MM-DD'),
-                    'studyStatusCodes': this.viewModel.studyStatusCodes,
                     'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
                     'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
                     'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],

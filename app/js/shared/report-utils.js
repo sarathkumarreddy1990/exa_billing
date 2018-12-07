@@ -6,6 +6,37 @@ define([
     function ($, _, Backbone) {
         var reportId = "";
         var UI = {
+            bindStudyStatus: function () {
+                $.ajax({
+                    url: '/exa_modules/billing/autoCompleteRouter/getStudyStatus',
+                    type: 'GET',
+                    async: false,
+                    success: function (data, response) {
+                        var statusList = data && data.length > 0 ? data : [];
+                        var $ddlStudyStatus = $('#ddlStudyStatus');
+
+                        $ddlStudyStatus.empty();
+                        for (var b = 0; b < statusList.length; b++) {
+                            $ddlStudyStatus.append($('<option/>', {
+                                value: statusList[b].status_code,
+                                text: statusList[b].status_desc
+                            }));
+                        }
+
+                        // For Multi Select drop down
+                        $ddlStudyStatus.multiselect({
+                            maxHeight: 200,
+                            buttonWidth: '250px',
+                            enableFiltering: true,
+                            includeSelectAllOption: true,
+                            enableCaseInsensitiveFiltering: true
+                        });
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
+            },
 
             initializeReportingViewModel: function (routeOptions, viewModel) {
                 // Convention:
@@ -679,6 +710,7 @@ define([
 
             adjustmentCodeAutoComplete: function (adjustmentMsg, btnAdd, ulList) {
                 var self = this;
+
                 $("#txtAdjustmentCode").select2({
                     ajax: {
                         url: "/exa_modules/billing/autoCompleteRouter/adjustment_code",
@@ -705,6 +737,8 @@ define([
                     templateResult: formatRepo,
                     templateSelection: formatRepoSelection
                 });
+
+
                 function formatRepo(repo) {
                     if (repo.loading) {
                         return repo.code;

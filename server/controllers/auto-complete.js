@@ -1,7 +1,9 @@
 const data = require('../data/auto-complete');
 
 module.exports = {
-
+    getStudyStatus: function (params) {
+        return data.getStudyStatus(params);
+    },
     getCptAutoCompleteDetails: function (params) {
         return data.getCptAutoCompleteDetails(params);
     },

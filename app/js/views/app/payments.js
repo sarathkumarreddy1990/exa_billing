@@ -18,8 +18,8 @@ define(['jquery',
         paymentsGrid,
         paymentsLists,
         ModelPaymentsPager,
-        paymentPDF,
-        Permission) {
+        paymentPDF
+        ) {
         var paymentsView = Backbone.View.extend({
             el: null,
             pager: null,
@@ -43,7 +43,8 @@ define(['jquery',
                 'click #btnPaymentRefresh': 'refreshPayments',
                 "click #btnGenerateExcel": "exportExcel",
                 "click #btnGeneratePDF": "generatePDF",
-                "change #ulPaymentStatus": 'searchPayments'
+                "change #ulPaymentStatus": 'searchPayments',
+                "click #btnTOSPayment": "applyTOSPayment"
             },
 
             initialize: function (options) {
@@ -177,7 +178,7 @@ define(['jquery',
 
             showGrid: function (filterApplied, from) {
 
-                if(this.screenCode.indexOf('PAYM') > -1 && this.screenCode.indexOf('TOSP') === -1 && from !== 'ris') { 
+                if(this.screenCode.indexOf('PAYM') > -1 && this.screenCode.indexOf('TOSP') === -1 && from !== 'ris') {
                     commonjs.showError('messages.errors.accessdenied');
                     return false;
                 }
@@ -278,7 +279,7 @@ define(['jquery',
                             exclude: ',#jqgh_tblpaymentsGrid_edit'
                         },
                         pager: '#gridPager_payments',
-                        sortname: "payment_id",
+                        sortname: "payments.id",
                         sortorder: "desc",
                         caption: "Payments",
                         datastore: self.paymentsList,
@@ -549,7 +550,79 @@ define(['jquery',
                         self.searchPayments();
                     });
                 });
-            }
+            },
+
+            applyTOSPayment: _.debounce(function (e) {
+
+                var self =this;
+                var paymentStatus = $("#ulPaymentStatus").val();
+                var payerType = $('#gs_payer_type').val();
+
+                if (!paymentStatus.length) {
+                    commonjs.showWarning('messages.warning.payments.selectUnappliedStatus');
+                    return false;
+                }
+
+                if (payerType != 'patient') {
+                    commonjs.showWarning('messages.warning.payments.selectPatientPayerType');
+                    return false;
+                }
+
+                // Condition : Validate if unapplied status not selected
+                if(paymentStatus.length != 1 || paymentStatus.indexOf('unapplied') === -1){
+                    commonjs.showWarning('messages.warning.payments.selectUnappliedStatus');
+                    return false;
+                }
+
+                var filterCol = self.pager.get("FilterCol") || [];
+                var filterData = self.pager.get("FilterData") || [];
+                var dataSet = {
+                    from: 'tos_payment',
+                    filterByDateType: 'accounting_date',
+                    sortOrder: self.pager.get("SortOrder"),
+                    sortField: self.pager.get("SortField"),
+                    paymentStatus: paymentStatus
+                };
+
+                if (filterCol.indexOf('accounting_date') === -1) {
+                    filterCol.push('accounting_date');
+                    filterData.push($('#gs_accounting_date').val());
+                }
+
+                _.each(filterCol, function (obj, index) {
+                    if (filterData[index]) {
+                        dataSet[obj] = filterData[index];
+                    }
+                });
+
+                var tos_request = {
+                    url: '/exa_modules/billing/payments/apply_tos_payments',
+                    type: 'POST',
+                    data: dataSet,
+                    success: function (data, response) {
+                        if (data && data.length) {
+                            if (data[0].message) {
+                                commonjs.showWarning(data[0].message);
+                            } else {
+                                commonjs.showStatus('messages.status.tosSuccessfullyCompleted');
+                                self.paymentTable.refresh();
+                            }
+                            commonjs.hideLoading();
+                        }
+                        $('#btnTOSPayment').prop('disabled',false);
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                        commonjs.hideLoading();
+                        $('#btnTOSPayment').prop('disabled',false);
+                    }
+                };
+
+                $('#btnTOSPayment').prop('disabled',true);
+                commonjs.showLoading();
+                $.ajax(tos_request);
+
+            }, 500)
 
         });
 
