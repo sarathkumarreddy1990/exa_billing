@@ -1497,21 +1497,23 @@ define('grid', [
         },
 
         self.resetInvoiceNumber = function(invoiceNo) {
-
-            $.ajax({
-                url: '/exa_modules/billing/claim_workbench/invoice_no',
-                type: 'PUT',
-                data: {
-                    invoiceNo: invoiceNo,
-                },
-                success: function (data, response) {
-                    commonjs.showStatus('Claim Invoice Number has been reset');
-                    $("#btnClaimsRefresh").click();
-                },
-                error: function (err, response) {
-                    commonjs.handleXhrError(err, response);
-                }
-            });
+            if (confirm(i18n.get('messages.confirm.billing.resetInvoice')))
+            {
+                $.ajax({
+                    url: '/exa_modules/billing/claim_workbench/invoice_no',
+                    type: 'PUT',
+                    data: {
+                        invoiceNo: invoiceNo,
+                    },
+                    success: function (data, response) {
+                        commonjs.showStatus('messages.status.invoiceNoReset');
+                        $("#btnClaimsRefresh").click();
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
+            }
         }
     };
 });
