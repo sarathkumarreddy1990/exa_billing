@@ -697,6 +697,10 @@ define('grid', [
             var currentFilter = commonjs.studyFilters.find(function (filter) {
                 return filter.filter_id == commonjs.currentStudyFilter;
             });
+            var filterContent = commonjs.loadedStudyFilters.get(filterID);
+            filterData = JSON.stringify(filterContent.pager.get('FilterData'));
+            filterCol = JSON.stringify(filterContent.pager.get('FilterCol'));
+            var isDatePickerClear = filterCol.indexOf('study_dt') === -1;
 
             batchClaimArray = [];
             for (var r = 0; r < selectedCount; r++) {
@@ -724,54 +728,75 @@ define('grid', [
 
                 var selectedIds = JSON.stringify(batchClaimArray)
                 commonjs.showLoading();
+                var param ;
+                if ($('#chkStudyHeader_' + filterID).is(':checked')) {
 
-                $.ajax({
-                    url: '/exa_modules/billing/claim_workbench/claims/batch',
-                    type: 'POST',
-                    data: {
-                        study_ids: selectedIds,
-                        company_id: app.companyID
-                    },
-                    success: function (data, response) {
-                        commonjs.showStatus('messages.status.batchClaimCompleted');
-                        commonjs.hideLoading();
-
-                        var claim_id = data && data.length && data[0].create_claim_charge || null;
-
-                         // Change grid values after claim creation instead of refreshing studies grid
-                        if (claim_id) {
-
-                            var claimsTable = new customGrid(studyDataStore, gridID);
-                            claimsTable.options = { gridelementid: gridID }
-                            var changeGrid = initChangeGrid(claimsTable);
-                            var cells = [];
-
-                            cells = cells.concat(changeGrid.getClaimId(claim_id));
-                            cells = cells.concat(changeGrid.getBillingStatus('Billed'));
-                            cells = cells.concat(changeGrid.setEditIcon());
-
-                            for (var r = 0; r < batchClaimArray.length; r++) {
-                                var rowId = batchClaimArray[r].study_id;
-                                var $row = $tblGrid.find('#' + rowId);
-                                var setCell = changeGrid.setCell($row);
-
-                                setCell(cells);
-                                // In user filter Billed Status selected as unbilled means, After claim creation hide from grid.
-                                var isBilledStatus = currentFilter.filter_info && currentFilter.filter_info.studyInformation && currentFilter.filter_info.studyInformation.billedstatus === 'unbilled' || false;
-
-                                if ($('#gs_billed_status').val() === 'unbilled' || isBilledStatus) {
-                                    $row.remove();
-                                }
-
-                            }
+                    param = {
+                        filterData: filterData,
+                        filterCol: filterCol,
+                        sortField: filterContent.pager.get('SortField'),
+                        sortOrder: filterContent.pager.get('SortOrder'),
+                        company_id: app.companyID,
+                        user_id: app.userID,
+                        pageNo: 1,
+                        pageSize: 100,
+                        isAllStudies: true,
+                        isDatePickerClear: isDatePickerClear,
+                        customArgs: {
+                            filter_id: filterID,
+                            isClaimGrid: false
                         }
-
-                    },
-                    error: function (err, response) {
-                        commonjs.handleXhrError(err, response);
-                        commonjs.hideLoading();
                     }
-                });
+                } else {
+                    param = {
+                        studyDetails: selectedIds,
+                        company_id: app.companyID,
+                        isAllStudies: false
+                    }
+                }
+                    $.ajax({
+                        url: '/exa_modules/billing/claim_workbench/claims/batch',
+                        type: 'POST',
+                        data: param,
+                        success: function (data, response) {
+                            commonjs.showStatus('messages.status.batchClaimCompleted');
+                            commonjs.hideLoading();
+
+                            var claim_id = data && data.length && data[0].create_claim_charge || null;
+
+                            // Change grid values after claim creation instead of refreshing studies grid
+                            if (claim_id) {
+
+                                var claimsTable = new customGrid(studyDataStore, gridID);
+                                claimsTable.options = { gridelementid: gridID }
+                                var changeGrid = initChangeGrid(claimsTable);
+                                var cells = [];
+
+                                cells = cells.concat(changeGrid.getClaimId(claim_id))
+                                        .concat(changeGrid.getBillingStatus('Billed'))
+                                        .concat(changeGrid.setEditIcon());
+
+                                for (var r = 0; r < batchClaimArray.length; r++) {
+                                    var rowId = batchClaimArray[r].study_id;
+                                    var $row = $tblGrid.find('#' + rowId);
+                                    var setCell = changeGrid.setCell($row);
+
+                                    setCell(cells);
+                                    // In user filter Billed Status selected as unbilled means, After claim creation hide from grid.
+                                    var isBilledStatus = currentFilter.filter_info && currentFilter.filter_info.studyInformation && currentFilter.filter_info.studyInformation.billedstatus === 'unbilled' || false;
+
+                                    if ($('#gs_billed_status').val() === 'unbilled' || isBilledStatus) {
+                                        $row.remove();
+                                    }
+
+                                }
+                            }
+                        },
+                        error: function (err, response) {
+                            commonjs.handleXhrError(err, response);
+                            commonjs.hideLoading();
+                        }
+                    });
             } else {
                 commonjs.showWarning('messages.warning.claims.selectClaimToCreate');
             }
@@ -832,7 +857,7 @@ define('grid', [
 
             var icon_width = 24;
             colName = colName.concat([
-                (options.isClaimGrid ? '<input type="checkbox" title="Select all studies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />' : ''),
+                ('<input type="checkbox" title="Select all studies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />'),
                 '', '', '', '', '','','','','','','','','','','','','','','Assigned To','',''
 
             ]);
@@ -1207,6 +1232,8 @@ define('grid', [
                 var searchFilterFlag = grid.getGridParam("postData")._search;
                 var colHeader = studyFields.colName;
                 var current_filter_id = $('#claimsTabs').find('.active a').attr('data-container')
+                var isDatePickerClear = filterCol.indexOf('claim_dt') === -1;
+
                 if (options.filterid != 'Follow_up_queue') {
                     commonjs.showLoading();
 
@@ -1216,6 +1243,8 @@ define('grid', [
                         data: {
                             filterData: filterData,
                             filterCol: filterCol,
+                            isDatePickerClear: isDatePickerClear,
+                            user_id: app.userID,
                             customArgs: {
                                 filter_id: current_filter_id,
                                 flag: 'exportExcel'

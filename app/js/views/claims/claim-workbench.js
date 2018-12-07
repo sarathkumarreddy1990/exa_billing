@@ -587,6 +587,8 @@ define(['jquery',
                 filterData = JSON.stringify(filter.pager.get('FilterData'));
                 filterCol = JSON.stringify(filter.pager.get('FilterCol'));
 
+                var isDatePickerClear = filterCol.indexOf('claim_dt') === -1;
+
                 jQuery.ajax({
                     url: "/exa_modules/billing/claim_workbench",
                     type: "post",
@@ -598,6 +600,7 @@ define(['jquery',
                         pageNo: 1,
                         pageSize: 1000,
                         targetType: targetType,
+                        isDatePickerClear: isDatePickerClear,
                         customArgs: {
                             filter_id: filterID,
                             isClaimGrid: true
