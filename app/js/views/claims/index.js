@@ -4040,8 +4040,8 @@ define(['jquery',
                     return false;
                 }
 
-                alerts = self.patientAlerts && self.patientAlerts.alerts || null;
-                others = self.patientAlerts && self.patientAlerts.others || null;
+                var alerts = self.patientAlerts && self.patientAlerts.alerts || null;
+                var others = self.patientAlerts && self.patientAlerts.others || null;
                 commonjs.showNestedDialog({ header: 'Patient Alerts', i18nHeader: 'menuTitles.patient.patientAlerts', width: '50%', height: '40%', html: self.patientAlertTemplate({alerts: alerts, others:others}) })
             },
 
