@@ -1503,7 +1503,7 @@ define('grid', [
                     url: '/exa_modules/billing/claim_workbench/invoice_no',
                     type: 'PUT',
                     data: {
-                        invoiceNo: invoiceNo,
+                        invoiceNo: invoiceNo
                     },
                     success: function (data, response) {
                         commonjs.showStatus('messages.status.invoiceNoReset');
