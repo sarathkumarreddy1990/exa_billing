@@ -12,6 +12,8 @@ const {
     EDIQueryAdapter
 } = require('../../../modules/ohip');
 
+const studiesController = require('../../controllers/studies');
+
 const helper = require('../../data');
 const _ = require('lodash');
 //const PdfPrinter = require('pdfmake');
@@ -403,6 +405,35 @@ module.exports = {
         };
         params.auditDetails = auditDetails;
         params.created_by = parseInt(params.userId);
+
+        if (params.isAllStudies == 'true') {
+            const studyData = await studiesController.getData(params);
+            let studyDetails = [];
+
+            _.map(studyData.rows, (study) => {
+                studyDetails.push({
+                    patient_id: study.patient_id,
+                    study_id: study.study_id,
+                    order_id: study.order_id
+                });
+            });
+
+            let validCharges = await data.validateBatchClaimCharge(JSON.stringify(studyDetails));
+
+            if(studyDetails.length !== parseInt(validCharges.rows[0].count)) {
+                let responseData = {
+                    code:'55802'
+                    , message: 'No charge in claim'
+                    , name: 'error'
+                    , Error: 'No charge in claim'
+                    , severity: 'Error'
+                };
+
+                return await responseData;
+            }
+
+            params.studyDetails = JSON.stringify(studyDetails);
+        }
 
         return await data.createBatchClaims(params);
     },
