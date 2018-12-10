@@ -286,7 +286,7 @@
         {
             "field_code": "policy_number",
             "field_name": "Policy Number",
-            "i18n_name": "setup.userSettings.policyNumber",
+            "i18n_name": "patient.patientInsurance.policyNo",
             "field_info": {
                 "name": "policy_number",
                 "searchFlag": "hstore",
@@ -298,7 +298,7 @@
         {
             "field_code": "group_number",
             "field_name": "Group Number",
-            "i18n_name": "setup.userSettings.groupNumber",
+            "i18n_name": "patient.patientInsurance.groupNo",
             "field_info": {
                 "name": "group_number",
                 "searchFlag": "hstore",
