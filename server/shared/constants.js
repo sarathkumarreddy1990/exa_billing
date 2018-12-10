@@ -198,6 +198,7 @@ module.exports = {
         'update_claim_status': 'CLIM',
         'charge_check_payment_details': 'CLIM',
         'claim_check_payment_details': 'CLIM',
-        'payments-realization-rate-analysis': 'PRRA'
+        'payments-realization-rate-analysis': 'PRRA',
+        'apply_tos_payments': 'PAYM'
     }
 };
