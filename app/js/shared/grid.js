@@ -873,12 +873,12 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 ('<input type="checkbox" title="Select all studies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />'),
-                '', '', '', '', '','','','','','','','','','','','','','','Assigned To','',''
+                '', '', '', '', '','','','','','','','','','','','','','','','Assigned To','',''
 
             ]);
 
             i18nName = i18nName.concat([
-                '', '', '', '', '', '','','','','','','','','','','','','','','billing.claims.assignedTo','',''
+                '', '', '', '', '', '','','','','','','','','','','','','','','','billing.claims.assignedTo','',''
             ]);
 
             colModel = colModel.concat([
@@ -951,6 +951,169 @@ define('grid', [
                             'grid_id': gridID,
                             'source': 'claims'
                         });
+                    }
+                },
+                {
+                    name: 'as_claim_summary',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: !options.isClaimGrid,
+                    isIconCol: true,
+                    formatter: function () {
+                        return '<i href="#" class="icon-ic-worklist" data-toggle="popover" title="Claim Summary"></i>';
+                    },
+                    customAction: function (rowID, e, that) {
+
+
+                        var claimSummaryId = $('.claim-summary:visible').attr('id');
+                        claimSummaryId = claimSummaryId && claimSummaryId.split('_') || [];
+                        $('.claim-summary').remove();
+
+                        if (claimSummaryId[1] === rowID) {
+                            return false;
+                        } else {
+
+                            $.ajax({
+                                url: '/exa_modules/billing/claim_workbench/claimSummary',
+                                type: "GET",
+                                data: {
+                                    id: rowID
+                                },
+                                success: function (data) {
+                                    if (data && data.error) {
+                                        commonjs.handleXhrError(data.error);
+                                        return;
+                                    }
+                                    if (data && data.length) {
+
+                                        var summaryDetails = data[0] || {};
+                                        var patient_info = commonjs.hstoreParse(summaryDetails.patient_info || {});
+                                        var patientDetailsLine = summaryDetails.gender + ', ' + summaryDetails.patient_study_age + ', ' + (summaryDetails.birth_date ? moment(summaryDetails.birth_date).format('L') : '');
+                                        var patientDetails = $('<span/>');
+                                        if (summaryDetails.patient_name) {
+                                            patientDetails.append($('<span/>').text(summaryDetails.patient_name))
+                                                .append('<br>')
+                                                .append($('<span/>').text(patientDetailsLine))
+                                        }
+
+                                        if (patient_info.c1HomePhone) {
+                                            patientDetails.append('<br>')
+                                                .append($('<span/>').text('Home: ' + patient_info.c1HomePhone))
+                                        }
+
+                                        if (patient_info.c1WorkPhone) {
+                                            patientDetails.append('<br>')
+                                                .append($('<span/>').text('Work: ' + patient_info.c1WorkPhone))
+                                        }
+
+                                        if (patient_info.c1MobilePhone) {
+                                            patientDetails.append('<br>')
+                                                .append($('<span/>').text('Mobile: ' + patient_info.c1MobilePhone))
+                                        }
+
+                                        if (summaryDetails.account_no) {
+                                            patientDetails.append('<br>')
+                                                .append($('<span/>').text('Account #: ' + summaryDetails.account_no))
+                                        }
+
+                                        // Claim Summary popup creation - start
+                                        var _table = $('<table/>').addClass('col-12 contentTable').css('table-layout', 'fixed');
+                                        var cptCodes = summaryDetails.cpt_codes && summaryDetails.cpt_codes.length ? summaryDetails.cpt_codes.join(',') : '--';
+                                        var cptDesc = summaryDetails.cpt_description && summaryDetails.cpt_description.length ? summaryDetails.cpt_description.join(',') : '--';
+
+                                        var claimDate = summaryDetails.claim_dt ? moment(summaryDetails.claim_dt).format('L') : '--';
+
+                                        var _tr1 = $('<tr/>')
+                                            .addClass('row')
+                                            .append($('<td/>').addClass('col-3').text('CPT Codes'))
+                                            .append($('<td/>').addClass('col-1').text(':'))
+                                            .append($('<td/>').addClass('col-8 text-truncate').text(cptCodes).attr({ title: cptCodes }))
+                                            .appendTo(_table);
+                                        var _tr2 = $('<tr/>')
+                                            .addClass('row')
+                                            .append($('<td/>').addClass('col-3').text('CPT Desc'))
+                                            .append($('<td/>').addClass('col-1').text(':'))
+                                            .append($('<td/>').addClass('col-8 text-truncate').text(cptDesc).attr({ title: cptDesc }))
+                                            .appendTo(_table);
+                                        var _tr3 = $('<tr/>')
+                                            .addClass('row')
+                                            .append($('<td/>').addClass('col-3').text('Claim Date'))
+                                            .append($('<td/>').addClass('col-1').text(':'))
+                                            .append($('<td/>').addClass('col-8 text-truncate').text(claimDate).attr({ title: claimDate }))
+                                            .appendTo(_table);
+
+                                        var _tr4 = $('<tr/>')
+                                            .addClass('row')
+                                            .append($('<td/>').addClass('col-3').text('Created By'))
+                                            .append($('<td/>').addClass('col-1').text(':'))
+                                            .append($('<td/>').addClass('col-8 text-truncate').text(summaryDetails.created_by).attr({ title: summaryDetails.created_by }))
+                                            .appendTo(_table);
+
+                                        // create summary parent div
+                                        $(document.body).append(
+                                            $('<div/>').addClass('popover claim-summary').css({ 'display': 'none' })
+                                                .attr({ 'id': 'claimSummary_' + rowID })
+                                                .append($('<h3/>').addClass('popover-header').css('font-size', '0.8rem'))
+                                                .append($('<div/>').addClass('popover-body'))
+                                        );
+
+                                        // create summary parent div
+                                        $(document.body).find('.popover-header')
+                                            .append(
+                                                $('<div>').addClass('row')
+                                                    .append(
+                                                        $('<div/>').addClass('col-sm-6 col-md-6 col-lg-6 pr-0')
+                                                            .append(patientDetails)
+                                                    )
+                                                    .append(
+                                                        $('<div/>').addClass('col-sm-6 col-md-6 col-lg-6 pl-0')
+                                                            .append($('<span/>').text('Patient Balance :'))
+                                                            .append($('<span/>').addClass('ml-1').text(summaryDetails.patient_balance))
+                                                            .append('<br>')
+                                                            .append($('<span/>').text('Insurance Balance :'))
+                                                            .append($('<span/>').addClass('ml-1').text(summaryDetails.insurance_balance))
+                                                            .append('<br>')
+                                                    )
+                                            );
+
+                                        $(document.body).find('.popover-body').css('font-size', '0.8rem').append(_table);
+                                        // Claim Summary popup creation - emd
+                                        // Position setting for popup
+                                        var openPopup = function (offset) {
+                                            var popup = $('.popover');
+                                            var popupContent = $('.popover');
+                                            if (popup.css('display') === 'none') {
+                                                popup.css('display', 'block');
+                                            }
+                                            popupContent.css('transform', 'translate3d(82px, ' + offset + 'px, 0px)');
+                                        }
+
+                                        var target = $(e.target);
+                                        var targetOffset = target.offset().top;
+                                        var scrollPosition = $(window).scrollTop();
+                                        if (scrollPosition <= targetOffset) {
+                                            openPopup(targetOffset);
+                                        } else {
+                                            var targetHeight = target.height();
+                                            var contentHeight = $('.popover').outerHeight();
+                                            var targetBottomOffset = targetOffset + targetHeight - contentHeight;
+                                            openPopup(targetBottomOffset);
+                                        }
+                                    }
+                                },
+                                error: function (request, status, error) {
+                                    commonjs.handleXhrError(request, status, error);
+                                    $('.popover-header').empty();
+                                    var msg = commonjs.geti18NString("messages.warning.claims.unableToGetClaimSummary");
+                                    $('.popover-body').empty().append(msg);
+                                }
+                            });
+                        }
+
+                        e.stopPropagation();
+                        return false;
                     }
                 },
                 {
@@ -1350,6 +1513,8 @@ define('grid', [
                             self.claimView.showClaimForm({ 'grid_id': gridID }, 'studies');
                         }
                     }
+
+                    $('.claim-summary').remove();
                 },
                 disablesearch: false,
                 disablesort: false,

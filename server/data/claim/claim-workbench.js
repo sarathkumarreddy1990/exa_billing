@@ -706,5 +706,67 @@ module.exports = {
                     INNER JOIN public.cpt_codes codes ON codes.id = cpt.cpt_code_id
                     WHERE s.id = ANY(SELECT * FROM batch_claim_details)`;
         return await query(sql.text, sql.values);
+    },
+
+    getClaimSummary: async (params) => {
+        const {
+            id
+        } = params;
+
+        const sql = SQL` SELECT
+                            p.birth_date::text,
+                            p.account_no,
+                            p.gender,
+                            p.patient_info,
+                            ( SELECT * FROM get_full_name(p.last_name,p.first_name,p.middle_name,p.prefix_name,p.suffix_name)) AS patient_name,
+                            ( SELECT * FROM get_full_name(u.last_name,u.first_name,u.middle_initial,null,u.suffix) ) AS created_by,
+                            charges.cpt_codes,
+                            charges.cpt_description,
+                            c.claim_dt::text,
+                            c.id,
+                            COALESCE(
+                                get_study_age ,
+                                CASE
+                                    WHEN EXTRACT(YEAR FROM age(c.claim_dt, p.birth_date)) != 0 AND EXTRACT(MONTH FROM age(c.claim_dt,p.birth_date)) != 0
+                                        THEN EXTRACT(YEAR FROM age(c.claim_dt,p.birth_date)) || 'Y' || '&' || EXTRACT(MONTH FROM age(c.claim_dt,p.birth_date)) || 'M'
+                                    WHEN EXTRACT(YEAR FROM age(c.claim_dt,p.birth_date)) != 0 THEN EXTRACT(YEAR FROM age(c.claim_dt,p.birth_date)) || 'Y'
+                                    WHEN EXTRACT(MONTH FROM age(c.claim_dt,p.birth_date)) != 0 THEN EXTRACT(MONTH FROM age(c.claim_dt,p.birth_date)) || 'M'
+                                    ELSE null
+                                END
+                            ) AS patient_study_age,
+                            p.id as patient_id,
+                            COALESCE(patient_payments.insurance_balance,'0')::numeric AS insurance_balance,
+                            COALESCE(patient_payments.patient_balance,'0')::numeric AS patient_balance
+                        FROM
+                        billing.claims c
+                        INNER JOIN patients p ON p.id = c.patient_id
+                        INNER JOIN users u ON u.id = c.created_by
+                        INNER JOIN (
+                            SELECT
+                                array_agg(cpt.display_code) AS cpt_codes,
+                                array_agg(cpt.display_description) AS cpt_description,
+                                chs.study_id
+                            FROM
+                                billing.charges ch
+                            INNER JOIN public.cpt_codes cpt ON ch.cpt_id = cpt.id
+                            LEFT JOIN billing.charges_studies chs ON chs.charge_id = ch.id
+                            WHERE claim_id = ${id}
+                            GROUP BY chs.study_id LIMIT 1
+
+                        ) AS charges ON TRUE
+                        LEFT JOIN studies s ON s.id = charges.study_id
+                        LEFT JOIN get_study_age(s.id::integer) ON true
+                        LEFT JOIN LATERAL (
+                            SELECT
+                                sum(bgcp.charges_bill_fee_total - (bgcp.payments_applied_total + bgcp.adjustments_applied_total))  FILTER (WHERE payer_type != 'patient')  as insurance_balance,
+                                sum(bgcp.charges_bill_fee_total - (bgcp.payments_applied_total + bgcp.adjustments_applied_total))  FILTER (WHERE payer_type = 'patient')  as patient_balance
+                            FROM billing.claims
+                            INNER JOIN LATERAL billing.get_claim_payments(claims.id,FALSE) bgcp ON TRUE
+                            WHERE claims.patient_id = c.patient_id
+                        ) patient_payments ON true
+                        WHERE
+                            c.id = ${id} `;
+
+        return await query(sql);
     }
 };

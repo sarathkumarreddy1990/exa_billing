@@ -141,6 +141,10 @@ router.put('/invoice_no', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.get('/claimSummary', async function (req, res) {
+    const data = await claimWorkbenchController.getClaimSummary(req.query);
+    httpHandler.sendRows(req, res, data);
+});
 
 
 module.exports = router;
