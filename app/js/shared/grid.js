@@ -965,8 +965,6 @@ define('grid', [
                         return '<i href="#" class="icon-ic-worklist" data-toggle="popover" title="Claim Summary"></i>';
                     },
                     customAction: function (rowID, e, that) {
-
-
                         var claimSummaryId = $('.claim-summary:visible').attr('id');
                         claimSummaryId = claimSummaryId && claimSummaryId.split('_') || [];
                         $('.claim-summary').remove();
@@ -1022,7 +1020,6 @@ define('grid', [
                                         var _table = $('<table/>').addClass('col-12 contentTable').css('table-layout', 'fixed');
                                         var cptCodes = summaryDetails.cpt_codes && summaryDetails.cpt_codes.length ? summaryDetails.cpt_codes.join(',') : '--';
                                         var cptDesc = summaryDetails.cpt_description && summaryDetails.cpt_description.length ? summaryDetails.cpt_description.join(',') : '--';
-
                                         var claimDate = summaryDetails.claim_dt ? moment(summaryDetails.claim_dt).format('L') : '--';
 
                                         var _tr1 = $('<tr/>')
@@ -1043,7 +1040,6 @@ define('grid', [
                                             .append($('<td/>').addClass('col-1').text(':'))
                                             .append($('<td/>').addClass('col-8 text-truncate').text(claimDate).attr({ title: claimDate }))
                                             .appendTo(_table);
-
                                         var _tr4 = $('<tr/>')
                                             .addClass('row')
                                             .append($('<td/>').addClass('col-3').text('Created By'))
@@ -1089,7 +1085,6 @@ define('grid', [
                                             }
                                             popupContent.css('transform', 'translate3d(82px, ' + offset + 'px, 0px)');
                                         }
-
                                         var target = $(e.target);
                                         var targetOffset = target.offset().top;
                                         var scrollPosition = $(window).scrollTop();
