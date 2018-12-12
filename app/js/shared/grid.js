@@ -998,22 +998,22 @@ define('grid', [
 
                                         if (patient_info.c1HomePhone) {
                                             patientDetails.append('<br>')
-                                                .append($('<span/>').text('Home: ' + patient_info.c1HomePhone))
+                                                .append($('<span/>').text(commonjs.geti18NString("shared.fields.homePhone") + ': ' + patient_info.c1HomePhone))
                                         }
 
                                         if (patient_info.c1WorkPhone) {
                                             patientDetails.append('<br>')
-                                                .append($('<span/>').text('Work: ' + patient_info.c1WorkPhone))
+                                                .append($('<span/>').text(commonjs.geti18NString("shared.fields.workPhone") + ': ' + patient_info.c1WorkPhone))
                                         }
 
                                         if (patient_info.c1MobilePhone) {
                                             patientDetails.append('<br>')
-                                                .append($('<span/>').text('Mobile: ' + patient_info.c1MobilePhone))
+                                                .append($('<span/>').text(commonjs.geti18NString("shared.fields.mobilePhone") + ': ' + patient_info.c1MobilePhone))
                                         }
 
                                         if (summaryDetails.account_no) {
                                             patientDetails.append('<br>')
-                                                .append($('<span/>').text('Account #: ' + summaryDetails.account_no))
+                                                .append($('<span/>').text(commonjs.geti18NString("shared.fields.accountNo") + ': ' + summaryDetails.account_no))
                                         }
 
                                         // Claim Summary popup creation - start
@@ -1024,25 +1024,25 @@ define('grid', [
 
                                         var _tr1 = $('<tr/>')
                                             .addClass('row')
-                                            .append($('<td/>').addClass('col-3').text('CPT Codes'))
+                                            .append($('<td/>').addClass('col-3').text(commonjs.geti18NString("shared.fields.cptCodes")))
                                             .append($('<td/>').addClass('col-1').text(':'))
                                             .append($('<td/>').addClass('col-8 text-truncate').text(cptCodes).attr({ title: cptCodes }))
                                             .appendTo(_table);
                                         var _tr2 = $('<tr/>')
                                             .addClass('row')
-                                            .append($('<td/>').addClass('col-3').text('CPT Desc'))
+                                            .append($('<td/>').addClass('col-3').text(commonjs.geti18NString("shared.fields.cptDesc")))
                                             .append($('<td/>').addClass('col-1').text(':'))
                                             .append($('<td/>').addClass('col-8 text-truncate').text(cptDesc).attr({ title: cptDesc }))
                                             .appendTo(_table);
                                         var _tr3 = $('<tr/>')
                                             .addClass('row')
-                                            .append($('<td/>').addClass('col-3').text('Claim Date'))
+                                            .append($('<td/>').addClass('col-3').text(commonjs.geti18NString("shared.fields.claimDate")))
                                             .append($('<td/>').addClass('col-1').text(':'))
                                             .append($('<td/>').addClass('col-8 text-truncate').text(claimDate).attr({ title: claimDate }))
                                             .appendTo(_table);
                                         var _tr4 = $('<tr/>')
                                             .addClass('row')
-                                            .append($('<td/>').addClass('col-3').text('Created By'))
+                                            .append($('<td/>').addClass('col-3').text(commonjs.geti18NString("shared.fields.createdBy")))
                                             .append($('<td/>').addClass('col-1').text(':'))
                                             .append($('<td/>').addClass('col-8 text-truncate').text(summaryDetails.created_by).attr({ title: summaryDetails.created_by }))
                                             .appendTo(_table);
