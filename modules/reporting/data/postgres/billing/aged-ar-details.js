@@ -10,13 +10,12 @@ const agedARDetailsDataSetQueryTemplate = _.template(`
 WITH charges_cwt AS (
     SELECT
           bc.id                           AS claim_id
-        , max(date_part('day', ((timezone(f.time_zone,  <%= claimDate %>)))  - timezone(f.time_zone, bc.claim_dt))) as age
+        , max(date_part('day', ((timezone(f.time_zone,  <%= cutOffDate %>)))  - timezone(f.time_zone, bc.claim_dt))) as age
         , sum(c.bill_fee * c.units)       AS charges_bill_fee_total
     FROM  billing.claims AS bc
         INNER JOIN billing.charges AS c ON c.claim_id = bc.id
         INNER JOIN facilities f on f.id = bc.facility_id
-    WHERE 1=1
-    AND (timezone(f.time_zone, bc.claim_dt) <=   <%= claimDate %>)
+    WHERE (timezone(f.time_zone, bc.claim_dt)::date <=   <%= cutOffDate %>)
     GROUP BY bc.id
 ),
 applications_cwt AS (
@@ -27,6 +26,7 @@ applications_cwt AS (
     INNER JOIN billing.charges AS c  ON c.claim_id = cc.claim_id
     INNER JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
     INNER JOIN billing.payments AS p ON pa.payment_id = p.id
+    WHERE p.accounting_date <= <%= cutOffDate %>
     GROUP BY cc.claim_id
 ),
 get_claim_details AS(
@@ -41,7 +41,7 @@ get_claim_details AS(
  aging_details  AS( SELECT
  <% if (facilityIds) { %> (pf.facility_name) <% } else  { %> 'All'::text <% } %> as "Facility",
  bc.id as "Claim ID",
- to_char(now(), 'MM/DD/YYYY') AS "Cut-off Date",
+ to_char(<%= cutOffDate %>, 'MM/DD/YYYY') AS "Cut-off Date",
  bpr.name AS "Billing Pro Name",
  get_full_name(pp.last_name,pp.first_name) AS "Patient Name",
  to_char(bc.claim_dt, 'MM/DD/YYYY') AS "Claim Date",
@@ -407,7 +407,7 @@ const api = {
         const params = [];
         const filters = {
             companyId: null,
-            claimDate: null,
+            cutOffDate: null,
             facilityIds: null,
             billingProID: null,
             excCreditBal: null,
@@ -432,7 +432,7 @@ const api = {
         //  claim_dt
 
         params.push(reportParams.fromDate);
-        filters.claimDate = `$${params.length}::date`;
+        filters.cutOffDate = `$${params.length}::date`;
 
         filters.excelExtented = reportParams.excelExtended;
         filters.excCreditBal = reportParams.excCreditBal
