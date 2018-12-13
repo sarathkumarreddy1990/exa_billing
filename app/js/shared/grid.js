@@ -979,6 +979,9 @@ define('grid', [
                             data: {
                                 id: rowID
                             },
+                            beforeSend: function(){
+                                commonjs.showLoading();
+                            },
                             success: function (data) {
                                 if (data && data.error) {
                                     commonjs.handleXhrError(data.error);
@@ -1124,6 +1127,7 @@ define('grid', [
                                         var targetBottomOffset = targetOffset + targetHeight - contentHeight;
                                         openPopup(targetBottomOffset);
                                     }
+                                    commonjs.hideLoading();
                                 }
                             },
                             error: function (request, status, error) {
@@ -1131,6 +1135,7 @@ define('grid', [
                                 $('.popover-header').empty();
                                 var msg = commonjs.geti18NString("messages.warning.claims.unableToGetClaimSummary");
                                 $('.popover-body').empty().append(msg);
+                                commonjs.hideLoading();
                             }
                         });
 
