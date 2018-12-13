@@ -974,7 +974,7 @@ define('grid', [
                         }
 
                         $.ajax({
-                            url: '/exa_modules/billing/claim_workbench/claimSummary',
+                            url: '/exa_modules/billing/claim_workbench/claim_summary',
                             type: "GET",
                             data: {
                                 id: rowID

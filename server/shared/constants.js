@@ -200,6 +200,6 @@ module.exports = {
         'claim_check_payment_details': 'CLIM',
         'payments-realization-rate-analysis': 'PRRA',
         'apply_tos_payments': 'PAYM',
-        'claimSummary': 'CLIM'
+        'claim_summary': 'CLIM'
     }
 };
