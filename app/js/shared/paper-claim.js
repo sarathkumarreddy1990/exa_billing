@@ -48,46 +48,52 @@ define([
                 commonjs.showLoading();
 
                 this.getTemplate(claimIDs, templateType, function (err, template) {
-                    self.getClaimObject(claimIDs, templateType, options, function (err, claimData) {
+                    if (template && !_.isEmpty(template)) {
+                        self.getClaimObject(claimIDs, templateType, options, function (err, claimData) {
 
-                        var discardedIDs = [];
-                        var processedIDs = [];
+                            var discardedIDs = [];
+                            var processedIDs = [];
 
-                        if (templateType === 'direct_invoice' || templateType === 'patient_invoice') {
-                            if (claimData.length === 0) {
-                                return commonjs.showWarning('Unable to process..');
+                            if (templateType === 'direct_invoice' || templateType === 'patient_invoice') {
+                                if (claimData.length === 0) {
+                                    return commonjs.showWarning('messages.warning.claims.unableToProcess');
+                                }
+
+                                if (claimData[0].claim_details.length === 0) {
+                                    return commonjs.showWarning('messages.warning.claims.unableToProcess');
+                                }
+
+                                processedIDs = claimData[0].claim_details.map(function (claim) { return claim.claim_no })
                             }
 
-                            if (claimData[0].claim_details.length === 0) {
-                                return commonjs.showWarning('Unable to process..');
+                            if (templateType === 'paper_claim_original' || templateType === 'paper_claim_full') {
+                                processedIDs = claimData.map(function (c) { return c.claim_id });
                             }
 
-                            processedIDs = claimData[0].claim_details.map(function (claim) { return claim.claim_no })
-                        }
+                            if (processedIDs.length === 0) {
+                                return commonjs.showWarning('messages.warning.claims.unableToProcess');
+                            }
 
-                        if (templateType === 'paper_claim_original' || templateType === 'paper_claim_full') {
-                            processedIDs = claimData.map(function (c) { return c.claim_id });
-                        }
+                            claimIDs = claimIDs.map(Number);
+                            processedIDs = processedIDs.map(Number);
 
-                        if (processedIDs.length === 0) {
-                            return commonjs.showWarning('Unable to process..');
-                        }
+                            discardedIDs = _.difference(claimIDs, processedIDs);
+                            if (discardedIDs.length > 0 && !options.showInline) {
+                                commonjs.showWarning('Unable to process few claims - ' + discardedIDs.toString());
+                            }
 
-                        claimIDs = claimIDs.map(Number);
-                        processedIDs = processedIDs.map(Number);
+                            self.updateClaimStatus(processedIDs, templateType, options, function (err, response) {
+                                var invoiceNo = response.invoice_no;
+                                claimData[0].invoiceNo = invoiceNo;
+                                return self.preparePdfWorker(templateType, template, claimData);
+                            });
 
-                        discardedIDs = _.difference(claimIDs, processedIDs);
-                        if (discardedIDs.length > 0 && !options.showInline) {
-                            commonjs.showWarning('Unable to process few claims - ' + discardedIDs.toString());
-                        }
-
-                        self.updateClaimStatus(processedIDs, templateType, options, function (err, response) {
-                            var invoiceNo = response.invoice_no;
-                            claimData[0].invoiceNo = invoiceNo;
-                            return self.preparePdfWorker(templateType, template, claimData);
                         });
-
-                    });
+                } else {
+                    commonjs.hideLoading();
+                    commonjs.showError('messages.errors.invalidDataTemplate');
+                    return false;
+                }
                 });
             };
 
@@ -173,7 +179,7 @@ define([
 
                 if (!dd || typeof dd !== 'object') {
                     commonjs.hideLoading();
-                    commonjs.showError('Invalid data/template');
+                    commonjs.showError('messages.errors.invalidDataTemplate');
                     return false;
                 }
 
