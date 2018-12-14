@@ -12,13 +12,12 @@ const agedARSummaryDataSetQueryTemplate = _.template(`
 WITH charges_cwt AS (
     SELECT
           bc.id                           AS claim_id
-        , max(date_part('day', ((timezone(f.time_zone,  <%= claimDate %>)))  - timezone(f.time_zone, bc.claim_dt))) as age
+        , max(date_part('day', ((timezone(f.time_zone,  <%= cutOffDate %>)))  - timezone(f.time_zone, bc.claim_dt))) as age
         , sum(c.bill_fee * c.units)       AS charges_bill_fee_total
     FROM  billing.claims AS bc
         INNER JOIN billing.charges AS c ON c.claim_id = bc.id
         INNER JOIN facilities f on f.id = bc.facility_id
-    WHERE 1=1
-       AND (timezone(f.time_zone, bc.claim_dt) <=   <%= claimDate %>)
+    WHERE (timezone(f.time_zone, bc.claim_dt)::date <=   <%= cutOffDate %>)
     GROUP BY bc.id
 ),
 applications_cwt AS (
@@ -29,6 +28,7 @@ applications_cwt AS (
     INNER JOIN billing.charges AS c  ON c.claim_id = cc.claim_id
     INNER JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
     INNER JOIN billing.payments AS p ON pa.payment_id = p.id
+    WHERE p.accounting_date <= <%= cutOffDate %>
     GROUP BY cc.claim_id
 ),
 get_claim_details AS(
@@ -608,7 +608,7 @@ const api = {
         const params = [];
         const filters = {
             companyId: null,
-            claimDate: null,
+            cutOffDate: null,
             facilityIds: null,
             billingProID: null,
             excCreditBal: null,
@@ -629,7 +629,7 @@ const api = {
         //  claim_dt
 
         params.push(reportParams.fromDate);
-        filters.claimDate = `$${params.length}::date`;
+        filters.cutOffDate = `$${params.length}::date`;
 
         // billingProvider single or multiple
         if (reportParams.billingProvider) {
