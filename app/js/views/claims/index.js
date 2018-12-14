@@ -11,7 +11,8 @@ define(['jquery',
 'collections/app/patientsearch',
 'text!templates/app/patientSearchResult.html',
 'text!templates/claims/claim-validation.html',
-'text!templates/claims/icd9-icd10.html'
+'text!templates/claims/icd9-icd10.html',
+'text!templates/claims/patient-alert.html'
 ],
     function ($,
         _,
@@ -26,7 +27,8 @@ define(['jquery',
         patientCollection,
         patSearchContent,
         claimValidation,
-        icd9to10Template
+        icd9to10Template,
+        patientAlertTemplate
     ) {
         var claimView = Backbone.View.extend({
             el: null,
@@ -35,6 +37,7 @@ define(['jquery',
             chargerowtemplate: _.template(chargeRowTemplate),
             patSearchContentTemplate: _.template(patSearchContent),
             claimValidation: _.template(claimValidation),
+            patientAlertTemplate: _.template(patientAlertTemplate),
             updateResponsibleList: [],
             chargeModel: [],
             claimICDLists: [],
@@ -365,6 +368,7 @@ define(['jquery',
                 self.removedCharges = [];
                 self.chargeModel = [];
                 self.options = options || {};
+                self.patientAlerts = [];
                 if (isFrom && isFrom != 'reload') {
                     self.openedFrom = isFrom
                 }
@@ -382,7 +386,7 @@ define(['jquery',
                         if (model && model.length > 0) {
                             var claimDetails = model[0];
                             self.cur_patient_acc_no = claimDetails.patient_account_no;
-                            self.cur_patient_name = claimDetails.patient_full_name;
+                            self.cur_patient_name = claimDetails.patient_name;
                             self.cur_patient_dob = claimDetails.patient_dob;
                             self.cur_patient_id = claimDetails.patient_id ? parseInt(claimDetails.patient_id) : null;
                             self.cur_study_date = (commonjs.checkNotEmpty(claimDetails.claim_dt) ? commonjs.convertToFacilityTimeZone(claimDetails.facility_id, claimDetails.claim_dt).format('L LT z') : '');
@@ -435,8 +439,13 @@ define(['jquery',
                             commonjs.isMaskValidate();
                             /* Bind chargeLineItems events - Ended */
 
-                            /* Header Details */
-                            $(parent.document).find('#spanModalHeader').html('Edit : <STRONG>' + claimDetails.patient_full_name + '</STRONG> (Acc#:' + claimDetails.patient_account_no + '), ' + moment(claimDetails.patient_dob).format('L') + ', ' + claimDetails.patient_gender);
+                            self.addPatientHeaderDetails(claimDetails, 'edit')
+
+                            /* Patient Alert data Bind Started */
+                            self.patientAlerts = claimDetails.alerts;
+                            self.showAlertBadge();
+                            /* Patient Alert data Bind Ended */
+
                             $.each(self.claimChargeList, function (index, data) {
                                 /* Bind charge table data*/
                                 self.createCptCodesUI(index);
@@ -529,6 +538,8 @@ define(['jquery',
                             $('.claimProcess').prop('disabled', false);
                             if (self.options && !self.options.study_id)
                                 $('#btPatientDocuemnt').prop('disabled', true);
+
+                            self.getAlertEvent(); // for Patient Alert Button Click event availability
 
                             commonjs.hideLoading();
                         }
@@ -985,6 +996,7 @@ define(['jquery',
             getLineItemsAndBind: function (selectedStudyIds) {
                 var self = this;
                 self.chargeModel = [];
+                self.patientAlerts = [];
                 if (selectedStudyIds) {
 
                     $.ajax({
@@ -1006,7 +1018,13 @@ define(['jquery',
                                 var _defaultDetails = modelDetails.claim_details && modelDetails.claim_details.length > 0 ? modelDetails.claim_details[0] : {};
                                 var _diagnosisProblems = modelDetails.problems && modelDetails.problems.length > 0 ? modelDetails.problems : [];
                                 var diagnosisCodes = [];
-                                $(parent.document).find('#spanModalHeader').html('Claim Creation : <STRONG>' + _defaultDetails.patient_name + '</STRONG> (Acc#:' + _defaultDetails.patient_account_no + '), <i>' + _defaultDetails.patient_dob + '</i>,  ' + _defaultDetails.patient_gender);
+
+                                self.addPatientHeaderDetails(_defaultDetails, 'create')
+
+                                /* Patient Alert data Bind Started */
+                                self.patientAlerts = _defaultDetails.alerts;
+                                self.showAlertBadge();
+                                /* Patient Alert data Bind Ended */
 
                                 _.each(modelDetails.charges, function (item) {
                                     var index = $('#tBodyCharge').find('tr').length;
@@ -1051,6 +1069,8 @@ define(['jquery',
                                 commonjs.validateControls();
                                 commonjs.isMaskValidate();
                                 /* Bind chargeLineItems events - Ended */
+
+                                self.getAlertEvent(); // for Patient Alert Button Click event availability
 
                                 $("#txtClaimDate").attr("disabled", "disabled");
                             }
@@ -3777,7 +3797,7 @@ define(['jquery',
             },
             claimWOStudy:function(patient_details){
                 var self = this;
-
+                self.patientAlerts = patient_details.alerts || [];
                 // Claim w/o charge code  -- start
                 $('#divPageLoading').show();
 
@@ -3823,9 +3843,11 @@ define(['jquery',
 
                 setTimeout(function () {
                     $('#divPageLoading').hide();
-                    $(parent.document).find('#spanModalHeader').html('Claim Creation : <STRONG>' + patient_details.patient_name + '</STRONG> (Acc#:' + patient_details.patient_account_no + '), <i>' + patient_details.patient_dob + '</i>, '+ patient_details.patient_gender);
+                    self.addPatientHeaderDetails(patient_details, 'create');
                     $('#divPatient').hide();
                     $('.woClaimRelated').show();
+                    self.showAlertBadge();
+                    self.getAlertEvent(); // for Patient Alert Button Click event availability
                 }, 200);
 
                 self.openedFrom = 'patientSearch';
@@ -3992,6 +4014,63 @@ define(['jquery',
                 } else {
                     self.resetInsurances(e);
                 }
+            },
+
+            showAlertBadge: function() {
+                var self = this;
+                var predefinedAlerts = self.patientAlerts && self.patientAlerts.alerts || [];
+                var otherAlerts = self.patientAlerts && self.patientAlerts.others || [];
+                var alertCount = _.size(predefinedAlerts) + _.size(otherAlerts);
+                self.alertCount = alertCount || 0;
+
+                if (alertCount > 0) {
+                    $(parent.document).find('#alertBadge').html(alertCount).css("visibility", "visible");
+                    $("#editClaimShowPatientAlerts").attr("title", "This patient has " + alertCount + " alerts");
+                 } else {
+                    $("#alertBadge").css("visibility", "hidden");
+                    $("#editClaimShowPatientAlerts").attr('title', i18n.get('patient.patient.patientHasNoAlerts'));
+                }
+
+            },
+
+            showPatientAlerts: function() {
+                var self = this;
+                if(self.alertCount <= 0 ) {
+                    commonjs.showWarning('patient.patient.patientHasNoAlerts');
+                    return false;
+                }
+
+                var alerts = self.patientAlerts && self.patientAlerts.alerts || null;
+                var others = self.patientAlerts && self.patientAlerts.others || null;
+                commonjs.showNestedDialog({ header: 'Patient Alerts', i18nHeader: 'menuTitles.patient.patientAlerts', width: '50%', height: '40%', html: self.patientAlertTemplate({alerts: alerts, others:others}) })
+            },
+
+            getAlertEvent: function() {
+                var self = this;
+                $('#editClaimShowPatientAlerts').off().click(function () {
+                    self.showPatientAlerts();
+                });
+            },
+
+            // Binding Header Patient Details
+            addPatientHeaderDetails: function(patient_details, from) {
+                var headerTopic = from === 'create' ? 'Claim Creation : ' : 'Edit : ';
+
+                $(parent.document).find('#spanModalHeader')
+                    .text(headerTopic)
+                    .append($('<STRONG/>').text( patient_details.patient_name))
+                    .append(' Acc#: ')
+                    .append(patient_details.patient_account_no + ' ')
+                    .append($('<i/>').text(moment(patient_details.patient_dob).format('L')))
+                    .append(' '+ patient_details.patient_gender)
+                    .append($('<span>').attr({
+                        id: 'editClaimShowPatientAlerts',
+                        class: 'alertLabel ml-3'
+                    })
+                    .append($('<a>')
+                    .append($('<i>').attr({class: 'icon-ic-alerts'}))
+                    .append($('<span>').attr({'i18n': 'shared.screens.patient.alerts'}).text(' Alerts'))
+                    .append($('<div>').attr({'id': 'alertBadge', class: 'alertBadge'}))));
             }
 
         });

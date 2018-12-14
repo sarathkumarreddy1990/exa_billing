@@ -124,7 +124,8 @@ module.exports = {
                                         p.full_name AS patient_name,
                                         p.account_no AS patient_account_no,
                                         p.birth_date AS patient_dob,
-                                        p.gender AS patient_gender
+                                        p.gender AS patient_gender,
+                                        p.alerts
                                     FROM
                                         orders
                                         INNER JOIN facilities ON  facilities.id= orders.facility_id
@@ -456,8 +457,9 @@ module.exports = {
                     , c.xmin as claim_row_version
                     , p.account_no AS patient_account_no
                     , p.birth_date::text AS patient_dob
-                    , p.full_name AS patient_full_name
+                    , p.full_name AS patient_name
                     , p.gender AS patient_gender
+                    , p.alerts
                     , ref_pr.full_name AS ref_prov_full_name
                     , ref_pr.provider_code AS ref_prov_code
                     , ref_pr.provider_info->'NPI' AS referring_prov_npi_no
@@ -752,7 +754,8 @@ module.exports = {
                             ,p.full_name AS patient_name
 				            ,p.birth_date AS patient_dob
 				            ,p.gender AS patient_gender
-				            ,p.account_no AS patient_account_no
+                            ,p.account_no AS patient_account_no
+                            ,p.alerts
                             ,f.id AS facility_id
                             ,fs.default_provider_id AS billing_provider_id
                             ,COALESCE(NULLIF(f.facility_info->'service_facility_id',''),'0')::numeric AS service_facility_id

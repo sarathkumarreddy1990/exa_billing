@@ -1,0 +1,18 @@
+<div>
+    <% if(alerts) { %>
+        <h3>Alerts</h3>
+        <ul>
+            <% _.each (alerts, function(alert) { %>
+                <li class="patientAlert"><%= alert %></li>
+            <% }) %>
+        </ul>
+    <% } %>
+    <% if(others) { %>
+        <h3>Other Alerts</h3>
+        <ul>
+            <% _.each (others, function(otherAlert) { %>
+                <li class="patientAlert"><%= otherAlert %></li>
+            <% }) %>
+        </ul>
+    <% } %>
+</div>
