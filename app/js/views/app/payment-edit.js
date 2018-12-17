@@ -2941,8 +2941,6 @@ define(['jquery',
             loadSelectedGrid: function (e, paymentID, payer_type, payer_id) {
                 var self = this;
                 var id = $(e.target || e.srcElement).closest('a').attr('id');
-                if (id == self.tabClicked)
-                    return false;
 
                 if (id === 'aPeningPayments' && (!$('#tblpendPaymentsGridOnly').children().length)) {
                     self.showPendingPaymentsGridInvoice(paymentID, payer_type, payer_id);
