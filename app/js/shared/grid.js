@@ -999,7 +999,7 @@ define('grid', [
                                     var _headerRightTable = $('<table/>').addClass('col-12 contentTable').css('table-layout', 'fixed');
                                     var cptCodes = summaryDetails.cpt_codes && summaryDetails.cpt_codes.length ? summaryDetails.cpt_codes.join(',') : '--';
                                     var cptDesc = summaryDetails.cpt_description && summaryDetails.cpt_description.length ? summaryDetails.cpt_description.join(',') : '--';
-                                    var claimDate = summaryDetails.claim_dt ? moment(summaryDetails.claim_dt).format('L') : '--';
+                                    var claimDate = summaryDetails.claim_dt ? commonjs.convertToFacilityTimeZone(summaryDetails.facility_id, summaryDetails.claim_dt).format('L') : '--';
 
                                     // create summary parent div
                                     $(document.body).append(

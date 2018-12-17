@@ -724,6 +724,7 @@ module.exports = {
                             charges.cpt_description,
                             c.claim_dt::text,
                             c.id,
+                            c.facility_id,
                             COALESCE(
                                 get_study_age ,
                                 CASE
