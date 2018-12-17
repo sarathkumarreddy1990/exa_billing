@@ -1003,7 +1003,7 @@ define('grid', [
 
                                     // create summary parent div
                                     $(document.body).append(
-                                        $('<div/>').addClass('popover claim-summary').css({ "display": "none" })
+                                        $('<div/>').addClass('claim-summary').css({ "display": "none" })
                                             .attr({ 'id': 'claimSummary_' + rowID })
                                             .append($('<h3/>').addClass('popover-header').css('font-size', '0.8rem'))
                                             .append($('<div/>').addClass('popover-body'))
@@ -1011,11 +1011,11 @@ define('grid', [
 
                                     _headerLeftTable.append(
                                         $('<tr/>').addClass('col-12')
-                                            .append($('<td/>').addClass('pr-1 pl-1 text-truncate').text(summaryDetails.patient_name).attr({ title: summaryDetails.patient_name }))
+                                            .append($('<td/>').addClass('text-truncate').text(summaryDetails.patient_name).attr({ title: summaryDetails.patient_name }))
                                     );
                                     _headerLeftTable.append(
                                         $('<tr/>').addClass('col-12')
-                                            .append($('<td/>').addClass('pr-1 pl-1 text-truncate').text(patientDetailsLine))
+                                            .append($('<td/>').addClass('text-truncate').text(patientDetailsLine))
                                     );
 
                                     if (patient_info.c1HomePhone) {
@@ -1058,15 +1058,15 @@ define('grid', [
                                     // header top right side corner
                                     _headerRightTable.append($('<tr/>')
                                         .addClass('row')
-                                        .append($('<td/>').addClass('col-7 pr-1').text(commonjs.geti18NString("order.summary.patientBalance")))
+                                        .append($('<td/>').addClass('col-6 pr-1').text(commonjs.geti18NString("order.summary.patientBalance")))
                                         .append($('<td/>').addClass('col-1 pr-0').text(':'))
-                                        .append($('<td/>').addClass('col-4 pr-1 pl-1 text-truncate').text(summaryDetails.patient_balance).attr({ title: summaryDetails.patient_balance }))
+                                        .append($('<td/>').addClass('col-4 pl-0 text-right text-truncate').text(summaryDetails.patient_balance).attr({ title: summaryDetails.patient_balance }))
                                     );
                                     _headerRightTable.append($('<tr/>')
                                         .addClass('row')
-                                        .append($('<td/>').addClass('col-7 pr-1').text(commonjs.geti18NString("order.summary.insuranceBalance")))
+                                        .append($('<td/>').addClass('col-6 pr-1').text(commonjs.geti18NString("order.summary.insuranceBalance")))
                                         .append($('<td/>').addClass('col-1 pr-0').text(':'))
-                                        .append($('<td/>').addClass('col-4 pr-1 pl-1 text-truncate').text(summaryDetails.insurance_balance).attr({ title: summaryDetails.insurance_balance }))
+                                        .append($('<td/>').addClass('col-4 pl-0 text-right text-truncate').text(summaryDetails.insurance_balance).attr({ title: summaryDetails.insurance_balance }))
                                     );
 
                                     $(document.body).find('.popover-header')
@@ -1109,8 +1109,8 @@ define('grid', [
                                     // Claim Summary popup creation - emd
                                     // Position setting for popup
                                     var openPopup = function (offset) {
-                                        var popup = $('.popover');
-                                        var popupContent = $('.popover');
+                                        var popup = $('.claim-summary');
+                                        var popupContent = $('.claim-summary');
                                         if (popup.css('display') === 'none') {
                                             popup.css('display', 'block');
                                         }
@@ -1123,7 +1123,7 @@ define('grid', [
                                         openPopup(targetOffset);
                                     } else {
                                         var targetHeight = target.height();
-                                        var contentHeight = $('.popover').outerHeight();
+                                        var contentHeight = $('.claim-summary').outerHeight();
                                         var targetBottomOffset = targetOffset + targetHeight - contentHeight;
                                         openPopup(targetBottomOffset);
                                     }
@@ -1588,26 +1588,16 @@ define('grid', [
                     else {
                         event.stopPropagation();
                     }
+                    // remove popup claimSummary in right click
+                    $('.claim-summary').remove();
                 },
                 beforeSelectRow: function (rowID, e, options) {
                     var _selectEle = $(e.currentTarget).find('#' + rowID).find('input:checkbox');
                     var enableField = _selectEle.is(':checked')
-                  //  _selectEle.prop('checked', !enableField);
 
                     if (!options.isClaimGrid) {
                         enableField = _selectEle.is(':checked');
-                        // validateClaimSelection(rowID, enableField, _selectEle, studyStore);
                     }
-
-                    // var gridData = $('#'+e.currentTarget.id).jqGrid('getRowData', rowID);
-
-                    // if (gridData.billing_method=='Paper Claim') {
-                    //     $("#btnPaperClaim").show();
-                    //     $("#btnInsuranceClaim").hide();
-                    // }else{
-                    //     $("#btnPaperClaim").hide();
-                    //     $("#btnInsuranceClaim").show();
-                    // }
 
                     var i = (e.target || e.srcElement).parentNode.cellIndex;
 
