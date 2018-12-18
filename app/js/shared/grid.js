@@ -1068,6 +1068,9 @@ define('grid', [
                                         .append($('<td/>').addClass('col-1 pr-0').text(':'))
                                         .append($('<td/>').addClass('col-4 pl-0 text-right text-truncate').text(summaryDetails.insurance_balance).attr({ title: summaryDetails.insurance_balance }))
                                     );
+                                    // clear claimSummary before bind
+                                    $('claim-summary').find('.popover-body').empty();
+                                    $('claim-summary').find('.popover-header').empty();
 
                                     $(document.body).find('.popover-header')
                                         .append(
