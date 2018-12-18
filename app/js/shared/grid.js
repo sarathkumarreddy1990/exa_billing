@@ -1086,25 +1086,25 @@ define('grid', [
                                     _contentTable.append($('<tr/>')
                                         .addClass('row')
                                         .append($('<td/>').addClass('col-3').text(commonjs.geti18NString("order.summary.cptCodes")))
-                                        .append($('<td/>').addClass('col-1').text(':'))
+                                        .append($('<td/>').addClass('pl-0 pr-2').text(':'))
                                         .append($('<td/>').addClass('col-8 pl-0 text-truncate').text(cptCodes).attr({ title: cptCodes }))
                                     );
                                     _contentTable.append($('<tr/>')
                                         .addClass('row')
                                         .append($('<td/>').addClass('col-3').text(commonjs.geti18NString("billing.payments.cptDescription")))
-                                        .append($('<td/>').addClass('col-1').text(':'))
+                                        .append($('<td/>').addClass('pl-0 pr-2').text(':'))
                                         .append($('<td/>').addClass('col-8 pl-0 text-truncate').text(cptDesc).attr({ title: cptDesc }))
                                     );
                                     _contentTable.append($('<tr/>')
                                         .addClass('row')
                                         .append($('<td/>').addClass('col-3').text(commonjs.geti18NString("billing.claims.claimDate")))
-                                        .append($('<td/>').addClass('col-1').text(':'))
+                                        .append($('<td/>').addClass('pl-0 pr-2').text(':'))
                                         .append($('<td/>').addClass('col-8 pl-0 text-truncate').text(claimDate).attr({ title: claimDate }))
                                     );
                                     _contentTable.append($('<tr/>')
                                         .addClass('row')
                                         .append($('<td/>').addClass('col-3').text(commonjs.geti18NString("order.providerSchedule.createdBy")))
-                                        .append($('<td/>').addClass('col-1').text(':'))
+                                        .append($('<td/>').addClass('pl-0 pr-2').text(':'))
                                         .append($('<td/>').addClass('col-8 pl-0 text-truncate').text(summaryDetails.created_by).attr({ title: summaryDetails.created_by }))
                                     );
 
@@ -1121,8 +1121,8 @@ define('grid', [
                                     }
                                     var target = $(e.target);
                                     var targetOffset = target.offset().top;
-                                    var scrollPosition = $(window).scrollTop();
-                                    if (scrollPosition <= targetOffset) {
+                                    var tableHeight = $(gridID).parents('.ui-jqgrid-bdiv').height() || 0;
+                                    if (targetOffset <= tableHeight) {
                                         openPopup(targetOffset);
                                     } else {
                                         var targetHeight = target.height();
