@@ -179,7 +179,7 @@ const detailQueryTemplate = _.template(`
                         WHEN
                          p.payer_type = 'ordering_provider' THEN 'Provider'
                          END  AS "Payer Type",
-
+                     pippt.description AS "Payer Group",
                      CASE
                       WHEN
                          p.payer_type = 'patient' THEN
@@ -211,6 +211,7 @@ const detailQueryTemplate = _.template(`
                 LEFT join billing.claims c on c.id = pd.claim_id
                 LEFT join billing.claim_status cs on cs.id = c.claim_status_id
                 LEFT join public.insurance_providers ip on ip.id = p.insurance_provider_id
+                LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = ip.provider_payer_type_id
                 LEFT join public.Provider_contacts pc on pc.id = provider_contact_id
                 LEFT join public.Providers pr on pr.id = pc.provider_id
                 LEFT join public.patients pp on pp.id = c.patient_id
