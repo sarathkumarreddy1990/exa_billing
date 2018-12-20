@@ -706,5 +706,26 @@ module.exports = {
                     INNER JOIN public.cpt_codes codes ON codes.id = cpt.cpt_code_id
                     WHERE s.id = ANY(SELECT * FROM batch_claim_details)`;
         return await query(sql.text, sql.values);
+    },
+
+    validateEDIClaimCreation: async(claimIds) => {
+        const sql = SQL` SELECT
+                        array_agg(claim_status.code) AS claim_status
+                    , COUNT(DISTINCT(bc.billing_method)) AS unique_billing_method_count
+                    , COUNT(clearing_house_id) AS clearing_house_count
+                    , COUNT(DISTINCT(clearing_house_id)) AS unique_clearing_house_count
+                FROM billing.claims bc
+                INNER JOIN billing.claim_status ON claim_status.id = bc.claim_status_id
+                LEFT JOIN patient_insurances ON patient_insurances.id =
+                (  CASE payer_type
+                WHEN 'primary_insurance' THEN primary_patient_insurance_id
+                WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
+                WHEN 'tertiary_insurance' THEN tertiary_patient_insurance_id
+                END)
+                LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id
+                LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id
+                WHERE bc.id = ANY(${claimIds}) `;
+
+        return await query(sql.text, sql.values);
     }
 };
