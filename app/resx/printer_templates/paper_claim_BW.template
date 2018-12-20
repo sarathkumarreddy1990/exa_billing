@@ -1,6 +1,8 @@
 let totalBillFee = 0.00;
 let pageBrk = 'none';
-let start = 0, end = 6;
+let HeaderDets = [];
+let ServiceFacDet = [];
+let BillingProDet = [];
 
 function getImage(needCheck) {
     return needCheck ? 'tickImage' : 'clearDot';
@@ -603,7 +605,170 @@ function getPageBreak() {
     return {text: '', pageBreak: 'before'};
 }
 
+function getHeaderDetails(claimData) {
+    let details = [];
+	if (claimData.subscriber[0].claimFilingCode === null || claimData.subscriber[0].claimFilingCode === "" || (claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode.toString().toUpperCase() !== 'AT')) {
+		if (claimData && claimData.subscriber[0] && claimData.subscriber[0].payer && claimData.subscriber[0].payer.insuranceprovideraddressline2) {
+			details.push(
+				[//Ans
+					{
+                        text: (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].originalReference) ? 'Corrected Claim' : '', fontSize:12, bold: true, colSpan:2, normal: false, margin:[60, -8, 0, 0]
+                    }, {},
+					{
+						text: ( claimData.subscriber && claimData.subscriber[0].payer ? getKeyTrimValue(claimData.subscriber[0].payer, 'payerName', 30) : '' )  , bold:true , fontSize: 8, colSpan:3
+					},{},{}
+				],
+				[
+				    {text: 'HEALTH INSURANCE CLAIM FORM', fontSize:12, bold: true, colSpan:2},{},
+				    {
+						text: ( claimData.subscriber && claimData.subscriber[0].payer ? getKeyTrimValue(claimData.subscriber[0].payer, 'insuranceprovideraddressline1', 30) : '') , bold:true , fontSize: 8, colSpan:3
+					},{},{}
+				],
+				[
+				    {text: 'APPROVED BY NATIONAL UNIFORM CLAIM COMMITTEE (NUCC)02/12', colSpan:2},{},
+				    {
+						text: ( claimData.subscriber && claimData.subscriber[0].payer ? getKeyTrimValue(claimData.subscriber[0].payer, 'insuranceprovideraddressline2', 30) : '') , bold:true , fontSize: 8, colSpan:3
+					},{},{}
+				],
+				[
+				    {image: 'PICAImage', fit: [20, 20], margin: [0, 0, 0, 0]},
+				    {text:"PICA"},
+				    {
+						text: (claimData.subscriber && claimData.subscriber[0].payer ? (getSubstring((getKeyValue(claimData.subscriber[0].payer, 'payerCity') + ' ' + getKeyValue(claimData.subscriber[0].payer, 'payerState') + ' ' + getKeyValue(claimData.subscriber[0].payer, 'payerZIPCode')), 30)) : ' ') , bold:true, fontSize: 8
+                    },
+					{text:"PICA", alignment:"right"},
+                    {image: 'PICAImage', fit: [20, 20], margin: [0, 0, 0, 0]}
+				]
+			);
+		} else {
+			details.push(
+				[//Ans
+					{
+                        text: (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].originalReference) ? 'Corrected Claim' : '', fontSize:12, bold: true, colSpan:3, normal: false, margin:[60, -8, 0, 0]
+                    }, {},{},{},{}
+				],
+				[
+				    {text: 'HEALTH INSURANCE CLAIM FORM', fontSize:12, bold: true, colSpan:2},{},
+				    {
+						text: ( claimData.subscriber && claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'AT'? '': ( claimData.subscriber && claimData.subscriber[0].payer ? getKeyTrimValue(claimData.subscriber[0].payer, 'payerName', 30) : '' ) ) , bold:true , fontSize: 8, colSpan:3
+					},{},{}
+				],
+				[
+				    {text: 'APPROVED BY NATIONAL UNIFORM CLAIM COMMITTEE (NUCC)02/12', colSpan:2},{},
+				    {
+						text: ( claimData.subscriber && claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'AT'? '': ( claimData.subscriber && claimData.subscriber[0].payer ? getKeyTrimValue(claimData.subscriber[0].payer, 'insuranceprovideraddressline1', 30) : '') ) , bold:true , fontSize: 8, colSpan:3
+					},{},{}
+				],
+				[
+				    {image: 'PICAImage', fit: [20, 20], margin: [0, 0, 0, 0]},
+				    {text:"PICA"},
+				    {
+						text: ( claimData.subscriber && claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'AT'? '': (claimData.subscriber && claimData.subscriber[0].payer ? (getSubstring((getKeyValue(claimData.subscriber[0].payer, 'payerCity') + ' ' + getKeyValue(claimData.subscriber[0].payer, 'payerState') + ' ' + getKeyValue(claimData.subscriber[0].payer, 'payerZIPCode')), 30)) : ' ') ), bold:true, fontSize: 8
+                    },{text:"PICA", alignment:"right"},
+                    {image: 'PICAImage', fit: [20, 20], margin: [0, 0, 0, 0]}
+				]
+			);
+		}
+	} else {
+		details.push(
+			[//Ans
+				{
+                    text: (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].originalReference) ? 'Corrected Claim' : '', fontSize:12, bold: true, colSpan:3, normal: false, margin:[60, -8, 0, 0]
+                }, {},{},{},{}
+			],
+			[
+			    {text: 'HEALTH INSURANCE CLAIM FORM', fontSize:12, bold: true, colSpan:2},{},
+			    {
+					text: '' , bold:true , fontSize: 8, colSpan:3
+				},{},{}
+			],
+			[
+			    {text: 'APPROVED BY NATIONAL UNIFORM CLAIM COMMITTEE (NUCC)02/12', colSpan:2},{},
+			    { text: '' , bold:true , fontSize: 8, colSpan:3 },{},{}
+			],
+			[
+				{image: 'PICAImage', fit: [20, 20], margin: [0, 0, 0, 0]},
+				{text:"PICA"},{ text: '' },
+				{text:"PICA", alignment:"right"},
+                {image: 'PICAImage', fit: [20, 20], margin: [0, 0, 0, 0]}
+			]
+		);
+	}
+    return details;
+}
+
+function getAddressDetails(claimData) {
+	let details = [];
+	if(claimData){
+		if (claimData.addressLine2) {
+			details.push(
+				[
+					{text: (claimData ? getKeyTrimValue(claimData, 'lastName', 30)  : ' ')}
+                ],
+                [
+                    {text: ( claimData.addressLine2 ? (((claimData.addressLine1?(claimData.addressLine1+ ', '):'')  + claimData.addressLine2).toString().toUpperCase().substring(0, 30))  : ''), margin: [0,-5, 0, 0]}
+                ],
+                [
+                    {text: claimData ? getCityStatePincode(claimData, "city", "state", "zipCode", 30) : ' ', margin: [0,-5, 0, 0]}
+                ],
+                [
+                    {text: ' ', margin: [0,-5, 0, 0]}
+                ]
+			);
+		} else {
+			details.push(
+				[
+					{text: (claimData ? getKeyTrimValue(claimData, 'lastName', 30)  : ' ')}
+                ],
+                [
+                    {text: (claimData ? getKeyTrimValue(claimData, 'addressLine1', 30) : ' '), margin: [0,-5, 0, 0]}
+                ],
+                [
+                    {text: (claimData ? getCityStatePincode(claimData, "city", "state", "zipCode", 30) : ' '), margin: [0,-5, 0, 0]}
+                ],
+                [
+                    {text: ' ', margin: [0,-5, 0, 0]}
+                ]
+			);
+		}
+	} else {
+		details.push(
+			[
+				{text: ' '}
+            ],
+            [
+                {text: ' ', margin: [0,-5, 0, 0]}
+            ],
+            [
+                {text: ' ' , margin: [0,-5, 0, 0]}
+            ],
+            [
+                {text: ' ', margin: [0,-5, 0, 0]}
+            ]
+		);
+	}
+	return details;
+}
+
+function getAddress2Details(claimData) {
+	let details = [];
+	if(claimData){
+		if (claimData.addressLine2) {
+			details.push( claimData.addressLine2 ? (((claimData.addressLine1?(claimData.addressLine1+ ', '):'')  + claimData.addressLine2).toString().toUpperCase().substring(0, 30))  : '');
+		} else {
+			details.push(claimData.addressLine1 ? claimData.addressLine1.toString().toUpperCase().substring(0, 30) : '' );
+		}
+	} else {
+		details.push( '  ' );
+	}
+	return details;
+}
+
+
 function formatSingleClaim(claimData, servicelineList) {
+	HeaderDets = getHeaderDetails(claimData);
+	ServiceFacDet = getAddressDetails(claimData.subscriber[0].claim[0].servicefacility[0]);
+	BillingProDet = getAddressDetails(claimData.billingProvider);
     let totalPaid = getClaimResponsible(claimData);
     return [
         {
@@ -612,32 +777,10 @@ function formatSingleClaim(claimData, servicelineList) {
 			    widths: [15, 300, 200, 20, 15],
 			    heights: [5,0,0,11],
 				body: [
-					[//Ans
-					    {
-                            text: (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].originalReference) ?
-					        'Corrected Claim' : '', fontSize:12, bold: true, colSpan:3, normal: false, margin:[60, -8, 0, 0]
-                            }, {},{},{},{}
-					],
-					[
-					    {text: 'HEALTH INSURANCE CLAIM FORM', fontSize:12, bold: true, colSpan:2},{},
-					    {
-							text: ( claimData.subscriber && claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'AT'? '': ( claimData.subscriber && claimData.subscriber[0].payer ? getKeyTrimValue(claimData.subscriber[0].payer, 'payerName', 30) : '' ) ) , bold:true , fontSize: 8, colSpan:3
-						},{},{}
-					 ],
-					 [
-					    {text: 'APPROVED BY NATIONAL UNIFORM CLAIM COMMITTEE (NUCC)02/12', colSpan:2},{},
-					    {
-							text: ( claimData.subscriber && claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'AT'? '': ( claimData.subscriber && claimData.subscriber[0].payer ? getKeyTrimValue(claimData.subscriber[0].payer, 'insuranceprovideraddressline1', 30) : '') ) , bold:true , fontSize: 8, colSpan:3
-						},{},{}
-					 ],
-					 [
-					    {image: 'PICAImage', fit: [20, 20], margin: [0, 0, 0, 0]},
-					    {text:"PICA"},
-					    {
-                            text: ( claimData.subscriber && claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'AT'? '': (claimData.subscriber && claimData.subscriber[0].payer ? (getSubstring((getKeyValue(claimData.subscriber[0].payer, 'payerCity') + ' ' + getKeyValue(claimData.subscriber[0].payer, 'payerState') + ' ' + getKeyValue(claimData.subscriber[0].payer, 'payerZIPCode')), 30)) : ' ') ), bold:true, fontSize: 8
-                        },{text:"PICA", alignment:"right"},
-                        {image: 'PICAImage', fit: [20, 20], margin: [0, 0, 0, 0]}
-					 ],
+					HeaderDets[0],
+					HeaderDets[1],
+					HeaderDets[2],
+					HeaderDets[3],
                 ],
 			},layout: 'noBorders',
 		},
@@ -1358,7 +1501,7 @@ function formatSingleClaim(claimData, servicelineList) {
                         {},{}
                     ],
                     [//Patient Address
-                        {text: claimData.subscriber && claimData.subscriber[0].patient ? getSubstring(claimData.subscriber[0].patient[0].addressLine1, 28) : '', margin:[0, -4, 0, 0], colSpan:3},
+                        {text: claimData.subscriber && claimData.subscriber[0].patient ? (getAddress2Details(claimData.subscriber[0].patient[0])) : '', margin:[0, -4, 0, 0], colSpan:3},
                         {},{},
                         {
                             style: 'Ques',
@@ -1384,7 +1527,7 @@ function formatSingleClaim(claimData, servicelineList) {
                                 ]
                             },layout: 'noBorders'
                         },
-                        {text: claimData.subscriber && claimData.subscriber[0].addressLine1 ? getKeyTrimValue(claimData.subscriber[0], 'addressLine1', 30) : '', margin:[0, -4, 0, 0], colSpan:3},
+                        {text: claimData.subscriber && claimData.subscriber[0] ? (getAddress2Details(claimData.subscriber[0].patient[0])) : '', margin:[0, -4, 0, 0], colSpan:3},
                         {},{}
                     ],
                     [//CITY
@@ -1722,20 +1865,12 @@ function formatSingleClaim(claimData, servicelineList) {
                             style: 'Ans',
                             margin: [0,0,0,0],
                             table: {
-                                widths:[ 130],
+                                widths:[ 135],
                                 body: [
-                                    [
-                                        {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].servicefacility ? getKeyTrimValue(claimData.subscriber[0].claim[0].servicefacility[0], 'lastName', 26) : ' '}
-                                    ],
-                                    [
-                                        {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].servicefacility ? getKeyTrimValue(claimData.subscriber[0].claim[0].servicefacility[0], 'addressLine1', 26) : ' ', margin: [0,-5, 0, 0]}
-                                    ],
-                                    [
-                                        {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].servicefacility ? getCityStatePincode(claimData.subscriber[0].claim[0].servicefacility[0], "city", "state", "zip", 26) : ' ', margin: [0,-5, 0, 0]}
-                                    ],
-                                    [
-                                        {text: ' ', margin: [0,-5, 0, 0]}
-                                    ],
+                                    ServiceFacDet[0],
+									ServiceFacDet[1],
+									ServiceFacDet[2],
+									ServiceFacDet[3]
                                 ]
                             },layout: 'noBorders'
                             , colSpan:2
@@ -1744,20 +1879,12 @@ function formatSingleClaim(claimData, servicelineList) {
                             style: 'Ans',
                             margin: [15,0,0,0],
                             table: {
-                                widths:[ 135],
+                                widths:[ 145],
                                 body: [
-                                    [
-                                        {text: (claimData.billingProvider ? getKeyTrimValue(claimData.billingProvider, 'lastName', 30)  : ' ')}
-                                    ],
-                                    [
-                                        {text: claimData.billingProvider ? getKeyTrimValue(claimData.billingProvider, 'addressLine1', 30) : ' ', margin: [0,-5, 0, 0]}
-                                    ],
-                                    [
-                                        {text: claimData.billingProvider ? getCityStatePincode(claimData.billingProvider, "city", "state", "zipCode", 30) : ' ', margin: [0,-5, 0, 0]}
-                                    ],
-                                    [
-                                        {text: ' ', margin: [0,-5, 0, 0]}
-                                    ],
+                                    BillingProDet[0],
+									BillingProDet[1],
+									BillingProDet[2],
+									BillingProDet[3]
                                 ]
                             },layout: 'noBorders'
                         },

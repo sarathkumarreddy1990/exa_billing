@@ -1,7 +1,7 @@
 let totalBill = 0;
 let pageBrk = 'none';
 let cpt = [];
-let payerDets = [];
+let HeaderDets = [];
 function getTick(data, code, fromOthers) {
     if (fromOthers && data && data.subscriber && data.subscriber[0].claimFilingCode !== 'MB' && data.subscriber[0].claimFilingCode !== 'MC' &&
         data.subscriber[0].claimFilingCode !== 'CH' && data.subscriber[0].claimFilingCode !== "") {
@@ -182,64 +182,114 @@ function checkAndReturn(data, key) {
     else return '';
 }
 
-function getPayerDetails(claimData) {
+function getHeaderDetails(claimData) {
     let details = [];
-    if (claimData && claimData.subscriber && claimData.subscriber[0].payer && claimData.subscriber[0].payer.payerName) {
-        if (claimData.subscriber[0].claimFilingCode === null || claimData.subscriber[0].claimFilingCode === "" || (claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode.toString().toUpperCase() !== 'AT')) {
-            details.push(
-                [
-                    { text: '', colSpan: 7 },
-                    {}, {}, {}, {}, {}, {}, { text: claimData.subscriber[0].payer.payerName.toString().toUpperCase() }
-                ],
-                [
-                    { text: '', colSpan: 7 },
-                    {}, {}, {}, {}, {}, {}, { text: claimData.subscriber[0].payer.insuranceprovideraddressline1.toString().toUpperCase() }
-                ],
-                [
-                    { text: '', colSpan: 7 },
-                    {}, {}, {}, {}, {}, {}, { text: (claimData.subscriber[0].payer.payerCity.toString().toUpperCase() + ' ' + claimData.subscriber[0].payer.payerState.toString().toUpperCase() + ' ' + claimData.subscriber[0].payer.payerZIPCode + claimData.subscriber[0].payer.zipPlus) }
-                ]
-            );
-        } else {
-            details.push(
-                [
-                    { text: '', colSpan: 7 },
-                    {}, {}, {}, {}, {}, {}, { text: '' }
-                ],
-                [
-                    { text: '', colSpan: 7 },
-                    {}, {}, {}, {}, {}, {}, { text: '' }
-                ],
-                [
-                    { text: '', colSpan: 7 },
-                    {}, {}, {}, {}, {}, {}, { text: '' }
-                ]
-            );
-        }
-
-    } else {
-        details.push(
-            [
-                { text: '', colSpan: 7 },
-                {}, {}, {}, {}, {}, {}, { text: '' }
-            ],
-            [
-                { text: '', colSpan: 7 },
-                {}, {}, {}, {}, {}, {}, { text: '' }
-            ],
-            [
-                { text: '', colSpan: 7 },
-                {}, {}, {}, {}, {}, {}, { text: '' }
-            ]
-        );
-    }
+	if (claimData.subscriber[0].claimFilingCode === null || claimData.subscriber[0].claimFilingCode === "" || (claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode.toString().toUpperCase() !== 'AT')) {
+		if (claimData && claimData.subscriber[0] && claimData.subscriber[0].payer && claimData.subscriber[0].payer.insuranceprovideraddressline2) {
+			details.push(
+				[
+					{ text: (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].originalReference) ? 'Corrected Claim' : '  ', fontSize: 12, colSpan: 7, margin: [60, 0, 0, 0] },
+					{}, {}, {}, {}, {}, {}, 
+					{ text: claimData.subscriber[0].payer.payerName && claimData.subscriber[0].payer.payerName.toString().toUpperCase() }
+				],
+				[
+					{ text: '', colSpan: 7 }, {}, {}, {}, {}, {}, {}, 
+				   { text: claimData.subscriber[0].payer.insuranceprovideraddressline1 && claimData.subscriber[0].payer.insuranceprovideraddressline1.toString().toUpperCase() }
+				],
+				[
+					{ text: '', colSpan: 7 }, {}, {}, {}, {}, {}, {}, 
+					{ text: claimData.subscriber[0].payer.insuranceprovideraddressline2 && claimData.subscriber[0].payer.insuranceprovideraddressline2.toString().toUpperCase() }
+				],
+				[
+					{ text: '', colSpan: 7 }, {}, {}, {}, {}, {}, {}, 
+					{ text: ( ( claimData.subscriber[0].payer.payerCity && claimData.subscriber[0].payer.payerCity.toString().toUpperCase() ) + ' ' + ( claimData.subscriber[0].payer.payerState && claimData.subscriber[0].payer.payerState.toString().toUpperCase() ) + ' ' + ( claimData.subscriber[0].payer.payerZIPCode && claimData.subscriber[0].payer.payerZIPCode ) + ( claimData.subscriber[0].payer.zipPlus && claimData.subscriber[0].payer.zipPlus ) ) }
+				]
+			);
+		} else {
+			details.push(
+				[
+					{ text: (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].originalReference) ? 'Corrected Claim' : '', fontSize: 12, colSpan: 7, margin: [60, 0, 0, 0] },
+					{}, {}, {}, {}, {}, {}, { text: '  ' }
+				],
+				[
+					{ text: '', colSpan: 7 }, {}, {}, {}, {}, {}, {}, 
+				   { text: claimData.subscriber[0].payer.payerName && claimData.subscriber[0].payer.payerName.toString().toUpperCase() }
+				],
+				[
+					{ text: '', colSpan: 7 },
+					{}, {}, {}, {}, {}, {}, 
+					{ text: claimData.subscriber[0].payer.insuranceprovideraddressline1 && claimData.subscriber[0].payer.insuranceprovideraddressline1.toString().toUpperCase() }
+				],
+				[
+					{ text: '', colSpan: 7 },
+					{}, {}, {}, {}, {}, {}, 
+					{ text: ( (claimData.subscriber[0].payer.payerCity && claimData.subscriber[0].payer.payerCity.toString().toUpperCase() ) + ' ' + ( claimData.subscriber[0].payer.payerState && claimData.subscriber[0].payer.payerState.toString().toUpperCase() ) + ' ' + ( claimData.subscriber[0].payer.payerZIPCode && claimData.subscriber[0].payer.payerZIPCode ) + ( claimData.subscriber[0].payer.zipPlus && claimData.subscriber[0].payer.zipPlus ) ) }
+				]
+			);
+		}
+	} else {
+		details.push(
+			[
+				{ text: (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].originalReference) ? 'Corrected Claim' : '', fontSize: 12, colSpan: 7, margin: [60, 0, 0, 0] }, {}, {}, {}, {}, {}, {}, {text: '  '}
+			],
+			[
+				{ text: '  ', colSpan: 8 }, {}, {}, {}, {}, {}, {}, {}
+			],
+			[
+				{ text: '  ', colSpan: 8 }, {}, {}, {}, {}, {}, {}, {}
+			],
+			[
+				{ text: '  ', colSpan: 8 },{}, {}, {}, {}, {}, {}, {}
+			]
+		);
+	}
     return details;
+}
+
+function getAddressDetails(claimData) {
+	let details = [];
+	if(claimData){
+		if (claimData.addressLine2) {
+			details.push(
+				(claimData && claimData.lastName ? (claimData.lastName.toString().toUpperCase().substring(0, 30)) : '') + '\n' +
+				(
+					( claimData.addressLine2 ? (((claimData.addressLine1?(claimData.addressLine1+ ', '):'')  + claimData.addressLine2).toString().toUpperCase().substring(0, 30))  : '') + '\n' + ((claimData.city ? ( (claimData.city.toString().toUpperCase()) +  ( claimData.state ? (' ' + claimData.state.toString().toUpperCase()) : ' ') + (claimData.zipCode? ' ' +claimData.zipCode: ' ') ): ' ').substring(0, 30))
+				)
+			);
+		} else {
+			details.push(
+				(claimData && claimData.lastName ? (claimData.lastName.toString().toUpperCase().substring(0, 30)) : '') + '\n' +
+				(
+					(claimData.addressLine1 ? claimData.addressLine1.toString().toUpperCase().substring(0, 30) : '') + '\n' + ((claimData.city ? ( (claimData.city.toString().toUpperCase()) +  ( claimData.state ? (' ' + claimData.state.toString().toUpperCase()) : ' ') + (claimData.zipCode? ' ' +claimData.zipCode: ' ') ): ' ').substring(0, 30))
+				)
+			);
+		}
+	} else {
+		details.push(
+			'  ' + '\n' + ' ' + '\n' + ('  ') +  (' ') + (' ')
+		);
+	}
+	return details;
+}
+
+function getAddress2Details(claimData) {
+	let details = [];
+	if(claimData){
+		if (claimData.addressLine2) {
+			details.push( claimData.addressLine2 ? (((claimData.addressLine1?(claimData.addressLine1+ ', '):'')  + claimData.addressLine2).toString().toUpperCase().substring(0, 30))  : '') ;
+		} else {
+			details.push(claimData.addressLine1 ? claimData.addressLine1.toString().toUpperCase().substring(0, 30) : '' );
+		}
+	} else {
+		details.push( '  ' );
+	}
+	return details;
 }
 
 
 function formatRedForm(claimData, servicelineList, pageBrk) {
     cpt = getTableContents(claimData, servicelineList);
-    payerDets = getPayerDetails(claimData);
+	HeaderDets = getHeaderDetails(claimData);
     totalBill = getTotalBill(claimData, servicelineList);
     return ([
         {
@@ -249,14 +299,10 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                 widths: [44, 44, 58, 45, 52, 36, 41, 250],
                 heights: [20, 0, 0, 21, 0],
                 body: [
-                    [
-                        { text: (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].originalReference) ? 'Corrected Claim' : '', fontSize: 12, colSpan: 8, margin: [60, 0, 0, 0] },
-                        {}, {}, {}, {}, {}, {}, {}
-                    ],
-
-                    payerDets[0],
-                    payerDets[1],
-                    payerDets[2],
+                    HeaderDets[0],
+					HeaderDets[1],
+					HeaderDets[2],
+					HeaderDets[3],
 
                     [//Ans
                         { text: claimData.subscriber && claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'MB' ? '√' : '' },
@@ -328,8 +374,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                     ],
                     [//Ans-------#############
                         {
-                            text: claimData.subscriber && claimData.subscriber[0].patient && claimData.subscriber[0].patient[0].addressLine1 ?
-                                (claimData.subscriber[0].patient[0].addressLine1).toString().toUpperCase().substring(0, 28) : '', colSpan: 2
+                            text: (claimData &&claimData.subscriber[0] && claimData.subscriber[0].patient[0]?(getAddress2Details(claimData.subscriber[0].patient[0])):''), colSpan: 2
                         },
                         {},
                         [
@@ -354,7 +399,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                             }
                         ],
                         {},
-                        { text: claimData.subscriber && claimData.subscriber[0].addressLine1 ? (claimData.subscriber[0].addressLine1).toString().toUpperCase().substring(0, 30) : '' },
+                        { text: (claimData &&claimData.subscriber[0]?(getAddress2Details(claimData.subscriber[0])):'')},
                         {}
                     ],
                     [
@@ -797,29 +842,10 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                     [
                         { text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].renderingProvider ? getName(claimData.subscriber[0].claim[0].renderingProvider[0]).toString().substring(0, 17) : '', colSpan: 2, margin: [0, 17, 0, 0] },
                         {}, {},
-                        {
-                            text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].servicefacility ?
-							(
-								( claimData.subscriber[0].claim[0].servicefacility[0] ?
-									(
-										(claimData.subscriber[0].claim[0].servicefacility[0] ?
-										    (claimData.subscriber[0].claim[0].servicefacility[0].lastName? ((claimData.subscriber[0].claim[0].servicefacility[0].lastName).toString().toUpperCase().substring(0, 26)) : '') :'')+ "\n"+
-										(claimData.subscriber[0].claim[0].servicefacility[0].addressLine1 ? claimData.subscriber[0].claim[0].servicefacility[0].addressLine1.toString().toUpperCase().substring(0, 26) :"")+"\n"+
-										(
-											(claimData.subscriber[0].claim[0].servicefacility[0].city ? claimData.subscriber[0].claim[0].servicefacility[0].city.toString().toUpperCase() : "") +
-											(claimData.subscriber[0].claim[0].servicefacility[0].state ? claimData.subscriber[0].claim[0].servicefacility[0].state.toString().toUpperCase() :"")+
-											(claimData.subscriber[0].claim[0].servicefacility[0].zip ? claimData.subscriber[0].claim[0].servicefacility[0].zip.toString().toUpperCase(): "")
-										).substring(0, 26)
-									):" "
-								)
-							) : '', colSpan: 4
-                        },
+                        { text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].servicefacility ? ( getAddressDetails(claimData.subscriber[0].claim[0].servicefacility[0])) : '', colSpan: 4 },
                         {}, {}, {},
                         {
-                            text: (claimData.billingProvider ? (claimData.billingProvider.lastName.toString().toUpperCase().substring(0, 30)) : '') + '\n' +
-							((claimData.billingProvider && claimData.billingProvider.addressLine1 ? claimData.billingProvider.addressLine1.toString().toUpperCase().substring(0, 30) : '') + '\n' + (claimData.billingProvider ? claimData.billingProvider.city.toString().toUpperCase() + ' ' +
-                                    claimData.billingProvider.state.toString().toUpperCase() + ' ' + claimData.billingProvider.zipCode : '').substring(0, 30)
-							), colSpan: 5
+                            text: ( getAddressDetails(claimData.billingProvider) ), colSpan: 5
                         },
                         {}, {}, {}, {},
                         { text: claimData.billingProvider && claimData.billingProvider.phoneNo ? (getph(claimData.billingProvider.phoneNo)) : '', colSpan: 2 , margin:[-65, -10, 0, 0]}, {}
