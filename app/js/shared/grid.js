@@ -967,6 +967,7 @@ define('grid', [
                     customAction: function (rowID, e, that) {
                         var claimSummaryId = $('.claim-summary:visible').attr('id');
                         claimSummaryId = claimSummaryId && claimSummaryId.split('_') || [];
+                        var warningMsg = commonjs.geti18NString("messages.warning.claims.unableToGetClaimSummary");
                         $('.claim-summary').remove();
 
                         if (claimSummaryId[1] === rowID) {
@@ -1130,14 +1131,16 @@ define('grid', [
                                         var targetBottomOffset = targetOffset + targetHeight - contentHeight;
                                         openPopup(targetBottomOffset);
                                     }
-                                    commonjs.hideLoading();
+                                } else {
+                                    $('.popover-header').empty();
+                                    $('.popover-body').empty().append(warningMsg);
                                 }
+                                commonjs.hideLoading();
                             },
                             error: function (request, status, error) {
                                 commonjs.handleXhrError(request, status, error);
                                 $('.popover-header').empty();
-                                var msg = commonjs.geti18NString("messages.warning.claims.unableToGetClaimSummary");
-                                $('.popover-body').empty().append(msg);
+                                $('.popover-body').empty().append(warningMsg);
                                 commonjs.hideLoading();
                             }
                         });

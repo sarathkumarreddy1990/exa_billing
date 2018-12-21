@@ -742,7 +742,7 @@ module.exports = {
                         billing.claims c
                         INNER JOIN patients p ON p.id = c.patient_id
                         INNER JOIN users u ON u.id = c.created_by
-                        INNER JOIN (
+                        LEFT JOIN (
                             SELECT
                                 array_agg(cpt.display_code) AS cpt_codes,
                                 array_agg(cpt.display_description) AS cpt_description,
