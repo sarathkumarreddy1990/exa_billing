@@ -46,6 +46,9 @@
             <li>
                 <a id="newClaimNavBillSummary" href="#tab_5" i18n="shared.screens.billingSummary"></a>
             </li>
+            <li class="editClaimRelated">
+                <a id="newClaimNavPayments" href="#tab_6" >PAYMENTS</a>
+            </li>
         </ul>
         <ul class="new-menu-right">
             <li>
@@ -1072,7 +1075,7 @@
             </div>
         </div>
     </section>
-    <section id="tab_5 mt-2">
+    <section id="tab_5" class="mt-2">
         <div class="col-lg-12">
             <div class="form-group row">
                 <legend>
@@ -1122,9 +1125,9 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="txtResponsibleNotes" class="col-sm-3 col-form-label" i18n="billing.claims.billingNotes"></label>
+                    <label for="txtClaimResponsibleNotes" class="col-sm-3 col-form-label" i18n="billing.claims.billingNotes"></label>
                     <div class="col-sm-5">
-                        <textarea id="txtResponsibleNotes" class="form-control form-control-lg" rows="2"></textarea>
+                        <textarea id="txtClaimResponsibleNotes" class="form-control form-control-lg" rows="2"></textarea>
                     </div>
                 </div>
             </div>
@@ -1174,11 +1177,111 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="ddlResponsible" class="col-sm-3 col-form-label field-required" i18n="billing.claims.responsible"></label>
+                    <label for="ddlClaimResponsible" class="col-sm-3 col-form-label field-required" i18n="billing.claims.responsible"></label>
                     <div class="col-sm-5">
-                        <select class="form-control select-box" id="ddlResponsible">
+                        <select class="form-control select-box" id="ddlClaimResponsible">
                             <option value="">Select</option>
                         </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section id="tab_6 " class="mt-2 editClaimRelated">
+        <div class="row">
+            <div class="col-xs-12">
+                <div id="divParent">
+                    <header class="panel-header">
+                        <legend>
+                            <h5 class="border-bottom border-primary">
+                                <label class="font-weight-bold" >PAYMENTS</label>
+                            </h5>
+                        </legend>
+                    </header>
+                    <!--payment table-->
+                    <div id="divPayment">
+                        <table class="table table-bordered" id="tblPayment">
+                            <thead id="tHeadPayment">
+                                <tr>
+                                    <th></th>
+                                    <th >Acc. Date</th>
+                                    <th >Payer Name</th>
+                                    <th >Payment Mode</th>
+                                    <th >Check/Card#</th>
+                                    <th></th>
+                                    <th >This Pay.</th>
+                                    <th >This Adj.</th>
+                                    <th >Payment ID</th>
+
+                                </tr>
+                            </thead>
+                            <tbody id="tBodyPayment">
+                                <%  _.each(paymentList, function(row) { %>
+                                <tr data_payment_id="<%= row.id %>" data_row_id="<%= row.row_index %>" data_payment_application_id="<%= row.payment_application_id %>" >
+                                    <td style="width:2%;vertical-align: middle;">
+                                        <span id="spAddPayment_<%= row.id %>" class="icon icon-ic-plus addPaymentLine" title="Add Payment"></span>
+                                    </td>
+                                    <td class='w-space' style="width:9%;vertical-align: middle;">
+                                        <div id="divAccountingDate_<%= row.row_index %>" class="input-group">
+                                            <input type="text" value="<%= row.accounting_date %>" data-format="MM/dd/YYYY" id="txtAccountingDate_<%= row.row_index %>"
+                                                class="form-control form-control-date maskDateLocale" style="min-width:90px;">
+                                            <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px;height: 32px;">
+                                                <i class="icon-ic-schedule icon-ic-calendar"></i>
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td style="width:25%;vertical-align: middle;">
+                                        <select class="form-control select-box" id="ddlPayerName_<%= row.row_index %>" style="height: 32px;">
+                                            <option value="" i18n="shared.buttons.select"></option>
+                                        </select>
+                                    </td>
+                                    <td style="width:10%;vertical-align: middle;">
+                                        <select class="form-control select-box" id="ddlPaymentMode_<%= row.row_index %>" style="height: 32px;">
+                                            <option value="" i18n="shared.buttons.select"></option>
+                                            <option value="cash" i18n="billing.payments.cash"></option>
+                                            <option value="check" i18n="billing.payments.cheque"></option>
+                                            <option value="card" i18n="billing.payments.card"></option>
+                                            <option value="eft" i18n="billing.payments.eft"></option>
+                                            <option value="adjustment" i18n="billing.payments.adjustment"></option>
+                                        </select>
+                                    </td>
+                                    <td style="width:10%;vertical-align: middle;">
+                                        <input id="txtCheckCardNo_<%= row.row_index %>" type="text" value="<%= row.card_number %>" class="checkcardno form-control integerbox">
+                                    </td>
+                                    <td style="width: 5%;vertical-align: middle;">
+                                        <input type="button" value="APPLY" id="btnApplyPayment_<%= row.row_index %>" class="pl-3 pr-3 btn pull-left paymentApply">
+                                    </td>
+                                    <td style="width:8%;vertical-align: middle;">
+                                        <span class="form-control floatbox" id="spThisPay_<%= row.row_index %>" style="background-color: transparent;"><%= row.payment_applied %></span>
+                                    </td>
+                                    <td style="width:8%;vertical-align: middle;">
+                                        <span class="form-control floatbox" id="spThisAdj_<%= row.row_index %>" style="background-color: transparent;"><%= row.adjustment_applied %></span>
+                                    </td>
+
+                                    <td style="display:none;vertical-align: middle;">
+                                        <input id="ddlAdjustmentCode_<%= row.row_index %>" value="<%= row.pointer2 ? row.pointer2 : '' %>" class="form-control inputModifiers typeahead "
+                                            data-value="<%= row.id %>" type="text">
+                                    </td>
+
+                                    <td style="width:7%;vertical-align: middle;">
+                                        <span class="paymentid form-control" id="spPaymentID_<%= row.row_index %>" style="background-color: transparent;"><%= row.id %></span>
+                                    </td>
+                                </tr>
+                                <% }); %>
+                            </tbody>
+                            <tfoot>
+                                <tr style="border: none">
+                                    <td colspan="5" style="border: 0">
+                                        <input type="button" id="btnNewPayment" i18n="order.chargePayment.newPayment" class="btn pull-left mr-2">
+                                    </td>
+                                    <td style="border: 0"></td>
+                                    <td style="border: 0"></td>
+                                    <td style="border: 0"></td>
+                                    <td style="border: 0"></td>
+                                    <td style="border: 0"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
                     </div>
                 </div>
             </div>

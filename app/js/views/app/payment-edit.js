@@ -1551,16 +1551,36 @@ define(['jquery',
                 self.getAppliedBalance(paymentId);
             },
 
-            showApplyAndCas: function (claimId, paymentID, paymentStatus, chargeId, rowData) {
+            showApplyAndCas: function (claimId, paymentID, paymentStatus, chargeId, rowData, callback) {
                 var self = this;
                 var paymentApplicationId = rowData.payment_application_id;
                 self.defalutCASArray = [0, 1, 2, 3, 4, 5, 6];
                 self.casSegmentsSelected = [];
+                self.isFromClaim = rowData.isFromClaim || false;
                 var patient_paid = rowData.patient_paid ? self.formatMoneyValue(rowData.patient_paid) : '0.00';
                 var others_paid = rowData.others_paid ? self.formatMoneyValue(rowData.others_paid) : '0.00';
                 var claimDt = (commonjs.checkNotEmpty(rowData.claim_dt) ? commonjs.convertToFacilityTimeZone(rowData.facility_id, rowData.claim_dt).format('L') : '');
 
-                commonjs.showDialog({ header: 'Claim : # <strong>'+rowData.claim_id+',  '+rowData.full_name +'  ' + claimDt+'</strong>', width: '85%', height: '72%', html: self.applyCasTemplate({ adjustmentCodes: self.adjustmentCodeList.toJSON(), 'claimStatusList': this.claimStatusList.toJSON(), cas_group_codes: self.cas_group_codes, cas_reason_codes: self.cas_reason_codes, patient_paid: patient_paid, others_paid: others_paid, claim_statuses: self.claimStatuses.toJSON() }) });
+                var _showDialogObj = {
+                    header: 'Claim : # <strong>' + rowData.claim_id + ',  ' + rowData.full_name + '  ' + claimDt + '</strong>',
+                    width: '85%',
+                    height: rowData.isFromClaim ? '65%' : '72%',
+                    html: self.applyCasTemplate({
+                        adjustmentCodes: self.adjustmentCodeList.toJSON(),
+                        'claimStatusList': this.claimStatusList.toJSON(),
+                        cas_group_codes: self.cas_group_codes,
+                        cas_reason_codes: self.cas_reason_codes,
+                        patient_paid: patient_paid,
+                        others_paid: others_paid,
+                        claim_statuses: self.claimStatuses.toJSON()
+                    })
+                };
+
+                if (rowData.isFromClaim) {
+                    commonjs.showNestedDialog(_showDialogObj);
+                } else {
+                    commonjs.showDialog(_showDialogObj);
+                }
 
                 $('#siteModal').removeAttr('tabindex');
                 $('#divApplyPendingPayments').height($('#modal_div_container').height() - 340);
@@ -1578,6 +1598,25 @@ define(['jquery',
                     $('#siteModal').hide();
                 });
                 self.getClaimBasedCharges(claimId, paymentID, paymentStatus, chargeId, paymentApplicationId, true);
+
+                // Hide some of edit-payment property if showDialoge open via claim screen
+                if (rowData.isFromClaim) {
+                    $('#btnPayfullAppliedPendingPayments').hide();
+                    $('#formBillingProviders .form-group').not('.divAdjustment').hide();
+                    $('#siteModalNested .close, #siteModalNested .btn-secondary').unbind().bind('click', function (e) {
+
+                        // Send response to claim screen
+                        if (typeof callback === 'function') {
+                            callback(null, {
+                                status: 'closed',
+                                payment_id: paymentID,
+                                payment_application_id: paymentApplicationId,
+                                total_Adjustment: self.total_Adjustment,
+                                total_Payment: self.total_Payment
+                            });
+                        }
+                    });
+                }
             },
 
             setFeeFields: function (claimDetail, isInitial) {
@@ -2234,6 +2273,8 @@ define(['jquery',
                     success: function (data, textStatus, jqXHR) {
                         if (data) {
                             var feeDetails = data[0];
+                            self.total_Adjustment = feeDetails.adjustment || 0;
+                            self.total_Payment = feeDetails.payment || 0;
                             self.setFeeFields({ billFee: feeDetails.bill_fee, adjustment: feeDetails.adjustment, balance: feeDetails.balance, others_paid: feeDetails.others_paid, patient_paid: feeDetails.patient_paid, payment: feeDetails.payment, total_adjustment: feeDetails.total_adjustment });
                         }
                         commonjs.hideLoading();

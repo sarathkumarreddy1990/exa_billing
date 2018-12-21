@@ -278,9 +278,12 @@ module.exports = {
             pageSize,
             payment,
             payerType,
-            claim_date
+            claim_date,
+            isFromClaim,
+            paymentID
         } = params;
 
+        paymentID = isFromClaim && paymentID  || params.customArgs.paymentID;
 
         if (invoice_no) {
             whereQuery.push(` bc.invoice_no = '${invoice_no}'`);
@@ -365,7 +368,7 @@ module.exports = {
         INNER JOIN public.patients pp on pp.id = bc.patient_id
         `;
 
-        whereQuery.push(` bp.id = ${params.customArgs.paymentID} `);
+        whereQuery.push(` bp.id = ${paymentID} `);
 
         if (whereQuery.length) {
             sql.append(SQL` WHERE `)
@@ -379,12 +382,14 @@ module.exports = {
                 .append(havingQuery.join(' AND '));
         }
 
-        sql.append(SQL` ORDER BY  `)
-            .append(sortField)
-            .append(' ')
-            .append(sortOrder)
-            .append(SQL` LIMIT ${pageSize}`)
-            .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
+        if (!isFromClaim) {
+            sql.append(SQL` ORDER BY  `)
+                .append(sortField)
+                .append(' ')
+                .append(sortOrder)
+                .append(SQL` LIMIT ${pageSize}`)
+                .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
+        }
 
         return await query(sql);
     },

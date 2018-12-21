@@ -646,6 +646,59 @@ module.exports = {
                          WHERE
                             bc.id = c.id
                       ) claim_fee_details) AS claim_fee_details
+                    , (
+                        SELECT COALESCE(json_agg(row_to_json(payment_details)),'[]') AS payment_details
+                        FROM (
+                            SELECT
+                                p.id,
+                                pa.payment_application_id,
+                                p.patient_id,
+                                p.payment_reason_id,
+                                p.amount::numeric,
+                                p.accounting_date::text,
+                                p.payer_type,
+                                p.mode,
+                                p.card_name,
+                                p.card_number,
+                                COALESCE(pa.amount::numeric::text,'0.00') AS payment_applied,
+                                COALESCE(pa.adjustment::numeric::text,'0.00') AS adjustment_applied,
+                                payer_details.payer_info,
+                                row_number() OVER( ORDER BY p.id ) as row_index
+	                        FROM
+                                billing.payments AS p
+                                INNER JOIN (
+                                    SELECT
+                                        pa.payment_id,
+                                        max(pa.id) as payment_application_id,
+                                        sum(pa.amount) FILTER (WHERE  amount_type='payment') as amount,
+                                        sum(pa.amount) FILTER (WHERE  amount_type='adjustment') as adjustment
+                                    FROM
+                                        billing.charges AS c
+                                        INNER JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
+                                        WHERE c.claim_id = ${id}
+                                        GROUP BY pa.applied_dt, pa.payment_id
+                                ) AS pa ON p.id = pa.payment_id
+                                LEFT JOIN (
+                                    SELECT
+                                    ( CASE
+                                        WHEN p1.payer_type = 'insurance' THEN json_build_object('payer_name',ins_pro.insurance_name,'payer_id',ins_pro.id)
+                                        WHEN p1.payer_type = 'patient' THEN json_build_object('payer_name',pat.full_name ,'payer_id',pat.id)
+                                        WHEN p1.payer_type = 'ordering_facility' THEN json_build_object('payer_name',provider_groups.group_name ,'payer_id',provider_groups.id)
+                                        WHEN p1.payer_type = 'ordering_provider' THEN json_build_object('payer_name',providers.full_name,'payer_id',pro_cont.id)
+                                        ELSE null
+                                        END
+                                    ) AS payer_info,
+                                    p1.id
+                                    FROM billing.payments p1
+                                        LEFT JOIN insurance_providers ins_pro ON ins_pro.id= p1.insurance_provider_id
+                                        LEFT JOIN patients pat ON pat.id = p1.patient_id
+                                        LEFT JOIN provider_contacts pro_cont ON pro_cont.id= p1.provider_contact_id
+                                        LEFT JOIN providers ON providers.id= pro_cont.provider_id
+                                        LEFT JOIN provider_groups ON provider_groups.id= p1.provider_group_id
+                                ) AS payer_details ON payer_details.id = p.id
+                            ORDER BY p.id ASC
+                        ) payment_details
+                    ) AS payment_details
                     FROM
                         billing.claims c
                         INNER JOIN public.patients p ON p.id = c.patient_id
