@@ -30,7 +30,8 @@ var claimColumns = {
     "Responsible Party": "payer_name",
     "Submitted Date": "submitted_dt",
     "Date of Injury": "current_illness_date",
-    "Charge Description":"charge_description"
+    "Charge Description":"charge_description",
+    "Ins Provider Type": "ins_provider_type"
 };
 
 var paymentsColumns = {
