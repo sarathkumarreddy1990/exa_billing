@@ -14,7 +14,8 @@ define(['jquery',
 'text!templates/claims/icd9-icd10.html',
 'text!templates/claims/patient-alert.html',
 'views/app/payment-edit',
-'collections/app/pending-payments'
+'collections/app/pending-payments',
+'text!templates/claims/payment-row.html'
 ],
     function ($,
         _,
@@ -32,7 +33,8 @@ define(['jquery',
         icd9to10Template,
         patientAlertTemplate,
         editPaymentView,
-        pendingPayments
+        pendingPayments,
+        paymentRowTemplate
     ) {
         var claimView = Backbone.View.extend({
             el: null,
@@ -42,6 +44,7 @@ define(['jquery',
             patSearchContentTemplate: _.template(patSearchContent),
             claimValidation: _.template(claimValidation),
             patientAlertTemplate: _.template(patientAlertTemplate),
+            paymentRowTemplate: _.template(paymentRowTemplate),
             updateResponsibleList: [],
             chargeModel: [],
             claimICDLists: [],
@@ -452,8 +455,9 @@ define(['jquery',
                             self.assignLineItemsEvents();
                             self.assignModifierEvent();
                             app.modifiers_in_order = true;
+                            commonjs.validateControls();
+                            commonjs.isMaskValidate();
                             /* Bind chargeLineItems events - Ended */
-
                             self.addPatientHeaderDetails(claimDetails, 'edit')
 
                             /* Patient Alert data Bind Started */
@@ -585,8 +589,6 @@ define(['jquery',
                             });
                             /* Bind claim payment Details - end */
                             self.bindPaymentEvent();
-                            commonjs.validateControls();
-                            commonjs.isMaskValidate();
                             commonjs.hideLoading();
                         }
                     },
@@ -1649,7 +1651,7 @@ define(['jquery',
                         $(responsibleEle).append($('<option/>').attr('value', payer_details.payer_type).text(payer_details.payer_name));
                     }
                 } else {
-                    responsibleEle = $('#ddlPayerName_' + paymentDetails.id);
+                    responsibleEle = $('#ddlPayerName_' + paymentDetails.row_id);
                     $.each(self.responsible_list, function (index, obj) {
                         if (obj.payer_id) {
                             $(responsibleEle).append($('<option/>').attr('value', obj.payer_type).text(obj.payer_name));
@@ -4339,8 +4341,9 @@ define(['jquery',
                 $('.paymentApply').off().click(_.debounce(function (e) {
 
                     var $tr = $(e.target).parents('tr');
-                    var rowID = $($tr).attr('data_row_id');
-                    var paymentID = $($tr).attr('data_payment_id') || 0;
+                    var gridData;
+                    var rowID = parseInt($($tr).attr('data_row_id')) || null;
+                    var paymentID = $($tr).attr('data_payment_id') && parseInt($($tr).attr('data_payment_id')) || 0;
                     var paymentApplicationID = $($tr).attr('data_payment_application_id') || 0;
                     var paymentRowData = self.paymentList[rowID - 1] || {};
                     var dataParams = {
@@ -4359,19 +4362,63 @@ define(['jquery',
                         data: dataParams,
                         success: function (model, result) {
                             if (result && result.length) {
-                                var gridData = _.filter(result, { 'payment_application_id': paymentApplicationID });
+                                if (paymentID) {
+                                    gridData = _.filter(result, { 'payment_application_id': paymentApplicationID });
+                                    gridData = gridData.length ? gridData[0] : {};
+                                } else {
+                                    gridData = result.length ? result[0] : {};
+                                }
 
-                                gridData = gridData.length ? gridData[0] : {};
                                 gridData.isFromClaim = true;
                                 gridData.claim_dt = gridData.claim_date;
                                 self.editPaymentView = new editPaymentView({ el: $('#modal_div_container') });
+                                var _payerIndex = _.find(self.responsible_list, function (item) { return item.payer_type == $.trim($('#ddlPayerName_'+ rowID).val()); });
+
+                                gridData.newPaymentObj = {
+                                    accounting_date: self.dtpAccountingDate[rowID - 1] && self.dtpAccountingDate[rowID - 1].date() ? self.dtpAccountingDate[rowID - 1].date().format('YYYY-MM-DD') : null,
+                                    notes: null,
+                                    amount: 0.00,
+                                    invoice_no: null,
+                                    display_id: null,
+                                    user_id: app.userID,
+                                    paymentId: paymentID,
+                                    credit_card_name: null,
+                                    payment_reason_id: null,
+                                    payment_row_version: null,
+                                    company_id: app.companyID,
+                                    facility_id: self.facilityId,
+                                    payment_mode: $('#ddlPaymentMode_' + rowID).val() || null,
+                                    credit_card_number: $("#txtCheckCardNo_" + rowID).val() || null
+                                };
+
+                                if (_payerIndex.payer_type === 'PPP') {
+                                    gridData.newPaymentObj.payer_type = 'patient';
+                                    gridData.newPaymentObj.patient_id = _payerIndex.payer_id;
+                                } else if (_payerIndex.payer_type === 'POF') {
+                                    gridData.newPaymentObj.payer_type = 'ordering_facility';
+                                    gridData.newPaymentObj.provider_group_id = _payerIndex.payer_id;
+                                } else if (_payerIndex.payer_type === 'RF') {
+                                    gridData.newPaymentObj.payer_type = 'ordering_provider';
+                                    gridData.newPaymentObj.provider_contact_id = _payerIndex.payer_id;
+                                } else {
+                                    gridData.newPaymentObj.payer_type = 'insurance';
+                                    gridData.newPaymentObj.insurance_provider_id = _payerIndex.payer_id;
+                                }
+
                                 self.editPaymentView.showApplyAndCas(self.claim_Id, paymentID, paymentID ? 'applied' : 'pending', '', gridData, function (err, response) {
-                                    console.log(response);
                                     if (response) {
                                         var this_pay = response.total_Payment && response.total_Payment ? response.total_Payment.replace(/\$/g, '') : 0.00;
                                         var this_adj = response.total_Adjustment && response.total_Adjustment ? response.total_Adjustment.replace(/\$/g, '') : 0.00;
                                         $('#spThisPay_' + rowID).text(this_pay);
                                         $('#spThisAdj_' + rowID).text(this_adj);
+                                        $('#ddlPayerName_' + rowID).text(response.payment_id);
+                                        var _tr = $('#tBodyPayment').find("[data_row_id='" + rowID + "']");
+                                        $(_tr).attr('data_payment_application_id', response.payment_application_id || null);
+                                        $(_tr).attr('data_payment_id', response.payment_id || null);
+
+                                        if($('#ddlPayerName_' + rowID).is(':visible')){
+                                            $('#ddlPayerName_' + rowID).prop('disabled', true);
+                                        }
                                     }
                                 });
                                 commonjs.hideLoading();
@@ -4389,14 +4436,19 @@ define(['jquery',
                 }, 500));
 
                 $('#btnNewPayment, .addPaymentLine').off().click(_.debounce(function (e) {
-                    console.log('new payment added')
-
+                    self.addPaymentLine(e)
                 }, 250));
+
             },
 
             validatePaymentEdit: function (rowID) {
                 var self = this;
 
+                if ($('#ddlPayerName_' + rowID).val() === '') {
+                    commonjs.showWarning("messages.warning.payments.selectPayerType");
+                    $('#ddlPayerName_' + rowID).focus();
+                    return false;
+                }
                 if ($('#ddlPaymentMode_' + rowID).val() === '') {
                     commonjs.showWarning("messages.warning.payments.selectPaymentMode");
                     $('#ddlPaymentMode_' + rowID).focus();
@@ -4413,6 +4465,36 @@ define(['jquery',
                     return false;
                 }
                 return true;
+            },
+
+            addPaymentLine: function (e) {
+                var self = this;
+                var index = $('#tBodyPayment').find('tr').length === 0 ? 1 : $('#tBodyPayment').find('tr').length + 1;
+                var facilityTimeZoneObj = commonjs.getFacilityCurrentDateTime(self.facilityId)
+                var _rowObj = {
+                    accounting_date: commonjs.checkNotEmpty(facilityTimeZoneObj) ? facilityTimeZoneObj : commonjs.getCurrentDate(),
+                    payment_application_id: 0,
+                    row_index: index,
+                    card_number: null,
+                    payment_applied: null,
+                    adjustment_applied: null,
+                    id: null
+                }
+                var paymentRow = self.paymentRowTemplate({ row: _rowObj });
+                $('#tBodyPayment').append(paymentRow);
+
+                var dtp = commonjs.bindDateTimePicker("divAccountingDate_" + index, { format: 'L' });
+                dtp.date(facilityTimeZoneObj);
+                self.dtpAccountingDate.push(dtp);
+                // Bind claim responsible as payment payers
+                self.updateResponsibleList(null, {
+                    row_id: index
+                });
+                commonjs.updateCulture(app.currentCulture);
+                //commonjs.validateControls();
+                //commonjs.isMaskValidate();
+
+                self.bindPaymentEvent();
             }
 
         });

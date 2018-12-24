@@ -24,7 +24,9 @@ module.exports = {
             sortOrder,
             sortField,
             pageNo,
-            pageSize
+            pageSize,
+            isFromClaim,
+            paymentID
         } = params;
 
 
@@ -48,7 +50,7 @@ module.exports = {
             whereQuery.push(` pp.account_no ='${account_no}'`);
         }
 
-        if ((params.customArgs.patientId && params.customArgs.patientId > 0) || (params.customArgs.claimIdToSearch || params.customArgs.invoiceNoToSearch)) {
+        if ((params.customArgs && params.customArgs.patientId && params.customArgs.patientId > 0) || params.customArgs && (params.customArgs.claimIdToSearch || params.customArgs.invoiceNoToSearch)) {
             if (display_description) {
                 whereQuery.push(` display_code  ILIKE '%${display_description}%' `);
             }
@@ -62,7 +64,7 @@ module.exports = {
             whereQuery.push(`((SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) = ${balance}::money)`);
         }
 
-        if (params.customArgs.patientId && params.customArgs.patientId > 0) {
+        if (params.customArgs && params.customArgs.patientId && params.customArgs.patientId > 0) {
 
             const sql = SQL`
                     SELECT
@@ -109,7 +111,7 @@ module.exports = {
 
             return await query(sql);
         }
-        else if (params.customArgs.claimIdToSearch || params.customArgs.invoiceNoToSearch) {
+        else if ((params.customArgs && (params.customArgs.claimIdToSearch || params.customArgs.invoiceNoToSearch)) || isFromClaim && paymentID == 0) {
             const sql = SQL`
                     SELECT
                         bc.id AS claim_id,
@@ -131,11 +133,11 @@ module.exports = {
                     INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
             `;
 
-            if (params.customArgs.claimIdToSearch) {
+            if (params.customArgs && params.customArgs.claimIdToSearch) {
                 sql.append(SQL` WHERE bc.id = ${params.customArgs.claimIdToSearch} `);
             }
 
-            if (params.customArgs.invoiceNoToSearch) {
+            if (params.customArgs && params.customArgs.invoiceNoToSearch) {
                 sql.append(SQL` WHERE bc.invoice_no = ${params.customArgs.invoiceNoToSearch} `);
             }
 
@@ -153,12 +155,14 @@ module.exports = {
                 sql.append(` , ${sortField}  `);
             }
 
-            sql.append(SQL` ORDER BY  `)
-                .append(sortField)
-                .append(' ')
-                .append(sortOrder)
-                .append(SQL` LIMIT ${pageSize}`)
-                .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
+            if (!isFromClaim) {
+                sql.append(SQL` ORDER BY  `)
+                    .append(sortField)
+                    .append(' ')
+                    .append(sortOrder)
+                    .append(SQL` LIMIT ${pageSize}`)
+                    .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
+            }
 
             return await query(sql);
         }
