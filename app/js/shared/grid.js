@@ -873,12 +873,12 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 ('<input type="checkbox" title="Select all studies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />'),
-                '', '', '', '', '','','','','','','','','','','','','','','Assigned To','',''
+                '', '', '', '', '','','','','','','','','','','','','','','','Assigned To','',''
 
             ]);
 
             i18nName = i18nName.concat([
-                '', '', '', '', '', '','','','','','','','','','','','','','','billing.claims.assignedTo','',''
+                '', '', '', '', '', '','','','','','','','','','','','','','','','billing.claims.assignedTo','',''
             ]);
 
             colModel = colModel.concat([
@@ -951,6 +951,202 @@ define('grid', [
                             'grid_id': gridID,
                             'source': 'claims'
                         });
+                    }
+                },
+                {
+                    name: 'as_claim_summary',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: !options.isClaimGrid,
+                    isIconCol: true,
+                    formatter: function () {
+                        return '<i href="#" class="icon-ic-worklist" data-toggle="popover" title="Claim Summary"></i>';
+                    },
+                    customAction: function (rowID, e, that) {
+                        var claimSummaryId = $('.claim-summary:visible').attr('id');
+                        claimSummaryId = claimSummaryId && claimSummaryId.split('_') || [];
+                        var warningMsg = commonjs.geti18NString("messages.warning.claims.unableToGetClaimSummary");
+                        $('.claim-summary').remove();
+
+                        if (claimSummaryId[1] === rowID) {
+                            return false;
+                        }
+
+                        $.ajax({
+                            url: '/exa_modules/billing/claim_workbench/claim_summary',
+                            type: "GET",
+                            data: {
+                                id: rowID
+                            },
+                            beforeSend: function(){
+                                commonjs.showLoading();
+                            },
+                            success: function (data) {
+                                if (data && data.error) {
+                                    commonjs.handleXhrError(data.error);
+                                    return;
+                                }
+                                if (data && data.length) {
+
+                                    var summaryDetails = data[0] || {};
+                                    var patient_info = commonjs.hstoreParse(summaryDetails.patient_info || {});
+                                    var patientDetailsLine = summaryDetails.gender + ', ' + summaryDetails.patient_study_age + ', ' + (summaryDetails.birth_date ? moment(summaryDetails.birth_date).format('L') : '');
+
+                                    // Claim Summary popup creation - start
+                                    var _contentTable = $('<table/>').addClass('col-12 contentTable').css('table-layout', 'fixed');
+                                    var _headerLeftTable = $('<table/>').addClass('col-12 contentTable').css('table-layout', 'fixed');
+                                    var _headerRightTable = $('<table/>').addClass('col-12 contentTable').css('table-layout', 'fixed');
+                                    var cptCodes = summaryDetails.cpt_codes && summaryDetails.cpt_codes.length ? summaryDetails.cpt_codes.join(',') : '--';
+                                    var cptDesc = summaryDetails.cpt_description && summaryDetails.cpt_description.length ? summaryDetails.cpt_description.join(',') : '--';
+                                    var claimDate = summaryDetails.claim_dt ? commonjs.convertToFacilityTimeZone(summaryDetails.facility_id, summaryDetails.claim_dt).format('L') : '--';
+
+                                    // create summary parent div
+                                    $(document.body).append(
+                                        $('<div/>').addClass('claim-summary').css({ "display": "none" })
+                                            .attr({ 'id': 'claimSummary_' + rowID })
+                                            .append($('<h3/>').addClass('popover-header').css('font-size', '0.8rem'))
+                                            .append($('<div/>').addClass('popover-body'))
+                                    );
+
+                                    _headerLeftTable.append(
+                                        $('<tr/>').addClass('col-12')
+                                            .append($('<td/>').addClass('text-truncate').text(summaryDetails.patient_name).attr({ title: summaryDetails.patient_name }))
+                                    );
+                                    _headerLeftTable.append(
+                                        $('<tr/>').addClass('col-12')
+                                            .append($('<td/>').addClass('text-truncate').text(patientDetailsLine))
+                                    );
+
+                                    if (patient_info.c1HomePhone) {
+                                        _headerLeftTable.append(
+                                            $('<tr/>').addClass('row')
+                                                .append($('<td/>').addClass('col-5 pr-1').text(commonjs.geti18NString("shared.fields.homePhone")))
+                                                .append($('<td/>').addClass('col-1 pr-0').text(':'))
+                                                .append($('<td/>').addClass('col-6 pr-1 pl-1 text-truncate').text(patient_info.c1HomePhone).attr({ title: patient_info.c1HomePhone }))
+                                        );
+                                    }
+
+                                    if (patient_info.c1WorkPhone) {
+                                        _headerLeftTable.append(
+                                            $('<tr/>').addClass('row')
+                                                .append($('<td/>').addClass('col-5 pr-1').text(commonjs.geti18NString("shared.fields.workPhone")))
+                                                .append($('<td/>').addClass('col-1 pr-0').text(':'))
+                                                .append($('<td/>').addClass('col-6 pr-1 pl-1 text-truncate').text(patient_info.c1WorkPhone).attr({ title: patient_info.c1WorkPhone }))
+                                        );
+                                    }
+
+                                    if (patient_info.c1MobilePhone) {
+                                        _headerLeftTable.append(
+                                            $('<tr/>').addClass('row')
+                                                .append($('<td/>').addClass('col-5 pr-1').text(commonjs.geti18NString("shared.fields.mobilePhone")))
+                                                .append($('<td/>').addClass('col-1 pr-0').text(':'))
+                                                .append($('<td/>').addClass('col-6 pr-1 pl-1 text-truncate').text(patient_info.c1MobilePhone).attr({ title: patient_info.c1MobilePhone }))
+                                        );
+
+                                    }
+
+                                    if (summaryDetails.account_no) {
+                                        _headerLeftTable.append(
+                                            $('<tr/>').addClass('row')
+                                                .append($('<td/>').addClass('col-5 pr-1').text(commonjs.geti18NString("shared.fields.accountNo")))
+                                                .append($('<td/>').addClass('col-1 pr-0').text(':'))
+                                                .append($('<td/>').addClass('col-6 pr-1 pl-1 text-truncate').text(summaryDetails.account_no).attr({ title: summaryDetails.account_no }))
+                                        );
+                                    }
+
+                                    // header top right side corner
+                                    _headerRightTable.append($('<tr/>')
+                                        .addClass('row')
+                                        .append($('<td/>').addClass('col-6 pr-1').text(commonjs.geti18NString("order.summary.patientBalance")))
+                                        .append($('<td/>').addClass('col-1 pr-0').text(':'))
+                                        .append($('<td/>').addClass('col-4 pl-0 text-right text-truncate').text(summaryDetails.patient_balance).attr({ title: summaryDetails.patient_balance }))
+                                    );
+                                    _headerRightTable.append($('<tr/>')
+                                        .addClass('row')
+                                        .append($('<td/>').addClass('col-6 pr-1').text(commonjs.geti18NString("order.summary.insuranceBalance")))
+                                        .append($('<td/>').addClass('col-1 pr-0').text(':'))
+                                        .append($('<td/>').addClass('col-4 pl-0 text-right text-truncate').text(summaryDetails.insurance_balance).attr({ title: summaryDetails.insurance_balance }))
+                                    );
+                                    // clear claimSummary before bind
+                                    $('claim-summary').find('.popover-body').empty();
+                                    $('claim-summary').find('.popover-header').empty();
+
+                                    $(document.body).find('.popover-header')
+                                        .append(
+                                            $('<div>').addClass('row')
+                                                .append(
+                                                    $('<div/>').addClass('col-sm-6 col-md-6 col-lg-6 pr-0')
+                                                        .append(_headerLeftTable)
+                                                )
+                                                .append($('<div/>').addClass('col-sm-6 col-md-6 col-lg-6 pl-0')
+                                                    .append(_headerRightTable))
+                                        );
+
+                                    _contentTable.append($('<tr/>')
+                                        .addClass('row')
+                                        .append($('<td/>').addClass('col-3').text(commonjs.geti18NString("order.summary.cptCodes")))
+                                        .append($('<td/>').addClass('pl-0 pr-2').text(':'))
+                                        .append($('<td/>').addClass('col-8 pl-0 text-truncate').text(cptCodes).attr({ title: cptCodes }))
+                                    );
+                                    _contentTable.append($('<tr/>')
+                                        .addClass('row')
+                                        .append($('<td/>').addClass('col-3').text(commonjs.geti18NString("billing.payments.cptDescription")))
+                                        .append($('<td/>').addClass('pl-0 pr-2').text(':'))
+                                        .append($('<td/>').addClass('col-8 pl-0 text-truncate').text(cptDesc).attr({ title: cptDesc }))
+                                    );
+                                    _contentTable.append($('<tr/>')
+                                        .addClass('row')
+                                        .append($('<td/>').addClass('col-3').text(commonjs.geti18NString("billing.claims.claimDate")))
+                                        .append($('<td/>').addClass('pl-0 pr-2').text(':'))
+                                        .append($('<td/>').addClass('col-8 pl-0 text-truncate').text(claimDate).attr({ title: claimDate }))
+                                    );
+                                    _contentTable.append($('<tr/>')
+                                        .addClass('row')
+                                        .append($('<td/>').addClass('col-3').text(commonjs.geti18NString("order.providerSchedule.createdBy")))
+                                        .append($('<td/>').addClass('pl-0 pr-2').text(':'))
+                                        .append($('<td/>').addClass('col-8 pl-0 text-truncate').text(summaryDetails.created_by).attr({ title: summaryDetails.created_by }))
+                                    );
+
+                                    $(document.body).find('.popover-body').css('font-size', '0.8rem').append(_contentTable);
+                                    // Claim Summary popup creation - emd
+                                    // Position setting for popup
+                                    var openPopup = function (offset) {
+                                        var popup = $('.claim-summary');
+                                        var popupContent = $('.claim-summary');
+                                        if (popup.css('display') === 'none') {
+                                            popup.css('display', 'block');
+                                        }
+                                        popupContent.css('transform', 'translate3d(82px, ' + offset + 'px, 0px)');
+                                    }
+                                    var target = $(e.target);
+                                    var targetOffset = target.offset().top;
+                                    var tableHeight = $(gridID).parents('.ui-jqgrid-bdiv').height() || 0;
+                                    if (targetOffset <= tableHeight) {
+                                        openPopup(targetOffset);
+                                    } else {
+                                        var targetHeight = target.height();
+                                        var contentHeight = $('.claim-summary').outerHeight();
+                                        var targetBottomOffset = targetOffset + targetHeight - contentHeight;
+                                        openPopup(targetBottomOffset);
+                                    }
+                                } else {
+                                    $('.popover-header').empty();
+                                    $('.popover-body').empty().append(warningMsg);
+                                }
+                                commonjs.hideLoading();
+                            },
+                            error: function (request, status, error) {
+                                commonjs.handleXhrError(request, status, error);
+                                $('.popover-header').empty();
+                                $('.popover-body').empty().append(warningMsg);
+                                commonjs.hideLoading();
+                            }
+                        });
+
+                        e.stopPropagation();
+                        return false;
                     }
                 },
                 {
@@ -1350,6 +1546,8 @@ define('grid', [
                             self.claimView.showClaimForm({ 'grid_id': gridID }, 'studies');
                         }
                     }
+
+                    $('.claim-summary').remove();
                 },
                 disablesearch: false,
                 disablesort: false,
@@ -1396,26 +1594,16 @@ define('grid', [
                     else {
                         event.stopPropagation();
                     }
+                    // remove popup claimSummary in right click
+                    $('.claim-summary').remove();
                 },
                 beforeSelectRow: function (rowID, e, options) {
                     var _selectEle = $(e.currentTarget).find('#' + rowID).find('input:checkbox');
                     var enableField = _selectEle.is(':checked')
-                  //  _selectEle.prop('checked', !enableField);
 
                     if (!options.isClaimGrid) {
                         enableField = _selectEle.is(':checked');
-                        // validateClaimSelection(rowID, enableField, _selectEle, studyStore);
                     }
-
-                    // var gridData = $('#'+e.currentTarget.id).jqGrid('getRowData', rowID);
-
-                    // if (gridData.billing_method=='Paper Claim') {
-                    //     $("#btnPaperClaim").show();
-                    //     $("#btnInsuranceClaim").hide();
-                    // }else{
-                    //     $("#btnPaperClaim").hide();
-                    //     $("#btnInsuranceClaim").show();
-                    // }
 
                     var i = (e.target || e.srcElement).parentNode.cellIndex;
 
