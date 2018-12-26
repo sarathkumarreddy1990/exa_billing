@@ -1103,12 +1103,22 @@ var commonjs = {
 
         //Report window close
         this.closeReportWindow();
+
+        //Patient Chart Window  close
+        this.closePatientChartWindow();
     },
 
     closeReportWindow: function () {
         if (window.reportWindow) {
             window.reportWindow.close();
             window.reportWindow = null;
+        }
+    },
+
+    closePatientChartWindow: function() {
+        if(window.patientChartWindow) {
+            window.patientChartWindow.close();
+            window.patientChartWindow = null;
         }
     },
 
