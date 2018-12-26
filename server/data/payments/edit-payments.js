@@ -347,7 +347,7 @@ module.exports = {
             bc.invoice_no,
             get_full_name(pp.last_name,pp.first_name) AS full_name,
             bc.claim_dt AS claim_date,
-            max(bpa.id) as payment_application_id,
+            max(bpa.id) AS payment_application_id,
             (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) as bill_fee,
             CASE WHEN 'patient' = ${payerType} THEN
                 ((SELECT patient_paid FROM billing.get_claim_patient_other_payment(bc.id)) -  COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'payment'),0::money) )

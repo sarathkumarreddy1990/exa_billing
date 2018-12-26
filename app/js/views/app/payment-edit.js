@@ -1096,100 +1096,103 @@ define(['jquery',
 
             savePayment: function (e, claimId, paymentId, paymentStatus) {
                 var self = this;
-                if (!self.isFromClaim) {
-                    if (self.validatepayments()) {
-                        return false;
-                    }
+                if (!self.isFromClaim && !self.validatepayments()) {
+                    return false;
+                } else if (self.isFromClaim && !self.validatePayerDetails()) {
+                    return false;
                 }
 
-                    $('#btnPaymentSave').attr('disabled', true);
-                    commonjs.showLoading('Loading..')
-                    var paymentObj = {
-                        paymentId: self.payment_id,
-                        company_id: app.companyID,
-                        payer_type: $('#selectPayerType').val(),
-                        invoice_no: $('#txtInvoice').is(':visible') ? $('#txtInvoice').val() : null,
-                        patient_id: self.patient_id,
-                        provider_contact_id: self.provider_id,
-                        provider_group_id: self.provider_group_id,
-                        insurance_provider_id: self.insurance_provider_id,
-                        credit_card_number: $("#txtCheque").val() || null,
-                        credit_card_name: $("#txtCardName").val() || null,
-                        payment_mode: $('#selectPaymentMode').val(),
-                        payment_reason_id: $("#ddlpaymentReason").val() || null,
-                        user_id: app.userID,
-                        payment_row_version: self.payment_row_version
-                    };
+                $('#btnPaymentSave').attr('disabled', true);
+                commonjs.showLoading('messages.loadingMsg.default')
+                var paymentObj = {
+                    paymentId: self.payment_id,
+                    company_id: app.companyID,
+                    payer_type: $('#selectPayerType').val(),
+                    invoice_no: $('#txtInvoice').is(':visible') ? $('#txtInvoice').val() : null,
+                    patient_id: self.patient_id,
+                    provider_contact_id: self.provider_id,
+                    provider_group_id: self.provider_group_id,
+                    insurance_provider_id: self.insurance_provider_id,
+                    credit_card_number: $("#txtCheque").val() || null,
+                    credit_card_name: $("#txtCardName").val() || null,
+                    payment_mode: $('#selectPaymentMode').val(),
+                    payment_reason_id: $("#ddlpaymentReason").val() || null,
+                    user_id: app.userID,
+                    payment_row_version: self.payment_row_version
+                };
 
-                    if (self.isFromClaim && self.claimPaymentObj) {
-                        var lineItems = $("#tBodyApplyPendingPayment tr");
-                        var payment = 0.00;
-                        // get total this payment.
-                        $.each(lineItems, function (index) {
-                            var payment_amt = $(this).find('td:nth-child(5)>input').val() ? parseFloat($(this).find('td:nth-child(5)>input').val().trim()) : 0.00;
-                            payment = payment + parseFloat(payment_amt);
-                        });
-                        paymentObj.paymentId = 0;
-                        paymentObj.amount = payment;
-                        paymentObj.isFromClaim = true;
-                        paymentObj.patient_id = self.claimPaymentObj.patient_id;
-                        paymentObj.payer_type = self.claimPaymentObj.payer_type;
-                        paymentObj.facility_id = self.claimPaymentObj.facility_id;
-                        paymentObj.payment_mode = self.claimPaymentObj.payment_mode;
-                        paymentObj.accounting_date = self.claimPaymentObj.accounting_date;
-                        paymentObj.provider_group_id = self.claimPaymentObj.provider_group_id;
-                        paymentObj.credit_card_number = self.claimPaymentObj.credit_card_number;
-                        paymentObj.provider_contact_id = self.claimPaymentObj.provider_contact_id;
-                        paymentObj.insurance_provider_id = self.claimPaymentObj.insurance_provider_id;
-                    } else {
-                        paymentObj.amount = $.trim($('#txtAmount').val().replace(',', '')) || 0.00;
-                        paymentObj.facility_id = $.trim($('#ddlPaidLocation').val());
-                        paymentObj.display_id = $.trim($('#referencePaymentID').val()) || null;
-                        paymentObj.accounting_date =  self.dtpAccountingDate && self.dtpAccountingDate.date() ? self.dtpAccountingDate.date().format('YYYY-MM-DD') : null;
-                        paymentObj.notes =  ($("#txtNotes").val()).replace(/(\r\n|\n|\r)/gm, "") || null;
-                    }
+                if (self.isFromClaim && self.claimPaymentObj) {
+                    var lineItems = $("#tBodyApplyPendingPayment tr");
+                    var payment = 0.00;
+                    // get total this payment.
+                    $.each(lineItems, function (index) {
+                        var payment_amt = $(this).find('td:nth-child(5)>input').val() ? parseFloat($(this).find('td:nth-child(5)>input').val().trim()) : 0.00;
+                        payment = payment + parseFloat(payment_amt);
+                    });
+                    paymentObj.paymentId = self.claimPaymentObj.paymentId || 0;
+                    paymentObj.amount = payment;
+                    paymentObj.isFromClaim = true;
+                    paymentObj.patient_id = self.claimPaymentObj.patient_id;
+                    paymentObj.payer_type = self.claimPaymentObj.payer_type;
+                    paymentObj.facility_id = self.claimPaymentObj.facility_id;
+                    paymentObj.payment_mode = self.claimPaymentObj.payment_mode;
+                    paymentObj.accounting_date = self.claimPaymentObj.accounting_date;
+                    paymentObj.provider_group_id = self.claimPaymentObj.provider_group_id;
+                    paymentObj.credit_card_number = self.claimPaymentObj.credit_card_number;
+                    paymentObj.provider_contact_id = self.claimPaymentObj.provider_contact_id;
+                    paymentObj.insurance_provider_id = self.claimPaymentObj.insurance_provider_id;
+                } else {
+                    paymentObj.amount = $.trim($('#txtAmount').val().replace(',', '')) || 0.00;
+                    paymentObj.facility_id = $.trim($('#ddlPaidLocation').val());
+                    paymentObj.display_id = $.trim($('#referencePaymentID').val()) || null;
+                    paymentObj.accounting_date = self.dtpAccountingDate && self.dtpAccountingDate.date() ? self.dtpAccountingDate.date().format('YYYY-MM-DD') : null;
+                    paymentObj.notes = ($("#txtNotes").val()).replace(/(\r\n|\n|\r)/gm, "") || null;
+                }
 
-                    this.model.set(paymentObj);
-                    this.model.save({
-                    }, {
-                            success: function (model, response) {
-                                self.gridFirstLoaded = false;
-                                self.pendingGridLoaderd = false;
-                                self.tabClicked = '';
-                                self.saveClick = true;
+                this.model.set(paymentObj);
+                this.model.save({
+                }, {
+                        success: function (model, response) {
+                            self.gridFirstLoaded = false;
+                            self.pendingGridLoaderd = false;
+                            self.tabClicked = '';
+                            self.saveClick = true;
+                            var msg = self.payment_id ? commonjs.geti18NString('messages.status.paymentUpdatedSuccessfully') : commonjs.geti18NString('messages.status.paymentCreatedSuccessfully');
 
-                                if (self.isFromClaim && response && response.length) {
-                                    commonjs.showStatus('Payment has been created successfully');
-                                    self.payment_id = response[0].id || 0;
-                                    self.saveAllPayments(e, claimId, self.payment_id, paymentStatus, 0, 0);
-                                    commonjs.hideLoading();
-                                    return false;
-                                }
+                            if (self.isFromClaim && response && response.length) {
+                                commonjs.showStatus(msg);
+                                self.payment_id = response[0].id || 0;
+                                self.saveAllPayments(e, claimId, self.payment_id, paymentStatus, 0, 0);
+                                commonjs.hideLoading();
+                                return false;
+                            } else if (self.isFromClaim && response && response.length === 0){
+                                return false;
+                            }
 
-                                if (self.payment_id) {
-                                    if (response && response.length) {
-                                        commonjs.showStatus('Payment has been updated successfully');
-                                        self.render(self.payment_id, self.from);
-                                    }
-                                    else {
-                                        commonjs.showWarning('This payment has been already updated by some other user - please refresh the page and try again.');
-                                    }
-                                    $('#btnPaymentSave').removeAttr('disabled');
-                                    commonjs.hideLoading();
+                            if (self.payment_id) {
+                                if (response && response.length) {
+                                    commonjs.showStatus(msg);
+                                    self.render(self.payment_id, self.from);
                                 }
                                 else {
-                                    if (self.from === 'ris')
-                                        Backbone.history.navigate('#billing/payments/edit/' + self.from + '/' + model.attributes[0].id, true);
-                                    else
-                                        Backbone.history.navigate('#billing/payments/edit/' + model.attributes[0].id, true);
+                                    commonjs.showWarning('messages.warning.payments.paymentAlreadyUpdated');
                                 }
-                                self.paymentTabClick('save');
-
-                            },
-                            error: function (err, response) {
-                                commonjs.handleXhrError(err, response);
+                                $('#btnPaymentSave').removeAttr('disabled');
+                                commonjs.hideLoading();
                             }
-                        });
+                            else {
+                                if (self.from === 'ris')
+                                    Backbone.history.navigate('#billing/payments/edit/' + self.from + '/' + model.attributes[0].id, true);
+                                else
+                                    Backbone.history.navigate('#billing/payments/edit/' + model.attributes[0].id, true);
+                            }
+                            self.paymentTabClick('save');
+
+                        },
+                        error: function (err, response) {
+                            commonjs.handleXhrError(err, response);
+                        }
+                    });
 
             },
 
@@ -1588,6 +1591,7 @@ define(['jquery',
                 self.defalutCASArray = [0, 1, 2, 3, 4, 5, 6];
                 self.casSegmentsSelected = [];
                 self.isFromClaim = rowData.isFromClaim || false;
+                paymentID = self.payment_id || paymentID;
                 var patient_paid = rowData.patient_paid ? self.formatMoneyValue(rowData.patient_paid) : '0.00';
                 var others_paid = rowData.others_paid ? self.formatMoneyValue(rowData.others_paid) : '0.00';
                 var claimDt = (commonjs.checkNotEmpty(rowData.claim_dt) ? commonjs.convertToFacilityTimeZone(rowData.facility_id, rowData.claim_dt).format('L') : '');
@@ -1617,8 +1621,11 @@ define(['jquery',
                 $('#siteModal').removeAttr('tabindex');
                 $('#divApplyPendingPayments').height($('#modal_div_container').height() - 340);
                 $('#siteModal .close, #siteModal .btn-secondary').unbind().bind('click', function (e) {
-                    self.closeAppliedPendingPayments(e, paymentID);
-                    $('#siteModal').hide();
+                    // call appliedpending payment if not from claim screen
+                    if (!self.isFromClaim) {
+                        self.closeAppliedPendingPayments(e, paymentID);
+                        $('#siteModal').hide();
+                    }
                 })
 
                 commonjs.processPostRender();
@@ -1869,7 +1876,7 @@ define(['jquery',
 
                         $('#applyPaymentContent').find('#btnSaveAppliedPendingPayments').unbind().on('click', function (e) {
                             // Call savePayment fun if payment status == 'pending status', This call only for payment creation via claim screen
-                            if (self.isFromClaim && paymentStatus === 'pending') {
+                            if (self.isFromClaim && (paymentStatus === 'pending' && !paymentId || self.claimPaymentObj.isPaymentUpdate)) {
                                 self.savePayment(e, claimId, paymentId, paymentStatus);
                             } else {
                                 self.saveAllPayments(e, claimId, paymentId, paymentStatus, chargeId, paymentApplicationId);
@@ -2088,13 +2095,13 @@ define(['jquery',
                 var self = this;
                 var chargeItem = $(e.target).closest('tr');
                 var chargeId = chargeItem.attr('data_charge_id_id');
-                var paymentApplicationId = chargeItem.attr('data_payment_adjustment_id');
-                if (paymentApplicationId) {
+                var adjustmentApplicationId = chargeItem.attr('data_payment_adjustment_id');
+                if (adjustmentApplicationId) {
                     $.ajax({
                         url: '/exa_modules/billing/pending_payments/payment_applications',
                         type: 'GET',
                         data: {
-                            paymentApplicationId: paymentApplicationId
+                            paymentApplicationId: adjustmentApplicationId
                         },
                         success: function (data, response) {
                             $('#divPaymentCAS select').removeAttr('cas_id');
@@ -2286,7 +2293,18 @@ define(['jquery',
                             $('#txtDeduction').val("0.00");
                             $('#txtCoInsurance').val("0.00");
                             $('#txtCoPay').val("0.00");
-                            paymentStatus != 'applied' ? paymentApplicationId = model[0].details.create_payment_applications.payment_application_id : paymentApplicationId;
+
+                            if (paymentStatus != 'applied') {
+                                var model = _.filter(model, function (x, y) { return x.details; });
+                                // Assign max payment application id if open via claim screen
+                                if (model && model.length && self.isFromClaim) {
+                                    model = model[model.length - 1];
+                                    paymentApplicationId = model.details.create_payment_applications.payment_application_id;
+                                } else {
+                                    paymentApplicationId = model[0].details.create_payment_applications.payment_application_id
+                                }
+                            }
+                            //paymentStatus != 'applied' ? paymentApplicationId = model[0].details.create_payment_applications.payment_application_id : paymentApplicationId;
                             self.paymentApplicationId = paymentApplicationId;
                             self.getClaimBasedCharges(claimId, paymentId, 'applied', chargeId, paymentApplicationId, false);
                             $('.modal-footer button').focus();

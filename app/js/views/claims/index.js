@@ -569,6 +569,7 @@ define(['jquery',
 
                                 self.paymentList = claimDetails.payment_details || [];
                                 self.dtpAccountingDate.push(dtp);
+                                self.dtpAccountingDate[obj.row_index - 1].isModified = false;
                                 obj.accounting_date ? self.dtpAccountingDate[index].date(obj.accounting_date) : self.dtpAccountingDate[index].clear();
                                 obj.data_row_id = obj.row_index;
 
@@ -580,11 +581,18 @@ define(['jquery',
                                     var payer_name = obj.payer_info.payer_name + (obj.payer_type === 'ordering_facility' ? '( Ordering Facility )' :
                                         obj.payer_type === 'ordering_provider' ? '( Provider )' : '( ' + obj.payer_type.toUpperCase() + ' )'
                                     );
-                                    $(responsibleEle).append($('<option/>').attr('value', obj.payer_info.payer_id).text(payer_name));
+                                    $(responsibleEle).append($('<option/>').attr('value', obj.payer_info.payer_id).text(payer_name)).attr('payer-type', obj.payer_type);
                                     $(responsibleEle).val(obj.payer_info.payer_id);
                                 }
                                 $(dllPaymentMode).val(obj.mode);
+                                $(dllPaymentMode).attr('data_payment_mode', obj.mode);
                                 $(responsibleEle).prop('disabled', true);
+
+                                $('#divAccountingDate_' + obj.row_index).on("dp.change", function (e) {
+                                    if (e && e.date && e.oldDate && e.oldDate.format('L') != e.date.format('L')) {
+                                        self.dtpAccountingDate[obj.row_index - 1].isModified = true;
+                                    }
+                                });
 
                             });
                             /* Bind claim payment Details - end */
@@ -4339,24 +4347,30 @@ define(['jquery',
                 var self = this;
 
                 $('.paymentApply').off().click(_.debounce(function (e) {
-
                     var $tr = $(e.target).parents('tr');
                     var gridData;
                     var rowID = parseInt($($tr).attr('data_row_id')) || null;
                     var paymentID = $($tr).attr('data_payment_id') && parseInt($($tr).attr('data_payment_id')) || 0;
                     var paymentApplicationID = $($tr).attr('data_payment_application_id') || 0;
                     var paymentRowData = self.paymentList[rowID - 1] || {};
+
+                    if (self.chargeModel.length >= 1 && !self.chargeModel[0].id || self.chargeModel.length === 0) {
+                        commonjs.showWarning("messages.warning.shared.paymentChargeValidation", 'largewarning');
+                        return false;
+                    }
+                    if (!self.validatePaymentEdit(rowID)) {
+                        return false;
+                    }
+
+                    var _payerIndex = _.find(self.responsible_list, function (item) { return item.payer_type == $.trim($('#ddlPayerName_'+ rowID).val()); });
                     var dataParams = {
                         paymentID: paymentID,
                         isFromClaim: true,
                         gridFlag: paymentID ? 'appliedPayments' : 'pendingPayments',
-                        payerType: paymentRowData.payer_type,
-                        claim_id : self.claim_Id
+                        payerType: paymentRowData.payer_type || _payerIndex.payer_type_name,
+                        claim_id : self.claim_Id,
+                        paymentApplicationId : paymentApplicationID
                     };
-
-                    if (!self.validatePaymentEdit(rowID)) {
-                        return false;
-                    }
                     commonjs.showLoading();
                     self.pendingPayments.fetch({
                         data: dataParams,
@@ -4372,8 +4386,7 @@ define(['jquery',
                                 gridData.isFromClaim = true;
                                 gridData.claim_dt = gridData.claim_date;
                                 self.editPaymentView = new editPaymentView({ el: $('#modal_div_container') });
-                                var _payerIndex = _.find(self.responsible_list, function (item) { return item.payer_type == $.trim($('#ddlPayerName_'+ rowID).val()); });
-
+                                var isModifiedPaymentMode = $('#ddlPaymentMode_' + rowID).attr('data_payment_mode') != $('#ddlPaymentMode_' + rowID).val();
                                 gridData.newPaymentObj = {
                                     accounting_date: self.dtpAccountingDate[rowID - 1] && self.dtpAccountingDate[rowID - 1].date() ? self.dtpAccountingDate[rowID - 1].date().format('YYYY-MM-DD') : null,
                                     notes: null,
@@ -4388,7 +4401,8 @@ define(['jquery',
                                     company_id: app.companyID,
                                     facility_id: self.facilityId,
                                     payment_mode: $('#ddlPaymentMode_' + rowID).val() || null,
-                                    credit_card_number: $("#txtCheckCardNo_" + rowID).val() || null
+                                    credit_card_number: $("#txtCheckCardNo_" + rowID).val() || null,
+                                    isPaymentUpdate : self.dtpAccountingDate[rowID - 1].isModified || isModifiedPaymentMode
                                 };
 
                                 if (_payerIndex.payer_type === 'PPP') {
@@ -4406,15 +4420,17 @@ define(['jquery',
                                 }
 
                                 self.editPaymentView.showApplyAndCas(self.claim_Id, paymentID, paymentID ? 'applied' : 'pending', '', gridData, function (err, response) {
-                                    if (response) {
+                                    if (response && response.payment_id) {
                                         var this_pay = response.total_Payment && response.total_Payment ? response.total_Payment.replace(/\$/g, '') : 0.00;
                                         var this_adj = response.total_Adjustment && response.total_Adjustment ? response.total_Adjustment.replace(/\$/g, '') : 0.00;
                                         $('#spThisPay_' + rowID).text(this_pay);
                                         $('#spThisAdj_' + rowID).text(this_adj);
-                                        $('#ddlPayerName_' + rowID).text(response.payment_id);
+                                        $('#spPaymentID_' + rowID).text(response.payment_id);
                                         var _tr = $('#tBodyPayment').find("[data_row_id='" + rowID + "']");
-                                        $(_tr).attr('data_payment_application_id', response.payment_application_id || null);
-                                        $(_tr).attr('data_payment_id', response.payment_id || null);
+                                        if (response.payment_application_id)
+                                            $(_tr).attr('data_payment_application_id', response.payment_application_id);
+                                        if (response.payment_id)
+                                            $(_tr).attr('data_payment_id', response.payment_id);
 
                                         if($('#ddlPayerName_' + rowID).is(':visible')){
                                             $('#ddlPayerName_' + rowID).prop('disabled', true);
@@ -4438,6 +4454,7 @@ define(['jquery',
                 $('#btnNewPayment, .addPaymentLine').off().click(_.debounce(function (e) {
                     self.addPaymentLine(e)
                 }, 250));
+
 
             },
 
@@ -4486,13 +4503,18 @@ define(['jquery',
                 var dtp = commonjs.bindDateTimePicker("divAccountingDate_" + index, { format: 'L' });
                 dtp.date(facilityTimeZoneObj);
                 self.dtpAccountingDate.push(dtp);
+                self.dtpAccountingDate[index - 1].isModified = false;
                 // Bind claim responsible as payment payers
                 self.updateResponsibleList(null, {
                     row_id: index
                 });
-                commonjs.updateCulture(app.currentCulture);
-                //commonjs.validateControls();
-                //commonjs.isMaskValidate();
+                // Assign isModified = true for accounting date, Otherwise false
+                $('#divAccountingDate_' + index).on("dp.change", function (e) {
+                    if (e && e.date && e.oldDate && e.oldDate.format('L') != e.date.format('L')) {
+                        self.dtpAccountingDate[index - 1].isModified = true;
+                    }
+                });
+                commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
 
                 self.bindPaymentEvent();
             }

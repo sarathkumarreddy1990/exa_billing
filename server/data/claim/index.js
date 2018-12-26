@@ -669,9 +669,9 @@ module.exports = {
                                 INNER JOIN (
                                     SELECT
                                         pa.payment_id,
-                                        max(pa.id) as payment_application_id,
-                                        sum(pa.amount) FILTER (WHERE  amount_type='payment') as amount,
-                                        sum(pa.amount) FILTER (WHERE  amount_type='adjustment') as adjustment
+                                        max(pa.id) AS payment_application_id,
+                                        sum(pa.amount) FILTER (WHERE  amount_type='payment') AS amount,
+                                        sum(pa.amount) FILTER (WHERE  amount_type='adjustment') AS adjustment
                                     FROM
                                         billing.charges AS c
                                         INNER JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
