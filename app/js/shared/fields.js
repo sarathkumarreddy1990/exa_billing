@@ -605,6 +605,25 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "defaultValue": ""
                     },
                     "field_code": "charge_description"
+                },
+                "Ins Provider Type": {
+                    "id": 32,
+                    "field_name": "Ins Provider Type",
+                    "i18n_name": "setup.userSettings.insProviderType",
+                    "field_info": {
+                        "custom_id": 63,
+                        "custom_name": "Ins Provider Type",
+                        "name": "ins_provider_type",
+                        "width": 200,
+                        "searchFlag": "%",
+                        "stype": "select",
+                        "searchoptions": {
+                            "value": insProviderTypeValue,
+                            "tempvalue": insProviderTypeValue
+                        },
+                        "sortable": true
+                    },
+                    "field_code": "ins_provider_type"
                 }
             });
         }else{
