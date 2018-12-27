@@ -4234,12 +4234,12 @@ define(['jquery',
                         .text('Patient Chart')
                         .css(cssObj)
                         .click(function () {
-                            var url = location.host + '/exa#patient/info/edit/' + btoa(self.cur_patient_id);
-
+                            var url = '/exa#patient/info/edit/' + btoa(self.cur_patient_id);
                             if (window.patientChartWindow && window.patientChartWindow.location.hash) {
                                 window.patientChartWindow.location.hash = '#patient/info/edit/' + btoa(self.cur_patient_id);
                             } else {
-                                window.patientChartWindow = window.open(url, '_blank');
+                                window.patientChartWindow = window.open("about:blank");
+                                window.patientChartWindow.location.href = url;
                             }
                         }));
             }
