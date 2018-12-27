@@ -125,7 +125,8 @@ module.exports = {
                                         p.account_no AS patient_account_no,
                                         p.birth_date AS patient_dob,
                                         p.gender AS patient_gender,
-                                        p.alerts
+                                        p.alerts,
+                                        p.patient_info
                                     FROM
                                         orders
                                         INNER JOIN facilities ON  facilities.id= orders.facility_id
@@ -460,6 +461,7 @@ module.exports = {
                     , p.full_name AS patient_name
                     , p.gender AS patient_gender
                     , p.alerts
+                    , p.patient_info
                     , ref_pr.full_name AS ref_prov_full_name
                     , ref_pr.provider_code AS ref_prov_code
                     , ref_pr.provider_info->'NPI' AS referring_prov_npi_no

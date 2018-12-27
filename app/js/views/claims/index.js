@@ -69,6 +69,14 @@ define(['jquery',
             },
             patientsPager: null,
             patientTotalRecords: 0,
+            patientAddress: {},
+            elIDs: {
+                'primaryInsAddress1': '#txtPriSubPriAddr',
+                'primaryInsAddress2': '#txtPriSubSecAddr',
+                'primaryInsCity': '#txtPriCity',
+                'primaryInsState': '#ddlPriState',
+                'primaryInsZipCode': '#txtPriZipCode'
+            },
             initialize: function (options) {
                 this.options = options;
                 this.model = new newClaimModel();
@@ -396,7 +404,7 @@ define(['jquery',
                             self.claim_row_version = claimDetails.claim_row_version || null;
                             self.facilityId = claimDetails.facility_id; // claim facility_date
                             self.studyDate = commonjs.getConvertedFacilityTime(claimDetails.claim_dt, '', 'L', claimDetails.facility_id);
-
+                            self.patientAddress = claimDetails.patient_info ? commonjs.hstoreParse(claimDetails.patient_info) : {};
                             $('.claimProcess').prop('disabled', false);
                             $('#btnSaveClaim').prop('disabled', false);
                             /* Bind claim charge Details*/
@@ -1035,7 +1043,7 @@ define(['jquery',
                                 var _defaultDetails = modelDetails.claim_details && modelDetails.claim_details.length > 0 ? modelDetails.claim_details[0] : {};
                                 var _diagnosisProblems = modelDetails.problems && modelDetails.problems.length > 0 ? modelDetails.problems : [];
                                 var diagnosisCodes = [];
-
+                                self.patientAddress = _defaultDetails.patient_info ? _defaultDetails.patient_info : {};
                                 self.addPatientHeaderDetails(_defaultDetails, 'create')
 
                                 /* Patient Alert data Bind Started */
@@ -2531,10 +2539,28 @@ define(['jquery',
                 }
             },
 
+            validatePatientAddress: function (level) {
+                var patientAddress = this.patientAddress;
+
+                function getValue(value) {
+                    if (typeof value === 'undefined' || typeof value === 'object')
+                        return "";
+
+                    return value;
+                }
+
+                return $(this.elIDs[level + 'InsAddress1']).val() != getValue(patientAddress.c1AddressLine1) ||
+                    $(this.elIDs[level + 'InsAddress2']).val() != getValue(patientAddress.c1AddressLine2) ||
+                    $(this.elIDs[level + 'InsCity']).val() != getValue(patientAddress.c1City) ||
+                    $(this.elIDs[level + 'InsState']).val() != getValue(patientAddress.c1State) ||
+                    $(this.elIDs[level + 'InsZipCode']).val() != getValue(patientAddress.c1Zip)
+            },
+
             setClaimDetails: function () {
                 var self = this;
                 var claim_model = {}, billingMethod;
                 claim_model.insurances = [];
+                var isUpdatePatientInfo = false;
                 var currentResponsible = _.find(self.responsible_list, function(d) { return d.payer_type == $('#ddlResponsible').val(); });
                 var currentPayer_type = $('#ddlResponsible').val().split('_')[0];
                 var facility_id = $('#ddlFacility option:selected').val() != '' ? parseInt($('#ddlFacility option:selected').val()) : null;
@@ -2545,6 +2571,11 @@ define(['jquery',
                     billingMethod = 'patient_payment';
                 else
                     billingMethod = 'direct_billing';
+
+                if (self.priInsID && self.validatePatientAddress("primary") && confirm(commonjs.geti18NString("messages.confirm.updatePatientAddress"))) {
+                    isUpdatePatientInfo = true;
+                } 
+
                 var primary_insurance_details = {
                     claim_patient_insurance_id: parseInt(self.primaryPatientInsuranceId) || null,
                     claim_insurance_id: parseInt(self.priClaimInsID) || null,
@@ -2570,7 +2601,8 @@ define(['jquery',
                     valid_from_date: $('#txtPriStartDate').val() != '' ? $('#txtPriStartDate').val() : null,
                     valid_to_date: $('#txtPriExpDate').val() != '' ? $('#txtPriExpDate').val() :null,
                     is_deleted: self.priClaimInsID && self.priInsID == '' ? true : false,
-                    is_new: !self.priClaimInsID ? !(self.primaryPatientInsuranceId) : false
+                    is_new: !self.priClaimInsID ? !(self.primaryPatientInsuranceId) : false,
+                    is_update_patient_info: isUpdatePatientInfo
                 },
                 secondary_insurance_details = {
                     claim_patient_insurance_id: parseInt(self.secondaryPatientInsuranceId) || null,
@@ -2597,7 +2629,8 @@ define(['jquery',
                     valid_from_date: $('#txtSecStartDate').val() != '' ? $('#txtSecStartDate').val() : null,
                     valid_to_date: $('#txtSecExpDate').val() != '' ? $('#txtSecExpDate').val() : null,
                     is_deleted: self.secClaimInsID && self.secInsID == '' ? true : false,
-                    is_new: !self.secClaimInsID ? !(self.secondaryPatientInsuranceId) : false
+                    is_new: !self.secClaimInsID ? !(self.secondaryPatientInsuranceId) : false,
+                    is_update_patient_info: false
                 },
                 teritiary_insurance_details = {
                     claim_patient_insurance_id: parseInt(self.tertiaryPatientInsuranceId) || null,
@@ -2624,7 +2657,8 @@ define(['jquery',
                     valid_from_date: $('#txtTerStartDate').val() != '' ? $('#txtTerStartDate').val() : null,
                     valid_to_date: $('#txtTerExpDate').val() != '' ? $('#txtTerExpDate').val() : null,
                     is_deleted: self.terClaimInsID && self.terInsID == '' ? true : false,
-                    is_new: !self.terClaimInsID ? !(self.tertiaryPatientInsuranceId) : false
+                    is_new: !self.terClaimInsID ? !(self.tertiaryPatientInsuranceId) : false,
+                    is_update_patient_info: false
                 }
                 if (self.is_primary_available || self.priClaimInsID)
                     claim_model.insurances.push(primary_insurance_details);
@@ -3152,6 +3186,7 @@ define(['jquery',
                             if (response.length) {
                                 response = response[0];
                                 var contactInfo = commonjs.hstoreParse(response.patient_info);
+                                self.patientAddress = contactInfo;
                                 self.firstName = response && response && response.first_name;
                                 self.lastName = response.last_name;
                                 self.mi = response.middle_name;
