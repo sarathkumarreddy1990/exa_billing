@@ -987,7 +987,7 @@ define(['jquery',
                 }
             },
 
-            setCasGroupCodesAndReasonCodes: function () {
+            setCasGroupCodesAndReasonCodes: function (isFromClaim, callback) {
                 var self = this;
                 $.ajax({
                     url: '/exa_modules/billing/pending_payments/groupcodes_and_reasoncodes',
@@ -1000,6 +1000,13 @@ define(['jquery',
                         var casCodes = data[0];
                         self.cas_group_codes = casCodes.cas_group_codes;
                         self.cas_reason_codes = casCodes.cas_reason_codes;
+                        // Send response to claim screen
+                        if (isFromClaim && typeof callback === 'function') {
+                            callback({
+                                cas_group_codes: self.cas_group_codes,
+                                cas_reason_codes: self.cas_reason_codes
+                            });
+                        }
                     },
                     error: function (err, response) {
                         commonjs.handleXhrError(err, response);
@@ -1094,7 +1101,7 @@ define(['jquery',
                 this.invoicePendPaymentTable.refreshAll();
             },
 
-            savePayment: function (e, claimId, paymentId, paymentStatus) {
+            savePayment: function (e, claimId, paymentId, paymentStatus, paymentApplicationId) {
                 var self = this;
                 if (!self.isFromClaim && !self.validatepayments()) {
                     return false;
@@ -1129,7 +1136,7 @@ define(['jquery',
                         var payment_amt = $(this).find('td:nth-child(5)>input').val() ? parseFloat($(this).find('td:nth-child(5)>input').val().trim()) : 0.00;
                         payment = payment + parseFloat(payment_amt);
                     });
-                    paymentObj.paymentId = self.claimPaymentObj.paymentId || 0;
+                    paymentObj.paymentId = self.payment_id || self.claimPaymentObj.paymentId || paymentId || 0 ;
                     paymentObj.amount = payment;
                     paymentObj.isFromClaim = true;
                     paymentObj.patient_id = self.claimPaymentObj.patient_id;
@@ -1141,6 +1148,7 @@ define(['jquery',
                     paymentObj.credit_card_number = self.claimPaymentObj.credit_card_number;
                     paymentObj.provider_contact_id = self.claimPaymentObj.provider_contact_id;
                     paymentObj.insurance_provider_id = self.claimPaymentObj.insurance_provider_id;
+                    paymentObj.payment_row_version = self.claimPaymentObj.payment_row_version;
                 } else {
                     paymentObj.amount = $.trim($('#txtAmount').val().replace(',', '')) || 0.00;
                     paymentObj.facility_id = $.trim($('#ddlPaidLocation').val());
@@ -1162,10 +1170,12 @@ define(['jquery',
                             if (self.isFromClaim && response && response.length) {
                                 commonjs.showStatus(msg);
                                 self.payment_id = response[0].id || 0;
-                                self.saveAllPayments(e, claimId, self.payment_id, paymentStatus, 0, 0);
+                                self.claimPaymentObj.isPaymentUpdate = false;
+                                self.saveAllPayments(e, claimId, self.payment_id, paymentStatus, 0, paymentApplicationId);
                                 commonjs.hideLoading();
                                 return false;
                             } else if (self.isFromClaim && response && response.length === 0){
+                                commonjs.hideLoading();
                                 return false;
                             }
 
@@ -1603,8 +1613,8 @@ define(['jquery',
                     html: self.applyCasTemplate({
                         adjustmentCodes: self.adjustmentCodeList.toJSON(),
                         'claimStatusList': this.claimStatusList.toJSON(),
-                        cas_group_codes: self.cas_group_codes,
-                        cas_reason_codes: self.cas_reason_codes,
+                        cas_group_codes: self.cas_group_codes || rowData.cas_group_codes,
+                        cas_reason_codes: self.cas_reason_codes || rowData.cas_reason_codes,
                         patient_paid: patient_paid,
                         others_paid: others_paid,
                         claim_statuses: self.claimStatuses.toJSON()
@@ -1614,6 +1624,7 @@ define(['jquery',
                 if (rowData.isFromClaim) {
                     commonjs.showNestedDialog(_showDialogObj);
                     self.claimPaymentObj = rowData.newPaymentObj;
+                    self.payment_id = paymentID;
                 } else {
                     commonjs.showDialog(_showDialogObj);
                 }
@@ -1637,21 +1648,16 @@ define(['jquery',
                     $('#siteModal').hide();
                 });
                 self.getClaimBasedCharges(claimId, paymentID, paymentStatus, chargeId, paymentApplicationId, true);
-
-                // Hide some of edit-payment property if showDialoge open via claim screen
+                // Hide some of edit-payment property if showDialog open via claim screen
                 if (rowData.isFromClaim) {
                     $('#btnPayfullAppliedPendingPayments').hide();
-                    $('#formBillingProviders .form-group').not('.divAdjustment').hide();
+                    $('#formBillingProviders .form-group').not('.divAdjustmentCodes').hide();
                     $('#siteModalNested .close, #siteModalNested .btn-secondary').off().click(function (e) {
-
                         // Send response to claim screen
                         if (typeof callback === 'function') {
                             callback(null, {
                                 status: 'closed',
-                                payment_id: self.payment_id || paymentID,
-                                payment_application_id: self.paymentApplicationId || paymentApplicationId,
-                                total_Adjustment: self.total_Adjustment,
-                                total_Payment: self.total_Payment
+                                payment_id: self.payment_id || paymentID
                             });
                         }
                     });
@@ -1874,14 +1880,14 @@ define(['jquery',
                             self.getPayemntApplications(e);
                         });
 
-                        $('#applyPaymentContent').find('#btnSaveAppliedPendingPayments').unbind().on('click', function (e) {
+                        $('#applyPaymentContent').find('#btnSaveAppliedPendingPayments').off().click(_.debounce(function (e) {
                             // Call savePayment fun if payment status == 'pending status', This call only for payment creation via claim screen
                             if (self.isFromClaim && (paymentStatus === 'pending' && !paymentId || self.claimPaymentObj.isPaymentUpdate)) {
-                                self.savePayment(e, claimId, paymentId, paymentStatus);
+                                self.savePayment(e, claimId, paymentId, paymentStatus, paymentApplicationId);
                             } else {
                                 self.saveAllPayments(e, claimId, paymentId, paymentStatus, chargeId, paymentApplicationId);
                             }
-                        });
+                        }, 250));
 
                         $('#btnClearAppliedPendingPayments').unbind().on('click', function (e) {
                             self.clearPayments(e, paymentId, claimId);
@@ -2293,18 +2299,7 @@ define(['jquery',
                             $('#txtDeduction').val("0.00");
                             $('#txtCoInsurance').val("0.00");
                             $('#txtCoPay').val("0.00");
-
-                            if (paymentStatus != 'applied') {
-                                var model = _.filter(model, function (x, y) { return x.details; });
-                                // Assign max payment application id if open via claim screen
-                                if (model && model.length && self.isFromClaim) {
-                                    model = model[model.length - 1];
-                                    paymentApplicationId = model.details.create_payment_applications.payment_application_id;
-                                } else {
-                                    paymentApplicationId = model[0].details.create_payment_applications.payment_application_id
-                                }
-                            }
-                            //paymentStatus != 'applied' ? paymentApplicationId = model[0].details.create_payment_applications.payment_application_id : paymentApplicationId;
+                            paymentStatus != 'applied' ? paymentApplicationId = model[0].details.create_payment_applications.payment_application_id : paymentApplicationId;
                             self.paymentApplicationId = paymentApplicationId;
                             self.getClaimBasedCharges(claimId, paymentId, 'applied', chargeId, paymentApplicationId, false);
                             $('.modal-footer button').focus();

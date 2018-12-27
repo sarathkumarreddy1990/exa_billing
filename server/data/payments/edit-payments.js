@@ -284,7 +284,8 @@ module.exports = {
             payerType,
             claim_date,
             isFromClaim,
-            paymentID
+            paymentID,
+            paymentApplicationId
         } = params;
 
         paymentID = isFromClaim && paymentID  || params.customArgs.paymentID;
@@ -341,36 +342,43 @@ module.exports = {
             whereQuery.push(`to_facility_date(bc.facility_id, claim_dt) = '${claim_date}'::date`);
         }
 
-        const sql = SQL`SELECT
-            ROW_NUMBER () OVER (ORDER BY bc.id) as id,
-            bc.id AS claim_id,
-            bc.invoice_no,
-            get_full_name(pp.last_name,pp.first_name) AS full_name,
-            bc.claim_dt AS claim_date,
-            max(bpa.id) AS payment_application_id,
-            (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) as bill_fee,
-            CASE WHEN 'patient' = ${payerType} THEN
-                ((SELECT patient_paid FROM billing.get_claim_patient_other_payment(bc.id)) -  COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'payment'),0::money) )
-            ELSE
-                (SELECT patient_paid FROM billing.get_claim_patient_other_payment(bc.id))
-             END as patient_paid,
-            CASE WHEN 'patient' != ${payerType} THEN
-                ((SELECT others_paid FROM billing.get_claim_patient_other_payment(bc.id)) -  COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'payment'),0::money) )
-            ELSE
-                (SELECT others_paid FROM billing.get_claim_patient_other_payment(bc.id))
-             END as others_paid,
-            ((SELECT adjustments_applied_total from billing.get_claim_totals(bc.id)) - COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'adjustment'),0::money)) as adjustment,
-            COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'adjustment'),0::money) as this_adjustment,
-            COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'payment'),0::money) as payment,
-            (SELECT claim_cpt_description from billing.get_claim_totals(bc.id)) as display_description,
-            (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total + refund_amount) from billing.get_claim_totals(bc.id)) as balance,
-            COUNT(1) OVER (range unbounded preceding) AS total_records
-        FROM billing.payments bp
-        INNER JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
-        INNER JOIN billing.charges bch on bch.id = bpa.charge_id
-        INNER JOIN billing.claims bc on bc.id = bch.claim_id
-        INNER JOIN public.patients pp on pp.id = bc.patient_id
-        `;
+        let sql =SQL` SELECT
+                ROW_NUMBER () OVER (ORDER BY bc.id) as id,
+                bc.id AS claim_id,
+                bc.invoice_no,
+                get_full_name(pp.last_name,pp.first_name) AS full_name,
+                bc.claim_dt AS claim_date,
+                max(bpa.id) AS payment_application_id,
+                (SELECT charges_bill_fee_total from billing.get_claim_totals(bc.id)) as bill_fee,
+                CASE WHEN 'patient' = ${payerType} THEN
+                    ((SELECT patient_paid FROM billing.get_claim_patient_other_payment(bc.id)) -  COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'payment'),0::money) )
+                ELSE
+                    (SELECT patient_paid FROM billing.get_claim_patient_other_payment(bc.id))
+                    END as patient_paid,
+                CASE WHEN 'patient' != ${payerType} THEN
+                    ((SELECT others_paid FROM billing.get_claim_patient_other_payment(bc.id)) -  COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'payment'),0::money) )
+                ELSE
+                    (SELECT others_paid FROM billing.get_claim_patient_other_payment(bc.id))
+                    END as others_paid,
+                ((SELECT adjustments_applied_total from billing.get_claim_totals(bc.id)) - COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'adjustment'),0::money)) as adjustment,
+                COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'adjustment'),0::money) as this_adjustment,
+                COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'payment'),0::money) as payment,
+                (SELECT claim_cpt_description from billing.get_claim_totals(bc.id)) as display_description,
+                (SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total + refund_amount) from billing.get_claim_totals(bc.id)) as balance,
+                COUNT(1) OVER (range unbounded preceding) AS total_records `;
+
+        if (isFromClaim && paymentApplicationId) {
+            sql.append(SQL` ,bp.xmin  AS payment_row_version `);
+            whereQuery.push(`bpa.id = ${paymentApplicationId}`);
+        }
+
+        sql.append(SQL`
+            FROM billing.payments bp
+                INNER JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
+                INNER JOIN billing.charges bch on bch.id = bpa.charge_id
+                INNER JOIN billing.claims bc on bc.id = bch.claim_id
+                INNER JOIN public.patients pp on pp.id = bc.patient_id
+        `);
 
         whereQuery.push(` bp.id = ${paymentID} `);
 
@@ -380,6 +388,10 @@ module.exports = {
         }
 
         sql.append(SQL`GROUP BY bc.id, bc.invoice_no, get_full_name(pp.last_name,pp.first_name), bc.claim_dt, bpa.applied_dt `);
+
+        if (isFromClaim && paymentApplicationId) {
+            sql.append(SQL`,bp.xmin`);
+        }
 
         if (havingQuery.length) {
             sql.append(SQL` HAVING `)
