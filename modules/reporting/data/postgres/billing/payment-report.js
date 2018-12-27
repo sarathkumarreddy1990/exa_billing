@@ -31,11 +31,9 @@ const summaryQueryTemplate = _.template(`
                     billing.payments bp
                 LEFT JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
                 LEFT JOIN facilities f on f.id = bp.facility_id
-                <% if (insGroups || insuranceIds || billingProID) { %>
+                <% if (billingProID) { %>
                     INNER JOIN billing.charges bch on bch.id = bpa.charge_id
                     INNER JOIN billing.claims bc on bc.id = bch.claim_id
-                <% } %>
-                <% if (billingProID) { %>
                     INNER JOIN billing.providers bpr ON bpr.id = bc.billing_provider_id
                 <% } %>
                 <% if (userIds) { %>  INNER join public.users on users.id = bp.created_by    <% } %>
@@ -64,7 +62,7 @@ const summaryQueryTemplate = _.template(`
                 <% } %>
                 <% if(insGroups || insuranceIds) { %>
                     LEFT JOIN insurance_providers ip ON ip.id = bp.insurance_provider_id
-                    LEFT JOIN provider_groups ON bc.ordering_facility_id = provider_groups.id
+                    LEFT JOIN provider_groups ON bp.provider_group_id = provider_groups.id
                     LEFT JOIN  insurance_provider_payer_types ippt ON ippt.id = ip.provider_payer_type_id
                   <%}%>
                 WHERE
