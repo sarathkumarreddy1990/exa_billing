@@ -228,7 +228,7 @@ const detailQueryTemplate = _.template(`
                 LEFT JOIN provider_groups ON p.provider_group_id  = provider_groups.id
                 LEFT JOIN  insurance_provider_payer_types ippt ON ippt.id = ip.provider_payer_type_id
                 <%}%>
-                WHERE 1=1
+                WHERE TRUE
                 <% if (paymentStatus) { %> AND <%= paymentStatus %> <% } %>
                 <% if(insuranceIds) { %> AND <%=insuranceIds%> <%}%>
                 <% if(insGroups) { %> AND <%=insGroups%> <%}%>
