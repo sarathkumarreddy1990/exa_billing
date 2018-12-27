@@ -1,104 +1,121 @@
 <style>
-    .ddlOptions{
-       width: 325px;
-    }
-    .userLbl{
-        max-width: 110px;
-    }
-    .ulListBindBox{
+    .ulListBindBox {
         overflow: auto;
         width: 270px;
-        height:90px;
+        height: 90px;
         border: 1px solid;
     }
-    .txtUserBox, .txtAdjustmeCodeBox{
+
+    .txtUserBox,
+    .txtAdjustmeCodeBox,
+    .divUList {
         width: 190px;
     }
-    .ddlUserBox, .ulListBox{
-        display:none;
+
+    .ddlUserBox,
+    #ddlOptionBox,
+    #ddlInsuranceGroupBox,
+    .ulListBox {
+        display: none;
     }
 
+    #txtInsuranceSelect,
+    #txtCptSelect {
+        min-width: 0;
+        display: inline-block;
+        margin-left: 0;
+    }
+    .ddlOptionBoxGroup{
+        visibility: hidden;
+    }
 </style>
 <form novalidate="" _lpchecked="1">
 
     <!-- row: form elements -->
     <div class="row">
-
         <!-- col: form elements -->
-        <div class="col-3">
+        <div class="col">
             <div class="form-group form-inline">
                 <div class="col-form-content">
-                    <label class="control-label field-required" for="txtDateRangeFromTo" i18n="report.reportFilter.accountingDate" />
-                    <div id="divReportDate" class="input-group">
+                    <label class="control-label field-required" for="txtDateRangeFromTo" i18n="report.accountingDate" />
+                    <div class="input-group">
                         <input type="text" id="txtDateRangeFromTo" class="form-control" required="required" name="dateRange">
                         <span class="input-group-addon add-on datePickerSpanReport">
-                                <i class="fa fa-calendar"></i>
-                            </span>
+                            <i class="fa fa-calendar"></i>
+                        </span>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- /col: form elements -->
-        <div class="col-3">
+        <div class="col">
             <div class="form-group form-inline">
-                <label class="control-label" i18n="report.reportFilter.facilities" />
-                <div class="col-form-label" class="multiselect">
-                    <select id="ddlFacilityFilter"  multiple="multiple">
-                        <% _.each(facilities.toJSON(), function(facility) { %>
-                            <option value='<%= facility.id %>'>
-                                <%=facility.facility_name%>
-                            </option>
-                            <% }); %>
-                    </select>
-                </div>
-            </div>
-        </div>
-        <div class="col-3">
-            <div class="form-group form-inline">
-                <label class="control-label" i18n="report.reportFilter.billingProviders" />
-                <div class="col-form-label" class="multiselect">
-                    <select id="ddlBillingProvider" multiple="multiple" />
-                </div>
-            </div>
-        </div>
-
-        <div class="col-3">
-            <div class="ddlOptions">
-                <div class="form-group form-inline">
-                    <label class="control-label" i18n="report.reportFilter.summary"></label>
-                    <div class="col-form-label">
-                        <select id="ddlSummaryOption" class="form-control form-control-lg">
-                            <option value="Payer Type" i18n="report.reportFilter.payertype"> Payer Type</option>
-                            <option value="Payment Mode" i18n="report.reportFilter.paymentMode"> Payment Mode</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="ddlOptions">
-                <div class="form-group form-inline">
-                    <label class="control-label" i18n="report.reportFilter.paymentStatus"></label>
-                    <div class="col-form-label">
-                        <select id="ddlPaymentOption" class="form-control form-control-lg" multiple="multiple">
-                            <option value="fully_applied" i18n="report.reportFilter.applied">Fully Applied</option>
-                            <option value="over_applied" i18n="report.reportFilter.overApplied">Over Applied </option>
-                            <option value="partially_applied" i18n="report.reportFilter.partialApplied"> Partially Applied</option>
-                            <option value="unapplied" i18n="report.reportFilter.unapplied">Unapplied</option>
+                <div class="col-form-content" class="multiselect">
+                    <label class="control-label" i18n="report.facilities" />
+                    <div class="input-group">
+                        <select id="ddlFacilityFilter" multiple="multiple">
+                            <% _.each(facilities.toJSON(), function(facility) { %>
+                                <option value='<%= facility.id %>'>
+                                    <%=facility.facility_name%>
+                                </option>
+                                <% }); %>
                         </select>
                     </div>
                 </div>
             </div>
         </div>
+        <div class="col">
+            <div class="form-group form-inline">
+                <div class="col-form-content" class="multiselect">
+                    <label class="control-label" i18n="report.billingProviders" />
+                    <div id="divReportDate" class="input-group">
+                        <select id="ddlBillingProvider" multiple="multiple" />
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        <!-- col: form elements -->
-
+        <div class="col">
+            <div>
+                <div class="form-group form-inline">
+                    <div class="col-form-content">
+                        <label class="control-label" i18n="report.summary"></label>
+                        <div id="divReportDate" class="input-group">
+                            <select id="ddlSummaryOption" class="form-control form-control-lg">
+                                <option value="Payer Type" i18n="report.payertype"> Payer Type</option>
+                                <option value="Payment Mode" i18n="report.paymentMode"> Payment Mode</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div>
+                <div class="form-group form-inline">
+                    <div class="col-form-content">
+                        <label class="control-label" i18n="report.paymentStatus"></label>
+                        <div id="divReportDate" class="input-group">
+                            <select id="ddlPaymentOption" class="form-control form-control-lg" multiple="multiple">
+                                <option value="fully_applied" i18n="report.applied">Fully Applied</option>
+                                <option value="over_applied" i18n="report.overApplied">Over Applied </option>
+                                <option value="partially_applied" i18n="report.partialApplied"> Partially Applied</option>
+                                <option value="unapplied" i18n="report.unapplied">Unapplied</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+    <!-- col: form elements -->
     <!--users -->
     <div class="row" style="height: auto;">
-        <div class="col-3">
+        <div class="col">
             <div class="form-group form-inline">
-                <div class="form-content">
-                    <label class="inline field-chk" i18n="report.reportFilter.selectUsers"></label>
+                <div class="col-form-content">
+                    <label class="inline field-chk" i18n="report.selectUsers"></label>
                     <div class="input-group">
                         <select id="ddlUsersOption" class="form-control form-control-lg">
                             <option value="All">ALL</option>
@@ -128,10 +145,10 @@
             </div>
         </div>
 
-        <div class="col-3">
+        <div class="col">
             <div class="form-group form-inline">
-                <div class="form-content">
-                    <label class="inline field-chk" i18n="report.reportFilter.userRoles"></label>
+                <div class="col-form-content">
+                    <label class="inline field-chk" i18n="report.userRoles"></label>
                     <div class="input-group">
                         <select id="ddlUsersRoleOption" class="form-control form-control-lg">
                             <option value="All">ALL</option>
@@ -151,7 +168,7 @@
                 </div>
             </div>
             <div id="divUsersRole" class="ulListBox">
-                <div class="form-content">
+                <div class="col-form-content">
                     <div>
                         <ul id="ulListUsersRole" class="ulSelectionList tagList ulListBindBox">
                         </ul>
@@ -161,15 +178,15 @@
             </div>
         </div>
         <!-- /col: form elements -->
-        <div class="col-3">
+        <div class="col">
             <div class="form-group form-inline">
-                <div class="form-content">
-                    <label class="inline field-chk" i18n="report.reportFilter.adjustmentCode" />
+                <div class="col-form-content">
+                    <label class="inline field-chk" i18n="report.adjustmentCode" />
                     <div class="input-group">
                         <select id="ddlAdjustmentCodeOption" class="form-control form-control-lg">
-                            <option value="All"  i18n="report.reportFilter.allPayments">All Paymemts</option>
-                            <option value="allAdjustment" i18n="report.reportFilter.allAdjustmentCode">All Adjustment Code</option>
-                            <option value="S" i18n="report.reportFilter.adjustmentCode">Select Adjustment Code</option>
+                            <option value="All" i18n="report.allPayments">All Paymemts</option>
+                            <option value="allAdjustment" i18n="report.allAdjustmentCode">All Adjustment Code</option>
+                            <option value="S" i18n="report.adjustmentCode">Select Adjustment Code</option>
                         </select>
                     </div>
                 </div>
@@ -190,6 +207,102 @@
                     <div>
                         <ul id="ulListAdjustmentCode" class="ulSelectionList tagList ulListBindBox">
                         </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="form-group form-inline">
+                <div class="col-form-content">
+                    <label class="inline field-chk" i18n="report.insurance"></label>
+                    <div class="input-group">
+                        <select id="ddlInsuranceOption" class="form-control form-control-lg">
+                            <option value="All">All Insurance</option>
+                            <option value="S">Insurances</option>
+                            <option value="G">Insurance Group</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="ddlOptionBox" class="form-group form-inline  mt-1 ddlInsuranceGroupBox">
+                    <div class="divUList float-left">
+                        <select id="txtInsuranceName"> </select>
+                    </div>
+                    <a class="btn btn-primary" id="btnAddInsurance">
+                        <i class="icon-ic-plus"></i>
+                    </a>
+                </div>
+
+                <div id="ddlInsuranceGroupBox" class="form-group form-inline ddlInsuranceGroupBox">
+                    <div class="bindInsurance mt-3">
+                        <div class="float-left divUList">
+                            <select id="txtInsuranceProviderName"> </select>
+                        </div>
+                        <a class="btn btn-primary" id="btnAddInsuranceProvider">
+                            <i class="icon-ic-plus"></i>
+                        </a>
+                    </div>
+                </div>
+                <div id="ddlOptionBoxList" class="ulListBox">
+                    <div class="form-content">
+                        <div>
+                            <ul id="ulListInsurance" class="ulSelectionList tagList ulListBindBox"></ul>
+                        </div>
+                    </div>
+                </div>
+                <div id="ddlInsuranceGroupBoxList" class="ulListBox">
+                    <div class="form-content">
+                        <div>
+                            <ul id="ulListInsuranceProvider" class="ulSelectionList tagList ulListBindBox">
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col ddlOptionBoxGroup">
+            <div class="form-group form-inline">
+                <div class="col-form-content">
+                    <label class="inline field-chk" i18n="report.insurance"></label>
+                    <div class="input-group">
+                        <select id="ddlInsuranceOption" class="form-control form-control-lg">
+                            <option value="All">All Insurance</option>
+                            <option value="S">Insurances</option>
+                            <option value="G">Insurance Group</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="ddlOptionBox" class="form-group form-inline  mt-1 ddlInsuranceGroupBox">
+                    <div class="divUList float-left">
+                        <select id="txtInsuranceName"> </select>
+                    </div>
+                    <a class="btn btn-primary" id="btnAddInsurance">
+                        <i class="icon-ic-plus"></i>
+                    </a>
+                </div>
+
+                <div id="ddlInsuranceGroupBox" class="form-group form-inline ddlInsuranceGroupBox">
+                    <div class="bindInsurance mt-3">
+                        <div class="float-left divUList">
+                            <select id="txtInsuranceProviderName"> </select>
+                        </div>
+                        <a class="btn btn-primary" id="btnAddInsuranceProvider">
+                            <i class="icon-ic-plus"></i>
+                        </a>
+                    </div>
+                </div>
+                <div id="ddlOptionBoxList" class="ulListBox">
+                    <div class="form-content">
+                        <div>
+                            <ul id="ulListInsurance" class="ulSelectionList tagList ulListBindBox"></ul>
+                        </div>
+                    </div>
+                </div>
+                <div id="ddlInsuranceGroupBoxList" class="ulListBox">
+                    <div class="form-content">
+                        <div>
+                            <ul id="ulListInsuranceProvider" class="ulSelectionList tagList ulListBindBox">
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
