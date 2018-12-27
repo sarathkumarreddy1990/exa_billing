@@ -420,6 +420,10 @@ function customGrid ( datastore, gridID ) {
                     commonjs.scrollLeft = $bdiv.scrollLeft();
                     self.fetchGrid(true);
                 }
+                // Hide claim summary popover on scroll
+                if (self.options.isClaimGrid) {
+                    $('.claim-summary').remove();
+                }
                 e.stopPropagation();
             }
             else {

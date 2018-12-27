@@ -177,6 +177,11 @@ const colModel = [
         name: 'charge_description',
         searchColumns: ['charge_details.charge_description'],
         searchFlag: '%'
+    },
+    {
+        name: 'ins_provider_type',
+        searchColumns: ['insurance_provider_payer_types.description'],
+        searchFlag: '%'
     }
 ];
 
@@ -263,6 +268,7 @@ const api = {
             case 'submitted_dt': return 'claims.submitted_dt';
             case 'first_statement_dt': return 'claim_comment.created_dt';
             case 'charge_description': return `nullif(charge_details.charge_description,'')`;
+            case 'ins_provider_type': return 'insurance_provider_payer_types.description';
         }
 
         return args;
@@ -338,6 +344,12 @@ const api = {
             r += ' LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id ';
             r += ' LEFT JOIN   billing.edi_clearinghouses ON  billing.edi_clearinghouses.id=insurance_provider_details.clearing_house_id';
 
+        }
+
+        if (tables.insurance_provider_payer_types) {
+            r += ` LEFT JOIN patient_insurances ins_prov_pat_ins ON ins_prov_pat_ins.id = primary_patient_insurance_id
+                   LEFT JOIN insurance_providers ins_prov ON ins_prov.id = ins_prov_pat_ins.insurance_provider_id
+                   LEFT JOIN insurance_provider_payer_types  ON insurance_provider_payer_types.id = ins_prov.provider_payer_type_id `;
         }
 
         if (tables.provider_groups) { r += '  LEFT JOIN provider_groups ON claims.ordering_facility_id = provider_groups.id '; }
@@ -424,7 +436,8 @@ const api = {
             'patients.id as patient_id',
             'invoice_no',
             'claim_comment.created_dt AS first_statement_dt',
-            'charge_details.charge_description'
+            'charge_details.charge_description',
+            'insurance_provider_payer_types.description AS ins_provider_type'
         ];
 
         if(args.customArgs.filter_id=='Follow_up_queue'){

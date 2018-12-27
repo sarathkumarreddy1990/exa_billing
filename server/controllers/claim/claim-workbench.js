@@ -444,5 +444,9 @@ module.exports = {
 
     updateInvoiceNo: async function (params) {
         return await data.updateInvoiceNo(params);
+    },
+
+    getClaimSummary: async function (params) {
+        return await data.getClaimSummary(params);
     }
 };
