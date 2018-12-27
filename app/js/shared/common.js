@@ -2389,6 +2389,10 @@ var commonjs = {
             $('.popupMenu').remove();
         }
 
+        if(!$target.parents('.claim-summary').length && $('.claim-summary:visible').length && !$(_target).hasClass('icon-ic-worklist')){
+            $('.claim-summary').remove();
+        }
+
         // Optimized as best I could without knowing the reason for this code
         if ($('#divActions:visible').length && _target.id !== 'btnSaveActions' && $(".popover:visible").length && !$target.is("._jsPlumb_overlay") && !$target.parents().is('.popover.in')) {
             $(".popover:visible, #divActions:visible").hide();
