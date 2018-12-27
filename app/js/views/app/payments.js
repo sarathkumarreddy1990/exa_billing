@@ -187,7 +187,6 @@ define(['jquery',
                     this.render(opener);
                 var self = this;
                 self.from = from;
-                var showGridColumn = self.from === 'ris' ? true : false;
                 commonjs.isFrom = self.from;
                 //Listing all payments
                 if (!filterApplied) {
@@ -255,17 +254,17 @@ define(['jquery',
                             { name: 'current_status', hidden: true },
                             { name: 'payment_id' },
                             { name: 'invoice_no', hidden: true },
-                            { name: 'display_id', width: 150, hidden: showGridColumn },
-                            { name: 'payment_dt', width: 250, formatter: self.paymentDateFormatter, hidden: showGridColumn },
+                            { name: 'display_id', width: 150 },
+                            { name: 'payment_dt', width: 250, formatter: self.paymentDateFormatter },
                             { name: 'accounting_date', width: 250, formatter: self.paymentAccountingDateFormatter },
                             { name: 'payer_type', width: 215, stype: 'select', formatter: self.payerTypeFormatter, searchoptions: { value: payerTypeValue } },
                             { name: 'payer_name', width: 300 },
                             { name: 'account_no', width: 300, formatter: self.accountNumFormatter },
                             { name: 'amount', width: 215, validateMoney : true },
-                            { name: 'applied', width: 215, hidden: showGridColumn, validateMoney : true },
+                            { name: 'applied', width: 215, validateMoney: true },
                             { name: 'available_balance', width: 215, validateMoney : true },
-                            { name: 'adjustment_amount', width: 215, hidden: showGridColumn, validateMoney : true },
-                            { name: 'notes', width: 215, hidden: !showGridColumn },
+                            { name: 'adjustment_amount', width: 215, validateMoney: true },
+                            { name: 'notes', width: 215 },
                             { name: 'user_full_name', width: 215 },
                             { name: 'payment_mode', width: 215, stype: 'select', formatter: self.paymentModeFormatter, stype: 'select', "searchoptions": { "value": payment_mode, "tempvalue": payment_mode } },
                             { name: 'card_number', width: 215 },
