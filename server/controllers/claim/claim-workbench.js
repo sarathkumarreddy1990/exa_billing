@@ -53,6 +53,21 @@ module.exports = {
     },
 
     getEDIClaim: async (params) => {
+        let claimIds = (params.claimIds).split(',');
+        let validationData = await data.validateEDIClaimCreation(claimIds);
+        validationData = validationData && validationData.rows && validationData.rows.length && validationData.rows[0] || [];
+
+        if(validationData) {
+            if (validationData.claim_status.indexOf('PV') > -1) {
+                return new Error('Please validate claims');
+            } else if(validationData.unique_billing_method_count > 1 ){
+                return new Error('Please select claims with same type of billing method');
+            } else if(validationData.clearing_house_count != claimIds.length || validationData.unique_clearing_house_count > 1){
+                return new Error('Please select claims with same type of clearing house Claims');
+            }
+
+        }
+
         const result = await ediData.getClaimData(params);
         let ediResponse = {};
         let claimDetails = [];
