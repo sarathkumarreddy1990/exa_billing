@@ -939,6 +939,10 @@ define('grid', [
                         return "<i class='icon-ic-raw-transctipt' title='Claim Inquiry'></i>"
                     },
                     customAction: function (rowID, e, that) {
+                        if (screenCode.indexOf('CLMI') > -1){
+                            return false;
+                        }
+
                         commonjs.showDialog({
                             'header': 'Claim Inquiry',
                             'width': '95%',
