@@ -3450,6 +3450,11 @@ define(['jquery',
                                     var queryParams = window.reportWindow.location.hash.split("?");
                                     window.reportWindow.location.hash = '#patient/patientReport/all/' + btoa(patient_id) + '/' + btoa(order_id) + '/' + btoa(study_id) + '?' + queryParams;
                                 }
+
+                                if (window.patientChartWindow) {
+                                    commonjs.closePatientChartWindow();
+                                } 
+
                                 $('#modal_div_container').scrollTop(0);
                             });
                         }
@@ -4199,6 +4204,7 @@ define(['jquery',
 
             // Binding Header Patient Details
             addPatientHeaderDetails: function(patient_details, from) {
+                var self = this;
                 var headerTopic = from === 'create' ? 'Claim Creation : ' : 'Edit : ';
 
                 $(parent.document).find('#spanModalHeader')
@@ -4216,6 +4222,26 @@ define(['jquery',
                     .append($('<i>').attr({class: 'icon-ic-alerts'}))
                     .append($('<span>').attr({'i18n': 'shared.screens.patient.alerts'}).text(' Alerts'))
                     .append($('<div>').attr({'id': 'alertBadge', class: 'alertBadge'}))));
+                 
+                var cssObj = {
+                    'color': 'white',
+                    'text-decoration': 'none',
+                    'border-bottom': '1px solid white'
+                };
+
+                $(parent.document).find('#spanModalHeader')
+                    .append($('<a/>', { href: "javascript:void(0)" })
+                        .text('Patient Chart')
+                        .css(cssObj)
+                        .click(function () {
+                            var url = '/exa#patient/info/edit/' + btoa(self.cur_patient_id);
+                            if (window.patientChartWindow && window.patientChartWindow.location.hash) {
+                                window.patientChartWindow.location.hash = '#patient/info/edit/' + btoa(self.cur_patient_id);
+                            } else {
+                                window.patientChartWindow = window.open("about:blank");
+                                window.patientChartWindow.location.href = url;
+                            }
+                        }));
             }
 
         });
