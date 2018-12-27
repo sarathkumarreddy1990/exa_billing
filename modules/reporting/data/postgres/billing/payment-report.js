@@ -225,7 +225,7 @@ const detailQueryTemplate = _.template(`
                 LEFT join public.patients pp on pp.id = c.patient_id
                 LEFT join public.patients p_pp on p_pp.id = p.patient_id
                 <% if(insGroups) { %>
-                LEFT JOIN provider_groups ON c.ordering_facility_id = provider_groups.id
+                LEFT JOIN provider_groups ON p.provider_group_id  = provider_groups.id
                 LEFT JOIN  insurance_provider_payer_types ippt ON ippt.id = ip.provider_payer_type_id
                 <%}%>
                 WHERE 1=1
