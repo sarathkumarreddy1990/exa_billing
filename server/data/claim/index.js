@@ -978,7 +978,10 @@ module.exports = {
 
     getClaimAppliedPayments: async function (params) {
 
-        const sqlQry = SQL`SELECT
+        let { id } = params;
+        const sqlQry = SQL`WITH
+                payment_details AS (
+                        SELECT
                             p.id,
                             pa.payment_application_id,
                             p.patient_id,
@@ -992,12 +995,11 @@ module.exports = {
                             COALESCE(pa.amount::numeric::text,'0.00') AS payment_applied,
                             COALESCE(pa.adjustment::numeric::text,'0.00') AS adjustment_applied,
                             payer_details.payer_info,
-                            (SELECT xmin AS claim_row_version FROM billing.claims WHERE id =  ${params.id} ),
-                            (SELECT payer_type AS current_claim_payer_type FROM billing.claims WHERE id =  ${params.id} ),
+                            (SELECT xmin AS claim_row_version FROM billing.claims WHERE id =  ${id} ),
+                            (SELECT payer_type AS current_claim_payer_type FROM billing.claims WHERE id =  ${id} ),
                             row_number() OVER( ORDER BY p.id ) as row_index
                         FROM
                             billing.payments AS p
-
                             INNER JOIN (
                                 SELECT
                                     pa.payment_id,
@@ -1007,7 +1009,7 @@ module.exports = {
                                 FROM
                                     billing.charges AS c
                                     INNER JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
-                                    WHERE c.claim_id = ${params.id}
+                                    WHERE c.claim_id = ${id}
                                     GROUP BY pa.applied_dt, pa.payment_id
                             ) AS pa ON p.id = pa.payment_id
                             LEFT JOIN (
@@ -1028,7 +1030,38 @@ module.exports = {
                                     LEFT JOIN providers ON providers.id= pro_cont.provider_id
                                     LEFT JOIN provider_groups ON provider_groups.id= p1.provider_group_id
                             ) AS payer_details ON payer_details.id = p.id
-                        ORDER BY p.id ASC `;
+                        ORDER BY p.id ASC
+                    ),
+                    claim_fee_details AS (
+                        SELECT
+                              COALESCE(sum(bpa.amount) FILTER(where bp.payer_type = 'patient' AND amount_type = 'payment'),0::money)::numeric AS patient_paid
+                            , COALESCE(sum(bpa.amount) FILTER(where bp.payer_type != 'patient' AND amount_type = 'payment'),0::money)::numeric AS others_paid
+                            , SUM(CASE WHEN (amount_type = 'adjustment' AND (accounting_entry_type != 'refund_debit' OR adjustment_code_id IS NULL)) THEN bpa.amount ELSE 0::money END)::numeric AS adjustment
+                            , SUM(CASE WHEN accounting_entry_type = 'refund_debit' THEN bpa.amount ELSE 0::money END)::numeric AS refund_amount
+                            , gct.claim_balance_total::numeric AS balance
+                            , gct.charges_bill_fee_total::numeric AS bill_fee
+                        FROM billing.claims bc
+                            INNER JOIN billing.charges ch ON ch.claim_id = bc.id
+                            INNER JOIN billing.get_claim_totals(bc.id) gct ON TRUE
+                            LEFT JOIN billing.payment_applications bpa ON bpa.charge_id = ch.id
+                            LEFT JOIN billing.payments bp ON bp.id = bpa.payment_id
+                            LEFT JOIN billing.adjustment_codes adj ON adj.id = bpa.adjustment_code_id
+                        WHERE
+                            bc.id = ${id}
+                            GROUP BY gct.claim_balance_total ,gct.charges_bill_fee_total
+                    )
+                    SELECT
+                    (
+                        SELECT
+                            COALESCE(json_agg(row_to_json(payment_details)),'[]') payment_details
+                        FROM
+                        ( SELECT * FROM payment_details ) AS payment_details
+                    ),
+                    (	SELECT
+                            COALESCE(row_to_json(claim_fee_details),'[]') claim_fee_details
+                        FROM
+                        ( SELECT * FROM claim_fee_details ) AS claim_fee_details
+                    ) `;
 
         return await query(sqlQry);
 

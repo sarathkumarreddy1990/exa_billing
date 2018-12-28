@@ -1017,22 +1017,22 @@ define(['jquery',
             validatePayer: function (payermode) {
                 var self = this;
                 if (payermode == 'insurance' && !self.payer_id) {
-                    commonjs.showWarning("Please select insurance");
+                    commonjs.showWarning("messages.warning.payments.pleaseSelectInsurance");
                     $('#txtautoPayerPIP').select2('open');
                     return false;
                 }
                 else if (payermode == 'patient' && !self.payer_id) {
-                    commonjs.showWarning("Please select patient");
+                    commonjs.showWarning("messages.warning.payments.pleaseSelectPatient");
                     $('#txtautoPayerPP').select2('open');
                     return false;
                 }
                 else if (payermode == 'ordering_provider' && !self.payer_id) {
-                    commonjs.showWarning("Please select provider");
+                    commonjs.showWarning("messages.warning.payments.pleaseSelectProvider");
                     $('#txtautoPayerPR').select2('open');
                     return false;
                 }
                 else if (payermode == 'ordering_facility' && !self.payer_id) {
-                    commonjs.showWarning("Please select ordering facility");
+                    commonjs.showWarning("messages.warning.payments.pleaseSelectOrderingFacility");
                     $('#txtautoPayerPOF').select2('open');
                     return false;
                 }
@@ -1605,20 +1605,21 @@ define(['jquery',
                 var patient_paid = rowData.patient_paid ? self.formatMoneyValue(rowData.patient_paid) : '0.00';
                 var others_paid = rowData.others_paid ? self.formatMoneyValue(rowData.others_paid) : '0.00';
                 var claimDt = (commonjs.checkNotEmpty(rowData.claim_dt) ? commonjs.convertToFacilityTimeZone(rowData.facility_id, rowData.claim_dt).format('L') : '');
-
+                var casDialogHeader = commonjs.geti18NString('billing.fileInsurance.claim') + ': # <strong>' + rowData.claim_id + ',  ' + rowData.full_name + '  ' + claimDt + '</strong>';
+                var casDialogHtml = self.applyCasTemplate({
+                    adjustmentCodes: self.adjustmentCodeList.toJSON(),
+                    'claimStatusList': this.claimStatusList.toJSON(),
+                    cas_group_codes: self.cas_group_codes || rowData.cas_group_codes,
+                    cas_reason_codes: self.cas_reason_codes || rowData.cas_reason_codes,
+                    patient_paid: patient_paid,
+                    others_paid: others_paid,
+                    claim_statuses: self.claimStatuses.toJSON()
+                });
                 var _showDialogObj = {
-                    header: 'Claim : # <strong>' + rowData.claim_id + ',  ' + rowData.full_name + '  ' + claimDt + '</strong>',
+                    header: casDialogHeader,
                     width: rowData.isFromClaim ? '75%' : '85%',
                     height: rowData.isFromClaim ? '65%' : '72%',
-                    html: self.applyCasTemplate({
-                        adjustmentCodes: self.adjustmentCodeList.toJSON(),
-                        'claimStatusList': this.claimStatusList.toJSON(),
-                        cas_group_codes: self.cas_group_codes || rowData.cas_group_codes,
-                        cas_reason_codes: self.cas_reason_codes || rowData.cas_reason_codes,
-                        patient_paid: patient_paid,
-                        others_paid: others_paid,
-                        claim_statuses: self.claimStatuses.toJSON()
-                    })
+                    html: casDialogHtml
                 };
 
                 if (rowData.isFromClaim) {
@@ -2160,22 +2161,22 @@ define(['jquery',
                 var val = ['refund_debit', 'recoupment_debit']
 
                 if ($('#ddlResponsible').val() === '') {
-                    commonjs.showWarning('Please select responsible');
+                    commonjs.showWarning('shared.warning.missingResponsible');
                     $('#ddlResponsible').select2('open')
                     return false;
                 }
                 else if ($('#ddlAdjustmentCode_fast').val() === '0') {
-                    commonjs.showWarning('Please select adjustemnt code');
+                    commonjs.showWarning('messages.warning.payments.pleaseSelectAdjustment');
                     return false;
                 } else if (isDebit && val.indexOf(adjustment_codetype) < 0) {
-                    commonjs.showWarning('Please select Refund Or Recoupment adjustment code ');
+                    commonjs.showWarning('messages.warning.payments.pleaseSelectRefAdjCode');
                     return false;
                 } else if (!isDebit && val.indexOf(adjustment_codetype) >= 0) {
-                    commonjs.showWarning('Please select DR checkbox ');
+                    commonjs.showWarning('messages.warning.payments.pleaseSelectDRCheckBox');
                     return false;
                 } else if (self.isRefundApplied === true) {
                     if ($('#ddlAdjustmentCode_fast').val() && $('#ddlAdjustmentCode_fast').find(':selected').attr('data_code_type') != 'refund_debit') {
-                        var refund_change_confirm = confirm("This payment is refund mode want to overwrite this payment ? ");
+                        var refund_change_confirm = confirm(commonjs.geti18NString("messages.confirm.payments.overwriteRefundAreYouSure"));
                         if (refund_change_confirm == true) {
                             self.isRefundApplied = false;
                             return true;
@@ -2196,7 +2197,7 @@ define(['jquery',
                         }
                     });
                     if (adjustment_has_value === 0) {
-                        alert('Please enter refund adjustment.');
+                        commonjs.showWarning('messages.warning.payments.enterRefundAmount');
                         adjustment_has_value = 0;
                         return false;
                     }
@@ -2371,7 +2372,7 @@ define(['jquery',
 
                     if (canSearch) {
                         $divPatientSearchResults.html('<span style="text-align:center;display:block;font-size:20px;">Searching...</span>');
-                        commonjs.showLoading('Searching...');
+                        commonjs.showLoading('messages.loadingMsg.searching');
                         this.patientsPager.set({ "pageNo": 1 });
                         this.patientsPager.set({ "searchId": 0 });
                         this.patientsPager.set({ "symbol": '>' });
@@ -2682,14 +2683,15 @@ define(['jquery',
 
             showPatientForm: function (patientId, patient_name, account_no,dblclickPat) {
                 var self = this;
-                $('#commonMsg').text('Pending payments for the patient : ')
+                var msg =  commonjs.geti18NString("shared.fields.pendingPaymentsForThePatient");
+                $('#commonMsg').text(msg)
                 $('#spnPatInfo').text(patient_name + ' (' + account_no + ') ');
                 this.showPendingPaymentsGrid(this.payment_id, this.payer_type, this.payer_id, patientId, 0, '', dblclickPat);
             },
 
             validateClaimId: function () {
                 if ($('#claimId').val() == '') {
-                    commonjs.showWarning('Please enter claim id to search');
+                    commonjs.showWarning('messages.warning.claims.pleaseEnterClaimIDToSearch');
                 }
                 else
                     return true;
@@ -2697,7 +2699,7 @@ define(['jquery',
 
             validateInvoice: function () {
                 if ($('#invoiceNo').val() == '') {
-                    commonjs.showWarning('Please enter invoice # to search');
+                    commonjs.showWarning('messages.warning.claims.pleaseEnterInvoiceToSearch');
                 }
                 else return true;
             },
@@ -2713,14 +2715,16 @@ define(['jquery',
 
                     if ($(e.target).is('#claimId')) {
                         if (self.validateClaimId()) {
-                            $('#commonMsg').text('Pending payments for claim id : ')
+                            var msg =  commonjs.geti18NString("shared.fields.pendingPaymentsForClaim");
+                            $('#commonMsg').text(msg);
                             $('#spnPatInfo').text(self.claimIdToSearch);
                             self.showPendingPaymentsGrid(this.payment_id, this.payer_type, this.payer_id, 0, self.claimIdToSearch, '');
                         }
                     }
                     else if ($(e.target).is('#invoiceNo')) {
                         if (self.validateInvoice()) {
-                            $('#commonMsg').text('Pending payments for inovice # : ')
+                            var msg =  commonjs.geti18NString("shared.fields.pendingPaymentsForInvoice");
+                            $('#commonMsg').text(msg);
                             $('#spnPatInfo').text(self.invoiceNoToSearch);
                             self.showPendingPaymentsGrid(this.payment_id, this.payer_type, this.payer_id, 0, '', self.invoiceNoToSearch);
                         }
@@ -2737,14 +2741,16 @@ define(['jquery',
 
                 if ($(e.target).is('#anc_search_claim')) {
                     if (self.validateClaimId()) {
-                        $('#commonMsg').text('Pending payments for claim id : ')
+                        var msg =  commonjs.geti18NString("shared.fields.pendingPaymentsForClaim");
+                        $('#commonMsg').text(msg)
                         $('#spnPatInfo').text(self.claimIdToSearch);
                         self.showPendingPaymentsGrid(this.payment_id, this.payer_type, this.payer_id, 0, self.claimIdToSearch, '');
                     }
                 }
                 else if ($(e.target).is('#anc_search')) {
                     if (self.validateInvoice()) {
-                        $('#commonMsg').text('Pending payments for inovice # : ')
+                        var msg =  commonjs.geti18NString("shared.fields.pendingPaymentsForInvoice");
+                        $('#commonMsg').text(msg)
                         $('#spnPatInfo').text(self.invoiceNoToSearch);
                         self.showPendingPaymentsGrid(this.payment_id, this.payer_type, this.payer_id, 0, '', self.invoiceNoToSearch);
                     }
@@ -2810,7 +2816,7 @@ define(['jquery',
             validatePaymentDelete: function () {
                 var self = this;
                 if (self.canDeletePayment)
-                    return confirm('Are you sure to delete this payment?');
+                    return confirm(commonjs.geti18NString("messages.status.areYouSureToDeleteThisPayment"));
                 else {
                     return confirm('This payemet has been already applied. Proceed anyway?');
                 }
@@ -2827,7 +2833,7 @@ define(['jquery',
                             payment_id: self.payment_id
                         },
                         success: function (data, response) {
-                            commonjs.showStatus('Payment has been deleted successfully');
+                            commonjs.showStatus('messages.status.paymentDeleteSuccessfully');
                             if (self.from === 'ris')
                                 Backbone.history.navigate('#billing/payments/filter/ris', true);
                             else
@@ -2898,7 +2904,7 @@ define(['jquery',
                 var paymentAmt = $('#lblBalance').text() != '' ? self.formatMoneyValue($('#lblBalance').text()) : 0.00;
                 var payer = $('#selectPayerType :selected').val();
                 if ($('#selectPayerType').val() === '0') {
-                    commonjs.showWarning("Please select payer type");
+                    commonjs.showWarning("messages.warning.claims.pleaseSelectPayerType");
                     $('#selectPayerType').focus();
                     return false;
                 }
@@ -2906,15 +2912,15 @@ define(['jquery',
                     return false;
                 }
                 if (!self.payer_id) {
-                    commonjs.showWarning("Payer id not setted properly");
+                    commonjs.showWarning("messages.warning.claims.payerIDNotSettedProperly");
                     return false;
                 }
                 if ($('#txtInvoice').val() == '' && payer != 'patient') {
-                    commonjs.showWarning('Please update Invoice number to apply');
+                    commonjs.showWarning("messages.warning.claims.pleaseUpdateInvoice");
                     return false;
                 }
                 if (paymentAmt == 0) {
-                    commonjs.showWarning('Minimum balance required to process invoice payment');
+                    commonjs.showWarning("messages.warning.claims.minimumBalanceRequiredToProcessInvoicePayment");
                     return false;
                 }
 
@@ -2939,13 +2945,11 @@ define(['jquery',
                             else if (total_claims != 0 && valid_claims != 0) {
                                 msg = 'Valid claim count is (' + valid_claims + ') from overall (' + total_claims + ') pending claims. Are you sure to process?';
                             } else if (total_claims != 0 && valid_claims == 0) {
-                                msg = 'No valid claims to process payment';
-                                commonjs.showWarning(msg);
+                                commonjs.showWarning('messages.status.noValidClaimsToProcess');
                                 return false;
                             }
                             else if (total_claims == 0) {
-                                msg = "No valid claims to process payment(Pending claims doesn't have balance)";
-                                commonjs.showWarning(msg);
+                                commonjs.showWarning('messages.status.noValidClaimsToProcessPayment');
                                 return false;
                             }
                             if (confirm(msg)) {
@@ -2977,7 +2981,7 @@ define(['jquery',
                     },
                     success: function (data, response) {
                         if (data && data.length) {
-                            commonjs.showStatus('All payment has been applied successfully');
+                            commonjs.showStatus('messages.status.allPaymentHasBeenAppliedSuccessfully');
                             self.getAppliedBalance(self.payment_id);
                             $('#btnPaymentPendingRefresh').click();
                             $('#btnAppliedPayRefresh').click();

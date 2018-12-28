@@ -1194,7 +1194,7 @@
                     <header class="panel-header">
                         <legend>
                             <h5 class="border-bottom border-primary">
-                                <label class="font-weight-bold" >PAYMENTS</label>
+                                <label class="font-weight-bold" i18n="billing.payments.payments" ></label>
                             </h5>
                         </legend>
                     </header>
@@ -1204,14 +1204,14 @@
                             <thead id="tHeadPayment">
                                 <tr>
                                     <th></th>
-                                    <th >Acc. Date</th>
-                                    <th >Payer Name</th>
-                                    <th >Payment Mode</th>
-                                    <th >Check/Card#</th>
+                                    <th i18n="billing.payments.accountingDate"></th>
+                                    <th i18n="billing.payments.payerName"></th>
+                                    <th i18n="order.chargePayment.payMode"></th>
+                                    <th i18n="order.chargePayment.checkCardNo"></th>
                                     <th></th>
-                                    <th >This Pay.</th>
-                                    <th >This Adj.</th>
-                                    <th >Payment ID</th>
+                                    <th i18n="shared.fields.thisPayment"></th>
+                                    <th i18n="shared.fields.thisAdjustment"></th>
+                                    <th i18n="billing.payments.paymentID"></th>
 
                                 </tr>
                             </thead>
@@ -1231,7 +1231,7 @@
                                         </div>
                                     </td>
                                     <td style="width:25%;vertical-align: middle;">
-                                        <select class="form-control select-box" id="ddlPayerName_<%= row.row_index %>" style="height: 32px;">
+                                        <select class="form-control select-box" id="ddlPayerName_<%= row.row_index %>" style="height: 32px;" disabled>
                                             <option value="" i18n="shared.buttons.select"></option>
                                         </select>
                                     </td>

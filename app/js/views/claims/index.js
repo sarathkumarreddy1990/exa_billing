@@ -1626,7 +1626,7 @@ define(['jquery',
                         $(selected_opt).text(payer_details.payer_name)
                     } else {
                         $(responsibleEle).append($('<option/>').attr('value', payer_details.payer_type).text(payer_details.payer_name));
-                        if (paymentPayerEle.length && paymentDetails) {
+                        if (paymentPayerEle.length) {
                             $(paymentPayerEle).append($('<option/>').attr('value', payer_details.payer_type).text(payer_details.payer_name));
                         }
                     }
@@ -4396,7 +4396,6 @@ define(['jquery',
                                     gridData.newPaymentObj.payer_type = 'insurance';
                                     gridData.newPaymentObj.insurance_provider_id = _payerIndex.payer_id || paymentRowData.payer_info.payer_id;
                                 }
-                                console.log('-->',gridData.newPaymentObj)
                                 //Getting CAS Details before displaying payment popup
                                 self.editPaymentView.setCasGroupCodesAndReasonCodes(true, function (cas_response) {
                                     if (cas_response && cas_response.length) {
@@ -4416,8 +4415,18 @@ define(['jquery',
                                                     commonjs.hideLoading();
                                                     if (result && result.length) {
                                                         // Rebind claim payment table after apply payment popup closed
-                                                        self.bindClaimPaymentLines(result, true);
+                                                        var payment_details = result[0].payment_details || [];
+                                                        var claimBillingSummary = result[0].claim_fee_details || [];
+                                                        self.bindClaimPaymentLines(payment_details, true);
                                                         self.bindClaimPaymentEvent();
+                                                        // Rebind claim billing summary details after apply payment popup closed
+                                                        $('#spBillFee').text(commonjs.roundFee(claimBillingSummary.bill_fee || 0.00));
+                                                        $('#spBalance').text(commonjs.roundFee(claimBillingSummary.balance || 0.00));
+                                                        $('#spAllowed').text(commonjs.roundFee(claimBillingSummary.allowed || 0.00));
+                                                        $('#spPatientPaid').text(commonjs.roundFee(claimBillingSummary.patient_paid || 0.00));
+                                                        $('#spOthersPaid').text(commonjs.roundFee(claimBillingSummary.others_paid || 0.00));
+                                                        $('#spAdjustment').text(commonjs.roundFee(claimBillingSummary.adjustment || 0.00));
+                                                        $('#spRefund').text(commonjs.roundFee(claimBillingSummary.refund_amount || 0.00));
                                                     }
                                                 },
                                                 error: function (model, response) {
@@ -4434,7 +4443,7 @@ define(['jquery',
                                 commonjs.hideLoading();
                             } else {
                                 commonjs.hideLoading();
-                                commonjs.showWarning('Unable to fetch payment records');
+                                commonjs.showWarning('messages.errors.errorOnClaimPayments');
                             }
                         },
                         error: function (model, response) {
