@@ -164,7 +164,7 @@ define('grid', [
                 orderIds.push(_storeEle.order_id);
                 var study = {
                     study_id: rowId,
-                    patient_id: gridData.patient_id,
+                    patient_id: gridData.hidden_patient_id,
                     facility_id: _storeEle.facility_id,
                     study_date: _storeEle.study_dt,
                     patient_name: _storeEle.patient_name,
@@ -172,7 +172,7 @@ define('grid', [
                     patient_dob: _storeEle.birth_date,
                     accession_no: _storeEle.accession_no,
                     billed_status: _storeEle.billed_status,
-                    claim_id: gridData.claim_id,
+                    claim_id: gridData.hidden_claim_id,
                     invoice_no: _storeEle.invoice_no,
                     payer_type: _storeEle.payer_type,
                     billing_method: _storeEle.billing_method
@@ -722,7 +722,7 @@ define('grid', [
                 var rowId = $checkedInputs[r].parentNode.parentNode.id;
                 var gridData = $(gridID).jqGrid('getRowData', rowId);
 
-                if (!gridData.study_cpt_id) {
+                if (!gridData.hidden_study_cpt_id) {
                     commonjs.showWarning("Please select charges record for batch claim ");
                     return false;
                 }
@@ -733,9 +733,9 @@ define('grid', [
                 }
 
                 batchClaimArray.push({
-                    patient_id: gridData.patient_id,
-                    study_id: gridData.study_id,
-                    order_id: gridData.order_id
+                    patient_id: gridData.hidden_patient_id,
+                    study_id: gridData.hidden_study_id,
+                    order_id: gridData.hidden_order_id
                 });
             }
 
@@ -873,12 +873,11 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 ('<input type="checkbox" title="Select all studies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />'),
-                '', '', '', '', '','','','','','','','','','','','','','','','Assigned To','',''
-
+                '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', ''
             ]);
 
             i18nName = i18nName.concat([
-                '', '', '', '', '', '','','','','','','','','','','','','','','','billing.claims.assignedTo','',''
+                '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'billing.claims.assignedTo', ''
             ]);
 
             colModel = colModel.concat([
@@ -918,11 +917,11 @@ define('grid', [
                         var gridData = $('#' + e.currentTarget.id).jqGrid('getRowData', rowID);
 
                         return initializeEditForm({
-                            studyIds: gridData.claim_id,
+                            studyIds: gridData.hidden_claim_id,
                             study_id: rowID,
-                            patient_name: gridData.patient_name,
-                            patient_id: gridData.patient_id,
-                            order_id: gridData.order_id,
+                            patient_name: gridData.hidden_patient_name,
+                            patient_id: gridData.hidden_patient_id,
+                            order_id: gridData.hidden_order_id,
                             grid_id: gridID
                         });
                     }
@@ -1150,139 +1149,160 @@ define('grid', [
                     }
                 },
                 {
-                    name: 'account_no',
+                    name: 'hidden_study_id',
                     width: 20,
                     sortable: false,
                     resizable: false,
                     search: false,
                     hidden: true,
-                    isIconCol: true
+                    isIconCol: true,
+                    formatter: function (cellvalue, options, rowObject) {
+                        return rowObject.study_id || "";
+                    }
                 },
                 {
-                    name: 'study_id',
+                    name: 'hidden_clearing_house',
                     width: 20,
                     sortable: false,
                     resizable: false,
                     search: false,
                     hidden: true,
-                    isIconCol: true
+                    isIconCol: true,
+                    formatter: function (cellvalue, options, rowObject) {
+                        return rowObject.clearing_house || "";
+                    }
                 },
                 {
-                    name: 'clearing_house',
+                    name: 'hidden_claim_id',
                     width: 20,
                     sortable: false,
                     resizable: false,
                     search: false,
                     hidden: true,
-                    isIconCol: true
+                    isIconCol: true,
+                    formatter: function (cellvalue, options, rowObject) {
+                        return rowObject.claim_id || "";
+                    }
                 },
                 {
-                    name: 'edi_template',
+                    name: 'hidden_birth_date',
                     width: 20,
                     sortable: false,
                     resizable: false,
                     search: false,
                     hidden: true,
-                    isIconCol: true
+                    isIconCol: true,
+                    formatter: function (cellvalue, options, rowObject) {
+                        return rowObject.birth_date || "";
+                    }
                 },
                 {
-                    name: 'claim_id',
+                    name: 'hidden_patient_name',
                     width: 20,
                     sortable: false,
                     resizable: false,
                     search: false,
                     hidden: true,
-                    isIconCol: true
+                    isIconCol: true,
+                    formatter: function (cellvalue, options, rowObject) {
+                        return rowObject.patient_name || "";
+                    }
                 },
                 {
-                    name: 'birth_date',
+                    name: 'hidden_patient_id',
                     width: 20,
                     sortable: false,
                     resizable: false,
                     search: false,
                     hidden: true,
-                    isIconCol: true
+                    isIconCol: true,
+                    formatter: function (cellvalue, options, rowObject) {
+                        return rowObject.patient_id || "";
+                    }
                 },
                 {
-                    name: 'patient_name',
+                    name: 'hidden_billing_method',
                     width: 20,
                     sortable: false,
                     resizable: false,
                     search: false,
                     hidden: true,
-                    isIconCol: true
+                    isIconCol: true,
+                    formatter: function (cellvalue, options, rowObject) {
+                        return rowObject.billing_method || "";
+                    }
                 },
                 {
-                    name: 'patient_id',
+                    name: 'hidden_study_status',
                     width: 20,
                     sortable: false,
                     resizable: false,
                     search: false,
                     hidden: true,
-                    isIconCol: true
+                    isIconCol: true,
+                    formatter: function (cellvalue, options, rowObject) {
+                        return rowObject.study_status || "";
+                    }
                 },
                 {
-                    name: 'billing_method',
+                    name: 'hidden_has_deleted',
                     width: 20,
                     sortable: false,
                     resizable: false,
                     search: false,
                     hidden: true,
-                    isIconCol: true
+                    isIconCol: true,
+                    formatter: function (cellvalue, options, rowObject) {
+                        return rowObject.has_deleted || "";
+                    }
                 },
                 {
-                    name: 'study_status',
+                    name: 'hidden_order_id',
                     width: 20,
                     sortable: false,
                     resizable: false,
                     search: false,
                     hidden: true,
-                    isIconCol: true
+                    isIconCol: true,
+                    formatter: function (cellvalue, options, rowObject) {
+                        return rowObject.order_id || "";
+                    }
                 },
                 {
-                    name: 'has_deleted',
+                    name: 'hidden_study_cpt_id',
                     width: 20,
                     sortable: false,
                     resizable: false,
                     search: false,
                     hidden: true,
-                    isIconCol: true
+                    isIconCol: true,
+                    formatter: function (cellvalue, options, rowObject) {
+                        return rowObject.study_cpt_id || "";
+                    }
                 },
                 {
-                    name: 'order_id',
+                    name: 'hidden_claim_status_code',
                     width: 20,
                     sortable: false,
                     resizable: false,
                     search: false,
                     hidden: true,
-                    isIconCol: true
+                    isIconCol: true,
+                    formatter: function (cellvalue, options, rowObject) {
+                        return rowObject.claim_status_code || "";
+                    }
                 },
                 {
-                    name: 'study_cpt_id',
+                    name: 'hidden_invoice_no',
                     width: 20,
                     sortable: false,
                     resizable: false,
                     search: false,
                     hidden: true,
-                    isIconCol: true
-                },
-                {
-                    name: 'claim_status_code',
-                    width: 20,
-                    sortable: false,
-                    resizable: false,
-                    search: false,
-                    hidden: true,
-                    isIconCol: true
-                },
-                {
-                    name: 'invoice_no',
-                    width: 20,
-                    sortable: false,
-                    resizable: false,
-                    search: false,
-                    hidden: true,
-                    isIconCol: true
+                    isIconCol: true,
+                    formatter: function (cellvalue, options, rowObject) {
+                        return rowObject.invoice_no || "";
+                    }
                 },
                 {
                     name: 'facility_id',
@@ -1291,7 +1311,10 @@ define('grid', [
                     resizable: false,
                     search: false,
                     hidden: true,
-                    isIconCol: true
+                    isIconCol: true,
+                    formatter: function (cellvalue, options, rowObject) {
+                        return rowObject.facility_id || "";
+                    }
                 },
                 {
                     name: 'assigned_to',
@@ -1308,18 +1331,12 @@ define('grid', [
                     }
                 },
                 {
-                    name: 'assigned_id',
+                    name: 'hidden_assigned_id',
                     hidden: true,
-                },
-                {
-                    name: 'charge_description',
-                    width: 200,
-                    sortable: false,
-                    resizable: false,
-                    search: false,
-                    hidden: true,
-                    isIconCol: true
-                },
+                    formatter: function (cellvalue, options, rowObject) {
+                        return rowObject.assigned_id || "";
+                    }
+                }
             ]);
 
             if (app.showserial) {
@@ -1516,9 +1533,9 @@ define('grid', [
                     if ($('#chk' + gridID.slice(1) + '_' + rowID).length > 0) {
                         $('#chk' + gridID.slice(1) + '_' + rowID).prop('checked', true);
                     }
-                    if (options.isClaimGrid || (gridRowData.claim_id && gridRowData.claim_id != '')) {
+                    if (options.isClaimGrid || (gridRowData.hidden_claim_id && gridRowData.hidden_claim_id != '')) {
                         return initializeEditForm({
-                            studyIds: gridRowData.claim_id,
+                            studyIds: gridRowData.hidden_claim_id,
                             study_id: gridData.study_id,
                             patient_name: gridData.patient_name,
                             patient_id: gridData.patient_id,
@@ -1560,8 +1577,23 @@ define('grid', [
                     exclude: [
                         ',',
                         gridIDPrefix,
-                        '_as_chk,'
-                    ].join('')
+                        '_as_chk,',
+                        gridIDPrefix,
+                        '_as_edit,',
+                        gridIDPrefix,
+                        '_as_claim_inquiry,',
+                        gridIDPrefix,
+                        '_as_claim_summary'
+                    ].join(''),
+                    update: function (permutation, gridObj) {
+                        var colModel = gridObj && gridObj.p ?
+                            gridObj.p.colModel :
+                            $tblGrid.jqGrid('getGridParam', 'colModel');
+                        studyFieldsCollection.sort(colModel.filter(function (col) {
+                            return col.hasOwnProperty('custom_name');
+                        }));
+                        updateReorderColumn(studyFieldsCollection.toJSON(), options.isClaimGrid);
+                    }
                 },
 
                 isSearch: true,
@@ -1583,7 +1615,7 @@ define('grid', [
                         var _selectEle = $(event.currentTarget).find('#' + rowID).find('input:checkbox');
                         _selectEle.prop('checked', true);
 
-                        if (!options.isClaimGrid && !gridData.claim_id) {
+                        if (!options.isClaimGrid && !gridData.hidden_claim_id) {
                             if (validateClaimSelection(rowID, true, _selectEle, studyStore))
                                 openCreateClaim(rowID, event, options.isClaimGrid, studyStore);
                         } else {

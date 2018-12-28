@@ -457,7 +457,7 @@ define(['jquery',
                         return false;
                     }
 
-                    var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'billing_method');
+                    var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_billing_method');
 
                     if (e.target) {
                         if (billingMethodFormat != billingMethod) {
@@ -474,7 +474,7 @@ define(['jquery',
                         existingBillingMethod = billingMethod;
                     }
 
-                    var clearingHouse = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'clearing_house');
+                    var clearingHouse = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_clearing_house');
                     if (existingClearingHouse == '') existingClearingHouse = clearingHouse;
                     if (existingClearingHouse != clearingHouse && billingMethod == 'electronic_billing') {
                         commonjs.showWarning('Please select claims with same type of clearing house Claims ');
@@ -494,7 +494,7 @@ define(['jquery',
                     // } else {
                     //     existingEdiTemplate = ediTemplate;
                     // }
-                    var invoice_no = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'invoice_no');
+                    var invoice_no = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_invoice_no');
                     invoiceNo.push(invoice_no);
                     claimIds.push(rowId);
                 }

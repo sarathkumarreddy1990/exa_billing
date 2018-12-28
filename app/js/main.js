@@ -41,6 +41,7 @@ var rjsConfig = {
         'jquerysortable': '../node_modules/jquery-sortable/source/js/jquery-sortable',
         'ace': '../node_modules/ace-code-editor/lib/ace',
         'beautify': '../node_modules/js-beautify/js/lib/beautify',
+        'jquery-ui-sortable': "../node_modules/jquery-ui-sortable/jquery-ui.min"
     },
     shim: {
         'jquery.validate': {
@@ -125,6 +126,9 @@ var rjsConfig = {
         'mail-merge': {
             deps: ['_get']
         },
+        'jquery-ui-sortable': {
+            deps: ['jquery']
+        }
     },
 };
 
@@ -161,7 +165,8 @@ if (require && require.config) {
         'beautify',
         '_get',
         'mail-merge',
-        'permissionsjs'
+        'permissionsjs',
+        'jquery-ui-sortable'
     ], function (
         MomentTimezone,
         jqueryvalidate,
@@ -191,7 +196,8 @@ if (require && require.config) {
         beautify,
         _get,
         mailMerge,
-        permissionsjs
+        permissionsjs,
+        jqueryuisortable
         ) {
             window.browserLocale = typeof browserLocale == 'undefined' ? 'en-US' : browserLocale;
             window.Immutable = Immutable;
