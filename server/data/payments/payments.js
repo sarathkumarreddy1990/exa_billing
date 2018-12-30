@@ -1239,5 +1239,60 @@ module.exports = {
                         ORDER BY claim_id, charge_id `);
 
         return await query(sql);
+    },
+
+    getPatientClaims: async function (params) {
+
+        let sql = ' ';
+
+        if (params.from === 'claim_instance') {
+
+            sql = SQL`SELECT
+                        bgct.charges_bill_fee_total,
+                        bgct.claim_balance_total,
+                        claims.id
+                      FROM
+		                billing.claims
+		                INNER JOIN patients p ON p.id = claims.patient_id
+		                INNER JOIN LATERAL billing.get_claim_totals(claims.id) bgct ON TRUE
+		                WHERE p.id = ${params.patient_id} `;
+        } else {
+
+            sql = SQL`WITH
+            claim_payments AS (
+                SELECT
+                    sum(bgct.claim_balance_total) AS patient_balance ,
+                    claims.patient_id
+                FROM
+                billing.claims
+                INNER JOIN patients p ON p.id = claims.patient_id
+                INNER JOIN LATERAL billing.get_claim_totals(claims.id) bgct ON TRUE
+                GROUP BY claims.patient_id
+            )
+            SELECT
+                cp.patient_balance,
+                p.birth_date::text AS dob,
+                p.account_no,
+                p.gender,
+                p.id,
+                get_full_name(p.last_name,p.first_name,p.middle_name,p.prefix_name,p.suffix_name) AS patient_name,
+                COUNT(1) OVER (range unbounded preceding) AS total_records
+
+            FROM
+            claim_payments cp
+            INNER JOIN patients p ON p.id = cp.patient_id
+            where cp.patient_balance <= ${params.write_off_amount}::money AND  cp.patient_balance > 0::money
+            `;
+
+            sql.append(SQL` ORDER BY  `)
+                .append(params.sortField)
+                .append(' ')
+                .append(params.sortOrder)
+                .append(SQL` LIMIT ${params.pageSize}`)
+                .append(SQL` OFFSET ${((params.pageNo * params.pageSize) - params.pageSize)}`);
+        }
+
+        return await query(sql);
+
     }
 };

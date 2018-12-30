@@ -70,4 +70,9 @@ router.post('/apply_tos_payments', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.get('/patient_claim_list', async function (req, res) {
+    const data = await paymentsController.getPatientClaims(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
 module.exports = router;

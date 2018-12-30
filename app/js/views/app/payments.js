@@ -7,7 +7,11 @@ define(['jquery',
     'text!templates/app/payments.html',
     'collections/app/payments',
     'models/pager',
-    'views/reports/payments-pdf'],
+    'views/reports/payments-pdf',
+    'text!templates/app/balance-write-off.html',
+    'collections/app/patient-claims',
+    'collections/app/patient-claims'
+],
 
     function (jQuery,
         Immutable,
@@ -18,7 +22,10 @@ define(['jquery',
         paymentsGrid,
         paymentsLists,
         ModelPaymentsPager,
-        paymentPDF
+        paymentPDF,
+        balanceWriteOffTemplate,
+        patientClaimLists,
+        claimInstances
         ) {
         var paymentsView = Backbone.View.extend({
             el: null,
@@ -36,6 +43,7 @@ define(['jquery',
             appliedPaymentTable: null,
             isCleared: false,
             paymentsGridTemplate: _.template(paymentsGrid),
+            balanceWriteOffTemplate: _.template(balanceWriteOffTemplate),
 
             events: {
                 'click #btnPaymentAdd': 'addNewPayemnt',
@@ -44,7 +52,8 @@ define(['jquery',
                 "click #btnGenerateExcel": "exportExcel",
                 "click #btnGeneratePDF": "generatePDF",
                 "change #ulPaymentStatus": 'searchPayments',
-                "click #btnTOSPayment": "applyTOSPayment"
+                "click #btnTOSPayment": "applyTOSPayment",
+                "click #btnAdjustmentWriteOff": "showAdjustmentWriteOff"
             },
 
             initialize: function (options) {
@@ -89,7 +98,9 @@ define(['jquery',
                 this.pendPaymtPager = new ModelPaymentsPager();
                 this.appliedPager = new ModelPaymentsPager();
                 this.patientPager = new ModelPaymentsPager();
+                this.patientClaimPager = new ModelPaymentsPager();
                 this.paymentsList = new paymentsLists();
+                this.patientClaimList = new patientClaimLists();
                 this.adjustmentCodeList = new modelCollection(adjustment_codes);
                 this.claimStatusList = new modelCollection(claim_status);
 
@@ -620,7 +631,108 @@ define(['jquery',
                 commonjs.showLoading();
                 $.ajax(tos_request);
 
-            }, 500)
+            }, 500),
+
+            showAdjustmentWriteOff: _.debounce(function (e) {
+                var self = this;
+
+                commonjs.showDialog({
+                    header: 'Balance Write Off',
+                    width: '85%',
+                    height: '70%',
+                    html: self.balanceWriteOffTemplate()
+                });
+                commonjs.validateControls();
+                commonjs.isMaskValidate();
+
+                $('#btnNextProcess').off().click(_.debounce(function (e) {
+                    self.showPatientsGrid();
+                }, 250));
+
+            }, 500),
+
+            showPatientsGrid: function (e) {
+                var self = this;
+
+                    self.patientClaimsGrid = new customGrid();
+                    self.patientClaimsGrid.render({
+                        gridelementid: '#tblPatientClaimsGrid',
+                        custompager: self.patientClaimPager,
+                        emptyMessage: 'No Record found',
+                        colNames: ['', 'Patient Name', 'Account No', 'DOB', 'Patient Balance'],
+                        colModel: [
+                            { name: 'id', index: 'id', key: true, searchFlag: 'int', hidden: true },
+                            { name: 'patient_name', width: 100, search: false },
+                            { name: 'account_no', width: 200, search: false },
+                            { name: 'dob', width: 150, search: false },
+                            { name: 'patient_balance', width: 200, search: false }
+                        ],
+
+                        datastore: self.patientClaimList,
+                        container: $('#modal_div_container'),
+                        cmTemplate: { sortable: false },
+                        customizeSort: false,
+                        sortname: "p.id",
+                        sortorder: "asc",
+                        dblClickActionIndex: 1,
+                        disablesearch: true,
+                        disablesort: false,
+                        disablepaging: false,
+                        showcaption: false,
+                        disableadd: true,
+                        disablereload: true,
+                        customargs: {
+                            write_off_amount: $('#txtWriteOffAmt').val()
+                        },
+                        pager: '#gridPager_PatientClaims',
+                        subGrid: true,
+                        subGridInstance: function (subgrid_id, row_id) {
+                            var patientClaimInstances = new claimInstances();
+                            var subgrid_table_id = subgrid_id + "_t";
+                            row_id = row_id.replace('se', '');
+                            $("#" + subgrid_id).html("<table id='" + subgrid_table_id + "' class='scroll'></table>");
+                            var tableid = "#" + subgrid_table_id;
+                            var claimTable = new customGrid(patientClaimInstances, tableid);
+
+                            claimTable.render({
+                                gridelementid: tableid,
+                                emptyMessage: 'No claims found',
+                                custompager: new ModelPaymentsPager(),
+                                colNames: [
+                                    'Claim ID',
+                                    'Claim Total BillFee',
+                                    'Claim Total Balance'
+                                ],
+
+                                colModel: [
+                                    { name: 'id', index: 'id', key: true, width : 400 },
+                                    { name: 'charges_bill_fee_total',  width: 500 },
+                                    { name: 'claim_balance_total', width: 500 }
+
+                                ],
+                                sortname: 'claims.id',
+                                sortorder: 'ASC',
+                                disablesearch: true,
+                                disablesort: true,
+                                disablepaging: true,
+                                disableadd: true,
+                                showcaption: false,
+                                dblClickActionIndex: -2,
+                                defaultwherefilter: '',
+                                customargs: {
+                                    patient_id: row_id,
+                                    from : 'claim_instance'
+                                },
+                                isSubGrid: true
+                            });
+                        }
+                    });
+
+                    $("#tblPatientClaimsGrid").setGridWidth($(".modal-body").width()-50);
+                    $("#tblPatientClaimsGrid").setGridHeight(($(".modal-body").height() - 150));
+
+                self.patientClaimsGridLoaded = true;
+            }
 
         });
 
