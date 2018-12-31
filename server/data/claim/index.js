@@ -995,8 +995,8 @@ module.exports = {
                             COALESCE(pa.amount::numeric::text,'0.00') AS payment_applied,
                             COALESCE(pa.adjustment::numeric::text,'0.00') AS adjustment_applied,
                             payer_details.payer_info,
-                            (SELECT xmin AS claim_row_version FROM billing.claims WHERE id =  ${id} ),
-                            (SELECT payer_type AS current_claim_payer_type FROM billing.claims WHERE id =  ${id} ),
+                            claim_details.xmin AS claim_row_version,
+                            claim_details.payer_type AS current_claim_payer_type,
                             row_number() OVER( ORDER BY p.id ) as row_index
                         FROM
                             billing.payments AS p
@@ -1030,6 +1030,14 @@ module.exports = {
                                     LEFT JOIN providers ON providers.id= pro_cont.provider_id
                                     LEFT JOIN provider_groups ON provider_groups.id= p1.provider_group_id
                             ) AS payer_details ON payer_details.id = p.id
+                            LEFT JOIN LATERAL (
+                                SELECT
+                                    xmin,
+                                    payer_type
+                                FROM
+                                    billing.claims c
+                                WHERE c.id = ${id}
+                            ) AS claim_details ON TRUE
                         ORDER BY p.id ASC
                     ),
                     claim_fee_details AS (

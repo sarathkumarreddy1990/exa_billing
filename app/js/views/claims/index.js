@@ -4328,7 +4328,7 @@ define(['jquery',
                     var paymentApplicationID = $($tr).attr('data_payment_application_id') || 0;
                     var paymentRowData = self.paymentList[rowID - 1] || {};
 
-                    if (self.chargeModel.length >= 1 && !self.chargeModel[0].id || self.chargeModel.length === 0) {
+                    if ((self.chargeModel.length && !self.chargeModel[0].id) || self.chargeModel.length === 0) {
                         commonjs.showWarning("messages.warning.shared.paymentChargeValidation", 'largewarning');
                         return false;
                     }
@@ -4355,7 +4355,7 @@ define(['jquery',
                                     gridData = _.filter(result, { 'payment_application_id': paymentApplicationID });
                                     gridData = gridData.length ? gridData[0] : {};
                                 } else {
-                                    gridData = result.length ? result[0] : {};
+                                    gridData = result[0];
                                 }
 
                                 gridData.isFromClaim = true;

@@ -783,7 +783,7 @@ define(['jquery',
                     from !== 'ris' ? $('#btnPaymentApplyAll').show() : '';
                     $('#lblInputType').text('');
                     $('#txtInvoice').hide();
-                    $('#commonMsg').text('Pending payments for the patient : ');
+                    $('#commonMsg').text(commonjs.geti18NString("shared.fields.pendingPaymentsForThePatient"));
                     var e = $.Event('keyup');
                     $('#mrn').val(response.account_no).focus().trigger(e);
                     $('#spnPatInfo').text(response.patient_name + ' (' + response.account_no + ') ');
@@ -1103,9 +1103,7 @@ define(['jquery',
 
             savePayment: function (e, claimId, paymentId, paymentStatus, paymentApplicationId) {
                 var self = this;
-                if (!self.isFromClaim && !self.validatepayments()) {
-                    return false;
-                } else if (self.isFromClaim && !self.validatePayerDetails()) {
+                if ((!self.isFromClaim && !self.validatepayments()) || (self.isFromClaim && !self.validatePayerDetails())) {
                     return false;
                 }
 
@@ -1130,11 +1128,12 @@ define(['jquery',
 
                 if (self.isFromClaim && self.claimPaymentObj) {
                     var lineItems = $("#tBodyApplyPendingPayment tr");
+                    var $thisPay = $(this).find('td:nth-child(5)>input');
                     var payment = 0.00;
                     // get total this payment.
                     $.each(lineItems, function (index) {
-                        var payment_amt = $(this).find('td:nth-child(5)>input').val() ? parseFloat($(this).find('td:nth-child(5)>input').val().trim()) : 0.00;
-                        payment = payment + parseFloat(payment_amt);
+                        var payment_amt = $thisPay.val() ? $thisPay.val().trim() : 0.00;
+                        payment += parseFloat(payment_amt);
                     });
                     paymentObj.paymentId = self.payment_id || self.claimPaymentObj.paymentId || paymentId || 0 ;
                     paymentObj.amount = payment;
@@ -1150,7 +1149,7 @@ define(['jquery',
                     paymentObj.insurance_provider_id = self.claimPaymentObj.insurance_provider_id;
                     paymentObj.payment_row_version = self.claimPaymentObj.payment_row_version;
                 } else {
-                    paymentObj.amount = $.trim($('#txtAmount').val().replace(',', '')) || 0.00;
+                    paymentObj.amount = parseFloat($('#txtAmount').val()) || 0.00;
                     paymentObj.facility_id = $.trim($('#ddlPaidLocation').val());
                     paymentObj.display_id = $.trim($('#referencePaymentID').val()) || null;
                     paymentObj.accounting_date = self.dtpAccountingDate && self.dtpAccountingDate.date() ? self.dtpAccountingDate.date().format('YYYY-MM-DD') : null;
@@ -1220,7 +1219,7 @@ define(['jquery',
                             name: 'edit', width: 20, sortable: false, search: false,
                             className: 'icon-ic-edit',
                             formatter: function (e, model, data) {
-                                return "<i class='icon-ic-edit' title='Edit'></i>";
+                                return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>";
                             },
                             customAction: function (rowID, e) {
                                 var gridData = $('#tblpendPaymentsGridOnly').jqGrid('getRowData', rowID);
@@ -1232,7 +1231,7 @@ define(['jquery',
                             name: 'claim_inquiry', width: 20, sortable: false, search: false,
                             className: 'icon-ic-raw-transctipt',
                             formatter: function () {
-                                return "<i class='icon-ic-raw-transctipt' title='Claim Inquiry'></i>"
+                                return "<i class='icon-ic-raw-transctipt' i18nt='billing.fileInsurance.claimInquiry'></i>"
                             },
                             customAction: function (rowID, e) {
                                 var gridData = $('#tblpendPaymentsGridOnly').jqGrid('getRowData', rowID);
@@ -1324,7 +1323,7 @@ define(['jquery',
                                 name: 'edit', width: 20, sortable: false, search: false,
                                 className: 'icon-ic-edit',
                                 formatter: function (e, model, data) {
-                                    return "<i class='icon-ic-edit' title='Edit'></i>";
+                                    return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>";
                                 },
                                 customAction: function (rowID, e) {
                                     var gridData = $('#tblpendPaymentsGrid').jqGrid('getRowData', rowID);
@@ -1336,7 +1335,7 @@ define(['jquery',
                                 name: 'claim_inquiry', width: 20, sortable: false, search: false,
                                 className: 'icon-ic-raw-transctipt',
                                 formatter: function () {
-                                    return "<i class='icon-ic-raw-transctipt' title='Claim Inquiry'></i>"
+                                    return "<i class='icon-ic-raw-transctipt' i18nt='billing.fileInsurance.claimInquiry'></i>"
                                 },
                                 customAction: function (rowID, e) {
                                     var gridData = $('#tblpendPaymentsGrid').jqGrid('getRowData', rowID);
@@ -1484,7 +1483,7 @@ define(['jquery',
                             name: 'edit', width: 20, sortable: false, search: false,
                             className: 'icon-ic-edit',
                             formatter: function (e, model, data) {
-                                return "<i class='icon-ic-edit' title='Edit'></i>";
+                                return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>";
                             },
                             customAction: function (rowID, e) {
                                 var gridData = $('#tblAppliedPaymentsGrid').jqGrid('getRowData', rowID);
@@ -1495,7 +1494,7 @@ define(['jquery',
                             name: 'claim_inquiry', width: 20, sortable: false, search: false,
                             className: 'icon-ic-raw-transctipt',
                             formatter: function () {
-                                return "<i class='icon-ic-raw-transctipt' title='Claim Inquiry'></i>"
+                                return "<i class='icon-ic-raw-transctipt' i18nt='shared.screens.setup.claimInquiry'></i>"
                             },
                             customAction: function (rowID, e) {
                                 var gridData = $('#tblAppliedPaymentsGrid').jqGrid('getRowData', rowID);
@@ -2867,7 +2866,7 @@ define(['jquery',
                     }
 
                     if (studyIds && studyIds.length == 0) {
-                        commonjs.showWarning('Please Select Study CPT');
+                        commonjs.showWarning("messages.warning.claims.pleaseSelectStudyCPT");
                         return false;
                     }
                     else {
