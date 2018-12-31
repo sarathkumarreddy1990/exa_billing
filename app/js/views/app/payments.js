@@ -669,22 +669,12 @@ define(['jquery',
                 });
 
                 $("#ddlWriteOffBillingProvider").select2({
-                    templateSelection: function (res) {
-                        if (res && res.id) {
-                            self.writeOffBillingBrovider.id = res.id;
-                            self.writeOffBillingBrovider.text = res.text.trim();
-                            return res.text.trim();
-                        }
-                    }
+                    placeholder: commonjs.geti18NString("messages.warning.shared.selectbillingProvider"),
+                    allowClear: true
                 });
                 $("#ddlWriteOffAdjCodes").select2({
-                    templateSelection: function (res) {
-                        if (res && res.id) {
-                            self.writeOffAdjustmentCodes.id = res.id;
-                            self.writeOffAdjustmentCodes.text = res.text.trim();
-                            return res.text.trim();
-                        }
-                    }
+                    placeholder: commonjs.geti18NString("report.reportFilter.adjustmentCode"),
+                    allowClear: true
                 });
 
             }, 500),
@@ -692,14 +682,23 @@ define(['jquery',
             showPatientsGrid: function (e) {
                 var self = this;
                 var write_off_amount =  $('#txtWriteOffAmt').val();
+                var $billingProvider = $('#ddlWriteOffBillingProvider option:selected');
+                var $adjustmentCode = $('#ddlWriteOffAdjCodes option:selected');
+                var $balanceWriteOff = $('#btnBalanceWriteOff');
 
                 if ($.trim(write_off_amount) === '') {
                     commonjs.showWarning('Please enter amount to adjust off');
                     return false;
                 }
 
-                if (!$('#btnBalanceWriteOff').hasClass('d-none')) {
-                    $('#btnBalanceWriteOff').addClass('d-none');
+                if ($billingProvider.val() === '') {
+                    commonjs.showWarning("messages.warning.shared.selectbillingProvider");
+                    $billingProvider.select2('open')
+                    return false;
+                }
+
+                if (!$balanceWriteOff.hasClass('d-none')) {
+                    $balanceWriteOff.addClass('d-none');
                 }
 
                 self.patientClaimsGrid = new customGrid();
@@ -729,7 +728,8 @@ define(['jquery',
                     disableadd: true,
                     disablereload: true,
                     customargs: {
-                        write_off_amount: write_off_amount
+                        write_off_amount: write_off_amount,
+                        billing_provider_id: $billingProvider.val()
                     },
                     pager: '#gridPager_PatientClaims',
                     subGrid: true,
@@ -772,12 +772,18 @@ define(['jquery',
                         });
                     },
                     onaftergridbind: function (model, gridObj) {
-                        $('#btnBalanceWriteOff').removeClass('d-none');
-
-                        $('#btnBalanceWriteOff').off().click(_.debounce(function (e) {
+                        $balanceWriteOff.removeClass('d-none');
+                        $balanceWriteOff.off().click(_.debounce(function (e) {
+                            if ($adjustmentCode.val() === '') {
+                                commonjs.showWarning("report.reportFilter.adjustmentCode");
+                                $adjustmentCode.select2('open')
+                                return false;
+                            }
+                            $adjustmentCode.text().trim();
                             if (!confirm('You would like to adjust off accounts with a balance of $' + write_off_amount + ' or less, using the adjustment code of small balance write-off" would you like to proceed ?')) {
                                 return false;
                             }
+
                         }, 250));
                     }
                 });
