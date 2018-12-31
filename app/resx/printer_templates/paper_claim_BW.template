@@ -1527,7 +1527,7 @@ function formatSingleClaim(claimData, servicelineList) {
                                 ]
                             },layout: 'noBorders'
                         },
-                        {text: claimData.subscriber && claimData.subscriber[0] ? (getAddress2Details(claimData.subscriber[0].patient[0])) : '', margin:[0, -4, 0, 0], colSpan:3},
+                        {text: claimData.subscriber && claimData.subscriber[0] ? (getAddress2Details(claimData.subscriber[0])) : '', margin:[0, -4, 0, 0], colSpan:3},
                         {},{}
                     ],
                     [//CITY
