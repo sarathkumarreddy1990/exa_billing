@@ -364,7 +364,7 @@ module.exports = {
                 gct.adjustments_applied_total - COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'adjustment'),0::money) AS adjustment,
                 gct.charges_bill_fee_total AS bill_fee,
                 gct.claim_cpt_description as display_description,
-                gct.balance,
+                gct.claim_balance_total AS balance,
                 COUNT(1) OVER (range unbounded preceding) AS total_records `;
 
         if (isFromClaim && paymentApplicationId) {
@@ -374,26 +374,12 @@ module.exports = {
 
         sql.append(SQL`
             FROM billing.payments bp
-                INNER JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
-                INNER JOIN billing.charges bch on bch.id = bpa.charge_id
-                INNER JOIN billing.claims bc on bc.id = bch.claim_id
-                INNER JOIN public.patients pp on pp.id = bc.patient_id
-                INNER JOIN LATERAL (
-                    SELECT
-                        claim_cpt_description,
-                        adjustments_applied_total,
-                        charges_bill_fee_total,
-                        charges_bill_fee_total - (payments_applied_total + adjustments_applied_total + refund_amount) as balance
-                    FROM
-                        billing.get_claim_totals(bc.id)
-                ) AS gct ON TRUE
-                INNER JOIN LATERAL (
-                    SELECT
-                        patient_paid,
-                        others_paid
-                    FROM
-                        billing.get_claim_patient_other_payment(bc.id)
-                ) AS gcp_other_payment ON TRUE
+                INNER JOIN billing.payment_applications bpa ON bpa.payment_id = bp.id
+                INNER JOIN billing.charges bch ON bch.id = bpa.charge_id
+                INNER JOIN billing.claims bc ON bc.id = bch.claim_id
+                INNER JOIN public.patients pp ON pp.id = bc.patient_id
+                INNER JOIN billing.get_claim_totals(bc.id) gct ON TRUE
+                INNER JOIN billing.get_claim_patient_other_payment(bc.id) gcp_other_payment ON TRUE
         `);
 
         whereQuery.push(` bp.id = ${paymentID} `);
