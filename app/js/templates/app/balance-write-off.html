@@ -7,15 +7,24 @@
             </div>
             <label class="col-form-label " >Billing Provider</label>
             <div class="col-sm-2">
-                <input type="text" class="form-control" id="txtDescription2" name="description">
+                <select class="form-control select-box" id="ddlWriteOffBillingProvider">
+                    <option value="" i18n="shared.buttons.select"></option>
+                    <% _.each(billingProviderList, function(provider) { %>
+                        <option value='<%= provider.id %>'>
+                            <%= provider.full_name %>
+                        </option>
+                        <% }); %>
+                </select>
             </div>
-            <label class=" col-form-label " >Adjustment codes</label>
+            <label class="col-form-label" i18n="billing.payments.adjustmentCode"></label>
             <div class="col-sm-2">
-                <input type="text" class="form-control" id="txtDescription3" name="description">
+                <select class="form-control select-box" id="ddlWriteOffAdjCodes">
+                    <option value="" i18n="shared.buttons.select"></option>
+                </select>
             </div>
             <div class="col-sm-2">
                 <input type="button" value="next" id="btnNextProcess" class="btn-sm btn btn-primary ml-1">
-                <input type="button" value="complete" id="btnBalanceWriteOff" class="btn-sm btn btn-primary ml-1">
+                <input type="button" value="complete" id="btnBalanceWriteOff" class="btn-sm btn btn-primary ml-1 d-none" >
             </div>
         </div>
     </form>

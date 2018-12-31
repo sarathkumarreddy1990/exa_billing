@@ -1242,7 +1242,10 @@ module.exports = {
     },
 
     getPatientClaims: async function (params) {
-
+        let {
+            patient_id,
+            write_off_amount,
+        } = params;
         let sql = ' ';
 
         if (params.from === 'claim_instance') {
@@ -1255,7 +1258,7 @@ module.exports = {
 		                billing.claims
 		                INNER JOIN patients p ON p.id = claims.patient_id
 		                INNER JOIN LATERAL billing.get_claim_totals(claims.id) bgct ON TRUE
-		                WHERE p.id = ${params.patient_id} `;
+		                WHERE p.id = ${patient_id} `;
         } else {
 
             sql = SQL`WITH
@@ -1281,7 +1284,7 @@ module.exports = {
             FROM
             claim_payments cp
             INNER JOIN patients p ON p.id = cp.patient_id
-            where cp.patient_balance <= ${params.write_off_amount}::money AND  cp.patient_balance > 0::money
+            where cp.patient_balance <= ${write_off_amount}::money AND  cp.patient_balance > 0::money
             `;
 
             sql.append(SQL` ORDER BY  `)

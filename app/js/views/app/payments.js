@@ -103,6 +103,8 @@ define(['jquery',
                 this.patientClaimList = new patientClaimLists();
                 this.adjustmentCodeList = new modelCollection(adjustment_codes);
                 this.claimStatusList = new modelCollection(claim_status);
+                this.billingProviderList = new modelCollection(app.billing_providers);
+                this.writeOffAdjustmentCodeList = new modelCollection(app.adjustment_code_list);
 
                 commonjs.initHotkeys({
                     NEW_PAYMENT: '#btnPaymentAdd'
@@ -640,8 +642,11 @@ define(['jquery',
                     header: 'Balance Write Off',
                     width: '85%',
                     height: '70%',
-                    html: self.balanceWriteOffTemplate()
+                    html: self.balanceWriteOffTemplate({
+                        billingProviderList: self.billingProviderList.toJSON()
+                    })
                 });
+
                 commonjs.validateControls();
                 commonjs.isMaskValidate();
 
@@ -649,87 +654,121 @@ define(['jquery',
                     self.showPatientsGrid();
                 }, 250));
 
+                // Append adjustment codes with option colored
+                var adjustmentCodes = self.writeOffAdjustmentCodeList.toJSON();
+
+                _.each(adjustmentCodes, function(adjustmentCode){
+                    var $Option = $('<option/>', { value: adjustmentCode.id, text: adjustmentCode.description, 'data_code_type': adjustmentCode.accounting_entry_type });
+                    if (adjustmentCode.accounting_entry_type === 'refund_debit') {
+                        $Option.css({ background: 'gray' }).attr('title', 'Refund Adjustment').addClass('refund_debit');
+                    }
+                    else if (adjustmentCode.accounting_entry_type === 'recoupment_debit') {
+                        $Option.css({ background: 'lightgray' }).attr('title', 'Recoupment Adjustment').addClass('recoupment_debit');
+                    }
+                    $('#ddlWriteOffAdjCodes').append($Option);
+                });
+
+                $("#ddlWriteOffAdjCodes").select2();
+                $("#ddlWriteOffBillingProvider").select2();
+
+
             }, 500),
 
             showPatientsGrid: function (e) {
                 var self = this;
+                var write_off_amount =  $('#txtWriteOffAmt').val();
 
-                    self.patientClaimsGrid = new customGrid();
-                    self.patientClaimsGrid.render({
-                        gridelementid: '#tblPatientClaimsGrid',
-                        custompager: self.patientClaimPager,
-                        emptyMessage: 'No Record found',
-                        colNames: ['', 'Patient Name', 'Account No', 'DOB', 'Patient Balance'],
-                        colModel: [
-                            { name: 'id', index: 'id', key: true, searchFlag: 'int', hidden: true },
-                            { name: 'patient_name', width: 100, search: false },
-                            { name: 'account_no', width: 200, search: false },
-                            { name: 'dob', width: 150, search: false },
-                            { name: 'patient_balance', width: 200, search: false }
-                        ],
+                if ($.trim(write_off_amount) === '') {
+                    commonjs.showWarning('Please enter amount to adjust off');
+                    return false;
+                }
 
-                        datastore: self.patientClaimList,
-                        container: $('#modal_div_container'),
-                        cmTemplate: { sortable: false },
-                        customizeSort: false,
-                        sortname: "p.id",
-                        sortorder: "asc",
-                        dblClickActionIndex: 1,
-                        disablesearch: true,
-                        disablesort: false,
-                        disablepaging: false,
-                        showcaption: false,
-                        disableadd: true,
-                        disablereload: true,
-                        customargs: {
-                            write_off_amount: $('#txtWriteOffAmt').val()
-                        },
-                        pager: '#gridPager_PatientClaims',
-                        subGrid: true,
-                        subGridInstance: function (subgrid_id, row_id) {
-                            var patientClaimInstances = new claimInstances();
-                            var subgrid_table_id = subgrid_id + "_t";
-                            row_id = row_id.replace('se', '');
-                            $("#" + subgrid_id).html("<table id='" + subgrid_table_id + "' class='scroll'></table>");
-                            var tableid = "#" + subgrid_table_id;
-                            var claimTable = new customGrid(patientClaimInstances, tableid);
+                if (!$('#btnBalanceWriteOff').hasClass('d-none')) {
+                    $('#btnBalanceWriteOff').addClass('d-none');
+                }
 
-                            claimTable.render({
-                                gridelementid: tableid,
-                                emptyMessage: 'No claims found',
-                                custompager: new ModelPaymentsPager(),
-                                colNames: [
-                                    'Claim ID',
-                                    'Claim Total BillFee',
-                                    'Claim Total Balance'
-                                ],
+                self.patientClaimsGrid = new customGrid();
+                self.patientClaimsGrid.render({
+                    gridelementid: '#tblPatientClaimsGrid',
+                    custompager: self.patientClaimPager,
+                    emptyMessage: 'No Record found',
+                    colNames: ['', 'Patient Name', 'Account No', 'DOB', 'Patient Balance'],
+                    colModel: [
+                        { name: 'id', index: 'id', key: true, searchFlag: 'int', hidden: true },
+                        { name: 'patient_name', width: 100, search: false },
+                        { name: 'account_no', width: 200, search: false },
+                        { name: 'dob', width: 150, search: false },
+                        { name: 'patient_balance', width: 200, search: false }
+                    ],
+                    datastore: self.patientClaimList,
+                    container: $('#modal_div_container'),
+                    cmTemplate: { sortable: false },
+                    customizeSort: false,
+                    sortname: "p.id",
+                    sortorder: "asc",
+                    dblClickActionIndex: 1,
+                    disablesearch: true,
+                    disablesort: false,
+                    disablepaging: false,
+                    showcaption: false,
+                    disableadd: true,
+                    disablereload: true,
+                    customargs: {
+                        write_off_amount: write_off_amount
+                    },
+                    pager: '#gridPager_PatientClaims',
+                    subGrid: true,
+                    subGridInstance: function (subgrid_id, row_id) {
+                        var patientClaimInstances = new claimInstances();
+                        var subgrid_table_id = subgrid_id + "_t";
+                        row_id = row_id.replace('se', '');
+                        $("#" + subgrid_id).html("<table id='" + subgrid_table_id + "' class='scroll'></table>");
+                        var tableid = "#" + subgrid_table_id;
+                        var claimTable = new customGrid(patientClaimInstances, tableid);
 
-                                colModel: [
-                                    { name: 'id', index: 'id', key: true, width : 400 },
-                                    { name: 'charges_bill_fee_total',  width: 500 },
-                                    { name: 'claim_balance_total', width: 500 }
+                        claimTable.render({
+                            gridelementid: tableid,
+                            emptyMessage: 'No claims found',
+                            custompager: new ModelPaymentsPager(),
+                            colNames: [
+                                'Claim ID',
+                                'Claim Total BillFee',
+                                'Claim Total Balance'
+                            ],
+                            colModel: [
+                                { name: 'id', index: 'id', key: true, width: 400 },
+                                { name: 'charges_bill_fee_total', width: 500 },
+                                { name: 'claim_balance_total', width: 500 }
+                            ],
+                            sortname: 'claims.id',
+                            sortorder: 'ASC',
+                            disablesearch: true,
+                            disablesort: true,
+                            disablepaging: true,
+                            disableadd: true,
+                            showcaption: false,
+                            dblClickActionIndex: -2,
+                            defaultwherefilter: '',
+                            customargs: {
+                                patient_id: row_id,
+                                from: 'claim_instance'
+                            },
+                            isSubGrid: true
+                        });
+                    },
+                    onaftergridbind: function (model, gridObj) {
+                        $('#btnBalanceWriteOff').removeClass('d-none');
 
-                                ],
-                                sortname: 'claims.id',
-                                sortorder: 'ASC',
-                                disablesearch: true,
-                                disablesort: true,
-                                disablepaging: true,
-                                disableadd: true,
-                                showcaption: false,
-                                dblClickActionIndex: -2,
-                                defaultwherefilter: '',
-                                customargs: {
-                                    patient_id: row_id,
-                                    from : 'claim_instance'
-                                },
-                                isSubGrid: true
-                            });
-                        }
-                    });
+                        $('#btnBalanceWriteOff').off().click(_.debounce(function (e) {
+                            if (!confirm('You would like to adjust off accounts with a balance of $' + write_off_amount + ' or less, using the adjustment code of small balance write-off" would you like to proceed ?')) {
+                                return false;
+                            }
+                        }, 250));
+                    }
+                });
 
-                    $("#tblPatientClaimsGrid").setGridWidth($(".modal-body").width()-50);
-                    $("#tblPatientClaimsGrid").setGridHeight(($(".modal-body").height() - 150));
+                $("#tblPatientClaimsGrid").setGridWidth($(".modal-body").width() - 10);
+                $("#tblPatientClaimsGrid").setGridHeight(($(".modal-body").height() - 120));
 
                 self.patientClaimsGridLoaded = true;
             }
