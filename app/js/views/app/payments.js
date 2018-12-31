@@ -637,7 +637,8 @@ define(['jquery',
 
             showAdjustmentWriteOff: _.debounce(function (e) {
                 var self = this;
-
+                self.writeOffBillingBrovider = { id: null, text: null };
+                self.writeOffAdjustmentCodes = { id: null, text: null };
                 commonjs.showDialog({
                     header: 'Balance Write Off',
                     width: '85%',
@@ -646,7 +647,7 @@ define(['jquery',
                         billingProviderList: self.billingProviderList.toJSON()
                     })
                 });
-
+                $('#siteModal').removeAttr('tabindex'); //removed tabIndex attr for select2 search text can't editable
                 commonjs.validateControls();
                 commonjs.isMaskValidate();
 
@@ -656,21 +657,35 @@ define(['jquery',
 
                 // Append adjustment codes with option colored
                 var adjustmentCodes = self.writeOffAdjustmentCodeList.toJSON();
-
                 _.each(adjustmentCodes, function(adjustmentCode){
                     var $Option = $('<option/>', { value: adjustmentCode.id, text: adjustmentCode.description, 'data_code_type': adjustmentCode.accounting_entry_type });
                     if (adjustmentCode.accounting_entry_type === 'refund_debit') {
-                        $Option.css({ background: 'gray' }).attr('title', 'Refund Adjustment').addClass('refund_debit');
+                        $Option.attr('title', 'Refund Adjustment').addClass('refund_debit');
                     }
                     else if (adjustmentCode.accounting_entry_type === 'recoupment_debit') {
-                        $Option.css({ background: 'lightgray' }).attr('title', 'Recoupment Adjustment').addClass('recoupment_debit');
+                        $Option.attr('title', 'Recoupment Adjustment').addClass('recoupment_debit');
                     }
                     $('#ddlWriteOffAdjCodes').append($Option);
                 });
 
-                $("#ddlWriteOffAdjCodes").select2();
-                $("#ddlWriteOffBillingProvider").select2();
-
+                $("#ddlWriteOffBillingProvider").select2({
+                    templateSelection: function (res) {
+                        if (res && res.id) {
+                            self.writeOffBillingBrovider.id = res.id;
+                            self.writeOffBillingBrovider.text = res.text.trim();
+                            return res.text.trim();
+                        }
+                    }
+                });
+                $("#ddlWriteOffAdjCodes").select2({
+                    templateSelection: function (res) {
+                        if (res && res.id) {
+                            self.writeOffAdjustmentCodes.id = res.id;
+                            self.writeOffAdjustmentCodes.text = res.text.trim();
+                            return res.text.trim();
+                        }
+                    }
+                });
 
             }, 500),
 
