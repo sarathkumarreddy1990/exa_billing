@@ -654,16 +654,17 @@ define(['jquery',
                 $('#ddlBillingClass').val(claim_data.billing_class_id || '');
                 $('#txtClaimResponsibleNotes').val(claim_data.billing_notes || '')
 
-                var claim_fee_details = claim_data.claim_fee_details && claim_data.claim_fee_details.length ? claim_data.claim_fee_details[0] : {};
+                if (claim_data.claim_fee_details && claim_data.claim_fee_details.length) {
+                    var claim_fee_details = claim_data.claim_fee_details[0] || {};
 
-                $('#spBillFee').text(commonjs.roundFee(claim_fee_details.bill_fee || 0.00));
-                $('#spBalance').text(commonjs.roundFee(claim_fee_details.balance || 0.00));
-                $('#spAllowed').text(commonjs.roundFee(claim_fee_details.allowed || 0.00));
-                $('#spPatientPaid').text(commonjs.roundFee(claim_fee_details.patient_paid || 0.00));
-                $('#spOthersPaid').text(commonjs.roundFee(claim_fee_details.others_paid || 0.00));
-                $('#spAdjustment').text(commonjs.roundFee(claim_fee_details.adjustment || 0.00));
-                $('#spRefund').text(commonjs.roundFee(claim_fee_details.refund_amount || 0.00));
-
+                    $('#spBillFee').text(commonjs.roundFee(claim_fee_details.bill_fee || 0.00));
+                    $('#spBalance').text(commonjs.roundFee(claim_fee_details.balance || 0.00));
+                    $('#spAllowed').text(commonjs.roundFee(claim_fee_details.allowed || 0.00));
+                    $('#spPatientPaid').text(commonjs.roundFee(claim_fee_details.patient_paid || 0.00));
+                    $('#spOthersPaid').text(commonjs.roundFee(claim_fee_details.others_paid || 0.00));
+                    $('#spAdjustment').text(commonjs.roundFee(claim_fee_details.adjustment || 0.00));
+                    $('#spRefund').text(commonjs.roundFee(claim_fee_details.refund_amount || 0.00));
+                }
                 /* Billing summary end */
 
                 /* ResponsibleList start*/
@@ -1610,6 +1611,10 @@ define(['jquery',
             updateResponsibleList: function (payer_details, paymentDetails) {
                 var self = this, index, responsibleEle, selected_opt;
                 var paymentPayerEle = $('#tBodyPayment tr').find("[id^=ddlPayerName]").filter(':input:enabled');
+                // Inner function used to create dynamic options;
+                function getOption (obj){
+                    return $('<option/>').attr('value', obj.payer_type).text(obj.payer_name);
+                };
 
                 if (!paymentDetails) {
                     index = _.findIndex(self.responsible_list, function (item) { return item.payer_type == payer_details.payer_type; });
@@ -1625,9 +1630,9 @@ define(['jquery',
                     } else if (selected_opt && selected_opt.length && payer_details.payer_name) {
                         $(selected_opt).text(payer_details.payer_name)
                     } else {
-                        $(responsibleEle).append($('<option/>').attr('value', payer_details.payer_type).text(payer_details.payer_name));
+                        $(responsibleEle).append(getOption(payer_details));
                         if (paymentPayerEle.length) {
-                            $(paymentPayerEle).append($('<option/>').attr('value', payer_details.payer_type).text(payer_details.payer_name));
+                            $(paymentPayerEle).append(getOption(payer_details));
                         }
                     }
                 } else {
@@ -1635,7 +1640,7 @@ define(['jquery',
                     responsibleEle = $('#ddlPayerName_' + paymentDetails.row_id);
                     $.each(self.responsible_list, function (index, obj) {
                         if (obj.payer_id) {
-                            $(responsibleEle).append($('<option/>').attr('value', obj.payer_type).text(obj.payer_name));
+                            $(responsibleEle).append(getOption(obj));
                         }
                     });
                 }
@@ -4365,8 +4370,9 @@ define(['jquery',
                                 self.editPaymentView = new editPaymentView({ el: $('#modal_div_container') });
 
                                 var isModifiedPaymentMode = $('#ddlPaymentMode_' + rowID).attr('data_payment_mode') != $('#ddlPaymentMode_' + rowID).val();
+                                var accountingDateObj =  self.dtpAccountingDate[rowID - 1];
                                 gridData.newPaymentObj = {
-                                    accounting_date: self.dtpAccountingDate[rowID - 1] && self.dtpAccountingDate[rowID - 1].date() ? self.dtpAccountingDate[rowID - 1].date().format('YYYY-MM-DD') : null,
+                                    accounting_date: accountingDateObj && accountingDateObj.date() ? accountingDateObj.date().format('YYYY-MM-DD') : null,
                                     notes: null,
                                     amount: 0.00,
                                     invoice_no: null,
@@ -4380,7 +4386,7 @@ define(['jquery',
                                     payment_row_version : gridData.payment_row_version || null,
                                     payment_mode: $('#ddlPaymentMode_' + rowID).val() || null,
                                     credit_card_number: $("#txtCheckCardNo_" + rowID).val() || null,
-                                    isPaymentUpdate : self.dtpAccountingDate[rowID - 1].isModified || isModifiedPaymentMode
+                                    isPaymentUpdate : accountingDateObj.isModified || isModifiedPaymentMode
                                 };
 
                                 if (_payerIndex.payer_type === 'PPP' || paymentRowData.payer_type === 'patient') {
@@ -4573,8 +4579,8 @@ define(['jquery',
                 if (isInitialLoaded) {
                     var current_claim_payer_type = payment_details.length && payment_details[0].current_claim_payer_type || null;
                     var claimResponsible = _.find(self.responsible_list, function (item) { return item.payer_type_name === current_claim_payer_type; });
-                    $('#ddlClaimResponsible').val(claimResponsible.payer_type);
-                    $('#ddlClaimResponsible').data('current-payer', claimResponsible.payer_type);
+                    $('#ddlClaimResponsible').val(claimResponsible.payer_type || null);
+                    $('#ddlClaimResponsible').data('current-payer', claimResponsible.payer_type || null);
                 }
 
                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);

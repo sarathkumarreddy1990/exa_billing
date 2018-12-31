@@ -368,7 +368,7 @@ module.exports = {
                 COUNT(1) OVER (range unbounded preceding) AS total_records `;
 
         if (isFromClaim && paymentApplicationId) {
-            sql.append(SQL` ,bp.xmin  AS payment_row_version `);
+            sql.append(SQL` ,( SELECT xmin AS payment_row_version FROM billing.payments WHERE id = ${paymentID} ) `);
             whereQuery.push(`bpa.id = ${paymentApplicationId}`);
         }
 
@@ -404,10 +404,6 @@ module.exports = {
         }
 
         sql.append(SQL`GROUP BY bc.id, bc.invoice_no, get_full_name(pp.last_name,pp.first_name), bc.claim_dt, bpa.applied_dt, display_description, balance, adjustments_applied_total, charges_bill_fee_total, patient_paid, others_paid `);
-
-        if (isFromClaim && paymentApplicationId) {
-            sql.append(SQL`,bp.xmin`);
-        }
 
         if (havingQuery.length) {
             sql.append(SQL` HAVING `)

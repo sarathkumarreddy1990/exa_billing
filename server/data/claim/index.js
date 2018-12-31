@@ -1060,15 +1060,9 @@ module.exports = {
                     )
                     SELECT
                     (
-                        SELECT
-                            COALESCE(json_agg(row_to_json(payment_details)),'[]') payment_details
-                        FROM
-                        ( SELECT * FROM payment_details ) AS payment_details
+                        SELECT json_agg(row_to_json(payment_details.*)) AS payment_details FROM payment_details
                     ),
-                    (	SELECT
-                            COALESCE(row_to_json(claim_fee_details),'[]') claim_fee_details
-                        FROM
-                        ( SELECT * FROM claim_fee_details ) AS claim_fee_details
+                    (	SELECT json_agg(row_to_json(claim_fee_details.*)) AS claim_fee_details FROM claim_fee_details
                     ) `;
 
         return await query(sqlQry);
