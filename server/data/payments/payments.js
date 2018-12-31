@@ -1245,6 +1245,7 @@ module.exports = {
         let {
             patient_id,
             write_off_amount,
+            billing_provider_id
         } = params;
         let sql = ' ';
 
@@ -1257,8 +1258,8 @@ module.exports = {
                       FROM
 		                billing.claims
 		                INNER JOIN patients p ON p.id = claims.patient_id
-		                INNER JOIN LATERAL billing.get_claim_totals(claims.id) bgct ON TRUE
-		                WHERE p.id = ${patient_id} `;
+                        INNER JOIN LATERAL billing.get_claim_totals(claims.id) bgct ON TRUE
+                        WHERE p.id = ${patient_id} `;
         } else {
 
             sql = SQL`WITH
@@ -1270,6 +1271,7 @@ module.exports = {
                 billing.claims
                 INNER JOIN patients p ON p.id = claims.patient_id
                 INNER JOIN LATERAL billing.get_claim_totals(claims.id) bgct ON TRUE
+                WHERE claims.billing_provider_id = ${billing_provider_id}
                 GROUP BY claims.patient_id
             )
             SELECT
