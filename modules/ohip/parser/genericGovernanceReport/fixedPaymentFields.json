@@ -1,0 +1,53 @@
+{
+    "transactionID": {
+        "startPos": 1,
+        "fieldLength": 2,
+        "constant": "A1"
+    },
+    "recordIDType": {
+        "startPos": 3,
+        "fieldLength": 1,
+        "constant": "F"
+    },
+    "mohReserved1": {
+        "startPos": 4,
+        "fieldLength": 1
+    },
+    "governaneNumber": {
+        "startPos": 5,
+        "fieldLength": 4
+    },
+    "mohReserved2": {
+        "startPos": 9,
+        "fieldLength": 16
+    },
+    "governanceName": {
+        "startPos": 15,
+        "fieldLength": 75
+    },
+    "signField": {
+        "startPos": 90,
+        "fieldLength": 1
+    },
+    "monthlyPaymentAmount": {
+        "startPos": 91,
+        "fieldLength": 11
+    },
+    "mohReserved3": {
+        "startPos": 102,
+        "fieldLength": 5
+    },
+    "reportingDate": {
+        "startPos": 107,
+        "fieldLength": 6
+    },
+    "techSpecRelease": {
+        "startPos": 113,
+        "fieldLength": 3,
+        "constant": "V01"
+    },
+    "mohReserved4": {
+        "startPos": 116,
+        "fieldLength": 20
+    }
+}

@@ -1,0 +1,53 @@
+{
+    "transactionID": {
+        "startPos": 1,
+        "fieldLength": 2,
+        "constant": "A2"
+    },
+    "recordIDType": {
+        "startPos": 3,
+        "fieldLength": 1
+    },
+    "mohReserved1": {
+        "startPos": 4,
+        "fieldLength": 1
+    },
+    "groupBillingNumber": {
+        "startPos": 5,
+        "fieldLength": 4
+    },
+    "soloBillingNumber": {
+        "startPos": 9,
+        "fieldLength": 6
+    },
+    "fullName": {
+        "startPos": 15,
+        "fieldLength": 75
+    },
+    "signField": {
+        "startPos": 90,
+        "fieldLength": 1,
+        "enumerated": [" ", "-"]
+    },
+    "conversionPaymentAmount": {
+        "startPos": 91,
+        "fieldLength": 11
+    },
+    "conversionPercentage": {
+        "startPos": 102,
+        "fieldLength": 5
+    },
+    "approvedClaimsAmountSign": {
+        "startPos": 107,
+        "fieldLength": 1,
+        "enumerated": [" ", "-"]
+    },
+    "approvedClaimsAmount": {
+        "startPos": 108,
+        "fieldLength": 11
+    },
+    "mohReserved2": {
+        "startPos": 119,
+        "fieldLength": 17
+    },
+}

@@ -1,0 +1,85 @@
+{
+    "transactionIdentifier": {
+        "startPos": 1,
+        "fieldLength": 2,
+        "constant": "HX"
+    },
+    "recordIdentifier": {
+        "startPos": 3,
+        "fieldLength": 1,
+        "constant": "H"
+    },
+    "healthNumber": {
+        "startPos": 4,
+        "fieldLength": 10
+    },
+    "versionCode": {
+        "startPos": 14,
+        "fieldLength": 2
+    },
+    "patientDateOfBirth": {
+        "startPos": 16,
+        "fieldLength": 8
+    },
+    "accountingNumber": {
+        "startPos": 24,
+        "fieldLength": 8
+    },
+    "paymentProgram": {
+        "startPos": 32,
+        "fieldLength": 3
+    },
+    "payee": {
+        "startPos": 35,
+        "fieldLength": 1
+    },
+    "referingProviderNumber": {
+        "startPos": 36,
+        "fieldLength": 6
+    },
+    "masterNumber": {
+        "startPos": 42,
+        "fieldLength": 4
+    },
+    "patientAdmissionDate": {
+        "startPos": 46,
+        "fieldLength": 8
+    },
+    "referringLabLicense": {
+        "startPos": 54,
+        "fieldLength": 4
+    },
+    "serviceLocationIndicator": {
+        "startPos": 58,
+        "fieldLength": 4
+    },
+    "mohReserved": {
+        "startPos": 62,
+        "fieldLength": 3
+    },
+    "errorCode1": {
+        "startPos": 65,
+        "fieldLength": 3,
+        "i18n": "ohip.errorReport.error"
+    },
+    "errorCode2": {
+        "startPos": 68,
+        "fieldLength": 3,
+        "i18n": "ohip.errorReport.error"
+    },
+    "errorCode3": {
+        "startPos": 71,
+        "fieldLength": 3,
+        "i18n": "ohip.errorReport.error"
+    },
+    "errorCode4": {
+        "startPos": 74,
+        "fieldLength": 3,
+        "i18n": "ohip.errorReport.error"
+    },
+    "errorCode5": {
+        "startPos": 77,
+        "fieldLength": 3,
+        "i18n": "ohip.errorReport.error"
+    }
+}

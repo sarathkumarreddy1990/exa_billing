@@ -1,0 +1,69 @@
+{
+    "transactionIdentifier": {
+        "startPos": 1,
+        "fieldLength": 2,
+        "constant": "HR"
+    },
+    "recordType": {
+        "startPos": 3,
+        "fieldLength": 1,
+        "constant": "1"
+    },
+    "techSpecReleaseIdentifier": {
+        "startPos": 4,
+        "fieldLength": 3,
+        "constant": "V03"
+    },
+    "mohReserved1": {
+        "startPos": 7,
+        "fieldLength": 1,
+        "constant": "0"
+    },
+    "groupNumber": {
+        "startPos": 8,
+        "fieldLength": 4
+    },
+    "providerNumber": {
+        "startPos": 12,
+        "fieldLength": 6
+    },
+    "specialty": {
+        "startPos": 18,
+        "fieldLength": 2
+    },
+    "officeCode": {
+        "startPos": 20,
+        "fieldLength": 1,
+        "enumerated": ["A","B","C", "H", "K", "L", "M", "S","T"]
+    },
+    "dataSequence": {
+        "startPos": 21,
+        "fieldLength": 1
+    },
+    "paymentDate": {
+        "startPos": 22,
+        "fieldLength": 8
+    },
+    "payeeName": {
+        "startPos": 30,
+        "fieldLength": 30
+    },
+    "totalAmountPayable": {
+        "startPos": 60,
+        "fieldLength": 9
+    },
+    "totalAmountPayableSign": {
+        "startPos": 69,
+        "fieldLength": 1
+    },
+
+    "chequeNumber": {
+        "startPos": 70,
+        "fieldLength": 8
+    },
+
+    "mohReserved2": {
+        "startPos": 78,
+        "fieldLength": 2
+    }
+}

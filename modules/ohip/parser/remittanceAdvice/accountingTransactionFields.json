@@ -1,0 +1,43 @@
+{
+    "transactionIdentifier": {
+        "startPos": 1,
+        "fieldLength": 2,
+        "constant": "HR"
+    },
+    "recordType": {
+        "startPos": 3,
+        "fieldLength": 1,
+        "constant": "7"
+    },
+    "transactionCode": {
+        "startPos": 4,
+        "fieldLength": 2,
+        "i18n": "transaction"
+    },
+    "chequeIndicator": {
+        "startPos": 6,
+        "fieldLength": 1,
+        "i18n": "chequeIndicator"
+    },
+    "transactionDate": {
+        "startPos": 7,
+        "fieldLength": 8
+    },
+    "transactionAmount": {
+        "startPos": 15,
+        "fieldLength": 8
+    },
+    "transactionAmountSign": {
+        "startPos": 23,
+        "fieldLength": 1,
+        "enumerated": [" ", "-"]
+    },
+    "transactionMessage": {
+        "startPos": 24,
+        "fieldLength": 50
+    },
+    "mohReserved": {
+        "startPos": 74,
+        "fieldLength": 6
+    }
+}
