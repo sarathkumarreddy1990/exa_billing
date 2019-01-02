@@ -4422,7 +4422,7 @@ define(['jquery',
                                                     if (result && result.length) {
                                                         // Rebind claim payment table after apply payment popup closed
                                                         var payment_details = result[0].payment_details || [];
-                                                        var claimBillingSummary = result[0].claim_fee_details || [];
+                                                        var claimBillingSummary = result[0].claim_fee_details && result[0].claim_fee_details.length && result[0].claim_fee_details[0] || {};
                                                         self.bindClaimPaymentLines(payment_details, true);
                                                         self.bindClaimPaymentEvent();
                                                         // Rebind claim billing summary details after apply payment popup closed
