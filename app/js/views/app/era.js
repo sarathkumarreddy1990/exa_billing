@@ -21,7 +21,7 @@ define([
             subGridPager: null,
             eobStatus: { "": "All", "pending": "Pending", "in_progress": "In Progress", "success": "Success", "failure": "Failure", "RP": "Ready for Processing" },
             parent_file_id: 0,
-
+            uploadMode : null,
             events: {
                 'click #btnProcessERA': 'processERAFile',
                 'click #btnReloadERA': 'reloadERAFiles',
@@ -69,8 +69,8 @@ define([
                     gridelementid: '#tblEOBFileList',
                     custompager: this.pager,
                     emptyMessage: 'No Record found',
-                    colNames: ['', '', '', 'Id', 'Payment Id','File Name', 'Size', 'File Updated Date/Time', 'Status'],
-                    i18nNames: ['', '', '', 'shared.fields.paymentId','home.pendingStudies.fileName', 'home.viewerCommonOptions.size', 'home.pendingStudies.fileUpdatedDateTime', 'shared.fields.status'],
+                    colNames: ['', '', '', '', 'Id', 'Payment Id','File Name', 'Size', 'File Updated Date/Time', 'Status'],
+                    i18nNames: ['', '', '', '', 'shared.fields.paymentId','home.pendingStudies.fileName', 'home.viewerCommonOptions.size', 'home.pendingStudies.fileUpdatedDateTime', 'shared.fields.status'],
                     colModel: [
                         { name: 'id', index: 'id', key: true, hidden: true, searchFlag: '%', search: false },
                         { name: 'file_store_id', hidden: true, searchFlag: '%', search: false },
@@ -89,6 +89,33 @@ define([
                                 }
                                 else {
                                     commonjs.showWarning('File not in success status');
+                                }
+                            }
+                        },
+                        {
+                            name: 'eob_file_id', width: 80, sortable: false, search: false,
+                            formatter: function (cellvalue, options, rowObject) {
+                                if (rowObject.payment_id && cellvalue) {
+                                    return "<a href='javascript: void(0)' id =" + cellvalue + " name='viewPDF' style='text-align: center;text-decoration: underline;'>View PDF</a>";
+                                } else if (rowObject.payment_id && !cellvalue) {
+                                    return "<a href='javascript: void(0)' id =" + rowObject.id + " name='uploadPDF' style='text-align: center;text-decoration: underline;'>Upload PDF</a>";
+                                }
+
+                                return "";
+                            },
+                            customAction: function (rowID, e) {
+                                if (e.target.name === 'viewPDF') {
+                                    commonjs.showDialog({
+                                        url: '/exa_modules/billing/era/eob_pdf?file_id=' + e.target.id + '&company_id=' + app.companyID,
+                                        width: '80%',
+                                        height: '80%',
+                                        header: 'EOB',
+                                        i18nHeader: "billing.payments.eob"
+                                    });
+                                } else if (e.target.name === 'uploadPDF') {
+                                    self.uploadMode = 'PDF';
+                                    var iframe = $('#ifrEobFileUpload')[0];
+                                    iframe.contentWindow.fireUpload(e);
                                 }
                             }
                         },
@@ -174,10 +201,11 @@ define([
                 var fileUploadedObj = document && document.getElementById("ifrEobFileUpload") && document.getElementById("ifrEobFileUpload").contentWindow
                     && document.getElementById("ifrEobFileUpload").contentWindow.document && document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileNameUploaded');
 
-                if (fileUploadedObj && fileUploadedObj.innerHTML) {
+                if (fileUploadedObj && fileUploadedObj.innerHTML && this.uploadMode !== 'PDF') {
                     $('#tblEOBFileList #' + fileUploadedObj.innerHTML).dblclick();
                     fileUploadedObj.innerHTML = '';
                 }
+                this.uploadMode = null;
             },
 
             setPhoneMask: function (obj1, obj2) {

@@ -1,3 +1,4 @@
+const stream = require('stream');
 const {
     moduleNames,
     screenNames,
@@ -78,5 +79,13 @@ module.exports = {
             moduleNameInternal,
             screenNameInternal,
         };
+    },
+
+    isStream: function (obj) {
+        return obj instanceof stream.Stream;
+    },
+
+    isReadableStream: function (obj) {
+        return this.isStream(obj) && typeof obj._read === 'function' && typeof obj._readableState === 'object';
     }
 };

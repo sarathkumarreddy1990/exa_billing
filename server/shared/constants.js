@@ -180,6 +180,7 @@ module.exports = {
         'billing_payers': 'ECLM',
         'service_facilities': 'ECLM',
         'claim_charge': 'ECLM', //delete Claim Rmenu
+        'eob_pdf' : 'ERAI',
         'era_list': 'ERAI',
         'upload': 'ERAI',
         'era_file_preview': 'ERAI',
