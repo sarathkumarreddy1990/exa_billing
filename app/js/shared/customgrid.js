@@ -695,7 +695,6 @@ function customGrid ( datastore, gridID ) {
                 // must check display === none, not :visible pseudo selector, else you will get false positives
                 // since we are switching between tabs where the tab data is not visible at time of setting search query
                 if(element.css('display') === 'none') {
-                    element.remove();
                     return false;
                 }
 

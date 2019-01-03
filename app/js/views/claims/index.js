@@ -3442,7 +3442,7 @@ define(['jquery',
                         self.clearInsuranceFields(true, ['Pri', 'Sec', 'Ter']);
                         $(e.target).prop('disabled', true);
                         var data = parentGrid.getRowData(rowId);
-                        if (data.claim_id == self.claim_Id) {
+                        if (data.hidden_claim_id == self.claim_Id) {
                             nextRowData = $(e.target).attr('id') == 'btnPrevClaim' ? nextRowData.prev() : nextRowData.next();
                             rowId = nextRowData.attr('id');
                             data = parentGrid.getRowData(rowId);
@@ -3454,12 +3454,12 @@ define(['jquery',
                             self.showClaimForm({
                                 'from': 'studies',
                                 'study_id': rowId,
-                                'order_id': data.order_id,
+                                'order_id': data.hidden_order_id,
                                 'account_no': data.account_no,
                                 'study_date': data.study_dt,
-                                'patient_id': data.patient_id,
-                                'facility_id': data.facility_id,
-                                'patient_dob': data.birth_date,
+                                'patient_id': data.hidden_patient_id,
+                                'facility_id': data.hidden_facility_id,
+                                'patient_dob': data.hidden_birth_date,
                                 'patient_name': data.patient_name,
                                 'accession_no': data.accession_no,
                                 'billed_status': data.billed_status,
@@ -3467,15 +3467,15 @@ define(['jquery',
                             }, 'studies');
 
                         } else if (self.openedFrom === 'claims' || data.billed_status === 'Billed') {
-                            rowId = self.openedFrom === 'studies' ? data.claim_id : rowId;
+                            rowId = self.openedFrom === 'studies' ? data.hidden_claim_id : rowId;
                             commonjs.getClaimStudy(rowId, function (result) {
                                 self.rendered = false;
                                 self.clearDependentVariables();
                                 var study_id = result && result.study_id ? result.study_id : 0;
-                                var patient_id = data.patient_id;
+                                var patient_id = data.hidden_patient_id;
                                 var order_id = result && result.order_id ? result.order_id : 0;
                                 self.showEditClaimForm(rowId, null, {
-                                    'study_id': self.openedFrom === 'studies' ? data.study_id : study_id,
+                                    'study_id': self.openedFrom === 'studies' ? data.hidden_study_id : study_id,
                                     'patient_name': data.patient_name,
                                     'patient_id': patient_id,
                                     'order_id': order_id,

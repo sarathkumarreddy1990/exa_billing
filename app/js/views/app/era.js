@@ -133,6 +133,9 @@ define([
                     offsetHeight: offsetHeight,
                     disableautoheightresize: true,
                     height: $('#body_content').height() - 220,
+                    sortable: {
+                        exclude: ',#jqgh_tblEOBFileList_edit,#jqgh_tblEOBFileList_file_store_id'
+                    },
                     customargs: {
                         showParentFileOnly: true,
                         companyID: app.companyID

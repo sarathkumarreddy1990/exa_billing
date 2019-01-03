@@ -11,7 +11,8 @@ module.exports = {
         pending_payments: 'payments',
         era: 'era',
         edi: 'edi',
-        claim_workbench:'claims'
+        claim_workbench: 'claims',
+        user_settings: 'claims'
     },
 
     screenNames: {
@@ -67,7 +68,8 @@ module.exports = {
         'referring-provider-summary': 'Referring Provider Summary Report',
         'transaction-summary': 'Transaction Summary Report',
         'payments-realization-rate-analysis' : 'Payments Realization Rate Analysis',
-        'update_claim_status': 'Claim Status'
+        'update_claim_status': 'Claim Status',
+        'update_grid_settings': 'Studies / Claims Grid'
     },
 
     entityNames: {
@@ -97,7 +99,8 @@ module.exports = {
         user_log: 'User Log',
         claims: 'Claims',
         update_claim_status: 'Claims',
-        validate_claims:'Claims'
+        validate_claims: 'Claims',
+        update_grid_settings: 'user_settings'
     },
 
     permissionsMap: {
