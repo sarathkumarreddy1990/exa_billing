@@ -88,9 +88,4 @@ module.exports = {
     getOrCreateArray: (obj, arrayName) => {
         return obj[arrayName] || (obj[arrayName] = []);
     },
-    //
-    // getOrCreateObject: (obj, objName, proto) => {
-    //     return  obj[objName] // prefer an object that already exists
-    //         || (obj[objName] = (typeof proto !== 'undefined') ? {...proto} : {}); // otherwise create an object
-    // }
 };

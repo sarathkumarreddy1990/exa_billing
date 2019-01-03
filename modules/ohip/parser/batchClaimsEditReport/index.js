@@ -103,10 +103,7 @@ const BatchClaimEditReportParser = function(options) {
             return records.reduce((result, recordStr) => {
                 if (recordStr) {
                     const parseObj = parseRecord(recordStr, batchEditReportFields);
-                    console.log(`parseObj: ${JSON.stringify(parseObj)}`);
 
-                    console.log(`isSubtotalLine: ${isSubtotalLine(recordStr)}`);
-                    console.log(`isBatchAccepted: ${isBatchAccepted(recordStr)}`);
 
                 }
                 return result;
