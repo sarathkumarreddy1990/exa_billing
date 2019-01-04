@@ -1271,6 +1271,9 @@ module.exports = {
 
             sql = SQL`
             WITH
+            -- --------------------------------------------------------------------------------------------------------------
+            -- Getting total patient balance <= write-off amount.
+            -- --------------------------------------------------------------------------------------------------------------
                 claim_payments AS (
                     SELECT
                         sum(bgct.claim_balance_total) AS patient_balance

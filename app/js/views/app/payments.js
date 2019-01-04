@@ -643,6 +643,7 @@ define(['jquery',
 
                 commonjs.showDialog({
                     header: 'Balance Write Off',
+                    i18nHeader:'shared.fields.balanceWriteOff',
                     width: '85%',
                     height: '70%',
                     html: self.balanceWriteOffTemplate({
@@ -668,9 +669,10 @@ define(['jquery',
                 var self = this;
                 var write_off_amount =  $('#txtWriteOffAmt').val();
                 var $balanceWriteOff = $('#btnBalanceWriteOff');
+                var $btnNext =  $('#btnNextProcess');
 
                 if ($.trim(write_off_amount) === '') {
-                    commonjs.showWarning('Please enter amount to adjust off');
+                    commonjs.showWarning("shared.warning.pleaseEnterAdjustAmount");
                     return false;
                 }
 
@@ -683,9 +685,22 @@ define(['jquery',
                     gridelementid: '#tblPatientClaimsGrid',
                     custompager: self.patientClaimPager,
                     emptyMessage: 'No Record found',
-                    colNames: ['', 'Patient Name', 'Account No', 'DOB', 'Patient Balance'],
+                    colNames: [
+                        '',
+                        'Patient Name',
+                        'Account No',
+                        'DOB',
+                        'Patient Balance'
+                    ],
+                    i18nNames: [
+                        '',
+                        'billing.refund.patientName',
+                        'billing.refund.accountNo',
+                        'billing.refund.dob',
+                        'order.summary.patientBalance'
+                    ],
                     colModel: [
-                        { name: 'id', index: 'id', key: true, searchFlag: 'int', hidden: true },
+                        { name: 'id', index: 'id', key: true, hidden: true },
                         { name: 'patient_name', width: 100, search: false },
                         { name: 'account_no', width: 200, search: false },
                         { name: 'dob', width: 150, search: false },
@@ -713,7 +728,6 @@ define(['jquery',
                     subGridInstance: function (subgrid_id, row_id) {
                         var patientClaimInstances = new claimInstances();
                         var subgrid_table_id = subgrid_id + "_t";
-                        row_id = row_id.replace('se', '');
                         $("#" + subgrid_id).html("<table id='" + subgrid_table_id + "' class='scroll'></table>");
                         var tableid = "#" + subgrid_table_id;
                         var claimTable = new customGrid(patientClaimInstances, tableid);
@@ -726,6 +740,11 @@ define(['jquery',
                                 'Claim ID',
                                 'Claim Total BillFee',
                                 'Claim Total Balance'
+                            ],
+                            i18nNames: ['',
+                                'billing.fileInsurance.claimId',
+                                'shared.fields.claimTotalBillFee',
+                                'shared.fields.claimTotalBalance'
                             ],
                             colModel: [
                                 { name: 'id', index: 'id', key: true, width: 400 },
@@ -755,14 +774,17 @@ define(['jquery',
 
                         $balanceWriteOff.off().click(_.debounce(function (e) {
                             var $adjustmentCode = $('#ddlWriteOffAdjCodes option:selected');
+                            var _adjCodeDesc = $adjustmentCode.text().trim();
+                            var msg = commonjs.geti18NString("messages.confirm.payments.writeOffAmountAreYouSure")
+                                msg = msg.replace('WRITE_OFF_AMOUNT', write_off_amount).replace('$ADJ_CODE_DESC', _adjCodeDesc);
+
                             if ($adjustmentCode.val() === '') {
                                 commonjs.showWarning("report.reportFilter.adjustmentCode");
                                 $('#ddlWriteOffAdjCodes').select2('open');
                                 return false;
                             }
 
-                            var _adjCodeDesc = $adjustmentCode.text().trim();
-                            if (confirm('You would like to adjust off accounts with a balance of $' + write_off_amount + ' or less, using the adjustment code of ' + _adjCodeDesc + ' would you like to proceed ?')) {
+                            if (confirm(msg)) {
 
                                 var write_off_request = {
                                     url: '/exa_modules/billing/payments/process_write_off_payments',
@@ -773,10 +795,19 @@ define(['jquery',
                                         companyId : app.companyID,
                                         from : 'write-off'
                                     },
+                                    beforeSend: function(){
+                                        $balanceWriteOff.prop('disabled',true);
+                                        $btnNext.prop('disabled',true);
+                                    },
                                     success: function (data, response) {
                                         if (data && data.length) {
                                             commonjs.showStatus('messages.status.tosSuccessfullyCompleted');
                                             commonjs.hideLoading();
+                                            $balanceWriteOff.prop('disabled',false);
+                                            $balanceWriteOff.addClass('d-none');
+                                            $btnNext.prop('disabled',false);
+                                            if (self.patientClaimsGrid)
+                                                self.patientClaimsGrid.refresh();
                                         }
 
                                     },

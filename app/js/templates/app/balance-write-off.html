@@ -1,7 +1,7 @@
 <div class="col-lg-12 pt-1">
     <form id="formBalanceWriteOff" >
         <div class="form-group row">
-            <label class="col-form-label" >Maximum Account Balance</label>
+            <label class="col-form-label" i18n="shared.fields.maximumAccountBalance"></label>
             <div class="col-sm-1">
                 <input type="text" class="form-control maskFee floatbox" id="txtWriteOffAmt">
             </div>
@@ -10,7 +10,7 @@
                 <select class="form-control select-box" id="ddlWriteOffAdjCodes">
                     <option value="" i18n="shared.buttons.select"></option>
                     <% _.each(writeOffAdjustmentCodeList, function(adjCode) { %>
-                        <option value='<%= adjCode.id %>' title='<%= adjCode.description %>' data_code_type='<%= adjCode.accounting_entry_type %>' >
+                        <option value='<%= adjCode.id %>' data_code_type='<%= adjCode.accounting_entry_type %>' >
                             <%= adjCode.description %>
                         </option>
                         <% }); %>
