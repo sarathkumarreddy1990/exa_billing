@@ -75,4 +75,9 @@ router.get('/patient_claim_list', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.post('/process_write_off_payments', async function (req, res) {
+    const data = await paymentsController.processWriteOffPayment(req.body);
+    httpHandler.sendRows(req, res, data);
+});
+
 module.exports = router;

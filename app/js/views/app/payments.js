@@ -103,7 +103,6 @@ define(['jquery',
                 this.patientClaimList = new patientClaimLists();
                 this.adjustmentCodeList = new modelCollection(adjustment_codes);
                 this.claimStatusList = new modelCollection(claim_status);
-                this.billingProviderList = new modelCollection(app.billing_providers);
                 this.writeOffAdjustmentCodeList = new modelCollection(app.adjustment_code_list);
 
                 commonjs.initHotkeys({
@@ -639,15 +638,18 @@ define(['jquery',
                 var self = this;
                 self.writeOffBillingBrovider = { id: null, text: null };
                 self.writeOffAdjustmentCodes = { id: null, text: null };
+                //Append adjustment codes with credit entry
+                var writeOffAdjustmentCodeList = _.filter(self.writeOffAdjustmentCodeList.toJSON(), { accounting_entry_type: "credit" });
+
                 commonjs.showDialog({
                     header: 'Balance Write Off',
                     width: '85%',
                     height: '70%',
                     html: self.balanceWriteOffTemplate({
-                        billingProviderList: self.billingProviderList.toJSON()
+                        writeOffAdjustmentCodeList : writeOffAdjustmentCodeList
                     })
                 });
-                $('#siteModal').removeAttr('tabindex'); //removed tabIndex attr for select2 search text can't editable
+                $('#siteModal').removeAttr('tabindex'); //removed tabIndex attr on sitemodel for select2 search text area can't editable
                 commonjs.validateControls();
                 commonjs.isMaskValidate();
 
@@ -655,23 +657,6 @@ define(['jquery',
                     self.showPatientsGrid();
                 }, 250));
 
-                // Append adjustment codes with option colored
-                var adjustmentCodes = self.writeOffAdjustmentCodeList.toJSON();
-                _.each(adjustmentCodes, function(adjustmentCode){
-                    var $Option = $('<option/>', { value: adjustmentCode.id, text: adjustmentCode.description, 'data_code_type': adjustmentCode.accounting_entry_type });
-                    if (adjustmentCode.accounting_entry_type === 'refund_debit') {
-                        $Option.attr('title', 'Refund Adjustment').addClass('refund_debit');
-                    }
-                    else if (adjustmentCode.accounting_entry_type === 'recoupment_debit') {
-                        $Option.attr('title', 'Recoupment Adjustment').addClass('recoupment_debit');
-                    }
-                    $('#ddlWriteOffAdjCodes').append($Option);
-                });
-
-                $("#ddlWriteOffBillingProvider").select2({
-                    placeholder: commonjs.geti18NString("messages.warning.shared.selectbillingProvider"),
-                    allowClear: true
-                });
                 $("#ddlWriteOffAdjCodes").select2({
                     placeholder: commonjs.geti18NString("report.reportFilter.adjustmentCode"),
                     allowClear: true
@@ -682,18 +667,10 @@ define(['jquery',
             showPatientsGrid: function (e) {
                 var self = this;
                 var write_off_amount =  $('#txtWriteOffAmt').val();
-                var $billingProvider = $('#ddlWriteOffBillingProvider option:selected');
-                var $adjustmentCode = $('#ddlWriteOffAdjCodes option:selected');
                 var $balanceWriteOff = $('#btnBalanceWriteOff');
 
                 if ($.trim(write_off_amount) === '') {
                     commonjs.showWarning('Please enter amount to adjust off');
-                    return false;
-                }
-
-                if ($billingProvider.val() === '') {
-                    commonjs.showWarning("messages.warning.shared.selectbillingProvider");
-                    $billingProvider.select2('open')
                     return false;
                 }
 
@@ -729,7 +706,7 @@ define(['jquery',
                     disablereload: true,
                     customargs: {
                         write_off_amount: write_off_amount,
-                        billing_provider_id: $billingProvider.val()
+                        from: 'patients'
                     },
                     pager: '#gridPager_PatientClaims',
                     subGrid: true,
@@ -766,22 +743,51 @@ define(['jquery',
                             defaultwherefilter: '',
                             customargs: {
                                 patient_id: row_id,
-                                from: 'claim_instance'
+                                from: 'patient_claims'
                             },
                             isSubGrid: true
                         });
                     },
                     onaftergridbind: function (model, gridObj) {
-                        $balanceWriteOff.removeClass('d-none');
+                        if (model && model.length) {
+                            $balanceWriteOff.removeClass('d-none');
+                        }
+
                         $balanceWriteOff.off().click(_.debounce(function (e) {
+                            var $adjustmentCode = $('#ddlWriteOffAdjCodes option:selected');
                             if ($adjustmentCode.val() === '') {
                                 commonjs.showWarning("report.reportFilter.adjustmentCode");
-                                $adjustmentCode.select2('open')
+                                $('#ddlWriteOffAdjCodes').select2('open');
                                 return false;
                             }
-                            $adjustmentCode.text().trim();
-                            if (!confirm('You would like to adjust off accounts with a balance of $' + write_off_amount + ' or less, using the adjustment code of small balance write-off" would you like to proceed ?')) {
-                                return false;
+
+                            var _adjCodeDesc = $adjustmentCode.text().trim();
+                            if (confirm('You would like to adjust off accounts with a balance of $' + write_off_amount + ' or less, using the adjustment code of ' + _adjCodeDesc + ' would you like to proceed ?')) {
+
+                                var write_off_request = {
+                                    url: '/exa_modules/billing/payments/process_write_off_payments',
+                                    type: 'POST',
+                                    data: {
+                                        adjustmentCodeId : $adjustmentCode.val(),
+                                        writeOffAmount : write_off_amount,
+                                        companyId : app.companyID,
+                                        from : 'write-off'
+                                    },
+                                    success: function (data, response) {
+                                        if (data && data.length) {
+                                            commonjs.showStatus('messages.status.tosSuccessfullyCompleted');
+                                            commonjs.hideLoading();
+                                        }
+
+                                    },
+                                    error: function (err, response) {
+                                        commonjs.handleXhrError(err, response);
+                                        commonjs.hideLoading();
+                                    }
+                                };
+
+                                commonjs.showLoading();
+                                $.ajax(write_off_request);
                             }
 
                         }, 250));
@@ -790,8 +796,11 @@ define(['jquery',
 
                 $("#tblPatientClaimsGrid").setGridWidth($(".modal-body").width() - 10);
                 $("#tblPatientClaimsGrid").setGridHeight(($(".modal-body").height() - 120));
-
-                self.patientClaimsGridLoaded = true;
+                $('#txtWriteOffAmt').off().on("blur",function(){
+                    if ($("#txtWriteOffAmt").val() != write_off_amount && !$balanceWriteOff.hasClass('d-none')) {
+                        $balanceWriteOff.addClass('d-none');
+                    }
+                });
             }
 
         });
