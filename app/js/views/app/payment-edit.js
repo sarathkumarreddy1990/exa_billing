@@ -1128,10 +1128,10 @@ define(['jquery',
 
                 if (self.isFromClaim && self.claimPaymentObj) {
                     var lineItems = $("#tBodyApplyPendingPayment tr");
-                    var $thisPay = $(this).find('td:nth-child(5)>input');
                     var payment = 0.00;
                     // get total this payment.
                     $.each(lineItems, function (index) {
+                        var $thisPay = $(this).find('td:nth-child(5)>input');
                         var payment_amt = $thisPay.val() ? $thisPay.val().trim() : 0.00;
                         payment += parseFloat(payment_amt);
                     });

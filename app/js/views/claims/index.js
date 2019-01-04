@@ -3560,7 +3560,7 @@ define(['jquery',
                     for (var i = 1; i < currId; i++) {
                         _height += parseInt($('#tab_' + i).height() + 15);
                     }
-                    if (currId == 4)
+                    if (currId == 4 || currId == 5)
                         _height -= parseInt($('#divTeritaryInsurances').height() + 15);
 
                     $root.animate({
