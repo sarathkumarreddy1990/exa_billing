@@ -4547,7 +4547,13 @@ define(['jquery',
                     var dtp = commonjs.bindDateTimePicker("divAccountingDate_" + obj.row_index, { format: 'L' });
                     var responsibleEle = $('#ddlPayerName_' + obj.row_index);
                     var dllPaymentMode = $('#ddlPaymentMode_' + obj.row_index);
-                    var responsibleIndex = _.findIndex(self.responsible_list, function (item) { return item.payer_id == obj.payer_info.payer_id; })
+                    var responsibleIndex = _.findIndex(self.responsible_list, function (item) {
+                        if(obj.payer_info.payer_type_name === 'insurance' && (item.payer_type_name === 'primary_insurance' || item.payer_type_name === 'secondary_insurance' || item.payer_type_name === 'tertiary_insurance')){
+                            return item.payer_id == obj.payer_info.payer_id;
+                        } else {
+                            return item.payer_id == obj.payer_info.payer_id && item.payer_type_name === obj.payer_info.payer_type_name;
+                        }
+                    })
 
                     self.dtpAccountingDate.push(dtp);
                     self.dtpAccountingDate[obj.row_index - 1].isModified = false;

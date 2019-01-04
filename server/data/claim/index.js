@@ -681,10 +681,30 @@ module.exports = {
                                 LEFT JOIN (
                                     SELECT
                                     ( CASE
-                                        WHEN p1.payer_type = 'insurance' THEN json_build_object('payer_name',ins_pro.insurance_name,'payer_id',ins_pro.id)
-                                        WHEN p1.payer_type = 'patient' THEN json_build_object('payer_name',pat.full_name ,'payer_id',pat.id)
-                                        WHEN p1.payer_type = 'ordering_facility' THEN json_build_object('payer_name',provider_groups.group_name ,'payer_id',provider_groups.id)
-                                        WHEN p1.payer_type = 'ordering_provider' THEN json_build_object('payer_name',providers.full_name,'payer_id',pro_cont.id)
+                                        WHEN p1.payer_type = 'insurance' THEN
+                                            json_build_object(
+                                                'payer_name',ins_pro.insurance_name,
+                                                'payer_id',ins_pro.id,
+                                                'payer_type_name',p1.payer_type
+                                            )
+                                        WHEN p1.payer_type = 'patient' THEN
+                                            json_build_object(
+                                                'payer_name',pat.full_name,
+                                                'payer_id',pat.id,
+                                                'payer_type_name',p1.payer_type
+                                            )
+                                        WHEN p1.payer_type = 'ordering_facility' THEN
+                                            json_build_object(
+                                                'payer_name',provider_groups.group_name ,
+                                                'payer_id',provider_groups.id,
+                                                'payer_type_name',p1.payer_type
+                                            )
+                                        WHEN p1.payer_type = 'ordering_provider' THEN
+                                            json_build_object(
+                                                'payer_name',providers.full_name,
+                                                'payer_id',pro_cont.id,
+                                                'payer_type_name',p1.payer_type
+                                            )
                                         ELSE null
                                         END
                                     ) AS payer_info,
@@ -1015,10 +1035,30 @@ module.exports = {
                             LEFT JOIN (
                                 SELECT
                                 ( CASE
-                                    WHEN p1.payer_type = 'insurance' THEN json_build_object('payer_name',ins_pro.insurance_name,'payer_id',ins_pro.id)
-                                    WHEN p1.payer_type = 'patient' THEN json_build_object('payer_name',pat.full_name ,'payer_id',pat.id)
-                                    WHEN p1.payer_type = 'ordering_facility' THEN json_build_object('payer_name',provider_groups.group_name ,'payer_id',provider_groups.id)
-                                    WHEN p1.payer_type = 'ordering_provider' THEN json_build_object('payer_name',providers.full_name,'payer_id',pro_cont.id)
+                                    WHEN p1.payer_type = 'insurance' THEN
+                                        json_build_object(
+                                            'payer_name',ins_pro.insurance_name,
+                                            'payer_id',ins_pro.id,
+                                            'payer_type_name',p1.payer_type
+                                        )
+                                    WHEN p1.payer_type = 'patient' THEN
+                                        json_build_object(
+                                            'payer_name',pat.full_name,
+                                            'payer_id',pat.id,
+                                            'payer_type_name',p1.payer_type
+                                        )
+                                    WHEN p1.payer_type = 'ordering_facility' THEN
+                                        json_build_object(
+                                            'payer_name',provider_groups.group_name ,
+                                            'payer_id',provider_groups.id,
+                                            'payer_type_name',p1.payer_type
+                                        )
+                                    WHEN p1.payer_type = 'ordering_provider' THEN
+                                        json_build_object(
+                                            'payer_name',providers.full_name,
+                                            'payer_id',pro_cont.id,
+                                            'payer_type_name',p1.payer_type
+                                        )
                                     ELSE null
                                     END
                                 ) AS payer_info,

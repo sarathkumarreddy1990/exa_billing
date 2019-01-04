@@ -728,7 +728,7 @@ module.exports = {
 
         return await query(sql.text, sql.values);
     },
-    
+
     getClaimSummary: async (params) => {
         const {
             id
@@ -791,4 +791,5 @@ module.exports = {
 
         return await query(sql);
     }
+
 };
