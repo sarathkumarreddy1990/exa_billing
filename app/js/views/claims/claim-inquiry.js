@@ -743,6 +743,7 @@ define([
                     }
                 })
                 $('#gview_tblCIClaimComments').find('.ui-jqgrid-bdiv').css('max-height', '180px')
+                $('#siteModal').css('overflow-y', 'scroll');
                 commonjs.initializeScreen({ header: { screen: 'Claim Comments', ext: 'Claim Comments' } });
             },
 
