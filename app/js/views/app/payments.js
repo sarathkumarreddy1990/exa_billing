@@ -636,8 +636,6 @@ define(['jquery',
 
             showAdjustmentWriteOff: _.debounce(function (e) {
                 var self = this;
-                self.writeOffBillingBrovider = { id: null, text: null };
-                self.writeOffAdjustmentCodes = { id: null, text: null };
                 //Append adjustment codes with credit entry
                 var writeOffAdjustmentCodeList = _.filter(self.writeOffAdjustmentCodeList.toJSON(), { accounting_entry_type: "credit" });
 
@@ -651,9 +649,6 @@ define(['jquery',
                     })
                 });
                 $('#siteModal').removeAttr('tabindex'); //removed tabIndex attr on sitemodel for select2 search text area can't editable
-                commonjs.validateControls();
-                commonjs.isMaskValidate();
-
                 $('#btnNextProcess').off().click(_.debounce(function (e) {
                     self.showPatientsGrid();
                 }, 250));
@@ -663,6 +658,8 @@ define(['jquery',
                     allowClear: true
                 });
 
+                commonjs.validateControls();
+                commonjs.isMaskValidate();
             }, 500),
 
             showPatientsGrid: function (e) {
@@ -684,7 +681,7 @@ define(['jquery',
                 self.patientClaimsGrid.render({
                     gridelementid: '#tblPatientClaimsGrid',
                     custompager: self.patientClaimPager,
-                    emptyMessage: 'No Record found',
+                    emptyMessage: commonjs.geti18NString('messages.status.noRecordFound'),
                     colNames: [
                         '',
                         'Patient Name',
@@ -734,7 +731,6 @@ define(['jquery',
 
                         claimTable.render({
                             gridelementid: tableid,
-                            emptyMessage: 'No claims found',
                             custompager: new ModelPaymentsPager(),
                             colNames: [
                                 'Claim ID',
