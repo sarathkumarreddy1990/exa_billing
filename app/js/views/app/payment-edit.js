@@ -1166,36 +1166,37 @@ define(['jquery',
                             self.saveClick = true;
                             var msg = self.payment_id ? commonjs.geti18NString('messages.status.paymentUpdatedSuccessfully') : commonjs.geti18NString('messages.status.paymentCreatedSuccessfully');
 
-                            if (self.isFromClaim && response && response.length) {
+                            if (self.isFromClaim && response && response.length === 0) {
+                                commonjs.hideLoading();
+                                return false;
+                            } else if (self.isFromClaim && response && response.length) {
                                 commonjs.showStatus(msg);
                                 self.payment_id = response[0].id || 0;
                                 self.claimPaymentObj.isPaymentUpdate = false;
                                 self.saveAllPayments(e, claimId, self.payment_id, paymentStatus, 0, paymentApplicationId);
                                 commonjs.hideLoading();
-                                return false;
-                            } else if (self.isFromClaim && response && response.length === 0){
-                                commonjs.hideLoading();
-                                return false;
-                            }
-
-                            if (self.payment_id) {
-                                if (response && response.length) {
-                                    commonjs.showStatus(msg);
-                                    self.render(self.payment_id, self.from);
+                            } else {
+                                // Payment screen flow
+                                if (self.payment_id) {
+                                    if (response && response.length) {
+                                        commonjs.showStatus(msg);
+                                        self.render(self.payment_id, self.from);
+                                    }
+                                    else {
+                                        commonjs.showWarning('messages.warning.payments.paymentAlreadyUpdated');
+                                    }
+                                    $('#btnPaymentSave').removeAttr('disabled');
+                                    commonjs.hideLoading();
                                 }
                                 else {
-                                    commonjs.showWarning('messages.warning.payments.paymentAlreadyUpdated');
+                                    if (self.from === 'ris'){
+                                        Backbone.history.navigate('#billing/payments/edit/' + self.from + '/' + model.attributes[0].id, true);
+                                    } else {
+                                        Backbone.history.navigate('#billing/payments/edit/' + model.attributes[0].id, true);
+                                    }
                                 }
-                                $('#btnPaymentSave').removeAttr('disabled');
-                                commonjs.hideLoading();
+                                self.paymentTabClick('save');
                             }
-                            else {
-                                if (self.from === 'ris')
-                                    Backbone.history.navigate('#billing/payments/edit/' + self.from + '/' + model.attributes[0].id, true);
-                                else
-                                    Backbone.history.navigate('#billing/payments/edit/' + model.attributes[0].id, true);
-                            }
-                            self.paymentTabClick('save');
 
                         },
                         error: function (err, response) {
@@ -1650,6 +1651,7 @@ define(['jquery',
                 self.getClaimBasedCharges(claimId, paymentID, paymentStatus, chargeId, paymentApplicationId, true);
                 // Hide some of edit-payment property if showDialog open via claim screen
                 if (rowData.isFromClaim) {
+                    $('#siteModalNested').removeAttr('tabindex'); //removed tabIndex attr on sitemodel for select2 search text area can't editable
                     $('#btnPayfullAppliedPendingPayments').hide();
                     $('#formBillingProviders .form-group').not('.divAdjustmentCodes').hide();
                     $('#siteModalNested .close, #siteModalNested .btn-secondary').off().click(function (e) {
@@ -1871,8 +1873,26 @@ define(['jquery',
                             }
                         });
 
+                        $("#ddlAdjustmentCode_fast").select2({
+                            width: '300px',
+                            templateResult: formatRepo
+                        });
+                        function formatRepo(repo) {
 
-                        $("#ddlAdjustmentCode_fast").select2({ width: '300px' });
+                            if (repo.loading) {
+                                return repo.text;
+                            }
+                            var _div = $('<div/>').append(repo.text);
+
+                            if ($(repo.element).hasClass('recoupment_debit')) {
+                                _div.addClass('recoupment_debit')
+                            } else if ($(repo.element).hasClass('refund_debit')) {
+                                _div.addClass('refund_debit')
+                            }
+
+                            return _div;
+                        };
+
 
                         $('#tBodyApplyPendingPayment').find('.applyCAS').on('click', function (e) {
                             var selectedRow = $(e.target || e.srcElement).closest('tr');
@@ -2342,6 +2362,10 @@ define(['jquery',
                     Backbone.history.navigate('#billing/payments/new/ris', true);
                 else
                     Backbone.history.navigate('#billing/payments/new', true);
+            },
+
+            clearPayerFields: function () {
+                this.patient_id = this.provider_id = this.provider_group_id = this.insurance_provider_id = null;
             },
 
             goBackToPayments: function () {

@@ -4548,7 +4548,7 @@ define(['jquery',
                     var responsibleEle = $('#ddlPayerName_' + obj.row_index);
                     var dllPaymentMode = $('#ddlPaymentMode_' + obj.row_index);
                     var responsibleIndex = _.findIndex(self.responsible_list, function (item) {
-                        if(obj.payer_info.payer_type_name === 'insurance' && (item.payer_type_name === 'primary_insurance' || item.payer_type_name === 'secondary_insurance' || item.payer_type_name === 'tertiary_insurance')){
+                        if(obj.payer_info.payer_type_name === 'insurance' && ['primary_insurance', 'secondary_insurance', 'tertiary_insurance'].indexOf(item.payer_type_name) > -1){
                             return item.payer_id == obj.payer_info.payer_id;
                         } else {
                             return item.payer_id == obj.payer_info.payer_id && item.payer_type_name === obj.payer_info.payer_type_name;
