@@ -9,7 +9,6 @@ define(['jquery',
     'models/pager',
     'views/reports/payments-pdf',
     'text!templates/app/balance-write-off.html',
-    'collections/app/patient-claims',
     'collections/app/patient-claims'
 ],
 
@@ -24,8 +23,7 @@ define(['jquery',
         ModelPaymentsPager,
         paymentPDF,
         balanceWriteOffTemplate,
-        patientClaimLists,
-        claimInstances
+        patientClaimLists
         ) {
         var paymentsView = Backbone.View.extend({
             el: null,
@@ -723,7 +721,7 @@ define(['jquery',
                     pager: '#gridPager_PatientClaims',
                     subGrid: true,
                     subGridInstance: function (subgrid_id, row_id) {
-                        var patientClaimInstances = new claimInstances();
+                        var patientClaimInstances = new patientClaimLists();
                         var subgrid_table_id = subgrid_id + "_t";
                         $("#" + subgrid_id).html("<table id='" + subgrid_table_id + "' class='scroll'></table>");
                         var tableid = "#" + subgrid_table_id;
