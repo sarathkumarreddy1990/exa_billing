@@ -326,7 +326,7 @@ define([
                             name: 'billing_fee', search: false, width: 100
                         },
                         {
-                            name: 'ajdustments_applied_total', search: false, width: 100
+                            name: 'adjustments_applied_total', search: false, width: 100
                         },
                         {
                             name: 'total_insurance_payment', search: false, width: 150
@@ -1030,7 +1030,7 @@ define([
                         var rowId = nextRowData.attr('id');
                         $(e.target).prop('disabled', true);
                         var data = $(self.grid_id, parent.document).getRowData(rowId);
-                        self.patientInquiryForm(rowId, data.patient_id, data.patient_name, self.grid_id, false)
+                        self.patientInquiryForm(rowId, data.hidden_patient_id, data.patient_name, self.grid_id, false)
 
                     } else {
                         commonjs.showWarning("messages.warning.claims.orderNotFound");
