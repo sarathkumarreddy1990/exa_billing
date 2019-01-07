@@ -1255,8 +1255,8 @@ module.exports = {
                         bgct.claim_balance_total,
                         claims.id
                       FROM
-		                billing.claims
-		                INNER JOIN patients p ON p.id = claims.patient_id
+                        billing.claims
+                        INNER JOIN patients p ON p.id = claims.patient_id
                         INNER JOIN LATERAL billing.get_claim_totals(claims.id) bgct ON TRUE
                         WHERE p.id = ${patient_id} `;
         } else {
@@ -1278,7 +1278,6 @@ module.exports = {
                     SELECT
                         sum(bgct.claim_balance_total) AS patient_balance
                         , p.id as patient_id
-                        , min(p.facility_id) as facility_id
                     FROM
                     billing.claims
                     INNER JOIN patients p ON p.id = claims.patient_id
@@ -1342,7 +1341,7 @@ module.exports = {
                 SELECT
                     sum(bgct.claim_balance_total) AS patient_balance
                     , p.id AS patient_id
-                    , min(p.facility_id) AS facility_id
+                    , p.facility_id AS facility_id
                 FROM
                     billing.claims
                 INNER JOIN patients p ON p.id = claims.patient_id
