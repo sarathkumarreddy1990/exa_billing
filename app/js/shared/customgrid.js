@@ -567,6 +567,10 @@ function customGrid ( datastore, gridID ) {
             "SearchFlag":SearchFlag
         };
 
+        if(typeof self.options.setCustomData === 'function'){
+            _data.customArgs = Object.assign({}, customArgs , self.options.setCustomData());
+        }
+
         // Added fromDate/toDate
         if (_fromDate && _fromDate.length) {
             _data.fromDate = _fromDate;

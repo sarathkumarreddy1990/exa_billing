@@ -664,11 +664,11 @@ define(['jquery',
 
             showPatientsGrid: function (e) {
                 var self = this;
-                var write_off_amount =  $('#txtWriteOffAmt').val();
+                var writeOffAmount =  $('#txtWriteOffAmt').val();
                 var $balanceWriteOff = $('#btnBalanceWriteOff');
                 var $btnNext =  $('#btnNextProcess');
 
-                if ($.trim(write_off_amount) === '') {
+                if ($.trim(writeOffAmount) === '') {
                     commonjs.showWarning("shared.warning.pleaseEnterAdjustAmount");
                     return false;
                 }
@@ -715,14 +715,14 @@ define(['jquery',
                     sortname: "p.id",
                     sortorder: "asc",
                     dblClickActionIndex: 1,
-                    disablesearch: true,
+                    disablesearch: false,
                     disablesort: false,
                     disablepaging: false,
                     showcaption: false,
                     disableadd: true,
                     disablereload: true,
                     customargs: {
-                        write_off_amount: write_off_amount,
+                        writeOffAmount: writeOffAmount,
                         from: 'patients'
                     },
                     pager: '#gridPager_PatientClaims',
@@ -755,14 +755,14 @@ define(['jquery',
                             sortname: 'claims.id',
                             sortorder: 'ASC',
                             disablesearch: true,
-                            disablesort: true,
+                            disablesort: false,
                             disablepaging: true,
                             disableadd: true,
                             showcaption: false,
                             dblClickActionIndex: -2,
                             defaultwherefilter: '',
                             customargs: {
-                                patient_id: row_id,
+                                patientId: row_id,
                                 from: 'patient_claims'
                             },
                             isSubGrid: true
@@ -777,7 +777,7 @@ define(['jquery',
                             var $adjustmentCode = $('#ddlWriteOffAdjCodes option:selected');
                             var _adjCodeDesc = $adjustmentCode.text().trim();
                             var msg = commonjs.geti18NString("messages.confirm.payments.writeOffAmountAreYouSure")
-                                msg = msg.replace('WRITE_OFF_AMOUNT', write_off_amount).replace('$ADJ_CODE_DESC', _adjCodeDesc);
+                                msg = msg.replace('WRITE_OFF_AMOUNT', writeOffAmount).replace('$ADJ_CODE_DESC', _adjCodeDesc);
 
                             if ($adjustmentCode.val() === '') {
                                 commonjs.showWarning("report.reportFilter.adjustmentCode");
@@ -793,7 +793,7 @@ define(['jquery',
                                     data: {
                                         defaultFacilityId : app.default_facility_id || app.facilityID || null,
                                         adjustmentCodeId : $adjustmentCode.val(),
-                                        writeOffAmount : write_off_amount,
+                                        writeOffAmount : writeOffAmount,
                                         companyId : app.companyID,
                                         from : 'write-off'
                                     },
@@ -824,13 +824,18 @@ define(['jquery',
                             }
 
                         }, 250));
+                    },
+                    setCustomData: function (){
+                        return {
+                            writeOffAmount: $('#txtWriteOffAmt').val()
+                        }
                     }
                 });
 
                 $("#tblPatientClaimsGrid").setGridWidth($(".modal-body").width() - 10);
-                $("#tblPatientClaimsGrid").setGridHeight(($(".modal-body").height() - 120));
+                $("#tblPatientClaimsGrid").setGridHeight(($(".modal-body").height() - 140));
                 $('#txtWriteOffAmt').off().on("blur",function(){
-                    if ($("#txtWriteOffAmt").val() != write_off_amount && !$balanceWriteOff.hasClass('d-none')) {
+                    if ($("#txtWriteOffAmt").val() != writeOffAmount && !$balanceWriteOff.hasClass('d-none')) {
                         $balanceWriteOff.addClass('d-none');
                     }
                 });
