@@ -1,0 +1,82 @@
+{
+    "transactionIdentifier": {
+        "startPos": 1,
+        "fieldLength": 2,
+        "constant": "HR"
+    },
+    "recordType": {
+        "startPos": 3,
+        "fieldLength": 1,
+        "constant": "4"
+    },
+
+    "claimNumber": {
+        "startPos": 4,
+        "fieldLength": 11
+    },
+
+    "transactionType": {
+        "startPos": 15,
+        "fieldLength": 1
+    },
+
+    "providerNumber": {
+        "startPos": 16,
+        "fieldLength": 6
+    },
+
+    "specialty": {
+        "startPos": 22,
+        "fieldLength": 2
+    },
+
+    "accountingNumber": {
+        "startPos": 24,
+        "fieldLength": 8
+    },
+
+    "patientLastName": {
+        "startPos": 32,
+        "fieldLength": 14
+    },
+
+    "patientFirstName": {
+        "startPos": 46,
+        "fieldLength": 5
+    },
+
+    "provinceCode": {
+        "startPos": 51,
+        "fieldLength": 2
+    },
+
+    "healthRegistrationNumber": {
+        "startPos": 53,
+        "fieldLength": 12
+    },
+
+    "versionCode": {
+        "startPos": 65,
+        "fieldLength": 2
+    },
+
+    "paymentProgram": {
+        "startPos": 67,
+        "fieldLength": 3
+    },
+
+    "serviceLocationIndicator": {
+        "startPos": 70,
+        "fieldLength": 4
+    },
+
+    "groupIdentifier": {
+        "startPos": 74,
+        "fieldLength": 4
+    },
+
+    "mohReserved": {
+        "startPos": 78,
+        "fieldLength": 2
+    }
+}

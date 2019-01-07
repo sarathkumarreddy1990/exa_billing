@@ -1,0 +1,76 @@
+{
+    "transactionIdentifier": {
+        "startPos": 1,
+        "fieldLength": 2,
+        "constant": "HB"
+    },
+    "recordIdentifier": {
+        "startPos": 3,
+        "fieldLength": 1,
+        "constant": "1"
+    },
+    "techSpecReleaseIdentifier": {
+        "startPos": 4,
+        "fieldLength": 3,
+        "constant": "V03"
+    },
+    "batchNumber": {
+        "startPos": 7,
+        "fieldLength": 5
+    },
+    "operatorNumber": {
+        "startPos": 12,
+        "fieldLength": 6
+    },
+    "batchCreateDate": {
+        "startPos": 18,
+        "fieldLength": 8,
+        "format":"D"
+    },
+    "batchSequenceNumber": {
+        "startPos": 26,
+        "fieldLength": 4
+    },
+    "microStart": {
+        "startPos": 30,
+        "fieldLength": 11
+    },
+    "microEnd": {
+        "startPos": 41,
+        "fieldLength": 5
+    },
+    "microType": {
+        "startPos": 46,
+        "fieldLength": 7
+    },
+    "groupNumber": {
+        "startPos": 53,
+        "fieldLength": 4
+    },
+    "providerNumber": {
+        "startPos": 57,
+        "fieldLength": 6
+    },
+    "numberOfClaims": {
+        "startPos": 63,
+        "fieldLength": 5
+    },
+    "numberOfRecords": {
+        "startPos": 68,
+        "fieldLength": 6,
+        "format":"N"
+    },
+    "batchProcessDate": {
+        "startPos": 74,
+        "fieldLength": 8,
+        "format": "D"
+    },
+    "editMessage": {
+        "startPos": 82,
+        "fieldLength": 40
+    },
+    "mohReserved": {
+        "startPos": 122,
+        "fieldLength": 11
+    }
+}

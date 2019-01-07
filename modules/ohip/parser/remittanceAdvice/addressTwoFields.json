@@ -1,0 +1,27 @@
+{
+    "transactionIdentifier": {
+        "startPos": 1,
+        "fieldLength": 2,
+        "constant": "HR"
+    },
+    "recordType": {
+        "startPos": 3,
+        "fieldLength": 1,
+        "constant": "3"
+    },
+
+    "addressLineTwo": {
+        "startPos": 4,
+        "fieldLength": 25
+    },
+
+    "addressLineThree": {
+        "startPos": 29,
+        "fieldLength": 25
+    },
+
+    "mohReserved": {
+        "startPos": 54,
+        "fieldLength": 26
+    }
+}

@@ -1,0 +1,70 @@
+{
+    "transactionIdentifier": {
+        "startPos": 1,
+        "fieldLength": 2,
+        "constant": "HR"
+    },
+    "recordType": {
+        "startPos": 3,
+        "fieldLength": 1,
+        "constant": "5"
+    },
+
+    "claimNumber": {
+        "startPos": 4,
+        "fieldLength": 11
+    },
+
+    "transactionType": {
+        "startPos": 15,
+        "fieldLength": 1,
+        "enumerated": ["1", "2"]
+    },
+
+    "serviceDate": {
+        "startPos": 16,
+        "fieldLength": 8
+    },
+
+    "numberOfServices": {
+        "startPos": 24,
+        "fieldLength": 2
+    },
+
+    "serviceCode": {
+        "startPos": 26,
+        "fieldLength": 5
+    },
+
+    "mohReserved1": {
+        "startPos": 31,
+        "fieldLength": 1
+    },
+
+    "amountSubmitted": {
+        "startPos": 32,
+        "fieldLength": 6
+    },
+
+    "amountPaid": {
+        "startPos": 38,
+        "fieldLength": 6
+    },
+
+    "amountPaidSign": {
+        "startPos": 44,
+        "fieldLength": 1,
+        "enumerated":[" ", "-"]
+    },
+
+    "explanatoryCode": {
+        "startPos": 45,
+        "fieldLength": 2,
+        "i18n": "ohip.remittanceAdvice.explanatoryCodes"
+    },
+
+    "mohReserved2": {
+        "startPos": 47,
+        "fieldLength": 33
+    }
+}
