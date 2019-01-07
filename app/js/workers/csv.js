@@ -36,17 +36,20 @@ var claimColumns = {
 
 var paymentsColumns = {
     "PAYMENT ID": "id",
-    "REF. PAYMENT ID": "alternate_payment_id",
+    "REFERENCE PAYMENT ID": "alternate_payment_id",
     "PAYMENT DATE": "payment_dt",
     "ACCOUNTING DATE": "accounting_date",
     "PAYER TYPE": "payer_type",
     "PAYER NAME": "payer_name",
+    "PATIENT MRN": "account_no",
     "PAYMENT AMOUNT": "amount",
     "PAYMENT APPLIED": "applied",
     "BALANCE": "available_balance",
-    "ADJUSTMENT": "adjustment_amount",
+    "ADJUSTMENTS": "adjustment_amount",
+    "NOTES": "notes",
     "POSTED BY": "user_full_name",
     "PAYMENT MODE": "payment_mode",
+    "CHECK/CARD NUMBER": "card_number",
     "FACILITY": "facility_name",
 };
 
