@@ -1322,7 +1322,8 @@ module.exports = {
             screenName,
             moduleName,
             writeOffAmount,
-            adjustmentCodeId
+            adjustmentCodeId,
+            defaultFacilityId
         } = params;
 
         let auditDetails = {
@@ -1366,6 +1367,7 @@ module.exports = {
                         , payer_type
                         , notes
                         , mode
+                        , facility_id
                     )
                     SELECT
                         ${companyId} AS company_id
@@ -1375,8 +1377,9 @@ module.exports = {
                         , ${userId} AS created_by
                         , timezone(get_facility_tz(facility_id), now()::timestamp) AS payment_dt
                         , 'patient' AS payer_type
-                        , 'Small Balance Write-Off' AS notes
+                        , 'Small Balance Write-Off is $' || ${writeOffAmount} AS notes
                         , 'adjustment' AS payment_mode
+                        , ${defaultFacilityId}
                     FROM
                         claim_payments
                   RETURNING

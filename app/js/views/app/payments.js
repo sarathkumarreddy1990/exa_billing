@@ -700,7 +700,12 @@ define(['jquery',
                         { name: 'id', index: 'id', key: true, hidden: true },
                         { name: 'patient_name', width: 100, search: false },
                         { name: 'account_no', width: 200, search: false },
-                        { name: 'dob', width: 150, search: false },
+                        {
+                            name: 'dob', width: 150, search: false,
+                            formatter: function (e, model, data) {
+                                return commonjs.getFormattedDate(data.dob);
+                            }
+                        },
                         { name: 'patient_balance', width: 200, search: false }
                     ],
                     datastore: self.patientClaimList,
@@ -786,6 +791,7 @@ define(['jquery',
                                     url: '/exa_modules/billing/payments/process_write_off_payments',
                                     type: 'POST',
                                     data: {
+                                        defaultFacilityId : app.default_facility_id || app.facilityID || null,
                                         adjustmentCodeId : $adjustmentCode.val(),
                                         writeOffAmount : write_off_amount,
                                         companyId : app.companyID,
