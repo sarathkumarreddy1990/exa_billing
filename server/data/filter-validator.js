@@ -152,7 +152,7 @@ const validator = () => {
                 searchQuery += ' AND ';
             }
 
-            searchQuery += `(study_status != 'CAN' AND study_status != 'ABRT' AND NOT studies.has_deleted)`;
+            searchQuery += `(study_status != 'CAN' AND study_status != 'ABRT' AND study_status != 'NOS' AND NOT studies.has_deleted)`;
         }
 
         if (searchQuery === '()') {
