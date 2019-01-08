@@ -2367,10 +2367,6 @@ define(['jquery',
                     Backbone.history.navigate('#billing/payments/new', true);
             },
 
-            clearPayerFields: function () {
-                this.patient_id = this.provider_id = this.provider_group_id = this.insurance_provider_id = null;
-            },
-
             goBackToPayments: function () {
                 if (this.from === 'ris')
                     Backbone.history.navigate('#billing/payments/filter/ris', true);
