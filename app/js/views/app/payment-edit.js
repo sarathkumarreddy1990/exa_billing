@@ -2310,7 +2310,10 @@ define(['jquery',
                             isFromClaim: self.isFromClaim
                         },
                         success: function (model, response) {
-                            commonjs.showStatus(paymentStatus === 'applied' ? 'Payment has been updated successfully' : 'Payment has been applied successfully');
+                            var msg = self.isFromClaim ? commonjs.geti18NString('messages.status.tosSuccessfullyCompleted') :
+                                paymentStatus === 'applied' ? commonjs.geti18NString('messages.status.paymentUpdatedSuccessfully') : commonjs.geti18NString('messages.status.paymentAppliedSuccessfully');
+
+                            commonjs.showStatus(msg);
                             targetObj.removeAttr('disabled');
                             commonjs.hideLoading();
                             self.isRefundApplied = false;
