@@ -748,9 +748,9 @@ define(['jquery',
                                 'shared.fields.claimTotalBalance'
                             ],
                             colModel: [
-                                { name: 'id', index: 'id', key: true, width: 400 },
-                                { name: 'charges_bill_fee_total', width: 500 },
-                                { name: 'claim_balance_total', width: 500 }
+                                { name: 'id', index: 'id', key: true, width: 400, sortable: false, search: false },
+                                { name: 'claim_balance_total',        width: 500, sortable: false, search: false },
+                                { name: 'charges_bill_fee_total',     width: 500, sortable: false, search: false }
                             ],
                             sortname: 'claims.id',
                             sortorder: 'ASC',

@@ -1258,7 +1258,8 @@ module.exports = {
                         billing.claims
                         INNER JOIN patients p ON p.id = claims.patient_id
                         INNER JOIN LATERAL billing.get_claim_totals(claims.id) bgct ON TRUE
-                        WHERE p.id = ${patientId} `;
+                        WHERE p.id = ${patientId}
+                        AND bgct.claim_balance_total > 0::money `;
         } else {
 
             let selectColumn = `
@@ -1393,6 +1394,7 @@ module.exports = {
                     , payer_type
                     , notes
                     , mode
+                    , facility_id
                     , '{}'::jsonb old_values
             )
             -- --------------------------------------------------------------------------------------------------------------
@@ -1418,7 +1420,8 @@ module.exports = {
                                             'notes', notes,
                                             'mode', mode,
                                             'payment_dt', payment_dt,
-                                            'created_by', created_by
+                                            'created_by', created_by,
+                                            'facility_id', facility_id
                                         )::jsonb - 'old_values'::text
                                     )
                     )::jsonb
@@ -1440,6 +1443,7 @@ module.exports = {
                 FROM
                     billing.claims
                 INNER JOIN insert_payment ip ON ip.patient_id = claims.patient_id
+                INNER JOIN LATERAL billing.get_claim_totals(claims.id) gct ON TRUE
                 INNER JOIN LATERAL (
                         SELECT
                             json_agg(
@@ -1457,6 +1461,7 @@ module.exports = {
                         INNER JOIN LATERAL billing.get_charge_other_payment_adjustment(bch.id) bgct ON TRUE
                         WHERE bch.claim_id = claims.id
                 ) AS charges ON TRUE
+                WHERE gct.claim_balance_total > 0::money
             )
             -- --------------------------------------------------------------------------------------------------------------
             -- It will create payment application of given charge lineItems
