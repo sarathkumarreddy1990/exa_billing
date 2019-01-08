@@ -3560,6 +3560,7 @@ define(['jquery',
                     for (var i = 1; i < currId; i++) {
                         _height += parseInt($('#tab_' + i).height() + 15);
                     }
+                    // currentTargetId Example: 4th -BillingSummary & 5th -Payment section
                     if (currId == 4 || currId == 5)
                         _height -= parseInt($('#divTeritaryInsurances').height() + 15);
 
