@@ -56,7 +56,7 @@ function (
                 self.paymentTable.render({
                     gridelementid: '#tblUnAppliedpaymentsGrid',
                     custompager: self.pager,
-                    emptyMessage: 'No Record found',
+                    emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: [ '', '', '',  '', '', '', '', '', ''],
                     i18nNames: ['', 'billing.payments.paymentID', 'billing.payments.referencePaymentID', 'billing.payments.paymentDate', 'billing.payments.accountingDate', 'billing.payments.payertype', 'billing.payments.payerName', 'billing.payments.paymentAmount', 'billing.payments.balance'],
                     colModel: [

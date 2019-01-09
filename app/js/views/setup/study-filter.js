@@ -359,6 +359,8 @@ define([
 
             showGrid: function () {
                 var self = this;
+                var confirmDelete = commonjs.geti18NString("messages.status.areYouSureWantToDelete");
+                var deleteMessage = commonjs.geti18NString("messages.status.clickHereToDelete");
                 $('#tblStudyFilterGrid').show();
                 $('#divStudyFilterForm').hide();
                 $(this.el).html(this.studyFiltersGridTemplate({grid_filters:app.grid_filter,screenName:this.opener}));
@@ -370,7 +372,7 @@ define([
                 this.studyFilterTable.render({
                     gridelementid: '#tblStudyFilterGrid',
                     custompager: new Pager(),
-                    emptyMessage: 'No Record found',
+                    emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['', '', '', '', ''],
                     i18nNames: ['', '', '', 'setup.studyFilters.filterName', 'setup.studyFilters.filterOrder'],
                     colModel: [
@@ -387,7 +389,7 @@ define([
                                 if (data.user_id != app.userID && data.is_global_filter) {
                                     return "";
                                 }
-                                return "<i class='icon-ic-edit' title='Edit'></i>";
+                                return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>";
                             },
                             cellattr: function () {
                                 return 'style=text-align:center;cursor:pointer;'
@@ -397,14 +399,14 @@ define([
                             name: 'del', width: 10, sortable: false, search: false,
                             className: 'icon-ic-delete',
                             customAction: function (rowID) {
-                                if (confirm("Are you sure want to delete")) {
+                                if (confirm(confirmDelete)) {
                                     var gridData = $('#tblStudyFilterGrid').jqGrid('getRowData', rowID);
                                     self.model.set({ "id": rowID, "filter_name": gridData.filter_name });
                                     self.model.destroy({
                                         data: $.param({ id: self.model.id, name: gridData.filter_name }),
                                         success: function (model, response) {
                                             self.studyFilterTable.refreshAll();
-                                            commonjs.showStatus("Deleted Succesfully")
+                                            commonjs.showStatus("messages.status.deletedSuccessfully")
                                             $("#ddlStudyDefaultTab option[value='"+model.id+"']")[0].remove();
                                             if (window.appLayout && window.appLayout.refreshAppSettings)
                                                 window.appLayout.refreshAppSettings();
@@ -419,7 +421,7 @@ define([
                                 if (data.user_id != app.userID && data.is_global_filter) {
                                     return "";
                                 }
-                                return "<i class='icon-ic-delete' title='Click here to delete'></i>";
+                                return "<i class='icon-ic-delete' i18nt='messages.status.clickHereToDelete'></i>";
                             },
 
                             cellattr: function () {
@@ -940,20 +942,20 @@ define([
                 isDisplayInDropDown = $('#chkDisplayAsDDL').is(":checked");
 
                 if(!filterName){
-                    commonjs.showWarning('Please Enter FilterName');
+                    ommonjs.showWarning('messages.warning.claims.pleaseEnterFilterName');
                     return;
                 }
                 if(!filterOrder){
-                    commonjs.showWarning('Please Enter FilterOrder');
+                    commonjs.showWarning('messages.warning.claims.pleaseEnterFilterOrder');
                     return;
                 }
                 if (filterOrder < 0) {
-                    commonjs.showWarning('Please Enter FilterOrder In Positive');
+                    commonjs.showWarning('messages.warning.claims.pleaseEnterFilterOrderInPositive');
                     return;
                 }
 
                 if(!isDisplayAsTab && !isDisplayInDropDown){
-                    commonjs.showWarning('Please Select Display as a Tab or Display in DropDown');
+                    commonjs.showWarning('messages.warning.claims.PleaseSelectDisplayAsATabOrDisplayInDropDown');
                     return;
                 }
 

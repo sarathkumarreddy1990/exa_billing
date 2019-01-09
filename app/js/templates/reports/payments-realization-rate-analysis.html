@@ -69,7 +69,7 @@
                 <div class="selectBox ddl">
 
                     <div class="col-form-label">
-                        <label for="billingProChk" class="inline field-chk" i18n="report.reportFilter.billingProviders"> </label>
+                        <label for="billingProChk" class="inline field-chk" i18n="report.reportFilter.billingProvider"> </label>
                         <select id="ddlBillingProvider" multiple="multiple" />
                     </div>
                 </div>
@@ -95,7 +95,7 @@
         <div class="col">
             <div class="form-group form-inline">
                 <div>
-                    <label class="control-label">Select Insurance</label>
+                    <label class="control-label" i18n="report.reportFilter.selectInsurance"></label>
                     <div class="input-group">
                         <select id="ddlInsuranceOption" class="form-control form-control-lg">
                             <option value="All">All Insurance</option>
@@ -143,7 +143,7 @@
         <div class="btn-toolbar ml-4" role="toolbar" >
             <div class="btn-group">
                 <button type="button" class="btn btn-primary" id="btnViewReport" data-rformat="html">
-                    <i class="fa fa-file"></i> View
+                    <i class="fa fa-file"></i> <span i18n="shared.buttons.view"></span>
                 </button>
                 <button type="button" class="btn btn-primary" id="btnViewReportNewTabPaymentRateAnalysis" data-rformat="html">
                     <i class="fa fa-external-link"></i>
@@ -151,16 +151,16 @@
             </div>
             <div class="btn-group">
                 <button type="button" class="btn btn-primary" id="btnPdfReport" data-rformat="pdf">
-                    <i class="fa fa-file-pdf-o"></i> PDF
+                    <i class="fa fa-file-pdf-o"></i> <span i18n="shared.buttons.pdf"></span>
                 </button>
                 <button type="button" class="btn btn-primary" id="btnExcelReport" data-rformat="xlsx">
-                    <i class="fa fa-file-excel-o"></i> Excel
+                    <i class="fa fa-file-excel-o"></i> <span i18n="shared.buttons.excel"></span>
                 </button>
                 <button type="button" class="btn btn-primary" id="btnCsvReport" data-rformat="csv">
-                    <i class="fa fa-file-text-o"></i> CSV
+                    <i class="fa fa-file-text-o"></i> <span i18n="shared.buttons.csv"></span>
                 </button>
                 <button type="button" class="btn btn-primary" id="btnXmlReport" data-rformat="xml">
-                    <i class="fa fa-file-code-o"></i> XML
+                    <i class="fa fa-file-code-o"></i> <span i18n="shared.buttons.xml"></span>
                 </button>
             </div>
         </div>

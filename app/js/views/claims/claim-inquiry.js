@@ -191,7 +191,7 @@ define([
                             }
 
                             if (patient_details && patient_details.length > 0) {
-                                var patient_details = 'Claim Inquiry: ' + patient_details[0].patient_name + ' (Acc#:' + patient_details[0].account_no + ')' + ',  ' + moment(patient_details[0].birth_date).format('L') + ',  ' + patient_details[0].gender;
+                                var patient_details = commonjs.geti18NString('shared.screens.setup.claimInquiry') + ':' + patient_details[0].patient_name + ' (Acc#:' + patient_details[0].account_no + ')' + ',  ' + moment(patient_details[0].birth_date).format('L') + ',  ' + patient_details[0].gender;
                                 $(parent.document).find('#spanModalHeader').html(patient_details)
                             }
 
@@ -240,6 +240,9 @@ define([
                     datatype: 'local',
                     data: data != null ? data : [],
                     colNames: ['', 'code', 'description', 'Subscriber Name', 'DOB', 'Policy No', 'Group No', 'Paper Claim Original', 'Paper Claim Full'],
+                    i18nNames: ['', 'billing.COB.code', 'billing.COB.description', 'billing.claims.subscriberName', 'billing.COB.DOB', 'billing.claims.policyNo',
+                        'billing.claims.groupNo', 'billing.COB.paperClaimOriginal', 'billing.COB.paperClaimFull'
+                    ],
                     colModel: [
                         { name: 'id', hidden: true },
                         { name: 'insurance_code', search: false },
@@ -291,6 +294,7 @@ define([
                     datatype: 'local',
                     data: data != null ? data : [],
                     colNames: ['', 'Code', 'Description'],
+                    i18nNames: ['', 'billing.COB.code','billing.COB.description'],
                     colModel: [
                         { name: '', index: 'id', key: true, hidden: true },
                         { name: 'code', width: 20, search: false },
@@ -311,7 +315,7 @@ define([
                 this.patientClaimsTable.render({
                     gridelementid: '#tblPatientClaimsGrid',
                     custompager: this.claimsPager,
-                    emptyMessage: 'No Record found',
+                    emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['', 'Claim Number', 'Claim Date', 'Billing Fee', 'Total Adjustment','Total Insurance Payments', 'Total Patient Payments', 'Balance', 'Claim Status', 'Current responsibility'],
                     i18nNames: ['', 'billing.fileInsurance.claimNo', 'billing.claims.claimDate', 'billing.COB.billingFee','billing.fileInsurance.totalAdjustment', 'billing.claims.totalInsurancePayments', 'billing.claims.totalPatientPayments', 'billing.claims.Balance', 'billing.claims.claimStatus', 'billing.claims.currentResponsibility'],
                     colModel: [
@@ -383,7 +387,7 @@ define([
                 this.invoiceTable.render({
                     gridelementid: '#tblInvoiceGrid',
                     custompager: self.invoicePager,
-                    emptyMessage: 'No Record found',
+                    emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['', '', 'Invoice No', 'Date', 'Total Billing Fee', 'Total Payments', 'Total Adjustment',  'Balance',''],
                     i18nNames: ['', '', 'billing.fileInsurance.invoiceNo', 'billing.claims.Date', 'billing.COB.billingFee','billing.claims.totalPayments', 'billing.fileInsurance.totalAdjustment',  'billing.claims.Balance',''],
                     colModel: [
@@ -497,7 +501,7 @@ define([
                 this.patientClaimsLogTable.render({
                     gridelementid: '#tblPatientClaimsLogGrid',
                     custompager: new Pager(),
-                    emptyMessage: 'No Record found',
+                    emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['', 'Logged date', 'Screen', 'User', 'Log Description'],
                     i18nNames: ['', 'setup.log.logDt', 'setup.common.screen', 'setup.billingProvider.Username', 'setup.log.logDescription'],
                     colModel: [
@@ -584,8 +588,11 @@ define([
                 payCmtGrid.render({
                     gridelementid: '#tblCIClaimComments',
                     custompager: self.claimInquiryPager,
-                    emptyMessage: 'No Records Found',
+                    emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['','', 'date', '', 'code', 'payment.id', 'comment', 'Diag Ptr', 'charge', 'payment', 'adjustment', '', '', '', '',''],
+                    i18nNames: ['', '', 'billing.claims.date', '', 'billing.COB.code', 'billing.payments.paymentID', 'billing.payments.comment', 'billing.COB.diagptr',
+                        'billing.payments.charge', 'billing.payments.payments', 'billing.fileInsurance.adjustments', '', '', '', '', ''
+                    ],
                     colModel: [
                         { name: 'id', hidden: true},
                         { name: 'row_id', hidden: true },
@@ -682,14 +689,14 @@ define([
                             name: 'del', width: 20, search: false, sortable: false,
                             className: 'icon-ic-delete',
                             customAction: function (rowID) {
-                                if (confirm("Are you sure that you want to delete?")) {
+                                if (confirm(commonjs.geti18NString("messages.status.areYouSureWantToDelete"))) {
                                     var gridData = $('#tblCIClaimComments').jqGrid('getRowData', rowID);
                                     self.deleteClaimComment(gridData.row_id);
                                 }
                             },
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.code && commentType.indexOf(rowObject.code) == -1 && !self.editOff)
-                                    return "<i class='icon-ic-delete' title='Delete'></i>"
+                                    return "<i class='icon-ic-delete' i18nt='shared.buttons.delete'></i>"
                                 else
                                     return "";
                             }
@@ -703,7 +710,7 @@ define([
                             },
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.code && rowObject.code != null && commentType.indexOf(rowObject.code) == -1 && !self.editOff)
-                                    return "<i class='icon-ic-edit' title='Edit'></i>"
+                                    return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>"
                                 else
                                     return "";
                             }
@@ -775,6 +782,7 @@ define([
                 var self = this;
                 commonjs.showNestedDialog({
                     header: 'Add Comment',
+                    i18nHeader: 'shared.screens.setup.addComment',
                     width: '50%',
                     height: '20%',
                     html: $('#divCIFormComment').html()
@@ -938,6 +946,7 @@ define([
 
                     commonjs.showDialog({
                         'header': 'Patient Claims',
+                        'i18nHeader': "shared.moduleheader.patientClaims",
                         'width': '85%',
                         'height': '75%',
                         'needShrink': true
@@ -974,7 +983,7 @@ define([
                     self.processPatientClaim(e);
                 });
 
-                var headerName = 'Patient Claims: ' + patientName ;
+                var headerName = commonjs.geti18NString("shared.moduleheader.patientClaims") + patientName ;
                 $(parent.document).find('#spanModalHeader').html(headerName)
 
                 if(this.screenCode.indexOf('PACT') > -1)
@@ -1085,7 +1094,7 @@ define([
                         documentName: 'Patient Activity'
                     },
                     success: function (data, response) {
-                        commonjs.showStatus(commonjs.geti18NString("messages.status.reportFaxedSuccessfully"));
+                        commonjs.showStatus("messages.status.reportFaxedSuccessfully");
                         $('#divFaxRecipient').hide();
                     },
                     error: function (err) {

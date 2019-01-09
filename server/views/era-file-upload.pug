@@ -44,8 +44,8 @@ html
 
     body(class="exportFrame" style="background-color: transparent !important;")
         form#eraFileUpload(name='formEraUpload', action='/exa_modules/billing/era/upload', method='POST', style="float:right;", enctype="multipart/form-data")
-            button#btnProcess_EOB.btn.btn-primary.btn-sm(type="button", onClick="fireUpload(event);", style="background: #3c91f0; margin-top: 4px; margin-right: 5px;") UPLOAD & PROCESS EOB FILE
-            button#btnPreview_EOB.btn.btn-primary.btn-sm(type="button", onClick="fireUpload(event);", style="background: #3c91f0; margin-top: 4px;") PREVIEW EOB FILE
+            button#btnProcess_EOB.btn.btn-primary.btn-sm(type="button", onClick="fireUpload(event);", style="background: #3c91f0; margin-top: 4px; margin-right: 5px;", i18n="shared.fields.uploadExcludeEOBFile")
+            button#btnPreview_EOB.btn.btn-primary.btn-sm(type="button", onClick="fireUpload(event);", style="background: #3c91f0; margin-top: 4px;", i18n="shared.fields.previewEOBFile")
 
             input#eraFile(type="file", name="displayImage", onchange="doImport(event);", style="visibility:hidden; height:0px; width: 0px" )
             input#eraPDFFile(type="file", name="displayImage", onchange="doImport(event);", accept="application/pdf" style="visibility:hidden; height:0px; width: 0px" )
@@ -58,6 +58,42 @@ html
             span#fileStatus(style="display:none") #{status}
 
             input#hdnMode(type="text", style="visibility:hidden;height:0px", name="mode")
+
+    script(type='text/javascript', src=staticAssetsRoot + '/node_modules/requirejs/require.js')
     script.
         parent.commonjs.hideLoading();
         parent.document.getElementById('btnReloadERA').click();
+        window.app = {};
+
+        var rjsConfig = {
+            waitSeconds: 0,
+            paths: {
+                'jquery': '/exa_modules/billing/static/node_modules/jquery/dist/jquery',
+                'i18nscript': '/exa_modules/billing/static/js/shared/i18n',
+            },
+            shim: {
+                'jquery': {
+                   exports : 'jquery'
+                },
+                'i18nscript': {
+                    deps: ['jquery'],
+                    exports: 'i18n'
+                },
+            }
+        };
+
+        if (require && require.config) {
+            require.config(rjsConfig);
+
+            require([
+                'jquery',
+                'i18nscript'
+            ], function(
+                $,
+                i18n
+            ) {
+                i18n.text = parent._i18n.text;
+                i18n.currentLang = parent._i18n.currentLang;
+                i18n.t();
+            });
+        }

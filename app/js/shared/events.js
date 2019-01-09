@@ -107,7 +107,7 @@ define('grid-events', [ 'jquery', 'underscore', './formatter', './change-grid' ]
         };
 
         var _noRecordRow = function ( $tblGrid, shouldAdd ) {
-            var noRecordsTR = '<tr id="tr-no-records"><td colspan="100" style="text-align: center;font-size:14px;"> No Records Found</td></tr>';
+            var noRecordsTR = '<tr id="tr-no-records"><td colspan="100" style="text-align: center;font-size:14px;">' + commonjs.geti18NString('messages.status.noRecordFound') + '</td></tr>';
             if ( shouldAdd === true ) {
                 $tblGrid.append(noRecordsTR);
             }

@@ -64,13 +64,13 @@
     <div class="right" style="z-index:0;">
         <ul class="new-menu-right">
             <li class="saveAll">
-                <button type="button" class="btn top-buffer" id="btnSaveStudyFilter">SAVE</button>
+                <button type="button" class="btn top-buffer" id="btnSaveStudyFilter" i18n="shared.buttons.save"></button>
             </li>
             <li>
-                <button type="button" class="btn top-buffer" id="btnClearData">CLEAR</button>
+                <button type="button" class="btn top-buffer" id="btnClearData" i18n="shared.buttons.clear"></button>
             </li>
             <li>
-                <button type="button" class="btn top-buffer" id="btnBackToGrid">BACK</button>
+                <button type="button" class="btn top-buffer" id="btnBackToGrid" i18n="shared.buttons.back"></button>
             </li>
         </ul>
     </div>
@@ -82,10 +82,10 @@
                 <li>
                     <div class="form-group row">
                         <div class="form-list col-md-3 col-sm-3">
-                            <label class="col-form-label field-required" for="txtFilterName" i18n="setup.studyFilters.filterName">filter Name</label>
+                            <label class="col-form-label field-required" for="txtFilterName" i18n="setup.studyFilters.filterName"></label>
                         </div>
                         <div class="form-list col-md-4 col-sm-4">
-                            <input maxlength="128" type="text" id="txtFilterName" name="FilterNameSF" placeholder="Filter Name" i18np="setup.studyFilters.filterName"
+                            <input maxlength="128" type="text" id="txtFilterName" name="FilterNameSF" i18np="setup.studyFilters.filterName"
                                 required="required" class="form-control fc-short">
                         </div>
 
@@ -1149,18 +1149,16 @@
                                     <div class="row form-inline">
                                         <div class="form-list col-md-2 col-sm-2">
                                             <input type="radio" id="rbtIsRefPhy" name="RefPhy" value="Is" class="form-check-input clearField">
-                                            <label for="rbtIsRefPhy" class="form-check-label" i18n="
-                                           setup.studyFilters.is"></label>
+                                            <label for="rbtIsRefPhy" class="form-check-label" i18n="setup.studyFilters.is"></label>
                                         </div>
                                         <div class="form-list col-md-3 col-sm-3">
                                             <input type="radio" id="rbtIsNotRefPhy" name="RefPhy" value="IsNot" class="form-check-input clearField">
                                             <label for="rbtIsNotRefPhy" class="form-check-label"
-                                                   i18n=" setup.studyFilters.isNot"></label>
+                                                   i18n="setup.studyFilters.isNot"></label>
                                         </div>
                                         <div class="form-list col-md-2 col-sm-2">
                                             <input type="radio" id="rbtContainsRefPhy" name="RefPhy" value="Contains" class="form-check-input clearField">
-                                            <label for="rbtContainsRefPhy" class="form-check-label" i18n="
-                                           setup.studyFilters.contains"></label>
+                                            <label for="rbtContainsRefPhy" class="form-check-label" i18n="setup.studyFilters.contains"></label>
                                         </div>
                                     </div>
                                 </td>

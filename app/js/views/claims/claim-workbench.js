@@ -293,7 +293,7 @@ define(['jquery',
                             display_in_ddl: true,
                             filter_id: "All_Claims",
                             filter_info: null,
-                            filter_name: "All Claims",
+                            filter_name: commonjs.geti18NString("shared.fields.allClaims"),
                             filter_order: 0,
                             id: "All_Claims"
                         })
@@ -612,7 +612,7 @@ define(['jquery',
                             self.ediResponse(data);
                         } else {
                             if (!data.invalidClaim_data.length) {
-                                commonjs.showStatus(commonjs.geti18NString("messages.status.validatedSuccessfully"));
+                                commonjs.showStatus("messages.status.validatedSuccessfully");
                                 $("#btnClaimsRefresh").click();
                             }
                             else
@@ -660,6 +660,7 @@ define(['jquery',
 
                     commonjs.showDialog({
                         header: 'EDI Claim',
+                        i18nHeader:'shared.moduleheader.ediClaims',
                         width: '95%',
                         height: '75%',
                         html: self.ediResultTemplate({ result: result, ediText: data.ediTextWithValidations })
@@ -718,6 +719,7 @@ define(['jquery',
 
                     commonjs.showDialog({
                         header: 'OHIP Claim',
+                        i18nHeader:'shared.moduleheader.ohipClaims',
                         width: '95%',
                         height: '75%',
                         html: self.ohipResultTemplate()
@@ -1885,7 +1887,7 @@ define(['jquery',
                                 commonjs.hideLoading();
 
                                 if (data.validClaim_data && data.validClaim_data.rows && data.validClaim_data.rows.length) {
-                                    commonjs.showStatus(commonjs.geti18NString("messages.status.validatedSuccessfully"));
+                                    commonjs.showStatus("messages.status.validatedSuccessfully");
 
                                     var pending_submission_status = app.claim_status.filter(function (obj) {
                                         return obj.id === parseInt(data.validClaim_data.rows[0].claim_status_id)

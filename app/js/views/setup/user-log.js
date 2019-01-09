@@ -37,7 +37,7 @@ define([
                 this.userLogTable.render({
                     gridelementid: '#tblUserLogGrid',
                     custompager: new Pager(),
-                    emptyMessage: 'No Record found',
+                    emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['', '', '', '', '', '', ''],
                     i18nNames: ['', '', 'setup.common.user', 'setup.log.logInDt' , 'setup.log.logOutDt', 'setup.log.lastAccessed', 'setup.log.logSource'],
                     colModel: [
@@ -55,7 +55,7 @@ define([
                             search: false,
                             className: 'icon-ic-reports',
                             formatter: function (e, model, data) {
-                                return "<i class='icon-ic-reports' title='Click here to view this log'></i>";
+                                return "<i class='icon-ic-reports' i18nt='messages.status.clickHereToViewThisLog'></i>";
                             },
                             cellattr: function () {
                                 return 'style=text-align:center;cursor:pointer;'
@@ -114,7 +114,7 @@ define([
                     {value: 'Reload', class: 'btn', i18n: 'shared.buttons.reload', clickEvent: function () {
                         self.pager.set({"PageNo": 1});
                         self.userLogTable.refreshAll();
-                        commonjs.showStatus("Reloaded Successfully");
+                        commonjs.showStatus("messages.status.reloadedSuccessfully");
                     }}
                 ]});
 
@@ -146,6 +146,7 @@ define([
                         response = response[0];
                         commonjs.showDialog({
                             'header': 'Log Details',
+                            'i18nHeader': 'setup.log.logDetails',
                             'width': '50%',
                             'height': '60%',
                             'needShrink': true ,

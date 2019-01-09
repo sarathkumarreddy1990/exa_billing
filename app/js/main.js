@@ -182,7 +182,7 @@ if (require && require.config) {
         layout_,
         constants,
         debug,
-        i18n,
+        i18n_,
         sessionhandler,
         customGrid,
         App,
@@ -199,12 +199,14 @@ if (require && require.config) {
         permissionsjs,
         jqueryuisortable
         ) {
+            browserLocale = navigator.language;
             window.browserLocale = typeof browserLocale == 'undefined' ? 'en-US' : browserLocale;
             window.Immutable = Immutable;
             window.commonjs = commonjs;
             window.appLayout = layout;
             window.appRights = permissions;
             window._get = _get;
+            window._i18n = i18n;
 
             window.AppServer = Appserver;
 
