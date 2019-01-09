@@ -824,6 +824,7 @@ define(['jquery',
                             }
 
                         }, 250));
+                        commonjs.isMaskValidate();
                     },
                     setCustomData: function (){
                         return {
