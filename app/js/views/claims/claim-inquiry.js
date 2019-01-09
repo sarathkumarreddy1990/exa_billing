@@ -307,6 +307,8 @@ define([
             showPatientClaimsGrid: function (claimID, patientId, billingProviderID) {
                 var self = this;
                 self.patientId = patientId;
+                self.billProvId = parseInt(billingProviderID);
+                self.claimID = claimID;
                 $('#divPatientClaimsGrid').show();
                 this.patientClaimsTable = new customGrid();
                 this.patientClaimsTable.render({
@@ -369,7 +371,9 @@ define([
                     onaftergridbind: self.afterGridBind,
                     setCustomData: function (){
                         return {
-                            patientId: self.patientId
+                            claimID: self.patientId,
+                            patientId: self.patientId,
+                            billProvId: self.billProvId
                         }
                     }
                 });
@@ -1036,6 +1040,7 @@ define([
                         var rowId = nextRowData.attr('id');
                         $(e.target).prop('disabled', true);
                         var data = $(self.grid_id, parent.document).getRowData(rowId);
+                        $('#ddlBillingProvider option:contains("Select")').prop("selected", true);
                         self.patientInquiryForm(rowId, data.hidden_patient_id, data.patient_name, self.grid_id, false)
 
                     } else {
