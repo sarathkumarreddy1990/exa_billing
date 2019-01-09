@@ -306,6 +306,7 @@ define([
 
             showPatientClaimsGrid: function (claimID, patientId, billingProviderID) {
                 var self = this;
+                self.patientId = patientId;
                 $('#divPatientClaimsGrid').show();
                 this.patientClaimsTable = new customGrid();
                 this.patientClaimsTable.render({
@@ -361,11 +362,16 @@ define([
                     disablereload: true,
                     customargs: {
                         claimID: claimID,
-                        patientId: patientId,
+                        patientId: self.patientId,
                         billProvId: parseInt(billingProviderID)
                     },
                     pager: '#gridPager_PatientClaim',
                     onaftergridbind: self.afterGridBind,
+                    setCustomData: function (){
+                        return {
+                            patientId: self.patientId
+                        }
+                    }
                 });
 
 
