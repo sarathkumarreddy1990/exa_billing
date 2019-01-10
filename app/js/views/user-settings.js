@@ -220,7 +220,8 @@ define([
 
                         for (var i = 0; i < self.billingDisplayFields.length; i++) {
                             if(self.billingDisplayFields[i].field_code != 'charge_description'){
-                                $('<option/>').val(self.billingDisplayFields[i].field_code).html(self.billingDisplayFields[i].field_name).appendTo('#ddlBillingDefaultColumns');
+                                var field_name = commonjs.geti18NString(self.billingDisplayFields[i].i18n_name);
+                                $('<option/>').val(self.billingDisplayFields[i].field_code).html(field_name).appendTo('#ddlBillingDefaultColumns');
                             }
                         }
 

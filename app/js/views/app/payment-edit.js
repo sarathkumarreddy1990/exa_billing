@@ -431,7 +431,8 @@ define(['jquery',
                 $txtautoPayerPIP.on('select2:open', function (event) {
                     commonjs.getPlaceHolderForSearch();
                     placeHolder = i18n.get("billing.payments.selectInsurance");
-                    if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase())
+                    if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase()
+                        && $select2Container.text().toLowerCase() != 'select insurance')
                         $txtautoPayerPIP.data('select2').dropdown.$search.val($select2Container.text());
                 });
             },
@@ -564,7 +565,8 @@ define(['jquery',
                 $txtautoPayerPP.on('select2:open', function (event) {
                     commonjs.getPlaceHolderForSearch();
                     placeHolder = i18n.get("billing.payments.selectPatient");
-                    if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase())
+                    if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase()
+                        && $select2Container.text().toLowerCase() != "select patient")
                         $txtautoPayerPP.data('select2').dropdown.$search.val($select2Container.text());
                 });
             },
@@ -624,7 +626,8 @@ define(['jquery',
                 $txtautoPayerPOF.on('select2:open', function (event) {
                     commonjs.getPlaceHolderForSearch();
                     placeHolder = i18n.get("billing.payments.selectOrderingFacility");
-                    if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase())
+                    if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase()
+                        && $select2Container.text().toLowerCase() != 'select ordering facility')
                         $txtautoPayerPOF.data('select2').dropdown.$search.val($select2Container.text());
                 });
             },
@@ -700,7 +703,8 @@ define(['jquery',
                 $txtautoPayerPR.on('select2:open', function (event) {
                     commonjs.getPlaceHolderForSearch();
                     placeHolder = i18n.get("billing.payments.selectProvider");
-                    if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase())
+                    if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase()
+                        && $select2Container.text().toLowerCase() != 'select provider')
                         $txtautoPayerPR.data('select2').dropdown.$search.val($select2Container.text());
                 });
             },
@@ -841,7 +845,7 @@ define(['jquery',
                 this.studyCptTable.render({
                     gridelementid: '#tblStudyCpt',
                     custompager: this.studyCptPager,
-                    emptyMessage: 'No Record found',
+                    emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['', '', '', '', '', '', ''],
                     i18nNames: ['', '', '', 'billing.COB.studyDate', 'billing.payments.accessionNo', 'billing.payments.studyDescription', 'billing.payments.cptCodes'],
                     colModel: [
@@ -1213,7 +1217,7 @@ define(['jquery',
                 this.invoicePendPaymentTable.render({
                     gridelementid: '#tblpendPaymentsGridOnly',
                     custompager: this.pendPaymtInvoicePager,
-                    emptyMessage: 'No Record found',
+                    emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
                     i18nNames: ['', '', '', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.fileInsurance.claimDt', 'billing.payments.billFee', 'billing.payments.balance', 'setup.userSettings.cptCodes', 'setup.userSettings.accountNo', '', ''],
                     colModel: [
@@ -1317,7 +1321,7 @@ define(['jquery',
                     this.pendPaymentTable.render({
                         gridelementid: '#tblpendPaymentsGrid',
                         custompager: this.pendPaymtPager,
-                        emptyMessage: 'No Record found',
+                        emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                         colNames: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
                         i18nNames: ['', '', '', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.fileInsurance.claimDt', 'billing.payments.billFee', 'billing.payments.balance', 'setup.userSettings.cptCodes', 'setup.userSettings.accountNo', '', ''],
                         colModel: [
@@ -1477,7 +1481,7 @@ define(['jquery',
                 this.appliedPaymentTable.render({
                     gridelementid: '#tblAppliedPaymentsGrid',
                     custompager: this.appliedPager,
-                    emptyMessage: 'No Record found',
+                    emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
                     i18nNames: ['', '', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.fileInsurance.claimDt', 'billing.payments.billFee', 'billing.payments.patientPaid', 'billing.payments.payerPaid', 'billing.payments.adjustment', 'billing.payments.thisAdj', 'billing.payments.thisPayment', 'billing.payments.balance', 'billing.payments.cptCodes', 'patient_id', 'facility_id', ''],
                     colModel: [
@@ -1609,7 +1613,7 @@ define(['jquery',
                 var casDialogHeader = commonjs.geti18NString('billing.fileInsurance.claim') + ': # <strong>' + rowData.claim_id + ',  ' + rowData.full_name + '  ' + claimDt + '</strong>';
                 var casDialogHtml = self.applyCasTemplate({
                     adjustmentCodes: self.adjustmentCodeList.toJSON(),
-                    'claimStatusList': this.claimStatusList.toJSON(),
+                    claimStatusList: this.claimStatusList.toJSON(),
                     cas_group_codes: self.cas_group_codes || rowData.cas_group_codes,
                     cas_reason_codes: self.cas_reason_codes || rowData.cas_reason_codes,
                     patient_paid: patient_paid,
@@ -2711,8 +2715,7 @@ define(['jquery',
 
             showPatientForm: function (patientId, patient_name, account_no,dblclickPat) {
                 var self = this;
-                var msg =  commonjs.geti18NString("shared.fields.pendingPaymentsForThePatient");
-                $('#commonMsg').text(msg)
+                $('#commonMsg').text(commonjs.geti18NString("shared.fields.pendingPaymentsForThePatient"));
                 $('#spnPatInfo').text(patient_name + ' (' + account_no + ') ');
                 this.showPendingPaymentsGrid(this.payment_id, this.payer_type, this.payer_id, patientId, 0, '', dblclickPat);
             },
@@ -2846,7 +2849,7 @@ define(['jquery',
                 if (self.canDeletePayment)
                     return confirm(commonjs.geti18NString("messages.status.areYouSureToDeleteThisPayment"));
                 else {
-                    return confirm('This payemet has been already applied. Proceed anyway?');
+                    return confirm(commonjs.geti18NString("messages.status.thisPaymentHasBeenAlreadyAppliedProceedAnyway"));
                 }
             },
 
@@ -2861,7 +2864,7 @@ define(['jquery',
                             payment_id: self.payment_id
                         },
                         success: function (data, response) {
-                            commonjs.showStatus('messages.status.paymentDeleteSuccessfully');
+                            commonjs.showStatus("messages.status.paymentHasBeenDeletedSuccessfully");
                             if (self.from === 'ris')
                                 Backbone.history.navigate('#billing/payments/filter/ris', true);
                             else

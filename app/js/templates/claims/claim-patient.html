@@ -16,7 +16,7 @@
     <div class="row">
         <div class="col-3">
             <div class="col-form-label" style="text-align: left; padding: 0;">
-                <label i18n="report.reportFilter.billingProviders" />
+                <label i18n="report.reportFilter.billingProvider"></label>
             </div>
             <div class="form-group form-inline">
                 <select id="ddlBillingProvider" />
@@ -37,12 +37,12 @@
             <div class="col-form-label" style="text-align: left;">
                 <span class="radio-inline" for="radActivityAllStatus">
                     <input id="radActivityAllStatus" type="radio" name="patientActivity" style="margin-top: 3px;">
-                    <label for="radActivityAllStatus" class="field-chk" style="min-width: 20px!important; margin: 0 0 10px 0px;">All Activity</label>
+                    <label for="radActivityAllStatus" class="field-chk" style="min-width: 20px!important; margin: 0 0 10px 0px;" i18n="billing.payments.allActivity"></label>
                 </span>
                 <div class="form-group form-inline">
                     <span class="radio-inline" for="radioActivityStatus">
                         <input id="radioActivityStatus" type="radio" name="patientActivity" style="margin-top: 3px;">
-                        <label for="radioActivityStatus" class="field-chk" style="min-width: 20px!important; margin: 0 0 10px 0px;">Activity By Date</label>
+                        <label for="radioActivityStatus" class="field-chk" style="min-width: 20px!important; margin: 0 0 10px 0px;" i18n="billing.payments.activityByDate"></label>
                     </span>
                 </div>
             </div>
@@ -81,10 +81,10 @@
         <div class="col-2">
             <div class="col-form-label" style="text-align: left;">
                 <input type="checkbox" id="bindComments" class="btn btn-default bindComments" i18n="billing.payments.comment">
-                <label for="bindComments">Include All Comments</label>
+                <label for="bindComments" i18n="billing.payments.comment"></label>
                 <div class="form-group form-inline">
-                    <input type="button" id="btnPatientActivity" class="btn btn-default patientActivity" i18n="billing.payments.print" data-rformat="pdf">
-                    <input type="button" id="btnFaxPatientActivity" class="btn btn-default patientActivity" i18n="billing.payments.fax" data-rformat="pdf" style="margin-left: 5px;">
+                    <input type="button" id="btnPatientActivity" class="btn btn-default patientActivity" i18n="shared.buttons.print" data-rformat="pdf">
+                    <input type="button" id="btnFaxPatientActivity" class="btn btn-default patientActivity" i18n="setup.billingprovider.fax" data-rformat="pdf" style="margin-left: 5px;">
                 </div>
             </div>
         </div>

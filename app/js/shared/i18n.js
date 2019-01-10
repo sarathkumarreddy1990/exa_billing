@@ -16,7 +16,7 @@ var i18n = {
 
     autoSetLang: function () {
         var browserLang = browserLocale.replace('-', '_').toLowerCase();
-        var currentCulture = _.find(this.config.cultures, ['isoCode', browserLang]);
+        var currentCulture = _.find(this.config.cultures, function (culture) { return culture['isoCode'] === browserLang; });
         this.currentLang = currentCulture ? currentCulture.name : this.defaultLang;
         if (!app) {
             app = {};

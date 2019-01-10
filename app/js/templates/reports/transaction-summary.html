@@ -19,7 +19,7 @@
             <div class="form-group form-inline">
                 <div class="col-form-label" class="multiselect">
                     <div class="col-form-label" class="multiselect">
-                            <label class="control-label">Facility </label>
+                        <label class="control-label" i18n="report.reportFilter.facilities"></label>
                         <select id="ddlFacilityFilter" multiple="multiple">
                             <% _.each(facilities.toJSON(), function(facility) { %>
                                 <option value='<%= facility.id %>'>
@@ -34,7 +34,7 @@
         <div class="col-3">
             <div class="form-group form-inline">
                 <div class="col-form-label" class="multiselect">
-                    <label class="control-label">Billing Provider
+                    <label class="control-label" i18n="report.reportFilter.billingProvider">
                     </label>
                     <select id="ddlBillingProvider" multiple="multiple" />
                 </div>

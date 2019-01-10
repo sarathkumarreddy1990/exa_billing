@@ -58,7 +58,7 @@ define('grid', [
                 return false;
             }
             if (isTrue(data.has_deleted)) {
-                return commonjs.showWarning('Study is deleted - nowhere to go unless restored.', '', true);
+                return commonjs.showWarning('messages.warning.claims.studyIsDeleted', '', true);
             }
             var id = data.study_id;
             editStudyID = id;
@@ -445,7 +445,7 @@ define('grid', [
                         return false;
                     }
 
-                if(confirm("Are you sure want to delete claims")){
+                if (confirm(commonjs.geti18NString("messages.status.areYouSureWantToDeleteClaims"))) {
 
                     $.ajax({
                         url: '/exa_modules/billing/claim_workbench/claim_check_payment_details',
@@ -468,7 +468,7 @@ define('grid', [
                                         type: 'claim'
                                     },
                                     success: function (data, response) {
-                                        commonjs.showStatus('Claim has been deleted');
+                                        commonjs.showStatus('messages.status.claimHasBeenDeleted');
                                         $("#btnClaimsRefresh").click();
                                     },
                                     error: function (err, response) {
@@ -532,6 +532,7 @@ define('grid', [
                     }
                     commonjs.showDialog({
                         'header': 'Invoices',
+                        'i18nHeader': 'shared.fields.invoices',
                         'width': '95%',
                         'height': '80%',
                         'needShrink': true
@@ -551,6 +552,7 @@ define('grid', [
 
                     commonjs.showDialog({
                         'header': 'Patient Claim Log',
+                        'i18nHeader': 'shared.moduleheader.patientClaimLog',
                         'width': '95%',
                         'height': '80%',
                         'needShrink': true
@@ -701,6 +703,7 @@ define('grid', [
 
             }
 
+            commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
             $divObj.show();
             setRightMenuPosition(divObj, event);
             event.preventDefault();
@@ -723,12 +726,12 @@ define('grid', [
                 var gridData = $(gridID).jqGrid('getRowData', rowId);
 
                 if (!gridData.hidden_study_cpt_id) {
-                    commonjs.showWarning("Please select charges record for batch claim ");
+                    commonjs.showWarning("messages.warning.claims.selectChargesRecordForBatchClaim");
                     return false;
                 }
 
                 if (gridData.billed_status && gridData.billed_status.toLocaleLowerCase() == 'billed') {
-                    commonjs.showWarning("Please select Unbilled record for batch claim");
+                    commonjs.showWarning("messages.warning.claims.selectUnbilledRecordForBatchClaim");
                     return false;
                 }
 
@@ -909,7 +912,7 @@ define('grid', [
                     formatter: function (cellvalue, options, rowObject) {
                             if(!rowObject.claim_id)
                                 return "";
-                            else  return "<i class='icon-ic-edit' title='Edit'></i>"
+                            else  return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>"
 
                     },
                     customAction: function (rowID, e, that) {
@@ -936,7 +939,7 @@ define('grid', [
                     hidden: !options.isClaimGrid,
                     isIconCol: true,
                     formatter: function () {
-                        return "<i class='icon-ic-raw-transctipt' title='Claim Inquiry'></i>"
+                        return "<i class='icon-ic-raw-transctipt' i18nt='billing.fileInsurance.claimInquiry'></i>"
                     },
                     customAction: function (rowID, e, that) {
                         if (screenCode.indexOf('CLMI') > -1){
@@ -966,7 +969,7 @@ define('grid', [
                     hidden: !options.isClaimGrid,
                     isIconCol: true,
                     formatter: function () {
-                        return '<i href="#" class="icon-ic-worklist" data-toggle="popover" title="Claim Summary"></i>';
+                        return '<i href="#" class="icon-ic-worklist" data-toggle="popover" i18nt="shared.fields.claimSummary"></i>';
                     },
                     customAction: function (rowID, e, that) {
                         var claimSummaryId = $('.claim-summary:visible').attr('id');
@@ -1435,6 +1438,7 @@ define('grid', [
                         "width": "50%",
                         "height": "70%",
                         "header": "User Settings",
+                        "i18nHeader": "setup.userSettings.headings.userSettings",
                         "needShrink": true,
                         "html": "<div/>"
                     });
@@ -1445,11 +1449,15 @@ define('grid', [
 
             $('#btnStudyFilter').unbind().click(function (e) {
 
+                var header = window.location && window.location.hash.split('/')[1] == 'claim_workbench' ?
+                    'shared.screens.setup.claimFilter' : 'shared.screens.setup.studyFilter';
+
                 commonjs.showDialog(
                     {
                         "width": "75%",
                         "height": "75%",
                         "header": window.location && window.location.hash.split('/')[1] == 'claim_workbench' ? "Claim Filter" : "Study Filter",
+                        "i18nHeader": header,
                         "needShrink": true,
                         "html": "<div/>"
                     });
@@ -1658,7 +1666,7 @@ define('grid', [
                         $tblGrid.jqGrid('getGridParam', 'colModel');
                     var col = colModel[index];
                     if (!col) {
-                        commonjs.showWarning('Could not save new column size');
+                        commonjs.showWarning('messages.warning.claims.couldNotSaveNewColumnSize');
                         return false;
                     }
                     studyFieldsCollection.add({

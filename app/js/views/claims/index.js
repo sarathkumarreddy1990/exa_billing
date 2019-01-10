@@ -122,6 +122,7 @@ define(['jquery',
 
                 commonjs.showDialog({
                     header: 'Claim Creation',
+                    i18nHeader: 'shared.fields.claimCreation',
                     width: '95%',
                     height: '75%',
                     html: this.claimCreationTemplate({
@@ -2879,7 +2880,7 @@ define(['jquery',
                                                     },
                                                     {
                                                         'field': 'as_edit',
-                                                        'data': "<i class='icon-ic-edit' title='Edit'></i>"
+                                                        'data': "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>"
                                                     }
                                                 ];
 
@@ -3420,7 +3421,7 @@ define(['jquery',
                             commonjs.hideLoading();
 
                             if (!data.invalidClaim_data.length) {
-                                commonjs.showStatus(commonjs.geti18NString("messages.status.validatedSuccessfully"));
+                                commonjs.showStatus("messages.status.validatedSuccessfully");
 
                                 if (data.validClaim_data && data.validClaim_data.rows && data.validClaim_data.rows.length) {
                                     self.claim_row_version = data.validClaim_data.rows[0].claim_row_version || self.claim_row_version;
@@ -4211,7 +4212,7 @@ define(['jquery',
                             },
                             success: function (result) {
                                 if (result.length) {
-                                    commonjs.showStatus(commonjs.geti18NString("messages.status.successfullyUpdated"));
+                                    commonjs.showStatus("messages.status.successfullyUpdated");
                                     self.resetInsurances(e);
                                     if(_isCurrentResponsible){
                                         $('#ddlClaimResponsible').val('PPP');
@@ -4284,7 +4285,7 @@ define(['jquery',
             // Binding Header Patient Details
             addPatientHeaderDetails: function (patient_details, from) {
                 var self = this;
-                var headerTopic = from === 'create' ? 'Claim Creation : ' : 'Edit : ';
+                var headerTopic = from === 'create' ? i18n.get('shared.fields.claimCreation') + ' : ' : i18n.get('shared.buttons.edit') + ' : ';
 
                 $(parent.document).find('#spanModalHeader')
                     .text(headerTopic)

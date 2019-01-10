@@ -42,6 +42,14 @@ define([
                 $(this.el).html(this.eraGridTemplate());
                 self.getEobFilesList();
                 commonjs.currentModule = 'EOB';
+                document.getElementById("ifrEobFileUpload").addEventListener('load', function (e) {
+                    var elList = this.contentWindow.document.querySelectorAll("[i18n]");
+                    if (elList.length > 0) {
+                        for (var i = 0; i < elList.length; i++) {
+                            i18n.t1(elList[i]);
+                        }
+                    }
+                });
                 commonjs.initializeScreen({ header: { screen: 'ERA', ext: 'eob' } });
                 commonjs.hideLoading();
             },
@@ -68,15 +76,15 @@ define([
                 this.eobFilesTable.render({
                     gridelementid: '#tblEOBFileList',
                     custompager: this.pager,
-                    emptyMessage: 'No Record found',
-                    colNames: ['', '', '', 'Id', 'Payment Id','File Name', 'Size', 'File Updated Date/Time', 'Status'],
-                    i18nNames: ['', '', '', 'shared.fields.id', 'shared.fields.paymentId','home.pendingStudies.fileName', 'home.viewerCommonOptions.size', 'home.pendingStudies.fileUpdatedDateTime', 'shared.fields.status'],
+                    emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
+                    colNames: ['', '', '', '', 'Id', 'Payment Id','File Name', 'Size', 'File Updated Date/Time', 'Status'],
+                    i18nNames: ['', '', '', 'shared.fields.id', 'shared.fields.paymentId','shared.fields.fileName', 'shared.fields.size', 'shared.fields.fileUpdatedDateTime', 'shared.fields.status'],
                     colModel: [
                         { name: 'file_store_id', hidden: true, searchFlag: '%', search: false },
                         {
                             name: 'edit', width: 40, sortable: false, search: false,
                             formatter: function (cellvalue, options, rowObject) {
-                                return "<a href='javascript: void(0)' id =" + rowObject.id + ">View</a>";
+                                return "<a href='javascript: void(0)' id =" + rowObject.id + ">" + commonjs.geti18NString('shared.buttons.view') + "</a>";
                             },
                             cellattr: function () {
                                 return "style='text-align: center;text-decoration: underline;'";
@@ -87,7 +95,7 @@ define([
                                     self.showPayments(rowID, gridData.uploaded_file_name);
                                 }
                                 else {
-                                    commonjs.showWarning('File not in success status');
+                                    commonjs.showWarning('messages.status.fileNotInSuccessStatus');
                                 }
                             }
                         },
@@ -176,7 +184,7 @@ define([
                             self.processFile(rowID, gridData, null);
                         }
                         else {
-                            commonjs.showWarning('File already processed');
+                            commonjs.showWarning('messages.era.fileAlreadyProcessed');
                         }
                     }
                 });
@@ -293,7 +301,7 @@ define([
                 if (isFrom == 'initialize') {
 
                     commonjs.hideLoading();
-                    commonjs.showDialog({ header: 'EOB', width: '45%', height: '60%', html: self.eraProgressTemplate() });
+                    commonjs.showDialog({ header: 'EOB', i18nHeader:'shared.moduleheader.eob', width: '45%', height: '60%', html: self.eraProgressTemplate() });
                     $('.modal-dialog .btn-secondary, .modal-dialog  .close').addClass('eraClose');
                     $('#siteModal').removeAttr('tabindex'); //removed tabIndex attr for select2 search text can't editable
                     self.setAutoComplete();
@@ -316,7 +324,7 @@ define([
                 });
                 $('#btnProcessPayment').off().click(function (e) {
                     if (!$('#select2-ddlInsuranceProviders-container').attr('data_description') || !$('#select2-ddlInsuranceProviders-container').attr('data_id')) {
-                        commonjs.showWarning('Please select Insurance provider');
+                        commonjs.showWarning('messages.status.pleaseSelectInsuranceProvider');
                     } else {
                         self.processFile(file_id, payerDetails, 'applypayments');
                     }
@@ -446,7 +454,7 @@ define([
                             var eraPreview = _.template(EraPreview);
                             var previewHtml = eraPreview({ data: eraJson });
 
-                            commonjs.showDialog({ header: 'EOB Preview', width: '60%', height: '60%', html: previewHtml }, true);
+                            commonjs.showDialog({ header: 'EOB Preview', i18nHeader:'shared.fields.eobPreview', width: '60%', height: '60%', html: previewHtml }, true);
                         } catch (err) {
                             commonjs.showError('Unable to process');
                         }
@@ -507,9 +515,9 @@ define([
                                     row["totalAdjusmtment"] = totalAdjusmtment;
                                 });
 
-                                $('#eraResultTitle').html('Result : ' + fileName);
+                                $('#eraResultTitle').html(commonjs.geti18NString("shared.fields.result") + fileName);
                                 commonjs.showDialog({
-                                    header: 'Result : ' + fileName,
+                                    header: commonjs.geti18NString("shared.fields.result") + fileName,
                                     width: '80%',
                                     height: '70%',
                                     padding: '0px',
@@ -531,7 +539,7 @@ define([
                                 $('#era-processed-preview').height(($(window).height() - 360));
                             }
                             else {
-                                commonjs.showWarning('No details to show');
+                                commonjs.showWarning('messages.status.noDetailsToShow');
                             }
                             commonjs.hideLoading();
                         },
@@ -540,7 +548,7 @@ define([
                         }
                     });
                 } else {
-                    commonjs.showWarning('Error on getting file id');
+                    commonjs.showWarning('messages.status.errorOnGettingFileID');
                 }
 
 
