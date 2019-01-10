@@ -1352,7 +1352,7 @@ define([
                             condition: dateJsonCondition,
                             preformatted: $.trim($('#ddlDatePreformatted').val()),
                             durationValue: $.trim($('#txtLastTime').val()),
-                            duration: $('#ddlLast option:selected').text(),
+                            duration: $('#ddlLast option:selected').val(),
                             fromTime: $('#txtFromTimeLast').val() ? $('#txtFromTimeLast').val() : null,
                             toTime: $('#txtToTimeLast').val() ? $('#txtToTimeLast').val() : null,
                             fromDate: $('#txtDateFrom').val() ? $('#txtDateFrom').val() : null,

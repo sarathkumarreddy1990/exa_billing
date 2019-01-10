@@ -430,7 +430,8 @@ define(['jquery',
                 $txtautoPayerPIP.on('select2:open', function (event) {
                     commonjs.getPlaceHolderForSearch();
                     placeHolder = i18n.get("billing.payments.selectInsurance");
-                    if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase())
+                    if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase()
+                        && $select2Container.text().toLowerCase() != 'select insurance')
                         $txtautoPayerPIP.data('select2').dropdown.$search.val($select2Container.text());
                 });
             },
@@ -563,7 +564,8 @@ define(['jquery',
                 $txtautoPayerPP.on('select2:open', function (event) {
                     commonjs.getPlaceHolderForSearch();
                     placeHolder = i18n.get("billing.payments.selectPatient");
-                    if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase())
+                    if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase()
+                        && $select2Container.text().toLowerCase() != "select patient")
                         $txtautoPayerPP.data('select2').dropdown.$search.val($select2Container.text());
                 });
             },
@@ -623,7 +625,8 @@ define(['jquery',
                 $txtautoPayerPOF.on('select2:open', function (event) {
                     commonjs.getPlaceHolderForSearch();
                     placeHolder = i18n.get("billing.payments.selectOrderingFacility");
-                    if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase())
+                    if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase()
+                        && $select2Container.text().toLowerCase() != 'select ordering facility')
                         $txtautoPayerPOF.data('select2').dropdown.$search.val($select2Container.text());
                 });
             },
@@ -699,7 +702,8 @@ define(['jquery',
                 $txtautoPayerPR.on('select2:open', function (event) {
                     commonjs.getPlaceHolderForSearch();
                     placeHolder = i18n.get("billing.payments.selectProvider");
-                    if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase())
+                    if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase()
+                        && $select2Container.text().toLowerCase() != 'select provider')
                         $txtautoPayerPR.data('select2').dropdown.$search.val($select2Container.text());
                 });
             },
