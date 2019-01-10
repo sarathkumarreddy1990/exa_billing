@@ -167,6 +167,10 @@ module.exports = {
 
     deleteInsuranceProvider: async (params) => {
         return await data.deleteInsuranceProvider(params);
+    },
+
+    getClaimAppliedPayments: async (params) => {
+        return await data.getClaimAppliedPayments(params);
     }
 
 };

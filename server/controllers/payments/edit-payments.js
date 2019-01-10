@@ -2,7 +2,7 @@ const data = require('../../data/payments/edit-payments');
 
 module.exports = {
     getPendingPayments: function (params) {
-        return params.customArgs.gridFlag == 'pendingPayments' ? data.getPendingPayments(params) : data.getAppliedPayments(params);
+        return params.customArgs && params.customArgs.gridFlag == 'pendingPayments' || params.isFromClaim  && params.gridFlag == 'pendingPayments'? data.getPendingPayments(params) : data.getAppliedPayments(params);
     },
 
     getClaimBasedCharges: function (params) {

@@ -17,6 +17,25 @@
     .paddingBottomDiv {
         padding-bottom: 10px;
     }
+    .recoupment_debit {
+        background-color: #bbb8b8 !important;
+        display: flex;
+        padding: 6px 0px 6px 7px;
+        position: relative;
+        margin: -6px -6px -6px -7px;
+    }
+    .refund_debit {
+        background-color: #e2e2e2 !important;
+        display: flex;
+        padding: 6px 0px 6px 7px;
+        position: relative;
+        margin: -6px -6px -6px -7px;
+    }
+    .recoupment_debit:hover,.refund_debit:hover {
+        background-color: #5897fb !important;
+        color: white !important;
+    }
+
 </style>
 <div id="divPendingPayment" class="divBackgroundPayment form-horizontal form-list commonBorder">
     <div id="applyPaymentContent">
@@ -27,7 +46,7 @@
                     <span id="spApplyTotalFee"></span>
                 </td>
                 <td style="width:30%;border:none !important;" align="center">
-                    <span i18n="billing.payments.appliedPayment"></span> : 
+                    <span i18n="billing.payments.appliedPayment"></span> :
                     <span id="spPaymentApplied"></span>
                 </td>
                 <td style="width:30%;border:none !important;" align="center">
@@ -152,7 +171,7 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="form-group row">
+                        <div class="form-group row divAdjustmentCodes">
                             <label class="control-label col-sm-4" i18n="billing.payments.adjustmentCode"></label>
 
                             <div class="col-sm-8">
@@ -190,7 +209,7 @@
                         </div>
                         <div class="form-group row">
                             <label class="control-label col-sm-4" i18n="billing.payments.coPay"> :</label>
-                        
+
                             <div class="col-sm-5">
                                 <input type="text" id="txtCoPay" value="0.00" class="form-control input-xs maskFee floatbox">
                             </div>
