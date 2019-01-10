@@ -41,6 +41,14 @@ define([
                     return commonjs.showError('Not yet implemented');
                 }
 
+                if (templateType === 'paper_claim_full' && claimIDs.length > 150) {
+                    return commonjs.showWarning("messages.warning.claims.paperClaimFullForm");
+                }
+
+                if (templateType === 'paper_claim_original' && claimIDs.length > 500) {
+                    return commonjs.showWarning("messages.warning.claims.paperClaimOriginalForm");
+                }
+                   
                 if (commonjs.openPdfNewWindow) {
                     win = window.open('', '_blank');
                 }
@@ -98,7 +106,6 @@ define([
             };
 
             this.preparePdfWorker = function (templateType, template, claimData, options) {
-                var pdfWorker;
                 var self = this;
                 var docDefinition = this.mergeTemplate(templateType, template, claimData);
 
@@ -109,14 +116,14 @@ define([
                 options = options || {};
 
                 try {
-                    pdfWorker = new Worker('/exa_modules/billing/static/js/workers/pdf.js');
+                    this.pdfWorker = new Worker('/exa_modules/billing/static/js/workers/pdf.js');
                 } catch (e) {
                     commonjs.showError('Unable to load PDF!!');
                     console.error(e);
                     return;
                 }
 
-                pdfWorker.onmessage = function (res) {
+                this.pdfWorker.onmessage = function (res) {
                     commonjs.hideLoading();
 
                     var showDialog = commonjs.showDialog;
@@ -133,7 +140,10 @@ define([
                         header: self.pdfDetails[templateType].header,
                         width: '90%',
                         height: '75%',
-                        url: res.data.pdfBlob
+                        url: res.data.pdfBlob,
+                        onHide: function () {
+                            self.terminate();
+                        }
                     });
 
 
@@ -161,7 +171,11 @@ define([
                     console.error(err);
                 }
 
-                pdfWorker.postMessage(docDefinition);
+                this.terminate = function () {
+                    this.pdfWorker.terminate();
+                };
+
+                this.pdfWorker.postMessage(docDefinition);
             };
 
             this.mergeTemplate = function (templateType, template, claimData) {
