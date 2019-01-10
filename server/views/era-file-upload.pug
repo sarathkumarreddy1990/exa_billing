@@ -60,6 +60,7 @@ html
             input#hdnMode(type="text", style="visibility:hidden;height:0px", name="mode")
 
     script(type='text/javascript', src=staticAssetsRoot + '/node_modules/requirejs/require.js')
+    script(type='text/javascript', src=staticAssetsRoot + '/node_modules/underscore/underscore.js')
     script.
         parent.commonjs.hideLoading();
         parent.document.getElementById('btnReloadERA').click();
@@ -92,8 +93,8 @@ html
                 $,
                 i18n
             ) {
-                i18n.text = parent._i18n.text;
-                i18n.currentLang = parent._i18n.currentLang;
+                i18n.text = parent.i18n.text;
+                i18n.currentLang = parent.i18n.currentLang;
                 i18n.t();
             });
         }

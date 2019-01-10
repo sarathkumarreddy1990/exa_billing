@@ -206,7 +206,6 @@ if (require && require.config) {
             window.appLayout = layout;
             window.appRights = permissions;
             window._get = _get;
-            window._i18n = i18n;
 
             window.AppServer = Appserver;
 
