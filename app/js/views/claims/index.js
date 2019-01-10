@@ -573,16 +573,16 @@ define(['jquery',
 
             createCptCodesUI: function(rowIndex) {
                 $('#divChargeCpt_' + rowIndex)
-                    .append($('<div/>', { id: "divCptCode_" + rowIndex }).addClass('pointerCursor').attr('data-type','cpt')
-                        .append($('<lable/>', { id: "lblCptCode_" + rowIndex }).addClass('cptcode cptIsExists').attr('data-type','cpt').html("Select")
+                    .append($('<div/>', { id: "divCptCode_" + rowIndex }).addClass('pointerCursor select-container').attr('data-type','cpt')
+                        .append($('<lable/>', { id: "lblCptCode_" + rowIndex }).addClass('cptcode cptIsExists select-container-label').attr('data-type','cpt').html("Select")
                                 .mousemove(function(e){
                                     var msg = $(e.target).attr('data_code');
                                     $(e.target).attr('title',msg);
                                 })));
 
                 $('#divChargeCptDesc_' + rowIndex)
-                    .append($('<div/>', { id: "divCptDescription_" + rowIndex }).addClass('pointerCursor').attr('data-type','cptdesc')
-                        .append($('<lable/>', { id: "lblCptDescription_" + rowIndex }).addClass('cptcode cptIsExists').attr('data-type','cptdesc').html("Select")
+                    .append($('<div/>', { id: "divCptDescription_" + rowIndex }).addClass('pointerCursor select-container').attr('data-type','cptdesc')
+                        .append($('<lable/>', { id: "lblCptDescription_" + rowIndex }).addClass('cptcode cptIsExists select-container-label').attr('data-type','cptdesc').html("Select")
                                 .mousemove(function(e){
                                     var msg = $(e.target).attr('data_description');
                                     $(e.target).attr('title',msg);
