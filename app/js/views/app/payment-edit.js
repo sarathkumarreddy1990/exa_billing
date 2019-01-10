@@ -345,6 +345,7 @@ define(['jquery',
                 var val = $('#selectPayerType').val();
                 $('.payerFields').hide();
                 $('#divInputType span').show();
+                this.clearPayerFields();
                 if (val === 'insurance') {
                     $('#select2-txtautoPayerPIP-container').html('Select Insurance');
                     $('#divPayerInsurnace').show();
@@ -1924,7 +1925,7 @@ define(['jquery',
                 $('#spPaymentApplied').text(self.formatMoneyValue(payment));
                 $('#spAdjustmentApplied').text(self.formatMoneyValue(adjustment));
 
-                var orderBillFee = self.formatMoneyValue($('#lblBillingFee').text());
+                var orderBillFee = self.formatMoneyValue($('#lblBillingFee').text(), true);
                 var orderBalance = orderBillFee - (parseFloat(adjustment) + parseFloat(payment) + parseFloat(other_payment) + parseFloat(other_adj));
                 var orderAdjustment = parseFloat(adjustment) + parseFloat(other_adj);
 
@@ -2245,12 +2246,17 @@ define(['jquery',
             },
 
             addNewPayemnt: function () {
+                this.clearPayerFields();
                 if (this.from === 'ris')
                     Backbone.history.navigate('#billing/payments/new/ris', true);
                 else
                     Backbone.history.navigate('#billing/payments/new', true);
             },
 
+            clearPayerFields: function () {
+                this.patient_id = this.provider_id = this.provider_group_id = this.insurance_provider_id = null;
+            },
+               
             goBackToPayments: function () {
                 if (this.from === 'ris')
                     Backbone.history.navigate('#billing/payments/filter/ris', true);
