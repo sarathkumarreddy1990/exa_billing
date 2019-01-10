@@ -235,9 +235,9 @@ define(['jquery',
                 $('#divtabPendingPayments').hide();
                 $('#ulPaymentTab #liPayments, #payementsFilter').show();
                 $('#divtabPayments').show();
+                // Hide TOS payment and Small Balance Write off options from fornt desk payment
                 if(self.from === 'ris') {
-                    $('#divApplyTotal').hide();
-                    $('#divAdjustmentTotal').hide();
+                    $('.tosPayment').hide();
                 }
                 if (!this.gridLoaded) {
                     this.paymentTable = new customGrid();
