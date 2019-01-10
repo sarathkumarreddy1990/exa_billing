@@ -80,7 +80,6 @@ define([
                     colNames: ['', '', '', '', 'Id', 'Payment Id','File Name', 'Size', 'File Updated Date/Time', 'Status'],
                     i18nNames: ['', '', '', 'shared.fields.id', 'shared.fields.paymentId','shared.fields.fileName', 'shared.fields.size', 'shared.fields.fileUpdatedDateTime', 'shared.fields.status'],
                     colModel: [
-                        { name: 'id', index: 'id', key: true, hidden: true, searchFlag: '%', search: false },
                         { name: 'file_store_id', hidden: true, searchFlag: '%', search: false },
                         {
                             name: 'edit', width: 40, sortable: false, search: false,
