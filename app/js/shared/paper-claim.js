@@ -41,12 +41,10 @@ define([
                     return commonjs.showError('Not yet implemented');
                 }
 
-                if (templateType === 'paper_claim_full' && claimIDs.length > 150) {
-                    return commonjs.showWarning("messages.warning.claims.paperClaimFullForm");
-                }
-
-                if (templateType === 'paper_claim_original' && claimIDs.length > 500) {
-                    return commonjs.showWarning("messages.warning.claims.paperClaimOriginalForm");
+                if (templateType === "paper_claim_full" && claimIDs.length > 150) {
+                    return commonjs.showWarning("messages.warning.paperClaimFullForm");
+                } else if (templateType === "paper_claim_original" && claimIDs.length > 500) {
+                    return commonjs.showWarning("messages.warning.paperClaimOriginalForm");
                 }
                    
                 if (commonjs.openPdfNewWindow) {
