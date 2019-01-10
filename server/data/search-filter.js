@@ -1127,7 +1127,8 @@ const api = {
                 defaultwherefilter: whereClause.query,
                 statusCode: args.customArgs && args.customArgs.statusCode ? args.customArgs.statusCode : [],
                 isFrom: 'Studies',
-                statOverride: statOverride
+                statOverride: statOverride,
+                isBatchClaim: args.isBatchClaim
             };
 
             let column = JSON.parse(args.filterCol);

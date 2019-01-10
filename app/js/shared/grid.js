@@ -760,7 +760,8 @@ define('grid', [
                         customArgs: {
                             filter_id: filterID,
                             isClaimGrid: false
-                        }
+                        },
+                        isBatchClaim: true
                     }
                 } else {
                     param = {
