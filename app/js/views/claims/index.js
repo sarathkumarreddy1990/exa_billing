@@ -2875,7 +2875,7 @@ define(['jquery',
                                                         }
                                                     },
                                                     {
-                                                        'field': 'claim_id',
+                                                        'field': 'hidden_claim_id',
                                                         'data': self.claim_Id
                                                     },
                                                     {

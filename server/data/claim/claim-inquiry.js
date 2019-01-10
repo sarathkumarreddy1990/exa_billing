@@ -54,7 +54,8 @@ module.exports = {
         ( SELECT json_agg(row_to_json(patient)) patient_details
         FROM (
             SELECT
-                  public.get_full_name(p.last_name, p.first_name, p.middle_name, p.prefix_name, p.suffix_name) AS patient_name
+                p.id AS patient_id
+                , public.get_full_name(p.last_name, p.first_name, p.middle_name, p.prefix_name, p.suffix_name) AS patient_name
                 , p.account_no
                 , p.birth_date
                 , gender

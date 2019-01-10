@@ -1106,6 +1106,10 @@ var commonjs = {
 
         //Patient Chart Window  close
         this.closePatientChartWindow();
+
+        if (options.onHide && typeof options.onHide === 'function') {
+            options.onHide();
+        }          
     },
 
     closeReportWindow: function () {

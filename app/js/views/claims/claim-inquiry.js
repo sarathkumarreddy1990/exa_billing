@@ -62,10 +62,11 @@ define([
             casTemplate: _.template(casTemplate),
             payCmtGrid: '',
             claim_id: null,
+            rights: null,
+            patientClaims: {
+                header: null,
+            },
             events: {
-                "click #radioActivityStatus": "showActivityStatus",
-                "click #radActivityAllStatus": "showAllActivity",
-
             },
 
             initialize: function (options) {
@@ -78,8 +79,9 @@ define([
                 this.claimInvoiceList = new claimInvoiceList();
                 this.claimPatientLogList = new claimPatientLogList();
                 if(app.userInfo.user_type != 'SU'){
-                    var rights = (window.appRights).init();
-                    this.screenCode = rights.screenCode;
+                    this.rights = (window.appRights).init();
+                    this.screenID = this.rights.screenID;
+                    this.screenCode = this.rights.screenCode;
                 }
                 else {
                     this.screenCode = [];
@@ -110,6 +112,10 @@ define([
                     $('#btnCISaveIsInternal,#txtCIFollowUpDate,#txtCIBillingComment,#btnCIAddComment').prop('disabled', true);
                 }
 
+                if (this.screenID && this.screenID.indexOf('anc_patient_claim_inquiry') !== -1) {
+                    $('#btnPatientClaims').hide();
+                }
+                   
                 this.bindEvents();
                 this.followDate =  commonjs.bindDateTimePicker("divFollowUpDate", { format: 'L', minDate: moment().startOf('day') });
                 this.followDate.date();
@@ -189,6 +195,11 @@ define([
                                 $('#lblCIAdj').text(payment_data[0].adjustment_amount && payment_data[0].adjustment_amount != 'undefined' ? payment_data[0].adjustment_amount : '$0.00');
                                 $('#lblCIRefund').text(payment_data[0].refund_amount && payment_data[0].refund_amount != 'undefined' ? payment_data[0].refund_amount : '$0.00')
                             }
+
+                            $('#btnPatientClaims').off().click(function (e) {
+                                self.patientInquiryForm(self.claim_id, patient_details[0].patient_id, patient_details[0].patient_name, self.options.grid_id, true, true);
+                            });
+
 
                             if (patient_details && patient_details.length > 0) {
                                 var patient_details = commonjs.geti18NString('shared.screens.setup.claimInquiry') + ':' + patient_details[0].patient_name + ' (Acc#:' + patient_details[0].account_no + ')' + ',  ' + moment(patient_details[0].birth_date).format('L') + ',  ' + patient_details[0].gender;
@@ -308,9 +319,13 @@ define([
                 $('#gview_tblCIDiagnosis').find('.ui-jqgrid-bdiv').css('max-height', '300px')
             },
 
-            showPatientClaimsGrid: function (claimID, patientId, billingProviderID) {
+            showPatientClaimsGrid: function (claimID, patientId, billingProviderID, isNested) {
                 var self = this;
+                self.patientId = patientId;
+                self.billProvId = parseInt(billingProviderID);
+                self.claimID = claimID;
                 $('#divPatientClaimsGrid').show();
+                var container = isNested ? $('#modal_div_container_nested') : self.el;
                 this.patientClaimsTable = new customGrid();
                 this.patientClaimsTable.render({
                     gridelementid: '#tblPatientClaimsGrid',
@@ -330,7 +345,7 @@ define([
                             name: 'billing_fee', search: false, width: 100
                         },
                         {
-                            name: 'ajdustments_applied_total', search: false, width: 100
+                            name: 'adjustments_applied_total', search: false, width: 100
                         },
                         {
                             name: 'total_insurance_payment', search: false, width: 150
@@ -351,7 +366,7 @@ define([
 
                     ],
                     datastore: self.claimPatientList,
-                    container: self.el,
+                    container: container,
                     cmTemplate: { sortable: false },
                     customizeSort: false,
                     sortname: "claims.id",
@@ -365,17 +380,25 @@ define([
                     disablereload: true,
                     customargs: {
                         claimID: claimID,
-                        patientId: patientId,
+                        patientId: self.patientId,
                         billProvId: parseInt(billingProviderID)
                     },
                     pager: '#gridPager_PatientClaim',
                     onaftergridbind: self.afterGridBind,
+                    setCustomData: function (){
+                        return {
+                            claimID: self.patientId,
+                            patientId: self.patientId,
+                            billProvId: self.billProvId
+                        }
+                    }
                 });
 
 
                 setTimeout(function () {
-                    $("#tblPatientClaimsGrid").setGridWidth($(".modal-body").width()-15);
-                    $("#tblPatientClaimsGrid").setGridHeight($(window).height()-600);
+                    var modalWidth = isNested ? $('#modalBodyNested').width() : $('.modal-body').width();
+                    $("#tblPatientClaimsGrid").setGridWidth(modalWidth - 15);
+                    $("#tblPatientClaimsGrid").setGridHeight($(window).height() - 600);
                 }, 200);
                 $('#divAgeSummary').html(self.agingSummaryTemplate());
             },
@@ -938,19 +961,34 @@ define([
                 return pointer;
             },
 
-            patientInquiryForm: function (claimId, patientId, patientName, gridID, isFromClaim) {
+            patientInquiryForm: function (claimId, patientId, patientName, gridID, isFromClaim, isNested) {
                 var self = this;
                 self.grid_id = gridID;
                 self.claim_id = claimId;
 
                 if (isFromClaim) {
-
-                    commonjs.showDialog({
-                        'header': 'Patient Claims',
+                    var defaultDialogProps = {
+                        'header': 'Patient Claims: ' + patientName,
                         'i18nHeader': "shared.moduleheader.patientClaims",
                         'width': '85%',
                         'height': '75%',
-                        'needShrink': true
+                        'needShrink': true,
+                        'html': this.claimPatientTemplate()
+                    }
+
+                    if (isNested) {
+                        commonjs.showNestedDialog(defaultDialogProps);
+                        $('#btnPrevPatientClaim,#btnNextPatientClaim').hide();
+                    } else {
+                        commonjs.showDialog(defaultDialogProps);
+                    }
+
+                    $('#radioActivityStatus').off().click(function () {
+                        self.showActivityStatus();
+                    });
+
+                    $('#radActivityAllStatus').off().click(function () {
+                        self.showAllActivity();
                     });
 
                     setTimeout(function () {
@@ -969,7 +1007,6 @@ define([
                         }
                     }, 300);
 
-                    this.$el.html(this.claimPatientTemplate());
                     this.fromDate =  commonjs.bindDateTimePicker("divFDate", { format: 'L' });
                     this.fromDate.date();
                     this.toDate =  commonjs.bindDateTimePicker("divTDate", { format: 'L' });
@@ -989,17 +1026,17 @@ define([
 
                 if(this.screenCode.indexOf('PACT') > -1)
                     $('#btnPatientActivity').attr('disabled', true); // if Patient Activity report have rights then only can access this report
-                self.showPatientClaimsGrid(claimId, patientId, 0);
+                self.showPatientClaimsGrid(claimId, patientId, 0, isNested);
 
                 $('.patientClaimProcess').prop('disabled', false);
 
                 $('#ddlBillingProvider').off().change(function () {
-                    self.changePatientIngrid(claimId, patientId);
+                    self.changePatientIngrid(claimId, patientId, isNested);
                 });
 
                 $('#paymentSearch').off().click(function () {
-                    self.showUnAppliedPayments(patientId);
-                })
+                    self.showUnAppliedPayments(patientId, typeof self.options.source !== 'undefined');
+                });
 
                 $('#btnPatientActivity').off().click(function (e) {
 
@@ -1040,7 +1077,8 @@ define([
                         var rowId = nextRowData.attr('id');
                         $(e.target).prop('disabled', true);
                         var data = $(self.grid_id, parent.document).getRowData(rowId);
-                        self.patientInquiryForm(rowId, data.patient_id, data.patient_name, self.grid_id, false)
+                        $('#ddlBillingProvider option:contains("Select")').prop("selected", true);
+                        self.patientInquiryForm(rowId, data.hidden_patient_id, data.patient_name, self.grid_id, false)
 
                     } else {
                         commonjs.showWarning("messages.warning.claims.orderNotFound");
@@ -1302,17 +1340,29 @@ define([
                 });
             },
 
-            changePatientIngrid: function(claimID, patientID) {
+            changePatientIngrid: function(claimID, patientID, isNested) {
                 var self = this;
                 var selectedProv = $("#ddlBillingProvider option:selected").val() ? $("#ddlBillingProvider option:selected").val(): 0;
 
-                self.showPatientClaimsGrid(claimID, patientID, selectedProv);
+                self.showPatientClaimsGrid(claimID, patientID, selectedProv, isNested);
             },
 
-            showUnAppliedPayments: function(patientID) {
+            showUnAppliedPayments: function (patientID, isFromClaimInquiry) {
                 var self = this;
-                self.unappliedPaymentView = new unappliedPaymentView({el: $('#modal_div_container_nested')});
-                self.unappliedPaymentView.render(patientID);
+                self.unappliedPaymentView = new unappliedPaymentView({ el: $('#modal_div_container_nested') });
+                self.unappliedPaymentView.render(patientID, isFromClaimInquiry);
+
+                if (isFromClaimInquiry) {
+                    $('#btnBackToPatientClaims').show()
+                        .off().click(function () {
+                            $('#divPatientClaimsGrid').show();
+                            $('#divUnappliedPayment').html("");
+                            $('#spanModalHeaderNested').html(self.patientClaims.header);
+                        });
+                    $('#divPatientClaimsGrid').hide();
+                    self.patientClaims.header = $('#spanModalHeaderNested').html();
+                    $('#spanModalHeaderNested').html(commonjs.geti18NString("billing.payments.unappliedPayments"));
+                }
             },
 
             setMoneyMask: function (obj1, obj2) {
