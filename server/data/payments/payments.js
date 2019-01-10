@@ -1259,7 +1259,8 @@ module.exports = {
                         INNER JOIN patients p ON p.id = claims.patient_id
                         INNER JOIN LATERAL billing.get_claim_totals(claims.id) bgct ON TRUE
                         WHERE p.id = ${patientId}
-                        AND bgct.claim_balance_total > 0::money `;
+                        AND bgct.claim_balance_total > 0::money
+                        ORDER BY claims.id ASC `;
         } else {
 
             let selectColumn = `

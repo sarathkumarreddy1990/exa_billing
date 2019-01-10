@@ -9,7 +9,6 @@ define(['jquery',
     'models/pager',
     'views/reports/payments-pdf',
     'text!templates/app/balance-write-off.html',
-    'collections/app/patient-claims',
     'collections/app/patient-claims'
 ],
 
@@ -24,8 +23,7 @@ define(['jquery',
         ModelPaymentsPager,
         paymentPDF,
         balanceWriteOffTemplate,
-        patientClaimLists,
-        claimInstances
+        patientClaimLists
         ) {
         var paymentsView = Backbone.View.extend({
             el: null,
@@ -37,6 +35,7 @@ define(['jquery',
             paymentTable: null,
             rendered: false,
             gridLoaded: false,
+            patientGridLoaded: false,
             formLoaded: false,
             pendPaymentTable: null,
             pendPaymentTable1: null,
@@ -650,7 +649,13 @@ define(['jquery',
                 });
                 $('#siteModal').removeAttr('tabindex'); //removed tabIndex attr on sitemodel for select2 search text area can't editable
                 $('#btnNextProcess').off().click(_.debounce(function (e) {
-                    self.showPatientsGrid();
+                    // Patient grid bind and refresh
+                    if (!self.patientGridLoaded) {
+                        self.showPatientsGrid(e);
+                    } else {
+                        self.patientClaimPager.set({ "PageNo": 1 });
+                        self.patientClaimsGrid.refreshAll();
+                    }
                 }, 250));
 
                 $("#ddlWriteOffAdjCodes").select2({
@@ -728,7 +733,7 @@ define(['jquery',
                     pager: '#gridPager_PatientClaims',
                     subGrid: true,
                     subGridInstance: function (subgrid_id, row_id) {
-                        var patientClaimInstances = new claimInstances();
+                        var patientClaimInstances = new patientClaimLists();
                         var subgrid_table_id = subgrid_id + "_t";
                         $("#" + subgrid_id).html("<table id='" + subgrid_table_id + "' class='scroll'></table>");
                         var tableid = "#" + subgrid_table_id;
@@ -832,7 +837,7 @@ define(['jquery',
                         }
                     }
                 });
-
+                self.patientGridLoaded = true;
                 $("#tblPatientClaimsGrid").setGridWidth($(".modal-body").width() - 10);
                 $("#tblPatientClaimsGrid").setGridHeight(($(".modal-body").height() - 140));
                 $('#txtWriteOffAmt').off().on("blur",function(){
