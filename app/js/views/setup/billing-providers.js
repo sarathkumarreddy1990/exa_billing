@@ -49,15 +49,16 @@ define(['jquery',
 
             render: function () {
                 var self = this;
+                var confirmDelete = commonjs.geti18NString("messages.status.areYouSureWantToDelete");
                 $('#divBillingProvidersGrid').show();
                 $('#divBillingProvidersForm').hide();
                 this.billingProvidersTable = new customGrid();
                 this.billingProvidersTable.render({
                     gridelementid: '#tblBillingProvidersGrid',
                     custompager: new Pager(),
-                    emptyMessage: 'No Record found',
+                    emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['', '', '', '', '', '', '', ''],
-                    i18nNames: ['', '', '', 'shared.common.code', 'shared.common.name', 'setup.billingProvider.address', 'setup.billingProvider.phoneno', 'in_active'],
+                    i18nNames: ['', '', '', 'setup.common.code', 'setup.common.name', 'setup.billingprovider.address', 'setup.billingprovider.phoneNo', 'shared.fields.inactive'],
                     colModel: [
                         {
                             name: 'id',
@@ -74,20 +75,20 @@ define(['jquery',
                             className: 'icon-ic-edit',
                             route: '#setup/billing_providers/edit/',
                             formatter: function (e, model, data) {
-                                return "<i class='icon-ic-edit' title='Edit'></i>"
+                                return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>"
                             }
                         },
                         {
                             name: 'del', width: 20, sortable: false, search: false,
                             className: 'icon-ic-delete',
                             customAction: function (rowID) {
-                                if (confirm("Are you sure want to delete")) {
+                                if (confirm(confirmDelete)) {
                                     var gridData = $('#tblBillingProvidersGrid').jqGrid('getRowData', rowID);
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
                                         data: $.param({code: gridData.code, description:gridData.name}),
                                         success: function (model, response) {
-                                            commonjs.showStatus("Deleted Successfully");
+                                            commonjs.showStatus("messages.status.deletedSuccessfully");
                                             self.billingProvidersTable.refresh();
                                         },
                                         error: function (model, response) {
@@ -97,7 +98,7 @@ define(['jquery',
                                 }
                             },
                             formatter: function (e, model, data) {
-                                return "<i class='icon-ic-delete' title='Click here to delete'></i>"
+                                return "<i class='icon-ic-delete' i18nt='messages.status.clickHereToDelete'></i>"
                             }
                         },
                         {
@@ -161,7 +162,7 @@ define(['jquery',
                     {value: 'Reload', class: 'btn', i18n: 'shared.buttons.reload', clickEvent: function () {
                         self.pager.set({"PageNo": 1});
                         self.billingProvidersTable.refreshAll();
-                        commonjs.showStatus("Reloaded Successfully");
+                        commonjs.showStatus("messages.status.reloadedSuccessfully");
                     }}
                 ]});
             },
@@ -278,7 +279,7 @@ define(['jquery',
 
             refreshBillingProvidersGrid: function () {
                 this.BillingProvidersTable.refresh();
-                commonjs.showStatus("Reloaded Successfully");
+                commonjs.showStatus("messages.status.reloadedSuccessfully");
             },
 
             saveBillingProviders : function() {
@@ -415,7 +416,7 @@ define(['jquery',
                 this.model.save({
                 }, {
                         success: function (model, response) {
-                            commonjs.showStatus("Saved Successfully");
+                            commonjs.showStatus('messages.status.savedSuccessfully');
                             if (response) {
                                 location.href = "#setup/billing_providers/list";
                             }
@@ -475,11 +476,13 @@ define(['jquery',
 
             bindProviderIDCodes: function () {
                 var self = this;
+                var confirmDelete = commonjs.geti18NString("message.status.areYouSureWantToDelete");
                 $('#divIDCodesGrid').show();
                 var billing_provider_id = this.model.id;
                 var width = $('#divBillingProvidersForm').width() - 50;
                 $('#tblProviderIDCodesGrid').jqGrid({
                     colNames: ['', '', '', '', '', 'Insurance Name', 'Payer Assigned Provider ID', 'Legacy ID Qualifier', 'in_active'],
+                    i18nNames:['', '', '', '', '',  'setup.insuranceX12Mapping.insuranceName', 'setup.billingprovider.payerassignedproviderid' ,'setup.billingprovider.legacyidqualifier','shared.fields.inactive'],
                     colModel: [
                         { name: 'id', key: true, hidden: true },
                         { name: 'insurance_provider_id', hidden: true },
@@ -516,7 +519,7 @@ define(['jquery',
                     beforeSelectRow: function (rowID, e) {
                         switch ((e.target || e.srcElement).className) {
                             case "icon-ic-delete":
-                                if(confirm("Are you sure want to delete ? ")) {
+                                if(confirm(confirmDelete)) {
                                     self.removeProviderIDCode(rowID);
                                 }
                                 break;
@@ -635,7 +638,7 @@ define(['jquery',
                     type: type,
                     data: data,
                     success: function (model, response) {
-                        commonjs.showStatus("Saved Successfully");
+                        commonjs.showStatus('messages.status.savedSuccessfully');
                         self.clearIDCodesForm();
                         self.bindProviderIDCodes();
                     },
@@ -652,7 +655,7 @@ define(['jquery',
 
             refreshProviderCodes: function() {
                 this.bindProviderIDCodes();
-                commonjs.showWarning("Reloaded Successfully");
+                commonjs.showWarning("messages.status.reloadedSuccessfully");
             },
 
             cancel: function () {

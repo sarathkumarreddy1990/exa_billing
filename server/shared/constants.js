@@ -206,6 +206,7 @@ module.exports = {
         'apply_tos_payments': 'PAYM',
         'claim_summary': 'CLIM',
         'patient_claim_list': 'PAYM',
-        'process_write_off_payments': 'PAYM'
+        'process_write_off_payments': 'PAYM',
+        'get_claim_payments': 'CLIM'
     }
 };

@@ -8,7 +8,9 @@ onmessage = function (req) {
     new Promise(function (resolve, reject) {
         generatePdfBlob(req.data, function (result) {
             if (result) {
-                resolve(result);
+                dataURLtoBlob(result, function (response) {
+                    resolve(response);
+                });
             } else {
                 reject();
             }
@@ -18,6 +20,20 @@ onmessage = function (req) {
     });
 };
 
+function dataURLtoBlob(pdfDataUrL, callback) {
+    var base64Str = pdfDataUrL.split(',');
+    var mimeType = base64Str[0].match(/:(.*?);/)[1];
+
+    var decodedBase64Str = atob(base64Str[1]);
+    var decodedBase64StrLength = decodedBase64Str.length;
+    var u8Arr = new Uint8Array(decodedBase64StrLength);
+
+    while (decodedBase64StrLength--) {
+        u8Arr[decodedBase64StrLength] = decodedBase64Str.charCodeAt(decodedBase64StrLength);
+    }
+
+    return callback(URL.createObjectURL(new Blob([u8Arr], { type: mimeType })));
+}
 
 function generatePdfBlob(docDefinition, callback) {
     if (!callback) {

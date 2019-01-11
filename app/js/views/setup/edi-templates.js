@@ -280,7 +280,7 @@ define([
                             }
                             commonjs.handleXhrError(data.err);
                         }else{
-                            commonjs.showStatus("Deleted Successfully");
+                            commonjs.showStatus("messages.status.deletedSuccessfully");
                             self.cancel();
                             self.getAllEDITemplates();
                         }

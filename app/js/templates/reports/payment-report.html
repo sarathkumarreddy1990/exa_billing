@@ -37,7 +37,7 @@
         <div class="col">
             <div class="form-group form-inline">
                 <div class="col-form-content">
-                    <label class="control-label field-required" for="txtDateRangeFromTo" i18n="report.accountingDate" />
+                    <label class="control-label field-required" for="txtDateRangeFromTo" i18n="report.reportFilter.accountingDate" />
                     <div class="input-group">
                         <input type="text" id="txtDateRangeFromTo" class="form-control" required="required" name="dateRange">
                         <span class="input-group-addon add-on datePickerSpanReport">
@@ -52,7 +52,7 @@
         <div class="col">
             <div class="form-group form-inline">
                 <div class="col-form-content" class="multiselect">
-                    <label class="control-label" i18n="report.facilities" />
+                    <label class="control-label" i18n="report.reportFilter.facilities" />
                     <div class="input-group">
                         <select id="ddlFacilityFilter" multiple="multiple">
                             <% _.each(facilities.toJSON(), function(facility) { %>
@@ -68,7 +68,7 @@
         <div class="col">
             <div class="form-group form-inline">
                 <div class="col-form-content" class="multiselect">
-                    <label class="control-label" i18n="report.billingProviders" />
+                    <label class="control-label" i18n="report.reportFilter.billingProvider" />
                     <div id="divReportDate" class="input-group">
                         <select id="ddlBillingProvider" multiple="multiple" />
                     </div>
@@ -80,11 +80,11 @@
             <div>
                 <div class="form-group form-inline">
                     <div class="col-form-content">
-                        <label class="control-label" i18n="report.summary"></label>
+                        <label class="control-label" i18n="report.reportFilter.summary"></label>
                         <div id="divReportDate" class="input-group">
                             <select id="ddlSummaryOption" class="form-control form-control-lg">
-                                <option value="Payer Type" i18n="report.payertype"> Payer Type</option>
-                                <option value="Payment Mode" i18n="report.paymentMode"> Payment Mode</option>
+                                <option value="Payer Type" i18n="report.reportFilter.payertype"> Payer Type</option>
+                                <option value="Payment Mode" i18n="report.reportFilter.paymentMode"> Payment Mode</option>
                             </select>
                         </div>
                     </div>
@@ -95,13 +95,13 @@
             <div>
                 <div class="form-group form-inline">
                     <div class="col-form-content">
-                        <label class="control-label" i18n="report.paymentStatus"></label>
+                        <label class="control-label" i18n="report.reportFilter.paymentStatus"></label>
                         <div id="divReportDate" class="input-group">
                             <select id="ddlPaymentOption" class="form-control form-control-lg" multiple="multiple">
-                                <option value="fully_applied" i18n="report.applied">Fully Applied</option>
-                                <option value="over_applied" i18n="report.overApplied">Over Applied </option>
-                                <option value="partially_applied" i18n="report.partialApplied"> Partially Applied</option>
-                                <option value="unapplied" i18n="report.unapplied">Unapplied</option>
+                                <option value="fully_applied" i18n="report.reportFilter.applied">Fully Applied</option>
+                                <option value="over_applied" i18n="report.reportFilter.overApplied">Over Applied </option>
+                                <option value="partially_applied" i18n="report.reportFilter.partialApplied"> Partially Applied</option>
+                                <option value="unapplied" i18n="report.reportFilter.unapplied">Unapplied</option>
                             </select>
                         </div>
                     </div>
@@ -115,7 +115,7 @@
         <div class="col">
             <div class="form-group form-inline">
                 <div class="col-form-content">
-                    <label class="inline field-chk" i18n="report.selectUsers"></label>
+                    <label class="inline field-chk" i18n="report.reportFilter.selectUsers"></label>
                     <div class="input-group">
                         <select id="ddlUsersOption" class="form-control form-control-lg">
                             <option value="All">ALL</option>
@@ -148,7 +148,7 @@
         <div class="col">
             <div class="form-group form-inline">
                 <div class="col-form-content">
-                    <label class="inline field-chk" i18n="report.userRoles"></label>
+                    <label class="inline field-chk" i18n="report.reportFilter.userRoles"></label>
                     <div class="input-group">
                         <select id="ddlUsersRoleOption" class="form-control form-control-lg">
                             <option value="All">ALL</option>
@@ -181,12 +181,12 @@
         <div class="col">
             <div class="form-group form-inline">
                 <div class="col-form-content">
-                    <label class="inline field-chk" i18n="report.adjustmentCode" />
+                    <label class="inline field-chk" i18n="report.reportFilter.adjustmentCode" />
                     <div class="input-group">
                         <select id="ddlAdjustmentCodeOption" class="form-control form-control-lg">
-                            <option value="All" i18n="report.allPayments">All Paymemts</option>
-                            <option value="allAdjustment" i18n="report.allAdjustmentCode">All Adjustment Code</option>
-                            <option value="S" i18n="report.adjustmentCode">Select Adjustment Code</option>
+                            <option value="All" i18n="report.reportFilter.allPayments">All Paymemts</option>
+                            <option value="allAdjustment" i18n="report.reportFilter.allAdjustmentCode">All Adjustment Code</option>
+                            <option value="S" i18n="report.reportFilter.adjustmentCode">Select Adjustment Code</option>
                         </select>
                     </div>
                 </div>
@@ -214,7 +214,7 @@
         <div class="col">
             <div class="form-group form-inline">
                 <div class="col-form-content">
-                    <label class="inline field-chk" i18n="report.insurance"></label>
+                    <label class="inline field-chk" i18n="report.reportFilter.insurance"></label>
                     <div class="input-group">
                         <select id="ddlInsuranceOption" class="form-control form-control-lg">
                             <option value="All">All Insurance</option>
@@ -262,7 +262,7 @@
         <div class="col ddlOptionBoxGroup">
             <div class="form-group form-inline">
                 <div class="col-form-content">
-                    <label class="inline field-chk" i18n="report.insurance"></label>
+                    <label class="inline field-chk" i18n="report.reportFilter.insurance"></label>
                     <div class="input-group">
                         <select id="ddlInsuranceOption" class="form-control form-control-lg">
                             <option value="All">All Insurance</option>

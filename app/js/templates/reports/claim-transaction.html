@@ -20,7 +20,7 @@
                 </div>
                 <div class="col-form-content" id="billingProviderDiv" style="display:none;">
                     <input type="radio" id="billingProChk" name="facilityBillingPro" value="billingProChk">
-                    <label for="billingProChk" class="inline field-chk facilityAndBillingProChk" i18n="report.reportFilter.billingProviders"> </label>
+                    <label for="billingProChk" class="inline field-chk facilityAndBillingProChk" i18n="report.reportFilter.billingProvider"> </label>
                 </div>
             </div>
             <!--  Comment Date -->
@@ -49,7 +49,7 @@
         <div class="col">
             <div class="form-group form-inline">
                 <div>
-                    <label class="control-label">Select Insurance</label>
+                    <label class="control-label" i18n="report.reportFilter.selectInsurance"></label>
                     <div class="input-group">
                         <select id="ddlInsuranceOption" class="form-control form-control-lg">
                             <option value="All">All Insurance</option>
@@ -99,7 +99,7 @@
             <div class="form-group form-inline">
                 <div>
                     <input id="chkServiceDateBill" type="checkbox" value="chkServiceDateBill" name="serviceDate">
-                    <label for="chkServiceDateBill" class="field-chk" i18n="report.reportFilter.claimDate"> </label>
+                    <label for="chkServiceDateBill" class="field-chk" i18n="billing.claims.claimDate"> </label>
                     <div class="input-group">
                         <input type="text" id="serviceDateBill" class="form-control" required="required" name="dateRange">
                         <span class="input-group-addon add-on datePickerSpanReport">
@@ -126,7 +126,7 @@
         <div class="col">
             <div class="form-group form-inline">
                 <div>
-                    <label class="inline field-chk ">Select Ref.Phy</label>
+                    <label class="inline field-chk" i18n="report.reportFilter.selectRefPhy"></label>
                     <div class="input-group">
                         <select id="ddlReferringPhysicianOption" class="form-control form-control-lg">
                             <option value="All">ALL</option>
@@ -192,7 +192,7 @@
             <!--Todo : From setup Have to find dynamically -->
             <div class="form-group form-inline">
                 <div>
-                    <label class="inline field-chk ">Select CPT</label>
+                    <label class="inline field-chk" i18n="report.reportFilter.selectCPT"></label>
                     <div class="input-group">
                         <select id="ddlUsersOption" class="form-control form-control-lg">
                             <option value="All">ALL</option>
@@ -224,7 +224,7 @@
             <div class="form-group form-inline">
                 <div>
                     <input id="billCreatedDate" type="checkbox" value="billCreatedDate" name="billCreatedDate">
-                    <label for="billCreatedDate" class="field-chk"> Bill Created Date </label>
+                    <label for="billCreatedDate" class="field-chk" i18n="report.reportFilter.billCreatedDate"></label>
                     <div class="input-group">
                         <input type="text" id="serviceDateBillCreated" class="form-control" name="dateRange">
                         <span class="input-group-addon add-on datePickerSpanReport">
@@ -238,10 +238,10 @@
 
             <div class="form-group form-inline">
                 <div>
-                    <label class="inline field-chk " style="min-width : 10px;">Enter Claim #</label>
+                    <label class="inline field-chk" style="min-width : 10px;" i18n="report.reportFilter.enterClaim"></label>
                     <div class="input-group">
-                        <input id="claimIdFrom" type="text" class="claimSearch integerbox valid" placeholder="From #" style="width: 100px;">
-                        <input id="claimIdTo" type="text" class="claimSearch integerbox valid" placeholder="To #" style="width: 100px; margin-left: 5px;">
+                        <input id="claimIdFrom" type="text" class="claimSearch integerbox valid" i18np="setup.studyFilters.from" style="width: 100px;">
+                        <input id="claimIdTo" type="text" class="claimSearch integerbox valid" i18np="setup.studyFilters.to" style="width: 100px; margin-left: 5px;">
                     </div>
 
                 </div>
@@ -252,12 +252,12 @@
                 <label class="inline field-chk" i18n="report.reportFilter.reportFilterBy"> Report Filter (Order By)</label>
                 <div class="input-group">
                     <select id="ddlOrderBySelection" class="form-control" style="height: 100%; width: 135px">
-                        <option value="claimId">Claim #</option>
-                        <option value="serviceDate" i18n="report.reportFilter.claimDate">Claim Date</option>
-                        <option value="commentDate">Paid Date</option>
-                        <option value="lastName">Patient Last Name</option>
-                        <option value="firstName">Patient First Name</option>
-                        <option value="insName">Insurance Name</option>
+                        <option value="claimId" i18n="billing.fileInsurance.claim">Claim #</option>
+                        <option value="serviceDate" i18n="billing.claims.claimDate">Claim Date</option>
+                        <option value="commentDate" i18n="billing.claims.paidDate">Paid Date</option>
+                        <option value="lastName" i18n="setup.dicomReceiverRules.patientLastname">Patient Last Name</option>
+                        <option value="firstName" i18n="setup.dicomReceiverRules.patientFirstname">Patient First Name</option>
+                        <option value="insName" i18n="setup.insurance.insuramceName">Insurance Name</option>
                     </select>
                 </div>
             </div>

@@ -1195,7 +1195,7 @@ module.exports = {
                             INNER JOIN billing.get_claim_totals(bc.id) ON true
                             WHERE
                                 (charges_bill_fee_total - (payments_applied_total + adjustments_applied_total)) > 0::money
-                                AND bc.claim_dt::date = pd.accounting_date
+                                AND timezone(get_facility_tz(bc.facility_id::integer), bc.claim_dt)::date = pd.accounting_date
                         )
                         , charges AS (
                             SELECT

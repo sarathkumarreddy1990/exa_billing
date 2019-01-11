@@ -58,6 +58,7 @@ define(['jquery',
 
             render: function () {
                 var self = this;
+                var confirmDelete = commonjs.geti18NString("messages.status.areYouSureWantToDelete");
                 $('#divPaperClaimTemplatesGrid').show();
                 $('#divPaperClaimTemplatesForm').hide();
 
@@ -72,7 +73,7 @@ define(['jquery',
                 this.paperClaimTemplatesTable.render({
                     gridelementid: '#tblPaperClaimTemplatesGrid',
                     custompager: new Pager(),
-                    emptyMessage: 'No Record found',
+                    emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['', '', '', '', '', ''],
                     i18nNames: ['', '', '', 'setup.paperClaimTemplates.templateName', 'setup.paperClaimTemplates.templateType', 'is_active'],
                     colModel: [
@@ -91,20 +92,20 @@ define(['jquery',
                             className: 'icon-ic-edit',
                             route: '#setup/printer_templates/edit/',
                             formatter: function (e, model, data) {
-                                return "<i class='icon-ic-edit' title='Edit'></i>"
+                                return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>"
                             }
                         },
                         {
                             name: 'del', width: 10, sortable: false, search: false,
                             className: 'icon-ic-delete',
                             customAction: function (rowID) {
-                                if (confirm("Are you sure want to delete")) {
+                                if (confirm(confirmDelete)) {
                                     var gridData = $('#tblPaperClaimTemplatesGrid').jqGrid('getRowData', rowID);
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
                                         data: $.param({name: gridData.name, templateType:gridData.template_type}),
                                         success: function (model, response) {
-                                            commonjs.showStatus("Deleted Successfully");
+                                            commonjs.showStatus("messages.status.deletedSuccessfully");
                                             self.paperClaimTemplatesTable.refresh();
                                         },
                                         error: function (model, response) {
@@ -114,7 +115,7 @@ define(['jquery',
                                 }
                             },
                             formatter: function (e, model, data) {
-                                return "<i class='icon-ic-delete' title='Click here to delete'></i>"
+                                return "<i class='icon-ic-delete' i18nt='messages.status.clickHereToDelete'></i>"
                             }
                         },
                         {
@@ -169,7 +170,7 @@ define(['jquery',
                             value: 'Reload', class: 'btn', i18n: 'shared.buttons.reload', clickEvent: function () {
                                 self.pager.set({ "PageNo": 1 });
                                 self.paperClaimTemplatesTable.refreshAll();
-                                commonjs.showStatus("Reloaded Successfully");
+                                commonjs.showStatus("messages.status.reloadedSuccessfully");
                             }
                         }
                     ]
@@ -418,7 +419,7 @@ define(['jquery',
                 }, {
                         success: function (model, response) {
                             if (response) {
-                                commonjs.showStatus("Saved Successfully");
+                                commonjs.showStatus('messages.status.savedSuccessfully');
                                 var id = response[0] && response[0].id;
                                 if (doGoBack) {
                                     location.href = "#setup/printer_templates/list";

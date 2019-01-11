@@ -54,6 +54,7 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                     app.companyID = app.company.id;
                     app.fileStoreId = app.company.file_store_id;
                     app.facilityID = app.userInfo.default_facility_id;
+                    app.default_facility_id = app.userInfo.default_facility_id;
 
                     if (app.userInfo.user_settings) {
                         app.sessionTimeout = app.userInfo.user_settings.sessionInterval || app.sessionTimeout;

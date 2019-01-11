@@ -1,5 +1,5 @@
 <div>
-    <% if(alerts) { %>
+    <% if(alerts && alerts.length) { %>
         <h3>Alerts</h3>
         <ul>
             <% _.each (alerts, function(alert) { %>
@@ -7,7 +7,7 @@
             <% }) %>
         </ul>
     <% } %>
-    <% if(others) { %>
+    <% if(others && others.length) { %>
         <h3>Other Alerts</h3>
         <ul>
             <% _.each (others, function(otherAlert) { %>

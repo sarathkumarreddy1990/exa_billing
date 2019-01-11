@@ -284,7 +284,7 @@ define(['jquery',
                             display_in_ddl: true,
                             filter_id: "All_Studies",
                             filter_info: null,
-                            filter_name: "All Studies",
+                            filter_name: commonjs.geti18NString("shared.fields.allStudies"),
                             filter_order: 0,
                             id: "All_Studies"
                         });
