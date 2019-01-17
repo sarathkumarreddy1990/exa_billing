@@ -639,8 +639,8 @@ define(['jquery',
                 var writeOffAdjustmentCodeList = _.filter(self.writeOffAdjustmentCodeList.toJSON(), { accounting_entry_type: "credit" });
 
                 commonjs.showDialog({
-                    header: 'Balance Write Off',
-                    i18nHeader:'shared.fields.balanceWriteOff',
+                    header: 'Small Balance Adjustment',
+                    i18nHeader:'shared.buttons.smallBalanceAdjustment',
                     width: '85%',
                     height: '70%',
                     html: self.balanceWriteOffTemplate({
