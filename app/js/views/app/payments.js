@@ -659,7 +659,6 @@ define(['jquery',
                 }, 250));
 
                 $("#ddlWriteOffAdjCodes").select2({
-                    placeholder: commonjs.geti18NString("report.reportFilter.adjustmentCode"),
                     allowClear: true
                 });
 
