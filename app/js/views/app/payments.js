@@ -654,6 +654,7 @@ define(['jquery',
                         self.showPatientsGrid(e);
                     } else {
                         self.patientClaimPager.set({ "PageNo": 1 });
+                        self.patientClaimsGrid.options.customargs.writeOffAmount = $('#txtWriteOffAmt').val();
                         self.patientClaimsGrid.refreshAll();
                     }
                 }, 250));
@@ -781,6 +782,7 @@ define(['jquery',
                         $balanceWriteOff.off().click(_.debounce(function (e) {
                             var $adjustmentCode = $('#ddlWriteOffAdjCodes option:selected');
                             var _adjCodeDesc = $adjustmentCode.text().trim();
+                            var writeOffAmount = $('#txtWriteOffAmt').val();
                             var msg = commonjs.geti18NString("messages.confirm.payments.writeOffAmountAreYouSure")
                                 msg = msg.replace('WRITE_OFF_AMOUNT', writeOffAmount).replace('$ADJ_CODE_DESC', _adjCodeDesc);
 
