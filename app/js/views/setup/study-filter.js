@@ -289,8 +289,8 @@ define([
                 "click #rbtLast": "changeDateTimeStdFilter",
                 "click #rbtNext": "changeDateTimeStdFilter",
                 "click #rbtDate": "changeDateTimeStdFilter",
-                "click #btnAddInstitutionStudyFilter": "addInstitutionList",
-                "click #btnRemoveInstitutionStudyFilter": 'removeInstitutionList',
+                "click btnClAddInstitutionStudyFilter": "addClInstitutionList",
+                "click #btnClRemoveInstitutionStudyFilter": 'removeClInstitutionList',
                 "click #btnAddClaimInfo": "addItemToList",
                 "click #btnRemoveClaimInfo": "removeItemFromList",
                 "click #btnAddBillingMethod": "addItemToList",
@@ -1617,23 +1617,23 @@ define([
                 return isChecked;
             },
 
-            addInstitutionList: function () {
+            addClInstitutionList: function () {
                 var self = this;
-                if (commonjs.checkNotEmpty($('#txtInstitutionStudyFilter').val()) && self.validateRadioButton('Institution', 'Institution')) {
-                    var opt = document.createElement('Option');
+                var institutionFilter = commonjs.checkNotEmpty($('#txtInstitutionStudyFilter').val());
+                if (institutionFilter && self.validateRadioButton('Institution', 'Institution')) {
                     opt.text = $.trim($('#txtInstitutionStudyFilter').val());
                     opt.value = $.trim($('#txtPatientID').val());
                     document.getElementById('listInstitution').options.add(opt);
                     $('#txtInstitutionStudyFilter').val('');
                     return false;
                 }
-                else {
+                else if (!institutionFilter) {
                     commonjs.showWarning("messages.warning.setup.entertextandselect");
                     return false;
                 }
             },
 
-            removeInstitutionList: function () {
+            removeClInstitutionList: function () {
                 if ($('#listInstitution option:selected').length > 0) {
                     $('#listInstitution option:selected').remove();
                 }
