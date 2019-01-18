@@ -80,47 +80,47 @@
             <ul class="tn-menu-right">
                 <li class="studyBtnPadding">
                     <a>
-                        <i class="icon-ic-expand" id="btnTabNavLeft" title="Move tab bar by left side"></i>
+                        <i class="icon-ic-expand" id="btnTabNavLeft" i18nt="shared.fields.moveAllTabBarByleftSide"></i>
                     </a>
                 </li>
                 <li class="studyBtnPadding">
                     <a>
-                        <i class="icon-ic-expand-flipped" id="btnTabNavRight" title="Move tab bar by right side"></i>
+                        <i class="icon-ic-expand-flipped" id="btnTabNavRight" i18nt="shared.fields.moveAllTabBarByRightSide"></i>
                     </a>
                 </li>
                 <li class="dropdown active studyBtnPadding" style="padding-top: 11px;">
-                    <i id="btnShowTabItems" class="icon-chevron-down" data-toggle="dropdown" title="Show all Tabs by list"></i>
+                    <i id="btnShowTabItems" class="icon-chevron-down" data-toggle="dropdown" i18nt="shared.fields.showAllTabByList"></i>
                     <ul id="ulTabCollection" class="dropdown-menu" style="overflow:auto!important;max-height:400px;margin-top:8px!important;"
                         role="menu" aria-labelledby="btnShowTabItems">
                     </ul>
                 </li>
                 <li>
                     <a>
-                        <i title="Refresh" id="btnClaimsRefresh" class="icon-ic-reset"></i>
-                        <i title="Refresh" id="btnStudiesCompleteRefresh"  style="display:none;" ></i>
-                        <i title="Refresh" id="btnStudiesRefresh" class="icon-ic-reset"></i>
-                        <i title="Refresh" id="btnClaimsCompleteRefresh"  style="display:none;" ></i>
+                        <i i18nt="shared.fields.refresh" id="btnClaimsRefresh" class="icon-ic-reset"></i>
+                        <i i18nt="shared.fields.refresh" id="btnStudiesCompleteRefresh"  style="display:none;" ></i>
+                        <i i18nt="shared.fields.refresh" id="btnStudiesRefresh" class="icon-ic-reset"></i>
+                        <i i18nt="shared.fields.refresh" id="btnClaimsCompleteRefresh"  style="display:none;" ></i>
                     </a>
                 </li>
                 <li>
                     <a>
-                        <i title="Refresh All" id="btnClaimRefreshAll" class="icon-ic-loop"></i>
-                        <i title="Refresh All" id="btnStudiesRefreshAll" class="icon-ic-loop"></i>
+                        <i i18nt="shared.fields.refreshAll" id="btnClaimRefreshAll" class="icon-ic-loop"></i>
+                        <i i18nt="shared.fields.refreshAll" id="btnStudiesRefreshAll" class="icon-ic-loop"></i>
                     </a>
                 </li>
                 <li>
                     <a>
-                        <i title="Settings" id="mySettings" class="icon-ic-actions"></i>
+                        <i i18nt="shared.fields.settings" id="mySettings" class="icon-ic-actions"></i>
                     </a>
                 </li>
                 <li>
                     <a>
-                        <i title="Filters" id="btnStudyFilter" class="icon-ic-filter"></i>
+                        <i i18nt="shared.fields.filters" id="btnStudyFilter" class="icon-ic-filter"></i>
                     </a>
                 </li>
                 <li style="margin-right: 15px;">
                     <a>
-                        <i title="Export" id="btnValidateExport" class="fa fa-download"></i>
+                        <i i18nt="shared.fields.export" id="btnValidateExport" class="fa fa-download"></i>
                     </a>
                 </li>
                 <li class="worklist-menu-right">
@@ -129,17 +129,17 @@
                 <li class="worklist-menu-right">
                         <!-- <input type="button" value="Claim" id="btnInsuranceClaim" class="btn btn-primary"  i18n="billing.fileInsurance.claim"> -->
                         <div class="btn-group small_dd"  id="btnInsuranceClaim">
-                            <button type="button" class="btn btn-primary" data-method='electronic_billing' id="btnClaimFormat" style="width:200px;">Electronic Claim (EDI)</button>
+                            <button type="button" class="btn btn-primary" data-method='electronic_billing' id="btnClaimFormat" style="width:200px;" i18n="billing.payments.electronicClaim"></button>
                             <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
                               <span class="caret"></span>
                             </button>
                             <ul class="dropdown-menu" role="menu" >
-                                    <li id="liEC"><a class="claimMenu" id="btnElectronicClaim" data-method="electronic_billing" data-value='Electronic Claim (EDI)'>Electronic Claim (EDI)</a></li>
-                                    <li id="liPCBW"><a class="claimMenu" id="btnPaperClaimBW" data-format='FULL'   data-method="paper_claim" data-value='Paper Claim (B & W)'>Paper Claim (B & W)</a></li>
-                                    <li id="liPCRED"><a class="claimMenu" id="btnPaperClaimRed" data-format='ORIGINAL'  data-method="paper_claim" data-value='Paper Claim (RED)'>Paper Claim (RED)</a></li>
-                                    <li id="liINSD"><a class="claimMenu" id="btnInvoiceServiceDate"  data-format='SERVICEDATE' data-method="direct_billing" data-value='Invoice (Service Date)'>Invoice (Service Date)</a></li>
-                                    <li  id="liINPN"><a class="claimMenu" id="btnInvoicePatientName" data-format='PATIENTNAME' data-method="direct_billing" data-value='Invoice (Patient Name)'>Invoice (Patient Name)</a></li>
-                                    <li id="liPP"><a class="claimMenu" id="btnPatientPayemnt" data-method="patient_payment" data-value='Patient Payment' >Patient Payment</a></li>
+                                    <li id="liEC"><a class="claimMenu" id="btnElectronicClaim" data-method="electronic_billing" data-value='Electronic Claim (EDI)' i18n="billing.payments.electronicClaim"></a></li>
+                                    <li id="liPCBW"><a class="claimMenu" id="btnPaperClaimBW" data-format='FULL'   data-method="paper_claim" data-value='Paper Claim (B & W)' i18n="billing.payments.paperClaimBW"></a></li>
+                                    <li id="liPCRED"><a class="claimMenu" id="btnPaperClaimRed" data-format='ORIGINAL'  data-method="paper_claim" data-value='Paper Claim (RED)' i18n="billing.payments.paperClaimRed"></a></li>
+                                    <li id="liINSD"><a class="claimMenu" id="btnInvoiceServiceDate"  data-format='SERVICEDATE' data-method="direct_billing" data-value='Invoice (Service Date)' i18n="billing.payments.invoiceServiceDate"></a></li>
+                                    <li  id="liINPN"><a class="claimMenu" id="btnInvoicePatientName" data-format='PATIENTNAME' data-method="direct_billing" data-value='Invoice (Patient Name)' i18n="billing.payments.invoicePatientName"></a></li>
+                                    <li id="liPP"><a class="claimMenu" id="btnPatientPayemnt" data-method="patient_payment" data-value='Patient Payment' i18n="billing.payments.patientPayment"></a></li>
                             </ul>
                         </div>
                 </li>

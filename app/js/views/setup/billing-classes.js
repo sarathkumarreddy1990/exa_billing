@@ -41,13 +41,14 @@ define(['jquery',
 
             render: function() {
                 var self = this;
+                var confirmDelete = commonjs.geti18NString("messages.status.areYouSureWantToDelete");
                 $('#divBillingClassesGrid').show();
                 $('#divBillingClassesForm').hide();
                 this.billingClassesTable = new customGrid();
                 this.billingClassesTable.render({
                     gridelementid: '#tblBillingClassesGrid',
                     custompager: new Pager(),
-                    emptyMessage: 'No Record found',
+                    emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['','','','','', ''],
                     i18nNames: ['', '', '', 'setup.common.code', 'setup.common.description', 'in_active'],
                     colModel: [
@@ -66,20 +67,20 @@ define(['jquery',
                             className:'icon-ic-edit',
                             route: '#setup/billing_classes/edit/',
                             formatter: function(e, model, data) {
-                                return "<i class='icon-ic-edit' title='Edit'></i>"
+                                return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>"
                             }
                         },
                         {
                             name: 'del', width: 10, sortable: false, search: false,
                             className: 'icon-ic-delete',
                             customAction: function (rowID) {
-                                if (confirm("Are you sure want to delete")) {
+                                if (confirm(confirmDelete)) {
                                     var gridData = $('#tblBillingClassesGrid').jqGrid('getRowData', rowID);
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
                                         data: $.param({ id: self.model.id, code: gridData.code, description: gridData.description }),
                                         success: function (model, response) {
-                                            commonjs.showStatus("Deleted Successfully");
+                                            commonjs.showStatus("messages.status.deletedSuccessfully");
                                             self.billingClassesTable.refresh();
                                         },
                                         error: function (model, response) {
@@ -89,7 +90,7 @@ define(['jquery',
                                 }
                             },
                             formatter: function(e, model, data) {
-                                return "<i class='icon-ic-delete' title='Click here to delete'></i>"
+                                return "<i class='icon-ic-delete' i18nt='messages.status.clickHereToDelete'></i>"
                             }
                         },
                         {
@@ -135,7 +136,7 @@ define(['jquery',
                     {value: 'Reload', class: 'btn', i18n: 'shared.buttons.reload', clickEvent: function () {
                         self.pager.set({"PageNo": 1});
                         self.billingClassesTable.refreshAll();
-                        commonjs.showStatus("Reloaded Successfully");
+                        commonjs.showStatus("messages.status.reloadedSuccessfully");
                     }}
                 ]});
 
@@ -221,7 +222,7 @@ define(['jquery',
                 }, {
                     success: function (model, response) {
                         if(response) {
-                            commonjs.showStatus("Saved Successfully");
+                            commonjs.showStatus('messages.status.savedSuccessfully');
                             location.href = "#setup/billing_classes/list";
                         }
                     },

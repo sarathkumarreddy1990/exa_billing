@@ -567,6 +567,10 @@ function customGrid ( datastore, gridID ) {
             "SearchFlag":SearchFlag
         };
 
+        if(typeof self.options.setCustomData === 'function'){
+            _data.customArgs = Object.assign({}, customArgs , self.options.setCustomData());
+        }
+
         // Added fromDate/toDate
         if (_fromDate && _fromDate.length) {
             _data.fromDate = _fromDate;
@@ -925,7 +929,7 @@ function customGrid ( datastore, gridID ) {
         });
 
         if ( dataset.length < 1 ) {
-            $tblGrid.append('<tr id="tr-no-records"><td colspan="100" style="text-align: center;font-size:14px;"> No Records Found</td></tr>');
+            $tblGrid.append('<tr id="tr-no-records"><td colspan="100" style="text-align: center;font-size:14px;">' + commonjs.geti18NString("messages.status.noRecordFound") + '</td></tr>');
 
             var gridTop = ($tblGrid.closest('.ui-jqgrid-bdiv').height() / 2);
             var pagerID = self.options.pager ?
@@ -1066,7 +1070,7 @@ function customGrid ( datastore, gridID ) {
             });
 
             // SMH - Added to retain grid scrolling ability
-            $tblGrid.append('<tr id="tr-no-records"><td colspan="100" style="text-align: center;font-size:14px;">No Records Found</td></tr>');
+            $tblGrid.append('<tr id="tr-no-records"><td colspan="100" style="text-align: center;font-size:14px;">' + commonjs.geti18NString('messages.status.noRecordFound') + '</td></tr>');
 
         }
         else {

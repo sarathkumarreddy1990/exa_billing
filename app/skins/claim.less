@@ -132,7 +132,7 @@ li {
 }
 
 #headerContainer .top-nav {
-  background: #2b547e;
+  background:  @header_bg;
   padding: 0 25px 0 0px;
   min-height: 49px;
   width: 100%;
@@ -272,6 +272,32 @@ ul.multiselect-container.dropdown-menu{
   cursor: pointer;
 }
 
+.select-container {
+  border: 1px solid #aaa;
+  border-radius: 3px;
+  padding: 4px 3px 2px 8px;
+  position: relative;
+  min-height: 25px;
+}
+
+.select-container::after {
+  position: absolute;
+  content: "";
+  top: 12px;
+  right: 4px;
+  border: 5px solid transparent;
+  border-width: 5px 4px 0 4px;
+  border-color: #888 transparent transparent transparent;
+}
+
+.select-container-label {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  padding-right: 15px;
+  display: block;
+}
+
 .ohip-claim {
     width: 100%;
 }
@@ -341,4 +367,16 @@ ul.multiselect-container.dropdown-menu{
     background-clip: padding-box;
     border: 1px solid rgba(0,0,0,.2);
     border-radius: .3rem;
+  }
+
+  .taglist-bg {
+    background: @taglist;
+  }
+
+  .thGrid {
+    background: @th-grid;
+  }
+  
+  .paymentCAS {
+    background: @dv-background;
   }

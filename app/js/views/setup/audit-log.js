@@ -40,7 +40,7 @@ define([
                 this.auditLogTable.render({
                     gridelementid: '#tblAuditLogGrid',
                     custompager: new Pager(),
-                    emptyMessage: 'No Record found',
+                    emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['', '', '', '', '', '', ''],
                     i18nNames: ['', '', '', 'setup.log.logDt', 'setup.common.screen', 'setup.common.user', 'setup.log.logDescription'],
                     colModel: [
@@ -143,7 +143,7 @@ define([
                                 }
                                 self.pager.set({ "PageNo": 1 });
                                 self.auditLogTable.refreshAll();
-                                commonjs.showStatus("Reloaded Successfully");
+                                commonjs.showStatus("messages.status.reloadedSuccessfully");
                             }
                         }
                     ]
@@ -167,6 +167,7 @@ define([
                         response = response[0];
                         commonjs.showDialog({
                             'header': 'Log Details',
+                            'i18nHeader': 'setup.log.logDetails',
                             'width': '50%',
                             'height': '70%',
                             'needShrink': true,

@@ -74,7 +74,7 @@ define(['jquery',
                     'followUpDetails': JSON.stringify(followUpDetails)
                 },
                 success: function (data, response) {
-                    commonjs.showStatus('Record Saved Successfully');
+                    commonjs.showStatus('messages.status.savedSuccessfully');
                     commonjs.hideDialog();
                     $('#btnClaimsRefresh').trigger('click');
                 },

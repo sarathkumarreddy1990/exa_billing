@@ -147,6 +147,14 @@ const validator = () => {
             }
         }
 
+        if(searchQuery && options.isBatchClaim) {
+            if(searchQuery !== '') {
+                searchQuery += ' AND ';
+            }
+
+            searchQuery += `(study_status NOT IN ('NOS', 'ABRT', 'CAN') AND NOT studies.has_deleted)`;
+        }
+
         if (searchQuery === '()') {
             return '';
         }

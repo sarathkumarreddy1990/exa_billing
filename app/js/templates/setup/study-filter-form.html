@@ -43,7 +43,6 @@
         margin: 15px 0;
         border: solid 1px;
         border-color: #bebebe;
-        background-color: #FFF;
     }
 
     .tagListMedium {
@@ -64,13 +63,13 @@
     <div class="right" style="z-index:0;">
         <ul class="new-menu-right">
             <li class="saveAll">
-                <button type="button" class="btn top-buffer" id="btnSaveStudyFilter">SAVE</button>
+                <button type="button" class="btn top-buffer" id="btnSaveStudyFilter" i18n="shared.buttons.save"></button>
             </li>
             <li>
-                <button type="button" class="btn top-buffer" id="btnClearData">CLEAR</button>
+                <button type="button" class="btn top-buffer" id="btnClearData" i18n="shared.buttons.clear"></button>
             </li>
             <li>
-                <button type="button" class="btn top-buffer" id="btnBackToGrid">BACK</button>
+                <button type="button" class="btn top-buffer" id="btnBackToGrid" i18n="shared.buttons.back"></button>
             </li>
         </ul>
     </div>
@@ -82,10 +81,10 @@
                 <li>
                     <div class="form-group row">
                         <div class="form-list col-md-3 col-sm-3">
-                            <label class="col-form-label field-required" for="txtFilterName" i18n="setup.studyFilters.filterName">filter Name</label>
+                            <label class="col-form-label field-required" for="txtFilterName" i18n="setup.studyFilters.filterName"></label>
                         </div>
                         <div class="form-list col-md-4 col-sm-4">
-                            <input maxlength="128" type="text" id="txtFilterName" name="FilterNameSF" placeholder="Filter Name" i18np="setup.studyFilters.filterName"
+                            <input maxlength="128" type="text" id="txtFilterName" name="FilterNameSF" i18np="setup.studyFilters.filterName"
                                 required="required" class="form-control fc-short">
                         </div>
 
@@ -245,17 +244,17 @@
                                 </td>
                                 <td>
                                     <select class="form-control fc-short" id='ddlDatePreformatted'>
-                                        <option i18n="setup.studyFilters.ddlPreformatted.yesterday">yesterday</option>
-                                        <option i18n="setup.studyFilters.ddlPreformatted.today">today</option>
-                                        <option i18n="setup.studyFilters.ddlPreformatted.tomorrow">tomorrow</option>
-                                        <option i18n="setup.studyFilters.ddlPreformatted.last7days">last 7 days</option>
-                                        <option i18n="setup.studyFilters.ddlPreformatted.last30days">last 30 days</option>
-                                        <option i18n="setup.studyFilters.ddlPreformatted.last90days">last 90 days</option>
-                                        <option i18n="setup.studyFilters.ddlPreformatted.lastmonth">last month</option>
-                                        <option i18n="setup.studyFilters.ddlPreformatted.next7days">next 7 days</option>
-                                        <option i18n="setup.studyFilters.ddlPreformatted.next30days">next 30 days</option>
-                                        <option i18n="setup.studyFilters.ddlPreformatted.thismonth">this month</option>
-                                        <option i18n="setup.studyFilters.ddlPreformatted.thisyear">this year</option>
+                                        <option value='Yesterday' i18n="setup.studyFilters.ddlPreformatted.yesterday">yesterday</option>
+                                        <option value='Today' i18n="setup.studyFilters.ddlPreformatted.today">today</option>
+                                        <option value='Tomorrow' i18n="setup.studyFilters.ddlPreformatted.tomorrow">tomorrow</option>
+                                        <option value='Last 7 Days' i18n="setup.studyFilters.ddlPreformatted.last7days">last 7 days</option>
+                                        <option value='Last 30 Days' i18n="setup.studyFilters.ddlPreformatted.last30days">last 30 days</option>
+                                        <option value='Last 90 Days' i18n="setup.studyFilters.ddlPreformatted.last90days">last 90 days</option>
+                                        <option value='Last Month' i18n="setup.studyFilters.ddlPreformatted.lastmonth">last month</option>
+                                        <option value='Next 7 Days' i18n="setup.studyFilters.ddlPreformatted.next7days">next 7 days</option>
+                                        <option value='Next 30 Days' i18n="setup.studyFilters.ddlPreformatted.next30days">next 30 days</option>
+                                        <option value='This Month' i18n="setup.studyFilters.ddlPreformatted.thismonth">this month</option>
+                                        <option value='This Year' i18n="setup.studyFilters.ddlPreformatted.thisyear">this year</option>
                                     </select>
                                 </td>
                             </tr>
@@ -274,11 +273,11 @@
                                 <td colspan="2">
                                     <input type="number" id="txtLastTime" min=1 maxlength="3" name="LastTime" class="form-control fc-short">
                                     <select class="form-control fc-short" id='ddlLast' style="width: 150px;">
-                                        <option i18n="setup.studyFilters.ddlLastMetric.hours">Hour(s)</option>
-                                        <option i18n="setup.studyFilters.ddlLastMetric.days">Day(s)</option>
-                                        <option i18n="setup.studyFilters.ddlLastMetric.weeks">Week(s)</option>
-                                        <option i18n="setup.studyFilters.ddlLastMetric.months">Month(s)</option>
-                                        <option i18n="setup.studyFilters.ddlLastMetric.years">Year(s)</option>
+                                        <option value='Hour(s)' i18n="setup.studyFilters.ddlLastMetric.hours">Hour(s)</option>
+                                        <option value='Day(s)' i18n="setup.studyFilters.ddlLastMetric.days">Day(s)</option>
+                                        <option value='Week(s)' i18n="setup.studyFilters.ddlLastMetric.weeks">Week(s)</option>
+                                        <option value='Month(s)' i18n="setup.studyFilters.ddlLastMetric.months">Month(s)</option>
+                                        <option value='Year(s)' i18n="setup.studyFilters.ddlLastMetric.years">Year(s)</option>
                                     </select>
                                 </td>
                                 <td>
@@ -696,7 +695,7 @@
                                                 </div>
                                                 <div class="row form-inline">
                                                     <div class="form-list col-md-12" id="divStudyDescription" style="margin-top:5px;">
-                                                        <ul id="ulListStudyDescriptions" class="tagList tagListMedium"></ul>
+                                                        <ul id="ulListStudyDescriptions" class="tagList tagListMedium taglist-bg"></ul>
                                                     </div>
                                                     <div class="form-list col-md-12">
                                                         <input type="text" id="txtStudyDescription" placeholder="Study Description"
@@ -753,7 +752,7 @@
                                                 </div>
                                                 <div class="row form-inline">
                                                     <div class="form-list col-md-12" id="divAttorney" style="margin-top:5px;">
-                                                        <ul id="ulListAttorneys" class="tagList tagListMedium"></ul>
+                                                        <ul id="ulListAttorneys" class="tagList tagListMedium taglist-bg"></ul>
                                                     </div>
                                                     <div class="form-list col-md-12">
                                                         <input type="text" id="txtAttorney" placeholder="Attorney" class="form-control">
@@ -880,7 +879,7 @@
                                             </td>
                                             <td>
                                                 <div>
-                                                    <ul id="ulListOrdFacility" class="tagList" style="min-width:220px;height:140px;"></ul>
+                                                    <ul id="ulListOrdFacility" class="tagList taglist-bg" style="min-width:220px;height:140px;"></ul>
                                                     <div class="form-group row">
                                                         <div class="col-md-10 col-sm-10">
                                                             <select id="ddlOrdFacility" class="form-control select-box"></select></div>
@@ -1149,18 +1148,16 @@
                                     <div class="row form-inline">
                                         <div class="form-list col-md-2 col-sm-2">
                                             <input type="radio" id="rbtIsRefPhy" name="RefPhy" value="Is" class="form-check-input clearField">
-                                            <label for="rbtIsRefPhy" class="form-check-label" i18n="
-                                           setup.studyFilters.is"></label>
+                                            <label for="rbtIsRefPhy" class="form-check-label" i18n="setup.studyFilters.is"></label>
                                         </div>
                                         <div class="form-list col-md-3 col-sm-3">
                                             <input type="radio" id="rbtIsNotRefPhy" name="RefPhy" value="IsNot" class="form-check-input clearField">
                                             <label for="rbtIsNotRefPhy" class="form-check-label"
-                                                   i18n=" setup.studyFilters.isNot"></label>
+                                                   i18n="setup.studyFilters.isNot"></label>
                                         </div>
                                         <div class="form-list col-md-2 col-sm-2">
                                             <input type="radio" id="rbtContainsRefPhy" name="RefPhy" value="Contains" class="form-check-input clearField">
-                                            <label for="rbtContainsRefPhy" class="form-check-label" i18n="
-                                           setup.studyFilters.contains"></label>
+                                            <label for="rbtContainsRefPhy" class="form-check-label" i18n="setup.studyFilters.contains"></label>
                                         </div>
                                     </div>
                                 </td>
@@ -1480,7 +1477,7 @@
                                     </td>
                                     <td>
                                         <div>
-                                            <ul id="ulListClaimOrdFacility" class="tagList" style="min-width:220px;height:140px;"></ul>
+                                            <ul id="ulListClaimOrdFacility" class="tagList taglist-bg" style="min-width:220px;height:140px;"></ul>
                                             <div class="form-group row">
                                                 <div class="col-md-10 col-sm-10">
                                                     <select id="ddlClaimOrdFacility" class="form-control select-box"></select></div>

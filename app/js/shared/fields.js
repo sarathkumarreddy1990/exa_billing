@@ -552,7 +552,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "id": 27,
                     "field_code": "billing_provider",
                     "field_name": "Billing Provider",
-                    "i18n_name": "shared.fields.billingProvider",
+                    "i18n_name": "shared.screens.setup.billingProvider",
                     "field_info": {
                         "custom_name": "Billing Provider",
                         "name": "billing_provider",

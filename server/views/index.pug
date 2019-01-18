@@ -16,79 +16,79 @@ block content
         #navbarNavAltMarkup.collapse.navbar-collapse
             ul.navbar-nav.ml-auto
                 li.nav-item
-                    a#aStudies.nav-link.active(href='#billing/studies/list') Studies
+                    a#aStudies.nav-link.active(href='#billing/studies/list', i18n='shared.moduleheader.studies')
                 li.nav-item
-                    a#aClaims.nav-link(href='#billing/claim_workbench/list') Claims
+                    a#aClaims.nav-link(href='#billing/claim_workbench/list', i18n='shared.moduleheader.claims')
                 li.nav-item
-                    a#aPayments.nav-link(href='#billing/payments/list') Payments
+                    a#aPayments.nav-link(href='#billing/payments/list', i18n='shared.moduleheader.payments')
                 li.nav-item
-                    a#aEob.nav-link(href='#billing/era/list') EOB
+                    a#aEob.nav-link(href='#billing/era/list', i18n='shared.moduleheader.eob')
 
                 li.nav-item.dropdown
-                    a#aReports.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false') Reports
+                    a#aReports.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false', i18n='shared.moduleheader.report')
                     .dropdown-menu
-                        a.dropdown-item(href='#reports/r/aged-ar-summary', class='aAgedARSummary') Aged AR Summary
-                        a.dropdown-item(href='#reports/r/aged-ar-details', class='aAgedARDetails') Aged AR Details
+                        a.dropdown-item(href='#reports/r/aged-ar-summary', class='aAgedARSummary', i18n='report.home.agedARSummary')
+                        a.dropdown-item(href='#reports/r/aged-ar-details', class='aAgedARDetails', i18n='shared.screens.setup.agedARDetails')
                         .dropdown-divider
-                        a.dropdown-item(href='#reports/r/charges', class='aCharges') Charges
-                        a.dropdown-item(href='#reports/r/claim-activity', class='aClaimActivity') Claim Activity
-                        a.dropdown-item(href='#reports/r/claim-inquiry', class='aClaimInquiry') Claim Inquiry
-                        a.dropdown-item(href='#reports/r/claim-transaction', class='aClaimTransaction') Claim Transaction
-                        a.dropdown-item(href='#reports/r/credit-balance-encounters', class='aCreditBalanceEncounters') Credit Balance Encounters
-                        a.dropdown-item(href='#reports/r/diagnosis-count', class='aDiagnosisCount') Diagnosis Count
+                        a.dropdown-item(href='#reports/r/charges', class='aCharges', i18n='shared.screens.setup.charges')
+                        a.dropdown-item(href='#reports/r/claim-activity', class='aClaimActivity', i18n='shared.screens.setup.claimActivity')
+                        a.dropdown-item(href='#reports/r/claim-inquiry', class='aClaimInquiry', i18n='shared.screens.setup.claimInquiry')
+                        a.dropdown-item(href='#reports/r/claim-transaction', class='aClaimTransaction', i18n='shared.screens.setup.claimTransaction')
+                        a.dropdown-item(href='#reports/r/credit-balance-encounters', class='aCreditBalanceEncounters', i18n='shared.screens.setup.creditBalanceEncounters')
+                        a.dropdown-item(href='#reports/r/diagnosis-count', class='aDiagnosisCount', i18n='shared.screens.setup.diagnosisCount')
                         .dropdown-divider
-                        a.dropdown-item(href='#reports/r/insurance-vs-lop', class='aInsuranceLOP') Insurance VS LOP
-                        a.dropdown-item(href='#reports/r/modality-summary', class='aModalitySummary') Modality Summary
-                        a.dropdown-item(href='#reports/r/monthly-recap', class='aMonthlyRecap') Monthly Recap
-                        a.dropdown-item(href='#reports/r/patient-statement', class='aPatientStatement') Patient Statement
-                        a.dropdown-item(href='#reports/r/payer-mix', class='aPayerMix') Payer Mix
-                        a.dropdown-item(href='#reports/r/payment-report' class='aPaymentDetails') Payments
-                         a.dropdown-item(href='#reports/r/payments-realization-rate-analysis' class='aPaymentsRealizationRateAnalysis') Payments Realization Rate Analysis
-                        a.dropdown-item(href='#reports/r/patients-by-insurance-company' class='aPatientsByInsCompany') Patients By Insurance Company
-                        a.dropdown-item(href='#reports/r/payments-by-ins-company', class='aPaymentsByInsurance') Payments By Ins Company
-                        a.dropdown-item(href='#reports/r/procedure-analysis-by-insurance', class='aProcedureAnlaysis') Procedure Analysis By Insurance
-                        a.dropdown-item(href='#reports/r/procedure-count', class='aProcedureCount') Procedure Count
+                        a.dropdown-item(href='#reports/r/insurance-vs-lop', class='aInsuranceLOP', i18n='shared.screens.setup.insuranceVSLOP')
+                        a.dropdown-item(href='#reports/r/modality-summary', class='aModalitySummary', i18n='shared.screens.setup.modalitySummary')
+                        a.dropdown-item(href='#reports/r/monthly-recap', class='aMonthlyRecap', i18n='shared.screens.setup.monthlyRecap')
+                        a.dropdown-item(href='#reports/r/patient-statement', class='aPatientStatement', i18n='shared.screens.setup.patientStatement')
+                        a.dropdown-item(href='#reports/r/payer-mix', class='aPayerMix', i18n='shared.screens.setup.payerMix')
+                        a.dropdown-item(href='#reports/r/payment-report' class='aPaymentDetails', i18n='shared.screens.setup.payment')
+                         a.dropdown-item(href='#reports/r/payments-realization-rate-analysis' class='aPaymentsRealizationRateAnalysis', i18n="shared.screens.setup.paymentsRealizationRateAnalysis")
+                        a.dropdown-item(href='#reports/r/patients-by-insurance-company' class='aPatientsByInsCompany', i18n='shared.screens.setup.patientsByInsuranceCompany')
+                        a.dropdown-item(href='#reports/r/payments-by-ins-company', class='aPaymentsByInsurance', 18n='shared.screens.setup.paymentsByInsCompany')
+                        a.dropdown-item(href='#reports/r/procedure-analysis-by-insurance', class='aProcedureAnlaysis', i18n='shared.screens.setup.procedureAnalysisByInsurance')
+                        a.dropdown-item(href='#reports/r/procedure-count', class='aProcedureCount', i18n='shared.screens.setup.procedureCount')
                         .dropdown-divider
-                        a.dropdown-item(href='#reports/r/reading-provider-fees', class='aReadingProviderFees') Reading Provider Fees
-                        a.dropdown-item(href='#reports/r/referring-provider-count', class='aRefProCount') Referring Provider Count
-                        a.dropdown-item(href='#reports/r/referring-provider-summary', class='aRefProSummary') Referring Provider Summary
-                        a.dropdown-item(href='#reports/r/transaction-summary', class='aTransactionSummary') Transaction Summary
+                        a.dropdown-item(href='#reports/r/reading-provider-fees', class='aReadingProviderFees', i18n='shared.screens.setup.readingProviderFees')
+                        a.dropdown-item(href='#reports/r/referring-provider-count', class='aRefProCount', i18n='shared.screens.setup.referringProviderCount')
+                        a.dropdown-item(href='#reports/r/referring-provider-summary', class='aRefProSummary', i18n='shared.screens.setup.referringProviderSummary')
+                        a.dropdown-item(href='#reports/r/transaction-summary', class='aTransactionSummary', i18n='shared.screens.setup.transactionSummary')
 
                 li.nav-item.dropdown
-                    a#aSetup.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false') Setup
+                    a#aSetup.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false', i18n='shared.moduleheader.setup')
                     .dropdown-menu
-                        a.dropdown-item(href='javascript:window.appLayout.refreshAppSettings(true);') Refresh Settings
+                        a.dropdown-item(href='javascript:window.appLayout.refreshAppSettings(true);', i18n='shared.screens.setup.refreshSettings')
                             i.icon-ic-loop(title='Refresh settings', style="margin-left: 10px;")
                         .dropdown-divider
-                        a.dropdown-item(href='#setup/adjustment_codes/list', class='aAdjustmentCodes') Adjustment Codes
-                        a.dropdown-item(href='#setup/billing_codes/list' , class='aBillingCodes') Billing codes
-                        a.dropdown-item(href='#setup/billing_classes/list', class='aBillingClasses') Billing Classes
-                        a.dropdown-item(href='#setup/claim_status/list', class='aClaimStatus') Claim Status
+                        a.dropdown-item(href='#setup/adjustment_codes/list', class='aAdjustmentCodes', i18n='shared.fields.adjustmentCodes')
+                        a.dropdown-item(href='#setup/billing_codes/list' , class='aBillingCodes', i18n='shared.screens.setup.billingCodes')
+                        a.dropdown-item(href='#setup/billing_classes/list', class='aBillingClasses', i18n='shared.screens.setup.billingClasses')
+                        a.dropdown-item(href='#setup/claim_status/list', class='aClaimStatus', i18n='shared.screens.setup.claimStatus')
                         .dropdown-divider
-                        a.dropdown-item(href='#setup/billing_providers/list', class='aBillingProviders') Billing Provider
-                        a.dropdown-item(href='#setup/provider_id_code_qualifiers/list' class='aProviderIdCodeQualifiers') Provider ID Code Qualifiers
+                        a.dropdown-item(href='#setup/billing_providers/list', class='aBillingProviders', i18n='shared.screens.setup.billingProvider')
+                        a.dropdown-item(href='#setup/provider_id_code_qualifiers/list' class='aProviderIdCodeQualifiers', i18n='shared.screens.setup.providerIDCodeQualifiers')
                         .dropdown-divider
-                        a.dropdown-item(href='#setup/billing_messages/list' class='aBillingMessages') Billing Messages
-                        a.dropdown-item(href='#setup/payment_reasons/list', class='aPaymentReasons') Payment Reasons
-                        a.dropdown-item(href='#setup/cas_group_codes/list' class='aCasGroupCodes') CAS Group Codes
-                        a.dropdown-item(href='#setup/cas_reason_codes/list' class='aCasReasonCodes') CAS Reason Codes
+                        a.dropdown-item(href='#setup/billing_messages/list' class='aBillingMessages', i18n='shared.screens.setup.billingMessages')
+                        a.dropdown-item(href='#setup/payment_reasons/list', class='aPaymentReasons', i18n='shared.screens.setup.paymentReasons')
+                        a.dropdown-item(href='#setup/cas_group_codes/list' class='aCasGroupCodes', i18n='shared.screens.setup.casGroupCodes')
+                        a.dropdown-item(href='#setup/cas_reason_codes/list' class='aCasReasonCodes', i18n='shared.screens.setup.casReasonCodes')
                         //a.dropdown-item(href='#setup/provider_level_codes/list') Provider Level Codes
-                        a.dropdown-item(href='#setup/status_color_codes/list' class='aStatusColorCodes') Status Color Codes
+                        a.dropdown-item(href='#setup/status_color_codes/list' class='aStatusColorCodes', i18n='shared.screens.setup.statusColorCodes')
                         .dropdown-divider
-                        a.dropdown-item(href='#setup/validations/all' class='aBillingValidations') Billing Validations
-                        a.dropdown-item(href='#setup/edi_templates/all' class='aEDITemplate') EDI/ERA Templates
-                        a.dropdown-item(href='#setup/edi_clearinghouses/list' class='aEDIClearingHouses') EDI Clearing House
-                        a.dropdown-item(href='#setup/insurance_x12_mapping/list' class='aInsuranceX12Mapping') Insurance Mapping
-                        a.dropdown-item(href='#setup/printer_templates/list' class='aPrinterTemplate') Printer Templates
+                        a.dropdown-item(href='#setup/validations/all' class='aBillingValidations', i18n='shared.screens.setup.billingValidations')
+                        a.dropdown-item(href='#setup/edi_templates/all' class='aEDITemplate', i18n='shared.screens.setup.ediTemplates')
+                        a.dropdown-item(href='#setup/edi_clearinghouses/list' class='aEDIClearingHouses', i18n='shared.screens.setup.ediClearingHouses')
+                        a.dropdown-item(href='#setup/insurance_x12_mapping/list' class='aInsuranceX12Mapping', i18n='shared.screens.setup.insuranceMapping')
+                        a.dropdown-item(href='#setup/printer_templates/list' class='aPrinterTemplate', i18n='shared.screens.setup.printerTemplates')
 
                 li.nav-item.dropdown
-                    a#aLog.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false') Log
+                    a#aLog.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false', i18n='shared.moduleheader.log')
                     .dropdown-menu
-                        a.dropdown-item(href='#setup/audit_log/list' class='aAuditLog') Audit Log
-                        a.dropdown-item(href='#setup/user_log/list' class='aUserLog') User Log
+                        a.dropdown-item(href='#setup/audit_log/list' class='aAuditLog', i18n='shared.screens.setup.auditLog')
+                        a.dropdown-item(href='#setup/user_log/list' class='aUserLog', i18n='shared.screens.setup.userLog')
 
                 li.nav-item
-                    a.nav-link(href='/logout') Logout
+                    a.nav-link(href='/logout', i18n='shared.moduleheader.logout')
 
     #root
 

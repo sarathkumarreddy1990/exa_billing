@@ -20,7 +20,7 @@
                 </div>
                 <div class="col-form-content" id="billingProviderDiv" style="display:none;">
                     <input type="radio" id="billingProChk" name="facilityBillingPro" value="billingProChk">
-                    <label for="billingProChk" class="inline field-chk facilityAndBillingProChk" i18n="report.reportFilter.billingProviders"> </label>
+                    <label for="billingProChk" class="inline field-chk facilityAndBillingProChk" i18n="report.reportFilter.billingProvider"></label>
                 </div>
             </div>
             <!--  Comment Date -->
@@ -67,7 +67,7 @@
             <div class="form-group form-inline">
                 <div>
                     <input id="chkServiceDateBill" type="checkbox" value="chkServiceDateBill" name="serviceDate">
-                    <label for="chkServiceDateBill" class="field-chk" i18n="report.reportFilter.claimDate"> </label>
+                    <label for="chkServiceDateBill" class="field-chk" i18n="billing.claims.claimDate"> </label>
                 </div>
             </div>
         </div>
@@ -84,7 +84,7 @@
         <div class="col">
             <div class="form-group form-inline">
                 <div>
-                    <label class="control-label">Select Insurance</label>
+                    <label class="control-label" i18n="report.reportFilter.selectInsurance"></label>
                     <div class="input-group">
                         <select id="ddlInsuranceOption" class="form-control form-control-lg">
                             <option value="All">All Insurance</option>
@@ -182,7 +182,7 @@
             <div class="form-group form-inline">
                 <div>
                     <input id="billCreatedDate" type="checkbox" value="billCreatedDate" name="billCreatedDate">
-                    <label for="billCreatedDate" class="field-chk"> Bill Created Date </label>
+                    <label for="billCreatedDate" class="field-chk" i18n="report.reportFilter.billCreatedDate"></label>
                 </div>
             </div>
         </div>
@@ -227,10 +227,10 @@
             </div>
             <div class="btn-group">
                 <button type="button" class="btn btn-primary" id="btnPdfReport" data-rformat="pdf">
-                    <i class="fa fa-file-pdf-o"></i> PDF
+                    <i class="fa fa-file-pdf-o"></i> <span i18n ="shared.buttons.pdf"></span>
                 </button>
                 <button type="button" class="btn btn-primary" id="btnExcelReport" data-rformat="xlsx">
-                    <i class="fa fa-file-excel-o"></i> Excel</button>
+                    <i class="fa fa-file-excel-o"></i> <span i18n ="shared.buttons.excel"></span></button>
             </div>
         </div>
 

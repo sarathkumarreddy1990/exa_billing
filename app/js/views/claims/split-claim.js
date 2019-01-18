@@ -23,6 +23,7 @@ define([
                 this.rendered = true;
                 commonjs.showDialog({
                     header: 'Create/Split',
+                    i18nHeader: 'shared.moduleheader.createSplit',
                     width: '85%',
                     height: '70%',
                     html: this.splitCLaimTemplate()
