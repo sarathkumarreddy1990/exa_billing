@@ -352,7 +352,7 @@ module.exports = {
                                     , id
                                     , ${screenName}
                                     , ${moduleName}
-                                    , 'Billing Notes Updated  '||  'Claim ID  ' || update_billnotes.id
+                                    , 'Claim Comments/Billing Notes Updated  '||  'Claim ID  ' || update_billnotes.id
                                     , ${clientIp}
                                     , json_build_object(
                                         'old_values', COALESCE(old_values, '{}'),
@@ -432,7 +432,7 @@ module.exports = {
                         , id
                         , '${screenName}'
                         , '${moduleName}'
-                        , 'New Followup/Billing Notes created for Claim ID: ' ||  insert_followup.claim_id
+                        , 'New Followup Date Updated ' ||  insert_followup.claim_id
                         , '${clientIp}'
                         , json_build_object(
                             'old_values', COALESCE(old_values, '{}'),
@@ -450,7 +450,7 @@ module.exports = {
                         , id
                         , '${screenName}'
                         , '${moduleName}'
-                        , 'Follow Up Updated/Billing Notes for Claim ID: ' || update_followup.claim_id
+                        , 'Follow Up Updated ' || update_followup.claim_id
                         , '${clientIp}'
                         , json_build_object(
                             'old_values', COALESCE(old_values, '{}'),
@@ -532,7 +532,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Add: Claim Inquiry(${claim_id}) created`
+            logDescription: `Add: Claim Comments(${claim_id}) created`
         });
     },
 
