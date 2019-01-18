@@ -1486,7 +1486,7 @@ function formatSingleClaim(claimData, servicelineList) {
                     [//Other Insurance
                         {text: claimData.subscriber && claimData.subscriber[0].claim  && claimData.subscriber[0].claim[0].otherSubscriber ? getNameWithMiddle(claimData.subscriber[0].claim[0].otherSubscriber[0], 28) : '',colSpan:3},
                         {},{},{},
-                        { text: (claimData.subscriber && claimData.subscriber[0] && claimData.subscriber[0].planType) ? (claimData.subscriber[0].planType) : '', colSpan:3 },
+                        { text: (claimData.subscriber && claimData.subscriber[0] && claimData.subscriber[0].groupNumber) ? (claimData.subscriber[0].groupNumber) : '', colSpan:3 },
                         {},{}
                     ],
                     [//Group Number

@@ -446,7 +446,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                         {},
                         { text: "", colSpan: 2 },
                         {},
-                        { text: claimData.subscriber && claimData.subscriber[0].planType ? getSubstring(claimData.subscriber[0].planType, 30) : '' }, //.toString().substring(0, 30)
+                        { text: claimData.subscriber && claimData.subscriber[0].groupNumber ? getSubstring(claimData.subscriber[0].groupNumber, 30) : '' }, //.toString().substring(0, 30)
                         {}
                     ],
                     [//ANS
