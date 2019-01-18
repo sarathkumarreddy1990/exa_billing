@@ -638,6 +638,8 @@ define(['jquery',
                 //Append adjustment codes with credit entry
                 var writeOffAdjustmentCodeList = _.filter(self.writeOffAdjustmentCodeList.toJSON(), { accounting_entry_type: "credit" });
 
+                self.patientClaimPager = new ModelPaymentsPager();
+
                 commonjs.showDialog({
                     header: 'Balance Write Off',
                     i18nHeader:'shared.fields.balanceWriteOff',
@@ -645,7 +647,11 @@ define(['jquery',
                     height: '70%',
                     html: self.balanceWriteOffTemplate({
                         writeOffAdjustmentCodeList : writeOffAdjustmentCodeList
-                    })
+                    }),
+                    onHide: function() {
+                        self.patientClaimsGrid = null;
+                        self.patientGridLoaded = false;
+                    }
                 });
                 $('#siteModal').removeAttr('tabindex'); //removed tabIndex attr on sitemodel for select2 search text area can't editable
                 $('#btnNextProcess').off().click(_.debounce(function (e) {
