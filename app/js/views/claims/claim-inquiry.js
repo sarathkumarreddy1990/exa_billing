@@ -1021,9 +1021,6 @@ define([
                     self.processPatientClaim(e);
                 });
 
-                var headerName = commonjs.geti18NString("shared.moduleheader.patientClaims") + patientName ;
-                $(parent.document).find('#spanModalHeader').html(headerName)
-
                 if(this.screenCode.indexOf('PACT') > -1)
                     $('#btnPatientActivity').attr('disabled', true); // if Patient Activity report have rights then only can access this report
                 self.showPatientClaimsGrid(claimId, patientId, 0, isNested);
