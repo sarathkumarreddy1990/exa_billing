@@ -184,8 +184,9 @@ define([
                 $('#ulListInsuranceProvider').data('insuranceGroupIds', []);
                 $('input[id=chkAllInsGroup]').prop('checked', false);
                 $('input[class=insGrpChk]').prop('checked', false);
+                $('#txtInsuranceName').empty();
+                $('#txtInsuranceProviderName').empty();
                 this.selectedInsGrpList = [];
-
                 if ($('#ddlInsuranceOption').val() == 'S') {
                     $("#ddlOptionBox").show();
                     $("#ddlOptionBoxList").show();

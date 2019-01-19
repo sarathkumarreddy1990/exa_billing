@@ -168,7 +168,8 @@ define(['jquery',
                 $('input[id=chkAllInsGroup]').prop('checked', false);
                 $('input[class=insGrpChk]').prop('checked', false);
                 this.selectedInsGrpList = [];
-
+                $('#txtInsuranceName').empty();
+                $('#txtInsuranceProviderName').empty();
                 if ($('#ddlInsuranceOption').val() == 'S') {
                     $("#ddlOptionBox").show();
                     $("#ddlOptionBoxList").show();

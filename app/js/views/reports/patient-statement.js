@@ -191,6 +191,7 @@ define([
 
             onPatientOptionChange: function () {
                 UI.hideShowBox('ddlPatient');
+                $('#txtPatient').empty();
 
                 if ($('#ddlPatientOption').val() !== 'R') {
                     $('#ddlPatientLastNameBox').hide();
