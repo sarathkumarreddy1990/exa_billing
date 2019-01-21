@@ -4471,7 +4471,11 @@ define(['jquery',
 
             validatePaymentEdit: function (rowID) {
                 var self = this;
-
+                if ($('#txtAccountingDate_' + rowID).val() === '') {
+                    commonjs.showWarning("messages.warning.payments.selectAccountingDate");
+                    $('#txtAccountingDate_' + rowID).focus();
+                    return false;
+                }
                 if ($('#ddlPayerName_' + rowID).val() === '') {
                     commonjs.showWarning("messages.warning.payments.selectPayerType");
                     $('#ddlPayerName_' + rowID).focus();
