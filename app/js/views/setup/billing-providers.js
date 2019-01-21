@@ -245,7 +245,7 @@ define(['jquery',
                         $("#txtContactName").val($.trim($('#txtContactName').val()) || null);
                         $("#txtAddressLine1").val($.trim($('#txtAddressLine1').val()) || null);
                         $("#txtCity").val($.trim($('#txtCity').val()) || null);
-                        $("#ddlState").val($.trim($('#ddlState').val()) ? $.trim($('#ddlState').val()) != 'Select' : $.trim($('#ddlState').val()) || null);
+                        $("#ddlState").val($.trim($('#ddlState').val()) && $.trim($('#ddlState').val()) != 'Select' ? $.trim($('#ddlState').val()) : null);
                         $("#txtZip").val($.trim($('#txtZip').val()) || null);
                         $("#txtBillProPhoneNo").val($.trim($('#txtBillProPhoneNo').val()) || null);
                         $("#txtFaxNo").val($.trim($('#txtFaxNo').val()) || null);
