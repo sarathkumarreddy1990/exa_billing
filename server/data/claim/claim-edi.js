@@ -328,7 +328,7 @@ module.exports = {
 
 										policy_number  as "policyNo",
 										pi.group_name as "planName",
-										group_number as "planType",
+										group_number as "groupNumber",
 										insurance_provider_details.claim_filing_indicator_code as "claimFilingCode",
 										subscriber_firstname as "firstName",
 										subscriber_lastname as "lastName",
