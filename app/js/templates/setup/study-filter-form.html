@@ -205,7 +205,7 @@
             </div>
 
             <div id="divStudyFilterSide" class="col-md-10 col-sm-10" style="overflow-y:initial important;padding-left:5%;">
-                <div id="divDateTime">
+                <div id="divDateTime" style="min-height:500px">
                     <div class="row form-inline">
                         <b>
                             <label id="dateOperationsBy" class="col-form-label" i18n="setup.studyFilters.dateOperationsBy"></label>
@@ -285,8 +285,8 @@
                                 </td>
                                 <td>
                                     <div id="divFromTimeLast" class="input-group fc-short">
-                                            <input type="text"id="txtFromTimeLast" name="fromTimeLast" class="form-control">
-                                            <span class="input-group-addon add-on datePickerSpan"><i class="icon-ic-alarm"></i></span>
+                                        <input type="text" readonly="readonly" id="txtFromTimeLast" name="fromTimeLast" class="form-control">
+                                        <span class="input-group-addon add-on datePickerSpan"><i class="icon-ic-alarm"></i></span>
                                     </div>
                                 </td>
                                 <td>
@@ -294,7 +294,7 @@
                                 </td>
                                 <td>
                                     <div id="divToTimeLast" class="input-group fc-short">
-                                        <input type="text" id="txtToTimeLast" name="toTimeLast" class="form-control">
+                                        <input type="text" readonly="readonly" id="txtToTimeLast" name="toTimeLast" class="form-control">
                                         <span class="input-group-addon add-on datePickerSpan"><i class="icon-ic-alarm"></i></span>
                                     </div>
                                 </td>
@@ -501,7 +501,7 @@
                                                         </select>
                                                     </div>
                                                     <div class="form-list col-md-2 col-sm-2 form-inline">
-                                                        <button id="btnRemoveInstitutionStudyFilter"
+                                                        <button id="btnClRemoveInstitutionStudyFilter"
                                                                 class="btn btn-primary">
                                                             <i class="icon-ic-delete"></i>
                                                         </button>
@@ -513,7 +513,7 @@
                                                                                                          class="form-control" placeholder="Institution">
                                                     </div>
                                                     <div class="col-form-label col-md-3 col-sm-3">
-                                                        <button id="btnAddInstitutionStudyFilter"
+                                                        <button id="btnClAddInstitutionStudyFilter"
                                                                 class="btn btn-primary">
                                                             <i class="icon-ic-plus"></i>
                                                         </button>
