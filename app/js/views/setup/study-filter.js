@@ -369,6 +369,7 @@ define([
                 else
                     $('#ddlStudyDefaultTab').val(app.default_study_tab);
                 this.studyFilterTable = new customGrid();
+                $('#siteModal').removeAttr('tabindex');
                 this.studyFilterTable.render({
                     gridelementid: '#tblStudyFilterGrid',
                     custompager: new Pager(),
