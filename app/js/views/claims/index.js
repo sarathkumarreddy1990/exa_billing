@@ -2491,8 +2491,7 @@ define(['jquery',
                                 billing_method: result.billing_method
                             }, null);
                             self.is_primary_available = true;
-                            if (result.id != self.priClaimInsID)
-                                self.priClaimInsID = null;
+                            self.priClaimInsID = result.id;
                             break;
 
                         case 'secondary':
@@ -2509,8 +2508,7 @@ define(['jquery',
                                 billing_method: result.billing_method
                             }, null);
                             self.is_secondary_available = true;
-                            if (result.id != self.secClaimInsID)
-                                self.secClaimInsID = null;
+                            self.secClaimInsID = result.id;
                             break;
 
                         case 'tertiary':
@@ -2527,8 +2525,7 @@ define(['jquery',
                                 billing_method: result.billing_method
                             }, null);
                             self.is_tertiary_available = true;
-                             if (result.id != self.terClaimInsID)
-                                self.terClaimInsID = null;
+                            self.terClaimInsID = result.id;
                             break;
                     }
 
