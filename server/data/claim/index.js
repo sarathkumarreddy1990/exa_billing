@@ -337,7 +337,14 @@ module.exports = {
                                   existing_insurance
 
                           ) AS existing_insurance
-                  ) AS existing_insurance `;
+                  ) AS existing_insurance,
+                  ( SELECT 
+                        patient_info::jsonb
+                    FROM 
+                        patients
+                    WHERE
+                        id = ${params.patient_id}
+                  ) AS patient_info `;
 
         return await query(sql);
     },
