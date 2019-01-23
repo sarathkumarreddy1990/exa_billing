@@ -46,14 +46,23 @@ get_claim_details AS(
  get_full_name(pp.last_name,pp.first_name) AS "Patient Name",
  to_char(bc.claim_dt, 'MM/DD/YYYY') AS "Claim Date",
  pp.account_no as "Account #",
-
- CASE WHEN payer_type = 'primary_insurance' THEN 1
- WHEN payer_type = 'secondary_insurance' THEN 1
- WHEN payer_type = 'tertiary_insurance' THEN 1
- WHEN payer_type = 'referring_provider' THEN 4
- WHEN payer_type = 'patient' THEN 2
- WHEN payer_type = 'ordering_facility' THEN 3
+ <% if(incPatDetail == 'true') { %>
+     CASE WHEN payer_type = 'primary_insurance' THEN 1
+        WHEN payer_type = 'secondary_insurance' THEN 1
+        WHEN payer_type = 'tertiary_insurance' THEN 1
+        WHEN payer_type = 'referring_provider' THEN 1
+        WHEN payer_type = 'patient' THEN 1
+        WHEN payer_type = 'ordering_facility' THEN 1
+    END AS "Responsible Party_order_by",
+<%} else {%>
+    CASE WHEN payer_type = 'primary_insurance' THEN 1
+    WHEN payer_type = 'secondary_insurance' THEN 1
+    WHEN payer_type = 'tertiary_insurance' THEN 1
+    WHEN payer_type = 'referring_provider' THEN 4
+    WHEN payer_type = 'patient' THEN 2
+    WHEN payer_type = 'ordering_facility' THEN 3
 END AS "Responsible Party_order_by",
+<% } %>
 
  <% if(incPatDetail == 'true') { %>
     CASE WHEN primary_patient_insurance_id is not null THEN 'Primary Insurance' ELSE '-No payer-'  END AS "Responsible Party",
@@ -132,12 +141,15 @@ COALESCE(CASE WHEN gcd.age > 90 and gcd.age <=120 THEN gcd.balance END,0::money)
  INNER JOIN public.patients pp ON pp.id = bc.patient_id
  INNER JOIN public.facilities pf ON pf.id = bc.facility_id
  INNER JOIN billing.providers bpr ON bpr.id = bc.billing_provider_id
- LEFT JOIN public.patient_insurances ppi ON ppi.id = CASE WHEN payer_type = 'primary_insurance' THEN primary_patient_insurance_id
-                                                 WHEN payer_type = 'secondary_insurance' THEN secondary_patient_insurance_id
-                                                 WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id
-                                                 <% if(incPatDetail == 'true') { %>  ELSE primary_patient_insurance_id <% } %>
-                                            END
- LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
+ <% if(incPatDetail == 'true') { %>
+    LEFT JOIN public.patient_insurances ppi ON ppi.id = primary_patient_insurance_id
+ <%} else {%>
+    LEFT JOIN public.patient_insurances ppi ON ppi.id = CASE WHEN payer_type = 'primary_insurance' THEN primary_patient_insurance_id
+    WHEN payer_type = 'secondary_insurance' THEN secondary_patient_insurance_id
+    WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id
+END
+<% } %>
+LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
  LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
  LEFT JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id
  LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
