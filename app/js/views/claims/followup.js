@@ -133,7 +133,7 @@ define(['jquery',
 
         resetFollowUp: function(claimIDs) {
             claimIDs = claimIDs.split(',');
-            var assigned_id = $('#tblClaimGridFollow_up_queue').getRowData(claimIDs).assigned_id;
+            var assigned_id = $('#tblClaimGridFollow_up_queue').getRowData(claimIDs).hidden_assigned_id;
             $.ajax({
                 url: '/exa_modules/billing/claim_workbench/follow_ups',
                 type: 'PUT',
