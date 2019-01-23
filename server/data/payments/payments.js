@@ -1264,29 +1264,73 @@ module.exports = {
         } else {
 
             let selectColumn = `
-                , cp.patient_balance
                 , p.birth_date::text AS dob
                 , p.account_no
                 , p.id
                 , p.full_name AS patient_name
                 , COUNT(1) OVER (range unbounded preceding) AS total_records `;
 
-            sql = SQL`
-            WITH
-            -- --------------------------------------------------------------------------------------------------------------
-            -- Getting total patient balance <= write-off amount.
-            -- --------------------------------------------------------------------------------------------------------------
-                claim_payments AS (
+            sql = SQL`WITH
+                patient_details AS (
                     SELECT
-                        sum(bgct.claim_balance_total) AS patient_balance
-                        , p.id as patient_id
+                        p.id as patient_id
+                        ,c.id as claim_id
                     FROM
-                    billing.claims
+                    billing.claims c
+                    INNER JOIN patients p ON p.id = c.patient_id
+                )
+                ,claim_charge_fee AS (
+                    SELECT
+                        sum(c.bill_fee * c.units)  AS charges_bill_fee_total
+                        ,c.claim_id
+                    FROM
+                        billing.charges AS c
+                        INNER JOIN patient_details AS pd ON pd.claim_id = c.claim_id
+                        INNER JOIN public.cpt_codes AS pc ON pc.id = c.cpt_id
+                        LEFT OUTER JOIN billing.charges_studies AS cs ON c.id = cs.charge_id
+                    GROUP BY c.claim_id
+                )
+                -- --------------------------------------------------------------------------------------------------------------
+                -- Claim payments list.
+                -- --------------------------------------------------------------------------------------------------------------
+                ,claim_payment_lists AS (
+                    SELECT
+                        ccf.charges_bill_fee_total - (
+                                applications.payments_applied_total +
+                                applications.ajdustments_applied_total +
+                                applications.refund_amount
+                        ) AS claim_balance_total
+                        ,ccf.claim_id
+                    FROM
+                        claim_charge_fee ccf
+                    LEFT JOIN LATERAL (
+                        SELECT
+                            coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment'),0::money)    AS payments_applied_total,
+                            coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment' AND (adj.accounting_entry_type != 'refund_debit' OR pa.adjustment_code_id IS NULL)),0::money) AS ajdustments_applied_total,
+                            coalesce(sum(pa.amount)   FILTER (WHERE adj.accounting_entry_type = 'refund_debit'),0::money) AS refund_amount,
+                            c.claim_id
+                        FROM
+                            billing.charges AS c
+                        LEFT JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
+                        LEFT JOIN billing.payments AS p ON pa.payment_id = p.id
+                        LEFT JOIN billing.adjustment_codes adj ON adj.id = pa.adjustment_code_id
+                        GROUP BY c.claim_id
+                    ) as applications ON applications.claim_id = ccf.claim_id
+                )
+                -- --------------------------------------------------------------------------------------------------------------
+                -- Getting total patient balance <= write-off amount.
+                -- --------------------------------------------------------------------------------------------------------------
+                ,claim_payments AS (
+                    SELECT
+                        sum(cpl.claim_balance_total) AS patient_balance,
+                        p.id AS patient_id
+                    FROM
+                        billing.claims
+		            INNER JOIN claim_payment_lists cpl ON cpl.claim_id = claims.id
                     INNER JOIN patients p ON p.id = claims.patient_id
-                    INNER JOIN LATERAL billing.get_claim_totals(claims.id) bgct ON TRUE
                     GROUP BY p.id
-                    HAVING sum(bgct.claim_balance_total) <= ${writeOffAmount}::money
-                        AND sum(bgct.claim_balance_total) > 0::money
+                    HAVING sum(cpl.claim_balance_total) <= ${writeOffAmount}::money
+                        AND sum(cpl.claim_balance_total) > 0::money
                     ORDER BY p.id DESC
                 )
                 SELECT
@@ -1338,20 +1382,73 @@ module.exports = {
 
         const sql =SQL`WITH
             -- --------------------------------------------------------------------------------------------------------------
+            -- Total patient claims.
+            -- --------------------------------------------------------------------------------------------------------------
+            patient_details AS (
+                SELECT
+                    p.id as patient_id
+                    ,c.id as claim_id
+                FROM
+                    billing.claims c
+                INNER JOIN patients p ON p.id = c.patient_id
+             )
+            -- --------------------------------------------------------------------------------------------------------------
+            -- Calculate charge bill fee for claim.
+            -- --------------------------------------------------------------------------------------------------------------
+            ,claim_charge_fee AS (
+                SELECT
+                    sum(c.bill_fee * c.units)       AS charges_bill_fee_total
+                    ,c.claim_id
+                FROM
+                    billing.charges AS c
+                INNER JOIN patient_details AS pd ON pd.claim_id = c.claim_id
+                INNER JOIN public.cpt_codes AS pc ON pc.id = c.cpt_id
+                LEFT OUTER JOIN billing.charges_studies AS cs ON c.id = cs.charge_id
+                GROUP BY c.claim_id
+             )
+            -- --------------------------------------------------------------------------------------------------------------
+            -- Claim payments list.
+            -- --------------------------------------------------------------------------------------------------------------
+            ,claim_payments_list AS (
+                SELECT
+		            ccf.charges_bill_fee_total - (
+		            	    applications.payments_applied_total +
+		            	    applications.ajdustments_applied_total +
+		            	    applications.refund_amount
+		            ) AS claim_balance_total
+		            ,ccf.claim_id
+	            FROM
+		            claim_charge_fee ccf
+	            LEFT JOIN LATERAL (
+		            SELECT
+			            coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment'),0::money)    AS payments_applied_total
+			            ,coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment'
+				        AND (adj.accounting_entry_type != 'refund_debit' OR pa.adjustment_code_id IS NULL)),0::money) AS ajdustments_applied_total
+			            ,coalesce(sum(pa.amount)   FILTER (WHERE adj.accounting_entry_type = 'refund_debit'),0::money) AS refund_amount
+			            ,c.claim_id
+		            FROM
+			            billing.charges AS c
+		            LEFT JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
+		            LEFT JOIN billing.payments AS p ON pa.payment_id = p.id
+		            LEFT JOIN billing.adjustment_codes adj ON adj.id = pa.adjustment_code_id
+		            GROUP BY c.claim_id
+                ) as applications ON applications.claim_id = ccf.claim_id
+             )
+            -- --------------------------------------------------------------------------------------------------------------
             -- Getting total patient balance <= write-off amount.
             -- --------------------------------------------------------------------------------------------------------------
-            claim_payments AS (
+            ,claim_payments AS (
                 SELECT
-                    sum(bgct.claim_balance_total) AS patient_balance
+                    sum(cp.claim_balance_total) AS patient_balance
                     , p.id AS patient_id
                     , p.facility_id AS facility_id
                 FROM
                     billing.claims
+		        INNER JOIN claim_payments_list cp ON cp.claim_id = claims.id
                 INNER JOIN patients p ON p.id = claims.patient_id
-                INNER JOIN LATERAL billing.get_claim_totals(claims.id) bgct ON TRUE
-                GROUP BY p.id
-                HAVING sum(bgct.claim_balance_total) <= ${writeOffAmount}::money
-                    AND sum(bgct.claim_balance_total) > 0::money
+		        GROUP BY p.id
+                HAVING sum(cp.claim_balance_total) <= ${writeOffAmount}::money
+                    AND sum(cp.claim_balance_total) > 0::money
                 ORDER BY p.id DESC
 
             )
@@ -1444,7 +1541,7 @@ module.exports = {
                 FROM
                     billing.claims
                 INNER JOIN insert_payment ip ON ip.patient_id = claims.patient_id
-                INNER JOIN LATERAL billing.get_claim_totals(claims.id) gct ON TRUE
+                INNER JOIN claim_payments_list cpl ON cpl.claim_id = claims.id
                 INNER JOIN LATERAL (
                         SELECT
                             json_agg(
@@ -1462,7 +1559,7 @@ module.exports = {
                         INNER JOIN LATERAL billing.get_charge_other_payment_adjustment(bch.id) bgct ON TRUE
                         WHERE bch.claim_id = claims.id
                 ) AS charges ON TRUE
-                WHERE gct.claim_balance_total > 0::money
+                WHERE cpl.claim_balance_total > 0::money
             )
             -- --------------------------------------------------------------------------------------------------------------
             -- It will create payment application of given charge lineItems
