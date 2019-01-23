@@ -2160,7 +2160,7 @@ define(['jquery',
                             self.existingTriInsurance = [];
                             var existing_insurance = response[0].existing_insurance || [];
                             var beneficiary_details = response[0].beneficiary_details || [];
-
+                            self.patientAddress = response[0].patient_info ? response[0].patient_info : self.patientAddress;
                             self.npiNo = existing_insurance.length && existing_insurance[0].npi_no ? existing_insurance[0].npi_no : '';
                             self.federalTaxId = existing_insurance.length && existing_insurance[0].federal_tax_id ? existing_insurance[0].federal_tax_id : '';
                             self.enableInsuranceEligibility = existing_insurance.length && existing_insurance[0].enable_insurance_eligibility ? existing_insurance[0].enable_insurance_eligibility : '';
@@ -2491,8 +2491,7 @@ define(['jquery',
                                 billing_method: result.billing_method
                             }, null);
                             self.is_primary_available = true;
-                            if (result.id != self.priClaimInsID)
-                                self.priClaimInsID = null;
+                            self.priClaimInsID = result.id;
                             break;
 
                         case 'secondary':
@@ -2509,8 +2508,7 @@ define(['jquery',
                                 billing_method: result.billing_method
                             }, null);
                             self.is_secondary_available = true;
-                            if (result.id != self.secClaimInsID)
-                                self.secClaimInsID = null;
+                            self.secClaimInsID = result.id;
                             break;
 
                         case 'tertiary':
@@ -2527,8 +2525,7 @@ define(['jquery',
                                 billing_method: result.billing_method
                             }, null);
                             self.is_tertiary_available = true;
-                             if (result.id != self.terClaimInsID)
-                                self.terClaimInsID = null;
+                            self.terClaimInsID = result.id;
                             break;
                     }
 
@@ -4471,7 +4468,11 @@ define(['jquery',
 
             validatePaymentEdit: function (rowID) {
                 var self = this;
-
+                if ($('#txtAccountingDate_' + rowID).val() === '') {
+                    commonjs.showWarning("messages.warning.payments.selectAccountingDate");
+                    $('#txtAccountingDate_' + rowID).focus();
+                    return false;
+                }
                 if ($('#ddlPayerName_' + rowID).val() === '') {
                     commonjs.showWarning("messages.warning.payments.selectPayerType");
                     $('#ddlPayerName_' + rowID).focus();

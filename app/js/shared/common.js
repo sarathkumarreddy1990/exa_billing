@@ -605,8 +605,9 @@ var commonjs = {
             default:
         }
 
-        if(!dtpTarget.find('input').hasClass("maskDateLocale")){
-            dtpTarget.find('input').addClass("maskDateLocale");
+        var targetInput = dtpTarget.find('input');
+        if (!targetInput.hasClass("maskDateLocale") && targetInput.hasClass("form-control-date")) {
+            targetInput.addClass("maskDateLocale");
         }
 
         dtpTarget.datetimepicker(options);

@@ -202,8 +202,8 @@ define([
 
 
                             if (patient_details && patient_details.length > 0) {
-                                var patient_details = commonjs.geti18NString('shared.screens.setup.claimInquiry') + ':' + patient_details[0].patient_name + ' (Acc#:' + patient_details[0].account_no + ')' + ',  ' + moment(patient_details[0].birth_date).format('L') + ',  ' + patient_details[0].gender;
-                                $(parent.document).find('#spanModalHeader').html(patient_details)
+                                var patientHeaderInfo = commonjs.geti18NString('shared.screens.setup.claimInquiry') + ':' + patient_details[0].patient_name + ' (Acc#:' + patient_details[0].account_no + ')' + ',  ' + moment(patient_details[0].birth_date).format('L') + ',  ' + patient_details[0].gender;
+                                $(parent.document).find('#spanModalHeader').html(patientHeaderInfo);
                             }
 
                             if (fromTogglePreNext) {
@@ -1020,9 +1020,6 @@ define([
                 $(".patientClaimProcess").off().click(function (e) {
                     self.processPatientClaim(e);
                 });
-
-                var headerName = commonjs.geti18NString("shared.moduleheader.patientClaims") + patientName ;
-                $(parent.document).find('#spanModalHeader').html(headerName)
 
                 if(this.screenCode.indexOf('PACT') > -1)
                     $('#btnPatientActivity').attr('disabled', true); // if Patient Activity report have rights then only can access this report

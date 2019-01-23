@@ -109,6 +109,7 @@ define([
 
              // Binding Insurance information
         onInsuranceBinding: function () {
+            $('#txtInsuranceName').empty();
             if ($('#ddlInsuranceBinding').val() == 'S'){
                 $('#ddlInsuranceOptionBox').show();
                 $('#divListInsurance').show();

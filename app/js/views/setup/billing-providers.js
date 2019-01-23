@@ -245,6 +245,7 @@ define(['jquery',
                         $("#txtContactName").val($.trim($('#txtContactName').val()) || null);
                         $("#txtAddressLine1").val($.trim($('#txtAddressLine1').val()) || null);
                         $("#txtCity").val($.trim($('#txtCity').val()) || null);
+                        $("#ddlState").val($.trim($('#ddlState').val()) && $.trim($('#ddlState').val()) != 'Select' ? $.trim($('#ddlState').val()) : null);
                         $("#txtZip").val($.trim($('#txtZip').val()) || null);
                         $("#txtBillProPhoneNo").val($.trim($('#txtBillProPhoneNo').val()) || null);
                         $("#txtFaxNo").val($.trim($('#txtFaxNo').val()) || null);
@@ -312,6 +313,9 @@ define(['jquery',
                     city: {
                         required: true
                     },
+                    state: {
+                        required: true
+                    },
                     zip: {
                         required: true
                     },
@@ -335,6 +339,7 @@ define(['jquery',
                     contactPersonName: commonjs.getMessage("e", "Contact Person Name"),
                     addressLine1: commonjs.getMessage("e", "AddressLine1"),
                     city: commonjs.getMessage("e", "City"),
+                    state: commonjs.getMessage("e", "State"),
                     zip: commonjs.getMessage("e", "Zip"),
                     phoneNo: commonjs.getMessage("e", "Phone Number"),
                     faxNo: commonjs.getMessage("e", "Fax Number"),
@@ -436,12 +441,13 @@ define(['jquery',
                         delay: 250,
                         data: function (params) {
                             return {
-                                page: params.page || 20,
+                                page: params.page || 1,
                                 q: params.term || '',
                                 pageSize: 10,
                                 sortField: "insurance_code",
                                 sortOrder: "ASC",
-                                company_id: app.companyID
+                                company_id: app.companyID,
+                                isInactive: false
                             };
                         },
                         processResults: function (data, params) {

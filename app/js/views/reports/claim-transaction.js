@@ -377,6 +377,7 @@ define([
             },
 
             onOptionChangeSelectRefPhysician: function () {
+                $('#txtReferringPhysician').empty();
                 if ($('#ddlReferringPhysicianOption').val() == 'S') {
                     $("#ddlReferringPhysicianBox").show();
                     $("#divReferringPhysician").show();
@@ -393,6 +394,7 @@ define([
 
 
             onOptionChangeSelectCPT: function () {
+                $('#txtCPTCode').empty();
                 if ($('#ddlCptCode').val() == 'S')
                     $("#ddlCPTCodeBox").show();
                 else

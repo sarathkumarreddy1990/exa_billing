@@ -379,6 +379,7 @@ define([
             },
 
             onOptionChangeSelectUser: function () {
+                $('#txtUsers').empty();
                 if ($('#ddlUsersOption').val() == 'S') {
                     $("#ddlUsersBox").show();
                     $("#divUsers").show();
