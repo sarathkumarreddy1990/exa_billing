@@ -1265,18 +1265,18 @@ define([
 
 
                 var studyDescCondition = '';
-                var $checkedConditions = $('input[name=StudyDescription]:checked');
-                var $chkContains = $('#chkContainsStudyDescription');
                 var studyDescIsContains = $('#rbtStudyDescription').is(":checked");
                 var studyDescIsNotContains = $('#rbtIsNotStudyDescription').is(":checked");
-                var studyDescContains = $chkContains.is(":checked");
+                var studyDescContains = $('#chkContainsStudyDescription').is(":checked");
 
-                if (studyDescContains && !studyDescIsContains && !studyDescIsNotContains) {
-                    studyDescCondition = $chkContains.val();
-                } else if (!studyDescContains && $checkedConditions.length) {
-                    studyDescCondition = $checkedConditions.val()
-                } else if (studyDescContains && (studyDescIsContains || studyDescIsNotContains)) {
-                    studyDescCondition = $checkedConditions.val() + $chkContains.val()
+                if (studyDescIsContains && !studyDescIsNotContains) {
+                    studyDescCondition = "Is";
+                } else if (!studyDescIsContains && studyDescIsNotContains) {
+                    studyDescCondition = "IsNot";
+                }
+
+                if (studyDescContains) {
+                    studyDescCondition += "Contains";
                 }
 
                 var jsonData = {};
