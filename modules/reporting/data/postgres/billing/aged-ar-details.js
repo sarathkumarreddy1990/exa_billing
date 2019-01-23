@@ -47,21 +47,21 @@ get_claim_details AS(
  to_char(bc.claim_dt, 'MM/DD/YYYY') AS "Claim Date",
  pp.account_no as "Account #",
  <% if(incPatDetail == 'true') { %>
-     CASE WHEN payer_type = 'primary_insurance' THEN 1
-        WHEN payer_type = 'secondary_insurance' THEN 1
-        WHEN payer_type = 'tertiary_insurance' THEN 1
-        WHEN payer_type = 'referring_provider' THEN 1
-        WHEN payer_type = 'patient' THEN 1
-        WHEN payer_type = 'ordering_facility' THEN 1
+     CASE WHEN payer_type = 'primary_insurance' OR
+            payer_type = 'secondary_insurance' OR
+            payer_type = 'tertiary_insurance' OR
+            payer_type = 'referring_provider' OR
+            payer_type = 'patient' OR
+            payer_type = 'ordering_facility' THEN 1
     END AS "Responsible Party_order_by",
 <%} else {%>
-    CASE WHEN payer_type = 'primary_insurance' THEN 1
-    WHEN payer_type = 'secondary_insurance' THEN 1
-    WHEN payer_type = 'tertiary_insurance' THEN 1
-    WHEN payer_type = 'referring_provider' THEN 4
-    WHEN payer_type = 'patient' THEN 2
-    WHEN payer_type = 'ordering_facility' THEN 3
-END AS "Responsible Party_order_by",
+        CASE WHEN payer_type = 'primary_insurance' OR
+                  payer_type = 'secondary_insurance'OR
+                  payer_type = 'tertiary_insurance' THEN 1
+             WHEN payer_type = 'referring_provider' THEN 4
+             WHEN payer_type = 'patient' THEN 2
+             WHEN payer_type = 'ordering_facility' THEN 3
+        END AS "Responsible Party_order_by",
 <% } %>
 
  <% if(incPatDetail == 'true') { %>
