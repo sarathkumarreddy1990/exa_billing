@@ -449,18 +449,16 @@ module.exports = {
     getEOBFile: async function (params) {
         let eobFileDetails = await data.getERAFilePathById(params);
 
-        try {
-            if (eobFileDetails.rows && eobFileDetails.rows.length) {
-                const filePath = path.join(eobFileDetails.rows[0].root_directory, eobFileDetails.rows[0].file_path, eobFileDetails.rows[0].id);
-                return fs.createReadStream(filePath);
+        if (eobFileDetails.rows && eobFileDetails.rows.length) {
+            const filePath = path.join(eobFileDetails.rows[0].root_directory, eobFileDetails.rows[0].file_path, eobFileDetails.rows[0].id);
+
+            if (!fs.existsSync(filePath)) {
+                throw new Error('Root directory not found in file store');
             }
-        } catch (err) {
-            logger.error(err);
+
+            return fs.createReadStream(filePath);
         }
 
-        return {
-            name: 'error',
-            message: 'EOB File Not Found'
-        };
+        throw new Error('EOB File Not Found');
     }
 };
