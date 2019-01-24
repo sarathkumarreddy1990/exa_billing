@@ -380,7 +380,9 @@ module.exports = {
 
     getPatientClaims: data.getPatientClaims,
 
-    processWriteOffPayment: data.createWriteOffPayment
+    processWriteOffPayment: data.createWriteOffPayment,
+
+    canDeletePayment: data.canDeletePayment
 
 };
 

@@ -66,7 +66,6 @@ define(['jquery',
             casSegmentsSelected: [],
             patSearchContentTemplate: _.template(patSearchContent),
             gridFirstLoaded: false,
-            canDeletePayment: true,
             pendingGridLoaderd: false,
             isRefundApplied: false,
             casDeleted: [],
@@ -99,7 +98,7 @@ define(['jquery',
                 'click #btnPaymentPendingRefresh': 'refreshPayments',
                 'click #btnAppliedPayRefresh': 'refreshPayments',
                 "change #selectPaymentMode": "changePayerMode",
-                'click #btnPaymentDelete': 'deletePayment',
+                'click #btnPaymentDelete': 'validatePaymentDelete',
                 'click #btnPaymentPrint': 'paymentPrintPDF',
                 'click #btnPrintReceipt': 'paymentPrintReceiptPDF',
                 'click #btnPaymentPendingRefreshOnly': 'refreshInvociePendingPayment',
@@ -766,7 +765,6 @@ define(['jquery',
                 $("input:radio[name=billingMethod][value=" + response.billing_method + "]").prop("checked", true);
 
                 if (payment_statuses.indexOf(response.current_status) > -1) {
-                    self.canDeletePayment = false;
                     $("#selectPayerType").prop("disabled", true);
                     if (from === "ris") {
                         $("#btnPaymentSave").prop("disabled", true);
@@ -2839,42 +2837,52 @@ define(['jquery',
 
             afterAppliedGridBind: function (dataset, e, self) {
                 if (dataset && dataset.length > 0) {
-                    self.canDeletePayment = false;
                     $('#selectPayerType').attr({ 'disabled': true, 'title': 'You cannot change the payer since the payment has already applied' })
                 }
             },
 
             validatePaymentDelete: function () {
                 var self = this;
-                if (self.canDeletePayment)
-                    return confirm(commonjs.geti18NString("messages.status.areYouSureToDeleteThisPayment"));
-                else {
-                    return confirm(commonjs.geti18NString("messages.status.thisPaymentHasBeenAlreadyAppliedProceedAnyway"));
-                }
+                $.ajax({
+                    url: '/exa_modules/billing/pending_payments/can_delete_payment',
+                    type: 'get',
+                    data: {
+                        paymentId: self.payment_id
+                    },
+                    success: function (data, response) {
+                        if (data[0].can_delete_payment) {
+                            if (confirm(commonjs.geti18NString("messages.status.areYouSureToDeleteThisPayment"))) {
+                                self.deletePayment();
+                            }
+                        } else {
+                            alert(commonjs.geti18NString("messages.status.paymentAppliedToClaimsPleaseUnapplyBeforeDelete"));
+                        }
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
             },
 
             deletePayment: function () {
                 var self = this;
-                if (self.validatePaymentDelete()) {
-                    var self = this;
-                    $.ajax({
-                        url: '/exa_modules/billing/pending_payments/payment',
-                        type: 'DELETE',
-                        data: {
-                            payment_id: self.payment_id
-                        },
-                        success: function (data, response) {
-                            commonjs.showStatus("messages.status.paymentHasBeenDeletedSuccessfully");
-                            if (self.from === 'ris')
-                                Backbone.history.navigate('#billing/payments/filter/ris', true);
-                            else
-                                Backbone.history.navigate('#billing/payments/filter', true);
-                        },
-                        error: function (err, response) {
-                            commonjs.handleXhrError(err, response);
-                        }
-                    });
-                }
+                $.ajax({
+                    url: '/exa_modules/billing/pending_payments/payment',
+                    type: 'DELETE',
+                    data: {
+                        payment_id: self.payment_id
+                    },
+                    success: function (data, response) {
+                        commonjs.showStatus("messages.status.paymentHasBeenDeletedSuccessfully");
+                        if (self.from === 'ris')
+                            Backbone.history.navigate('#billing/payments/filter/ris', true);
+                        else
+                            Backbone.history.navigate('#billing/payments/filter', true);
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
             },
 
             paymentPrintPDF: function (e) {
@@ -3047,7 +3055,6 @@ define(['jquery',
                             $('#lblApplied').html(self.formatMoneyValue(data[0].applied));
                             $('#lblBalance').html(self.formatMoneyValue(data[0].balance));
                             if (data[0].applied && parseFloat(data[0].applied.replace('$', '')) > 0) {
-                                self.canDeletePayment = false;
                                 $("#selectPayerType").prop("disabled", true);
                             }
                         }
