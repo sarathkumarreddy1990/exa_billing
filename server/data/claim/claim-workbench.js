@@ -426,7 +426,6 @@ module.exports = {
 
     updateFollowUp: async (params) => {
         let {
-            claimIDs,
             followupDate,
             followUpDetails,
             companyId,
@@ -435,19 +434,30 @@ module.exports = {
             userId,
             entityName,
             moduleName,
-            assignedTo
+            claimFollowupData
         } = params;
         let sql;
-        claimIDs = claimIDs.split(',');
 
         if (followupDate == '') {
             sql = SQL`
-                    WITH cancle_followups AS(
-                        DELETE FROM billing.claim_followups
-                        WHERE
-                            claim_id = ANY(${claimIDs})
-                            AND assigned_to = ${assignedTo}
-                        RETURNING *, '{}'::jsonb old_values),
+                    WITH claim_data AS (
+                        SELECT 
+                              "claimId" AS claim_id
+                            , "assignedTo" AS assigned_to
+                        FROM json_to_recordset(${JSON.stringify(claimFollowupData)}) AS claim_data
+                        (
+                            "claimId" BIGINT,
+                            "assignedTo" INTEGER
+                        )
+                    )
+                    ,cancle_followups AS(
+                        DELETE FROM billing.claim_followups cf
+                        WHERE EXISTS (SELECT 
+                                        1 
+                                      FROM claim_data cd 
+                                      WHERE cd.claim_id = cf.claim_id
+                                      AND cd.assigned_to = cf.assigned_to
+                        )RETURNING *, '{}'::jsonb old_values),
                         audit_cte AS (
                             SELECT billing.create_audit(
                                 ${companyId},
