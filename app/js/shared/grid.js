@@ -1313,7 +1313,7 @@ define('grid', [
                     }
                 },
                 {
-                    name: 'facility_id',
+                    name: 'hidden_facility_id',
                     width: 20,
                     sortable: false,
                     resizable: false,
