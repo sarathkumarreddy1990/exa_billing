@@ -11,7 +11,12 @@ const summaryQueryTemplate = _.template(`
                 SELECT
                     bp.payer_type as payer_type,
                     bp.id as payment_id,
-                    bp.mode as payment_mode,
+                    CASE
+                       WHEN bp.mode = 'eft' THEN
+                            UPPER(bp.mode)
+                       ELSE
+                           InitCap(bp.mode)
+                    END                 AS payment_mode,
                     SUM(CASE
                             WHEN bpa.amount_type ='payment' THEN
                                  bpa.amount
@@ -202,8 +207,13 @@ const detailQueryTemplate = _.template(`
                          p.payer_type = 'ordering_facility' THEN f.facility_name
                         WHEN
                          p.payer_type = 'ordering_provider' then pr.last_name ||','|| pr.first_name
-         	            END  AS "Payer Name",
-         	        p.mode "Payment Mode",
+                         END  AS "Payer Name",
+                    CASE
+                       WHEN p.mode = 'eft' THEN
+                            UPPER(p.mode)
+                       ELSE
+                           InitCap(p.mode)
+                    END  AS "Payment Mode",
          	        p.card_number AS "Check #",
          	        payment_totals.payments_applied_total AS "Applied Total",
          	        p.amount "Payment Amount",
