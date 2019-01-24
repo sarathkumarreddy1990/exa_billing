@@ -294,6 +294,7 @@ define(['jquery',
                             filter_id: "All_Claims",
                             filter_info: null,
                             filter_name: commonjs.geti18NString("shared.fields.allClaims"),
+                            i18n_name: "shared.fields.allClaims",
                             filter_order: 0,
                             id: "All_Claims"
                         })
@@ -303,7 +304,8 @@ define(['jquery',
                             display_in_ddl: true,
                             filter_id: "Follow_up_queue",
                             filter_info: null,
-                            filter_name: "Follow-Up Queue",
+                            filter_name: commonjs.geti18NString("billing.fileInsurance.followupQueue"),
+                            i18n_name: "billing.fileInsurance.followupQueue",
                             filter_order: 0,
                             id: "Follow_up_queue"
                         });
@@ -1178,6 +1180,7 @@ define(['jquery',
                     var processFilters = function (arrays, data) {
                         var id = data.filter_id;
                         var name = data.filter_name;
+                        var i18nName = data.i18n_name;
                         var info = data.filter_info;
                         var liclaimsTab = [
                             '<li id="liclaimsTab',
@@ -1195,6 +1198,7 @@ define(['jquery',
                             '"class="nav-link"',
                             '" data-toggle="tab" title="',
                             name,
+                            (i18nName ? '" i18n="' + i18nName + '" i18nt="' + i18nName : ''),
                             '">',
                             name,
                             '</a></li>'
