@@ -2837,7 +2837,7 @@ define(['jquery',
 
             afterAppliedGridBind: function (dataset, e, self) {
                 if (dataset && dataset.length > 0) {
-                    $('#selectPayerType').attr({ 'disabled': true, 'title': 'You cannot change the payer since the payment has already applied' })
+                    $('#selectPayerType').attr({ 'disabled': true, 'i18nt': 'billing.payments.youCannotChangeThePayerSinceThePaymentHasAlreadyApplied' })
                 }
             },
 
