@@ -821,14 +821,16 @@ define(['jquery',
                                             $balanceWriteOff.prop('disabled',false);
                                             $balanceWriteOff.addClass('d-none');
                                             $btnNext.prop('disabled',false);
-                                            if (self.patientClaimsGrid)
-                                                self.patientClaimsGrid.refresh();
+                                            // After write-off close popup
+                                            commonjs.hideDialog();
                                         }
 
                                     },
                                     error: function (err, response) {
                                         commonjs.handleXhrError(err, response);
                                         commonjs.hideLoading();
+                                        $balanceWriteOff.prop('disabled',false);
+                                        $btnNext.prop('disabled',false);
                                     }
                                 };
 
