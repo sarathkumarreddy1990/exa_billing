@@ -80,4 +80,9 @@ router.post('/process_write_off_payments', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.get('/can_delete_payment', async function (req, res) {
+    const data = await paymentsController.canDeletePayment(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
 module.exports = router;
