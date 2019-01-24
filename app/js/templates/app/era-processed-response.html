@@ -38,24 +38,24 @@
                         <div class="row" id="payerDetails" style="margin: auto;padding: 0.5em;">
                             <div class="col">
                                 <div class="form-group form-inline">
-                                    <label id="lblInsPRoviderName" for="auditFromDate" i18n="setup.userSettings.insuranceProviders" class="control-label">
-                                         : <br/>
+                                    <label id="lblInsPRoviderName" for="auditFromDate" i18n="setup.userSettings.insuranceProviders" class="control-label"></label>
+                                    <label class="control-label"> :
                                         <b>
                                             <%= ins.insurance_name %>
                                         </b>
                                     </label>
                                 </div>
                                 <div class="form-group form-inline">
-                                    <label id="lblPayerId" for="auditFromDate" i18n="billing.payments.payerID" class="control-label"/>
-                                         : <br/>
+                                    <label id="lblPayerId" for="auditFromDate" i18n="billing.payments.payerID" class="control-label"></label>
+                                    <label class="control-label"> :
                                         <b>
                                             <%= ins.payer_id %>
                                         </b>
                                     </label>
                                 </div>
                                 <div class="form-group form-inline">
-                                    <label id="paymentDate" for="auditFromDate" i18n="billing.payments.paymentDate" class="control-label"/>
-                                         : <br/>
+                                    <label id="paymentDate" for="auditFromDate" i18n="billing.payments.paymentDate" class="control-label"></label>
+                                    <label class="control-label"> :
                                         <b>
                                             <%= ins.payment_dt ? ins.payment_dt : '' %>
                                         </b>
@@ -64,27 +64,27 @@
                             </div>
                             <div class="col">
                                 <div class="form-group form-inline">
-                                    <label id="lblInsProviderAddress" for="auditFromDate" i18n="billing.claims.address" class="control-label"/>
-                                         : <br/>
+                                    <label id="lblInsProviderAddress" for="auditFromDate" i18n="billing.claims.address" class="control-label"></label>
+                                    <label class="control-label"> :
                                         <b>
-                                            <%= ins.address1 %>/
-                                                <%= ins.address2 %>
+                                            <%= ins.address1 %>
+                                            <%= ins.address2 ? '/'+ ins.address2 : '' %>
                                         </b>
                                     </label>
                                 </div>
                                 <div class="form-group form-inline">
-                                    <label id="lblInsProviderCityState" for="auditFromDate" i18n="setup.billingprovider.cityStateZip" class="control-label">
-                                         : <br/>
+                                    <label id="lblInsProviderCityState" for="auditFromDate" i18n="setup.billingprovider.cityStateZip" class="control-label"></label>
+                                    <label class="control-label"> :
                                         <b>
                                             <%= ins.city %>/
-                                                <%= ins.state %>/
-                                                    <%= ins.zip %>
+                                            <%= ins.state || '--' %>/
+                                            <%= ins.zip || '--' %>
                                         </b>
                                     </label>
                                 </div>
                                 <div class="form-group form-inline">
-                                    <label id="lblInsProviderPhoneNo" for="auditFromDate" i18n="billing.claims.phone" class="control-label">
-                                         : <br/>
+                                    <label id="lblInsProviderPhoneNo" for="auditFromDate" i18n="billing.claims.phone" class="control-label"></label>
+                                    <label class="control-label"> :
                                         <b>
                                             <%= ins.phone_no %>
                                         </b>
@@ -97,22 +97,30 @@
                                 <% _.each(claims, function(claim, key){ %>
                                     <div class="col-md-12" id="divClaimDetails_<%= key %>" style="border-top: 1px solid #dfe2e6;">
                                         <div class="col-md-6 topMargin" style="float: left;">
-                                            <label i18n="billing.fileInsurance.patientName"> :
+                                            <label i18n="billing.fileInsurance.patientName"></label>
+                                            <label class="control-label">
+                                                :
                                                 <%= claim.pat_name %>
                                             </label>
                                         </div>
                                         <div class="col-md-6 topMargin" style="float: right;">
-                                            <label i18n="billing.fileInsurance.claimNo"> :
+                                            <label i18n="billing.fileInsurance.claimNo"></label>
+                                            <label class="control-label">
+                                                :
                                                 <%= claim.claim_id %>
                                             </label>
                                         </div>
                                         <div class="col-md-6 topMargin" style="float: right;">
-                                            <label i18n="billing.COB.noOfCharges"> :
+                                            <label i18n="billing.COB.noOfCharges"></label>
+                                            <label class="control-label">
+                                                :
                                                 <%= claim.charges.length ? claim.charges.length: 0 %>
                                             </label>
                                         </div>
                                         <div class="col-md-6 topMargin" style="float: right;">
-                                            <label i18n="billing.COB.account"> :
+                                            <label i18n="billing.COB.account"></label>
+                                            <label class="control-label">
+                                                :
                                                 <%= claim.account_no %>
                                             </label>
                                         </div>
