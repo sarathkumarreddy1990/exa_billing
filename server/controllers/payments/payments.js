@@ -376,7 +376,9 @@ module.exports = {
         }
 
         return appliedResult.name && ['error', 'RequestError'].indexOf(appliedResult.name) > -1 ? appliedResult : { rows: appliedResult };
-    }
+    },
+
+    canDeletePayment: data.canDeletePayment
 
 };
 
