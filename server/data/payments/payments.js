@@ -1296,9 +1296,9 @@ module.exports = {
                 ,claim_payment_lists AS (
                     SELECT
                         ccf.charges_bill_fee_total - (
-                                applications.payments_applied_total +
-                                applications.ajdustments_applied_total +
-                                applications.refund_amount
+                            applications.payments_applied_total +
+                            applications.ajdustments_applied_total +
+                            applications.refund_amount
                         ) AS claim_balance_total
                         ,ccf.claim_id
                     FROM
@@ -1411,10 +1411,10 @@ module.exports = {
             -- --------------------------------------------------------------------------------------------------------------
             ,claim_payments_list AS (
                 SELECT
-		            ccf.charges_bill_fee_total - (
-		            	    applications.payments_applied_total +
-		            	    applications.ajdustments_applied_total +
-		            	    applications.refund_amount
+                    ccf.charges_bill_fee_total - (
+                        applications.payments_applied_total +
+                        applications.ajdustments_applied_total +
+                        applications.refund_amount
 		            ) AS claim_balance_total
 		            ,ccf.claim_id
 	            FROM
