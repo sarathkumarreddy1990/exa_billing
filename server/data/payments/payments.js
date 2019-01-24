@@ -1239,5 +1239,23 @@ module.exports = {
                         ORDER BY claim_id, charge_id `);
 
         return await query(sql);
+    },
+
+    canDeletePayment: async function ({ paymentId }) {
+        let sql = SQL`SELECT 
+                         CASE WHEN 
+                                 ((payments_applied_total = 0::money) 
+                                     AND 
+                                 (adjustments_applied_total = 0::money))
+                                     OR
+                                 (payment_status = 'unapplied')
+                             THEN 
+                                 TRUE
+                             ELSE 
+                                 FALSE
+                             END can_delete_payment                       
+                       FROM billing.get_payment_totals(${paymentId})
+                       `;
+        return await query(sql);
     }
 };
