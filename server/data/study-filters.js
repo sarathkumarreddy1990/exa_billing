@@ -26,9 +26,9 @@ module.exports = {
                         filter_info    AS perm_filter,
                         grid_filters.*
                         FROM billing.grid_filters
-                        WHERE grid_filters.id = $2 AND user_id=$1
+                        WHERE grid_filters.id = $1
         `;
 
-        return await query(sqlQuery, [args.user_id, args.id]);
+        return await query(sqlQuery, [args.id]);
     }
 };

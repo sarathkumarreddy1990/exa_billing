@@ -384,9 +384,6 @@ define([
                                 self.showForm(rowID);
                             },
                             formatter: function (e, model, data) {
-                                if (data.user_id != app.userID && data.is_global_filter) {
-                                    return "";
-                                }
                                 return "<i class='icon-ic-edit' title='Edit'></i>";
                             },
                             cellattr: function () {
@@ -416,9 +413,6 @@ define([
                             },
 
                             formatter: function (e, model, data) {
-                                if (data.user_id != app.userID && data.is_global_filter) {
-                                    return "";
-                                }
                                 return "<i class='icon-ic-delete' title='Click here to delete'></i>";
                             },
 
