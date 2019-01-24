@@ -1417,20 +1417,20 @@ module.exports = {
                         applications.refund_amount
 		            ) AS claim_balance_total
 		            ,ccf.claim_id
-	            FROM
-		            claim_charge_fee ccf
-	            LEFT JOIN LATERAL (
-		            SELECT
-			            coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment'),0::money)    AS payments_applied_total
-			            ,coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment'
-				        AND (adj.accounting_entry_type != 'refund_debit' OR pa.adjustment_code_id IS NULL)),0::money) AS ajdustments_applied_total
-			            ,coalesce(sum(pa.amount)   FILTER (WHERE adj.accounting_entry_type = 'refund_debit'),0::money) AS refund_amount
-			            ,c.claim_id
+                FROM
+                    claim_charge_fee ccf
+                LEFT JOIN LATERAL (
+                    SELECT
+                        coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment'),0::money)    AS payments_applied_total
+                        ,coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment'
+                        AND (adj.accounting_entry_type != 'refund_debit' OR pa.adjustment_code_id IS NULL)),0::money) AS ajdustments_applied_total
+                        ,coalesce(sum(pa.amount)   FILTER (WHERE adj.accounting_entry_type = 'refund_debit'),0::money) AS refund_amount
+                        ,c.claim_id
 		            FROM
-			            billing.charges AS c
-		            LEFT JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
-		            LEFT JOIN billing.payments AS p ON pa.payment_id = p.id
-		            LEFT JOIN billing.adjustment_codes adj ON adj.id = pa.adjustment_code_id
+                        billing.charges AS c
+                    LEFT JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
+                    LEFT JOIN billing.payments AS p ON pa.payment_id = p.id
+                    LEFT JOIN billing.adjustment_codes adj ON adj.id = pa.adjustment_code_id
 		            GROUP BY c.claim_id
                 ) as applications ON applications.claim_id = ccf.claim_id
              )
