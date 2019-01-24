@@ -387,9 +387,6 @@ define([
                                 self.showForm(rowID);
                             },
                             formatter: function (e, model, data) {
-                                if (data.user_id != app.userID && data.is_global_filter) {
-                                    return "";
-                                }
                                 return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>";
                             },
                             cellattr: function () {
@@ -419,9 +416,6 @@ define([
                             },
 
                             formatter: function (e, model, data) {
-                                if (data.user_id != app.userID && data.is_global_filter) {
-                                    return "";
-                                }
                                 return "<i class='icon-ic-delete' i18nt='messages.status.clickHereToDelete'></i>";
                             },
 
