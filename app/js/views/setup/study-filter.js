@@ -747,7 +747,9 @@ define([
                                     $('#ddlBilledStatus').val(studyInfoJson.billedstatus);
 
                                     if (studyInfoJson.study_description && studyInfoJson.study_description.condition !== undefined && studyInfoJson.study_description.condition != "" && studyInfoJson.study_description.list.length && studyInfoJson.study_description.list !== undefined) {
-                                        $("input:radio[name=StudyDescription][value=" + studyInfoJson.study_description.condition.replace('Contains', '') + "]").prop("checked", true);
+                                        if (!(studyInfoJson.study_description.condition == 'Contains')) {
+                                            $("input:radio[name=StudyDescription][value=" + studyInfoJson.study_description.condition.replace('Contains', '') + "]").prop("checked", true);
+                                        }
                                         $('#chkContainsStudyDescription').prop('checked', studyInfoJson.study_description.condition.indexOf('Contains') >= 0 ? true : false);
                                         $.each(studyInfoJson.study_description.list, function (index, studyDescriptionData) {
                                             if ($('#ulListStudyDescriptions a[data-id="' + studyDescriptionData.text + '"]').length === 0)
@@ -1256,6 +1258,22 @@ define([
                     imageDelivery = [];
                 }
 
+
+                var studyDescCondition = '';
+                var studyDescIsContains = $('#rbtStudyDescription').is(":checked");
+                var studyDescIsNotContains = $('#rbtIsNotStudyDescription').is(":checked");
+                var studyDescContains = $('#chkContainsStudyDescription').is(":checked");
+
+                if (studyDescIsContains && !studyDescIsNotContains) {
+                    studyDescCondition = "Is";
+                } else if (!studyDescIsContains && studyDescIsNotContains) {
+                    studyDescCondition = "IsNot";
+                }
+
+                if (studyDescContains) {
+                    studyDescCondition += "Contains";
+                }
+
                 var jsonData = {};
 
                 if (self.opener == "studies") {
@@ -1319,7 +1337,7 @@ define([
                                 list: arrFlag
                             },
                             study_description: {
-                                condition: $('input[name=StudyDescription]:checked').val() !== undefined ? $('input[name=StudyDescription]:checked').val() : $('#chkContainsStudyDescription').is(":checked") ? $('#chkContainsStudyDescription').val() : '',
+                                condition: studyDescCondition,
                                 list: arrStudyDescriptions
                             },
                             billedstatus: $('#ddlBilledStatus').val(),
