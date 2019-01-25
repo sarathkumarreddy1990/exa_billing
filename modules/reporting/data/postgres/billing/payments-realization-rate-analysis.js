@@ -50,14 +50,20 @@ const paymentRealizationRateAnalysisQueryTemplate = _.template(`
           LEFT JOIN LATERAL(
                SELECT
                     i_bch.claim_id AS claim_id,
-		            bp.payer_type
+                    (CASE bp.payer_type
+                          WHEN 'patient' THEN 'Patient'
+                          WHEN 'insurance' THEN 'Insurance'
+                          WHEN 'ordering_facility' THEN 'Ordering Facility'
+                          WHEN 'ordering_provider' THEN 'Provider'
+                          END
+                    ) AS payer_type
                FROM
                     billing.payments bp
                INNER JOIN billing.payment_applications bpa  ON bpa.payment_id = bp.id
                INNER JOIN billing.charges i_bch ON i_bch.id = bpa.charge_id
                WHERE i_bch.claim_id = bc.id
                ORDER BY
-                   bp.payer_type DESC
+                   bpa.id DESC
                LIMIT 1
           ) AS payment_payer_details ON payment_payer_details.claim_id = bc.id
           LEFT JOIN provider_contacts  ON provider_contacts.id = bc.referring_provider_contact_id
