@@ -130,7 +130,7 @@ module.exports = {
         if (isPreviewMode) {
             logger.info('ERA Preview MODE');
             fileRootPath = `trash\\${currentTime.getFullYear()}\\${currentTime.getMonth()}`;
-            const dirResponse = createDir(fileStorePath, fileRootPath);
+            const dirResponse = await createDir(fileStorePath, fileRootPath);
 
             if (!dirResponse.status) {
                 return {
