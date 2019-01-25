@@ -47,7 +47,7 @@ define(['jquery',
                 this.billingMessagesTable.render({
                     gridelementid: '#tblBillingMessagesGrid',
                     custompager: new Pager(),
-                    emptyMessage: 'No Record found',
+                    emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['','','',''],
                     i18nNames: ['', '', 'setup.common.code', 'setup.common.description'],
                     colModel: [
@@ -66,7 +66,7 @@ define(['jquery',
                             className:'icon-ic-edit',
                             route: '#setup/billing_messages/edit/',
                             formatter: function(e, model, data) {
-                                return "<i class='icon-ic-edit' title='Edit'></i>"
+                                return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>"
                             }
                         },
                         {
@@ -99,7 +99,7 @@ define(['jquery',
                     {value: 'Reload', class: 'btn', i18n: 'shared.buttons.reload', clickEvent: function () {
                         self.pager.set({"PageNo": 1});
                         self.billingMessagesTable.refreshAll();
-                        commonjs.showStatus("Reloaded Successfully");
+                        commonjs.showStatus("messages.status.reloadedSuccessfully");
                     }}
                 ]});
 
@@ -183,7 +183,7 @@ define(['jquery',
                 }, {
                     success: function (model, response) {
                         if(response) {
-                            commonjs.showStatus("Saved Successfully");
+                            commonjs.showStatus('messages.status.savedSuccessfully');
                             location.href = "#setup/billing_messages/list";
                         }
                     },

@@ -1,6 +1,8 @@
 let totalBillFee = 0.00;
 let pageBrk = 'none';
-let start = 0, end = 6;
+let HeaderDets = [];
+let ServiceFacDet = [];
+let BillingProDet = [];
 
 function getImage(needCheck) {
     return needCheck ? 'tickImage' : 'clearDot';
@@ -9,10 +11,17 @@ function getName(patientData, len) {
     return getSubstring((getKeyValue(patientData, 'lastName') + ', ' + getKeyValue(patientData, 'firstName')), len);
 }
 
+function getNameWithMiddle(patientData, len) {
+	if (patientData) 
+		return getSubstring((( patientData.lastName ? patientData.lastName : ' ')+ ( patientData.firstName ? (', '+patientData.firstName) : ' ') + ( patientData.middleName ? (', '+patientData.middleName) :  ' ')), len)
+	else
+		return " "
+}
+
 function getTrimmedPhoneNo(data) {
-	data = data.replace("(", "    ");
-	data = data.replace(")", "    ");
-	return data;
+    data = data.replace("(", "    ");
+    data = data.replace(")", "    ");
+    return data;
 }
 
 function getCityStatePincode(data, city, state, zip, len) {
@@ -26,13 +35,13 @@ function getSubstring(str, len) {
 
 function getICDCodeType(data) {
    if (data.subscriber && data.subscriber[0].claim && data.subscriber[0].claim[0].icd && data.subscriber[0].claim[0].icd[0].code_type) {
-		if(data.subscriber[0].claim[0].icd[0].code_type==='1')
-			return '0';
-		else if (data.subscriber[0].claim[0].icd[0].code_type==='0')
-			return '9';
-		else
-			return '\t\t'
-	}
+        if(data.subscriber[0].claim[0].icd[0].code_type==='1')
+            return '0';
+        else if (data.subscriber[0].claim[0].icd[0].code_type==='0')
+            return '9';
+        else
+            return '\t\t'
+    }
     return '\t\t';
 }
 
@@ -93,7 +102,7 @@ function getCPTValues(data, servicelineList) {
     cptvalues = servicelineList;
     for (let i = 0; i < 6; i++) {
         if (cptvalues && cptvalues[i]) {
-			totalBillFee = (parseFloat(totalBillFee) + (cptvalues ? parseFloat(getFeeValue(cptvalues[i], 'totalBillFee')) : 0 ));
+            totalBillFee = (parseFloat(totalBillFee) + (cptvalues ? parseFloat(getFeeValue(cptvalues[i], 'totalBillFee')) : 0 ));
             cpt.push([
                 { text: (cptvalues[i].studyDate?((cptvalues[i].studyDate).toString().substring(4,6)):""), border: [true, false, true, true]},
                 { text: (cptvalues[i].studyDate?((cptvalues[i].studyDate).toString().substring(6, 8)):""), border: [true, false, true, true]},
@@ -101,7 +110,7 @@ function getCPTValues(data, servicelineList) {
                 { text: (cptvalues[i].studyDate?((cptvalues[i].studyDate).toString().substring(4,6)):""), border: [true, false, true, true]},
                 { text: (cptvalues[i].studyDate?((cptvalues[i].studyDate).toString().substring(6,8)):""), border: [true, false, true, true]},
                 { text: (cptvalues[i].studyDate?((cptvalues[i].studyDate).toString().substring(0,4)):""), border: [true, false, true, true]},
-                { text: getKeyValue(data.subscriber[0].claim[0], 'i'), border: [true, false, true, true]},
+                { text: getKeyValue(data.subscriber[0].claim[0], 'POS'), border: [true, false, true, true]},
                 {text:"", border: [true, false, true, true]},
                 { text: getKeyValue(cptvalues[i], 'examCpt'), border: [true, false, true, true]},
                 { text: getKeyValue(cptvalues[i], 'mod1'), border: [true, false, true, true]},
@@ -120,8 +129,97 @@ function getCPTValues(data, servicelineList) {
     return cpt;
 }
 
+function getWCValues(claimData, servicelineList) {
+    let wc_values = [];
+    cptvalues = servicelineList;
+    for (let i = 0; i < 6; i++) {
+		if(cptvalues && cptvalues[i] && claimData.subscriber && claimData.subscriber[0] && claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode){
+			if (( claimData.subscriber[0].claimFilingCode.toString().toUpperCase() ) === 'WC') {
+				wc_values.push(
+					[
+						{ text:'', fillColor: '#808080', border: [true, true, false, false]},
+						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{ text:'OB', fillColor: '#808080', border: [false, false, false, false]},
+						{ text: claimData.subscriber[0].claim[0].renderingProvider && claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo ? (claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo.toString().substring(0,12)) : '', fillColor: '#808080', border: [false, false, true, false]}
+					]
+				);
+			} else {
+				wc_values.push(
+					[
+						{text:'', fillColor: '#808080', border: [true, true, false, false]},
+						{text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{text:'', fillColor: '#808080', border: [false, false, false, false]},
+						{text:' ', fillColor: '#808080', border: [false, false, false, false]},
+						{text:' ', fillColor: '#808080', border: [false, false, true, false]
+						}
+					]
+				);
+			}
+		} else {
+			wc_values.push(
+				[
+					{text:'', fillColor: '#808080', border: [true, true, false, false]},
+					{text:'', fillColor: '#808080', border: [false, false, false, false]},
+					{text:'', fillColor: '#808080', border: [false, false, false, false]},
+					{text:'', fillColor: '#808080', border: [false, false, false, false]},
+					{text:'', fillColor: '#808080', border: [false, false, false, false]},
+					{text:'', fillColor: '#808080', border: [false, false, false, false]},
+					{text:'', fillColor: '#808080', border: [false, false, false, false]},
+					{text:'', fillColor: '#808080', border: [false, false, false, false]},
+					{text:'', fillColor: '#808080', border: [false, false, false, false]},
+					{text:'', fillColor: '#808080', border: [false, false, false, false]},
+					{text:'', fillColor: '#808080', border: [false, false, false, false]},
+					{text:'', fillColor: '#808080', border: [false, false, false, false]},
+					{text:'', fillColor: '#808080', border: [false, false, false, false]},
+					{text:'', fillColor: '#808080', border: [false, false, false, false]},
+					{text:'', fillColor: '#808080', border: [false, false, false, false]},
+					{text:'', fillColor: '#808080', border: [false, false, false, false]},
+					{text:'', fillColor: '#808080', border: [false, false, false, false]},
+					{text:'', fillColor: '#808080', border: [false, false, false, false]},
+					{text:' ', fillColor: '#808080', border: [false, false, false, false]},
+					{text:' ', fillColor: '#808080', border: [false, false, true, false]
+					}
+				]
+			);
+		}
+    }
+    return wc_values;
+}
+
 function getCPTBlock(claimData, servicelineList) {
     let cpt = getCPTValues(claimData, servicelineList);
+	let wc_values = getWCValues(claimData, servicelineList);
     return [
         [
             {
@@ -315,178 +413,17 @@ function getCPTBlock(claimData, servicelineList) {
                 }, layout: 'noBorders',
             }
         ],
-        // [{text:'1'}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}],
-        [
-            {text:'', fillColor: '#808080', border: [true, true, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            { text: claimData.subscriber && claimData.subscriber[0] && claimData.subscriber[0].claimFilingCode ? (claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'WC' ? 'OB' : '') : '' , fillColor: '#808080', border: [false, false, false, false]},
-            {
-                text: claimData.subscriber && claimData.subscriber[0] && claimData.subscriber[0].claimFilingCode && (claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'WC') &&
-                    claimData.subscriber[0].claim[0].renderingProvider && claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo ? claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo : ''
-                    , fillColor: '#808080', border: [false, false, true, false]
-            }
-        ],
+        wc_values[0],
         cpt[0],
-        [
-            {text:'', fillColor: '#808080', border: [true, true, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, true, false]}
-			/*{ text: claimData.subscriber && claimData.subscriber[0] && claimData.subscriber[0].claimFilingCode ? (claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'WC' ? 'OB' : '') : '' , fillColor: '#808080', border: [false, false, false, false]},
-            {
-                text: claimData.subscriber && claimData.subscriber[0] && claimData.subscriber[0].claimFilingCode && (claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'WC') &&
-                    claimData.subscriber[0].claim[0].renderingProvider && claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo ? claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo : ''
-                    , fillColor: '#808080', border: [false, false, true, false]
-            }*/
-        ],
+        wc_values[1],
         cpt[1],
-        [
-            {text:'', fillColor: '#808080', border: [true, true, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, true, false]}
-			/*{ text: claimData.subscriber && claimData.subscriber[0] && claimData.subscriber[0].claimFilingCode ? (claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'WC' ? 'OB' : '') : '' , fillColor: '#808080', border: [false, false, false, false]},
-            {
-                text: claimData.subscriber && claimData.subscriber[0] && claimData.subscriber[0].claimFilingCode && (claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'WC') &&
-                    claimData.subscriber[0].claim[0].renderingProvider && claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo ? claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo : ''
-                    , fillColor: '#808080', border: [false, false, true, false]
-            }*/
-        ],
+        wc_values[2],
         cpt[2],
-        [
-            {text:'', fillColor: '#808080', border: [true, true, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, true, false]}
-			/*{ text: claimData.subscriber && claimData.subscriber[0] && claimData.subscriber[0].claimFilingCode ? (claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'WC' ? 'OB' : '') : '' , fillColor: '#808080', border: [false, false, false, false]},
-            {
-                text: claimData.subscriber && claimData.subscriber[0] && claimData.subscriber[0].claimFilingCode && (claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'WC') &&
-                    claimData.subscriber[0].claim[0].renderingProvider && claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo ? claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo : ''
-                    , fillColor: '#808080', border: [false, false, true, false]
-            }*/
-        ],
+        wc_values[3],
         cpt[3],
-        [
-            {text:'', fillColor: '#808080', border: [true, true, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, true, false]}
-			/*{ text: claimData.subscriber && claimData.subscriber[0] && claimData.subscriber[0].claimFilingCode ? (claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'WC' ? 'OB' : '') : '' , fillColor: '#808080', border: [false, false, false, false]},
-            {
-                text: claimData.subscriber && claimData.subscriber[0] && claimData.subscriber[0].claimFilingCode && (claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'WC') &&
-                    claimData.subscriber[0].claim[0].renderingProvider && claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo ? claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo : ''
-                    , fillColor: '#808080', border: [false, false, true, false]
-            }*/
-        ],
+        wc_values[4],
         cpt[4],
-        [
-            {text:'', fillColor: '#808080', border: [true, true, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, false, false]},
-            {text:'', fillColor: '#808080', border: [false, false, true, false]}
-			/*{ text: claimData.subscriber && claimData.subscriber[0] && claimData.subscriber[0].claimFilingCode ? (claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'WC' ? 'OB' : '') : '' , fillColor: '#808080', border: [false, false, false, false]},
-            {
-                text: claimData.subscriber && claimData.subscriber[0] && claimData.subscriber[0].claimFilingCode && (claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'WC') &&
-                    claimData.subscriber[0].claim[0].renderingProvider && claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo ? claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo : ''
-                    , fillColor: '#808080', border: [false, false, true, false]
-            }*/
-        ],
+        wc_values[5],
         cpt[5],
     ];
 }
@@ -518,7 +455,7 @@ function getSecondaryAmountPaid(claimData) {
     let secondary = claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].payerpaidAmount ?
     (claimData.subscriber[0].claim[0].payerpaidAmount[0].secondaryPaidTotal ? (claimData.subscriber[0].claim[0].payerpaidAmount[0].secondaryPaidTotal) : 0) : 0;
     primary = primary.toString().replace(/\$|,/g, "");
-	secondary = secondary.toString().replace(/\$|,/g, "");
+    secondary = secondary.toString().replace(/\$|,/g, "");
     let total = (parseFloat(primary)) + (parseFloat(secondary)) ;
     total=parseFloat(total).toFixed('2');
     return total;
@@ -603,50 +540,191 @@ function getPageBreak() {
     return {text: '', pageBreak: 'before'};
 }
 
+function getHeaderDetails(claimData) {
+    let details = [];
+    if (claimData.subscriber[0].claimFilingCode === null || claimData.subscriber[0].claimFilingCode === "" || (claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode.toString().toUpperCase() !== 'AT')) {
+        if (claimData && claimData.subscriber[0] && claimData.subscriber[0].payer && claimData.subscriber[0].payer.insuranceprovideraddressline2) {
+            details.push(
+                [//Ans
+                    {
+                        text: (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].originalReference) ? 'Corrected Claim' : '', fontSize:12, bold: true, colSpan:2, normal: false, margin:[60, -8, 0, 0]
+                    }, {},
+                    {
+                        text: ( claimData.subscriber && claimData.subscriber[0].payer ? getKeyTrimValue(claimData.subscriber[0].payer, 'payerName', 30) : '' )  , bold:true , fontSize: 8, colSpan:3
+                    },{},{}
+                ],
+                [
+                    {text: 'HEALTH INSURANCE CLAIM FORM', fontSize:12, bold: true, colSpan:2},{},
+                    {
+                        text: ( claimData.subscriber && claimData.subscriber[0].payer ? getKeyTrimValue(claimData.subscriber[0].payer, 'insuranceprovideraddressline1', 30) : '') , bold:true , fontSize: 8, colSpan:3
+                    },{},{}
+                ],
+                [
+                    {text: 'APPROVED BY NATIONAL UNIFORM CLAIM COMMITTEE (NUCC)02/12', colSpan:2},{},
+                    {
+                        text: ( claimData.subscriber && claimData.subscriber[0].payer ? getKeyTrimValue(claimData.subscriber[0].payer, 'insuranceprovideraddressline2', 30) : '') , bold:true , fontSize: 8, colSpan:3
+                    },{},{}
+                ],
+                [
+                    {image: 'PICAImage', fit: [20, 20], margin: [0, 0, 0, 0]},
+                    {text:"PICA"},
+                    {
+                        text: (claimData.subscriber && claimData.subscriber[0].payer ? (getSubstring((getKeyValue(claimData.subscriber[0].payer, 'payerCity') + ' ' + getKeyValue(claimData.subscriber[0].payer, 'payerState') + ' ' + getKeyValue(claimData.subscriber[0].payer, 'payerZIPCode')), 30)) : ' ') , bold:true, fontSize: 8
+                    },
+                    {text:"PICA", alignment:"right"},
+                    {image: 'PICAImage', fit: [20, 20], margin: [0, 0, 0, 0]}
+                ]
+            );
+        } else {
+            details.push(
+                [//Ans
+                    {
+                        text: (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].originalReference) ? 'Corrected Claim' : '', fontSize:12, bold: true, colSpan:3, normal: false, margin:[60, -8, 0, 0]
+                    }, {},{},{},{}
+                ],
+                [
+                    {text: 'HEALTH INSURANCE CLAIM FORM', fontSize:12, bold: true, colSpan:2},{},
+                    {
+                        text: ( claimData.subscriber && claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'AT'? '': ( claimData.subscriber && claimData.subscriber[0].payer ? getKeyTrimValue(claimData.subscriber[0].payer, 'payerName', 30) : '' ) ) , bold:true , fontSize: 8, colSpan:3
+                    },{},{}
+                ],
+                [
+                    {text: 'APPROVED BY NATIONAL UNIFORM CLAIM COMMITTEE (NUCC)02/12', colSpan:2},{},
+                    {
+                        text: ( claimData.subscriber && claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'AT'? '': ( claimData.subscriber && claimData.subscriber[0].payer ? getKeyTrimValue(claimData.subscriber[0].payer, 'insuranceprovideraddressline1', 30) : '') ) , bold:true , fontSize: 8, colSpan:3
+                    },{},{}
+                ],
+                [
+                    {image: 'PICAImage', fit: [20, 20], margin: [0, 0, 0, 0]},
+                    {text:"PICA"},
+                    {
+                        text: ( claimData.subscriber && claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'AT'? '': (claimData.subscriber && claimData.subscriber[0].payer ? (getSubstring((getKeyValue(claimData.subscriber[0].payer, 'payerCity') + ' ' + getKeyValue(claimData.subscriber[0].payer, 'payerState') + ' ' + getKeyValue(claimData.subscriber[0].payer, 'payerZIPCode')), 30)) : ' ') ), bold:true, fontSize: 8
+                    },{text:"PICA", alignment:"right"},
+                    {image: 'PICAImage', fit: [20, 20], margin: [0, 0, 0, 0]}
+                ]
+            );
+        }
+    } else {
+        details.push(
+            [//Ans
+                {
+                    text: (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].originalReference) ? 'Corrected Claim' : '', fontSize:12, bold: true, colSpan:3, normal: false, margin:[60, -8, 0, 0]
+                }, {},{},{},{}
+            ],
+            [
+                {text: 'HEALTH INSURANCE CLAIM FORM', fontSize:12, bold: true, colSpan:2},{},
+                {
+                    text: '' , bold:true , fontSize: 8, colSpan:3
+                },{},{}
+            ],
+            [
+                {text: 'APPROVED BY NATIONAL UNIFORM CLAIM COMMITTEE (NUCC)02/12', colSpan:2},{},
+                { text: '' , bold:true , fontSize: 8, colSpan:3 },{},{}
+            ],
+            [
+                {image: 'PICAImage', fit: [20, 20], margin: [0, 0, 0, 0]},
+                {text:"PICA"},{ text: '' },
+                {text:"PICA", alignment:"right"},
+                {image: 'PICAImage', fit: [20, 20], margin: [0, 0, 0, 0]}
+            ]
+        );
+    }
+    return details;
+}
+
+function getAddressDetails(claimData) {
+    let details = [];
+    if(claimData){
+        if (claimData.addressLine2) {
+            details.push(
+                [
+                    {text: (claimData ? getKeyTrimValue(claimData, 'lastName', 30)  : ' ')}
+                ],
+                [
+                    {text: ( claimData.addressLine2 ? (((claimData.addressLine1?(claimData.addressLine1+ ', '):'')  + claimData.addressLine2).toString().toUpperCase().substring(0, 30))  : ''), margin: [0,-5, 0, 0]}
+                ],
+                [
+                    {text: claimData ? getCityStatePincode(claimData, "city", "state", "zipCode", 30) : ' ', margin: [0,-5, 0, 0]}
+                ],
+                [
+                    {text: ' ', margin: [0,-5, 0, 0]}
+                ]
+            );
+        } else {
+            details.push(
+                [
+                    {text: (claimData ? getKeyTrimValue(claimData, 'lastName', 30)  : ' ')}
+                ],
+                [
+                    {text: (claimData ? getKeyTrimValue(claimData, 'addressLine1', 30) : ' '), margin: [0,-5, 0, 0]}
+                ],
+                [
+                    {text: (claimData ? getCityStatePincode(claimData, "city", "state", "zipCode", 30) : ' '), margin: [0,-5, 0, 0]}
+                ],
+                [
+                    {text: ' ', margin: [0,-5, 0, 0]}
+                ]
+            );
+        }
+    } else {
+        details.push(
+            [
+                {text: ' '}
+            ],
+            [
+                {text: ' ', margin: [0,-5, 0, 0]}
+            ],
+            [
+                {text: ' ' , margin: [0,-5, 0, 0]}
+            ],
+            [
+                {text: ' ', margin: [0,-5, 0, 0]}
+            ]
+        );
+    }
+    return details;
+}
+
+function getAddress2Details(claimData) {
+    let details = [];
+    if(claimData){
+        if (claimData.addressLine2) {
+            details.push( claimData.addressLine2 ? (((claimData.addressLine1?(claimData.addressLine1+ ', '):'')  + claimData.addressLine2).toString().toUpperCase().substring(0, 30))  : '');
+        } else {
+            details.push(claimData.addressLine1 ? claimData.addressLine1.toString().toUpperCase().substring(0, 30) : '' );
+        }
+    } else {
+        details.push( '  ' );
+    }
+    return details;
+}
+
+
 function formatSingleClaim(claimData, servicelineList) {
+    HeaderDets = getHeaderDetails(claimData);
+    ServiceFacDet = getAddressDetails(claimData.subscriber[0].claim[0].servicefacility[0]);
+    BillingProDet = getAddressDetails(claimData.billingProvider);
     let totalPaid = getClaimResponsible(claimData);
     return [
         {
             style: 'TableHead',
-			table: {
-			    widths: [15, 300, 200, 20, 15],
-			    heights: [5,0,0,11],
-				body: [
-					[//Ans
-					    {
-                            text: (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].originalReference) ?
-					        'Corrected Claim' : '', fontSize:12, bold: true, colSpan:3, normal: false, margin:[60, -8, 0, 0]
-                            }, {},{},{},{}
-					],
-					[
-					    {text: 'HEALTH INSURANCE CLAIM FORM', fontSize:12, bold: true, colSpan:2},{},
-					    {
-							text: ( claimData.subscriber && claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'AT'? '': ( claimData.subscriber && claimData.subscriber[0].payer ? getKeyTrimValue(claimData.subscriber[0].payer, 'payerName', 30) : '' ) ) , bold:true , fontSize: 8, colSpan:3
-						},{},{}
-					 ],
-					 [
-					    {text: 'APPROVED BY NATIONAL UNIFORM CLAIM COMMITTEE (NUCC)02/12', colSpan:2},{},
-					    {
-							text: ( claimData.subscriber && claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'AT'? '': ( claimData.subscriber && claimData.subscriber[0].payer ? getKeyTrimValue(claimData.subscriber[0].payer, 'insuranceprovideraddressline1', 30) : '') ) , bold:true , fontSize: 8, colSpan:3
-						},{},{}
-					 ],
-					 [
-					    {image: 'PICAImage', fit: [20, 20], margin: [0, 0, 0, 0]},
-					    {text:"PICA"},
-					    {
-                            text: ( claimData.subscriber && claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'AT'? '': (claimData.subscriber && claimData.subscriber[0].payer ? (getSubstring((getKeyValue(claimData.subscriber[0].payer, 'payerCity') + ' ' + getKeyValue(claimData.subscriber[0].payer, 'payerState') + ' ' + getKeyValue(claimData.subscriber[0].payer, 'payerZIPCode')), 30)) : ' ') ), bold:true, fontSize: 8
-                        },{text:"PICA", alignment:"right"},
-                        {image: 'PICAImage', fit: [20, 20], margin: [0, 0, 0, 0]}
-					 ],
+            table: {
+                widths: [15, 300, 200, 20, 15],
+                heights: [5,0,0,11],
+                body: [
+                    HeaderDets[0],
+                    HeaderDets[1],
+                    HeaderDets[2],
+                    HeaderDets[3],
                 ],
-			},layout: 'noBorders',
-		},
-		{
+            },layout: 'noBorders',
+        },
+        {
             style: 'Ques',
-			table: {
+            table: {
                 widths: [88, 80, 20, 141, 89, 80, 30],
                 heights: [0, 0, 0, 18, 20, 18, 17, 19, 17, 0, 32],
-				body: [
+                body: [
                     [
                         {
                             style: 'Ques',
@@ -911,14 +989,14 @@ function formatSingleClaim(claimData, servicelineList) {
                         }, {},{}
                     ],
                 ],
-			}
-		},
-		{
+            }
+        },
+        {
             style: 'Ques',
             margin: [0, -2, 0, 0],
-			table: {
-			    widths: [190, 11, 8, 120, 80, 128],
-			    heights: [18, 0, 0, 0,20, 16],
+            table: {
+                widths: [190, 11, 8, 120, 80, 128],
+                heights: [18, 0, 0, 0,20, 16],
                 body: [
                     [
                         {
@@ -1038,23 +1116,23 @@ function formatSingleClaim(claimData, servicelineList) {
                         {},
                     ],
                 ],
-			}
-		},
-		{
+            }
+        },
+        {
             style: 'Ques',
             margin: [0, -1, 0, 0],
-			table: {
-			    widths: [12, 12, 15, 12, 12, 15, 25, 11, 41, 13 ,13 ,13 ,13 , 32, 28, 14, 20, 12, 14, 84],
-			    heights: [0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+            table: {
+                widths: [12, 12, 15, 12, 12, 15, 25, 11, 41, 13 ,13 ,13 ,13 , 32, 28, 14, 20, 12, 14, 84],
+                heights: [0, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
                 body: getCPTBlock(claimData, servicelineList)
-			}
-		},
-		{
+            }
+        },
+        {
             style: 'Ques',
             margin: [0, -1, 0, 0],
-			table: {
-			    widths:[155,95, 88, 68, 68, 63],
-			    heights: [0, 40],
+            table: {
+                widths:[155,95, 88, 68, 68, 63],
+                heights: [0, 40],
                 body: [
                     [
                         {
@@ -1195,25 +1273,25 @@ function formatSingleClaim(claimData, servicelineList) {
                         {text:"a."},{text:"b.", fillColor: '#808080', colSpan:2},{}
                     ]
                 ],
-			}
-		},
-		{
+            }
+        },
+        {
             style: 'Ques',
             table: {
                 widths:[220, 105, 45, 200],
                 body: [
                     [
-						{text:"NUCC Instruction Manual available at www.nucc.org",fontSize: 9},
+                        {text:"NUCC Instruction Manual available at www.nucc.org",fontSize: 9},
                         {text:"PLEASE PRINT OR TYPE",fontSize: 9, bold:"true", italics: true},
                         {text:"CR061653",fontSize: 9},
                         {text:"APPROVED OMB-0938-1197 FORM 1500 (02-12)",fontSize: 9}
-					]
-				]
-			}, layout: 'noBorders'
-		},
-		{
+                    ]
+                ]
+            }, layout: 'noBorders'
+        },
+        {
             style: 'Ques',
-            margin: [5, -303, 0, 0],
+            margin: [5, -313, 0, 0],
             table: {
                 widths:[90, 90, 90, 90],
                 body: [
@@ -1260,7 +1338,7 @@ function formatSingleClaim(claimData, servicelineList) {
         },
         {
             style: 'Ques',
-            margin: [220, -203, 0, 0],
+            margin: [220, -205, 0, 0],
             table: {
                 widths:[40, 15, 25, 55],
                 body: [
@@ -1297,12 +1375,13 @@ function formatSingleClaim(claimData, servicelineList) {
                 ]
             },layout: 'noBorders', colSpan:4
         },
-		{//Ans
+        {//Ans
             style: 'Ans',
-			table: {
-			    widths: [98, 70, 20, 150, 109, 70, 20],
-			    heights:[0, 6, 20, 20, 20, 24, 21, 22, 20, 38, 31, 21, 18, 21, 100],
-				body: [
+			margin: [17, -173, 0, 0],
+            table: {
+                widths: [98, 70, 20, 150, 109, 70, 20],
+                heights:[0, 6, 20, 20, 20, 24, 21, 22, 20, 38, 31, 21, 18, 21, 100],
+                body: [
                     [
                         {
                             style: 'Ans',
@@ -1327,7 +1406,7 @@ function formatSingleClaim(claimData, servicelineList) {
                         }, {},{}
                     ],
                     [//Patient
-                        {text: claimData.subscriber && claimData.subscriber[0].patient ? getName(claimData.subscriber[0].patient[0], 28) : '', margin:[0, -15, 0, 0],colSpan:3},
+                        {text: claimData.subscriber && claimData.subscriber[0].patient ? getNameWithMiddle(claimData.subscriber[0].patient[0], 28) : '', margin:[0, -15, 0, 0],colSpan:3},
                         {},{},
                         {
                             style: 'Ques',
@@ -1336,7 +1415,7 @@ function formatSingleClaim(claimData, servicelineList) {
                                 widths:[80, 40],
                                 body: [
                                     [
-										{text: claimData.subscriber && claimData.subscriber[0].patient && claimData.subscriber[0].patient[0].dobFormat ? (claimData.subscriber[0].patient[0].dobFormat.toString().substring(4,6)+"\t "+claimData.subscriber[0].patient[0].dobFormat.toString().substring(6,8)+"\t "+claimData.subscriber[0].patient[0].dobFormat.toString().substring(0,4)) : '', margin:[0, -9, 0, 0], fontSize: 9},
+                                        {text: claimData.subscriber && claimData.subscriber[0].patient && claimData.subscriber[0].patient[0].dobFormat ? (claimData.subscriber[0].patient[0].dobFormat.toString().substring(4,6)+"\t "+claimData.subscriber[0].patient[0].dobFormat.toString().substring(6,8)+"\t "+claimData.subscriber[0].patient[0].dobFormat.toString().substring(0,4)) : '', margin:[0, -9, 0, 0], fontSize: 9},
                                         {
                                             style: 'Ques',
                                             margin:[0, -18, 0, 0],
@@ -1354,11 +1433,11 @@ function formatSingleClaim(claimData, servicelineList) {
                                 ]
                             },layout: 'noBorders'
                         },
-                        {text: claimData.subscriber ? getName(claimData.subscriber[0], 30) : '', margin:[0, -15, 0, 0], colSpan:3},
+                        {text: claimData.subscriber ? getNameWithMiddle(claimData.subscriber[0], 30) : '', margin:[0, -15, 0, 0], colSpan:3},
                         {},{}
                     ],
                     [//Patient Address
-                        {text: claimData.subscriber && claimData.subscriber[0].patient ? getSubstring(claimData.subscriber[0].patient[0].addressLine1, 28) : '', margin:[0, -4, 0, 0], colSpan:3},
+                        {text: claimData.subscriber && claimData.subscriber[0].patient ? (getAddress2Details(claimData.subscriber[0].patient[0])) : '', margin:[0, -4, 0, 0], colSpan:3},
                         {},{},
                         {
                             style: 'Ques',
@@ -1384,7 +1463,7 @@ function formatSingleClaim(claimData, servicelineList) {
                                 ]
                             },layout: 'noBorders'
                         },
-                        {text: claimData.subscriber && claimData.subscriber[0].addressLine1 ? getKeyTrimValue(claimData.subscriber[0], 'addressLine1', 30) : '', margin:[0, -4, 0, 0], colSpan:3},
+                        {text: claimData.subscriber && claimData.subscriber[0] ? (getAddress2Details(claimData.subscriber[0])) : '', margin:[0, -4, 0, 0], colSpan:3},
                         {},{}
                     ],
                     [//CITY
@@ -1405,9 +1484,9 @@ function formatSingleClaim(claimData, servicelineList) {
                         {}
                     ],
                     [//Other Insurance
-                        {text: claimData.subscriber && claimData.subscriber[0].claim  && claimData.subscriber[0].claim[0].otherSubscriber ? getName(claimData.subscriber[0].claim[0].otherSubscriber[0], 28) : '',colSpan:3},
+                        {text: claimData.subscriber && claimData.subscriber[0].claim  && claimData.subscriber[0].claim[0].otherSubscriber ? getNameWithMiddle(claimData.subscriber[0].claim[0].otherSubscriber[0], 28) : '',colSpan:3},
                         {},{},{},
-                        { text: (claimData.subscriber && claimData.subscriber[0] && claimData.subscriber[0].planType) ? (claimData.subscriber[0].planType) : '', colSpan:3 },
+                        { text: (claimData.subscriber && claimData.subscriber[0] && claimData.subscriber[0].groupNumber) ? (claimData.subscriber[0].groupNumber) : '', colSpan:3 },
                         {},{}
                     ],
                     [//Group Number
@@ -1415,7 +1494,7 @@ function formatSingleClaim(claimData, servicelineList) {
                         {},{},
                         {
                             style: 'Ans',
-                            margin: [28,-4,0,0],
+                            margin: [28,-6,0,0],
                             table: {
                                 widths:[38, 25],
                                 body: [
@@ -1449,7 +1528,7 @@ function formatSingleClaim(claimData, servicelineList) {
                         {text:"", colSpan:3},{},{},
                         {
                             style: 'Ans',
-                            margin: [28,-4,0,0],
+                            margin: [28,-6,0,0],
                             table: {
                                 widths:[38, 25],
                                 body: [
@@ -1466,7 +1545,7 @@ function formatSingleClaim(claimData, servicelineList) {
                         {text:"", colSpan:3},{},{},
                         {
                             style: 'Ans',
-                            margin: [28,-4,0,0],
+                            margin: [28,-6,0,0],
                             table: {
                                 widths:[38, 25],
                                 body: [
@@ -1625,7 +1704,7 @@ function formatSingleClaim(claimData, servicelineList) {
                                         {text: claimData.subscriber && claimData.subscriber[0].claim ? getKeyTrimValue(claimData.subscriber[0].claim[0], 'originalReference', 18) : '', alignment:"center"}
                                     ],
                                     [
-                                        {text: claimData.subscriber && claimData.subscriber[0].claim ? getKeyTrimValue(claimData.subscriber[0].claim[0], 'authorizationNo', 30) : '', alignment:"center", colSpan:2, margin:[0, 3, 0, 0]},
+                                        {text: claimData.subscriber && claimData.subscriber[0].claim ? getKeyTrimValue(claimData.subscriber[0].claim[0], 'authorizationNo', 30) : '', alignment:"center", colSpan:2, margin:[0, 5, 0, 0]},
                                         {}
                                     ]
                                 ]
@@ -1645,15 +1724,14 @@ function formatSingleClaim(claimData, servicelineList) {
                                     ],
                                 ]
                             },layout: 'noBorders' , colSpan:7
-
                         },{},{},{},{}, {},{}
                     ],
                 ],
-			},layout: 'noBorders',
-		},
-		{
+            },layout: 'noBorders',
+        },
+        {
             style: 'Ans',
-            margin: [15,113,0,0],
+            margin: [15,123,0,0],
             table: {
                 widths:[ 160, 85, 85, 85, 85, 85 ],
                 heights:[18, 48],
@@ -1669,7 +1747,6 @@ function formatSingleClaim(claimData, servicelineList) {
                                         {text: claimData.billingProvider ? getKeyTrimValue(claimData.billingProvider, 'federalTaxID', 16) : '' },
                                         {image: getImage(''), fit: [8, 8]},
                                         {image: getImage('tickImage'), fit: [8, 8]},
-
                                     ]
                                 ]
                             },layout: 'noBorders'
@@ -1722,20 +1799,12 @@ function formatSingleClaim(claimData, servicelineList) {
                             style: 'Ans',
                             margin: [0,0,0,0],
                             table: {
-                                widths:[ 130],
+                                widths:[ 135],
                                 body: [
-                                    [
-                                        {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].servicefacility ? getKeyTrimValue(claimData.subscriber[0].claim[0].servicefacility[0], 'lastName', 26) : ' '}
-                                    ],
-                                    [
-                                        {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].servicefacility ? getKeyTrimValue(claimData.subscriber[0].claim[0].servicefacility[0], 'addressLine1', 26) : ' ', margin: [0,-5, 0, 0]}
-                                    ],
-                                    [
-                                        {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].servicefacility ? getCityStatePincode(claimData.subscriber[0].claim[0].servicefacility[0], "city", "state", "zip", 26) : ' ', margin: [0,-5, 0, 0]}
-                                    ],
-                                    [
-                                        {text: ' ', margin: [0,-5, 0, 0]}
-                                    ],
+                                    ServiceFacDet[0],
+                                    ServiceFacDet[1],
+                                    ServiceFacDet[2],
+                                    ServiceFacDet[3]
                                 ]
                             },layout: 'noBorders'
                             , colSpan:2
@@ -1744,20 +1813,12 @@ function formatSingleClaim(claimData, servicelineList) {
                             style: 'Ans',
                             margin: [15,0,0,0],
                             table: {
-                                widths:[ 135],
+                                widths:[ 145],
                                 body: [
-                                    [
-                                        {text: (claimData.billingProvider ? getKeyTrimValue(claimData.billingProvider, 'lastName', 30)  : ' ')}
-                                    ],
-                                    [
-                                        {text: claimData.billingProvider ? getKeyTrimValue(claimData.billingProvider, 'addressLine1', 30) : ' ', margin: [0,-5, 0, 0]}
-                                    ],
-                                    [
-                                        {text: claimData.billingProvider ? getCityStatePincode(claimData.billingProvider, "city", "state", "zipCode", 30) : ' ', margin: [0,-5, 0, 0]}
-                                    ],
-                                    [
-                                        {text: ' ', margin: [0,-5, 0, 0]}
-                                    ],
+                                    BillingProDet[0],
+                                    BillingProDet[1],
+                                    BillingProDet[2],
+                                    BillingProDet[3]
                                 ]
                             },layout: 'noBorders'
                         },
@@ -1786,14 +1847,14 @@ function formatSingleClaim(claimData, servicelineList) {
                 ]
 
             },layout: 'noBorders'
-		},
-		{
+        },
+        {
             style: 'Ques',
-            margin: [-8, -220, 0, 0],
+            margin: [-8, -242, 0, 0],
             fontSize: 12,
             bold:"true",
             table: {
-                heights:[20, 20, 20, 20, 20,110],
+                heights:[22, 22, 22, 22, 22, 22],
                 body:[
                     [{text:"1"}],
                     [{text:"2"}],
@@ -1802,8 +1863,8 @@ function formatSingleClaim(claimData, servicelineList) {
                     [{text:"5"}],
                     [{text:"6"}],
                 ]
-            },layout: 'noBorders'
-		},
+            },layout: 'noBorders', pageBreak: pageBrk,
+        },
     ]
 }
 
@@ -1825,11 +1886,11 @@ function mergeData(claim, servicelineList, pageBrk) {
 }
 
 function split(array, count) {
-	var res = [];
-	while (array.length) {
-		res.push(array.splice(0, count));
-	}
-	return res;
+    var res = [];
+    while (array.length) {
+        res.push(array.splice(0, count));
+    }
+    return res;
 }
 
 function claimTable(claims) {
@@ -1837,23 +1898,23 @@ function claimTable(claims) {
     claims.forEach(function (claim, index) {
         totalBillFee = 0;
         var isLastClaim = (index == (claims.length-1)) ? true : false;
-		var servicelinelist = claim && claim.data[0].subscriber && claim.data[0].subscriber[0].claim && claim.data[0].subscriber[0].claim[0].serviceLine;
-		if (servicelinelist) {
-			var splitedServiceLinelist = split(servicelinelist, 6);
-			pageBrk = 'after';
-			if (splitedServiceLinelist && splitedServiceLinelist.length) {
-				for (let i = 0; i < splitedServiceLinelist.length; i++) {
-					pageBrk = 'after';
-					if (isLastClaim && (i == (splitedServiceLinelist.length-1))) {
-						pageBrk = 'none';
-					}
-					blocks = blocks.concat(mergeData(claim.data[0], splitedServiceLinelist[i], pageBrk));
-				}
-			} else {
-				pageBrk = 'none';
-				blocks = blocks.concat(mergeData(claim.data[0], [], pageBrk));
-			}
-		}
+        var servicelinelist = claim && claim.data[0].subscriber && claim.data[0].subscriber[0].claim && claim.data[0].subscriber[0].claim[0].serviceLine;
+        if (servicelinelist) {
+            var splitedServiceLinelist = split(servicelinelist, 6);
+            pageBrk = 'after';
+            if (splitedServiceLinelist && splitedServiceLinelist.length) {
+                for (let i = 0; i < splitedServiceLinelist.length; i++) {
+                    pageBrk = 'after';
+                    if (isLastClaim && (i == (splitedServiceLinelist.length-1))) {
+                        pageBrk = 'none';
+                    }
+                    blocks = blocks.concat(mergeData(claim.data[0], splitedServiceLinelist[i], pageBrk));
+                }
+            } else {
+                pageBrk = 'none';
+                blocks = blocks.concat(mergeData(claim.data[0], [], pageBrk));
+            }
+        }
     });
     return blocks;
 }
@@ -1870,32 +1931,32 @@ if(typeof claimData !== 'undefined'){
 }
 
 var dd = {
-	content: allBlocks,
-	styles: {
+    content: allBlocks,
+    styles: {
         TableHead: {
-		    fontSize: 7,
-		},
-		Ques: {
-		    fontSize: 6.5,
-		    margin: [0, -3, 0, 0]
-		},
-		Ans: {
-		    fontSize: 8,
-		    bold: true,
-		    margin: [17, -175, 0, 0]
-		}
+            fontSize: 7,
+        },
+        Ques: {
+            fontSize: 6.5,
+            margin: [0, -3, 0, 0]
+        },
+        Ans: {
+            fontSize: 8,
+            bold: true,
+            margin: [17, -175, 0, 0]
+        }
 
-	},
-	images: {
-	    clearDot: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=',
+    },
+    images: {
+        clearDot: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVQYV2NgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=',
         tickImage: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAMNJREFUOI3VzjEOgjAYhuGvH4mJE57A5C/pqIscQXad3byBq7fSSeMRXOAA3KGOLuDSEkWlMBn/pWnT92mBvxut9VREZn7PgXGqlCpI5iKyGQS4+AJgAoAkd72BVoyqqu5KqT0ARP5SkiSLOI5H1tpbKCa5Ksvy3PxARLYArlEU5VrrtEd88neUe70AMHdntq7rDABCcQOIyJLkEcDYI27tjBvAIRnJwxOCUPwCfEJC8RvQQhSAdVf8dYwx2hijB4c/mQeKAVWWFc2OCAAAAABJRU5ErkJggg==',
         checkboxImage: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAABBdEVYdENvbW1lbnQAQ1JFQVRPUjogZ2QtanBlZyB2MS4wICh1c2luZyBJSkcgSlBFRyB2ODApLCBxdWFsaXR5ID0gOTAKfVTa3QAAAENJREFUOE9jYGZm/m9gYPBfXV2dKAxSC9LDAGKQCkB6GECmkApAesjXqKGhAeUSD0B6RjXiAJRpJDseyU5y5CVy5v8A6/aIwdZjSaUAAAAASUVORK5CYII=",
         PICAImage:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACwAAAAaCAYAAADMp76xAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAABsSURBVFhH7ZjBCcAwDAPtjpUROl2m6TIZRk3A5O+HDAYdiLwEh/Arjo014om3D8DCHHZWTqW6N9e5BaDdwld4yyfyRau+13fhLkiYjYTZSJiNhNlImI2E2UiYzRV290TeaNX3dBJs9C/BxewHetywTTA4kc0AAAAASUVORK5CYII="
     },
-	defaultStyle: {
-		// alignment: 'justify'
-	},
-	pageSize: {
+    defaultStyle: {
+        // alignment: 'justify'
+    },
+    pageSize: {
         width: 612,
         height: 792
     },

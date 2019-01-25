@@ -23,6 +23,8 @@ module.exports = {
             payment_id
         } = params;
 
+        whereQuery.push(` ef.file_type != 'EOB' `);
+
         if (id) {
             whereQuery.push(` ef.id = ${id} `);
         }
@@ -64,6 +66,7 @@ module.exports = {
                     ef.file_md5,
                     ef.uploaded_file_name,
                     file_payments.payment_id,
+                    eob.eob_file_id,
                     COUNT(1) OVER (range unbounded preceding) AS total_records
                 FROM
                     billing.edi_files ef
@@ -79,9 +82,18 @@ module.exports = {
             sql.append(filterCondition);
         }
 
-        sql.append(SQL`) AS file_payments ON true
-                WHERE
-                    company_id =  ${params.customArgs.companyID} `);
+        sql.append(SQL`) AS file_payments ON TRUE
+                                LEFT JOIN LATERAL (
+                                                SELECT  
+                                                   DISTINCT efp.edi_file_id AS eob_file_id
+                                                FROM
+                                                    billing.edi_file_payments efp
+                                                WHERE
+                                                    efp.payment_id = ANY(file_payments.payment_id) 
+                                                    AND efp.edi_file_id != ef.id
+                                                ) AS eob ON TRUE
+                                WHERE
+                                company_id =  ${params.customArgs.companyID} `);
 
         if (whereQuery.length) {
             sql.append(SQL` AND `);
@@ -451,7 +463,7 @@ module.exports = {
     },
 
     saveERAFile: async function (params) {
-        const sql = `
+        let sql = `
             INSERT INTO
                 billing.edi_files
                     (company_id,
@@ -477,6 +489,28 @@ module.exports = {
                         )
                         RETURNING id
         `;
+
+        if(params.isEOB) {
+            sql  = `WITH insert_edi_file AS (
+                        ${sql}
+                    ),
+                    insert_edi_file_payments AS (
+                        INSERT INTO 
+                            billing.edi_file_payments(
+                                edi_file_id,
+                                payment_id
+                            ) 
+                            SELECT 
+                                (SELECT id FROM insert_edi_file) AS edi_file_id,
+                                    payment_id
+                                FROM
+                                    billing.edi_file_payments efp
+                                WHERE efp.edi_file_id = ${params.id} 
+                                        RETURNING edi_file_id
+                    )
+                    SELECT edi_file_id AS id FROM insert_edi_file_payments
+                    `;
+        }
 
         return await query(sql);
     },

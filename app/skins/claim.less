@@ -132,7 +132,7 @@ li {
 }
 
 #headerContainer .top-nav {
-  background: #2b547e;
+  background:  @header_bg;
   padding: 0 25px 0 0px;
   min-height: 49px;
   width: 100%;
@@ -272,6 +272,32 @@ ul.multiselect-container.dropdown-menu{
   cursor: pointer;
 }
 
+.select-container {
+  border: 1px solid #aaa;
+  border-radius: 3px;
+  padding: 4px 3px 2px 8px;
+  position: relative;
+  min-height: 25px;
+}
+
+.select-container::after {
+  position: absolute;
+  content: "";
+  top: 12px;
+  right: 4px;
+  border: 5px solid transparent;
+  border-width: 5px 4px 0 4px;
+  border-color: #888 transparent transparent transparent;
+}
+
+.select-container-label {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  padding-right: 15px;
+  display: block;
+}
+
 .ohip-claim {
     width: 100%;
 }
@@ -293,12 +319,64 @@ ul.multiselect-container.dropdown-menu{
     border: 1px solid #dee2e6;
 }
 
-.taglist-bg {
-  background: @taglist;
+.alertBadge {
+    background: red;
+    border-radius: 50%;
+    color: white;
+    display: inline-block;
+    font-size: 9pt;
+    height: 19px;
+    line-height: 19px;
+    margin-left: 5px;
+    text-align: center;
+    visibility: hidden;
+    width: 19px;
 }
-.thGrid {
-  background: @th-grid;
-}
-.paymentCAS {
-  background: @dv-background;
-}
+
+.alertLabel {
+    cursor: pointer;
+    font-size: 14pt;
+    text-align: right;
+  }
+
+  .alertLabel > a {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .alertLabel > a:hover {
+    color: rgba(255, 255, 255, 1);
+  }
+
+  .patientAlert {
+    list-style-type: square;
+    font-size: 14pt;
+    padding: 5px;
+  }
+
+  .claim-summary {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1060;
+    display: block;
+    max-width: 545px;
+    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+    word-break: normal;
+    word-wrap: break-word;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid rgba(0,0,0,.2);
+    border-radius: .3rem;
+  }
+
+  .taglist-bg {
+    background: @taglist;
+  }
+
+  .thGrid {
+    background: @th-grid;
+  }
+
+  .paymentCAS {
+    background: @dv-background;
+  }

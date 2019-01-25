@@ -59,4 +59,13 @@ router.get('/era_details', async function (req, res) {
     httpHandler.send(req, res, data);
 });
 
+router.get('/eob_pdf', async function (req, res) {
+    try {
+        const data = await eraController.getEOBFile(req.query, res);
+        httpHandler.sendPdf(req, res, data);
+    } catch (err) {
+        httpHandler.send(req, res, err.message);
+    }
+});
+
 module.exports = router;

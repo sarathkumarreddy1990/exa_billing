@@ -115,7 +115,7 @@ define([
                 if (this.screenID && this.screenID.indexOf('anc_patient_claim_inquiry') !== -1) {
                     $('#btnPatientClaims').hide();
                 }
-                   
+
                 this.bindEvents();
                 this.followDate =  commonjs.bindDateTimePicker("divFollowUpDate", { format: 'L', minDate: moment().startOf('day') });
                 this.followDate.date();
@@ -202,7 +202,7 @@ define([
 
 
                             if (patient_details && patient_details.length > 0) {
-                                var patientHeaderInfo = 'Claim Inquiry: ' + patient_details[0].patient_name + ' (Acc#:' + patient_details[0].account_no + ')' + ',  ' + moment(patient_details[0].birth_date).format('L') + ',  ' + patient_details[0].gender;
+                                var patientHeaderInfo = commonjs.geti18NString('shared.screens.setup.claimInquiry') + ':' + patient_details[0].patient_name + ' (Acc#:' + patient_details[0].account_no + ')' + ',  ' + moment(patient_details[0].birth_date).format('L') + ',  ' + patient_details[0].gender;
                                 $(parent.document).find('#spanModalHeader').html(patientHeaderInfo);
                             }
 
@@ -251,6 +251,9 @@ define([
                     datatype: 'local',
                     data: data != null ? data : [],
                     colNames: ['', 'code', 'description', 'Subscriber Name', 'DOB', 'Policy No', 'Group No', 'Paper Claim Original', 'Paper Claim Full'],
+                    i18nNames: ['', 'billing.COB.code', 'billing.COB.description', 'billing.claims.subscriberName', 'billing.COB.DOB', 'billing.claims.policyNo',
+                        'billing.claims.groupNo', 'billing.COB.paperClaimOriginal', 'billing.COB.paperClaimFull'
+                    ],
                     colModel: [
                         { name: 'id', hidden: true },
                         { name: 'insurance_code', search: false },
@@ -302,6 +305,7 @@ define([
                     datatype: 'local',
                     data: data != null ? data : [],
                     colNames: ['', 'Code', 'Description'],
+                    i18nNames: ['', 'billing.COB.code','billing.COB.description'],
                     colModel: [
                         { name: '', index: 'id', key: true, hidden: true },
                         { name: 'code', width: 20, search: false },
@@ -317,13 +321,16 @@ define([
 
             showPatientClaimsGrid: function (claimID, patientId, billingProviderID, isNested) {
                 var self = this;
+                self.patientId = patientId;
+                self.billProvId = parseInt(billingProviderID);
+                self.claimID = claimID;
                 $('#divPatientClaimsGrid').show();
                 var container = isNested ? $('#modal_div_container_nested') : self.el;
                 this.patientClaimsTable = new customGrid();
                 this.patientClaimsTable.render({
                     gridelementid: '#tblPatientClaimsGrid',
                     custompager: this.claimsPager,
-                    emptyMessage: 'No Record found',
+                    emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['', 'Claim Number', 'Claim Date', 'Billing Fee', 'Total Adjustment','Total Insurance Payments', 'Total Patient Payments', 'Balance', 'Claim Status', 'Current responsibility'],
                     i18nNames: ['', 'billing.fileInsurance.claimNo', 'billing.claims.claimDate', 'billing.COB.billingFee','billing.fileInsurance.totalAdjustment', 'billing.claims.totalInsurancePayments', 'billing.claims.totalPatientPayments', 'billing.claims.Balance', 'billing.claims.claimStatus', 'billing.claims.currentResponsibility'],
                     colModel: [
@@ -338,7 +345,7 @@ define([
                             name: 'billing_fee', search: false, width: 100
                         },
                         {
-                            name: 'ajdustments_applied_total', search: false, width: 100
+                            name: 'adjustments_applied_total', search: false, width: 100
                         },
                         {
                             name: 'total_insurance_payment', search: false, width: 150
@@ -373,11 +380,18 @@ define([
                     disablereload: true,
                     customargs: {
                         claimID: claimID,
-                        patientId: patientId,
+                        patientId: self.patientId,
                         billProvId: parseInt(billingProviderID)
                     },
                     pager: '#gridPager_PatientClaim',
                     onaftergridbind: self.afterGridBind,
+                    setCustomData: function (){
+                        return {
+                            claimID: self.patientId,
+                            patientId: self.patientId,
+                            billProvId: self.billProvId
+                        }
+                    }
                 });
 
 
@@ -396,7 +410,7 @@ define([
                 this.invoiceTable.render({
                     gridelementid: '#tblInvoiceGrid',
                     custompager: self.invoicePager,
-                    emptyMessage: 'No Record found',
+                    emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['', '', 'Invoice No', 'Date', 'Total Billing Fee', 'Total Payments', 'Total Adjustment',  'Balance',''],
                     i18nNames: ['', '', 'billing.fileInsurance.invoiceNo', 'billing.claims.Date', 'billing.COB.billingFee','billing.claims.totalPayments', 'billing.fileInsurance.totalAdjustment',  'billing.claims.Balance',''],
                     colModel: [
@@ -510,7 +524,7 @@ define([
                 this.patientClaimsLogTable.render({
                     gridelementid: '#tblPatientClaimsLogGrid',
                     custompager: new Pager(),
-                    emptyMessage: 'No Record found',
+                    emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['', 'Logged date', 'Screen', 'User', 'Log Description'],
                     i18nNames: ['', 'setup.log.logDt', 'setup.common.screen', 'setup.billingProvider.Username', 'setup.log.logDescription'],
                     colModel: [
@@ -597,8 +611,11 @@ define([
                 payCmtGrid.render({
                     gridelementid: '#tblCIClaimComments',
                     custompager: self.claimInquiryPager,
-                    emptyMessage: 'No Records Found',
+                    emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['','', 'date', '', 'code', 'payment.id', 'comment', 'Diag Ptr', 'charge', 'payment', 'adjustment', '', '', '', '',''],
+                    i18nNames: ['', '', 'billing.claims.date', '', 'billing.COB.code', 'billing.payments.paymentID', 'billing.payments.comment', 'billing.COB.diagptr',
+                        'billing.payments.charge', 'billing.payments.payments', 'billing.fileInsurance.adjustments', '', '', '', '', ''
+                    ],
                     colModel: [
                         { name: 'id', hidden: true},
                         { name: 'row_id', hidden: true },
@@ -695,14 +712,14 @@ define([
                             name: 'del', width: 20, search: false, sortable: false,
                             className: 'icon-ic-delete',
                             customAction: function (rowID) {
-                                if (confirm("Are you sure that you want to delete?")) {
+                                if (confirm(commonjs.geti18NString("messages.status.areYouSureWantToDelete"))) {
                                     var gridData = $('#tblCIClaimComments').jqGrid('getRowData', rowID);
                                     self.deleteClaimComment(gridData.row_id);
                                 }
                             },
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.code && commentType.indexOf(rowObject.code) == -1 && !self.editOff)
-                                    return "<i class='icon-ic-delete' title='Delete'></i>"
+                                    return "<i class='icon-ic-delete' i18nt='shared.buttons.delete'></i>"
                                 else
                                     return "";
                             }
@@ -716,7 +733,7 @@ define([
                             },
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.code && rowObject.code != null && commentType.indexOf(rowObject.code) == -1 && !self.editOff)
-                                    return "<i class='icon-ic-edit' title='Edit'></i>"
+                                    return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>"
                                 else
                                     return "";
                             }
@@ -756,6 +773,7 @@ define([
                     }
                 })
                 $('#gview_tblCIClaimComments').find('.ui-jqgrid-bdiv').css('max-height', '180px')
+                $('#siteModal').css('overflow-y', 'scroll');
                 commonjs.initializeScreen({ header: { screen: 'Claim Comments', ext: 'Claim Comments' } });
             },
 
@@ -788,6 +806,7 @@ define([
                 var self = this;
                 commonjs.showNestedDialog({
                     header: 'Add Comment',
+                    i18nHeader: 'shared.screens.setup.addComment',
                     width: '50%',
                     height: '20%',
                     html: $('#divCIFormComment').html()
@@ -950,6 +969,7 @@ define([
                 if (isFromClaim) {
                     var defaultDialogProps = {
                         'header': 'Patient Claims: ' + patientName,
+                        'i18nHeader': "shared.moduleheader.patientClaims",
                         'width': '85%',
                         'height': '75%',
                         'needShrink': true,
@@ -1054,7 +1074,8 @@ define([
                         var rowId = nextRowData.attr('id');
                         $(e.target).prop('disabled', true);
                         var data = $(self.grid_id, parent.document).getRowData(rowId);
-                        self.patientInquiryForm(rowId, data.patient_id, data.patient_name, self.grid_id, false)
+                        $('#ddlBillingProvider option:contains("Select")').prop("selected", true);
+                        self.patientInquiryForm(rowId, data.hidden_patient_id, data.patient_name, self.grid_id, false)
 
                     } else {
                         commonjs.showWarning("messages.warning.claims.orderNotFound");
@@ -1109,7 +1130,7 @@ define([
                         documentName: 'Patient Activity'
                     },
                     success: function (data, response) {
-                        commonjs.showStatus(commonjs.geti18NString("messages.status.reportFaxedSuccessfully"));
+                        commonjs.showStatus("messages.status.reportFaxedSuccessfully");
                         $('#divFaxRecipient').hide();
                     },
                     error: function (err) {

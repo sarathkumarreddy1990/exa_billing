@@ -304,6 +304,7 @@ function ($, _, Backbone, UI, MainTemplate) {
             $('#selBillingProviderCount').html(' (' + selCountBillingProvider + ')');
         },
         onCPTCodeBinding: function () {
+            $('#txtCPTCode').empty();
             if ($('#ddlCPTCodeBinding').val() == 'S'){
                 $("#ddlCPTCodeBoxDetails").show();
                 $("#divCPTCodes").show();
@@ -318,6 +319,7 @@ function ($, _, Backbone, UI, MainTemplate) {
         },
         // Binding Insurance information
         onInsuranceBinding: function () {
+            $('#txtInsuranceName').empty();
             if ($('#ddlInsuranceBinding').val() == 'S'){
                 $('#ddlInsuranceOptionBox').show();
                 $('#divListInsurance').show();
@@ -332,6 +334,7 @@ function ($, _, Backbone, UI, MainTemplate) {
         },
         // Binding Referring doctor Auto Completed
         onReferringDoctorBinding: function () {
+            $('#txtReferringPhysician').empty();
             if ($('#ddlReferringPhysicianOption').val() == 'S'){
                 $('#ddlReferringPhysician').show();
                 $('#divReferringPhysician').show();
@@ -346,6 +349,7 @@ function ($, _, Backbone, UI, MainTemplate) {
         },
         // Binding Referring Provider Group Auto Complete
         onReferringProviderGroupBinding: function () {
+            $('#txtProviderGroupName').empty();
             if ($('#ddlRefProviderGroupOption').val() == 'S'){
                 $('#ddlProviderGroupBox').show();
                 $('#divListProviderGroup').show();
@@ -361,6 +365,7 @@ function ($, _, Backbone, UI, MainTemplate) {
 
         // Binding Payer Type Auto Complete
         onPayerTypeBinding: function () {
+            $('#txtInsuranceProviderName').empty();
             if ($('#ddlPayerTypeOption').val() == 'S'){
                 $('#ddlPayerTypeBox').show();
                 $('#divListPayerType').show();

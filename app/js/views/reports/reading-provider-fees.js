@@ -162,6 +162,7 @@ define([
 
             // Binding Referring Provider Group Auto Complete
             onReferringProviderGroupBinding: function () {
+                $('#txtProviderGroupName').empty();
                 if ($('#ddlRefProviderGroupOption').val() == 'S') {
                     $('#ddlProviderGroupBox').show();
                     $('#divListProviderGroup').show();

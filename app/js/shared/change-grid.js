@@ -864,7 +864,7 @@ define('change-grid', [ 'jquery' ], function ( jQuery ) {
             return [
                 {
                     'field': 'as_edit',
-                    'data': "<i class='icon-ic-edit' title='Edit'></i>"
+                    'data': "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>"
                 }
             ];
         };

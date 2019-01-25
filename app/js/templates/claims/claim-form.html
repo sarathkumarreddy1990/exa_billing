@@ -32,23 +32,26 @@
     <nav id="newClaimNav" class="top-nav">
         <ul id="tab_menu" class="tn-menu">
             <li class="active">
-                <a id="newClaimNavCharge" href="#tab_1" i18n="shared.screens.charges" ></a>
+                <a id="newClaimNavCharge" href="#tab_1" i18n="shared.screens.setup.charges" ></a>
             </li>
             <li>
-                <a id="newClaimNavClaims" href="#tab_2" i18n="shared.screens.claims" ></a>
+                <a id="newClaimNavClaims" href="#tab_2" i18n="shared.screens.setup.claims" ></a>
             </li>
             <li>
-                <a id="newClaimNavIns" href="#tab_3" i18n="shared.screens.insurance"></a>
+                <a id="newClaimNavIns" href="#tab_3" i18n="shared.screens.setup.insurance"></a>
             </li>
             <li>
-                <a id="newClaimNavAddInfo" href="#tab_4" i18n="shared.screens.additionalInfo"></a>
+                <a id="newClaimNavAddInfo" href="#tab_4" i18n="shared.screens.setup.additionalInfo"></a>
             </li>
             <li>
-                <a id="newClaimNavBillSummary" href="#tab_5" i18n="shared.screens.billingSummary"></a>
+                <a id="newClaimNavBillSummary" href="#tab_5" i18n="shared.screens.setup.billingSummary"></a>
+            </li>
+            <li class="editClaimRelated">
+                <a id="newClaimNavPayments" href="#tab_6" i18n="billing.payments.payments"></a>
             </li>
         </ul>
         <ul class="new-menu-right">
-            <li class="editClaimRelated" >
+            <li>
                 <button type="button" class="btn top-buffer claimProcess" id="btnPrevClaim" i18n="shared.buttons.prev"></button>
                 <button type="button" class="btn top-buffer claimProcess" id="btnNextClaim" i18n="shared.buttons.next"></button>
             </li>
@@ -56,7 +59,7 @@
                 <button type="button" class="btn top-buffer" id="btnPatientNotes" i18n="shared.buttons.notes"></button>
             </li>
             <li>
-                <button type="button" class="btn top-buffer" id="btPatientDocuemnt" i18n="shared.buttons.documentReports" ></button>
+                <button type="button" class="btn top-buffer" id="btPatientDocuemnt" i18n="shared.buttons.documentReports"></button>
             </li>
             <li class="editClaimRelated" >
                 <button type="button" class="btn top-buffer " id="btnValidateClaim" i18n="shared.buttons.validate"></button>
@@ -74,9 +77,9 @@
                 <div class="col-xs-12 search-field__container">
                     <div class="form-group form-inline">
                         <div class="fc-inline" id="searchPatient" style="width: 100%;">
-                            <input type="text" id="lname" class="form-control search-field" i18np="billing.payments.lastName" placeholder="Last Name">
-                            <input type="text" id="fname" class="form-control search-field" i18np="billing.payments.firstName" placeholder="First Name">
-                            <input type="text" id="mrn" class="form-control search-field" i18np="billing.payments.mrn" placeholder="MRN">
+                            <input type="text" id="lname" class="form-control search-field" i18np="billing.payments.lastName">
+                            <input type="text" id="fname" class="form-control search-field" i18np="billing.payments.firstName">
+                            <input type="text" id="mrn" class="form-control search-field" i18np="billing.payments.mrn">
                         </div>
                     </div>
                 </div>
@@ -168,7 +171,7 @@
                         <header class="panel-header">
                             <legend>
                                 <h5 class="border-bottom border-primary">
-                                    <label class="font-weight-bold" i18n="shared.screens.charges"></label>
+                                    <label class="font-weight-bold" i18n="shared.screens.setup.charges"></label>
                                 </h5>
                             </legend>
                         </header>
@@ -219,7 +222,7 @@
                                                         <%= row.accession_no %>
                                                     </span>
                                                 </td>
-                                                <td class="charges__cpt-code">
+                                                <td class="charges__cpt-code align-top">
                                                     <div id="divChargeCpt_<%= row.data_row_id %>"></div>
                                                 </td>
                                                 <td class="charges__cpt-description">
@@ -255,7 +258,7 @@
                                                 </td>
                                                 <td>
                                                     <input disabled value="<%= row.bill_fee ? row.bill_fee : 0.00 %>" id="txtBillFee_<%= row.data_row_id %>" type="text" class="billFee form-control-med form-control maskFee floatbox"  style="display:inline-block;width:auto;" edit="false">
-                                                    <span id="editBillFee_<%= row.data_row_id %>" class="editBillFee icon-ic-edit" style="margin-left: 4px;cursor:pointer;" title="Edit" ></span>
+                                                    <span id="editBillFee_<%= row.data_row_id %>" class="editBillFee icon-ic-edit" style="margin-left: 4px;cursor:pointer;" i18nt="shared.buttons.edit"></span>
                                                 </td>
                                                 <td>
                                                     <input disabled value="<%= row.total_bill_fee ? row.total_bill_fee : 0.00 %>" id="txtTotalBillFee_<%= row.data_row_id %>" type="text" class="totalbill form-control floatbox text-right">
@@ -278,7 +281,7 @@
                                 <tfoot>
                                     <tr style="border: none">
                                         <td colspan="12" style="border: 0">
-                                            <button type="button" class="btn pull-left" id="createNewCharge">New charge</button>
+                                            <button type="button" class="btn pull-left" id="createNewCharge" i18n="shared.buttons.newCharge"></button>
                                             <span id="divPatientBalance" class="patientPaid" style="text-decoration: blink; margin-right: 60px; display: none;">
                                                 <span> Patient Balance </span> :
                                                 <span id="spnPatientBalance" style="font-weight: bold;"></span>
@@ -288,14 +291,14 @@
                                             <span class="patientPaid" style="font-weight: bold;text-decoration: blink" id="spToBePaid"></span>
                                         </td>
                                         <td colspan="3" style="text-align: right;border: 0">
-                                            <span id="spTotalBillFee">Total Bill Fee</span>:
+                                            <span id="spTotalBillFee" i18n="shared.fields.totalBillFee"></span>:
                                             <span class="font-weight-bold" id="spTotalBillFeeValue"></span>
                                         </td>
                                         <td style="border: 0">
                                             <!-- <span style="font-weight: bold;" id="spTotalBillFeeValue"></span> -->
                                         </td>
                                         <td style="text-align: right;border: 0">
-                                            <span id="spTotalAllowedFee">Total Allowed</span>:
+                                            <span id="spTotalAllowedFee" i18n="shared.fields.totalAllowed"></span>:
                                             <span class="font-weight-bold" id="spTotalAllowedFeeValue"></span>
                                         </td>
                                         <td style="text-align: left;border: 0" colspan="3">
@@ -325,7 +328,7 @@
                 <div class="form-group row">
                     <label for="txtClaimDate" class="col-sm-3 col-form-label field-required" i18n="billing.claims.claimDate"></label>
                     <div class="col-sm-3">
-                        <input type="text" id="txtClaimDate" class="form-control form-control-date" name="ClaimDate">
+                        <input type="text" id="txtClaimDate" class="form-control form-control-date maskDateLocale" name="ClaimDate">
                         <!-- <input type="date" class="form-control maskDateLocale" id="txtClaimDate" name="ClaimDate"> -->
                     </div>
                 </div>
@@ -417,7 +420,7 @@
                     <legend style="width:98%;">
                         <h5 class="border-bottom border-primary">
                             <label class="font-weight-bold" i18n="billing.claims.primaryInsurance"></label>
-                            <input type="button" id="btnResetPriInsurance" value="CLEAR" class="btn btn-primary">
+                            <input type="button" id="btnResetPriInsurance" value="CLEAR" class="btn btn-primary" i18n="shared.buttons.clear">
                         </h5>
                     </legend>
                 </div>
@@ -447,12 +450,12 @@
                     <label class="col-sm-5 col-form-label" id="lblPriInsPriAddr"></label>
                 </div>
                 <div class="form-group row">
-                    <label class="col-sm-3 col-form-label">City/State/Zip</label>
+                    <label class="col-sm-3 col-form-label" i18n="setup.billingprovider.cityStateZip"></label>
                     <label class="col-sm-5 col-form-label" id="lblPriInsCityStateZip"></label>
                 </div>
                 <div class="form-group row">
-                        <label class="col-sm-3 col-form-label">Phone #</label>
-                        <label class="col-sm-5 col-form-label" id="lblPriPhoenNo"></label>
+                        <label class="col-sm-3 col-form-label" i18n="setup.billingprovider.phoneNo"></label>
+                        <label class="col-sm-5 col-form-label" id="lblPriPhoneNo"></label>
                 </div>
                 <div class="form-group row">
                     <label for="txtPriPolicyNo" class="col-sm-3 col-form-label field-required" i18n="patient.patientInsurance.policyNo"></label>
@@ -495,16 +498,16 @@
                 <div class="form-group row">
                     <label for="txtPriSubFirstName" class="col-sm-3 col-form-label field-required" i18n="billing.claims.subscriberName"></label>
                     <div class="col-sm-3">
-                        <input type="text" class="form-control" id="txtPriSubFirstName" name="SubsFirstName" placeholder="First Name">
+                        <input type="text" class="form-control" id="txtPriSubFirstName" name="SubsFirstName" i18np="billing.payments.firstName">
                     </div>
                     <div class="col-sm-1" style="padding-left:0px;">
-                        <input type="text" class="form-control" id="txtPriSubMiName" name="SubsMiName" placeholder="Mi">
+                        <input type="text" class="form-control" id="txtPriSubMiName" name="SubsMiName" i18np="billing.payments.mi">
                     </div>
                     <div class="col-sm-3" style="padding-left:0px;">
-                        <input type="text" class="form-control" id="txtPriSubLastName" name="SubsLastName" placeholder="Last Name">
+                        <input type="text" class="form-control" id="txtPriSubLastName" name="SubsLastName" i18np="billing.payments.lastName">
                     </div>
                     <div class="col-sm-2" style="padding-left:0px;">
-                        <input type="text" class="form-control" id="txtPriSubSuffix" placeholder="Suffix">
+                        <input type="text" class="form-control" id="txtPriSubSuffix" i18np="billing.claims.suffix">
                     </div>
                 </div>
                 <div class="form-group row">
@@ -529,19 +532,19 @@
                 <div class="form-group row">
                     <label for="txtPriSubPriAddr" class="col-sm-3 col-form-label field-required" i18n="billing.claims.addressline1"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtPriSubPriAddr" placeholder="Address Line1">
+                        <input type="text" class="form-control" id="txtPriSubPriAddr" i18np="billing.claims.addressline1">
                     </div>
                 </div>
                 <div class="form-group row">
                     <label for="txtPriSubSecAddr" class="col-sm-3 col-form-label" i18n="billing.claims.addressline2"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtPriSubSecAddr" placeholder="Address Line2">
+                        <input type="text" class="form-control" id="txtPriSubSecAddr"i18np="billing.claims.addressline2">
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="txtPriCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingProvider.citystatezip"></label>
+                    <label for="txtPriCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingProvider.cityStateZip"></label>
                     <div class="col-sm-3">
-                        <input type="text" class="form-control" id="txtPriCity" name="payCity" placeholder="City">
+                        <input type="text" class="form-control" id="txtPriCity" name="payCity" i18np="billing.claims.city">
                     </div>
                     <div class="col-sm-2" style="padding-left:0px;">
                         <select id="ddlPriState" class="form-control" style="height:32px;">
@@ -554,7 +557,7 @@
                         </select>
                     </div>
                     <div class="col-sm-2" style="padding-left:0px;">
-                        <input type="text" class="form-control" id="txtPriZipCode" placeholder="ZipCode">
+                        <input type="text" class="form-control" id="txtPriZipCode" i18np="billing.claims.zipCode">
                     </div>
                 </div>
 
@@ -583,7 +586,7 @@
                     <legend style="width:98%;">
                         <h5 class="border-bottom border-primary">
                             <label class="font-weight-bold" i18n="billing.claims.secondaryInsurance"></label>
-                            <input type="button" id="btnResetSecInsurance" value="CLEAR" class="btn">
+                            <input type="button" id="btnResetSecInsurance" value="CLEAR" class="btn" i18n="shared.buttons.clear">
                         </h5>
                     </legend>
                 </div>
@@ -610,15 +613,15 @@
                         </div>
                         <select class="form-control select-box" id="selectMedicalPayer" style="height:32px;display:none;">
                             <option value="" i18n="shared.buttons.select">Select</option>
-                            <option value="12">12-Working Aged Beneficiary</option>
-                            <option value="13">13-ERSD Beneficiary/30th Month</option>
-                            <option value="14">14-No Fault Insurance/Auto</option>
-                            <option value="15">15-Workers Compensation</option>
-                            <option value="16">16-PHS</option>
-                            <option value="41">41-Black Lung</option>
-                            <option value="42">42-VA</option>
-                            <option value="43">43-Disabled Beneficiary</option>
-                            <option value="47">47-Any Liability Insurance</option>
+                            <option value="12" i18n="billing.COB.medicare12" />
+                            <option value="13" i18n="billing.COB.medicare13" />
+                            <option value="14" i18n="billing.COB.medicare14" />
+                            <option value="15" i18n="billing.COB.medicare15" />
+                            <option value="16" i18n="billing.COB.medicare16" />
+                            <option value="41" i18n="billing.COB.medicare41" />
+                            <option value="42" i18n="billing.COB.medicare42" />
+                            <option value="43" i18n="billing.COB.medicare43" />
+                            <option value="47" i18n="billing.COB.medicare47" />
                         </select>
                     </div>
                 </div>
@@ -634,12 +637,12 @@
                     <label class="col-sm-5 col-form-label" id="lblSecInsPriAddr"></label>
                 </div>
                 <div class="form-group row">
-                    <label class="col-sm-3 col-form-label">City/State/Zip</label>
+                    <label class="col-sm-3 col-form-label" i18n="setup.billingprovider.cityStateZip"></label>
                     <label class="col-sm-5 col-form-label" id="lblSecInsCityStateZip"></label>
                 </div>
                 <div class="form-group row">
-                    <label class="col-sm-3 col-form-label">Phone #</label>
-                    <label class="col-sm-5 col-form-label" id="lblSecPhoenNo"></label>
+                    <label class="col-sm-3 col-form-label" i18n="billing.claims.phone"></label>
+                    <label class="col-sm-5 col-form-label" id="lblSecPhoneNo"></label>
                 </div>
                 <div class="form-group row">
                     <label for="txtSecPolicyNo" class="col-sm-3 col-form-label field-required" i18n="patient.patientInsurance.policyNo"></label>
@@ -682,16 +685,16 @@
                 <div class="form-group row">
                     <label for="txtSecSubFirstName" class="col-sm-3 col-form-label field-required" i18n="billing.claims.subscriberName"></label>
                     <div class="col-sm-3">
-                        <input type="text" class="form-control" id="txtSecSubFirstName" name="SubsFirstName" placeholder="First Name">
+                        <input type="text" class="form-control" id="txtSecSubFirstName" name="SubsFirstName" i18np="billing.payments.firstName">
                     </div>
                     <div class="col-sm-1" style="padding-left:0px;">
-                        <input type="text" class="form-control" id="txtSecSubMiName" name="SubsMiName" placeholder="Mi">
+                        <input type="text" class="form-control" id="txtSecSubMiName" name="SubsMiName" i18np="billing.payments.mi">
                     </div>
                     <div class="col-sm-3" style="padding-left:0px;">
                         <input type="text" class="form-control" id="txtSecSubLastName" name="SubsLastName" placeholder="Last Name">
                     </div>
                     <div class="col-sm-2" style="padding-left:0px;">
-                        <input type="text" class="form-control" id="txtSecSubSuffix" placeholder="Suffix">
+                        <input type="text" class="form-control" id="txtSecSubSuffix" i18np="billing.claims.suffix">
                     </div>
                 </div>
                 <div class="form-group row">
@@ -716,19 +719,19 @@
                 <div class="form-group row">
                     <label for="txtSecSubPriAddr" class="col-sm-3 col-form-label field-required" i18n="billing.claims.addressline1"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtSecSubPriAddr" placeholder="Address Line1">
+                        <input type="text" class="form-control" id="txtSecSubPriAddr" i18np="billing.claims.addressline1">
                     </div>
                 </div>
                 <div class="form-group row">
                     <label for="txtSecSubSecAddr" class="col-sm-3 col-form-label" i18n="billing.claims.addressline2"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtSecSubSecAddr" placeholder="Address Line2">
+                        <input type="text" class="form-control" id="txtSecSubSecAddr" i18np="billing.claims.addressline2">
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="txtSecCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingProvider.citystatezip"></label>
+                    <label for="txtSecCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingProvider.cityStateZip"></label>
                     <div class="col-sm-3">
-                        <input type="text" class="form-control" id="txtSecCity" name="payCity" placeholder="City">
+                        <input type="text" class="form-control" id="txtSecCity" name="payCity" i18np="billing.claims.city">
                     </div>
                     <div class="col-sm-2" style="padding-left:0px;">
                         <select id="ddlSecState" class="form-control" style="height:32px;">
@@ -741,7 +744,7 @@
                         </select>
                     </div>
                     <div class="col-sm-2" style="padding-left:0px;">
-                        <input type="text" class="form-control" id="txtSecZipCode" placeholder="ZipCode">
+                        <input type="text" class="form-control" id="txtSecZipCode" i18np="billing.claims.zipCode">
                     </div>
                 </div>
 
@@ -773,7 +776,7 @@
                         <legend>
                             <h5 class="border-bottom border-primary">
                                 <label class="font-weight-bold" i18n="billing.claims.teritaryInsurance"></label>
-                                <input type="button" id="btnResetTerInsurance" value="CLEAR" class="btn">
+                                <input type="button" id="btnResetTerInsurance" value="CLEAR" class="btn" i18n="shared.buttons.clear">
                             </h5>
                         </legend>
                     </div>
@@ -804,12 +807,12 @@
                     <label class="col-sm-5 col-form-label" id="lblTerInsPriAddr"></label>
                 </div>
                 <div class="form-group row">
-                    <label class="col-sm-3 col-form-label">City/State/Zip</label>
+                    <label class="col-sm-3 col-form-label" i18n="setup.billingprovider.cityStateZip"></label>
                     <label class="col-sm-5 col-form-label" id="lblTerInsCityStateZip"></label>
                 </div>
                 <div class="form-group row">
-                    <label class="col-sm-3 col-form-label">Phone #</label>
-                    <label class="col-sm-5 col-form-label" id="lblTerPhoenNo"></label>
+                    <label class="col-sm-3 col-form-label" i18n="billing.claims.phone"></label>
+                    <label class="col-sm-5 col-form-label" id="lblTerPhoneNo"></label>
                 </div>
                 <div class="form-group row">
                     <label for="txtTerPolicyNo" class="col-sm-3 col-form-label field-required" i18n="patient.patientInsurance.policyNo"></label>
@@ -852,16 +855,16 @@
                 <div class="form-group row">
                     <label for="txtTerSubFirstName" class="col-sm-3 col-form-label field-required" i18n="billing.claims.subscriberName"></label>
                     <div class="col-sm-3">
-                        <input type="text" class="form-control" id="txtTerSubFirstName" name="SubsFirstName3" placeholder="First Name">
+                        <input type="text" class="form-control" id="txtTerSubFirstName" name="SubsFirstName3" i18np="billing.payments.firstName">
                     </div>
                     <div class="col-sm-1" style="padding-left:0px;">
-                        <input type="text" class="form-control" id="txtTerSubMiName" name="SubsMiName" placeholder="Mi">
+                        <input type="text" class="form-control" id="txtTerSubMiName" name="SubsMiName" i18np="billing.payments.mi">
                     </div>
                     <div class="col-sm-3" style="padding-left:0px;">
-                        <input type="text" class="form-control" id="txtTerSubLastName" name="SubsLastName3" placeholder="Last Name">
+                        <input type="text" class="form-control" id="txtTerSubLastName" name="SubsLastName3" i18np="billing.payments.lastName">
                     </div>
                     <div class="col-sm-2" style="padding-left:0px;">
-                        <input type="text" class="form-control" id="txtTerSubSuffix" placeholder="Suffix">
+                        <input type="text" class="form-control" id="txtTerSubSuffix" i18np="billing.claims.suffix">
                     </div>
                 </div>
                 <div class="form-group row">
@@ -886,19 +889,19 @@
                 <div class="form-group row">
                     <label for="txtTerSubPriAddr" class="col-sm-3 col-form-label field-required" i18n="billing.claims.addressline1"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtTerSubPriAddr" placeholder="Address Line1">
+                        <input type="text" class="form-control" id="txtTerSubPriAddr" i18np="billing.claims.addressline1">
                     </div>
                 </div>
                 <div class="form-group row">
                     <label for="txtTerSubSecAddr" class="col-sm-3 col-form-label" i18n="billing.claims.addressline2"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtTerSubSecAddr" placeholder="Address Line2">
+                        <input type="text" class="form-control" id="txtTerSubSecAddr" i18np="billing.claims.addressline2">
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="txtTerCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingProvider.citystatezip"></label>
+                    <label for="txtTerCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingProvider.cityStateZip"></label>
                     <div class="col-sm-3">
-                        <input type="text" class="form-control" id="txtTerCity" name="payCity" placeholder="City">
+                        <input type="text" class="form-control" id="txtTerCity" name="payCity" i18np="billing.claims.city">
                     </div>
                     <div class="col-sm-2" style="padding-left:0px;">
                         <select id="ddlTerState" class="form-control" style="height:32px;">
@@ -911,7 +914,7 @@
                         </select>
                     </div>
                     <div class="col-sm-2" style="padding-left:0px;">
-                        <input type="text" class="form-control" id="txtTerZipCode" placeholder="ZipCode">
+                        <input type="text" class="form-control" id="txtTerZipCode" i18np="billing.claims.zipCode">
                     </div>
                 </div>
 
@@ -1049,13 +1052,13 @@
                 <div class="form-group row">
                     <label for="txtOriginalRef" class="col-sm-3 col-form-label" i18n="billing.claims.originalRef"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtOriginalRef" placeholder="Original Ref">
+                        <input type="text" class="form-control" id="txtOriginalRef" i18np="billing.claims.originalRef">
                     </div>
                 </div>
                 <div class="form-group row">
                     <label for="txtAuthorization" class="col-sm-3 col-form-label" i18n="billing.claims.authNo"></label>
                     <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtAuthorization" placeholder="Authorization No">
+                        <input type="text" class="form-control" id="txtAuthorization" i18np="billing.claims.authNo">
                     </div>
                 </div>
                 <div class="form-group row">
@@ -1072,7 +1075,7 @@
             </div>
         </div>
     </section>
-    <section id="tab_5 mt-2">
+    <section id="tab_5" class="mt-2">
         <div class="col-lg-12">
             <div class="form-group row">
                 <legend>
@@ -1087,25 +1090,25 @@
                 <div class="form-group row">
                     <label for="spBillFee" class="col-sm-3 col-form-label" i18n="billing.claims.billFee"></label>
                     <div class="col-sm-5">
-                        <span id="spBillFee" class="maskFee control-label w70"></span>
+                        <span id="spBillFee" class="control-label w70"></span>
                     </div>
                 </div>
                 <div class="form-group row">
                     <label for="spPatientPaid" class="col-sm-3 col-form-label" i18n="billing.claims.patientPaid"></label>
                     <div class="col-sm-5">
-                        <span id="spPatientPaid" class="maskFee control-label w70"></span>
+                        <span id="spPatientPaid" class="control-label w70"></span>
                     </div>
                 </div>
                 <div class="form-group row">
                     <label for="spAdjustment" class="col-sm-3 col-form-label" i18n="billing.claims.adjustment"></label>
                     <div class="col-sm-5">
-                        <span id="spAdjustment" class="maskFee control-label w70"></span>
+                        <span id="spAdjustment" class="control-label w70"></span>
                     </div>
                 </div>
                 <div class="form-group row">
                     <label for="spBalance" class="col-sm-3 col-form-label" i18n="billing.claims.balance"></label>
                     <div class="col-sm-5">
-                        <span id="spBalance" class="maskFee control-label w70"></span>
+                        <span id="spBalance" class="control-label w70"></span>
                     </div>
                 </div>
                 <div class="form-group row">
@@ -1122,9 +1125,9 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="txtResponsibleNotes" class="col-sm-3 col-form-label" i18n="billing.claims.billingNotes"></label>
+                    <label for="txtClaimResponsibleNotes" class="col-sm-3 col-form-label" i18n="billing.claims.billingNotes"></label>
                     <div class="col-sm-5">
-                        <textarea id="txtResponsibleNotes" class="form-control form-control-lg" rows="2"></textarea>
+                        <textarea id="txtClaimResponsibleNotes" class="form-control form-control-lg" rows="2"></textarea>
                     </div>
                 </div>
             </div>
@@ -1132,19 +1135,19 @@
                 <div class="form-group row">
                     <label for="spAllowed" class="col-sm-3 col-form-label" i18n="billing.claims.allowed"></label>
                     <div class="col-sm-5">
-                        <span id="spAllowed" class="maskFee control-label w70"></span>
+                        <span id="spAllowed" class="control-label w70"></span>
                     </div>
                 </div>
                 <div class="form-group row">
                     <label for="spOthersPaid" class="col-sm-3 col-form-label" i18n="billing.claims.othersPaid"></label>
                     <div class="col-sm-5">
-                        <span id="spOthersPaid" class="maskFee control-label w70"></span>
+                        <span id="spOthersPaid" class="control-label w70"></span>
                     </div>
                 </div>
                 <div class="form-group row">
                     <label for="spRefund" class="col-sm-3 col-form-label" i18n="billing.claims.refund"></label>
                     <div class="col-sm-5">
-                        <span id="spRefund" class="maskFee control-label w70"></span>
+                        <span id="spRefund" class="control-label w70"></span>
                     </div>
                 </div>
                 <div class="form-group row">
@@ -1174,11 +1177,111 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="ddlResponsible" class="col-sm-3 col-form-label field-required" i18n="billing.claims.responsible"></label>
+                    <label for="ddlClaimResponsible" class="col-sm-3 col-form-label field-required" i18n="billing.claims.responsible"></label>
                     <div class="col-sm-5">
-                        <select class="form-control select-box" id="ddlResponsible">
+                        <select class="form-control select-box" id="ddlClaimResponsible">
                             <option value="">Select</option>
                         </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section id="tab_6" class="mt-2 editClaimRelated">
+        <div class="row">
+            <div class="col-xs-12">
+                <div id="divParent">
+                    <header class="panel-header">
+                        <legend>
+                            <h5 class="border-bottom border-primary">
+                                <label class="font-weight-bold" i18n="billing.payments.payments" ></label>
+                            </h5>
+                        </legend>
+                    </header>
+                    <!--payment table-->
+                    <div id="divPayment">
+                        <table class="table table-bordered" id="tblPayment">
+                            <thead id="tHeadPayment">
+                                <tr>
+                                    <th></th>
+                                    <th i18n="billing.payments.accountingDate"></th>
+                                    <th i18n="billing.payments.payerName"></th>
+                                    <th i18n="order.chargePayment.payMode"></th>
+                                    <th i18n="order.chargePayment.checkCardNo"></th>
+                                    <th></th>
+                                    <th i18n="shared.fields.thisPayment"></th>
+                                    <th i18n="shared.fields.thisAdjustment"></th>
+                                    <th i18n="billing.payments.paymentID"></th>
+
+                                </tr>
+                            </thead>
+                            <tbody id="tBodyPayment">
+                                <%  _.each(paymentList, function(row) { %>
+                                <tr data_payment_id="<%= row.id %>" data_row_id="<%= row.row_index %>" data_payment_application_id="<%= row.payment_application_id %>" >
+                                    <td style="width:2%;vertical-align: middle;">
+                                        <span id="spAddPayment_<%= row.id %>" class="icon icon-ic-plus addPaymentLine" i18nt="shared.fields.addPayment"></span>
+                                    </td>
+                                    <td class='w-space' style="width:9%;vertical-align: middle;">
+                                        <div id="divAccountingDate_<%= row.row_index %>" class="input-group">
+                                            <input type="text" value="<%= row.accounting_date %>" data-format="MM/DD/YYYY" id="txtAccountingDate_<%= row.row_index %>"
+                                                class="form-control form-control-date maskDateLocale" style="min-width:90px;">
+                                            <span class="input-group-addon add-on pr-0 text-center" style="border: 1px solid #ced7db;width: 30px;line-height: 30px;height: 32px;">
+                                                <i class="icon-ic-schedule icon-ic-calendar"></i>
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td style="width:25%;vertical-align: middle;">
+                                        <select class="form-control select-box" id="ddlPayerName_<%= row.row_index %>" style="height: 32px;" disabled>
+                                            <option value="" i18n="shared.buttons.select"></option>
+                                        </select>
+                                    </td>
+                                    <td style="width:10%;vertical-align: middle;">
+                                        <select class="form-control select-box" id="ddlPaymentMode_<%= row.row_index %>" style="height: 32px;">
+                                            <option value="" i18n="shared.buttons.select"></option>
+                                            <option value="cash" i18n="billing.payments.cash"></option>
+                                            <option value="check" i18n="billing.payments.cheque"></option>
+                                            <option value="card" i18n="billing.payments.card"></option>
+                                            <option value="eft" i18n="billing.payments.eft"></option>
+                                            <option value="adjustment" i18n="billing.payments.adjustment"></option>
+                                        </select>
+                                    </td>
+                                    <td style="width:10%;vertical-align: middle;">
+                                        <input id="txtCheckCardNo_<%= row.row_index %>" type="text" value="<%= row.card_number %>" class="checkcardno form-control integerbox">
+                                    </td>
+                                    <td style="width: 5%;vertical-align: middle;">
+                                        <input type="button" value="APPLY" id="btnApplyPayment_<%= row.row_index %>" class="pl-3 pr-3 btn pull-left paymentApply">
+                                    </td>
+                                    <td style="width:8%;vertical-align: middle;">
+                                        <span class="form-control floatbox" id="spThisPay_<%= row.row_index %>" style="background-color: transparent;"><%= row.payment_applied %></span>
+                                    </td>
+                                    <td style="width:8%;vertical-align: middle;">
+                                        <span class="form-control floatbox" id="spThisAdj_<%= row.row_index %>" style="background-color: transparent;"><%= row.adjustment_applied %></span>
+                                    </td>
+
+                                    <td style="display:none;vertical-align: middle;">
+                                        <input id="ddlAdjustmentCode_<%= row.row_index %>" value="<%= row.pointer2 ? row.pointer2 : '' %>" class="form-control inputModifiers typeahead "
+                                            data-value="<%= row.id %>" type="text">
+                                    </td>
+
+                                    <td style="width:7%;vertical-align: middle;">
+                                        <span class="paymentid form-control" id="spPaymentID_<%= row.row_index %>" style="background-color: transparent;"><%= row.id %></span>
+                                    </td>
+                                </tr>
+                                <% }); %>
+                            </tbody>
+                            <tfoot>
+                                <tr style="border: none">
+                                    <td colspan="5" style="border: 0">
+                                        <input type="button" id="btnNewPayment" i18n="order.chargePayment.newPayment" class="btn pull-left mr-2">
+                                    </td>
+                                    <td style="border: 0"></td>
+                                    <td style="border: 0"></td>
+                                    <td style="border: 0"></td>
+                                    <td style="border: 0"></td>
+                                    <td style="border: 0"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
                     </div>
                 </div>
             </div>

@@ -79,8 +79,8 @@ define(['jquery',
                 this.$el.html(this.mainTemplate(this.viewModel));
                 this.viewModel.fromDate = commonjs.bindDateTimePicker("txtFromDate", { format: "L" });
                 this.viewModel.fromDate.date(commonjs.getFacilityCurrentDateTime(app.facilityID));
-                UI.bindInsuranceAutocomplete(commonjs.geti18NString("report.selectInsurance"), 'btnAddInsurance', 'ulListInsurance');
-                UI.bindInsuranceProviderAutocomplete(commonjs.geti18NString("report.selectInsuranceProvider"), 'btnAddInsuranceProvider', 'ulListInsuranceProvider');
+                UI.bindInsuranceAutocomplete(commonjs.geti18NString("report.reportFilter.selectInsurance"), 'btnAddInsurance', 'ulListInsurance');
+                UI.bindInsuranceProviderAutocomplete(commonjs.geti18NString("report.reportFilter.selectInsuranceProvider"), 'btnAddInsuranceProvider', 'ulListInsuranceProvider');
                 UI.bindBillingProvider();
                 $('#ddlFacilityFilter,  #ddlInsuranceOption').multiselect({
                     maxHeight: 200,
@@ -168,7 +168,8 @@ define(['jquery',
                 $('input[id=chkAllInsGroup]').prop('checked', false);
                 $('input[class=insGrpChk]').prop('checked', false);
                 this.selectedInsGrpList = [];
-
+                $('#txtInsuranceName').empty();
+                $('#txtInsuranceProviderName').empty();
                 if ($('#ddlInsuranceOption').val() == 'S') {
                     $("#ddlOptionBox").show();
                     $("#ddlOptionBoxList").show();

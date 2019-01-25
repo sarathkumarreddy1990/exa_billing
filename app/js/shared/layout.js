@@ -212,8 +212,8 @@ var layout = {
         }
 
         var screenTitle = layout.moduleHeaders[module] ? layout.moduleHeaders[module].toUpperCase() : 'BILLING';
-        $('#aNavTitlebar').text(screenTitle);
-        //$('#aNavTitlebar').attr("href", location.href);
+        $("#aNavTitlebar").text(screenTitle.toUpperCase());
+        $("#aNavTitlebar").attr("i18n", "shared.moduleheader." + screenTitle.toLowerCase());
 
         $('.daterangepicker').remove();
         this.triggerSettingsRefresh(module, currentScreen);
@@ -233,7 +233,7 @@ var layout = {
         new window.AppServer(function () {
             console.log('App settings re-initialized..');
             if (showStatus) {
-                commonjs.showStatus('Settings refreshed.');
+                commonjs.showStatus('messages.status.settingsRefreshed');
             }
         });
     },

@@ -5,9 +5,9 @@
     <div class="col-sm-2 col-md-2">
             <select id="ddlStudyDefaultTab" name="repeats" class="input-large">
                 <% if (screenName == 'studies') { %>
-                    <option value="All_Studies">All Studies</option>
+                    <option value="All_Studies" i18n="shared.fields.allStudies"></option>
                 <%} else if(screenName == 'claims') { %>
-                    <option value="All_Claims">All Claims</option>
+                    <option value="All_Claims"i18n="shared.fields.allClaims"></option>
                     <option value="Follow_up_queue">Follow Up Queue</option>
                 <% } %>
                 <% _.each(grid_filters, function(grid_filter) { %>

@@ -61,7 +61,7 @@ module.exports = {
           "relationship": "18",
           "policyNo": "1q9o0p",
           "planName": "health",
-          "planType": "12",
+          "groupNumber": "12",
           "claimFilingCode": "MC",
           "lastName": " ADAM",
           "firstName": "ANDREW",

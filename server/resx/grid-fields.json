@@ -286,7 +286,7 @@
         {
             "field_code": "policy_number",
             "field_name": "Policy Number",
-            "i18n_name": "setup.userSettings.policyNumber",
+            "i18n_name": "patient.patientInsurance.policyNo",
             "field_info": {
                 "name": "policy_number",
                 "searchFlag": "hstore",
@@ -298,7 +298,7 @@
         {
             "field_code": "group_number",
             "field_name": "Group Number",
-            "i18n_name": "setup.userSettings.groupNumber",
+            "i18n_name": "patient.patientInsurance.groupNo",
             "field_info": {
                 "name": "group_number",
                 "searchFlag": "hstore",
@@ -378,6 +378,20 @@
                 "defaultValue": ""
             },
             "field_code": "charge_description"
+        },
+        {
+            "id": 32,
+            "field_name": "Ins Provider Type",
+            "i18n_name": "setup.userSettings.insProviderType",
+            "field_info": {
+                "custom_name": "Ins Provider Type",
+                "name": "ins_provider_type",
+                "width": 200,
+                "searchFlag": "%",
+                "stype": "select",
+                "sortable": false
+            },
+            "field_code": "ins_provider_type"
         }
     ],
     "study_fields": [
