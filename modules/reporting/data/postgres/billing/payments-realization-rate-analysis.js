@@ -49,12 +49,15 @@ const paymentRealizationRateAnalysisQueryTemplate = _.template(`
           ) AS payment_details ON payment_details.claim_id = bc.id
           LEFT JOIN LATERAL(
                SELECT
-                      i_bch.claim_id AS claim_id,
-		bp.payer_type
-               FROM billing.payments bp
+                    i_bch.claim_id AS claim_id,
+		            bp.payer_type
+               FROM
+                    billing.payments bp
                INNER JOIN billing.payment_applications bpa  ON bpa.payment_id = bp.id
                INNER JOIN billing.charges i_bch ON i_bch.id = bpa.charge_id
                WHERE i_bch.claim_id = bc.id
+               ORDER BY
+                   bp.payer_type DESC
                LIMIT 1
           ) AS payment_payer_details ON payment_payer_details.claim_id = bc.id
           LEFT JOIN provider_contacts  ON provider_contacts.id = bc.referring_provider_contact_id
@@ -90,8 +93,8 @@ const paymentRealizationRateAnalysisQueryTemplate = _.template(`
         , provider_name   AS "Billing Provider"
         , facility_name AS "Facility Name"
         , payer_type AS "Payer Type"
-        , payer_name AS "Payer Name"
-        , insurance_payer_name AS "Insurance Provider"
+        , payer_name AS "Primary Insurance"
+        , insurance_payer_name AS "Insurance Group"
         , to_char(scheduled_dt, 'MM/DD/YYYY') AS "Service Date"
         , modality_code AS "Modality"
         , patient_name AS "Patient Name"
