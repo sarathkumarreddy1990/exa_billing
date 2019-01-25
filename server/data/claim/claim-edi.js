@@ -419,7 +419,12 @@ module.exports = {
 										frequency as "claimFrequencyCode",
 										bgcp.charges_bill_fee_total::numeric::text AS "claimTotalCharge",
 										bgcp.payment_insurance_total::numeric::text AS "claimPaymentInsurance",
+										bgcp.payment_ordering_facility_total::NUMERIC::TEXT AS "claimPaymentOrderingFacility",
+										bgcp.payment_ordering_provider_total::NUMERIC::TEXT AS "claimPaymentProvider",
+										bgcp.adjustment_ordering_facility_total::NUMERIC::TEXT AS "claimAdjustmentOrderingFacility",
+										bgcp.adjustment_ordering_provider_total::NUMERIC::TEXT AS "claimAdjustmentProvider",
 										bgcp.payment_patient_total::numeric::text AS "claimPaymentPatient",
+										bgcp.payments_applied_total::numeric::text AS "claimPaymentTotal",
 										(SELECT places_of_service.code FROM  places_of_service WHERE  places_of_service.id=claims.place_of_service_id) as "POS",
 										to_char(date(timezone(facilities.time_zone,claim_dt)), 'YYYYMMDD') as "claimDate",							date(timezone(facilities.time_zone,claim_dt))::text as "claimDt",
 										is_employed as  "relatedCauseCode1",
@@ -657,7 +662,12 @@ module.exports = {
 					modifier2.code as "modifier2",
 					modifier3.code as "modifier3",
 					modifier4.code as "modifier4",
-					sum(pa.amount)::numeric::text as "paidAmount",
+					COALESCE(sum(pa.amount) FILTER (WHERE pa.amount_type = 'payment'),0::money)::NUMERIC::text  AS "cptPaymentTotal",
+					COALESCE(sum(pa.amount) FILTER (WHERE pa.amount_type = 'payment' AND payer_type='insurance'),0::money)::NUMERIC::text AS "paidAmount",
+					COALESCE(sum(pa.amount) FILTER (WHERE pa.amount_type = 'payment' AND payer_type='ordering_provider'),0::money)::NUMERIC::text AS "cptPaymentProvider",
+					COALESCE(sum(pa.amount) FILTER (WHERE pa.amount_type = 'payment' AND payer_type='ordering_facility'),0::money)::NUMERIC::text AS "cptPaymentOrderingFacility",
+					COALESCE(sum(pa.amount) FILTER (WHERE pa.amount_type = 'adjustment' AND payer_type='ordering_provider'),0::money)::NUMERIC::text AS "cptAdjustmentProvider",
+					COALESCE(sum(pa.amount) FILTER (WHERE pa.amount_type = 'adjustment' AND payer_type='ordering_facility'),0::money)::NUMERIC::text AS "cptAdjustmentOrderingFacility",
 					charges.units as "unit"
 					,(SELECT Json_agg(Row_to_json(lineAdjustment)) "lineAdjustment"
 									FROM
@@ -683,8 +693,8 @@ module.exports = {
 											                            AND payment_applications.amount_type = 'adjustment'
 											                            GROUP BY cas_group_codes.code ) AS lineAdjustment)
                                         FROM billing.payment_applications pa
-                                        INNER JOIN billing.payments ON billing.payments.id=pa.payment_id AND payer_type='insurance'
-                                        WHERE charge_id = charges.id AND pa.amount_type = 'payment') AS lineAdjudication)
+                                        INNER JOIN billing.payments ON billing.payments.id=pa.payment_id
+                                        WHERE charge_id = charges.id ) AS lineAdjudication)
 					FROM billing.charges
 					INNER JOIN cpt_codes ON cpt_codes.id=cpt_id
 					LEFT JOIN modifiers AS modifier1 ON modifier1.id=modifier1_id
