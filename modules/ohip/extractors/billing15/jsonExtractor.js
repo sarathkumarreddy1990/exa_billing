@@ -19,6 +19,7 @@ const JSONExtractor = function(data) {
 
         currentGroup.subscriber.forEach((subscriber) => {
 
+            console.log('JAQUA', subscriber.claim);
             subscriber.claim.forEach((subscriberClaim) => {
 
 

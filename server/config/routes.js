@@ -3,6 +3,7 @@ const indexRouter = require('../routes/index');
 const middlewares = require('../routes/middlewares');
 //const authRouter = require('../routes/auth');
 const reportingRoutes = require('../../modules/reporting/routes');
+const ohipRoutes = require('../../modules/ohip/routes');
 const studyFiltersRouter = require('../routes/study-filters');
 const appSettingsRouter = require('../routes/app-settings');
 const claimFiltersRouter = require('../routes/claim/claim-filters');
@@ -27,6 +28,7 @@ const router = function (app) {
 
     app.use('/exa_modules/billing/studies', studiesRouter);
     app.use('/exa_modules/billing/reports', reportingRoutes);
+	app.use('/exa_modules/billing/ohip', ohipRoutes);
     app.use('/exa_modules/billing/study_filters', studyFiltersRouter);
     app.use('/exa_modules/billing/app_settings', appSettingsRouter);
     app.use('/exa_modules/billing/claim_filters', claimFiltersRouter);
