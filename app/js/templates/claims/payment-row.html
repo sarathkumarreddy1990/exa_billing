@@ -27,7 +27,7 @@
         <input id="txtCheckCardNo_<%= row.row_index %>" type="text" value="<%= row.card_number %>" class="checkcardno form-control integerbox">
     </td>
     <td style="width: 5%;  vertical-align: middle;">
-        <input type="button" value="APPLY" id="btnApplyPayment_<%= row.row_index %>" class="pl-3 pr-3 btn pull-left paymentApply">
+        <input type="button" value="APPLY" id="btnApplyPayment_<%= row.row_index %>" i18n="report.reportFilter.apply" class="pl-3 pr-3 btn pull-left paymentApply">
     </td>
     <td style="width:8%;vertical-align: middle;">
         <span class="form-control floatbox" id="spThisPay_<%= row.row_index %>" style="background-color: transparent;"><%= row.payment_applied ? row.payment_applied : 0.00 %></span>

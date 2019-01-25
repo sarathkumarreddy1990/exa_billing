@@ -47,7 +47,7 @@ function ($, _, Backbone, UI, MainTemplate) {
             'click #btnCsvReport': "onReportViewClick",
             'click #btnXmlReport': "onReportViewClick",
             'click #showCheckboxes': 'onShowCheckboxes',
-          
+
             "click #chkAllFacility": "selectAllFacility",
             "click #chkAllBillingProvider": "selectAllBillingProviders",
             "click .chkSelectFacility": "chkSelectFacility",
@@ -82,7 +82,7 @@ function ($, _, Backbone, UI, MainTemplate) {
                 this.render();
             }
             commonjs.initializeScreen({ header: { screen: this.viewModel.reportTitle, ext: this.viewModel.reportId } }); // html title
-            UI.setPageTitle(this.viewModel.reportTitle);          
+            UI.setPageTitle(this.viewModel.reportTitle);
         },
 
         render: function () {
@@ -92,7 +92,7 @@ function ($, _, Backbone, UI, MainTemplate) {
             this.bindDateRangePicker();
             this.drpStudyDt.setStartDate(this.viewModel.dateFrom);
             this.drpStudyDt.setEndDate(this.viewModel.dateTo);
-          
+
             $('#ddlFacilityFilter, #ddlProcedureBySelectBoxes').multiselect({
                 maxHeight: 200,
                 buttonWidth: '300px',
@@ -123,7 +123,7 @@ function ($, _, Backbone, UI, MainTemplate) {
                 self.viewModel.dateTo = null;
             });
             commonjs.isMaskValidate();
-        },        
+        },
 
         onFacilitiesChange: function (e) {
             this.viewModel.facilityIds = $(e.target) && $(e.target).val() ? $(e.target).val() : null; // array
@@ -144,7 +144,7 @@ function ($, _, Backbone, UI, MainTemplate) {
             }
         },
 
-        onReportViewClick: function (e) {          
+        onReportViewClick: function (e) {
             var btnClicked = e && e.target ? $(e.target) : null;
             this.getSelectedFacility();
             this.getBillingProvider();
@@ -221,12 +221,12 @@ function ($, _, Backbone, UI, MainTemplate) {
 
         hasValidViewModel: function () {
             if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
-                commonjs.showWarning('Please check report id, category, and/or format!');
+                commonjs.showWarning('messages.status.pleaseCheckReportIdCategoryandorFormat');
                 return false;
             }
 
             if (this.viewModel.dateFrom == null || this.viewModel.dateTo == null) {
-                commonjs.showWarning('Please select study date range!');
+                commonjs.showWarning('messages.status.pleaseSelectDateRange');
                 return false;
             }
             return true;

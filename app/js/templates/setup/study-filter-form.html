@@ -101,7 +101,7 @@
                             </label>
                         </div>
                         <div class="form-list col-md-4 col-sm-4">
-                            <input type="text" id="txtFilterOrder" name="FilterOrder" maxlength="5" min="0" placeholder="Filter Order" i18np="setup.studyFilters.filterOrder"
+                            <input type="text" id="txtFilterOrder" name="FilterOrder" maxlength="5" min="0" i18np="setup.studyFilters.filterOrder"
                                 required="required" class="form-control integerbox fc-short">
                         </div>
                         <div class="form-list col-md-4 col-sm-4">
@@ -384,7 +384,7 @@
                                     <div class="row form-inline">
                                         <div class="col-form-label col-md-8 col-sm-8">
                                             <input type="text" class="form-control fc-short" id="txtPatientName"
-                                                   i18np="setup.studyFilters.patientName" placeholder="Patient Name">
+                                                   i18np="setup.studyFilters.patientName">
                                         </div>
                                         <div class="form-list col-md-3 col-sm-3">
                                             <button id="btnAddPatientName" class="btn btn-primary"><i
@@ -444,7 +444,7 @@
                                     <div class="row form-inline">
                                         <div class="col-form-label col-md-8 col-sm-8">
                                             <input type="text" class="form-control fc-short" id="txtPatientID"
-                                                   i18np="setup.studyFilters.accountNo" placeholder="Account No">
+                                                   i18np="setup.studyFilters.accountNo">
                                         </div>
                                         <div class="col-form-label col-md-3 col-sm-3">
                                             <button id="btnAddPatientID" class="btn btn-primary"><i
@@ -510,7 +510,7 @@
                                                 <div class="row form-inline">
                                                     <div class="col-form-label col-md-8 col-sm-8"><input type="text"
                                                                                                          id="txtInstitutionStudyFilter"
-                                                                                                         class="form-control" placeholder="Institution">
+                                                                                                         class="form-control" i18np="setup.studyFilters.institution">
                                                     </div>
                                                     <div class="col-form-label col-md-3 col-sm-3">
                                                         <button id="btnClAddInstitutionStudyFilter"
@@ -698,7 +698,7 @@
                                                         <ul id="ulListStudyDescriptions" class="tagList tagListMedium taglist-bg"></ul>
                                                     </div>
                                                     <div class="form-list col-md-12">
-                                                        <input type="text" id="txtStudyDescription" placeholder="Study Description"
+                                                        <input type="text" id="txtStudyDescription" i18np="billing.payments.studyDescription"
                                                                 class="form-control">
                                                             <a class="btn btn-primary" id="btnAddStudyDescription"
                                                                 title="Add Study Description"
@@ -755,7 +755,7 @@
                                                         <ul id="ulListAttorneys" class="tagList tagListMedium taglist-bg"></ul>
                                                     </div>
                                                     <div class="form-list col-md-12">
-                                                        <input type="text" id="txtAttorney" placeholder="Attorney" class="form-control">
+                                                        <input type="text" id="txtAttorney" i18np="setup.studyFilters.attorney" class="form-control">
                                                             <a class="btn btn-primary" id="btnAddAttorney" title="Add Attorney"
                                                             style="padding-left: 10px; padding-right: 10px;"><i class="icon-ic-plus"></i></a>
                                                     </div>
@@ -1021,7 +1021,7 @@
                                     </div>
                                     <div class="col-form-label">
                                         <input type="text" id="txtStudyID" i18np="setup.studyFilters.dicomStudyID"
-                                               placeholder="Study ID" class="form-control">
+                                               class="form-control">
                                     </div>
                                 </div>
                             </li>
@@ -1054,7 +1054,7 @@
                                     </div>
                                     <div class="col-form-label">
                                         <input type="text" id="txtAccession" i18np="setup.studyFilters.accession"
-                                               placeholder="Accession" class="form-control">
+                                               class="form-control">
                                     </div>
                                 </div>
 
@@ -1121,7 +1121,7 @@
                                     <div class="row form-inline">
                                         <div class="col-form-label col-md-8 col-sm-8">
                                             <input type="text" id="txtReadPhy" i18np="setup.studyFilters.readPhy"
-                                                   class="form-control fc-short" placeholder="Read Phy">
+                                                   class="form-control fc-short">
                                         </div>
                                         <div class="col-form-label col-md-3 col-sm-3">
                                             <button class="btn btn-primary" id="btnAddReadPhy"><i
@@ -1176,7 +1176,7 @@
                                     <div class="row form-inline">
                                         <div class="col-form-label col-md-8 col-sm-8">
                                             <input type="text" id="txtRefPhy" i18np="setup.studyFilters.refPhy"
-                                                   class="form-control fc-short" placeholder="Ref Phy">
+                                                   class="form-control fc-short">
                                         </div>
                                         <div class="col-form-label col-md-3 col-sm-3">
                                             <button id="btnAddRefPhy" class="btn btn-primary"><i
@@ -1284,7 +1284,7 @@
                                         <div class="col-form-label col-md-8 col-sm-8">
                                             <input type="text" id="txtInsurance"
                                                    i18np="setup.studyFilters.insuranceProvider"
-                                                   class="form-control fc-short" placeholder="Insurance Provider">
+                                                   class="form-control fc-short">
                                         </div>
                                         <div class="col-form-label col-md-3 col-sm-3">
                                             <button class="btn btn-primary" id="btnAddInsurance"><i
@@ -1302,12 +1302,12 @@
         <div id="claimFilter" class="row" style="display:none">
             <div class="form-group row col-md-12" id="divClaimDateTime">
                 <div class="row" style="width:100%">
-                    <b><label i18n="setup.claimFilter.DateTime"></label></b>
+                    <b><label i18n="setup.marketingRep.dateTime"></label></b>
                 </div>
             </div>
             <ul class="form-list col-md-6 col-sm-6 mt-3">
                 <li>
-                    <div class="form-group row col-md-12" id="divClaimInformation">
+                    <div class="form-gpapp/js/templates/setup/study-filter-grid.htmlroup row col-md-12" id="divClaimInformation">
                         <b><label for="txtInsurance" i18n="setup.claimFilter.claimStatus"></label></b>
                         <div class="col-form-label col-md-12 col-sm-12 form-inline">
                             <div class="col-md-2 col-sm-2">

@@ -455,7 +455,7 @@ define(['jquery',
                     var claimStatus = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'claim_status_code');
 
                     if (claimStatus == "PV") {
-                        commonjs.showWarning('Please validate claims');
+                        commonjs.showWarning('messages.status.pleaseValidateClaims');
                         return false;
                     }
 
@@ -463,14 +463,14 @@ define(['jquery',
 
                     if (e.target) {
                         if (billingMethodFormat != billingMethod) {
-                            commonjs.showWarning('Please select valid claims method');
+                            commonjs.showWarning('messages.status.pleaseSelectValidClaimsMethod');
                             return false;
                         }
                     }
 
                     if (existingBillingMethod == '') existingBillingMethod = billingMethod
                     if (existingBillingMethod != billingMethod) {
-                        commonjs.showWarning('Please select claims with same type of billing method');
+                        commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfBillingMethod');
                         return false;
                     } else {
                         existingBillingMethod = billingMethod;
@@ -479,7 +479,7 @@ define(['jquery',
                     var clearingHouse = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_clearing_house');
                     if (existingClearingHouse == '') existingClearingHouse = clearingHouse;
                     if (existingClearingHouse != clearingHouse && billingMethod == 'electronic_billing') {
-                        commonjs.showWarning('Please select claims with same type of clearing house Claims ');
+                        commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfClearingHouseClaims');
                         return false;
                     } else {
                         existingClearingHouse = clearingHouse;
@@ -503,7 +503,7 @@ define(['jquery',
 
 
                 if (claimIds && claimIds.length == 0) {
-                    commonjs.showWarning('Please select claims with same type of billing method ');
+                    commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfBillingMethod');
                     return false;
                 }
 
@@ -1651,7 +1651,7 @@ define(['jquery',
             },
             reprocessConflicts: function () {
 
-                if (window.confirm('Are you sure you want to reprocess the conflicts?')) {
+                if (window.confirm(commonjs.geti18NString('messages.status.areYouSureYouWantToReprocessTheConflicts'))) {
                     var self = this;
                     commonjs.showLoading();
                     jQuery.ajax({

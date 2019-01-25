@@ -876,7 +876,7 @@ define('grid', [
 
             var icon_width = 24;
             colName = colName.concat([
-                ('<input type="checkbox" title="Select all studies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />'),
+                ('<input type="checkbox" i18nt="billing.payments.selectAllStudies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />'),
                 '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', ''
             ]);
 
@@ -1524,7 +1524,7 @@ define('grid', [
                 colNames: colName.concat(studyFields.colName),
                 i18nNames: i18nName.concat(studyFields.i18nName),
                 colModel: colModel.concat(studyFields.colModel),
-                emptyMessage: 'No Study found',
+                emptyMessage: commonjs.geti18NString('messages.status.noStudyFound'),
                 sortname: defSortColumn,
                 sortorder: defSortOrder,
                 caption: "Studies",

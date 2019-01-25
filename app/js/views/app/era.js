@@ -103,9 +103,9 @@ define([
                             name: 'eob_file_id', width: 80, sortable: false, search: false,
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.payment_id && cellvalue) {
-                                    return "<a href='javascript: void(0)' id =" + cellvalue + " name='viewPDF' style='text-align: center;text-decoration: underline;'>View PDF</a>";
+                                    return "<a href='javascript: void(0)' id =" + cellvalue + " name='viewPDF' style='text-align: center;text-decoration: underline;' i18n='shared.buttons.viewPDF'></a>";
                                 } else if (rowObject.payment_id && !cellvalue) {
-                                    return "<a href='javascript: void(0)' id =" + rowObject.id + " name='uploadPDF' style='text-align: center;text-decoration: underline;'>Upload PDF</a>";
+                                    return "<a href='javascript: void(0)' id =" + rowObject.id + " name='uploadPDF' style='text-align: center;text-decoration: underline;' i18n='shared.buttons.uploadPDF'></a>";
                                 }
 
                                 return "";
@@ -184,7 +184,7 @@ define([
                             self.processFile(rowID, gridData, null);
                         }
                         else {
-                            commonjs.showWarning('messages.era.fileAlreadyProcessed');
+                            commonjs.showWarning('messages.warning.era.fileAlreadyProcessed');
                         }
                     }
                 });
