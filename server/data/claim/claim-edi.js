@@ -683,11 +683,6 @@ module.exports = {
 											INNER JOIN 	billing.payment_applications	 ON payment_applications.id=cas_payment_application_details.payment_application_id
 											INNER JOIN billing.payments ON  billing.payments.id=payment_applications.payment_id and payer_type='insurance' AND
 											payment_applications.charge_id = charges.id AND payment_applications.amount_type = 'adjustment'
-											INNER JOIN LATERAL ( SELECT
-                                                                                            i_pi.insurance_provider_id
-                                                                                            FROM patient_insurances i_pi
-                                                                                            WHERE i_pi.id = claims.primary_patient_insurance_id
-											                    ) AS ipi ON ipi.insurance_provider_id = payments.insurance_provider_id
 											WHERE cas_group_codes.code= gc.code ) AS CAS )
 											FROM  billing.cas_payment_application_details
 											INNER JOIN billing.cas_group_codes ON cas_group_codes.id = cas_group_code_id

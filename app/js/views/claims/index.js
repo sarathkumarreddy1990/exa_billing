@@ -2850,13 +2850,11 @@ define(['jquery',
                                             var $td = $studyGrid.children('td');
                                             // If studies grid has Unbilled filter means remove row from grid
                                             var isBilledStatus = currentFilter.filter_info && currentFilter.filter_info.studyInformation && currentFilter.filter_info.studyInformation.billedstatus === 'unbilled' || false;
+                                            var nextStudyGrid = $studyGrid.nextAll().has("input[type=checkbox]")[0];
+                                            var prevStudyGrid = $studyGrid.prevAll().has("input[type=checkbox]")[0];
+                                            self.nextRow = nextStudyGrid ? nextStudyGrid.id : null;
+                                            self.previousRow = prevStudyGrid ? prevStudyGrid.id : null;
 
-                                            if (!self.nextRow && !self.previousRow) {
-                                                var nextStudyGrid = $studyGrid.nextAll().has("input[type=checkbox]")[0];
-                                                var prevStudyGrid = $studyGrid.prevAll().has("input[type=checkbox]")[0];
-                                                self.nextRow = nextStudyGrid ? nextStudyGrid.id : null;
-                                                self.previousRow = prevStudyGrid ? prevStudyGrid.id : null;
-                                            }
                                             if (billedStatusFilter === 'unbilled' || isBilledStatus) {
                                                 $studyGrid.remove();
                                             } else {
