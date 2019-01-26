@@ -88,7 +88,7 @@
         <div class="row">
             <div class="col-xs-12 mt-1">
                 <div class="patient-search__header">
-                    <span class="patient-search__header-text" i18n="billing.payments.patientSearchResults">Patient Search Results</span>
+                    <span class="patient-search__header-text" i18n="billing.payments.patientSearchResults"></span>
                 </div>
                 <div class="patient-search__container mt-0" style="height: 495px; overflow: auto;">
                     <div id="divNoPatients" class="noRecords" style="display:none;">
@@ -117,9 +117,9 @@
         <div id="divEmptySearch" style="display:none;">
             <p style="padding-top:.33em"></p>
             <h4>
-                <span i18n="billing.payments.pleaseEnterAtleast">Please enter atleast</span>
+                <span i18n="billing.payments.pleaseEnterAtleast"></span>
                 <em id="em_SearchLetters"></em>
-                <span i18n="billing.payments.charactersToSsearch">charactors to search.</span>
+                <span i18n="billing.payments.charactersToSsearch"></span>
             </h4>
             <p></p>
         </div>
@@ -492,7 +492,7 @@
                     </div>
                     <div class="col-sm-3 form-check form-check-inline" id="showPriSelf">
                         <input class="form-check-input" type="checkbox" id="chkPriSelf" name="self">
-                        <label class="form-check-label" for="chkPriSelf" i18n="billing.fileInsurance.self">Self</label>
+                        <label class="form-check-label" for="chkPriSelf" i18n="billing.fileInsurance.self"></label>
                     </div>
                 </div>
                 <div class="form-group row">
@@ -679,7 +679,7 @@
                     </div>
                     <div class="col-sm-3 form-check form-check-inline" id="showSecSelf">
                         <input class="form-check-input" type="checkbox" id="chkSecSelf" name="self">
-                        <label class="form-check-label" for="chkSecSelf" i18n="billing.fileInsurance.self">Self</label>
+                        <label class="form-check-label" for="chkSecSelf" i18n="billing.fileInsurance.self"></label>
                     </div>
                 </div>
                 <div class="form-group row">
@@ -849,7 +849,7 @@
                     </div>
                     <div class="col-sm-3 form-check form-check-inline" id="showTerSelf">
                         <input class="form-check-input" type="checkbox" id="chkTerSelf" name="self">
-                        <label class="form-check-label" for="chkTerSelf" i18n="billing.fileInsurance.self">Self</label>
+                        <label class="form-check-label" for="chkTerSelf" i18n="billing.fileInsurance.self"></label>
                     </div>
                 </div>
                 <div class="form-group row">
@@ -1249,7 +1249,7 @@
                                         <input id="txtCheckCardNo_<%= row.row_index %>" type="text" value="<%= row.card_number %>" class="checkcardno form-control integerbox">
                                     </td>
                                     <td style="width: 5%;vertical-align: middle;">
-                                        <input type="button" value="APPLY" id="btnApplyPayment_<%= row.row_index %>" class="pl-3 pr-3 btn pull-left paymentApply">
+                                        <input type="button" value="APPLY" id="btnApplyPayment_<%= row.row_index %>" i18n="report.reportFilter.apply" class="pl-3 pr-3 btn pull-left paymentApply">
                                     </td>
                                     <td style="width:8%;vertical-align: middle;">
                                         <span class="form-control floatbox" id="spThisPay_<%= row.row_index %>" style="background-color: transparent;"><%= row.payment_applied %></span>

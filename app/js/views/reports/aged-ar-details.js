@@ -121,11 +121,11 @@ define(['jquery',
 
             hasValidViewModel: function () {
                 if (!(this.viewModel.fromDate && this.viewModel.fromDate.date())) {
-                    commonjs.showWarning('Please select date!');
+                    commonjs.showWarning('messages.status.pleaseSelectDate');
                     return false;
                 }
                 if (this.viewModel.fromDate.date().diff(commonjs.getFacilityCurrentDateTime(app.facilityID)) > 0) {
-                    commonjs.showWarning('Please do not select future date ');
+                    commonjs.showWarning('messages.status.pleaseDoNotSelectFutureDate');
                     return false;
                 }
                 return true;

@@ -346,7 +346,7 @@ define(['jquery',
                 $('#divInputType span').show();
                 this.clearPayerFields();
                 if (val === 'insurance') {
-                    $('#select2-txtautoPayerPIP-container').html('Select Insurance');
+                    $('#select2-txtautoPayerPIP-container').html(commonjs.geti18NString('billing.payments.selectInsurance'));
                     $('#divPayerInsurnace').show();
                     $('#lblIpEob').show();
                     $('#chkIpEob').prop('checked', true);
@@ -354,7 +354,7 @@ define(['jquery',
                     $('#lblInputType').text('Input Type');
                 }
                 else if (val === 'patient') {
-                    $('#select2-txtautoPayerPP-container').html('Select Patient');
+                    $('#select2-txtautoPayerPP-container').html(commonjs.geti18NString('billing.payments.selectPatient'));
                     $('#divPayerPatient').show();
                     $('#lblIpEob').hide();
                     $('#divInputType span').hide();
@@ -362,13 +362,13 @@ define(['jquery',
                     $('#lblInputType').text('');
                 }
                 else if (val === 'ordering_facility') {
-                    $('#select2-txtautoPayerPOF-container').html('Select Ordering facility');
+                    $('#select2-txtautoPayerPOF-container').html(commonjs.geti18NString('billing.payments.selectOrderingFacility'));
                     $('#divPayerOrderFacility').show();
                     $('#lblIpEob').hide();
                     $('#lblInputType').text('Input Type');
                 }
                 else if (val === 'ordering_provider') {
-                    $('#select2-txtautoPayerPR-container').html('Select Provider');
+                    $('#select2-txtautoPayerPR-container').html(commonjs.geti18NString('billing.payments.selectProvider'));
                     $('#divPayerProvider').show();
                     $('#lblIpEob').hide();
                     $('#lblInputType').text('Input Type');
@@ -1409,7 +1409,7 @@ define(['jquery',
                                         self.claimID = "";
                                     }
                                 } else {
-                                    commonjs.showWarning('Invalid claim id ' + gridObj.options.customargs.claimIdToSearch);
+                                    commonjs.showWarning(commonjs.geti18NString('messages.warning.payments.invalidClaimid') + " " + gridObj.options.customargs.claimIdToSearch);
                                 }
                                 $('#btnBackToPatient').click();
                                 $('#claimId').focus();
@@ -2374,7 +2374,7 @@ define(['jquery',
             clearPayerFields: function () {
                 this.patient_id = this.provider_id = this.provider_group_id = this.insurance_provider_id = null;
             },
-               
+
             goBackToPayments: function () {
                 if (this.from === 'ris')
                     Backbone.history.navigate('#billing/payments/filter/ris', true);
