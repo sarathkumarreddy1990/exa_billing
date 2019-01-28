@@ -265,14 +265,14 @@ function getAddressDetails(claimData) {
             details.push(
                 (claimData && claimData.lastName ? getSubstring(claimData.lastName, 30) : '') + '\n' +
                 (
-                    ( claimData.addressLine2 ? (getSubstring(((claimData.addressLine1?(claimData.addressLine1+ ', '):'')  + claimData.addressLine2),30))  : '') + '\n' + (getSubstring((claimData.city ? ( (claimData.city) +  ( claimData.state ? (' ' + claimData.state) : ' ') + (claimData.zipCode? ' ' +claimData.zipCode: ' ') ): ' '), 30))
+                    ( claimData.addressLine2 ? (getSubstring(((claimData.addressLine1?(claimData.addressLine1+ ', '):'')  + claimData.addressLine2),30))  : '') + '\n' + (getSubstring((claimData.city ? ( (claimData.city) +  ( claimData.state ? (' ' + claimData.state) : ' ') + ( claimData.zipCode ? ' ' +claimData.zipCode: (claimData.zip?' ' + claimData.zip : ' ' ) ) ): ' '), 30))
                 )
             );
         } else {
             details.push(
                 (claimData && claimData.lastName ? getSubstring(claimData.lastName, 30) : '') + '\n' +
                 (
-                    (claimData.addressLine1 ? getSubstring(claimData.addressLine1, 30) : '') + '\n' + getSubstring(((claimData.city ? ( (claimData.city.toString().toUpperCase()) +  ( claimData.state ? (' ' + claimData.state.toString().toUpperCase()) : ' ') + (claimData.zipCode? ' ' +claimData.zipCode: ' ') ): ' ')), 30)
+                    (claimData.addressLine1 ? getSubstring(claimData.addressLine1, 30) : '') + '\n' + getSubstring(((claimData.city ? ( (claimData.city.toString().toUpperCase()) +  ( claimData.state ? (' ' + claimData.state.toString().toUpperCase()) : ' ') + ( claimData.zipCode ? ' ' +claimData.zipCode: (claimData.zip?' ' + claimData.zip : ' ' ) ) ): ' ')), 30)
                 )
             );
         }
