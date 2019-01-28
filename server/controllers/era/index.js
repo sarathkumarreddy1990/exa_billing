@@ -15,7 +15,7 @@ const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
 
 const createDir = function (fileStorePath, filePath) {
-    return new Promise(function(resolve) {
+    return new Promise(function(resolve, reject) {
         const dirPath = `${fileStorePath}\\${filePath}`;
 
         logger.info(`File store: ${fileStorePath}, ${filePath}`);
@@ -25,7 +25,7 @@ const createDir = function (fileStorePath, filePath) {
         if (!dirExists) {
             logger.info(`Root directory not found in file store -  ${fileStorePath}`);
 
-            return resolve({
+            return reject({
                 status: false,
                 message: 'Root directory not found in file store'
             });
@@ -40,7 +40,7 @@ const createDir = function (fileStorePath, filePath) {
     
             mkdirp(dirPath, function (err) {
                 if (err) {
-                    return resolve({
+                    return reject({
                         status: false,
                         message: 'Directory not found in file store'
                     });
@@ -52,7 +52,7 @@ const createDir = function (fileStorePath, filePath) {
         } else {
             logger.info(`Directory not found -  ${dirPath}`);
 
-            return resolve({
+            return reject({
                 status: false,
                 message: 'Directory not found in file store'
             });
@@ -142,13 +142,8 @@ module.exports = {
         if (isPreviewMode) {
             logger.info('ERA Preview MODE');
             fileRootPath = `trash\\${currentTime.getFullYear()}\\${currentTime.getMonth()}`;
-            const dirResponse = await createDir(fileStorePath, fileRootPath);
 
-            if (!dirResponse.status) {
-                return {
-                    file_store_status: dirResponse.message
-                };
-            }
+            await createDir(fileStorePath, fileRootPath);
 
             let diskFileName = params.session.id + '__' + fileName;
 
@@ -167,13 +162,7 @@ module.exports = {
 
         logger.info(`${uploadingMode} Process MODE`);
 
-        const dirResponse = await createDir(fileStorePath, fileRootPath);
-
-        if (!dirResponse.status) {
-            return {
-                file_store_status: dirResponse.message
-            };
-        }
+        await createDir(fileStorePath, fileRootPath);
 
         if (fileExist != false && !isEob) {
             logger.info(`${uploadingMode} Duplicate file: ${fileMd5}`);
