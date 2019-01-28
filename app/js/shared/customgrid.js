@@ -1167,7 +1167,7 @@ function customGrid ( datastore, gridID ) {
     this.updateDelayedPager = function (filterObj, pagerApi) {
         var customArgs = filterObj.options.customargs;
         customArgs.countFlag = true;
-        filterObj.customGridTable.closest('.ui-jqgrid').find('.ui-paging-info').html(self.getPagination('<i class="fa fa-spinner loading-spinner"></i>', '<i class="fa fa-spinner loading-spinner"></i>');
+        filterObj.customGridTable.closest('.ui-jqgrid').find('.ui-paging-info').html(self.getPagination('<i class="fa fa-spinner loading-spinner"></i>', '<i class="fa fa-spinner loading-spinner"></i>'));
         jQuery.ajax({
             url: pagerApi,
             type: "GET",
