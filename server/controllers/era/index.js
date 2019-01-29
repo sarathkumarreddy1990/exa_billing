@@ -15,37 +15,49 @@ const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
 
 const createDir = function (fileStorePath, filePath) {
+    return new Promise(function(resolve, reject) {
+        const dirPath = `${fileStorePath}\\${filePath}`;
 
-    const dirPath = `${fileStorePath}\\${filePath}`;
+        logger.info(`File store: ${fileStorePath}, ${filePath}`);
+    
+        let dirExists = fs.existsSync(fileStorePath);
+    
+        if (!dirExists) {
+            logger.info(`Root directory not found in file store -  ${fileStorePath}`);
 
-    logger.info(`File store: ${fileStorePath}, ${filePath}`);
-
-    let dirExists = fs.existsSync(fileStorePath);
-
-    if (!dirExists) {
-        logger.info(`Root directory not found in file store -  ${fileStorePath}`);
-        return {
-            status: false,
-            message: 'Root directory not found in file store'
-        };
-    }
-
-    if (fileStorePath) {
-        const folderExist = fs.existsSync(dirPath);
-
-        if (folderExist) {
-            return { status: true };
+            return reject({
+                status: false,
+                message: 'Root directory not found in file store'
+            });
         }
+    
+        if (fileStorePath) {
+            const folderExist = fs.existsSync(dirPath);
+    
+            if (folderExist) {
+                return resolve({ status: true });
+            }
+    
+            mkdirp(dirPath, function (err) {
+                if (err) {
+                    return reject({
+                        status: false,
+                        message: 'Directory not found in file store'
+                    });
+                }  
+    
+                return resolve({ status: true });
+            });
+            
+        } else {
+            logger.info(`Directory not found -  ${dirPath}`);
 
-        mkdirp(dirPath);
-        return { status: true };
-    }
-
-    logger.info(`Directory not found -  ${dirPath}`);
-    return {
-        status: false,
-        message: 'Directory not found in file store'
-    };
+            return reject({
+                status: false,
+                message: 'Directory not found in file store'
+            });
+        }
+    });
 };
 
 module.exports = {
@@ -130,13 +142,8 @@ module.exports = {
         if (isPreviewMode) {
             logger.info('ERA Preview MODE');
             fileRootPath = `trash\\${currentTime.getFullYear()}\\${currentTime.getMonth()}`;
-            const dirResponse = createDir(fileStorePath, fileRootPath);
 
-            if (!dirResponse.status) {
-                return {
-                    file_store_status: dirResponse.message
-                };
-            }
+            await createDir(fileStorePath, fileRootPath);
 
             let diskFileName = params.session.id + '__' + fileName;
 
@@ -155,13 +162,7 @@ module.exports = {
 
         logger.info(`${uploadingMode} Process MODE`);
 
-        const dirResponse = createDir(fileStorePath, fileRootPath);
-
-        if (!dirResponse.status) {
-            return {
-                file_store_status: dirResponse.message
-            };
-        }
+        await createDir(fileStorePath, fileRootPath);
 
         if (fileExist != false && !isEob) {
             logger.info(`${uploadingMode} Duplicate file: ${fileMd5}`);
