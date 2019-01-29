@@ -361,16 +361,18 @@ module.exports = {
         } = params;
 
         let sql = SQL`
-                    SELECT  study_id,
-                            studies.order_id,
-                            studies.study_status,
-                            CASE
-	                            WHEN studies.study_status = 'APP' THEN 1
-	                            ELSE 2
-	                        END  AS status_index
-					FROM    billing.charges_studies
-                            INNER JOIN billing.charges ON billing.charges.id = billing.charges_studies.charge_id
-                            INNER JOIN public.studies ON public.studies.id = billing.charges_studies.study_id
+                    SELECT
+                        study_id,
+                        studies.order_id,
+                        studies.study_status,
+                        CASE
+                            WHEN studies.study_status = 'APP' THEN 1
+                            ELSE 2
+                        END  AS status_index
+                    FROM
+                        billing.charges_studies
+                    INNER JOIN billing.charges ON billing.charges.id = billing.charges_studies.charge_id
+                    INNER JOIN public.studies ON public.studies.id = billing.charges_studies.study_id
 					WHERE   billing.charges.claim_id = ${claim_id}
                     ORDER BY status_index ,study_id
                     LIMIT 1`;
