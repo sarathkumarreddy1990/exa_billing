@@ -256,6 +256,7 @@ define([
                         payerType:options.payerType
                     }, success: function (data, response) {
                         $("#btnClaimsRefresh").click();
+                        data = _.reject(data, { id: null });
                         callback(null, data.length > 0 ? data[0] : {});
                     }, error: function (err, response) {
                         commonjs.handleXhrError(err, response);

@@ -102,14 +102,14 @@ function header(data, columns, value) {
     return body;
 }
 
-function bindInvoiceHead(data, columns) {
+function bindInvoiceHead(data, columns, invoiceNo) {
     var body = [];
     if (data && [data].length) {
             var dataRow = [];
             if (columns && columns.length) {
                 columns.forEach(function(column) {
                     if (column === 'invoice_no') {
-                        dataRow.push((data[column])? ('**Invoice**\nInvoice Number: '+data[column]): (invoiceNo ? '**Invoice**\nInvoice Number: ' + invoiceNo : '**Invoice**\nInvoice Number: '));
+                        dataRow.push('**Invoice**\nInvoice Number: ' + (invoiceNo ? invoiceNo : (data[column] ? data[column] : '') ));
                     } else if (column === 'invoice_date') {
                         dataRow.push(data[column] ? 'Invoice Date: ' + Dateformat(data[column]) : 'Invoice Date: ');
                     }
@@ -166,21 +166,7 @@ function bindCharges(claimNo, data, columns) {
                         } else if (column === "modifier1") {
                             dataRow.push(row[column] ? row[column] + (row["modifier2"] ? ", " + row["modifier2"] : "") + (row["modifier3"] ? ", " + row["modifier3"] : "") + (row["modifier4"] ? ", " + row["modifier4"] : "") : '');
                         } else if (column === "bill_fee") {
-                            dataRow.push(
-                                [
-                                    {
-                                        style: 'myTable',
-                                        table: {
-                                            widths: [100],
-                                            body: [
-                                                [
-                                                    {text: row[column] ? row[column]: '' , alignment:'right' }
-                                                ],
-                                            ]
-                                        },layout: 'noBorders'
-                                    },
-                                ]
-                            );
+                            dataRow.push( {text: row[column] ? row[column]: '' , alignment:'right' });
                         } else {
                             dataRow.push(row[column] ? row[column] : '');
                         }
@@ -258,12 +244,13 @@ function Invoice() {
     if (typeof claimData !== 'undefined') {
         ClaimDetails = claimData.claim_details;
         chargeDetails = claimData.charge_details;
+        invoiceNo = claimData.invoiceNo;
         data = ClaimDetails;
     }
     var body = [];
     let pageBrk = 'none';
     let grand_total = '';
-    let InvoiceDet = bindInvoiceHead(ClaimDetails[0], ["invoice_no", "invoice_date"]);
+    let InvoiceDet = bindInvoiceHead(ClaimDetails[0], ["invoice_no", "invoice_date"], invoiceNo);
     let BillingDet = header(ClaimDetails[0], ["name", "address", "address2", "city", "state", "zip_code", "phone_no"], 'billing_provider_details');
     let ResponsibleDet = header(ClaimDetails[0], ["name", "address", "address2", "city", "state", "zip_code", "phone_no"], 'responsinble_party_address');
     body.push(
@@ -377,7 +364,7 @@ function Invoice() {
                                 {
                                     style: 'myTable',
                                     table: {
-                                        widths: [48, 65, 95, 45, 180, 90],
+                                        widths: [48, 65, 95, 45, 180, 100],
                                         body: bindCharges(ClaimDetails[i].claim_no, chargeDetails, ['display_code', 'modifier1', 'get_charge_icds', 'units', 'display_description', 'bill_fee'])
                                     },layout: 'noBorders'
                                 },
