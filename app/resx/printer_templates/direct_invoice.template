@@ -109,7 +109,7 @@ function bindInvoiceHead(data, columns, invoiceNo) {
             if (columns && columns.length) {
                 columns.forEach(function(column) {
                     if (column === 'invoice_no') {
-                        dataRow.push('**Invoice**\nInvoice Number: ' + (invoiceNo ? invoiceNo : (data[column] ? data[column] : '') ));
+                        dataRow.push('**Invoice**\nInvoice Number: ' + (invoiceNo || data[column] || ''));
                     } else if (column === 'invoice_date') {
                         dataRow.push(data[column] ? 'Invoice Date: ' + Dateformat(data[column]) : 'Invoice Date: ');
                     }
@@ -166,7 +166,7 @@ function bindCharges(claimNo, data, columns) {
                         } else if (column === "modifier1") {
                             dataRow.push(row[column] ? row[column] + (row["modifier2"] ? ", " + row["modifier2"] : "") + (row["modifier3"] ? ", " + row["modifier3"] : "") + (row["modifier4"] ? ", " + row["modifier4"] : "") : '');
                         } else if (column === "bill_fee") {
-                            dataRow.push( {text: row[column] ? row[column]: '' , alignment:'right' });
+                            dataRow.push( {text: (row[column] || '') , alignment:'right' });
                         } else {
                             dataRow.push(row[column] ? row[column] : '');
                         }
