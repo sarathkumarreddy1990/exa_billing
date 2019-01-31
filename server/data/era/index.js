@@ -213,6 +213,7 @@ module.exports = {
                                 ,code text
                                 ,is_debit boolean
                                 ,claim_index bigint
+                                ,claim_status text
                             )
                         )
                         ,un_matched_charges AS (
@@ -233,6 +234,7 @@ module.exports = {
                                 application_details.patient_prefix,
                                 application_details.patient_suffix,
                                 application_details.claim_index,
+                                application_details.claim_status,
                                 c.patient_id
                             FROM
                                 application_details
@@ -257,6 +259,7 @@ module.exports = {
                                 application_details.patient_prefix,
                                 application_details.patient_suffix,
                                 application_details.claim_index,
+                                application_details.claim_status,
                                 c.patient_id
                             FROM
                                 application_details
@@ -276,6 +279,7 @@ module.exports = {
                                 fcc.original_reference,
                                 fcc.service_date,
                                 fcc.code,
+                                fcc.claim_status,
                                 json_build_object(
                                     'payment'       ,fcc.payment,
                                     'charge_id'     ,fcc.charge_id,
@@ -347,12 +351,13 @@ module.exports = {
                         ),
                             update_claim_status_and_payer AS (
                                 SELECT
-                                    claim_id
+                                    DISTINCT claim_id
                                     ,billing.change_responsible_party(claim_id, claim_status_code, ${paymentDetails.company_id}, original_reference, 0, false)
                                 FROM
                                     matched_claims
                                 WHERE
                                     'TOS_PAYMENT' != ${paymentDetails.isFrom}
+                                    AND 'patient' != ${paymentDetails.payer_type} AND claim_status NOT IN ('PV','PS')
                             )
                             SELECT
 	                        ( SELECT json_agg(row_to_json(insert_payment_adjustment)) insert_payment_adjustment

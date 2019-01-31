@@ -600,6 +600,8 @@ module.exports = {
                             ),
                             change_responsible_party AS (
                                     SELECT billing.change_responsible_party(${params.claimId},0,${params.companyId},null, ${params.claimStatusID}, ${is_payerChanged}) AS result
+                                    WHERE
+                                        NOT ${params.changeResponsibleParty}
                             ),
                             create_audit_study_status AS (
                                 SELECT billing.create_audit(
@@ -1005,8 +1007,10 @@ module.exports = {
                             bc.id AS claim_id,
                             bc.patient_id,
                             bc.invoice_no,
-                            bc.claim_dt
-                        FROM billing.claims bc `;
+                            bc.claim_dt,
+                            cs.code AS claim_status
+                        FROM billing.claims bc
+                        INNER JOIN billing.claim_status cs ON cs.id = bc.claim_status_id `;
 
         sql.append(whereQuery);
 
@@ -1032,6 +1036,7 @@ module.exports = {
                           , cd.claim_dt
                           , cd.patient_id
                           , pc.display_code AS cpt_code
+                          , cd.claim_status
                         FROM
                             billing.charges AS c
                             INNER JOIN claims_details AS cd ON cd.claim_id = c.claim_id
@@ -1043,6 +1048,7 @@ module.exports = {
                             , cd.invoice_no
                             , cd.claim_dt
                             , pc.display_code
+                            , cd.claim_status
                     )
                 SELECT
                     charges.* ,

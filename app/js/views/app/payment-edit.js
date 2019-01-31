@@ -2235,9 +2235,7 @@ define(['jquery',
                 if (this.validatePayerDetails()) {
                     var lineItems = $("#tBodyApplyPendingPayment tr"), dataLineItems = [], orderPayment = 0.00, orderAdjustment = 0.00;
                     var line_items = [];
-
                     var cas = self.casSegmentsSelected;
-
                     $.each(lineItems, function (index) {
                         var _line_item = {};
                         var chargeRow = $(this);
@@ -2270,8 +2268,17 @@ define(['jquery',
                     */
                     var totalPayment = _.reduce(line_items,function(m,x) { return m + x.payment; }, 0);
                     var totalAdjustment = _.reduce(line_items,function(m,x) { return m + x.adjustment; }, 0);
+                    /**
+                    *  Condition : If payment_payer_type === 'patient' && claim_status !== Pending Validation/Submission
+                    *  DESC : No need to change Claim Status & Responsible
+                    *  Reference ticket  : EXA-12612
+                    */
+                    var paymentPayerType = self.isFromClaim ? self.claimPaymentObj.payer_type || '' : $('#selectPayerType').val();
+                    var oldClaimStatus = $("#ddlClaimStatus option[value = '" + self.received_claim_status_id + "']").attr('data-desc') || '';
+                    var isClaimStatusChanged = self.received_claim_status_id != $('#ddlClaimStatus').val();
+                    var claimStatusIndex = ['PV', 'PS'].indexOf(oldClaimStatus);
 
-                    if (totalPayment === 0 && totalAdjustment === 0) {
+                    if (totalPayment === 0 && totalAdjustment === 0 && claimStatusIndex === -1 && paymentPayerType !=='patient') {
                         $('#ddlClaimStatus').val($("option[data-desc = 'D']").val());
                         isClaimDenied = true;
                     }
@@ -2306,10 +2313,11 @@ define(['jquery',
                             adjustmentId: adjustmentType,
                             paymentStatus: paymentStatus,
                             casDeleted: JSON.stringify(self.casDeleted),
-                            claimStatusID: claimStatusID,
+                            claimStatusID: claimStatusIndex > -1 && !isClaimStatusChanged && paymentPayerType === 'patient' ? self.received_claim_status_id : claimStatusID,
                             is_payerChanged: isPayerChanged,
                             is_claimDenied: isClaimDenied,
-                            isFromClaim: self.isFromClaim
+                            isFromClaim: self.isFromClaim,
+                            changeResponsibleParty : paymentPayerType === 'patient' && claimStatusIndex > -1 && isPayerChanged === 'false' && !isClaimStatusChanged
                         },
                         success: function (model, response) {
                             var msg = self.isFromClaim ? commonjs.geti18NString('messages.status.tosSuccessfullyCompleted') :
