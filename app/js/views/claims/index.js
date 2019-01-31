@@ -1123,6 +1123,7 @@ define(['jquery',
                                     $('.claimProcess').prop('disabled', false);
                                     commonjs.hideLoading();
                                 }
+                                commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
                             }
                         },
                         error: function (model, response) {
