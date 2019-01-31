@@ -10,10 +10,8 @@ const getRandomResponseCode = (codes) => {
 const getRandomValidHealthNumberResponseCode = () => {
     return getRandomResponseCode([50, 51, 52, 53, 54, 55]);
 };
-console.log('routes configurted');
 
 router.get('/hcv', (req, res) => {
-console.log('hcv endpoiint hit');
     const {
         healthNumber,
         versionCode,
@@ -24,7 +22,6 @@ console.log('hcv endpoiint hit');
     };
 
     if (healthNumber.length === 10) {
-        console.log( 'VERSION CODE: ' + versionCode);
         if (versionCode === 'OK') {
             result.isValid = true;
             result.responseCode = getRandomValidHealthNumberResponseCode();
