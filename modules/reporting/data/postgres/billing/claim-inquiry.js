@@ -385,7 +385,7 @@ const api = {
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
                 var carrierNameIndex = 19;
-                var carrierIdIndex = 23;
+                var carrierIdIndex = 25;
                 var lastCarrierId = 0;
                 var lastCarrierName = '';
                 var lastProcessedIndex = 0;
