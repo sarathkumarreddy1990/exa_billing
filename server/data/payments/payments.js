@@ -1544,9 +1544,11 @@ module.exports = {
                     , claims.patient_id
                     , ip.id AS payment_id
                     , charges.line_items
+                    , cs.code AS claim_status_code
                 FROM
                     billing.claims
                 INNER JOIN insert_payment ip ON ip.patient_id = claims.patient_id
+                INNER JOIN billing.claim_status cs ON cs.id = claims.claim_status_id
                 INNER JOIN claim_payments_list cpl ON cpl.claim_id = claims.id
                 INNER JOIN LATERAL (
                         SELECT
@@ -1598,6 +1600,7 @@ module.exports = {
                     ) AS result
                 FROM
                     claim_charges
+                WHERE claim_status_code NOT IN ('PV','PS')
             )
         SELECT null,id,null FROM insert_audit_cte
         UNION ALL
