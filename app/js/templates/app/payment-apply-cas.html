@@ -27,7 +27,7 @@
                     <span id="spApplyTotalFee"></span>
                 </td>
                 <td style="width:30%;border:none !important;" align="center">
-                    <span i18n="billing.payments.appliedPayment"></span> : 
+                    <span i18n="billing.payments.appliedPayment"></span> :
                     <span id="spPaymentApplied"></span>
                 </td>
                 <td style="width:30%;border:none !important;" align="center">
@@ -61,9 +61,11 @@
                     <td width="10%">
                         <span i18n="billing.payments.thisPayment"></span>
                     </td>
+                    <% if (app.country_alpha_3_code !== "can") { %>
                     <td width="10%">
                         <span i18n="billing.payments.allowed"></span>
                     </td>
+                    <% } %>
                     <td>
                         <span i18n="billing.payments.adjustment"></span>
                     </td>
@@ -175,6 +177,7 @@
                             </div>
                         </div>
                     </div>
+                    <% if (app.country_alpha_3_code !== "can") { %>
                     <div class="col">
                         <div class="form-group row">
                             <label class="control-label col-sm-4" i18n="billing.payments.deduction"> :</label>
@@ -190,11 +193,12 @@
                         </div>
                         <div class="form-group row">
                             <label class="control-label col-sm-4" i18n="billing.payments.coPay"> :</label>
-                        
                             <div class="col-sm-5">
                                 <input type="text" id="txtCoPay" value="0.00" class="form-control input-xs maskFee floatbox">
                             </div>
                         </div>
+                        <% } %>
+                    </div>
                 </div>
             </form>
         </div>
