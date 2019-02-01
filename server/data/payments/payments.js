@@ -775,6 +775,9 @@ module.exports = {
                             RETURNING *, '{}'::jsonb old_values),
                             change_responsible_party AS (
                                     SELECT billing.change_responsible_party(${params.claimId},0,${params.companyId},null, ${params.claimStatusID}, ${params.is_payerChanged}) AS result
+                                    WHERE
+                                        NOT ${params.changeResponsibleParty}
+
                             ),
                         update_cas_application AS(
                                     UPDATE billing.cas_payment_application_details bcpad
@@ -1195,8 +1198,10 @@ module.exports = {
                                 bc.patient_id,
                                 bc.invoice_no,
                                 bc.claim_dt,
-                                pd.payment_id
+                                pd.payment_id,
+                                cs.code AS claim_status
                             FROM billing.claims bc
+                            INNER JOIN billing.claim_status cs ON cs.id = bc.claim_status_id
                             INNER JOIN payment_details pd ON pd.patient_id = bc.patient_id
                             INNER JOIN billing.get_claim_totals(bc.id) ON true
                             WHERE
@@ -1213,7 +1218,8 @@ module.exports = {
                                 cd.claim_dt,
                                 cd.patient_id,
                                 pc.display_code AS cpt_code,
-                                cd.payment_id
+                                cd.payment_id,
+                                cd.claim_status
                             FROM
                                 billing.charges AS c
                                 INNER JOIN claims_details AS cd ON cd.claim_id = c.claim_id
@@ -1227,6 +1233,7 @@ module.exports = {
                                 , cd.claim_dt
                                 , pc.display_code
                                 , cd.payment_id
+                                , cd.claim_status
                         )
                         SELECT
                             charges.* ,

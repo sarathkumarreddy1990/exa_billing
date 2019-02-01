@@ -357,7 +357,7 @@ module.exports = {
                                     matched_claims
                                 WHERE
                                     'TOS_PAYMENT' != ${paymentDetails.isFrom}
-                                    AND 'patient' != ${paymentDetails.payer_type} AND claim_status NOT IN ('PV','PS')
+                                    AND ('patient' != ${paymentDetails.payer_type} OR claim_status NOT IN ('PV','PS'))
                             )
                             SELECT
 	                        ( SELECT json_agg(row_to_json(insert_payment_adjustment)) insert_payment_adjustment
