@@ -636,7 +636,7 @@ define([
                             },
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.type && rowObject.code == 'charge')
-                                    return "<i class='icon-ic-raw-transctipt' title='View Pay details of this charge'></i>"
+                                return "<i class='icon-ic-raw-transctipt' i18nt='shared.screens.setup.viewPayDetailsOfThisCharge'></i>"
                                 else
                                     return rowObject.payment_id;
                             },
@@ -698,7 +698,7 @@ define([
                             },
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.type && rowObject.code == 'payment')
-                                    return "<i class='fa fa-eye' title='view payment details'></i>"
+                                    return "<i class='fa fa-eye' i18nt='shared.screens.setup.viewPaymentDetails'></i>"
                                 else
                                     return "";
                             },

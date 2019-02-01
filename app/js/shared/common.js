@@ -657,7 +657,7 @@ var commonjs = {
             "Last 30 Days": [moment().subtract(29, "days"), moment()],
             "This Month": [moment().startOf("month"), moment().endOf("month")],
             "Last Month": [moment().subtract(1, "months").startOf("month"), moment().subtract(1, "months").endOf("month")],
-            "This Year": [moment().startOf("year"), moment()]
+            "This Year": [moment().startOf("year"), moment().endOf("year")]
         };
         var futureRangeSet = {
             "Today": [moment(), moment()],
@@ -666,7 +666,7 @@ var commonjs = {
             "Next 30 Days": [moment(), moment().add(29, "days")],
             "This Month": [moment().startOf("month"), moment().endOf("month")],
             "Next Month": [moment().add(1, "months").startOf("month"), moment().add(1, "months").endOf("month")],
-            "This Year": [moment().startOf("year"), moment()]
+            "This Year": [moment().startOf("year"), moment().endOf("year")]
         };
         // 1940s, 1950s, etc, etc
         var birthDecadeRangeSet = {};

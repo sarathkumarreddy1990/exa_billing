@@ -349,7 +349,7 @@ define(['jquery',
                 $('#divInputType span').show();
                 this.clearPayerFields();
                 if (val === 'insurance') {
-                    $('#select2-txtautoPayerPIP-container').html('Select Insurance');
+                    $('#select2-txtautoPayerPIP-container').html(commonjs.geti18NString('billing.payments.selectInsurance'));
                     $('#divPayerInsurnace').show();
                     $('#lblIpEob').show();
                     $('#chkIpEob').prop('checked', true);
@@ -357,7 +357,7 @@ define(['jquery',
                     $('#lblInputType').text('Input Type');
                 }
                 else if (val === 'patient') {
-                    $('#select2-txtautoPayerPP-container').html('Select Patient');
+                    $('#select2-txtautoPayerPP-container').html(commonjs.geti18NString('billing.payments.selectPatient'));
                     $('#divPayerPatient').show();
                     $('#lblIpEob').hide();
                     $('#divInputType span').hide();
@@ -365,13 +365,13 @@ define(['jquery',
                     $('#lblInputType').text('');
                 }
                 else if (val === 'ordering_facility') {
-                    $('#select2-txtautoPayerPOF-container').html('Select Ordering facility');
+                    $('#select2-txtautoPayerPOF-container').html(commonjs.geti18NString('billing.payments.selectOrderingFacility'));
                     $('#divPayerOrderFacility').show();
                     $('#lblIpEob').hide();
                     $('#lblInputType').text('Input Type');
                 }
                 else if (val === 'ordering_provider') {
-                    $('#select2-txtautoPayerPR-container').html('Select Provider');
+                    $('#select2-txtautoPayerPR-container').html(commonjs.geti18NString('billing.payments.selectProvider'));
                     $('#divPayerProvider').show();
                     $('#lblIpEob').hide();
                     $('#lblInputType').text('Input Type');
@@ -1412,7 +1412,7 @@ define(['jquery',
                                         self.claimID = "";
                                     }
                                 } else {
-                                    commonjs.showWarning('Invalid claim id ' + gridObj.options.customargs.claimIdToSearch);
+                                    commonjs.showWarning(commonjs.geti18NString('messages.warning.payments.invalidClaimid') + " " + gridObj.options.customargs.claimIdToSearch);
                                 }
                                 $('#btnBackToPatient').click();
                                 $('#claimId').focus();
@@ -1483,8 +1483,8 @@ define(['jquery',
                     gridelementid: '#tblAppliedPaymentsGrid',
                     custompager: this.appliedPager,
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                    i18nNames: ['', '', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.fileInsurance.claimDt', 'billing.payments.billFee', 'billing.payments.patientPaid', 'billing.payments.payerPaid', 'billing.payments.adjustment', 'billing.payments.thisAdj', 'billing.payments.thisPayment', 'billing.payments.balance', 'billing.payments.cptCodes', 'patient_id', 'facility_id', ''],
+                    colNames: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    i18nNames: ['', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.fileInsurance.claimDt', 'billing.payments.billFee', 'billing.payments.patientPaid', 'billing.payments.payerPaid', 'billing.payments.adjustment', 'billing.payments.thisAdj', 'billing.payments.thisPayment', 'billing.payments.balance', 'billing.payments.cptCodes', 'patient_id', 'facility_id', ''],
                     colModel: [
                         {
                             name: 'edit', width: 20, sortable: false, search: false,
@@ -1508,7 +1508,6 @@ define(['jquery',
                                 self.showClaimInquiry(gridData.claim_id, '', true);
                             }
                         },
-                        { name: 'claim_id', index: 'id', key: true, hidden: true },
                         { name: 'charge_id', hidden: true },
                         { name: 'claim_dt', hidden: true },
                         { name: 'claim_id', width: 100 },
@@ -2382,7 +2381,7 @@ define(['jquery',
             clearPayerFields: function () {
                 this.patient_id = this.provider_id = this.provider_group_id = this.insurance_provider_id = null;
             },
-               
+
             goBackToPayments: function () {
                 if (this.from === 'ris')
                     Backbone.history.navigate('#billing/payments/filter/ris', true);

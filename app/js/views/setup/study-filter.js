@@ -1419,9 +1419,9 @@ define([
                     {
                         success: function (model, response) {
                             if (!response.length)
-                                commonjs.showStatus("Already Exists");
+                                commonjs.showStatus("messages.warning.shared.alreadyexists");
                             else {
-                                commonjs.showStatus("Saved Succesfully");
+                                commonjs.showStatus("messages.warning.shared.savedSuccesfully");
                                 if (filterType == "studies")
                                     $('#btnStudiesCompleteRefresh').click();
                                 else if (filterType == "claims")

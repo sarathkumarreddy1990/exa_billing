@@ -3884,8 +3884,9 @@ define(['jquery',
                                 $studyDetails.append($list);
                                 $studyDetails.show();
 
-                                $studyDetails.append('<button style="height:33px;margin-right:5px;" type="button" class="btn top-buffer processClaim" id="btnClaimWStudy">With Study</button>');
-                                $studyDetails.append('<button style="height:33px;" type="button" class="btn top-buffer processClaim" id="btnClaimWOStudy">Create Without Study</button>');
+                                $('<button/>').attr({'type':'button','i18n': 'billing.fileInsurance.withStudy','id':'btnClaimWStudy'}).addClass('btn top-buffer processClaim mr-2').css('height','33px');
+                                $studyDetails.append('<button style="height:33px;" type="button" i18n="billing.fileInsurance.createWithoutStudy" class="btn top-buffer processClaim" id="btnClaimWOStudy"></button>');
+                                commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
                                 $('.processClaim').off().click(function (e) {
 
                                     if ($(e.target).attr('id') == 'btnClaimWStudy') {
@@ -4295,7 +4296,7 @@ define(['jquery',
                     })
                         .append($('<a>')
                             .append($('<i>').attr({ class: 'icon-ic-alerts' }))
-                            .append($('<span>').attr({ 'i18n': 'shared.screens.patient.alerts' }).text(' Alerts'))
+                            .append($('<span>').attr({'i18n': 'shared.screens.patient.alerts'}))
                             .append($('<div>').attr({ 'id': 'alertBadge', class: 'alertBadge' }))));
 
                 var cssObj = {
@@ -4305,8 +4306,7 @@ define(['jquery',
                 };
 
                 $(parent.document).find('#spanModalHeader')
-                    .append($('<a/>', { href: "javascript:void(0)" })
-                        .text('Patient Chart')
+                    .append($('<a/>', { href: "javascript:void(0)" }).attr({ 'i18n': 'menuTitles.patient.patientChart' })
                         .css(cssObj)
                         .click(function () {
                             var url = '/exa#patient/info/edit/' + btoa(self.cur_patient_id);

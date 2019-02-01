@@ -53,7 +53,7 @@ define(['jquery',
             var followUPUserID = $('#txtFollowupUsers').val();
 
             if(followUpDate == '') {
-                commonjs.showWarning('Please Select Follow-up Date');
+                commonjs.showWarning('billing.fileInsurance.pleaseSelectFollowUpDate');
                 return;
             }
 
@@ -151,7 +151,7 @@ define(['jquery',
                     'claimFollowupData': claimFollowupData
                 },
                 success: function (data, response) {
-                    commonjs.showStatus('Followup canceled successfully');
+                    commonjs.showStatus('billing.fileInsurance.followupCanceledSuccessfully');
                     $('#btnClaimsRefresh').trigger('click');
                 },
                 error: function (err) {

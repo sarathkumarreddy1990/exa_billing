@@ -981,7 +981,7 @@ function customGrid ( datastore, gridID ) {
         $tblGrid
             .closest('.ui-jqgrid')
             .find('.ui-paging-info')
-            .html("Showing " + endIndex + " of " + self.pager.get('TotalRecords'));
+            .html(self.getPagination(endIndex, self.pager.get('TotalRecords')));
 
         var pgTables = $tblGrid.closest('.ui-jqgrid').find('.ui-jqgrid-pager').find('.ui-pg-table');
         var pagingFooter = pgTables.eq(1).find('td');
@@ -990,7 +990,7 @@ function customGrid ( datastore, gridID ) {
             pagingFooter.eq(1).removeClass('ui-state-disabled');
             pagingFooter.eq(5).removeClass('ui-state-disabled');
             pagingFooter.eq(6).removeClass('ui-state-disabled');
-            pagingFooter.eq(3).html("&nbsp;Showing " + endIndex + " of " + self.pager.get('TotalRecords'));
+            pagingFooter.eq(3).html("&nbsp;" + self.getPagination(endIndex, self.pager.get('TotalRecords')));
         }
 
         if ( typeof self.options.onaftergridbind === 'function' ) {
@@ -1112,7 +1112,7 @@ function customGrid ( datastore, gridID ) {
         $tblGrid
             .closest('.ui-jqgrid')
             .find('.ui-paging-info')
-            .html("Showing " + endIndex + " of " + total);
+            .html(self.getPagination(endIndex, total));
 
         var pgTables = $tblGrid.closest('.ui-jqgrid').find('.ui-jqgrid-pager').find('.ui-pg-table');
         var pagingFooter = $(pgTables[ 1 ]).find('td');
@@ -1123,7 +1123,7 @@ function customGrid ( datastore, gridID ) {
             pagingFooter.eq(6).removeClass('ui-state-disabled');
 
             pagingFooter.eq(3).html('&nbsp;Page ' + self.pager.get('PageNo') + ' of ' + reader.total() + '&nbsp;');
-            pagingFooter.eq(3).html("&nbsp;Showing " + endIndex + " of " + total);
+            pagingFooter.eq(3).html('&nbsp;' + self.getPagination(endIndex, total));
 
             if ( reader.total() > 0 ) {
                 if ( self.pager.get('PageNo') == 1 ) {
@@ -1167,7 +1167,7 @@ function customGrid ( datastore, gridID ) {
     this.updateDelayedPager = function (filterObj, pagerApi) {
         var customArgs = filterObj.options.customargs;
         customArgs.countFlag = true;
-        filterObj.customGridTable.closest('.ui-jqgrid').find('.ui-paging-info').html('Showing <i class="fa fa-spinner loading-spinner"></i> of <i class="fa fa-spinner loading-spinner"></i>')
+        filterObj.customGridTable.closest('.ui-jqgrid').find('.ui-paging-info').html(self.getPagination('<i class="fa fa-spinner loading-spinner"></i>', '<i class="fa fa-spinner loading-spinner"></i>'));
         jQuery.ajax({
             url: pagerApi,
             type: "GET",
@@ -1203,7 +1203,7 @@ function customGrid ( datastore, gridID ) {
                     var startIndex = ((filterObj.pager.get('PageNo') - 1) * pageSize) + 1;
                     var endIndex = ((startIndex + pageSize - 1) > filterObj.pager.get('TotalRecords')) ? filterObj.pager.get('TotalRecords') : (startIndex + pageSize - 1);
 
-                    filterObj.customGridTable.closest('.ui-jqgrid').find('.ui-paging-info').html("Showing " + endIndex + " of " + filterObj.pager.get('TotalRecords'));
+                    filterObj.customGridTable.closest('.ui-jqgrid').find('.ui-paging-info').html(self.getPagination(endIndex, filterObj.pager.get('TotalRecords')));
                 }
             },
             error: function (err) {
@@ -1296,4 +1296,9 @@ function customGrid ( datastore, gridID ) {
         return (typeof app.currentrowsToDisplay == 'undefined' || !app.currentrowsToDisplay ) ? 25 : app.currentrowsToDisplay;
     };
 
+    this.getPagination = function (endIndex, total) {
+        commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
+        var msg = commonjs.geti18NString("home.inbox.pagination");
+        return msg.replace('$END_INDEX', endIndex).replace('$TOTAL_RECORDS', total);
+    }
 }
