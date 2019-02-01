@@ -154,7 +154,7 @@ define([
 
             hasValidViewModel: function () {
                 if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
-                    commonjs.showWarning('Please check report id, category, and/or format!');
+                    commonjs.showWarning('messages.status.pleaseCheckReportIdCategoryandorFormat');
                     return;
                 }
 
@@ -191,6 +191,7 @@ define([
 
             onPatientOptionChange: function () {
                 UI.hideShowBox('ddlPatient');
+                $('#txtPatient').empty();
 
                 if ($('#ddlPatientOption').val() !== 'R') {
                     $('#ddlPatientLastNameBox').hide();

@@ -1,6 +1,6 @@
 {
     "name": "exa-billing",
-    "version": "1.0.1",
+    "version": "1.0.50",
     "private": true,
     "description": "EXA Billing Module",
     "main": "server/app.js",

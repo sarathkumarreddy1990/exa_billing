@@ -1,0 +1,40 @@
+<style>
+    .tablediv {
+        background: #fff;
+    }
+    .ui-jqgrid .ui-subgrid td.subgrid-cell{
+        background: #3f6992 !important;
+    }
+</style>
+<div class="col-lg-12 pt-1">
+    <form id="formBalanceWriteOff" >
+        <div class="form-group row">
+            <label class="col-form-label" i18n="shared.fields.maximumAccountBalance"></label>
+            <div class="col-sm-1">
+                <input type="text" name="writeOffAmt" class="form-control maskFee floatbox" id="txtWriteOffAmt" autocomplete="new-writeOffAmt">
+            </div>
+            <label class="col-form-label" i18n="billing.payments.adjustmentCode"></label>
+            <div class="col-sm-2">
+                <select class="form-control select-box" id="ddlWriteOffAdjCodes">
+                    <option value="" i18n="shared.buttons.select"></option>
+                    <% _.each(writeOffAdjustmentCodeList, function(adjCode) { %>
+                        <option value='<%= adjCode.id %>' data_code_type='<%= adjCode.accounting_entry_type %>' >
+                            <%= adjCode.description %>
+                        </option>
+                        <% }); %>
+                </select>
+            </div>
+            <div class="col-sm-2">
+                <input type="button" value="next" i18n="billing.fileInsurance.next" id="btnNextProcess" class="btn-sm btn btn-primary ml-1">
+                <input type="button" value="complete" i18n="setup.marketingRep.complete" id="btnBalanceWriteOff" class="btn-sm btn btn-primary ml-1 d-none" >
+            </div>
+        </div>
+    </form>
+</div>
+
+<div id="divBalanceWriteOffGrid">
+    <div>
+        <table id="tblPatientClaimsGrid"></table>
+        <div id="gridPager_PatientClaims"></div>
+    </div>
+</div>

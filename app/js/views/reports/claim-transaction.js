@@ -76,7 +76,7 @@ define([
                 'click #btnXmlReport': 'onReportViewClick',
                 "click #chkAllClaims": "selectAllClaims",
                 "click #chkAllInsGroup": "selectAllInsGroup",
-                "change .insGrpChk": "chkInsGroup",               
+                "change .insGrpChk": "chkInsGroup",
                 "click #chkAllFacility": "selectAllFacility",
                 "click #showCheckboxesClaim": "showCheckboxesClaim",
                 "click #showInsGroupCheckboxes": "showInsuranceGroupList",
@@ -131,7 +131,7 @@ define([
 
                 // pre-select default facility
                 this.selectDefaultFacility();
-                self.bindDateRangePicker();  //  Binding date range pickers                
+                self.bindDateRangePicker();  //  Binding date range pickers
                 self.bindUserAutocomplete();   // Referring Docotor Auto complete
 
                 //   Service date (Bill) Date Picker
@@ -159,11 +159,11 @@ define([
                     includeSelectAllOption: true,
                     enableCaseInsensitiveFiltering: true
                 });
-               
+
                 $('#ddlClaimSelectBoxes').multiselect({
                     maxHeight: 170,
-                    buttonWidth: '200px'                  
-                });            
+                    buttonWidth: '200px'
+                });
             },
 
             // Date Range Binding
@@ -248,22 +248,22 @@ define([
 
             hasValidViewModel: function () {
                 if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
-                    commonjs.showWarning('Please check report id, category, and/or format!');
+                    commonjs.showWarning('messages.status.pleaseCheckReportIdCategoryandorFormat');
                     return;
                 }
 
                 // Claim # validatation for from# &  To #
                 if ($('#claimIdFrom').val() != '' && $('#claimIdTo').val() == "") {
-                    commonjs.showWarning('Please Enter To Range (Claim #)');
+                    commonjs.showWarning('messages.status.pleaseEnterToRangeClaim');
                     return;
                 }
                 if ($('#claimIdTo').val() != '' && $('#claimIdFrom').val() == "") {
-                    commonjs.showWarning('Please Enter From Range (Claim #)');
+                    commonjs.showWarning('messages.status.pleaseEnterFromRangeClaim');
                     return;
                 }
 
                 if ($('#claimIdFrom').val() > $('#claimIdTo').val()) {
-                    commonjs.showWarning('Claim From# not Greater than To#');
+                    commonjs.showWarning('messages.status.claimFromNotGreaterThanTo');
                     return;
                 }
 
@@ -271,7 +271,7 @@ define([
                    // commonjs.showWarning('Please Select Service / Pay / Bill Created Date');
                     return;
                 }
-               
+
                 return true;
             },
 
@@ -305,7 +305,7 @@ define([
                     insuranceOption: this.viewModel.insuranceOption ? this.viewModel.insuranceOption : '',
                     'insuranceGroupList': this.viewModel.insuranceGroupList,
 
-                    allInsuranceGroup: this.viewModel.allInsGrpSelection ? this.viewModel.allInsGrpSelection : '',                    
+                    allInsuranceGroup: this.viewModel.allInsGrpSelection ? this.viewModel.allInsGrpSelection : '',
 
                     userIds: this.viewModel.userIds ? this.viewModel.userIds : '',
                     referringProIds: this.viewModel.refPhyId ? this.viewModel.refPhyId : '',
@@ -377,6 +377,7 @@ define([
             },
 
             onOptionChangeSelectRefPhysician: function () {
+                $('#txtReferringPhysician').empty();
                 if ($('#ddlReferringPhysicianOption').val() == 'S') {
                     $("#ddlReferringPhysicianBox").show();
                     $("#divReferringPhysician").show();
@@ -393,6 +394,7 @@ define([
 
 
             onOptionChangeSelectCPT: function () {
+                $('#txtCPTCode').empty();
                 if ($('#ddlCptCode').val() == 'S')
                     $("#ddlCPTCodeBox").show();
                 else
@@ -450,7 +452,7 @@ define([
                 $('#ddlFacilityFilter').multiselect("deselectAll", false).multiselect("refresh");
                 this.viewModel.allFacilities = false;
             },
-            
+
             // Facility Changes -- worked
             onFacilityChange: function () {
                 $('#billingProDropdown').hide();
@@ -469,7 +471,7 @@ define([
                 selected.each(function () {
                     claimSelections.push($(this).val());
                 });
-                this.selectedClaimList = claimSelections;             
+                this.selectedClaimList = claimSelections;
                 // this.viewModel.allClaimSelection = this.selectedClaimList && this.selectedClaimList.length === $('#ddlClaimSelectBoxes option').length;
 
             },

@@ -293,7 +293,8 @@ define(['jquery',
                             display_in_ddl: true,
                             filter_id: "All_Claims",
                             filter_info: null,
-                            filter_name: "All Claims",
+                            filter_name: commonjs.geti18NString("shared.fields.allClaims"),
+                            i18n_name: "shared.fields.allClaims",
                             filter_order: 0,
                             id: "All_Claims"
                         })
@@ -303,7 +304,8 @@ define(['jquery',
                             display_in_ddl: true,
                             filter_id: "Follow_up_queue",
                             filter_info: null,
-                            filter_name: "Follow-Up Queue",
+                            filter_name: commonjs.geti18NString("billing.fileInsurance.followupQueue"),
+                            i18n_name: "billing.fileInsurance.followupQueue",
                             filter_order: 0,
                             id: "Follow_up_queue"
                         });
@@ -453,31 +455,31 @@ define(['jquery',
                     var claimStatus = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'claim_status_code');
 
                     if (claimStatus == "PV") {
-                        commonjs.showWarning('Please validate claims');
+                        commonjs.showWarning('messages.status.pleaseValidateClaims');
                         return false;
                     }
 
-                    var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'billing_method');
+                    var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_billing_method');
 
                     if (e.target) {
                         if (billingMethodFormat != billingMethod) {
-                            commonjs.showWarning('Please select valid claims method');
+                            commonjs.showWarning('messages.status.pleaseSelectValidClaimsMethod');
                             return false;
                         }
                     }
 
                     if (existingBillingMethod == '') existingBillingMethod = billingMethod
                     if (existingBillingMethod != billingMethod) {
-                        commonjs.showWarning('Please select claims with same type of billing method');
+                        commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfBillingMethod');
                         return false;
                     } else {
                         existingBillingMethod = billingMethod;
                     }
 
-                    var clearingHouse = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'clearing_house');
+                    var clearingHouse = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_clearing_house');
                     if (existingClearingHouse == '') existingClearingHouse = clearingHouse;
                     if (existingClearingHouse != clearingHouse && billingMethod == 'electronic_billing') {
-                        commonjs.showWarning('Please select claims with same type of clearing house Claims ');
+                        commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfClearingHouseClaims');
                         return false;
                     } else {
                         existingClearingHouse = clearingHouse;
@@ -494,14 +496,14 @@ define(['jquery',
                     // } else {
                     //     existingEdiTemplate = ediTemplate;
                     // }
-                    var invoice_no = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'invoice_no');
+                    var invoice_no = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_invoice_no');
                     invoiceNo.push(invoice_no);
                     claimIds.push(rowId);
                 }
 
 
                 if (claimIds && claimIds.length == 0) {
-                    commonjs.showWarning('Please select claims with same type of billing method ');
+                    commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfBillingMethod');
                     return false;
                 }
 
@@ -587,6 +589,8 @@ define(['jquery',
                 filterData = JSON.stringify(filter.pager.get('FilterData'));
                 filterCol = JSON.stringify(filter.pager.get('FilterCol'));
 
+                var isDatePickerClear = filterCol.indexOf('claim_dt') === -1;
+
                 jQuery.ajax({
                     url: "/exa_modules/billing/claim_workbench",
                     type: "post",
@@ -598,6 +602,7 @@ define(['jquery',
                         pageNo: 1,
                         pageSize: 1000,
                         targetType: targetType,
+                        isDatePickerClear: isDatePickerClear,
                         customArgs: {
                             filter_id: filterID,
                             isClaimGrid: true
@@ -609,7 +614,7 @@ define(['jquery',
                             self.ediResponse(data);
                         } else {
                             if (!data.invalidClaim_data.length) {
-                                commonjs.showStatus(commonjs.geti18NString("messages.status.validatedSuccessfully"));
+                                commonjs.showStatus("messages.status.validatedSuccessfully");
                                 $("#btnClaimsRefresh").click();
                             }
                             else
@@ -657,6 +662,7 @@ define(['jquery',
 
                     commonjs.showDialog({
                         header: 'EDI Claim',
+                        i18nHeader:'shared.moduleheader.ediClaims',
                         width: '95%',
                         height: '75%',
                         html: self.ediResultTemplate({ result: result, ediText: data.ediTextWithValidations })
@@ -715,6 +721,7 @@ define(['jquery',
 
                     commonjs.showDialog({
                         header: 'OHIP Claim',
+                        i18nHeader:'shared.moduleheader.ohipClaims',
                         width: '95%',
                         height: '75%',
                         html: self.ohipResultTemplate()
@@ -1173,6 +1180,7 @@ define(['jquery',
                     var processFilters = function (arrays, data) {
                         var id = data.filter_id;
                         var name = data.filter_name;
+                        var i18nName = data.i18n_name;
                         var info = data.filter_info;
                         var liclaimsTab = [
                             '<li id="liclaimsTab',
@@ -1190,6 +1198,7 @@ define(['jquery',
                             '"class="nav-link"',
                             '" data-toggle="tab" title="',
                             name,
+                            (i18nName ? '" i18n="' + i18nName + '" i18nt="' + i18nName : ''),
                             '">',
                             name,
                             '</a></li>'
@@ -1642,7 +1651,7 @@ define(['jquery',
             },
             reprocessConflicts: function () {
 
-                if (window.confirm('Are you sure you want to reprocess the conflicts?')) {
+                if (window.confirm(commonjs.geti18NString('messages.status.areYouSureYouWantToReprocessTheConflicts'))) {
                     var self = this;
                     commonjs.showLoading();
                     jQuery.ajax({
@@ -1882,7 +1891,7 @@ define(['jquery',
                                 commonjs.hideLoading();
 
                                 if (data.validClaim_data && data.validClaim_data.rows && data.validClaim_data.rows.length) {
-                                    commonjs.showStatus(commonjs.geti18NString("messages.status.validatedSuccessfully"));
+                                    commonjs.showStatus("messages.status.validatedSuccessfully");
 
                                     var pending_submission_status = app.claim_status.filter(function (obj) {
                                         return obj.id === parseInt(data.validClaim_data.rows[0].claim_status_id)

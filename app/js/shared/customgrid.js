@@ -420,6 +420,10 @@ function customGrid ( datastore, gridID ) {
                     commonjs.scrollLeft = $bdiv.scrollLeft();
                     self.fetchGrid(true);
                 }
+                // Hide claim summary popover on scroll
+                if (self.options.isClaimGrid) {
+                    $('.claim-summary').remove();
+                }
                 e.stopPropagation();
             }
             else {
@@ -563,6 +567,10 @@ function customGrid ( datastore, gridID ) {
             "SearchFlag":SearchFlag
         };
 
+        if(typeof self.options.setCustomData === 'function'){
+            _data.customArgs = Object.assign({}, customArgs , self.options.setCustomData());
+        }
+
         // Added fromDate/toDate
         if (_fromDate && _fromDate.length) {
             _data.fromDate = _fromDate;
@@ -691,7 +699,6 @@ function customGrid ( datastore, gridID ) {
                 // must check display === none, not :visible pseudo selector, else you will get false positives
                 // since we are switching between tabs where the tab data is not visible at time of setting search query
                 if(element.css('display') === 'none') {
-                    element.remove();
                     return false;
                 }
 
@@ -922,7 +929,7 @@ function customGrid ( datastore, gridID ) {
         });
 
         if ( dataset.length < 1 ) {
-            $tblGrid.append('<tr id="tr-no-records"><td colspan="100" style="text-align: center;font-size:14px;"> No Records Found</td></tr>');
+            $tblGrid.append('<tr id="tr-no-records"><td colspan="100" style="text-align: center;font-size:14px;">' + commonjs.geti18NString("messages.status.noRecordFound") + '</td></tr>');
 
             var gridTop = ($tblGrid.closest('.ui-jqgrid-bdiv').height() / 2);
             var pagerID = self.options.pager ?
@@ -974,7 +981,7 @@ function customGrid ( datastore, gridID ) {
         $tblGrid
             .closest('.ui-jqgrid')
             .find('.ui-paging-info')
-            .html("Showing " + endIndex + " of " + self.pager.get('TotalRecords'));
+            .html(self.getPagination(endIndex, self.pager.get('TotalRecords')));
 
         var pgTables = $tblGrid.closest('.ui-jqgrid').find('.ui-jqgrid-pager').find('.ui-pg-table');
         var pagingFooter = pgTables.eq(1).find('td');
@@ -983,7 +990,7 @@ function customGrid ( datastore, gridID ) {
             pagingFooter.eq(1).removeClass('ui-state-disabled');
             pagingFooter.eq(5).removeClass('ui-state-disabled');
             pagingFooter.eq(6).removeClass('ui-state-disabled');
-            pagingFooter.eq(3).html("&nbsp;Showing " + endIndex + " of " + self.pager.get('TotalRecords'));
+            pagingFooter.eq(3).html("&nbsp;" + self.getPagination(endIndex, self.pager.get('TotalRecords')));
         }
 
         if ( typeof self.options.onaftergridbind === 'function' ) {
@@ -1063,7 +1070,7 @@ function customGrid ( datastore, gridID ) {
             });
 
             // SMH - Added to retain grid scrolling ability
-            $tblGrid.append('<tr id="tr-no-records"><td colspan="100" style="text-align: center;font-size:14px;">No Records Found</td></tr>');
+            $tblGrid.append('<tr id="tr-no-records"><td colspan="100" style="text-align: center;font-size:14px;">' + commonjs.geti18NString('messages.status.noRecordFound') + '</td></tr>');
 
         }
         else {
@@ -1105,7 +1112,7 @@ function customGrid ( datastore, gridID ) {
         $tblGrid
             .closest('.ui-jqgrid')
             .find('.ui-paging-info')
-            .html("Showing " + endIndex + " of " + total);
+            .html(self.getPagination(endIndex, total));
 
         var pgTables = $tblGrid.closest('.ui-jqgrid').find('.ui-jqgrid-pager').find('.ui-pg-table');
         var pagingFooter = $(pgTables[ 1 ]).find('td');
@@ -1116,7 +1123,7 @@ function customGrid ( datastore, gridID ) {
             pagingFooter.eq(6).removeClass('ui-state-disabled');
 
             pagingFooter.eq(3).html('&nbsp;Page ' + self.pager.get('PageNo') + ' of ' + reader.total() + '&nbsp;');
-            pagingFooter.eq(3).html("&nbsp;Showing " + endIndex + " of " + total);
+            pagingFooter.eq(3).html('&nbsp;' + self.getPagination(endIndex, total));
 
             if ( reader.total() > 0 ) {
                 if ( self.pager.get('PageNo') == 1 ) {
@@ -1160,7 +1167,7 @@ function customGrid ( datastore, gridID ) {
     this.updateDelayedPager = function (filterObj, pagerApi) {
         var customArgs = filterObj.options.customargs;
         customArgs.countFlag = true;
-        filterObj.customGridTable.closest('.ui-jqgrid').find('.ui-paging-info').html('Showing <i class="fa fa-spinner loading-spinner"></i> of <i class="fa fa-spinner loading-spinner"></i>')
+        filterObj.customGridTable.closest('.ui-jqgrid').find('.ui-paging-info').html(self.getPagination('<i class="fa fa-spinner loading-spinner"></i>', '<i class="fa fa-spinner loading-spinner"></i>'));
         jQuery.ajax({
             url: pagerApi,
             type: "GET",
@@ -1196,7 +1203,7 @@ function customGrid ( datastore, gridID ) {
                     var startIndex = ((filterObj.pager.get('PageNo') - 1) * pageSize) + 1;
                     var endIndex = ((startIndex + pageSize - 1) > filterObj.pager.get('TotalRecords')) ? filterObj.pager.get('TotalRecords') : (startIndex + pageSize - 1);
 
-                    filterObj.customGridTable.closest('.ui-jqgrid').find('.ui-paging-info').html("Showing " + endIndex + " of " + filterObj.pager.get('TotalRecords'));
+                    filterObj.customGridTable.closest('.ui-jqgrid').find('.ui-paging-info').html(self.getPagination(endIndex, filterObj.pager.get('TotalRecords')));
                 }
             },
             error: function (err) {
@@ -1289,4 +1296,9 @@ function customGrid ( datastore, gridID ) {
         return (typeof app.currentrowsToDisplay == 'undefined' || !app.currentrowsToDisplay ) ? 25 : app.currentrowsToDisplay;
     };
 
+    this.getPagination = function (endIndex, total) {
+        commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
+        var msg = commonjs.geti18NString("home.inbox.pagination");
+        return msg.replace('$END_INDEX', endIndex).replace('$TOTAL_RECORDS', total);
+    }
 }

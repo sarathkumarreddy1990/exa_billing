@@ -44,13 +44,14 @@ define(['jquery',
 
             render: function () {
                 var self = this;
+                var confirmDelete = commonjs.geti18NString("messages.status.areYouSureWantToDelete");
                 $('#divAdjustmentCodesGrid').show();
                 $('#divAdjustmentCodesForm').hide();
                 this.adjustmentCodesTable = new customGrid();
                 this.adjustmentCodesTable.render({
                     gridelementid: '#tblAdjustmentCodesGrid',
                     custompager: new Pager(),
-                    emptyMessage: 'No Record found',
+                    emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['', '', '', '', '', '', ''],
                     i18nNames: ['', '', '', 'setup.common.code', 'setup.common.description', 'setup.adjustmentCode.entryType', 'is_active'],
                     colModel: [
@@ -69,20 +70,20 @@ define(['jquery',
                             className: 'icon-ic-edit',
                             route: '#setup/adjustment_codes/edit/',
                             formatter: function (e, model, data) {
-                                return "<i class='icon-ic-edit' title='Edit'></i>"
+                                return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>"
                             }
                         },
                         {
                             name: 'del', width: 15, sortable: false, search: false,
                             className: 'icon-ic-delete',
                             customAction: function (rowID) {
-                                if (confirm("Are you sure want to delete")) {
+                                if (confirm(confirmDelete)) {
                                     var gridData = $('#tblAdjustmentCodesGrid').jqGrid('getRowData', rowID);
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
                                         data: $.param({code: gridData.code, description:gridData.description}),
                                         success: function (model, response) {
-                                            commonjs.showStatus("Deleted Successfully");
+                                            commonjs.showStatus("messages.status.deletedSuccessfully");
                                             self.adjustmentCodesTable.refresh();
                                         },
                                         error: function (model, response) {
@@ -92,7 +93,7 @@ define(['jquery',
                                 }
                             },
                             formatter: function (e, model, data) {
-                                return "<i class='icon-ic-delete' title='Click here to delete'></i>"
+                                return "<i class='icon-ic-delete' i18nt='messages.status.clickHereToDelete'></i>"
                             }
                         },
                         {
@@ -149,7 +150,7 @@ define(['jquery',
                     {value: 'Reload', class: 'btn', i18n: 'shared.buttons.reload', clickEvent: function () {
                         self.pager.set({"PageNo": 1});
                         self.adjustmentCodesTable.refreshAll();
-                        commonjs.showStatus("Reloaded Successfully");
+                        commonjs.showStatus('messages.status.reloadedSuccessfully');
                     }}
                 ]});
             },
@@ -239,7 +240,7 @@ define(['jquery',
                 }, {
                         success: function (model, response) {
                             if (response) {
-                                commonjs.showStatus("Saved Successfully");
+                                commonjs.showStatus("messages.status.savedSuccessfully");
                                 location.href = "#setup/adjustment_codes/list";
                             }
                         },

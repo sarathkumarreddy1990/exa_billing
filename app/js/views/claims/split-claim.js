@@ -23,6 +23,7 @@ define([
                 this.rendered = true;
                 commonjs.showDialog({
                     header: 'Create/Split',
+                    i18nHeader: 'shared.moduleheader.createSplit',
                     width: '85%',
                     height: '70%',
                     html: this.splitCLaimTemplate()
@@ -48,11 +49,11 @@ define([
                             data = data[0];
 
                             if (data.charge_count == 0) {
-                                commonjs.showWarning('Can not split the claim without charge');
+                                commonjs.showWarning('messages.status.cannotSplitTheClaimWithoutCharge');
                             } else if (data.charge_count < 2) {
-                                commonjs.showWarning('Can not split the claim with one charge');
+                                commonjs.showWarning('messages.status.cannotSplitTheClaimWithOneCharge');
                             } else if (data.payment_count > 0) {
-                                commonjs.showWarning('Can not split the claim with payment');
+                                commonjs.showWarning('messages.status.cannotSplitTheClaimWithPayment');
                             } else {
                                 self.initializeCPTList();
                             }
@@ -137,7 +138,7 @@ define([
                             $('#divSelectedCPTList').append($('<section/>').append($(this).closest('cpt')))
                         }
                         else {
-                            commonjs.showWarning('Minimum one Charge required for the Claim')
+                            commonjs.showWarning('messages.status.minimumOneChargeRequiredForTheClaim')
                             return false;
                         }
                     }
@@ -161,7 +162,7 @@ define([
                         _cpt_ids.push(charge_id);
                     });
 
-                    if (confirm('Are you sure to create claim with the selected charge(s)?')) {
+                    if (confirm(commonjs.geti18NString('messages.status.areYouSureToCreateClaimWithTheSelectedCharge'))) {
                           $('#btnCreateClaim').attr('disabled', true);
                         commonjs.showLoading('Processing please wait..');
                         $.ajax({
@@ -172,7 +173,7 @@ define([
                                 claim_id: self.claim_id
                             },
                             success: function (data, response) {
-                                commonjs.showStatus('Claim has been splited successfully');
+                                commonjs.showStatus('messages.status.claimHasBeenSplitSuccessfully');
                                 self.reloadChargeList();
                                 $('#btnCreateClaim').removeAttr('disabled');
                             },
@@ -183,7 +184,7 @@ define([
                     }
                 }
                 else {
-                    commonjs.showWarning('Please select atleast one charge to merge')
+                    commonjs.showWarning('messages.status.pleaseSelectAtleastOneChargeToMerge')
                     return false;
                 }
 

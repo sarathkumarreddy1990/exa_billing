@@ -11,7 +11,12 @@ const summaryQueryTemplate = _.template(`
                 SELECT
                     bp.payer_type as payer_type,
                     bp.id as payment_id,
-                    bp.mode as payment_mode,
+                    CASE
+                       WHEN bp.mode = 'eft' THEN
+                            UPPER(bp.mode)
+                       ELSE
+                           InitCap(bp.mode)
+                    END                 AS payment_mode,
                     SUM(CASE
                             WHEN bpa.amount_type ='payment' THEN
                                  bpa.amount
@@ -34,7 +39,8 @@ const summaryQueryTemplate = _.template(`
                 <% if (billingProID) { %>
                     INNER JOIN billing.charges bch on bch.id = bpa.charge_id
                     INNER JOIN billing.claims bc on bc.id = bch.claim_id
-                    INNER JOIN billing.providers bpr ON bpr.id = bc.billing_provider_id <% } %>
+                    INNER JOIN billing.providers bpr ON bpr.id = bc.billing_provider_id
+                <% } %>
                 <% if (userIds) { %>  INNER join public.users on users.id = bp.created_by    <% } %>
                 <% if (userRoleIds) { %>
                     <% if (userIds) { %>
@@ -59,6 +65,11 @@ const summaryQueryTemplate = _.template(`
                       <% if (adjustmentCodeIds) { %> AND  <% print(adjustmentCodeIds); } %>
                     )have_adjustment on have_adjustment.payment_id = bp.id and have_adjustment.charge_id = bpa.charge_id
                 <% } %>
+                <% if(insGroups || insuranceIds) { %>
+                    LEFT JOIN insurance_providers ip ON ip.id = bp.insurance_provider_id
+                    LEFT JOIN provider_groups ON bp.provider_group_id = provider_groups.id
+                    LEFT JOIN  insurance_provider_payer_types ippt ON ippt.id = ip.provider_payer_type_id
+                  <%}%>
                 WHERE
                 <%= claimDate %>
                 <% if (facilityIds) { %>AND <% print(facilityIds); } %>
@@ -66,6 +77,8 @@ const summaryQueryTemplate = _.template(`
                 <% if (userIds) { %>AND <% print(userIds); } %>
                 <% if (userRoleIds) { %>AND <% print(userRoleIds); } %>
                 <% if (paymentStatus) { %>AND  <% print(paymentStatus); } %>
+                <% if(insuranceIds) { %> AND <%=insuranceIds%> <%}%>
+                <% if(insGroups) { %> AND <%=insGroups%> <%}%>
                 GROUP BY
                      bp.payer_type, bp.id
           )
@@ -179,7 +192,7 @@ const detailQueryTemplate = _.template(`
                         WHEN
                          p.payer_type = 'ordering_provider' THEN 'Provider'
                          END  AS "Payer Type",
-
+                     pippt.description AS "Payer Group",
                      CASE
                       WHEN
                          p.payer_type = 'patient' THEN
@@ -194,8 +207,13 @@ const detailQueryTemplate = _.template(`
                          p.payer_type = 'ordering_facility' THEN f.facility_name
                         WHEN
                          p.payer_type = 'ordering_provider' then pr.last_name ||','|| pr.first_name
-         	            END  AS "Payer Name",
-         	        p.mode "Payment Mode",
+                         END  AS "Payer Name",
+                    CASE
+                       WHEN p.mode = 'eft' THEN
+                            UPPER(p.mode)
+                       ELSE
+                           InitCap(p.mode)
+                    END  AS "Payment Mode",
          	        p.card_number AS "Check #",
          	        payment_totals.payments_applied_total AS "Applied Total",
          	        p.amount "Payment Amount",
@@ -211,11 +229,19 @@ const detailQueryTemplate = _.template(`
                 LEFT join billing.claims c on c.id = pd.claim_id
                 LEFT join billing.claim_status cs on cs.id = c.claim_status_id
                 LEFT join public.insurance_providers ip on ip.id = p.insurance_provider_id
+                LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = ip.provider_payer_type_id
                 LEFT join public.Provider_contacts pc on pc.id = provider_contact_id
                 LEFT join public.Providers pr on pr.id = pc.provider_id
                 LEFT join public.patients pp on pp.id = c.patient_id
                 LEFT join public.patients p_pp on p_pp.id = p.patient_id
-                <% if (paymentStatus) { %> WHERE <% print(paymentStatus); } %>
+                <% if(insGroups) { %>
+                LEFT JOIN provider_groups ON p.provider_group_id  = provider_groups.id
+                LEFT JOIN  insurance_provider_payer_types ippt ON ippt.id = ip.provider_payer_type_id
+                <%}%>
+                WHERE TRUE
+                <% if (paymentStatus) { %> AND <%= paymentStatus %> <% } %>
+                <% if(insuranceIds) { %> AND <%=insuranceIds%> <%}%>
+                <% if(insGroups) { %> AND <%=insGroups%> <%}%>
             `);
 
 const api = {
@@ -234,8 +260,17 @@ const api = {
         }
 
         // convert adjustmentCodeIds array of string to integer
-        if (initialReportData.report.params.adjustmentCodeIds &&  initialReportData.report.params.adjustmentCodeIds.length) {
+        if (initialReportData.report.params.adjustmentCodeIds && initialReportData.report.params.adjustmentCodeIds.length) {
             initialReportData.report.params.adjustmentCodeIds = initialReportData.report.params.adjustmentCodeIds.map(Number);
+        }
+
+        //convert array of insuranceProviderIds array of string to integer
+        if (initialReportData.report.params.insuranceIds) {
+            initialReportData.report.params.insuranceIds = initialReportData.report.params.insuranceIds.map(Number);
+        }
+
+        if (initialReportData.report.params.insuranceGroupIds) {
+            initialReportData.report.params.insuranceGroupIds = initialReportData.report.params.insuranceGroupIds.map(Number);
         }
 
         return Promise.join(
@@ -243,8 +278,12 @@ const api = {
             api.createDetailDataSet(initialReportData.report.params),
             // other data sets could be added here...
             dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
-            (summaryDataSet, detailDataSet, providerInfo) => {
+            dataHelper.getInsuranceProvidersInfo(initialReportData.report.params.companyId, initialReportData.report.params.insuranceIds),
+            dataHelper.getInsuranceGroupInfo(initialReportData.report.params.companyId, initialReportData.report.params.insuranceGroupIds),
+            (summaryDataSet, detailDataSet, providerInfo, insuranceProvidersInfo, providerGroupInfo) => {
                 initialReportData.lookups.billingProviderInfo = providerInfo || [];
+                initialReportData.lookups.insuranceProviders = insuranceProvidersInfo || [];
+                initialReportData.lookups.providerGroup = providerGroupInfo || [];
                 initialReportData.dataSets.push(detailDataSet);
                 initialReportData.dataSets[0].summaryDataSets = [summaryDataSet];
                 initialReportData.dataSetCount = initialReportData.dataSets.length;
@@ -317,6 +356,21 @@ const api = {
 
         filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
         filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
+
+        if (params.insuranceIds && params.insuranceIds.length) {
+            const insuranceInfo = _(lookups.insuranceProviders).map(f => f.name).value();
+            filtersUsed.push({ name: 'insurance', label: 'Insurance', value: insuranceInfo });
+        }
+        else
+            filtersUsed.push({ name: 'insurance', label: 'Insurance', value: 'All' });
+
+        if (params.insuranceGroupIds && params.insuranceGroupIds.length) {
+            const insuranceGroupInfo = _(lookups.providerGroup).map(f => f.description).value();
+            filtersUsed.push({ name: 'insuranceGroup', label: 'Insurance Group', value: insuranceGroupInfo });
+        }
+        else
+            filtersUsed.push({ name: 'insuranceGroup', label: 'Insurance Group', value: 'All' });
+
         return filtersUsed;
     },
     // ================================================================================================================
@@ -335,8 +389,10 @@ const api = {
             userIds: null,
             userRoleIds: null,
             paymentStatus: null,
-            adjustmentCodeIds:null,
-            allAdjustmentCode: null
+            adjustmentCodeIds: null,
+            allAdjustmentCode: null,
+            insuranceIds: null,
+            insGroups: null
         };
 
 
@@ -382,7 +438,7 @@ const api = {
         // Payment Status
         if (reportParams.paymentStatus) {
             params.push(reportParams.paymentStatus)
-            filters.paymentStatus =  queryBuilder.whereIn('payment_totals.payment_status', [params.length]);
+            filters.paymentStatus = queryBuilder.whereIn('payment_totals.payment_status', [params.length]);
         }
 
         // Adjustment Code ID
@@ -393,6 +449,18 @@ const api = {
 
          // Select All Adjustment Code
          filters.allAdjustmentCode = reportParams.allAdjustmentCode;
+
+        // Insurance Id Mapping
+        if (reportParams.insuranceIds && reportParams.insuranceIds.length) {
+            params.push(reportParams.insuranceIds);
+            filters.insuranceIds = queryBuilder.whereIn(`ip.id`, [params.length]);
+        }
+
+        // Insurance Group ID Mapping
+        if (reportParams.insuranceGroupIds && reportParams.insuranceGroupIds.length) {
+            params.push(reportParams.insuranceGroupIds);
+            filters.insGroups = queryBuilder.whereIn(`ippt.id`, [params.length]);
+        }
 
         return {
             queryParams: params,
@@ -421,7 +489,9 @@ const api = {
             summaryType: null,
             paymentStatus: null,
             adjustmentCodeIds: null,
-            allAdjustmentCode: null
+            allAdjustmentCode: null,
+            insuranceIds: null,
+            insGroups: null
         };
 
 
@@ -466,7 +536,7 @@ const api = {
         // Payment Status
         if (reportParams.paymentStatus) {
             params.push(reportParams.paymentStatus)
-            filters.paymentStatus =  queryBuilder.whereIn('payment_totals.payment_status', [params.length]);
+            filters.paymentStatus = queryBuilder.whereIn('payment_totals.payment_status', [params.length]);
         }
 
          // Adjustment Code ID
@@ -478,7 +548,17 @@ const api = {
          // Select All Adjustment Code
             filters.allAdjustmentCode = reportParams.allAdjustmentCode;
 
+        // Insurance Id Mapping
+        if (reportParams.insuranceIds && reportParams.insuranceIds.length) {
+            params.push(reportParams.insuranceIds);
+            filters.insuranceIds = queryBuilder.whereIn(`ip.id`, [params.length]);
+        }
 
+        // Insurance Group ID Mapping
+        if (reportParams.insuranceGroupIds && reportParams.insuranceGroupIds.length) {
+            params.push(reportParams.insuranceGroupIds);
+            filters.insGroups = queryBuilder.whereIn(`ippt.id`, [params.length]);
+        }
         return {
             queryParams: params,
             templateData: filters

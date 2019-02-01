@@ -41,6 +41,7 @@ var rjsConfig = {
         'jquerysortable': '../node_modules/jquery-sortable/source/js/jquery-sortable',
         'ace': '../node_modules/ace-code-editor/lib/ace',
         'beautify': '../node_modules/js-beautify/js/lib/beautify',
+        'jquery-ui-sortable': "../node_modules/jquery-ui-sortable/jquery-ui.min"
     },
     shim: {
         'jquery.validate': {
@@ -96,7 +97,8 @@ var rjsConfig = {
             deps: ['jquery', 'underscore']
         },
         'i18nscript': {
-            deps: ['jquery']
+            deps: ['jquery'],
+            exports: 'i18n'
         },
         'app-settings': {
             'deps': ['immutable', 'underscore', 'commonjs']
@@ -125,6 +127,9 @@ var rjsConfig = {
         'mail-merge': {
             deps: ['_get']
         },
+        'jquery-ui-sortable': {
+            deps: ['jquery']
+        }
     },
 };
 
@@ -161,7 +166,8 @@ if (require && require.config) {
         'beautify',
         '_get',
         'mail-merge',
-        'permissionsjs'
+        'permissionsjs',
+        'jquery-ui-sortable'
     ], function (
         MomentTimezone,
         jqueryvalidate,
@@ -177,7 +183,7 @@ if (require && require.config) {
         layout_,
         constants,
         debug,
-        i18n,
+        i18n_,
         sessionhandler,
         customGrid,
         App,
@@ -191,13 +197,16 @@ if (require && require.config) {
         beautify,
         _get,
         mailMerge,
-        permissionsjs
+        permissionsjs,
+        jqueryuisortable
         ) {
+            browserLocale = navigator.language;
             window.browserLocale = typeof browserLocale == 'undefined' ? 'en-US' : browserLocale;
             window.Immutable = Immutable;
             window.commonjs = commonjs;
             window.appLayout = layout;
             window.appRights = permissions;
+            window.i18n = i18n;
             window._get = _get;
 
             window.AppServer = Appserver;

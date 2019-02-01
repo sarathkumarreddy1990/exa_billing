@@ -10,13 +10,12 @@ const agedARDetailsDataSetQueryTemplate = _.template(`
 WITH charges_cwt AS (
     SELECT
           bc.id                           AS claim_id
-        , max(date_part('day', ((timezone(f.time_zone,  <%= claimDate %>)))  - timezone(f.time_zone, bc.claim_dt))) as age
+        , max(date_part('day', ((timezone(f.time_zone,  <%= cutOffDate %>)))  - timezone(f.time_zone, bc.claim_dt))) as age
         , sum(c.bill_fee * c.units)       AS charges_bill_fee_total
     FROM  billing.claims AS bc
         INNER JOIN billing.charges AS c ON c.claim_id = bc.id
         INNER JOIN facilities f on f.id = bc.facility_id
-    WHERE 1=1
-    AND (timezone(f.time_zone, bc.claim_dt) <=   <%= claimDate %>)
+    WHERE (timezone(f.time_zone, bc.claim_dt)::date <=   <%= cutOffDate %>)
     GROUP BY bc.id
 ),
 applications_cwt AS (
@@ -27,6 +26,7 @@ applications_cwt AS (
     INNER JOIN billing.charges AS c  ON c.claim_id = cc.claim_id
     INNER JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
     INNER JOIN billing.payments AS p ON pa.payment_id = p.id
+    WHERE p.accounting_date <= <%= cutOffDate %>
     GROUP BY cc.claim_id
 ),
 get_claim_details AS(
@@ -41,19 +41,28 @@ get_claim_details AS(
  aging_details  AS( SELECT
  <% if (facilityIds) { %> (pf.facility_name) <% } else  { %> 'All'::text <% } %> as "Facility",
  bc.id as "Claim ID",
- to_char(now(), 'MM/DD/YYYY') AS "Cut-off Date",
+ to_char(<%= cutOffDate %>, 'MM/DD/YYYY') AS "Cut-off Date",
  bpr.name AS "Billing Pro Name",
  get_full_name(pp.last_name,pp.first_name) AS "Patient Name",
  to_char(bc.claim_dt, 'MM/DD/YYYY') AS "Claim Date",
  pp.account_no as "Account #",
-
- CASE WHEN payer_type = 'primary_insurance' THEN 1
- WHEN payer_type = 'secondary_insurance' THEN 1
- WHEN payer_type = 'tertiary_insurance' THEN 1
- WHEN payer_type = 'referring_provider' THEN 4
- WHEN payer_type = 'patient' THEN 2
- WHEN payer_type = 'ordering_facility' THEN 3
-END AS "Responsible Party_order_by",
+ <% if(incPatDetail == 'true') { %>
+     CASE WHEN payer_type = 'primary_insurance' OR
+            payer_type = 'secondary_insurance' OR
+            payer_type = 'tertiary_insurance' OR
+            payer_type = 'referring_provider' OR
+            payer_type = 'patient' OR
+            payer_type = 'ordering_facility' THEN 1
+    END AS "Responsible Party_order_by",
+<%} else {%>
+        CASE WHEN payer_type = 'primary_insurance' OR
+                  payer_type = 'secondary_insurance'OR
+                  payer_type = 'tertiary_insurance' THEN 1
+             WHEN payer_type = 'referring_provider' THEN 4
+             WHEN payer_type = 'patient' THEN 2
+             WHEN payer_type = 'ordering_facility' THEN 3
+        END AS "Responsible Party_order_by",
+<% } %>
 
  <% if(incPatDetail == 'true') { %>
     CASE WHEN primary_patient_insurance_id is not null THEN 'Primary Insurance' ELSE '-No payer-'  END AS "Responsible Party",
@@ -132,12 +141,15 @@ COALESCE(CASE WHEN gcd.age > 90 and gcd.age <=120 THEN gcd.balance END,0::money)
  INNER JOIN public.patients pp ON pp.id = bc.patient_id
  INNER JOIN public.facilities pf ON pf.id = bc.facility_id
  INNER JOIN billing.providers bpr ON bpr.id = bc.billing_provider_id
- LEFT JOIN public.patient_insurances ppi ON ppi.id = CASE WHEN payer_type = 'primary_insurance' THEN primary_patient_insurance_id
-                                                 WHEN payer_type = 'secondary_insurance' THEN secondary_patient_insurance_id
-                                                 WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id
-                                                 <% if(incPatDetail == 'true') { %>  ELSE primary_patient_insurance_id <% } %>
-                                            END
- LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
+ <% if(incPatDetail == 'true') { %>
+    LEFT JOIN public.patient_insurances ppi ON ppi.id = primary_patient_insurance_id
+ <%} else {%>
+    LEFT JOIN public.patient_insurances ppi ON ppi.id = CASE WHEN payer_type = 'primary_insurance' THEN primary_patient_insurance_id
+    WHEN payer_type = 'secondary_insurance' THEN secondary_patient_insurance_id
+    WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id
+END
+<% } %>
+LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
  LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
  LEFT JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id
  LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
@@ -407,7 +419,7 @@ const api = {
         const params = [];
         const filters = {
             companyId: null,
-            claimDate: null,
+            cutOffDate: null,
             facilityIds: null,
             billingProID: null,
             excCreditBal: null,
@@ -432,7 +444,7 @@ const api = {
         //  claim_dt
 
         params.push(reportParams.fromDate);
-        filters.claimDate = `$${params.length}::date`;
+        filters.cutOffDate = `$${params.length}::date`;
 
         filters.excelExtented = reportParams.excelExtended;
         filters.excCreditBal = reportParams.excCreditBal

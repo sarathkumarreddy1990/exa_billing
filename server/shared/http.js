@@ -1,4 +1,5 @@
 const logger = require('../../logger');
+const shared = require('../shared/index');
 
 module.exports = {
 
@@ -50,6 +51,21 @@ module.exports = {
             res.end(response);
         } catch (err) {
             return res.send(err);
+        }
+    },
+
+    sendPdf: function (req, res, responseData) {
+        if (responseData && ['error', 'RequestError'].indexOf(responseData.name) > -1) {
+            return this.sendError(req, res, responseData);
+        }
+
+        res.writeHead(200, { 'Content-Type': 'application/pdf' });
+
+        if (shared.isReadableStream(responseData)) {
+            res.setTimeout(5 * 60 * 1000);
+            responseData.pipe(res);
+        } else {
+            res.end(responseData);
         }
     },
 

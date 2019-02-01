@@ -27,7 +27,11 @@ const statusMap = new Map([
     ['ABORTED', 'ABRT'],
     ['CANCELLED', 'CAN'],
     ['NOSHOWS', 'NOS'],
-    ['CONFLICTS', 'CX']
+    ['CONFLICTS', 'CX'],
+    ['RESCHEDULED', 'RSCH'],
+    ['PRECHECKIN', 'PR'],
+    ['ARRIVED', 'ARRI'],
+    ['WAITING FOR PRIORS', 'WP']
 ]);
 
 const statusFromDesc = (fieldID, fieldValue) => {

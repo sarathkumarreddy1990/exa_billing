@@ -7,17 +7,30 @@ html
 
     script.
             function fireUpload(e) {
-                document.getElementById("hdnMode").value = e.target.id.replace(/btn/g, '');
-                document.getElementById("eraFile").click();
+                var id = e.target.id.replace(/btn/g, '');
+
+                if(e.target.name === 'uploadPDF') {
+                    document.getElementById("hdnMode").value = `${id}_PDF`;
+                    document.getElementById("eraPDFFile").click();
+                } else {
+                    document.getElementById("hdnMode").value = id;
+                    document.getElementById("eraFile").click();
+                }
                 
                 return false;
             }
 
             function doImport(e) {
-                if (!/edi|era|835|txt/i.test(e.target.files[0].name.slice(-3))) {
+                const fileExtension = e.target.files[0].name.slice(-3);
+
+                if (!/edi|era|835|txt/i.test(fileExtension) && e.target.id !== 'eraPDFFile') {
                     parent.commonjs.showError('Allowed file extensions: era,835,txt');
                     e.target.form.reset();
                     return;
+                } else if(e.target.id === 'eraPDFFile' && !/pdf/i.test(fileExtension)) {
+                     parent.commonjs.showError('Allowed file extensions: pdf');
+                     e.target.form.reset();
+                     return;
                 }
 
                 parent.commonjs.showLoading('Uploading file. please wait..');
@@ -31,10 +44,11 @@ html
 
     body(class="exportFrame" style="background-color: transparent !important;")
         form#eraFileUpload(name='formEraUpload', action='/exa_modules/billing/era/upload', method='POST', style="float:right;", enctype="multipart/form-data")
-            button#btnProcess_EOB.btn.btn-primary.btn-sm(type="button", onClick="fireUpload(event);", style="background: #3c91f0; margin-top: 4px; margin-right: 5px;") UPLOAD & PROCESS EOB FILE
-            button#btnPreview_EOB.btn.btn-primary.btn-sm(type="button", onClick="fireUpload(event);", style="background: #3c91f0; margin-top: 4px;") PREVIEW EOB FILE
+            button#btnProcess_EOB.btn.btn-primary.btn-sm(type="button", onClick="fireUpload(event);", style="background: #3c91f0; margin-top: 4px; margin-right: 5px;", i18n="shared.fields.uploadProcessEOBFile")
+            button#btnPreview_EOB.btn.btn-primary.btn-sm(type="button", onClick="fireUpload(event);", style="background: #3c91f0; margin-top: 4px;", i18n="shared.fields.previewEOBFile")
 
             input#eraFile(type="file", name="displayImage", onchange="doImport(event);", style="visibility:hidden; height:0px; width: 0px" )
+            input#eraPDFFile(type="file", name="displayImage", onchange="doImport(event);", accept="application/pdf" style="visibility:hidden; height:0px; width: 0px" )
             input#inSubmit(type="submit", style="visibility:hidden;height:0px")
 
             span#fileNameUploaded(style="display:none") #{fileNameUploaded}
@@ -44,6 +58,43 @@ html
             span#fileStatus(style="display:none") #{status}
 
             input#hdnMode(type="text", style="visibility:hidden;height:0px", name="mode")
+
+    script(type='text/javascript', src=staticAssetsRoot + '/node_modules/requirejs/require.js')
+    script(type='text/javascript', src=staticAssetsRoot + '/node_modules/underscore/underscore.js')
     script.
         parent.commonjs.hideLoading();
         parent.document.getElementById('btnReloadERA').click();
+        window.app = {};
+
+        var rjsConfig = {
+            waitSeconds: 0,
+            paths: {
+                'jquery': '/exa_modules/billing/static/node_modules/jquery/dist/jquery',
+                'i18nscript': '/exa_modules/billing/static/js/shared/i18n',
+            },
+            shim: {
+                'jquery': {
+                   exports : 'jquery'
+                },
+                'i18nscript': {
+                    deps: ['jquery'],
+                    exports: 'i18n'
+                },
+            }
+        };
+
+        if (require && require.config) {
+            require.config(rjsConfig);
+
+            require([
+                'jquery',
+                'i18nscript'
+            ], function(
+                $,
+                i18n
+            ) {
+                i18n.text = parent.i18n.text;
+                i18n.currentLang = parent.i18n.currentLang;
+                i18n.t();
+            });
+        }

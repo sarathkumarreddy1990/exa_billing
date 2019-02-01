@@ -8,5 +8,9 @@ module.exports = {
 
     save: async function (params) {
         return await data.save(params);
+    },
+
+    updateGridSettings: async function (params) {
+        return await data.updateGridSettings(params);
     }
 };

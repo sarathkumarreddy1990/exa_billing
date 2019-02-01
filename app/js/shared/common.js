@@ -606,8 +606,9 @@ var commonjs = {
             default:
         }
 
-        if(!dtpTarget.find('input').hasClass("maskDateLocale")){
-            dtpTarget.find('input').addClass("maskDateLocale");
+        var targetInput = dtpTarget.find('input');
+        if (!targetInput.hasClass("maskDateLocale") && targetInput.hasClass("form-control-date")) {
+            targetInput.addClass("maskDateLocale");
         }
 
         dtpTarget.datetimepicker(options);
@@ -656,7 +657,7 @@ var commonjs = {
             "Last 30 Days": [moment().subtract(29, "days"), moment()],
             "This Month": [moment().startOf("month"), moment().endOf("month")],
             "Last Month": [moment().subtract(1, "months").startOf("month"), moment().subtract(1, "months").endOf("month")],
-            "This Year": [moment().startOf("year"), moment()]
+            "This Year": [moment().startOf("year"), moment().endOf("year")]
         };
         var futureRangeSet = {
             "Today": [moment(), moment()],
@@ -665,7 +666,7 @@ var commonjs = {
             "Next 30 Days": [moment(), moment().add(29, "days")],
             "This Month": [moment().startOf("month"), moment().endOf("month")],
             "Next Month": [moment().add(1, "months").startOf("month"), moment().add(1, "months").endOf("month")],
-            "This Year": [moment().startOf("year"), moment()]
+            "This Year": [moment().startOf("year"), moment().endOf("year")]
         };
         // 1940s, 1950s, etc, etc
         var birthDecadeRangeSet = {};
@@ -867,7 +868,7 @@ var commonjs = {
                         var about = _.template(self.AboutTemplate);
                         var previewHtml = about({ data: versionInfo });
 
-                        commonjs.showDialog({ header: 'About', width: '30%', height: '30%', html: previewHtml }, true);
+                        commonjs.showDialog({ header: 'About', i18nHeader:'shared.fields.about', width: '30%', height: '30%', html: previewHtml }, true);
                     } catch (err) {
                         console.log(err);
                     }
@@ -1104,12 +1105,26 @@ var commonjs = {
 
         //Report window close
         this.closeReportWindow();
+
+        //Patient Chart Window  close
+        this.closePatientChartWindow();
+
+        if (options.onHide && typeof options.onHide === 'function') {
+            options.onHide();
+        }
     },
 
     closeReportWindow: function () {
         if (window.reportWindow) {
             window.reportWindow.close();
             window.reportWindow = null;
+        }
+    },
+
+    closePatientChartWindow: function() {
+        if(window.patientChartWindow) {
+            window.patientChartWindow.close();
+            window.patientChartWindow = null;
         }
     },
 
@@ -1270,11 +1285,11 @@ var commonjs = {
                 break;
 
             case '23503':
-                commonjs.showError('Dependent records found');
+                commonjs.showError('messages.errors.dependentrecordfound');
                 break;
 
             case '23505':
-                var errMessage = 'Duplicate record found';
+                var errMessage = 'messages.errors.duplicateRecord';
                 if (exaInternalErrors && exaInternalErrors.constraints && exaInternalErrors.constraints[err.constraint]) {
                     errMessage = exaInternalErrors.constraints[err.constraint];
                 }
@@ -1292,7 +1307,11 @@ var commonjs = {
                 break;
 
             case '55801':
-                commonjs.showError('Unable to connect EDI Server');
+                commonjs.showError('messages.errors.ediServer');
+                break;
+
+            case '55802':
+                commonjs.showError('messages.errors.selectClaimToCreate');
                 break;
 
             case 'HANDLED_EXCEPTION':
@@ -1301,7 +1320,7 @@ var commonjs = {
 
             case 'INVALID_SESSION':
                 $('#divPageLoading').hide();
-                commonjs.showDialog({ header: 'Invalid Session', width: '50%', height: '50%', html: response.responseText }, true);
+                commonjs.showDialog({ header: 'Invalid Session', i18nHeader:'shared.fields.invalidSession', width: '50%', height: '50%', html: response.responseText }, true);
                 break;
 
             default:
@@ -2384,6 +2403,10 @@ var commonjs = {
             $('.popupMenu').removeAttr('clickFlag');
         } else if ($('.popupMenu').is(':visible')) {
             $('.popupMenu').remove();
+        }
+
+        if(!$target.parents('.claim-summary').length && $('.claim-summary:visible').length && !$(_target).hasClass('icon-ic-worklist')){
+            $('.claim-summary').remove();
         }
 
         // Optimized as best I could without knowing the reason for this code
@@ -4114,7 +4137,7 @@ var commonjs = {
     openNotes: function (options) {
        var patient_id = options.patient_id;
        var url = '/exa#patient/notes/0/0/' + btoa(patient_id) + '/?billing';
-        commonjs.showNestedDialog({ header: 'Notes', i18nHeaders: 'billings.claims.notes', width: '90%', height: '60%', onLoad: 'commonjs.removeIframeHeader()', url: url });
+        commonjs.showNestedDialog({ header: 'Notes', i18nHeader: 'billing.claims.notes', width: '90%', height: '60%', onLoad: 'commonjs.removeIframeHeader()', url: url });
     },
 
     openWindow: function (url) {
@@ -4703,17 +4726,17 @@ var commonjs = {
         var modifier4 = isFrom == 'chargeandpayment' ? cptDetails.modifiers4 : cptDetails.m4;
         if (app.modifiers_in_order) {
             if (modifier1 == "" && (modifier2 != "" || modifier3 != "" || modifier4 != "")) {
-                commonjs.showWarning('Please enter modifier1');
+                commonjs.showWarning('messages.warning.claims.pleaseEnterModifier1');
                 $('#' + modifierElement + '1_' + id).focus();
                 return true;
             }
             if (modifier2 == "" && (modifier3 != "" || modifier4 != "")) {
-                commonjs.showWarning('Please enter modifier2');
+                commonjs.showWarning('messages.warning.claims.pleaseEnterModifier2');
                 $('#' + modifierElement + '2_' + id).focus();
                 return true;
             }
             if (modifier3 == "" && (modifier4 != "")) {
-                commonjs.showWarning('Please enter modifier3');
+                commonjs.showWarning('messages.warning.claims.pleaseEnterModifier3');
                 $('#' + modifierElement + '3_' + id).focus();
                 return true;
             }
