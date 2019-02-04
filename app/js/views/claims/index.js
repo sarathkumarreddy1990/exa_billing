@@ -1123,6 +1123,7 @@ define(['jquery',
                                     $('.claimProcess').prop('disabled', false);
                                     commonjs.hideLoading();
                                 }
+                                commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
                             }
                         },
                         error: function (model, response) {
@@ -3884,7 +3885,7 @@ define(['jquery',
                                 $studyDetails.append($list);
                                 $studyDetails.show();
 
-                                $('<button/>').attr({'type':'button','i18n': 'billing.fileInsurance.withStudy','id':'btnClaimWStudy'}).addClass('btn top-buffer processClaim mr-2').css('height','33px');
+                                $studyDetails.append($('<button/>').attr({'type':'button','i18n': 'billing.fileInsurance.withStudy','id':'btnClaimWStudy'}).addClass('btn top-buffer processClaim mr-2').css('height','33px'));
                                 $studyDetails.append('<button style="height:33px;" type="button" i18n="billing.fileInsurance.createWithoutStudy" class="btn top-buffer processClaim" id="btnClaimWOStudy"></button>');
                                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
                                 $('.processClaim').off().click(function (e) {
