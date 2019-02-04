@@ -11,7 +11,16 @@ const getRandomValidHealthNumberResponseCode = () => {
     return getRandomResponseCode([50, 51, 52, 53, 54, 55]);
 };
 
+
+
 router.get('/hcv', (req, res) => {
+    /* This is stub/mock functionality for the Health Card Validation
+     * endpoint. Theory of operation: for the sake of the demo, an
+     * arbitrary 10-digit health number and two character version code is
+     * specified. If the version code is "OK" and the health number is
+     * exactly 10 digits, then "isValid:true" is returned. For any other
+     * conditition, "isValid:false" is returned.
+     */
     const {
         healthNumber,
         versionCode,
@@ -24,6 +33,7 @@ router.get('/hcv', (req, res) => {
     if (healthNumber.length === 10) {
         if (versionCode === 'OK') {
             result.isValid = true;
+            // yes, there are multiple "sufficiently valid" results
             result.responseCode = getRandomValidHealthNumberResponseCode();
         }
         else {
