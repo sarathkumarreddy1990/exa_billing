@@ -2274,12 +2274,14 @@ define(['jquery',
                     *  Reference ticket  : EXA-12612
                     */
                     var paymentPayerType = self.isFromClaim ? self.claimPaymentObj.payer_type || '' : $('#selectPayerType').val();
-                    var oldClaimStatus = $("#ddlClaimStatus option[value = '" + self.received_claim_status_id + "']").attr('data-desc') || '';
+                    var claimStatus = _.filter(self.claimStatuses.toJSON(), { id: self.received_claim_status_id });
+                    var oldClaimStatus = claimStatus.length && claimStatus[0].code || '';
                     var isClaimStatusChanged = self.received_claim_status_id != $('#ddlClaimStatus').val();
                     var claimStatusIndex = ['PV', 'PS'].indexOf(oldClaimStatus);
 
                     if (totalPayment === 0 && totalAdjustment === 0 && claimStatusIndex === -1 && paymentPayerType !=='patient') {
-                        $('#ddlClaimStatus').val($("option[data-desc = 'D']").val());
+                        var deniedStatus = _.filter(self.claimStatuses.toJSON(), { code: 'D' });
+                        $('#ddlClaimStatus').val(deniedStatus.length && deniedStatus[0].id || '');
                         isClaimDenied = true;
                     }
 
