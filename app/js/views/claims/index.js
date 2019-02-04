@@ -3979,7 +3979,7 @@ define(['jquery',
                 self.secClaimInsID = '';
                 self.terClaimInsID = '';
                 self.primaryPatientInsuranceId = '';
-                self.secorndaryPatientInsuranceId = '';
+                self.secondaryPatientInsuranceId = '';
                 self.tertiaryPatientInsuranceId = '';
 
                 $.each(flag, function (i) {
