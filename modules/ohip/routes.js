@@ -1,6 +1,15 @@
 const express = require('express');
 const router = express.Router();
+const OHIPModule = require('./index');
 
+const billingApi = {
+
+    applyPayment: (args, callback) => {
+        return;
+    },
+};
+
+const ohip = new OHIPModule(billingApi);
 const responseCodes = require('./hcv/responseCodes');
 
 const getRandomResponseCode = (codes) => {
@@ -11,42 +20,23 @@ const getRandomValidHealthNumberResponseCode = () => {
     return getRandomResponseCode([50, 51, 52, 53, 54, 55]);
 };
 
+// TODO this really needs to be POST
+router.get('/submitClaims', (req, res) => {
+    const ohip = new OHIPModule(billingApi);
+    ohip.submitClaims(req.query, (ohipErr, ohipResponse) => {
+        return res.send(ohipResponse);
+    });
+});
 
 // example API call:
 // http://localhost/exa_modules/billing/ohip/hcv?healthNumber=1234567890&versionCode=OK
-router.get('/hcv', (req, res) => {
-    /* This is stub/mock functionality for the Health Card Validation
-     * endpoint. Theory of operation: for the sake of the demo, an
-     * arbitrary 10-digit health number and two character version code is
-     * specified. If the version code is "OK" and the health number is
-     * exactly 10 digits, then "isValid:true" is returned. For any other
-     * conditition, "isValid:false" is returned.
-     */
-    const {
-        healthNumber,
-        versionCode,
-    } = req.query;
+router.get('/validateHealthCard', (req, res) => {
 
-    let result = {
-        isValid: false,
-    };
 
-    if (healthNumber.length === 10) {
-        if (versionCode === 'OK') {
-            result.isValid = true;
-            // yes, there are multiple "sufficiently valid" results
-            result.responseCode = getRandomValidHealthNumberResponseCode();
-        }
-        else {
-            result.responseCode = 65;
-        }
-    }
-    else {
-        result.responseCode = 25;
-    }
+    const ohip = new OHIPModule(billingApi);
+    ohip.validateHealthCard(req.query, (ohipErr, ohipResponse) => {
+        return res.send(ohipResponse);
+    });
 
-    result.descriptiveText = responseCodes[result.responseCode];
-
-    return res.send(result);
 });
 module.exports = router;
