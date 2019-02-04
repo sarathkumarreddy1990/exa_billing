@@ -12,7 +12,8 @@ const getRandomValidHealthNumberResponseCode = () => {
 };
 
 
-
+// example API call:
+// http://localhost/exa_modules/billing/ohip/hcv?healthNumber=1234567890&versionCode=OK
 router.get('/hcv', (req, res) => {
     /* This is stub/mock functionality for the Health Card Validation
      * endpoint. Theory of operation: for the sake of the demo, an
