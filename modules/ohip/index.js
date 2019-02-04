@@ -94,38 +94,44 @@ module.exports = function(billingApi) {
 
             ebs.upload({uploads}, (uploadErr, uploadResponse) => {
 
-                callback(null, uploadResponse);
-                // const resourceIDs = getResourceIDs(uploadResponse);
+                if (uploadErr) {
+                    return callback(uploadErr, uploadResponse);
+                }
+
+                const resourceIDs = getResourceIDs(uploadResponse);
 
 
                 // ebs.list({status:'UPLOADED', resourceType:'CL'}, (listErr, listResponse) => {
                 //     console.log(listResponse);
                 // });
 
-                // ebs.submit({resourceIDs}, (submitErr, submitResponse) => {
-                //
-                //     console.log(submitResponse);
-                //     const resourceIDs = getResourceIDs(submitResponse);
-                //
-                //     // ebs.info({resourceIDs}, (infoErr, infoResponse) => {
-                //     //     console.log(infoResponse);
-                //     // });
-                //
-                //     // ebs.list({status:'SUBMITTED'}, (listErr, listResponse) => {
-                //     //     console.log(listResponse);
-                //     // });
-                //
-                //     // 4 - update database mark as 'pending acknowledgment'
-                //     //
-                //
-                //     // 5 - move file from proper filename to final filename and save
-                //     // to edi_file_claims
-                //
-                //     // 6 - move response file to final filename and save
-                //     // to edi_file_related (or whatever it's called)
-                //
-                //
-                // });
+                ebs.submit({resourceIDs}, (submitErr, submitResponse) => {
+
+                    if (submitErr) {
+                        return callback(submitErr, submitResponse);
+                    }
+                    const resourceIDs = getResourceIDs(submitResponse);
+
+
+                    // ebs.info({resourceIDs}, (infoErr, infoResponse) => {
+                    //     console.log(infoResponse);
+                    // });
+
+                    // ebs.list({status:'SUBMITTED'}, (listErr, listResponse) => {
+                    //     console.log(listResponse);
+                    // });
+
+                    // 4 - update database mark as 'pending acknowledgment'
+                    //
+
+                    // 5 - move file from proper filename to final filename and save
+                    // to edi_file_claims
+
+                    // 6 - move response file to final filename and save
+                    // to edi_file_related (or whatever it's called)
+
+                    return callback(null, submitResponse);
+                });
             });
         },
 
