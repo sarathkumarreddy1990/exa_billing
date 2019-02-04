@@ -1297,8 +1297,10 @@ function customGrid ( datastore, gridID ) {
     };
 
     this.getPagination = function (endIndex, total) {
-        commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
-        var msg = commonjs.geti18NString("home.inbox.pagination");
-        return msg.replace('$END_INDEX', endIndex).replace('$TOTAL_RECORDS', total);
+        setTimeout(function () {
+            commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
+            var msg = commonjs.geti18NString("home.inbox.pagination");
+            return msg.replace('$END_INDEX', endIndex).replace('$TOTAL_RECORDS', total);
+        }, 50);
     }
 }
