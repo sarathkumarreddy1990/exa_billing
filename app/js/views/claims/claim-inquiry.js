@@ -246,39 +246,47 @@ define([
 
             showInsuranceGrid: function (data) {
                 var self = this;
+                var colNames = ['', 'code', 'description', 'Subscriber Name', 'DOB', 'Policy No', 'Group No'];
+                var i18nNames = ['', 'billing.COB.code', 'billing.COB.description', 'billing.claims.subscriberName', 'billing.COB.DOB', 'patient.patientInsurance.policyNo',
+                    'patient.patientInsurance.groupNo'
+                ];
+                var colModel = [
+                    { name: 'id', hidden: true },
+                    { name: 'insurance_code', search: false },
+                    { name: 'insurance_name', search: false },
+                    { name: 'name', search: false },
+                    { name: 'subscriber_dob', search: false },
+                    { name: 'policy_number', search: false },
+                    { name: 'group_number', search: false }
+                ];
+
+                if (app.country_alpha_3_code != "can") {
+                    colNames.push('Paper Claim Original', 'Paper Claim Full');
+                    i18nNames.push('billing.COB.paperClaimOriginal', 'billing.COB.paperClaimFull');
+                    colModel.push({
+                        name: 'paper_claim_original', search: false,
+                        customAction: function (rowID) {
+                        },
+                        formatter: function (cellvalue, options, rowObject) {
+                            return "<input type='button' style='line-height: 1;' class='btn btn-paper-claim-original btn-primary' value='Paper Claim' data-payer-type=" + rowObject.payer_type + " i18n='shared.buttons.paperclaimOrg' id='spnPaperClaim_" + rowObject.id + "'>"
+                        }
+                    },
+                    {
+                        name: 'paper_claim_full', search: false,
+                        customAction: function (rowID) {
+                        },
+                        formatter: function (cellvalue, options, rowObject) {
+                            return "<input type='button' style='line-height: 1;' class='btn btn-paper-claim-full btn-primary' value='Paper Claim' data-payer-type=" + rowObject.payer_type + " i18n='shared.buttons.paperclaimFull' id='spnPaperClaim_" + rowObject.id + "'>"
+                        }
+                    });
+                }
 
                 $('#tblCIInsurance').jqGrid({
                     datatype: 'local',
                     data: data != null ? data : [],
-                    colNames: ['', 'code', 'description', 'Subscriber Name', 'DOB', 'Policy No', 'Group No', 'Paper Claim Original', 'Paper Claim Full'],
-                    i18nNames: ['', 'billing.COB.code', 'billing.COB.description', 'billing.claims.subscriberName', 'billing.COB.DOB', 'billing.claims.policyNo',
-                        'billing.claims.groupNo', 'billing.COB.paperClaimOriginal', 'billing.COB.paperClaimFull'
-                    ],
-                    colModel: [
-                        { name: 'id', hidden: true },
-                        { name: 'insurance_code', search: false },
-                        { name: 'insurance_name', search: false },
-                        { name: 'name', search: false },
-                        { name: 'subscriber_dob', search: false },
-                        { name: 'policy_number', search: false },
-                        { name: 'group_number', search: false },
-                        {
-                            name: 'paper_claim_original', search: false,
-                            customAction: function (rowID) {
-                            },
-                            formatter: function (cellvalue, options, rowObject) {
-                                return "<input type='button' style='line-height: 1;' class='btn btn-paper-claim-original btn-primary' value='Paper Claim' data-payer-type=" + rowObject.payer_type + " i18n='shared.buttons.paperclaimOrg' id='spnPaperClaim_" + rowObject.id + "'>"
-                            }
-                        },
-                        {
-                            name: 'paper_claim_full', search: false,
-                            customAction: function (rowID) {
-                            },
-                            formatter: function (cellvalue, options, rowObject) {
-                                return "<input type='button' style='line-height: 1;' class='btn btn-paper-claim-full btn-primary' value='Paper Claim' data-payer-type=" + rowObject.payer_type + " i18n='shared.buttons.paperclaimFull' id='spnPaperClaim_" + rowObject.id + "'>"
-                            }
-                        }
-                    ],
+                    colNames: colNames,
+                    i18nNames: i18nNames,
+                    colModel: colModel,
                     cmTemplate: { sortable: false },
                     customizeSort: true,
                     width: $('#claimDetails').width() - 50,
@@ -655,9 +663,10 @@ define([
                         },
                         { name: 'charge_pointer', width: 20, search: false, sortable: false, formatter: self.pointerFormatter,
                             cellattr: function (rowId, tv, rowdata) {
-                                if(rowdata && rowdata.code == 'manual')
+                                if (rowdata && rowdata.code == 'manual')
                                     return 'style="display:none;" ';
-                            }
+                            },
+                            hidden: (app.country_alpha_3_code === "can") ? true : false
                         },
                         { name: 'charge_amount', width: 20, search: false, sortable: false,
                             cellattr: function (rowId, tv, rowdata) {
