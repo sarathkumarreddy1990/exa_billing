@@ -1167,7 +1167,9 @@ function customGrid ( datastore, gridID ) {
     this.updateDelayedPager = function (filterObj, pagerApi) {
         var customArgs = filterObj.options.customargs;
         customArgs.countFlag = true;
-        filterObj.customGridTable.closest('.ui-jqgrid').find('.ui-paging-info').html(self.getPagination('<i class="fa fa-spinner loading-spinner"></i>', '<i class="fa fa-spinner loading-spinner"></i>'));
+        setTimeout(function () {
+            filterObj.customGridTable.closest('.ui-jqgrid').find('.ui-paging-info').html(self.getPagination('<i class="fa fa-spinner loading-spinner"></i>', '<i class="fa fa-spinner loading-spinner"></i>'));
+        }, 10);
         jQuery.ajax({
             url: pagerApi,
             type: "GET",
@@ -1297,8 +1299,8 @@ function customGrid ( datastore, gridID ) {
     };
 
     this.getPagination = function (endIndex, total) {
-        commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
-        var msg = commonjs.geti18NString("home.inbox.pagination");
-        return msg.replace('$END_INDEX', endIndex).replace('$TOTAL_RECORDS', total);
+            commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
+            var msg = commonjs.geti18NString("home.inbox.pagination");
+            return msg.replace('$END_INDEX', endIndex).replace('$TOTAL_RECORDS', total);
     }
 }

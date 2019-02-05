@@ -379,7 +379,7 @@ module.exports = {
             paymentResult.created_by = payerDetails.created_by;
             paymentResult.company_id = payerDetails.company_id;
             paymentResult.uploaded_file_name = params.uploaded_file_name;
-
+            paymentResult.payer_type = payerDetails.payer_type;
             await data.createEdiPayment(paymentResult);
 
             return paymentResult;
