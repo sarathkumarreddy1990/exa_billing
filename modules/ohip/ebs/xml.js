@@ -7,6 +7,7 @@ const {
     select,
 } = require('xpath');
 
+// TODO: EXA-12673
 // TODO remember to refactor this into shared library with EBSConnector
 const PEMFILE = fs.readFileSync(path.join(__dirname, 'certs/bar-mash.pem')).toString();
 

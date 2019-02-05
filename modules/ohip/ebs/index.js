@@ -54,7 +54,7 @@ const EBSConnector = function(config) {
 
 
     const x509 = new X509BinarySecurityToken({
-        // TODO discussion with Amir about certification
+        // TODO: EXA-12673
         // TODO experiment using just the keys or certificates (no "mash")
         "key": fs.readFileSync(path.join(__dirname, 'certs/bar-mash.pem')).toString(),
     });
@@ -219,10 +219,8 @@ const EBSConnector = function(config) {
             });
 
             return ws.send(handlers, ctx, (ctx) => {
-
                 const decryptedContent = decrypt(ctx.response);
                 const doc = new dom().parseFromString(decryptedContent);
-
                 return callback(null, parseResourceResult(doc));
             });
         },

@@ -127,10 +127,10 @@ module.exports = {
             } = updates[i];
 
             innerXML = `
-                <update>
+                <updates>
                     <content />
                     <resourceID>${resourceID}</resourceID>
-                </update>
+                </updates>
             `
         }
 

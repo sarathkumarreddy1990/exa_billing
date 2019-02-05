@@ -10,7 +10,7 @@ const responseCodes = require('./hcv/responseCodes');
 //  *
 
 const ebsConfig = {
-    // TODO: load these from configuration
+    // TODO: EXA-12674
     softwareConformanceKey: 'b5dc648e-581a-4886-ac39-c18832d12e06',
     auditID:124355467675,
     serviceUserMUID: 614200,
@@ -74,8 +74,9 @@ module.exports = function(billingApi) {
             const ebs = new EBSConnector(ebsConfig);
 
             // ebs.download({resourceIDs:[62160]}, (downloadErr, downloadResponse) => {
-            //     console.log(downloadResponse);
+            //     callback(downloadErr, downloadResponse);
             // });
+
             //
             // ebs.getTypeList({}, (gtlErr, gtlResponse) => {
             //     // console.log(gtlResponse);
@@ -87,12 +88,13 @@ module.exports = function(billingApi) {
             const uploads = [
                 {
                     resourceType: 'CL',
+                    // TODO: EXA-12673
                     filename: 'modules/ohip/ebs/HGAU73.441',
                     description: 'HGAU73.441',
                 }
             ];
 
-            ebs.upload({uploads}, (uploadErr, uploadResponse) => {
+            return ebs.upload({uploads}, (uploadErr, uploadResponse) => {
 
                 if (uploadErr) {
                     return callback(uploadErr, uploadResponse);
@@ -105,7 +107,7 @@ module.exports = function(billingApi) {
                 //     console.log(listResponse);
                 // });
 
-                ebs.submit({resourceIDs}, (submitErr, submitResponse) => {
+                return ebs.submit({resourceIDs}, (submitErr, submitResponse) => {
 
                     if (submitErr) {
                         return callback(submitErr, submitResponse);
@@ -171,14 +173,6 @@ module.exports = function(billingApi) {
             result.descriptiveText = responseCodes[result.responseCode];
 
             return callback(null, result);
-        },
-
-        downloadGenericGovernanceReport: () => {
-            console.log('TODO implement downloadGenericGovernanceReport');
-        },
-
-        downloadRemittanceAdvice: () => {
-            console.log('TODO implement downloadRemittanceAdvice');
         },
     };
 };
