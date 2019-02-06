@@ -40,7 +40,7 @@ const createDir = function (fileStorePath, filePath) {
             mkdirp(dirPath, function (err) {
                 if (err) {
                     return reject({
-                        file_store_status: 'Directory not found in file store',
+                        file_store_status: 'Directory not found in file store'
                     });
                 }  
     
@@ -51,7 +51,7 @@ const createDir = function (fileStorePath, filePath) {
             logger.info(`Directory not found -  ${dirPath}`);
 
             return reject({
-                file_store_status: 'Directory not found in file store',
+                file_store_status: 'Directory not found in file store'
             });
         }
     });
