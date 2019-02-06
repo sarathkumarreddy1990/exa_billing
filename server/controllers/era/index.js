@@ -26,8 +26,7 @@ const createDir = function (fileStorePath, filePath) {
             logger.info(`Root directory not found in file store -  ${fileStorePath}`);
 
             return reject({
-                status: false,
-                message: 'Root directory not found in file store'
+                file_store_status: 'Root directory not found in file store'
             });
         }
     
@@ -41,8 +40,7 @@ const createDir = function (fileStorePath, filePath) {
             mkdirp(dirPath, function (err) {
                 if (err) {
                     return reject({
-                        status: false,
-                        message: 'Directory not found in file store'
+                        file_store_status: 'Directory not found in file store'
                     });
                 }  
     
@@ -53,8 +51,7 @@ const createDir = function (fileStorePath, filePath) {
             logger.info(`Directory not found -  ${dirPath}`);
 
             return reject({
-                status: false,
-                message: 'Directory not found in file store'
+                file_store_status: 'Directory not found in file store'
             });
         }
     });
@@ -143,7 +140,11 @@ module.exports = {
             logger.info('ERA Preview MODE');
             fileRootPath = `trash\\${currentTime.getFullYear()}\\${currentTime.getMonth()}`;
 
-            await createDir(fileStorePath, fileRootPath);
+            try {
+                await createDir(fileStorePath, fileRootPath);
+            } catch (err) {
+                return err;
+            }
 
             let diskFileName = params.session.id + '__' + fileName;
 
@@ -162,7 +163,11 @@ module.exports = {
 
         logger.info(`${uploadingMode} Process MODE`);
 
-        await createDir(fileStorePath, fileRootPath);
+        try {
+            await createDir(fileStorePath, fileRootPath);
+        } catch (err) {
+            return err;
+        }
 
         if (fileExist != false && !isEob) {
             logger.info(`${uploadingMode} Duplicate file: ${fileMd5}`);
