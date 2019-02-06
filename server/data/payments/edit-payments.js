@@ -704,7 +704,8 @@ module.exports = {
                         suffix_name) AS full_name,
                     owner_id,
                     patient_info as more_info,
-                    birth_date::text
+                    birth_date::text,
+                    COUNT(1) OVER (range unbounded preceding) as total_records                    
                 FROM patients
                 ${filter.filterQuery}
                 ORDER BY ${filter.sortField} ASC
