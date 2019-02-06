@@ -531,7 +531,6 @@ define(['jquery',
                         dataType: 'json',
                         delay: 100,
                         data: function (params) {
-                            console.log('called');
                             return {
                                 fromPTSL: true,
                                 combined: true,
@@ -1025,7 +1024,7 @@ define(['jquery',
                     type: 'GET',
                     data: {
                         companyID: app.companyID
-                    }, 
+                    },
                     success: function (data, response) {
                         self.casCodesLoaded = true;
                         var casCodes = data[0];
