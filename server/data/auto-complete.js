@@ -1,7 +1,7 @@
 const { query, SQL } = require('./index');
 
 module.exports = {
-    getStudyStatus: async function (params) {
+    getStudyStatus: async function () {
         const sql_status = `WITH distinct_cte AS (
                                SELECT DISTINCT status_code,status_desc FROM study_status
                             )
