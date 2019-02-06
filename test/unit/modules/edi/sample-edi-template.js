@@ -105,7 +105,7 @@ module.exports = {
                     "[relationship]",
                     "[policyNo]",
                     "[planName]",
-                    "[planType]",
+                    "[groupNumber]",
                     "",
                     "",
                     "",

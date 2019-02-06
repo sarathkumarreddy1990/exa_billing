@@ -204,6 +204,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_name": "Claim Date",
                     "i18n_name": "billing.claims.claimDate",
                     "field_info": {
+                        "custom_name": "Claim Date",
                         "name": "claim_dt",
                         "searchFlag": "datetime",
                         "formatter": claimDateFormatter,
@@ -216,6 +217,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_name": "Patient Name",
                     "i18n_name": "billing.fileInsurance.patientNameGrid",
                     "field_info": {
+                        "custom_name": "Patient Name",
                         "name": "patient_name",
                         "width": 170, "searchFlag": "%"
                     },
@@ -226,6 +228,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_name": "Account No",
                     "i18n_name": "billing.refund.accountNo",
                     "field_info": {
+                        "custom_name": "Account No",
                         "name": "account_no",
                         "width": 100,
                         "searchFlag": "%"
@@ -237,6 +240,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_name": "Date Of Birth",
                     "i18n_name": "setup.userSettings.dateofBirth",
                     "field_info": {
+                        "custom_name": "Date Of Birth",
                         "name": "birth_date",
                         "width": 100,
                         "searchFlag": "date",
@@ -253,6 +257,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_name": "SSN",
                     "i18n_name": "billing.refund.ssn",
                     "field_info": {
+                        "custom_name": "SSN",
                         "name": "patient_ssn",
                         "width": 100,
                         "searchFlag": "%"
@@ -264,6 +269,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_name": "Place Of Service",
                     "i18n_name": "billing.refund.placeOfService",
                     "field_info": {
+                        "custom_name": "Place Of Service",
                         "name": "place_of_service",
                         "width": 200,
                         "stype": "select",
@@ -280,6 +286,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_name": "Referring Providers",
                     "i18n_name": "setup.userSettings.referringPhysician",
                     "field_info": {
+                        "custom_name": "Referring Providers",
                         "name": "referring_providers",
                         "width": 200,
                         "searchFlag": "%"
@@ -291,6 +298,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_name": "Rendering Providers",
                     "i18n_name": "setup.userSettings.renderingPhysician",
                     "field_info": {
+                        "custom_name": "Rendering Providers",
                         "name": "rendering_provider",
                         "width": 200
                     }
@@ -301,6 +309,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_name": "Billing Fee",
                     "i18n_name": "billing.COB.billingFee",
                     "field_info": {
+                        "custom_name": "Billing Fee",
                         "name": "billing_fee",
                         "width": 200
                     }
@@ -311,6 +320,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_name": "Payer Type",
                     "i18n_name": "billing.fileInsurance.payerType",
                     "field_info": {
+                        "custom_name": "Payer Type",
                         "name": "payer_type",
                         "stype": "select",
                         "searchoptions": {
@@ -332,6 +342,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_name": "Clearing House",
                     "i18n_name": "billing.fileInsurance.clearingHouse",
                     "field_info": {
+                        "custom_name": "Clearing House",
                         "name": "clearing_house",
                         "width": 80,
                         "stype": "select",
@@ -347,6 +358,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_name": "Responsible Party",
                     "i18n_name": "setup.userSettings.responsibleParty",
                     "field_info": {
+                        "custom_name": "Payer Name",
                         "name": "payer_name",
                         "width": 150,
                         "sortable": "true"
@@ -358,6 +370,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_name": "Balance",
                     "i18n_name": "billing.claims.balance",
                     "field_info": {
+                        "custom_name": "Balance",
                         "name": "claim_balance",
                         "sortable": false,
                         "width": 100,
@@ -374,6 +387,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_name": "Billing Class",
                     "i18n_name": "billing.fileInsurance.billingClass",
                     "field_info": {
+                        "custom_name": "Billing Class",
                         "name": "billing_class",
                         "width": 120,
                         "stype": "select",
@@ -389,6 +403,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_name": "Billing Code",
                     "i18n_name": "billing.fileInsurance.billingCode",
                     "field_info": {
+                        "custom_name": "Billing Code",
                         "name": "billing_code",
                         "width": 100,
                         "stype": "select",
@@ -404,6 +419,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_name": "Claim Status",
                     "i18n_name": "billing.fileInsurance.claimStatus",
                     "field_info": {
+                        "custom_name": "Claim Status",
                         "name": "claim_status",
                         "width": 120,
                         "stype": "select",
@@ -425,6 +441,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_name": "Notes",
                     "i18n_name": "billing.COB.notes",
                     "field_info": {
+                        "custom_name": "Notes",
                         "name": "billing_notes",
                         "width": 100,
                         "defaultValue": "",
@@ -443,6 +460,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_name": "Claim No",
                     "i18n_name": "billing.fileInsurance.claimNo",
                     "field_info": {
+                        "custom_name": "Claim No",
                         "name": "claim_no",
                         "width": 75
                     }
@@ -453,6 +471,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_name": "Invoice",
                     "i18n_name": "shared.buttons.invoice",
                     "field_info": {
+                        "custom_name": "Invoice",
                         "name": "invoice_no",
                         "width": 75
                     }
@@ -463,6 +482,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_name": "Billing Method",
                     "i18n_name": "billing.fileInsurance.billingmethod",
                     "field_info": {
+                        "custom_name": "Billing Method",
                         "name": "billing_method",
                         "formatter": function ( cellvalue ) {
                             return commonjs.checkNotEmpty(cellvalue) ?
@@ -483,6 +503,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_name": "Follow-up Date",
                     "i18n_name": "billing.fileInsurance.followUpDate",
                     "field_info": {
+                        "custom_name": "Follow-up Date",
                         "name": "followup_date",
                         "formatter": function ( cellvalue ) {
                             return commonjs.checkNotEmpty(cellvalue) ? commonjs.getFormattedUtcDate(cellvalue) : '';
@@ -497,6 +518,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_name": "Date of Injury",
                     "i18n_name": "billing.fileInsurance.dateOfInjury",
                     "field_info": {
+                        "custom_name": "Date of Injury",
                         "name": "current_illness_date",
                         "formatter":  function ( cellvalue ) {
                             return commonjs.checkNotEmpty(cellvalue) ? commonjs.getFormattedUtcDate(cellvalue) : '';
@@ -510,6 +532,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_name": "Policy Number",
                     "i18n_name": "setup.userSettings.policyNumber",
                     "field_info": {
+                        "custom_name": "Policy Number",
                         "name": "policy_number",
                         "width": 200
                     }
@@ -520,6 +543,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_name": "Group Number",
                     "i18n_name": "setup.userSettings.groupNumber",
                     "field_info": {
+                        "custom_name": "Group Number",
                         "name": "group_number",
                         "width": 200
                     }
@@ -528,8 +552,9 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "id": 27,
                     "field_code": "billing_provider",
                     "field_name": "Billing Provider",
-                    "i18n_name": "shared.fields.billingProvider",
+                    "i18n_name": "shared.screens.setup.billingProvider",
                     "field_info": {
+                        "custom_name": "Billing Provider",
                         "name": "billing_provider",
                         "width": 200,
                         "stype": "select",
@@ -545,6 +570,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_name": "Submitted Date",
                     "i18n_name": "setup.userSettings.submittedDate",
                     "field_info": {
+                      "custom_name": "Submitted Date",  
                       "name": "submitted_dt",
                       "searchFlag": "datetime",
                       "formatter": claimDateFormatter,
@@ -558,6 +584,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_name": "First Statement Date",
                     "i18n_name": "setup.userSettings.firstStatementDate",
                     "field_info": {
+                        "custom_name": "First Statement Date",
                         "name": "first_statement_dt",
                         "formatter": function (cellvalue) {
                             return commonjs.checkNotEmpty(cellvalue) ? commonjs.getFormattedUtcDate(cellvalue) : '';
@@ -605,6 +632,25 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "defaultValue": ""
                     },
                     "field_code": "charge_description"
+                },
+                "Ins Provider Type": {
+                    "id": 32,
+                    "field_name": "Ins Provider Type",
+                    "i18n_name": "setup.userSettings.insProviderType",
+                    "field_info": {
+                        "custom_id": 63,
+                        "custom_name": "Ins Provider Type",
+                        "name": "ins_provider_type",
+                        "width": 200,
+                        "searchFlag": "%",
+                        "stype": "select",
+                        "searchoptions": {
+                            "value": insProviderTypeValue,
+                            "tempvalue": insProviderTypeValue
+                        },
+                        "sortable": true
+                    },
+                    "field_code": "ins_provider_type"
                 }
             });
         }else{
@@ -1712,6 +1758,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 "field_name": "Billed Status",
                 "i18n_name": "setup.userSettings.billedStatus",
                 "field_info": {
+                    "custom_name": "Billed Status",
                     "name": "billed_status",
                     "width": 100,
                     "cellattr": function ( id, cellvalue, rowObject ) {
@@ -1737,6 +1784,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 "field_name": "Billing Class",
                 "i18n_name": "billing.fileInsurance.billingClass",
                 "field_info": {
+                    "custom_name": "Billing Class",
                     "name": "billing_class",
                     "width": 120,
                     "stype": "select",
@@ -1752,6 +1800,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 "field_name": "Billing Code",
                 "i18n_name": "billing.fileInsurance.billingCode",
                 "field_info": {
+                    "custom_name": "Billing Code",
                     "name": "billing_code",
                     "width": 100,
                     "stype": "select",

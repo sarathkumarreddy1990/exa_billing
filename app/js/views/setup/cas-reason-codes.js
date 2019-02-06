@@ -32,13 +32,14 @@ define([
 
             render: function () {
                 var self = this;
+                var confirmDelete = commonjs.geti18NString("messages.status.areYouSureWantToDelete");
                 $('#divCasReasonCodesGrid').show();
                 $('#divCasReasonCodesForm').hide();
                 this.casReasonCodesTable = new customGrid();
                 this.casReasonCodesTable.render({
                     gridelementid: '#tblCasReasonCodesGrid',
                     custompager: new Pager(),
-                    emptyMessage: 'No Record found',
+                    emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['', '', '', '', '', ''],
                     i18nNames: ['', '', '', 'setup.common.code', 'setup.common.description', 'in_active'],
                     colModel: [
@@ -57,20 +58,20 @@ define([
                             className: 'icon-ic-edit',
                             route: '#setup/cas_reason_codes/edit/',
                             formatter: function (e, model, data) {
-                                return "<i class='icon-ic-edit' title='Edit'></i>";
+                                return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>";
                             }
                         },
                         {
                             name: 'del', width: 10, sortable: false, search: false,
                             className: 'icon-ic-delete',
                             customAction: function (rowID) {
-                                if (confirm("Are you sure want to delete")) {
+                                if (confirm(confirmDelete)) {
                                     var gridData = $('#tblCasReasonCodesGrid').jqGrid('getRowData', rowID);
                                     self.model.set({ "id": rowID });
                                     self.model.destroy({
                                         data: $.param({code: gridData.code, description:gridData.description}),
                                         success: function (model, response) {
-                                            commonjs.showStatus("Deleted Successfully");
+                                            commonjs.showStatus("messages.status.deletedSuccessfully");
                                             self.casReasonCodesTable.refresh();
                                         },
                                         error: function (model, response) {
@@ -81,7 +82,7 @@ define([
                             },
 
                             formatter: function (e, model, data) {
-                                return "<i class='icon-ic-delete' title='Click here to delete'></i>";
+                                return "<i class='icon-ic-delete' i18nt='messages.status.clickHereToDelete'></i>";
                             }
                         },
                         {
@@ -127,7 +128,7 @@ define([
                     {value: 'Reload', class: 'btn', i18n: 'shared.buttons.reload', clickEvent: function () {
                         self.pager.set({"PageNo": 1});
                         self.casReasonCodesTable.refreshAll();
-                        commonjs.showStatus("Reloaded Successfully");
+                        commonjs.showStatus("messages.status.reloadedSuccessfully");
                     }}
                 ]});
 
@@ -209,7 +210,7 @@ define([
                 }, {
                     success: function (model, response) {
                         if(response) {
-                            commonjs.showStatus("Saved Successfully");
+                            commonjs.showStatus('messages.status.savedSuccessfully');
                             location.href = "#setup/cas_reason_codes/list";
                         }
                     },

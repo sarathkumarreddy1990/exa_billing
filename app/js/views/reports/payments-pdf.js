@@ -123,7 +123,7 @@ define([
                 else if (reportArgs.flag == 'payment-print-pdf') {
                      if(reportArgs.patient_id  == null)
                      {
-                        commonjs.showWarning('Patient Not Available');
+                        commonjs.showWarning('messages.status.patientNotAvailable');
                         return;
                      }
                     reportArgsFlag = 'payment-receipt-pdf';

@@ -12,6 +12,8 @@ const {
     EDIQueryAdapter
 } = require('../../../modules/ohip');
 
+const studiesController = require('../../controllers/studies');
+
 const helper = require('../../data');
 const _ = require('lodash');
 //const PdfPrinter = require('pdfmake');
@@ -51,6 +53,21 @@ module.exports = {
     },
 
     getEDIClaim: async (params) => {
+        let claimIds = (params.claimIds).split(',');
+        let validationData = await data.validateEDIClaimCreation(claimIds);
+        validationData = validationData && validationData.rows && validationData.rows.length && validationData.rows[0] || [];
+
+        if(validationData) {
+            if (validationData.claim_status.indexOf('PV') > -1) {
+                return new Error('Please validate claims');
+            } else if(validationData.unique_billing_method_count > 1 ){
+                return new Error('Please select claims with same type of billing method');
+            } else if(validationData.clearing_house_count != claimIds.length || validationData.unique_clearing_house_count > 1){
+                return new Error('Please select claims with same type of clearing house Claims');
+            }
+
+        }
+
         const result = await ediData.getClaimData(params);
         let ediResponse = {};
         let claimDetails = [];
@@ -404,6 +421,35 @@ module.exports = {
         params.auditDetails = auditDetails;
         params.created_by = parseInt(params.userId);
 
+        if (params.isAllStudies == 'true') {
+            const studyData = await studiesController.getData(params);
+            let studyDetails = [];
+
+            _.map(studyData.rows, (study) => {
+                studyDetails.push({
+                    patient_id: study.patient_id,
+                    study_id: study.study_id,
+                    order_id: study.order_id
+                });
+            });
+
+            let validCharges = await data.validateBatchClaimCharge(JSON.stringify(studyDetails));
+
+            if(studyDetails.length !== parseInt(validCharges.rows[0].count)) {
+                let responseData = {
+                    code:'55802'
+                    , message: 'No charge in claim'
+                    , name: 'error'
+                    , Error: 'No charge in claim'
+                    , severity: 'Error'
+                };
+
+                return await responseData;
+            }
+
+            params.studyDetails = JSON.stringify(studyDetails);
+        }
+
         return await data.createBatchClaims(params);
     },
 
@@ -413,5 +459,9 @@ module.exports = {
 
     updateInvoiceNo: async function (params) {
         return await data.updateInvoiceNo(params);
+    },
+
+    getClaimSummary: async function (params) {
+        return await data.getClaimSummary(params);
     }
 };

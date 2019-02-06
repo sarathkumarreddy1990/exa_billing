@@ -11,7 +11,8 @@ module.exports = {
         pending_payments: 'payments',
         era: 'era',
         edi: 'edi',
-        claim_workbench:'claims'
+        claim_workbench: 'claims',
+        user_settings: 'claims'
     },
 
     screenNames: {
@@ -67,7 +68,8 @@ module.exports = {
         'referring-provider-summary': 'Referring Provider Summary Report',
         'transaction-summary': 'Transaction Summary Report',
         'payments-realization-rate-analysis' : 'Payments Realization Rate Analysis',
-        'update_claim_status': 'Claim Status'
+        'update_claim_status': 'Claim Status',
+        'update_grid_settings': 'Studies / Claims Grid'
     },
 
     entityNames: {
@@ -97,7 +99,8 @@ module.exports = {
         user_log: 'User Log',
         claims: 'Claims',
         update_claim_status: 'Claims',
-        validate_claims:'Claims'
+        validate_claims: 'Claims',
+        update_grid_settings: 'user_settings'
     },
 
     permissionsMap: {
@@ -180,6 +183,7 @@ module.exports = {
         'billing_payers': 'ECLM',
         'service_facilities': 'ECLM',
         'claim_charge': 'ECLM', //delete Claim Rmenu
+        'eob_pdf' : 'ERAI',
         'era_list': 'ERAI',
         'upload': 'ERAI',
         'era_file_preview': 'ERAI',
@@ -199,6 +203,11 @@ module.exports = {
         'charge_check_payment_details': 'CLIM',
         'claim_check_payment_details': 'CLIM',
         'payments-realization-rate-analysis': 'PRRA',
+        'apply_tos_payments': 'PAYM',
+        'claim_summary': 'CLIM',
+        'patient_claim_list': 'PAYM',
+        'process_write_off_payments': 'PAYM',
+        'get_claim_payments': 'CLIM',
         'can_delete_payment': 'PAYM'
     }
 };

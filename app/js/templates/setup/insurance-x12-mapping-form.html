@@ -30,6 +30,7 @@
                         </select>
                 </div>
             </div>
+            <% if (app.country_alpha_3_code !== "can") { %>
             <div class="form-group row">
                 <label for="selectPayerEDICode" class="col-sm-2 col-form-label" i18n="billing.fileInsurance.ediCode"></label>
                 <div class="col-sm-5">
@@ -54,6 +55,7 @@
                     <input type="text" class="form-control" id="txtClaimFileIndicatorCode" name="fileIndicatorCode" disabled>
                 </div>
             </div>
+            <% } %>
         </form>
     </div>
 </div>

@@ -15,37 +15,49 @@ const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
 
 const createDir = function (fileStorePath, filePath) {
+    return new Promise(function(resolve, reject) {
+        const dirPath = `${fileStorePath}\\${filePath}`;
 
-    const dirPath = `${fileStorePath}\\${filePath}`;
+        logger.info(`File store: ${fileStorePath}, ${filePath}`);
+    
+        let dirExists = fs.existsSync(fileStorePath);
+    
+        if (!dirExists) {
+            logger.info(`Root directory not found in file store -  ${fileStorePath}`);
 
-    logger.info(`File store: ${fileStorePath}, ${filePath}`);
-
-    let dirExists = fs.existsSync(fileStorePath);
-
-    if (!dirExists) {
-        logger.info(`Root directory not found in file store -  ${fileStorePath}`);
-        return {
-            status: false,
-            message: 'Root directory not found in file store'
-        };
-    }
-
-    if (fileStorePath) {
-        const folderExist = fs.existsSync(dirPath);
-
-        if (folderExist) {
-            return { status: true };
+            return reject({
+                status: false,
+                message: 'Root directory not found in file store'
+            });
         }
+    
+        if (fileStorePath) {
+            const folderExist = fs.existsSync(dirPath);
+    
+            if (folderExist) {
+                return resolve({ status: true });
+            }
+    
+            mkdirp(dirPath, function (err) {
+                if (err) {
+                    return reject({
+                        status: false,
+                        message: 'Directory not found in file store'
+                    });
+                }  
+    
+                return resolve({ status: true });
+            });
+            
+        } else {
+            logger.info(`Directory not found -  ${dirPath}`);
 
-        mkdirp(dirPath);
-        return { status: true };
-    }
-
-    logger.info(`Directory not found -  ${dirPath}`);
-    return {
-        status: false,
-        message: 'Directory not found in file store'
-    };
+            return reject({
+                status: false,
+                message: 'Directory not found in file store'
+            });
+        }
+    });
 };
 
 module.exports = {
@@ -86,8 +98,12 @@ module.exports = {
             };
         }
 
-        const mode = params.body.mode.toUpperCase();
-        const isPreviewMode = mode === 'PREVIEW_EOB';
+        const modeParamStr = params.body.mode.toUpperCase();
+        const isPreviewMode = modeParamStr === 'PREVIEW_EOB';
+        const isEob = modeParamStr.indexOf('_PDF') > -1;
+        
+        const uploadingMode = isEob ? 'EOB' : 'ERA';
+        const ediFileId = modeParamStr.split('_')[0];
 
         const buffer = params.file.buffer;
         const fileSize = params.file.size;
@@ -98,7 +114,7 @@ module.exports = {
 
         bufferString = bufferString.trim() || '';
 
-        if (bufferString.indexOf('ISA') == -1 || bufferString.indexOf('CLP') == -1) {
+        if (!isEob && (bufferString.indexOf('ISA') == -1 || bufferString.indexOf('CLP') == -1)) {
             return {
                 status: 'INVALID_FILE',
             };
@@ -119,19 +135,15 @@ module.exports = {
         const fileExist = dataRes.rows[0].file_exists[0];
 
         const currentTime = new Date();
+        const fileDirectory = uploadingMode.toLowerCase();
 
-        let fileRootPath = `${currentTime.getFullYear()}\\${currentTime.getMonth()}\\${currentTime.getDate()}`;
+        let fileRootPath = `${fileDirectory}\\${currentTime.getFullYear()}\\${currentTime.getMonth()}\\${currentTime.getDate()}`;
 
         if (isPreviewMode) {
             logger.info('ERA Preview MODE');
             fileRootPath = `trash\\${currentTime.getFullYear()}\\${currentTime.getMonth()}`;
-            const dirResponse = createDir(fileStorePath, fileRootPath);
 
-            if (!dirResponse.status) {
-                return {
-                    file_store_status: dirResponse.message
-                };
-            }
+            await createDir(fileStorePath, fileRootPath);
 
             let diskFileName = params.session.id + '__' + fileName;
 
@@ -148,18 +160,12 @@ module.exports = {
             };
         }
 
-        logger.info('ERA Process MODE');
+        logger.info(`${uploadingMode} Process MODE`);
 
-        const dirResponse = createDir(fileStorePath, fileRootPath);
+        await createDir(fileStorePath, fileRootPath);
 
-        if (!dirResponse.status) {
-            return {
-                file_store_status: dirResponse.message
-            };
-        }
-
-        if (fileExist != false) {
-            logger.info(`ERA Duplicate file: ${fileMd5}`);
+        if (fileExist != false && !isEob) {
+            logger.info(`${uploadingMode} Duplicate file: ${fileMd5}`);
 
             return {
                 status: 'DUPLICATE_FILE',
@@ -171,12 +177,14 @@ module.exports = {
         const dataResponse = await data.saveERAFile({
             file_store_id: fileStoreId,
             company_id: params.audit.companyId,
-            status: 'pending',
-            file_type: '835',
+            status: isEob ? 'success' : 'pending',
+            file_type: isEob ? 'EOB' :'835',
             file_path: fileRootPath,
             file_size: fileSize,
             file_md5: fileMd5,
-            fileName: fileName
+            fileName: fileName,
+            isEOB : isEob,
+            id: ediFileId
         });
 
         if (typeof dataResponse === 'object' && dataResponse.constructor.name === 'Error') {
@@ -188,7 +196,11 @@ module.exports = {
         let filePath = path.join(fileStorePath, fileRootPath, dataResponse.rows[0].id);
         logger.info(`Writing file in Disk -  ${filePath}`);
 
-        await writeFile(filePath, bufferString, 'binary');
+        if (isEob) {
+            await writeFile(`${filePath}`, buffer);
+        } else {
+            await writeFile(filePath, bufferString, 'binary');
+        }
 
         logger.info(`File uploaded successfully. ${filePath}`);
 
@@ -367,7 +379,7 @@ module.exports = {
             paymentResult.created_by = payerDetails.created_by;
             paymentResult.company_id = payerDetails.company_id;
             paymentResult.uploaded_file_name = params.uploaded_file_name;
-
+            paymentResult.payer_type = payerDetails.payer_type;
             await data.createEdiPayment(paymentResult);
 
             return paymentResult;
@@ -433,5 +445,21 @@ module.exports = {
         }
 
         return eraResponse;
+    },
+
+    getEOBFile: async function (params) {
+        let eobFileDetails = await data.getERAFilePathById(params);
+
+        if (eobFileDetails.rows && eobFileDetails.rows.length) {
+            const filePath = path.join(eobFileDetails.rows[0].root_directory, eobFileDetails.rows[0].file_path, eobFileDetails.rows[0].id);
+
+            if (!fs.existsSync(filePath)) {
+                throw new Error('Root directory not found in file store');
+            }
+
+            return fs.createReadStream(filePath);
+        }
+
+        throw new Error('EOB File Not Found');
     }
 };

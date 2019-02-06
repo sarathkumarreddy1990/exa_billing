@@ -39,13 +39,13 @@ define(['jquery',
             },
 
             initialize: function (options) {
-                this.showForm();     
-                this.$el.html(this.mainTemplate(this.viewModel));                  
+                this.showForm();
+                this.$el.html(this.mainTemplate(this.viewModel));
                 UI.initializeReportingViewModel(options, this.viewModel);
 
                 // Set date range to Facility Date
                 this.viewModel.dateFrom = commonjs.getFacilityCurrentDateTime(app.facilityID);
-                this.viewModel.dateTo = this.viewModel.dateFrom.clone();              
+                this.viewModel.dateTo = this.viewModel.dateFrom.clone();
             },
 
             showForm: function () {
@@ -56,18 +56,18 @@ define(['jquery',
                 UI.setPageTitle(this.viewModel.reportTitle);
             },
 
-           
+
             render: function () {
                 var modelCollection = Backbone.Collection.extend({
                     model: Backbone.Model.extend({})
                 });
-                this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings());   
+                this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings());
                 this.$el.html(this.mainTemplate(this.viewModel));
                 // bind DRP and initialize it
                 this.bindDateRangePicker();
                 this.drpStudyDt.setStartDate(this.viewModel.dateFrom);
-                this.drpStudyDt.setEndDate(this.viewModel.dateTo);              
-              
+                this.drpStudyDt.setEndDate(this.viewModel.dateTo);
+
                 UI.bindBillingProvider();
                 $('#ddlFacilityFilter').multiselect({
                     maxHeight: 200,
@@ -113,12 +113,12 @@ define(['jquery',
 
             hasValidViewModel: function () {
                 if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
-                      commonjs.showWarning('Please check report id, category, and/or format!');
+                    commonjs.showWarning('messages.status.pleaseCheckReportIdCategoryandorFormat');
                     return;
                 }
 
                 if (this.viewModel.dateFrom == null || this.viewModel.dateTo == null) {
-                    commonjs.showWarning('Please select date range!');
+                    commonjs.showWarning('messages.status.pleaseSelectDateRange');
                     return;
                 }
 

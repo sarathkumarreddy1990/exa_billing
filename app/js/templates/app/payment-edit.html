@@ -17,14 +17,6 @@
         pointer-events: none;
     }
 
-    #select2-ddlAdjustmentCode_fast-results .select2-results__option[title="Refund Adjustment"] {
-        background: #e2e2e2 !important;
-    }
-
-    #select2-ddlAdjustmentCode_fast-results .select2-results__option[title="Recoupment Adjustment"] {
-        background:  #bbb8b8 !important;
-    }
-
     .floatbox, .textRight{
         text-align: right;
     }
@@ -109,18 +101,18 @@
                         </div>
                     </div>
                     <div class="form-group row" id="divInputType">
-                            <label for="chkpayerInsurance" class="control-label col-sm-4" id="lblInputType">Input type</label>
-                        <div class="col-sm-8" style="margin-top: auto;">
+                            <label for="chkpayerInsurance" class="control-label col-sm-4" id="lblInputType" i18n="billing.payments.inputType"></label>
+                        <div class="col-sm-8 mt-auto">
                             <span class="radio-inline" for='chkIpEob' id='lblIpEob'>
-                                <input id='chkIpEob' tabindex="3" type='radio' class="inputType" name="ipType" value='inpEOB' style="margin-top: 3px;">
-                                <label for="chkIpEob" class="field-chk" style="min-width: 20px!important; margin: 0 0 10px 0px;">EOB</label>
+                                <input id='chkIpEob' tabindex="3" type='radio' class="inputType mt-3" name="ipType" value='inpEOB'>
+                                <label for="chkIpEob" class="field-chk mb-2" style="min-width: 20px!important" i18n="billing.payments.eob"></label>
                             </span>
-                            <span class="radio-inline" for='chkIpInvoice' id='lblIpInvocie' style="margin-left: 5px;">
-                                <input id='chkIpInvoice' tabindex="4" type='radio' class="inputType" name="ipType" value='inpInvoice' style="margin-top: 3px;">
-                                <label for="chkIpInvoice" class="field-chk" style="min-width: 20px!important; margin: 0 0 10px 0px;">Invoice</label>
+                            <span class="radio-inline ml-2" for='chkIpInvoice' id='lblIpInvocie'>
+                                <input id='chkIpInvoice' tabindex="4" type='radio' class="inputType ml-3" name="ipType" value='inpInvoice'>
+                                <label for="chkIpInvoice" class="field-chk ml-2" style="min-width: 20px!important" i18n="billing.payments.invoice"></label>
                             </span>
-                            <input type="text" id="txtInvoice" class="form-control invoiceNo" placeholder="Invoice #" tabindex="5" style=" width: 160px;display: inline;" tabindex="10">
-                            <input type="button" id="btnPaymentApplyAll" class="btn btn-default" tabindex="5" value="Apply All" style="display: none;">
+                            <input type="text" id="txtInvoice" class="form-control invoiceNo" i18np="billing.payments.invoice" tabindex="5" style="width: 160px; display: inline;" tabindex="10">
+                            <input type="button" id="btnPaymentApplyAll" class="btn btn-default" tabindex="5" i18n="shared.buttons.applyAll" value="Apply All" style="display: none;">
                         </div>
                     </div>
                 </div>
@@ -167,7 +159,7 @@
                                     <option value="check" i18n="billing.payments.cheque"></option>
                                     <option value="card" i18n="billing.payments.card"></option>
                                     <option value="eft" i18n="billing.payments.eft"></option>
-                                    <option value="adjustment" i18n="billing.payments.adjustment"></option>
+                                    <option value="adjustment" i18n="billing.payments.adjustments"></option>
                                 </select>
                             </div>
                         </div>
@@ -226,7 +218,7 @@
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="control-label  col-sm-3" for="txtNotes">Notes</label>
+                        <label class="control-label  col-sm-3" for="txtNotes" i18n="shared.buttons.notes"></label>
                         <div class="col-sm-4">
                             <textarea class="form-control" id="txtNotes" rows="4" style="width: 400px;" tabindex="14"></textarea>
                         </div>

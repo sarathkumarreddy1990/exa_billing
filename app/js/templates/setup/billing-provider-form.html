@@ -155,9 +155,9 @@
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label for="txtCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingProvider.citystatezip"></label>
+                        <label for="txtCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingProvider.cityStateZip"></label>
                         <div class="col-sm-3">
-                            <input type="text" class="form-control" id="txtCity" name="city" placeholder="City" >
+                            <input type="text" class="form-control" id="txtCity" name="city" i18np="shared.fields.city">
                         </div>
                         <div class="col-sm-2" style="padding-left:0px;">
                             <select id="ddlState" class="form-control" style="height:32px;" name="state">
@@ -168,14 +168,14 @@
                             </select>
                         </div>
                         <div class="col-sm-2" style="padding-left:0px;">
-                            <input type="text" class="form-control integerbox" id="txtZip" name="zip" placeholder="Zip" maxlength="5">
+                            <input type="text" class="form-control integerbox" id="txtZip" name="zip" i18np="shared.fields.zip" maxlength="5">
                         </div>
                         <div class="col-sm-2" style="padding-left:0px;">
-                            <input type="text" class="form-control integerbox" id="txtZipPlus" name="zipPlus" placeholder="ZipPlus" maxlength="4">
+                            <input type="text" class="form-control integerbox" id="txtZipPlus" name="zipPlus" i18np="shared.fields.zipPlus" maxlength="4">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label for="txtBillProPhoneNo" class="col-sm-3 col-form-label field-required" i18n="setup.billingProvider.phoneno"></label>
+                        <label for="txtBillProPhoneNo" class="col-sm-3 col-form-label field-required" i18n="setup.billingProvider.phoneNo"></label>
                         <div class="col-sm-3">
                             <input type="text" class="form-control form-control-med maskPhone" id="txtBillProPhoneNo" name="phoneNo">
                         </div>
@@ -220,9 +220,9 @@
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label for="txtPayCity" class="col-sm-3 col-form-label" i18n="setup.billingProvider.citystatezip"></label>
+                        <label for="txtPayCity" class="col-sm-3 col-form-label" i18n="setup.billingProvider.cityStateZip"></label>
                         <div class="col-sm-3">
-                            <input type="text" class="form-control" id="txtPayCity" name="payCity" placeholder="City">
+                            <input type="text" class="form-control" id="txtPayCity" name="payCity" i18np="shared.fields.city">
                         </div>
                         <div class="col-sm-2" style="padding-left:0px;">
                             <select id="ddlPayState" class="form-control" style="height:32px;" name="payState">
@@ -233,14 +233,14 @@
                             </select>
                         </div>
                         <div class="col-sm-2" style="padding-left:0px;">
-                            <input type="text" class="form-control integerbox" id="txtPayZip" name="payZip" placeholder="Zip" maxlength="5">
+                            <input type="text" class="form-control integerbox" id="txtPayZip" name="payZip" i18np="shared.fields.zip" maxlength="5">
                         </div>
                         <div class="col-sm-2" style="padding-left:0px;">
-                            <input type="text" class="form-control integerbox" id="txtPayZipPlus" name="payZipPlus" placeholder="ZipPlus" maxlength="4">
+                            <input type="text" class="form-control integerbox" id="txtPayZipPlus" name="payZipPlus" i18np="shared.fields.zipPlus" maxlength="4">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label for="txtPayBillProPhoneNo" class="col-sm-3 col-form-label" i18n="setup.billingProvider.phoneno"></label>
+                        <label for="txtPayBillProPhoneNo" class="col-sm-3 col-form-label" i18n="setup.billingProvider.phoneNo"></label>
                         <div class="col-sm-3">
                             <input type="text" class="form-control maskPhone" id="txtPayBillProPhoneNo" name="payPhoneNo">
                         </div>
@@ -275,7 +275,7 @@
             </div>
             <div class="col-lg-12">
                 <div class="form-group row" style="float:right;">
-                    <button id="btnAddNewProviderCodes" type="submit" class="btn btn-primary" i18n="setup.buttons.add"></button>
+                    <button id="btnAddNewProviderCodes" type="submit" class="btn btn-primary" i18n="shared.buttons.add"></button>
                     <button id="btnRefreshProviderCodes" type="submit" class="btn btn-primary" i18n="shared.buttons.reload"></button>
                 </div>
             </div>

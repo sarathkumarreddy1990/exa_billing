@@ -50,7 +50,7 @@ define([
 
             initialize: function (options) {
                 this.showForm();
-                this.$el.html(this.mainTemplate(this.viewModel));               
+                this.$el.html(this.mainTemplate(this.viewModel));
                 UI.initializeReportingViewModel(options, this.viewModel);
             },
 
@@ -110,12 +110,12 @@ define([
 
             hasValidViewModel: function () {
                 if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
-                    commonjs.showWarning('Please check report id, category, and/or format!');
+                    commonjs.showWarning('messages.status.pleaseCheckReportIdCategoryandorFormat');
                     return false;
                 }
 
                 if ($('#txtDateRangeFrom').val() == "" || $('#txtDateRangeTo').val() == "") {
-                    alert('Please select date range!')
+                    alert(commonjs.geti18NString('messages.status.pleaseSelectDateRange'))
                     //commonjs.showWarning('Please select date range!');
                     return false;
                 }

@@ -103,32 +103,30 @@ define([ 'jquery', 'underscore' ], function ( jQuery, _ ) {
         //getTATCount();
     };
 
-    var updateReorderColumn = function ( studyFields ) {
-        var study_fields = [];
+    var updateReorderColumn = function ( studyFields, isClaimGrid  ) {
         var field_order = [];
         var gridOptions = studyFields.map(function ( col ) {
-            var name = col.field_name;
-            study_fields[ study_fields.length ] = name;
             field_order[ field_order.length ] = col.id;
             return {
                 'name': name,
                 'width': col.field_info.width || 0
             };
         });
+        var gridName = isClaimGrid ? 'claims' : 'studies';
         jQuery.ajax({
-            "url": "/userSetting",
-            "type": "PUT",
+            "url": "/exa_modules/billing/user_settings/update_grid_settings",
+            "type": "POST",
             "data": {
-                "flag": "updateReorderCol",
-                "study_fields": study_fields,
-                "field_order": field_order,
-                "grid_options": JSON.stringify(gridOptions)
+                "gridName": gridName,
+                "fieldOrder": field_order
             },
             "success": function ( data ) {
                 if ( data ) {
-                    app.usersettings.study_fields = study_fields;
-                    app.usersettings.field_order = field_order;
-                    app.usersettings.grid_options = gridOptions;
+                    if (isClaimGrid) {
+                        app.claim_user_settings.field_order = field_order;
+                    } else {
+                        app.study_user_settings.field_order = field_order;
+                    }
                 }
             },
             "error": function ( err ) {

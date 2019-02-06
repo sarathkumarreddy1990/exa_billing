@@ -361,13 +361,21 @@ module.exports = {
         } = params;
 
         let sql = SQL`
-                    SELECT  study_id,
-                            studies.order_id
-					FROM    billing.charges_studies
-                            INNER JOIN billing.charges ON billing.charges.id = billing.charges_studies.charge_id
-                            INNER JOIN public.studies ON public.studies.id = billing.charges_studies.study_id
-					WHERE   billing.charges.claim_id = ${claim_id}
-					LIMIT   1`;
+                    SELECT
+                        study_id,
+                        studies.order_id,
+                        studies.study_status,
+                        CASE
+                            WHEN studies.study_status = 'APP' THEN 1
+                            ELSE 2
+                        END  AS status_index
+                    FROM
+                        billing.charges_studies
+                    INNER JOIN billing.charges ON billing.charges.id = billing.charges_studies.charge_id
+                    INNER JOIN public.studies ON public.studies.id = billing.charges_studies.study_id
+                    WHERE   billing.charges.claim_id = ${claim_id}
+                    ORDER BY status_index ,study_id
+                    LIMIT 1`;
 
         return await query(sql);
     },
@@ -426,7 +434,6 @@ module.exports = {
 
     updateFollowUp: async (params) => {
         let {
-            claimIDs,
             followupDate,
             followUpDetails,
             companyId,
@@ -435,19 +442,30 @@ module.exports = {
             userId,
             entityName,
             moduleName,
-            assignedTo
+            claimFollowupData
         } = params;
         let sql;
-        claimIDs = claimIDs.split(',');
 
         if (followupDate == '') {
             sql = SQL`
-                    WITH cancle_followups AS(
-                        DELETE FROM billing.claim_followups
-                        WHERE
-                            claim_id = ANY(${claimIDs})
-                            AND assigned_to = ${assignedTo}
-                        RETURNING *, '{}'::jsonb old_values),
+                    WITH claim_data AS (
+                        SELECT 
+                              "claimId" AS claim_id
+                            , "assignedTo" AS assigned_to
+                        FROM json_to_recordset(${JSON.stringify(claimFollowupData)}) AS claim_data
+                        (
+                            "claimId" BIGINT,
+                            "assignedTo" INTEGER
+                        )
+                    )
+                    ,cancle_followups AS(
+                        DELETE FROM billing.claim_followups cf
+                        WHERE EXISTS (SELECT 
+                                        1 
+                                      FROM claim_data cd 
+                                      WHERE cd.claim_id = cf.claim_id
+                                      AND cd.assigned_to = cf.assigned_to
+                        )RETURNING *, '{}'::jsonb old_values),
                         audit_cte AS (
                             SELECT billing.create_audit(
                                 ${companyId},
@@ -554,7 +572,7 @@ module.exports = {
 
     createBatchClaims: async function (params) {
         let {
-            study_ids,
+            studyDetails,
             auditDetails
         } = params;
 
@@ -563,7 +581,7 @@ module.exports = {
                         SELECT
 		                    patient_id, study_id, order_id
 	                    FROM
-	                        json_to_recordset(${study_ids}) AS study_ids
+	                        json_to_recordset(${studyDetails}) AS study_ids
 		                    (
 		                        patient_id bigint,
                                 study_id bigint,
@@ -687,5 +705,109 @@ module.exports = {
                     SELECT * FROM update_audit_invoice `;
 
         return await query(sql);
+    },
+
+    validateBatchClaimCharge: async(study_data) => {
+        const sql = SQL`WITH batch_claim_details AS (
+                        SELECT
+                             study_id
+                        FROM
+                            json_to_recordset(${study_data}) AS study_ids
+                            (
+                                study_id bigint
+                            )
+                    )
+                    SELECT
+                        COUNT(DISTINCT s.id)
+                    FROM public.studies s
+                    INNER JOIN public.study_cpt cpt ON cpt.study_id = s.id
+                    INNER JOIN public.cpt_codes codes ON codes.id = cpt.cpt_code_id
+                    WHERE s.id = ANY(SELECT * FROM batch_claim_details)`;
+        return await query(sql.text, sql.values);
+    },
+
+    validateEDIClaimCreation: async(claimIds) => {
+        const sql = SQL` SELECT
+                        array_agg(claim_status.code) AS claim_status
+                    , COUNT(DISTINCT(bc.billing_method)) AS unique_billing_method_count
+                    , COUNT(clearing_house_id) AS clearing_house_count
+                    , COUNT(DISTINCT(clearing_house_id)) AS unique_clearing_house_count
+                FROM billing.claims bc
+                INNER JOIN billing.claim_status ON claim_status.id = bc.claim_status_id
+                LEFT JOIN patient_insurances ON patient_insurances.id =
+                (  CASE payer_type
+                WHEN 'primary_insurance' THEN primary_patient_insurance_id
+                WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
+                WHEN 'tertiary_insurance' THEN tertiary_patient_insurance_id
+                END)
+                LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id
+                LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id
+                WHERE bc.id = ANY(${claimIds}) `;
+
+        return await query(sql.text, sql.values);
+    },
+
+    getClaimSummary: async (params) => {
+        const {
+            id
+        } = params;
+
+        const sql = SQL` SELECT
+                            p.birth_date::text,
+                            p.account_no,
+                            p.gender,
+                            p.patient_info,
+                            get_full_name(p.last_name,p.first_name,p.middle_name,p.prefix_name,p.suffix_name) AS patient_name,
+                            get_full_name(u.last_name,u.first_name,u.middle_initial,null,u.suffix) AS created_by,
+                            charges.cpt_codes,
+                            charges.cpt_description,
+                            c.claim_dt::text,
+                            c.id,
+                            c.facility_id,
+                            COALESCE(
+                                get_study_age ,
+                                CASE
+                                    WHEN EXTRACT(YEAR FROM age(c.claim_dt, p.birth_date)) != 0 AND EXTRACT(MONTH FROM age(c.claim_dt,p.birth_date)) != 0
+                                        THEN EXTRACT(YEAR FROM age(c.claim_dt,p.birth_date)) || 'Y' || '&' || EXTRACT(MONTH FROM age(c.claim_dt,p.birth_date)) || 'M'
+                                    WHEN EXTRACT(YEAR FROM age(c.claim_dt,p.birth_date)) != 0 THEN EXTRACT(YEAR FROM age(c.claim_dt,p.birth_date)) || 'Y'
+                                    WHEN EXTRACT(MONTH FROM age(c.claim_dt,p.birth_date)) != 0 THEN EXTRACT(MONTH FROM age(c.claim_dt,p.birth_date)) || 'M'
+                                    ELSE null
+                                END
+                            ) AS patient_study_age,
+                            p.id as patient_id,
+                            COALESCE(patient_payments.insurance_balance,'0')::numeric AS insurance_balance,
+                            COALESCE(patient_payments.patient_balance,'0')::numeric AS patient_balance
+                        FROM
+                        billing.claims c
+                        INNER JOIN patients p ON p.id = c.patient_id
+                        INNER JOIN users u ON u.id = c.created_by
+                        LEFT JOIN (
+                            SELECT
+                                array_agg(cpt.display_code) AS cpt_codes,
+                                array_agg(cpt.display_description) AS cpt_description,
+                                chs.study_id
+                            FROM
+                                billing.charges ch
+                            INNER JOIN public.cpt_codes cpt ON ch.cpt_id = cpt.id
+                            LEFT JOIN billing.charges_studies chs ON chs.charge_id = ch.id
+                            WHERE claim_id = ${id}
+                            GROUP BY chs.study_id LIMIT 1
+
+                        ) AS charges ON TRUE
+                        LEFT JOIN studies s ON s.id = charges.study_id
+                        LEFT JOIN get_study_age(s.id::integer) ON true
+                        LEFT JOIN LATERAL (
+                            SELECT
+                                sum(bgcp.charges_bill_fee_total - (bgcp.payments_applied_total + bgcp.adjustments_applied_total))  FILTER (WHERE payer_type != 'patient')  as insurance_balance,
+                                sum(bgcp.charges_bill_fee_total - (bgcp.payments_applied_total + bgcp.adjustments_applied_total))  FILTER (WHERE payer_type = 'patient')  as patient_balance
+                            FROM billing.claims
+                            INNER JOIN LATERAL billing.get_claim_payments(claims.id,FALSE) bgcp ON TRUE
+                            WHERE claims.patient_id = c.patient_id
+                        ) patient_payments ON true
+                        WHERE
+                            c.id = ${id} `;
+
+        return await query(sql);
     }
+
 };

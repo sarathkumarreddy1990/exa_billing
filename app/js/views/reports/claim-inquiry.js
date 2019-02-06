@@ -256,22 +256,22 @@ define([
 
             hasValidViewModel: function () {
                 if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
-                    commonjs.showWarning('Please check report id, category, and/or format!');
+                    commonjs.showWarning('messages.status.pleaseCheckReportIdCategoryandorFormat');
                     return;
                 }
 
                 // Claim # validatation for from# &  To #
                 if ($('#claimIdFrom').val() != '' && $('#claimIdTo').val() == "") {
-                    commonjs.showWarning('Please Enter To Range (Claim #)');
+                    commonjs.showWarning('messages.status.pleaseEnterToRangeClaim');
                     return;
                 }
                 if ($('#claimIdTo').val() != '' && $('#claimIdFrom').val() == "") {
-                    commonjs.showWarning('Please Enter From Range (Claim #)');
+                    commonjs.showWarning('messages.status.pleaseEnterFromRangeClaim');
                     return;
                 }
 
                 if ($('#claimIdFrom').val() > $('#claimIdTo').val()) {
-                    commonjs.showWarning('Claim From# not Greater than To#');
+                    commonjs.showWarning('messages.status.claimFromNotGreaterThanTo');
                     return;
                 }
 
@@ -379,6 +379,7 @@ define([
             },
 
             onOptionChangeSelectUser: function () {
+                $('#txtUsers').empty();
                 if ($('#ddlUsersOption').val() == 'S') {
                     $("#ddlUsersBox").show();
                     $("#divUsers").show();

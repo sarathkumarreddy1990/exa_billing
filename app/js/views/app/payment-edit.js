@@ -347,8 +347,9 @@ define(['jquery',
                 var val = $('#selectPayerType').val();
                 $('.payerFields').hide();
                 $('#divInputType span').show();
+                this.clearPayerFields();
                 if (val === 'insurance') {
-                    $('#select2-txtautoPayerPIP-container').html('Select Insurance');
+                    $('#select2-txtautoPayerPIP-container').html(commonjs.geti18NString('billing.payments.selectInsurance'));
                     $('#divPayerInsurnace').show();
                     $('#lblIpEob').show();
                     $('#chkIpEob').prop('checked', true);
@@ -356,7 +357,7 @@ define(['jquery',
                     $('#lblInputType').text('Input Type');
                 }
                 else if (val === 'patient') {
-                    $('#select2-txtautoPayerPP-container').html('Select Patient');
+                    $('#select2-txtautoPayerPP-container').html(commonjs.geti18NString('billing.payments.selectPatient'));
                     $('#divPayerPatient').show();
                     $('#lblIpEob').hide();
                     $('#divInputType span').hide();
@@ -364,13 +365,13 @@ define(['jquery',
                     $('#lblInputType').text('');
                 }
                 else if (val === 'ordering_facility') {
-                    $('#select2-txtautoPayerPOF-container').html('Select Ordering facility');
+                    $('#select2-txtautoPayerPOF-container').html(commonjs.geti18NString('billing.payments.selectOrderingFacility'));
                     $('#divPayerOrderFacility').show();
                     $('#lblIpEob').hide();
                     $('#lblInputType').text('Input Type');
                 }
                 else if (val === 'ordering_provider') {
-                    $('#select2-txtautoPayerPR-container').html('Select Provider');
+                    $('#select2-txtautoPayerPR-container').html(commonjs.geti18NString('billing.payments.selectProvider'));
                     $('#divPayerProvider').show();
                     $('#lblIpEob').hide();
                     $('#lblInputType').text('Input Type');
@@ -432,7 +433,8 @@ define(['jquery',
                 $txtautoPayerPIP.on('select2:open', function (event) {
                     commonjs.getPlaceHolderForSearch();
                     placeHolder = i18n.get("billing.payments.selectInsurance");
-                    if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase())
+                    if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase()
+                        && $select2Container.text().toLowerCase() != 'select insurance')
                         $txtautoPayerPIP.data('select2').dropdown.$search.val($select2Container.text());
                 });
             },
@@ -565,7 +567,8 @@ define(['jquery',
                 $txtautoPayerPP.on('select2:open', function (event) {
                     commonjs.getPlaceHolderForSearch();
                     placeHolder = i18n.get("billing.payments.selectPatient");
-                    if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase())
+                    if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase()
+                        && $select2Container.text().toLowerCase() != "select patient")
                         $txtautoPayerPP.data('select2').dropdown.$search.val($select2Container.text());
                 });
             },
@@ -625,7 +628,8 @@ define(['jquery',
                 $txtautoPayerPOF.on('select2:open', function (event) {
                     commonjs.getPlaceHolderForSearch();
                     placeHolder = i18n.get("billing.payments.selectOrderingFacility");
-                    if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase())
+                    if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase()
+                        && $select2Container.text().toLowerCase() != 'select ordering facility')
                         $txtautoPayerPOF.data('select2').dropdown.$search.val($select2Container.text());
                 });
             },
@@ -701,7 +705,8 @@ define(['jquery',
                 $txtautoPayerPR.on('select2:open', function (event) {
                     commonjs.getPlaceHolderForSearch();
                     placeHolder = i18n.get("billing.payments.selectProvider");
-                    if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase())
+                    if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase()
+                        && $select2Container.text().toLowerCase() != 'select provider')
                         $txtautoPayerPR.data('select2').dropdown.$search.val($select2Container.text());
                 });
             },
@@ -784,7 +789,7 @@ define(['jquery',
                     from !== 'ris' ? $('#btnPaymentApplyAll').show() : '';
                     $('#lblInputType').text('');
                     $('#txtInvoice').hide();
-                    $('#commonMsg').text('Pending payments for the patient : ');
+                    $('#commonMsg').text(commonjs.geti18NString("shared.fields.pendingPaymentsForThePatient"));
                     var e = $.Event('keyup');
                     $('#mrn').val(response.account_no).focus().trigger(e);
                     $('#spnPatInfo').text(response.patient_name + ' (' + response.account_no + ') ');
@@ -841,7 +846,7 @@ define(['jquery',
                 this.studyCptTable.render({
                     gridelementid: '#tblStudyCpt',
                     custompager: this.studyCptPager,
-                    emptyMessage: 'No Record found',
+                    emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['', '', '', '', '', '', ''],
                     i18nNames: ['', '', '', 'billing.COB.studyDate', 'billing.payments.accessionNo', 'billing.payments.studyDescription', 'billing.payments.cptCodes'],
                     colModel: [
@@ -988,7 +993,7 @@ define(['jquery',
                 }
             },
 
-            setCasGroupCodesAndReasonCodes: function () {
+            setCasGroupCodesAndReasonCodes: function (isFromClaim, callback) {
                 var self = this;
                 $.ajax({
                     url: '/exa_modules/billing/pending_payments/groupcodes_and_reasoncodes',
@@ -1001,6 +1006,13 @@ define(['jquery',
                         var casCodes = data[0];
                         self.cas_group_codes = casCodes.cas_group_codes;
                         self.cas_reason_codes = casCodes.cas_reason_codes;
+                        // Send response to claim screen
+                        if (isFromClaim && typeof callback === 'function') {
+                            callback({
+                                cas_group_codes: self.cas_group_codes,
+                                cas_reason_codes: self.cas_reason_codes
+                            });
+                        }
                     },
                     error: function (err, response) {
                         commonjs.handleXhrError(err, response);
@@ -1011,22 +1023,22 @@ define(['jquery',
             validatePayer: function (payermode) {
                 var self = this;
                 if (payermode == 'insurance' && !self.payer_id) {
-                    commonjs.showWarning("Please select insurance");
+                    commonjs.showWarning("messages.warning.payments.pleaseSelectInsurance");
                     $('#txtautoPayerPIP').select2('open');
                     return false;
                 }
                 else if (payermode == 'patient' && !self.payer_id) {
-                    commonjs.showWarning("Please select patient");
+                    commonjs.showWarning("messages.warning.payments.pleaseSelectPatient");
                     $('#txtautoPayerPP').select2('open');
                     return false;
                 }
                 else if (payermode == 'ordering_provider' && !self.payer_id) {
-                    commonjs.showWarning("Please select provider");
+                    commonjs.showWarning("messages.warning.payments.pleaseSelectProvider");
                     $('#txtautoPayerPR').select2('open');
                     return false;
                 }
                 else if (payermode == 'ordering_facility' && !self.payer_id) {
-                    commonjs.showWarning("Please select ordering facility");
+                    commonjs.showWarning("messages.warning.payments.pleaseSelectOrderingFacility");
                     $('#txtautoPayerPOF').select2('open');
                     return false;
                 }
@@ -1095,72 +1107,109 @@ define(['jquery',
                 this.invoicePendPaymentTable.refreshAll();
             },
 
-            savePayment: function () {
+            savePayment: function (e, claimId, paymentId, paymentStatus, paymentApplicationId) {
                 var self = this;
-                if (self.validatepayments()) {
-                    $('#btnPaymentSave').attr('disabled', true);
-                    commonjs.showLoading('Loading..')
-                    var applied = 0;
-                    var balance = 0;
-                    var amount = $.trim($('#txtAmount').val().replace(',', ''));
-                    var amountValue = amount ? parseFloat(amount.replace(/[^0-9\.]+/g, "")).toFixed(2) : 0.00;
-                    var applied = $.trim($('#lblApplied').html());
-                    var appliedValue = applied ? parseFloat(applied.replace(/[^0-9\.]+/g, "")).toFixed(2) : 0.00;
-                    var balance = (parseFloat(amountValue).toFixed(2) - parseFloat(appliedValue).toFixed(2)) + 0.00;
-                    var totalbalance = balance ? parseFloat(balance).toFixed(2) : '0.00';
-                    this.model.set({
-                        paymentId: self.payment_id,
-                        company_id: app.companyID,
-                        facility_id: $.trim($('#ddlPaidLocation').val()),
-                        display_id: $.trim($('#referencePaymentID').val()) || null,
-                        payer_type: $('#selectPayerType').val(),
-                        amount: $.trim($('#txtAmount').val().replace(',', '')) || 0.00,
-                        invoice_no: $('#txtInvoice').is(':visible') ? $('#txtInvoice').val() : null,
-                        accounting_date: self.dtpAccountingDate && self.dtpAccountingDate.date() ? self.dtpAccountingDate.date().format('YYYY-MM-DD') : null,
-                        patient_id: self.patient_id,
-                        provider_contact_id: self.provider_id,
-                        provider_group_id: self.provider_group_id,
-                        insurance_provider_id: self.insurance_provider_id,
-                        credit_card_number: $("#txtCheque").val() || null,
-                        credit_card_name: $("#txtCardName").val() || null,
-                        payment_mode: $('#selectPaymentMode').val(),
-                        payment_reason_id: $("#ddlpaymentReason").val() || null,
-                        user_id: app.userID,
-                        notes: ($("#txtNotes").val()).replace(/(\r\n|\n|\r)/gm, "") || null,
-                        payment_row_version: self.payment_row_version
+                if ((!self.isFromClaim && !self.validatepayments()) || (self.isFromClaim && !self.validatePayerDetails())) {
+                    return false;
+                }
+
+                $('#btnPaymentSave').attr('disabled', true);
+                commonjs.showLoading('messages.loadingMsg.default')
+                var paymentObj = {
+                    paymentId: self.payment_id,
+                    company_id: app.companyID,
+                    payer_type: $('#selectPayerType').val(),
+                    invoice_no: $('#txtInvoice').is(':visible') ? $('#txtInvoice').val() : null,
+                    patient_id: self.patient_id,
+                    provider_contact_id: self.provider_id,
+                    provider_group_id: self.provider_group_id,
+                    insurance_provider_id: self.insurance_provider_id,
+                    credit_card_number: $("#txtCheque").val() || null,
+                    credit_card_name: $("#txtCardName").val() || null,
+                    payment_mode: $('#selectPaymentMode').val(),
+                    payment_reason_id: $("#ddlpaymentReason").val() || null,
+                    user_id: app.userID,
+                    payment_row_version: self.payment_row_version
+                };
+
+                if (self.isFromClaim && self.claimPaymentObj) {
+                    var lineItems = $("#tBodyApplyPendingPayment tr");
+                    var payment = 0.00;
+                    // get total this payment.
+                    $.each(lineItems, function (index) {
+                        var $thisPay = $(this).find('td:nth-child(5)>input');
+                        var payment_amt = $thisPay.val() ? $thisPay.val().trim() : 0.00;
+                        payment += parseFloat(payment_amt);
                     });
-                    this.model.save({
-                    }, {
-                            success: function (model, response) {
-                                self.gridFirstLoaded = false;
-                                self.pendingGridLoaderd = false;
-                                self.tabClicked = '';
-                                self.saveClick = true;
+                    paymentObj.paymentId = self.payment_id || self.claimPaymentObj.paymentId || paymentId || 0 ;
+                    paymentObj.amount = payment;
+                    paymentObj.isFromClaim = true;
+                    paymentObj.patient_id = self.claimPaymentObj.patient_id;
+                    paymentObj.payer_type = self.claimPaymentObj.payer_type;
+                    paymentObj.facility_id = self.claimPaymentObj.facility_id;
+                    paymentObj.payment_mode = self.claimPaymentObj.payment_mode;
+                    paymentObj.accounting_date = self.claimPaymentObj.accounting_date;
+                    paymentObj.provider_group_id = self.claimPaymentObj.provider_group_id;
+                    paymentObj.credit_card_number = self.claimPaymentObj.credit_card_number;
+                    paymentObj.provider_contact_id = self.claimPaymentObj.provider_contact_id;
+                    paymentObj.insurance_provider_id = self.claimPaymentObj.insurance_provider_id;
+                    paymentObj.payment_row_version = self.claimPaymentObj.payment_row_version;
+                } else {
+                    paymentObj.amount = parseFloat($('#txtAmount').val()) || 0.00;
+                    paymentObj.facility_id = $.trim($('#ddlPaidLocation').val());
+                    paymentObj.display_id = $.trim($('#referencePaymentID').val()) || null;
+                    paymentObj.accounting_date = self.dtpAccountingDate && self.dtpAccountingDate.date() ? self.dtpAccountingDate.date().format('YYYY-MM-DD') : null;
+                    paymentObj.notes = ($("#txtNotes").val()).replace(/(\r\n|\n|\r)/gm, "") || null;
+                }
+
+                this.model.set(paymentObj);
+                this.model.save({
+                }, {
+                        success: function (model, response) {
+                            self.gridFirstLoaded = false;
+                            self.pendingGridLoaderd = false;
+                            self.tabClicked = '';
+                            self.saveClick = true;
+                            var msg = self.payment_id ? commonjs.geti18NString('messages.status.paymentUpdatedSuccessfully') : commonjs.geti18NString('messages.status.paymentCreatedSuccessfully');
+
+                            if (self.isFromClaim && response && response.length === 0) {
+                                commonjs.hideLoading();
+                                return false;
+                            } else if (self.isFromClaim && response && response.length) {
+                                commonjs.showStatus(msg);
+                                self.payment_id = response[0].id || 0;
+                                self.claimPaymentObj.isPaymentUpdate = false;
+                                self.saveAllPayments(e, claimId, self.payment_id, paymentStatus, 0, paymentApplicationId);
+                                commonjs.hideLoading();
+                            } else {
+                                // Payment screen flow
                                 if (self.payment_id) {
                                     if (response && response.length) {
-                                        commonjs.showStatus('Payment has been updated successfully');
+                                        commonjs.showStatus(msg);
                                         self.render(self.payment_id, self.from);
                                     }
                                     else {
-                                        commonjs.showWarning('This payment has been already updated by some other user - please refresh the page and try again.');
+                                        commonjs.showWarning('messages.warning.payments.paymentAlreadyUpdated');
                                     }
                                     $('#btnPaymentSave').removeAttr('disabled');
                                     commonjs.hideLoading();
                                 }
                                 else {
-                                    if (self.from === 'ris')
+                                    if (self.from === 'ris'){
                                         Backbone.history.navigate('#billing/payments/edit/' + self.from + '/' + model.attributes[0].id, true);
-                                    else
+                                    } else {
                                         Backbone.history.navigate('#billing/payments/edit/' + model.attributes[0].id, true);
+                                    }
                                 }
                                 self.paymentTabClick('save');
-
-                            },
-                            error: function (err, response) {
-                                commonjs.handleXhrError(err, response);
                             }
-                        });
-                }
+
+                        },
+                        error: function (err, response) {
+                            commonjs.handleXhrError(err, response);
+                        }
+                    });
+
             },
 
             showPendingPaymentsGridInvoice: function (paymentID, payerType, payerId) {
@@ -1169,7 +1218,7 @@ define(['jquery',
                 this.invoicePendPaymentTable.render({
                     gridelementid: '#tblpendPaymentsGridOnly',
                     custompager: this.pendPaymtInvoicePager,
-                    emptyMessage: 'No Record found',
+                    emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
                     i18nNames: ['', '', '', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.fileInsurance.claimDt', 'billing.payments.billFee', 'billing.payments.balance', 'setup.userSettings.cptCodes', 'setup.userSettings.accountNo', '', ''],
                     colModel: [
@@ -1177,7 +1226,7 @@ define(['jquery',
                             name: 'edit', width: 20, sortable: false, search: false,
                             className: 'icon-ic-edit',
                             formatter: function (e, model, data) {
-                                return "<i class='icon-ic-edit' title='Edit'></i>";
+                                return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>";
                             },
                             customAction: function (rowID, e) {
                                 var gridData = $('#tblpendPaymentsGridOnly').jqGrid('getRowData', rowID);
@@ -1189,7 +1238,7 @@ define(['jquery',
                             name: 'claim_inquiry', width: 20, sortable: false, search: false,
                             className: 'icon-ic-raw-transctipt',
                             formatter: function () {
-                                return "<i class='icon-ic-raw-transctipt' title='Claim Inquiry'></i>"
+                                return "<i class='icon-ic-raw-transctipt' i18nt='billing.fileInsurance.claimInquiry'></i>"
                             },
                             customAction: function (rowID, e) {
                                 var gridData = $('#tblpendPaymentsGridOnly').jqGrid('getRowData', rowID);
@@ -1273,7 +1322,7 @@ define(['jquery',
                     this.pendPaymentTable.render({
                         gridelementid: '#tblpendPaymentsGrid',
                         custompager: this.pendPaymtPager,
-                        emptyMessage: 'No Record found',
+                        emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                         colNames: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
                         i18nNames: ['', '', '', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.fileInsurance.claimDt', 'billing.payments.billFee', 'billing.payments.balance', 'setup.userSettings.cptCodes', 'setup.userSettings.accountNo', '', ''],
                         colModel: [
@@ -1281,7 +1330,7 @@ define(['jquery',
                                 name: 'edit', width: 20, sortable: false, search: false,
                                 className: 'icon-ic-edit',
                                 formatter: function (e, model, data) {
-                                    return "<i class='icon-ic-edit' title='Edit'></i>";
+                                    return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>";
                                 },
                                 customAction: function (rowID, e) {
                                     var gridData = $('#tblpendPaymentsGrid').jqGrid('getRowData', rowID);
@@ -1293,7 +1342,7 @@ define(['jquery',
                                 name: 'claim_inquiry', width: 20, sortable: false, search: false,
                                 className: 'icon-ic-raw-transctipt',
                                 formatter: function () {
-                                    return "<i class='icon-ic-raw-transctipt' title='Claim Inquiry'></i>"
+                                    return "<i class='icon-ic-raw-transctipt' i18nt='billing.fileInsurance.claimInquiry'></i>"
                                 },
                                 customAction: function (rowID, e) {
                                     var gridData = $('#tblpendPaymentsGrid').jqGrid('getRowData', rowID);
@@ -1363,7 +1412,7 @@ define(['jquery',
                                         self.claimID = "";
                                     }
                                 } else {
-                                    commonjs.showWarning('Invalid claim id ' + gridObj.options.customargs.claimIdToSearch);
+                                    commonjs.showWarning(commonjs.geti18NString('messages.warning.payments.invalidClaimid') + " " + gridObj.options.customargs.claimIdToSearch);
                                 }
                                 $('#btnBackToPatient').click();
                                 $('#claimId').focus();
@@ -1433,15 +1482,15 @@ define(['jquery',
                 this.appliedPaymentTable.render({
                     gridelementid: '#tblAppliedPaymentsGrid',
                     custompager: this.appliedPager,
-                    emptyMessage: 'No Record found',
-                    colNames: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                    i18nNames: ['', '', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.fileInsurance.claimDt', 'billing.payments.billFee', 'billing.payments.patientPaid', 'billing.payments.payerPaid', 'billing.payments.adjustment', 'billing.payments.thisAdj', 'billing.payments.thisPayment', 'billing.payments.balance', 'billing.payments.cptCodes', 'patient_id', 'facility_id', ''],
+                    emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
+                    colNames: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+                    i18nNames: ['', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.fileInsurance.claimDt', 'billing.payments.billFee', 'billing.payments.patientPaid', 'billing.payments.payerPaid', 'billing.payments.adjustment', 'billing.payments.thisAdj', 'billing.payments.thisPayment', 'billing.payments.balance', 'billing.payments.cptCodes', 'patient_id', 'facility_id', ''],
                     colModel: [
                         {
                             name: 'edit', width: 20, sortable: false, search: false,
                             className: 'icon-ic-edit',
                             formatter: function (e, model, data) {
-                                return "<i class='icon-ic-edit' title='Edit'></i>";
+                                return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>";
                             },
                             customAction: function (rowID, e) {
                                 var gridData = $('#tblAppliedPaymentsGrid').jqGrid('getRowData', rowID);
@@ -1452,14 +1501,13 @@ define(['jquery',
                             name: 'claim_inquiry', width: 20, sortable: false, search: false,
                             className: 'icon-ic-raw-transctipt',
                             formatter: function () {
-                                return "<i class='icon-ic-raw-transctipt' title='Claim Inquiry'></i>"
+                                return "<i class='icon-ic-raw-transctipt' i18nt='shared.screens.setup.claimInquiry'></i>"
                             },
                             customAction: function (rowID, e) {
                                 var gridData = $('#tblAppliedPaymentsGrid').jqGrid('getRowData', rowID);
                                 self.showClaimInquiry(gridData.claim_id, '', true);
                             }
                         },
-                        { name: 'claim_id', index: 'id', key: true, hidden: true },
                         { name: 'charge_id', hidden: true },
                         { name: 'claim_dt', hidden: true },
                         { name: 'claim_id', width: 100 },
@@ -1552,33 +1600,75 @@ define(['jquery',
                 self.getAppliedBalance(paymentId);
             },
 
-            showApplyAndCas: function (claimId, paymentID, paymentStatus, chargeId, rowData) {
+            showApplyAndCas: function (claimId, paymentID, paymentStatus, chargeId, rowData, callback) {
                 var self = this;
-                var paymentApplicationId = rowData.payment_application_id;
+                var paymentApplicationId = rowData.payment_application_id || null;
                 self.defalutCASArray = [0, 1, 2, 3, 4, 5, 6];
                 self.casSegmentsSelected = [];
+                self.isFromClaim = rowData.isFromClaim || false;
+                paymentID = self.payment_id || paymentID;
                 var patient_paid = rowData.patient_paid ? self.formatMoneyValue(rowData.patient_paid) : '0.00';
                 var others_paid = rowData.others_paid ? self.formatMoneyValue(rowData.others_paid) : '0.00';
                 var claimDt = (commonjs.checkNotEmpty(rowData.claim_dt) ? commonjs.convertToFacilityTimeZone(rowData.facility_id, rowData.claim_dt).format('L') : '');
+                var casDialogHeader = commonjs.geti18NString('billing.fileInsurance.claim') + ': # <strong>' + rowData.claim_id + ',  ' + rowData.full_name + '  ' + claimDt + '</strong>';
+                var casDialogHtml = self.applyCasTemplate({
+                    adjustmentCodes: self.adjustmentCodeList.toJSON(),
+                    claimStatusList: this.claimStatusList.toJSON(),
+                    cas_group_codes: self.cas_group_codes || rowData.cas_group_codes,
+                    cas_reason_codes: self.cas_reason_codes || rowData.cas_reason_codes,
+                    patient_paid: patient_paid,
+                    others_paid: others_paid,
+                    claim_statuses: self.claimStatuses.toJSON()
+                });
+                var _showDialogObj = {
+                    header: casDialogHeader,
+                    width: rowData.isFromClaim ? '75%' : '85%',
+                    height: rowData.isFromClaim ? '65%' : '72%',
+                    html: casDialogHtml
+                };
 
-                commonjs.showDialog({ header: 'Claim : # <strong>'+rowData.claim_id+',  '+rowData.full_name +'  ' + claimDt+'</strong>', width: '85%', height: '72%', html: self.applyCasTemplate({ adjustmentCodes: self.adjustmentCodeList.toJSON(), 'claimStatusList': this.claimStatusList.toJSON(), cas_group_codes: self.cas_group_codes, cas_reason_codes: self.cas_reason_codes, patient_paid: patient_paid, others_paid: others_paid, claim_statuses: self.claimStatuses.toJSON() }) });
+                if (rowData.isFromClaim) {
+                    commonjs.showNestedDialog(_showDialogObj);
+                    self.claimPaymentObj = rowData.newPaymentObj;
+                    self.payment_id = paymentID;
+                } else {
+                    commonjs.showDialog(_showDialogObj);
+                }
 
                 $('#siteModal').removeAttr('tabindex');
                 $('#divApplyPendingPayments').height($('#modal_div_container').height() - 340);
                 $('#siteModal .close, #siteModal .btn-secondary').unbind().bind('click', function (e) {
-                    self.closeAppliedPendingPayments(e, paymentID);
-                    $('#siteModal').hide();
+                    // call appliedpending payment if not from claim screen
+                    if (!self.isFromClaim) {
+                        self.closeAppliedPendingPayments(e, paymentID);
+                        $('#siteModal').hide();
+                    }
                 })
 
                 commonjs.processPostRender();
                 commonjs.validateControls();
                 commonjs.isMaskValidate();
 
-                $('#btnCloseAppliedPendingPayments,#btnCloseApplyPaymentPopup').unbind().bind('click', function (e) {
+                $('#btnCloseAppliedPendingPayments,#btnCloseApplyPaymentPopup').off().click(function (e) {
                     $('#divPaymentApply').remove();
                     $('#siteModal').hide();
                 });
                 self.getClaimBasedCharges(claimId, paymentID, paymentStatus, chargeId, paymentApplicationId, true);
+                // Hide some of edit-payment property if showDialog open via claim screen
+                if (rowData.isFromClaim) {
+                    $('#siteModalNested').removeAttr('tabindex'); //removed tabIndex attr on sitemodel for select2 search text area can't editable
+                    $('#btnPayfullAppliedPendingPayments').hide();
+                    $('#formBillingProviders .form-group').not('.divAdjustmentCodes').hide();
+                    $('#siteModalNested .close, #siteModalNested .btn-secondary').off().click(function (e) {
+                        // Send response to claim screen
+                        if (typeof callback === 'function') {
+                            callback(null, {
+                                status: 'closed',
+                                payment_id: self.payment_id || paymentID
+                            });
+                        }
+                    });
+                }
             },
 
             setFeeFields: function (claimDetail, isInitial) {
@@ -1788,8 +1878,26 @@ define(['jquery',
                             }
                         });
 
+                        $("#ddlAdjustmentCode_fast").select2({
+                            width: '300px',
+                            templateResult: formatRepo
+                        });
+                        function formatRepo(repo) {
 
-                        $("#ddlAdjustmentCode_fast").select2({ width: '300px' });
+                            if (repo.loading) {
+                                return repo.text;
+                            }
+                            var _div = $('<div/>').append(repo.text);
+
+                            if ($(repo.element).hasClass('recoupment_debit')) {
+                                _div.addClass('recoupment_debit')
+                            } else if ($(repo.element).hasClass('refund_debit')) {
+                                _div.addClass('refund_debit')
+                            }
+
+                            return _div;
+                        };
+
 
                         $('#tBodyApplyPendingPayment').find('.applyCAS').on('click', function (e) {
                             var selectedRow = $(e.target || e.srcElement).closest('tr');
@@ -1797,9 +1905,14 @@ define(['jquery',
                             self.getPayemntApplications(e);
                         });
 
-                        $('#applyPaymentContent').find('#btnSaveAppliedPendingPayments').unbind().on('click', function (e) {
-                            self.saveAllPayments(e, claimId, paymentId, paymentStatus, chargeId, paymentApplicationId);
-                        });
+                        $('#applyPaymentContent').find('#btnSaveAppliedPendingPayments').off().click(_.debounce(function (e) {
+                            // Call savePayment fun if payment status == 'pending status', This call only for payment creation via claim screen
+                            if (self.isFromClaim && (paymentStatus === 'pending' && !paymentId || self.claimPaymentObj.isPaymentUpdate)) {
+                                self.savePayment(e, claimId, paymentId, paymentStatus, paymentApplicationId);
+                            } else {
+                                self.saveAllPayments(e, claimId, paymentId, paymentStatus, chargeId, paymentApplicationId);
+                            }
+                        }, 250));
 
                         $('#btnClearAppliedPendingPayments').unbind().on('click', function (e) {
                             self.clearPayments(e, paymentId, claimId);
@@ -1925,7 +2038,7 @@ define(['jquery',
                 $('#spPaymentApplied').text(self.formatMoneyValue(payment));
                 $('#spAdjustmentApplied').text(self.formatMoneyValue(adjustment));
 
-                var orderBillFee = self.formatMoneyValue($('#lblBillingFee').text());
+                var orderBillFee = self.formatMoneyValue($('#lblBillingFee').text(), true);
                 var orderBalance = orderBillFee - (parseFloat(adjustment) + parseFloat(payment) + parseFloat(other_payment) + parseFloat(other_adj));
                 var orderAdjustment = parseFloat(adjustment) + parseFloat(other_adj);
 
@@ -2013,13 +2126,13 @@ define(['jquery',
                 var self = this;
                 var chargeItem = $(e.target).closest('tr');
                 var chargeId = chargeItem.attr('data_charge_id_id');
-                var paymentApplicationId = chargeItem.attr('data_payment_adjustment_id');
-                if (paymentApplicationId) {
+                var adjustmentApplicationId = chargeItem.attr('data_payment_adjustment_id');
+                if (adjustmentApplicationId) {
                     $.ajax({
                         url: '/exa_modules/billing/pending_payments/payment_applications',
                         type: 'GET',
                         data: {
-                            paymentApplicationId: paymentApplicationId
+                            paymentApplicationId: adjustmentApplicationId
                         },
                         success: function (data, response) {
                             $('#divPaymentCAS select').removeAttr('cas_id');
@@ -2077,22 +2190,22 @@ define(['jquery',
                 var val = ['refund_debit', 'recoupment_debit']
 
                 if ($('#ddlResponsible').val() === '') {
-                    commonjs.showWarning('Please select responsible');
+                    commonjs.showWarning('shared.warning.missingResponsible');
                     $('#ddlResponsible').select2('open')
                     return false;
                 }
                 else if ($('#ddlAdjustmentCode_fast').val() === '0') {
-                    commonjs.showWarning('Please select adjustemnt code');
+                    commonjs.showWarning('messages.warning.payments.pleaseSelectAdjustment');
                     return false;
                 } else if (isDebit && val.indexOf(adjustment_codetype) < 0) {
-                    commonjs.showWarning('Please select Refund Or Recoupment adjustment code ');
+                    commonjs.showWarning('messages.warning.payments.pleaseSelectRefAdjCode');
                     return false;
                 } else if (!isDebit && val.indexOf(adjustment_codetype) >= 0) {
-                    commonjs.showWarning('Please select DR checkbox ');
+                    commonjs.showWarning('messages.warning.payments.pleaseSelectDRCheckBox');
                     return false;
                 } else if (self.isRefundApplied === true) {
                     if ($('#ddlAdjustmentCode_fast').val() && $('#ddlAdjustmentCode_fast').find(':selected').attr('data_code_type') != 'refund_debit') {
-                        var refund_change_confirm = confirm("This payment is refund mode want to overwrite this payment ? ");
+                        var refund_change_confirm = confirm(commonjs.geti18NString("messages.confirm.payments.overwriteRefundAreYouSure"));
                         if (refund_change_confirm == true) {
                             self.isRefundApplied = false;
                             return true;
@@ -2113,7 +2226,7 @@ define(['jquery',
                         }
                     });
                     if (adjustment_has_value === 0) {
-                        alert('Please enter refund adjustment.');
+                        commonjs.showWarning('messages.warning.payments.enterRefundAmount');
                         adjustment_has_value = 0;
                         return false;
                     }
@@ -2130,9 +2243,7 @@ define(['jquery',
                 if (this.validatePayerDetails()) {
                     var lineItems = $("#tBodyApplyPendingPayment tr"), dataLineItems = [], orderPayment = 0.00, orderAdjustment = 0.00;
                     var line_items = [];
-
                     var cas = self.casSegmentsSelected;
-
                     $.each(lineItems, function (index) {
                         var _line_item = {};
                         var chargeRow = $(this);
@@ -2165,9 +2276,20 @@ define(['jquery',
                     */
                     var totalPayment = _.reduce(line_items,function(m,x) { return m + x.payment; }, 0);
                     var totalAdjustment = _.reduce(line_items,function(m,x) { return m + x.adjustment; }, 0);
+                    /**
+                    *  Condition : If payment_payer_type === 'patient' && claim_status !== Pending Validation/Submission
+                    *  DESC : No need to change Claim Status & Responsible
+                    *  Reference ticket  : EXA-12612
+                    */
+                    var paymentPayerType = self.isFromClaim ? self.claimPaymentObj.payer_type || '' : $('#selectPayerType').val();
+                    var claimStatus = _.filter(self.claimStatuses.toJSON(), { id: self.received_claim_status_id });
+                    var oldClaimStatus = claimStatus.length && claimStatus[0].code || '';
+                    var isClaimStatusChanged = self.received_claim_status_id != $('#ddlClaimStatus').val();
+                    var claimStatusIndex = ['PV', 'PS'].indexOf(oldClaimStatus);
 
-                    if (totalPayment === 0 && totalAdjustment === 0) {
-                        $('#ddlClaimStatus').val($("option[data-desc = 'D']").val());
+                    if (totalPayment === 0 && totalAdjustment === 0 && claimStatusIndex === -1 && paymentPayerType !=='patient') {
+                        var deniedStatus = _.filter(self.claimStatuses.toJSON(), { code: 'D' });
+                        $('#ddlClaimStatus').val(deniedStatus.length && deniedStatus[0].id || '');
                         isClaimDenied = true;
                     }
 
@@ -2201,12 +2323,17 @@ define(['jquery',
                             adjustmentId: adjustmentType,
                             paymentStatus: paymentStatus,
                             casDeleted: JSON.stringify(self.casDeleted),
-                            claimStatusID: claimStatusID,
+                            claimStatusID: claimStatusIndex > -1 && !isClaimStatusChanged && paymentPayerType === 'patient' ? self.received_claim_status_id : claimStatusID,
                             is_payerChanged: isPayerChanged,
-                            is_claimDenied: isClaimDenied
+                            is_claimDenied: isClaimDenied,
+                            isFromClaim: self.isFromClaim,
+                            changeResponsibleParty : paymentPayerType === 'patient' && claimStatusIndex > -1 && isPayerChanged === 'false' && !isClaimStatusChanged
                         },
                         success: function (model, response) {
-                            commonjs.showStatus(paymentStatus === 'applied' ? 'Payment has been updated successfully' : 'Payment has been applied successfully');
+                            var msg = self.isFromClaim ? commonjs.geti18NString('messages.status.tosSuccessfullyCompleted') :
+                                paymentStatus === 'applied' ? commonjs.geti18NString('messages.status.paymentUpdatedSuccessfully') : commonjs.geti18NString('messages.status.paymentAppliedSuccessfully');
+
+                            commonjs.showStatus(msg);
                             targetObj.removeAttr('disabled');
                             commonjs.hideLoading();
                             self.isRefundApplied = false;
@@ -2216,6 +2343,7 @@ define(['jquery',
                             $('#txtCoInsurance').val("0.00");
                             $('#txtCoPay').val("0.00");
                             paymentStatus != 'applied' ? paymentApplicationId = model[0].details.create_payment_applications.payment_application_id : paymentApplicationId;
+                            self.paymentApplicationId = paymentApplicationId;
                             self.getClaimBasedCharges(claimId, paymentId, 'applied', chargeId, paymentApplicationId, false);
                             $('.modal-footer button').focus();
                         },
@@ -2240,6 +2368,8 @@ define(['jquery',
                     success: function (data, textStatus, jqXHR) {
                         if (data) {
                             var feeDetails = data[0];
+                            self.total_Adjustment = feeDetails.adjustment || 0;
+                            self.total_Payment = feeDetails.payment || 0;
                             self.setFeeFields({ billFee: feeDetails.bill_fee, adjustment: feeDetails.adjustment, balance: feeDetails.balance, others_paid: feeDetails.others_paid, patient_paid: feeDetails.patient_paid, payment: feeDetails.payment, total_adjustment: feeDetails.total_adjustment });
                         }
                         commonjs.hideLoading();
@@ -2251,10 +2381,15 @@ define(['jquery',
             },
 
             addNewPayemnt: function () {
+                this.clearPayerFields();
                 if (this.from === 'ris')
                     Backbone.history.navigate('#billing/payments/new/ris', true);
                 else
                     Backbone.history.navigate('#billing/payments/new', true);
+            },
+
+            clearPayerFields: function () {
+                this.patient_id = this.provider_id = this.provider_group_id = this.insurance_provider_id = null;
             },
 
             goBackToPayments: function () {
@@ -2284,7 +2419,7 @@ define(['jquery',
 
                     if (canSearch) {
                         $divPatientSearchResults.html('<span style="text-align:center;display:block;font-size:20px;">Searching...</span>');
-                        commonjs.showLoading('Searching...');
+                        commonjs.showLoading('messages.loadingMsg.searching');
                         this.patientsPager.set({ "pageNo": 1 });
                         this.patientsPager.set({ "searchId": 0 });
                         this.patientsPager.set({ "symbol": '>' });
@@ -2595,14 +2730,14 @@ define(['jquery',
 
             showPatientForm: function (patientId, patient_name, account_no,dblclickPat) {
                 var self = this;
-                $('#commonMsg').text('Pending payments for the patient : ')
+                $('#commonMsg').text(commonjs.geti18NString("shared.fields.pendingPaymentsForThePatient"));
                 $('#spnPatInfo').text(patient_name + ' (' + account_no + ') ');
                 this.showPendingPaymentsGrid(this.payment_id, this.payer_type, this.payer_id, patientId, 0, '', dblclickPat);
             },
 
             validateClaimId: function () {
                 if ($('#claimId').val() == '') {
-                    commonjs.showWarning('Please enter claim id to search');
+                    commonjs.showWarning('messages.warning.claims.pleaseEnterClaimIDToSearch');
                 }
                 else
                     return true;
@@ -2610,7 +2745,7 @@ define(['jquery',
 
             validateInvoice: function () {
                 if ($('#invoiceNo').val() == '') {
-                    commonjs.showWarning('Please enter invoice # to search');
+                    commonjs.showWarning('messages.warning.claims.pleaseEnterInvoiceToSearch');
                 }
                 else return true;
             },
@@ -2626,14 +2761,16 @@ define(['jquery',
 
                     if ($(e.target).is('#claimId')) {
                         if (self.validateClaimId()) {
-                            $('#commonMsg').text('Pending payments for claim id : ')
+                            var msg =  commonjs.geti18NString("shared.fields.pendingPaymentsForClaim");
+                            $('#commonMsg').text(msg);
                             $('#spnPatInfo').text(self.claimIdToSearch);
                             self.showPendingPaymentsGrid(this.payment_id, this.payer_type, this.payer_id, 0, self.claimIdToSearch, '');
                         }
                     }
                     else if ($(e.target).is('#invoiceNo')) {
                         if (self.validateInvoice()) {
-                            $('#commonMsg').text('Pending payments for inovice # : ')
+                            var msg =  commonjs.geti18NString("shared.fields.pendingPaymentsForInvoice");
+                            $('#commonMsg').text(msg);
                             $('#spnPatInfo').text(self.invoiceNoToSearch);
                             self.showPendingPaymentsGrid(this.payment_id, this.payer_type, this.payer_id, 0, '', self.invoiceNoToSearch);
                         }
@@ -2650,14 +2787,16 @@ define(['jquery',
 
                 if ($(e.target).is('#anc_search_claim')) {
                     if (self.validateClaimId()) {
-                        $('#commonMsg').text('Pending payments for claim id : ')
+                        var msg =  commonjs.geti18NString("shared.fields.pendingPaymentsForClaim");
+                        $('#commonMsg').text(msg)
                         $('#spnPatInfo').text(self.claimIdToSearch);
                         self.showPendingPaymentsGrid(this.payment_id, this.payer_type, this.payer_id, 0, self.claimIdToSearch, '');
                     }
                 }
                 else if ($(e.target).is('#anc_search')) {
                     if (self.validateInvoice()) {
-                        $('#commonMsg').text('Pending payments for inovice # : ')
+                        var msg =  commonjs.geti18NString("shared.fields.pendingPaymentsForInvoice");
+                        $('#commonMsg').text(msg)
                         $('#spnPatInfo').text(self.invoiceNoToSearch);
                         self.showPendingPaymentsGrid(this.payment_id, this.payer_type, this.payer_id, 0, '', self.invoiceNoToSearch);
                     }
@@ -2784,7 +2923,7 @@ define(['jquery',
                     }
 
                     if (studyIds && studyIds.length == 0) {
-                        commonjs.showWarning('Please Select Study CPT');
+                        commonjs.showWarning("messages.warning.claims.pleaseSelectStudyCPT");
                         return false;
                     }
                     else {
@@ -2821,7 +2960,7 @@ define(['jquery',
                 var paymentAmt = $('#lblBalance').text() != '' ? self.formatMoneyValue($('#lblBalance').text()) : 0.00;
                 var payer = $('#selectPayerType :selected').val();
                 if ($('#selectPayerType').val() === '0') {
-                    commonjs.showWarning("Please select payer type");
+                    commonjs.showWarning("messages.warning.claims.pleaseSelectPayerType");
                     $('#selectPayerType').focus();
                     return false;
                 }
@@ -2829,15 +2968,15 @@ define(['jquery',
                     return false;
                 }
                 if (!self.payer_id) {
-                    commonjs.showWarning("Payer id not setted properly");
+                    commonjs.showWarning("messages.warning.claims.payerIDNotSettedProperly");
                     return false;
                 }
                 if ($('#txtInvoice').val() == '' && payer != 'patient') {
-                    commonjs.showWarning('Please update Invoice number to apply');
+                    commonjs.showWarning("messages.warning.claims.pleaseUpdateInvoice");
                     return false;
                 }
                 if (paymentAmt == 0) {
-                    commonjs.showWarning('Minimum balance required to process invoice payment');
+                    commonjs.showWarning("messages.warning.claims.minimumBalanceRequiredToProcessInvoicePayment");
                     return false;
                 }
 
@@ -2862,13 +3001,11 @@ define(['jquery',
                             else if (total_claims != 0 && valid_claims != 0) {
                                 msg = 'Valid claim count is (' + valid_claims + ') from overall (' + total_claims + ') pending claims. Are you sure to process?';
                             } else if (total_claims != 0 && valid_claims == 0) {
-                                msg = 'No valid claims to process payment';
-                                commonjs.showWarning(msg);
+                                commonjs.showWarning('messages.status.noValidClaimsToProcess');
                                 return false;
                             }
                             else if (total_claims == 0) {
-                                msg = "No valid claims to process payment(Pending claims doesn't have balance)";
-                                commonjs.showWarning(msg);
+                                commonjs.showWarning('messages.status.noValidClaimsToProcessPayment');
                                 return false;
                             }
                             if (confirm(msg)) {
@@ -2900,7 +3037,7 @@ define(['jquery',
                     },
                     success: function (data, response) {
                         if (data && data.length) {
-                            commonjs.showStatus('All payment has been applied successfully');
+                            commonjs.showStatus('messages.status.allPaymentHasBeenAppliedSuccessfully');
                             self.getAppliedBalance(self.payment_id);
                             $('#btnPaymentPendingRefresh').click();
                             $('#btnAppliedPayRefresh').click();

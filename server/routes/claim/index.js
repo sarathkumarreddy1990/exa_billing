@@ -92,5 +92,10 @@ router.post('/remove_insurance_provider', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.get('/get_claim_payments', async function (req, res) {
+    const data = await claimsController.getClaimAppliedPayments(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
 
 module.exports = router;

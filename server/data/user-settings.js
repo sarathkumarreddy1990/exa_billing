@@ -109,7 +109,101 @@ module.exports = {
         SELECT id FROM update_audit_usersettings`;
 
         return await query(querySetting);
+    },
 
+    updateGridSettings: async function(params) {
+        let {
+            userId
+            , clientIp
+            , gridName
+            , fieldOrder
+            , companyId
+            , screenName
+            , moduleName
+            , entityName
+        } = params;
+        let defaulTab = gridName === "studies" ? "All_Studies" : "All_Claims";
+        let sql = SQL`WITH insert_user_settings AS (
+                        INSERT INTO billing.user_settings
+                        (
+                              company_id
+                            , user_id
+                            , field_order
+                            , default_tab
+                            , grid_name
+                            , default_date_range
+                        )
+                        SELECT
+                              ${companyId}
+                            , ${userId}
+                            , ${fieldOrder}
+                            , ${defaulTab}
+                            , ${gridName}
+                            , 'this_year'
+                        WHERE NOT EXISTS (SELECT 
+                                            1 
+                                          FROM billing.user_settings WHERE 
+                                          grid_name = ${gridName} 
+                                          AND user_id = ${userId})
+                        RETURNING * , '{}'::jsonb old_values
+                    ),
+                    update_user_settings AS(
+                        UPDATE
+                            billing.user_settings
+                        SET 
+                            field_order = ${fieldOrder}
+                        WHERE grid_name = ${gridName}
+                        AND user_id = ${userId}
+                        AND NOT EXISTS (SELECT 1 FROM insert_user_settings)
+                        RETURNING *,
+                        (
+                            SELECT row_to_json(old_row)
+                            FROM   (SELECT *
+                                    FROM   billing.user_settings
+                                    WHERE  user_id = ${userId}  AND grid_name = ${gridName} ) old_row
+                        ) old_values
+                    ),
+                    insert_audit_usersettings AS (
+                        SELECT billing.create_audit(
+                              ${companyId}
+                            , ${entityName}
+                            , id
+                            , ${screenName}
+                            , ${moduleName}
+                            , 'Inserted ' || ${gridName} || ' grid order, Inserted by Id: ' || ${userId}
+                            , ${clientIp}
+                            , json_build_object(
+                                'old_values', COALESCE(old_values, '{}'),
+                                'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM insert_user_settings) temp_row)
+                              )::jsonb
+                            , ${userId}
+                          ) AS id
+                        FROM insert_user_settings
+                        WHERE id IS NOT NULL
+                    ),
+                    update_audit_usersettings AS (
+                        SELECT billing.create_audit(
+                              ${companyId}
+                            , ${entityName}
+                            , id
+                            , ${screenName}
+                            , ${moduleName}
+                            , 'Updated ' || ${gridName} || ' grid order, Updated by Id: ' || ${userId}
+                            , ${clientIp}
+                            , json_build_object(
+                                'old_values', COALESCE(old_values, '{}'),
+                                'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_user_settings ) temp_row)
+                              )::jsonb
+                            , ${userId}
+                          ) AS id
+                        FROM update_user_settings
+                        WHERE id IS NOT NULL
+                    )
+                    SELECT id FROM insert_audit_usersettings
+                    UNION
+                    SELECT id FROM update_audit_usersettings`;
+
+        return await query(sql);
     },
 
     getGridFieldById: async function (params) {

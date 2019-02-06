@@ -289,8 +289,8 @@ define([
                 "click #rbtLast": "changeDateTimeStdFilter",
                 "click #rbtNext": "changeDateTimeStdFilter",
                 "click #rbtDate": "changeDateTimeStdFilter",
-                "click #btnAddInstitutionStudyFilter": "addInstitutionList",
-                "click #btnRemoveInstitutionStudyFilter": 'removeInstitutionList',
+                "click #btnClAddInstitutionStudyFilter": "addClInstitutionList",
+                "click #btnClRemoveInstitutionStudyFilter": "removeClInstitutionList",
                 "click #btnAddClaimInfo": "addItemToList",
                 "click #btnRemoveClaimInfo": "removeItemFromList",
                 "click #btnAddBillingMethod": "addItemToList",
@@ -359,6 +359,8 @@ define([
 
             showGrid: function () {
                 var self = this;
+                var confirmDelete = commonjs.geti18NString("messages.status.areYouSureWantToDelete");
+                var deleteMessage = commonjs.geti18NString("messages.status.clickHereToDelete");
                 $('#tblStudyFilterGrid').show();
                 $('#divStudyFilterForm').hide();
                 $(this.el).html(this.studyFiltersGridTemplate({grid_filters:app.grid_filter,screenName:this.opener}));
@@ -367,10 +369,11 @@ define([
                 else
                     $('#ddlStudyDefaultTab').val(app.default_study_tab);
                 this.studyFilterTable = new customGrid();
+                $('#siteModal').removeAttr('tabindex');
                 this.studyFilterTable.render({
                     gridelementid: '#tblStudyFilterGrid',
                     custompager: new Pager(),
-                    emptyMessage: 'No Record found',
+                    emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['', '', '', '', ''],
                     i18nNames: ['', '', '', 'setup.studyFilters.filterName', 'setup.studyFilters.filterOrder'],
                     colModel: [
@@ -384,7 +387,7 @@ define([
                                 self.showForm(rowID);
                             },
                             formatter: function (e, model, data) {
-                                return "<i class='icon-ic-edit' title='Edit'></i>";
+                                return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>";
                             },
                             cellattr: function () {
                                 return 'style=text-align:center;cursor:pointer;'
@@ -394,14 +397,14 @@ define([
                             name: 'del', width: 10, sortable: false, search: false,
                             className: 'icon-ic-delete',
                             customAction: function (rowID) {
-                                if (confirm("Are you sure want to delete")) {
+                                if (confirm(confirmDelete)) {
                                     var gridData = $('#tblStudyFilterGrid').jqGrid('getRowData', rowID);
                                     self.model.set({ "id": rowID, "filter_name": gridData.filter_name });
                                     self.model.destroy({
                                         data: $.param({ id: self.model.id, name: gridData.filter_name }),
                                         success: function (model, response) {
                                             self.studyFilterTable.refreshAll();
-                                            commonjs.showStatus("Deleted Succesfully")
+                                            commonjs.showStatus("messages.status.deletedSuccessfully")
                                             $("#ddlStudyDefaultTab option[value='"+model.id+"']")[0].remove();
                                             if (window.appLayout && window.appLayout.refreshAppSettings)
                                                 window.appLayout.refreshAppSettings();
@@ -413,7 +416,7 @@ define([
                             },
 
                             formatter: function (e, model, data) {
-                                return "<i class='icon-ic-delete' title='Click here to delete'></i>";
+                                return "<i class='icon-ic-delete' i18nt='messages.status.clickHereToDelete'></i>";
                             },
 
                             cellattr: function () {
@@ -744,7 +747,9 @@ define([
                                     $('#ddlBilledStatus').val(studyInfoJson.billedstatus);
 
                                     if (studyInfoJson.study_description && studyInfoJson.study_description.condition !== undefined && studyInfoJson.study_description.condition != "" && studyInfoJson.study_description.list.length && studyInfoJson.study_description.list !== undefined) {
-                                        $("input:radio[name=StudyDescription][value=" + studyInfoJson.study_description.condition.replace('Contains', '') + "]").prop("checked", true);
+                                        if (!(studyInfoJson.study_description.condition == 'Contains')) {
+                                            $("input:radio[name=StudyDescription][value=" + studyInfoJson.study_description.condition.replace('Contains', '') + "]").prop("checked", true);
+                                        }
                                         $('#chkContainsStudyDescription').prop('checked', studyInfoJson.study_description.condition.indexOf('Contains') >= 0 ? true : false);
                                         $.each(studyInfoJson.study_description.list, function (index, studyDescriptionData) {
                                             if ($('#ulListStudyDescriptions a[data-id="' + studyDescriptionData.text + '"]').length === 0)
@@ -934,20 +939,20 @@ define([
                 isDisplayInDropDown = $('#chkDisplayAsDDL').is(":checked");
 
                 if(!filterName){
-                    commonjs.showWarning('Please Enter FilterName');
+                    ommonjs.showWarning('messages.warning.claims.pleaseEnterFilterName');
                     return;
                 }
                 if(!filterOrder){
-                    commonjs.showWarning('Please Enter FilterOrder');
+                    commonjs.showWarning('messages.warning.claims.pleaseEnterFilterOrder');
                     return;
                 }
                 if (filterOrder < 0) {
-                    commonjs.showWarning('Please Enter FilterOrder In Positive');
+                    commonjs.showWarning('messages.warning.claims.pleaseEnterFilterOrderInPositive');
                     return;
                 }
 
                 if(!isDisplayAsTab && !isDisplayInDropDown){
-                    commonjs.showWarning('Please Select Display as a Tab or Display in DropDown');
+                    commonjs.showWarning('messages.warning.claims.PleaseSelectDisplayAsATabOrDisplayInDropDown');
                     return;
                 }
 
@@ -1253,6 +1258,22 @@ define([
                     imageDelivery = [];
                 }
 
+
+                var studyDescCondition = '';
+                var studyDescIsContains = $('#rbtStudyDescription').is(":checked");
+                var studyDescIsNotContains = $('#rbtIsNotStudyDescription').is(":checked");
+                var studyDescContains = $('#chkContainsStudyDescription').is(":checked");
+
+                if (studyDescIsContains && !studyDescIsNotContains) {
+                    studyDescCondition = "Is";
+                } else if (!studyDescIsContains && studyDescIsNotContains) {
+                    studyDescCondition = "IsNot";
+                }
+
+                if (studyDescContains) {
+                    studyDescCondition += "Contains";
+                }
+
                 var jsonData = {};
 
                 if (self.opener == "studies") {
@@ -1316,7 +1337,7 @@ define([
                                 list: arrFlag
                             },
                             study_description: {
-                                condition: $('input[name=StudyDescription]:checked').val() !== undefined ? $('input[name=StudyDescription]:checked').val() : $('#chkContainsStudyDescription').is(":checked") ? $('#chkContainsStudyDescription').val() : '',
+                                condition: studyDescCondition,
                                 list: arrStudyDescriptions
                             },
                             billedstatus: $('#ddlBilledStatus').val(),
@@ -1344,7 +1365,7 @@ define([
                             condition: dateJsonCondition,
                             preformatted: $.trim($('#ddlDatePreformatted').val()),
                             durationValue: $.trim($('#txtLastTime').val()),
-                            duration: $('#ddlLast option:selected').text(),
+                            duration: $('#ddlLast option:selected').val(),
                             fromTime: $('#txtFromTimeLast').val() ? $('#txtFromTimeLast').val() : null,
                             toTime: $('#txtToTimeLast').val() ? $('#txtToTimeLast').val() : null,
                             fromDate: $('#txtDateFrom').val() ? $('#txtDateFrom').val() : null,
@@ -1398,9 +1419,9 @@ define([
                     {
                         success: function (model, response) {
                             if (!response.length)
-                                commonjs.showStatus("Already Exists");
+                                commonjs.showStatus("messages.warning.shared.alreadyexists");
                             else {
-                                commonjs.showStatus("Saved Succesfully");
+                                commonjs.showStatus("messages.warning.shared.savedSuccesfully");
                                 if (filterType == "studies")
                                     $('#btnStudiesCompleteRefresh').click();
                                 else if (filterType == "claims")
@@ -1609,23 +1630,23 @@ define([
                 return isChecked;
             },
 
-            addInstitutionList: function () {
+            addClInstitutionList: function () {
                 var self = this;
-                if (commonjs.checkNotEmpty($('#txtInstitutionStudyFilter').val()) && self.validateRadioButton('Institution', 'Institution')) {
-                    var opt = document.createElement('Option');
+                var institutionFilter = commonjs.checkNotEmpty($('#txtInstitutionStudyFilter').val());
+                if (institutionFilter && self.validateRadioButton('Institution', 'Institution')) {
                     opt.text = $.trim($('#txtInstitutionStudyFilter').val());
                     opt.value = $.trim($('#txtPatientID').val());
                     document.getElementById('listInstitution').options.add(opt);
                     $('#txtInstitutionStudyFilter').val('');
                     return false;
                 }
-                else {
+                else if (!institutionFilter) {
                     commonjs.showWarning("messages.warning.setup.entertextandselect");
                     return false;
                 }
             },
 
-            removeInstitutionList: function () {
+            removeClInstitutionList: function () {
                 if ($('#listInstitution option:selected').length > 0) {
                     $('#listInstitution option:selected').remove();
                 }

@@ -600,6 +600,8 @@ module.exports = {
                             ),
                             change_responsible_party AS (
                                     SELECT billing.change_responsible_party(${params.claimId},0,${params.companyId},null, ${params.claimStatusID}, ${is_payerChanged}) AS result
+                                    WHERE
+                                        NOT ${params.changeResponsibleParty}
                             ),
                             create_audit_study_status AS (
                                 SELECT billing.create_audit(
@@ -773,6 +775,9 @@ module.exports = {
                             RETURNING *, '{}'::jsonb old_values),
                             change_responsible_party AS (
                                     SELECT billing.change_responsible_party(${params.claimId},0,${params.companyId},null, ${params.claimStatusID}, ${params.is_payerChanged}) AS result
+                                    WHERE
+                                        NOT ${params.changeResponsibleParty}
+
                             ),
                         update_cas_application AS(
                                     UPDATE billing.cas_payment_application_details bcpad
@@ -1005,8 +1010,10 @@ module.exports = {
                             bc.id AS claim_id,
                             bc.patient_id,
                             bc.invoice_no,
-                            bc.claim_dt
-                        FROM billing.claims bc `;
+                            bc.claim_dt,
+                            cs.code AS claim_status
+                        FROM billing.claims bc
+                        INNER JOIN billing.claim_status cs ON cs.id = bc.claim_status_id `;
 
         sql.append(whereQuery);
 
@@ -1032,6 +1039,7 @@ module.exports = {
                           , cd.claim_dt
                           , cd.patient_id
                           , pc.display_code AS cpt_code
+                          , cd.claim_status
                         FROM
                             billing.charges AS c
                             INNER JOIN claims_details AS cd ON cd.claim_id = c.claim_id
@@ -1043,6 +1051,7 @@ module.exports = {
                             , cd.invoice_no
                             , cd.claim_dt
                             , pc.display_code
+                            , cd.claim_status
                     )
                 SELECT
                     charges.* ,
@@ -1189,13 +1198,15 @@ module.exports = {
                                 bc.patient_id,
                                 bc.invoice_no,
                                 bc.claim_dt,
-                                pd.payment_id
+                                pd.payment_id,
+                                cs.code AS claim_status
                             FROM billing.claims bc
+                            INNER JOIN billing.claim_status cs ON cs.id = bc.claim_status_id
                             INNER JOIN payment_details pd ON pd.patient_id = bc.patient_id
                             INNER JOIN billing.get_claim_totals(bc.id) ON true
                             WHERE
                                 (charges_bill_fee_total - (payments_applied_total + adjustments_applied_total)) > 0::money
-                                AND bc.claim_dt::date = pd.accounting_date
+                                AND timezone(get_facility_tz(bc.facility_id::integer), bc.claim_dt)::date = pd.accounting_date
                         )
                         , charges AS (
                             SELECT
@@ -1207,7 +1218,8 @@ module.exports = {
                                 cd.claim_dt,
                                 cd.patient_id,
                                 pc.display_code AS cpt_code,
-                                cd.payment_id
+                                cd.payment_id,
+                                cd.claim_status
                             FROM
                                 billing.charges AS c
                                 INNER JOIN claims_details AS cd ON cd.claim_id = c.claim_id
@@ -1221,6 +1233,7 @@ module.exports = {
                                 , cd.claim_dt
                                 , pc.display_code
                                 , cd.payment_id
+                                , cd.claim_status
                         )
                         SELECT
                             charges.* ,
@@ -1237,6 +1250,371 @@ module.exports = {
                         INNER JOIN public.patients pp on pp.id = charges.patient_id
                         INNER JOIN billing.get_payment_totals(charges.payment_id) ON true
                         ORDER BY claim_id, charge_id `);
+
+        return await query(sql);
+    },
+
+    getPatientClaims: async function (params) {
+        let {
+            patientId,
+            writeOffAmount
+        } = params;
+        let sql = ' ';
+
+        if (params.from === 'patient_claims') {
+            // SubGrid query
+            sql = SQL`SELECT
+                        bgct.charges_bill_fee_total,
+                        bgct.claim_balance_total,
+                        claims.id
+                      FROM
+                        billing.claims
+                        INNER JOIN patients p ON p.id = claims.patient_id
+                        INNER JOIN LATERAL billing.get_claim_totals(claims.id) bgct ON TRUE
+                        WHERE p.id = ${patientId}
+                        AND bgct.claim_balance_total > 0::money
+                        ORDER BY claims.id ASC `;
+        } else {
+
+            let selectColumn = `
+                , p.birth_date::text AS dob
+                , p.account_no
+                , p.id
+                , p.full_name AS patient_name
+                , COUNT(1) OVER (range unbounded preceding) AS total_records `;
+
+            sql = SQL`WITH
+                patient_details AS (
+                    SELECT
+                        p.id as patient_id
+                        ,c.id as claim_id
+                    FROM
+                    billing.claims c
+                    INNER JOIN patients p ON p.id = c.patient_id
+                )
+                ,claim_charge_fee AS (
+                    SELECT
+                        sum(c.bill_fee * c.units)  AS charges_bill_fee_total
+                        ,c.claim_id
+                    FROM
+                        billing.charges AS c
+                        INNER JOIN patient_details AS pd ON pd.claim_id = c.claim_id
+                        INNER JOIN public.cpt_codes AS pc ON pc.id = c.cpt_id
+                        LEFT OUTER JOIN billing.charges_studies AS cs ON c.id = cs.charge_id
+                    GROUP BY c.claim_id
+                )
+                -- --------------------------------------------------------------------------------------------------------------
+                -- Claim payments list.
+                -- --------------------------------------------------------------------------------------------------------------
+                ,claim_payment_lists AS (
+                    SELECT
+                        ccf.charges_bill_fee_total - (
+                            applications.payments_applied_total +
+                            applications.ajdustments_applied_total +
+                            applications.refund_amount
+                        ) AS claim_balance_total
+                        ,ccf.claim_id
+                    FROM
+                        claim_charge_fee ccf
+                    LEFT JOIN LATERAL (
+                        SELECT
+                            coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment'),0::money)    AS payments_applied_total,
+                            coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment' AND (adj.accounting_entry_type != 'refund_debit' OR pa.adjustment_code_id IS NULL)),0::money) AS ajdustments_applied_total,
+                            coalesce(sum(pa.amount)   FILTER (WHERE adj.accounting_entry_type = 'refund_debit'),0::money) AS refund_amount,
+                            c.claim_id
+                        FROM
+                            billing.charges AS c
+                        LEFT JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
+                        LEFT JOIN billing.payments AS p ON pa.payment_id = p.id
+                        LEFT JOIN billing.adjustment_codes adj ON adj.id = pa.adjustment_code_id
+                        GROUP BY c.claim_id
+                    ) as applications ON applications.claim_id = ccf.claim_id
+                )
+                -- --------------------------------------------------------------------------------------------------------------
+                -- Getting total patient balance <= write-off amount.
+                -- --------------------------------------------------------------------------------------------------------------
+                ,claim_payments AS (
+                    SELECT
+                        sum(cpl.claim_balance_total) AS patient_balance,
+                        p.id AS patient_id
+                    FROM
+                        billing.claims
+		            INNER JOIN claim_payment_lists cpl ON cpl.claim_id = claims.id
+                    INNER JOIN patients p ON p.id = claims.patient_id
+                    GROUP BY p.id
+                    HAVING sum(cpl.claim_balance_total) <= ${writeOffAmount}::money
+                        AND sum(cpl.claim_balance_total) > 0::money
+                    ORDER BY p.id DESC
+                )
+                SELECT
+                    cp.patient_balance
+                    , cp.patient_id
+                    , p.facility_id `;
+
+            if(params.from === 'patients'){
+                sql.append(selectColumn);
+            }
+
+            sql.append(SQL` FROM
+                                claim_payments cp
+                            INNER JOIN patients p ON p.id = cp.patient_id `);
+
+            if (params.from === 'patients') {
+                sql.append(SQL` ORDER BY  `)
+                    .append(params.sortField)
+                    .append(' ')
+                    .append(params.sortOrder)
+                    .append(SQL` LIMIT ${params.pageSize}`)
+                    .append(SQL` OFFSET ${((params.pageNo * params.pageSize) - params.pageSize)}`);
+            }
+        }
+
+        return await query(sql);
+
+    },
+
+    createWriteOffPayment: async function(params){
+        const {
+            userId,
+            clientIp,
+            companyId,
+            screenName,
+            moduleName,
+            writeOffAmount,
+            adjustmentCodeId,
+            defaultFacilityId
+        } = params;
+
+        let auditDetails = {
+            company_id: companyId,
+            screen_name: screenName,
+            module_name: moduleName,
+            client_ip: clientIp,
+            user_id: parseInt(userId)
+        };
+
+        const sql =SQL`WITH
+            -- --------------------------------------------------------------------------------------------------------------
+            -- Total patient claims.
+            -- --------------------------------------------------------------------------------------------------------------
+            patient_details AS (
+                SELECT
+                    p.id as patient_id
+                    ,c.id as claim_id
+                FROM
+                    billing.claims c
+                INNER JOIN patients p ON p.id = c.patient_id
+             )
+            -- --------------------------------------------------------------------------------------------------------------
+            -- Calculate charge bill fee for claim.
+            -- --------------------------------------------------------------------------------------------------------------
+            ,claim_charge_fee AS (
+                SELECT
+                    sum(c.bill_fee * c.units)       AS charges_bill_fee_total
+                    ,c.claim_id
+                FROM
+                    billing.charges AS c
+                INNER JOIN patient_details AS pd ON pd.claim_id = c.claim_id
+                INNER JOIN public.cpt_codes AS pc ON pc.id = c.cpt_id
+                LEFT OUTER JOIN billing.charges_studies AS cs ON c.id = cs.charge_id
+                GROUP BY c.claim_id
+             )
+            -- --------------------------------------------------------------------------------------------------------------
+            -- Claim payments list.
+            -- --------------------------------------------------------------------------------------------------------------
+            ,claim_payments_list AS (
+                SELECT
+                    ccf.charges_bill_fee_total - (
+                        applications.payments_applied_total +
+                        applications.ajdustments_applied_total +
+                        applications.refund_amount
+		            ) AS claim_balance_total
+		            ,ccf.claim_id
+                FROM
+                    claim_charge_fee ccf
+                LEFT JOIN LATERAL (
+                    SELECT
+                        coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment'),0::money)    AS payments_applied_total
+                        ,coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment'
+                        AND (adj.accounting_entry_type != 'refund_debit' OR pa.adjustment_code_id IS NULL)),0::money) AS ajdustments_applied_total
+                        ,coalesce(sum(pa.amount)   FILTER (WHERE adj.accounting_entry_type = 'refund_debit'),0::money) AS refund_amount
+                        ,c.claim_id
+		            FROM
+                        billing.charges AS c
+                    LEFT JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
+                    LEFT JOIN billing.payments AS p ON pa.payment_id = p.id
+                    LEFT JOIN billing.adjustment_codes adj ON adj.id = pa.adjustment_code_id
+		            GROUP BY c.claim_id
+                ) as applications ON applications.claim_id = ccf.claim_id
+             )
+            -- --------------------------------------------------------------------------------------------------------------
+            -- Getting total patient balance <= write-off amount.
+            -- --------------------------------------------------------------------------------------------------------------
+            ,claim_payments AS (
+                SELECT
+                    sum(cp.claim_balance_total) AS patient_balance
+                    , p.id AS patient_id
+                    , p.facility_id AS facility_id
+                FROM
+                    billing.claims
+		        INNER JOIN claim_payments_list cp ON cp.claim_id = claims.id
+                INNER JOIN patients p ON p.id = claims.patient_id
+		        GROUP BY p.id
+                HAVING sum(cp.claim_balance_total) <= ${writeOffAmount}::money
+                    AND sum(cp.claim_balance_total) > 0::money
+                ORDER BY p.id DESC
+
+            )
+            -- --------------------------------------------------------------------------------------------------------------
+            -- Create payments for write-off adjustment
+            -- --------------------------------------------------------------------------------------------------------------
+            , insert_payment AS (
+                INSERT INTO billing.payments
+                    (   company_id
+                        , patient_id
+                        , amount
+                        , accounting_date
+                        , created_by
+                        , payment_dt
+                        , payer_type
+                        , notes
+                        , mode
+                        , facility_id
+                    )
+                    SELECT
+                        ${companyId} AS company_id
+                        , patient_id
+                        , 0::money AS amount
+                        , now()::date AS accounting_date
+                        , ${userId} AS created_by
+                        , timezone(get_facility_tz(facility_id), now()::timestamp) AS payment_dt
+                        , 'patient' AS payer_type
+                        , 'Small Balance Write-Off is $' || ${writeOffAmount} AS notes
+                        , 'adjustment' AS payment_mode
+                        , ${defaultFacilityId}
+                    FROM
+                        claim_payments
+                  RETURNING
+                    id
+                    , company_id
+                    , patient_id
+                    , amount
+                    , accounting_date
+                    , created_by
+                    , payment_dt
+                    , payer_type
+                    , notes
+                    , mode
+                    , facility_id
+                    , '{}'::jsonb old_values
+            )
+            -- --------------------------------------------------------------------------------------------------------------
+            -- Audit log for payment creation
+            -- --------------------------------------------------------------------------------------------------------------
+            , insert_audit_cte AS(
+                SELECT billing.create_audit(
+                    company_id
+                  , ${screenName}
+                  , id
+                  , ${screenName}
+                  , ${moduleName}
+                  , 'Created Payment with ' || amount ||' Payment Id as a ' || id
+                  , ${clientIp}
+                  , json_build_object(
+                      'old_values', COALESCE(old_values, '{}'),
+                      'new_values', (   json_build_object(
+                                            'company_id',company_id,
+                                            'patient_id',patient_id,
+                                            'amount', amount ,
+                                            'accounting_date', accounting_date,
+                                            'payer_type', payer_type,
+                                            'notes', notes,
+                                            'mode', mode,
+                                            'payment_dt', payment_dt,
+                                            'created_by', created_by,
+                                            'facility_id', facility_id
+                                        )::jsonb - 'old_values'::text
+                                    )
+                    )::jsonb
+                  , ${userId}
+                ) AS id
+                FROM
+                    insert_payment
+                WHERE id IS NOT NULL
+            )
+            -- --------------------------------------------------------------------------------------------------------------
+            -- Formating charge lineItems for create payment application records
+            -- --------------------------------------------------------------------------------------------------------------
+            , claim_charges AS (
+                SELECT
+                    claims.id AS claim_id
+                    , claims.patient_id
+                    , ip.id AS payment_id
+                    , charges.line_items
+                    , cs.code AS claim_status_code
+                FROM
+                    billing.claims
+                INNER JOIN insert_payment ip ON ip.patient_id = claims.patient_id
+                INNER JOIN billing.claim_status cs ON cs.id = claims.claim_status_id
+                INNER JOIN claim_payments_list cpl ON cpl.claim_id = claims.id
+                INNER JOIN LATERAL (
+                        SELECT
+                            json_agg(
+                                json_build_object(
+                                                'charge_id'		,bch.id,
+                                                'payment'		,0,
+                                                'adjustment'	,((bch.bill_fee * bch.units) -  (bgct.other_payment+ bgct.other_adjustment))::numeric,
+                                                'cas_details'	,'[]'::jsonb,
+                                                'applied_dt' 	, now()
+                                )
+                            )::jsonb AS line_items
+                        FROM
+                            billing.charges bch
+                        INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
+                        INNER JOIN LATERAL billing.get_charge_other_payment_adjustment(bch.id) bgct ON TRUE
+                        WHERE bch.claim_id = claims.id
+                ) AS charges ON TRUE
+                WHERE cpl.claim_balance_total > 0::money
+            )
+            -- --------------------------------------------------------------------------------------------------------------
+            -- It will create payment application of given charge lineItems
+            -- --------------------------------------------------------------------------------------------------------------
+            , insert_application AS (
+                SELECT
+                    billing.create_payment_applications(
+                            payment_id
+                            , ${adjustmentCodeId}
+                            , ${userId}
+                            , line_items
+                            , (${JSON.stringify(auditDetails)})::jsonb
+                    ) AS details
+
+                FROM
+                    claim_charges
+            )
+            -- --------------------------------------------------------------------------------------------------------------
+            -- It will update responsible party, claim status for given claim.
+            -- --------------------------------------------------------------------------------------------------------------
+            , change_responsible_party AS (
+                SELECT
+                    billing.change_responsible_party(
+                        claim_id
+                        , 0
+                        , ${companyId}
+                        , null
+                        , 0
+                        , false
+                    ) AS result
+                FROM
+                    claim_charges
+                WHERE claim_status_code NOT IN ('PV','PS')
+            )
+        SELECT null,id,null FROM insert_audit_cte
+        UNION ALL
+        SELECT details,null,null FROM insert_application
+        UNION ALL
+        SELECT null,null,result::text FROM change_responsible_party
+    `;
 
         return await query(sql);
     },
