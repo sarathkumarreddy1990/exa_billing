@@ -4,14 +4,19 @@ const {
     select,
 } = require('xpath');
 const dom = require('xmldom').DOMParser;
-const ws = require('ws.js');
+
+const ws = require('./ws'); // NOTE this is the local adapter for ws.js
 const {
     Http,
-    Mtom,
     Security,
     UsernameToken,
     X509BinarySecurityToken,
+    // NOTE do not use the ws.js implementation of Mtom,
+    // read the notes in local ws.js for an explanation,
+    Mtom,
+    Xenc,
 } = ws;
+
 const {
     EDT_GET_TYPE_LIST,
     EDT_UPLOAD,
@@ -36,9 +41,6 @@ const hcvApiUrl = 'https://ws.conf.ebs.health.gov.on.ca:1444/HCVService/HCValida
 
 
 
-
-
-
 const EBSConnector = function(config) {
 
     const ebsRequestData = {
@@ -56,6 +58,7 @@ const EBSConnector = function(config) {
     const x509 = new X509BinarySecurityToken({
         // TODO: EXA-12673
         // TODO experiment using just the keys or certificates (no "mash")
+        // TODO experiment using simple signed certificates (this is made from )
         "key": fs.readFileSync(path.join(__dirname, 'certs/bar-mash.pem')).toString(),
     });
 
@@ -67,6 +70,7 @@ const EBSConnector = function(config) {
     signature.addReference("//*[local-name(.)='Body']");
 
     const handlers =  [
+        new Xenc(),
         new Security({}, [x509, auth, signature]),
         new Mtom(),
         new Http(),
@@ -108,8 +112,8 @@ const EBSConnector = function(config) {
 
             const ctx = getContext(EDT_UPLOAD(args));
 
-
             // TODO handle multiple attachments *correctly*
+            // TODO this should probably be moved to getContext
             uploads.forEach((upload) => {
                 ws.addAttachment(
                     ctx,
@@ -120,12 +124,9 @@ const EBSConnector = function(config) {
                  );
             });
 
+            ws.send(handlers, ctx, (ctx) => {
 
-            return ws.send(handlers, ctx, (ctx) => {
-
-                const decryptedContent = decrypt(ctx.response);
-                const doc = new dom().parseFromString(decryptedContent);
-
+                const doc = new dom().parseFromString(ctx.response);
                 return callback(null, parseResourceResult(doc));
             });
         },
@@ -136,9 +137,7 @@ const EBSConnector = function(config) {
 
             return ws.send(handlers, ctx, (ctx) => {
 
-                const decryptedContent = decrypt(ctx.response);
-                const doc = new dom().parseFromString(decryptedContent);
-
+                const doc = new dom().parseFromString(ctx.response);
                 return callback(null, parseResourceResult(doc));
             });
         },
@@ -149,9 +148,7 @@ const EBSConnector = function(config) {
 
             return ws.send(handlers, ctx, (ctx) => {
 
-                const decryptedContent = decrypt(ctx.response);
-                const doc = new dom().parseFromString(decryptedContent);
-
+                const doc = new dom().parseFromString(ctx.response);
                 return callback(null, parseDetail(doc));
             });
         },
@@ -162,25 +159,23 @@ const EBSConnector = function(config) {
 
             return ws.send(handlers, ctx, (ctx) => {
 
-                const decryptedContent = decrypt(ctx.response);
-                const doc = new dom().parseFromString(decryptedContent);
-
+                const doc = new dom().parseFromString(ctx.response);
                 return callback(null, parseDetail(doc));
             });
         },
 
         download: (args, callback) => {
-
             const ctx = getContext(EDT_DOWNLOAD(args));
 
             return ws.send(handlers, ctx, (ctx) => {
-                // console.log(ctx);
 
-                ctx.decryptedContent = decrypt(ctx.response);
-                const doc = new dom().parseFromString(ctx.decryptedContent);
-                // const file = ws.getAttachment(ctx, "decryptedContent", "//*[local-name(.)='content']");
-                // console.log(file);
-                return callback(null, ctx.decryptedContent);
+                const file = ws.getAttachment(ctx, "response", "//*[local-name(.)='content']");
+
+                // fs.writeFile('/home/djaqua/skippy', file.toString('base64'), (err) => {
+                //     console.log('err: ', err);
+                // });
+
+                return callback(null, ctx.response);
             });
         },
 
@@ -191,9 +186,7 @@ const EBSConnector = function(config) {
 
             return ws.send(handlers, ctx, (ctx) => {
 
-                const decryptedContent = decrypt(ctx.response);
-                const doc = new dom().parseFromString(decryptedContent);
-
+                const doc = new dom().parseFromString(ctx.response);
                 return callback(null, parseResourceResult(doc));
             });
         },
@@ -208,6 +201,7 @@ const EBSConnector = function(config) {
 
 
             // TODO handle multiple attachments *correctly*
+            // TODO this should probably be moved to getContext
             updates.forEach((update) => {
                 ws.addAttachment(
                     ctx,
@@ -219,8 +213,8 @@ const EBSConnector = function(config) {
             });
 
             return ws.send(handlers, ctx, (ctx) => {
-                const decryptedContent = decrypt(ctx.response);
-                const doc = new dom().parseFromString(decryptedContent);
+
+                const doc = new dom().parseFromString(ctx.response);
                 return callback(null, parseResourceResult(doc));
             });
         },
@@ -231,11 +225,7 @@ const EBSConnector = function(config) {
 
             return ws.send(handlers, ctx, (ctx) => {
 
-                const decryptedContent = decrypt(ctx.response);
-                // console.log(decryptedContent);
-
-                const doc = new dom().parseFromString(decryptedContent);
-
+                const doc = new dom().parseFromString(ctx.response);
                 return callback(null, parseTypeListResult(doc));
             });
         },

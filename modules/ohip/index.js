@@ -84,7 +84,6 @@ module.exports = function(billingApi) {
 
             // TODO
             // 1 - create claims file from claims with propper date format
-
             const uploads = [
                 {
                     resourceType: 'CL',
@@ -94,7 +93,8 @@ module.exports = function(billingApi) {
                 }
             ];
 
-            return ebs.upload({uploads}, (uploadErr, uploadResponse) => {
+            ebs.upload({uploads}, (uploadErr, uploadResponse) => {
+                console.log('JAQUA2')
 
                 if (uploadErr) {
                     return callback(uploadErr, uploadResponse);
@@ -134,6 +134,19 @@ module.exports = function(billingApi) {
 
                     return callback(null, submitResponse);
                 });
+            });
+        },
+
+        sandbox: (args, callback) => {
+            const ebs = new EBSConnector(ebsConfig);
+
+            ebs.list({status:'UPLOADED', resourceType:'CL'}, (listErr, listResponse) => {
+                console.log(listResponse);
+            });
+
+            return ebs.download({resourceIDs:[62152]}, (downloadErr, downloadResponse) => {
+            // return ebs.list({resourceType:'ER'}, (downloadErr, downloadResponse) => {
+                return callback(downloadErr, downloadResponse);
             });
         },
 

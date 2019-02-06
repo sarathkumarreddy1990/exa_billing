@@ -11,19 +11,15 @@ const {
 // TODO remember to refactor this into shared library with EBSConnector
 const PEMFILE = fs.readFileSync(path.join(__dirname, 'certs/bar-mash.pem')).toString();
 
-const decrypt = (xml) => {
+const decrypt = (encryptedKey, encryptedContent) => {
 
-    const doc = new dom().parseFromString(xml);
-
-    const encryptedKeyNode = select("//*[local-name(.)='EncryptedKey']/*[local-name(.)='CipherData']/*[local-name(.)='CipherValue']/text()", doc)[0];
-    const encryptedKey = new Buffer(encryptedKeyNode.nodeValue, 'base64').toString('binary');
+    encryptedKey = new Buffer(encryptedKey, 'base64').toString('binary');
 
     const private_key = pki.privateKeyFromPem(PEMFILE);
 
     const decryptedKey = new Buffer(private_key.decrypt(encryptedKey, 'RSAES-PKCS1-V1_5'), 'binary');
 
-    const encryptedContentNode = select("//*[local-name(.)='EncryptedData']/*[local-name(.)='CipherData']/*[local-name(.)='CipherValue']/text()", doc)[0];
-    const encryptedContent = new Buffer(encryptedContentNode.nodeValue, 'base64');
+    encryptedContent = new Buffer(encryptedContent, 'base64');
 
     const decipher = crypto.createDecipheriv('aes-128-cbc', decryptedKey, encryptedContent.slice(0,16));
     decipher.setAutoPadding(false);

@@ -10,9 +10,10 @@ const billingApi = {
 };
 
 // TODO this really needs to be a POST handler
-router.get('/submitClaims', (req, res) => {
+router.get('/sandbox', (req, res) => {
     const ohip = new OHIPModule(billingApi);
-    ohip.submitClaims(req.query, (ohipErr, ohipResponse) => {
+    ohip.sandbox(req.query, (ohipErr, ohipResponse) => {
+        // console.log("OHIP Response", ohipResponse);
         return res.send(ohipResponse);
     });
 });
