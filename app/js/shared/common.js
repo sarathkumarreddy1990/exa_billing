@@ -5181,6 +5181,22 @@ var commonjs = {
         }
     },
 
+    validateZipInputCanada: function (_eleId) {
+        var _ele = '#' + _eleId;
+        if ($(_ele).val().length > 0 && app.country_alpha_3_code == 'can') {
+            if ($(_ele).val().length == 7) {
+                var postal = new RegExp(/^(?!.*[DFIOQU])[A-VXY][0-9][A-Z] ?[0-9][A-Z][0-9]$/);
+                var zip_data = $(_ele).val();
+                return postal.test(zip_data);
+            }
+            else {
+                return false;
+            }
+        }
+        else
+            return true;
+    },
+
     hasModalClosed: function () {
         return $('#siteModal').is(':hidden')
     },

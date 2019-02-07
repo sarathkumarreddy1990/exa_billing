@@ -1,0 +1,17 @@
+[{
+    "alpha_2_code":"us",
+    "alpha_3_code":"usa",
+    "display_name": "United States",
+    "address_style":"style1",
+    "provinces":[
+      "AK","AL","AR","AZ","CA","CO","CT","DC","DE","FL","GA","HI","IA","IL","IN","KS","KY","LA","MA","MD","ME","MI","MN","MO","MS","MT","NC","ND","NE","NH","NJ","NM","NV","NY","OH","OK","OR","PA","PR","RI","SC","SD","TN","TX","UT","VA","VT","WA","WI","WV","WY"
+    ]
+  },{
+    "alpha_2_code":"ca",
+    "alpha_3_code":"can",
+    "display_name": "Canada",
+    "address_style":"style2",
+    "provinces":[
+      "Ontario","Quebec","British Columbia","Alberta","Manitoba","Saskatchewan","Nova Scotia","New Brunswick","Newfoundland and Labrador","Prince Edward Island","Northwest Territories","Nunavut","Yukon"
+    ]
+  }]
