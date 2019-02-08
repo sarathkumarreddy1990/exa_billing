@@ -79,7 +79,6 @@ const OHIPDataAPI = {
 
 
     handleInputClaimSubmissionFile: (fileDescriptor) => {
-
     },
 
     handleRemittanceAdviceFile: (fileDescriptor) => {
@@ -92,7 +91,8 @@ const OHIPDataAPI = {
 
     },
     handleBatchEditReportFile: (fileDescriptor) => {
-
+        // console.log("Hello, from Billing API:", fileDescriptor);
+        
     },
     handleClaimsErrorReportFile: (fileDescriptor) => {
 
