@@ -1,0 +1,336 @@
+[{
+    "billingProvider": {
+        "description": "CPS",
+        "contactName": "Complete Pain Solutions",
+        "legacyID": null,
+        "email": "",
+        "taxonomyCode": "208VP0014X",
+        "npiNo": "AU73",
+        "federalTaxID": "MST1",
+        "faxNumber": "(713)461-1969",
+        "state": "Alabama",
+        "city": "Houston",
+        "zip_code_plus": "5509",
+        "zipCode": "77255",
+        "lastName": "Complete Pain Solutions",
+        "phoneNo": "(713)461-3399",
+        "addressLine2": "",
+        "id": 16,
+        "addressLine1": "P.O. Box 55509"
+    },
+    "payToProvider": {
+        "description": "CPS",
+        "contactName": "Complete Pain Solutions",
+        "npiNo": "",
+        "federalTaxID": "474154894",
+        "state": "Alabama",
+        "city": "Houston",
+        "zipCode": "77055",
+        "lastName": "Complete Pain Solutions",
+        "phoneNo": "(713)461-3399",
+        "addressLine2": "",
+        "id": 16,
+        "addressLine1": "1241 Campbell Rd",
+        "firstName": "Complete Pain Solutions"
+    },
+    "subscriber": [
+        {
+            "claimResponsibleParty": "S",
+            "relationship": 18,
+            "acceptAssignment": true,
+            "gender": "F",
+            "state": "MA",
+            "claim": [
+                {
+                    "unableToWorkFromDate": null,
+                    "icd": [
+                        {
+                            "code": "278",
+                            "description": "OVERWEIGHT AND OBESITY",
+                            "code_type": "0",
+                            "icd_id": 2
+                        },
+                        {
+                            "code": "278.02",
+                            "description": "OVERWEIGHT",
+                            "code_type": "0",
+                            "icd_id": 5
+                        }
+                    ],
+                    "otherSubscriber": [
+                        {
+                            "city": "EAST BRIDGEWATER",
+                            "prefix": "",
+                            "relationship": null,
+                            "acceptAssignment": true,
+                            "state": "MA",
+                            "claimFilingCode": "CI",
+                            "insuranceTypeCode": null,
+                            "policyNo": "n/a",
+                            "middleName": "",
+                            "groupName": null,
+                            "suffix": "",
+                            "zipCode": "2333",
+                            "lastName": "Miller",
+                            "groupNumber": "",
+                            "addressLine2": "",
+                            "addressLine1": "123",
+                            "otherClaimResponsibleParty": "P",
+                            "firstName": "Comfort"
+                        }
+                    ],
+                    "claimNotes": "",
+                    "relatedCauseCode3": false,
+                    "accountNumber": "CP621088",
+                    "hospitailizationToDateFormat": null,
+                    "sameIllnessFirstDate": null,
+                    "claimNumber": "00291350",
+                    "state": "MA",
+                    "claimDt": "2018-07-09",
+                    "payerpaidAmount": [
+                        {
+                            "secondaryPaidTotal": "$0.00",
+                            "primaryAdjTotal": "$30.00",
+                            "secondaryAdjTotal": "$0.00",
+                            "primaryPaidTotal": "$30.00"
+                        }
+                    ],
+                    "claimPaymentInsurance": "30.00",
+                    "outSideLab": false,
+                    "hospitailizationFromDateFormat": null,
+                    "hospitailizationToDate": null,
+                    "hospitailizationFromDate": null,
+                    "renderingProvider": [
+                        {
+                            "NPINO": "02196633",
+                            "suffix": null,
+                            "middileName": null,
+                            "lastName": null,
+                            "taxonomyCode": null,
+                            "prefix": "",
+                            "licenseNo": null,
+                            "firstName": null
+                        }
+                    ],
+                    "relatedCauseCode1": false,
+                    "referringProvider": [
+                        {
+                            "NPINO": "022967",
+                            "suffix": "MD",
+                            "middileName": "",
+                            "lastName": "SPARROW",
+                            "taxonomyCode": "2085R0202X",
+                            "prefix": "",
+                            "licenseNo": "J7184",
+                            "firstName": "ALJ"
+                        }
+                    ],
+                    "unableToWorkToDate": null,
+                    "sameIllnessFirstDateFormat": null,
+                    "claimTotalCharge": "1328.00",
+                    "originalReference": "",
+                    "mammoCertificationNO": "",
+                    "claimDate": "20180709",
+                    "authorizationNo": "",
+                    "unableToWorkFromDateFormat": null,
+                    "relatedCauseCode2": false,
+                    "OtherPayer": [
+                        {
+                            "name": "SELF PAY -",
+                            "city": "Houston",
+                            "payerID": "99999",
+                            "zipCode": "77280",
+                            "addressLine2": "",
+                            "phoneNo": "(713)461-3399",
+                            "providerTypeDescription": "Guarantor (Patient)",
+                            "addressLine1": "PO 802185",
+                            "providerTypeCode": "GUAR",
+                            "zipPlus": "",
+                            "state": "TX"
+                        }
+                    ],
+                    "POS": "11",
+                    "servicefacility": [
+                        {
+                            "prefix": "",
+                            "middileName": "Complete Pain Solutions(1241)",
+                            "email": "viztek",
+                            "taxonomyCode": "",
+                            "zip": "77055",
+                            "city": "Houston",
+                            "stateLicenseNo": "",
+                            "state": "TX",
+                            "phone": "(713)461-3399",
+                            "NPINO": "1912989120",
+                            "suffix": "Complete Pain Solutions(1241)",
+                            "lastName": "Complete Pain Solutions(1241)",
+                            "addressLine2": "",
+                            "addressLine1": "1241 Campbell Rd.",
+                            "zipPlus": "",
+                            "firstName": "Complete Pain Solutions(1241)"
+                        }
+                    ],
+                    "unableToWorkToDateFormat": null,
+                    "illnessDate": null,
+                    "claimFrequencyCode": null,
+                    "illnessDateFormat": null,
+                    "serviceLine": [
+                        {
+                            "studyDate": "20180709",
+                            "ndcmeasure": "",
+                            "studyDt": "2017-01-30",
+                            "billFee": "48.75",
+                            "pointer3": null,
+                            "studyDescription": "PAIN MGT Consult, New Patient",
+                            "totalBillFee": "48.75",
+                            "unit": 1,
+                            "mod2": null,
+                            "pointer4": null,
+                            "authorizationNo": null,
+                            "pointer1": "1",
+                            "mod4": null,
+                            "mod3": null,
+                            "ndccode": "",
+                            "lineAdjudication": [
+                                {
+                                    "lineAdjustment": [
+                                        {
+                                            "adjustmentGroupCode": "CO",
+                                            "caslist": [
+                                                {
+                                                    "reasonCode": "45",
+                                                    "amount": "23.00"
+                                                },
+                                                {
+                                                    "reasonCode": "119",
+                                                    "amount": "119.00"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "adjustmentGroupCode": "OA",
+                                            "caslist": [
+                                                {
+                                                    "reasonCode": "59",
+                                                    "amount": "40.00"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "adjustmentGroupCode": "PR",
+                                            "caslist": [
+                                                {
+                                                    "reasonCode": "97",
+                                                    "amount": "50.00"
+                                                }
+                                            ]
+                                        }
+                                    ],
+                                    "payerID": "59355",
+                                    "modifier2": null,
+                                    "modifier1": null,
+                                    "modifier4": null,
+                                    "cpt": "99204",
+                                    "unit": 1,
+                                    "paidAmount": "10.00",
+                                    "modifier3": null
+                                }
+                            ],
+                            "mod1": null,
+                            "examCpt": "J135B",
+                            "allowedAmount": "750.00",
+                            "iterationIndex": 1662267,
+                            "pointer2": "2"
+                        },
+                        {
+                            "studyDate": "20180709",
+                            "ndcmeasure": "",
+                            "studyDt": "2017-01-30",
+                            "billFee": "32.10",
+                            "pointer3": null,
+                            "studyDescription": "New Patient Pain management Consult",
+                            "totalBillFee": "32.10",
+                            "unit": 1,
+                            "mod2": null,
+                            "pointer4": null,
+                            "authorizationNo": null,
+                            "pointer1": "1",
+                            "mod4": null,
+                            "mod3": null,
+                            "ndccode": "",
+                            "lineAdjudication": [
+                                {
+                                    "lineAdjustment": null,
+                                    "payerID": "59355",
+                                    "modifier2": null,
+                                    "modifier1": null,
+                                    "modifier4": null,
+                                    "cpt": "99203",
+                                    "unit": 1,
+                                    "paidAmount": "20.00",
+                                    "modifier3": null
+                                }
+                            ],
+                            "mod1": null,
+                            "examCpt": "J163B",
+                            "allowedAmount": "578.00",
+                            "iterationIndex": 1662268,
+                            "pointer2": "2"
+                        }
+                    ],
+                    "claimPaymentPatient": "0.00"
+                }
+            ],
+            "lastName": "Miller",
+            "patient": [
+                {
+                    "dobFormat": "19700714",
+                    "relationship": 18,
+                    "gender": "F",
+                    "accountNumber": "CP621088",
+                    "dob": "1970-07-14",
+                    "city": "EAST BRIDGEWATER",
+                    "state": "MA",
+                    "middleName": "",
+                    "suffix": "",
+                    "zipCode": "2333",
+                    "lastName": "Miller",
+                    "workPhone": "",
+                    "addressLine2": "",
+                    "id": 621088,
+                    "addressLine1": "123",
+                    "licenseNo": "",
+                    "firstName": "Comfort",
+                    "homePhone": "(281)686-9468"
+                }
+            ],
+            "addressLine2": "",
+            "prefix": "",
+            "planType": "",
+            "city": "EAST BRIDGEWATER",
+            "payer": {
+                "providerTypeDescription": "Commercial",
+                "payerID": "HCP",
+                "payerCity": "EL PASO",
+                "payerState": "TX",
+                "insuranceprovideraddressline2": "",
+                "phoneNo": "321-308-7777",
+                "zipPlus": "",
+                "providerTypeCode": "Com",
+                "payerName": "CHRISTIAN CARE MEDI-SHARE",
+                "insuranceprovideraddressline1": "P.O. BOX 981652",
+                "payerZIPCode": "79998-1652"
+            },
+            "policyNoX": "9876543217NA",
+            "policyNo": "3269847731NA",
+            "middleName": "",
+            "dob": "19591028",
+            "zipCode": "2333",
+            "claimFilingCode": "CI",
+            "addressLine1": "123",
+            "planName": null,
+            "suffix": "",
+            "firstName": "Comfort"
+        }
+    ]
+}]
