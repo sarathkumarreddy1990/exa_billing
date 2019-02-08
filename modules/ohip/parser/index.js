@@ -17,7 +17,6 @@ const parserImpl = {
 
 const Parser = function(filename, options) {
 
-console.log(`File type: ${getType(filename)}`);
     const impl = parserImpl[getType(filename)];
 
     if (!impl) {

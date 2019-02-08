@@ -1,5 +1,3 @@
-const JSONExtractor = require('../../extractors/billing15/jsonExtractor');
-
 const constants = require('../constants').encoder;
 const util = require('./util');
 
