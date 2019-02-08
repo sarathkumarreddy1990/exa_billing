@@ -368,5 +368,84 @@ module.exports = {
             audit_details: auditDetails
         };
 
+    },
+
+    getOHIPLineItemsAndClaims: async (ohipJson, params) => {
+
+        let lineItems = [];
+
+        ohipJson.claims.forEach((claim, claim_index) => {
+
+            if (claim.claimNumber && !isNaN(claim.claimNumber)) {
+                claim.items.forEach((serviceLine) => {
+
+                    let index = 1;
+                    let duplicate_flag = false;
+                    let amountPaid = serviceLine.amountPaid ? Math.round(serviceLine.amountPaid * 100) / 10000 : 0.00; //
+
+                    //DESC : Formatting lineItems (Added sequence index and flag:true ) if duplicate cpt code came
+                    let duplicateObj = _.findLast(lineItems, {
+                        claim_number: serviceLine.claimNumber,
+                        cpt_code: serviceLine.serviceCode,
+                        claim_index: claim_index
+                    });
+
+                    if (duplicateObj) {
+                        index = duplicateObj.index && duplicateObj.index ? duplicateObj.index + 1 : 1;
+                        duplicate_flag = true;
+
+                        if (!duplicateObj.duplicate) {
+                            duplicateObj.duplicate = true;
+                        }
+                    }
+
+                    // Condition check ERA file payment/Adjustment sign is postive/negative to mark credit/debit payments
+                    let isDebit = false;
+                    let adjustment_code = 'ERA';
+
+                    if (serviceLine.amountPaidSign && serviceLine.amountPaidSign === '-') {
+                        isDebit = true;
+                        adjustment_code = 'ERAREC';
+                    }
+
+                    let item = {
+                        claim_number: serviceLine.claimNumber,
+                        cpt_code: serviceLine.serviceCode,
+                        payment: amountPaid || 0.00,
+                        adjustment: 0.00,
+                        cas_details: [],
+                        charge_id: 0,
+                        service_date: serviceLine.serviceDate || null,
+                        patient_fname: claim.patientFirstName || '',
+                        patient_lname: claim.patientLastName || '',
+                        patient_mname: claim.patientMiddleName || '',
+                        patient_prefix: claim.patientPrefix || '',
+                        patient_suffix: claim.patientSuffix || '',
+                        index: index,
+                        duplicate: duplicate_flag,
+                        is_debit: isDebit,
+                        code: adjustment_code,
+                        claim_index: claim_index
+                    };
+
+                    lineItems.push(item);
+                });
+            }
+        });
+
+        let auditDetails = {
+            company_id: params.company_id,
+            screen_name: 'ERA',
+            module_name: params.moduleName,
+            client_ip: params.clientIp,
+            user_id: parseInt(params.created_by)
+        };
+
+        return {
+            lineItems: lineItems,
+            claimComments: [],
+            audit_details: auditDetails
+        };
+
     }
 };

@@ -113,8 +113,9 @@ module.exports = {
         let bufferString = tempString.replace(/(?:\r\n|\r|\n)/g, '');
 
         bufferString = bufferString.trim() || '';
+        let isValidFileContent = params.countryCode === 'can' ? (bufferString.indexOf('HR1') == -1 || bufferString.indexOf('HR4') == -1 || bufferString.indexOf('HR7') == -1) : (bufferString.indexOf('ISA') == -1 || bufferString.indexOf('CLP') == -1);
 
-        if (!isEob && (bufferString.indexOf('ISA') == -1 || bufferString.indexOf('CLP') == -1)) {
+        if (!isEob && isValidFileContent) {
             return {
                 status: 'INVALID_FILE',
             };
@@ -461,5 +462,99 @@ module.exports = {
         }
 
         throw new Error('EOB File Not Found');
+    },
+
+
+    processOHIPEraFile: async function (params) {
+        const self = this;
+
+        //ToDo:: Get parsed era file info
+        const era_json = {};
+
+        try {
+
+            logger.info(`Initializing payment creation with OHIP file`);
+
+            let paymentDetails = await self.createPayment(era_json, params);
+
+            paymentDetails.isFrom = 'OHIP_EOB';
+            params.created_by = paymentDetails.created_by;
+            params.company_id = paymentDetails.company_id;
+
+            let lineItemsAndClaimLists = await eraParser.getOHIPLineItemsAndClaims(era_json, params);
+
+            let processedClaims =  await data.createPaymentApplication(lineItemsAndClaimLists, paymentDetails);
+
+            // again we call to create payment application for unapplied charges form ERA claims
+            await data.applyPaymentApplication(lineItemsAndClaimLists.audit_details, paymentDetails);
+
+            await data.updateERAFileStatus(paymentDetails);
+
+            logger.info(`Payment creation process done - OHIP`);
+
+            return processedClaims;
+
+        } catch (err) {
+            logger.error(err);
+
+            return err;
+        }
+
+    },
+
+    createPayment: async function(eraObject, params){
+        let paymentResult;
+        let payerDetails = {};
+        let totalAmountPayable = eraObject.totalAmountPayable ? Math.round( eraObject.totalAmountPayable * 100) / 10000 : 0.00;
+        let notes = 'Amount shown in EOB:$' + totalAmountPayable;
+
+        payerDetails.paymentId = null;
+        payerDetails.company_id = params.company_id || null;
+        payerDetails.user_id = params.user_id || null;
+        payerDetails.facility_id = params.facility_id || null;
+        payerDetails.created_by = params.created_by || null;
+        payerDetails.patient_id = null;
+        payerDetails.insurance_provider_id = params.insurance_provider_id || null;  // ToDo:: params from UI
+        payerDetails.provider_group_id = null;
+        payerDetails.provider_contact_id = null;
+        payerDetails.payment_reason_id = null;
+        payerDetails.amount = 0;
+        payerDetails.accounting_date = eraObject.paymentDate || 'now()';
+        payerDetails.invoice_no = '';
+        payerDetails.display_id = null;  // alternate_payment_id
+        payerDetails.payer_type = 'insurance';
+        payerDetails.notes = notes;
+        payerDetails.payment_mode = 'eft';
+        payerDetails.credit_card_name = null;
+        payerDetails.credit_card_number = eraObject.chequeNumber || null; // card_number
+        payerDetails.clientIp = params.clientIp;
+        payerDetails.screenName = params.screenName;
+        payerDetails.moduleName = params.moduleName;
+
+        payerDetails.logDescription = 'Payment created via ERA';
+        payerDetails.isERAPayment = true;
+        payerDetails.file_id = 0; // ToDo:: uploaded ERA file id
+
+
+        try {
+
+            paymentResult = await paymentController.createOrUpdatePayment(payerDetails);
+            paymentResult = paymentResult && paymentResult.rows && paymentResult.rows.length ? paymentResult.rows[0] : {};
+            paymentResult.file_id =  payerDetails.file_id; // imported ERA file id
+            paymentResult.created_by = payerDetails.created_by;
+            paymentResult.company_id = payerDetails.company_id;
+            paymentResult.uploaded_file_name =  'Canada_ERA.txt';
+            paymentResult.payer_type = payerDetails.payer_type;
+            paymentResult.messageText = eraObject.messageText || '';
+            paymentResult.code = 'ERA';
+
+            await data.createEdiPayment(paymentResult);
+
+        } catch (err) {
+
+            throw err;
+        }
+
+        return paymentResult;
     }
 };
