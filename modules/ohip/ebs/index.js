@@ -33,6 +33,7 @@ const {
     parseResourceResult,
     parseTypeListResult,
     parseDetail,
+    parseDownloadResult,
 } = require('./xml');
 const ebsRequestTemplate = require('./ebsRequest');
 
@@ -168,14 +169,10 @@ const EBSConnector = function(config) {
             const ctx = getContext(EDT_DOWNLOAD(args));
 
             return ws.send(handlers, ctx, (ctx) => {
-
-                const file = ws.getAttachment(ctx, "response", "//*[local-name(.)='content']");
-
-                // fs.writeFile('/home/djaqua/skippy', file.toString('base64'), (err) => {
-                //     console.log('err: ', err);
-                // });
-
-                return callback(null, ctx.response);
+                // const file = ws.getAttachment(ctx, "response", "//*[local-name(.)='content']");
+                // console.log(ctx.response);
+                const doc = new dom().parseFromString(ctx.response);
+                return callback(null, parseDownloadResult(doc));
             });
         },
 

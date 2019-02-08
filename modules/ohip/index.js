@@ -1,9 +1,14 @@
 const EBSConnector = require('./ebs');
+const {
+    BATCH_EDIT,
+    CLAIMS_MAIL_FILE_REJECT_MESSAGE,
+    ERROR_REPORTS,
+} = require('./constants').resourceTypes;
 
 const responseCodes = require('./hcv/responseCodes');
 
 // const Encoder = require('./encoders/batchClaimSubmission');
-// const Parser = require('./parser');
+const Parser = require('./parser');
 
 // this is the high-level business logic and algorithms for OHIP
 //  * use cases are defined here
@@ -73,15 +78,6 @@ module.exports = function(billingApi) {
 
             const ebs = new EBSConnector(ebsConfig);
 
-            // ebs.download({resourceIDs:[62160]}, (downloadErr, downloadResponse) => {
-            //     callback(downloadErr, downloadResponse);
-            // });
-
-            //
-            // ebs.getTypeList({}, (gtlErr, gtlResponse) => {
-            //     // console.log(gtlResponse);
-            // });
-
             // TODO
             // 1 - create claims file from claims with propper date format
             const uploads = [
@@ -102,26 +98,12 @@ module.exports = function(billingApi) {
 
                 const resourceIDs = getResourceIDs(uploadResponse);
 
-
-                // ebs.list({status:'UPLOADED', resourceType:'CL'}, (listErr, listResponse) => {
-                //     console.log(listResponse);
-                // });
-
                 return ebs.submit({resourceIDs}, (submitErr, submitResponse) => {
 
                     if (submitErr) {
                         return callback(submitErr, submitResponse);
                     }
                     const resourceIDs = getResourceIDs(submitResponse);
-
-
-                    // ebs.info({resourceIDs}, (infoErr, infoResponse) => {
-                    //     console.log(infoResponse);
-                    // });
-
-                    // ebs.list({status:'SUBMITTED'}, (listErr, listResponse) => {
-                    //     console.log(listResponse);
-                    // });
 
                     // 4 - update database mark as 'pending acknowledgment'
                     //
@@ -140,14 +122,66 @@ module.exports = function(billingApi) {
         sandbox: (args, callback) => {
             const ebs = new EBSConnector(ebsConfig);
 
-            ebs.list({status:'UPLOADED', resourceType:'CL'}, (listErr, listResponse) => {
-                console.log(listResponse);
+            //
+            // ebs.list({status:'UPLOADED', resourceType:'CL'}, (listErr, listResponse) => {
+            //     console.log(listResponse);
+            // });
+            //
+            // return ebs.download({resourceIDs:[62152]}, (downloadErr, downloadResponse) => {
+            // // return ebs.list({resourceType:'ER'}, (downloadErr, downloadResponse) => {
+            //     return callback(downloadErr, downloadResponse);
+            // });
+        },
+
+        // TODO: EXA-12016
+        processResponseFiles: (args, callback) => {
+            const ebs = new EBSConnector(ebsConfig);
+
+            ebs.list({resourceType: BATCH_EDIT}, (listErr, listResponse) => {
+                const resourceIDs = listResponse.data.map((detailResponse) => {
+                    return detailResponse.resourceID;
+                });
+                // console.log(listResponse);
+                ebs.download({resourceIDs}, (downloadErr, downloadResponse) => {
+                //     // TODO: billingApi.handleBatchEditReportFile
+                    // console.log(`Batch report downloaded with resource ID: ${downloadResponse.data[0].resourceID}`);
+                    // console.log(`file content: ${downloadResponse.data[0].content}`);
+
+                    downloadResponse.data.forEach((downloadData) => {
+                        const parser = new Parser(downloadData.description);
+                        const batchEdit = parser.parse(downloadData.content);
+
+                        billingApi.handleBatchEditReportFile(batchEdit);
+                        // console.log();
+                    });
+
+                });
             });
 
-            return ebs.download({resourceIDs:[62152]}, (downloadErr, downloadResponse) => {
-            // return ebs.list({resourceType:'ER'}, (downloadErr, downloadResponse) => {
-                return callback(downloadErr, downloadResponse);
-            });
+            // ebs.list({resourceType: ERROR_REPORTS}, (listErr, listResponse) => {
+            //     const resourceIDs = listResponse.data.map((detailResponse) => {
+            //         return detailResponse.resourceID;
+            //     });
+            //
+            //     ebs.download({resourceIDs}, (downloadErr, downloadResponse) => {
+            //         // TODO: billingApi.handleClaimsErrorReportFile
+            //         console.log(`Claims Error Report downloaded with resource ID: ${detailResponse.resourceID}`);
+            //
+            //     });
+            // });
+            //
+            // ebs.list({resourceType: CLAIMS_MAIL_FILE_REJECT_MESSAGE}, (listErr, listResponse) => {
+            //     const resourceIDs = listResponse.data.map((detailResponse) => {
+            //         return detailResponse.resourceID;
+            //     });
+            //
+            //     ebs.download({resourceIDs}, (downloadErr, downloadResponse) => {
+            //         // TODO: billingApi.handleClaimsErrorReportFile
+            //         console.log(`Claims File Reject Message downloaded with resource ID: ${detailResponse.resourceID}`);
+            //
+            //     });
+            // });
+
         },
 
         validateHealthCard: (args, callback) => {

@@ -86,6 +86,7 @@ const parseCSNData = (doc) => {
 };
 
 const parseTypeListData = (doc) => {
+
     return {
         access: select("//*[local-name(.)='access']/text()", doc)[0].nodeValue,
         descriptionEn: select("//*[local-name(.)='descriptionEn']/text()", doc)[0].nodeValue,
@@ -101,6 +102,17 @@ const parseTypeListData = (doc) => {
     };
 };
 
+const parseDownloadData = (doc) => {
+    return {
+        content: select("//*[local-name(.)='content']/text()", doc)[0].nodeValue.toString('base64'),
+        resourceID: select("//*[local-name(.)='resourceID']/text()", doc)[0].nodeValue,
+        resourceType: select("//*[local-name(.)='resourceType']/text()", doc)[0].nodeValue,
+        description: select("//*[local-name(.)='description']/text()", doc)[0].nodeValue,
+
+        ...parseCommonResult(select("//*[local-name(.)='result']", doc)[0])
+    };
+
+};
 
 module.exports = {
     decrypt,
@@ -148,6 +160,19 @@ module.exports = {
             data: select("//*[local-name(.)='data']", typeListResultNode).map((typeListDataNode) => {
                 console.log(select("//*[local-name(.)='resourceType']/text()", typeListDataNode)[0].nodeValue);
                 return parseTypeListData(typeListDataNode);
+            }),
+        };
+    },
+
+    parseDownloadResult: (doc) => {
+        let downloadResultNode = select("//*[local-name(.)='return']", doc)[0];
+
+        return {
+            auditID: parseAuditID(downloadResultNode),
+
+            data: select("//*[local-name(.)='data']", downloadResultNode).map((downloadDataNode) => {
+                console.log(select("//*[local-name(.)='resourceType']/text()", downloadDataNode)[0].nodeValue);
+                return parseDownloadData(downloadDataNode);
             }),
         };
     },

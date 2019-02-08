@@ -104,7 +104,7 @@ const BatchClaimEditReportParser = function(options) {
                 if (recordStr) {
                     const parseObj = parseRecord(recordStr, batchEditReportFields);
 
-
+                    result.push(parseObj);
                 }
                 return result;
             }, []);
