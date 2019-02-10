@@ -9,6 +9,7 @@ const dom = require('xmldom').DOMParser;
 
 const {
     decrypt,
+    parseAuditLogDetails,
 } = require('./xml');
 
 
@@ -52,6 +53,7 @@ ws.Mtom.prototype.receive = (ctx, callback) => {
     ctx.response = doc.toString();
     callback(ctx);
 };
+
 
 ws.Xenc = function() {};
 
@@ -98,6 +100,52 @@ ws.Xenc.prototype.send = function(ctx, callback) {
         callback(ctx);
     });
 };
+
+
+ws.Audit = function(config) {
+    this.config = config;
+};
+ws.Audit.prototype.send = function(ctx, callback) {
+
+    ctx.audit = {
+
+        // date / time
+        dateTime: new Date(),
+
+        // Service User
+        serviceUserMUID: this.config.serviceUserMUID,
+
+        // End User identifier
+        // TODO
+        
+        // Action / event detail
+        // TODO
+    };
+
+    this.next.send(ctx, (ctx) => {
+
+        // duration
+        ctx.audit.duration = (new Date()).getTime() - ctx.audit.dateTime.getTime();
+
+        const doc = new dom().parseFromString(ctx.response)
+        const parseObj = parseAuditLogDetails(doc);
+
+        ctx.audit = {
+            // Simple success or failure
+            result: parseObj.msg,
+
+            // Exit status / messages
+            status: parseObj.code,
+
+            // TODO
+            // Error messages
+
+            ...ctx.audit,
+        };
+        callback(ctx);
+    });
+};
+
 
 
 module.exports = ws;

@@ -177,4 +177,17 @@ module.exports = {
         };
     },
 
+    parseAuditLogDetails: (doc) => {
+        
+        let resultNode = select("//*[local-name(.)='return']", doc)[0];
+
+        const commonResult = parseCommonResult(resultNode);
+        return {
+            auditID: parseAuditID(resultNode),
+            ...commonResult
+
+        };
+
+    },
+
 };
