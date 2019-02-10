@@ -1,4 +1,34 @@
 
+const resourceTypes = {
+    //  "inbound"
+    CLAIMS: "CL",
+    OBEC: "OB",
+    STALE_DATED_CLAIMS: "SDC",
+    RECIPROCAL_HOSPITAL_BILLING: "RHB",
+
+    // "outbound"
+    OBEC_RESPONSE: "OO",
+    ERROR_REPORTS: "ER",
+    ERROR_REPORT_EXTRACT: "ES",
+    REMITTANCE_ADVICE: "RA",
+    REMITTANCE_ADVICE_EXTRACT: "RS",
+    BATCH_EDIT: "BE",
+    ACADEMIC_HEALTH_GOVERNANCE_REPORT: "AH",
+    EC_OUTSIDE_USE_REPORT: "CO",
+    EC_SUMMARY_REPORT: "CS",
+    NORTHERN_SPECIALIST_APP_GOVERNANCE: "NS",
+    CLAIMS_MAIL_FILE_REJECT_MESSAGE: "MR",
+    OBEC_MAIL_FILE_REJECT_MESSAGE: "OR",
+    GENERAL_MINISTRY_COMMUNICATIONS: "GCM",
+    PAYMENT_SUMMARY_REPORT_PDF: "PSP",
+    PAYMENT_SUMMARY_REPORT_XML: "PSX",
+    ROSTER_CAPITATION_REPORT_PDF: "RCP",
+    ROSTER_CAPITATION_REPORT_XML: "RCX",
+    ADP_VENDOR_REPORT_PDF: "VAP",
+    HOME_OXYGEN_VENDOR_REPORT_PDF: "VHP",
+    ADP_VENDOR_REPORT_EXCEL: "VAX",
+    HOME_OXYGEN_VENDOR_REPORT_EXCEL: "VHX",
+};
 
 module.exports = {
 
@@ -23,35 +53,40 @@ module.exports = {
 
     },
 
-    resourceTypes: {
-        //  "inbound"
-        CLAIMS: "CL",//: "Claims",
-        OBEC: "OB",//: "OBEC",
-        STALE_DATED_CLAIMS: "SDC",//: "Stale Dated Claims",
-        RECIPROCAL_HOSPITAL_BILLING: "RHB",//: "Reciprocal Hospital Billing",
+    resourceTypes,
 
-        // "outbound"
-        OBEC_RESPONSE: "OO",//: "OBEC Response",
-        ERROR_REPORTS: "ER",//: "Error Reports",
-        ERROR_REPORT_EXTRACT: "ES",//: "Error Report Extract",
-        REMITTANCE_ADVICE: "RA",//: "Remittance Advice",
-        REMITTANCE_ADVICE_EXTRACT: "RS",//: "Remittance Advice Extract",
-        BATCH_EDIT: "BE",//: "Batch Edit",
-        ACADEMIC_HEALTH_GOVERNANCE_REPORT: "AH",//: "Academic Health Governance Report",
-        EC_OUTSIDE_USE_REPORT: "CO",//: "EC Outside Use report",
-        EC_SUMMARY_REPORT: "CS",//: "EC Summary report",
-        NORTHERN_SPECIALIST_APP_GOVERNANCE: "NS",//: "Northern Specialist APP Governance",
-        CLAIMS_MAIL_FILE_REJECT_MESSAGE: "MR",//: "Claims Mail File Reject Message",
-        OBEC_MAIL_FILE_REJECT_MESSAGE: "OR",//: "OBEC Mail File Reject Message",
-        GENERAL_MINISTRY_COMMUNICATIONS: "GCM",//: "General Ministry Communications",
-        PAYMENT_SUMMARY_REPORT_PDF: "PSP",//: "Payment Summary Report PDF",
-        PAYMENT_SUMMARY_REPORT_XML: "PSX",//: "Payment Summary Report XML",
-        ROSTER_CAPITATION_REPORT_PDF: "RCP",//: "Roster Capitation Report PDF",
-        ROSTER_CAPITATION_REPORT_XML: "RCX",//: "Roster Capitation Report XML",
-        ADP_VENDOR_REPORT_PDF: "VAP",//: "ADP Vendor Report PDF",
-        HOME_OXYGEN_VENDOR_REPORT_PDF: "VHP",//: "Home Oxygen Vendor Report PDF",
-        ADP_VENDOR_REPORT_EXCEL: "VAX",//: "ADP Vendor Report Excel",
-        HOME_OXYGEN_VENDOR_REPORT_EXCEL: "VHX",//: "Home Oxygen Vendor Report Excel",
+
+
+    // TODO convert to i18n
+    resourceDescriptions: {
+
+        [resourceTypes.CLAIMS] : 'Claims',
+        [resourceTypes.OBEC] : 'OBEC',
+        [resourceTypes.STALE_DATED_CLAIMS] : 'Stale Dated Claims',
+        [resourceTypes.RECIPROCAL_HOSPITAL_BILLING] : 'Reciprocal Hospital Billing',
+
+        [resourceTypes.OBEC_RESPONSE] : 'OBEC Response',
+        [resourceTypes.ERROR_REPORTS] : 'Error Reports',
+        [resourceTypes.CLAIMS_MAIL_FILE_REJECT_MESSAGE] : 'Claims Mail File Reject Message',
+        [resourceTypes.ERROR_REPORT_EXTRACT] : 'Error Report Extract',
+        [resourceTypes.REMITTANCE_ADVICE] : 'Remittance Advice',
+        [resourceTypes.REMITTANCE_ADVICE_EXTRACT] : 'Remittance Advice Extract',
+        [resourceTypes.BATCH_EDIT] : 'Batch Edit',
+        [resourceTypes.ACADEMIC_HEALTH_GOVERNANCE_REPORT] : 'Academic Health Governance Report',
+        [resourceTypes.EC_OUTSIDE_USE_REPORT] : 'EC Outside Use report',
+        [resourceTypes.EC_SUMMARY_REPORT] : 'EC Summary report',
+        [resourceTypes.NORTHERN_SPECIALIST_APP_GOVERNANCE] : 'Northern Specialist APP Governance',
+        [resourceTypes.CLAIMS_MAIL_FILE_REJECT_MESSAGE] : 'Claims Mail File Reject Message',
+        [resourceTypes.OBEC_MAIL_FILE_REJECT_MESSAGE] : 'OBEC Mail File Reject Message',
+        [resourceTypes.GENERAL_MINISTRY_COMMUNICATIONS] : 'General Ministry Communications',
+        [resourceTypes.PAYMENT_SUMMARY_REPORT_PDF] : 'Payment Summary Report PDF',
+        [resourceTypes.PAYMENT_SUMMARY_REPORT_XML] : 'Payment Summary Report XML',
+        [resourceTypes.ROSTER_CAPITATION_REPORT_PDF] : 'Roster Capitation Report PDF',
+        [resourceTypes.ROSTER_CAPITATION_REPORT_XML] : 'Roster Capitation Report XML',
+        [resourceTypes.ADP_VENDOR_REPORT_PDF] : 'ADP Vendor Report PDF',
+        [resourceTypes.HOME_OXYGEN_VENDOR_REPORT_PDF] : 'Home Oxygen Vendor Report PDF',
+        [resourceTypes.ADP_VENDOR_REPORT_EXCEL] : 'ADP Vendor Report Excel',
+        [resourceTypes.HOME_OXYGEN_VENDOR_REPORT_EXCEL] : 'Home Oxygen Vendor Report Excel',
     },
 
 };

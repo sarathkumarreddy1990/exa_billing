@@ -12,7 +12,7 @@ module.exports = {
      * @param  {string} filename a filename (the basename)
      * @return {string}          the file type
      */
-    getType: (filename) => {
+    getFileType: (filename) => {
         return filename.charAt(0);
     },
 

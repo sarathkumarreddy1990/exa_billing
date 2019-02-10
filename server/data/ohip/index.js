@@ -1,9 +1,103 @@
 const { query, SQL } = require('./../index');
 const fs = require('fs');
+const path = require('path');
 
-// TODO get rid of these
-const JSONExtractor = require('.//jsonExtractor');
-const data = require('./data.json');
+const {
+    encoding,
+    resourceTypes,
+    resourceDescriptions,
+} = require('./../../../modules/ohip/constants');
+
+const ohipUtil = require('./../../../modules/ohip/utils');
+
+const getFileStore = async (args) => {
+
+    const {
+        filename
+    } = args;
+
+    let sql = SQL`
+        SELECT
+            id,
+            file_store_name,
+            root_directory,
+            is_default
+        FROM public.file_stores
+        WHERE company_id = 1
+            AND NOT has_deleted
+            AND is_default
+    `;
+
+    const description = ohipUtil.getResourceDescription(filename);
+    console.log(`getFileStore(${description})`);
+
+    // if (description) {
+    //     sql = sql.append(SQL`
+    //         AND resource_name = ${description}
+    //     `);
+    // }
+
+    let root_directory = '.';
+    let id = 0;
+    const dbResults = (await query(sql.query)).rows;
+
+    if (dbResults.length) {
+
+        root_directory = dbResults[0].root_directory;
+        id = dbResults[0].id;
+
+        if (dbResults[0].is_default) {
+            // NOTE this could be considered "sneaky" and might be undesirable
+            root_directory = path.join(root_directory, 'OHIP');
+        }
+    }
+    return {
+        root_directory,
+        id,
+    };
+};
+
+
+
+/**
+ * const storeFile - description
+ *
+ * @param  {object}  args {
+ *                          filename: String,
+ *                          data: String
+ *                        }
+ * @returns {object}      {
+ *                          file_store_id,
+ *                          edi_file_claims
+ *                        }
+ */
+const storeFile =  async (args) => {
+    const {
+        filename,
+        data,
+    } = args;
+
+    const filestore =  await getFileStore(args);
+    const fullPath = path.join(filestore.root_directory, filename);
+    fs.writeFileSync(fullPath, data, {encoding});
+
+    return {
+        id: filestore.id
+    };
+};
+//
+// const loadFile = async (args) => {
+//     const {
+//         edi_file_id,
+//
+//     } = args;
+//     const file = await getFileInfo({edi_file_id});
+//
+//     return {
+//         filename:
+//
+//     }
+// }
 
 const OHIPDataAPI = {
 
@@ -29,7 +123,7 @@ const OHIPDataAPI = {
     getClaimData: (claimIds) => {
         // TODO, run a query to get the claim data
         // use synchronous call to query ('await query(...)')
-        return new JSONExtractor(data).getMappedData();
+        return [];
     },
 
     handlePayment: (payment) => {
@@ -79,6 +173,7 @@ const OHIPDataAPI = {
 
 
     handleInputClaimSubmissionFile: (fileDescriptor) => {
+
     },
 
     handleRemittanceAdviceFile: (fileDescriptor) => {
@@ -90,14 +185,31 @@ const OHIPDataAPI = {
     handleClaimFileRejectMessageFile: (fileDescriptor) => {
 
     },
-    handleBatchEditReportFile: (fileDescriptor) => {
-        // console.log("Hello, from Billing API:", fileDescriptor);
-        
+    handleBatchEditReportFile: async (args, callback) => {
+        /*
+        {
+            filename: 'BAAU73.287',
+            content:
+        }
+
+        */
+        const {
+            filename,
+        } = args;
+
+        const {
+            id,
+        } =  await storeFile(args);
+
+
+        return id;
     },
+
     handleClaimsErrorReportFile: (fileDescriptor) => {
 
     },
 
+    storeFile,
 };
 
 module.exports = OHIPDataAPI;

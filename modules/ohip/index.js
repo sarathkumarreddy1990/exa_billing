@@ -135,26 +135,35 @@ module.exports = function(billingApi) {
 
         // TODO: EXA-12016
         processResponseFiles: (args, callback) => {
+
             const ebs = new EBSConnector(ebsConfig);
 
             ebs.list({resourceType: BATCH_EDIT}, (listErr, listResponse) => {
                 const resourceIDs = listResponse.data.map((detailResponse) => {
                     return detailResponse.resourceID;
                 });
-                // console.log(listResponse);
+
+                console.log(listResponse);
                 ebs.download({resourceIDs}, (downloadErr, downloadResponse) => {
                 //     // TODO: billingApi.handleBatchEditReportFile
                     // console.log(`Batch report downloaded with resource ID: ${downloadResponse.data[0].resourceID}`);
                     // console.log(`file content: ${downloadResponse.data[0].content}`);
 
-                    downloadResponse.data.forEach((downloadData) => {
-                        const parser = new Parser(downloadData.description);
-                        const batchEdit = parser.parse(downloadData.content);
+                    const filepaths = [];
+                    downloadResponse.data.forEach(async (downloadData) => {
 
-                        billingApi.handleBatchEditReportFile(batchEdit);
-                        // console.log();
+                        // const parser = new Parser(downloadData.description);
+                        // const batchEdit = parser.parse(downloadData.content);
+
+                        const r = await billingApi.handleBatchEditReportFile({
+                            data: downloadData.content,
+                            filename: downloadData.description,
+                        });
+
+                        console.log(`filestore id: ${r}`);
+
                     });
-
+                    callback(null, downloadResponse);
                 });
             });
 
