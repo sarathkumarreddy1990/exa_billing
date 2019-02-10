@@ -15,6 +15,10 @@ const getFileStore = async (args) => {
     const {
         filename
     } = args;
+    const description = ohipUtil.getResourceDescription(filename);
+
+    let root_directory = '.';
+    let id = 0;
 
     let sql = SQL`
         SELECT
@@ -28,29 +32,34 @@ const getFileStore = async (args) => {
             AND is_default
     `;
 
-    const description = ohipUtil.getResourceDescription(filename);
-    console.log(`getFileStore(${description})`);
+    if (description) {
+        sql = sql.append(SQL`
+            OR file_store_name = ${description}
+        `);
+    }
 
-    // if (description) {
-    //     sql = sql.append(SQL`
-    //         AND resource_name = ${description}
-    //     `);
-    // }
+    const dbResults = (await query(sql.text, sql.values)).rows;
 
-    let root_directory = '.';
-    let id = 0;
-    const dbResults = (await query(sql.query)).rows;
+    if (dbResults && dbResults.length) {
 
-    if (dbResults.length) {
+        let row = dbResults[0];
+        for (let i = 0; i < dbResults.length; i++) {
+            // matches the resource description to the name of the filestore
+            if (dbResults[i].file_store_name === description) {
+                row = dbResults[i];
+                break;
+            }
+        }
 
-        root_directory = dbResults[0].root_directory;
-        id = dbResults[0].id;
+        root_directory = row.root_directory;
+        id = row.id;
 
-        if (dbResults[0].is_default) {
+        if (row.is_default) {
             // NOTE this could be considered "sneaky" and might be undesirable
             root_directory = path.join(root_directory, 'OHIP');
         }
     }
+
     return {
         root_directory,
         id,
@@ -102,7 +111,7 @@ const storeFile =  async (args) => {
 const OHIPDataAPI = {
 
     auditTransaction: (info) => {
-        console.log(info);
+        console.log(`audit log: ${info}`);
         /* Sample input info object:
         {
             transactionID:              // TODO need clarification from MoH
@@ -186,13 +195,6 @@ const OHIPDataAPI = {
 
     },
     handleBatchEditReportFile: async (args, callback) => {
-        /*
-        {
-            filename: 'BAAU73.287',
-            content:
-        }
-
-        */
         const {
             filename,
         } = args;

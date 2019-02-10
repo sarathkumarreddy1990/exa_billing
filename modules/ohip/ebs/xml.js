@@ -158,7 +158,7 @@ module.exports = {
             auditID: parseAuditID(typeListResultNode),
 
             data: select("//*[local-name(.)='data']", typeListResultNode).map((typeListDataNode) => {
-                console.log(select("//*[local-name(.)='resourceType']/text()", typeListDataNode)[0].nodeValue);
+                // console.log(select("//*[local-name(.)='resourceType']/text()", typeListDataNode)[0].nodeValue);
                 return parseTypeListData(typeListDataNode);
             }),
         };
@@ -171,7 +171,7 @@ module.exports = {
             auditID: parseAuditID(downloadResultNode),
 
             data: select("//*[local-name(.)='data']", downloadResultNode).map((downloadDataNode) => {
-                console.log(select("//*[local-name(.)='resourceType']/text()", downloadDataNode)[0].nodeValue);
+                // console.log(select("//*[local-name(.)='resourceType']/text()", downloadDataNode)[0].nodeValue);
                 return parseDownloadData(downloadDataNode);
             }),
         };

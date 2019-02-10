@@ -51,7 +51,7 @@ const getResourceIDs = (resourceResult) => {
             result.push(response.resourceID);
         }
         else {
-            console.log(response);
+            // console.log(response);
             // TODO this needs to be logged and handled
             //  * update status codes in database
             //  * do we keep the file around?
@@ -90,7 +90,6 @@ module.exports = function(billingApi) {
             ];
 
             ebs.upload({uploads}, (uploadErr, uploadResponse) => {
-                console.log('JAQUA2')
 
                 if (uploadErr) {
                     return callback(uploadErr, uploadResponse);
@@ -143,24 +142,22 @@ module.exports = function(billingApi) {
                     return detailResponse.resourceID;
                 });
 
-                console.log(listResponse);
-                ebs.download({resourceIDs}, (downloadErr, downloadResponse) => {
-                //     // TODO: billingApi.handleBatchEditReportFile
-                    // console.log(`Batch report downloaded with resource ID: ${downloadResponse.data[0].resourceID}`);
-                    // console.log(`file content: ${downloadResponse.data[0].content}`);
+                ebs.download({resourceIDs}, async (downloadErr, downloadResponse) => {
+
+                    if (downloadErr) {
+                        await billingApi.storeFile({filename:'downloadResponse-error.txt',data:downloadResponse});
+                    }
+                    else {
+                        await billingApi.storeFile({filename:'downloadResponse.json',data:JSON.stringify(downloadResponse)});
+                    }
 
                     const filepaths = [];
                     downloadResponse.data.forEach(async (downloadData) => {
 
-                        // const parser = new Parser(downloadData.description);
-                        // const batchEdit = parser.parse(downloadData.content);
-
-                        const r = await billingApi.handleBatchEditReportFile({
+                        await billingApi.handleBatchEditReportFile({
                             data: downloadData.content,
                             filename: downloadData.description,
                         });
-
-                        console.log(`filestore id: ${r}`);
 
                     });
                     callback(null, downloadResponse);
