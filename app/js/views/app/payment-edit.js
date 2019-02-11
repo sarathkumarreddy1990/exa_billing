@@ -565,9 +565,13 @@ define(['jquery',
                     if (repo.loading) {
                         return repo.text;
                     }
-                    var markup = "<table><tr>";
-                    markup += "<td title='" + repo.full_name + "(" + repo.account_no + ")'> <div>" + repo.full_name + "(" + repo.account_no + ")" + "</div><div>" + commonjs.getDateFormat(repo.birth_date) + "</div>";
-                    markup += "</td></tr></table>";
+                    var _headerLeftTable = $('<table/>');
+                    _headerLeftTable.append(
+                        $('<tr/>').addClass('row').attr({ title: repo.full_name + "(" + repo.account_no + ")" })
+                            .append($('<td/>').addClass('col-12').append($('<div/>')).text(repo.full_name + "(" + repo.account_no + ")"))
+                            .append($('<td/>').addClass('col-12').append($('<div/>')).text(commonjs.getDateFormat(repo.birth_date)))
+                    );
+                    var markup = _headerLeftTable;
                     return markup;
                 }
                 function formatRepoSelection(res) {
