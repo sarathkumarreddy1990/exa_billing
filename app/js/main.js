@@ -210,7 +210,9 @@ if (require && require.config) {
             window._get = _get;
 
             window.AppServer = Appserver;
-
+            i18n.loadConfig(function () {
+                commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
+            });
             Backbone.emulateHTTP = false;
 
             new Appserver(function () {
