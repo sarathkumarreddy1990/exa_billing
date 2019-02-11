@@ -17,7 +17,7 @@ const parserImpl = {
 
 const Parser = function(filename, options) {
 
-    const impl = parserImpl[getType(filename)];
+    const impl = parserImpl[getFileType(filename)];
 
     if (!impl) {
         console.log('Could not determine which parser implementation to use');

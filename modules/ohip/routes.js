@@ -9,8 +9,12 @@ module.exports = function(billingApi) {
     // TODO this really needs to be a POST handler
     router.get('/sandbox', (req, res) => {
         ohip.processResponseFiles(req.query, (ohipErr, ohipResponse) => {
+            ohip.sandbox(req.query, (ohipErr, ohipResponse) => {
+                // console.log("OHIP Response", ohipResponse);
+                return res.send(ohipResponse);
+            });
             // console.log("OHIP Response", ohipResponse);
-            return res.send(ohipResponse);
+            // return res.send(ohipResponse);
         });
     });
 

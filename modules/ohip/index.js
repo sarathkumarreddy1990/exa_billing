@@ -51,7 +51,7 @@ const getResourceIDs = (resourceResult) => {
             result.push(response.resourceID);
         }
         else {
-            console.log(response);
+            // console.log(response);
             // TODO this needs to be logged and handled
             //  * update status codes in database
             //  * do we keep the file around?
@@ -90,7 +90,6 @@ module.exports = function(billingApi) {
             ];
 
             ebs.upload({uploads}, (uploadErr, uploadResponse) => {
-                console.log('JAQUA2')
 
                 if (uploadErr) {
                     return callback(uploadErr, uploadResponse);
@@ -119,9 +118,10 @@ module.exports = function(billingApi) {
             });
         },
 
-        sandbox: (args, callback) => {
+        sandbox: async (args, callback) => {
             const ebs = new EBSConnector(ebsConfig);
-
+            const f = await billingApi.loadFile({edi_files_id: 38});
+            console.log(f);
             //
             // ebs.list({status:'UPLOADED', resourceType:'CL'}, (listErr, listResponse) => {
             //     console.log(listResponse);
@@ -135,26 +135,33 @@ module.exports = function(billingApi) {
 
         // TODO: EXA-12016
         processResponseFiles: (args, callback) => {
+
             const ebs = new EBSConnector(ebsConfig);
 
             ebs.list({resourceType: BATCH_EDIT}, (listErr, listResponse) => {
                 const resourceIDs = listResponse.data.map((detailResponse) => {
                     return detailResponse.resourceID;
                 });
-                // console.log(listResponse);
-                ebs.download({resourceIDs}, (downloadErr, downloadResponse) => {
-                //     // TODO: billingApi.handleBatchEditReportFile
-                    // console.log(`Batch report downloaded with resource ID: ${downloadResponse.data[0].resourceID}`);
-                    // console.log(`file content: ${downloadResponse.data[0].content}`);
 
-                    downloadResponse.data.forEach((downloadData) => {
-                        const parser = new Parser(downloadData.description);
-                        const batchEdit = parser.parse(downloadData.content);
+                ebs.download({resourceIDs}, async (downloadErr, downloadResponse) => {
 
-                        billingApi.handleBatchEditReportFile(batchEdit);
-                        // console.log();
+                    if (downloadErr) {
+                        await billingApi.storeFile({filename:'downloadResponse-error.txt',data:downloadResponse});
+                    }
+                    else {
+                        await billingApi.storeFile({filename:'downloadResponse.json',data:JSON.stringify(downloadResponse)});
+                    }
+
+                    const filepaths = [];
+                    downloadResponse.data.forEach(async (downloadData) => {
+
+                        await billingApi.storeFile({
+                            data: downloadData.content,
+                            filename: downloadData.description,
+                        });
                     });
 
+                    callback(null, downloadResponse);
                 });
             });
 

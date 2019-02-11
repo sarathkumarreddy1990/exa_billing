@@ -15,6 +15,7 @@ const {
     // read the notes in local ws.js for an explanation,
     Mtom,
     Xenc,
+    Audit,
 } = ws;
 
 const {
@@ -71,6 +72,7 @@ const EBSConnector = function(config) {
     signature.addReference("//*[local-name(.)='Body']");
 
     const handlers =  [
+        new Audit(config),    // NOTE order in list affects duration
         new Xenc(),
         new Security({}, [x509, auth, signature]),
         new Mtom(),
@@ -172,7 +174,10 @@ const EBSConnector = function(config) {
                 // const file = ws.getAttachment(ctx, "response", "//*[local-name(.)='content']");
                 // console.log(ctx.response);
                 const doc = new dom().parseFromString(ctx.response);
-                return callback(null, parseDownloadResult(doc));
+                return callback(null, {
+                    audit: ctx.audit,
+                    ...parseDownloadResult(doc),
+                });
             });
         },
 

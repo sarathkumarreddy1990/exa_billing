@@ -1,4 +1,4 @@
-const constants = require('../constants').encoder;
+const constants = require('./../../constants').encoder;
 const util = require('./util');
 
 const BatchHeaderEncoder = require('./batchHeaderEncoder');

@@ -1,6 +1,6 @@
 const sprintf = require('sprintf');
-const constants = require('../constants').encoder;
-const util = require('./util');
+const constants = require('./../../constants').encoder;
+const util = require('./../util');
 
 const ItemEncoder = function(options) {
 

@@ -1,14 +1,185 @@
 const { query, SQL } = require('./../index');
 const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
 
-// TODO get rid of these
-const JSONExtractor = require('.//jsonExtractor');
-const data = require('./data.json');
+const {
+    encoding,
+    resourceTypes,
+    resourceDescriptions,
+} = require('./../../../modules/ohip/constants');
+
+const ohipUtil = require('./../../../modules/ohip/utils');
+
+
+/**
+ * const getFileStore - returns an object with information about a record in
+ * the 'public.file_stores' table. The appropriate filestore is determined by
+ * the 'type' field of the filename (e.g. 'H', 'B', 'X', 'E', 'F', 'P', etc).
+ * If there is no filestore mapped to the filetype, then the default filestore
+ * is returned.
+ *
+ * @param  {object} args {
+ *                           filename: String,  // eg 'HL0001.123'
+ *                       }
+ * @returns {object}     {
+ *                           id: Number,                // file_stores PK
+ *                           file_store_name: String,   // 'Claims'
+ *                           root_directory: String,    // ''
+ *                           is_default: boolean        // true if default
+ *                       }
+ */
+const getFileStore = async (args) => {
+
+    const {
+        filename
+    } = args;
+    const description = ohipUtil.getResourceDescription(filename);
+
+    let filestore = null;
+
+    let sql = SQL`
+        SELECT
+            id,
+            file_store_name,
+            root_directory,
+            is_default
+        FROM public.file_stores
+        WHERE company_id = 1
+            AND is_default
+    `;
+
+    if (description) {
+        sql = sql.append(SQL`
+            OR (file_store_name = ${description} AND NOT has_deleted)
+        `);
+    }
+
+    const dbResults = (await query(sql.text, sql.values)).rows;
+
+    if (dbResults && dbResults.length) {
+
+        filestore = dbResults[0];
+        for (let i = 0; i < dbResults.length; i++) {
+            // matches the resource description to the name of the filestore
+            if (dbResults[i].file_store_name === description) {
+                filestore = dbResults[i];
+                break;
+            }
+        }
+    }
+    return filestore;
+};
+
+/**
+ * const storeFile - creates an entry in the 'billing.edi_files' table with
+ * information about the filename, filestore, and other file information. The
+ * filestore is determined by filename (NOTE see getFileStore())
+ *
+ * @param  {object}  args {
+ *                            filename: String, // 'BL0001.123'
+ *                            data: String      // 'HX1...'
+ *                        }
+ * @returns {object}      {
+ *                            file_store_id: Number,  // file_stores PK
+ *                            file_id: Number,         // edi_files PK
+ *                        }
+ */
+const storeFile =  async (args) => {
+
+    const {
+        filename,
+        data,
+    } = args;
+
+    const filestore =  await getFileStore(args);
+    const filePath = filestore.is_default ? 'OHIP' : '';
+    const fullPath = path.join(filestore.root_directory, filePath, filename);
+    fs.writeFileSync(fullPath, data, {encoding});
+
+    const stats = fs.statSync(fullPath);
+    const md5Hash = crypto.createHash('MD5').update(data, 'utf8').digest('hex');
+
+    const sql = `
+        INSERT INTO billing.edi_files (
+            company_id,
+            file_store_id,
+            created_dt,
+            status,
+            file_type,
+            file_path,
+            file_size,
+            file_md5,
+            uploaded_file_name
+        )
+        VALUES(
+            1
+            ,${filestore.id}
+            ,now()
+            ,'pending'
+
+            --,${ohipUtil.getFileType(filename)}
+            ,'835'  -- not good; should be the commented-out line above
+
+            ,'${filePath}'
+            ,${stats.size}
+            ,'${md5Hash}'
+            ,'${filename}'
+        )
+        RETURNING id
+    `;
+
+    const  dbResults = (await query(sql, [])).rows[0];
+
+    return {
+        file_store_id: filestore.id,
+        file_id: dbResults.id,
+    };
+};
+
+
+
+const loadFile = async (args) => {
+    const {
+        edi_files_id,
+    } = args;
+
+    const sql = SQL`
+        SELECT
+            fs.id as file_store_id,
+            fs.root_directory as root_directory,
+            ef.file_path as file_path,
+            ef.uploaded_file_name as uploaded_file_name
+        FROM
+            billing.edi_files ef INNER JOIN file_stores fs ON ef.file_store_id = fs.id
+        WHERE
+            ef.id = ${edi_files_id}
+    `;
+
+    const {
+        file_store_id,
+        root_directory,
+        file_path,
+        uploaded_file_name,
+    } = (await query(sql.text, sql.values)).rows[0];
+
+    const fullPath = path.join(root_directory, file_path, uploaded_file_name);
+
+
+    return {
+        data: fs.readFileSync(fullPath, {encoding}),
+        file_store_id,
+        root_directory,
+        file_path,
+        uploaded_file_name
+    }
+}
+
 
 const OHIPDataAPI = {
 
     auditTransaction: (info) => {
-        console.log(info);
+        console.log(`audit log: ${info}`);
         /* Sample input info object:
         {
             transactionID:              // TODO need clarification from MoH
@@ -29,7 +200,7 @@ const OHIPDataAPI = {
     getClaimData: (claimIds) => {
         // TODO, run a query to get the claim data
         // use synchronous call to query ('await query(...)')
-        return new JSONExtractor(data).getMappedData();
+        return [];
     },
 
     handlePayment: (payment) => {
@@ -78,26 +249,10 @@ const OHIPDataAPI = {
     },
 
 
-    handleInputClaimSubmissionFile: (fileDescriptor) => {
-    },
+    getFileStore,
 
-    handleRemittanceAdviceFile: (fileDescriptor) => {
-
-    },
-    handleGovernanceReportFile: (fileDescriptor) => {
-
-    },
-    handleClaimFileRejectMessageFile: (fileDescriptor) => {
-
-    },
-    handleBatchEditReportFile: (fileDescriptor) => {
-        // console.log("Hello, from Billing API:", fileDescriptor);
-        
-    },
-    handleClaimsErrorReportFile: (fileDescriptor) => {
-
-    },
-
+    storeFile,
+    loadFile,
 };
 
 module.exports = OHIPDataAPI;
