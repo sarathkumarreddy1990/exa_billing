@@ -704,7 +704,7 @@ module.exports = {
                         suffix_name) AS full_name,
                     owner_id,
                     patient_info as more_info,
-                    birth_date::text,
+                    to_char(patients.birth_date, 'YYYY-MM-DD') as birth_date,
                     COUNT(1) OVER (range unbounded preceding) as total_records                    
                 FROM patients
                 ${filter.filterQuery}
