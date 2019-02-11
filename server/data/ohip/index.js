@@ -138,25 +138,43 @@ const storeFile =  async (args) => {
 };
 
 
-//
-// const loadFile = async (args) => {
-//     const {
-//         edi_file_id,
-//
-//     } = args;
-//     const file = await getFileInfo({edi_file_id});
-//
-//     return {
-//         filename:
-//
-//     }
-// }
 
-// const handleBatchEdit = (msg) => {
-//
-//     console.log(msg);
-//
-// };
+const loadFile = async (args) => {
+    const {
+        edi_files_id,
+    } = args;
+
+    const sql = SQL`
+        SELECT
+            fs.id as file_store_id,
+            fs.root_directory as root_directory,
+            ef.file_path as file_path,
+            ef.uploaded_file_name as uploaded_file_name
+        FROM
+            billing.edi_files ef INNER JOIN file_stores fs ON ef.file_store_id = fs.id
+        WHERE
+            ef.id = ${edi_files_id}
+    `;
+
+    const {
+        file_store_id,
+        root_directory,
+        file_path,
+        uploaded_file_name,
+    } = (await query(sql.text, sql.values)).rows[0];
+
+    const fullPath = path.join(root_directory, file_path, uploaded_file_name);
+
+
+    return {
+        data: fs.readFileSync(fullPath, {encoding}),
+        file_store_id,
+        root_directory,
+        file_path,
+        uploaded_file_name
+    }
+}
+
 
 const OHIPDataAPI = {
 
@@ -230,33 +248,11 @@ const OHIPDataAPI = {
         // message is just a String
     },
 
-    //
-    // handleDownload: async (args, callback) => {
-    //     const {
-    //         filename,
-    //     } = args;
-    //     const {
-    //         id,
-    //     } =  await storeFile(args);
-    //
-    //     const handlersByResourceType = {
-    //         [resourceTypes.BATCH_EDIT]: handleBatchEdit
-    //     };
-    //
-    //     const rType = ohipUtil.getResourceType(filename);
-    //     const handler = handlersByResourceType[rType];
-    //
-    //
-    //     handler();
-    //
-    //
-    //     return id;
-    // },
-    //
 
     getFileStore,
 
     storeFile,
+    loadFile,
 };
 
 module.exports = OHIPDataAPI;

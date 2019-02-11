@@ -118,9 +118,10 @@ module.exports = function(billingApi) {
             });
         },
 
-        sandbox: (args, callback) => {
+        sandbox: async (args, callback) => {
             const ebs = new EBSConnector(ebsConfig);
-
+            const f = await billingApi.loadFile({edi_files_id: 38});
+            console.log(f);
             //
             // ebs.list({status:'UPLOADED', resourceType:'CL'}, (listErr, listResponse) => {
             //     console.log(listResponse);
