@@ -1,6 +1,7 @@
 const { query, SQL } = require('./../index');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const {
     encoding,
@@ -10,6 +11,24 @@ const {
 
 const ohipUtil = require('./../../../modules/ohip/utils');
 
+
+/**
+ * const getFileStore - returns an object with information about a record in
+ * the 'public.file_stores' table. The appropriate filestore is determined by
+ * the 'type' field of the filename (e.g. 'H', 'B', 'X', 'E', 'F', 'P', etc).
+ * If there is no filestore mapped to the filetype, then the default filestore
+ * is returned.
+ *
+ * @param  {object} args {
+ *                           filename: String,  // eg 'HL0001.123'
+ *                       }
+ * @returns {object}     {
+ *                           id: Number,                // file_stores PK
+ *                           file_store_name: String,   // 'Claims'
+ *                           root_directory: String,    // ''
+ *                           is_default: boolean        // true if default
+ *                       }
+ */
 const getFileStore = async (args) => {
 
     const {
@@ -17,8 +36,7 @@ const getFileStore = async (args) => {
     } = args;
     const description = ohipUtil.getResourceDescription(filename);
 
-    let root_directory = '.';
-    let id = 0;
+    let filestore = null;
 
     let sql = SQL`
         SELECT
@@ -28,13 +46,12 @@ const getFileStore = async (args) => {
             is_default
         FROM public.file_stores
         WHERE company_id = 1
-            AND NOT has_deleted
             AND is_default
     `;
 
     if (description) {
         sql = sql.append(SQL`
-            OR file_store_name = ${description}
+            OR (file_store_name = ${description} AND NOT has_deleted)
         `);
     }
 
@@ -42,58 +59,85 @@ const getFileStore = async (args) => {
 
     if (dbResults && dbResults.length) {
 
-        let row = dbResults[0];
+        filestore = dbResults[0];
         for (let i = 0; i < dbResults.length; i++) {
             // matches the resource description to the name of the filestore
             if (dbResults[i].file_store_name === description) {
-                row = dbResults[i];
+                filestore = dbResults[i];
                 break;
             }
         }
-
-        root_directory = row.root_directory;
-        id = row.id;
-
-        if (row.is_default) {
-            // NOTE this could be considered "sneaky" and might be undesirable
-            root_directory = path.join(root_directory, 'OHIP');
-        }
     }
-
-    return {
-        root_directory,
-        id,
-    };
+    return filestore;
 };
 
-
-
 /**
- * const storeFile - description
+ * const storeFile - creates an entry in the 'billing.edi_files' table with
+ * information about the filename, filestore, and other file information. The
+ * filestore is determined by filename (NOTE see getFileStore())
  *
  * @param  {object}  args {
- *                          filename: String,
- *                          data: String
+ *                            filename: String, // 'BL0001.123'
+ *                            data: String      // 'HX1...'
  *                        }
  * @returns {object}      {
- *                          file_store_id,
- *                          edi_file_claims
+ *                            file_store_id: Number,  // file_stores PK
+ *                            file_id: Number,         // edi_files PK
  *                        }
  */
 const storeFile =  async (args) => {
+
     const {
         filename,
         data,
     } = args;
 
     const filestore =  await getFileStore(args);
-    const fullPath = path.join(filestore.root_directory, filename);
+    const filePath = filestore.is_default ? 'OHIP' : '';
+    const fullPath = path.join(filestore.root_directory, filePath, filename);
     fs.writeFileSync(fullPath, data, {encoding});
 
+    const stats = fs.statSync(fullPath);
+    const md5Hash = crypto.createHash('MD5').update(data, 'utf8').digest('hex');
+
+    const sql = `
+        INSERT INTO billing.edi_files (
+            company_id,
+            file_store_id,
+            created_dt,
+            status,
+            file_type,
+            file_path,
+            file_size,
+            file_md5,
+            uploaded_file_name
+        )
+        VALUES(
+            1
+            ,${filestore.id}
+            ,now()
+            ,'pending'
+
+            --,${ohipUtil.getFileType(filename)}
+            ,'835'  -- not good; should be the commented-out line above
+
+            ,'${filePath}'
+            ,${stats.size}
+            ,'${md5Hash}'
+            ,'${filename}'
+        )
+        RETURNING id
+    `;
+
+    const  dbResults = (await query(sql, [])).rows[0];
+
     return {
-        id: filestore.id
+        file_store_id: filestore.id,
+        file_id: dbResults.id,
     };
 };
+
+
 //
 // const loadFile = async (args) => {
 //     const {
@@ -107,6 +151,12 @@ const storeFile =  async (args) => {
 //
 //     }
 // }
+
+// const handleBatchEdit = (msg) => {
+//
+//     console.log(msg);
+//
+// };
 
 const OHIPDataAPI = {
 
@@ -180,36 +230,31 @@ const OHIPDataAPI = {
         // message is just a String
     },
 
+    //
+    // handleDownload: async (args, callback) => {
+    //     const {
+    //         filename,
+    //     } = args;
+    //     const {
+    //         id,
+    //     } =  await storeFile(args);
+    //
+    //     const handlersByResourceType = {
+    //         [resourceTypes.BATCH_EDIT]: handleBatchEdit
+    //     };
+    //
+    //     const rType = ohipUtil.getResourceType(filename);
+    //     const handler = handlersByResourceType[rType];
+    //
+    //
+    //     handler();
+    //
+    //
+    //     return id;
+    // },
+    //
 
-    handleInputClaimSubmissionFile: (fileDescriptor) => {
-
-    },
-
-    handleRemittanceAdviceFile: (fileDescriptor) => {
-
-    },
-    handleGovernanceReportFile: (fileDescriptor) => {
-
-    },
-    handleClaimFileRejectMessageFile: (fileDescriptor) => {
-
-    },
-    handleBatchEditReportFile: async (args, callback) => {
-        const {
-            filename,
-        } = args;
-
-        const {
-            id,
-        } =  await storeFile(args);
-
-
-        return id;
-    },
-
-    handleClaimsErrorReportFile: (fileDescriptor) => {
-
-    },
+    getFileStore,
 
     storeFile,
 };

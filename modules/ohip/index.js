@@ -154,12 +154,12 @@ module.exports = function(billingApi) {
                     const filepaths = [];
                     downloadResponse.data.forEach(async (downloadData) => {
 
-                        await billingApi.handleBatchEditReportFile({
+                        await billingApi.storeFile({
                             data: downloadData.content,
                             filename: downloadData.description,
                         });
-
                     });
+
                     callback(null, downloadResponse);
                 });
             });

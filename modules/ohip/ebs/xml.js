@@ -1,3 +1,5 @@
+// TODO - parse audit-log stuff into each result instead of separately 
+
 const pki = require('node-forge').pki;
 const crypto = require('crypto');
 const fs = require('fs');
@@ -6,6 +8,7 @@ const dom = require('xmldom').DOMParser;
 const {
     select,
 } = require('xpath');
+
 
 // TODO: EXA-12673
 // TODO remember to refactor this into shared library with EBSConnector
@@ -178,7 +181,7 @@ module.exports = {
     },
 
     parseAuditLogDetails: (doc) => {
-        
+
         let resultNode = select("//*[local-name(.)='return']", doc)[0];
 
         const commonResult = parseCommonResult(resultNode);
