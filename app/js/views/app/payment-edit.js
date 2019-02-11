@@ -566,7 +566,7 @@ define(['jquery',
                         return repo.text;
                     }
                     var markup = "<table><tr>";
-                    markup += "<td title='" + repo.full_name + "(" + repo.account_no + ")'> <div>" + repo.full_name + "(" + repo.account_no + ")" + "</div><div>" + commonjs.getFormattedUtcDate(repo.birth_date) + "</div>";
+                    markup += "<td title='" + repo.full_name + "(" + repo.account_no + ")'> <div>" + repo.full_name + "(" + repo.account_no + ")" + "</div><div>" + commonjs.getDateFormat(repo.birth_date) + "</div>";
                     markup += "</td></tr></table>";
                     return markup;
                 }
@@ -577,7 +577,7 @@ define(['jquery',
                     $('#searchPayer #mrn').val(res.account_no);
                     $('#searchPayer #lname').val(res.last_name);
                     $('#searchPayer #fname').val(res.first_name);
-                    $('#searchPayer #dob').val(commonjs.getFormattedUtcDate(res.birth_date));
+                    $('#searchPayer #dob').val(moment(res.birth_date).format('L'));
 
                     return res.full_name;
                 }
@@ -591,6 +591,7 @@ define(['jquery',
                 $('#searchPayer #fname').val('');
                 $('#searchPayer #dob').val('');
                 $('#select2-txtautoPayerPP-container').html(commonjs.geti18NString('billing.payments.selectPatient'));
+                $('#txtautoPayerPP').select2("open");
             },
 
             setOFAutoComplete: function () {
@@ -1007,7 +1008,7 @@ define(['jquery',
                     $('#searchPayer #mrn').val(payerNames.account_no);
                     $('#searchPayer #lname').val(payerNames.last_name);
                     $('#searchPayer #fname').val(payerNames.first_name);
-                    $('#searchPayer #dob').val(commonjs.getFormattedDate(payerNames.birth_date));
+                    $('#searchPayer #dob').val(moment(payerNames.birth_date).format('L'));
                 }
                 else if (payerType === 'ordering_facility') {
                     $('#select2-txtautoPayerPOF-container').html(payerNames.ordering_facility_name);
