@@ -741,45 +741,45 @@ module.exports = {
     submitOhipClaim: async (params) => {
         let claimIds = params.claimIds.split(',');
         let sql = SQL`SELECT
-						bc.id as claim_id,
-						npi_no as "groupNumber",
-						rend_pr.provider_info->'NPI' AS "providerNumber",
-						rend_pr.specialities[1] AS "specialtyCode",
-						(SELECT JSON_agg(Row_to_json(claim_details))
-							FROM (
+                        bc.id as claim_id,
+                        npi_no as "groupNumber",
+                        rend_pr.provider_info->'NPI' AS "providerNumber",
+                        rend_pr.specialities[1] AS "specialtyCode",
+                        (SELECT JSON_agg(Row_to_json(claim_details))
+                            FROM (
 								WITH cte_insurance_details AS (
-								 SELECT (Row_to_json(insuranceDetails)) AS "insuranceDetails" FROM (
+									SELECT (Row_to_json(insuranceDetails)) AS "insuranceDetails" FROM (
 									SELECT  
-									ppi.policy_number AS "healthNumber" ,
-									ppi.group_number AS "versionCode" ,
-									pp.birth_date AS "dateOfBirth",
-									bc.id AS "accountingNumber",
-									CASE WHEN nullif(pc.company_info->'company_state','') = subscriber_state THEN  'HCP' ELSE 'RMB' END AS "paymentProgram",
-									'P' AS "payee",
-									'HOP' AS "masterNumber",
-									reff_pr.provider_info->'NPI' AS "referringProviderNumber",
-									'HOP' AS "serviceLocationIndicator",
-									ppi.policy_number AS "registrationNumber",
-									pp.last_name AS "patientLastName",
-									pp.first_name AS "patientFirstName",
-									pp.gender AS "patientSex",
-									pp.patient_info->'c1Statepp' AS "provinceCode"
+										ppi.policy_number AS "healthNumber" ,
+										ppi.group_number AS "versionCode" ,
+										pp.birth_date AS "dateOfBirth",
+										bc.id AS "accountingNumber",
+										CASE WHEN nullif(pc.company_info->'company_state','') = subscriber_state THEN  'HCP' ELSE 'RMB' END AS "paymentProgram",
+										'P' AS "payee",
+										'HOP' AS "masterNumber",
+										reff_pr.provider_info->'NPI' AS "referringProviderNumber",
+										'HOP' AS "serviceLocationIndicator",
+										ppi.policy_number AS "registrationNumber",
+										pp.last_name AS "patientLastName",
+										pp.first_name AS "patientFirstName",
+										pp.gender AS "patientSex",
+										pp.patient_info->'c1Statepp' AS "provinceCode"
 									From public.patient_insurances ppi
 									WHERE ppi.id = bc.primary_patient_insurance_id) AS insuranceDetails)
 									,charge_details AS (
-									SELECT JSON_agg(Row_to_json(items)) "items" FROM (
+										SELECT JSON_agg(Row_to_json(items)) "items" FROM (
 										SELECT
-										pcc.display_code AS "serviceCode",
-										(bch.bill_fee * bch.units) AS "feeSubmitted",
-										1 AS  "numberOfServices",
-										charge_dt AS "serviceDate",
-										billing.get_charge_icds(bch.id) AS diagnosticCodes 
+											pcc.display_code AS "serviceCode",
+											(bch.bill_fee * bch.units) AS "feeSubmitted",
+											1 AS  "numberOfServices",
+											charge_dt AS "serviceDate",
+											billing.get_charge_icds(bch.id) AS diagnosticCodes 
 										FROM billing.charges bch
 										INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
 										WHERE bch.claim_id = bc.id
-									) AS items )
+										) AS items )
 									SELECT *  FROM cte_insurance_details,charge_details
-								) AS claim_details
+							) AS claim_details
 						) AS "claims"
 				FROM billing.claims bc
 				INNER JOIN public.companies pc ON pc.id = bc.company_id
