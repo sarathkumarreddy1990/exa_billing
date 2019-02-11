@@ -1,6 +1,6 @@
 const sprintf = require('sprintf');
-const util = require('./util');
-const constants = require('../constants').encoder;
+const util = require('./../util');
+const constants = require('./../../constants').encoder;
 
 /**
  * const BatchHeader - Responsible for encoding a batch header record
