@@ -182,6 +182,9 @@ define(['jquery',
                 var qualifierCodes = app.provider_id_code_qualifiers;
                 var states = app.states[0].app_states;
                 $('#divBillingProvidersForm').html(this.billingProvidersFormTemplate({ qualifierCodes: qualifierCodes, states: states }));
+                if(app.country_alpha_3_code === 'can'){
+                    $('#txtNpi').attr('maxlength', 4);
+                }
                 var AddressInfoMap = {
                     city: {
                         domId: 'txtCity',
