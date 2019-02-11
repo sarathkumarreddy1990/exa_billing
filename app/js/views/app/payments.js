@@ -246,7 +246,7 @@ define(['jquery',
                         custompager: this.pager,
                         emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                         colNames: ['<span  id="spnStatus" class="icon-ic-worklist" onclick="commonjs.popOverActions(event)" ></span>', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                        i18nNames: ['', '', '', 'billing.payments.paymentID', '', 'billing.payments.referencePaymentID', 'billing.payments.paymentDate', 'billing.payments.accountingDate', 'billing.payments.payertype', 'billing.payments.payerName', 'billing.payments.patientMRN', 'billing.payments.paymentAmount', 'billing.payments.paymentApplied', 'billing.payments.balance', 'billing.payments.adjustments', 'billing.COB.notes', 'billing.payments.postedBy', 'billing.payments.paymentmode', 'billing.payments.chequeCardNo', 'billing.payments.facility_name', '', '', ''],
+                        i18nNames: ['', '', '', 'billing.payments.paymentID', '', 'billing.payments.referencePaymentID', 'billing.payments.paymentDate', 'billing.payments.accountingDate', 'billing.payments.payertype', 'billing.payments.payerName', 'billing.payments.patientMRN', 'billing.payments.paymentAmount', 'billing.payments.paymentApplied', 'billing.payments.balance', 'billing.payments.adjustments', 'billing.COB.notes', 'billing.payments.postedBy', 'billing.payments.paymentMode', 'billing.payments.chequeCardNo', 'billing.payments.facility_name', '', '', ''],
                         colModel: [
                             {
                                 name: 'edit', width: 50, sortable: false, search: false,
