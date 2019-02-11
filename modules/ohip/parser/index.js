@@ -5,7 +5,7 @@ const ErrorReportParser = require('./errorReport');
 const OBECResponseParser = require('./obec');
 
 const {
-    getType,
+    getFileType,
 } = require('./utils');
 
 const parserImpl = {
