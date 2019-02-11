@@ -1,0 +1,19 @@
+{
+    "healthNumber": {
+        "startPos": 1,
+        "fieldLength": 10
+    },
+
+    "versionCode": {
+        "startPos": 11,
+        "fieldLength": 2
+    },
+    "responseCode": {
+        "startPos": 13,
+        "fieldLength": 2
+    },
+    "submissionIdentifier": {
+        "startPos": 15,
+        "fieldLength": 4
+    }
+}
