@@ -2,9 +2,10 @@ const RemittanceAdviceParser = require('./remittanceAdvice');
 const ClaimFileRejectMessageParser = require('./claimFileRejectMessage');
 const BatchClaimsEditReportParser = require('./batchClaimsEditReport');
 const ErrorReportParser = require('./errorReport');
+const OBECResponseParser = require('./obec');
 
 const {
-    getType,
+    getFileType,
 } = require('./utils');
 
 const parserImpl = {
@@ -13,6 +14,7 @@ const parserImpl = {
     'B': BatchClaimsEditReportParser,
     'E': ErrorReportParser,
     'F': ErrorReportParser,
+    'R': OBECResponseParser,
 };
 
 const Parser = function(filename, options) {
