@@ -12,6 +12,7 @@
                         <option value="" i18n="shared.buttons.select"></option>
                         <option value="direct_billing" i18n="setup.insuranceX12Mapping.directBilling">Direct Billing</option>
                         <option value="electronic_billing" i18n="setup.insuranceX12Mapping.electronic"></option>
+                        <% if (app.country_alpha_3_code !== "can") { %>
                         <option value="paper_claim" i18n="setup.insuranceX12Mapping.paperClaim"></option>
                         <option value="patient_payment" i18n="setup.insuranceX12Mapping.patientPayment"></option>
                     </select>
@@ -28,6 +29,7 @@
                                 </option>
                                 <% }); %>
                         </select>
+                        <% } %>
                 </div>
             </div>
             <% if (app.country_alpha_3_code !== "can") { %>
