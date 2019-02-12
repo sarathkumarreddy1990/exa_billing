@@ -565,14 +565,13 @@ define(['jquery',
                     if (repo.loading) {
                         return repo.text;
                     }
-                    var _headerLeftTable = $('<table/>');
-                    _headerLeftTable.append(
+                    var patientList = $('<table/>');
+                    patientList.append(
                         $('<tr/>').addClass('row').attr({ title: repo.full_name + "(" + repo.account_no + ")" })
                             .append($('<td/>').addClass('col-12').append($('<div/>')).text(repo.full_name + "(" + repo.account_no + ")"))
                             .append($('<td/>').addClass('col-12').append($('<div/>')).text(commonjs.getDateFormat(repo.birth_date)))
                     );
-                    var markup = _headerLeftTable;
-                    return markup;
+                    return patientList;
                 }
                 function formatRepoSelection(res) {
                     if (res && res.id) {
