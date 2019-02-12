@@ -341,6 +341,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_code": "clearing_house",
                     "field_name": "Clearing House",
                     "i18n_name": "billing.fileInsurance.clearingHouse",
+                    "hidden": app.country_alpha_3_code === "can",
                     "field_info": {
                         "custom_name": "Clearing House",
                         "name": "clearing_house",
