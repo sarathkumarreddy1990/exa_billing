@@ -176,6 +176,9 @@ define([
                             self.billingDisplayFields = result.claim_management;
                         if (self.gridFilterName == 'studies')
                             self.billingDisplayFields = result.study_fields;
+                        if (app.country_alpha_3_code === "can") {
+                            self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && field.field_code == "clearing_house") }) || [];
+                        }
                         var result_data = data && data.length && data[1] && data[1].rows && data[1].rows.length ? data[1].rows[0] : {};
                         self.checkedBillingDisplayFields = result_data.field_order || [] ;
                         var checkedGridFields = self.checkedBillingDisplayFields ? self.checkedBillingDisplayFields : [];

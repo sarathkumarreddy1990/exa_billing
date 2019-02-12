@@ -143,6 +143,9 @@ define(['jquery',
                     })
                 });
 
+                if(app.country_alpha_3_code === 'can'){
+                    $('#txtPriGroupNo').attr('maxlength', 2);
+                }
                 self.clearDependentVariables();
                 // Hide non-edit tabs
                 if (!self.isEdit) {

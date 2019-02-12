@@ -12,6 +12,9 @@ define([
             expanded: false,
             mainTemplate: _.template(claimTransactionTemplate),
             viewModel: {
+                dateFormat: 'L',
+                country_alpha_3_code: 'usa',
+                i18nColumnHeaderCpt: 'cptCode',
                 sDate: null,
                 patientIds: null,
                 patientOption: null,
@@ -93,7 +96,8 @@ define([
                 this.$el.html(this.mainTemplate(this.viewModel));
                 UI.initializeReportingViewModel(options, this.viewModel);
 
-                //    this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings());
+                UI.getReportSetting(this.viewModel, 'all', 'dateFormat'); // Get date format (and current country code) based on current country code saved in sites table
+                UI.getReportSetting(this.viewModel, 'claim-transaction', 'i18nColumnHeaderCpt'); // Get cpt i18n header based on country code
 
                 this.viewModel.dateFrom = moment().startOf('month').add(-1, 'month');    // start of the last month
                 this.viewModel.dateTo = this.viewModel.dateFrom.clone().endOf('month');  // end of the last month
@@ -103,8 +107,6 @@ define([
 
                 this.viewModel.billCreatedDateFrom = moment().startOf('month').add(-1, 'month');    // start of the last month  (CPT Pay Date)
                 this.viewModel.billCreatedDateTo = this.viewModel.billCreatedDateFrom.clone().endOf('month');  // end of the last month
-
-
             },
 
             showForm: function () {
@@ -164,14 +166,26 @@ define([
                     maxHeight: 170,
                     buttonWidth: '200px'
                 });
+
+                var selectedLabel = this.viewModel.i18nColumnHeaderCpt + 'Selected';
+                var selectLabel = this.viewModel.i18nColumnHeaderCpt + 'Select';
+                var cptLabel = this.viewModel.i18nColumnHeaderCpt;
+
+                $("#selectedLabel").attr("i18n", selectedLabel);
+                $("#selectLabel").attr("i18n", selectLabel);
+                $("#cptLabel").attr("i18n", cptLabel);
+
+                commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());
             },
 
+            // comment
             // Date Range Binding
             bindDateRangePicker: function () {
                 var self = this;
                 var drpEl = $('#serviceDateBill');
+
                 //   Service date (Bill) Date Picker
-                var drpOptions = { autoUpdateInput: true, locale: { format: 'L' } };
+                var drpOptions = { autoUpdateInput: true, locale: { format: this.viewModel.dateFormat } };
                 this.drpStudyDt = commonjs.bindDateRangePicker(drpEl, drpOptions, 'past', function (start, end, format) {
                     self.viewModel.dateFrom = start;
                     self.viewModel.dateTo = end;
@@ -180,9 +194,10 @@ define([
                     self.viewModel.dateFrom = null;
                     self.viewModel.dateTo = null;
                 });
+
                 //   CPT date  Date Picker
                 var cptDate = $('#serviceDateBillCPT');
-                var drpOptions = { autoUpdateInput: true, locale: { format: 'L' } };
+                var drpOptions = { autoUpdateInput: true, locale: { format: this.viewModel.dateFormat } };
                 this.commentDate = commonjs.bindDateRangePicker(cptDate, drpOptions, 'past', function (start, end, format) {
                     self.viewModel.cmtFromDate = start;
                     self.viewModel.cmtToDate = end;
@@ -191,9 +206,9 @@ define([
                     self.viewModel.cmtFromDate = null;
                     self.viewModel.cmtToDate = null;
                 });
-                //   Bill Created date  Picker
+
                 var billCreatedDate = $('#serviceDateBillCreated');
-                var drpOptions = { autoUpdateInput: true, locale: { format: 'L' } };
+                var drpOptions = { autoUpdateInput: true, locale: { format: this.viewModel.dateFormat } };
                 this.billCreatedDate = commonjs.bindDateRangePicker(billCreatedDate, drpOptions, 'past', function (start, end, format) {
                     self.viewModel.billCreatedDateFrom = start;
                     self.viewModel.billCreatedDateTo = end;
@@ -278,6 +293,8 @@ define([
             // Binding Report Params
             getReportParams: function () {
                 return urlParams = {
+                    'dateFormat': this.viewModel.dateFormat,
+                    'country_alpha_3_code': this.viewModel.country_alpha_3_code,
                     'allFacilities': this.viewModel.allFacilities,
                     'facilityIds': this.viewModel.facilityIds,
 

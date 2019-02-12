@@ -6,6 +6,27 @@ define([
     function ($, _, Backbone) {
         var reportId = "";
         var UI = {
+            getReportSetting: function (viewModel, report_id, code) {
+                $.ajax({
+                    url: '/exa_modules/billing/reportSettingsRouter/getReportSetting',
+                    type: 'GET',
+                    async: false,
+                    data: {
+                        report_id: report_id,
+                        code: code
+                    },
+                    success: function (data, response) {
+                        if (data[0].value !== undefined) {
+                            viewModel[code] = data[0].value;
+                            viewModel.country_alpha_3_code = data[0].country_alpha_3_code;
+                        }
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
+            },
+
             bindStudyStatus: function () {
                 $.ajax({
                     url: '/exa_modules/billing/autoCompleteRouter/getStudyStatus',

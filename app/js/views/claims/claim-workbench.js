@@ -241,7 +241,11 @@ define(['jquery',
                 $document
                     .off('keyup', self.finishFilterMerge)
                     .on('keyup', self.finishFilterMerge);
+
+                commonjs.hideItem('diagnosis-count', '#aDiagnosisCountDropDownItem');
+                commonjs.hideItem('insurance-vs-lop', '#aInsuranceLOPDropDownItem');
             },
+
             underConstruction:function(){
                 alert("Under construction");
                 return false;
