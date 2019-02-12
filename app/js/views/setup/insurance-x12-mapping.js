@@ -102,7 +102,7 @@ define(['jquery',
                         },
                         {
                             name: 'claimclearinghouse',
-                            hidden: (app.country_alpha_3_code === "can") ? true : false,
+                            hidden: app.country_alpha_3_code === "can",
                             formatter: function(cellvalue, options, rowObject) {
                                 var name = "";
                                 var clearingHouseID = rowObject.claimclearinghouse;
