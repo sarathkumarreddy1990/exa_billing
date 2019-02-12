@@ -13,6 +13,9 @@ function ($, _, Backbone, UI, MainTemplate) {
         expanded: false,
         mainTemplate: _.template(MainTemplate),
         viewModel: {
+            dateFormat: 'L',
+            i18nColumnHeaderCpt: 'cptCode',
+            country_alpha_3_code: 'usa',
             facilities: null,
             //selectedFacilityId: null,
             dateFrom: null,
@@ -70,6 +73,9 @@ function ($, _, Backbone, UI, MainTemplate) {
                 model: Backbone.Model.extend({})
             });
 
+            UI.getReportSetting(this.viewModel, 'all', 'dateFormat');// Get date format (and current country code) based on current country code saved in sites table
+            UI.getReportSetting(this.viewModel, 'claim-transaction', 'i18nColumnHeaderCpt');// Get cpt i18n header based on country code
+
             // initialize view model and set any defaults that are not constants
             UI.initializeReportingViewModel(options, this.viewModel);
             this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings());
@@ -107,12 +113,19 @@ function ($, _, Backbone, UI, MainTemplate) {
             UI.bindInsuranceAutocomplete('txtInsuranceName', 'btnAddInsurance', 'ulListInsurance');
             UI.bindCPTCodeInformations('txtCPTCode', 'btnCPTCode', 'ulListCPTCodeDetails');
             UI.bindInsuranceProviderAutocomplete('txtInsuranceProviderName', 'btnAddInsuranceProvider', 'ulListInsuranceProvider')
+
+            var cptLabel = this.viewModel.i18nColumnHeaderCpt;
+            var allOption = this.viewModel.i18nColumnHeaderCpt + 'All';
+
+            $("#cptLabel").attr("i18n", cptLabel);
+            $("#allOption").attr("i18n", allOption);
+            commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());
         },
 
         bindDateRangePicker: function () {
             var self = this;
             var drpEl = $('#txtDateRange');
-            var drpOptions = {autoUpdateInput: true, locale: {format: 'L'}};
+            var drpOptions = {autoUpdateInput: true, locale: {format: this.viewModel.dateFormat }};
             this.drpStudyDt = commonjs.bindDateRangePicker(drpEl, drpOptions, 'past', function (start, end, format) {
                 console.info('DRP: ', format, start, end);
                 self.viewModel.dateFrom = start;
@@ -440,6 +453,8 @@ function ($, _, Backbone, UI, MainTemplate) {
 
         getReportParams: function () {
             var urlParams = {
+                'dateFormat': this.viewModel.dateFormat,
+                'country_alpha_3_code': this.viewModel.country_alpha_3_code,
                 'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : 'false' ,
                 'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
                 'fromDate': this.viewModel.dateFrom.format('YYYY-MM-DD'),

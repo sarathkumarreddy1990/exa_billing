@@ -3,7 +3,8 @@ const _ = require('lodash')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
     , queryBuilder = require('../queryBuilder')
-    , logger = require('../../../../../logger');
+    , logger = require('../../../../../logger')
+    , moment = require('moment');
 ;
 
 const summaryQueryTemplate = _.template(`
@@ -172,13 +173,13 @@ const detailQueryTemplate = _.template(`
             <% if (userRoleIds) { %>AND <% print(userRoleIds); } %>
             GROUP BY bp.id,bc.id )
                 SELECT
-                    to_char(p.accounting_date, 'MM/DD/YYYY')   AS "Accounting Date",
+                    to_char(p.accounting_date, '<%= dateFormat %>')   AS "Accounting Date",
                     f.facility_name  AS "Facility Name",
                     pd.payment_id AS "Payment ID",
          	        pd.claim_id AS "Claim  ID",
          	        get_full_name(pp.last_name, pp.first_name, pp.middle_name, pp.prefix_name, pp.suffix_name) AS "Patient Name",
          	        pp.account_no "Account #" ,
-         	        to_char(c.claim_dt, 'MM/DD/YYYY') "Claim Date",
+         	        to_char(c.claim_dt, '<%= dateFormat %>') "Claim Date",
 
 
                      CASE
@@ -353,9 +354,8 @@ const api = {
             filtersUsed.push({ name: 'Adjustment Code', label: 'Adjustment Code', value: 'All' });
         }
 
-
-        filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
-        filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
+        filtersUsed.push({ name: 'fromDate', label: 'Date From', value: moment(params.fromDate).format(params.dateFormat) });
+        filtersUsed.push({ name: 'toDate', label: 'Date To', value: moment(params.toDate).format(params.dateFormat) });
 
         if (params.insuranceIds && params.insuranceIds.length) {
             const insuranceInfo = _(lookups.insuranceProviders).map(f => f.name).value();
@@ -559,6 +559,8 @@ const api = {
             params.push(reportParams.insuranceGroupIds);
             filters.insGroups = queryBuilder.whereIn(`ippt.id`, [params.length]);
         }
+
+        filters.dateFormat = reportParams.dateFormat;
         return {
             queryParams: params,
             templateData: filters

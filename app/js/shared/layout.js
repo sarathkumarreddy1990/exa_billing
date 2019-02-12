@@ -111,6 +111,9 @@ var layout = {
 
         this.lastModule = this.currentModule;
         this.lastScreen = this.currentScreen;
+
+        commonjs.hideItem('diagnosis-count', '#aDiagnosisCountListItem');
+        commonjs.hideItem('insurance-vs-lop', '#aInsuranceLOPListItem');
     },
 
     killView: function (viewObj) {

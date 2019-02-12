@@ -3,7 +3,8 @@ const _ = require('lodash')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
     , queryBuilder = require('../queryBuilder')
-    , logger = require('../../../../../logger');
+    , logger = require('../../../../../logger')
+    , moment = require('moment');
 
 // generate query template ***only once*** !!!
 
@@ -46,7 +47,7 @@ with claim_details as (
             pp.account_no AS "Account #",
             f.facility_name AS "Facility",
             bc.id AS "Encounter ID",
-            to_char(timezone(f.time_zone, bc.claim_dt)::date, 'MM/DD/YYYY') AS "Service",
+            to_char(timezone(f.time_zone, bc.claim_dt)::date, '<%= dateFormat %>') AS "Service",
             pcc.display_code AS "Code",
             pcc.display_description AS "Study Description",
             pm.modality_code AS "Modality",
@@ -233,8 +234,8 @@ const api = {
             filtersUsed.push({name: 'providerGroupList', label: 'Provider Group', value: 'All'});
         }
 
-        filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
-        filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
+        filtersUsed.push({ name: 'fromDate', label: 'Date From', value: moment(params.fromDate).format(params.dateFormat) });
+        filtersUsed.push({ name: 'toDate', label: 'Date To', value: moment(params.toDate).format(params.dateFormat) });
         return filtersUsed;
     },
 
@@ -328,6 +329,7 @@ const api = {
             filters.payerIds = queryBuilder.whereIn(`pippt.id`, [params.length]);
         }
 
+        filters.dateFormat = reportParams.dateFormat;
         return {
             queryParams: params,
             templateData: filters

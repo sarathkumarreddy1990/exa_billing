@@ -192,7 +192,7 @@
             <!--Todo : From setup Have to find dynamically -->
             <div class="form-group form-inline">
                 <div>
-                    <label class="inline field-chk" i18n="report.reportFilter.selectCPT"></label>
+                    <label id="selectLabel" class="inline field-chk" i18n="report.reportFilter.selectCPT"></label>
                     <div class="input-group">
                         <select id="ddlUsersOption" class="form-control form-control-lg">
                             <option value="All">ALL</option>
@@ -202,15 +202,15 @@
                 </div>
                 <div id="ddlUsersBox" class="form-group form-inline" style="display: none;">
                     <div style="max-width:200px;">
-                        <label class="control-label" i18n="report.reportFilter.cpt"></label>
-                        <a class="btn btn-primary" id="btnCPTCode" title="Add CPT's">
+                        <label id="cptLabel" class="control-label" i18n="report.reportFilter.cpt"></label>
+                        <a class="btn btn-primary" id="btnCPTCode" title="Add">
                             <i class="icon-ic-plus"></i>
                         </a>
                         <select id="txtCPTCode" style="width:250px; border:1px solid;"> </select>
                     </div>
                 </div>
                 <div id="divUsers" style="display: none; padding-left: 15px;">
-                    <label class="inline field-chk" i18n="report.reportFilter.cptsSelected"></label>
+                    <label id="selectedLabel" class="inline field-chk" i18n="report.reportFilter.cptsSelected"></label>
                     <ul id="ulListCPTCodeDetails" class="ulSelectionList tagList" style="overflow: auto;width: 330px;height:50px; border: 1px solid;"></ul>
                     </ul>
                 </div>

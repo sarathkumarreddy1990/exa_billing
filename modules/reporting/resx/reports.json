@@ -271,6 +271,20 @@
         "category": "billing",
         "title": "Claim Activity",
         "description": "Report shows detailed claims transaction history for selected facilities and given scheduled date range.",
+        "vars": {
+            "columnHeader": {
+                "cpt": {
+                    "usa": "CPT Code",
+                    "can": "Service Code"
+                }
+            },
+            "columnHidden": {
+                "modifiers": {
+                    "usa": false,
+                    "can": true
+                }
+            }
+        },
         "jsreport": {
             "html": {
                 "template": {
@@ -458,6 +472,36 @@
         "category": "billing",
         "title": "Charges",
         "description": "Report shows charges that are used to reconcile and review the charges populated for any date of service.",
+        "vars": {
+            "columnHeader": {
+                "cpt": {
+                    "usa": "CPT Code",
+                    "can": "Service Code"
+                }
+            },
+            "columnHidden": {
+                "diagnosis": {
+                    "usa": false,
+                    "can": true
+                },
+                "m1": {
+                    "usa": false,
+                    "can": true
+                },
+                "m2": {
+                    "usa": false,
+                    "can": true
+                },
+                "m3": {
+                    "usa": false,
+                    "can": true
+                },
+                "m4": {
+                    "usa": false,
+                    "can": true
+                }
+            }
+        },
         "jsreport": {
             "html": {
                 "template": {
@@ -659,6 +703,28 @@
         "category": "billing",
         "title": "Claim Inquiry",
         "description": "Report shows all submitted claims and order payment/balance.",
+        "vars": {
+            "columnHeader": {
+                "policy": {
+                    "usa": "Policy #",
+                    "can": "Health #"
+                },
+                "group": {
+                    "usa": "Group #",
+                    "can": "Version Code"
+                }
+            },
+            "columnHidden": {
+                "ssn": {
+                    "usa": false,
+                    "can": true
+                },
+                "expiration": {
+                    "usa": false,
+                    "can": true
+                }
+            }
+        },
         "jsreport": {
             "html": {
                     "template": { "name": "billing-claim-inquiry-html" }
@@ -1131,6 +1197,14 @@
         "category": "billing",
         "title": "Reading Provider Fees",
         "description": "Report shows Reading Provider Fees .",
+        "vars": {
+            "columnHeader": {
+                "cpt": {
+                    "usa": "CPT Code",
+                    "can": "Service Code"
+                }
+            }
+        },
         "jsreport": {
             "html": {
                 "template": {
@@ -1284,6 +1358,14 @@
         "category": "billing",
         "title": "Payer Mix",
         "description": "Report shows Payer Mix.",
+        "vars": {
+            "columnHeader": {
+                "cpt": {
+                    "usa": "CPT Code",
+                    "can": "Service Code"
+                }
+            }
+        },
         "jsreport": {
             "html": {
                 "template": {
@@ -1350,6 +1432,30 @@
         "category": "billing",
         "title": "Patient By Insurance Company",
         "description": "Calculate Insurance Company wise by Patients",
+        "vars": {
+            "columnName1": {
+                "usa": "ip.insurance_name",
+                "can": "group_number"
+            },
+            "columnName2": {
+                "usa": "group_number",
+                "can": "ip.insurance_name"
+            },
+            "columnHeader": {
+                "policy": {
+                    "usa": "Policy",
+                    "can": "Health Number"
+                },
+                "columnName1": {
+                    "usa": "Insurance",
+                    "can": "Version Code"
+                },
+                "columnName2": {
+                    "usa": "Group",
+                    "can": "Insurance"
+                }
+            }
+        },
         "jsreport": {
             "html": {
                 "template": {

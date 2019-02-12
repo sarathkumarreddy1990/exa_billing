@@ -104,7 +104,9 @@ define(['jquery',
                 'click #btnPaymentPendingRefreshOnly': 'refreshInvociePendingPayment',
                 'click #btnPaymentApplyAll': 'checkAllPendingPayments',
                 'keypress #claimId, #invoiceNo': 'searchInvoiceOrClaim',
-                'click .nextPrevPayment': 'nextPrevPayment'
+                'click .nextPrevPayment': 'nextPrevPayment',
+                "keyup .search-payer": "searchPayer",
+                "click #btnClearPatSearch": "resetPatSearch"
             },
 
             usermessage: {
@@ -363,6 +365,10 @@ define(['jquery',
                     $('#divInputType span').hide();
                     $('#txtInvoice').hide();
                     $('#lblInputType').text('');
+                    $('#searchPayer #mrn').val('');
+                    $('#searchPayer #lname').val('');
+                    $('#searchPayer #fname').val('');
+                    $('#searchPayer #dob').val('');                    
                 }
                 else if (val === 'ordering_facility') {
                     $('#select2-txtautoPayerPOF-container').html(commonjs.geti18NString('billing.payments.selectOrderingFacility'));
@@ -521,19 +527,23 @@ define(['jquery',
                 var placeHolder = i18n.get("billing.payments.selectPatient");
                 $txtautoPayerPP.select2({
                     ajax: {
-                        url: "/exa_modules/billing/autoCompleteRouter/patients",
+                        url: "/exa_modules/billing/pending_payments/patient_search",
                         dataType: 'json',
-                        delay: 250,
+                        delay: 100,
                         data: function (params) {
-                            if (params.term === undefined && $select2Container.text().toLowerCase() != placeHolder.toLowerCase())
-                                params.term = $select2Container.text();
                             return {
-                                page: params.page || 1,
-                                q: params.term || '',
+                                fromPTSL: true,
+                                combined: true,
+                                pageNo: params.page || 1,
                                 pageSize: 10,
-                                sortField: "full_name",
+                                fields: self.getPayerSearchFields(),
+                                showInactive: true,
+                                showOwner: false,
+                                sortField: "patients.last_name",
+                                company_id: app.companyID,
                                 sortOrder: "ASC",
-                                company_id: app.companyID
+                                facility_id: -1,
+                                type: "start"
                             };
                         },
                         processResults: function (data, params) {
@@ -545,32 +555,46 @@ define(['jquery',
                     escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
                     minimumInputLength: 0,
                     templateResult: formatRepo,
-                    templateSelection: formatRepoSelection
+                    templateSelection: formatRepoSelection,
+                    minimumResultsForSearch: Infinity,
+                    open: function () {
+                        $('.select2-search input').prop('focus', false);
+                    }
                 });
                 function formatRepo(repo) {
                     if (repo.loading) {
                         return repo.text;
                     }
-                    var markup = "<table><tr>";
-                    markup += "<td title='" + repo.full_name + "(" + repo.account_no + ")'> <div>" + repo.full_name + "(" + repo.account_no + ")" + "</div><div>" + commonjs.getFormattedUtcDate(repo.DOB) + "</div>";
-                    markup += "</td></tr></table>";
-                    return markup;
-
+                    var patientList = $('<table/>');
+                    patientList.append(
+                        $('<tr/>').addClass('row').attr({ title: repo.full_name + "(" + repo.account_no + ")" })
+                            .append($('<td/>').addClass('col-12').append($('<div/>')).text(repo.full_name + "(" + repo.account_no + ")"))
+                            .append($('<td/>').addClass('col-12').append($('<div/>')).text(commonjs.getDateFormat(repo.birth_date)))
+                    );
+                    return patientList;
                 }
                 function formatRepoSelection(res) {
-                    if (res && res.id)
+                    if (res && res.id) {
                         self.bindPatientDetails(res);
+                    }
+                    $('#searchPayer #mrn').val(res.account_no);
+                    $('#searchPayer #lname').val(res.last_name);
+                    $('#searchPayer #fname').val(res.first_name);
+                    $('#searchPayer #dob').val(moment(res.birth_date).format('L'));
+
                     return res.full_name;
                 }
                 $select2Container = $('#select2-txtautoPayerPP-container');
                 $select2Container.html(placeHolder);
-                $txtautoPayerPP.on('select2:open', function (event) {
-                    commonjs.getPlaceHolderForSearch();
-                    placeHolder = i18n.get("billing.payments.selectPatient");
-                    if ($select2Container && $select2Container.text().toLowerCase() != placeHolder.toLowerCase()
-                        && $select2Container.text().toLowerCase() != "select patient")
-                        $txtautoPayerPP.data('select2').dropdown.$search.val($select2Container.text());
-                });
+            },
+
+            resetPatSearch: function () {
+                $('#searchPayer #mrn').val('');
+                $('#searchPayer #lname').val('');
+                $('#searchPayer #fname').val('');
+                $('#searchPayer #dob').val('');
+                $('#select2-txtautoPayerPP-container').html(commonjs.geti18NString('billing.payments.selectPatient'));
+                $('#txtautoPayerPP').select2("open");
             },
 
             setOFAutoComplete: function () {
@@ -764,7 +788,7 @@ define(['jquery',
                 $('#lblPayerID').html(response.id);
                 $('#referencePaymentID').val(response.display_id);
                 $('#ddlPaidLocation').val(response.facility_id || app.facilityID);
-                self.setPayerName(response.payer_type, response)
+                self.setPayerName(response.payer_type, response);
                 $("input:radio[name=billingMethod][value=" + response.billing_method + "]").prop("checked", true);
 
                 if (payment_statuses.indexOf(response.current_status) > -1) {
@@ -984,6 +1008,10 @@ define(['jquery',
                 }
                 else if (payerType === 'patient') {
                     $('#select2-txtautoPayerPP-container').html(payerNames.patient_name);
+                    $('#searchPayer #mrn').val(payerNames.account_no);
+                    $('#searchPayer #lname').val(payerNames.last_name);
+                    $('#searchPayer #fname').val(payerNames.first_name);
+                    $('#searchPayer #dob').val(moment(payerNames.birth_date).format('L'));
                 }
                 else if (payerType === 'ordering_facility') {
                     $('#select2-txtautoPayerPOF-container').html(payerNames.ordering_facility_name);
@@ -2397,6 +2425,34 @@ define(['jquery',
                     Backbone.history.navigate('#billing/payments/filter/ris', true);
                 else
                     Backbone.history.navigate('#billing/payments/filter', true);
+            },
+
+            searchPayer: _.debounce(function (e) {
+                var canSearch = true, newVal = '';
+                var dobVal = $('#dob').val();
+
+                if (dobVal) {
+                    canSearch = moment(dobVal).isValid();
+                }
+
+                if (e.originalEvent && canSearch) {
+                    var aa = $('#txtautoPayerPP').data('select2'); //To handle focus change in library
+                    aa.$selection.focus = function () { return false; }
+                    $('#txtautoPayerPP').select2("close");
+                    $('#txtautoPayerPP').select2("open");
+                }
+            }, 800),
+
+            getPayerSearchFields: function () {
+                var obj = {};
+                $('#searchPayer').find('.search-payer').each(function () {
+                    var el = $(this);
+                    var val = $.trim(el.val());
+                    if (val) {
+                        obj[el.attr('id')] = val;
+                    }
+                });
+                return obj;
             },
 
             applySearch: _.debounce(function (e) {

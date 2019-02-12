@@ -211,6 +211,13 @@ var commonjs = {
         });
     },
 
+    hideItem: function(report_id, item) {
+        var idx = app.hidden_reports.map(function(e) { return e.report_id; }).indexOf(report_id);
+        if (idx != -1 && app.hidden_reports[idx].value) {
+            $(item).attr("style", "display: none");
+        }
+    },
+
     getDates: function (data) {
         /*
          if > 13 characters then it's a range
