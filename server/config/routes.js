@@ -8,6 +8,7 @@ const studyFiltersRouter = require('../routes/study-filters');
 const appSettingsRouter = require('../routes/app-settings');
 const claimFiltersRouter = require('../routes/claim/claim-filters');
 const autoCompleteRouter = require('../routes/auto-complete');
+const reportSettingsRouter = require('../routes/report-settings');
 const setupRouters = require('../routes/setup/');
 const paymentsRouter = require('../routes/payments');
 const claimsRouters = require('../routes/claim/index');
@@ -33,6 +34,7 @@ const router = function (app) {
     app.use('/exa_modules/billing/app_settings', appSettingsRouter);
     app.use('/exa_modules/billing/claim_filters', claimFiltersRouter);
     app.use('/exa_modules/billing/autoCompleteRouter', autoCompleteRouter);
+    app.use('/exa_modules/billing/reportSettingsRouter', reportSettingsRouter);
     app.use('/exa_modules/billing/setup', setupRouters);
     app.use('/exa_modules/billing/payments', paymentsRouter);
     app.use('/exa_modules/billing/pending_payments', paymentsRouter);
