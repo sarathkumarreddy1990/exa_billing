@@ -13,8 +13,8 @@ module.exports = function(billingApi) {
     });
 
     //TODO needs to be POST
-    router.use('/submitClaim', (req, res) => {
-        ohip.submitClaim(req.query, (submitErr, submitResponse) => {
+    router.use('/submitClaims', (req, res) => {
+        ohip.submitClaims(req.query, (submitErr, submitResponse) => {
             return res.send(submitResponse);
         });
     });

@@ -133,8 +133,9 @@ const storeFile =  async (args) => {
     const  dbResults = (await query(sql, [])).rows[0];
 
     return {
-        file_stores_id: filestore.id,
-        edi_files_id: dbResults.id,
+        file_store_id: filestore.id,
+        edi_file_id: dbResults.id,
+        fullPath,
     };
 };
 
@@ -191,59 +192,6 @@ const loadFile = async (args) => {
     }
 }
 
-const SelectClaimFileSQL = function(args) {
-
-    const {
-        batchCreateDate,
-        batchSequenceNumber,
-    } = args;
-
-    //      a. edi_files.file_type = 'can_ohip_h'
-    //      b. edi_files.created_dt = batchCreateDate
-    //      c. edi_files.status = 'pending'
-    //      d. edi_file_claims.batch_number = batchSequenceNumber
-    //      e. edi_file_claims.edi_file_id = edi_files.id
-    //      f. preserve edi_files.id
-
-    return SQL`
-        SELECT
-            ef.id AS edi_file_id
-        FROM billing.edi_files ef
-        INNER JOIN billing.edi_file_claims efc ON ef.id = efc.edi_file_id
-        WHERE
-            ef.file_type = 'can_ohip_h'
-            AND ef.status = 'pending'
-            AND ef.created_dt = ${batchCreateDate}
-            AND efc.batch_number = ${batchSequenceNumber}
-    `;
-};
-
-// const InsertRelatedFileSQL = function(args) {
-//
-//     const {
-//         cte,
-//         responseFileId,
-//         comment,
-//     } = args;
-//
-//
-//     return SQL`
-//         INSERT INTO billing.edi_related_files(
-//             submission_file_id,
-//             response_file_id,
-//             comment
-//         )
-//         (
-//             SELECT
-//                 `.append(cte).append(SQL`.edi_file_id,
-//                 ${responseFileId},
-//                 ${comment}
-//             FROM
-//                 `.append(cte).append( SQL`
-//
-//         )
-//     `;
-// };
 
 const applyRejectMessage = async (args) => {
     const {
@@ -256,7 +204,13 @@ const applyRejectMessage = async (args) => {
 };
 
 
-//
+
+/**
+ * const applyBatchEditReport - description
+ *
+ * @param  {type} args description
+ * @returns {type}      description
+ */
 const applyBatchEditReport = async (args) => {
 
     const {
@@ -274,7 +228,7 @@ const applyBatchEditReport = async (args) => {
             INNER JOIN billing.edi_file_claims efc ON ef.id = efc.edi_file_id
             WHERE
                 ef.file_type = 'can_ohip_h'
-                AND ef.status = 'pending'
+                --AND ef.status = 'pending'
                 AND ef.created_dt = ${batchCreateDate}
                 AND efc.batch_number = ${batchSequenceNumber}
         )
@@ -290,18 +244,16 @@ const applyBatchEditReport = async (args) => {
                 ${comment}
             FROM
                 claim_file_cte
-
         )
     `;
 
-
+    // 1 - SELECT corresponding claim submission file
     //      a. edi_files.file_type = 'can_ohip_h'
     //      b. edi_files.created_dt = batchCreateDate
     //      c. edi_files.status = 'pending'
     //      d. edi_file_claims.batch_number = batchSequenceNumber
     //      e. edi_file_claims.edi_file_id = edi_files.id
     //      f. preserve edi_files.id
-
 
     // 2 - INSERT record into edi_related_files
     //      a. edi_related_files.ubmission_file_id = #1f
@@ -332,6 +284,34 @@ const applyErrorReport = async (args) => {
 
 };
 
+const updateFileStatus = async (args) => {
+    const {
+        edi_file_id,
+        status,
+    } = args;
+
+    const sql = SQL`
+        UPDATE billing.edi_files
+        SET
+            status=${status}
+        WHERE
+            id = ${edi_file_id}
+    `;
+
+    await query(sql.text, sql.values);
+};
+
+const setClaimSubmissionFile = (args) => {
+    const {
+        claimIds,
+        edi_file_id,
+    } = args;
+
+    const sql = SQL`
+        UPDATE billing.
+    `;
+};
+
 const OHIPDataAPI = {
 
     auditTransaction: (info) => {
@@ -353,7 +333,7 @@ const OHIPDataAPI = {
         */
     },
 
-    getClaimData: async(args) => {
+    getClaimsData: async(args) => {
         // TODO, run a query to get the claim data
         // use synchronous call to query ('await query(...)')
         // const result = (await ediData.getClaimData({
@@ -435,6 +415,8 @@ const OHIPDataAPI = {
 
     storeFile,
     loadFile,
+
+    updateFileStatus,
 
     applyBatchEditReport,
 };
