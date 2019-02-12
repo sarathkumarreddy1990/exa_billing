@@ -291,6 +291,9 @@ module.exports = {
                         , insurance_name AS insurance_name
                         , provider_groups.group_name AS ordering_facility_name
                         , patients.full_name as patient_name
+                        , patients.first_name
+                        , patients.last_name
+                        , patients.birth_date
                         , patients.account_no
                         , insurance_provider_id
                         , payments.provider_group_id
