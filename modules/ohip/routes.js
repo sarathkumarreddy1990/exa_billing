@@ -6,15 +6,16 @@ module.exports = function(billingApi) {
 
     const ohip = new OHIPModule(billingApi);
 
-    // TODO this really needs to be a POST handler
     router.get('/sandbox', (req, res) => {
-        ohip.processResponseFiles(req.query, (ohipErr, ohipResponse) => {
-            ohip.sandbox(req.query, (ohipErr, ohipResponse) => {
-                // console.log("OHIP Response", ohipResponse);
-                return res.send(ohipResponse);
-            });
-            // console.log("OHIP Response", ohipResponse);
-            // return res.send(ohipResponse);
+        ohip.sandbox(req.query, (ohipErr, ohipResponse) => {
+            return res.send(ohipResponse);
+        });
+    });
+
+    //TODO needs to be POST
+    router.use('/submitClaim', (req, res) => {
+        ohip.submitClaim(req.query, (submitErr, submitResponse) => {
+            return res.send(submitResponse);
         });
     });
 

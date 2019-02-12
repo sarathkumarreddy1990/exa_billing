@@ -591,8 +591,12 @@ define(['jquery',
 
                 var isDatePickerClear = filterCol.indexOf('claim_dt') === -1;
 
+                var implUrl = '/exa_modules/billing/claim_workbench';
+                if (app.country_alpha_3_code === 'can') {
+                    implUrl = '/exa_modules/billing/ohip/submitClaim';
+                }
                 jQuery.ajax({
-                    url: "/exa_modules/billing/claim_workbench",
+                    url: implUrl,
                     type: "post",
                     data: {
                         "filterData": filterData,
