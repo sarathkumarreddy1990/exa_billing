@@ -3,7 +3,8 @@ const _ = require('lodash')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
     , queryBuilder = require('../queryBuilder')
-    , logger = require('../../../../../logger');
+    , logger = require('../../../../../logger')
+    , moment = require('moment');
 
 // generate query template ***only once*** !!!
 
@@ -13,12 +14,12 @@ with patientByInsCompanyDetailQuery as (
         ip.insurance_code                                                                                     AS "Code",
         pi.coverage_level                                                                                     AS "Level",
         get_full_name(p.last_name, p.first_name, p.middle_name, p.prefix_name, p.suffix_name)                 AS "Patient",
-        to_char(p.birth_date, 'MM/DD/YYYY')                                                                   AS "DOB",
+        to_char(p.birth_date, '<%= dateFormat %>')                                                                   AS "DOB",
         CASE lower(substring(p.gender, 1, 1)) WHEN 'f' THEN 'Female' WHEN 'm' THEN 'Male' ELSE 'Unknown' END  AS "Gender",
-   	    policy_number                                                                                         AS "Policy",
-        ip.insurance_name                                                                                     AS "Insurance",
-	    group_number					                                                                      AS "Group"
-    FROM
+   	    policy_number                                                                                         AS "<%= policyHeader %>",
+        <%= columnName1 %>                                                                                    AS "<%= columnName1Header %>",
+        <%= columnName2 %>                                                                                    AS "<%= columnName2Header %>"
+       FROM
         public.patients AS p
     INNER JOIN public.patient_insurances AS pi ON pi.patient_id = p.id
     INNER JOIN billing.claims bc ON bc.patient_id = p.id
@@ -48,6 +49,11 @@ const api = {
      * This method is called by controller pipline after report data is initialized (common lookups are available).
      */
     getReportData: (initialReportData) => {
+        initialReportData.report.params.columnName1 = initialReportData.report.vars.columnName1[initialReportData.report.params.country_alpha_3_code];
+        initialReportData.report.params.columnName2 = initialReportData.report.vars.columnName2[initialReportData.report.params.country_alpha_3_code];
+        initialReportData.report.params.policyHeader = initialReportData.report.vars.columnHeader.policy[initialReportData.report.params.country_alpha_3_code];
+        initialReportData.report.params.columnName1Header = initialReportData.report.vars.columnHeader.columnName1[initialReportData.report.params.country_alpha_3_code];
+        initialReportData.report.params.columnName2Header = initialReportData.report.vars.columnHeader.columnName2[initialReportData.report.params.country_alpha_3_code];
         //convert array of insuranceProviderIds array of string to integer
         if (initialReportData.report.params.insuranceProviderIds) {
             initialReportData.report.params.insuranceProviderIds = initialReportData.report.params.insuranceProviderIds.map(Number);
@@ -119,10 +125,9 @@ const api = {
             else
                 filtersUsed.push({ name: 'insuranceProviderNames', label: 'Insurance Provider', value: 'All' });
 
-
-        filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
-        filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
-        return filtersUsed;
+            filtersUsed.push({ name: 'fromDate', label: 'Date From', value: moment(params.fromDate).format(params.dateFormat) });
+            filtersUsed.push({ name: 'toDate', label: 'Date To', value: moment(params.toDate).format(params.dateFormat) });
+            return filtersUsed;
     },
 
     // ================================================================================================================
@@ -181,6 +186,12 @@ const api = {
         // Show Active or Inactive Insurance
         filters.insuranceActive = reportParams.insuranceActive;
 
+        filters.dateFormat = reportParams.dateFormat;
+        filters.columnName1 = reportParams.columnName1;
+        filters.columnName2 = reportParams.columnName2;
+        filters.policyHeader = reportParams.policyHeader;
+        filters.columnName1Header = reportParams.columnName1Header;
+        filters.columnName2Header = reportParams.columnName2Header;
         return {
             queryParams: params,
             templateData: filters

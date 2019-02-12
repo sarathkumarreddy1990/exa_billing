@@ -3,8 +3,8 @@ const _ = require('lodash')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
     , queryBuilder = require('../queryBuilder')
-    , logger = require('../../../../../logger');
-
+    , logger = require('../../../../../logger')
+    , moment = require('moment');
 // generate query template ***only once*** !!!
 
 const claimTransactionDataSetQueryTemplate = _.template(`
@@ -13,7 +13,7 @@ WITH claim_details AS(
         obc.id AS claim_id ,
         opp.last_name AS pat_last_name ,
         opp.first_name AS pat_first_name ,
-        to_char(obc.claim_dt,'MM/DD/YYYY') AS claim_date ,
+        to_char(obc.claim_dt,'<%= dateFormat %>') AS claim_date ,
         max(cd.payment_dt) AS paid_date ,
         SUM(obch.bill_fee * obch.units) AS charge_amount ,
         obc.payer_type as payer_type,
@@ -26,7 +26,7 @@ WITH claim_details AS(
 	INNER JOIN LATERAL  (
     SELECT
          bch.id as charge_id,
-         MAX(to_char(bp.payment_dt,'MM/DD/YYYY')) as payment_dt
+         MAX(to_char(bp.payment_dt,'<%= dateFormat %>')) as payment_dt
     FROM billing.claims bc
     INNER JOIN billing.charges bch ON bch.claim_id = bc.id
     INNER JOIN public.patients pp on pp.id = bc.patient_id
@@ -233,19 +233,20 @@ const api = {
             const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
             filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
         }
+
         if (params.fromDate != '' && params.toDate != '') {
-            filtersUsed.push({ name: 'fromDate', label: 'Claim Date From', value: params.fromDate });
-            filtersUsed.push({ name: 'toDate', label: 'Claim Date To', value: params.toDate });
+            filtersUsed.push({ name: 'fromDate', label: 'Claim Date From', value: moment(params.fromDate).format(params.dateFormat) });
+            filtersUsed.push({ name: 'toDate', label: 'Claim Date To', value: moment(params.toDate).format(params.dateFormat) });
         }
 
-        if (params.cptDateFrom != '' && params.cptDateTo != '') {
-            filtersUsed.push({ name: 'FromPayDate', label: 'PayDate From', value: params.cptDateFrom });
-            filtersUsed.push({ name: 'ToPayDate', label: 'PayDate To', value: params.cptDateTo });
+        if (params.cmtFromDate != '' && params.cmtToDate != '') {
+            filtersUsed.push({ name: 'FromPayDate', label: 'PayDate From', value: moment(params.cmtFromDate).format(params.dateFormat) });
+            filtersUsed.push({ name: 'ToPayDate', label: 'PayDate To', value: params.moment(params.cmtToDate).format(params.dateFormat) });
         }
 
         if (params.billCreatedDateFrom != '' && params.billCreatedDateTo != '') {
-            filtersUsed.push({ name: 'FromBillCreated', label: 'Bill Created From', value: params.billCreatedDateFrom });
-            filtersUsed.push({ name: 'ToBillCreated', label: 'Bill Created To', value: params.billCreatedDateTo });
+            filtersUsed.push({ name: 'FromBillCreated', label: 'Bill Created From', value: params.moment(params.billCreatedDateFrom).format(params.dateFormat) });
+            filtersUsed.push({ name: 'ToBillCreated', label: 'Bill Created To', value: params.moment(params.billCreatedDateTo).format(params.dateFormat) });
         }
 
         //Referring Physician Info
@@ -331,8 +332,8 @@ const api = {
         if (reportParams.cmtFromDate != '' && reportParams.cmtToDate != '') {
             let filterDate = reportParams.cptDateOption ? reportParams.cptDateOption : 'payment_dt';
             filters.cptPaymentDate = reportParams.cptDateOption !== 'accounting_date';
-            if (reportParams.cptDateFrom === reportParams.toDate && (reportParams.cptDateFrom && reportParams.toDate)) {
-                params.push(reportParams.cptDateFrom);
+            if (reportParams.cmtFromDate === reportParams.toDate && (reportParams.cmtFromDate && reportParams.toDate)) {
+                params.push(reportParams.cmtFromDate);
                 filters.CPTDate = reportParams.cptDateOption === 'accounting_date' ? queryBuilder.whereDate('bp.' + filterDate, '=', [params.length]) : queryBuilder.whereDateInTz('bp.' + filterDate, '=', [params.length], 'f.time_zone');
             } else {
                 params.push(reportParams.cmtFromDate);
@@ -387,6 +388,8 @@ const api = {
             params.push(reportParams.claimTo);
             filters.claimNoSearch = queryBuilder.whereBetween('bc.id', [params.length - 1, params.length]);
         }
+
+        filters.dateFormat = reportParams.dateFormat;
         return {
             queryParams: params,
             templateData: filters

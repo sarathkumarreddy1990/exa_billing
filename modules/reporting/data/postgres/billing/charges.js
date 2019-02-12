@@ -3,8 +3,8 @@ const _ = require('lodash')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
     , queryBuilder = require('../queryBuilder')
-    , logger = require('../../../../../logger');
-;
+    , logger = require('../../../../../logger')
+    , moment = require('moment');
 
 const summaryQueryTemplate = _.template(`
 WITH chargeReport AS (
@@ -43,14 +43,28 @@ const detailQueryTemplate = _.template(`
       get_full_name(pp.last_name, pp.first_name,pp.middle_name, pp.prefix_name, pp.suffix_name)
                                                       	    AS "Patient Name"
 	, pp.account_no 										AS "Account #"
-	, bc.id 											    AS "Claim #"
-    , to_char(pp.birth_date,'MM/DD/YYYY')                   AS "DOB"
+    , bc.id 											    AS "Claim #"
+    , to_char(pp.birth_date,'<%= dateFormat %>')            AS "DOB"
+
+    <% if (!hideDiagnosis) { %>
     , billing.get_charge_icds(bch.id)                       AS "Diagnostic"
-	, display_code                                          AS "CPT"
-	, pm1.code                                             	AS "M1"
-	, pm2.code                                              AS "M2"
+    <% } %>
+
+    , display_code                                          AS "<%= codeHeader %>"
+
+    <% if (!hideM1) { %>
+    , pm1.code                                             	AS "M1"
+    <% } %>
+    <% if (!hideM2) { %>
+    , pm2.code                                              AS "M2"
+    <% } %>
+    <% if (!hideM3) { %>
 	, pm3.code                                              AS "M3"
+    <% } %>
+    <% if (!hideM4) { %>
     , pm4.code                                              AS "M4"
+    <% } %>
+
     , (bch.bill_fee*bch.units)								AS "Charge"
 	, (bch.allowed_amount*bch.units)						AS "Contract"
 
@@ -84,8 +98,12 @@ const api = {
      * This method is called by controller pipline after report data is initialized (common lookups are available).
      */
     getReportData: (initialReportData) => {
-
-
+        initialReportData.report.params.codeHeader = initialReportData.report.vars.columnHeader.cpt[initialReportData.report.params.country_alpha_3_code];
+        initialReportData.report.params.hideDiagnosis = initialReportData.report.vars.columnHidden.diagnosis[initialReportData.report.params.country_alpha_3_code];
+        initialReportData.report.params.hideM1 = initialReportData.report.vars.columnHidden.m1[initialReportData.report.params.country_alpha_3_code];
+        initialReportData.report.params.hideM2 = initialReportData.report.vars.columnHidden.m2[initialReportData.report.params.country_alpha_3_code];
+        initialReportData.report.params.hideM3 = initialReportData.report.vars.columnHidden.m3[initialReportData.report.params.country_alpha_3_code];
+        initialReportData.report.params.hideM4 = initialReportData.report.vars.columnHidden.m4[initialReportData.report.params.country_alpha_3_code];
         return Promise.join(
             api.createSummaryDataSet(initialReportData.report.params),
             api.createDetailDataSet(initialReportData.report.params),
@@ -133,8 +151,8 @@ const api = {
             filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
         }
 
-        filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
-        filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
+        filtersUsed.push({ name: 'fromDate', label: 'Date From', value: moment(params.fromDate).format(params.dateFormat) });
+        filtersUsed.push({ name: 'toDate', label: 'Date To', value: moment(params.toDate).format(params.dateFormat) });
         return filtersUsed;
     },
     // ================================================================================================================
@@ -231,6 +249,13 @@ const api = {
             filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
         }
 
+        filters.dateFormat = reportParams.dateFormat;
+        filters.codeHeader = reportParams.codeHeader;
+        filters.hideDiagnosis = reportParams.hideDiagnosis;
+        filters.hideM1 = reportParams.hideM1;
+        filters.hideM2 = reportParams.hideM2;
+        filters.hideM3 = reportParams.hideM3;
+        filters.hideM4 = reportParams.hideM4;
         return {
             queryParams: params,
             templateData: filters
