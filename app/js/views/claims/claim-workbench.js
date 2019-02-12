@@ -15,7 +15,9 @@ define(['jquery',
     'text!templates/claims/ohipResult.html',
     'text!templates/claims/claim-validation.html',
     'text!templates/claims/invoice-claim.html',
-    'text!templates/claims/edi-warning.html'
+    'text!templates/claims/edi-warning.html',
+    'collections/app/file-management',
+    'text!templates/app/file-management.html'
 ],
     function ($,
               Immutable,
@@ -34,7 +36,9 @@ define(['jquery',
               ohipResultHTML,
               claimValidation,
               invoiceClaim,
-              ediWarning) {
+              ediWarning,
+              FileManagementCollection,
+              FileManagementHTML) {
 
         var paperClaim = new PaperClaim();
         var paperClaimNested = new PaperClaim(true);
@@ -214,7 +218,8 @@ define(['jquery',
                 "click #btnClaimRefreshAll": "refreshAllClaims",
                 "click #btnValidateExport": "exportExcel",
                 "click #btnClaimsRefresh": "refreshClaims",
-                "click #btnClaimsCompleteRefresh": "completeRefresh"
+                "click #btnClaimsCompleteRefresh": "completeRefresh",
+                "click #btnFileManagement": "showFileManagement"
             },
 
             initialize: function (options) {
@@ -265,6 +270,7 @@ define(['jquery',
 
             render: function (queryString) {
                 var self = this;
+                self.fileManagementTemplate = _.template(FileManagementHTML);
                 self.template = _.template(ClaimHTML);
                 self.indexTemplate = _.template(IndexHTML);
                 self.claimValidation = _.template(claimValidation);
@@ -275,7 +281,6 @@ define(['jquery',
                     customStudyStatus: [],
                     customOrderStatus: []
                 }));
-               // $("#btnPaperClaimFormat").text('Paper Claims('+(localStorage.getItem('default_paperclaim_format')||'ORIGINAL')+')')
 
                 if (queryString && !queryString.target && commonjs.getParameterByName(queryString).admin && commonjs.getParameterByName(queryString).admin == 1) {
                     self.isAdmin = true;
@@ -1829,6 +1834,52 @@ define(['jquery',
                 }
 
             },
+
+            showFileManagement: function (e) {
+                var self = this;
+
+                self.fileManagementFiles = new FileManagementCollection();
+                self.fileManagementFiles.fetch({
+                    data: {},
+                    success: function (model, response) {
+                        commonjs.showDialog({
+                            header: 'File Managmenet',
+                            i18nHeader: 'billing.claims.fileManagement',
+                            width: '80%',
+                            height: '70%',
+                            html: self.fileManagementTemplate({ data: response })
+                        });
+
+                        setTimeout(function() {
+                            $(".btn-apply-file-management").off("click").click(function(e) {
+                                self.applyFileManagement(e.currentTarget.getAttribute("data-file-id"));
+                            });
+                        }, 150);
+                    },
+                    error: function (model, response) {
+                        commonjs.handleXhrError(model, response);
+                    }
+                });
+            },
+
+            applyFileManagement: function (fileId) {
+                console.log(fileId);
+                // $.ajax({
+                //     url: "/exa_modules/billing/ohip/applyRemittanceAdvice",
+                //     type: "GET",
+                //     data: {
+                //         //id: claimIds.toString()
+                //     },
+                //     success: function (data, textStatus, jqXHR) {
+                //         commonjs.hideLoading();
+                //         self.ediResponse(data);
+                //     },
+                //     error: function (err) {
+                //         commonjs.handleXhrError(err);
+                //     }
+                // });
+            },
+
             clearAllSelectedRows: function () {
                 var filterID = commonjs.currentStudyFilter;
                 var filter = commonjs.loadedStudyFilters.get(filterID);

@@ -1,0 +1,46 @@
+<table class="table table-bordered table-striped">
+    <thead>
+        <th i18n="billing.claims.fileName"></th>
+        <th i18n="billing.claims.fileType"></th>
+        <th i18n="billing.claims.submittedDate"></th>
+        <th i18n="billing.claims.acknowledgementReceived" class="text-center"></th>
+        <th i18n="billing.claims.paymentReceived" class="text-center"></th>
+        <th></th>
+    </thead>
+    <tbody>
+        <% data.forEach(function(file) { %>
+            <tr>
+                <td class="align-middle">
+                    <%= file.fileName %>
+                </td>
+                <td class="align-middle">
+                    <%= file.fileType %>
+                </td>
+                <td class="align-middle">
+                    <%= file.submittedDate %>
+                </td>
+                <td class="align-middle text-center">
+                    <% if (file.isAcknowledgementReceived) { %>
+                        <i class="fa fa-check" style="color: green" aria-hidden="true" title="Verified using automated system"></i>
+                    <% } else { %>
+                        <i class="fa fa-times" style="color: red" aria-hidden="true" title="Verified using automated system"></i>
+                    <% } %>
+                </td>
+                <td class="align-middle text-center">
+                    <% if (file.isPaymentReceived) { %>
+                        <i class="fa fa-check" style="color: green" aria-hidden="true" title="Verified using automated system"></i>
+                    <% } else { %>
+                        <i class="fa fa-times" style="color: red" aria-hidden="true" title="Verified using automated system"></i>
+                    <% } %>
+                </td>
+                <td class="align-middle text-center">
+                    <% if (file.isAcknowledgementReceived && file.isPaymentReceived) { %>
+                        <button data-file-id="<%= file.id %>" i18n="shared.buttons.apply" class="btn btn-primary btn-block btn-apply-file-management"></button>
+                    <% } else { %>
+                        <button data-file-id="<%= file.id %>" i18n="shared.buttons.view" class="btn btn-primary btn-block btn-view-file-management"></button>
+                    <% } %>
+                </td>
+            </tr>
+        <% }); %>
+    </tbody>
+</table>

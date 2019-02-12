@@ -138,8 +138,12 @@
                                     <li id="liPCBW"><a class="claimMenu" id="btnPaperClaimBW" data-format='FULL'   data-method="paper_claim" data-value='Paper Claim (B & W)' i18n="billing.payments.paperClaimBW"></a></li>
                                     <li id="liPCRED"><a class="claimMenu" id="btnPaperClaimRed" data-format='ORIGINAL'  data-method="paper_claim" data-value='Paper Claim (RED)' i18n="billing.payments.paperClaimRed"></a></li>
                                     <li id="liINSD"><a class="claimMenu" id="btnInvoiceServiceDate"  data-format='SERVICEDATE' data-method="direct_billing" data-value='Invoice (Service Date)' i18n="billing.payments.invoiceServiceDate"></a></li>
-                                    <li  id="liINPN"><a class="claimMenu" id="btnInvoicePatientName" data-format='PATIENTNAME' data-method="direct_billing" data-value='Invoice (Patient Name)' i18n="billing.payments.invoicePatientName"></a></li>
+                                    <li id="liINPN"><a class="claimMenu" id="btnInvoicePatientName" data-format='PATIENTNAME' data-method="direct_billing" data-value='Invoice (Patient Name)' i18n="billing.payments.invoicePatientName"></a></li>
                                     <li id="liPP"><a class="claimMenu" id="btnPatientPayemnt" data-method="patient_payment" data-value='Patient Payment' i18n="billing.payments.patientPayment"></a></li>
+                                    <% if (app.country_alpha_3_code === "can") { %>
+                                    <hr />
+                                    <li id="liFM"><a class="claimMenu" id="btnFileManagement" data-value='File Management' i18n="billing.claims.fileManagement"></a></li>
+                                    <% } %>
                             </ul>
                         </div>
                 </li>
