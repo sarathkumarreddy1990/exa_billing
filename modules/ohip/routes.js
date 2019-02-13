@@ -60,7 +60,6 @@ module.exports = function (billingApi) {
     router.get('/applyRemittanceAdvice', (req, res) => {
         const ohip = new OHIPModule(billingApi);
         ohip.getResponseFromFile(req.query, (ohipResponse) => {
-            console.log('333330', ohipResponse)
             return res.send(ohipResponse);
         });
     });
