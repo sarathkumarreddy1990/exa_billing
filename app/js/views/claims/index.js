@@ -191,14 +191,7 @@ define(['jquery',
                         infoKey: 'zip'
                     }
                 }
-
-                address.loadCityStateZipTemplate('#divAddressInfo', {}, AddressInfoMap);
-                if(app.country_alpha_3_code === 'can'){
-                    // Adjust the style alignment
-                    var $addressDiv = $('#divAddressInfo');
-                    $addressDiv.find('div:nth-child(1)').removeClass('p-0');
-                    $addressDiv.find('div:nth-child(2)').addClass('pl-2');
-                }
+                self.bindCityStateZipTemplate({}, AddressInfoMap);
             },
 
             initializeDateTimePickers: function () {
@@ -817,14 +810,7 @@ define(['jquery',
                             infoKey: 'p_subscriber_zipcode'
                         }
                     }
-                    address.loadCityStateZipTemplate('#divAddressInfo', claimData, AddressInfoMap);
-
-                    if(app.country_alpha_3_code === 'can'){
-                        // Adjust the style alignment
-                        var $addressDiv = $('#divAddressInfo');
-                        $addressDiv.find('div:nth-child(1)').removeClass('p-0');
-                        $addressDiv.find('div:nth-child(2)').addClass('pl-2');
-                    }
+                    self.bindCityStateZipTemplate(claimData, AddressInfoMap);
 
                     document.querySelector('#txtPriDOB').value = claimData.p_subscriber_dob ? moment(claimData.p_subscriber_dob).format('L') : '';
                     document.querySelector('#txtPriStartDate').value = claimData.p_valid_from_date ? moment(claimData.p_valid_from_date).format('L') : '';
@@ -2620,12 +2606,23 @@ define(['jquery',
                     }
                     $('#txt' + flag + 'SubPriAddr').val(result.subscriber_address_line1);
                     $('#txt' + flag + 'SubSecAddr').val(result.subscriber_address_line2);
-                    $('#txt' + flag + 'City').val(result.subscriber_city);
-                    var states = app.states && app.states.length && app.states[0].app_states;
-                    if (states && states.indexOf(result.subscriber_state) > -1) {
-                        $('#ddl' + flag + 'State').val(result.subscriber_state);
+                     // Append dynamic address details for canadian config
+                    var AddressInfoMap = {
+                        city: {
+                            domId: 'txt' + flag + 'City',
+                            infoKey: 'subscriber_city'
+                        },
+                        state: {
+                            domId: 'ddl' + flag + 'State',
+                            infoKey: 'subscriber_state'
+                        },
+                        zipCode: {
+                            domId: 'txt' + flag + 'ZipCode',
+                            infoKey: 'subscriber_zipcode'
+                        }
                     }
-                    $('#txt' + flag + 'ZipCode').val(result.subscriber_zipcode);
+                    address.loadCityStateZipTemplate('#divAddressInfo', result, AddressInfoMap);
+
                     if(result.coverage_level == "secondary" && result.medicare_insurance_type_code != null) {
                         $('#chkSecMedicarePayer').prop('checked',true);
                         $('#selectMedicalPayer').val(result.medicare_insurance_type_code).toggle(true);
