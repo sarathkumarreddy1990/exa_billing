@@ -603,7 +603,7 @@ define(['jquery',
 
                 var implUrl = '/exa_modules/billing/claim_workbench';
                 if (app.country_alpha_3_code === 'can') {
-                    implUrl = '/exa_modules/billing/ohip/submitClaim';
+                    implUrl = '/exa_modules/billing/ohip/submitClaims';
                 }
                 jQuery.ajax({
                     url: implUrl,

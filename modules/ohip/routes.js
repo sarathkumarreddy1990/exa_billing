@@ -13,8 +13,8 @@ module.exports = function(billingApi) {
     });
 
     //TODO needs to be POST
-    router.use('/submitClaim', (req, res) => {
-        ohip.submitClaim(req.query, (submitErr, submitResponse) => {
+    router.use('/submitClaims', (req, res) => {
+        ohip.submitClaims(req.query, (submitErr, submitResponse) => {
             return res.send(submitResponse);
         });
     });
@@ -29,32 +29,9 @@ module.exports = function(billingApi) {
 
     // OHIP File Management Screen
     router.get('/fileManagement', (req, res) => {
-        return res.send(JSON.stringify([
-            {
-                id: 1,
-                fileName: "001.720",
-                fileType: "Type",
-                submittedDate: "28/01/2019",
-                isAcknowledgementReceived: true,
-                isPaymentReceived: true
-            },
-            {
-                id: 2,
-                fileName: "002.424",
-                fileType: "Claim",
-                submittedDate: "02/02/2019",
-                isAcknowledgementReceived: true,
-                isPaymentReceived: true
-            },
-            {
-                id: 3,
-                fileName: "003.509",
-                fileType: "Ack",
-                submittedDate: "11/02/2019",
-                isAcknowledgementReceived: true,
-                isPaymentReceived: false
-            }
-        ]));
+        ohip.fileManagement(req.query, (ohipErr, ohipResponse) => {
+            return res.send(ohipResponse);
+        });
     });
 
     return router;

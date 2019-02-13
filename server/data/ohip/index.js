@@ -12,6 +12,47 @@ const {
 
 const ohipUtil = require('./../../../modules/ohip/utils');
 
+// corresponds to the file_type field of edi_files
+const exaFileTypes = {
+    [resourceTypes.CLAIMS]: 'can_ohip_h',
+    [resourceTypes.BATCH_EDIT]: 'can_ohip_b',
+    [resourceTypes.ERROR_REPORT]: 'can_ohip_e',
+    [resourceTypes.ERROR_REPORT_EXTRACT]: 'can_ohip_f',
+    [resourceTypes.CLAIMS_MAIL_FILE_REJECT_MESSAGE]: 'can_ohip_x',
+    [resourceTypes.REMITTANCE_ADVICE]: 'can_ohip_p', // would it be easier to remember this as "PAYMENT?"
+    [resourceTypes.OBEC]: 'can_ohip_o',
+    [resourceTypes.OBEC_RESPONSE]: 'can_ohip_r',
+};
+
+
+
+/**
+ * const getExaFileType - determines a value for the file_type field of a
+ * record in the edi_files table based on a filename or OHIP resource type.
+ * If both parameters are specified, then the resourceType is used and the
+ * filename is ignored.
+ *
+ * @param  {object} args    {
+ *                              // optional
+ *                              filename: String,
+ *
+ *                              // mandatory if filename isn't specified
+ *                              resourceType: String,
+ *                          }
+ * @returns {string}        a valid value for the file_type field of
+ *                          the edi_files table
+ */
+const getExaFileType = (args) => {
+    let resourceType = args.resourceType
+
+    if (args.filename && !resourceType) {
+        resourceType = ohipUtil.getResourceType(args.filename);
+    }
+
+    return exaFileTypes[resourceType];
+};
+
+
 
 /**
  * const getFileStore - returns an object with information about a record in
@@ -119,7 +160,7 @@ const storeFile =  async (args) => {
             ,now()
             ,'pending'
 
-            --,${ohipUtil.getFileType(filename)}
+            --,${getExaFileType(filename)}
             ,'835'  -- not good; should be the commented-out line above
 
             ,'${filePath}'
@@ -133,8 +174,9 @@ const storeFile =  async (args) => {
     const  dbResults = (await query(sql, [])).rows[0];
 
     return {
-        file_stores_id: filestore.id,
-        edi_files_id: dbResults.id,
+        file_store_id: filestore.id,
+        edi_file_id: dbResults.id,
+        fullPath,
     };
 };
 
@@ -191,59 +233,6 @@ const loadFile = async (args) => {
     }
 }
 
-const SelectClaimFileSQL = function(args) {
-
-    const {
-        batchCreateDate,
-        batchSequenceNumber,
-    } = args;
-
-    //      a. edi_files.file_type = 'can_ohip_h'
-    //      b. edi_files.created_dt = batchCreateDate
-    //      c. edi_files.status = 'pending'
-    //      d. edi_file_claims.batch_number = batchSequenceNumber
-    //      e. edi_file_claims.edi_file_id = edi_files.id
-    //      f. preserve edi_files.id
-
-    return SQL`
-        SELECT
-            ef.id AS edi_file_id
-        FROM billing.edi_files ef
-        INNER JOIN billing.edi_file_claims efc ON ef.id = efc.edi_file_id
-        WHERE
-            ef.file_type = 'can_ohip_h'
-            AND ef.status = 'pending'
-            AND ef.created_dt = ${batchCreateDate}
-            AND efc.batch_number = ${batchSequenceNumber}
-    `;
-};
-
-// const InsertRelatedFileSQL = function(args) {
-//
-//     const {
-//         cte,
-//         responseFileId,
-//         comment,
-//     } = args;
-//
-//
-//     return SQL`
-//         INSERT INTO billing.edi_related_files(
-//             submission_file_id,
-//             response_file_id,
-//             comment
-//         )
-//         (
-//             SELECT
-//                 `.append(cte).append(SQL`.edi_file_id,
-//                 ${responseFileId},
-//                 ${comment}
-//             FROM
-//                 `.append(cte).append( SQL`
-//
-//         )
-//     `;
-// };
 
 const applyRejectMessage = async (args) => {
     const {
@@ -256,7 +245,13 @@ const applyRejectMessage = async (args) => {
 };
 
 
-//
+
+/**
+ * const applyBatchEditReport - description
+ *
+ * @param  {type} args description
+ * @returns {type}      description
+ */
 const applyBatchEditReport = async (args) => {
 
     const {
@@ -274,7 +269,7 @@ const applyBatchEditReport = async (args) => {
             INNER JOIN billing.edi_file_claims efc ON ef.id = efc.edi_file_id
             WHERE
                 ef.file_type = 'can_ohip_h'
-                AND ef.status = 'pending'
+                --AND ef.status = 'pending'
                 AND ef.created_dt = ${batchCreateDate}
                 AND efc.batch_number = ${batchSequenceNumber}
         )
@@ -290,18 +285,16 @@ const applyBatchEditReport = async (args) => {
                 ${comment}
             FROM
                 claim_file_cte
-
         )
     `;
 
-
+    // 1 - SELECT corresponding claim submission file
     //      a. edi_files.file_type = 'can_ohip_h'
     //      b. edi_files.created_dt = batchCreateDate
     //      c. edi_files.status = 'pending'
     //      d. edi_file_claims.batch_number = batchSequenceNumber
     //      e. edi_file_claims.edi_file_id = edi_files.id
     //      f. preserve edi_files.id
-
 
     // 2 - INSERT record into edi_related_files
     //      a. edi_related_files.ubmission_file_id = #1f
@@ -332,6 +325,34 @@ const applyErrorReport = async (args) => {
 
 };
 
+const updateFileStatus = async (args) => {
+    const {
+        edi_file_id,
+        status,
+    } = args;
+
+    const sql = SQL`
+        UPDATE billing.edi_files
+        SET
+            status=${status}
+        WHERE
+            id = ${edi_file_id}
+    `;
+
+    await query(sql.text, sql.values);
+};
+
+const setClaimSubmissionFile = (args) => {
+    const {
+        claimIds,
+        edi_file_id,
+    } = args;
+
+    const sql = SQL`
+        UPDATE billing.
+    `;
+};
+
 const OHIPDataAPI = {
 
     auditTransaction: (info) => {
@@ -353,7 +374,7 @@ const OHIPDataAPI = {
         */
     },
 
-    getClaimData: async(args) => {
+    getClaimsData: async(args) => {
         // TODO, run a query to get the claim data
         // use synchronous call to query ('await query(...)')
         // const result = (await ediData.getClaimData({
@@ -436,7 +457,59 @@ const OHIPDataAPI = {
     storeFile,
     loadFile,
 
+    updateFileStatus,
+
     applyBatchEditReport,
+
+    getFileManagementData: async (args) => {
+
+        // const sql = SQL`
+        //
+        // `;
+        //
+        // return (await query(sql.text, sql.values)).rows;
+
+        return JSON.stringify([
+            {
+                id: 1,
+                fileName: "001.720",            // edi_files.uploaded_file_name
+                fileType: "Type",               // getExaFileType(edi_files.file_type)
+                submittedDate: "28/01/2019",    //
+                isAcknowledgementReceived: true,
+                isPaymentReceived: true
+            },
+            {
+                id: 2,
+                fileName: "002.424",
+                fileType: "Claim",
+                submittedDate: "02/02/2019",
+                isAcknowledgementReceived: true,
+                isPaymentReceived: true
+            },
+            {
+                id: 3,
+                fileName: "003.509",
+                fileType: "Ack",
+                submittedDate: "11/02/2019",
+                isAcknowledgementReceived: true,
+                isPaymentReceived: false
+            }
+        ]);
+    },
+
+    getExaFileType,
+
+    getOHIPConfiguration: async (args) => {
+        return {
+            // TODO: EXA-12674
+            softwareConformanceKey: 'b5dc648e-581a-4886-ac39-c18832d12e06',
+            auditID:124355467675,
+            serviceUserMUID: 614200,
+            username: "confsu+355@gmail.com",
+            password: "Password1!",
+        };
+    },
+
 };
 
 module.exports = OHIPDataAPI;
