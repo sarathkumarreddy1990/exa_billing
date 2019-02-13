@@ -133,6 +133,18 @@ module.exports = function(billingApi) {
 
         },
 
+        applyRemittanceAdvice: async (args, callback) => {
+            args.clientIp = '127.0.0.1' // will remove later once the API called from GUI. To skip not null constraint adding it
+            const f_c = await billingApi.getRelatedFile(args.edi_file_id, 'can_ohip_p');
+            if(f_c.data){
+                const parser = new Parser(f_c.uploaded_file_name)
+                f_c.ra_json = parser.parse(f_c.data);
+                let response =  await billingApi.handlePayment(f_c, args);
+                return callback(response)
+            }
+            callback(f_c)
+        },
+
         // TODO: EXA-12016
         processResponseFiles: (args, callback) => {
 
@@ -211,23 +223,19 @@ module.exports = function(billingApi) {
                 isValid: false,
             };
 
-            if (healthNumber.length === 10) {
-                if (versionCode === 'OK') {
-                    result.isValid = true;
-                    // yes, there are multiple "sufficiently valid" results
-                    result.responseCode = getRandomValidHealthNumberResponseCode();
-                }
-                else {
-                    result.responseCode = 65;
-                }
+            const isValid = mod10Check.isValidHealthNumber(healthNumber)
+
+            if (isValid) {
+                result.isValid = true
+                ebs.hcvValidation(args, (hcvErr, hcvResponse) => {
+                    console.log(hcvResponse);
+                    return callback(hcvResponse);
+                });
             }
             else {
-                result.responseCode = 25;
+                result.isValid = false;
+                return callback({ isValid: false, errMsg: "Invalid Heath card number" });
             }
-
-            result.descriptiveText = responseCodes[result.responseCode];
-
-            return callback(null, result);
         },
     };
 };

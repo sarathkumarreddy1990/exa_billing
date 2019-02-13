@@ -21,7 +21,7 @@ let auditDetails = {
 
 module.exports = {
 
-    processOHIPEraFile: async function (era_json, params) {
+    processOHIPEraFile: async function (args, params) {
         const self = this;
 
         //ToDo:: Get parsed era file info
@@ -34,11 +34,11 @@ module.exports = {
             params.moduleName = auditDetails.module_name;
             params.entityName = auditDetails.screen_name;
             params.entity_name = auditDetails.screen_name;
-            let paymentDetails = await self.createPayment(era_json, params);
+            let paymentDetails = await self.createPayment(args, params);
             paymentDetails.isFrom = 'OHIP_EOB';
             params.created_by = paymentDetails.created_by || 1;
             params.company_id = paymentDetails.company_id || 1;
-            let lineItemsAndClaimLists = await self.getOHIPLineItemsAndClaims(era_json, params);
+            let lineItemsAndClaimLists = await self.getOHIPLineItemsAndClaims(args.ra_json, params);
             let processedClaims = await data.createPaymentApplication(lineItemsAndClaimLists, paymentDetails);
 
             // again we call to create payment application for unapplied charges form ERA claims
@@ -127,9 +127,10 @@ module.exports = {
 
     },
 
-    createPayment: async function (eraObject, params) {
+    createPayment: async function (f_data, params) {
         let paymentResult;
         let payerDetails = {};
+        let eraObject = f_data.ra_json;
         let totalAmountPayable = eraObject.totalAmountPayable ? Math.round(eraObject.totalAmountPayable * 100) / 10000 : 0.00;
         let notes = 'Amount shown in EOB:$' + totalAmountPayable;
         payerDetails.paymentId = null;
@@ -157,8 +158,7 @@ module.exports = {
 
         payerDetails.logDescription = 'Payment created via ERA';
         payerDetails.isERAPayment = true;
-        payerDetails.file_id = params.file_id || 0; // ToDo:: uploaded ERA file id
-
+        payerDetails.file_id = f_data.file_id || 0; // ToDo:: uploaded ERA file id
 
         try {
 
@@ -168,11 +168,10 @@ module.exports = {
             paymentResult.file_id =  payerDetails.file_id; // imported ERA file id
             paymentResult.created_by = payerDetails.created_by;
             paymentResult.company_id = payerDetails.company_id;
-            paymentResult.uploaded_file_name =  'Canada_ERA.txt';
+            paymentResult.uploaded_file_name =  payerDetails.uploaded_file_name;
             paymentResult.payer_type = payerDetails.payer_type;
             paymentResult.messageText = eraObject.messageText || '';
             paymentResult.code = 'ERA';
-
             await data.createEdiPayment(paymentResult);
 
         } catch (err) {

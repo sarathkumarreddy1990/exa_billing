@@ -145,6 +145,7 @@ const getRelatedFile = async (claim_file_id, related_file_type) => {
         fs.id as file_store_id,
         fs.root_directory as root_directory,
         ef.file_path as file_path,
+        ef.id as file_id,
         ef.uploaded_file_name as uploaded_file_name,
         fs.root_directory || '/' || file_path as full_path
     FROM
@@ -156,18 +157,10 @@ const getRelatedFile = async (claim_file_id, related_file_type) => {
 `;
     let result = await query(t_sql.text, t_sql.values)
     if (result && result.rows && result.rows.length) {
-        const {
-            root_directory,
-            uploaded_file_name,
-            file_path,
-            full_path
-        } = (await query(t_sql.text, t_sql.values)).rows[0];
-        const t_fullPath = path.join(full_path, uploaded_file_name);
-        return {
-            data: fs.readFileSync(t_fullPath, { encoding }),
-            root_directory: root_directory,
-            uploaded_file_name: uploaded_file_name
-        }
+        let file_d = result.rows[0];
+        const t_fullPath = path.join(file_d.full_path, file_d.uploaded_file_name);
+        file_d.data = fs.readFileSync(t_fullPath, { encoding });
+        return file_d;
     }
 
     return {
@@ -422,8 +415,8 @@ const OHIPDataAPI = {
         // return new JSONExtractor(dat).getMappedData();
     },
 
-    handlePayment: async (era_json, param) => {
-       let processedClaims =  await era_parser.processOHIPEraFile(era_json, param)
+    handlePayment: async (args, param) => {
+       let processedClaims =  await era_parser.processOHIPEraFile(args, param)
        return processedClaims;
     },
 
