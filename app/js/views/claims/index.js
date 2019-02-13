@@ -2621,7 +2621,7 @@ define(['jquery',
                             infoKey: 'subscriber_zipcode'
                         }
                     }
-                    address.loadCityStateZipTemplate('#divAddressInfo', result, AddressInfoMap);
+                    self.bindCityStateZipTemplate(result, AddressInfoMap);
 
                     if(result.coverage_level == "secondary" && result.medicare_insurance_type_code != null) {
                         $('#chkSecMedicarePayer').prop('checked',true);
