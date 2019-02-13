@@ -419,6 +419,42 @@ const OHIPDataAPI = {
     updateFileStatus,
 
     applyBatchEditReport,
+
+    getFileManagementData: async (args) => {
+
+        // const sql = SQL`
+        //
+        // `;
+        //
+        // return (await query(sql.text, sql.values)).rows;
+
+        return JSON.stringify([
+            {
+                id: 1,
+                fileName: "001.720",            // edi_files.uploaded_file_name
+                fileType: "Type",               // getExaFileType(edi_files.file_type)
+                submittedDate: "28/01/2019",    //
+                isAcknowledgementReceived: true,
+                isPaymentReceived: true
+            },
+            {
+                id: 2,
+                fileName: "002.424",
+                fileType: "Claim",
+                submittedDate: "02/02/2019",
+                isAcknowledgementReceived: true,
+                isPaymentReceived: true
+            },
+            {
+                id: 3,
+                fileName: "003.509",
+                fileType: "Ack",
+                submittedDate: "11/02/2019",
+                isAcknowledgementReceived: true,
+                isPaymentReceived: false
+            }
+        ]);
+    },
 };
 
 module.exports = OHIPDataAPI;

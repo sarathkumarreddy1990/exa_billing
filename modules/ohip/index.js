@@ -170,6 +170,10 @@ module.exports = function(billingApi) {
             });
         },
 
+        fileManagement: async (args, callback) => {
+            return callback(null, await billingApi.getFileManagementData());
+        },
+
         sandbox: async (args, callback) => {
             const ebs = new EBSConnector(ebsConfig);
             const f = await billingApi.loadFile({edi_files_id: 38});
