@@ -7,7 +7,7 @@ const {
 
 const responseCodes = require('./hcv/responseCodes');
 
-// const Encoder = require('./encoders/batchClaimSubmission');
+// const ClaimSubmissionEncoder = require('./encoder/claim');
 const Parser = require('./parser');
 
 // this is the high-level business logic and algorithms for OHIP
@@ -74,7 +74,7 @@ module.exports = function(billingApi) {
     return {
 
         // takes an array of Claim IDs
-        submitClaims: (args, callback) => {
+        submitClaim: async (args, callback) => {
 
             const ebs = new EBSConnector(ebsConfig);
 
@@ -89,48 +89,48 @@ module.exports = function(billingApi) {
                 }
             ];
 
-            ebs.upload({uploads}, (uploadErr, uploadResponse) => {
-
-                if (uploadErr) {
-                    return callback(uploadErr, uploadResponse);
-                }
-
-                const resourceIDs = getResourceIDs(uploadResponse);
-
-                return ebs.submit({resourceIDs}, (submitErr, submitResponse) => {
-
-                    if (submitErr) {
-                        return callback(submitErr, submitResponse);
-                    }
-                    const resourceIDs = getResourceIDs(submitResponse);
-
-                    // 4 - update database mark as 'pending acknowledgment'
-                    //
-
-                    // 5 - move file from proper filename to final filename and save
-                    // to edi_file_claims
-
-                    // 6 - move response file to final filename and save
-                    // to edi_file_related (or whatever it's called)
-
-                    return callback(null, submitResponse);
-                });
-            });
+            // const data = await billingApi.getClaimData({claimIds:'10'});
+            //
+            //
+            // ebs.upload({uploads}, (uploadErr, uploadResponse) => {
+            //
+            //     if (uploadErr) {
+            //         return callback(uploadErr, uploadResponse);
+            //     }
+            //
+            //     const resourceIDs = getResourceIDs(uploadResponse);
+            //
+            //     return ebs.submit({resourceIDs}, (submitErr, submitResponse) => {
+            //
+            //         if (submitErr) {
+            //             return callback(submitErr, submitResponse);
+            //         }
+            //         const resourceIDs = getResourceIDs(submitResponse);
+            //
+            //         // 4 - update database mark as 'pending acknowledgment'
+            //         //
+            //
+            //         // 5 - move file from proper filename to final filename and save
+            //         // to edi_file_claims
+            //
+            //         // 6 - move response file to final filename and save
+            //         // to edi_file_related (or whatever it's called)
+            //
+            //         return callback(null, submitResponse);
+            //     });
+            // });
         },
 
         sandbox: async (args, callback) => {
+
             const ebs = new EBSConnector(ebsConfig);
-            const f = await billingApi.loadFile({edi_files_id: 38});
-            console.log(f);
-            //
-            // ebs.list({status:'UPLOADED', resourceType:'CL'}, (listErr, listResponse) => {
-            //     console.log(listResponse);
-            // });
-            //
-            // return ebs.download({resourceIDs:[62152]}, (downloadErr, downloadResponse) => {
-            // // return ebs.list({resourceType:'ER'}, (downloadErr, downloadResponse) => {
-            //     return callback(downloadErr, downloadResponse);
-            // });
+            const f = await billingApi.applyBatchEditReport({
+                batchCreateDate: new Date(),
+                batchSequenceNumber: 0,
+            });
+
+            return callback(null, {message:'hello, world'});
+
         },
 
         // TODO: EXA-12016
@@ -139,6 +139,7 @@ module.exports = function(billingApi) {
             const ebs = new EBSConnector(ebsConfig);
 
             ebs.list({resourceType: BATCH_EDIT}, (listErr, listResponse) => {
+
                 const resourceIDs = listResponse.data.map((detailResponse) => {
                     return detailResponse.resourceID;
                 });

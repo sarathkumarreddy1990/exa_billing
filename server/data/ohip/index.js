@@ -1,8 +1,9 @@
 const { query, SQL } = require('./../index');
+// const ediData = require('../../data/claim/claim-edi');
+// const JSONExtractor = require('./jsonExtractor');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-
 const {
     encoding,
     resourceTypes,
@@ -132,13 +133,29 @@ const storeFile =  async (args) => {
     const  dbResults = (await query(sql, [])).rows[0];
 
     return {
-        file_store_id: filestore.id,
-        file_id: dbResults.id,
+        file_stores_id: filestore.id,
+        edi_files_id: dbResults.id,
     };
 };
 
 
 
+
+
+/**
+ * const loadFile - description
+ *
+ * @param  {object} args    {
+ *                              edi_files_id: Number,   // billing.edi_files PK (id)
+ *                          }
+ * @returns {object}        {
+ *                              data: String,                 // ASCII-encoded contents of file
+ *                              file_store_id: Number,        // public.file_stores PK (id)
+ *                              root_directory: String,       // root directory as defined by filestore
+ *                              file_path: String,            // path relative to root_directory
+ *                              uploaded_file_name: String,   // actual filename
+ *                          }
+ */
 const loadFile = async (args) => {
     const {
         edi_files_id,
@@ -165,7 +182,6 @@ const loadFile = async (args) => {
 
     const fullPath = path.join(root_directory, file_path, uploaded_file_name);
 
-
     return {
         data: fs.readFileSync(fullPath, {encoding}),
         file_store_id,
@@ -175,6 +191,146 @@ const loadFile = async (args) => {
     }
 }
 
+const SelectClaimFileSQL = function(args) {
+
+    const {
+        batchCreateDate,
+        batchSequenceNumber,
+    } = args;
+
+    //      a. edi_files.file_type = 'can_ohip_h'
+    //      b. edi_files.created_dt = batchCreateDate
+    //      c. edi_files.status = 'pending'
+    //      d. edi_file_claims.batch_number = batchSequenceNumber
+    //      e. edi_file_claims.edi_file_id = edi_files.id
+    //      f. preserve edi_files.id
+
+    return SQL`
+        SELECT
+            ef.id AS edi_file_id
+        FROM billing.edi_files ef
+        INNER JOIN billing.edi_file_claims efc ON ef.id = efc.edi_file_id
+        WHERE
+            ef.file_type = 'can_ohip_h'
+            AND ef.status = 'pending'
+            AND ef.created_dt = ${batchCreateDate}
+            AND efc.batch_number = ${batchSequenceNumber}
+    `;
+};
+
+// const InsertRelatedFileSQL = function(args) {
+//
+//     const {
+//         cte,
+//         responseFileId,
+//         comment,
+//     } = args;
+//
+//
+//     return SQL`
+//         INSERT INTO billing.edi_related_files(
+//             submission_file_id,
+//             response_file_id,
+//             comment
+//         )
+//         (
+//             SELECT
+//                 `.append(cte).append(SQL`.edi_file_id,
+//                 ${responseFileId},
+//                 ${comment}
+//             FROM
+//                 `.append(cte).append( SQL`
+//
+//         )
+//     `;
+// };
+
+const applyRejectMessage = async (args) => {
+    const {
+        filename,
+    } = args;
+
+    // TODO
+    // 1 - set error codes on edi_file_claims (what do "pending ack" claims transition to, now?)
+    // 2 - add entry to
+};
+
+
+//
+const applyBatchEditReport = async (args) => {
+
+    const {
+        batchCreateDate,
+        batchSequenceNumber,
+        responseFileId,
+        comment,
+    } = args;
+
+    const sql = SQL `
+        WITH claim_file_cte AS (
+            SELECT
+                ef.id AS edi_file_id
+            FROM billing.edi_files ef
+            INNER JOIN billing.edi_file_claims efc ON ef.id = efc.edi_file_id
+            WHERE
+                ef.file_type = 'can_ohip_h'
+                AND ef.status = 'pending'
+                AND ef.created_dt = ${batchCreateDate}
+                AND efc.batch_number = ${batchSequenceNumber}
+        )
+        INSERT INTO billing.edi_related_files(
+            submission_file_id,
+            response_file_id,
+            comment
+        )
+        (
+            SELECT
+                claim_file_cte.edi_file_id,
+                ${responseFileId},
+                ${comment}
+            FROM
+                claim_file_cte
+
+        )
+    `;
+
+
+    //      a. edi_files.file_type = 'can_ohip_h'
+    //      b. edi_files.created_dt = batchCreateDate
+    //      c. edi_files.status = 'pending'
+    //      d. edi_file_claims.batch_number = batchSequenceNumber
+    //      e. edi_file_claims.edi_file_id = edi_files.id
+    //      f. preserve edi_files.id
+
+
+    // 2 - INSERT record into edi_related_files
+    //      a. edi_related_files.ubmission_file_id = #1f
+    //      b. what could be used for edi_related_files.comment?
+
+    // 3 - UPDATE claim statuses (transition from "pending ack" to "pending payment")
+    //      a. edi_file_claims.edi_file_id = edi_files.id
+    //      b. fine claims from edi_file_claims and set status?
+    //      c. what should be status for claims in rejected batch?
+    //
+    // 4 - UPDATE claim file status
+    //      a. edi_file_claims.edi_file_id = edi_files.id
+    //      b. set status to 'accepted' or 'rejected'
+    //      c. set error messages/codes
+    //
+    return {};
+
+};
+
+const applyErrorReport = async (args) => {
+    const {
+        accountingNumber,
+    } = args;
+
+    // TODO
+    // 1 - set error codes on edi_file_claims
+    //
+
+};
 
 const OHIPDataAPI = {
 
@@ -197,10 +353,36 @@ const OHIPDataAPI = {
         */
     },
 
-    getClaimData: (claimIds) => {
+    getClaimData: async(args) => {
         // TODO, run a query to get the claim data
         // use synchronous call to query ('await query(...)')
-        return [];
+        // const result = (await ediData.getClaimData({
+        //     ...args
+        // }));
+
+
+        // let data = result.rows.map(function (obj) {
+        //
+        //     // claimDetails.push(
+        //     //     {
+        //     //         coverage_level: obj.coverage_level,
+        //     //         claim_id: obj.claim_id,
+        //     //         insuranceName: obj.insurance_name,
+        //     //         note: 'Electronic claim to ' + obj.insurance_name + ' (' + obj.coverage_level + ' )'
+        //     //     }
+        //     // );
+        //     //
+        //     // if ((obj.subscriber_relationship).toUpperCase() != 'SELF') {
+        //     //     obj.data[0].subscriber[0].patient[0].claim = obj.data[0].subscriber[0].claim;
+        //     //     delete obj.data[0].subscriber[0].claim;
+        //     // }
+        //
+        //     return obj.data[0];
+        // });
+        // return new JSONExtractor(data).getMappedData();
+        // const dat = require('./data');
+        // console.log(dat);
+        // return new JSONExtractor(dat).getMappedData();
     },
 
     handlePayment: (payment) => {
@@ -253,6 +435,8 @@ const OHIPDataAPI = {
 
     storeFile,
     loadFile,
+
+    applyBatchEditReport,
 };
 
 module.exports = OHIPDataAPI;
