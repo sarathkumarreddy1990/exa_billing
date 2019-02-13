@@ -51,6 +51,10 @@ module.exports = {
     getPrinterTemplate: function (params) {
         return claimPrintData.getPrinterTemplate(params);
     },
+    
+    submitOhipClaim: function (params) {
+        return ediData.submitOhipClaim(params);
+    },
 
     getEDIClaim: async (params) => {
         let claimIds = (params.claimIds).split(',');

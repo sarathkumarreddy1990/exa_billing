@@ -1,3 +1,7 @@
+
+// this is the high-level business logic and algorithms for OHIP
+//  * use cases are defined here
+
 const EBSConnector = require('./ebs');
 const {
     BATCH_EDIT,
@@ -5,16 +9,10 @@ const {
     ERROR_REPORTS,
 } = require('./constants').resourceTypes;
 
-const responseCodes = require('./hcv/responseCodes');
 
 const ClaimsEncoder = require('./encoder/claims');
+const mod10Check = require('./hcv/mod10Check');
 const Parser = require('./parser');
-
-// this is the high-level business logic and algorithms for OHIP
-//  * use cases are defined here
-//  *
-
-
 
 
 const getRandomResponseCode = (codes) => {
@@ -190,7 +188,6 @@ module.exports = function(billingApi) {
             //     return callback(downloadErr, downloadResponse);
             // });
         },
-
         // TODO: EXA-12016
         processResponseFiles: async (args, callback) => {
             const ebs = new EBSConnector(await getConfig());
@@ -267,23 +264,19 @@ module.exports = function(billingApi) {
                 isValid: false,
             };
 
-            if (healthNumber.length === 10) {
-                if (versionCode === 'OK') {
-                    result.isValid = true;
-                    // yes, there are multiple "sufficiently valid" results
-                    result.responseCode = getRandomValidHealthNumberResponseCode();
-                }
-                else {
-                    result.responseCode = 65;
-                }
+            const isValid = mod10Check.isValidHealthNumber(healthNumber)
+
+            if (isValid) {
+                result.isValid = true
+                ebs.hcvValidation(args, (hcvErr, hcvResponse) => {
+                    console.log(hcvResponse);
+                    return callback(hcvResponse);
+                });
             }
             else {
-                result.responseCode = 25;
+                result.isValid = false;
+                return callback({ isValid: false, errMsg: "Invalid Heath card number" });
             }
-
-            result.descriptiveText = responseCodes[result.responseCode];
-
-            return callback(null, result);
         },
     };
 };
