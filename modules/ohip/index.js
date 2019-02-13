@@ -1,3 +1,7 @@
+
+// this is the high-level business logic and algorithms for OHIP
+//  * use cases are defined here
+
 const EBSConnector = require('./ebs');
 const {
     BATCH_EDIT,
@@ -5,23 +9,10 @@ const {
     ERROR_REPORTS,
 } = require('./constants').resourceTypes;
 
-const responseCodes = require('./hcv/responseCodes');
 
-// const ClaimSubmissionEncoder = require('./encoder/claim');
+const ClaimsEncoder = require('./encoder/claims');
+const mod10Check = require('./hcv/mod10Check');
 const Parser = require('./parser');
-
-// this is the high-level business logic and algorithms for OHIP
-//  * use cases are defined here
-//  *
-
-const ebsConfig = {
-    // TODO: EXA-12674
-    softwareConformanceKey: 'b5dc648e-581a-4886-ac39-c18832d12e06',
-    auditID:124355467675,
-    serviceUserMUID: 614200,
-    username: "confsu+355@gmail.com",
-    password: "Password1!",
-};
 
 
 const getRandomResponseCode = (codes) => {
@@ -71,87 +62,137 @@ const getResourceIDs = (resourceResult) => {
  */
 module.exports = function(billingApi) {
 
+    let ohipConfig = null;
+    const getConfig = async () => {
+        if (!ohipConfig) {
+            ohipConfig = await billingApi.getOHIPConfiguration();
+        }
+        return ohipConfig;
+    };
+
     return {
 
         // takes an array of Claim IDs
-        submitClaim: async (args, callback) => {
+        submitClaims: async (args, callback) => {
 
-            const ebs = new EBSConnector(ebsConfig);
 
             // TODO
-            // 1 - create claims file from claims with propper date format
+            // 1 - convert args.claimIds to claim data (getClaimsData)
+            const claimData = await billingApi.getClaimsData(args);
+
+            // 2 - run claim data through encoder
+            const claimEnc = new ClaimsEncoder();
+            const lastSubmissionSequenceNumber = 123;   // i.e. 'HBAU73.123'
+            let submissionSequenceOffset = 0;
+            const context = {
+                batchDate: new Date(),
+                batchSequenceNumber: 0, // TODO this needs to be set in the encoder
+            };
+            const claimSubmissions = claimEnc.encode(claimData, context).map((submission) => {
+                submissionSequenceOffset++;
+                return {
+                    filename: 'HGAU73.' + (lastSubmissionSequenceNumber + submissionSequenceOffset),
+                    data: submission,
+                };
+            });
+            // console.log('claimSubmissions: ', claimSubmissions);
+
+            // 3 - store the file(s) that encoder produces (storeFile)
+            // TODO this is really hacky but EBS connector doesn't support
+            // multiple uploads yet.
+            const {
+                filename,
+                data,
+            } = claimSubmissions[0];
+            const {
+                edi_file_id,
+                fullPath,
+            } = await billingApi.storeFile({
+                filename,
+                data,
+            });
+
+            // console.log(fileInfo);
+            // return callback(null, claimSubmissions);
+
+            const ebs = new EBSConnector(await getConfig());
+            //
+            // // TODO
+            // // 1 - create claims file from claims with propper date format
             const uploads = [
                 {
                     resourceType: 'CL',
                     // TODO: EXA-12673
-                    filename: 'modules/ohip/ebs/HGAU73.441',
-                    description: 'HGAU73.441',
+                    filename: fullPath,
+                    description: filename,
                 }
             ];
 
-            // const data = await billingApi.getClaimData({claimIds:'10'});
+            // // 4 - upload file to OHIP
             //
-            //
-            // ebs.upload({uploads}, (uploadErr, uploadResponse) => {
-            //
-            //     if (uploadErr) {
-            //         return callback(uploadErr, uploadResponse);
-            //     }
-            //
-            //     const resourceIDs = getResourceIDs(uploadResponse);
-            //
-            //     return ebs.submit({resourceIDs}, (submitErr, submitResponse) => {
-            //
-            //         if (submitErr) {
-            //             return callback(submitErr, submitResponse);
-            //         }
-            //         const resourceIDs = getResourceIDs(submitResponse);
-            //
-            //         // 4 - update database mark as 'pending acknowledgment'
-            //         //
-            //
-            //         // 5 - move file from proper filename to final filename and save
-            //         // to edi_file_claims
-            //
-            //         // 6 - move response file to final filename and save
-            //         // to edi_file_related (or whatever it's called)
-            //
-            //         return callback(null, submitResponse);
-            //     });
-            // });
+            ebs.upload({uploads}, (uploadErr, uploadResponse) => {
+
+                if (uploadErr){
+                    console.log('error uploading: ', uploadErr);
+                    //      a. failure -> update file status ('error'), return callback
+                    billingApi.updateFileStatus({edi_file_id, status: 'failure'});
+                    return callback(uploadErr, uploadResponse);
+                }
+
+                //      b. success -> update file status ('uploaded'), proceed
+                billingApi.updateFileStatus({edi_file_id, status: 'in_progress'});
+
+
+                const resourceIDs = getResourceIDs(uploadResponse);
+
+                // 5 - submit file to OHIP
+                return ebs.submit({resourceIDs}, (submitErr, submitResponse) => {
+
+                    if (submitErr) {
+                        console.log('error submitting: ', submitErr);
+                        //      a. failure -> update file status ('error'), delete file from ohip
+                        billingApi.updateFileStatus({edi_file_id, status: 'failure'});
+                        return callback(submitErr, submitResponse);
+                    }
+
+                    //      b. success -> update file status ('submitted'), proceed
+                    billingApi.updateFileStatus({edi_file_id, status: 'success'});
+
+
+                    // 6 - check if response file exists yet
+                    //      a. yes -> apply response file
+                    // 7 - return callback
+
+                    const resourceIDs = getResourceIDs(submitResponse);
+
+                    return callback(null, submitResponse);
+                });
+            });
+        },
+
+        fileManagement: async (args, callback) => {
+            return callback(null, await billingApi.getFileManagementData());
         },
 
         sandbox: async (args, callback) => {
-
-            const ebs = new EBSConnector(ebsConfig);
-            const f = await billingApi.applyBatchEditReport({
-                batchCreateDate: new Date(),
-                batchSequenceNumber: 0,
-            });
-
-            return callback(null, {message:'hello, world'});
-
+            const ebs = new EBSConnector(await getConfig());
+            const f = await billingApi.loadFile({edi_files_id: 38});
+            console.log(f);
+            //
+            // ebs.list({status:'UPLOADED', resourceType:'CL'}, (listErr, listResponse) => {
+            //     console.log(listResponse);
+            // });
+            //
+            // return ebs.download({resourceIDs:[62152]}, (downloadErr, downloadResponse) => {
+            // // return ebs.list({resourceType:'ER'}, (downloadErr, downloadResponse) => {
+            //     return callback(downloadErr, downloadResponse);
+            // });
         },
-
-        applyRemittanceAdvice: async (args, callback) => {
-            args.clientIp = '127.0.0.1' // will remove later once the API called from GUI. To skip not null constraint adding it
-            const f_c = await billingApi.getRelatedFile(args.edi_file_id, 'can_ohip_p');
-            if(f_c.data){
-                const parser = new Parser(f_c.uploaded_file_name)
-                f_c.ra_json = parser.parse(f_c.data);
-                let response =  await billingApi.handlePayment(f_c, args);
-                return callback(response)
-            }
-            callback(f_c)
-        },
-
         // TODO: EXA-12016
-        processResponseFiles: (args, callback) => {
-
-            const ebs = new EBSConnector(ebsConfig);
+        processResponseFiles: async (args, callback) => {
+            const ebs = new EBSConnector(await getConfig());
 
             ebs.list({resourceType: BATCH_EDIT}, (listErr, listResponse) => {
-
                 const resourceIDs = listResponse.data.map((detailResponse) => {
                     return detailResponse.resourceID;
                 });
@@ -204,8 +245,8 @@ module.exports = function(billingApi) {
 
         },
 
-        validateHealthCard: (args, callback) => {
-            const ebs = new EBSConnector(ebsConfig);
+        validateHealthCard: async (args, callback) => {
+            const ebs = new EBSConnector(await getConfig());
 
             /* This is stub/mock functionality for the Health Card Validation
              * endpoint. Theory of operation: for the sake of the demo, an
@@ -236,6 +277,18 @@ module.exports = function(billingApi) {
                 result.isValid = false;
                 return callback({ isValid: false, errMsg: "Invalid Heath card number" });
             }
+        },
+
+        applyRemittanceAdvice: async (args, callback) => {
+            args.clientIp = '127.0.0.1' // will remove later once the API called from GUI. To skip not null constraint adding it
+            const f_c = await billingApi.getRelatedFile(args.edi_file_id, 'can_ohip_p');
+            if(f_c.data){
+                const parser = new Parser(f_c.uploaded_file_name)
+                f_c.ra_json = parser.parse(f_c.data);
+                let response =  await billingApi.handlePayment(f_c, args);
+                return callback(response)
+            }
+            callback(f_c)
         },
     };
 };
