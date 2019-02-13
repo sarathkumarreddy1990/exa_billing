@@ -14,16 +14,44 @@ const ohipUtil = require('./../../../modules/ohip/utils');
 
 // corresponds to the file_type field of edi_files
 const exaFileTypes = {
-    CLAIM_FILE: 'can_ohip_h',
-    BATCH_EDIT: 'can_ohip_b',
-    ERROR_REPORT: 'can_ohip_e',
-    ERROR_REPORT_EXTRACT: 'can_ohip_f',
-    REJECT_MESSAGE: 'can_ohip_x',
-    REMITTANCE_ADVICE: 'can_ohip_p', // would it be easier to remember this as "PAYMENT?"
-    GOVERNANCE_REPORT: 'can_ohip_g',
-    OBEC_SUBMISSION: 'can_ohip_o',
-    OBEC_RESPONSE: 'can_ohip_r',
+    [resourceTypes.CLAIMS]: 'can_ohip_h',
+    [resourceTypes.BATCH_EDIT]: 'can_ohip_b',
+    [resourceTypes.ERROR_REPORT]: 'can_ohip_e',
+    [resourceTypes.ERROR_REPORT_EXTRACT]: 'can_ohip_f',
+    [resourceTypes.CLAIMS_MAIL_FILE_REJECT_MESSAGE]: 'can_ohip_x',
+    [resourceTypes.REMITTANCE_ADVICE]: 'can_ohip_p', // would it be easier to remember this as "PAYMENT?"
+    [resourceTypes.OBEC]: 'can_ohip_o',
+    [resourceTypes.OBEC_RESPONSE]: 'can_ohip_r',
 };
+
+
+
+/**
+ * const getExaFileType - determines a value for the file_type field of a
+ * record in the edi_files table based on a filename or OHIP resource type.
+ * If both parameters are specified, then the resourceType is used and the
+ * filename is ignored.
+ *
+ * @param  {object} args    {
+ *                              // optional
+ *                              filename: String,
+ *
+ *                              // mandatory if filename isn't specified
+ *                              resourceType: String,
+ *                          }
+ * @returns {string}        a valid value for the file_type field of
+ *                          the edi_files table
+ */
+const getExaFileType = (args) => {
+    let resourceType = args.resourceType
+
+    if (args.filename && !resourceType) {
+        resourceType = ohipUtil.getResourceType(args.filename);
+    }
+
+    return exaFileTypes[resourceType];
+};
+
 
 
 /**
@@ -132,7 +160,7 @@ const storeFile =  async (args) => {
             ,now()
             ,'pending'
 
-            --,${ohipUtil.getFileType(filename)}
+            --,${getExaFileType(filename)}
             ,'835'  -- not good; should be the commented-out line above
 
             ,'${filePath}'
@@ -469,6 +497,8 @@ const OHIPDataAPI = {
         ]);
     },
 
+    getExaFileType,
+
     getOHIPConfiguration: async (args) => {
         return {
             // TODO: EXA-12674
@@ -479,6 +509,7 @@ const OHIPDataAPI = {
             password: "Password1!",
         };
     },
+
 };
 
 module.exports = OHIPDataAPI;
