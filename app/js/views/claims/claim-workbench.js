@@ -569,13 +569,14 @@ define(['jquery',
                 }
 
                 commonjs.showLoading();
+                var url = '/exa_modules/billing/claim_workbench/' + app.country_alpha_3_code === 'can' ? 'create_ohip_claim' : 'create_claim';
 
                 if ($('#chkStudyHeader_' + filterID).is(':checked')) {
                     self.selectAllClaim(filter, filterID, 'EDI');
 
                 } else {
                     jQuery.ajax({
-                        url: "/exa_modules/billing/claim_workbench/create_claim",
+                        url: url,
                         type: "POST",
                         data: {
                             claimIds: claimIds.toString()

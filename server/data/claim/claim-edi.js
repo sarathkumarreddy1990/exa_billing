@@ -737,5 +737,63 @@ module.exports = {
 
         return await query(sql);
     },
+	
+    submitOhipClaim: async (params) => {
+        let claimIds = params.claimIds.split(',');
+        let sql = SQL`SELECT
+                        bc.id AS claim_id,
+                        npi_no AS "groupNumber",
+                        rend_pr.provider_info -> 'NPI' AS "providerNumber",
+                        rend_pr.specialities[1] AS "specialtyCode",
+                        (SELECT JSON_agg(Row_to_json(claim_details)) FROM (
+                           WITH cte_insurance_details AS (
+                                SELECT
+                                    (Row_to_json(insuranceDetails)) AS "insuranceDetails"
+                                FROM (SELECT
+                                    ppi.policy_number AS "healthNumber",
+                                    ppi.group_number AS "versionCode",
+                                    pp.birth_date AS "dateOfBirth",
+                                    bc.id AS "accountingNumber",
+                                    CASE WHEN nullif (pc.company_info -> 'company_state','') = subscriber_state THEN
+                                        'HCP'
+                                    ELSE
+                                        'RMB'
+                                    END AS "paymentProgram",
+                                    'P' AS "payee",
+                                    'HOP' AS "masterNumber",
+                                    reff_pr.provider_info -> 'NPI' AS "referringProviderNumber",
+                                    'HOP' AS "serviceLocationIndicator",
+                                    ppi.policy_number AS "registrationNumber",
+                                    pp.last_name AS "patientLastName",
+                                    pp.first_name AS "patientFirstName",
+                                    pp.gender AS "patientSex",
+                                    pp.patient_info -> 'c1Statepp' AS "provinceCode"
+                                FROM public.patient_insurances ppi
+                                WHERE ppi.id = bc.primary_patient_insurance_id) AS insuranceDetails)
+						, charge_details AS (
+                            SELECT JSON_agg(Row_to_json(items)) "items" FROM (
+								SELECT
+                                    pcc.display_code AS "serviceCode",
+                                    (bch.bill_fee * bch.units) AS "feeSubmitted",
+                                    1 AS "numberOfServices",
+                                    charge_dt AS "serviceDate",
+                                    billing.get_charge_icds (bch.id) AS diagnosticCodes
+                                FROM billing.charges bch
+                                INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
+								WHERE bch.claim_id = bc.id) AS items )
+                            SELECT * FROM cte_insurance_details, charge_details) AS claim_details ) AS "claims"
+                    FROM billing.claims bc
+                    INNER JOIN public.companies pc ON pc.id = bc.company_id
+                    INNER JOIN public.patients pp ON pp.id = bc.patient_id
+                    INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
+                    LEFT JOIN public.provider_contacts rend_ppc ON rend_ppc.id = bc.rendering_provider_contact_id
+                    LEFT JOIN public.providers rend_pr ON rend_pr.id = rend_ppc.provider_id
+                    LEFT JOIN public.provider_contacts reff_ppc ON reff_ppc.id = bc.referring_provider_contact_id
+                    LEFT JOIN public.providers reff_pr ON reff_pr.id = reff_ppc.provider_id
+                    WHERE bc.id = ANY (${claimIds})
+                    ORDER BY bc.id DESC
+		`;
+        return await query(sql);	
+    }
 
 };
