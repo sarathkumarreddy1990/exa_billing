@@ -12,6 +12,19 @@ const {
 
 const ohipUtil = require('./../../../modules/ohip/utils');
 
+// corresponds to the file_type field of edi_files
+const exaFileTypes = {
+    CLAIM_FILE: 'can_ohip_h',
+    BATCH_EDIT: 'can_ohip_b',
+    ERROR_REPORT: 'can_ohip_e',
+    ERROR_REPORT_EXTRACT: 'can_ohip_f',
+    REJECT_MESSAGE: 'can_ohip_x',
+    REMITTANCE_ADVICE: 'can_ohip_p', // would it be easier to remember this as "PAYMENT?"
+    GOVERNANCE_REPORT: 'can_ohip_g',
+    OBEC_SUBMISSION: 'can_ohip_o',
+    OBEC_RESPONSE: 'can_ohip_r',
+};
+
 
 /**
  * const getFileStore - returns an object with information about a record in
@@ -454,6 +467,17 @@ const OHIPDataAPI = {
                 isPaymentReceived: false
             }
         ]);
+    },
+
+    getOHIPConfiguration: async (args) => {
+        return {
+            // TODO: EXA-12674
+            softwareConformanceKey: 'b5dc648e-581a-4886-ac39-c18832d12e06',
+            auditID:124355467675,
+            serviceUserMUID: 614200,
+            username: "confsu+355@gmail.com",
+            password: "Password1!",
+        };
     },
 };
 

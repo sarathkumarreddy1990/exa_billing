@@ -14,14 +14,7 @@ const Parser = require('./parser');
 //  * use cases are defined here
 //  *
 
-const ebsConfig = {
-    // TODO: EXA-12674
-    softwareConformanceKey: 'b5dc648e-581a-4886-ac39-c18832d12e06',
-    auditID:124355467675,
-    serviceUserMUID: 614200,
-    username: "confsu+355@gmail.com",
-    password: "Password1!",
-};
+
 
 
 const getRandomResponseCode = (codes) => {
@@ -71,6 +64,14 @@ const getResourceIDs = (resourceResult) => {
  */
 module.exports = function(billingApi) {
 
+    let ohipConfig = null;
+    const getConfig = async () => {
+        if (!ohipConfig) {
+            ohipConfig = await billingApi.getOHIPConfiguration();
+        }
+        return ohipConfig;
+    };
+
     return {
 
         // takes an array of Claim IDs
@@ -116,7 +117,7 @@ module.exports = function(billingApi) {
             // console.log(fileInfo);
             // return callback(null, claimSubmissions);
 
-            const ebs = new EBSConnector(ebsConfig);
+            const ebs = new EBSConnector(await getConfig());
             //
             // // TODO
             // // 1 - create claims file from claims with propper date format
@@ -142,6 +143,7 @@ module.exports = function(billingApi) {
 
                 //      b. success -> update file status ('uploaded'), proceed
                 billingApi.updateFileStatus({edi_file_id, status: 'in_progress'});
+
 
                 const resourceIDs = getResourceIDs(uploadResponse);
 
@@ -175,7 +177,7 @@ module.exports = function(billingApi) {
         },
 
         sandbox: async (args, callback) => {
-            const ebs = new EBSConnector(ebsConfig);
+            const ebs = new EBSConnector(await getConfig());
             const f = await billingApi.loadFile({edi_files_id: 38});
             console.log(f);
             //
@@ -190,9 +192,8 @@ module.exports = function(billingApi) {
         },
 
         // TODO: EXA-12016
-        processResponseFiles: (args, callback) => {
-
-            const ebs = new EBSConnector(ebsConfig);
+        processResponseFiles: async (args, callback) => {
+            const ebs = new EBSConnector(await getConfig());
 
             ebs.list({resourceType: BATCH_EDIT}, (listErr, listResponse) => {
                 const resourceIDs = listResponse.data.map((detailResponse) => {
@@ -247,8 +248,8 @@ module.exports = function(billingApi) {
 
         },
 
-        validateHealthCard: (args, callback) => {
-            const ebs = new EBSConnector(ebsConfig);
+        validateHealthCard: async (args, callback) => {
+            const ebs = new EBSConnector(await getConfig());
 
             /* This is stub/mock functionality for the Health Card Validation
              * endpoint. Theory of operation: for the sake of the demo, an
