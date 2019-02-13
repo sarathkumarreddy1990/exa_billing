@@ -11,6 +11,7 @@ const {
 } = require('./../../../modules/ohip/constants');
 
 const ohipUtil = require('./../../../modules/ohip/utils');
+const era_parser = require('./ohip-era-parser');
 
 
 /**
@@ -138,7 +139,43 @@ const storeFile =  async (args) => {
     };
 };
 
+const getRelatedFile = async (claim_file_id, related_file_type) => {
+    const t_sql = SQL`
+    SELECT
+        fs.id as file_store_id,
+        fs.root_directory as root_directory,
+        ef.file_path as file_path,
+        ef.uploaded_file_name as uploaded_file_name,
+        fs.root_directory || '/' || file_path as full_path
+    FROM
+        billing.edi_files ef
+        INNER JOIN file_stores fs ON ef.file_store_id = fs.id
+        INNER JOIN billing.edi_related_files efr ON efr.response_file_id = ef.id AND ef.file_type = ${related_file_type}
+    WHERE
+        efr.submission_file_id = ${claim_file_id}
+`;
+    let result = await query(t_sql.text, t_sql.values)
+    if (result && result.rows && result.rows.length) {
+        const {
+            root_directory,
+            uploaded_file_name,
+            file_path,
+            full_path
+        } = (await query(t_sql.text, t_sql.values)).rows[0];
+        const t_fullPath = path.join(full_path, uploaded_file_name);
+        return {
+            data: fs.readFileSync(t_fullPath, { encoding }),
+            root_directory: root_directory,
+            uploaded_file_name: uploaded_file_name
+        }
+    }
 
+    return {
+        data: null,
+        err: `Could not find the file path of requested edi file - ${claim_file_id}`
+    }
+
+}
 
 
 
@@ -385,19 +422,9 @@ const OHIPDataAPI = {
         // return new JSONExtractor(dat).getMappedData();
     },
 
-    handlePayment: (payment) => {
-        /* Sample input payment object:
-        {
-            paymentDate: Date,
-            totalAmountPayable: Number,
-            chequeNumber: String,
-        }
-
-        Sample return value:
-        {
-            paymentId: Number
-        }
-        */
+    handlePayment: async (era_json, param) => {
+       let processedClaims =  await era_parser.processOHIPEraFile(era_json, param)
+       return processedClaims;
     },
 
     handleBalanceForward: (balanceForward) => {
@@ -432,11 +459,10 @@ const OHIPDataAPI = {
 
 
     getFileStore,
-
     storeFile,
     loadFile,
-
     applyBatchEditReport,
+    getRelatedFile
 };
 
 module.exports = OHIPDataAPI;

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const OHIPModule = require('./index');
 
-module.exports = function(billingApi) {
+module.exports = function (billingApi) {
 
     const ohip = new OHIPModule(billingApi);
 
@@ -55,6 +55,14 @@ module.exports = function(billingApi) {
                 isPaymentReceived: false
             }
         ]));
+    });
+
+    router.get('/applyRemittanceAdvice', (req, res) => {
+        const ohip = new OHIPModule(billingApi);
+        ohip.getResponseFromFile(req.query, (ohipResponse) => {
+            console.log('333330', ohipResponse)
+            return res.send(ohipResponse);
+        });
     });
 
     return router;
