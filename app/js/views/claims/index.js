@@ -15,7 +15,8 @@ define(['jquery',
 'text!templates/claims/patient-alert.html',
 'views/app/payment-edit',
 'collections/app/pending-payments',
-'text!templates/claims/payment-row.html'
+'text!templates/claims/payment-row.html',
+'shared/address'
 ],
     function ($,
         _,
@@ -34,7 +35,8 @@ define(['jquery',
         patientAlertTemplate,
         editPaymentView,
         pendingPayments,
-        paymentRowTemplate
+        paymentRowTemplate,
+        address
     ) {
         var claimView = Backbone.View.extend({
             el: null,
@@ -173,6 +175,30 @@ define(['jquery',
 
                 self.initializeDateTimePickers();
                 $('#modal_div_container').animate({ scrollTop: 0 }, 100);
+
+                // Append dynamic address details for canadian config
+                var AddressInfoMap = {
+                    city: {
+                        domId: 'txtPriCity',
+                        infoKey: 'city'
+                    },
+                    state: {
+                        domId: 'ddlPriState',
+                        infoKey: 'state'
+                    },
+                    zipCode: {
+                        domId: 'txtPriZipCode',
+                        infoKey: 'zip'
+                    }
+                }
+
+                address.loadCityStateZipTemplate('#divAddressInfo', {}, AddressInfoMap);
+                if(app.country_alpha_3_code === 'can'){
+                    // Adjust the style alignment
+                    var $addressDiv = $('#divAddressInfo');
+                    $addressDiv.find('div:nth-child(1)').removeClass('p-0');
+                    $addressDiv.find('div:nth-child(2)').addClass('pl-2');
+                }
             },
 
             initializeDateTimePickers: function () {
@@ -775,13 +801,31 @@ define(['jquery',
                     }
                     $('#txtPriSubPriAddr').val(claimData.p_subscriber_address_line1);
                     $('#txtPriSubSecAddr').val(claimData.p_subscriber_address_line2);
-                    $('#txtPriCity').val(claimData.p_subscriber_city);
-                    var states = app.states && app.states.length && app.states[0].app_states;
-                    if (states && states.indexOf(claimData.p_subscriber_state) > -1) {
-                        $('#ddlPriState').val(claimData.p_subscriber_state);
+
+                    // Append dynamic address details for canadian config
+                    var AddressInfoMap = {
+                        city: {
+                            domId: 'txtPriCity',
+                            infoKey: 'p_subscriber_city'
+                        },
+                        state: {
+                            domId: 'ddlPriState',
+                            infoKey: 'p_subscriber_state'
+                        },
+                        zipCode: {
+                            domId: 'txtPriZipCode',
+                            infoKey: 'p_subscriber_zipcode'
+                        }
+                    }
+                    address.loadCityStateZipTemplate('#divAddressInfo', claimData, AddressInfoMap);
+
+                    if(app.country_alpha_3_code === 'can'){
+                        // Adjust the style alignment
+                        var $addressDiv = $('#divAddressInfo');
+                        $addressDiv.find('div:nth-child(1)').removeClass('p-0');
+                        $addressDiv.find('div:nth-child(2)').addClass('pl-2');
                     }
 
-                    $('#txtPriZipCode').val(claimData.p_subscriber_zipcode);
                     document.querySelector('#txtPriDOB').value = claimData.p_subscriber_dob ? moment(claimData.p_subscriber_dob).format('L') : '';
                     document.querySelector('#txtPriStartDate').value = claimData.p_valid_from_date ? moment(claimData.p_valid_from_date).format('L') : '';
                     document.querySelector('#txtPriExpDate').value = claimData.p_valid_to_date ? moment(claimData.p_valid_to_date).format('L') : '';
