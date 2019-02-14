@@ -10,6 +10,7 @@
 
     #PaymentForm .select2-container {
         z-index: 999;
+        width:60% !important;
     }
 
     .maskPendingPay {
@@ -58,7 +59,7 @@
                     </div>
                     <div class="form-group row">
                         <label for="chkpayerInsurance" class="control-label col-sm-4"></label>
-                        <div class="col-sm-5">
+                        <div class="col-sm-8">
                             <div id="divPayerInsurnace" class="payerFields">
                                 <span>
                                     <input type="hidden" id="hdnPayerID" class="form-control">
@@ -71,33 +72,38 @@
                                 </span>
                             </div>
                             <div id="divPayerPatient" style="display:none;" class="payerFields">
-                                <div id="searchPayer" class="d-inline-block mb-1">
-                                    <span class="col-xs-6 pr-1 mb-1 form-inline">
-                                        <input type="text" id="lname" class="form-control search-payer w-100" i18np="billing.payments.lastName"
-                                            placeholder="Last Name">
-                                    </span>
-                                    <span class="form-inline mb-1">
-                                        <input type="text" id="fname" class="form-control search-payer w-100" i18np="billing.payments.firstName"
-                                            placeholder="First Name">
-                                    </span>
-                                    <span class="col-xs-6 pr-1 form-inline">
-                                        <input type="text" id="mrn" class="form-control search-payer w-100" i18np="billing.payments.mrn" placeholder="MRN">
-                                    </span>
-                                    <span class="form-inline">
-                                        <input type="text" id="dob" class="form-control maskDateLocale search-payer w-100" i18np="shared.fields.dob"
-                                            placeholder="DOB">
-                                    </span>
+                                <div id="searchPayer" class="form-inline mb-1">
+                                    <div>                                
+                                        <span class="col-xs-6 pr-1 mb-1 form-inline">
+                                            <input type="text" id="lname" class="form-control search-payer w-100" i18np="billing.payments.lastName"
+                                                placeholder="Last Name">
+                                        </span>
+                                        <span class="form-inline mb-1">
+                                            <input type="text" id="fname" class="form-control search-payer w-100" i18np="billing.payments.firstName"
+                                                placeholder="First Name">
+                                        </span>
+                                        <span class="col-xs-6 pr-1 form-inline">
+                                            <input type="text" id="mrn" class="form-control search-payer w-100" i18np="billing.payments.mrn"
+                                                placeholder="MRN">
+                                        </span>
+                                        <span class="form-inline">
+                                            <input type="text" id="dob" class="form-control maskDateLocale search-payer w-100" i18np="shared.fields.dob"
+                                                placeholder="DOB">
+                                        </span>
+                                    </div>
                                 </div>
                                 <span>
-                                    <select id="txtautoPayerPP" style="width:450px;" tabindex="2"></select>
-                                    <a disabled='disabled' class="btn btn-primary selectPatientSave" id="spnSearchPayerPatient" title="Search">
-                                        <i class="icon-ic-search"></i>
-                                    </a>
+                                    <span>
+                                        <select id="txtautoPayerPP" tabindex="2"></select>
+                                        <a disabled='disabled' class="" id="btnClearPatSearch" title="Clear">
+                                            <i class="fa fa-undo"></i>
+                                        </a>
+                                        <a disabled='disabled' class="selectPatientSave" id="spnSearchPayerPatient" title="Search">
+                                            <i class="fa fa-search"></i>
+                                        </a>
+                                    </span>
                                     <input type="button" class="btnPatientSelectSave d-none" id="btnPatientSelectSave">
                                     <span id="lblAutoPatient"> </span>
-                                    <a disabled='disabled' class="btn btn-primary" id="btnClearPatSearch" title="Clear">
-                                        <i class="fa fa-undo"></i>
-                                    </a>
                                 </span>
                             </div>
                             <div id="divPayerOrderFacility" style="display:none;" class="payerFields">
