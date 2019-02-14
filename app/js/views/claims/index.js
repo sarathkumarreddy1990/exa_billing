@@ -2236,6 +2236,11 @@ define(['jquery',
                             self.bindExistingInsurance(self.existingTriInsurance, 'ddlExistTerIns')
 
                             beneficiary_details = beneficiary_details && beneficiary_details.length ? _.groupBy(beneficiary_details, function (obj) { return obj.coverage_level }) : {};
+                            // Canadian config. allow only primary insurances
+                            if (app.country_alpha_3_code === 'can') {
+                                beneficiary_details = _.pick(beneficiary_details, 'primary');
+                            }
+
                             if (beneficiary_details) {
                                 $.each(beneficiary_details, function (index, object) {
                                     var insurance_details = object.length ? _.sortBy(object, "id")[0] : {}
