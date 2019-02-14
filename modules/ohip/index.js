@@ -144,6 +144,68 @@ module.exports = function(billingApi) {
         });
     };
 
+    const processResponseFiles = async ( args, callback ) => {
+        const ebs = new EBSConnector(await getConfig());
+
+        ebs.list({ resourceType: BATCH_EDIT }, ( listErr, listResponse ) => {
+            const resourceIDs = listResponse.data.map(( detailResponse ) => {
+                return detailResponse.resourceID;
+            });
+
+            ebs.download({ resourceIDs }, async ( downloadErr, downloadResponse ) => {
+
+                if ( downloadErr ) {
+                    await billingApi.storeFile({
+                        filename: 'downloadResponse-error.txt',
+                        data: downloadResponse
+                    });
+                }
+                else {
+                    await billingApi.storeFile({
+                        filename: 'downloadResponse.json',
+                        data: JSON.stringify(downloadResponse)
+                    });
+                }
+
+                const filepaths = [];
+                downloadResponse.data.forEach(async ( downloadData ) => {
+
+                    await billingApi.storeFile({
+                        data: downloadData.content,
+                        filename: downloadData.description,
+                    });
+                });
+
+                callback(null, downloadResponse);
+            });
+        });
+
+        // ebs.list({resourceType: ERROR_REPORTS}, (listErr, listResponse) => {
+        //     const resourceIDs = listResponse.data.map((detailResponse) => {
+        //         return detailResponse.resourceID;
+        //     });
+        //
+        //     ebs.download({resourceIDs}, (downloadErr, downloadResponse) => {
+        //         // TODO: billingApi.handleClaimsErrorReportFile
+        //         console.log(`Claims Error Report downloaded with resource ID: ${detailResponse.resourceID}`);
+        //
+        //     });
+        // });
+        //
+        // ebs.list({resourceType: CLAIMS_MAIL_FILE_REJECT_MESSAGE}, (listErr, listResponse) => {
+        //     const resourceIDs = listResponse.data.map((detailResponse) => {
+        //         return detailResponse.resourceID;
+        //     });
+        //
+        //     ebs.download({resourceIDs}, (downloadErr, downloadResponse) => {
+        //         // TODO: billingApi.handleClaimsErrorReportFile
+        //         console.log(`Claims File Reject Message downloaded with resource ID: ${detailResponse.resourceID}`);
+        //
+        //     });
+        // });
+
+    };
+
     return {
 
         // takes an array of Claim IDs
@@ -274,61 +336,13 @@ module.exports = function(billingApi) {
         },
 
         // TODO: EXA-12016
-        processResponseFiles: async (args, callback) => {
-            const ebs = new EBSConnector(await getConfig());
+        processResponseFiles,
 
-            ebs.list({resourceType: BATCH_EDIT}, (listErr, listResponse) => {
-                const resourceIDs = listResponse.data.map((detailResponse) => {
-                    return detailResponse.resourceID;
-                });
+        responseFilesRefresh: processResponseFiles,
 
-                ebs.download({resourceIDs}, async (downloadErr, downloadResponse) => {
+        remittanceAdviceFilesRefresh: processResponseFiles,
 
-                    if (downloadErr) {
-                        await billingApi.storeFile({filename:'downloadResponse-error.txt',data:downloadResponse});
-                    }
-                    else {
-                        await billingApi.storeFile({filename:'downloadResponse.json',data:JSON.stringify(downloadResponse)});
-                    }
-
-                    const filepaths = [];
-                    downloadResponse.data.forEach(async (downloadData) => {
-
-                        await billingApi.storeFile({
-                            data: downloadData.content,
-                            filename: downloadData.description,
-                        });
-                    });
-
-                    callback(null, downloadResponse);
-                });
-            });
-
-            // ebs.list({resourceType: ERROR_REPORTS}, (listErr, listResponse) => {
-            //     const resourceIDs = listResponse.data.map((detailResponse) => {
-            //         return detailResponse.resourceID;
-            //     });
-            //
-            //     ebs.download({resourceIDs}, (downloadErr, downloadResponse) => {
-            //         // TODO: billingApi.handleClaimsErrorReportFile
-            //         console.log(`Claims Error Report downloaded with resource ID: ${detailResponse.resourceID}`);
-            //
-            //     });
-            // });
-            //
-            // ebs.list({resourceType: CLAIMS_MAIL_FILE_REJECT_MESSAGE}, (listErr, listResponse) => {
-            //     const resourceIDs = listResponse.data.map((detailResponse) => {
-            //         return detailResponse.resourceID;
-            //     });
-            //
-            //     ebs.download({resourceIDs}, (downloadErr, downloadResponse) => {
-            //         // TODO: billingApi.handleClaimsErrorReportFile
-            //         console.log(`Claims File Reject Message downloaded with resource ID: ${detailResponse.resourceID}`);
-            //
-            //     });
-            // });
-
-        },
+        genericGovernanceReportsRefresh: processResponseFiles,
 
         validateHealthCard: async (args, callback) => {
             const ebs = new EBSConnector(await getConfig());
