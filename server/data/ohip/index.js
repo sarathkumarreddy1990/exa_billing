@@ -538,7 +538,7 @@ const OHIPDataAPI = {
                     ef.uploaded_file_name,
                     file_payments.payment_id,
                     eob.eob_file_id,
-                    'true' as is_payment_eceived,
+                    'true' as is_payment_received,
                     'true' as is_acknowledgement_received,
                     COUNT(1) OVER (range unbounded preceding) AS total_records
                 FROM
