@@ -20,8 +20,10 @@ const studyFilterRouter = require('../routes/setup/study-filter');
 const eraRouter = require('../routes/era');
 const splitClaimRouter = require('../routes/claim/split-claim');
 const ohipDataAPI = require('./../data/ohip');
+const cronRoutes = require('../routes/cron-handlers');
 const router = function (app) {
 
+    app.use('/exa_modules/billing/cron', cronRoutes);
     app.use('/exa_modules/billing', indexRouter);
 
     //app.use(authRouter);
