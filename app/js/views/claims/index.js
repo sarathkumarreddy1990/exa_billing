@@ -15,7 +15,8 @@ define(['jquery',
 'text!templates/claims/patient-alert.html',
 'views/app/payment-edit',
 'collections/app/pending-payments',
-'text!templates/claims/payment-row.html'
+'text!templates/claims/payment-row.html',
+'shared/address'
 ],
     function ($,
         _,
@@ -34,7 +35,8 @@ define(['jquery',
         patientAlertTemplate,
         editPaymentView,
         pendingPayments,
-        paymentRowTemplate
+        paymentRowTemplate,
+        address
     ) {
         var claimView = Backbone.View.extend({
             el: null,
@@ -173,6 +175,23 @@ define(['jquery',
 
                 self.initializeDateTimePickers();
                 $('#modal_div_container').animate({ scrollTop: 0 }, 100);
+
+                // Append dynamic address details for canadian config
+                var AddressInfoMap = {
+                    city: {
+                        domId: 'txtPriCity',
+                        infoKey: 'city'
+                    },
+                    state: {
+                        domId: 'ddlPriState',
+                        infoKey: 'state'
+                    },
+                    zipCode: {
+                        domId: 'txtPriZipCode',
+                        infoKey: 'zip'
+                    }
+                }
+                self.bindCityStateZipTemplate({}, AddressInfoMap);
             },
 
             initializeDateTimePickers: function () {
@@ -775,13 +794,24 @@ define(['jquery',
                     }
                     $('#txtPriSubPriAddr').val(claimData.p_subscriber_address_line1);
                     $('#txtPriSubSecAddr').val(claimData.p_subscriber_address_line2);
-                    $('#txtPriCity').val(claimData.p_subscriber_city);
-                    var states = app.states && app.states.length && app.states[0].app_states;
-                    if (states && states.indexOf(claimData.p_subscriber_state) > -1) {
-                        $('#ddlPriState').val(claimData.p_subscriber_state);
-                    }
 
-                    $('#txtPriZipCode').val(claimData.p_subscriber_zipcode);
+                    // Append dynamic address details for canadian config
+                    var AddressInfoMap = {
+                        city: {
+                            domId: 'txtPriCity',
+                            infoKey: 'p_subscriber_city'
+                        },
+                        state: {
+                            domId: 'ddlPriState',
+                            infoKey: 'p_subscriber_state'
+                        },
+                        zipCode: {
+                            domId: 'txtPriZipCode',
+                            infoKey: 'p_subscriber_zipcode'
+                        }
+                    }
+                    self.bindCityStateZipTemplate(claimData, AddressInfoMap);
+
                     document.querySelector('#txtPriDOB').value = claimData.p_subscriber_dob ? moment(claimData.p_subscriber_dob).format('L') : '';
                     document.querySelector('#txtPriStartDate').value = claimData.p_valid_from_date ? moment(claimData.p_valid_from_date).format('L') : '';
                     document.querySelector('#txtPriExpDate').value = claimData.p_valid_to_date ? moment(claimData.p_valid_to_date).format('L') : '';
@@ -2206,6 +2236,11 @@ define(['jquery',
                             self.bindExistingInsurance(self.existingTriInsurance, 'ddlExistTerIns')
 
                             beneficiary_details = beneficiary_details && beneficiary_details.length ? _.groupBy(beneficiary_details, function (obj) { return obj.coverage_level }) : {};
+                            // Canadian config. allow only primary insurances
+                            if (app.country_alpha_3_code === 'can') {
+                                beneficiary_details = _.pick(beneficiary_details, 'primary');
+                            }
+
                             if (beneficiary_details) {
                                 $.each(beneficiary_details, function (index, object) {
                                     var insurance_details = object.length ? _.sortBy(object, "id")[0] : {}
@@ -2576,12 +2611,23 @@ define(['jquery',
                     }
                     $('#txt' + flag + 'SubPriAddr').val(result.subscriber_address_line1);
                     $('#txt' + flag + 'SubSecAddr').val(result.subscriber_address_line2);
-                    $('#txt' + flag + 'City').val(result.subscriber_city);
-                    var states = app.states && app.states.length && app.states[0].app_states;
-                    if (states && states.indexOf(result.subscriber_state) > -1) {
-                        $('#ddl' + flag + 'State').val(result.subscriber_state);
+                     // Append dynamic address details for canadian config
+                    var AddressInfoMap = {
+                        city: {
+                            domId: 'txt' + flag + 'City',
+                            infoKey: 'subscriber_city'
+                        },
+                        state: {
+                            domId: 'ddl' + flag + 'State',
+                            infoKey: 'subscriber_state'
+                        },
+                        zipCode: {
+                            domId: 'txt' + flag + 'ZipCode',
+                            infoKey: 'subscriber_zipcode'
+                        }
                     }
-                    $('#txt' + flag + 'ZipCode').val(result.subscriber_zipcode);
+                    self.bindCityStateZipTemplate(result, AddressInfoMap);
+
                     if(result.coverage_level == "secondary" && result.medicare_insurance_type_code != null) {
                         $('#chkSecMedicarePayer').prop('checked',true);
                         $('#selectMedicalPayer').val(result.medicare_insurance_type_code).toggle(true);
@@ -4646,6 +4692,16 @@ define(['jquery',
                 }
 
                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
+            },
+            bindCityStateZipTemplate:function(data,AddressInfoMap){
+
+                address.loadCityStateZipTemplate('#divAddressInfo', data, AddressInfoMap);
+                if(app.country_alpha_3_code === 'can'){
+                    // Adjust the style alignment
+                    var $addressDiv = $('#divAddressInfo');
+                    $addressDiv.find('.city-state-zip-label').removeClass('p-0');
+                    $addressDiv.find('.city-state-zip-content').addClass('pl-2');
+                }
             }
 
         });
