@@ -2614,6 +2614,18 @@ define(['jquery',
                     $(this.elIDs[level + 'InsZipCode']).val() != getValue(patientAddress.c1Zip)
             },
 
+            validateHealthNumberInputCanada: function (_eleId) {
+                var self = this;
+                var _ele = '#' + _eleId;
+
+                if ($(_ele).val().length > 0 && app.country_alpha_3_code === 'can' && self.patientAddress.c1country === 'can') {
+                    var state = self.isUpdatePatientInfo ? $.trim($('#ddlPriState option:selected').val()) : self.patientAddress.c1State;
+                    var _obj = _.find(commonjs.healthNumberValidation, { province: state || '' });
+                    var pattern = new RegExp(_obj.regexp);
+                    return !pattern.test($(_ele).val());
+                } else
+                    return false;
+            },
             setClaimDetails: function () {
                 var self = this;
                 var claim_model = {}, billingMethod;
@@ -2968,7 +2980,7 @@ define(['jquery',
                 self.is_primary_available = false;
                 self.is_secondary_available = false;
                 self.is_tertiary_available = false;
-
+                self.isUpdatePatientInfo = false;
                 /* Claims section */
                 if (!$('#txtClaimDate').val()) {
                     commonjs.showWarning("messages.warning.claims.selectClaimDate");
@@ -3135,6 +3147,14 @@ define(['jquery',
                     }
                 }
 
+                if (self.priInsID && self.validatePatientAddress("primary")) {
+                    self.isUpdatePatientInfo = true;
+                }
+
+                if (app.country_alpha_3_code === 'can' && self.validateHealthNumberInputCanada("txtPriPolicyNo") ) {
+                    commonjs.showWarning('messages.warning.shared.invalidHealthNumber');
+                    return false;
+                }
                 /* Charge section */
                 var invalidCount = 0;
 
