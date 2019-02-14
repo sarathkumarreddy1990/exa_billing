@@ -416,7 +416,25 @@ var commonjs = {
     prevNotes: [],
     orderNotes: [],
     autoCompleteChanged: false,
-
+    patientInfo: {},
+    // A = Alphabetic
+    // N = Numeric
+    // X = Alphanumeric
+    healthNumberValidation: [
+        { province_code : 'QC' , format:'' , limit:'' , province: "Quebec" }, // No need any validation
+        { province_code : 'YT' , format:'N' , regexp:'^[0-9]{0,9}$' , province: "Yukon" },
+        { province_code : 'AB' , format:'N' , regexp:'^[0-9]{0,9}$' , province: "Alberta" },
+        { province_code : 'NU' , format:'N' , regexp:'^[0-9]{0,9}$' , province: "Nunavut" },
+        { province_code : 'ON' , format:'N' , regexp:'^[0-9]{0,10}$' , province: "Ontario" },
+        { province_code : 'MB' , format:'N' , regexp:'^[0-9]{0,9}$' , province: "Manitoba" },
+        { province_code : 'NS' , format:'N' , regexp:'^[0-9]{0,10}$' , province: "Nova Scotia" },
+        { province_code : 'SK' , format:'N' , regexp:'^[0-9]{0,9}$' , province: "Saskatchewan" },
+        { province_code : 'NB' , format:'N' , regexp:'^[0-9]{0,9}$' , province: "New Brunswick" },
+        { province_code : 'BC' , format:'N' , regexp:'^[0-9]{0,10}$' , province: "British Columbia" },
+        { province_code : 'PE' , format:'N' , regexp:'^[0-9]{0,8}$' , province: "Prince Edward Island" },
+        { province_code : 'NT' , format:'X' , regexp:'^[a-zA-Z0-9_]{0,8}$' , province: "Northwest Territories" },
+        { province_code : 'NL' , format:'N' , regexp:'^[0-9]{0,12}$' , province: "Newfoundland and Labrador" },
+    ],
     pageSize: [
         { 'value': '', 'text': 'Select' },
         { 'value': '25', 'text': '25' },
