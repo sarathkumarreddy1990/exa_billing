@@ -242,6 +242,8 @@ const applyRejectMessage = async (args) => {
     // TODO
     // 1 - set error codes on edi_file_claims (what do "pending ack" claims transition to, now?)
     // 2 - add entry to
+
+    console.log(args);
 };
 
 
@@ -260,6 +262,9 @@ const applyBatchEditReport = async (args) => {
         responseFileId,
         comment,
     } = args;
+
+
+    console.log(args);
 
     const sql = SQL `
         WITH claim_file_cte AS (
@@ -322,7 +327,7 @@ const applyErrorReport = async (args) => {
     // TODO
     // 1 - set error codes on edi_file_claims
     //
-
+    console.log(args);
 };
 
 const updateFileStatus = async (args) => {
@@ -459,7 +464,9 @@ const OHIPDataAPI = {
 
     updateFileStatus,
 
+    applyRejectMessage,
     applyBatchEditReport,
+    applyErrorReport,
 
     getFileManagementData: async (args) => {
 

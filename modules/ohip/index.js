@@ -83,11 +83,22 @@ module.exports = function(billingApi) {
     };
 
     /**
-     * const download - description
+     * const download - downloads the available resources which match the
+     * specified resourceType. When the downloads succeed, then an array of
+     * file information objects is passed to the callback. Example:
+     *     [
+     *        {
+     *            file_store_id: Number,
+     *            edi_file_id: Number,
+     *            fullPath: String,
+     *        },
+     *        // ...
+     *     ]
      *
-     * @param  {type} args     description
-     * @param  {type} callback description
-     * @returns {type}          description
+     * @param  {object} args    {
+     *                              resourceType: String
+     *                          }
+     * @param  {function} callback  standard callback mechanism;
      */
     const download = async (args, callback) => {
 
@@ -97,7 +108,7 @@ module.exports = function(billingApi) {
 
         const ebs = new EBSConnector(await getConfig());
 
-        ebs.list({resourceType}, async (listErr, listResponse) => {
+        await ebs.list({resourceType}, async (listErr, listResponse) => {
 
             if (listErr) {
                 await billingApi.storeFile({filename:'listResponse-error.txt', data: JSON.stringify(downloadResponse)});
@@ -111,11 +122,9 @@ module.exports = function(billingApi) {
                 return detailResponse.resourceID;
             });
 
-            chunk(allResourceIDs, MAX_DOWNLOADS_PER_REQUEST).forEach((resourceIDs) => {
+            chunk(allResourceIDs, MAX_DOWNLOADS_PER_REQUEST).forEach(async (resourceIDs) => {
 
-                ebs.download({resourceIDs}, async (downloadErr, downloadResponse) => {
-
-                    // console.log("Download response: ${downloadResponse}");
+                await ebs.download({resourceIDs}, async (downloadErr, downloadResponse) => {
 
                     if (downloadErr) {
                         await billingApi.storeFile({filename:'downloadResponse-error.txt', data: JSON.stringify(downloadResponse)});
@@ -125,22 +134,18 @@ module.exports = function(billingApi) {
                         await billingApi.storeFile({filename:'downloadResponse.json', data: JSON.stringify(downloadResponse)});
                     }
 
-                    const ediFiles = [];
-
-                    downloadResponse.data.forEach(async (downloadData) => {
-                        ediFiles.push(await billingApi.storeFile({
+                    const ediFiles = await downloadResponse.data.reduce(async (result, downloadData) => {
+                        const d = await billingApi.storeFile({
                             data: downloadData.content,
                             filename: downloadData.description,
-                        }));
-
-                    });
+                        });
+                        result.push(d);
+                        return result;
+                    }, []);
 
                     callback(null, ediFiles);
                 });
             });
-
-
-
         });
     };
 
@@ -169,7 +174,6 @@ module.exports = function(billingApi) {
                     data: submission,
                 };
             });
-            // console.log('claimSubmissions: ', claimSubmissions);
 
             // 3 - store the file(s) that encoder produces (storeFile)
             // TODO this is really hacky but EBS connector doesn't support
@@ -178,21 +182,16 @@ module.exports = function(billingApi) {
                 filename,
                 data,
             } = claimSubmissions[0];
+
             const {
                 edi_file_id,
                 fullPath,
-            } = await billingApi.storeFile({
-                filename,
-                data,
-            });
+            } = await billingApi.storeFile(claimSubmissions[0]);
 
-            // console.log(fileInfo);
-            // return callback(null, claimSubmissions);
+
 
             const ebs = new EBSConnector(await getConfig());
-            //
-            // // TODO
-            // // 1 - create claims file from claims with propper date format
+
             const uploads = [
                 {
                     resourceType: 'CL',
@@ -252,83 +251,45 @@ module.exports = function(billingApi) {
             const ebs = new EBSConnector(await getConfig());
             const f = await billingApi.loadFile({edi_files_id: 38});
             console.log(f);
-            //
-            // ebs.list({status:'UPLOADED', resourceType:'CL'}, (listErr, listResponse) => {
-            //     console.log(listResponse);
-            // });
-            //
-            // return ebs.download({resourceIDs:[62152]}, (downloadErr, downloadResponse) => {
-            // // return ebs.list({resourceType:'ER'}, (downloadErr, downloadResponse) => {
-            //     return callback(downloadErr, downloadResponse);
-            // });
         },
 
         downloadRemittanceAdvice: async (args, callback) => {
 
             const ebs = new EBSConnector(await getConfig());
+
             download({resourceType:BATCH_EDIT}, (downloadErr, ediFiles) => {
-                // console.log(ediFiles);
+                console.log(ediFiles);
                 // console.log(`err: ${downloadErr}`);
                 return callback(downloadErr, ediFiles);
             });
         },
 
+
+
+
         // TODO: EXA-12016
-        processResponseFiles: async (args, callback) => {
-            const ebs = new EBSConnector(await getConfig());
+        downloadAndProcessResponseFiles: async (args, callback) => {
+            // TODO: "zero results" yields an error at the encryption level  
+            // download({resourceType: CLAIMS_MAIL_FILE_REJECT_MESSAGE}, (downloadErr, downloadResponse) => {
+            //     downloadResponse.forEach(async (download) => {
+            //         await billingApi.applyRejectMessage(download);
+            //     });
+            // });
 
-            ebs.list({resourceType: BATCH_EDIT}, (listErr, listResponse) => {
-                const resourceIDs = listResponse.data.map((detailResponse) => {
-                    return detailResponse.resourceID;
-                });
-
-                ebs.download({resourceIDs}, async (downloadErr, downloadResponse) => {
-
-                    if (downloadErr) {
-                        await billingApi.storeFile({filename:'downloadResponse-error.txt',data:downloadResponse});
-                    }
-                    else {
-                        await billingApi.storeFile({filename:'downloadResponse.json',data:JSON.stringify(downloadResponse)});
-                    }
-
-                    const filepaths = [];
-                    downloadResponse.data.forEach(async (downloadData) => {
-
-                        await billingApi.storeFile({
-                            data: downloadData.content,
-                            filename: downloadData.description,
-                        });
-                    });
-
-                    callback(null, downloadResponse);
+            download({resourceType:BATCH_EDIT}, (downloadErr, downloadResponse) => {
+                downloadResponse.forEach(async (download) => {
+                    await billingApi.applyBatchEditReport(download);
                 });
             });
 
-            // ebs.list({resourceType: ERROR_REPORTS}, (listErr, listResponse) => {
-            //     const resourceIDs = listResponse.data.map((detailResponse) => {
-            //         return detailResponse.resourceID;
-            //     });
-            //
-            //     ebs.download({resourceIDs}, (downloadErr, downloadResponse) => {
-            //         // TODO: billingApi.handleClaimsErrorReportFile
-            //         console.log(`Claims Error Report downloaded with resource ID: ${detailResponse.resourceID}`);
-            //
-            //     });
-            // });
-            //
-            // ebs.list({resourceType: CLAIMS_MAIL_FILE_REJECT_MESSAGE}, (listErr, listResponse) => {
-            //     const resourceIDs = listResponse.data.map((detailResponse) => {
-            //         return detailResponse.resourceID;
-            //     });
-            //
-            //     ebs.download({resourceIDs}, (downloadErr, downloadResponse) => {
-            //         // TODO: billingApi.handleClaimsErrorReportFile
-            //         console.log(`Claims File Reject Message downloaded with resource ID: ${detailResponse.resourceID}`);
-            //
-            //     });
-            // });
-
+            download({resourceType:ERROR_REPORTS}, (downloadErr, downloadResponse) => {
+                downloadResponse.forEach(async (download) => {
+                    await billingApi.applyErrorReport(download);
+                });
+            });
         },
+
+
 
         validateHealthCard: async (args, callback) => {
             const ebs = new EBSConnector(await getConfig());
