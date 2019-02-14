@@ -32,6 +32,7 @@ const resourceTypes = {
 
 module.exports = {
 
+    MAX_DOWNLOADS_PER_REQUEST: 5,   // per MCEDT-EBS Service schema 
 
     MONTH_CODE_JANUARY: 65, // 'January' as a processing cycle month code
 
