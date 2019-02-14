@@ -377,5 +377,16 @@ module.exports = function(billingApi) {
                 return callback({ isValid: false, errMsg: "Invalid Heath card number" });
             }
         },
+
+        applyRemittanceAdvice: async (args, callback) => {
+            const f_c = await billingApi.loadFile(args);
+            if(f_c.data){
+                const parser = new Parser(f_c.uploaded_file_name)
+                f_c.ra_json = parser.parse(f_c.data);
+                let response =  await billingApi.handlePayment(f_c, args);
+                return callback(response)
+            }
+            callback(f_c)
+        },
     };
 };

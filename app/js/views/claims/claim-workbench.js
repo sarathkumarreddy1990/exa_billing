@@ -1869,20 +1869,20 @@ define(['jquery',
 
             applyFileManagement: function (fileId) {
                 console.log(fileId);
-                // $.ajax({
-                //     url: "/exa_modules/billing/ohip/applyRemittanceAdvice",
-                //     type: "GET",
-                //     data: {
-                //         //id: claimIds.toString()
-                //     },
-                //     success: function (data, textStatus, jqXHR) {
-                //         commonjs.hideLoading();
-                //         self.ediResponse(data);
-                //     },
-                //     error: function (err) {
-                //         commonjs.handleXhrError(err);
-                //     }
-                // });
+                $.ajax({
+                    url: "/exa_modules/billing/ohip/applyRemittanceAdvice",
+                    type: "POST",
+                    data: {
+                        edi_files_id: fileId
+                    },
+                    success: function (data, textStatus, jqXHR) {
+                        console.log(data)
+                        commonjs.hideDialog()
+                    },
+                    error: function (err) {
+                        commonjs.handleXhrError(err);
+                    }
+                });
             },
 
             clearAllSelectedRows: function () {
