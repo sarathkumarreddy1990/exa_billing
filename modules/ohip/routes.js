@@ -34,5 +34,11 @@ module.exports = function(billingApi) {
         });
     });
 
+
+    router.get('/downloadRemittanceAdvice', (req, res) => {
+        ohip.downloadRemittanceAdvice(req.query, (ohipErr, ohipResponse) => {
+            return res.send(ohipResponse);
+        });
+    });
     return router;
 };

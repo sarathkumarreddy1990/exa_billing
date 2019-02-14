@@ -4,11 +4,21 @@
 
 const EBSConnector = require('./ebs');
 const {
-    BATCH_EDIT,
-    CLAIMS_MAIL_FILE_REJECT_MESSAGE,
-    ERROR_REPORTS,
-} = require('./constants').resourceTypes;
 
+    MAX_DOWNLOADS_PER_REQUEST,
+
+    resourceTypes: {
+        BATCH_EDIT,
+        CLAIMS_MAIL_FILE_REJECT_MESSAGE,
+        ERROR_REPORTS,
+        REMITTANCE_ADVICE
+    },
+} = require('./constants');
+
+
+const {
+    chunk,
+} = require('./utils');
 
 const ClaimsEncoder = require('./encoder/claims');
 const mod10Check = require('./hcv/mod10Check');
@@ -54,6 +64,8 @@ const getResourceIDs = (resourceResult) => {
 };
 
 
+
+
 /**
  * module - creates a new OHIP module
  *
@@ -68,6 +80,68 @@ module.exports = function(billingApi) {
             ohipConfig = await billingApi.getOHIPConfiguration();
         }
         return ohipConfig;
+    };
+
+    /**
+     * const download - description
+     *
+     * @param  {type} args     description
+     * @param  {type} callback description
+     * @returns {type}          description
+     */
+    const download = async (args, callback) => {
+
+        const {
+            resourceType,
+        } = args;
+
+        const ebs = new EBSConnector(await getConfig());
+
+        ebs.list({resourceType}, async (listErr, listResponse) => {
+
+            if (listErr) {
+                await billingApi.storeFile({filename:'listResponse-error.txt', data: JSON.stringify(downloadResponse)});
+                return callback(listErr, null);
+            }
+            else {
+                await billingApi.storeFile({filename:'listResponse.txt', data: JSON.stringify(listResponse)});
+            }
+
+            const allResourceIDs = listResponse.data.map((detailResponse) => {
+                return detailResponse.resourceID;
+            });
+
+            chunk(allResourceIDs, MAX_DOWNLOADS_PER_REQUEST).forEach((resourceIDs) => {
+
+                ebs.download({resourceIDs}, async (downloadErr, downloadResponse) => {
+
+                    // console.log("Download response: ${downloadResponse}");
+
+                    if (downloadErr) {
+                        await billingApi.storeFile({filename:'downloadResponse-error.txt', data: JSON.stringify(downloadResponse)});
+                        return callback(downloadErr, null);
+                    }
+                    else {
+                        await billingApi.storeFile({filename:'downloadResponse.json', data: JSON.stringify(downloadResponse)});
+                    }
+
+                    const ediFiles = [];
+
+                    downloadResponse.data.forEach(async (downloadData) => {
+                        ediFiles.push(await billingApi.storeFile({
+                            data: downloadData.content,
+                            filename: downloadData.description,
+                        }));
+
+                    });
+
+                    callback(null, ediFiles);
+                });
+            });
+
+
+
+        });
     };
 
     return {
@@ -188,6 +262,17 @@ module.exports = function(billingApi) {
             //     return callback(downloadErr, downloadResponse);
             // });
         },
+
+        downloadRemittanceAdvice: async (args, callback) => {
+
+            const ebs = new EBSConnector(await getConfig());
+            download({resourceType:BATCH_EDIT}, (downloadErr, ediFiles) => {
+                // console.log(ediFiles);
+                // console.log(`err: ${downloadErr}`);
+                return callback(downloadErr, ediFiles);
+            });
+        },
+
         // TODO: EXA-12016
         processResponseFiles: async (args, callback) => {
             const ebs = new EBSConnector(await getConfig());
