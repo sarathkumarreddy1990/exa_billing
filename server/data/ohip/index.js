@@ -4,6 +4,7 @@ const { query, SQL } = require('./../index');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const _ = require('lodash')
 const {
     encoding,
     resourceTypes,
@@ -474,40 +475,116 @@ const OHIPDataAPI = {
     loadFile,
     updateFileStatus,
     applyBatchEditReport,
-    getFileManagementData: async (args) => {
+    getFileManagementData: async (params) => {
+        let whereQuery = [];
+        let filterCondition = '';
+        let paymentIds = [];
+        params.sortOrder = params.sortOrder || ' ASC';
+        params.sortField = params.sortField == 'id' ? ' ef.id ' : params.sortField;
+        let {
+            id,
+            size,
+            updated_date_time,
+            current_status,
+            sortOrder,
+            sortField,
+            pageNo,
+            pageSize,
+            uploaded_file_name,
+            payment_id
+        } = params;
 
-        // const sql = SQL`
-        //
-        // `;
-        //
-        // return (await query(sql.text, sql.values)).rows;
+        whereQuery.push(` ef.file_type != 'EOB' `);
 
-        return JSON.stringify([
-            {
-                id: 10,
-                fileName: "001.720",            // edi_files.uploaded_file_name
-                fileType: "Type",               // getExaFileType(edi_files.file_type)
-                submittedDate: "28/01/2019",    //
-                isAcknowledgementReceived: true,
-                isPaymentReceived: true
-            },
-            {
-                id: 10,
-                fileName: "002.424",
-                fileType: "Claim",
-                submittedDate: "02/02/2019",
-                isAcknowledgementReceived: true,
-                isPaymentReceived: true
-            },
-            {
-                id: 3,
-                fileName: "003.509",
-                fileType: "Ack",
-                submittedDate: "11/02/2019",
-                isAcknowledgementReceived: true,
-                isPaymentReceived: false
-            }
-        ]);
+        if (id) {
+            whereQuery.push(` ef.id = ${id} `);
+        }
+
+        if (uploaded_file_name) {
+            whereQuery.push(` ef.uploaded_file_name ILIKE '%${uploaded_file_name}%' `);
+        }
+
+        if (size) {
+            whereQuery.push(` ef.file_size = ${size}`);
+        }
+
+        if (updated_date_time) {
+            whereQuery.push(` ef.created_dt::date = '${updated_date_time}'::date`);
+        }
+
+        if (current_status) {
+            whereQuery.push(` ef.status = replace('${current_status}', '\\', '')`);
+        }
+
+        paymentIds = payment_id && payment_id.split(`,`) || [];
+        paymentIds = _.filter(paymentIds, e => e !== '');
+
+        if (paymentIds.length) {
+            filterCondition = ` AND efp.payment_id = ANY(ARRAY[${paymentIds}]) `;
+            whereQuery.push(' file_payments.payment_id IS NOT NULL ');
+        }
+
+        const sql = SQL`
+                SELECT
+                    ef.id,
+                    ef.id AS file_name,
+                    ef.file_store_id,
+                    ef.created_dt AS updated_date_time,
+                    ef.status AS current_status,
+                    ef.file_type,
+                    ef.file_path,
+                    ef.file_size AS size,
+                    ef.file_md5,
+                    ef.uploaded_file_name,
+                    file_payments.payment_id,
+                    eob.eob_file_id,
+                    'true' as is_payment_received,
+                    'true' as is_acknowledgement_received,
+                    COUNT(1) OVER (range unbounded preceding) AS total_records
+                FROM
+                    billing.edi_files ef
+                    LEFT JOIN LATERAL (
+                        SELECT
+                            array_agg(efp.payment_id) as payment_id
+                        FROM
+                            billing.edi_file_payments efp
+                        WHERE
+                            efp.edi_file_id = ef.id `;
+
+        if (paymentIds.length) {
+            sql.append(filterCondition);
+        }
+
+        sql.append(SQL`) AS file_payments ON TRUE
+                                LEFT JOIN LATERAL (
+                                                SELECT
+                                                   DISTINCT efp.edi_file_id AS eob_file_id
+                                                FROM
+                                                    billing.edi_file_payments efp
+                                                WHERE
+                                                    efp.payment_id = ANY(file_payments.payment_id)
+                                                    AND efp.edi_file_id != ef.id
+                                                ) AS eob ON TRUE
+                                WHERE
+                                company_id =  ${params.companyId} `);
+
+        if (whereQuery.length) {
+            sql.append(SQL` AND `);
+        }
+
+        if (whereQuery.length) {
+            sql.append(whereQuery.join(' AND '));
+        }
+
+        sql.append(SQL` ORDER BY  `)
+            .append('ef.created_dt')
+            /* After implement jqgrid in Filemanagement screen need this code*/
+            // .append(' ')
+            // .append(sortOrder)
+            // .append(SQL` LIMIT ${pageSize}`)
+            // .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
+       return await query(sql);
+
     },
     getExaFileType,
     getOHIPConfiguration: async (args) => {

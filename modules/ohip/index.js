@@ -307,7 +307,7 @@ module.exports = function(billingApi) {
         },
 
         fileManagement: async (args, callback) => {
-            return callback(null, await billingApi.getFileManagementData());
+            return callback(null, await billingApi.getFileManagementData(args));
         },
 
         sandbox: async (args, callback) => {

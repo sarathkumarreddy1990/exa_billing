@@ -1852,7 +1852,7 @@ define(['jquery',
                             i18nHeader: 'billing.claims.fileManagement',
                             width: '80%',
                             height: '70%',
-                            html: self.fileManagementTemplate({ data: response })
+                            html: self.fileManagementTemplate({ data: response.rows })
                         });
 
                         setTimeout(function() {
