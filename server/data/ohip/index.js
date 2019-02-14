@@ -238,28 +238,25 @@ const loadFile = async (args) => {
             fs.id as file_store_id,
             fs.root_directory as root_directory,
             ef.file_path as file_path,
-            ef.uploaded_file_name as uploaded_file_name
+            ef.id as file_id,
+            ef.uploaded_file_name as uploaded_file_name,
+            fs.root_directory || '/' || file_path as full_path
         FROM
             billing.edi_files ef INNER JOIN file_stores fs ON ef.file_store_id = fs.id
         WHERE
             ef.id = ${edi_files_id}
     `;
-
-    const {
-        file_store_id,
-        root_directory,
-        file_path,
-        uploaded_file_name,
-    } = (await query(sql.text, sql.values)).rows[0];
-
-    const fullPath = path.join(root_directory, file_path, uploaded_file_name);
+    let result = await query(sql.text, sql.values)
+    if (result && result.rows && result.rows.length) {
+        let file_d = result.rows[0];
+        const t_fullPath = path.join(file_d.full_path, file_d.uploaded_file_name);
+        file_d.data = fs.readFileSync(t_fullPath, { encoding });
+        return file_d;
+    }
 
     return {
-        data: fs.readFileSync(fullPath, {encoding}),
-        file_store_id,
-        root_directory,
-        file_path,
-        uploaded_file_name
+        data: null,
+        err: `Could not find the file path of requested edi file - ${claim_file_id}`
     }
 }
 
@@ -436,8 +433,8 @@ const OHIPDataAPI = {
         // return new JSONExtractor(dat).getMappedData();
     },
 
-    handlePayment: async (args, param) => {
-       let processedClaims =  await era_parser.processOHIPEraFile(args, param)
+    handlePayment: async (data, args) => {
+       let processedClaims =  await era_parser.processOHIPEraFile(data, args)
        return processedClaims;
     },
 
@@ -487,7 +484,7 @@ const OHIPDataAPI = {
 
         return JSON.stringify([
             {
-                id: 1,
+                id: 10,
                 fileName: "001.720",            // edi_files.uploaded_file_name
                 fileType: "Type",               // getExaFileType(edi_files.file_type)
                 submittedDate: "28/01/2019",    //
@@ -495,7 +492,7 @@ const OHIPDataAPI = {
                 isPaymentReceived: true
             },
             {
-                id: 2,
+                id: 10,
                 fileName: "002.424",
                 fileType: "Claim",
                 submittedDate: "02/02/2019",

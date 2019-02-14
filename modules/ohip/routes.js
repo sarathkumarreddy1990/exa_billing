@@ -41,9 +41,9 @@ module.exports = function (billingApi) {
         });
     });
 
-    router.get('/applyRemittanceAdvice', (req, res) => {
+    router.post('/applyRemittanceAdvice', (req, res) => {
         const ohip = new OHIPModule(billingApi);
-        ohip.applyRemittanceAdvice(req.query, (ohipResponse) => {
+        ohip.applyRemittanceAdvice(req.body, (ohipResponse) => {
             return res.send(ohipResponse);
         });
     });

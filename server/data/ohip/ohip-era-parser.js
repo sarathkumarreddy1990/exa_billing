@@ -7,21 +7,15 @@ const mkdirp = require('mkdirp');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const _ = require('lodash')
 
 const { promisify } = require('util');
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
 
-let auditDetails = {
-    screen_name: 'ERA',
-    module_name: 'era',
-    client_ip: '127.0.0.1',
-    entity_name: 'ERA',
-}
-
 module.exports = {
 
-    processOHIPEraFile: async function (args, params) {
+    processOHIPEraFile: async function (payment_data, params) {
         const self = this;
 
         //ToDo:: Get parsed era file info
@@ -30,15 +24,11 @@ module.exports = {
         try {
 
             logger.info(`Initializing payment creation with OHIP file`);
-            params.screenName = auditDetails.screen_name;
-            params.moduleName = auditDetails.module_name;
-            params.entityName = auditDetails.screen_name;
-            params.entity_name = auditDetails.screen_name;
-            let paymentDetails = await self.createPayment(args, params);
+            let paymentDetails = await self.createPayment(payment_data, params);
             paymentDetails.isFrom = 'OHIP_EOB';
-            params.created_by = paymentDetails.created_by || 1;
-            params.company_id = paymentDetails.company_id || 1;
-            let lineItemsAndClaimLists = await self.getOHIPLineItemsAndClaims(args.ra_json, params);
+            params.created_by = params.userId || 0;
+            params.company_id = params.companyId || 0;
+            let lineItemsAndClaimLists = await self.getOHIPLineItemsAndClaims(payment_data.ra_json, params);
             let processedClaims = await data.createPaymentApplication(lineItemsAndClaimLists, paymentDetails);
 
             // again we call to create payment application for unapplied charges form ERA claims
@@ -62,7 +52,7 @@ module.exports = {
 
         let lineItems = [];
         ohipJson.claims.forEach((claim, claim_index) => {
-            if (claim.claimNumber && !isNaN(claim.claimNumber)) {
+            if (claim.accountingNumber && !isNaN(claim.accountingNumber)) {
                 claim.items.forEach((serviceLine) => {
 
                     let index = 1;
@@ -71,7 +61,7 @@ module.exports = {
 
                     //DESC : Formatting lineItems (Added sequence index and flag:true ) if duplicate cpt code came
                     let duplicateObj = _.findLast(lineItems, {
-                        claim_number: serviceLine.claimNumber,
+                        claim_number: parseInt(claim.accountingNumber),
                         cpt_code: serviceLine.serviceCode,
                         claim_index: claim_index
                     });
@@ -95,7 +85,7 @@ module.exports = {
                     }
 
                     let item = {
-                        claim_number: serviceLine.claimNumber,
+                        claim_number: parseInt(claim.accountingNumber),
                         cpt_code: serviceLine.serviceCode,
                         payment: amountPaid || 0.00,
                         adjustment: 0.00,
@@ -118,7 +108,14 @@ module.exports = {
                 });
             }
         });
-
+        let auditDetails = {
+            screen_name: params.screenName,
+            module_name: params.moduleName,
+            entity_name: params.entityName,
+            client_ip: params.clientIp,
+            company_id: params.companyId,
+            user_id: params.userId
+        }
         return {
             lineItems: lineItems,
             claimComments: [],

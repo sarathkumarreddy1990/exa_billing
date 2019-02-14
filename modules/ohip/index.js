@@ -365,8 +365,7 @@ module.exports = function(billingApi) {
         },
 
         applyRemittanceAdvice: async (args, callback) => {
-            args.clientIp = '127.0.0.1' // will remove later once the API called from GUI. To skip not null constraint adding it
-            const f_c = await billingApi.getRelatedFile(args.edi_file_id, 'can_ohip_p');
+            const f_c = await billingApi.loadFile(args);
             if(f_c.data){
                 const parser = new Parser(f_c.uploaded_file_name)
                 f_c.ra_json = parser.parse(f_c.data);
