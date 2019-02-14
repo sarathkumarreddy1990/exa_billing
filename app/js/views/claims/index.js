@@ -4674,8 +4674,8 @@ define(['jquery',
                 if(app.country_alpha_3_code === 'can'){
                     // Adjust the style alignment
                     var $addressDiv = $('#divAddressInfo');
-                    $addressDiv.find('div:nth-child(1)').removeClass('p-0');
-                    $addressDiv.find('div:nth-child(2)').addClass('pl-2');
+                    $addressDiv.find('.city-state-zip-label').removeClass('p-0');
+                    $addressDiv.find('.city-state-zip-content').addClass('pl-2');
                 }
             }
 
