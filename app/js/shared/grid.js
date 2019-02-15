@@ -361,7 +361,7 @@ define('grid', [
                                     liPayerTypeArray.push($(commonjs.getRightClickMenu('ancOrderingFacility_' + billingPayers.ordering_facility_id, '', true, billingPayers.ordering_facility_name + '( Service Facility )', false)));
                                 }
                                 if (billingPayers.referring_provider_contact_id) {
-                                    liPayerTypeArray.push($(commonjs.getRightClickMenu('ancRenderingProvider_' + billingPayers.referring_provider_contact_id, '', true, billingPayers.ref_prov_full_name + '( Rendering Proivider )', false)));
+                                    liPayerTypeArray.push($(commonjs.getRightClickMenu('ancRenderingProvider_' + billingPayers.referring_provider_contact_id, '', true, billingPayers.ref_prov_full_name + '( Referring Provider )', false)));
                                 }
                                 $('#ul_change_payer_type').append(liPayerTypeArray);
                                 $('#ul_change_payer_type li').click(function (e) {
