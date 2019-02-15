@@ -486,10 +486,16 @@ define(['jquery',
                     this.payerType = 'patient';
                     coverage_level = 'Patient';
                     $("#hdnPayerID").val(patientArray[0].patient_id);
-                    $("#lblAutoPatient").html(patientArray[0].patient_name);
-                    $('#select2-txtautoPayerPP-container').html(patientArray[0].account_no);
+                    $('#select2-txtautoPayerPP-container').html(patientArray[0].patient_name);
+                    $('#searchPayer #mrn').val(patientArray[0].account_no || '');
+                    $('#searchPayer #lname').val(patientArray[0].last_name || '');
+                    $('#searchPayer #fname').val(patientArray[0].first_name || '');
+                    $('#searchPayer #dob').val(moment(patientArray[0].birth_date).format('L') || '');
                 } else {
-                    $("#lblAutoPatient").html('');
+                    $('#searchPayer #mrn').val("");
+                    $('#searchPayer #lname').val("");
+                    $('#searchPayer #fname').val("");
+                    $('#searchPayer #dob').val("");
                     $('#select2-txtautoPayerPP-container').html(this.usermessage.selectPatient);
                 }
                 $('#siteModal').modal('hide');
