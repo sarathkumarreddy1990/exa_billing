@@ -13,7 +13,9 @@ WITH payments_pdf as (
     SELECT
          bp.id AS payment_id,
          get_full_name(pu.last_name,pu.first_name) AS user_full_name,
-         get_full_name(pp.last_name,pp.first_name) AS patient_full_name,
+         CASE WHEN payer_type = 'patient' THEN
+            get_full_name(pp.last_name,pp.first_name)
+         END AS patient_full_name,
          get_full_name(ppr.last_name,ppr.first_name) AS provider_full_name,
          pip.insurance_name,
          pip.insurance_code,
@@ -75,10 +77,10 @@ WITH payments_pdf as (
                 WHEN 'patient' THEN  pp.full_name
             END)  ILIKE '%<%= payerName %>%'
       <% } else { %>
-        AND pip.insurance_name  ILIKE '%<%= payerName %>%'
+        AND ( pip.insurance_name  ILIKE '%<%= payerName %>%'
         OR ppg.group_name  ILIKE '%<%= payerName %>%'
         OR ppr.full_name  ILIKE '%<%= payerName %>%'
-        OR pp.full_name ILIKE '%<%= payerName %>%'
+        OR pp.full_name ILIKE '%<%= payerName %>%' )
       <% } %>
     <% } %>
     <% if(amount) { %>
