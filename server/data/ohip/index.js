@@ -1,4 +1,4 @@
-const { query, SQL } = require('./../index');
+const { query, SQL, audit } = require('./../index');
 // const ediData = require('../../data/claim/claim-edi');
 // const JSONExtractor = require('./jsonExtractor');
 const fs = require('fs');
@@ -383,9 +383,9 @@ const setClaimSubmissionFile = (args) => {
 
 const OHIPDataAPI = {
 
-    auditTransaction: (info) => {
-        console.log(`audit log: ${info}`);
-        /* Sample input info object:
+    auditTransaction: (args) => {
+        console.log(`audit log: ${args.info}`);
+        /* Sample input args.info object, also args.oldInfo which usually be {}:
         {
             transactionID:              // TODO need clarification from MoH
             serviceUser:                // MoH User ID
@@ -400,6 +400,26 @@ const OHIPDataAPI = {
             errorMessages: Array        // array of strings
         }
         */
+        /*  All these arguments are needed, default value for entityName, entityId and clientIP
+            are processed in audit.createAudit
+        */
+        let {
+            userId = 1,
+            entityName = null,
+            entityKey = null,
+            screenName = 'Billing',
+            moduleName = 'OHIP',
+            logDescription = 'OHIP audit log',
+            clientIp = null,
+            companyId = 1,
+            oldInfo = {},
+            info = {}
+        } = args;
+
+        args.newData = info;
+        args.oldData = oldInfo;
+
+        return await audit.createAudit(args);
     },
 
     getClaimsData: async(args) => {
@@ -450,8 +470,6 @@ const OHIPDataAPI = {
         */
     },
 
-
-
     handleAccountingTransaction: (accountingTransaction) => {
         /* Sample input accountingTransaction object
         {
@@ -468,7 +486,6 @@ const OHIPDataAPI = {
     handleMessage: (message) => {
         // message is just a String
     },
-
 
     getFileStore,
     storeFile,
