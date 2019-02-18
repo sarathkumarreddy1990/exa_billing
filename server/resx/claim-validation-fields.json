@@ -1,0 +1,7 @@
+{
+    "healthNumber": true,
+    "versionCode": true,
+    "referringProviderNumber": true,
+    "patientAddress": true,
+    "provinceCode": true
+} 

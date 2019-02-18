@@ -1,6 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const logger = require('../../../logger');
+const { promisify } = require('util');
+const readFileAsync = promisify(fs.readFile);
 
 const data = require('../../data/claim/claim-workbench');
 const ediData = require('../../data/claim/claim-edi');
@@ -244,6 +246,10 @@ module.exports = {
     },
 
     validateClaim: async function (params) {
+        if(params.country === 'can') {
+            return this.validateClaimFields(params);
+        }
+
         let claimDetails = await ediData.validateClaim(params);
 
         if (claimDetails && claimDetails.constructor.name === 'Error') {
@@ -467,5 +473,55 @@ module.exports = {
 
     getClaimSummary: async function (params) {
         return await data.getClaimSummary(params);
+    },
+
+    validateClaimFields: async function (params) {
+        let claimDetails = await this.submitOhipClaim({ claimIds: params.claim_ids.join(',') });
+        claimDetails = claimDetails.rows;
+
+        let file_path = path.join(__dirname, '../../resx/claim-validation-fields.json');
+        let valdationClaimJson = await readFileAsync(file_path, 'utf8');
+        valdationClaimJson = JSON.parse(valdationClaimJson);
+
+        let validation_result = {
+            invalidClaim_data: [],
+            validClaim_data: []
+        };
+
+        let error_data;
+        params.success_claimID = [];
+
+        _.each(claimDetails, (currentClaim) => {
+            let errorMessages = [];
+            let claimData = currentClaim.claims[0].insuranceDetails;
+
+            _.each(valdationClaimJson, (fieldValue, field) => {
+                if (fieldValue) {
+                    !claimData[field] || !claimData[field].length ? errorMessages.push(` Claim - ${field} does not exists`) : null;
+                }
+            });
+
+            if (!errorMessages.length) {
+                params.success_claimID.push(currentClaim.claim_id);
+            }
+            else {
+                error_data = {
+                    'id': currentClaim.claim_id,
+                    'patient_name': claimData.patientName,
+                    'payer_name': claimData.payerName,
+                    'claim_notes': currentClaim.claimNotes,
+                    'errorMessages': errorMessages
+                };
+
+                validation_result.invalidClaim_data.push(error_data);
+            }
+
+        });
+
+        if (params.success_claimID && params.success_claimID.length > 0) {
+            validation_result.validClaim_data = await data.updateValidateClaimStatus(params);
+        }
+
+        return validation_result;
     }
 };
