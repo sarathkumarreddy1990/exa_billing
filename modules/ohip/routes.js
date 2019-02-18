@@ -7,7 +7,7 @@ module.exports = function(billingApi) {
     const ohip = new OHIPModule(billingApi);
 
     router.get('/sandbox', (req, res) => {
-        ohip.downloadAndProcessResponseFiles(req.query, (ohipErr, ohipResponse) => {
+        ohip.sandbox(req.query, (ohipErr, ohipResponse) => {
             return res.send(ohipResponse);
         });
     });
