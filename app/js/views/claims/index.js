@@ -4074,6 +4074,7 @@ define(['jquery',
                 setTimeout(function () {
                     $('#divPageLoading').hide();
                     self.addPatientHeaderDetails(patient_details, 'create');
+                    commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
                     $('#divPatient').hide();
                     $('.woClaimRelated').show();
                     self.showAlertBadge();
