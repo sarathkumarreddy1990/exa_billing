@@ -1,4 +1,5 @@
 const { query, SQL } = require('./../index');
+const moment = require('moment');
 // const ediData = require('../../data/claim/claim-edi');
 // const JSONExtractor = require('./jsonExtractor');
 const fs = require('fs');
@@ -131,9 +132,11 @@ const getFileStore = async (args) => {
 const storeFile =  async (args) => {
 
     const {
+        createdDate,
         filename,
         data,
     } = args;
+
 
     // 20120331 - OHIP Conformance Testing Batch Edit sample batch date, seq: 0005
     // accounting number: "CST-PRIM" from Conformance Testing Error Report sample
@@ -161,7 +164,7 @@ const storeFile =  async (args) => {
         VALUES(
             1
             ,${filestore.id}
-            ,now()
+            ,'${moment(createdDate || new Date()).format("YYYY-MM-DD")}'::timestamptz
             ,'pending'
 
             --,${getExaFileType(filename)}
@@ -433,6 +436,11 @@ const setClaimSubmissionFile = (args) => {
     `;
 };
 
+const OHIP_CONFIGURATION_MODE = {
+    CONFORMANCE_TESTING: 'Conformance Testing',
+    DEMO: 'Demonstration',
+};
+
 const OHIPDataAPI = {
 
     auditTransaction: (info) => {
@@ -616,6 +624,8 @@ const OHIPDataAPI = {
 
     getExaFileType,
 
+    OHIP_CONFIGURATION_MODE,
+
     getOHIPConfiguration: async (args) => {
         return {
             // TODO: EXA-12674
@@ -624,6 +634,7 @@ const OHIPDataAPI = {
             serviceUserMUID: 614200,
             username: "confsu+355@gmail.com",
             password: "Password1!",
+            mode: OHIP_CONFIGURATION_MODE.DEMO,
         };
     },
 

@@ -209,6 +209,26 @@ module.exports = function(billingApi) {
         });
     };
 
+    /**
+     * const createEncoderContext - description
+     *
+     * @param  {type} args description
+     * @returns {type}      description
+     */
+    const createEncoderContext = async () => {
+
+        return {
+            [billingApi.OHIP_CONFIGURATION_MODE.CONFORMANCE_TESTING]: {
+                batchDate: new Date(),
+            },
+            [billingApi.OHIP_CONFIGURATION_MODE.DEMO]: {
+                batchDate: new Date('2012-03-31'),
+                batchSequenceNumber: 5, // matches OHIP Batch Edit sample
+            },
+
+        }[(await getConfig()).mode];
+    };
+
 
 
     //
@@ -234,13 +254,11 @@ module.exports = function(billingApi) {
             // console.log(claimData);
 
             // 2 - run claim data through encoder
-            const claimEnc = new ClaimsEncoder(); // default 1:1/1:1
-            // const claimEnc = new ClaimsEncoder({batchesPerFile:5});
+            // const claimEnc = new ClaimsEncoder(); // default 1:1/1:1
+            const claimEnc = new ClaimsEncoder({batchesPerFile:5});
             // const claimEnc = new ClaimsEncoder({claimsPerBatch:5});
-            const submissionsByGroup = claimEnc.encode(claimData, {
-                // context
-                batchDate: new Date(),  // TODO hard-code this to CT RA for demo
-            });
+            const encoderContext = await createEncoderContext();
+            const submissionsByGroup = claimEnc.encode(claimData, encoderContext);
 
             // 3 - manifest claim files
             //
@@ -267,7 +285,7 @@ module.exports = function(billingApi) {
             // out [{data:String, filename:String, edi_file_id, file_store_id, absolutePath, batches: [batchSequenceNumber, claimIds:[Number]]}]
             const storedFiles = reduce(allFiles, async (storedResult, file) => {
                 const storedFile = {
-                    ...await billingApi.storeFile(file),
+                    ...await billingApi.storeFile({createdDate: encoderContext.batchDate, ...file}),
                     ...file,
                 };
 
