@@ -703,7 +703,7 @@ module.exports = {
 											                            GROUP BY cas_group_codes.code ) AS lineAdjustment)
                                         FROM billing.payment_applications pa
                                         INNER JOIN billing.payments ON billing.payments.id=pa.payment_id
-										WHERE charge_id = charges.id
+                                        WHERE charge_id = charges.id
                                         AND payments.insurance_provider_id NOT IN 
                                         (SELECT insurance_provider_id 
 						FROM public.patient_insurances
