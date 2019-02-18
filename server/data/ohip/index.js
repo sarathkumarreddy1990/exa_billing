@@ -477,8 +477,10 @@ const OHIP_CONFIGURATION_MODE = {
 
 const OHIPDataAPI = {
 
-    auditTransaction: (args) => {
-        
+    OHIP_CONFIGURATION_MODE,
+
+    auditTransaction: async (args) => {
+
         /* Sample input args.info object, also args.oldInfo which usually be {}:
         {
             transactionID:              // TODO need clarification from MoH
@@ -511,7 +513,6 @@ const OHIPDataAPI = {
         } = args;
 
         args.newData = info;
-        args.oldData = oldInfo;
 
         return await audit.createAudit(args);
     },
@@ -598,6 +599,30 @@ const OHIPDataAPI = {
     applyBatchEditReport,
     applyErrorReport,
 
+    getFileManagementData: async (params) => {
+        let whereQuery = [];
+        let filterCondition = '';
+        let paymentIds = [];
+        params.sortOrder = params.sortOrder || ' ASC';
+        params.sortField = params.sortField == 'id' ? ' ef.id ' : params.sortField;
+        let {
+            id,
+            size,
+            updated_date_time,
+            current_status,
+            sortOrder,
+            sortField,
+            pageNo,
+            pageSize,
+            uploaded_file_name,
+            payment_id
+        } = params;
+
+        whereQuery.push(` ef.file_type != 'EOB' `);
+
+        if (id) {
+                whereQuery.push(` ef.id = ${id} `);
+        }
 
         if (uploaded_file_name) {
             whereQuery.push(` ef.uploaded_file_name ILIKE '%${uploaded_file_name}%' `);

@@ -483,13 +483,13 @@ module.exports = function(billingApi) {
 
 
         // TODO: EXA-12016
-        processResponseFiles,
-
-        responseFilesRefresh: processResponseFiles,
-
-        remittanceAdviceFilesRefresh: processResponseFiles,
-
-        genericGovernanceReportsRefresh: processResponseFiles,
+        // processResponseFiles,
+        //
+        // responseFilesRefresh: processResponseFiles,
+        //
+        // remittanceAdviceFilesRefresh: processResponseFiles,
+        //
+        // genericGovernanceReportsRefresh: processResponseFiles,
 
         validateHealthCard: async (args, callback) => {
             const ebs = new EBSConnector(await getConfig());
