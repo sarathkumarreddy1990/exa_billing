@@ -137,17 +137,21 @@ module.exports = function(options) {
 
         let data = '';
 
-        const batches = reduce(fileBatches, (result, batch, batchSequenceNumber) => {
-
-            data += encodeBatch(batch, {batchSequenceNumber, ...context});
+        const batches = reduce(fileBatches, (result, batch) => {
+;
+            data += encodeBatch(batch, {...context});
 
             result.push({
-                batchSequenceNumber,
+                batchSequenceNumber: context.batchSequenceNumber,
                 claimIds: batch.map((claim) => {
                     // console.log(claim);
                     return claim.claim_id;
                 }),
             });
+
+
+            context.batchSequenceNumber++;
+
             return result;
         }, []);
 
@@ -214,9 +218,13 @@ module.exports = function(options) {
                         // batch all the claims for this billing number / license number combo
                         const fileChunks = chunk(chunk(specialtyClaims, claimsPerBatch), batchesPerFile);
 
+                        context.batchSequenceNumber = (context.batchSequenceNumber || 0);
+                        // console.log('encoding specialty batch sequence #: ', context.batchSequenceNumber);
+
+                        context.specialtyCode = specialtyCode;
                         // encode and add append the files to the specialty files
                         return specialtyResult.concat(fileChunks.map((fileChunk) => {
-                            return encodeClaimFile(fileChunk, {specialtyCode, ...context});
+                            return encodeClaimFile(fileChunk, context);
                         }));
 
                     }, []);
