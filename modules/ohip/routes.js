@@ -1,8 +1,11 @@
+'use strict';
+
+const logger = require('../../logger');
 const express = require('express');
 const router = express.Router();
 const OHIPModule = require('./index');
 
-module.exports = function(billingApi) {
+module.exports = function (billingApi) {
 
     const ohip = new OHIPModule(billingApi);
 
@@ -40,5 +43,13 @@ module.exports = function(billingApi) {
             return res.send(ohipResponse);
         });
     });
+
+    router.post('/applyRemittanceAdvice', (req, res) => {
+        const ohip = new OHIPModule(billingApi);
+        ohip.applyRemittanceAdvice(req.body, (ohipResponse) => {
+            return res.send(ohipResponse);
+        });
+    });
+
     return router;
 };

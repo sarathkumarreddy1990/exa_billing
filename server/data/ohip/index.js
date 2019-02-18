@@ -1,10 +1,12 @@
-const { query, SQL } = require('./../index');
+const { query, SQL, audit } = require('./../index');
 const moment = require('moment');
 // const ediData = require('../../data/claim/claim-edi');
 // const JSONExtractor = require('./jsonExtractor');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const _ = require('lodash');
+
 const {
     encoding,
     resourceTypes,
@@ -12,6 +14,7 @@ const {
 } = require('./../../../modules/ohip/constants');
 
 const ohipUtil = require('./../../../modules/ohip/utils');
+const era_parser = require('./ohip-era-parser');
 
 // corresponds to the file_type field of edi_files
 const exaFileTypes = {
@@ -187,7 +190,36 @@ const storeFile =  async (args) => {
     };
 };
 
+const getRelatedFile = async (claim_file_id, related_file_type) => {
+    const t_sql = SQL`
+    SELECT
+        fs.id as file_store_id,
+        fs.root_directory as root_directory,
+        ef.file_path as file_path,
+        ef.id as file_id,
+        ef.uploaded_file_name as uploaded_file_name,
+        fs.root_directory || '/' || file_path as full_path
+    FROM
+        billing.edi_files ef
+        INNER JOIN file_stores fs ON ef.file_store_id = fs.id
+        INNER JOIN billing.edi_related_files efr ON efr.response_file_id = ef.id AND ef.file_type = ${related_file_type}
+    WHERE
+        efr.submission_file_id = ${claim_file_id}
+`;
+    let result = await query(t_sql.text, t_sql.values)
+    if (result && result.rows && result.rows.length) {
+        let file_d = result.rows[0];
+        const t_fullPath = path.join(file_d.full_path, file_d.uploaded_file_name);
+        file_d.data = fs.readFileSync(t_fullPath, { encoding });
+        return file_d;
+    }
 
+    return {
+        data: null,
+        err: `Could not find the file path of requested edi file - ${claim_file_id}`
+    }
+
+}
 
 
 
@@ -215,7 +247,9 @@ const loadFile = async (args) => {
             fs.id as file_store_id,
             fs.root_directory as root_directory,
             ef.file_path as file_path,
-            ef.uploaded_file_name as uploaded_file_name
+            ef.id as file_id,
+            ef.uploaded_file_name as uploaded_file_name,
+            fs.root_directory || '/' || file_path as full_path
         FROM
             billing.edi_files ef INNER JOIN file_stores fs ON ef.file_store_id = fs.id
         WHERE
@@ -443,9 +477,9 @@ const OHIP_CONFIGURATION_MODE = {
 
 const OHIPDataAPI = {
 
-    auditTransaction: (info) => {
-        console.log(`audit log: ${info}`);
-        /* Sample input info object:
+    auditTransaction: (args) => {
+        
+        /* Sample input args.info object, also args.oldInfo which usually be {}:
         {
             transactionID:              // TODO need clarification from MoH
             serviceUser:                // MoH User ID
@@ -460,6 +494,26 @@ const OHIPDataAPI = {
             errorMessages: Array        // array of strings
         }
         */
+        /*  All these arguments are needed, default value for entityName, entityId and clientIP
+            are processed in audit.createAudit
+        */
+        let {
+            userId = 1,
+            entityName = null,
+            entityKey = null,
+            screenName = 'Billing',
+            moduleName = 'OHIP',
+            logDescription = 'OHIP audit log',
+            clientIp = null,
+            companyId = 1,
+            oldInfo = {},
+            info = {}
+        } = args;
+
+        args.newData = info;
+        args.oldData = oldInfo;
+
+        return await audit.createAudit(args);
     },
 
     getClaimsData: async (args) => {
@@ -527,58 +581,16 @@ const OHIPDataAPI = {
         return (await query(sql.text, sql.values)).rows;
     },
 
-    handlePayment: (payment) => {
-        /* Sample input payment object:
-        {
-            paymentDate: Date,
-            totalAmountPayable: Number,
-            chequeNumber: String,
-        }
-
-        Sample return value:
-        {
-            paymentId: Number
-        }
-        */
+    handlePayment: async (data, args) => {
+       let processedClaims =  await era_parser.processOHIPEraFile(data, args)
+       return processedClaims;
     },
-
-    handleBalanceForward: (balanceForward) => {
-        /* Sample input balanceForward object
-        {
-            claimsAdjustment: Number,
-            advances: Number,
-            reductions: Number,
-            deductions: Number,
-        }
-        */
-    },
-
-
-
-    handleAccountingTransaction: (accountingTransaction) => {
-        /* Sample input accountingTransaction object
-        {
-            transactionCode: String,
-            chequeNumber: String,
-            transactionDate: Date
-            transactionAmount: Number,
-            transactionMessage: String
-        }
-
-        */
-    },
-
-    handleMessage: (message) => {
-        // message is just a String
-    },
-
 
     getFileStore,
-
     storeFile,
     loadFile,
-
     updateFileStatus,
+
     updateClaimStatus,
 
     applyClaimSubmission,
@@ -586,46 +598,95 @@ const OHIPDataAPI = {
     applyBatchEditReport,
     applyErrorReport,
 
-    getFileManagementData: async (args) => {
 
-        // const sql = SQL`
-        //
-        // `;
-        //
-        // return (await query(sql.text, sql.values)).rows;
+        if (uploaded_file_name) {
+            whereQuery.push(` ef.uploaded_file_name ILIKE '%${uploaded_file_name}%' `);
+        }
 
-        return JSON.stringify([
-            {
-                id: 1,
-                fileName: "001.720",            // edi_files.uploaded_file_name
-                fileType: "Type",               // getExaFileType(edi_files.file_type)
-                submittedDate: "28/01/2019",    //
-                isAcknowledgementReceived: true,
-                isPaymentReceived: true
-            },
-            {
-                id: 2,
-                fileName: "002.424",
-                fileType: "Claim",
-                submittedDate: "02/02/2019",
-                isAcknowledgementReceived: true,
-                isPaymentReceived: true
-            },
-            {
-                id: 3,
-                fileName: "003.509",
-                fileType: "Ack",
-                submittedDate: "11/02/2019",
-                isAcknowledgementReceived: true,
-                isPaymentReceived: false
-            }
-        ]);
+        if (size) {
+            whereQuery.push(` ef.file_size = ${size}`);
+        }
+
+        if (updated_date_time) {
+            whereQuery.push(` ef.created_dt::date = '${updated_date_time}'::date`);
+        }
+
+        if (current_status) {
+            whereQuery.push(` ef.status = replace('${current_status}', '\\', '')`);
+        }
+
+        paymentIds = payment_id && payment_id.split(`,`) || [];
+        paymentIds = _.filter(paymentIds, e => e !== '');
+
+        if (paymentIds.length) {
+            filterCondition = ` AND efp.payment_id = ANY(ARRAY[${paymentIds}]) `;
+            whereQuery.push(' file_payments.payment_id IS NOT NULL ');
+        }
+
+        const sql = SQL`
+                SELECT
+                    ef.id,
+                    ef.id AS file_name,
+                    ef.file_store_id,
+                    ef.created_dt AS updated_date_time,
+                    ef.status AS current_status,
+                    ef.file_type,
+                    ef.file_path,
+                    ef.file_size AS size,
+                    ef.file_md5,
+                    ef.uploaded_file_name,
+                    file_payments.payment_id,
+                    eob.eob_file_id,
+                    'true' as is_payment_received,
+                    'true' as is_acknowledgement_received,
+                    COUNT(1) OVER (range unbounded preceding) AS total_records
+                FROM
+                    billing.edi_files ef
+                    LEFT JOIN LATERAL (
+                        SELECT
+                            array_agg(efp.payment_id) as payment_id
+                        FROM
+                            billing.edi_file_payments efp
+                        WHERE
+                            efp.edi_file_id = ef.id `;
+
+        if (paymentIds.length) {
+            sql.append(filterCondition);
+        }
+
+        sql.append(SQL`) AS file_payments ON TRUE
+                                LEFT JOIN LATERAL (
+                                                SELECT
+                                                   DISTINCT efp.edi_file_id AS eob_file_id
+                                                FROM
+                                                    billing.edi_file_payments efp
+                                                WHERE
+                                                    efp.payment_id = ANY(file_payments.payment_id)
+                                                    AND efp.edi_file_id != ef.id
+                                                ) AS eob ON TRUE
+                                WHERE
+                                company_id =  ${params.companyId} `);
+
+        if (whereQuery.length) {
+            sql.append(SQL` AND `);
+        }
+
+        if (whereQuery.length) {
+            sql.append(whereQuery.join(' AND '));
+        }
+
+        sql.append(SQL` ORDER BY  `)
+            .append('ef.created_dt')
+            /* After implement jqgrid in Filemanagement screen need this code*/
+            // .append(' ')
+            // .append(sortOrder)
+            // .append(SQL` LIMIT ${pageSize}`)
+            // .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
+       return await query(sql);
+
     },
 
     getExaFileType,
-
-    OHIP_CONFIGURATION_MODE,
-
     getOHIPConfiguration: async (args) => {
         return {
             // TODO: EXA-12674
@@ -637,7 +698,7 @@ const OHIPDataAPI = {
             mode: OHIP_CONFIGURATION_MODE.DEMO,
         };
     },
-
+    getRelatedFile
 };
 
 module.exports = OHIPDataAPI;

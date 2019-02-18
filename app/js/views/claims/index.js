@@ -2852,7 +2852,7 @@ define(['jquery',
                         modifier4_id: $('#txtModifier4_' + id).attr('data-id') ? parseInt($('#txtModifier4_' + id).attr('data-id')) : null,
                         bill_fee: parseFloat($('#txtBillFee_' + id).val()) || 0.00,
                         allowed_amount: parseFloat($('#txtAllowedFee_' + id).val()) || 0.00,
-                        units: parseFloat($('#txtUnits_' + id).val()) || 1.000,
+                        units: app.country_alpha_3_code ==='can' ? parseInt($('#txtUnits_' + id).val()) || 1 : parseFloat($('#txtUnits_' + id).val()) || 1.000,
                         created_by: app.userID,
                         authorization_no: $('#txtAuthInfo_' + id).val() || null,
                         charge_dt: self.cur_study_date || null,
@@ -4171,6 +4171,7 @@ define(['jquery',
                 setTimeout(function () {
                     $('#divPageLoading').hide();
                     self.addPatientHeaderDetails(patient_details, 'create');
+                    commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
                     $('#divPatient').hide();
                     $('.woClaimRelated').show();
                     self.showAlertBadge();

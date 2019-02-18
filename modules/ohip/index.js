@@ -235,6 +235,7 @@ module.exports = function(billingApi) {
     // *************************** PUBLIC **************************************
     //
 
+
     return {
 
         /**
@@ -430,12 +431,12 @@ module.exports = function(billingApi) {
             }, []);
             // console.log('uploaded service params: ', uploadServiceParams);
 
-
-
             return callback(null, allFiles);
         },
 
-
+        fileManagement: async (args, callback) => {
+            return callback(null, await billingApi.getFileManagementData(args));
+        },
 
         /**
          * downloadRemittanceAdvice - description
@@ -481,6 +482,14 @@ module.exports = function(billingApi) {
         },
 
 
+        // TODO: EXA-12016
+        processResponseFiles,
+
+        responseFilesRefresh: processResponseFiles,
+
+        remittanceAdviceFilesRefresh: processResponseFiles,
+
+        genericGovernanceReportsRefresh: processResponseFiles,
 
         validateHealthCard: async (args, callback) => {
             const ebs = new EBSConnector(await getConfig());
@@ -514,6 +523,17 @@ module.exports = function(billingApi) {
                 result.isValid = false;
                 return callback({ isValid: false, errMsg: "Invalid Heath card number" });
             }
+        },
+
+        applyRemittanceAdvice: async (args, callback) => {
+            const f_c = await billingApi.loadFile(args);
+            if(f_c.data){
+                const parser = new Parser(f_c.uploaded_file_name)
+                f_c.ra_json = parser.parse(f_c.data);
+                let response =  await billingApi.handlePayment(f_c, args);
+                return callback(response)
+            }
+            callback(f_c)
         },
     };
 };

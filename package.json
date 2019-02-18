@@ -6,7 +6,8 @@
     "main": "server/app.js",
     "scripts": {
         "lint": "eslint .",
-        "dev": "nodemon ./bin/www",
+        "dev": "npm run less && nodemon ./bin/www",
+        "less": "cd app/skins/default && lessc index.less > index.css && cd ../dark && lessc index.less > index.css",
         "start": "npm-run-all lint dev",
         "gulp-build": "gulp build",
         "gulp-deploy": "gulp deploy",

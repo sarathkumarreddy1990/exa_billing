@@ -19,9 +19,9 @@ const createDir = function (fileStorePath, filePath) {
         const dirPath = `${fileStorePath}\\${filePath}`;
 
         logger.info(`File store: ${fileStorePath}, ${filePath}`);
-    
+
         let dirExists = fs.existsSync(fileStorePath);
-    
+
         if (!dirExists) {
             logger.info(`Root directory not found in file store -  ${fileStorePath}`);
 
@@ -29,24 +29,24 @@ const createDir = function (fileStorePath, filePath) {
                 file_store_status: 'Root directory not found in file store'
             });
         }
-    
+
         if (fileStorePath) {
             const folderExist = fs.existsSync(dirPath);
-    
+
             if (folderExist) {
                 return resolve({ status: true });
             }
-    
+
             mkdirp(dirPath, function (err) {
                 if (err) {
                     return reject({
                         file_store_status: 'Directory not found in file store'
                     });
-                }  
-    
+                }
+
                 return resolve({ status: true });
             });
-            
+
         } else {
             logger.info(`Directory not found -  ${dirPath}`);
 
@@ -98,7 +98,7 @@ module.exports = {
         const modeParamStr = params.body.mode.toUpperCase();
         const isPreviewMode = modeParamStr === 'PREVIEW_EOB';
         const isEob = modeParamStr.indexOf('_PDF') > -1;
-        
+
         const uploadingMode = isEob ? 'EOB' : 'ERA';
         const ediFileId = modeParamStr.split('_')[0];
 
@@ -467,44 +467,6 @@ module.exports = {
         }
 
         throw new Error('EOB File Not Found');
-    },
-
-
-    processOHIPEraFile: async function (params) {
-        const self = this;
-
-        //ToDo:: Get parsed era file info
-        const era_json = {};
-
-        try {
-
-            logger.info(`Initializing payment creation with OHIP file`);
-
-            let paymentDetails = await self.createPayment(era_json, params);
-
-            paymentDetails.isFrom = 'OHIP_EOB';
-            params.created_by = paymentDetails.created_by;
-            params.company_id = paymentDetails.company_id;
-
-            let lineItemsAndClaimLists = await eraParser.getOHIPLineItemsAndClaims(era_json, params);
-
-            let processedClaims =  await data.createPaymentApplication(lineItemsAndClaimLists, paymentDetails);
-
-            // again we call to create payment application for unapplied charges form ERA claims
-            await data.applyPaymentApplication(lineItemsAndClaimLists.audit_details, paymentDetails);
-
-            await data.updateERAFileStatus(paymentDetails);
-
-            logger.info(`Payment creation process done - OHIP`);
-
-            return processedClaims;
-
-        } catch (err) {
-            logger.error(err);
-
-            return err;
-        }
-
     },
 
     createPayment: async function(eraObject, params){
