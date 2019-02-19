@@ -28,10 +28,10 @@
 </div>
 <% } else if (addressStyle === 'style2') { %>
 
-<div class="col-sm-3 pull-left p-0">
+<div class="col-sm-3 pull-left p-0 city-state-zip-label">
     <label class="control-label" for="<%= cityDomId %>" i18n="address.cityStateZip.style2"></label>
 </div>
-<div class="pull-left pl-1 col-sm-8">
+<div class="pull-left pl-1 col-sm-8 city-state-zip-content">
     <input class="form-control m-1 col-sm-4 pull-left" type="text" id="<%= cityDomId %>">
 
     <select id="<%= stateDomId %>" class="state-input m-1 col-sm-4 pull-left rounded">

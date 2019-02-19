@@ -686,7 +686,13 @@ module.exports = {
 											INNER JOIN 	billing.payment_applications	 ON payment_applications.id=cas_payment_application_details.payment_application_id
 											INNER JOIN billing.payments ON  billing.payments.id=payment_applications.payment_id and payer_type='insurance' AND
 											payment_applications.charge_id = charges.id AND payment_applications.amount_type = 'adjustment'
-											WHERE cas_group_codes.code= gc.code ) AS CAS )
+											WHERE cas_group_codes.code= gc.code
+											AND payments.insurance_provider_id NOT IN 
+											(SELECT 
+												insurance_provider_id 
+											FROM public.patient_insurances
+											WHERE id = ANY(ARRAY[claims.tertiary_patient_insurance_id,claims.secondary_patient_insurance_id]))							
+											 ) AS CAS )
 											FROM  billing.cas_payment_application_details
 											INNER JOIN billing.cas_group_codes ON cas_group_codes.id = cas_group_code_id
 											INNER JOIN billing.payment_applications ON payment_applications.id = cas_payment_application_details.payment_application_id
@@ -697,7 +703,12 @@ module.exports = {
 											                            GROUP BY cas_group_codes.code ) AS lineAdjustment)
                                         FROM billing.payment_applications pa
                                         INNER JOIN billing.payments ON billing.payments.id=pa.payment_id
-                                        WHERE charge_id = charges.id ) AS lineAdjudication)
+                                        WHERE charge_id = charges.id
+                                        AND payments.insurance_provider_id NOT IN 
+                                        (SELECT insurance_provider_id 
+						FROM public.patient_insurances
+                                        WHERE id = ANY(ARRAY[claims.tertiary_patient_insurance_id,claims.secondary_patient_insurance_id]))
+                                        ) AS lineAdjudication)
 					FROM billing.charges
 					INNER JOIN cpt_codes ON cpt_codes.id=cpt_id
 					LEFT JOIN modifiers AS modifier1 ON modifier1.id=modifier1_id
@@ -737,5 +748,63 @@ module.exports = {
 
         return await query(sql);
     },
+	
+    submitOhipClaim: async (params) => {
+        let claimIds = params.claimIds.split(',');
+        let sql = SQL`SELECT
+                        bc.id AS claim_id,
+                        npi_no AS "groupNumber",
+                        rend_pr.provider_info -> 'NPI' AS "providerNumber",
+                        rend_pr.specialities[1] AS "specialtyCode",
+                        (SELECT JSON_agg(Row_to_json(claim_details)) FROM (
+                           WITH cte_insurance_details AS (
+                                SELECT
+                                    (Row_to_json(insuranceDetails)) AS "insuranceDetails"
+                                FROM (SELECT
+                                    ppi.policy_number AS "healthNumber",
+                                    ppi.group_number AS "versionCode",
+                                    pp.birth_date AS "dateOfBirth",
+                                    bc.id AS "accountingNumber",
+                                    CASE WHEN nullif (pc.company_info -> 'company_state','') = subscriber_state THEN
+                                        'HCP'
+                                    ELSE
+                                        'RMB'
+                                    END AS "paymentProgram",
+                                    'P' AS "payee",
+                                    'HOP' AS "masterNumber",
+                                    reff_pr.provider_info -> 'NPI' AS "referringProviderNumber",
+                                    'HOP' AS "serviceLocationIndicator",
+                                    ppi.policy_number AS "registrationNumber",
+                                    pp.last_name AS "patientLastName",
+                                    pp.first_name AS "patientFirstName",
+                                    pp.gender AS "patientSex",
+                                    pp.patient_info -> 'c1Statepp' AS "provinceCode"
+                                FROM public.patient_insurances ppi
+                                WHERE ppi.id = bc.primary_patient_insurance_id) AS insuranceDetails)
+						, charge_details AS (
+                            SELECT JSON_agg(Row_to_json(items)) "items" FROM (
+								SELECT
+                                    pcc.display_code AS "serviceCode",
+                                    (bch.bill_fee * bch.units) AS "feeSubmitted",
+                                    1 AS "numberOfServices",
+                                    charge_dt AS "serviceDate",
+                                    billing.get_charge_icds (bch.id) AS diagnosticCodes
+                                FROM billing.charges bch
+                                INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
+								WHERE bch.claim_id = bc.id) AS items )
+                            SELECT * FROM cte_insurance_details, charge_details) AS claim_details ) AS "claims"
+                    FROM billing.claims bc
+                    INNER JOIN public.companies pc ON pc.id = bc.company_id
+                    INNER JOIN public.patients pp ON pp.id = bc.patient_id
+                    INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
+                    LEFT JOIN public.provider_contacts rend_ppc ON rend_ppc.id = bc.rendering_provider_contact_id
+                    LEFT JOIN public.providers rend_pr ON rend_pr.id = rend_ppc.provider_id
+                    LEFT JOIN public.provider_contacts reff_ppc ON reff_ppc.id = bc.referring_provider_contact_id
+                    LEFT JOIN public.providers reff_pr ON reff_pr.id = reff_ppc.provider_id
+                    WHERE bc.id = ANY (${claimIds})
+                    ORDER BY bc.id DESC
+		`;
+        return await query(sql);	
+    }
 
 };

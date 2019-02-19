@@ -12,8 +12,9 @@ module.exports = {
             , '/exa_modules/billing/study_filters'
             , '/exa_modules/billing/setup/study_filters/set_default_tab'
             , '/exa_modules/billing/user_settings/update_grid_settings'
+            , '/exa_modules/billing/ohip/validateHealthCard'
         ];
-		
+
         let {
             screens,
             userType,

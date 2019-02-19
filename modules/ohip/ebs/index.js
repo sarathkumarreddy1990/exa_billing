@@ -232,6 +232,14 @@ const EBSConnector = function(config) {
             });
         },
 
+        hcvValidation: (args, callback) => {
+            const ctx = getContext(HCV_BASIC_VALIDATE(args), hcvApiUrl);
+
+            return ws.send(handlers, ctx, (ctx) => {
+                const doc = new dom().parseFromString(ctx.response);
+                return callback(null, parseTypeListResult(doc));
+            });
+        }
 
     };
 };

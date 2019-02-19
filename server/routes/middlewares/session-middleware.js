@@ -1,4 +1,5 @@
 const express = require('express');
+const shared = require('../../shared');
 const { checkSession } = require('../../controllers/auth');
 const { sendError } = require('../../shared/http');
 
@@ -13,15 +14,31 @@ const sendInvalidSession = function (req, res) {
 
 app.use(async function (req, res, next) {
 
-    if (!req.isAuthenticated()) {
+    let passed_session = false;
+
+    if (req.query.sessionID || req.body.sessionID) {
+        passed_session = req.query.sessionID || req.body.sessionID;
+    }
+
+    if (req.query.session_id) {
+        passed_session = shared.base64Decode(req.query.session_id);
+    }
+
+    if (!req.isAuthenticated() && !passed_session && !req.session.id) {
         return sendInvalidSession(req, res);
     }
 
-    if (!req.session.id) {
-        return sendInvalidSession(req, res);
-    }
+    let sessionID = passed_session || req.session.id;
 
-    const isValidSession = await checkSession(req.session.id);
+    // if (!req.isAuthenticated()) {
+    //     return sendInvalidSession(req, res);
+    // }
+
+    // if (!req.session.id) {
+    //     return sendInvalidSession(req, res);
+    // }
+
+    const isValidSession = await checkSession(sessionID);
 
     if (isValidSession) {
         return next();

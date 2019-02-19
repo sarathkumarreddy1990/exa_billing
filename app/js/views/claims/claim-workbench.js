@@ -569,13 +569,14 @@ define(['jquery',
                 }
 
                 commonjs.showLoading();
+                var url = '/exa_modules/billing/claim_workbench/' + app.country_alpha_3_code === 'can' ? 'create_ohip_claim' : 'create_claim';
 
                 if ($('#chkStudyHeader_' + filterID).is(':checked')) {
                     self.selectAllClaim(filter, filterID, 'EDI');
 
                 } else {
                     jQuery.ajax({
-                        url: "/exa_modules/billing/claim_workbench/create_claim",
+                        url: url,
                         type: "POST",
                         data: {
                             claimIds: claimIds.toString()
@@ -602,7 +603,7 @@ define(['jquery',
 
                 var implUrl = '/exa_modules/billing/claim_workbench';
                 if (app.country_alpha_3_code === 'can') {
-                    implUrl = '/exa_modules/billing/ohip/submitClaim';
+                    implUrl = '/exa_modules/billing/ohip/submitClaims';
                 }
                 jQuery.ajax({
                     url: implUrl,
@@ -1851,7 +1852,7 @@ define(['jquery',
                             i18nHeader: 'billing.claims.fileManagement',
                             width: '80%',
                             height: '70%',
-                            html: self.fileManagementTemplate({ data: response })
+                            html: self.fileManagementTemplate({ data: response.rows })
                         });
 
                         setTimeout(function() {
@@ -1868,20 +1869,20 @@ define(['jquery',
 
             applyFileManagement: function (fileId) {
                 console.log(fileId);
-                // $.ajax({
-                //     url: "/exa_modules/billing/ohip/applyRemittanceAdvice",
-                //     type: "GET",
-                //     data: {
-                //         //id: claimIds.toString()
-                //     },
-                //     success: function (data, textStatus, jqXHR) {
-                //         commonjs.hideLoading();
-                //         self.ediResponse(data);
-                //     },
-                //     error: function (err) {
-                //         commonjs.handleXhrError(err);
-                //     }
-                // });
+                $.ajax({
+                    url: "/exa_modules/billing/ohip/applyRemittanceAdvice",
+                    type: "POST",
+                    data: {
+                        edi_files_id: fileId
+                    },
+                    success: function (data, textStatus, jqXHR) {
+                        console.log(data)
+                        commonjs.hideDialog()
+                    },
+                    error: function (err) {
+                        commonjs.handleXhrError(err);
+                    }
+                });
             },
 
             clearAllSelectedRows: function () {
