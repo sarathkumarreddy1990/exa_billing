@@ -702,7 +702,7 @@ const api = {
                 });
                 args.colModel = _.find(colModel, { name: 'claim_balance' });
 
-                if(colIndex) {
+                if(colIndex > -1) {
                     args.claimBalancefilterData = filterData[colIndex];
                     filterElements.splice(colIndex, 1);
                     filterData.splice(colIndex, 1);
