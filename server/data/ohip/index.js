@@ -1,5 +1,7 @@
 const { query, SQL, audit } = require('./../index');
 const moment = require('moment');
+const sprintf = require('sprintf');
+
 // const ediData = require('../../data/claim/claim-edi');
 // const JSONExtractor = require('./jsonExtractor');
 const fs = require('fs');
@@ -152,6 +154,13 @@ const storeFile =  async (args) => {
     const stats = fs.statSync(absolutePath);
     const md5Hash = crypto.createHash('MD5').update(data, 'utf8').digest('hex');
 
+    const exaFileType = getExaFileType({filename});
+    if (!exaFileType) {
+        return {
+            absolutePath,
+        };
+    }
+
     const sql = `
         INSERT INTO billing.edi_files (
             company_id,
@@ -169,10 +178,7 @@ const storeFile =  async (args) => {
             ,${filestore.id}
             ,'${moment(createdDate || new Date()).format("YYYY-MM-DD")}'::timestamptz
             ,'pending'
-
-            --,${getExaFileType(filename)}
-            ,'835'  -- not good; should be the commented-out line above
-
+            ,'${exaFileType}'
             ,'${filePath}'
             ,${stats.size}
             ,'${md5Hash}'
@@ -180,6 +186,8 @@ const storeFile =  async (args) => {
         )
         RETURNING id
     `;
+
+
 
     const  dbResults = (await query(sql, [])).rows[0];
 
@@ -288,7 +296,6 @@ const updateFileStatus = async (args) => {
         WHERE
             id = ${edi_file_id}
     `;
-
     await query(sql.text, sql.values);
 };
 
@@ -311,7 +318,6 @@ const updateClaimStatus = async (args) => {
         WHERE
             id = ANY(ARRAY[${claimIds}::int[]])
     `;
-    // console.log(sql.text, sql.values);
 
     return (await query(sql.text, sql.values));
 };
@@ -328,7 +334,7 @@ const applyClaimSubmission =  async (args) => {
         edi_file_id,
         batches,    // an array of objects: {claimIds:[Number], batchSequenceNumber:Number}
     } = args;
-    // console.log('args: ', args);
+
     batches.forEach(async (batch) => {
         const {
             batchSequenceNumber,
@@ -344,11 +350,11 @@ const applyClaimSubmission =  async (args) => {
             SELECT
                 ${edi_file_id},
                 UNNEST(${claimIds}::int[]),
-                ${batchSequenceNumber}
+                ${sprintf(`%'04s`, batchSequenceNumber)}
             RETURNING id
         `;
 
-        return (await query(sql.text, sql.values)).rows;
+        (await query(sql.text, sql.values)).rows;
     });
 
     // TODO
@@ -366,6 +372,9 @@ const applyRejectMessage = async (args) => {
     const {
         filename,
     } = args;
+
+
+    const sql = new SubmissionsByBatchHeader(args);
 
     // TODO
     // 1 - set error codes on edi_file_claims (what do "pending ack" claims transition to, now?)
@@ -391,35 +400,41 @@ const applyBatchEditReport = async (args) => {
         batchCreateDate,
         batchSequenceNumber,
         responseFileId,
-        comment,
+        comment,    // not really used right now
     } = args;
 
-    const sql = SQL `
-        WITH claim_file_cte AS (
+    const sql = SQL`
+
+        INSERT INTO billing.edi_related_files (
+            submission_file_id,
+            response_file_id
+        )
+        SELECT
+        (
             SELECT
-                ef.id AS edi_file_id
+                ef.id AS submission_file_id
             FROM billing.edi_files ef
             INNER JOIN billing.edi_file_claims efc ON ef.id = efc.edi_file_id
             WHERE
                 ef.file_type = 'can_ohip_h'
-                --AND ef.status = 'pending'
-                AND ef.created_dt = ${batchCreateDate}
+                AND ef.status = 'success'
+                AND ef.created_dt::date = ${moment(batchCreateDate).format('YYYY-MM-DD')}::date
                 AND efc.batch_number = ${batchSequenceNumber}
-        )
-        INSERT INTO billing.edi_related_files(
-            submission_file_id,
-            response_file_id,
-            comment
-        )
-        (
-            SELECT
-                claim_file_cte.edi_file_id,
-                ${responseFileId},
-                ${comment}
-            FROM
-                claim_file_cte
-        )
+        ),
+        ${responseFileId}
     `;
+
+    const dbResults = (await query(sql.text, sql.values)).rows;
+    if (dbResults && dbResults.length) {
+
+        await updateClaimStatus({
+            claimStatusCode: 'PP',  // Pending Payment
+            claimIds: dbResults.map((claim_file) => {
+                return claim_file.claim_id;
+            }),
+        });
+    }
+
 
     // 1 - SELECT corresponding claim submission file
     //      a. edi_files.file_type = 'can_ohip_h'
@@ -448,6 +463,7 @@ const applyBatchEditReport = async (args) => {
 };
 
 const applyErrorReport = async (args) => {
+
     const {
         accountingNumber,
     } = args;
@@ -458,18 +474,6 @@ const applyErrorReport = async (args) => {
     console.log(args);
 };
 
-
-const setClaimSubmissionFile = (args) => {
-    const {
-        claimIds,
-        edi_file_id,
-    } = args;
-
-    const sql = SQL`
-        UPDATE billing.
-    `;
-};
-
 const OHIP_CONFIGURATION_MODE = {
     CONFORMANCE_TESTING: 'Conformance Testing',
     DEMO: 'Demonstration',
@@ -478,6 +482,34 @@ const OHIP_CONFIGURATION_MODE = {
 const OHIPDataAPI = {
 
     OHIP_CONFIGURATION_MODE,
+
+
+    getExaFileType,
+
+    getFileStore,
+    storeFile,
+    loadFile,
+    getRelatedFile,
+    updateFileStatus,
+
+    updateClaimStatus,
+
+    applyClaimSubmission,
+    applyRejectMessage,
+    applyBatchEditReport,
+    applyErrorReport,
+
+    getOHIPConfiguration: async (args) => {
+        return {
+            // TODO: EXA-12674
+            softwareConformanceKey: 'b5dc648e-581a-4886-ac39-c18832d12e06',
+            auditID:124355467675,
+            serviceUserMUID: 614200,
+            username: "confsu+355@gmail.com",
+            password: "Password1!",
+            mode: OHIP_CONFIGURATION_MODE.DEMO,
+        };
+    },
 
     auditTransaction: async (args) => {
 
@@ -587,17 +619,6 @@ const OHIPDataAPI = {
        return processedClaims;
     },
 
-    getFileStore,
-    storeFile,
-    loadFile,
-    updateFileStatus,
-
-    updateClaimStatus,
-
-    applyClaimSubmission,
-    applyRejectMessage,
-    applyBatchEditReport,
-    applyErrorReport,
 
     getFileManagementData: async (params) => {
         let whereQuery = [];
@@ -711,19 +732,6 @@ const OHIPDataAPI = {
 
     },
 
-    getExaFileType,
-    getOHIPConfiguration: async (args) => {
-        return {
-            // TODO: EXA-12674
-            softwareConformanceKey: 'b5dc648e-581a-4886-ac39-c18832d12e06',
-            auditID:124355467675,
-            serviceUserMUID: 614200,
-            username: "confsu+355@gmail.com",
-            password: "Password1!",
-            mode: OHIP_CONFIGURATION_MODE.DEMO,
-        };
-    },
-    getRelatedFile
 };
 
 module.exports = OHIPDataAPI;

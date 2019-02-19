@@ -162,11 +162,17 @@ module.exports = function(billingApi) {
                     }
 
                     const ediFiles = await downloadResponse.data.reduce(async (result, downloadData) => {
-                        const d = await billingApi.storeFile({
-                            data: downloadData.content,
-                            filename: downloadData.description,
+
+                        const data = downloadData.content;
+                        const filename = downloadData.description;
+                        result.push({
+                            data,
+                            filename,
+                            ...await billingApi.storeFile({
+                                data,
+                                filename,
+                            }),
                         });
-                        result.push(d);
                         return result;
                     }, []);
 
@@ -296,7 +302,6 @@ module.exports = function(billingApi) {
                 (await storedResult).push(storedFile);
                 return storedResult;
             }, []);
-            // console.log('stored files: ', JSON.stringify((await storedFiles)));
 
             // 5 - generate EBS upload service paramaters
             //
@@ -312,6 +317,9 @@ module.exports = function(billingApi) {
             }, []);
 
             (await storedFiles).forEach((storedFile) => {
+
+                billingApi.updateFileStatus({edi_file_id:storedFile.edi_file_id, status: 'success'});
+
                 storedFile.batches.forEach(async (batch) => {
 
                     await billingApi.updateClaimStatus({
@@ -370,68 +378,7 @@ module.exports = function(billingApi) {
         },
 
         sandbox: async (args, callback) => {
-
-            // 1 - convert args.claimIds to claim data (getClaimsData)
-            const claimData = await billingApi.getClaimsData({claimIds:[10,11,12,14,15]});
-            // console.log(claimData);
-
-            // 2 - run claim data through encoder
-            const claimEnc = new ClaimsEncoder(); // default 1:1/1:1
-            // const claimEnc = new ClaimsEncoder({batchesPerFile:5});
-            // const claimEnc = new ClaimsEncoder({claimsPerBatch:5});
-
-            const context = {
-                batchDate: new Date(),  // TODO hard-code this to CT RA for demo
-            };
-
-            const submissionsByGroup = claimEnc.encode(claimData, context);
-
-            // in: {'AZ12':[], 'BY23':[], ...}
-            // out: [{batches:[], data:String, filename:String}]
-            const allFiles = reduce(submissionsByGroup, (result, groupSubmissions, groupNumber) => {
-
-                // in: [{batches:[], data:String}]
-                // out: [{batches:[], data:String, filename:String}]
-                const groupFiles = groupSubmissions.map((file, fileSequenceOffset) => {
-                    return {
-                        filename: getClaimSubmissionFilename({groupNumber, fileSequenceOffset}),
-                        ...file,
-                    };
-                });
-
-                return result.concat(groupFiles);
-
-            }, []);
-
-            // [{batches:[], data:String, filename:String}]
-            // >> [{batches:[], data:String, filename:String, edi_file_id, file_store_id, absolutePath}]
-            const storedFiles = reduce(allFiles, async (storedResult, file) => {
-                const storedFile = {
-                    ...await billingApi.storeFile(file),
-                    ...file,
-                };
-
-                // TODO add edi_file_claims entry
-                await billingApi.applyClaimSubmission(storedFile);
-
-                (await storedResult).push(storedFile);
-                return storedResult;
-            }, []);
-            // console.log('stored files: ', JSON.stringify((await storedFiles)));
-
-            // [{batches:[], data:String, filename:String, edi_file_id, file_store_id, absolutePath}]
-            // >> [{resourceType:'CL', filename: (absolutePath), description: (filename)}]
-            const uploadServiceParams = reduce((await storedFiles), (uploadedServiceResult, storedFile) => {
-                uploadedServiceResult.push({
-                    resourceType: 'CL',
-                    filename: storedFile.absolutePath,
-                    description: storedFile.filename,
-                });
-                return uploadedServiceResult;
-            }, []);
-            // console.log('uploaded service params: ', uploadServiceParams);
-
-            return callback(null, allFiles);
+            return callback(null, "Hello, world");
         },
 
         fileManagement: async (args, callback) => {
@@ -446,12 +393,7 @@ module.exports = function(billingApi) {
          * @returns {type}          description
          */
         downloadRemittanceAdvice: async (args, callback) => {
-
-            const ebs = new EBSConnector(await getConfig());
-
-            download({resourceType:BATCH_EDIT}, (downloadErr, ediFiles) => {
-                console.log(ediFiles);
-                // console.log(`err: ${downloadErr}`);
+            download({resourceType:REMITTANCE_ADVICE}, (downloadErr, ediFiles) => {
                 return callback(downloadErr, ediFiles);
             });
         },
@@ -461,7 +403,9 @@ module.exports = function(billingApi) {
 
         // TODO: EXA-12016
         downloadAndProcessResponseFiles: async (args, callback) => {
+
             // TODO: "zero results" yields an error at the encryption level
+
             // download({resourceType: CLAIMS_MAIL_FILE_REJECT_MESSAGE}, (downloadErr, downloadResponse) => {
             //     downloadResponse.forEach(async (download) => {
             //         await billingApi.applyRejectMessage(download);
@@ -470,7 +414,13 @@ module.exports = function(billingApi) {
 
             download({resourceType:BATCH_EDIT}, (downloadErr, downloadResponse) => {
                 downloadResponse.forEach(async (download) => {
-                    await billingApi.applyBatchEditReport(download);
+
+                    const decodedBatchEdit = new Parser(download.filename).parse(download.data);
+                    const clone = {...decodedBatchEdit[0],};
+                    await billingApi.applyBatchEditReport({
+                        responseFileId: download.edi_file_id,
+                        ...decodedBatchEdit[0],
+                    });
                 });
             });
 
