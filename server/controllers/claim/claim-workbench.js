@@ -247,7 +247,7 @@ module.exports = {
 
     validateClaim: async function (params) {
         if(params.country === 'can') {
-            return this.OhipClaimValidation(params);
+            return this.ohipClaimValidation(params);
         }
 
         let claimDetails = await ediData.validateClaim(params);
@@ -475,7 +475,7 @@ module.exports = {
         return await data.getClaimSummary(params);
     },
 
-    OhipClaimValidation: async function (params) {
+    ohipClaimValidation: async function (params) {
         let claimDetails = await this.submitOhipClaim({ claimIds: params.claim_ids.join(',') });
         claimDetails = claimDetails.rows;
 
