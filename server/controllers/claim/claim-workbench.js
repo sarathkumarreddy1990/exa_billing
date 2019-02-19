@@ -247,7 +247,7 @@ module.exports = {
 
     validateClaim: async function (params) {
         if(params.country === 'can') {
-            return this.validateClaimFields(params);
+            return this.OhipClaimValidation(params);
         }
 
         let claimDetails = await ediData.validateClaim(params);
@@ -475,11 +475,11 @@ module.exports = {
         return await data.getClaimSummary(params);
     },
 
-    validateClaimFields: async function (params) {
+    OhipClaimValidation: async function (params) {
         let claimDetails = await this.submitOhipClaim({ claimIds: params.claim_ids.join(',') });
         claimDetails = claimDetails.rows;
 
-        let file_path = path.join(__dirname, '../../resx/claim-validation-fields.json');
+        let file_path = path.join(__dirname, '../../resx/ohip-claim-validation-fields.json');
         let valdationClaimJson = await readFileAsync(file_path, 'utf8');
         valdationClaimJson = JSON.parse(valdationClaimJson);
 
