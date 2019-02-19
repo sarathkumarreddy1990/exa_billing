@@ -4,6 +4,7 @@ const config = require('../../config');
 const moment = require('moment');
 const { query, SQL } = require('./../index');
 const util = require('./../util');
+const _ = require('lodash');
 
 const colModel = [
     {
@@ -534,10 +535,14 @@ const api = {
     },
 
     getWorkListCount: async function (args) {
-        let select_total = 'count(1) as total_records';
+
+        let columns = args.isClaimBalanceTotal ? 'claims.id AS claim_id' : 'count(1) as total_records';
         let params = [];
-        let innerQuery = api.getWLQuery(select_total, args, params);
-        return await query(innerQuery, params);
+        let innerQuery = api.getWLQuery(columns, args, params);
+        let result = args.isClaimBalanceTotal ? innerQuery : await query(innerQuery, params);
+
+        return result;
+
     },
     setBalanceFilterFlag: function (args, colModel) {
         let column = JSON.parse(args.filterCol);
@@ -687,6 +692,26 @@ const api = {
                 api.setBalanceFilterFlag(args, colModel);
             }
 
+            // Prevents DB function for filtering claim balance, This condition only for getting  claim grid total balance request
+            if (args.isClaimBalanceTotal && args.filterCol.indexOf('claim_balance') > 0) {
+
+                let filterElements = JSON.parse(args.filterCol);
+                let filterData = JSON.parse(args.filterData);
+                let colIndex = _.findIndex(filterElements, (col) => {
+                    return col === 'claim_balance';
+                });
+                args.colModel = _.find(colModel, { name: 'claim_balance' });
+
+                if(colIndex) {
+                    args.claimBalancefilterData = filterData[colIndex];
+                    filterElements.splice(colIndex, 1);
+                    filterData.splice(colIndex, 1);
+                }
+
+                args.filterCol = JSON.stringify(filterElements);
+                args.filterData = JSON.stringify(filterData);
+            }
+
             const response = await filterValidator.generateQuery(colModel, args.filterCol, args.filterData, query_options);
             args.filterQuery = response;
 
@@ -700,7 +725,7 @@ const api = {
 
             let result;
 
-            if (args.isCount) {
+            if (args.isCount || args.isClaimBalanceTotal) { // Using worklist count query for getting claims total balance (EXA-12065)
 
                 result = await api.getWorkListCount(args);
 

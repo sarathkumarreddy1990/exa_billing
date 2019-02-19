@@ -467,5 +467,8 @@ module.exports = {
 
     getClaimSummary: async function (params) {
         return await data.getClaimSummary(params);
-    }
+    },
+
+    getClaimTotalBalance: data.getClaimTotalBalance
+
 };
