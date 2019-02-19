@@ -29,6 +29,8 @@ const {
 const ClaimsEncoder = require('./encoder/claims');
 const mod10Check = require('./hcv/mod10Check');
 const Parser = require('./parser');
+const validateClaimsData = require('../../server/data/claim/claim-workbench');
+const _ = require('lodash');
 
 
 const getRandomResponseCode = (codes) => {
@@ -244,20 +246,28 @@ module.exports = function(billingApi) {
 
     return {
 
-        /**
-         * submitClaims - generates claim submission files for the specified
-         * array of claimIds and
-         *
-         * @param  {object} args    {
-         *                              claimIds,
-         *                          }
-         *
-         * @param  {function} callback standard callback
-         */
-        submitClaims: async (args, callback) => {
+        // takes an array of Claim IDs
+        submitClaims: async (req, callback) => {
+            let args = req.query;
+            let params = req.body;
+            let claimIds = params.claimIds;
+            let validationData = await validateClaimsData.validateEDIClaimCreation(claimIds, req.session.country_alpha_3_code);
+            validationData = validationData && validationData.rows && validationData.rows.length && validationData.rows[0] || [];
+            let claimStatus = _.uniq(validationData.claim_status);
+            // Claim validation
+            if (validationData) {
+                if (claimStatus.length != 1 && claimStatus[0] != 'PS') {
+                    return new Error('Please validate claims');
+                } else if (validationData.unique_billing_method_count > 1) {
+                    return new Error('Please select claims with same type of billing method');
+                } else if (validationData.claim_status.length != claimIds.length) {
+                    return new Error('Claim date should not be greater than the current date');
+                }
+            }
 
+            // TODO
             // 1 - convert args.claimIds to claim data (getClaimsData)
-            const claimData = await billingApi.getClaimsData({claimIds:[10,11,12,14,15]});
+            const claimData = await billingApi.getClaimsData({claimIds});
             // console.log(claimData);
 
             // 2 - run claim data through encoder

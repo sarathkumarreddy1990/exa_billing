@@ -56,9 +56,10 @@ module.exports = {
         return ediData.submitOhipClaim(params);
     },
 
-    getEDIClaim: async (params) => {
+    getEDIClaim: async (req) => {
+        let params = req.body;
         let claimIds = (params.claimIds).split(',');
-        let validationData = await data.validateEDIClaimCreation(claimIds);
+        let validationData = await data.validateEDIClaimCreation(claimIds, req.session.country_alpha_3_code);
         validationData = validationData && validationData.rows && validationData.rows.length && validationData.rows[0] || [];
 
         if(validationData) {
@@ -66,10 +67,11 @@ module.exports = {
                 return new Error('Please validate claims');
             } else if(validationData.unique_billing_method_count > 1 ){
                 return new Error('Please select claims with same type of billing method');
-            } else if(validationData.clearing_house_count != claimIds.length || validationData.unique_clearing_house_count > 1){
+            } else if(validationData.clearing_house_count != claimIds.length || validationData.unique_clearing_house_count > 1 || req.session.country_alpha_3_code != 'can' ){
                 return new Error('Please select claims with same type of clearing house Claims');
+            } else if (validationData.claim_status.count != claimIds.length) {
+                return new Error('Claim date should not be greater than the current date');
             }
-
         }
 
         const result = await ediData.getClaimData(params);
