@@ -741,9 +741,9 @@ module.exports = {
     submitOhipClaim: async (params) => {
         let claimIds = params.claimIds.split(',');
         let sql = SQL`SELECT
-						bc.id AS claim_id,
-						bc.billing_method,
-						claim_notes AS "claimNotes",
+                        bc.id AS claim_id,
+                        bc.billing_method,
+                        claim_notes AS "claimNotes",
                         npi_no AS "groupNumber",
                         rend_pr.provider_info -> 'NPI' AS "providerNumber",
                         rend_pr.specialities[1] AS "specialtyCode",
@@ -753,8 +753,8 @@ module.exports = {
                                     (Row_to_json(insuranceDetails)) AS "insuranceDetails"
                                 FROM (SELECT
                                     ppi.policy_number AS "healthNumber",
-									ppi.group_number AS "versionCode",
-									ip.insurance_name AS "payerName",
+                                    ppi.group_number AS "versionCode",
+                                    ip.insurance_name AS "payerName",
                                     pp.birth_date AS "dateOfBirth",
                                     bc.id AS "accountingNumber",
                                     CASE WHEN nullif (pc.company_info -> 'company_state','') = subscriber_state THEN
@@ -769,12 +769,12 @@ module.exports = {
                                     ppi.policy_number AS "registrationNumber",
                                     pp.last_name AS "patientLastName",
                                     pp.first_name AS "patientFirstName",
-									pp.gender AS "patientSex",
-									pp.full_name AS "patientName",
-									pp.patient_info -> 'c1State' AS "provinceCode",
-									pp.patient_info->'c1AddressLine1' AS "patientAddress"
-								FROM public.patient_insurances ppi 
-								LEFT JOIN public.insurance_providers ip ON ip.id = ppi.insurance_provider_id
+                                    pp.gender AS "patientSex",
+                                    pp.full_name AS "patientName",
+                                    pp.patient_info -> 'c1State' AS "provinceCode",
+                                    pp.patient_info->'c1AddressLine1' AS "patientAddress"
+                                FROM public.patient_insurances ppi 
+                                LEFT JOIN public.insurance_providers ip ON ip.id = ppi.insurance_provider_id
                                 WHERE ppi.id = bc.primary_patient_insurance_id) AS insuranceDetails)
 						, charge_details AS (
                             SELECT JSON_agg(Row_to_json(items)) "items" FROM (
