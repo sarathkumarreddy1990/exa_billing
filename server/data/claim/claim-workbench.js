@@ -726,7 +726,7 @@ module.exports = {
         return await query(sql.text, sql.values);
     },
 
-    validateEDIClaimCreation: async(claimIds) => {
+    validateEDIClaimCreation: async(claimIds, country) => {
         const sql = SQL` SELECT
                         array_agg(claim_status.code) AS claim_status
                     , COUNT(DISTINCT(bc.billing_method)) AS unique_billing_method_count
@@ -743,6 +743,10 @@ module.exports = {
                 LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id
                 LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id
                 WHERE bc.id = ANY(${claimIds}) `;
+
+        if(country == 'can') {
+            sql.append(` AND bc.claim_dt <= now()`);
+        }
 
         return await query(sql.text, sql.values);
     },
