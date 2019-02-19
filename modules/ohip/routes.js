@@ -17,6 +17,13 @@ module.exports = function (billingApi) {
         });
     });
 
+    router.get('/downloadAndProcessResponseFiles', (req, res) => {
+        ohip.downloadAndProcessResponseFiles(req.query, (ohipErr, ohipResponse) => {
+            return res.send(ohipResponse);
+        });
+    });
+
+
     //TODO needs to be POST
     router.use('/submitClaims', async (req, res) => {
         req.body.company_id = req.body.companyId;

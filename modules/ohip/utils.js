@@ -2,7 +2,10 @@ const {
     getFileType,
 } = require('./parser/utils');
 
+
+
 const {
+    MONTH_CODE_JANUARY,
     resourceTypes,
     resourceDescriptions,
 } = require('./constants');
@@ -32,21 +35,15 @@ module.exports = {
     },
 
     /**
-     * chunk - breaks a large array up into smaller arrays. If the input array
-     * is smaller than the chunk size, then an array with only one array
-     * containing all of the elements in the input array is returned.
+     * Returns the alpha representation for the date of a processing cycle,
+     * letters A through L (January through December).
      *
-     * @param  {array}  array description
-     * @param  {number} size  description
-     * @returns {array}       description
+     * @param  {Date} value date of processing cycle
+     * @return {string}     single uppercase letter representation of the
+     *                      processing cycle month
      */
-    chunk: (array, size) => {
-        const chunks = [];
-        array = array.slice(0, array.length);   // NOTE working on a copy since ...
-        while (array.length){
-            chunks.push(array.splice(0, size)); // ... splice actually changes array
-        }
-        return chunks;
-    }
+    getMonthCode: (value) => {
+        return String.fromCharCode(MONTH_CODE_JANUARY + value.getMonth());
+    },
 
 };
