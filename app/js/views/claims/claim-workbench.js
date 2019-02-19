@@ -470,11 +470,20 @@ define(['jquery',
 
                     var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_billing_method');
 
+                    var rowData = $(filter.options.gridelementid).jqGrid('getRowData', rowId);
+                    var claimDt = rowData.claim_dt;
+                    var futureClaim = claimDt && moment(claimDt).diff(moment(), 'days');
+
                     if (e.target) {
                         if (billingMethodFormat != billingMethod) {
                             commonjs.showWarning('messages.status.pleaseSelectValidClaimsMethod');
                             return false;
                         }
+                    }
+
+                    if (app.country_alpha_3_code == "can" && futureClaim > 0 && billingMethodFormat == 'electronic_billing') {
+                        commonjs.showWarning('messages.status.futureClaimWarning');
+                        return false;
                     }
 
                     if (existingBillingMethod == '') existingBillingMethod = billingMethod
@@ -487,7 +496,7 @@ define(['jquery',
 
                     var clearingHouse = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_clearing_house');
                     if (existingClearingHouse == '') existingClearingHouse = clearingHouse;
-                    if (existingClearingHouse != clearingHouse && billingMethod == 'electronic_billing') {
+                    if (app.country_alpha_3_code !== "can" && existingClearingHouse != clearingHouse && billingMethod == 'electronic_billing') {
                         commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfClearingHouseClaims');
                         return false;
                     } else {
@@ -569,7 +578,7 @@ define(['jquery',
                 }
 
                 commonjs.showLoading();
-                var url = '/exa_modules/billing/claim_workbench/' + app.country_alpha_3_code === 'can' ? 'create_ohip_claim' : 'create_claim';
+                var url = '/exa_modules/billing/claim_workbench/' + (app.country_alpha_3_code === 'can' ? 'create_ohip_claim' : 'create_claim');
 
                 if ($('#chkStudyHeader_' + filterID).is(':checked')) {
                     self.selectAllClaim(filter, filterID, 'EDI');
