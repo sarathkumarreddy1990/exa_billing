@@ -402,17 +402,14 @@ const applyBatchEditReport = async (args) => {
         responseFileId,
         comment,    // not really used right now
     } = args;
+    console.log('batch create date: ', moment(batchCreateDate).format('YYYY-MM-DD'));
+    console.log('batch sequence number: ', batchSequenceNumber);
 
     const sql = SQL`
-
-        INSERT INTO billing.edi_related_files (
-            submission_file_id,
-            response_file_id
-        )
-        SELECT
-        (
+        WITH related_submission_files AS (
             SELECT
-                ef.id AS submission_file_id
+                ef.id AS submission_file_id,
+                efc.claim_id AS claim_id
             FROM billing.edi_files ef
             INNER JOIN billing.edi_file_claims efc ON ef.id = efc.edi_file_id
             WHERE
@@ -421,10 +418,27 @@ const applyBatchEditReport = async (args) => {
                 AND ef.created_dt::date = ${moment(batchCreateDate).format('YYYY-MM-DD')}::date
                 AND efc.batch_number = ${batchSequenceNumber}
         ),
-        ${responseFileId}
+        insert_related_file_cte AS (
+            INSERT INTO billing.edi_related_files (
+                submission_file_id,
+                response_file_id
+            )
+            SELECT
+            (
+                SELECT submission_file_id FROM related_submission_files
+            ),
+            ${responseFileId}
+            LIMIT 1
+            RETURNING submission_file_id
+        )
+        SELECT *
+        FROM insert_related_file_cte
+        INNER JOIN billing.edi_file_claims efc ON efc.edi_file_id = insert_related_file_cte.submission_file_id
     `;
 
     const dbResults = (await query(sql.text, sql.values)).rows;
+    console.log('db results: ', dbResults);
+    
     if (dbResults && dbResults.length) {
 
         await updateClaimStatus({

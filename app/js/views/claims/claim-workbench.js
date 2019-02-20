@@ -578,7 +578,10 @@ define(['jquery',
                 }
 
                 commonjs.showLoading();
-                var url = app.country_alpha_3_code === 'can' ? 'create_ohip_claim' : 'create_claim';
+                var url = '/exa_modules/billing/claim_workbench/create_claim';
+                if (app.country_alpha_3_code === 'can') {
+                    url = '/exa_modules/billing/ohip/submitClaims';
+                }
 
                 if ($('#chkStudyHeader_' + filterID).is(':checked')) {
                     self.selectAllClaim(filter, filterID, 'EDI');
@@ -1990,7 +1993,7 @@ define(['jquery',
                 var existingBillingMethod = null;
                 var selectedClaimsRows = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked');
 
-                
+
                 for (var i = 0; i < selectedClaimsRows.length; i++) {
                     var rowId = selectedClaimsRows[i].parentNode.parentNode.id;
                     var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_billing_method');

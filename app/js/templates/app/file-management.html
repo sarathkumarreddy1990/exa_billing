@@ -34,11 +34,10 @@
                     <% } %>
                 </td>
                 <td class="align-middle text-center">
-                    <% if (file.is_acknowledgement_received && file.is_payment_received) { %>
+                    <% if (file.file_type == 'can_ohip_p') { %>
                         <button data-file-id="<%= file.id %>" i18n="shared.buttons.apply" class="btn btn-primary btn-block btn-apply-file-management"></button>
-                    <% } else { %>
-                        <button data-file-id="<%= file.id %>" i18n="shared.buttons.view" class="btn btn-primary btn-block btn-view-file-management"></button>
                     <% } %>
+
                 </td>
             </tr>
         <% }); %>
