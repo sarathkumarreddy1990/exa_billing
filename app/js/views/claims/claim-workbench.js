@@ -1461,7 +1461,6 @@ define(['jquery',
                             customArgs: {
                                 flag: 'home_claims',
                                 filter_id: filterID,
-                                statusCode: filterObj.options.customargs && filterObj.options.customargs.statusCode ? filterObj.options.customargs.statusCode : [],
                                 isDatePickerClear: self.datePickerCleared
                             }
                         },
