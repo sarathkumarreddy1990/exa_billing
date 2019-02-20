@@ -155,5 +155,11 @@ router.get('/claim_summary', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.get('/claims_total_balance', async function (req, res) {
+    req.query.company_id = req.query.companyId;
+    req.query.user_id = req.query.userId;
+    const data = await claimWorkbenchController.getClaimTotalBalance(req.query);
+    httpHandler.sendRows(req, res, data);
+});
 
 module.exports = router;

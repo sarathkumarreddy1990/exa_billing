@@ -355,14 +355,26 @@
     <button class="btn btn-primary" id="btnSelectAllStudy" title="Select all studies" i18n="setup.dbTotals.all" style="display: none;"></button>
 </div>
 
-<div id="divPager" class="recordPagerDiv" style="text-align:right;margin-right:15px;">
-    <span id="spanPagerSpan">
+<div id="divPager" class="recordPagerDiv">
+    <span id="spanPagerSpan" class="pull-right ml-4 mr-4">
         <span i18n="home.inbox.showing"></span>
         <span id="spnTotalPage">
             <i class="fa fa-spinner loading-spinner"></i>
         </span>
         <span i18n="home.inbox.of"></span>
         <span id="spnTotalRecords">
+            <i class="fa fa-spinner loading-spinner"></i>
+        </span>
+    </span>
+    <span id="spanTotalBalance" class="pull-right ml-4 mr-4 d-none">
+        <span i18n="home.common.totalClaimBalance"></span> :
+        <span id="spnTotalBalance">
+            <i class="fa fa-spinner loading-spinner"></i>
+        </span>
+    </span>
+    <span id="spanTotalBillingFee" class="pull-right ml-4 mr-4 d-none">
+        <span i18n="home.common.totalBillingFee" ></span> :
+        <span id="spnTotalBillingFee">
             <i class="fa fa-spinner loading-spinner"></i>
         </span>
     </span>

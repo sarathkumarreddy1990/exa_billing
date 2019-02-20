@@ -53,7 +53,7 @@ module.exports = {
     getPrinterTemplate: function (params) {
         return claimPrintData.getPrinterTemplate(params);
     },
-    
+
     submitOhipClaim: function (params) {
         return ediData.submitOhipClaim(params);
     },
@@ -525,5 +525,7 @@ module.exports = {
         }
 
         return validation_result;
-    }
+    },
+
+    getClaimTotalBalance: data.getClaimTotalBalance
 };
