@@ -85,8 +85,12 @@ router.post('/create_ohip_claim', async function (req, res) {
 });
 
 router.post('/validate_claims', async function (req, res) {
-    const data = await claimWorkbenchController.validateClaim(req.body);
-    httpHandler.send(req, res, data);
+    try {
+        const data = await claimWorkbenchController.validateClaim(req.body);
+        httpHandler.send(req, res, data);
+    } catch (err) {
+        httpHandler.sendError(req, res, err);
+    }
 });
 
 router.get('/charge_check_payment_details', async function (req, res) {

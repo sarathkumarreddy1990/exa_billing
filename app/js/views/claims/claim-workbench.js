@@ -578,14 +578,14 @@ define(['jquery',
                 }
 
                 commonjs.showLoading();
-                var url = '/exa_modules/billing/claim_workbench/' + (app.country_alpha_3_code === 'can' ? 'create_ohip_claim' : 'create_claim');
+                var url = app.country_alpha_3_code === 'can' ? 'create_ohip_claim' : 'create_claim';
 
                 if ($('#chkStudyHeader_' + filterID).is(':checked')) {
                     self.selectAllClaim(filter, filterID, 'EDI');
 
                 } else {
                     jQuery.ajax({
-                        url: url,
+                        url: '/exa_modules/billing/claim_workbench/' + url,
                         type: "POST",
                         data: {
                             claimIds: claimIds.toString()
@@ -1932,12 +1932,29 @@ define(['jquery',
                 var filterID = commonjs.currentStudyFilter;
                 var filter = commonjs.loadedStudyFilters.get(filterID);
                 var selectedClaimIds =[];
+                var existingBillingMethod = null;
                 var selectedClaimsRows = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked');
 
-                _.each(selectedClaimsRows, function (rowObj) {
-                    var rowId = rowObj.parentNode.parentNode.id;
+                
+                for (var i = 0; i < selectedClaimsRows.length; i++) {
+                    var rowId = selectedClaimsRows[i].parentNode.parentNode.id;
+                    var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_billing_method');
+
+                    if (app.country_alpha_3_code === 'can') {
+                        if (!billingMethod || (billingMethod !== 'electronic_billing' && billingMethod !== 'direct_billing')) {
+                            return commonjs.showWarning('messages.status.pleaseSelectValidClaimsMethod');
+                        }
+
+                        if (!existingBillingMethod)
+                            existingBillingMethod = billingMethod;
+
+                        if (billingMethod != existingBillingMethod) {
+                            return commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfBillingMethod');
+                        }
+                    }
+
                     selectedClaimIds.push(rowId);
-                });
+                };
 
                 if (!selectedClaimIds.length) {
                     commonjs.showWarning(commonjs.geti18NString("messages.warning.claims.selectClaimToValidate"));
@@ -1952,7 +1969,8 @@ define(['jquery',
                         url: '/exa_modules/billing/claim_workbench/validate_claims',
                         type: 'POST',
                         data: {
-                            claim_ids: selectedClaimIds
+                            claim_ids: selectedClaimIds,
+                            country: app.country_alpha_3_code
                         },
                         success: function (data, response) {
                             $("#btnValidateOrder").prop("disabled", false);
