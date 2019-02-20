@@ -2861,6 +2861,7 @@ define(['jquery',
                         is_deleted: false,
                         isEdit: $('#txtBillFee_' + id).attr('edit'),
                         is_excluded: $('#checkExclude_' + id).is(':checked'),
+                        is_canada_billing: app.country_alpha_3_code === 'can'
                     });
                     var charges = claim_model.charges[claim_model.charges.length - 1];
                     if(charges) {
