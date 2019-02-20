@@ -442,6 +442,7 @@ define(['jquery',
                             self.studyDate = commonjs.getConvertedFacilityTime(claimDetails.claim_dt, '', 'L', claimDetails.facility_id);
                             self.patientAddress = claimDetails.patient_info ? commonjs.hstoreParse(claimDetails.patient_info) : {};
                             self.paymentList = claimDetails.payment_details || [];
+                            self.billing_method = claimDetails.billing_method;
                             $('.claimProcess').prop('disabled', false);
                             $('#btnSaveClaim').prop('disabled', false);
                             /* Bind claim charge Details - start */
@@ -2860,6 +2861,7 @@ define(['jquery',
                         is_deleted: false,
                         isEdit: $('#txtBillFee_' + id).attr('edit'),
                         is_excluded: $('#checkExclude_' + id).is(':checked'),
+                        is_canada_billing: app.country_alpha_3_code === 'can'
                     });
                     var charges = claim_model.charges[claim_model.charges.length - 1];
                     if(charges) {
@@ -3501,12 +3503,18 @@ define(['jquery',
                     commonjs.showWarning("messages.errors.errorOnClaimValidation");
                     return false;
                 }
+
+                if (app.country_alpha_3_code === 'can' && self.billing_method !== 'electronic_billing' && self.billing_method !== 'direct_billing') {
+                    return commonjs.showWarning('messages.status.pleaseSelectValidClaimsMethod');
+                }
+
                 $("#btnValidateClaim").attr("disabled", true);
                 $.ajax({
                     url: '/exa_modules/billing/claim_workbench/validate_claims',
                     type: 'POST',
                     data: {
-                        claim_ids: claimIds
+                        claim_ids: claimIds,
+                        country: app.country_alpha_3_code
                     },
                     success: function(data, response){
                         $("#btnValidateClaim").prop("disabled", false);
