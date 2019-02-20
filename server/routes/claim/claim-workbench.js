@@ -28,7 +28,7 @@ router.post('/', async function (req, res) {
 
         let claimIds = _.map(data.rows, 'claim_id');
         req.body.claimIds = claimIds.toString();
-        const result = await claimWorkbenchController.getEDIClaim(req.body);
+        const result = await claimWorkbenchController.getEDIClaim(req);
         httpHandler.send(req, res, result);
 
     }
@@ -75,7 +75,7 @@ router.post('/printer_template', async function (req, res) {
 });
 
 router.post('/create_claim', async function (req, res) {
-    const data = await claimWorkbenchController.getEDIClaim(req.body);
+    const data = await claimWorkbenchController.getEDIClaim(req);
     httpHandler.send(req, res, data);
 });
 

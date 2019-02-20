@@ -686,7 +686,13 @@ module.exports = {
 											INNER JOIN 	billing.payment_applications	 ON payment_applications.id=cas_payment_application_details.payment_application_id
 											INNER JOIN billing.payments ON  billing.payments.id=payment_applications.payment_id and payer_type='insurance' AND
 											payment_applications.charge_id = charges.id AND payment_applications.amount_type = 'adjustment'
-											WHERE cas_group_codes.code= gc.code ) AS CAS )
+											WHERE cas_group_codes.code= gc.code
+											AND payments.insurance_provider_id NOT IN 
+											(SELECT 
+												insurance_provider_id 
+											FROM public.patient_insurances
+											WHERE id = ANY(ARRAY[claims.tertiary_patient_insurance_id,claims.secondary_patient_insurance_id]))							
+											 ) AS CAS )
 											FROM  billing.cas_payment_application_details
 											INNER JOIN billing.cas_group_codes ON cas_group_codes.id = cas_group_code_id
 											INNER JOIN billing.payment_applications ON payment_applications.id = cas_payment_application_details.payment_application_id
@@ -697,7 +703,12 @@ module.exports = {
 											                            GROUP BY cas_group_codes.code ) AS lineAdjustment)
                                         FROM billing.payment_applications pa
                                         INNER JOIN billing.payments ON billing.payments.id=pa.payment_id
-                                        WHERE charge_id = charges.id ) AS lineAdjudication)
+                                        WHERE charge_id = charges.id
+                                        AND payments.insurance_provider_id NOT IN 
+                                        (SELECT insurance_provider_id 
+						FROM public.patient_insurances
+                                        WHERE id = ANY(ARRAY[claims.tertiary_patient_insurance_id,claims.secondary_patient_insurance_id]))
+                                        ) AS lineAdjudication)
 					FROM billing.charges
 					INNER JOIN cpt_codes ON cpt_codes.id=cpt_id
 					LEFT JOIN modifiers AS modifier1 ON modifier1.id=modifier1_id

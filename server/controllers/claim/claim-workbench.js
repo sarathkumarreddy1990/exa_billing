@@ -58,9 +58,10 @@ module.exports = {
         return ediData.submitOhipClaim(params);
     },
 
-    getEDIClaim: async (params) => {
+    getEDIClaim: async (req) => {
+        let params = req.body;
         let claimIds = (params.claimIds).split(',');
-        let validationData = await data.validateEDIClaimCreation(claimIds);
+        let validationData = await data.validateEDIClaimCreation(claimIds, req.session.country_alpha_3_code);
         validationData = validationData && validationData.rows && validationData.rows.length && validationData.rows[0] || [];
 
         if(validationData) {
@@ -68,10 +69,11 @@ module.exports = {
                 return new Error('Please validate claims');
             } else if(validationData.unique_billing_method_count > 1 ){
                 return new Error('Please select claims with same type of billing method');
-            } else if(validationData.clearing_house_count != claimIds.length || validationData.unique_clearing_house_count > 1){
+            } else if(validationData.clearing_house_count != claimIds.length || validationData.unique_clearing_house_count > 1 || req.session.country_alpha_3_code != 'can' ){
                 return new Error('Please select claims with same type of clearing house Claims');
+            } else if (validationData.claim_status.count != claimIds.length) {
+                return new Error('Claim date should not be greater than the current date');
             }
-
         }
 
         const result = await ediData.getClaimData(params);
@@ -291,28 +293,28 @@ module.exports = {
 
             if (currentClaim.primary_patient_insurance_id != null && currentClaim.primary_patient_insurance_id != '') {
                 if (currentClaim.is_pri_relationship_self) {
-                    currentClaim.p_subscriber_firstName != '' ? currentClaim.patient_firstName === currentClaim.p_subscriber_firstName ? '' : errorMessages.push('Claim - Primary Subscriber First Name (Self) and Patient First Name Not Matched') : '';
-                    currentClaim.p_subscriber_lastName != '' ? currentClaim.patient_lastName === currentClaim.p_subscriber_lastName ? '' : errorMessages.push('Claim - Primary Subscriber Last Name (Self) and Patient Last Name Not Matched') : '';
-                    currentClaim.p_subscriber_middleName != '' ? currentClaim.patient_middleName === currentClaim.p_subscriber_middleName ? '' : errorMessages.push('Claim - Primary Subscriber Middle Name (Self) and Patient Middle Name Not Matched') : '';
-                    currentClaim.p_subscriber_suffixName != '' ? currentClaim.patient_suffixName === currentClaim.p_subscriber_suffixName ? '' : errorMessages.push('Claim - Primary Subscriber Suffix Name (Self) and Patient Suffix Name Not Matched') : '';
+                    currentClaim.p_subscriber_firstName && currentClaim.patient_firstName.toLowerCase() !== currentClaim.p_subscriber_firstName.toLowerCase() ? errorMessages.push('Claim - Primary Subscriber First Name (Self) and Patient First Name Not Matched') : '';
+                    currentClaim.p_subscriber_lastName && currentClaim.patient_lastName.toLowerCase() !== currentClaim.p_subscriber_lastName.toLowerCase() ? errorMessages.push('Claim - Primary Subscriber Last Name (Self) and Patient Last Name Not Matched') : '';
+                    currentClaim.p_subscriber_middleName && currentClaim.patient_middleName.toLowerCase() !== currentClaim.p_subscriber_middleName.toLowerCase() ? errorMessages.push('Claim - Primary Subscriber Middle Name (Self) and Patient Middle Name Not Matched') : '';
+                    currentClaim.p_subscriber_suffixName && currentClaim.patient_suffixName.toLowerCase() !== currentClaim.p_subscriber_suffixName.toLowerCase() ? errorMessages.push('Claim - Primary Subscriber Suffix Name (Self) and Patient Suffix Name Not Matched') : '';
                 }
             }
 
             if (currentClaim.secondary_patient_insurance_id != null && currentClaim.secondary_patient_insurance_id != '') {
                 if (currentClaim.is_sec_relationship_self) {
-                    currentClaim.s_subscriber_firstName != '' ? currentClaim.patient_firstName === currentClaim.s_subscriber_firstName ? '' : errorMessages.push('Claim - Secondary Subscriber First Name (Self) and Patient First Name Not Matched') : '';
-                    currentClaim.s_subscriber_lastName != '' ? currentClaim.patient_lastName === currentClaim.s_subscriber_lastName ? '' : errorMessages.push('Claim - Secondary Subscriber Last Name (Self) and Patient Last Name Not Matched') : '';
-                    currentClaim.s_subscriber_middleName != '' ? currentClaim.patient_middleName === currentClaim.s_subscriber_middleName ? '' : errorMessages.push('Claim - Secondary Subscriber Middle Name (Self) and Patient Suffix Name Not Matched') : '';
-                    currentClaim.s_subscriber_suffixName != '' ? currentClaim.patient_suffixName === currentClaim.s_subscriber_suffixName ? '' : errorMessages.push('Claim - Secondary Subscriber Suffix Name (Self) and Patient Suffix Name Not Matched') : '';
+                    currentClaim.s_subscriber_firstName && currentClaim.patient_firstName.toLowerCase() !== currentClaim.s_subscriber_firstName.toLowerCase() ? errorMessages.push('Claim - Secondary Subscriber First Name (Self) and Patient First Name Not Matched') : '';
+                    currentClaim.s_subscriber_lastName && currentClaim.patient_lastName.toLowerCase() !== currentClaim.s_subscriber_lastName.toLowerCase() ? errorMessages.push('Claim - Secondary Subscriber Last Name (Self) and Patient Last Name Not Matched') : '';
+                    currentClaim.s_subscriber_middleName && currentClaim.patient_middleName.toLowerCase() !== currentClaim.s_subscriber_middleName.toLowerCase() ? errorMessages.push('Claim - Secondary Subscriber Middle Name (Self) and Patient Suffix Name Not Matched') : '';
+                    currentClaim.s_subscriber_suffixName && currentClaim.patient_suffixName.toLowerCase() !== currentClaim.s_subscriber_suffixName.toLowerCase() ? errorMessages.push('Claim - Secondary Subscriber Suffix Name (Self) and Patient Suffix Name Not Matched') : '';
                 }
             }
 
             if (currentClaim.tertiary_patient_insurance_id != null && currentClaim.tertiary_patient_insurance_id != '') {
                 if (currentClaim.is_ter_relationship_self) {
-                    currentClaim.t_subscriber_firstName != '' ? currentClaim.patient_firstName === currentClaim.t_subscriber_firstName ? '' : errorMessages.push('Claim - Tertiary Subscriber Fisrt Name (Self) and Patient First Name Not Matched') : '';
-                    currentClaim.t_subscriber_lastName != '' ? currentClaim.patient_lastName === currentClaim.t_subscriber_lastName ? '' : errorMessages.push('Claim - Tertiary Subscriber Last Name (Self) and Patient Last Name Not Matched') : '';
-                    currentClaim.t_subscriber_middleName != '' ? currentClaim.patient_middleName === currentClaim.t_subscriber_middleName ? '' : errorMessages.push('Claim - Tertiary Subscriber Middle Name (Self) and Patient Middle Name Not Matched') : '';
-                    currentClaim.t_subscriber_suffixName != '' ? currentClaim.patient_suffixName === currentClaim.t_subscriber_suffixName ? '' : errorMessages.push('Claim - Tertiary Subscriber Suffix Name (Self) and Patient Suffix Name Not Matched') : '';
+                    currentClaim.t_subscriber_firstName && currentClaim.patient_firstName.toLowerCase() !== currentClaim.t_subscriber_firstName.toLowerCase() ? errorMessages.push('Claim - Tertiary Subscriber Fisrt Name (Self) and Patient First Name Not Matched') : '';
+                    currentClaim.t_subscriber_lastName && currentClaim.patient_lastName.toLowerCase() !== currentClaim.t_subscriber_lastName.toLowerCase() ? errorMessages.push('Claim - Tertiary Subscriber Last Name (Self) and Patient Last Name Not Matched') : '';
+                    currentClaim.t_subscriber_middleName && currentClaim.patient_middleName.toLowerCase() !== currentClaim.t_subscriber_middleName.toLowerCase() ? errorMessages.push('Claim - Tertiary Subscriber Middle Name (Self) and Patient Middle Name Not Matched') : '';
+                    currentClaim.t_subscriber_suffixName && currentClaim.patient_suffixName.toLowerCase() !== currentClaim.t_subscriber_suffixName.toLowerCase() ? errorMessages.push('Claim - Tertiary Subscriber Suffix Name (Self) and Patient Suffix Name Not Matched') : '';
                 }
             }
 

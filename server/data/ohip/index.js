@@ -1,10 +1,14 @@
-const { query, SQL } = require('./../index');
+const { query, SQL, audit } = require('./../index');
+const moment = require('moment');
+const sprintf = require('sprintf');
+
 // const ediData = require('../../data/claim/claim-edi');
 // const JSONExtractor = require('./jsonExtractor');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const _ = require('lodash')
+const _ = require('lodash');
+
 const {
     encoding,
     resourceTypes,
@@ -126,23 +130,36 @@ const getFileStore = async (args) => {
  *                        }
  * @returns {object}      {
  *                            file_store_id: Number,  // file_stores PK
- *                            file_id: Number,         // edi_files PK
+ *                            file_id: Number,        // edi_files PK
+ *                            absolutePath: String,   // full path including filename
  *                        }
  */
 const storeFile =  async (args) => {
 
     const {
+        createdDate,
         filename,
         data,
     } = args;
 
+
+    // 20120331 - OHIP Conformance Testing Batch Edit sample batch date, seq: 0005
+    // accounting number: "CST-PRIM" from Conformance Testing Error Report sample
+
     const filestore =  await getFileStore(args);
     const filePath = filestore.is_default ? 'OHIP' : '';
-    const fullPath = path.join(filestore.root_directory, filePath, filename);
-    fs.writeFileSync(fullPath, data, {encoding});
+    const absolutePath = path.join(filestore.root_directory, filePath, filename);
+    fs.writeFileSync(absolutePath, data, {encoding});
 
-    const stats = fs.statSync(fullPath);
+    const stats = fs.statSync(absolutePath);
     const md5Hash = crypto.createHash('MD5').update(data, 'utf8').digest('hex');
+
+    const exaFileType = getExaFileType({filename});
+    if (!exaFileType) {
+        return {
+            absolutePath,
+        };
+    }
 
     const sql = `
         INSERT INTO billing.edi_files (
@@ -159,12 +176,9 @@ const storeFile =  async (args) => {
         VALUES(
             1
             ,${filestore.id}
-            ,now()
+            ,'${moment(createdDate || new Date()).format("YYYY-MM-DD")}'::timestamptz
             ,'pending'
-
-            --,${getExaFileType(filename)}
-            ,'835'  -- not good; should be the commented-out line above
-
+            ,'${exaFileType}'
             ,'${filePath}'
             ,${stats.size}
             ,'${md5Hash}'
@@ -173,12 +187,14 @@ const storeFile =  async (args) => {
         RETURNING id
     `;
 
+
+
     const  dbResults = (await query(sql, [])).rows[0];
 
     return {
         file_store_id: filestore.id,
         edi_file_id: dbResults.id,
-        fullPath,
+        absolutePath,
     };
 };
 
@@ -247,29 +263,125 @@ const loadFile = async (args) => {
         WHERE
             ef.id = ${edi_files_id}
     `;
-    let result = await query(sql.text, sql.values)
-    if (result && result.rows && result.rows.length) {
-        let file_d = result.rows[0];
-        const t_fullPath = path.join(file_d.full_path, file_d.uploaded_file_name);
-        file_d.data = fs.readFileSync(t_fullPath, { encoding });
-        return file_d;
-    }
+
+    const {
+        file_store_id,
+        root_directory,
+        file_path,
+        uploaded_file_name,
+    } = (await query(sql.text, sql.values)).rows[0];
+
+    const absolutePath = path.join(root_directory, file_path, uploaded_file_name);
 
     return {
-        data: null,
-        err: `Could not find the file path of requested edi file - ${claim_file_id}`
+        data: fs.readFileSync(absolutePath, {encoding}),
+        file_store_id,
+        root_directory,
+        file_path,
+        uploaded_file_name
     }
-}
+};
 
+
+const updateFileStatus = async (args) => {
+    const {
+        edi_file_id,
+        status,
+    } = args;
+
+    const sql = SQL`
+        UPDATE billing.edi_files
+        SET
+            status=${status}
+        WHERE
+            id = ${edi_file_id}
+    `;
+    await query(sql.text, sql.values);
+};
+
+const updateClaimStatus = async (args) => {
+    const {
+        claimIds,
+        accountingNumber,
+        claimStatusCode,
+    } = args;
+
+    const sql = SQL`
+        UPDATE billing.claims
+        SET
+            claim_status_id = (
+                SELECT id
+                FROM billing.claim_status
+                WHERE code=${claimStatusCode}
+                LIMIT 1
+            )
+        WHERE
+            id = ANY(ARRAY[${claimIds}::int[]])
+    `;
+
+    return (await query(sql.text, sql.values));
+};
+
+/**
+ * const applyClaimSubmission - description
+ *
+ * @param  {type} args description
+ * @returns {type}      description
+ */
+const applyClaimSubmission =  async (args) => {
+
+    const {
+        edi_file_id,
+        batches,    // an array of objects: {claimIds:[Number], batchSequenceNumber:Number}
+    } = args;
+
+    batches.forEach(async (batch) => {
+        const {
+            batchSequenceNumber,
+            claimIds,
+        } = batch;
+
+        const sql = SQL`
+            INSERT INTO billing.edi_file_claims (
+                edi_file_id,
+                claim_id,
+                batch_number
+            )
+            SELECT
+                ${edi_file_id},
+                UNNEST(${claimIds}::int[]),
+                ${sprintf(`%'04s`, batchSequenceNumber)}
+            RETURNING id
+        `;
+
+        (await query(sql.text, sql.values)).rows;
+    });
+
+    // TODO
+    // 1 - insert record into edi_file_claims table
+    //      a. need to know claim ID
+    //      b. need to know file ID
+    //      c. need to know batch number
+    // 2 - update claim status to pending acknowledgement
+    //      a.
+
+
+};
 
 const applyRejectMessage = async (args) => {
     const {
         filename,
     } = args;
 
+
+    const sql = new SubmissionsByBatchHeader(args);
+
     // TODO
     // 1 - set error codes on edi_file_claims (what do "pending ack" claims transition to, now?)
     // 2 - add entry to
+
+
+    console.log(args);
 };
 
 
@@ -282,39 +394,47 @@ const applyRejectMessage = async (args) => {
  */
 const applyBatchEditReport = async (args) => {
 
+    // NOTE
+    // need to already have EDI CLaim Files entry with correct batch sequence number for OHIP CT Batch Edit
     const {
         batchCreateDate,
         batchSequenceNumber,
         responseFileId,
-        comment,
+        comment,    // not really used right now
     } = args;
 
-    const sql = SQL `
-        WITH claim_file_cte AS (
+    const sql = SQL`
+
+        INSERT INTO billing.edi_related_files (
+            submission_file_id,
+            response_file_id
+        )
+        SELECT
+        (
             SELECT
-                ef.id AS edi_file_id
+                ef.id AS submission_file_id
             FROM billing.edi_files ef
             INNER JOIN billing.edi_file_claims efc ON ef.id = efc.edi_file_id
             WHERE
                 ef.file_type = 'can_ohip_h'
-                --AND ef.status = 'pending'
-                AND ef.created_dt = ${batchCreateDate}
+                AND ef.status = 'success'
+                AND ef.created_dt::date = ${moment(batchCreateDate).format('YYYY-MM-DD')}::date
                 AND efc.batch_number = ${batchSequenceNumber}
-        )
-        INSERT INTO billing.edi_related_files(
-            submission_file_id,
-            response_file_id,
-            comment
-        )
-        (
-            SELECT
-                claim_file_cte.edi_file_id,
-                ${responseFileId},
-                ${comment}
-            FROM
-                claim_file_cte
-        )
+        ),
+        ${responseFileId}
     `;
+
+    const dbResults = (await query(sql.text, sql.values)).rows;
+    if (dbResults && dbResults.length) {
+
+        await updateClaimStatus({
+            claimStatusCode: 'PP',  // Pending Payment
+            claimIds: dbResults.map((claim_file) => {
+                return claim_file.claim_id;
+            }),
+        });
+    }
+
 
     // 1 - SELECT corresponding claim submission file
     //      a. edi_files.file_type = 'can_ohip_h'
@@ -343,6 +463,7 @@ const applyBatchEditReport = async (args) => {
 };
 
 const applyErrorReport = async (args) => {
+
     const {
         accountingNumber,
     } = args;
@@ -350,42 +471,49 @@ const applyErrorReport = async (args) => {
     // TODO
     // 1 - set error codes on edi_file_claims
     //
-
+    console.log(args);
 };
 
-const updateFileStatus = async (args) => {
-    const {
-        edi_file_id,
-        status,
-    } = args;
-
-    const sql = SQL`
-        UPDATE billing.edi_files
-        SET
-            status=${status}
-        WHERE
-            id = ${edi_file_id}
-    `;
-
-    await query(sql.text, sql.values);
-};
-
-const setClaimSubmissionFile = (args) => {
-    const {
-        claimIds,
-        edi_file_id,
-    } = args;
-
-    const sql = SQL`
-        UPDATE billing.
-    `;
+const OHIP_CONFIGURATION_MODE = {
+    CONFORMANCE_TESTING: 'Conformance Testing',
+    DEMO: 'Demonstration',
 };
 
 const OHIPDataAPI = {
 
-    auditTransaction: (info) => {
-        console.log(`audit log: ${info}`);
-        /* Sample input info object:
+    OHIP_CONFIGURATION_MODE,
+
+
+    getExaFileType,
+
+    getFileStore,
+    storeFile,
+    loadFile,
+    getRelatedFile,
+    updateFileStatus,
+
+    updateClaimStatus,
+
+    applyClaimSubmission,
+    applyRejectMessage,
+    applyBatchEditReport,
+    applyErrorReport,
+
+    getOHIPConfiguration: async (args) => {
+        return {
+            // TODO: EXA-12674
+            softwareConformanceKey: 'b5dc648e-581a-4886-ac39-c18832d12e06',
+            auditID:124355467675,
+            serviceUserMUID: 614200,
+            username: "confsu+355@gmail.com",
+            password: "Password1!",
+            mode: OHIP_CONFIGURATION_MODE.DEMO,
+        };
+    },
+
+    auditTransaction: async (args) => {
+
+        /* Sample input args.info object, also args.oldInfo which usually be {}:
         {
             transactionID:              // TODO need clarification from MoH
             serviceUser:                // MoH User ID
@@ -400,38 +528,90 @@ const OHIPDataAPI = {
             errorMessages: Array        // array of strings
         }
         */
+        /*  All these arguments are needed, default value for entityName, entityId and clientIP
+            are processed in audit.createAudit
+        */
+        let {
+            userId = 1,
+            entityName = null,
+            entityKey = null,
+            screenName = 'Billing',
+            moduleName = 'OHIP',
+            logDescription = 'OHIP audit log',
+            clientIp = null,
+            companyId = 1,
+            oldInfo = {},
+            info = {}
+        } = args;
+
+        args.newData = info;
+
+        return await audit.createAudit(args);
     },
 
-    getClaimsData: async(args) => {
-        // TODO, run a query to get the claim data
-        // use synchronous call to query ('await query(...)')
-        // const result = (await ediData.getClaimData({
-        //     ...args
-        // }));
+    getClaimsData: async (args) => {
 
+        const {
+            claimIds,
+        } = args;
 
-        // let data = result.rows.map(function (obj) {
-        //
-        //     // claimDetails.push(
-        //     //     {
-        //     //         coverage_level: obj.coverage_level,
-        //     //         claim_id: obj.claim_id,
-        //     //         insuranceName: obj.insurance_name,
-        //     //         note: 'Electronic claim to ' + obj.insurance_name + ' (' + obj.coverage_level + ' )'
-        //     //     }
-        //     // );
-        //     //
-        //     // if ((obj.subscriber_relationship).toUpperCase() != 'SELF') {
-        //     //     obj.data[0].subscriber[0].patient[0].claim = obj.data[0].subscriber[0].claim;
-        //     //     delete obj.data[0].subscriber[0].claim;
-        //     // }
-        //
-        //     return obj.data[0];
-        // });
-        // return new JSONExtractor(data).getMappedData();
-        // const dat = require('./data');
-        // console.log(dat);
-        // return new JSONExtractor(dat).getMappedData();
+        const sql = SQL`
+            SELECT
+                bc.id AS claim_id,
+                npi_no AS "groupNumber",    -- this sucks
+                rend_pr.provider_info -> 'NPI' AS "providerNumber",
+
+                rend_pr.specialities AS "specialtyCode",
+                (SELECT JSON_agg(Row_to_json(claim_details)) FROM (
+                WITH cte_insurance_details AS (
+                SELECT
+                (Row_to_json(insuranceDetails)) AS "insuranceDetails"
+                FROM (SELECT
+                ppi.policy_number AS "healthNumber",
+                ppi.group_number AS "versionCode",
+                pp.birth_date AS "dateOfBirth",
+                bc.id AS "accountingNumber",
+                CASE WHEN nullif (pc.company_info -> 'company_state','') = subscriber_state THEN
+                'HCP'
+                ELSE
+                'RMB'
+                END AS "paymentProgram",
+                'P' AS "payee",
+                'HOP' AS "masterNumber",
+                reff_pr.provider_info -> 'NPI' AS "referringProviderNumber",
+                'HOP' AS "serviceLocationIndicator",
+                ppi.policy_number AS "registrationNumber",
+                pp.last_name AS "patientLastName",
+                pp.first_name AS "patientFirstName",
+                pp.gender AS "patientSex",
+                pp.patient_info -> 'c1Statepp' AS "provinceCode"
+                FROM public.patient_insurances ppi
+                WHERE ppi.id = bc.primary_patient_insurance_id) AS insuranceDetails)
+                , charge_details AS (
+                SELECT JSON_agg(Row_to_json(items)) "items" FROM (
+                SELECT
+                pcc.display_code AS "serviceCode",
+                (bch.bill_fee * bch.units) AS "feeSubmitted",
+                1 AS "numberOfServices",
+                charge_dt AS "serviceDate",
+                billing.get_charge_icds (bch.id) AS diagnosticCodes
+                FROM billing.charges bch
+                INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
+                WHERE bch.claim_id = bc.id) AS items )
+                SELECT * FROM cte_insurance_details, charge_details) AS claim_details ) AS "claims"
+                FROM billing.claims bc
+                INNER JOIN public.companies pc ON pc.id = bc.company_id
+                INNER JOIN public.patients pp ON pp.id = bc.patient_id
+                INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
+                LEFT JOIN public.provider_contacts rend_ppc ON rend_ppc.id = bc.rendering_provider_contact_id
+                LEFT JOIN public.providers rend_pr ON rend_pr.id = rend_ppc.provider_id
+                LEFT JOIN public.provider_contacts reff_ppc ON reff_ppc.id = bc.referring_provider_contact_id
+                LEFT JOIN public.providers reff_pr ON reff_pr.id = reff_ppc.provider_id
+                WHERE bc.id = ANY (${claimIds})
+                ORDER BY bc.id DESC
+            `;
+
+        return (await query(sql.text, sql.values)).rows;
     },
 
     handlePayment: async (data, args) => {
@@ -439,42 +619,7 @@ const OHIPDataAPI = {
        return processedClaims;
     },
 
-    handleBalanceForward: (balanceForward) => {
-        /* Sample input balanceForward object
-        {
-            claimsAdjustment: Number,
-            advances: Number,
-            reductions: Number,
-            deductions: Number,
-        }
-        */
-    },
 
-
-
-    handleAccountingTransaction: (accountingTransaction) => {
-        /* Sample input accountingTransaction object
-        {
-            transactionCode: String,
-            chequeNumber: String,
-            transactionDate: Date
-            transactionAmount: Number,
-            transactionMessage: String
-        }
-
-        */
-    },
-
-    handleMessage: (message) => {
-        // message is just a String
-    },
-
-
-    getFileStore,
-    storeFile,
-    loadFile,
-    updateFileStatus,
-    applyBatchEditReport,
     getFileManagementData: async (params) => {
         let whereQuery = [];
         let filterCondition = '';
@@ -497,7 +642,7 @@ const OHIPDataAPI = {
         whereQuery.push(` ef.file_type != 'EOB' `);
 
         if (id) {
-            whereQuery.push(` ef.id = ${id} `);
+                whereQuery.push(` ef.id = ${id} `);
         }
 
         if (uploaded_file_name) {
@@ -586,18 +731,7 @@ const OHIPDataAPI = {
        return await query(sql);
 
     },
-    getExaFileType,
-    getOHIPConfiguration: async (args) => {
-        return {
-            // TODO: EXA-12674
-            softwareConformanceKey: 'b5dc648e-581a-4886-ac39-c18832d12e06',
-            auditID:124355467675,
-            serviceUserMUID: 614200,
-            username: "confsu+355@gmail.com",
-            password: "Password1!",
-        };
-    },
-    getRelatedFile
+
 };
 
 module.exports = OHIPDataAPI;
