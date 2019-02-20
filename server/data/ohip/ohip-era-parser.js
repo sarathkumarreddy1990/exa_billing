@@ -155,11 +155,9 @@ module.exports = {
 
         payerDetails.logDescription = 'Payment created via ERA';
         payerDetails.isERAPayment = true;
-        payerDetails.file_id = f_data.file_id || 0; // ToDo:: uploaded ERA file id
+        payerDetails.file_id = params.edi_files_id || 0; // ToDo:: uploaded ERA file id
 
         try {
-
-            await paymentController.createOrUpdatePayment(payerDetails);
             paymentResult = await paymentController.createOrUpdatePayment(payerDetails);
             paymentResult = paymentResult && paymentResult.rows && paymentResult.rows.length ? paymentResult.rows[0] : {};
             paymentResult.file_id =  payerDetails.file_id; // imported ERA file id
