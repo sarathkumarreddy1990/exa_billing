@@ -140,26 +140,31 @@ const storeFile =  async (args) => {
         createdDate,
         filename,
         data,
+        isTransient,
     } = args;
 
+    const exaFileType = getExaFileType(args);
 
     // 20120331 - OHIP Conformance Testing Batch Edit sample batch date, seq: 0005
     // accounting number: "CST-PRIM" from Conformance Testing Error Report sample
 
     const filestore =  await getFileStore(args);
     const filePath = filestore.is_default ? 'OHIP' : '';
-    const absolutePath = path.join(filestore.root_directory, filePath, filename);
-    fs.writeFileSync(absolutePath, data, {encoding});
+    const fileInfo = {
+        file_store_id: filestore.id,
+        absolutePath: path.join(filestore.root_directory, filePath, filename),
+    };
 
-    const stats = fs.statSync(absolutePath);
-    const md5Hash = crypto.createHash('MD5').update(data, 'utf8').digest('hex');
+    fs.writeFileSync(fileInfo.absolutePath, data, {encoding});
 
-    const exaFileType = getExaFileType({filename});
-    if (!exaFileType) {
-        return {
-            absolutePath,
-        };
+    if (isTransient || !exaFileType) {
+        // if we don't care about storing the file or the database
+        // will freak out if we try, then our work is done, here
+        return fileInfo;
     }
+
+    const stats = fs.statSync(fileInfo.absolutePath);
+    const md5Hash = crypto.createHash('MD5').update(data, 'utf8').digest('hex');
 
     const sql = `
         INSERT INTO billing.edi_files (
@@ -187,15 +192,11 @@ const storeFile =  async (args) => {
         RETURNING id
     `;
 
-
-
     const  dbResults = (await query(sql, [])).rows[0];
 
-    return {
-        file_store_id: filestore.id,
-        edi_file_id: dbResults.id,
-        absolutePath,
-    };
+    fileInfo.edi_file_id = dbResults.id;
+
+    return fileInfo;
 };
 
 const getRelatedFile = async (claim_file_id, related_file_type) => {
@@ -405,6 +406,7 @@ const applyBatchEditReport = async (args) => {
     console.log('batch create date: ', moment(batchCreateDate).format('YYYY-MM-DD'));
     console.log('batch sequence number: ', batchSequenceNumber);
 
+
     const sql = SQL`
         WITH related_submission_files AS (
             SELECT
@@ -425,11 +427,11 @@ const applyBatchEditReport = async (args) => {
             )
             SELECT
             (
-                SELECT submission_file_id FROM related_submission_files
+                SELECT submission_file_id FROM related_submission_files LIMIT 1
             ),
             ${responseFileId}
             LIMIT 1
-            RETURNING submission_file_id
+        RETURNING submission_file_id
         )
         SELECT *
         FROM insert_related_file_cte
@@ -438,7 +440,7 @@ const applyBatchEditReport = async (args) => {
 
     const dbResults = (await query(sql.text, sql.values)).rows;
     console.log('db results: ', dbResults);
-    
+
     if (dbResults && dbResults.length) {
 
         await updateClaimStatus({
