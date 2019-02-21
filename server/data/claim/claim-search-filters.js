@@ -183,6 +183,11 @@ const colModel = [
         name: 'ins_provider_type',
         searchColumns: ['insurance_provider_payer_types.description'],
         searchFlag: '%'
+    },
+    {
+        name: 'payment_id',
+        searchColumns: ['payment_details.payment_ids'],
+        searchFlag: 'contains'
     }
 ];
 
@@ -386,6 +391,20 @@ const api = {
 
         }
 
+        if (tables.payment_details) {
+            r += ` INNER JOIN LATERAL (
+                    SELECT
+                        distinct array_agg(pa.payment_id) AS payment_ids,
+                        claims.id as claim_id
+                    FROM
+                        billing.charges AS c
+                    INNER JOIN billing.claims ON claims.id = c.claim_id
+                    INNER JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
+                    GROUP BY claims.id
+            ) AS payment_details ON payment_details.claim_id = claims.id `;
+
+        }
+
         return r;
     },
 
@@ -438,7 +457,8 @@ const api = {
             'invoice_no',
             'claim_comment.created_dt AS first_statement_dt',
             'charge_details.charge_description',
-            'insurance_provider_payer_types.description AS ins_provider_type'
+            'insurance_provider_payer_types.description AS ins_provider_type',
+            'bgct.payment_ids AS payment_id'
         ];
 
         if(args.customArgs.filter_id=='Follow_up_queue'){
@@ -691,29 +711,27 @@ const api = {
             if (args.filterCol && args.filterData) {
                 api.setBalanceFilterFlag(args, colModel);
             }
-
-            // Prevents DB function for filtering claim balance, This condition only for getting  claim grid total balance request
+            // Prevents DB function for filtering claim balance & Payment_id -- start
+            let paymentIdFilter ='';
+            
             if (args.isClaimBalanceTotal && args.filterCol.indexOf('claim_balance') > 0) {
-
-                let filterElements = JSON.parse(args.filterCol);
-                let filterData = JSON.parse(args.filterData);
-                let colIndex = _.findIndex(filterElements, (col) => {
-                    return col === 'claim_balance';
-                });
                 args.colModel = _.find(colModel, { name: 'claim_balance' });
-
-                if(colIndex > -1) {
-                    args.claimBalancefilterData = filterData[colIndex];
-                    filterElements.splice(colIndex, 1);
-                    filterData.splice(colIndex, 1);
-                }
-
-                args.filterCol = JSON.stringify(filterElements);
-                args.filterData = JSON.stringify(filterData);
+                api.removeSearchFilterData(args, 'claim_balance');
             }
 
+            if (args.filterCol.indexOf('payment_id') > 0) {
+                api.removeSearchFilterData(args, 'payment_id');
+            
+                if (args.filterPaymentIds) {
+                    args.filterPaymentIds = args.filterPaymentIds.split(',');
+                    args.filterPaymentIds = _.filter(args.filterPaymentIds, _.size);
+                    paymentIdFilter = ` AND payment_details.payment_ids @> ARRAY[${args.filterPaymentIds}]::BIGINT[] `;
+                }
+            }
+            // End
             const response = await filterValidator.generateQuery(colModel, args.filterCol, args.filterData, query_options);
             args.filterQuery = response;
+            args.filterQuery += paymentIdFilter; // Append payment_id filter WHERE Condition
 
             if (userSetting.user_details) {
                 if (userSetting.user_details.user_type != 'SU' && userSetting.user_details.all_facilities != true) {
@@ -737,6 +755,29 @@ const api = {
             return result;
 
         }
+    },
+
+    removeSearchFilterData: function (args, filterCol) {
+
+        let filterElements = JSON.parse(args.filterCol);
+        let filterData = JSON.parse(args.filterData);
+        let colIndex = _.findIndex(filterElements, (col) => {
+            return (col === filterCol);
+        });
+
+        if (colIndex > -1) {
+
+            if (filterCol === 'claim_balance') {
+                args.claimBalancefilterData = filterData[colIndex];
+            } else if (filterCol === 'payment_id') {
+                args.filterPaymentIds = filterData[colIndex];
+            }
+
+            filterElements.splice(colIndex, 1);
+            filterData.splice(colIndex, 1);
+        }
+        args.filterCol = JSON.stringify(filterElements);
+        args.filterData = JSON.stringify(filterData);
     }
 };
 

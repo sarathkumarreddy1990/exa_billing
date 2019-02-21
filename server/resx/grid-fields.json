@@ -392,6 +392,19 @@
                 "sortable": false
             },
             "field_code": "ins_provider_type"
+        },
+        {
+            "id": 33,
+            "field_name": "Payment ID",
+            "i18n_name": "billing.payments.paymentID",
+            "field_info": {
+                "custom_name": "Payment ID",
+                "name": "payment_id",
+                "width": 200,
+                "searchFlag": "array",
+                "sortable": false
+            },
+            "field_code": "payment_id"
         }
     ],
     "study_fields": [

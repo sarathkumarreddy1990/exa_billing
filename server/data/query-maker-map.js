@@ -36,4 +36,5 @@ module.exports = new Map([
     ['gt', require('./query-makers/gt')],
     ['lt', require('./query-makers/lt')],
     ['bw', require('./query-makers/money_range')],
+    ['contains', require('./query-makers/contains.js')],
 ]);
