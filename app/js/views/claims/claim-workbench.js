@@ -588,7 +588,7 @@ define(['jquery',
 
                 } else {
                     jQuery.ajax({
-                        url: '/exa_modules/billing/claim_workbench/' + url,
+                        url: url,
                         type: "POST",
                         data: {
                             claimIds: claimIds.toString()
