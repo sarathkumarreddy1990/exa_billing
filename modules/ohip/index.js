@@ -140,11 +140,19 @@ module.exports = function(billingApi) {
         await ebs.list({resourceType}, async (listErr, listResponse) => {
 
             if (listErr) {
-                await billingApi.storeFile({filename:'listResponse-error.txt', data: JSON.stringify(downloadResponse)});
+                await billingApi.storeFile({
+                    filename:'listResponse-error.txt',
+                    data: JSON.stringify(downloadResponse),
+                    isTransient: true,
+                });
                 return callback(listErr, null);
             }
             else {
-                await billingApi.storeFile({filename:'listResponse.txt', data: JSON.stringify(listResponse)});
+                await billingApi.storeFile({
+                    filename:'listResponse.txt',
+                    data: JSON.stringify(listResponse),
+                    isTransient: true,
+                });
             }
 
             const allResourceIDs = listResponse.data.map((detailResponse) => {
@@ -156,11 +164,19 @@ module.exports = function(billingApi) {
                 await ebs.download({resourceIDs}, async (downloadErr, downloadResponse) => {
 
                     if (downloadErr) {
-                        await billingApi.storeFile({filename:'downloadResponse-error.txt', data: JSON.stringify(downloadResponse)});
+                        await billingApi.storeFile({
+                            filename:'downloadResponse-error.txt',
+                            data: JSON.stringify(downloadResponse),
+                            isTransient: true,
+                        });
                         return callback(downloadErr, null);
                     }
                     else {
-                        await billingApi.storeFile({filename:'downloadResponse.json', data: JSON.stringify(downloadResponse)});
+                        await billingApi.storeFile({
+                            filename:'downloadResponse.json',
+                            data: JSON.stringify(downloadResponse),
+                            isTransient: true,
+                        });
                     }
 
                     const ediFiles = await downloadResponse.data.reduce(async (result, downloadData) => {
@@ -204,11 +220,19 @@ module.exports = function(billingApi) {
         chunk(uploads, MAX_UPLOADS_PER_REQUEST).forEach((uploadBatch) => {
             ebs.upload({uploads:uploadsBatch}, async (uploadErr, uploadResponse) => {
                 if (uploadErr) {
-                    await billingApi.storeFile({filename:'uploadResponse-error.txt', data: JSON.stringify(uploadResponse)});
+                    await billingApi.storeFile({
+                        filename:'uploadResponse-error.txt',
+                        data: JSON.stringify(uploadResponse),
+                        isTransient: true,
+                    });
                     return callback(uploadErr, null);
                 }
                 else {
-                    await billingApi.storeFile({filename:'uploadResponse.json', data: JSON.stringify(uploadResponse)});
+                    await billingApi.storeFile({
+                        filename:'uploadResponse.json',
+                        data: JSON.stringify(uploadResponse),
+                        isTransient: true,
+                    });
                 }
 
                 // TODO set file statuses
