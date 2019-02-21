@@ -183,11 +183,6 @@ const colModel = [
         name: 'ins_provider_type',
         searchColumns: ['insurance_provider_payer_types.description'],
         searchFlag: '%'
-    },
-    {
-        name: 'payment_id',
-        searchColumns: ['payment_details.payment_ids'],
-        searchFlag: 'contains'
     }
 ];
 
