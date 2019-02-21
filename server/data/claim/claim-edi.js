@@ -118,7 +118,7 @@ module.exports = {
 
 									, COALESCE (NULLIF(p_pi.subscriber_address_line1,'Migration Address'),'') AS "p_subscriber_addressLine1"
 									, COALESCE (NULLIF(p_pi.subscriber_city,'Migration City'),'') AS "p_subscriber_city"
-									, p_pi.subscriber_dob AS "p_subscriber_dob"
+									, p_pi.subscriber_dob::text AS "p_subscriber_dob"
 									, COALESCE (NULLIF(p_pi.subscriber_firstname, ''), '')  AS "p_subscriber_firstName"
 									, COALESCE (NULLIF(p_pi.subscriber_middlename, ''), '')  AS "p_subscriber_middleName"
 									, COALESCE (NULLIF(p_pi.subscriber_name_suffix, ''), '')  AS "p_subscriber_suffixName"
@@ -129,7 +129,7 @@ module.exports = {
 
 									, COALESCE (NULLIF(s_pi.subscriber_address_line1 , 'Migration Address'), '') AS "s_subscriber_addressLine1"
 									, COALESCE (NULLIF(s_pi.subscriber_city , 'Migration City'), '') AS "s_subscriber_city"
-									, s_pi.subscriber_dob AS "s_subscriber_dob"
+									, s_pi.subscriber_dob::text AS "s_subscriber_dob"
 									, COALESCE (NULLIF(s_pi.subscriber_firstname, ''), '')  AS "s_subscriber_firstName"
 									, COALESCE (NULLIF(s_pi.subscriber_middlename, ''), '')  AS "s_subscriber_middleName"
 									, COALESCE (NULLIF(s_pi.subscriber_name_suffix, ''), '')  AS "s_subscriber_suffixName"
@@ -140,7 +140,7 @@ module.exports = {
 
 									, COALESCE (NULLIF(t_pi.subscriber_address_line1, 'Migration Address'),'') AS "t_subscriber_addressLine1"
 									, COALESCE (NULLIF(t_pi.subscriber_city, 'Migration City'),'') AS "t_subscriber_city"
-									, t_pi.subscriber_dob AS "t_subscriber_dob"
+									, t_pi.subscriber_dob::text AS "t_subscriber_dob"
 									, COALESCE (NULLIF(t_pi.subscriber_firstname, ''), '')  AS "t_subscriber_firstName"
 									, COALESCE (NULLIF(t_pi.subscriber_middlename, ''), '')  AS "t_subscriber_middleName"
 									, COALESCE (NULLIF(t_pi.subscriber_name_suffix, ''), '')  AS "t_subscriber_suffixName"
@@ -342,7 +342,7 @@ module.exports = {
 										subscriber_zipcode as "zipCode",
 										home_phone_number as "phoneNumber",
 										assign_benefits_to_patient as "acceptAssignment",
-										subscriber_dob as "dob",
+										subscriber_dob::text as "dob",
 										to_char(subscriber_dob, 'YYYYMMDD')  as "dobFormat",
 										(  CASE subscriber_gender
 											WHEN 'Male' THEN 'M'
@@ -576,7 +576,7 @@ module.exports = {
 					subscriber_zipcode as "zipCode",
 					home_phone_number as "phoneNumber",
 					assign_benefits_to_patient as "acceptAssignment",
-					subscriber_dob as "dob",
+					subscriber_dob::text as "dob",
                     to_char(subscriber_dob, 'YYYYMMDD')  as "dobFormat",
                     (CASE pi.coverage_level
                         WHEN 'primary' THEN 'P'
