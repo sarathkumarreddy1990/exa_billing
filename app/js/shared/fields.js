@@ -652,6 +652,21 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "sortable": true
                     },
                     "field_code": "ins_provider_type"
+                },
+                "Payment ID": {
+                    "id": 33,
+                    "field_name": "Payment ID",
+                    "i18n_name": "billing.payments.paymentID",
+                    "field_info": {
+                        "custom_id": 64,
+                        "custom_name": "Payment ID",
+                        "name": "payment_id",
+                        "width": 200,
+                        "searchFlag": "array",
+                        "sortable": false,
+                        "hidden": app.country_alpha_3_code !== 'can'
+                    },
+                    "field_code": "payment_id"
                 }
             });
         }else{
