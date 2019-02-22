@@ -140,11 +140,19 @@ module.exports = function(billingApi) {
         await ebs.list({resourceType}, async (listErr, listResponse) => {
 
             if (listErr) {
-                await billingApi.storeFile({filename:'listResponse-error.txt', data: JSON.stringify(downloadResponse)});
+                await billingApi.storeFile({
+                    filename:'listResponse-error.txt',
+                    data: JSON.stringify(downloadResponse),
+                    isTransient: true,
+                });
                 return callback(listErr, null);
             }
             else {
-                await billingApi.storeFile({filename:'listResponse.txt', data: JSON.stringify(listResponse)});
+                await billingApi.storeFile({
+                    filename:'listResponse.txt',
+                    data: JSON.stringify(listResponse),
+                    isTransient: true,
+                });
             }
 
             const allResourceIDs = listResponse.data.map((detailResponse) => {
@@ -156,11 +164,19 @@ module.exports = function(billingApi) {
                 await ebs.download({resourceIDs}, async (downloadErr, downloadResponse) => {
 
                     if (downloadErr) {
-                        await billingApi.storeFile({filename:'downloadResponse-error.txt', data: JSON.stringify(downloadResponse)});
+                        await billingApi.storeFile({
+                            filename:'downloadResponse-error.txt',
+                            data: JSON.stringify(downloadResponse),
+                            isTransient: true,
+                        });
                         return callback(downloadErr, null);
                     }
                     else {
-                        await billingApi.storeFile({filename:'downloadResponse.json', data: JSON.stringify(downloadResponse)});
+                        await billingApi.storeFile({
+                            filename:'downloadResponse.json',
+                            data: JSON.stringify(downloadResponse),
+                            isTransient: true,
+                        });
                     }
 
                     const ediFiles = await downloadResponse.data.reduce(async (result, downloadData) => {
@@ -204,11 +220,19 @@ module.exports = function(billingApi) {
         chunk(uploads, MAX_UPLOADS_PER_REQUEST).forEach((uploadBatch) => {
             ebs.upload({uploads:uploadsBatch}, async (uploadErr, uploadResponse) => {
                 if (uploadErr) {
-                    await billingApi.storeFile({filename:'uploadResponse-error.txt', data: JSON.stringify(uploadResponse)});
+                    await billingApi.storeFile({
+                        filename:'uploadResponse-error.txt',
+                        data: JSON.stringify(uploadResponse),
+                        isTransient: true,
+                    });
                     return callback(uploadErr, null);
                 }
                 else {
-                    await billingApi.storeFile({filename:'uploadResponse.json', data: JSON.stringify(uploadResponse)});
+                    await billingApi.storeFile({
+                        filename:'uploadResponse.json',
+                        data: JSON.stringify(uploadResponse),
+                        isTransient: true,
+                    });
                 }
 
                 // TODO set file statuses
@@ -250,7 +274,8 @@ module.exports = function(billingApi) {
         submitClaims: async (req, callback) => {
             let args = req.query;
             let params = req.body;
-            let claimIds = params.claimIds;
+            let claimIds = params.claimIds.split(',');
+
             let validationData = await validateClaimsData.validateEDIClaimCreation(claimIds, req.session.country_alpha_3_code);
             validationData = validationData && validationData.rows && validationData.rows.length && validationData.rows[0] || [];
             let claimStatus = _.uniq(validationData.claim_status);
@@ -268,11 +293,12 @@ module.exports = function(billingApi) {
             // TODO
             // 1 - convert args.claimIds to claim data (getClaimsData)
             const claimData = await billingApi.getClaimsData({claimIds});
+            console.log('claimIds: ', claimIds);
             // console.log(claimData);
 
             // 2 - run claim data through encoder
-            // const claimEnc = new ClaimsEncoder(); // default 1:1/1:1
-            const claimEnc = new ClaimsEncoder({batchesPerFile:5});
+            const claimEnc = new ClaimsEncoder(); // default 1:1/1:1
+            // const claimEnc = new ClaimsEncoder({batchesPerFile:5});
             // const claimEnc = new ClaimsEncoder({claimsPerBatch:5});
             const encoderContext = await createEncoderContext();
             const submissionsByGroup = claimEnc.encode(claimData, encoderContext);
@@ -331,7 +357,7 @@ module.exports = function(billingApi) {
                 billingApi.updateFileStatus({edi_file_id:storedFile.edi_file_id, status: 'success'});
 
                 storedFile.batches.forEach(async (batch) => {
-
+                    console.log('setting status to pending ack');
                     await billingApi.updateClaimStatus({
                         claimIds: batch.claimIds,
                         claimStatusCode: 'PACK',
@@ -426,19 +452,22 @@ module.exports = function(billingApi) {
                 downloadResponse.forEach(async (download) => {
 
                     const decodedBatchEdit = new Parser(download.filename).parse(download.data);
-                    const clone = {...decodedBatchEdit[0],};
+                    // const clone = {...decodedBatchEdit[0],};
+                    console.log(decodedBatchEdit);
                     await billingApi.applyBatchEditReport({
                         responseFileId: download.edi_file_id,
                         ...decodedBatchEdit[0],
                     });
+
+                    return callback(null, 'batch edit reports downloaded');
                 });
             });
 
-            download({resourceType:ERROR_REPORTS}, (downloadErr, downloadResponse) => {
-                downloadResponse.forEach(async (download) => {
-                    await billingApi.applyErrorReport(download);
-                });
-            });
+            // download({resourceType:ERROR_REPORTS}, (downloadErr, downloadResponse) => {
+            //     downloadResponse.forEach(async (download) => {
+            //         await billingApi.applyErrorReport(download);
+            //     });
+            // });
         },
 
 

@@ -26,10 +26,12 @@ module.exports = function (billingApi) {
 
     //TODO needs to be POST
     router.use('/submitClaims', async (req, res) => {
-        req.body.company_id = req.body.companyId;
-        req.body.user_id = req.body.userId;
-        const data = await claimWorkbenchController.getData(req.body);
-        req.body.claimIds = _.map(data.rows, 'claim_id');
+        console.log("request: ", req.query);
+
+        // req.body.company_id = req.body.companyId;
+        // req.body.user_id = req.body.userId;
+        // const data = await claimWorkbenchController.getData(req.body);
+        // req.body.claimIds = _.map(data.rows, 'claim_id');
         ohip.submitClaims(req, (submitErr, submitResponse) => {
             return res.send(submitResponse);
         });

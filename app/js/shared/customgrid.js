@@ -780,6 +780,11 @@ function customGrid ( datastore, gridID ) {
 
                 var filterValue = self.getFilterValue(element.name, defaultValue, searchoptionsalt, validateMoney, paymentIDFormatter);
 
+                if (element.name === 'payment_id' && $(element).val()) {
+                    filterValue = filterValue.replace(/[^0-9,]/g, '');
+                    $('#' + element.id).val(filterValue);
+                }
+    
                 if ( /mu_last_updated|check_indate|(.*_(dt|date)$)/.test(element.name) ) {
                     var dates = getDates(filterValue);
                     filterData.push(dates);

@@ -6,13 +6,10 @@ const readFileAsync = promisify(fs.readFile);
 
 const data = require('../../data/claim/claim-workbench');
 const ediData = require('../../data/claim/claim-edi');
+const ohipData = require('../../data/ohip');
+
 const claimPrintData = require('../../data/claim/claim-print');
 const ediConnect = require('../../../modules/edi');
-const {
-    constants,
-    OHIPEncoderV03,
-    EDIQueryAdapter
-} = require('../../../modules/ohip');
 
 const studiesController = require('../../controllers/studies');
 
@@ -52,10 +49,6 @@ module.exports = {
 
     getPrinterTemplate: function (params) {
         return claimPrintData.getPrinterTemplate(params);
-    },
-    
-    submitOhipClaim: function (params) {
-        return ediData.submitOhipClaim(params);
     },
 
     getEDIClaim: async (req) => {
@@ -131,73 +124,25 @@ module.exports = {
                 data: ediData
             };
 
-            const country_alpha_3_code = (await helper.query(`
-                SELECT
-                    country_alpha_3_code
-                FROM sites
-                WHERE
-                    id = 1
-            `, [])).rows[0].country_alpha_3_code;
+            ediResponse = await ediConnect.generateEdi(result.rows[0].header.edi_template_name, ediRequestJson);
+            let validation =[];
 
-            if (country_alpha_3_code === 'can') {
-
-                const enc = new OHIPEncoderV03();
-                const queryAdapter = new EDIQueryAdapter(ediData);
-                const mappedData = queryAdapter.getMappedData();
-
-                ediResponse = '';
-
-                mappedData.forEach((batch) => {
-
-                    const context = {
-                        batchDate: new Date(),
-                        batchSequenceNumber: '441'  // TODO: needs to be dynamically generated
-                    };
-
-                    const filename = enc.getFilename(batch, context);
-
-                    // for each claim
-                    let claimStr = enc.encode(batch, context);
-
-                    ediResponse = {
-                        ohipText: claimStr,
-                        ohipFilename: filename
-                    };
-
-                    const fullOHIPFilepath = path.join('ohip-out', filename);
-
-                    fs.writeFile(fullOHIPFilepath, claimStr, constants.encoding, (err) => {
-                        if (err) {
-                            logger.error('While generating OHIP Claim Submission file', err);
-                        }
-                        else {
-                            logger.info('Created OHIP Claim Submission file: ' + fullOHIPFilepath);
-                        }
-                    });
-                });
+            if (ediResponse && ediResponse.ediTextWithValidations) {
+                let segmentValidations = ediResponse.ediTextWithValidations.filter(segmentData => typeof segmentData !== 'string' && segmentData.v)
+                    .map(segmentData => segmentData.v)
+                    .reduce((result, item) => result.concat(item), []);
+                validation = ediResponse.validations.concat(segmentValidations);
             }
-            else {
 
-                ediResponse = await ediConnect.generateEdi(result.rows[0].header.edi_template_name, ediRequestJson);
-                let validation =[];
-
-                if (ediResponse && ediResponse.ediTextWithValidations) {
-                    let segmentValidations = ediResponse.ediTextWithValidations.filter(segmentData => typeof segmentData !== 'string' && segmentData.v)
-                        .map(segmentData => segmentData.v)
-                        .reduce((result, item) => result.concat(item), []);
-                    validation = ediResponse.validations.concat(segmentValidations);
-                }
-
-                if (!ediResponse.errMsg && (validation && validation.length == 0)) {
-                    params.claim_status = 'PP';
-                    params.type = 'auto';
-                    params.success_claimID = params.claimIds.split(',');
-                    params.isClaim = true;
-                    params.claimDetails = JSON.stringify(claimDetails);
-                    await data.changeClaimStatus(params);
-                }
-
+            if (!ediResponse.errMsg && (validation && validation.length == 0)) {
+                params.claim_status = 'PP';
+                params.type = 'auto';
+                params.success_claimID = params.claimIds.split(',');
+                params.isClaim = true;
+                params.claimDetails = JSON.stringify(claimDetails);
+                await data.changeClaimStatus(params);
             }
+
         } else {
             ediResponse = result;
         }
@@ -478,7 +423,10 @@ module.exports = {
     },
 
     ohipClaimValidation: async function (params) {
-        let claimDetails = await this.submitOhipClaim({ claimIds: params.claim_ids.join(',') });
+        // TODO: this probably belongs in modules/ohip/routes.js
+        // (but it works right here for right now)
+        let claimDetails = await ohipData.getClaimsData(params);
+
         claimDetails = claimDetails.rows;
 
         let file_path = path.join(__dirname, '../../resx/ohip-claim-validation-fields.json');
@@ -499,7 +447,7 @@ module.exports = {
 
             _.each(valdationClaimJson, (fieldValue, field) => {
                 if (fieldValue) {
-                    !claimData[field] || !claimData[field].length ? errorMessages.push(` Claim - ${field} does not exists`) : null;
+                    !claimData[field] || !claimData[field].length ? errorMessages.push(` Claim - ${field} does not exist`) : null;
                 }
             });
 
@@ -525,5 +473,7 @@ module.exports = {
         }
 
         return validation_result;
-    }
+    },
+
+    getClaimTotalBalance: data.getClaimTotalBalance
 };

@@ -578,14 +578,17 @@ define(['jquery',
                 }
 
                 commonjs.showLoading();
-                var url = app.country_alpha_3_code === 'can' ? 'create_ohip_claim' : 'create_claim';
+                var url = '/exa_modules/billing/claim_workbench/create_claim';
+                if (app.country_alpha_3_code === 'can') {
+                    url = '/exa_modules/billing/ohip/submitClaims';
+                }
 
                 if ($('#chkStudyHeader_' + filterID).is(':checked')) {
                     self.selectAllClaim(filter, filterID, 'EDI');
 
                 } else {
                     jQuery.ajax({
-                        url: '/exa_modules/billing/claim_workbench/' + url,
+                        url: url,
                         type: "POST",
                         data: {
                             claimIds: claimIds.toString()
@@ -1312,6 +1315,7 @@ define(['jquery',
                             var updateStudiesPager = function (model, gridObj) {
                                 $('#chkclaimsHeader_' + filterID).prop('checked', false);
                                 self.setGridPager(filterID, gridObj, false);
+                                self.setClaimBalanceAndFeeDetails(filterID, gridObj);
                                 self.bindDateRangeOnSearchBox(gridObj, 'claims','claim_dt');
                                 self.afterGridBindclaims(model, gridObj);
                                 commonjs.nextRowID = 0;
@@ -1454,6 +1458,49 @@ define(['jquery',
                 }
             },
 
+            setClaimBalanceAndFeeDetails: function (filterID, filterObj) {
+                var self = this;
+                filterObj.options.filterid = filterID;
+
+                if (filterObj.options.isSearch) {
+                    var url ="/exa_modules/billing/claim_workbench/claims_total_balance";
+                    jQuery.ajax({
+                        url: url,
+                        type: "GET",
+                        data: {
+                            filterData: JSON.stringify(filterObj.pager.get('FilterData')),
+                            filterCol: JSON.stringify(filterObj.pager.get('FilterCol')),
+                            customArgs: {
+                                flag: 'home_claims',
+                                filter_id: filterID,
+                                isDatePickerClear: self.datePickerCleared
+                            }
+                        },
+                        success: function (data, textStatus, jqXHR) {
+                            if (data && data.length) {
+
+                                filterObj.pager.set({
+                                    "TotalChargeBillFee": data[0].charges_bill_fee_total
+                                });
+                                filterObj.pager.set({
+                                    "TotalClaimBalance": data[0].claim_balance_total
+                                });
+
+                                filterObj.options.isSearch = false;
+                                self.setFooter(filterObj);
+                            }
+                        },
+                        error: function (err) {
+                            commonjs.handleXhrError(err);
+                        }
+                    });
+                }
+                else {
+                    this.setFooter(filterObj);
+                    commonjs.setFilter(filterID, filterObj);
+                }
+            },
+
             setFooter: function (filter) {
                 var self = this;
 
@@ -1498,6 +1545,17 @@ define(['jquery',
                 $('#showLeftPreOrder').attr('disabled', false);
                 $('#showOnlyPhyOrders').removeAttr('disabled');
                 $('#showOnlyOFOrders').removeAttr('disabled');
+
+                var totalChargeBillFee = pagerObj.get('TotalChargeBillFee') || '$0';
+                var totalClaimBalance = pagerObj.get('TotalClaimBalance') || '$0';
+                if (filter.options.isClaimGrid) {
+                    $('#spnTotalBalance').html(totalClaimBalance);
+                    $('#spnTotalBillingFee').html(totalChargeBillFee);
+
+                    $('#spanTotalBalance, #spanTotalBillingFee').removeClass('d-none');
+                } else {
+                    $('#spanTotalBalance, #spanTotalBillingFee').addClass('d-none')
+                }
             },
 
             disablePageControls: function () {
