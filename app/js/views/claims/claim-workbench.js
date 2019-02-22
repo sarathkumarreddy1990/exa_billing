@@ -1865,6 +1865,32 @@ define(['jquery',
                         });
 
                         setTimeout(function() {
+                            $('#tblFileManagement').jqGrid({
+                                emptyMessage: i18n.get("messages.status.noRecordFound"),
+                                colNames: ["","File Name","File Type", "Submitted Date","Acknowledgement Received","Payment Received",""],
+                                i18nNames: [
+                                    "",
+                                    "billing.claims.fileName",
+                                    "billing.claims.fileType",
+                                    "billing.claims.submittedDate",
+                                    "billing.claims.acknowledgementReceived",
+                                    "billing.claims.paymentReceived",
+                                    ""
+                                ],
+                                colModel: [
+                                    { name: 'id', hidden: true },
+                                    { name: 'file_name', search: false },
+                                    { name: 'file_type', search: false },
+                                    { name: 'updated_date_time', search: false },
+                                    { name: 'is_acknowledgement_received', search: false },
+                                    { name: 'is_payment_received', search: false },
+                                    { name: 'apply_button', search: false, sortable: false }
+                                ],
+                                datastore: response.rows
+                            });
+
+                            commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());
+
                             $(".btn-apply-file-management").off("click").click(function(e) {
                                 self.applyFileManagement(e.currentTarget.getAttribute("data-file-id"));
                             });
@@ -1935,7 +1961,7 @@ define(['jquery',
                 var existingBillingMethod = null;
                 var selectedClaimsRows = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked');
 
-                
+
                 for (var i = 0; i < selectedClaimsRows.length; i++) {
                     var rowId = selectedClaimsRows[i].parentNode.parentNode.id;
                     var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_billing_method');
