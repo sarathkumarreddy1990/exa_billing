@@ -34,6 +34,7 @@ const {
     parseResourceResult,
     parseTypeListResult,
     parseDetail,
+    parseInfoDetail,
     parseDownloadResult,
 } = require('./xml');
 const ebsRequestTemplate = require('./ebsRequest');
@@ -128,7 +129,6 @@ const EBSConnector = function(config) {
             });
 
             ws.send(handlers, ctx, (ctx) => {
-
                 const doc = new dom().parseFromString(ctx.response);
                 return callback(null, parseResourceResult(doc));
             });
@@ -139,7 +139,6 @@ const EBSConnector = function(config) {
             const ctx = getContext(EDT_SUBMIT(args));
 
             return ws.send(handlers, ctx, (ctx) => {
-
                 const doc = new dom().parseFromString(ctx.response);
                 return callback(null, parseResourceResult(doc));
             });
@@ -150,9 +149,8 @@ const EBSConnector = function(config) {
             const ctx = getContext(EDT_INFO(args));
 
             return ws.send(handlers, ctx, (ctx) => {
-
                 const doc = new dom().parseFromString(ctx.response);
-                return callback(null, parseDetail(doc));
+                return callback(null, parseInfoDetail(doc));
             });
         },
 
@@ -161,7 +159,6 @@ const EBSConnector = function(config) {
             const ctx = getContext(EDT_LIST(args));
 
             return ws.send(handlers, ctx, (ctx) => {
-
                 const doc = new dom().parseFromString(ctx.response);
                 return callback(null, parseDetail(doc));
             });
@@ -172,7 +169,7 @@ const EBSConnector = function(config) {
 
             return ws.send(handlers, ctx, (ctx) => {
                 // const file = ws.getAttachment(ctx, "response", "//*[local-name(.)='content']");
-                // console.log(ctx.response);
+
                 const doc = new dom().parseFromString(ctx.response);
                 return callback(null, {
                     audit: ctx.audit,
@@ -187,7 +184,6 @@ const EBSConnector = function(config) {
             const ctx = getContext(EDT_DELETE(args));
 
             return ws.send(handlers, ctx, (ctx) => {
-
                 const doc = new dom().parseFromString(ctx.response);
                 return callback(null, parseResourceResult(doc));
             });
@@ -215,7 +211,6 @@ const EBSConnector = function(config) {
             });
 
             return ws.send(handlers, ctx, (ctx) => {
-
                 const doc = new dom().parseFromString(ctx.response);
                 return callback(null, parseResourceResult(doc));
             });
@@ -226,7 +221,6 @@ const EBSConnector = function(config) {
             const ctx = getContext(EDT_GET_TYPE_LIST(args));
 
             return ws.send(handlers, ctx, (ctx) => {
-
                 const doc = new dom().parseFromString(ctx.response);
                 return callback(null, parseTypeListResult(doc));
             });

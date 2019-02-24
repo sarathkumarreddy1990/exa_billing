@@ -142,7 +142,7 @@ module.exports = function(billingApi) {
             if (listErr) {
                 await billingApi.storeFile({
                     filename:'listResponse-error.txt',
-                    data: JSON.stringify(downloadResponse),
+                    data: JSON.stringify(listResponse),
                     isTransient: true,
                 });
                 return callback(listErr, null);

@@ -1,4 +1,4 @@
-// TODO - parse audit-log stuff into each result instead of separately 
+// TODO - parse audit-log stuff into each result instead of separately
 
 const pki = require('node-forge').pki;
 const crypto = require('crypto');
@@ -106,6 +106,7 @@ const parseTypeListData = (doc) => {
 };
 
 const parseDownloadData = (doc) => {
+
     return {
         content: select("//*[local-name(.)='content']/text()", doc)[0].nodeValue.toString('base64'),
         resourceID: select("//*[local-name(.)='resourceID']/text()", doc)[0].nodeValue,
@@ -154,6 +155,20 @@ module.exports = {
         };
     },
 
+    parseInfoDetail: (doc) => {
+
+        let detailNode = select("//*[local-name(.)='return']", doc)[0];
+
+        return {
+            auditID: parseAuditID(detailNode),
+            // resultSize: select("//*[local-name(.)='resultSize']/text()", detailNode)[0].nodeValue,
+            data: select("//*[local-name(.)='data']", detailNode).map((dataNode) => {
+                return parseDetailData(dataNode);
+            }),
+            // resultSize: select("//*[local-name(.)='resultSize']/text()", detailNode)[0].nodeValue,
+        };
+    },
+
     parseTypeListResult: (doc) => {
         let typeListResultNode = select("//*[local-name(.)='return']", doc)[0];
 
@@ -161,7 +176,6 @@ module.exports = {
             auditID: parseAuditID(typeListResultNode),
 
             data: select("//*[local-name(.)='data']", typeListResultNode).map((typeListDataNode) => {
-                // console.log(select("//*[local-name(.)='resourceType']/text()", typeListDataNode)[0].nodeValue);
                 return parseTypeListData(typeListDataNode);
             }),
         };
@@ -174,7 +188,6 @@ module.exports = {
             auditID: parseAuditID(downloadResultNode),
 
             data: select("//*[local-name(.)='data']", downloadResultNode).map((downloadDataNode) => {
-                // console.log(select("//*[local-name(.)='resourceType']/text()", downloadDataNode)[0].nodeValue);
                 return parseDownloadData(downloadDataNode);
             }),
         };
@@ -192,5 +205,4 @@ module.exports = {
         };
 
     },
-
 };
