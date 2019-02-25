@@ -48,7 +48,7 @@ module.exports = function (billingApi) {
     // OHIP File Management Screen
     router.get('/fileManagement', (req, res) => {
         ohip.fileManagement(req.query, (ohipErr, ohipResponse) => {
-            return res.send(ohipResponse);
+            return res.send(ohipResponse.rows);
         });
     });
 
