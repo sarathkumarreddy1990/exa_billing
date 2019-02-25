@@ -194,13 +194,14 @@ gulp.task('zip', ['git-init', 'replace'], () => {
         .pipe(gulp.dest('./dist'));
 });
 
-gulp.task('ftp-upload', () => {
+gulp.task('ftp-upload', ['git-init'], () => {
     const conn = ftp.create({
         host: '12.70.252.178',
         user: 'development',
         password: '1q2w3e4r5t',
         log: gutil.log
     });
+    const destinationDirectory= (currentBranch === 'release') ? '/EXA' : '/EXATesting';
 
     return gulp.src(['./dist/**'], { base: './dist', buffer: false })
         //.pipe(conn.newer('/EXA/billing'))
