@@ -41,19 +41,19 @@ const decrypt = (encryptedKey, encryptedContent) => {
 };
 
 const parseAuditID = (doc) => {
-    return select("//*[local-name(.)='auditID']/text()", doc)[0].nodeValue;
+    return select("*[local-name(.)='auditID']/text()", doc)[0].nodeValue;
 };
 
 const parseStatus = (doc) => {
-    return select("//*[local-name(.)='status']/text()", doc)[0].nodeValue;
+    return select("*[local-name(.)='status']/text()", doc)[0].nodeValue;
 };
 
 const parseResourceID = (doc) => {
-    return select("//*[local-name(.)='resourceID']/text()", doc)[0].nodeValue;
+    return select("*[local-name(.)='resourceID']/text()", doc)[0].nodeValue;
 };
 
 const parseOptionalValue = (doc, name) => {
-    const optionalNode = select(`//*[local-name(.)='${name}']/text()`, doc);
+    const optionalNode = select(`*[local-name(.)='${name}']/text()`, doc);
     return optionalNode.length ? optionalNode[0].nodeValue : '';
 };
 
@@ -108,12 +108,12 @@ const parseTypeListData = (doc) => {
 const parseDownloadData = (doc) => {
 
     return {
-        content: select("//*[local-name(.)='content']/text()", doc)[0].nodeValue.toString('base64'),
-        resourceID: select("//*[local-name(.)='resourceID']/text()", doc)[0].nodeValue,
-        resourceType: select("//*[local-name(.)='resourceType']/text()", doc)[0].nodeValue,
-        description: select("//*[local-name(.)='description']/text()", doc)[0].nodeValue,
+        content: select("*[local-name(.)='content']/text()", doc)[0].nodeValue.toString('base64'),
+        resourceID: select("*[local-name(.)='resourceID']/text()", doc)[0].nodeValue,
+        resourceType: select("*[local-name(.)='resourceType']/text()", doc)[0].nodeValue,
+        description: select("*[local-name(.)='description']/text()", doc)[0].nodeValue,
 
-        ...parseCommonResult(select("//*[local-name(.)='result']", doc)[0])
+        ...parseCommonResult(select("*[local-name(.)='result']", doc)[0])
     };
 
 };

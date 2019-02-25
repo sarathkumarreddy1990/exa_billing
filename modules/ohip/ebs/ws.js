@@ -65,35 +65,41 @@ ws.Xenc.prototype.send = function(ctx, callback) {
         const bodyNode = select("//*[local-name(.)='Body']", doc)[0];
 
         try {
-            const encryptedKeyNode = select("//*[local-name(.)='EncryptedKey']/*[local-name(.)='CipherData']/*[local-name(.)='CipherValue']/text()", doc);
-            const encryptedDataNode = select("//*[local-name(.)='EncryptedData']/*[local-name(.)='CipherData']/*[local-name(.)='CipherValue']/text()", doc)[0];
-            const decryptedData = decrypt(encryptedKeyNode[0].nodeValue, encryptedDataNode.nodeValue);
+            const encryptedKeyNodes = select("//*[local-name(.)='EncryptedKey']", doc);
+            const encryptedKeyValueNodes = select("//*[local-name(.)='CipherData']/*[local-name(.)='CipherValue']/text()", encryptedKeyNodes[0]);
+            const encryptedBodyDataNode = select("//*[local-name(.)='EncryptedData']/*[local-name(.)='CipherData']/*[local-name(.)='CipherValue']/text()", bodyNode)[0];
+            const decryptedData = decrypt(encryptedKeyValueNodes[0].nodeValue, encryptedBodyDataNode.nodeValue);
+
+            encryptedKeyNodes.splice(0, 1);
 
             const newNode = new dom().parseFromString(decryptedData);
             bodyNode.replaceChild(
                 newNode,
-                select("//*[local-name(.)='downloadResponse']", doc)[0]
+                select("//*[local-name(.)='downloadResponse']", bodyNode)[0]
             );
 
             // NOTE collaboration with Mtom
-            if (encryptedKeyNode.length == 2) {
+            for (let i = 0; i < encryptedKeyNodes.length; i++) {
+                const encryptedKeyNode = encryptedKeyNodes[i];
+                const dataURI = select("*[local-name(.)='ReferenceList']/*[local-name(.)='DataReference']/@URI", encryptedKeyNode)[0].nodeValue;
 
-                for (let key in ctx.data) {
-                    const xpath = "//*[@href='cid:" + key + "']//parent::*";
-                    const contentNode = select(xpath, bodyNode)[0];
+                // dataURI has an annoying'#' at the beginning so we pop it off
+                const cipherRefNode = select(`//*[@Id='${dataURI.slice(1)}']/*[local-name(.)='CipherData']/*[local-name(.)='CipherReference']/@URI`, doc);
 
-                    if (!contentNode) {
-                        continue;
-                    }
+                const contentURI = decodeURIComponent(cipherRefNode[0].nodeValue);
 
-                    const decryptedContent = decrypt(encryptedKeyNode[1].nodeValue, ctx.data[key]).toString('binary');
+                const encryptedKeyValue = select("*[local-name(.)='CipherData']/*[local-name(.)='CipherValue']/text()", encryptedKeyNode)[0].nodeValue;
 
-                    contentNode.removeChild(contentNode.firstChild);
-                    utils.setElementValue(doc, contentNode, decryptedContent);
-                }
+                // contentURI has 'cid:' at the beginning so pop it off
+                const decryptedContent = decrypt(encryptedKeyValue, ctx.data[contentURI.slice(4)]).toString('binary');
+
+                const contentNode = select(`//*[@href='${contentURI}']//parent::*`, bodyNode)[0];
+                contentNode.removeChild(contentNode.firstChild);
+                utils.setElementValue(doc, contentNode, decryptedContent);
             }
 
             ctx.response = doc.toString();
+
         } catch(e) {
             console.log(`error: ${e}`);
         }
@@ -117,7 +123,7 @@ ws.Audit.prototype.send = function(ctx, callback) {
 
         // End User identifier
         // TODO
-        
+
         // Action / event detail
         // TODO
     };
