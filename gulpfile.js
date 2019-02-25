@@ -100,7 +100,7 @@ gulp.task('less-default', ['install'], () => {
         .pipe(less({
             paths: [path.join(__dirname, 'app/skins/default/index.less')]
         }))
-        .pipe(gulp.dest('./build/app/skins/default'))
+        .pipe(gulp.dest('./build/app/skins/default'));
 });
 
 gulp.task('less', ['less-default'], () => {
@@ -112,7 +112,7 @@ gulp.task('less', ['less-default'], () => {
                 path.join(__dirname, 'app/skins/dark/index.less')
             ]
         }))
-        .pipe(gulp.dest('./build/app/skins/dark'))
+        .pipe(gulp.dest('./build/app/skins/dark'));
 });
 
 gulp.task('requirejsBuild', ['less'], (done) => {
