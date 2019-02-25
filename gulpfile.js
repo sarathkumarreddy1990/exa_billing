@@ -161,9 +161,11 @@ gulp.task('compress2', (done) => {
     ], done);
 });
 
-gulp.task('bump', ['compress'], () => {
+gulp.task('bump', ['git-init', 'compress'], () => {
+    const bumpType = (currentBranch === 'release') ? 'patch' : 'prerelease';
+    const preID = currentBranch.replace(/_/g, '-');
     return gulp.src('./package.json')
-        .pipe(bump({ type: 'patch' }))
+        .pipe(bump({ type: bumpType, preid: preID }))
         .pipe(gulp.dest('./'));
 });
 
