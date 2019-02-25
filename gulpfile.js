@@ -18,7 +18,7 @@ const path = require('path');
 const childProcess = require('child_process');
 const semver = require('semver');
 
-let currentBranch = 'development';
+let currentBranch = 'GitInitTaskDidNotRun';
 let timestamp = moment().format("YYYYMMDDhhmm");
 let requirejsConfig = require('./app/js/main').rjsConfig;
 
@@ -182,7 +182,7 @@ gulp.task('replace', ['copy-package-json'], () => {
         .pipe(gulp.dest('./build/server/'));
 });
 
-gulp.task('zip', ['replace'], () => {
+gulp.task('zip', ['git-init', 'replace'], () => {
     const pkg = getPackageJson();
     const buildFileName = `${pkg.name}_${pkg.version}_${currentBranch}_node-${process.version}_${timestamp}.zip`;
 
