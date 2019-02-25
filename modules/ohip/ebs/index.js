@@ -130,11 +130,11 @@ const EBSConnector = function(config) {
 
             chunk(uploads, UPLOAD_MAX).forEach((chunk, index, chunks) => {
 
-                const ctx = getContext(EDT_UPLOAD({uploads:uploadBatch}));
+                const ctx = getContext(EDT_UPLOAD({uploads:chunk}));
 
                 // TODO handle multiple attachments *correctly*
                 // TODO this should probably be moved to getContext
-                uploadBatch.forEach((upload) => {
+                chunk.forEach((upload) => {
                     ws.addAttachment(
                         ctx,
                         "request",
@@ -172,6 +172,7 @@ const EBSConnector = function(config) {
                 const ctx = getContext(EDT_SUBMIT({resourceIDs: chunk}));
 
                 return ws.send(handlers, ctx, (ctx) => {
+
                     const doc = new dom().parseFromString(ctx.response);
 
                     submitResults.push({
@@ -259,18 +260,27 @@ const EBSConnector = function(config) {
         delete: (args, callback) => {
 
             const {
-                downloads,
+                resourceIDs,
             } = args;
 
 
             const deleteResults = [];
 
-            chunk(deleteResults, DELETE_MAX).forEach((chunk, index, chunks) => {
-                const ctx = getContext(EDT_DELETE({downloads:chunk}));
+            chunk(resourceIDs, DELETE_MAX).forEach((chunk, index, chunks) => {
+
+                const ctx = getContext(EDT_DELETE({resourceIDs: chunk}));
 
                 return ws.send(handlers, ctx, (ctx) => {
                     const doc = new dom().parseFromString(ctx.response);
-                    return callback(null, parseResourceResult(doc));
+
+                    deleteResults.push({
+                        audit: ctx.audit,
+                        ...parseResourceResult(doc),
+                    });
+
+                    if (index === (chunks.length -1)) {
+                        return callback(null, deleteResults);
+                    }
                 });
             });
         },
@@ -286,7 +296,7 @@ const EBSConnector = function(config) {
             chunk(updates, UPDATE_MAX).forEach((chunk, index, chunks) => {
 
                 const ctx = getContext(EDT_UPDATE({updates:chunk}));
-
+                // console.log(ctx.request);
 
                 // TODO handle multiple attachments *correctly*
                 // TODO this should probably be moved to getContext
@@ -309,7 +319,7 @@ const EBSConnector = function(config) {
                     });
 
                     if (index === (chunks.length -1)) {
-                        return callback(null, );
+                        return callback(null, updateResults);
                     }
                 });
             });

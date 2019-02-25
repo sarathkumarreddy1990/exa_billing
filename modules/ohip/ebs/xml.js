@@ -49,7 +49,7 @@ const parseStatus = (doc) => {
 };
 
 const parseResourceID = (doc) => {
-    return select("*[local-name(.)='resourceID']/text()", doc)[0].nodeValue;
+    return select("//*[local-name(.)='resourceID']/text()", doc)[0].nodeValue;
 };
 
 const parseOptionalValue = (doc, name) => {
@@ -129,7 +129,7 @@ module.exports = {
         return {
             auditID: parseAuditID(resourceResultNode),
 
-            responses: select("//*[local-name(.)='response']", resourceResultNode).map((responseNode) => {
+            response: select("//*[local-name(.)='response']", resourceResultNode).map((responseNode) => {
 
                 return {
                     description: parseOptionalValue(responseNode, 'description'),
