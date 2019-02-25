@@ -4,6 +4,7 @@ define(['jquery',
     'backbone',
     'jqgrid',
     'jqgridlocale',
+    'models/pager',
     'shared/paper-claim',
     'collections/claim-filters',
     'text!templates/claims/claims.html',
@@ -25,6 +26,7 @@ define(['jquery',
               Backbone,
               JGrid,
               JGridLocale,
+              Pager,
               PaperClaim,
               ClaimFiltersCollection,
               ClaimHTML,
@@ -1911,53 +1913,100 @@ define(['jquery',
                 var self = this;
 
                 self.fileManagementFiles = new FileManagementCollection();
-                self.fileManagementFiles.fetch({
-                    data: {},
-                    success: function (model, response) {
-                        commonjs.showDialog({
-                            header: 'File Managmenet',
-                            i18nHeader: 'billing.claims.fileManagement',
-                            width: '80%',
-                            height: '70%',
-                            html: self.fileManagementTemplate({ data: response.rows })
-                        });
+                self.fileManagementPager = new Pager();
 
-                        setTimeout(function() {
-                            $('#tblFileManagement').jqGrid({
-                                emptyMessage: i18n.get("messages.status.noRecordFound"),
-                                colNames: ["","File Name","File Type", "Submitted Date","Acknowledgement Received","Payment Received",""],
-                                i18nNames: [
-                                    "",
-                                    "billing.claims.fileName",
-                                    "billing.claims.fileType",
-                                    "billing.claims.submittedDate",
-                                    "billing.claims.acknowledgementReceived",
-                                    "billing.claims.paymentReceived",
-                                    ""
-                                ],
-                                colModel: [
-                                    { name: 'id', hidden: true },
-                                    { name: 'file_name', search: false },
-                                    { name: 'file_type', search: false },
-                                    { name: 'updated_date_time', search: false },
-                                    { name: 'is_acknowledgement_received', search: false },
-                                    { name: 'is_payment_received', search: false },
-                                    { name: 'apply_button', search: false, sortable: false }
-                                ],
-                                datastore: response.rows
-                            });
-
-                            commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());
-
-                            $(".btn-apply-file-management").off("click").click(function(e) {
-                                self.applyFileManagement(e.currentTarget.getAttribute("data-file-id"));
-                            });
-                        }, 150);
-                    },
-                    error: function (model, response) {
-                        commonjs.handleXhrError(model, response);
-                    }
+                commonjs.showDialog({
+                    header: 'File Managmenet',
+                    i18nHeader: 'billing.claims.fileManagement',
+                    width: '90%',
+                    height: '80%',
+                    html: self.fileManagementTemplate()
                 });
+
+                setTimeout(function() {
+                    self.showFileManagementGrid();
+                }, 150);
+            },
+
+            showFileManagementGrid: function () {
+                var self = this;
+                self.fileManagementTable = new customGrid(self.fileManagementFiles.rows, '#tblFileManagement');
+                self.fileManagementTable.render({
+                    gridelementid: '#tblFileManagement',
+                    custompager: self.fileManagementPager,
+                    emptyMessage: i18n.get("messages.status.noRecordFound"),
+                    colNames: ["","File Name","File Type", "Submitted Date","Acknowledgement Received","Payment Received",""],
+                    i18nNames: [
+                        "",
+                        "billing.claims.fileName",
+                        "billing.claims.fileType",
+                        "billing.claims.submittedDate",
+                        "billing.claims.acknowledgementReceived",
+                        "billing.claims.paymentReceived",
+                        ""
+                    ],
+                    colModel: [
+                        { name: '', index: 'id', key: true, hidden: true, search: false },
+                        {
+                            name: 'file_name',
+                            search: false,
+                            width: 100,
+                            align: 'center'
+                        },
+                        {
+                            name: 'file_type',
+                            search: false,
+                            width: 100
+                        },
+                        {
+                            name: 'updated_date_time',
+                            search: false,
+                            width: 200
+                        },
+                        {
+                            name: 'is_acknowledgement_received',
+                            search: false,
+                            width: 225,
+                            align: 'center',
+                            formatter: function (e, model, data) {
+                                return (data.is_acknowledgement_received === "true")
+                                    ? '<i class="fa fa-check" style="color: green" aria-hidden="true"></i>'
+                                    : '<i class="fa fa-times" style="color: red" aria-hidden="true"></i>';
+                            }
+                        },
+                        {
+                            name: 'is_payment_received',
+                            search: false,
+                            width: 150,
+                            align: 'center',
+                            formatter: function (e, model, data) {
+                                return (data.is_payment_received === "true")
+                                    ? '<i class="fa fa-check" style="color: green" aria-hidden="true"></i>'
+                                    : '<i class="fa fa-times" style="color: red" aria-hidden="true"></i>';
+                            }
+                        },
+                        {
+                            name: 'apply_button',
+                            search: false,
+                            sortable: false,
+                            width: 150,
+                            formatter: function (e, model, data) {
+                                return (data.file_type === 'can_ohip_p')
+                                    ? '<button i18n="shared.buttons.apply" class="btn btn-primary btn-block btn-apply-file-management"></button>'
+                                    : '';
+                            },
+                            customAction: function (rowID, e) {
+                                self.applyFileManagement(rowID);
+                            }
+                        }
+                    ],
+                    datastore: self.fileManagementFiles,
+                    container: $('#modal_div_container'),
+                    sortname: 'file_name',
+                    sortorder: 'ASC'
+                });
+
+                commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());
             },
 
             applyFileManagement: function (fileId) {
