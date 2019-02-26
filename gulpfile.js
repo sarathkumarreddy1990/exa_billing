@@ -19,6 +19,7 @@ const childProcess = require('child_process');
 const semver = require('semver');
 
 let currentBranch = 'GitInitTaskDidNotRun';
+let currentCommit = 'GitInitTaskDidNotRun';
 let timestamp = moment().format("YYYYMMDDhhmm");
 let requirejsConfig = require('./app/js/main').rjsConfig;
 
@@ -79,7 +80,7 @@ gulp.task('copy', ['clean'], () => {
         '!./app/yarn.lock',
         '!./*.code-workspace'
     ])
-    .pipe(gulp.dest('./build'));
+        .pipe(gulp.dest('./build'));
 });
 
 gulp.task('install', ['copy'], () => {
@@ -163,7 +164,8 @@ gulp.task('compress2', (done) => {
 
 gulp.task('bump', ['git-init', 'compress'], () => {
     const bumpType = (currentBranch === 'release') ? 'patch' : 'prerelease';
-    const preID = currentBranch.replace(/_/g, '-');
+    const dirtyPreID = currentBranch + ( currentBranch === 'release' ? '' : '-' + currentCommit );
+    const preID = dirtyPreID.replace(/_/g, '-');
     return gulp.src('./package.json')
         .pipe(bump({ type: bumpType, preid: preID }))
         .pipe(gulp.dest('./'));
@@ -173,7 +175,7 @@ gulp.task('copy-package-json', ['bump'], () => {
     return gulp.src([
         './package.json'
     ])
-    .pipe(gulp.dest('./build'));
+        .pipe(gulp.dest('./build'));
 });
 
 gulp.task('replace', ['copy-package-json'], () => {
@@ -204,7 +206,7 @@ gulp.task('ftp-upload', ['git-init'], () => {
     const destinationDirectory= (currentBranch === 'release') ? '/EXA' : '/EXATesting';
 
     return gulp.src(['./dist/**'], { base: './dist', buffer: false })
-        //.pipe(conn.newer('/EXA/billing'))
+    //.pipe(conn.newer('/EXA/billing'))
         .pipe(conn.dest('/EXA'));
 });
 
@@ -225,8 +227,11 @@ gulp.task('git-init', (done) => {
 
         git.revParse({ args: '--abbrev-ref HEAD' }, function (err, branch) {
             currentBranch = branch;
-            done();
         });
+        git.revParse({ args: 'HEAD'}, function (err, commit) {
+            currentCommit = commit;
+        });
+        done();
     });
 });
 
