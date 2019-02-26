@@ -577,7 +577,9 @@ const OHIPDataAPI = {
                 npi_no AS "groupNumber",    -- this sucks
                 rend_pr.provider_info -> 'NPI' AS "providerNumber",
 
-                rend_pr.specialities AS "specialtyCode",
+                -- rend_pr.specialities AS "specialtyCode",
+                33 AS "specialtyCode",
+
                 (SELECT JSON_agg(Row_to_json(claim_details)) FROM (
                 WITH cte_insurance_details AS (
                 SELECT
@@ -587,11 +589,6 @@ const OHIPDataAPI = {
                 ppi.group_number AS "versionCode",
                 pp.birth_date AS "dateOfBirth",
                 bc.id AS "accountingNumber",
-                -- CASE WHEN nullif (pc.company_info -> 'company_state','') = subscriber_state THEN
-                -- 'HCP'
-                -- ELSE
-                -- 'RMB'
-                -- END AS "paymentProgram",
                 'P' AS "payee",                                                 -- TODO
                 '    ' AS "masterNumber",                                       -- TODO
                 reff_pr.provider_info -> 'NPI' AS "referringProviderNumber",    -- TODO HSTORES should have keys changed
