@@ -587,28 +587,30 @@ const OHIPDataAPI = {
                 ppi.group_number AS "versionCode",
                 pp.birth_date AS "dateOfBirth",
                 bc.id AS "accountingNumber",
-                CASE WHEN nullif (pc.company_info -> 'company_state','') = subscriber_state THEN
-                'HCP'
-                ELSE
-                'RMB'
-                END AS "paymentProgram",
-                'P' AS "payee",
-                'HOP' AS "masterNumber",
-                reff_pr.provider_info -> 'NPI' AS "referringProviderNumber",
-                'HOP' AS "serviceLocationIndicator",
-                ppi.policy_number AS "registrationNumber",
-                pp.last_name AS "patientLastName",
-                pp.first_name AS "patientFirstName",
-                pp.gender AS "patientSex",
-                pp.patient_info -> 'c1Statepp' AS "provinceCode"
+                -- CASE WHEN nullif (pc.company_info -> 'company_state','') = subscriber_state THEN
+                -- 'HCP'
+                -- ELSE
+                -- 'RMB'
+                -- END AS "paymentProgram",
+                'P' AS "payee",                                                 -- TODO
+                '    ' AS "masterNumber",                                       -- TODO
+                reff_pr.provider_info -> 'NPI' AS "referringProviderNumber",    -- TODO HSTORES should have keys changed
+                'IHF' AS "serviceLocationIndicator",                            -- TODO this should probably be set at the company level
+                ppi.policy_number AS "registrationNumber",                      -- TODO this is really just the insurance subscriber policy #
+                pp.last_name AS "patientLastName",                              -- TODO this should be coming from the patient_insurances table
+                pp.first_name AS "patientFirstName",                            -- TODO this should be coming from the patient_insurances table
+                pp.gender AS "patientSex",                                      -- TODO this should be coming from the patient_insurances table
+                pp.patient_info -> 'c1State' AS "provinceCode",               -- TODO this should be coming from the patient_insurances table
+                pip.insurance_code AS "paymentProgram"
                 FROM public.patient_insurances ppi
+                INNER JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
                 WHERE ppi.id = bc.primary_patient_insurance_id) AS insuranceDetails)
                 , charge_details AS (
                 SELECT JSON_agg(Row_to_json(items)) "items" FROM (
                 SELECT
                 pcc.display_code AS "serviceCode",
                 (bch.bill_fee * bch.units) AS "feeSubmitted",
-                1 AS "numberOfServices",
+                bch.units AS "numberOfServices",
                 charge_dt AS "serviceDate",
                 billing.get_charge_icds (bch.id) AS diagnosticCodes
                 FROM billing.charges bch

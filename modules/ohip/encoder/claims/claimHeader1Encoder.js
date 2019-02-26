@@ -48,60 +48,74 @@ const ClaimHeader1Encoder = function(options) {
         // format: Date or Spaces
         return util.formatDate(claimData.dateOfBirth);
     };
+
     const getAccountingNumber = (claimData) => {
         // optional
         // field length: 8
         // format: alphanumeric
-        return util.formatAlphanumeric(claimData.accountingNumber, 8);
+        return util.formatAlphanumeric(claimData.accountingNumber, 8, '0');
     };
+
     const getPaymentProgram = (claimData) => {
         // mandatory
         // field length: 3
         // format: ALPHA
         return util.formatAlphanumeric(claimData.paymentProgram, 3);
     };
+
     const getPayee = (claimData) => {
         // mandatory
         // field length: 1
         // format: ALPHA
         return util.formatAlphanumeric(claimData.payee, 1);
     };
+
+    // TODO add the constraint from the specifications to the UI
     const getReferringProviderNumber = (claimData) => {
         // conditional (TODO)
         // field length: 6
         // format: numeric
         return util.formatAlphanumeric(claimData.referringProviderNumber, 6);
     };
+
     const getMasterNumber = (claimData) => {
         // conditional
         // format: alphanumeric or numeric
         // field length: 4
         return util.formatAlphanumeric(claimData.masterNumber, 4);
     };
+
+    // TODO NEED TO FIX THE QUERY
     const getInpatientAdmissionDate = (claimData) => {
         // conditional (TODO)
         // field length: 8
         // format: date (YYYYMMDD)
         return util.formatDate(claimData.inpatientAdmissionDate);
     };
+
+    // TODO NEED TO FIX THE QUERY
     const getReferringLabLicenseNumber = (claimData) => {
         // conditional
         // field length: 4
         // format: numeric
         return util.formatAlphanumeric(claimData.referringLabLicenseNumber, 4);
     };
+
+    // TODO NEED TO FIX THE QUERY
     const getManualReviewIndicator = (claimData) => {
         // conditional
         // field length: 1
         // format: ALPHA (blank or 'Y')
         return util.formatAlphanumeric(claimData.manualReviewIndicator, 1);
     };
+
     const getServiceLocationIndicator = (claimData) => {
         // conditional
         // field length: 4
         // format: alphanumeric or spaces
         return util.formatAlphanumeric(claimData.serviceLocationIndicator, 4);
     };
+
     const getReservedForOOC = () => {
         // must be spaces UNLESS authorized by the ministry
         // field length: 11

@@ -83,7 +83,7 @@ const OBECEncoder = function(options) {
                 recordNumber++;
 
                 if (recordNumber == options.batchSize) {
-                    batchStr += constants.endOfBatch;
+                    batchStr += constants.endOfFile;
                     result.push(batchStr);
                     batchStr = '';
                     recordNumber = 0;
