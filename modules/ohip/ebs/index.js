@@ -4,6 +4,9 @@ const {
     select,
 } = require('xpath');
 const dom = require('xmldom').DOMParser;
+const {
+    chunk,
+} = require('lodash');
 
 const ws = require('./ws'); // NOTE this is the local adapter for ws.js
 const {
@@ -34,9 +37,19 @@ const {
     parseResourceResult,
     parseTypeListResult,
     parseDetail,
+    parseInfoDetail,
     parseDownloadResult,
 } = require('./xml');
 const ebsRequestTemplate = require('./ebsRequest');
+
+const {
+    UPLOAD_MAX,
+    UPDATE_MAX,
+    DELETE_MAX,
+    SUBMIT_MAX,
+    DOWNLOAD_MAX,
+    INFO_MAX,
+} = require('./constants');
 
 const edtApiUrl = 'https://ws.conf.ebs.health.gov.on.ca:1443/EDTService/EDTService';
 const hcvApiUrl = 'https://ws.conf.ebs.health.gov.on.ca:1444/HCVService/HCValidationService';
@@ -113,46 +126,94 @@ const EBSConnector = function(config) {
                 uploads,
             } = args;
 
-            const ctx = getContext(EDT_UPLOAD(args));
+            const uploadResults = [];
 
-            // TODO handle multiple attachments *correctly*
-            // TODO this should probably be moved to getContext
-            uploads.forEach((upload) => {
-                ws.addAttachment(
-                    ctx,
-                    "request",
-                    "//*[local-name(.)='content']",
-                    upload.filename,
-                     "text/plain"
-                 );
-            });
+            chunk(uploads, UPLOAD_MAX).forEach((chunk, index, chunks) => {
 
-            ws.send(handlers, ctx, (ctx) => {
+                const ctx = getContext(EDT_UPLOAD({uploads:chunk}));
 
-                const doc = new dom().parseFromString(ctx.response);
-                return callback(null, parseResourceResult(doc));
+                // TODO handle multiple attachments *correctly*
+                // TODO this should probably be moved to getContext
+                chunk.forEach((upload) => {
+                    ws.addAttachment(
+                        ctx,
+                        "request",
+                        "//*[local-name(.)='content']",
+                        upload.filename,
+                         "text/plain"
+                     );
+                });
+
+                ws.send(handlers, ctx, (ctx) => {
+                    const doc = new dom().parseFromString(ctx.response);
+                    uploadResults.push({
+                        audit: ctx.audit,
+                        ...parseResourceResult(doc),
+                    });
+
+                    if (index === (chunks.length -1)) {
+                        // TODO errors
+                        return callback(null, uploadResults);
+                    }
+                });
             });
         },
 
         submit: (args, callback) => {
 
-            const ctx = getContext(EDT_SUBMIT(args));
+            const {
+                resourceIDs,
+            } = args;
 
-            return ws.send(handlers, ctx, (ctx) => {
+            const submitResults = [];
 
-                const doc = new dom().parseFromString(ctx.response);
-                return callback(null, parseResourceResult(doc));
+            chunk(resourceIDs, SUBMIT_MAX).forEach((chunk, index, chunks) => {
+
+                const ctx = getContext(EDT_SUBMIT({resourceIDs: chunk}));
+
+                return ws.send(handlers, ctx, (ctx) => {
+
+                    const doc = new dom().parseFromString(ctx.response);
+
+                    submitResults.push({
+                        audit: ctx.audit,
+                        ...parseResourceResult(doc),
+                    });
+
+                    if (index === (chunks.length -1)) {
+                        // TODO errors
+                        return callback(null, submitResults);
+                    }
+
+                    return callback(null, (doc));
+                });
             });
         },
 
         info: (args, callback) => {
+            const {
+                resourceIDs,
+            } = args;
 
-            const ctx = getContext(EDT_INFO(args));
+            const infoResults = [];
 
-            return ws.send(handlers, ctx, (ctx) => {
+            chunk(resourceIDs, INFO_MAX).forEach((chunk, index, chunks) => {
 
-                const doc = new dom().parseFromString(ctx.response);
-                return callback(null, parseDetail(doc));
+                const ctx = getContext(EDT_INFO({resourceIDs: chunk}));
+
+                return ws.send(handlers, ctx, (ctx) => {
+                    const doc = new dom().parseFromString(ctx.response);
+
+                    infoResults.push({
+                        audit: ctx.audit,
+                        ...parseInfoDetail(doc),
+                    });
+
+                    if (index === (chunks.length - 1)) {
+                        // TODO pass errors
+                        return callback(null, infoResults);
+                    };
+                });
             });
         },
 
@@ -161,22 +222,36 @@ const EBSConnector = function(config) {
             const ctx = getContext(EDT_LIST(args));
 
             return ws.send(handlers, ctx, (ctx) => {
-
                 const doc = new dom().parseFromString(ctx.response);
                 return callback(null, parseDetail(doc));
             });
         },
 
         download: (args, callback) => {
-            const ctx = getContext(EDT_DOWNLOAD(args));
+            const {
+                resourceIDs
+            } = args;
 
-            return ws.send(handlers, ctx, (ctx) => {
-                // const file = ws.getAttachment(ctx, "response", "//*[local-name(.)='content']");
-                // console.log(ctx.response);
-                const doc = new dom().parseFromString(ctx.response);
-                return callback(null, {
-                    audit: ctx.audit,
-                    ...parseDownloadResult(doc),
+            const downloadResults = [];
+
+            chunk(resourceIDs, DOWNLOAD_MAX).forEach((chunk, index, chunks) => {
+
+                const ctx = getContext(EDT_DOWNLOAD({resourceIDs: chunk}));
+
+                return ws.send(handlers, ctx, (ctx) => {
+                    // const file = ws.getAttachment(ctx, "response", "//*[local-name(.)='content']");
+
+                    const doc = new dom().parseFromString(ctx.response);
+                    // console.log("RESPONSE: ", parseDownloadResult(doc));
+                    downloadResults.push({
+                        audit: ctx.audit,
+                        ...parseDownloadResult(doc),
+                    });
+
+                    if (index === (chunks.length- 1)) {
+                        // TODO pass errors
+                        return callback(null, downloadResults);
+                    };
                 });
             });
         },
@@ -184,12 +259,29 @@ const EBSConnector = function(config) {
 
         delete: (args, callback) => {
 
-            const ctx = getContext(EDT_DELETE(args));
+            const {
+                resourceIDs,
+            } = args;
 
-            return ws.send(handlers, ctx, (ctx) => {
 
-                const doc = new dom().parseFromString(ctx.response);
-                return callback(null, parseResourceResult(doc));
+            const deleteResults = [];
+
+            chunk(resourceIDs, DELETE_MAX).forEach((chunk, index, chunks) => {
+
+                const ctx = getContext(EDT_DELETE({resourceIDs: chunk}));
+
+                return ws.send(handlers, ctx, (ctx) => {
+                    const doc = new dom().parseFromString(ctx.response);
+
+                    deleteResults.push({
+                        audit: ctx.audit,
+                        ...parseResourceResult(doc),
+                    });
+
+                    if (index === (chunks.length -1)) {
+                        return callback(null, deleteResults);
+                    }
+                });
             });
         },
 
@@ -199,25 +291,37 @@ const EBSConnector = function(config) {
                 updates,
             } = args;
 
-            const ctx = getContext(EDT_UPDATE(args));
+            const updateResults = [];
 
+            chunk(updates, UPDATE_MAX).forEach((chunk, index, chunks) => {
 
-            // TODO handle multiple attachments *correctly*
-            // TODO this should probably be moved to getContext
-            updates.forEach((update) => {
-                ws.addAttachment(
-                    ctx,
-                    "request",
-                    "//*[local-name(.)='content']",
-                     update.filename,
-                     "text/plain"
-                 );
-            });
+                const ctx = getContext(EDT_UPDATE({updates:chunk}));
+                // console.log(ctx.request);
 
-            return ws.send(handlers, ctx, (ctx) => {
+                // TODO handle multiple attachments *correctly*
+                // TODO this should probably be moved to getContext
+                updates.forEach((update) => {
+                    ws.addAttachment(
+                        ctx,
+                        "request",
+                        "//*[local-name(.)='content']",
+                         update.filename,
+                         "text/plain"
+                     );
+                });
 
-                const doc = new dom().parseFromString(ctx.response);
-                return callback(null, parseResourceResult(doc));
+                return ws.send(handlers, ctx, (ctx) => {
+                    const doc = new dom().parseFromString(ctx.response);
+
+                    updateResults.push({
+                        audit: ctx.audit,
+                        ...parseResourceResult(doc),
+                    });
+
+                    if (index === (chunks.length -1)) {
+                        return callback(null, updateResults);
+                    }
+                });
             });
         },
 
@@ -226,7 +330,6 @@ const EBSConnector = function(config) {
             const ctx = getContext(EDT_GET_TYPE_LIST(args));
 
             return ws.send(handlers, ctx, (ctx) => {
-
                 const doc = new dom().parseFromString(ctx.response);
                 return callback(null, parseTypeListResult(doc));
             });

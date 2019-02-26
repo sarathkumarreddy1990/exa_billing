@@ -10,8 +10,6 @@ const sprintf = require('sprintf');
 const EBSConnector = require('./ebs');
 const {
 
-    MAX_DOWNLOADS_PER_REQUEST,
-
     resourceTypes: {
         BATCH_EDIT,
         CLAIMS_MAIL_FILE_REJECT_MESSAGE,
@@ -131,18 +129,14 @@ module.exports = function(billingApi) {
      */
     const download = async (args, callback) => {
 
-        const {
-            resourceType,
-        } = args;
-
         const ebs = new EBSConnector(await getConfig());
 
-        await ebs.list({resourceType}, async (listErr, listResponse) => {
+        await ebs.list(args, async (listErr, listResponse) => {
 
             if (listErr) {
                 await billingApi.storeFile({
                     filename:'listResponse-error.txt',
-                    data: JSON.stringify(downloadResponse),
+                    data: JSON.stringify(listResponse),
                     isTransient: true,
                 });
                 return callback(listErr, null);
@@ -155,48 +149,47 @@ module.exports = function(billingApi) {
                 });
             }
 
-            const allResourceIDs = listResponse.data.map((detailResponse) => {
+            const resourceIDs = listResponse.data.map((detailResponse) => {
                 return detailResponse.resourceID;
             });
 
-            chunk(allResourceIDs, MAX_DOWNLOADS_PER_REQUEST).forEach(async (resourceIDs) => {
+            await ebs.download({resourceIDs}, async (downloadErr, downloadResponse) => {
 
-                await ebs.download({resourceIDs}, async (downloadErr, downloadResponse) => {
+                if (downloadErr) {
+                    await billingApi.storeFile({
+                        filename:'downloadResponse-error.txt',
+                        data: JSON.stringify(downloadResponse),
+                        isTransient: true,
+                    });
+                    return callback(downloadErr, null);
+                }
+                else {
+                    await billingApi.storeFile({
+                        filename:'downloadResponse.json',
+                        data: JSON.stringify(downloadResponse),
+                        isTransient: true,
+                    });
+                }
 
-                    if (downloadErr) {
-                        await billingApi.storeFile({
-                            filename:'downloadResponse-error.txt',
-                            data: JSON.stringify(downloadResponse),
-                            isTransient: true,
-                        });
-                        return callback(downloadErr, null);
-                    }
-                    else {
-                        await billingApi.storeFile({
-                            filename:'downloadResponse.json',
-                            data: JSON.stringify(downloadResponse),
-                            isTransient: true,
-                        });
-                    }
+                // console.log(downloadResponse[0].data);
+                const ediFiles = await downloadResponse[0].data.reduce(async (result, downloadData) => {
 
-                    const ediFiles = await downloadResponse.data.reduce(async (result, downloadData) => {
-
-                        const data = downloadData.content;
-                        const filename = downloadData.description;
-                        result.push({
+                    const data = downloadData.content;
+                    const filename = downloadData.description;
+                    result.push({
+                        data,
+                        filename,
+                        ...await billingApi.storeFile({
                             data,
                             filename,
-                            ...await billingApi.storeFile({
-                                data,
-                                filename,
-                            }),
-                        });
-                        return result;
-                    }, []);
+                        }),
+                    });
+                    return result;
+                }, []);
 
-                    callback(null, ediFiles);
-                });
+                callback(null, ediFiles);
             });
+
         });
     };
 
@@ -210,34 +203,27 @@ module.exports = function(billingApi) {
      */
     const upload = async (args, callback) => {
 
-        const {
-            uploads,
-        } = args;
-
         const ebs = new EBSConnector(await getConfig());
 
+        ebs.upload(args, async (uploadErr, uploadResponse) => {
+            if (uploadErr) {
+                await billingApi.storeFile({
+                    filename:'uploadResponse-error.txt',
+                    data: JSON.stringify(uploadResponse),
+                    isTransient: true,
+                });
+                return callback(uploadErr, null);
+            }
+            else {
+                await billingApi.storeFile({
+                    filename:'uploadResponse.json',
+                    data: JSON.stringify(uploadResponse),
+                    isTransient: true,
+                });
+            }
 
-        chunk(uploads, MAX_UPLOADS_PER_REQUEST).forEach((uploadBatch) => {
-            ebs.upload({uploads:uploadsBatch}, async (uploadErr, uploadResponse) => {
-                if (uploadErr) {
-                    await billingApi.storeFile({
-                        filename:'uploadResponse-error.txt',
-                        data: JSON.stringify(uploadResponse),
-                        isTransient: true,
-                    });
-                    return callback(uploadErr, null);
-                }
-                else {
-                    await billingApi.storeFile({
-                        filename:'uploadResponse.json',
-                        data: JSON.stringify(uploadResponse),
-                        isTransient: true,
-                    });
-                }
+            // TODO set file statuses
 
-                // TODO set file statuses
-
-            });
         });
     };
 

@@ -578,66 +578,54 @@ const OHIPDataAPI = {
                 claim_notes AS "claimNotes",
                 npi_no AS "groupNumber",    -- this sucks
                 rend_pr.provider_info -> 'NPI' AS "providerNumber",
-                rend_pr.specialities AS "specialtyCode",
+
+                -- rend_pr.specialities AS "specialtyCode",
+                33 AS "specialtyCode",
+
                 (SELECT JSON_agg(Row_to_json(claim_details)) FROM (
-                    WITH cte_insurance_details AS (
-                        SELECT
-                            (Row_to_json(insuranceDetails)) AS "insuranceDetails"
-                        FROM (SELECT
-                                ppi.policy_number AS "healthNumber",
-                                ppi.group_number AS "versionCode",
-                                ip.insurance_name AS "payerName",
-                                pp.birth_date AS "dateOfBirth",
-                                bc.id AS "accountingNumber",
-                                CASE WHEN nullif (pc.company_info -> 'company_state','') = subscriber_state THEN
-                                        'HCP'
-                                     ELSE
-                                        'RMB'
-                                     END AS "paymentProgram",
-                                'P' AS "payee",
-                                'HOP' AS "masterNumber",
-                                reff_pr.provider_info -> 'NPI' AS "referringProviderNumber",
-                                'HOP' AS "serviceLocationIndicator",
-                                reff_pr.id AS "referringProvider",
-                                rend_pr.id AS "renderingProvider",
-                                reff_pr.provider_info -> 'NPI' AS "referringProviderNpi",
-                                rend_pr.provider_info -> 'NPI' AS "renderingProviderNpi",
-                                ppi.policy_number AS "registrationNumber",
-                                pp.full_name AS "patientName",
-                                pp.patient_info -> 'c1State' AS "provinceCode",
-                                pp.patient_info->'c1AddressLine1' AS "patientAddress",
-                                pp.last_name AS "patientLastName",
-                                pp.first_name AS "patientFirstName",
-                                pp.gender AS "patientSex",
-                                pp.patient_info -> 'c1State' AS "provinceCode"
-                            FROM public.patient_insurances ppi
-                            LEFT JOIN public.insurance_providers ip ON ip.id = ppi.insurance_provider_id
-                            WHERE ppi.id = bc.primary_patient_insurance_id) AS insuranceDetails)
-                    , charge_details AS (
-                            SELECT JSON_agg(Row_to_json(items)) "items" FROM (
-                                SELECT
-                                    pcc.display_code AS "serviceCode",
-                                    (bch.bill_fee * bch.units) AS "feeSubmitted",
-                                    1 AS "numberOfServices",
-                                    charge_dt AS "serviceDate",
-                                    billing.get_charge_icds (bch.id) AS diagnosticCodes
-                                FROM billing.charges bch
-                                INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
-                                WHERE bch.claim_id = bc.id) AS items )
-                    SELECT 
-                        * 
-                    FROM 
-                        cte_insurance_details, charge_details) AS claim_details ) AS "claims"
-            FROM billing.claims bc
-            INNER JOIN public.companies pc ON pc.id = bc.company_id
-            INNER JOIN public.patients pp ON pp.id = bc.patient_id
-            INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
-            LEFT JOIN public.provider_contacts rend_ppc ON rend_ppc.id = bc.rendering_provider_contact_id
-            LEFT JOIN public.providers rend_pr ON rend_pr.id = rend_ppc.provider_id
-            LEFT JOIN public.provider_contacts reff_ppc ON reff_ppc.id = bc.referring_provider_contact_id
-            LEFT JOIN public.providers reff_pr ON reff_pr.id = reff_ppc.provider_id
-            WHERE bc.id = ANY (${claimIds})
-            ORDER BY bc.id DESC
+                WITH cte_insurance_details AS (
+                SELECT
+                (Row_to_json(insuranceDetails)) AS "insuranceDetails"
+                FROM (SELECT
+                ppi.policy_number AS "healthNumber",
+                ppi.group_number AS "versionCode",
+                pp.birth_date AS "dateOfBirth",
+                bc.id AS "accountingNumber",
+                'P' AS "payee",                                                 -- TODO
+                '    ' AS "masterNumber",                                       -- TODO
+                reff_pr.provider_info -> 'NPI' AS "referringProviderNumber",    -- TODO HSTORES should have keys changed
+                'IHF' AS "serviceLocationIndicator",                            -- TODO this should probably be set at the company level
+                ppi.policy_number AS "registrationNumber",                      -- TODO this is really just the insurance subscriber policy #
+                pp.last_name AS "patientLastName",                              -- TODO this should be coming from the patient_insurances table
+                pp.first_name AS "patientFirstName",                            -- TODO this should be coming from the patient_insurances table
+                pp.gender AS "patientSex",                                      -- TODO this should be coming from the patient_insurances table
+                pp.patient_info -> 'c1State' AS "provinceCode",               -- TODO this should be coming from the patient_insurances table
+                pip.insurance_code AS "paymentProgram"
+                FROM public.patient_insurances ppi
+                INNER JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
+                WHERE ppi.id = bc.primary_patient_insurance_id) AS insuranceDetails)
+                , charge_details AS (
+                SELECT JSON_agg(Row_to_json(items)) "items" FROM (
+                SELECT
+                pcc.display_code AS "serviceCode",
+                (bch.bill_fee * bch.units) AS "feeSubmitted",
+                bch.units AS "numberOfServices",
+                charge_dt AS "serviceDate",
+                billing.get_charge_icds (bch.id) AS diagnosticCodes
+                FROM billing.charges bch
+                INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
+                WHERE bch.claim_id = bc.id) AS items )
+                SELECT * FROM cte_insurance_details, charge_details) AS claim_details ) AS "claims"
+                FROM billing.claims bc
+                INNER JOIN public.companies pc ON pc.id = bc.company_id
+                INNER JOIN public.patients pp ON pp.id = bc.patient_id
+                INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
+                LEFT JOIN public.provider_contacts rend_ppc ON rend_ppc.id = bc.rendering_provider_contact_id
+                LEFT JOIN public.providers rend_pr ON rend_pr.id = rend_ppc.provider_id
+                LEFT JOIN public.provider_contacts reff_ppc ON reff_ppc.id = bc.referring_provider_contact_id
+                LEFT JOIN public.providers reff_pr ON reff_pr.id = reff_ppc.provider_id
+                WHERE bc.id = ANY (${claimIds})
+                ORDER BY bc.id DESC
             `;
 
         return (await query(sql.text, sql.values)).rows;
