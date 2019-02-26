@@ -1961,14 +1961,19 @@ define(['jquery',
                         {
                             name: 'updated_date_time',
                             search: false,
-                            width: 200
+                            width: 200,
+                            formatter: function (value, model, data) {
+                                return commonjs.checkNotEmpty(value)
+                                    ? commonjs.convertToFacilityTimeZone(app.facilityID, value).format('L LT z')
+                                    : '';
+                            }
                         },
                         {
                             name: 'is_acknowledgement_received',
                             search: false,
                             width: 225,
                             align: 'center',
-                            formatter: function (e, model, data) {
+                            formatter: function (value, model, data) {
                                 return (data.is_acknowledgement_received === "true")
                                     ? '<i class="fa fa-check" style="color: green" aria-hidden="true"></i>'
                                     : '<i class="fa fa-times" style="color: red" aria-hidden="true"></i>';
@@ -1979,7 +1984,7 @@ define(['jquery',
                             search: false,
                             width: 150,
                             align: 'center',
-                            formatter: function (e, model, data) {
+                            formatter: function (value, model, data) {
                                 return (data.is_payment_received === "true")
                                     ? '<i class="fa fa-check" style="color: green" aria-hidden="true"></i>'
                                     : '<i class="fa fa-times" style="color: red" aria-hidden="true"></i>';
@@ -1990,7 +1995,7 @@ define(['jquery',
                             search: false,
                             sortable: false,
                             width: 150,
-                            formatter: function (e, model, data) {
+                            formatter: function (value, model, data) {
                                 return (data.file_type === 'can_ohip_p')
                                     ? '<button i18n="shared.buttons.apply" class="btn btn-primary btn-block btn-apply-file-management"></button>'
                                     : '';

@@ -425,10 +425,7 @@ module.exports = {
     ohipClaimValidation: async function (params) {
         // TODO: this probably belongs in modules/ohip/routes.js
         // (but it works right here for right now)
-        let claimDetails = await ohipData.getClaimsData(params);
-
-        claimDetails = claimDetails.rows;
-
+        let claimDetails = await ohipData.getClaimsData({ claimIds: params.claim_ids });
         let file_path = path.join(__dirname, '../../resx/ohip-claim-validation-fields.json');
         let valdationClaimJson = await readFileAsync(file_path, 'utf8');
         valdationClaimJson = JSON.parse(valdationClaimJson);
@@ -447,7 +444,16 @@ module.exports = {
 
             _.each(valdationClaimJson, (fieldValue, field) => {
                 if (fieldValue) {
-                    !claimData[field] || !claimData[field].length ? errorMessages.push(` Claim - ${field} does not exist`) : null;
+                    if(typeof fieldValue === 'object') {
+                         if(claimData[field]) {
+                            _.each(fieldValue, (data, dataField) => {
+                                if (data)
+                                    !claimData[dataField] || !claimData[dataField].length ? errorMessages.push(` Claim - ${dataField} does not exists`) : null;
+                            });
+                         }
+                    } else {
+                        !claimData[field] || !claimData[field].length ? errorMessages.push(` Claim - ${field} does not exists`) : null;
+                    }   
                 }
             });
 

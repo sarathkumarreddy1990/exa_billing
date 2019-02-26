@@ -574,6 +574,8 @@ const OHIPDataAPI = {
         const sql = SQL`
             SELECT
                 bc.id AS claim_id,
+                bc.billing_method,
+                claim_notes AS "claimNotes",
                 npi_no AS "groupNumber",    -- this sucks
                 rend_pr.provider_info -> 'NPI' AS "providerNumber",
 
@@ -737,12 +739,11 @@ const OHIPDataAPI = {
         }
 
         sql.append(SQL` ORDER BY  `)
-            .append('ef.created_dt')
-            /* After implement jqgrid in Filemanagement screen need this code*/
-            // .append(' ')
-            // .append(sortOrder)
-            // .append(SQL` LIMIT ${pageSize}`)
-            // .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
+            .append(sortField)
+            .append(' ')
+            .append(sortOrder)
+            .append(SQL` LIMIT ${pageSize}`)
+            .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
        return await query(sql);
 
     },
