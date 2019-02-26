@@ -59,6 +59,7 @@ if (-Not($?)) {
 	success {
 	    script {
 		if (params.SAVE_ARTIFACTS) {
+		    powershell 'npx gulp ftp-upload'
 		    archiveArtifacts artifacts: 'dist/*.zip', fingerprint: true
 		}
 	    }
