@@ -80,8 +80,10 @@ const getExaFileType = (args) => {
 const getFileStore = async (args) => {
 
     const {
-        filename
+        filename,
     } = args;
+
+
     const description = ohipUtil.getResourceDescription(filename);
 
     let filestore = null;
@@ -403,8 +405,8 @@ const applyBatchEditReport = async (args) => {
         responseFileId,
         comment,    // not really used right now
     } = args;
-    console.log('batch create date: ', moment(batchCreateDate).format('YYYY-MM-DD'));
-    console.log('batch sequence number: ', batchSequenceNumber);
+    // console.log('batch create date: ', moment(batchCreateDate).format('YYYY-MM-DD'));
+    // console.log('batch sequence number: ', batchSequenceNumber);
 
 
     const sql = SQL`
@@ -439,7 +441,7 @@ const applyBatchEditReport = async (args) => {
     `;
 
     const dbResults = (await query(sql.text, sql.values)).rows;
-    console.log('db results: ', dbResults);
+    // console.log('db results: ', dbResults);
 
     if (dbResults && dbResults.length) {
 
@@ -547,22 +549,23 @@ const OHIPDataAPI = {
         /*  All these arguments are needed, default value for entityName, entityId and clientIP
             are processed in audit.createAudit
         */
-        let {
-            userId = 1,
-            entityName = null,
-            entityKey = null,
-            screenName = 'Billing',
-            moduleName = 'OHIP',
-            logDescription = 'OHIP audit log',
-            clientIp = null,
-            companyId = 1,
-            oldInfo = {},
-            info = {}
-        } = args;
+        // let {
+        //     userId = 1,
+        //     entityName = null,
+        //     entityKey = null,
+        //     screenName = 'Billing',
+        //     moduleName = 'OHIP',
+        //     logDescription = 'OHIP audit log',
+        //     clientIp = null,
+        //     companyId = 1,
+        //     oldInfo = {},
+        //     info = {}
+        // } = args;
+        //
+        // args.newData = info;
 
-        args.newData = info;
-
-        return await audit.createAudit(args);
+        // return await audit.createAudit(args);
+        return;
     },
 
     getClaimsData: async (args) => {

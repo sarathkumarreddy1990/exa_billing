@@ -126,11 +126,12 @@ const EBSConnector = function(config) {
                 uploads,
             } = args;
 
-            const uploadResults = [];
+            const auditInfo = [];
+            let results = [];
 
             chunk(uploads, UPLOAD_MAX).forEach((chunk, index, chunks) => {
 
-                const ctx = getContext(EDT_UPLOAD({uploads:chunk}));
+                const ctx = getContext(EDT_UPLOAD({uploads: chunk}));
 
                 // TODO handle multiple attachments *correctly*
                 // TODO this should probably be moved to getContext
@@ -145,15 +146,18 @@ const EBSConnector = function(config) {
                 });
 
                 ws.send(handlers, ctx, (ctx) => {
+
                     const doc = new dom().parseFromString(ctx.response);
-                    uploadResults.push({
-                        audit: ctx.audit,
-                        ...parseResourceResult(doc),
-                    });
+
+                    auditInfo.push(ctx.audit);
+                    results = results.concat(parseResourceResult(doc).response);
 
                     if (index === (chunks.length -1)) {
                         // TODO errors
-                        return callback(null, uploadResults);
+                        return callback(null, {
+                            auditInfo,
+                            results,
+                        });
                     }
                 });
             });
@@ -165,7 +169,8 @@ const EBSConnector = function(config) {
                 resourceIDs,
             } = args;
 
-            const submitResults = [];
+            const auditInfo = [];
+            let results = [];
 
             chunk(resourceIDs, SUBMIT_MAX).forEach((chunk, index, chunks) => {
 
@@ -175,14 +180,15 @@ const EBSConnector = function(config) {
 
                     const doc = new dom().parseFromString(ctx.response);
 
-                    submitResults.push({
-                        audit: ctx.audit,
-                        ...parseResourceResult(doc),
-                    });
+                    auditInfo.push(ctx.audit);
+                    results = results.concat(parseResourceResult(doc).response);
 
                     if (index === (chunks.length -1)) {
                         // TODO errors
-                        return callback(null, submitResults);
+                        return callback(null, {
+                            auditInfo,
+                            results,
+                        });
                     }
 
                     return callback(null, (doc));
@@ -195,7 +201,8 @@ const EBSConnector = function(config) {
                 resourceIDs,
             } = args;
 
-            const infoResults = [];
+            const auditInfo = [];
+            let results = [];
 
             chunk(resourceIDs, INFO_MAX).forEach((chunk, index, chunks) => {
 
@@ -204,14 +211,15 @@ const EBSConnector = function(config) {
                 return ws.send(handlers, ctx, (ctx) => {
                     const doc = new dom().parseFromString(ctx.response);
 
-                    infoResults.push({
-                        audit: ctx.audit,
-                        ...parseInfoDetail(doc),
-                    });
+                    auditInfo.push(ctx.audit);
+                    results = results.concat(parseInfoDetail(doc));
 
                     if (index === (chunks.length - 1)) {
                         // TODO pass errors
-                        return callback(null, infoResults);
+                        return callback(null, {
+                            auditInfo,
+                            results,
+                        });
                     };
                 });
             });
@@ -232,7 +240,8 @@ const EBSConnector = function(config) {
                 resourceIDs
             } = args;
 
-            const downloadResults = [];
+            const auditInfo = [];
+            let results = [];
 
             chunk(resourceIDs, DOWNLOAD_MAX).forEach((chunk, index, chunks) => {
 
@@ -242,15 +251,16 @@ const EBSConnector = function(config) {
                     // const file = ws.getAttachment(ctx, "response", "//*[local-name(.)='content']");
 
                     const doc = new dom().parseFromString(ctx.response);
-                    // console.log("RESPONSE: ", parseDownloadResult(doc));
-                    downloadResults.push({
-                        audit: ctx.audit,
-                        ...parseDownloadResult(doc),
-                    });
+
+                    auditInfo.push(ctx.audit);
+                    results = results.concat(parseDownloadResult(doc));
 
                     if (index === (chunks.length- 1)) {
                         // TODO pass errors
-                        return callback(null, downloadResults);
+                        return callback(null, {
+                            auditInfo,
+                            results,
+                        });
                     };
                 });
             });
@@ -263,8 +273,8 @@ const EBSConnector = function(config) {
                 resourceIDs,
             } = args;
 
-
-            const deleteResults = [];
+            const auditInfo = [];
+            let results = [];
 
             chunk(resourceIDs, DELETE_MAX).forEach((chunk, index, chunks) => {
 
@@ -273,13 +283,14 @@ const EBSConnector = function(config) {
                 return ws.send(handlers, ctx, (ctx) => {
                     const doc = new dom().parseFromString(ctx.response);
 
-                    deleteResults.push({
-                        audit: ctx.audit,
-                        ...parseResourceResult(doc),
-                    });
+                    auditInfo.push(ctx.audit);
+                    results = results.concat(parseResourceResult(doc).response);
 
                     if (index === (chunks.length -1)) {
-                        return callback(null, deleteResults);
+                        return callback(null, {
+                            auditInfo,
+                            results,
+                        });
                     }
                 });
             });
@@ -291,12 +302,12 @@ const EBSConnector = function(config) {
                 updates,
             } = args;
 
-            const updateResults = [];
+            const auditInfo = [];
+            let results = [];
 
             chunk(updates, UPDATE_MAX).forEach((chunk, index, chunks) => {
 
                 const ctx = getContext(EDT_UPDATE({updates:chunk}));
-                // console.log(ctx.request);
 
                 // TODO handle multiple attachments *correctly*
                 // TODO this should probably be moved to getContext
@@ -313,13 +324,14 @@ const EBSConnector = function(config) {
                 return ws.send(handlers, ctx, (ctx) => {
                     const doc = new dom().parseFromString(ctx.response);
 
-                    updateResults.push({
-                        audit: ctx.audit,
-                        ...parseResourceResult(doc),
-                    });
+                    auditInfo.push(ctx.audit);
+                    results = results.concat(parseResourceResult(doc));
 
                     if (index === (chunks.length -1)) {
-                        return callback(null, updateResults);
+                        return callback(null, {
+                            auditInfo,
+                            results,
+                        });
                     }
                 });
             });

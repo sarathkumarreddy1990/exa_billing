@@ -143,6 +143,8 @@ ws.Audit.prototype.send = function(ctx, callback) {
             // Exit status / messages
             status: parseObj.code,
 
+            auditID: parseObj.auditID,
+
             // TODO
             // Error messages
 

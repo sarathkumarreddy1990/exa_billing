@@ -72,8 +72,7 @@ const BatchHeaderEncoder = function(options) {
         // format: numeric
         // TODO what to do with '10', '11', '14', '21', '25', '32', '36-40',
         // '42, '43', '45', '65-69', '72-74', '77-79', '82-84', '86-89', '90-99'
-        const specialtyCode = '33'; // should be context.specialtyCode but that is busted
-        return util.formatAlphanumeric(specialtyCode, 2);
+        return util.formatAlphanumeric(context.specialtyCode, 2);
     };
     const getReservedForMOHUse = () => {
         // mandatory
