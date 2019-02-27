@@ -12,6 +12,8 @@ define([
             expanded: false,
             mainTemplate: _.template(paymentsRealizationRateAnalysisTemplate),
             viewModel: {
+                dateFormat: 'L',
+                country_alpha_3_code: 'usa',
                 billingProvider: null,
                 openInNewTab: false,
                 reportId: null,
@@ -55,6 +57,8 @@ define([
                 this.showForm();
                 this.$el.html(this.mainTemplate(this.viewModel));
                 UI.initializeReportingViewModel(options, this.viewModel);
+
+                UI.getReportSetting(this.viewModel, 'all', 'dateFormat'); // Get date format (and current country code) based on current country code saved in sites table(this.viewModel);
 
                 this.viewModel.accountingDateFrom = moment().startOf('month').add(-1, 'month');
                 this.viewModel.accountingDateTo = this.viewModel.accountingDateFrom.clone().endOf('month');
@@ -100,8 +104,9 @@ define([
             bindDateRangePicker: function () {
                 var self = this;
                 var serviceDate = $('#serviceDateBind');
+
                 //   Service Date Picker
-                var drpOptionsServiceDate = { autoUpdateInput: true, locale: { format: 'L' } };
+                var drpOptionsServiceDate = { autoUpdateInput: true, locale: { format: this.viewModel.dateFormat } };
                 this.dtpAccountingDate = commonjs.bindDateRangePicker(serviceDate, drpOptionsServiceDate, 'past', function (start, end, format) {
                     self.viewModel.serviceDateFrom = start;
                     self.viewModel.serviceDateTo = end;
@@ -113,7 +118,7 @@ define([
 
                 //   Accounting Date Picker
                 var accountingDate = $('#accountingDateBind');
-                var drpOptionsAccountingDate = { autoUpdateInput: true, locale: { format: 'L' } };
+                var drpOptionsAccountingDate = { autoUpdateInput: true, locale: { format: this.viewModel.dateFormat } };
                 this.dtpStudyDate = commonjs.bindDateRangePicker(accountingDate, drpOptionsAccountingDate, 'past', function (start, end, format) {
                     self.viewModel.accountingDateFrom = start;
                     self.viewModel.accountingDateTo = end;
@@ -298,6 +303,8 @@ define([
             // Binding Report Params
             getReportParams: function () {
                 return urlParams = {
+                    'dateFormat': this.viewModel.dateFormat,
+                    'country_alpha_3_code': this.viewModel.country_alpha_3_code,
                     'facilityIds': this.selectedFacilityList || [],
                     'allFacilities': this.viewModel.allFacilities || '',
                     'billingProviders': this.selectedBillingProList || [],

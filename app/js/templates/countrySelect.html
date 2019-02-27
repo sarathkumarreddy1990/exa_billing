@@ -1,0 +1,10 @@
+<div class="col-form-label">
+    <label for="<%= domId || 'ddlCountry'%>" i18n="customer.siteSettings.countrySelect" class="control-label"></label>
+</div>
+<div class="col-form-content">
+    <select id="<%= domId || 'ddlCountry'%>" class="form-control">
+        <% app.countries.forEach(function(country) { %>
+        <option value="<%= country.alpha_3_code %>" i18n="address.countries.<%= country.alpha_3_code %>"></option>
+        <% }); %>
+    </select>
+</div>

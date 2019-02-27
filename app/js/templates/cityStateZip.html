@@ -1,0 +1,49 @@
+<% if (addressStyle === 'style1') { %>
+<div class="col-md-3 pull-left p-0">
+    <label class="control-label" for="<%= cityDomId %>" i18n="address.cityStateZip.style1"></label>
+</div>
+<div class="pull-left pl-1 col-md-9 get-city-state-by-zip get-zip-by-city-state">
+    <input class="form-control city-input m-1 col-sm-4 pull-left" type="text" id="<%= cityDomId %>">
+
+    <select id="<%= stateDomId %>" class="state-input m-1 col-sm-3 pull-left rounded">
+        <option value="" i18n="shared.buttons.select"></option>
+        <% provinces.forEach(function(province) { %>
+        <option value="<%= province %>">
+            <%= province %>
+        </option>
+        <% }); %>
+    </select>
+
+    <input type="text" class="form-control integerbox zip-input col-sm-2 pull-left m-1" id="<%= postalCodeDomId %>"
+        name="zip1" placeholder="Zip" maxlength="5" />
+    <% if (typeof zipPlusDomId !== 'undefined') { %>
+    <input type="text" id="<%= zipPlusDomId %>" placeholder="ZipPlus" i18np="shared.fields.zipPlus" maxlength="4" class="form-control col-sm-2 pull-left m-1">
+    <% } %>
+
+    <div class="zip-list-container" style="display: none;">
+        <label i18n="shared.fields.availableZipCodes"></label>
+        <select class="zip-list"></select>
+        <button disabled type="button" class="apply-zip" i18n="shared.buttons.apply"></button>
+    </div>
+</div>
+<% } else if (addressStyle === 'style2') { %>
+
+<div class="col-sm-3 pull-left p-0">
+    <label class="control-label" for="<%= cityDomId %>" i18n="address.cityStateZip.style2"></label>
+</div>
+<div class="pull-left pl-1 col-sm-8">
+    <input class="form-control m-1 col-sm-4 pull-left" type="text" id="<%= cityDomId %>">
+
+    <select id="<%= stateDomId %>" class="state-input m-1 col-sm-4 pull-left rounded">
+        <option value="" i18n="shared.buttons.select"></option>
+        <% provinces.forEach(function(province) { %>
+        <option value="<%= province %>">
+            <%= province %>
+        </option>
+        <% }); %>
+    </select>
+
+    <input type="text" class="form-control col-sm-3 pull-left m-1 zip-input-can" id="<%= postalCodeDomId %>" name="zip1"
+        placeholder="Zip" maxlength="7" />
+</div>
+<% } %>

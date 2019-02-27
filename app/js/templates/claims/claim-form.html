@@ -27,6 +27,9 @@
         top: 9%;
         overflow:scroll;
     }
+    .table__width {
+        width: 80% !important;
+    }
 </style>
 <div class="row woClaimRelated" id="headerContainer">
     <nav id="newClaimNav" class="top-nav">
@@ -177,7 +180,7 @@
                         </header>
                         <!--charge table-->
                         <div id="divCharge">
-                            <table class="table table-bordered" id="tblCharge">
+                            <table class="table table-bordered <% if(app.country_alpha_3_code === 'can') { %> table__width <% } %>" id="tblCharge" >
                                 <thead id="tHeadCharge">
                                     <tr>
                                         <th></th>
@@ -186,6 +189,7 @@
                                         <th i18n="shared.fields.accession"></th>
                                         <th i18n="shared.fields.cptCode"></th>
                                         <th i18n="shared.fields.cptDesc"></th>
+                                        <% if(app.country_alpha_3_code !== 'can') { %>
                                         <th i18n="shared.fields.p1"></th>
                                         <th i18n="shared.fields.p2"></th>
                                         <th i18n="shared.fields.p3"></th>
@@ -194,12 +198,15 @@
                                         <th i18n="shared.fields.m2"></th>
                                         <th i18n="shared.fields.m3"></th>
                                         <th i18n="shared.fields.m4"></th>
+                                        <% } %>
                                         <th i18n="shared.fields.units"></th>
                                         <th i18n="shared.fields.billFee"></th>
                                         <th i18n="shared.fields.totalBillFee"></th>
+                                        <% if(app.country_alpha_3_code !== 'can') { %>
                                         <th i18n="shared.fields.allowed"></th>
                                         <th i18n="shared.fields.totalAllowed"></th>
                                         <th i18n="shared.fields.authNo"></th>
+                                        <% } %>
                                         <th i18n="shared.fields.exclude"></th>
                                     </tr>
                                 </thead>
@@ -228,6 +235,7 @@
                                                 <td class="charges__cpt-description">
                                                     <div id="divChargeCptDesc_<%= row.data_row_id %>"></div>
                                                 </td>
+                                                <% if(app.country_alpha_3_code !== 'can') { %>
                                                 <td>
                                                     <input id="ddlPointer1_<%= row.data_row_id %>" value="<%= row.pointer1 ? row.pointer1 : '' %>" class="form-control inputModifiers typeahead diagCodes" data-type="P1" data-value="<%= row.data_row_id %>" type="text">
                                                 </td>
@@ -253,6 +261,7 @@
                                                 <td>
                                                     <input type="text" id="txtModifier4_<%= row.data_row_id %>" class="form-control inputModifiers modifiers" data-type="M4" data-value="<%= row.data_row_id %>">
                                                 </td>
+                                                <% } %>
                                                 <td>
                                                     <input value="<%= row.units ? row.units : 1.000 %>"  id="txtUnits_<%= row.data_row_id %>" type="text" class="form-control maskUnits units floatbox" style="width: 75px">
                                                 </td>
@@ -263,6 +272,7 @@
                                                 <td>
                                                     <input disabled value="<%= row.total_bill_fee ? row.total_bill_fee : 0.00 %>" id="txtTotalBillFee_<%= row.data_row_id %>" type="text" class="totalbill form-control floatbox text-right">
                                                 </td>
+                                                <% if(app.country_alpha_3_code !== 'can') { %>
                                                 <td>
                                                     <input disabled value="<%= row.allowed_fee ? row.allowed_fee : 0.00 %>" id="txtAllowedFee_<%= row.data_row_id %>" type="text" class="maskFee allowedFee form-control floatbox">
                                                 </td>
@@ -272,6 +282,7 @@
                                                 <td>
                                                     <input id="txtAuthInfo_<%= row.data_row_id %>" type="text" class="form-control " value="<%= row.authorization_no %>">
                                                 </td>
+                                                <% } %>
                                                 <td>
                                                     <input id="checkExclude_<%= row.data_row_id %>" type="checkbox">
                                                 </td>
@@ -280,7 +291,7 @@
                                 </tbody>
                                 <tfoot>
                                     <tr style="border: none">
-                                        <td colspan="12" style="border: 0">
+                                        <td colspan="<% if(app.country_alpha_3_code === 'can') { %> 5 <% } else { %> 12 <% } %>" style="border: 0">
                                             <button type="button" class="btn pull-left" id="createNewCharge" i18n="shared.buttons.newCharge"></button>
                                             <span id="divPatientBalance" class="patientPaid" style="text-decoration: blink; margin-right: 60px; display: none;">
                                                 <span> Patient Balance </span> :
@@ -294,16 +305,15 @@
                                             <span id="spTotalBillFee" i18n="shared.fields.totalBillFee"></span>:
                                             <span class="font-weight-bold" id="spTotalBillFeeValue"></span>
                                         </td>
-                                        <td style="border: 0">
-                                            <!-- <span style="font-weight: bold;" id="spTotalBillFeeValue"></span> -->
-                                        </td>
+                                        <td style="border: 0"></td>
+                                        <% if(app.country_alpha_3_code !== 'can') { %>
                                         <td style="text-align: right;border: 0">
                                             <span id="spTotalAllowedFee" i18n="shared.fields.totalAllowed"></span>:
                                             <span class="font-weight-bold" id="spTotalAllowedFeeValue"></span>
                                         </td>
-                                        <td style="text-align: left;border: 0" colspan="3">
-                                            <!-- <span style="font-weight: bold;" id="spTotalAllowedFeeValue"></span> -->
-                                        </td>
+                                        <td style="text-align: left;border: 0" colspan="3"></td>
+                                        <% } %>
+
                                     </tr>
                                 </tfoot>
                             </table>
@@ -329,7 +339,6 @@
                     <label for="txtClaimDate" class="col-sm-3 col-form-label field-required" i18n="billing.claims.claimDate"></label>
                     <div class="col-sm-3">
                         <input type="text" id="txtClaimDate" class="form-control form-control-date maskDateLocale" name="ClaimDate">
-                        <!-- <input type="date" class="form-control maskDateLocale" id="txtClaimDate" name="ClaimDate"> -->
                     </div>
                 </div>
                 <div class="form-group row">
@@ -378,6 +387,7 @@
                         </select>
                     </div>
                 </div>
+                <% if(app.country_alpha_3_code !== 'can') { %>
                 <div class="form-group row">
                     <label for="ddlPOSType" class="col-sm-3 col-form-label" i18n="billing.claims.posType"></label>
                     <div class="col-sm-5">
@@ -391,7 +401,9 @@
                         </select>
                     </div>
                 </div>
+                <% } %>
             </div>
+            <% if(app.country_alpha_3_code !== 'can') { %>
             <div class="col-lg-6">
                 <div class="form-group row">
                     <label for="ddlMultipleDiagCodes" class="col-sm-3 col-form-label" i18n="billing.claims.diagnosticsCodes"></label>
@@ -411,6 +423,7 @@
                     <input type="hidden" id="hdnDiagCodes" />
                 </div>
             </div>
+            <% } %>
         </div>
     </section>
     <section id="tab_3">
@@ -431,12 +444,14 @@
                             <option value=''>Select</option>
                         </select>
                     </div>
+                    <% if (app.country_alpha_3_code === "usa") { %>
                     <div class="col-sm-4">
                         <div class="form-check form-check-inline">
                             <input class="form-check-input" type="checkbox" id="chkPriAcptAsmt">
                             <label class="form-check-label" for="chkPriAcptAsmt" i18n="billing.claims.acceptAssignment"></label>
                         </div>
                     </div>
+                    <% } %>
                 </div>
                 <div class="form-group row">
                     <label for="ddlPriInsurance" class="col-sm-3 col-form-label" i18n="billing.claims.carrier"></label>
@@ -581,6 +596,7 @@
                     </div>
                 </div>
             </div>
+            <% if(app.country_alpha_3_code !== 'can') { %>
             <div class="col-lg-6">
                 <div class="form-group row">
                     <legend style="width:98%;">
@@ -597,13 +613,16 @@
                             <option value=''>Select</option>
                         </select>
                     </div>
+                    <% if (app.country_alpha_3_code === "usa") { %>
                     <div class="col-sm-4">
                         <div class="form-check form-check-inline">
                             <input class="form-check-input" type="checkbox" id="chkSecAcptAsmt">
                             <label class="form-check-label" for="chkSecAcptAsmt" i18n="billing.claims.acceptAssignment"></label>
                         </div>
                     </div>
+                    <% } %>
                 </div>
+                <% if (app.country_alpha_3_code === "usa") { %>
                 <div class="form-group row">
                     <label class="col-sm-3 col-form-label"></label>
                     <div class="col-sm-5">
@@ -625,6 +644,7 @@
                         </select>
                     </div>
                 </div>
+                <% } %>
                 <div class="form-group row">
                     <label for="ddlSecInsurance" class="col-sm-3 col-form-label" i18n="billing.claims.carrier"></label>
                     <div class="col-sm-5">
@@ -768,7 +788,136 @@
                     </div>
                 </div>
             </div>
+            <% } else if(app.country_alpha_3_code === 'can') { %>
+            <div class="col-lg-6" id="tab_4">
+                    <div class="col-lg-12">
+                        <div class="form-group row">
+                            <legend>
+                                <h5 class="border-bottom border-primary">
+                                    <label class="font-weight-bold" i18n="billing.claims.additionalInfo"></label>
+                                </h5>
+                            </legend>
+                        </div>
+                    </div>
+                <div class="form-group row">
+                    <label class="col-sm-3 col-form-label "></label>
+                    <div class="col-sm-5">
+                        <label class="col-form-label" i18n="billing.claims.patientConditionRelatedTo"></label>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3 col-form-label "></label>
+                    <div class="col-sm-3">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="chkEmployment" name="employment">
+                            <label class="form-check-label" for="chkEmployment" i18n="billing.claims.employment"></label>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="chkAutoAccident" name="autoAccident">
+                            <label class="form-check-label" for="chkAutoAccident" i18n="billing.claims.autoAccident"></label>
+                        </div>
+                    </div>
+                    <div class="col-sm-3" style="padding-left: 3px;">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="chkOtherAccident" name="otherAccident">
+                            <label class="form-check-label" for="chkOtherAccident" i18n="billing.claims.otherAccident"></label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group row" style="padding-left: 3px;">
+                    <label class="col-sm-3 col-form-label "></label>
+                    <div class="col-sm-5">
+                        <label class="col-form-label" i18n="billing.claims.illness"></label>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtDate" class="col-sm-3 col-form-label" i18n="billing.claims.date"></label>
+                    <div class="col-sm-3 input-group" id="divInjuryDate">
+                        <input type="text" id="txtDate" class="form-control form-control-date">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; ">
+                            <i class="icon-ic-schedule"></i>
+                        </span>
+                    </div>
+                    <div class="col-sm-2">
+                        <label for="txtOtherDate" class="col-form-label" i18n="billing.claims.otherDate"></label>
+                    </div>
+                    <div class="col-sm-3 input-group" id="divOtherDate">
+                        <input type="text" id="txtOtherDate" class="form-control form-control-date">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; ">
+                            <i class="icon-ic-schedule"></i>
+                        </span>
+                    </div>
+                </div>
+                <div class="form-group row" style="margin-top:10px;">
+                    <label class="col-sm-3 col-form-label "></label>
+                    <div class="col-sm-8">
+                        <label class="col-form-label" i18n="billing.claims.datesPatientUnableToWorkCurrentOccupation"></label>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-3">
+                        <label for="txtWCF" class="col-form-label" i18n="billing.claims.fromDate"></label>
+                    </div>
+                    <div class="col-sm-3 input-group" id="divWCF">
+                        <input type="text" id="txtWCF" class="form-control form-control-date">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
+                    </div>
+                    <div class="col-sm-2">
+                        <label for="txtWCT" class="col-form-label" i18n="billing.claims.toDate"></label>
+                    </div>
+                    <div class="col-sm-3 input-group" id="divWCT">
+                        <input type="text" id="txtWCT" class="form-control form-control-date">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
+                    </div>
+                </div>
+                <div class="form-group row" style="margin-top:10px;">
+                    <label class="col-sm-3 col-form-label "></label>
+                    <div class="col-sm-8">
+                        <label class="col-form-label" i18n="billing.claims.hosipitalizationPatientRelatedToCurrentServices"></label>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtHCF" class="col-sm-3 col-form-label" i18n="billing.claims.fromDate"></label>
+                    <div class="col-sm-3 input-group" id="divHCF">
+                        <input type="text" id="txtHCF" class="form-control form-control-date">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
+                    </div>
+                    <label for="txtHCT" class="col-sm-2 col-form-label" i18n="billing.claims.toDate"></label>
+                    <div class="col-sm-3 input-group" id="divHCT">
+                        <input type="text" id="txtHCT" class="form-control form-control-date">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtClaimNotes" class="col-sm-3 col-form-label" i18n="billing.claims.claimNotes"></label>
+                    <div class="col-sm-5">
+                        <textarea id="txtClaimNotes" name="claimNotes" class="form-control form-control-lg"></textarea>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtOriginalRef" class="col-sm-3 col-form-label" i18n="billing.claims.originalRef"></label>
+                    <div class="col-sm-5">
+                        <input type="text" class="form-control" id="txtOriginalRef" i18np="billing.claims.originalRef">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="ddlFrequencyCode" class="col-sm-3 col-form-label" i18n="billing.claims.frequencyCode"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlFrequencyCode" style="height:32px;">
+                            <option value="" i18n="shared.buttons.select">Select</option>
+                            <option value="original" i18n="billing.claims.original"></option>
+                            <option value="corrected" i18n="billing.claims.corrected"></option>
+                            <option value="void" i18n="billing.claims.void"></option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <% } %>
+
         </div>
+        <% if(app.country_alpha_3_code !== 'can') { %>
         <div class="row mt-2" id="divTeritaryInsurances">
             <div class="col-lg-6">
             <div class="col-lg-12">
@@ -788,12 +937,14 @@
                             <option value=''>Select</option>
                         </select>
                     </div>
+                    <% if (app.country_alpha_3_code === "usa") { %>
                     <div class="col-sm-4">
                         <div class="form-check form-check-inline">
                             <input class="form-check-input" type="checkbox" id="chkTerAcptAsmt">
                             <label class="form-check-label" for="chkTerAcptAsmt" i18n="billing.claims.acceptAssignment"></label>
                         </div>
                     </div>
+                    <% } %>
                 </div>
                 <div class="form-group row">
                     <label for="ddlTerInsurance" class="col-sm-3 col-form-label" i18n="billing.claims.carrier"></label>
@@ -1074,6 +1225,7 @@
                 </div>
             </div>
         </div>
+        <% } %>
     </section>
     <section id="tab_5" class="mt-2">
         <div class="col-lg-12">
@@ -1132,12 +1284,14 @@
                 </div>
             </div>
             <div class="col-lg-6">
+                <% if(app.country_alpha_3_code !== 'can') { %>
                 <div class="form-group row">
                     <label for="spAllowed" class="col-sm-3 col-form-label" i18n="billing.claims.allowed"></label>
                     <div class="col-sm-5">
                         <span id="spAllowed" class="control-label w70"></span>
                     </div>
                 </div>
+                <% } %>
                 <div class="form-group row">
                     <label for="spOthersPaid" class="col-sm-3 col-form-label" i18n="billing.claims.othersPaid"></label>
                     <div class="col-sm-5">

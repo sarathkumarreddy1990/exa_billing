@@ -3,7 +3,8 @@ const _ = require('lodash')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
     , queryBuilder = require('../queryBuilder')
-    , logger = require('../../../../../logger');
+    , logger = require('../../../../../logger')
+    , moment = require('moment');
 
 // generate query template ***only once*** !!!
 const patientStatementDataSetQueryTemplate = _.template(`
@@ -300,7 +301,7 @@ WITH claim_data AS (
     , billing_prozip
     , billing_zip_plus
     , billing_phoneno
-    , to_char(<%= statementDate %>::date, 'MM/DD/YYYY')
+    , to_char(<%= statementDate %>::date, '<%= dateFormat %>')
     , null
     , null
     , null
@@ -344,7 +345,7 @@ WITH claim_data AS (
     , city
     , state
     , zip
-    , to_char(enc_date ,'MM/DD/YYYY') AS enc_date
+    , to_char(enc_date ,'<%= dateFormat %>') AS enc_date
     , description
     , code
     , enc_id::text
@@ -362,7 +363,7 @@ WITH claim_data AS (
     , null
     , pid
     , enc_id
-    , to_char(enc_date ,'MM/DD/YYYY')::date AS enc_date
+    , enc_date::date AS enc_date
     , row_flag
     , sort_order
     , null
@@ -523,9 +524,11 @@ const api = {
             initialReportData.report.params.payToProvider = false;
         }
 
+        initialReportData.report.params.allBillingProviders = initialReportData.report.params.allBillingProviders === 'true';
+
         return Promise.join(
             api.createpatientStatementDataSet(initialReportData.report.params),
-            dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
+            initialReportData.report.params.allBillingProviders ? [] : dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
             dataHelper.getPatientInfo(initialReportData.report.params.companyId, initialReportData.report.params.patientIds),
             // other data sets could be added here...
             (patientStatementDataSet, providerInfo, patientInfo) => {
@@ -533,7 +536,6 @@ const api = {
                 initialReportData.lookups.billingProviderInfo = providerInfo || [];
                 initialReportData.lookups.patients = patientInfo || [];
                 initialReportData.filters = api.createReportFilters(initialReportData);
-
 
                 // add report specific data sets
                 initialReportData.dataSets.push(patientStatementDataSet);
@@ -565,7 +567,6 @@ const api = {
         const filtersUsed = [];
         filtersUsed.push({ name: 'company', label: 'Company', value: lookups.company.name });
 
-
         if (params.allFacilities && params.facilityIds)
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
         else {
@@ -573,17 +574,12 @@ const api = {
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
         }
         // Billing provider Filter
-        if (params.allBillingProvider == 'true')
-            filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: 'All' });
-        else {
-            const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
-            filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
-        }
+        filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: params.allBillingProviders ? 'All' : _(lookups.billingProviderInfo).map(f => f.name).value() });
 
         // Min Amount
         filtersUsed.push({ name: 'minAmount', label: 'Minumum Amount', value: params.minAmount });
 
-        filtersUsed.push({ name: 'sDate', label: 'Statement Date', value: params.sDate });
+        filtersUsed.push({ name: 'sDate', label: 'Statement Date', value: moment(params.sDate).format(params.dateFormat)});
 
         if (params.patientOption !== 'R') {
             const patientNames = params.patientOption === 'All' ? 'All' : _(lookups.patients).map(f => f.name).value();
@@ -643,8 +639,8 @@ const api = {
         }
 
         // billing providers
-        if (reportParams.billingProviderIds && reportParams.billingProviderIds.length > 0) {
-            params.push(reportParams.billingProviderIds);
+        if (reportParams.billingProvider && reportParams.billingProvider.length > 0) {
+            params.push(reportParams.billingProvider);
             filters.billingProviderIds = queryBuilder.whereIn(`bp.id`, [params.length]);
         }
 
@@ -722,7 +718,7 @@ const api = {
               , null
               , null
               , null
-              , to_char('${reportParams.sDate}'::date, 'MM/DD/YYYY')
+              , to_char('${reportParams.sDate}'::date, '${reportParams.dateFormat}')
               , full_name
               , account_no
               , address1
@@ -763,7 +759,7 @@ const api = {
             , billing_prozip
             , billing_zip_plus
             , billing_phoneno
-            , to_char('${reportParams.sDate}'::date, 'MM/DD/YYYY')
+            , to_char('${reportParams.sDate}'::date, '${reportParams.dateFormat}')
             , null
             , null
             , null
@@ -884,6 +880,7 @@ const api = {
             `;
         }
 
+        filters.dateFormat = reportParams.dateFormat;
         return {
             queryParams: params,
             templateData: filters

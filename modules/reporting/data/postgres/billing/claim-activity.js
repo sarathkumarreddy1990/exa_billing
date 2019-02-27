@@ -3,7 +3,8 @@ const _ = require('lodash')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
     , queryBuilder = require('../queryBuilder')
-    , logger = require('../../../../../logger');
+    , logger = require('../../../../../logger')
+    , moment = require('moment');
 
 // generate query template ***only once*** !!!
 
@@ -123,20 +124,24 @@ SELECT
     claim_id as "Claim#",
     patient_name as "Patient Name",
     account_no as "Account#",
-    to_char(claim_date,'MM/DD/YYYY') AS "Claim Date",
+    to_char(claim_date,'<%= dateFormat %>') AS "Claim Date",
     referring_physician as "Referring Physician",
     reading_physician as "Reading Physician",
     ordering_facility as "Ordering Facility",
     facility_code as "Facility Code" ,
     TYPE as "Type",
     payment_id as "Payment ID",
-    to_char(payment_date,'MM/DD/YYYY') AS "Payment Date",
-    to_char(accounting_date,'MM/DD/YYYY') AS "Accounting Date",
-    code as "CPT Code",
+    to_char(payment_date,'<%= dateFormat %>') AS "Payment Date",
+    to_char(accounting_date,'<%= dateFormat %>') AS "Accounting Date",
+    code as "<%= codeHeader %>",
     description as "Description",
+
+    <% if (!hideModifiers) { %>
     modifiers as "Modifiers",
+    <% } %>
+
     amount as "Amount",
-    to_char(created_on,'MM/DD/YYYY') AS "Created On",
+    to_char(created_on,'<%= dateFormat %>') AS "Created On",
     created_by as "Created By"
 FROM
     charge_details
@@ -146,20 +151,24 @@ SELECT
     claim_id,
     patient_name,
     account_no,
-    to_char(claim_date,'MM/DD/YYYY') AS claim_date,
+    to_char(claim_date,'<%= dateFormat %>') AS claim_date,
     referring_physician,
     reading_physician,
     ordering_facility,
     facility_code,
     TYPE,
     payment_id,
-    to_char(payment_date,'MM/DD/YYYY') AS payment_date,
-    to_char(accounting_date,'MM/DD/YYYY') AS accounting_date,
+    to_char(payment_date,'<%= dateFormat %>') AS payment_date,
+    to_char(accounting_date,'<%= dateFormat %>') AS accounting_date,
     code,
     description,
+
+    <% if (!hideModifiers) { %>
     modifiers,
+    <% } %>
+
     amount,
-    to_char(created_on,'MM/DD/YYYY') AS created_on,
+    to_char(created_on,'<%= dateFormat %>') AS created_on,
     created_by
 FROM
     payment_details
@@ -178,6 +187,8 @@ const api = {
      * This method is called by controller pipline after report data is initialized (common lookups are available).
      */
     getReportData: (initialReportData) => {
+        initialReportData.report.params.codeHeader = initialReportData.report.vars.columnHeader.cpt[initialReportData.report.params.country_alpha_3_code];
+        initialReportData.report.params.hideModifiers = initialReportData.report.vars.columnHidden.modifiers[initialReportData.report.params.country_alpha_3_code];
         return Promise.join(
             api.createclaimActivityDataSet(initialReportData.report.params),
             dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
@@ -241,8 +252,8 @@ const api = {
             filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
         }
 
-        filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
-        filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
+        filtersUsed.push({ name: 'fromDate', label: 'Date From', value: moment(params.fromDate).format(params.dateFormat) });
+        filtersUsed.push({ name: 'toDate', label: 'Date To', value: moment(params.toDate).format(params.dateFormat) });
         return filtersUsed;
     },
 
@@ -297,6 +308,9 @@ const api = {
             filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
         }
 
+        filters.dateFormat = reportParams.dateFormat;
+        filters.codeHeader = reportParams.codeHeader;
+        filters.hideModifiers = reportParams.hideModifiers;
         return {
             queryParams: params,
             templateData: filters

@@ -55,6 +55,9 @@ define(['jquery',
                 if (this.ediClearingHouses && !this.ediClearingHouses.length)
                     this.getEDIClearingHousesList();
 
+                if (app.country_alpha_3_code === "can") {
+                    self.billing_method = _.reject(self.billing_method, function (field) { return (field && (field.value == "paper_claim" || field.value == "patient_payment")) }) || [];
+                }
                 var billingMethodValue = commonjs.buildGridSelectFilter({
                     arrayOfObjects: this.billing_method,
                     searchKey: 'value',
@@ -99,6 +102,7 @@ define(['jquery',
                         },
                         {
                             name: 'claimclearinghouse',
+                            hidden: app.country_alpha_3_code === "can",
                             formatter: function(cellvalue, options, rowObject) {
                                 var name = "";
                                 var clearingHouseID = rowObject.claimclearinghouse;

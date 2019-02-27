@@ -22,6 +22,8 @@ define([
             expanded: false,
             mainTemplate: _.template(patientsByInsuranceCompanyTemplate),
             viewModel: {
+                dateFormat: 'L',
+                country_alpha_3_code: 'usa',
                 facilities: null,
                 modalities: null,
                 dateFrom: null,
@@ -56,6 +58,9 @@ define([
                 this.showForm();
                 this.$el.html(this.mainTemplate(this.viewModel));
                 UI.initializeReportingViewModel(options, this.viewModel);
+
+                UI.getReportSetting(this.viewModel, 'all', 'dateFormat'); // Get date format (and current country code) based on current country code saved in sites table(this.viewModel);
+
                 // Set date range to Facility Date
                 this.viewModel.dateFrom = commonjs.getFacilityCurrentDateTime(app.facilityID);
                 this.viewModel.dateTo = this.viewModel.dateFrom.clone();
@@ -95,7 +100,7 @@ define([
             bindDateRangePicker: function () {
                 var self = this;
                 var drpEl = $('#txtDateRangeFromTo');
-                var drpOptions = { autoUpdateInput: true, locale: { format: 'L' } };
+                var drpOptions = { autoUpdateInput: true, locale: { format: this.viewModel.dateFormat } };
                 this.drpStudyDt = commonjs.bindDateRangePicker(drpEl, drpOptions, 'past', function (start, end, format) {
                     self.viewModel.dateFrom = start;
                     self.viewModel.dateTo = end;
@@ -205,6 +210,8 @@ define([
 
             getReportParams: function () {
                 return urlParams = {
+                    'dateFormat': this.viewModel.dateFormat,
+                    'country_alpha_3_code': this.viewModel.country_alpha_3_code,
                     'facilityIds': this.selectedFacilityList || [],
                     'allFacilities': this.viewModel.allFacilities || '',
                     'fromDate': this.viewModel && this.viewModel.dateFrom && this.viewModel.dateFrom.format('YYYY-MM-DD'),
