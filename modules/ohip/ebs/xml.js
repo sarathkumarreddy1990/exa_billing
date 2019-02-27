@@ -49,7 +49,7 @@ const parseStatus = (doc) => {
 };
 
 const parseResourceID = (doc) => {
-    return select("//*[local-name(.)='resourceID']/text()", doc)[0].nodeValue;
+    return select("*[local-name(.)='resourceID']/text()", doc)[0].nodeValue;
 };
 
 const parseOptionalValue = (doc, name) => {
@@ -67,7 +67,7 @@ const parseCommonResult = (doc) => {
 
 const parseDetailData = (doc) => {
     const detailData = {
-        createTimestamp: select("//*[local-name(.)='createTimestamp']/text()", doc)[0].nodeValue,
+        createTimestamp: select("*[local-name(.)='createTimestamp']/text()", doc)[0].nodeValue,
         resourceID: parseResourceID(doc),
         status: parseStatus(doc),
 
@@ -75,7 +75,7 @@ const parseDetailData = (doc) => {
         resourceType: parseOptionalValue(doc, 'resourceType'),
         modifyTimestamp: parseOptionalValue(doc, 'modifyTimestamp'),
 
-        ...parseCommonResult(select("//*[local-name(.)='result']", doc)[0])
+        ...parseCommonResult(select("*[local-name(.)='result']", doc)[0])
     };
 
     return detailData;
@@ -91,17 +91,17 @@ const parseCSNData = (doc) => {
 const parseTypeListData = (doc) => {
 
     return {
-        access: select("//*[local-name(.)='access']/text()", doc)[0].nodeValue,
-        descriptionEn: select("//*[local-name(.)='descriptionEn']/text()", doc)[0].nodeValue,
-        descriptionFr: select("//*[local-name(.)='descriptionFr']/text()", doc)[0].nodeValue,
-        groupRequired: select("//*[local-name(.)='groupRequired']/text()", doc)[0].nodeValue,
-        resourceType: select("//*[local-name(.)='resourceType']/text()", doc)[0].nodeValue,
+        access: select("*[local-name(.)='access']/text()", doc)[0].nodeValue,
+        descriptionEn: select("*[local-name(.)='descriptionEn']/text()", doc)[0].nodeValue,
+        descriptionFr: select("*[local-name(.)='descriptionFr']/text()", doc)[0].nodeValue,
+        groupRequired: select("*[local-name(.)='groupRequired']/text()", doc)[0].nodeValue,
+        resourceType: select("*[local-name(.)='resourceType']/text()", doc)[0].nodeValue,
 
-        csns: select("//*[local-name(.)='csns']/text()", doc).map((csnDataNode) => {
+        csns: select("*[local-name(.)='csns']/text()", doc).map((csnDataNode) => {
             return parseCSNData(csnDataNode);
         }),
 
-        ...parseCommonResult(select("//*[local-name(.)='result']", doc)[0])
+        ...parseCommonResult(select("*[local-name(.)='result']", doc)[0])
     };
 };
 

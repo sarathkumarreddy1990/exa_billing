@@ -1,6 +1,8 @@
 const {
     chunk,
     reduce,
+    groupBy,
+    find,
 } = require('lodash');
 const sprintf = require('sprintf');
 
@@ -37,36 +39,6 @@ const getRandomResponseCode = (codes) => {
 
 const getRandomValidHealthNumberResponseCode = () => {
     return getRandomResponseCode([50, 51, 52, 53, 54, 55]);
-};
-
-/**
- * const getResourceIDs - description
- *
- * @param  {type} resourceResult description
- * @return {type}                description
- */
-const getResourceIDs = (resourceResult) => {
-
-    const {
-        auditID,
-        responses,
-    } = resourceResult;
-
-    return responses.reduce((result, response) => {
-
-        if (response.code === 'IEDTS0001') {
-            result.push(response.resourceID);
-        }
-        else {
-            // console.log(response);
-            // TODO this needs to be logged and handled
-            //  * update status codes in database
-            //  * do we keep the file around?
-            //  *
-        }
-
-        return result;
-    }, []);
 };
 
 /**
@@ -163,66 +135,36 @@ module.exports = function(billingApi) {
                     });
                     return callback(downloadErr, null);
                 }
-                else {
-                    await billingApi.storeFile({
-                        filename:'downloadResponse.json',
-                        data: JSON.stringify(downloadResponse),
-                        isTransient: true,
+
+                downloadResponse.results.forEach((result) => {
+
+                    result.data.forEach((download) => {
+                        billingApi.storeFile({
+                            filename: download.description,
+                            data: download.content,
+                        });
                     });
-                }
+                });
 
-                // console.log(downloadResponse[0].data);
-                const ediFiles = await downloadResponse[0].data.reduce(async (result, downloadData) => {
-
-                    const data = downloadData.content;
-                    const filename = downloadData.description;
-                    result.push({
-                        data,
-                        filename,
-                        ...await billingApi.storeFile({
+                const ediFiles = await downloadResponse.results.reduce(async (ediFilesResult, result) => {
+                    const files = result.data.map(async (d) => {
+                        const data = d.content;
+                        const filename = d.description;
+                        return {
                             data,
                             filename,
-                        }),
+                            ...await billingApi.storeFile({
+                                data,
+                                filename,
+                            }),
+                        };
                     });
-                    return result;
+
+                    return ediFilesResult.concat(await files);
                 }, []);
 
                 callback(null, ediFiles);
             });
-
-        });
-    };
-
-
-    /**
-     * const upload - description
-     *
-     * @param  {type} args     description
-     * @param  {type} callback description
-     * @returns {type}          description
-     */
-    const upload = async (args, callback) => {
-
-        const ebs = new EBSConnector(await getConfig());
-
-        ebs.upload(args, async (uploadErr, uploadResponse) => {
-            if (uploadErr) {
-                await billingApi.storeFile({
-                    filename:'uploadResponse-error.txt',
-                    data: JSON.stringify(uploadResponse),
-                    isTransient: true,
-                });
-                return callback(uploadErr, null);
-            }
-            else {
-                await billingApi.storeFile({
-                    filename:'uploadResponse.json',
-                    data: JSON.stringify(uploadResponse),
-                    isTransient: true,
-                });
-            }
-
-            // TODO set file statuses
 
         });
     };
@@ -260,7 +202,8 @@ module.exports = function(billingApi) {
         submitClaims: async (req, callback) => {
             let args = req.query;
             let params = req.body;
-            let claimIds = params.claimIds.split(',');
+
+            let claimIds = params.claimIds.split(',');  // NOTE this will explode when 'All_Claims' are checked
 
             let validationData = await validateClaimsData.validateEDIClaimCreation(claimIds, req.session.country_alpha_3_code);
             validationData = validationData && validationData.rows && validationData.rows.length && validationData.rows[0] || [];
@@ -276,11 +219,8 @@ module.exports = function(billingApi) {
                 }
             }
 
-            // TODO
             // 1 - convert args.claimIds to claim data (getClaimsData)
             const claimData = await billingApi.getClaimsData({claimIds});
-            console.log('claimIds: ', claimIds);
-            // console.log(claimData);
 
             // 2 - run claim data through encoder
             const claimEnc = new ClaimsEncoder(); // default 1:1/1:1
@@ -310,11 +250,14 @@ module.exports = function(billingApi) {
 
             // 4 - store and register claim files
             //
-            // int: [{data:String, filename:String, batches:[batchSequenceNumber, claimIds:[Number]]}]
+            // in: [{data:String, filename:String, batches:[batchSequenceNumber, claimIds:[Number]]}]
             // out [{data:String, filename:String, edi_file_id, file_store_id, absolutePath, batches: [batchSequenceNumber, claimIds:[Number]]}]
             const storedFiles = reduce(allFiles, async (storedResult, file) => {
                 const storedFile = {
-                    ...await billingApi.storeFile({createdDate: encoderContext.batchDate, ...file}),
+                    ...await billingApi.storeFile({
+                        createdDate: encoderContext.batchDate,
+                        ...file
+                    }),
                     ...file,
                 };
 
@@ -329,13 +272,13 @@ module.exports = function(billingApi) {
             //
             // in [{data:String, filename:String, edi_file_id, file_store_id, absolutePath, batches:[batchSequenceNumber,claimIds:[Number]]}]
             // >> [{resourceType:'CL', filename: (absolutePath), description: (filename)}]
-            const uploadServiceParams = reduce((await storedFiles), (uploadedServiceResult, storedFile) => {
-                uploadedServiceResult.push({
+            const uploadServiceParams = reduce((await storedFiles), (result, storedFile) => {
+                result.push({
                     resourceType: 'CL',
                     filename: storedFile.absolutePath,
                     description: storedFile.filename,
                 });
-                return uploadedServiceResult;
+                return result;
             }, []);
 
             (await storedFiles).forEach((storedFile) => {
@@ -343,64 +286,71 @@ module.exports = function(billingApi) {
                 billingApi.updateFileStatus({edi_file_id:storedFile.edi_file_id, status: 'success'});
 
                 storedFile.batches.forEach(async (batch) => {
-                    console.log('setting status to pending ack');
-                    await billingApi.updateClaimStatus({
+                        await billingApi.updateClaimStatus({
                         claimIds: batch.claimIds,
-                        claimStatusCode: 'PACK',
-
+                        claimStatusCode: 'PACK',    // TODO use a constant
                     });
-
                 });
             });
 
-            callback(null, uploadServiceParams);
+            // // 6 - upload file to OHIP
+            const uploads = uploadServiceParams.slice(0, 1);    // TODO enable multi-file uploads in EBS module
 
-            // // // 6 - upload file to OHIP
-            // const uploads = uploadServiceParams.slice(0, 1);    // TODO enable multi-file uploads in EBS module
-            // ebs.upload({uploads}, (uploadErr, uploadResponse) => {
-            //     billingApi.auditTransaction(uploadResponse.audit);
-            //
-            //     if (uploadErr) {
-            //         console.log('error uploading: ', uploadErr);
-            //         billingApi.updateFileStatus({edi_file_id, status: 'failure'});
-            //         return callback(uploadErr, uploadResponse);
-            //     }
-            //     billingApi.updateFileStatus({edi_file_id, status: 'in_progress'});
-            //
-            //
-            //     const resourceIDs = getResourceIDs(uploadResponse);
-            //
-            //     // 7 - submit file to OHIP
-            //     return ebs.submit({resourceIDs}, (submitErr, submitResponse) => {
-            //
-            //         if (submitErr) {
-            //             console.log('error submitting: ', submitErr);
-            //             //      a. failure -> update file status ('error'), delete file from ohip
-            //             billingApi.updateFileStatus({edi_file_id, status: 'failure'});
-            //             return callback(submitErr, submitResponse);
-            //         }
-            //
-            //         //      b. success -> update file status ('submitted'), proceed
-            //         billingApi.updateFileStatus({edi_file_id, status: 'success'});
-            //
-            //         // TODO
-            //         // 8 - check if response file exists yet
-            //         //      a. yes -> apply response file
-            //         // 9 - return callback
-            //
-            //         const resourceIDs = getResourceIDs(submitResponse);
-            //
-            //         return callback(null, submitResponse);
-            //     });
-            // });
-        },
+            const ebs = new EBSConnector(await getConfig());
+            ebs.upload({uploads}, async (uploadErr, uploadResponse) => {
 
-        fileManagement: async (args, callback) => {
-            return callback(null, await billingApi.getFileManagementData());
-        },
+                billingApi.auditTransaction(uploadResponse.auditInfo);
 
-        sandbox: async (args, callback) => {
-            return callback(null, "Hello, world");
+                if (uploadErr) {
+                    billingApi.updateFileStatus({edi_file_id, status: 'failure'});
+                    return callback(uploadErr, uploadResponse);
+                }
+
+                const uploadResultsByStatusCode = groupBy(uploadResponse.results, 'code');
+
+                // mark files that were successfully uploaded to "in_progress" status
+                billingApi.updateFileStatus({
+                    status: 'in_progress',
+                    files: await uploadResultsByStatusCode['IEDTS0001'].map(async (uploadResult) => {
+                        return find((await storedFiles), (storedFile) => {
+                            return uploadResult.description === storedFile.filename;
+                        });
+                    }),
+                });
+
+                const resourceIDs = uploadResultsByStatusCode['IEDTS0001'].map((uploadResult) => {
+                    return uploadResult.resourceID;
+                });
+
+                // 7 - submit file to OHIP
+                return ebs.submit({resourceIDs}, (submitErr, submitResponse) => {
+
+                    if (submitErr) {
+                        //      a. failure -> update file status ('error'), delete file from ohip
+                        billingApi.updateFileStatus({
+                            status: 'failed',
+                            files: uploadResultsByStatusCode['IEDTS0001'].map(async (uploadResult) => {
+                                return find((await storedFiles), (storedFile) => {
+                                    return uploadResult.description === storedFile.filename;
+                                });
+                            }),
+                        });
+                        return callback(submitErr, submitResponse);
+                    }
+
+                    // mark files that were successfully uploaded to "in_progress" status
+                    billingApi.updateFileStatus({
+                        status: 'success',
+                        files: uploadResultsByStatusCode['IEDTS0001'].map(async (uploadResult) => {
+                            return find((await storedFiles), (storedFile) => {
+                                return uploadResult.description === storedFile.filename;
+                            });
+                        }),
+                    });
+
+                    return callback(null, submitResponse);
+                });
+            });
         },
 
         fileManagement: async (args, callback) => {
@@ -437,9 +387,13 @@ module.exports = function(billingApi) {
             download({resourceType:BATCH_EDIT}, (downloadErr, downloadResponse) => {
                 downloadResponse.forEach(async (download) => {
 
-                    const decodedBatchEdit = new Parser(download.filename).parse(download.data);
-                    // const clone = {...decodedBatchEdit[0],};
-                    console.log(decodedBatchEdit);
+                    const {
+                        filename,
+                        data,
+                    } = (await download);
+
+                    const decodedBatchEdit = new Parser(filename).parse(data);
+
                     await billingApi.applyBatchEditReport({
                         responseFileId: download.edi_file_id,
                         ...decodedBatchEdit[0],
@@ -449,11 +403,11 @@ module.exports = function(billingApi) {
                 });
             });
 
-            // download({resourceType:ERROR_REPORTS}, (downloadErr, downloadResponse) => {
-            //     downloadResponse.forEach(async (download) => {
-            //         await billingApi.applyErrorReport(download);
-            //     });
-            // });
+            download({resourceType:ERROR_REPORTS}, (downloadErr, downloadResponse) => {
+                downloadResponse.forEach(async (download) => {
+                    await billingApi.applyErrorReport(download);
+                });
+            });
         },
 
 
