@@ -537,7 +537,7 @@ module.exports = {
                     WHERE company_id = ${params.companyID}
                         AND inactivated_dt IS NULL
                     ORDER BY regexp_replace(code, '^([^[:digit:]]*).*$', '\\1'),
-                             regexp_replace(code, '^.*?([[:digit:]]*)$', '\\1')::bigint
+                             NULLIF(regexp_replace(code, '^.*?([[:digit:]]*)$', '\\1'),'')::bigint
                         )
                     AS cas_reason_codes)
             SELECT *

@@ -100,7 +100,8 @@ module.exports = {
                                         code,
                                         description
                                     FROM   billing.billing_codes
-                                    WHERE  company_id=${companyID} AND inactivated_dt IS NULL ) AS billing_codes)
+                                    WHERE  company_id=${companyID} AND inactivated_dt IS NULL 
+                                    ORDER BY description) AS billing_codes)
                 , cte_billing_classes AS(
                                     SELECT Json_agg(Row_to_json(billing_classes)) billing_classes
                                     FROM  (
