@@ -96,14 +96,18 @@ define([
                 var claimId = this.options.claim_id
                 var isFromClaimScreen = this.options.source && this.options.source === 'claims'
 
-                $(this.el).html(this.inquiryTemplate());
+                $(this.el).html(this.inquiryTemplate({
+                    app: app
+                }));
                 if (this.options.source !== 'web')
                     commonjs.showDialog({
                         header: 'Claim Inquiry',
                         i18nHeader: 'billing.fileInsurance.claimInquiry',
                         width: '90%',
                         height: '85%',
-                        html: this.inquiryTemplate()
+                        html: this.inquiryTemplate({
+                            app: app
+                        })
                     });
                 else
                     $('.navbar').remove();
