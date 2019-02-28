@@ -877,11 +877,11 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 ('<input type="checkbox" i18nt="billing.payments.selectAllStudies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />'),
-                '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', ''
+                '','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', ''
             ]);
 
             i18nName = i18nName.concat([
-                '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'billing.claims.assignedTo', ''
+                '','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'billing.claims.assignedTo', ''
             ]);
 
             colModel = colModel.concat([
@@ -1154,6 +1154,39 @@ define('grid', [
 
                         e.stopPropagation();
                         return false;
+                    }
+                },
+                {
+                    name: 'as_eligibility_status',
+                    width: 40,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: app.country_alpha_3_code !== 'can',
+                    isIconCol: true,
+                    formatter: function (cellvalue, options, rowObject) {
+
+                        if (app.country_alpha_3_code === 'can') {
+
+                            cellvalue = cellvalue || ""
+                            var dataValue = " data-value='" + cellvalue + "'";
+
+                            switch (cellvalue) {
+                                case 'valid':
+                                    return "<i href='#' i18nt='messages.status.healthNumberValid' class='icon-ic-status' " + dataValue + " style='color:green;text-shadow:0 0 green, 0 0 green, 0 0 green, 0 0 green, 0 0 green'></i>";
+                                case 'invalid':
+                                    return "<i href='#' i18nt='messages.status.healthNumberInvalid' class='icon-ic-status' " + dataValue + " style='color:red;text-shadow:0 0 red, 0 0 red, 0 0 red, 0 0 red, 0 0 red'></i>";
+                                case 'data_unavailable':
+                                    return "<i href='#' i18nt='messages.status.healthNumberNotValidated' class='icon-ic-status' " + dataValue + " style='color:#2f74e2;text-shadow:0 0 #2f74e2, 0 0 #2f74e2, 0 0 #2f74e2, 0 0 #2f74e2, 0 0 #2f74e2'></i>";
+                                case 'null_response':
+                                    return "<i href='#' i18nt='messages.status.noValidationData' class='icon-ic-status' " + dataValue + " style='color:black;text-shadow:0 0 black, 0 0 black, 0 0 black, 0 0 black, 0 0 black'></i>";
+                                case 'recheck':
+                                    return "<i href='#' i18nt='messages.status.healthNumberRevalidate' class='icon-ic-status' " + dataValue + " style='color:orange;text-shadow:0 0 orange, 0 0 orange, 0 0 orange, 0 0 orange, 0 0 orange'></i>";
+                                default:
+                                    return "<i href='#' i18nt='messages.status.healthNumberNotValidated' class='icon-ic-status' " + dataValue + " style='color:red;text-shadow:0 0 red, 0 0 red, 0 0 red, 0 0 red, 0 0 red'></i>";
+                            }
+
+                        }
                     }
                 },
                 {

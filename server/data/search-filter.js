@@ -864,7 +864,21 @@ const api = {
                 'orders.id as claim_no', // Billing
                 ` '' AS claim_status`,
                 ` billing_codes.description AS billing_code`,
-                ` billing_classes.description AS billing_class`
+                ` billing_classes.description AS billing_class`,
+                `CASE
+                    WHEN (
+                            SELECT
+                                country_alpha_3_code
+                            FROM
+                                sites
+                            WHERE
+                                id = 1
+                        ) = 'can'
+                    THEN
+                        public.get_eligibility_status(claims.primary_patient_insurance_id , claims.claim_dt)
+                    ELSE
+                        null
+                END AS as_eligibility_status`
             ],
             product('MU') && [
                 'orders.mu_last_updated',
