@@ -279,6 +279,7 @@ define(['jquery',
                 self.invoiceClaim = _.template(invoiceClaim);
                 self.ediWarning = _.template(ediWarning);
                 self.$el.html(self.indexTemplate({
+                    country_alpha_3_code: app.country_alpha_3_code,
                     gadget: '',
                     customStudyStatus: [],
                     customOrderStatus: []

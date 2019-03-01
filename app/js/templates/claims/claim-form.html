@@ -180,7 +180,7 @@
                         </header>
                         <!--charge table-->
                         <div id="divCharge">
-                            <table class="table table-bordered <% if(app.country_alpha_3_code === 'can') { %> table__width <% } %>" id="tblCharge" >
+                            <table class="table table-bordered <% if(country_alpha_3_code === 'can') { %> table__width <% } %>" id="tblCharge" >
                                 <thead id="tHeadCharge">
                                     <tr>
                                         <th></th>
@@ -189,7 +189,7 @@
                                         <th i18n="shared.fields.accession"></th>
                                         <th i18n="shared.fields.cptCode"></th>
                                         <th i18n="shared.fields.cptDesc"></th>
-                                        <% if(app.country_alpha_3_code !== 'can') { %>
+                                        <% if(country_alpha_3_code !== 'can') { %>
                                         <th i18n="shared.fields.p1"></th>
                                         <th i18n="shared.fields.p2"></th>
                                         <th i18n="shared.fields.p3"></th>
@@ -202,7 +202,7 @@
                                         <th i18n="shared.fields.units"></th>
                                         <th i18n="shared.fields.billFee"></th>
                                         <th i18n="shared.fields.totalBillFee"></th>
-                                        <% if(app.country_alpha_3_code !== 'can') { %>
+                                        <% if(country_alpha_3_code !== 'can') { %>
                                         <th i18n="shared.fields.allowed"></th>
                                         <th i18n="shared.fields.totalAllowed"></th>
                                         <th i18n="shared.fields.authNo"></th>
@@ -235,7 +235,7 @@
                                                 <td class="charges__cpt-description">
                                                     <div id="divChargeCptDesc_<%= row.data_row_id %>"></div>
                                                 </td>
-                                                <% if(app.country_alpha_3_code !== 'can') { %>
+                                                <% if(country_alpha_3_code !== 'can') { %>
                                                 <td>
                                                     <input id="ddlPointer1_<%= row.data_row_id %>" value="<%= row.pointer1 ? row.pointer1 : '' %>" class="form-control inputModifiers typeahead diagCodes" data-type="P1" data-value="<%= row.data_row_id %>" type="text">
                                                 </td>
@@ -276,7 +276,7 @@
                                                 <td>
                                                     <input disabled value="<%= row.total_bill_fee ? row.total_bill_fee : 0.00 %>" id="txtTotalBillFee_<%= row.data_row_id %>" type="text" class="totalbill form-control floatbox text-right">
                                                 </td>
-                                                <% if(app.country_alpha_3_code !== 'can') { %>
+                                                <% if(country_alpha_3_code !== 'can') { %>
                                                 <td>
                                                     <input disabled value="<%= row.allowed_fee ? row.allowed_fee : 0.00 %>" id="txtAllowedFee_<%= row.data_row_id %>" type="text" class="maskFee allowedFee form-control floatbox">
                                                 </td>
@@ -295,7 +295,7 @@
                                 </tbody>
                                 <tfoot>
                                     <tr style="border: none">
-                                        <td colspan="<% if(app.country_alpha_3_code === 'can') { %> 5 <% } else { %> 12 <% } %>" style="border: 0">
+                                        <td colspan="<% if(country_alpha_3_code === 'can') { %> 5 <% } else { %> 12 <% } %>" style="border: 0">
                                             <button type="button" class="btn pull-left" id="createNewCharge" i18n="shared.buttons.newCharge"></button>
                                             <span id="divPatientBalance" class="patientPaid" style="text-decoration: blink; margin-right: 60px; display: none;">
                                                 <span> Patient Balance </span> :
@@ -310,7 +310,7 @@
                                             <span class="font-weight-bold" id="spTotalBillFeeValue"></span>
                                         </td>
                                         <td style="border: 0"></td>
-                                        <% if(app.country_alpha_3_code !== 'can') { %>
+                                        <% if(country_alpha_3_code !== 'can') { %>
                                         <td style="text-align: right;border: 0">
                                             <span id="spTotalAllowedFee" i18n="shared.fields.totalAllowed"></span>:
                                             <span class="font-weight-bold" id="spTotalAllowedFeeValue"></span>
@@ -391,7 +391,7 @@
                         </select>
                     </div>
                 </div>
-                <% if(app.country_alpha_3_code !== 'can') { %>
+                <% if(country_alpha_3_code !== 'can') { %>
                 <div class="form-group row">
                     <label for="ddlPOSType" class="col-sm-3 col-form-label" i18n="billing.claims.posType"></label>
                     <div class="col-sm-5">
@@ -407,7 +407,7 @@
                 </div>
                 <% } %>
             </div>
-            <% if(app.country_alpha_3_code !== 'can') { %>
+            <% if(country_alpha_3_code !== 'can') { %>
             <div class="col-lg-6">
                 <div class="form-group row">
                     <label for="ddlMultipleDiagCodes" class="col-sm-3 col-form-label" i18n="billing.claims.diagnosticsCodes"></label>
@@ -448,7 +448,7 @@
                             <option value=''>Select</option>
                         </select>
                     </div>
-                    <% if (app.country_alpha_3_code === "usa") { %>
+                    <% if (country_alpha_3_code === "usa") { %>
                     <div class="col-sm-4">
                         <div class="form-check form-check-inline">
                             <input class="form-check-input" type="checkbox" id="chkPriAcptAsmt">
@@ -600,7 +600,7 @@
                     </div>
                 </div>
             </div>
-            <% if(app.country_alpha_3_code !== 'can') { %>
+            <% if(country_alpha_3_code !== 'can') { %>
             <div class="col-lg-6">
                 <div class="form-group row">
                     <legend style="width:98%;">
@@ -617,7 +617,7 @@
                             <option value=''>Select</option>
                         </select>
                     </div>
-                    <% if (app.country_alpha_3_code === "usa") { %>
+                    <% if (country_alpha_3_code === "usa") { %>
                     <div class="col-sm-4">
                         <div class="form-check form-check-inline">
                             <input class="form-check-input" type="checkbox" id="chkSecAcptAsmt">
@@ -626,7 +626,7 @@
                     </div>
                     <% } %>
                 </div>
-                <% if (app.country_alpha_3_code === "usa") { %>
+                <% if (country_alpha_3_code === "usa") { %>
                 <div class="form-group row">
                     <label class="col-sm-3 col-form-label"></label>
                     <div class="col-sm-5">
@@ -792,7 +792,7 @@
                     </div>
                 </div>
             </div>
-            <% } else if(app.country_alpha_3_code === 'can') { %>
+            <% } else if(country_alpha_3_code === 'can') { %>
             <div class="col-lg-6" id="tab_4">
                     <div class="col-lg-12">
                         <div class="form-group row">
@@ -921,7 +921,7 @@
             <% } %>
 
         </div>
-        <% if(app.country_alpha_3_code !== 'can') { %>
+        <% if(country_alpha_3_code !== 'can') { %>
         <div class="row mt-2" id="divTeritaryInsurances">
             <div class="col-lg-6">
             <div class="col-lg-12">
@@ -941,7 +941,7 @@
                             <option value=''>Select</option>
                         </select>
                     </div>
-                    <% if (app.country_alpha_3_code === "usa") { %>
+                    <% if (country_alpha_3_code === "usa") { %>
                     <div class="col-sm-4">
                         <div class="form-check form-check-inline">
                             <input class="form-check-input" type="checkbox" id="chkTerAcptAsmt">
@@ -1288,7 +1288,7 @@
                 </div>
             </div>
             <div class="col-lg-6">
-                <% if(app.country_alpha_3_code !== 'can') { %>
+                <% if(country_alpha_3_code !== 'can') { %>
                 <div class="form-group row">
                     <label for="spAllowed" class="col-sm-3 col-form-label" i18n="billing.claims.allowed"></label>
                     <div class="col-sm-5">

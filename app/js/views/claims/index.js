@@ -128,7 +128,7 @@ define(['jquery',
                     width: '95%',
                     height: '75%',
                     html: this.claimCreationTemplate({
-                        app: app,
+                        country_alpha_3_code: app.country_alpha_3_code,
                         patient_name: self.cur_patient_name,
                         account_no: self.cur_patient_acc_no,
                         dob: self.cur_patient_dob,
@@ -1245,7 +1245,7 @@ define(['jquery',
                 data.charge_dt = self.studyDate ? self.studyDate : '--';
                 self.bindModifiersData(data);
                 var chargeTableRow = self.chargerowtemplate({
-                    app: app,
+                    country_alpha_3_code: app.country_alpha_3_code,
                     row: data
                 });
                 $('#tBodyCharge').append(chargeTableRow);

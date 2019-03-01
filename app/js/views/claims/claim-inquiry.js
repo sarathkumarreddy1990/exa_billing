@@ -97,7 +97,7 @@ define([
                 var isFromClaimScreen = this.options.source && this.options.source === 'claims'
 
                 $(this.el).html(this.inquiryTemplate({
-                    app: app
+                    country_alpha_3_code: app.country_alpha_3_code
                 }));
                 if (this.options.source !== 'web')
                     commonjs.showDialog({
@@ -106,7 +106,7 @@ define([
                         width: '90%',
                         height: '85%',
                         html: this.inquiryTemplate({
-                            app: app
+                            country_alpha_3_code: app.country_alpha_3_code
                         })
                     });
                 else
