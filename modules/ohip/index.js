@@ -1,27 +1,36 @@
-const EBSConnector = require('./ebs');
 const {
-    BATCH_EDIT,
-    CLAIMS_MAIL_FILE_REJECT_MESSAGE,
-    ERROR_REPORTS,
-} = require('./constants').resourceTypes;
-
-const responseCodes = require('./hcv/responseCodes');
-
-// const Encoder = require('./encoders/batchClaimSubmission');
-const Parser = require('./parser');
+    chunk,
+    reduce,
+    groupBy,
+    find,
+} = require('lodash');
+const sprintf = require('sprintf');
 
 // this is the high-level business logic and algorithms for OHIP
 //  * use cases are defined here
-//  *
 
-const ebsConfig = {
-    // TODO: EXA-12674
-    softwareConformanceKey: 'b5dc648e-581a-4886-ac39-c18832d12e06',
-    auditID:124355467675,
-    serviceUserMUID: 614200,
-    username: "confsu+355@gmail.com",
-    password: "Password1!",
-};
+const EBSConnector = require('./ebs');
+const {
+
+    resourceTypes: {
+        BATCH_EDIT,
+        CLAIMS_MAIL_FILE_REJECT_MESSAGE,
+        ERROR_REPORTS,
+        REMITTANCE_ADVICE
+    },
+} = require('./constants');
+
+const {
+    getMonthCode,
+} = require('./utils');
+
+
+
+const ClaimsEncoder = require('./encoder/claims');
+const mod10Check = require('./hcv/mod10Check');
+const Parser = require('./parser');
+const validateClaimsData = require('../../server/data/claim/claim-workbench');
+const _ = require('lodash');
 
 
 const getRandomResponseCode = (codes) => {
@@ -33,34 +42,23 @@ const getRandomValidHealthNumberResponseCode = () => {
 };
 
 /**
- * const getResourceIDs - description
+ * const getClaimSubmissionFilename - description
  *
- * @param  {type} resourceResult description
- * @return {type}                description
+ * @param  {type} args description
+ * @returns {type}      description
  */
-const getResourceIDs = (resourceResult) => {
+const getClaimSubmissionFilename = (args) => {
 
     const {
-        auditID,
-        responses,
-    } = resourceResult;
+        groupNumber,
+        fileSequenceOffset,
+    } = args;
 
-    return responses.reduce((result, response) => {
-
-        if (response.code === 'IEDTS0001') {
-            result.push(response.resourceID);
-        }
-        else {
-            // console.log(response);
-            // TODO this needs to be logged and handled
-            //  * update status codes in database
-            //  * do we keep the file around?
-            //  *
-        }
-
-        return result;
-    }, []);
+    const NOT_GOOD = fileSequenceOffset;
+    const fileSequence = sprintf(`%'03s`, NOT_GOOD);
+    return `H${getMonthCode(new Date())}${groupNumber}.${fileSequence}`;
 };
+
 
 
 /**
@@ -71,128 +69,359 @@ const getResourceIDs = (resourceResult) => {
  */
 module.exports = function(billingApi) {
 
+    //
+    // ************************** PRIVATE **************************************
+    //
+
+    let ohipConfig = null;
+    const getConfig = async () => {
+        if (!ohipConfig) {
+            ohipConfig = await billingApi.getOHIPConfiguration();
+        }
+        return ohipConfig;
+    };
+
+    /**
+     * const download - downloads the available resources which match the
+     * specified resourceType. When the downloads succeed, then an array of
+     * file information objects is passed to the callback. Example:
+     *     [
+     *        {
+     *            file_store_id: Number,
+     *            edi_file_id: Number,
+     *            absolutePath: String,
+     *        },
+     *        // ...
+     *     ]
+     *
+     * @param  {object} args    {
+     *                              resourceType: String
+     *                          }
+     * @param  {function} callback  standard callback mechanism;
+     */
+    const download = async (args, callback) => {
+
+        const ebs = new EBSConnector(await getConfig());
+
+        await ebs.list(args, async (listErr, listResponse) => {
+
+            if (listErr) {
+                await billingApi.storeFile({
+                    filename:'listResponse-error.txt',
+                    data: JSON.stringify(listResponse),
+                    isTransient: true,
+                });
+                return callback(listErr, null);
+            }
+            else {
+                await billingApi.storeFile({
+                    filename:'listResponse.txt',
+                    data: JSON.stringify(listResponse),
+                    isTransient: true,
+                });
+            }
+
+            const resourceIDs = listResponse.data.map((detailResponse) => {
+                return detailResponse.resourceID;
+            });
+
+            await ebs.download({resourceIDs}, async (downloadErr, downloadResponse) => {
+
+                if (downloadErr) {
+                    await billingApi.storeFile({
+                        filename:'downloadResponse-error.txt',
+                        data: JSON.stringify(downloadResponse),
+                        isTransient: true,
+                    });
+                    return callback(downloadErr, null);
+                }
+
+                downloadResponse.results.forEach((result) => {
+
+                    result.data.forEach((download) => {
+                        billingApi.storeFile({
+                            filename: download.description,
+                            data: download.content,
+                        });
+                    });
+                });
+
+                const ediFiles = await downloadResponse.results.reduce(async (ediFilesResult, result) => {
+                    const files = result.data.map(async (d) => {
+                        const data = d.content;
+                        const filename = d.description;
+                        return {
+                            data,
+                            filename,
+                            ...await billingApi.storeFile({
+                                data,
+                                filename,
+                            }),
+                        };
+                    });
+
+                    return ediFilesResult.concat(await files);
+                }, []);
+
+                callback(null, ediFiles);
+            });
+
+        });
+    };
+
+    /**
+     * const createEncoderContext - description
+     *
+     * @param  {type} args description
+     * @returns {type}      description
+     */
+    const createEncoderContext = async () => {
+
+        return {
+            [billingApi.OHIP_CONFIGURATION_MODE.CONFORMANCE_TESTING]: {
+                batchDate: new Date(),
+            },
+            [billingApi.OHIP_CONFIGURATION_MODE.DEMO]: {
+                batchDate: new Date('2012-03-31'),
+                batchSequenceNumber: 5, // matches OHIP Batch Edit sample
+            },
+
+        }[(await getConfig()).mode];
+    };
+
+
+
+    //
+    // *************************** PUBLIC **************************************
+    //
+
+
     return {
 
         // takes an array of Claim IDs
-        submitClaims: (args, callback) => {
+        submitClaims: async (req, callback) => {
+            let args = req.query;
+            let params = req.body;
 
-            const ebs = new EBSConnector(ebsConfig);
+            let claimIds = params.claimIds.split(',');  // NOTE this will explode when 'All_Claims' are checked
 
-            // TODO
-            // 1 - create claims file from claims with propper date format
-            const uploads = [
-                {
-                    resourceType: 'CL',
-                    // TODO: EXA-12673
-                    filename: 'modules/ohip/ebs/HGAU73.441',
-                    description: 'HGAU73.441',
+            let validationData = await validateClaimsData.validateEDIClaimCreation(claimIds, req.session.country_alpha_3_code);
+            validationData = validationData && validationData.rows && validationData.rows.length && validationData.rows[0] || [];
+            let claimStatus = _.uniq(validationData.claim_status);
+            // Claim validation
+            if (validationData) {
+                if (claimStatus.length != 1 && claimStatus[0] != 'PS') {
+                    return new Error('Please validate claims');
+                } else if (validationData.unique_billing_method_count > 1) {
+                    return new Error('Please select claims with same type of billing method');
+                } else if (validationData.claim_status.length != claimIds.length) {
+                    return new Error('Claim date should not be greater than the current date');
                 }
-            ];
+            }
 
-            ebs.upload({uploads}, (uploadErr, uploadResponse) => {
+            // 1 - convert args.claimIds to claim data (getClaimsData)
+            const claimData = await billingApi.getClaimsData({claimIds});
+
+            // 2 - run claim data through encoder
+            const claimEnc = new ClaimsEncoder(); // default 1:1/1:1
+            // const claimEnc = new ClaimsEncoder({batchesPerFile:5});
+            // const claimEnc = new ClaimsEncoder({claimsPerBatch:5});
+            const encoderContext = await createEncoderContext();
+            const submissionsByGroup = claimEnc.encode(claimData, encoderContext);
+
+            // 3 - manifest claim files
+            //
+            // in: {'AZ12':[submission...], 'BY23':[submission...], ...}
+            // out: [{data:String, filename:String,batches:[batchSequenceNumber,claimIds:[Number]]}]
+            const allFiles = reduce(submissionsByGroup, (result, groupSubmissions, groupNumber) => {
+
+                // in: [{batches:[], data:String}]
+                // out: [{batches:[], data:String, filename:String}]
+                const groupFiles = groupSubmissions.map((file, fileSequenceOffset) => {
+                    return {
+                        filename: getClaimSubmissionFilename({groupNumber, fileSequenceOffset}),
+                        ...file,
+                    };
+                });
+
+                return result.concat(groupFiles);
+
+            }, []);
+
+            // 4 - store and register claim files
+            //
+            // in: [{data:String, filename:String, batches:[batchSequenceNumber, claimIds:[Number]]}]
+            // out [{data:String, filename:String, edi_file_id, file_store_id, absolutePath, batches: [batchSequenceNumber, claimIds:[Number]]}]
+            const storedFiles = reduce(allFiles, async (storedResult, file) => {
+                const storedFile = {
+                    ...await billingApi.storeFile({
+                        createdDate: encoderContext.batchDate,
+                        ...file
+                    }),
+                    ...file,
+                };
+
+                // TODO add edi_file_claims entry
+                await billingApi.applyClaimSubmission(storedFile);
+
+                (await storedResult).push(storedFile);
+                return storedResult;
+            }, []);
+
+            // 5 - generate EBS upload service paramaters
+            //
+            // in [{data:String, filename:String, edi_file_id, file_store_id, absolutePath, batches:[batchSequenceNumber,claimIds:[Number]]}]
+            // >> [{resourceType:'CL', filename: (absolutePath), description: (filename)}]
+            const uploadServiceParams = reduce((await storedFiles), (result, storedFile) => {
+                result.push({
+                    resourceType: 'CL',
+                    filename: storedFile.absolutePath,
+                    description: storedFile.filename,
+                });
+                return result;
+            }, []);
+
+            (await storedFiles).forEach((storedFile) => {
+
+                billingApi.updateFileStatus({edi_file_id:storedFile.edi_file_id, status: 'success'});
+
+                storedFile.batches.forEach(async (batch) => {
+                        await billingApi.updateClaimStatus({
+                        claimIds: batch.claimIds,
+                        claimStatusCode: 'PACK',    // TODO use a constant
+                    });
+                });
+            });
+
+            // // 6 - upload file to OHIP
+            const uploads = uploadServiceParams.slice(0, 1);    // TODO enable multi-file uploads in EBS module
+
+            const ebs = new EBSConnector(await getConfig());
+            ebs.upload({uploads}, async (uploadErr, uploadResponse) => {
+
+                billingApi.auditTransaction(uploadResponse.auditInfo);
 
                 if (uploadErr) {
+                    billingApi.updateFileStatus({edi_file_id, status: 'failure'});
                     return callback(uploadErr, uploadResponse);
                 }
 
-                const resourceIDs = getResourceIDs(uploadResponse);
+                const uploadResultsByStatusCode = groupBy(uploadResponse.results, 'code');
 
+                // mark files that were successfully uploaded to "in_progress" status
+                billingApi.updateFileStatus({
+                    status: 'in_progress',
+                    files: await uploadResultsByStatusCode['IEDTS0001'].map(async (uploadResult) => {
+                        return find((await storedFiles), (storedFile) => {
+                            return uploadResult.description === storedFile.filename;
+                        });
+                    }),
+                });
+
+                const resourceIDs = uploadResultsByStatusCode['IEDTS0001'].map((uploadResult) => {
+                    return uploadResult.resourceID;
+                });
+
+                // 7 - submit file to OHIP
                 return ebs.submit({resourceIDs}, (submitErr, submitResponse) => {
 
                     if (submitErr) {
+                        //      a. failure -> update file status ('error'), delete file from ohip
+                        billingApi.updateFileStatus({
+                            status: 'failed',
+                            files: uploadResultsByStatusCode['IEDTS0001'].map(async (uploadResult) => {
+                                return find((await storedFiles), (storedFile) => {
+                                    return uploadResult.description === storedFile.filename;
+                                });
+                            }),
+                        });
                         return callback(submitErr, submitResponse);
                     }
-                    const resourceIDs = getResourceIDs(submitResponse);
 
-                    // 4 - update database mark as 'pending acknowledgment'
-                    //
-
-                    // 5 - move file from proper filename to final filename and save
-                    // to edi_file_claims
-
-                    // 6 - move response file to final filename and save
-                    // to edi_file_related (or whatever it's called)
+                    // mark files that were successfully uploaded to "in_progress" status
+                    billingApi.updateFileStatus({
+                        status: 'success',
+                        files: uploadResultsByStatusCode['IEDTS0001'].map(async (uploadResult) => {
+                            return find((await storedFiles), (storedFile) => {
+                                return uploadResult.description === storedFile.filename;
+                            });
+                        }),
+                    });
 
                     return callback(null, submitResponse);
                 });
             });
         },
 
-        sandbox: async (args, callback) => {
-            const ebs = new EBSConnector(ebsConfig);
-            const f = await billingApi.loadFile({edi_files_id: 38});
-            console.log(f);
-            //
-            // ebs.list({status:'UPLOADED', resourceType:'CL'}, (listErr, listResponse) => {
-            //     console.log(listResponse);
-            // });
-            //
-            // return ebs.download({resourceIDs:[62152]}, (downloadErr, downloadResponse) => {
-            // // return ebs.list({resourceType:'ER'}, (downloadErr, downloadResponse) => {
-            //     return callback(downloadErr, downloadResponse);
-            // });
+        fileManagement: async (args, callback) => {
+            return callback(null, await billingApi.getFileManagementData(args));
         },
 
+        /**
+         * downloadRemittanceAdvice - description
+         *
+         * @param  {type} args     description
+         * @param  {type} callback description
+         * @returns {type}          description
+         */
+        downloadRemittanceAdvice: async (args, callback) => {
+            download({resourceType:REMITTANCE_ADVICE}, (downloadErr, ediFiles) => {
+                return callback(downloadErr, ediFiles);
+            });
+        },
+
+
+
+
         // TODO: EXA-12016
-        processResponseFiles: (args, callback) => {
+        downloadAndProcessResponseFiles: async (args, callback) => {
 
-            const ebs = new EBSConnector(ebsConfig);
+            // TODO: "zero results" yields an error at the encryption level
 
-            ebs.list({resourceType: BATCH_EDIT}, (listErr, listResponse) => {
-                const resourceIDs = listResponse.data.map((detailResponse) => {
-                    return detailResponse.resourceID;
-                });
+            // download({resourceType: CLAIMS_MAIL_FILE_REJECT_MESSAGE}, (downloadErr, downloadResponse) => {
+            //     downloadResponse.forEach(async (download) => {
+            //         await billingApi.applyRejectMessage(download);
+            //     });
+            // });
 
-                ebs.download({resourceIDs}, async (downloadErr, downloadResponse) => {
+            download({resourceType:BATCH_EDIT}, (downloadErr, downloadResponse) => {
+                downloadResponse.forEach(async (download) => {
 
-                    if (downloadErr) {
-                        await billingApi.storeFile({filename:'downloadResponse-error.txt',data:downloadResponse});
-                    }
-                    else {
-                        await billingApi.storeFile({filename:'downloadResponse.json',data:JSON.stringify(downloadResponse)});
-                    }
+                    const {
+                        filename,
+                        data,
+                    } = (await download);
 
-                    const filepaths = [];
-                    downloadResponse.data.forEach(async (downloadData) => {
+                    const decodedBatchEdit = new Parser(filename).parse(data);
 
-                        await billingApi.storeFile({
-                            data: downloadData.content,
-                            filename: downloadData.description,
-                        });
+                    await billingApi.applyBatchEditReport({
+                        responseFileId: download.edi_file_id,
+                        ...decodedBatchEdit[0],
                     });
 
-                    callback(null, downloadResponse);
+                    return callback(null, 'batch edit reports downloaded');
                 });
             });
 
-            // ebs.list({resourceType: ERROR_REPORTS}, (listErr, listResponse) => {
-            //     const resourceIDs = listResponse.data.map((detailResponse) => {
-            //         return detailResponse.resourceID;
-            //     });
-            //
-            //     ebs.download({resourceIDs}, (downloadErr, downloadResponse) => {
-            //         // TODO: billingApi.handleClaimsErrorReportFile
-            //         console.log(`Claims Error Report downloaded with resource ID: ${detailResponse.resourceID}`);
-            //
-            //     });
-            // });
-            //
-            // ebs.list({resourceType: CLAIMS_MAIL_FILE_REJECT_MESSAGE}, (listErr, listResponse) => {
-            //     const resourceIDs = listResponse.data.map((detailResponse) => {
-            //         return detailResponse.resourceID;
-            //     });
-            //
-            //     ebs.download({resourceIDs}, (downloadErr, downloadResponse) => {
-            //         // TODO: billingApi.handleClaimsErrorReportFile
-            //         console.log(`Claims File Reject Message downloaded with resource ID: ${detailResponse.resourceID}`);
-            //
-            //     });
-            // });
-
+            download({resourceType:ERROR_REPORTS}, (downloadErr, downloadResponse) => {
+                downloadResponse.forEach(async (download) => {
+                    await billingApi.applyErrorReport(download);
+                });
+            });
         },
 
-        validateHealthCard: (args, callback) => {
-            const ebs = new EBSConnector(ebsConfig);
+
+        // TODO: EXA-12016
+        // processResponseFiles,
+        //
+        // responseFilesRefresh: processResponseFiles,
+        //
+        // remittanceAdviceFilesRefresh: processResponseFiles,
+        //
+        // genericGovernanceReportsRefresh: processResponseFiles,
+
+        validateHealthCard: async (args, callback) => {
+            const ebs = new EBSConnector(await getConfig());
 
             /* This is stub/mock functionality for the Health Card Validation
              * endpoint. Theory of operation: for the sake of the demo, an
@@ -210,23 +439,30 @@ module.exports = function(billingApi) {
                 isValid: false,
             };
 
-            if (healthNumber.length === 10) {
-                if (versionCode === 'OK') {
-                    result.isValid = true;
-                    // yes, there are multiple "sufficiently valid" results
-                    result.responseCode = getRandomValidHealthNumberResponseCode();
-                }
-                else {
-                    result.responseCode = 65;
-                }
+            const isValid = mod10Check.isValidHealthNumber(healthNumber)
+
+            if (isValid) {
+                result.isValid = true
+                ebs.hcvValidation(args, (hcvErr, hcvResponse) => {
+                    console.log(hcvResponse);
+                    return callback(hcvResponse);
+                });
             }
             else {
-                result.responseCode = 25;
+                result.isValid = false;
+                return callback({ isValid: false, errMsg: "Invalid Heath card number" });
             }
+        },
 
-            result.descriptiveText = responseCodes[result.responseCode];
-
-            return callback(null, result);
+        applyRemittanceAdvice: async (args, callback) => {
+            const f_c = await billingApi.loadFile(args);
+            if(f_c.data){
+                const parser = new Parser(f_c.uploaded_file_name)
+                f_c.ra_json = parser.parse(f_c.data);
+                let response =  await billingApi.handlePayment(f_c, args);
+                return callback(response)
+            }
+            callback(f_c)
         },
     };
 };

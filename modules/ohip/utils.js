@@ -2,7 +2,10 @@ const {
     getFileType,
 } = require('./parser/utils');
 
+
+
 const {
+    MONTH_CODE_JANUARY,
     resourceTypes,
     resourceDescriptions,
 } = require('./constants');
@@ -31,5 +34,16 @@ module.exports = {
         return resourceDescriptions[getResourceType(filename)];
     },
 
+    /**
+     * Returns the alpha representation for the date of a processing cycle,
+     * letters A through L (January through December).
+     *
+     * @param  {Date} value date of processing cycle
+     * @return {string}     single uppercase letter representation of the
+     *                      processing cycle month
+     */
+    getMonthCode: (value) => {
+        return String.fromCharCode(MONTH_CODE_JANUARY + value.getMonth());
+    },
 
 };

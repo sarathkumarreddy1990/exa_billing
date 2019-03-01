@@ -147,26 +147,25 @@ module.exports = {
 
     HCV_BASIC_VALIDATE: (args) => {
         const {
-            requests,
-            locale,
+            healthNumber,
+            versionCode,
         } = args;
-
         let innerXML = '';
-        requests.forEach(({healthNumber, versionCode}) => {
+        // requests.forEach(({healthNumber, versionCode}) => {
             innerXML += `
                 <hcvRequest>
                     <healthNumber>${healthNumber}</healthNumber>
                     <versionCode>${versionCode}</versionCode>
                 </hcvRequest>`;
                 //  <feeServiceCodes>A110</feeServiceCodes>
-        });
+        // });
 
         return `
             <hcv:validate>
                 <requests>
                     ${innerXML}
                 </requests>
-                <locale>${locale || 'en'}</locale>
+                <locale>'en'</locale>
             </hcv:validate>`;
     },
 

@@ -91,28 +91,29 @@ const parseCSNData = (doc) => {
 const parseTypeListData = (doc) => {
 
     return {
-        access: select("//*[local-name(.)='access']/text()", doc)[0].nodeValue,
-        descriptionEn: select("//*[local-name(.)='descriptionEn']/text()", doc)[0].nodeValue,
-        descriptionFr: select("//*[local-name(.)='descriptionFr']/text()", doc)[0].nodeValue,
-        groupRequired: select("//*[local-name(.)='groupRequired']/text()", doc)[0].nodeValue,
-        resourceType: select("//*[local-name(.)='resourceType']/text()", doc)[0].nodeValue,
+        access: select("*[local-name(.)='access']/text()", doc)[0].nodeValue,
+        descriptionEn: select("*[local-name(.)='descriptionEn']/text()", doc)[0].nodeValue,
+        descriptionFr: select("*[local-name(.)='descriptionFr']/text()", doc)[0].nodeValue,
+        groupRequired: select("*[local-name(.)='groupRequired']/text()", doc)[0].nodeValue,
+        resourceType: select("*[local-name(.)='resourceType']/text()", doc)[0].nodeValue,
 
-        csns: select("//*[local-name(.)='csns']/text()", doc).map((csnDataNode) => {
+        csns: select("*[local-name(.)='csns']/text()", doc).map((csnDataNode) => {
             return parseCSNData(csnDataNode);
         }),
 
-        ...parseCommonResult(select("//*[local-name(.)='result']", doc)[0])
+        ...parseCommonResult(select("*[local-name(.)='result']", doc)[0])
     };
 };
 
 const parseDownloadData = (doc) => {
-    return {
-        content: select("//*[local-name(.)='content']/text()", doc)[0].nodeValue.toString('base64'),
-        resourceID: select("//*[local-name(.)='resourceID']/text()", doc)[0].nodeValue,
-        resourceType: select("//*[local-name(.)='resourceType']/text()", doc)[0].nodeValue,
-        description: select("//*[local-name(.)='description']/text()", doc)[0].nodeValue,
 
-        ...parseCommonResult(select("//*[local-name(.)='result']", doc)[0])
+    return {
+        content: select("*[local-name(.)='content']/text()", doc)[0].nodeValue.toString('base64'),
+        resourceID: select("*[local-name(.)='resourceID']/text()", doc)[0].nodeValue,
+        resourceType: select("*[local-name(.)='resourceType']/text()", doc)[0].nodeValue,
+        description: select("*[local-name(.)='description']/text()", doc)[0].nodeValue,
+
+        ...parseCommonResult(select("*[local-name(.)='result']", doc)[0])
     };
 
 };
@@ -128,7 +129,7 @@ module.exports = {
         return {
             auditID: parseAuditID(resourceResultNode),
 
-            responses: select("//*[local-name(.)='response']", resourceResultNode).map((responseNode) => {
+            response: select("//*[local-name(.)='response']", resourceResultNode).map((responseNode) => {
 
                 return {
                     description: parseOptionalValue(responseNode, 'description'),
@@ -154,6 +155,20 @@ module.exports = {
         };
     },
 
+    parseInfoDetail: (doc) => {
+
+        let detailNode = select("//*[local-name(.)='return']", doc)[0];
+
+        return {
+            auditID: parseAuditID(detailNode),
+            // resultSize: select("//*[local-name(.)='resultSize']/text()", detailNode)[0].nodeValue,
+            data: select("//*[local-name(.)='data']", detailNode).map((dataNode) => {
+                return parseDetailData(dataNode);
+            }),
+            // resultSize: select("//*[local-name(.)='resultSize']/text()", detailNode)[0].nodeValue,
+        };
+    },
+
     parseTypeListResult: (doc) => {
         let typeListResultNode = select("//*[local-name(.)='return']", doc)[0];
 
@@ -161,7 +176,6 @@ module.exports = {
             auditID: parseAuditID(typeListResultNode),
 
             data: select("//*[local-name(.)='data']", typeListResultNode).map((typeListDataNode) => {
-                // console.log(select("//*[local-name(.)='resourceType']/text()", typeListDataNode)[0].nodeValue);
                 return parseTypeListData(typeListDataNode);
             }),
         };
@@ -174,7 +188,6 @@ module.exports = {
             auditID: parseAuditID(downloadResultNode),
 
             data: select("//*[local-name(.)='data']", downloadResultNode).map((downloadDataNode) => {
-                // console.log(select("//*[local-name(.)='resourceType']/text()", downloadDataNode)[0].nodeValue);
                 return parseDownloadData(downloadDataNode);
             }),
         };
@@ -192,5 +205,4 @@ module.exports = {
         };
 
     },
-
 };

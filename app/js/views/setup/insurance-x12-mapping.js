@@ -56,7 +56,9 @@ define(['jquery',
                     this.getEDIClearingHousesList();
 
                 if (app.country_alpha_3_code === "can") {
-                    self.billing_method = _.reject(self.billing_method, function (field) { return (field && (field.value == "paper_claim" || field.value == "patient_payment")) }) || [];
+                    self.billing_method = _.reject(self.billing_method, function (field) {
+                        return (field && (field.value == "paper_claim" || field.value == "patient_payment"))
+                    }) || [];
                 }
                 var billingMethodValue = commonjs.buildGridSelectFilter({
                     arrayOfObjects: this.billing_method,

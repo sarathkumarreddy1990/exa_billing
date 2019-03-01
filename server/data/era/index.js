@@ -84,12 +84,12 @@ module.exports = {
 
         sql.append(SQL`) AS file_payments ON TRUE
                                 LEFT JOIN LATERAL (
-                                                SELECT  
+                                                SELECT
                                                    DISTINCT efp.edi_file_id AS eob_file_id
                                                 FROM
                                                     billing.edi_file_payments efp
                                                 WHERE
-                                                    efp.payment_id = ANY(file_payments.payment_id) 
+                                                    efp.payment_id = ANY(file_payments.payment_id)
                                                     AND efp.edi_file_id != ef.id
                                                 ) AS eob ON TRUE
                                 WHERE
@@ -235,6 +235,7 @@ module.exports = {
                                 application_details.patient_suffix,
                                 application_details.claim_index,
                                 application_details.claim_status,
+                                c.claim_status_id,
                                 c.patient_id
                             FROM
                                 application_details
@@ -260,6 +261,7 @@ module.exports = {
                                 application_details.patient_suffix,
                                 application_details.claim_index,
                                 application_details.claim_status,
+                                c.claim_status_id,
                                 c.patient_id
                             FROM
                                 application_details
@@ -280,6 +282,7 @@ module.exports = {
                                 fcc.service_date,
                                 fcc.code,
                                 fcc.claim_status,
+                                fcc.claim_status_id,
                                 json_build_object(
                                     'payment'       ,fcc.payment,
                                     'charge_id'     ,fcc.charge_id,
@@ -350,34 +353,64 @@ module.exports = {
                             WHERE EXISTS ( SELECT claim_id FROM matched_claims WHERE claim_id = claim_notes.claim_number LIMIT 1 )
                             RETURNING id AS claim_comment_id
                         ),
-                            update_claim_status_and_payer AS (
-                                SELECT
-                                    DISTINCT claim_id
-                                    ,billing.change_responsible_party(claim_id, claim_status_code, ${paymentDetails.company_id}, original_reference, 0, false)
-                                FROM
-                                    matched_claims
-                                WHERE
-                                    'TOS_PAYMENT' != ${paymentDetails.isFrom}
-                                    AND ('patient' != ${paymentDetails.payer_type} OR claim_status NOT IN ('PV','PS'))
-                            )
+                        update_claim_status_and_payer AS (
                             SELECT
-	                        ( SELECT json_agg(row_to_json(insert_payment_adjustment)) insert_payment_adjustment
-                                        FROM (
-                                                SELECT
-                                                      *
-                                                FROM
-                                                    insert_payment_adjustment
+                                DISTINCT claim_id
+                                ,billing.change_responsible_party(claim_id, claim_status_code, ${paymentDetails.company_id}, original_reference, 0, false)
+                            FROM
+                                matched_claims
+                            WHERE
+                                ${paymentDetails.isFrom} NOT IN ('TOS_PAYMENT', 'OHIP_EOB')
+                                AND ('patient' != ${paymentDetails.payer_type} OR claim_status NOT IN ('PV','PS'))
+                        )
+                        ------------------------------------------------------------
+                        -- This query triggred only for OHIP process
+                        ------------------------------------------------------------
+                        ,update_claim_status AS (
+                            UPDATE billing.claims
+                                SET
+                                claim_status_id =
+                                (
+                                    CASE
+                                        WHEN claim_details.claim_balance_total = 0::money
+					                        THEN ( SELECT COALESCE(id, mc.claim_status_id ) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'PIF' AND inactivated_dt IS NULL )
+				                        WHEN claim_details.claim_balance_total < 0::money
+					                        THEN ( SELECT COALESCE(id, mc.claim_status_id ) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'OP' AND inactivated_dt IS NULL )
+				                        WHEN claim_details.claim_balance_total > 0::money
+					                        THEN ( SELECT COALESCE(id, mc.claim_status_id ) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'PP' AND inactivated_dt IS NULL )
+				                    ELSE
+				                        mc.claim_status_id
+                                    END
+                                )
+                            FROM matched_claims mc
+                            INNER JOIN billing.get_claim_totals(mc.claim_id) claim_details ON TRUE
+			                WHERE billing.claims.id = mc.claim_id
+                                AND 'OHIP_EOB' = ${paymentDetails.isFrom}
+                            RETURNING id as claim_id
+                        )
+                        SELECT
+                        ( SELECT json_agg(row_to_json(insert_payment_adjustment)) insert_payment_adjustment
+                                    FROM (
+                                            SELECT
+                                                    *
+                                            FROM
+                                                insert_payment_adjustment
 
-                                            ) AS insert_payment_adjustment
-                            ) AS insert_payment_adjustment
-                            ,(
-                                SELECT
-                                    array_agg(claim_id)
-                                FROM
-                                    update_claim_status_and_payer
-                             )  AS update_claim_status_and_payer
+                                        ) AS insert_payment_adjustment
+                        ) AS insert_payment_adjustment
+                        ,(
+                            SELECT
+                                array_agg(claim_id)
+                            FROM
+                                update_claim_status_and_payer
+                            )  AS update_claim_status_and_payer
+                        ,(
+                            SELECT
+                                array_agg(claim_id)
+                            FROM
+                                update_claim_status
+                        )  AS update_claim_status
                         `;
-
         return await query(sql);
     },
 
@@ -501,17 +534,17 @@ module.exports = {
                         ${sql}
                     ),
                     insert_edi_file_payments AS (
-                        INSERT INTO 
+                        INSERT INTO
                             billing.edi_file_payments(
                                 edi_file_id,
                                 payment_id
-                            ) 
-                            SELECT 
+                            )
+                            SELECT
                                 (SELECT id FROM insert_edi_file) AS edi_file_id,
                                     payment_id
                                 FROM
                                     billing.edi_file_payments efp
-                                WHERE efp.edi_file_id = ${params.id} 
+                                WHERE efp.edi_file_id = ${params.id}
                                         RETURNING edi_file_id
                     )
                     SELECT edi_file_id AS id FROM insert_edi_file_payments
