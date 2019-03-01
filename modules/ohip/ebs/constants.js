@@ -81,7 +81,4 @@ module.exports = {
     SUBMIT_MAX: 100,
 
     INFO_MAX: 100,
-
-
->>>>>>> f3959593ab57f472eb41e76fff0bdd223c7a0f55
 };
