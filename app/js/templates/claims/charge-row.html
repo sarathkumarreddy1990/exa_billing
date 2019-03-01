@@ -21,7 +21,7 @@
         <td class="charges__cpt-description">
             <div id="divChargeCptDesc_<%= row.data_row_id %>"></div>
         </td>
-        <% if(app.country_alpha_3_code !== 'can') { %>
+        <% if (country_alpha_3_code !== 'can') { %>
         <td>
             <input id="ddlPointer1_<%= row.data_row_id %>" class="form-control inputModifiers typeahead diagCodes" data-type="P1" data-value="<%= row.data_row_id %>" type="text">
         </td>
@@ -65,7 +65,7 @@
         <td>
             <input disabled value="<%= row.total_bill_fee ? row.total_bill_fee : 0.00 %>" id="txtTotalBillFee_<%= row.data_row_id %>" type="text" class="totalbill form-control floatbox text-right">
         </td>
-        <% if(app.country_alpha_3_code !== 'can') { %>
+        <% if (country_alpha_3_code !== 'can') { %>
         <td>
             <input disabled value="<%= row.allowed_fee ? row.allowed_fee : 0.00 %>" id="txtAllowedFee_<%= row.data_row_id %>" type="text" class="maskFee allowedFee form-control floatbox">
         </td>

@@ -25,7 +25,7 @@
     <td style="white-space: nowrap !important">
         <input value="<%= payment.payment_amount %>" type="text" class="input-xs maskFeeAllowMinus this_pay" placeholder="0.00">
     </td>
-    <% if (app.country_alpha_3_code !== "can") { %>
+    <% if (country_alpha_3_code !== "can") { %>
     <td style="white-space: nowrap !important">
         <input type="text" class="input-xs this_allowed maskFeeAllowMinus" value="<%= payment.allowed_amount %>">
     </td>

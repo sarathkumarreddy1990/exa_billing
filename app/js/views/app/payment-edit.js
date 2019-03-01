@@ -1646,7 +1646,7 @@ define(['jquery',
                 var claimDt = (commonjs.checkNotEmpty(rowData.claim_dt) ? commonjs.convertToFacilityTimeZone(rowData.facility_id, rowData.claim_dt).format('L') : '');
                 var casDialogHeader = commonjs.geti18NString('billing.fileInsurance.claim') + ': # <strong>' + rowData.claim_id + ',  ' + rowData.full_name + '  ' + claimDt + '</strong>';
                 var casDialogHtml = self.applyCasTemplate({
-                    app: app,
+                    country_alpha_3_code: app.country_alpha_3_code,
                     adjustmentCodes: self.adjustmentCodeList.toJSON(),
                     claimStatusList: this.claimStatusList.toJSON(),
                     cas_group_codes: self.cas_group_codes || rowData.cas_group_codes,
@@ -1770,7 +1770,7 @@ define(['jquery',
                             paymentDet.balance = parseFloat(balance).toFixed(2);
 
                             var applyPaymentRow = self.applyPaymentTemplate({
-                                app:app,
+                                country_alpha_3_code: app.country_alpha_3_code,
                                 payment: paymentDet
                             });
 
