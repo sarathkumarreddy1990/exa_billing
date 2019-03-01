@@ -1,16 +1,15 @@
 const fs = require('fs');
 const path = require('path');
 const logger = require('../../../logger');
+const { promisify } = require('util');
+const readFileAsync = promisify(fs.readFile);
 
 const data = require('../../data/claim/claim-workbench');
 const ediData = require('../../data/claim/claim-edi');
+const ohipData = require('../../data/ohip');
+
 const claimPrintData = require('../../data/claim/claim-print');
 const ediConnect = require('../../../modules/edi');
-const {
-    constants,
-    OHIPEncoderV03,
-    EDIQueryAdapter
-} = require('../../../modules/ohip');
 
 const studiesController = require('../../controllers/studies');
 
@@ -52,9 +51,10 @@ module.exports = {
         return claimPrintData.getPrinterTemplate(params);
     },
 
-    getEDIClaim: async (params) => {
+    getEDIClaim: async (req) => {
+        let params = req.body;
         let claimIds = (params.claimIds).split(',');
-        let validationData = await data.validateEDIClaimCreation(claimIds);
+        let validationData = await data.validateEDIClaimCreation(claimIds, req.session.country_alpha_3_code);
         validationData = validationData && validationData.rows && validationData.rows.length && validationData.rows[0] || [];
 
         if(validationData) {
@@ -62,10 +62,11 @@ module.exports = {
                 return new Error('Please validate claims');
             } else if(validationData.unique_billing_method_count > 1 ){
                 return new Error('Please select claims with same type of billing method');
-            } else if(validationData.clearing_house_count != claimIds.length || validationData.unique_clearing_house_count > 1){
+            } else if(validationData.clearing_house_count != claimIds.length || validationData.unique_clearing_house_count > 1 || req.session.country_alpha_3_code != 'can' ){
                 return new Error('Please select claims with same type of clearing house Claims');
+            } else if (validationData.claim_status.count != claimIds.length) {
+                return new Error('Claim date should not be greater than the current date');
             }
-
         }
 
         const result = await ediData.getClaimData(params);
@@ -123,73 +124,25 @@ module.exports = {
                 data: ediData
             };
 
-            const country_alpha_3_code = (await helper.query(`
-                SELECT
-                    country_alpha_3_code
-                FROM sites
-                WHERE
-                    id = 1
-            `, [])).rows[0].country_alpha_3_code;
+            ediResponse = await ediConnect.generateEdi(result.rows[0].header.edi_template_name, ediRequestJson);
+            let validation =[];
 
-            if (country_alpha_3_code === 'can') {
-
-                const enc = new OHIPEncoderV03();
-                const queryAdapter = new EDIQueryAdapter(ediData);
-                const mappedData = queryAdapter.getMappedData();
-
-                ediResponse = '';
-
-                mappedData.forEach((batch) => {
-
-                    const context = {
-                        batchDate: new Date(),
-                        batchSequenceNumber: '441'  // TODO: needs to be dynamically generated
-                    };
-
-                    const filename = enc.getFilename(batch, context);
-
-                    // for each claim
-                    let claimStr = enc.encode(batch, context);
-
-                    ediResponse = {
-                        ohipText: claimStr,
-                        ohipFilename: filename
-                    };
-
-                    const fullOHIPFilepath = path.join('ohip-out', filename);
-
-                    fs.writeFile(fullOHIPFilepath, claimStr, constants.encoding, (err) => {
-                        if (err) {
-                            logger.error('While generating OHIP Claim Submission file', err);
-                        }
-                        else {
-                            logger.info('Created OHIP Claim Submission file: ' + fullOHIPFilepath);
-                        }
-                    });
-                });
+            if (ediResponse && ediResponse.ediTextWithValidations) {
+                let segmentValidations = ediResponse.ediTextWithValidations.filter(segmentData => typeof segmentData !== 'string' && segmentData.v)
+                    .map(segmentData => segmentData.v)
+                    .reduce((result, item) => result.concat(item), []);
+                validation = ediResponse.validations.concat(segmentValidations);
             }
-            else {
 
-                ediResponse = await ediConnect.generateEdi(result.rows[0].header.edi_template_name, ediRequestJson);
-                let validation =[];
-
-                if (ediResponse && ediResponse.ediTextWithValidations) {
-                    let segmentValidations = ediResponse.ediTextWithValidations.filter(segmentData => typeof segmentData !== 'string' && segmentData.v)
-                        .map(segmentData => segmentData.v)
-                        .reduce((result, item) => result.concat(item), []);
-                    validation = ediResponse.validations.concat(segmentValidations);
-                }
-
-                if (!ediResponse.errMsg && (validation && validation.length == 0)) {
-                    params.claim_status = 'PP';
-                    params.type = 'auto';
-                    params.success_claimID = params.claimIds.split(',');
-                    params.isClaim = true;
-                    params.claimDetails = JSON.stringify(claimDetails);
-                    await data.changeClaimStatus(params);
-                }
-
+            if (!ediResponse.errMsg && (validation && validation.length == 0)) {
+                params.claim_status = 'PP';
+                params.type = 'auto';
+                params.success_claimID = params.claimIds.split(',');
+                params.isClaim = true;
+                params.claimDetails = JSON.stringify(claimDetails);
+                await data.changeClaimStatus(params);
             }
+
         } else {
             ediResponse = result;
         }
@@ -240,6 +193,10 @@ module.exports = {
     },
 
     validateClaim: async function (params) {
+        if(params.country === 'can') {
+            return this.ohipClaimValidation(params);
+        }
+
         let claimDetails = await ediData.validateClaim(params);
 
         if (claimDetails && claimDetails.constructor.name === 'Error') {
@@ -463,5 +420,66 @@ module.exports = {
 
     getClaimSummary: async function (params) {
         return await data.getClaimSummary(params);
-    }
+    },
+
+    ohipClaimValidation: async function (params) {
+        // TODO: this probably belongs in modules/ohip/routes.js
+        // (but it works right here for right now)
+        let claimDetails = await ohipData.getClaimsData({ claimIds: params.claim_ids });
+        let file_path = path.join(__dirname, '../../resx/ohip-claim-validation-fields.json');
+        let valdationClaimJson = await readFileAsync(file_path, 'utf8');
+        valdationClaimJson = JSON.parse(valdationClaimJson);
+
+        let validation_result = {
+            invalidClaim_data: [],
+            validClaim_data: []
+        };
+
+        let error_data;
+        params.success_claimID = [];
+
+        _.each(claimDetails, (currentClaim) => {
+            let errorMessages = [];
+            let claimData = currentClaim.claims[0].insuranceDetails;
+
+            _.each(valdationClaimJson, (fieldValue, field) => {
+                if (fieldValue) {
+                    if(typeof fieldValue === 'object') {
+                         if(claimData[field]) {
+                            _.each(fieldValue, (data, dataField) => {
+                                if (data)
+                                    !claimData[dataField] || !claimData[dataField].length ? errorMessages.push(` Claim - ${dataField} does not exists`) : null;
+                            });
+                         }
+                    } else {
+                        !claimData[field] || !claimData[field].length ? errorMessages.push(` Claim - ${field} does not exists`) : null;
+                    }   
+                }
+            });
+
+            if (!errorMessages.length) {
+                params.success_claimID.push(currentClaim.claim_id);
+            }
+            else {
+                error_data = {
+                    'id': currentClaim.claim_id,
+                    'patient_name': claimData.patientName,
+                    'payer_name': claimData.payerName,
+                    'claim_notes': currentClaim.claimNotes,
+                    'errorMessages': errorMessages
+                };
+
+                validation_result.invalidClaim_data.push(error_data);
+            }
+
+        });
+
+        if (params.success_claimID && params.success_claimID.length > 0) {
+            validation_result.validClaim_data = await data.updateValidateClaimStatus(params);
+        }
+
+        return validation_result;
+    },
+
+    getClaimTotalBalance: data.getClaimTotalBalance
 };

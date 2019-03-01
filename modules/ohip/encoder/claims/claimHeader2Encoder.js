@@ -33,12 +33,14 @@ const ClaimHeader2Encoder = function(options) {
         return util.formatAlphanumeric(claimData.patientLastName, 9, ' ', true);
     };
 
+
     const getPatientFirstName = (claimData) => {
         // required: mandatory
         // field length: 5
         // format: ALPHA
         return util.formatAlphanumeric(claimData.patientFirstName, 5, ' ', true);
     };
+
     const getPatientSex = (claimData) => {
         // required: mandatory
         // field length: 1
@@ -59,8 +61,6 @@ const ClaimHeader2Encoder = function(options) {
         // format: spaces
         return sprintf('%47.47s', ' ');
     };
-
-
 
     return {
         encode: (claimData, context) => {

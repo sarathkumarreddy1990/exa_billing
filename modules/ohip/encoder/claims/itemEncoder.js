@@ -33,8 +33,8 @@ const ItemEncoder = function(options) {
         // required: mandatory
         // field length: 6
         // format: numeric
-        let feeSubmitted = Math.round(itemData.feeSubmitted * 100);
-        return util.formatAlphanumeric(feeSubmitted, 6, '0');
+        const feeSubmitted = (itemData.feeSubmitted || '0').replace(/[^0-9.-]+/g, '');
+        return util.formatAlphanumeric(Math.round(feeSubmitted * 100), 6, '0');
     };
     const getNumberOfServices = (itemData) => {
         // required: mandatory

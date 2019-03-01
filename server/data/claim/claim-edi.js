@@ -687,11 +687,11 @@ module.exports = {
 											INNER JOIN billing.payments ON  billing.payments.id=payment_applications.payment_id and payer_type='insurance' AND
 											payment_applications.charge_id = charges.id AND payment_applications.amount_type = 'adjustment'
 											WHERE cas_group_codes.code= gc.code
-											AND payments.insurance_provider_id NOT IN 
-											(SELECT 
-												insurance_provider_id 
+											AND payments.insurance_provider_id NOT IN
+											(SELECT
+												insurance_provider_id
 											FROM public.patient_insurances
-											WHERE id = ANY(ARRAY[claims.tertiary_patient_insurance_id,claims.secondary_patient_insurance_id]))							
+											WHERE id = ANY(ARRAY[claims.tertiary_patient_insurance_id,claims.secondary_patient_insurance_id]))
 											 ) AS CAS )
 											FROM  billing.cas_payment_application_details
 											INNER JOIN billing.cas_group_codes ON cas_group_codes.id = cas_group_code_id
@@ -704,8 +704,8 @@ module.exports = {
                                         FROM billing.payment_applications pa
                                         INNER JOIN billing.payments ON billing.payments.id=pa.payment_id
                                         WHERE charge_id = charges.id
-                                        AND payments.insurance_provider_id NOT IN 
-                                        (SELECT insurance_provider_id 
+                                        AND payments.insurance_provider_id NOT IN
+                                        (SELECT insurance_provider_id
 						FROM public.patient_insurances
                                         WHERE id = ANY(ARRAY[claims.tertiary_patient_insurance_id,claims.secondary_patient_insurance_id]))
                                         ) AS lineAdjudication)
@@ -748,5 +748,4 @@ module.exports = {
 
         return await query(sql);
     },
-
 };

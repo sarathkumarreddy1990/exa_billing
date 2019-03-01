@@ -15,7 +15,8 @@ define(['jquery',
 'text!templates/claims/patient-alert.html',
 'views/app/payment-edit',
 'collections/app/pending-payments',
-'text!templates/claims/payment-row.html'
+'text!templates/claims/payment-row.html',
+'shared/address'
 ],
     function ($,
         _,
@@ -34,7 +35,8 @@ define(['jquery',
         patientAlertTemplate,
         editPaymentView,
         pendingPayments,
-        paymentRowTemplate
+        paymentRowTemplate,
+        address
     ) {
         var claimView = Backbone.View.extend({
             el: null,
@@ -174,6 +176,23 @@ define(['jquery',
 
                 self.initializeDateTimePickers();
                 $('#modal_div_container').animate({ scrollTop: 0 }, 100);
+
+                // Append dynamic address details for canadian config
+                var AddressInfoMap = {
+                    city: {
+                        domId: 'txtPriCity',
+                        infoKey: 'city'
+                    },
+                    state: {
+                        domId: 'ddlPriState',
+                        infoKey: 'state'
+                    },
+                    zipCode: {
+                        domId: 'txtPriZipCode',
+                        infoKey: 'zip'
+                    }
+                }
+                self.bindCityStateZipTemplate({}, AddressInfoMap);
             },
 
             initializeDateTimePickers: function () {
@@ -424,6 +443,7 @@ define(['jquery',
                             self.studyDate = commonjs.getConvertedFacilityTime(claimDetails.claim_dt, '', 'L', claimDetails.facility_id);
                             self.patientAddress = claimDetails.patient_info ? commonjs.hstoreParse(claimDetails.patient_info) : {};
                             self.paymentList = claimDetails.payment_details || [];
+                            self.billing_method = claimDetails.billing_method;
                             $('.claimProcess').prop('disabled', false);
                             $('#btnSaveClaim').prop('disabled', false);
                             /* Bind claim charge Details - start */
@@ -776,13 +796,24 @@ define(['jquery',
                     }
                     $('#txtPriSubPriAddr').val(claimData.p_subscriber_address_line1);
                     $('#txtPriSubSecAddr').val(claimData.p_subscriber_address_line2);
-                    $('#txtPriCity').val(claimData.p_subscriber_city);
-                    var states = app.states && app.states.length && app.states[0].app_states;
-                    if (states && states.indexOf(claimData.p_subscriber_state) > -1) {
-                        $('#ddlPriState').val(claimData.p_subscriber_state);
-                    }
 
-                    $('#txtPriZipCode').val(claimData.p_subscriber_zipcode);
+                    // Append dynamic address details for canadian config
+                    var AddressInfoMap = {
+                        city: {
+                            domId: 'txtPriCity',
+                            infoKey: 'p_subscriber_city'
+                        },
+                        state: {
+                            domId: 'ddlPriState',
+                            infoKey: 'p_subscriber_state'
+                        },
+                        zipCode: {
+                            domId: 'txtPriZipCode',
+                            infoKey: 'p_subscriber_zipcode'
+                        }
+                    }
+                    self.bindCityStateZipTemplate(claimData, AddressInfoMap);
+
                     document.querySelector('#txtPriDOB').value = claimData.p_subscriber_dob ? moment(claimData.p_subscriber_dob).format('L') : '';
                     document.querySelector('#txtPriStartDate').value = claimData.p_valid_from_date ? moment(claimData.p_valid_from_date).format('L') : '';
                     document.querySelector('#txtPriExpDate').value = claimData.p_valid_to_date ? moment(claimData.p_valid_to_date).format('L') : '';
@@ -2210,6 +2241,11 @@ define(['jquery',
                             self.bindExistingInsurance(self.existingTriInsurance, 'ddlExistTerIns')
 
                             beneficiary_details = beneficiary_details && beneficiary_details.length ? _.groupBy(beneficiary_details, function (obj) { return obj.coverage_level }) : {};
+                            // Canadian config. allow only primary insurances
+                            if (app.country_alpha_3_code === 'can') {
+                                beneficiary_details = _.pick(beneficiary_details, 'primary');
+                            }
+
                             if (beneficiary_details) {
                                 $.each(beneficiary_details, function (index, object) {
                                     var insurance_details = object.length ? _.sortBy(object, "id")[0] : {}
@@ -2580,12 +2616,23 @@ define(['jquery',
                     }
                     $('#txt' + flag + 'SubPriAddr').val(result.subscriber_address_line1);
                     $('#txt' + flag + 'SubSecAddr').val(result.subscriber_address_line2);
-                    $('#txt' + flag + 'City').val(result.subscriber_city);
-                    var states = app.states && app.states.length && app.states[0].app_states;
-                    if (states && states.indexOf(result.subscriber_state) > -1) {
-                        $('#ddl' + flag + 'State').val(result.subscriber_state);
+                     // Append dynamic address details for canadian config
+                    var AddressInfoMap = {
+                        city: {
+                            domId: 'txt' + flag + 'City',
+                            infoKey: 'subscriber_city'
+                        },
+                        state: {
+                            domId: 'ddl' + flag + 'State',
+                            infoKey: 'subscriber_state'
+                        },
+                        zipCode: {
+                            domId: 'txt' + flag + 'ZipCode',
+                            infoKey: 'subscriber_zipcode'
+                        }
                     }
-                    $('#txt' + flag + 'ZipCode').val(result.subscriber_zipcode);
+                    self.bindCityStateZipTemplate(result, AddressInfoMap);
+
                     if(result.coverage_level == "secondary" && result.medicare_insurance_type_code != null) {
                         $('#chkSecMedicarePayer').prop('checked',true);
                         $('#selectMedicalPayer').val(result.medicare_insurance_type_code).toggle(true);
@@ -2618,6 +2665,18 @@ define(['jquery',
                     $(this.elIDs[level + 'InsZipCode']).val() != getValue(patientAddress.c1Zip)
             },
 
+            validateHealthNumberInputCanada: function (_eleId) {
+                var self = this;
+                var _ele = '#' + _eleId;
+
+                if ($(_ele).val().length > 0 && app.country_alpha_3_code === 'can' && self.patientAddress.c1country === 'can') {
+                    var state = self.isUpdatePatientInfo ? $.trim($('#ddlPriState option:selected').val()) : self.patientAddress.c1State;
+                    var _obj = _.find(commonjs.healthNumberValidation, { province: state || '' });
+                    var pattern = new RegExp(_obj.regexp);
+                    return !pattern.test($(_ele).val());
+                } else
+                    return false;
+            },
             setClaimDetails: function () {
                 var self = this;
                 var claim_model = {}, billingMethod;
@@ -2798,7 +2857,7 @@ define(['jquery',
                         modifier4_id: $('#txtModifier4_' + id).attr('data-id') ? parseInt($('#txtModifier4_' + id).attr('data-id')) : null,
                         bill_fee: parseFloat($('#txtBillFee_' + id).val()) || 0.00,
                         allowed_amount: parseFloat($('#txtAllowedFee_' + id).val()) || 0.00,
-                        units: parseFloat($('#txtUnits_' + id).val()) || 1.000,
+                        units: app.country_alpha_3_code ==='can' ? parseInt($('#txtUnits_' + id).val()) || 1 : parseFloat($('#txtUnits_' + id).val()) || 1.000,
                         created_by: app.userID,
                         authorization_no: $('#txtAuthInfo_' + id).val() || null,
                         charge_dt: self.cur_study_date || null,
@@ -2806,6 +2865,7 @@ define(['jquery',
                         is_deleted: false,
                         isEdit: $('#txtBillFee_' + id).attr('edit'),
                         is_excluded: $('#checkExclude_' + id).is(':checked'),
+                        is_canada_billing: app.country_alpha_3_code === 'can'
                     });
                     var charges = claim_model.charges[claim_model.charges.length - 1];
                     if(charges) {
@@ -2972,7 +3032,7 @@ define(['jquery',
                 self.is_primary_available = false;
                 self.is_secondary_available = false;
                 self.is_tertiary_available = false;
-
+                self.isUpdatePatientInfo = false;
                 /* Claims section */
                 if (!$('#txtClaimDate').val()) {
                     commonjs.showWarning("messages.warning.claims.selectClaimDate");
@@ -3139,6 +3199,14 @@ define(['jquery',
                     }
                 }
 
+                if (self.priInsID && self.validatePatientAddress("primary")) {
+                    self.isUpdatePatientInfo = true;
+                }
+
+                if (app.country_alpha_3_code === 'can' && self.validateHealthNumberInputCanada("txtPriPolicyNo") ) {
+                    commonjs.showWarning('messages.warning.shared.invalidHealthNumber');
+                    return false;
+                }
                 /* Charge section */
                 var invalidCount = 0;
 
@@ -3439,12 +3507,18 @@ define(['jquery',
                     commonjs.showWarning("messages.errors.errorOnClaimValidation");
                     return false;
                 }
+
+                if (app.country_alpha_3_code === 'can' && self.billing_method !== 'electronic_billing' && self.billing_method !== 'direct_billing') {
+                    return commonjs.showWarning('messages.status.pleaseSelectValidClaimsMethod');
+                }
+
                 $("#btnValidateClaim").attr("disabled", true);
                 $.ajax({
                     url: '/exa_modules/billing/claim_workbench/validate_claims',
                     type: 'POST',
                     data: {
-                        claim_ids: claimIds
+                        claim_ids: claimIds,
+                        country: app.country_alpha_3_code
                     },
                     success: function(data, response){
                         $("#btnValidateClaim").prop("disabled", false);
@@ -4631,6 +4705,16 @@ define(['jquery',
                 }
 
                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
+            },
+            bindCityStateZipTemplate:function(data,AddressInfoMap){
+
+                address.loadCityStateZipTemplate('#divAddressInfo', data, AddressInfoMap);
+                if(app.country_alpha_3_code === 'can'){
+                    // Adjust the style alignment
+                    var $addressDiv = $('#divAddressInfo');
+                    $addressDiv.find('.city-state-zip-label').removeClass('p-0');
+                    $addressDiv.find('.city-state-zip-content').addClass('pl-2');
+                }
             }
 
         });

@@ -4,6 +4,7 @@ define(['jquery',
     'backbone',
     'jqgrid',
     'jqgridlocale',
+    'models/pager',
     'shared/paper-claim',
     'collections/claim-filters',
     'text!templates/claims/claims.html',
@@ -15,7 +16,9 @@ define(['jquery',
     'text!templates/claims/ohipResult.html',
     'text!templates/claims/claim-validation.html',
     'text!templates/claims/invoice-claim.html',
-    'text!templates/claims/edi-warning.html'
+    'text!templates/claims/edi-warning.html',
+    'collections/app/file-management',
+    'text!templates/app/file-management.html'
 ],
     function ($,
               Immutable,
@@ -23,6 +26,7 @@ define(['jquery',
               Backbone,
               JGrid,
               JGridLocale,
+              Pager,
               PaperClaim,
               ClaimFiltersCollection,
               ClaimHTML,
@@ -34,7 +38,9 @@ define(['jquery',
               ohipResultHTML,
               claimValidation,
               invoiceClaim,
-              ediWarning) {
+              ediWarning,
+              FileManagementCollection,
+              FileManagementHTML) {
 
         var paperClaim = new PaperClaim();
         var paperClaimNested = new PaperClaim(true);
@@ -214,7 +220,8 @@ define(['jquery',
                 "click #btnClaimRefreshAll": "refreshAllClaims",
                 "click #btnValidateExport": "exportExcel",
                 "click #btnClaimsRefresh": "refreshClaims",
-                "click #btnClaimsCompleteRefresh": "completeRefresh"
+                "click #btnClaimsCompleteRefresh": "completeRefresh",
+                "click #btnFileManagement": "showFileManagement"
             },
 
             initialize: function (options) {
@@ -265,6 +272,7 @@ define(['jquery',
 
             render: function (queryString) {
                 var self = this;
+                self.fileManagementTemplate = _.template(FileManagementHTML);
                 self.template = _.template(ClaimHTML);
                 self.indexTemplate = _.template(IndexHTML);
                 self.claimValidation = _.template(claimValidation);
@@ -275,7 +283,6 @@ define(['jquery',
                     customStudyStatus: [],
                     customOrderStatus: []
                 }));
-               // $("#btnPaperClaimFormat").text('Paper Claims('+(localStorage.getItem('default_paperclaim_format')||'ORIGINAL')+')')
 
                 if (queryString && !queryString.target && commonjs.getParameterByName(queryString).admin && commonjs.getParameterByName(queryString).admin == 1) {
                     self.isAdmin = true;
@@ -465,11 +472,20 @@ define(['jquery',
 
                     var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_billing_method');
 
+                    var rowData = $(filter.options.gridelementid).jqGrid('getRowData', rowId);
+                    var claimDt = rowData.claim_dt;
+                    var futureClaim = claimDt && moment(claimDt).diff(moment(), 'days');
+
                     if (e.target) {
                         if (billingMethodFormat != billingMethod) {
                             commonjs.showWarning('messages.status.pleaseSelectValidClaimsMethod');
                             return false;
                         }
+                    }
+
+                    if (app.country_alpha_3_code == "can" && futureClaim > 0 && billingMethodFormat == 'electronic_billing') {
+                        commonjs.showWarning('messages.status.futureClaimWarning');
+                        return false;
                     }
 
                     if (existingBillingMethod == '') existingBillingMethod = billingMethod
@@ -482,7 +498,7 @@ define(['jquery',
 
                     var clearingHouse = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_clearing_house');
                     if (existingClearingHouse == '') existingClearingHouse = clearingHouse;
-                    if (existingClearingHouse != clearingHouse && billingMethod == 'electronic_billing') {
+                    if (app.country_alpha_3_code !== "can" && existingClearingHouse != clearingHouse && billingMethod == 'electronic_billing') {
                         commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfClearingHouseClaims');
                         return false;
                     } else {
@@ -564,13 +580,17 @@ define(['jquery',
                 }
 
                 commonjs.showLoading();
+                var url = '/exa_modules/billing/claim_workbench/create_claim';
+                if (app.country_alpha_3_code === 'can') {
+                    url = '/exa_modules/billing/ohip/submitClaims';
+                }
 
                 if ($('#chkStudyHeader_' + filterID).is(':checked')) {
                     self.selectAllClaim(filter, filterID, 'EDI');
 
                 } else {
                     jQuery.ajax({
-                        url: "/exa_modules/billing/claim_workbench/create_claim",
+                        url: url,
                         type: "POST",
                         data: {
                             claimIds: claimIds.toString()
@@ -595,8 +615,12 @@ define(['jquery',
 
                 var isDatePickerClear = filterCol.indexOf('claim_dt') === -1;
 
+                var implUrl = '/exa_modules/billing/claim_workbench';
+                if (app.country_alpha_3_code === 'can') {
+                    implUrl = '/exa_modules/billing/ohip/submitClaims';
+                }
                 jQuery.ajax({
-                    url: "/exa_modules/billing/claim_workbench",
+                    url: implUrl,
                     type: "post",
                     data: {
                         "filterData": filterData,
@@ -1293,6 +1317,7 @@ define(['jquery',
                             var updateStudiesPager = function (model, gridObj) {
                                 $('#chkclaimsHeader_' + filterID).prop('checked', false);
                                 self.setGridPager(filterID, gridObj, false);
+                                self.setClaimBalanceAndFeeDetails(filterID, gridObj);
                                 self.bindDateRangeOnSearchBox(gridObj, 'claims','claim_dt');
                                 self.afterGridBindclaims(model, gridObj);
                                 commonjs.nextRowID = 0;
@@ -1435,6 +1460,49 @@ define(['jquery',
                 }
             },
 
+            setClaimBalanceAndFeeDetails: function (filterID, filterObj) {
+                var self = this;
+                filterObj.options.filterid = filterID;
+
+                if (filterObj.options.isSearch) {
+                    var url ="/exa_modules/billing/claim_workbench/claims_total_balance";
+                    jQuery.ajax({
+                        url: url,
+                        type: "GET",
+                        data: {
+                            filterData: JSON.stringify(filterObj.pager.get('FilterData')),
+                            filterCol: JSON.stringify(filterObj.pager.get('FilterCol')),
+                            customArgs: {
+                                flag: 'home_claims',
+                                filter_id: filterID,
+                                isDatePickerClear: self.datePickerCleared
+                            }
+                        },
+                        success: function (data, textStatus, jqXHR) {
+                            if (data && data.length) {
+
+                                filterObj.pager.set({
+                                    "TotalChargeBillFee": data[0].charges_bill_fee_total
+                                });
+                                filterObj.pager.set({
+                                    "TotalClaimBalance": data[0].claim_balance_total
+                                });
+
+                                filterObj.options.isSearch = false;
+                                self.setFooter(filterObj);
+                            }
+                        },
+                        error: function (err) {
+                            commonjs.handleXhrError(err);
+                        }
+                    });
+                }
+                else {
+                    this.setFooter(filterObj);
+                    commonjs.setFilter(filterID, filterObj);
+                }
+            },
+
             setFooter: function (filter) {
                 var self = this;
 
@@ -1479,6 +1547,17 @@ define(['jquery',
                 $('#showLeftPreOrder').attr('disabled', false);
                 $('#showOnlyPhyOrders').removeAttr('disabled');
                 $('#showOnlyOFOrders').removeAttr('disabled');
+
+                var totalChargeBillFee = pagerObj.get('TotalChargeBillFee') || '$0';
+                var totalClaimBalance = pagerObj.get('TotalClaimBalance') || '$0';
+                if (filter.options.isClaimGrid) {
+                    $('#spnTotalBalance').html(totalClaimBalance);
+                    $('#spnTotalBillingFee').html(totalChargeBillFee);
+
+                    $('#spanTotalBalance, #spanTotalBillingFee').removeClass('d-none');
+                } else {
+                    $('#spanTotalBalance, #spanTotalBillingFee').addClass('d-none')
+                }
             },
 
             disablePageControls: function () {
@@ -1829,6 +1908,130 @@ define(['jquery',
                 }
 
             },
+
+            showFileManagement: function (e) {
+                var self = this;
+
+                self.fileManagementFiles = new FileManagementCollection();
+                self.fileManagementPager = new Pager();
+
+                commonjs.showDialog({
+                    header: 'File Managmenet',
+                    i18nHeader: 'billing.claims.fileManagement',
+                    width: '90%',
+                    height: '80%',
+                    html: self.fileManagementTemplate()
+                });
+
+                setTimeout(function() {
+                    self.showFileManagementGrid();
+                }, 150);
+            },
+
+            showFileManagementGrid: function () {
+                var self = this;
+                self.fileManagementTable = new customGrid(self.fileManagementFiles.rows, '#tblFileManagement');
+                self.fileManagementTable.render({
+                    gridelementid: '#tblFileManagement',
+                    custompager: self.fileManagementPager,
+                    emptyMessage: i18n.get("messages.status.noRecordFound"),
+                    colNames: ["","File Name","File Type", "Submitted Date","Acknowledgement Received","Payment Received",""],
+                    i18nNames: [
+                        "",
+                        "billing.claims.fileName",
+                        "billing.claims.fileType",
+                        "billing.claims.submittedDate",
+                        "billing.claims.acknowledgementReceived",
+                        "billing.claims.paymentReceived",
+                        ""
+                    ],
+                    colModel: [
+                        { name: '', index: 'id', key: true, hidden: true, search: false },
+                        {
+                            name: 'file_name',
+                            search: false,
+                            width: 100,
+                            align: 'center'
+                        },
+                        {
+                            name: 'file_type',
+                            search: false,
+                            width: 100
+                        },
+                        {
+                            name: 'updated_date_time',
+                            search: false,
+                            width: 200,
+                            formatter: function (value, model, data) {
+                                return commonjs.checkNotEmpty(value)
+                                    ? commonjs.convertToFacilityTimeZone(app.facilityID, value).format('L LT z')
+                                    : '';
+                            }
+                        },
+                        {
+                            name: 'is_acknowledgement_received',
+                            search: false,
+                            width: 225,
+                            align: 'center',
+                            formatter: function (value, model, data) {
+                                return (data.is_acknowledgement_received === "true")
+                                    ? '<i class="fa fa-check" style="color: green" aria-hidden="true"></i>'
+                                    : '<i class="fa fa-times" style="color: red" aria-hidden="true"></i>';
+                            }
+                        },
+                        {
+                            name: 'is_payment_received',
+                            search: false,
+                            width: 150,
+                            align: 'center',
+                            formatter: function (value, model, data) {
+                                return (data.is_payment_received === "true")
+                                    ? '<i class="fa fa-check" style="color: green" aria-hidden="true"></i>'
+                                    : '<i class="fa fa-times" style="color: red" aria-hidden="true"></i>';
+                            }
+                        },
+                        {
+                            name: 'apply_button',
+                            search: false,
+                            sortable: false,
+                            width: 150,
+                            formatter: function (value, model, data) {
+                                return (data.file_type === 'can_ohip_p')
+                                    ? '<button i18n="shared.buttons.apply" class="btn btn-primary btn-block btn-apply-file-management"></button>'
+                                    : '';
+                            },
+                            customAction: function (rowID, e) {
+                                self.applyFileManagement(rowID);
+                            }
+                        }
+                    ],
+                    datastore: self.fileManagementFiles,
+                    container: $('#modal_div_container'),
+                    sortname: 'file_name',
+                    sortorder: 'ASC'
+                });
+
+                commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());
+            },
+
+            applyFileManagement: function (fileId) {
+                console.log(fileId);
+                $.ajax({
+                    url: "/exa_modules/billing/ohip/applyRemittanceAdvice",
+                    type: "POST",
+                    data: {
+                        edi_files_id: fileId
+                    },
+                    success: function (data, textStatus, jqXHR) {
+                        console.log(data)
+                        commonjs.hideDialog()
+                    },
+                    error: function (err) {
+                        commonjs.handleXhrError(err);
+                    }
+                });
+            },
+
             clearAllSelectedRows: function () {
                 var filterID = commonjs.currentStudyFilter;
                 var filter = commonjs.loadedStudyFilters.get(filterID);
@@ -1867,12 +2070,29 @@ define(['jquery',
                 var filterID = commonjs.currentStudyFilter;
                 var filter = commonjs.loadedStudyFilters.get(filterID);
                 var selectedClaimIds =[];
+                var existingBillingMethod = null;
                 var selectedClaimsRows = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked');
 
-                _.each(selectedClaimsRows, function (rowObj) {
-                    var rowId = rowObj.parentNode.parentNode.id;
+
+                for (var i = 0; i < selectedClaimsRows.length; i++) {
+                    var rowId = selectedClaimsRows[i].parentNode.parentNode.id;
+                    var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_billing_method');
+
+                    if (app.country_alpha_3_code === 'can') {
+                        if (!billingMethod || (billingMethod !== 'electronic_billing' && billingMethod !== 'direct_billing')) {
+                            return commonjs.showWarning('messages.status.pleaseSelectValidClaimsMethod');
+                        }
+
+                        if (!existingBillingMethod)
+                            existingBillingMethod = billingMethod;
+
+                        if (billingMethod != existingBillingMethod) {
+                            return commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfBillingMethod');
+                        }
+                    }
+
                     selectedClaimIds.push(rowId);
-                });
+                };
 
                 if (!selectedClaimIds.length) {
                     commonjs.showWarning(commonjs.geti18NString("messages.warning.claims.selectClaimToValidate"));
@@ -1887,7 +2107,8 @@ define(['jquery',
                         url: '/exa_modules/billing/claim_workbench/validate_claims',
                         type: 'POST',
                         data: {
-                            claim_ids: selectedClaimIds
+                            claim_ids: selectedClaimIds,
+                            country: app.country_alpha_3_code
                         },
                         success: function (data, response) {
                             $("#btnValidateOrder").prop("disabled", false);
