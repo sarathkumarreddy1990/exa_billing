@@ -229,7 +229,7 @@ module.exports = {
                             , pi.valid_from_date
                             , pi.valid_to_date
                             , pi.subscriber_employment_status_id
-                            , pi.subscriber_dob
+                            , pi.subscriber_dob::text
                             , pi.medicare_insurance_type_code
                             , pi.coverage_level
                             , pi.policy_number
@@ -287,7 +287,7 @@ module.exports = {
                             , pi.valid_from_date
                             , pi.valid_to_date
                             , pi.subscriber_employment_status_id
-                            , pi.subscriber_dob
+                            , pi.subscriber_dob::text
                             , pi.medicare_insurance_type_code
                             , pi.coverage_level
                             , pi.policy_number
@@ -368,7 +368,7 @@ module.exports = {
                             , pi.valid_from_date
                             , pi.valid_to_date
                             , pi.subscriber_employment_status_id
-                            , pi.subscriber_dob
+                            , pi.subscriber_dob::text
                             , pi.medicare_insurance_type_code
                             , pi.coverage_level
                             , pi.policy_number
