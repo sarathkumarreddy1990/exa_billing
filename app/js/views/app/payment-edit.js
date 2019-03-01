@@ -368,7 +368,7 @@ define(['jquery',
                     $('#searchPayer #mrn').val('');
                     $('#searchPayer #lname').val('');
                     $('#searchPayer #fname').val('');
-                    $('#searchPayer #dob').val('');                    
+                    $('#searchPayer #dob').val('');
                 }
                 else if (val === 'ordering_facility') {
                     $('#select2-txtautoPayerPOF-container').html(commonjs.geti18NString('billing.payments.selectOrderingFacility'));
@@ -1646,6 +1646,7 @@ define(['jquery',
                 var claimDt = (commonjs.checkNotEmpty(rowData.claim_dt) ? commonjs.convertToFacilityTimeZone(rowData.facility_id, rowData.claim_dt).format('L') : '');
                 var casDialogHeader = commonjs.geti18NString('billing.fileInsurance.claim') + ': # <strong>' + rowData.claim_id + ',  ' + rowData.full_name + '  ' + claimDt + '</strong>';
                 var casDialogHtml = self.applyCasTemplate({
+                    app: app,
                     adjustmentCodes: self.adjustmentCodeList.toJSON(),
                     claimStatusList: this.claimStatusList.toJSON(),
                     cas_group_codes: self.cas_group_codes || rowData.cas_group_codes,
@@ -1768,7 +1769,10 @@ define(['jquery',
                             var balance = parseFloat(paymentDet.bill_fee) - (parseFloat(paymentDet.other_payment) + parseFloat(paymentDet.other_adjustment) + parseFloat(paymentDet.adjustment) + parseFloat(paymentDet.payment_amount)).toFixed(2);
                             paymentDet.balance = parseFloat(balance).toFixed(2);
 
-                            var applyPaymentRow = self.applyPaymentTemplate({ payment: paymentDet });
+                            var applyPaymentRow = self.applyPaymentTemplate({
+                                app:app,
+                                payment: paymentDet
+                            });
 
                             $('#tBodyApplyPendingPayment').append(applyPaymentRow);
 

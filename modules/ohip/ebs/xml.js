@@ -1,4 +1,4 @@
-// TODO - parse audit-log stuff into each result instead of separately 
+// TODO - parse audit-log stuff into each result instead of separately
 
 const pki = require('node-forge').pki;
 const crypto = require('crypto');
@@ -41,19 +41,19 @@ const decrypt = (encryptedKey, encryptedContent) => {
 };
 
 const parseAuditID = (doc) => {
-    return select("//*[local-name(.)='auditID']/text()", doc)[0].nodeValue;
+    return select("*[local-name(.)='auditID']/text()", doc)[0].nodeValue;
 };
 
 const parseStatus = (doc) => {
-    return select("//*[local-name(.)='status']/text()", doc)[0].nodeValue;
+    return select("*[local-name(.)='status']/text()", doc)[0].nodeValue;
 };
 
 const parseResourceID = (doc) => {
-    return select("//*[local-name(.)='resourceID']/text()", doc)[0].nodeValue;
+    return select("*[local-name(.)='resourceID']/text()", doc)[0].nodeValue;
 };
 
 const parseOptionalValue = (doc, name) => {
-    const optionalNode = select(`//*[local-name(.)='${name}']/text()`, doc);
+    const optionalNode = select(`*[local-name(.)='${name}']/text()`, doc);
     return optionalNode.length ? optionalNode[0].nodeValue : '';
 };
 
@@ -67,7 +67,7 @@ const parseCommonResult = (doc) => {
 
 const parseDetailData = (doc) => {
     const detailData = {
-        createTimestamp: select("//*[local-name(.)='createTimestamp']/text()", doc)[0].nodeValue,
+        createTimestamp: select("*[local-name(.)='createTimestamp']/text()", doc)[0].nodeValue,
         resourceID: parseResourceID(doc),
         status: parseStatus(doc),
 
@@ -75,7 +75,7 @@ const parseDetailData = (doc) => {
         resourceType: parseOptionalValue(doc, 'resourceType'),
         modifyTimestamp: parseOptionalValue(doc, 'modifyTimestamp'),
 
-        ...parseCommonResult(select("//*[local-name(.)='result']", doc)[0])
+        ...parseCommonResult(select("*[local-name(.)='result']", doc)[0])
     };
 
     return detailData;
@@ -146,7 +146,7 @@ module.exports = {
 
         return {
             auditID: parseAuditID(detailNode),
-            resultSize: select("//*[local-name(.)='resultSize']/text()", detailNode)[0].nodeValue,
+            // resultSize: select("*[local-name(.)='resultSize']/text()", detailNode)[0].nodeValue,
             data: select("//*[local-name(.)='data']", detailNode).map((dataNode) => {
                 return parseDetailData(dataNode);
             }),

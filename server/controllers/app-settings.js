@@ -9,7 +9,7 @@ module.exports = {
     getData: async function (params) {
         const response = await data.getData(params);
 
-        if (!response.rows.length) {
+        if (!response.rows || !response.rows.length) {
             return response;
         }
 
