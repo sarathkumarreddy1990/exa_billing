@@ -259,6 +259,7 @@ define(['jquery',
                 self.template = _.template(StudyHTML);
                 self.indexTemplate = _.template(IndexHTML);
                 self.$el.html(self.indexTemplate({
+                    country_alpha_3_code: app.country_alpha_3_code,
                     gadget: '',
                     customOrderStatus: app.customOrderStatus,
                     customStudyStatus: app.customStudyStatus
