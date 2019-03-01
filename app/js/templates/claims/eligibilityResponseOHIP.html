@@ -1,0 +1,40 @@
+<html>
+
+<head>
+    <title>Health Card Benefits/Eligibility</title>
+</head>
+
+<body><br>
+    <p class="font-weight-bold">Patient Information</p>
+    <hr>
+    <table class="table table-bordered w-100 m-auto">
+        <tbody>
+            <tr>
+                <td class="w-30 font-weight-bold">Patient First Name</td>
+                <td class="w-70"><%=InsuranceData.first_name%></td>
+            </tr>
+            <tr>
+                <td class="w-30 font-weight-bold">Patient Last Name</td>
+                <td class="w-70"><%=InsuranceData.last_name%></td>
+            </tr>
+            <tr>
+                <td class="w-30 font-weight-bold">Health Card Number</td>
+                <td class="w-70"><%=InsuranceData.policy_number%></td>
+            </tr>
+            <tr>
+                <td class="w-30 font-weight-bold">Patient Birth Date</td>
+                <td class="w-70"><%=InsuranceData.birth_date%></td>
+            </tr>
+            <tr>
+                <td class="w-30 font-weight-bold">Patient Gender</td>
+                <td class="w-70"><%=InsuranceData.gender%></td>
+            </tr>
+            <tr>
+                <td class="w-30 font-weight-bold">Expiry Date</td>
+                <td class="w-70"><%=InsuranceData.valid_to_date%></td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+
+</html>
