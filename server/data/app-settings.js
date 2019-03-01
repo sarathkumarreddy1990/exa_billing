@@ -100,7 +100,7 @@ module.exports = {
                                         code,
                                         description
                                     FROM   billing.billing_codes
-                                    WHERE  company_id=${companyID} AND inactivated_dt IS NULL 
+                                    WHERE  company_id=${companyID} AND inactivated_dt IS NULL
                                     ORDER BY description) AS billing_codes)
                 , cte_billing_classes AS(
                                     SELECT Json_agg(Row_to_json(billing_classes)) billing_classes
@@ -137,7 +137,7 @@ module.exports = {
                                 SELECT Json_agg(Row_to_json(hidden_reports)) hidden_reports
                                 FROM  (
                                     SELECT report_id,value::boolean
-                                    FROM billing.report_settings
+                                    FROM report_settings
                                     WHERE company_id = ${companyID}
                                     AND code = 'hidden'
                                     AND country_alpha_3_code = (SELECT country_alpha_3_code

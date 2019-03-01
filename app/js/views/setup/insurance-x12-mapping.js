@@ -164,7 +164,10 @@ define(['jquery',
 
             renderForm: function(id) {
                 var self = this;
-                $('#divInsuranceX12MappingForm').html(this.insuranceX12MappingFormTemplate({'ediClearingHouseList' : self.ediClearingHouses}));
+                $('#divInsuranceX12MappingForm').html(this.insuranceX12MappingFormTemplate({
+                    app: app,
+                    'ediClearingHouseList' : self.ediClearingHouses
+                }));
                 if(id > 0) {
                     this.model.set({id: id});
                     this.model.fetch({

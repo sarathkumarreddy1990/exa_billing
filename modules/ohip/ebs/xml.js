@@ -147,7 +147,7 @@ module.exports = {
 
         return {
             auditID: parseAuditID(detailNode),
-            resultSize: select("//*[local-name(.)='resultSize']/text()", detailNode)[0].nodeValue,
+            // resultSize: select("*[local-name(.)='resultSize']/text()", detailNode)[0].nodeValue,
             data: select("//*[local-name(.)='data']", detailNode).map((dataNode) => {
                 return parseDetailData(dataNode);
             }),
