@@ -8,7 +8,7 @@ module.exports = {
             code
         } = params;
         const sql = SQL`SELECT country_alpha_3_code,value
-            FROM billing.report_settings
+            FROM report_settings
             WHERE company_id = ${companyId}
             AND report_id = ${report_id}
             AND code = ${code}
