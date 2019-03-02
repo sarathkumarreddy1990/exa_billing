@@ -1167,25 +1167,20 @@ define('grid', [
                     formatter: function (cellvalue, options, rowObject) {
 
                         if (app.country_alpha_3_code === 'can') {
-
-                            cellvalue = cellvalue || ""
-                            var dataValue = " data-value='" + cellvalue + "'";
+                            var i18n;
+                            var color;
+                            cellvalue = cellvalue || "";
 
                             switch (cellvalue) {
-                                case 'valid':
-                                    return "<i href='#' i18nt='messages.status.healthNumberValid' class='icon-ic-status' " + dataValue + " style='color:green;text-shadow:0 0 green, 0 0 green, 0 0 green, 0 0 green, 0 0 green'></i>";
-                                case 'invalid':
-                                    return "<i href='#' i18nt='messages.status.healthNumberInvalid' class='icon-ic-status' " + dataValue + " style='color:red;text-shadow:0 0 red, 0 0 red, 0 0 red, 0 0 red, 0 0 red'></i>";
-                                case 'data_unavailable':
-                                    return "<i href='#' i18nt='messages.status.healthNumberNotValidated' class='icon-ic-status' " + dataValue + " style='color:#2f74e2;text-shadow:0 0 #2f74e2, 0 0 #2f74e2, 0 0 #2f74e2, 0 0 #2f74e2, 0 0 #2f74e2'></i>";
-                                case 'null_response':
-                                    return "<i href='#' i18nt='messages.status.noValidationData' class='icon-ic-status' " + dataValue + " style='color:black;text-shadow:0 0 black, 0 0 black, 0 0 black, 0 0 black, 0 0 black'></i>";
-                                case 'recheck':
-                                    return "<i href='#' i18nt='messages.status.healthNumberRevalidate' class='icon-ic-status' " + dataValue + " style='color:orange;text-shadow:0 0 orange, 0 0 orange, 0 0 orange, 0 0 orange, 0 0 orange'></i>";
-                                default:
-                                    return "<i href='#' i18nt='messages.status.healthNumberNotValidated' class='icon-ic-status' " + dataValue + " style='color:red;text-shadow:0 0 red, 0 0 red, 0 0 red, 0 0 red, 0 0 red'></i>";
+                              case 'valid':             i18n = 'messages.status.healthNumberValid';         color = 'green';        break;
+                              case 'invalid':           i18n = 'messages.status.healthNumberInvalid';       color = 'red';          break;
+                              case 'data_unavailable':  i18n = 'messages.status.healthNumberNotValidated';  color = '#2f74e2';      break;
+                              case 'null_response':     i18n = 'messages.status.noValidationData';          color = 'color:black';  break;
+                              case 'recheck':           i18n = 'messages.status.healthNumberRevalidate';    color = 'color:orange'; break;
+                              default:                  i18n = 'messages.status.healthNumberNotValidated';  color = 'red';          break;
                             }
 
+                            return "<i href='#' i18nt='" + i18n + "' class='icon-ic-status' data-value='" + cellValue + "' style='color: " + color + ";text-shadow:0 0 " + color + ", 0 0 " + color + ", 0 0 " + color + ", 0 0 red, 0 0 " + color + "'></i>";
                         }
                     }
                 },
