@@ -98,11 +98,13 @@ ws.Xenc.prototype.send = function(ctx, callback) {
                 utils.setElementValue(doc, contentNode, decryptedContent);
             }
 
-            ctx.response = doc.toString();
 
         } catch(e) {
             console.log(`error: ${e}`);
         }
+
+        ctx.response = doc.toString();
+
         callback(ctx);
     });
 };
@@ -133,7 +135,7 @@ ws.Audit.prototype.send = function(ctx, callback) {
         // duration
         ctx.audit.duration = (new Date()).getTime() - ctx.audit.dateTime.getTime();
 
-        const doc = new dom().parseFromString(ctx.response)
+        const doc = new dom().parseFromString(ctx.response);
         const parseObj = parseAuditLogDetails(doc);
 
         ctx.audit = {

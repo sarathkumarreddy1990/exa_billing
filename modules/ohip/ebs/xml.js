@@ -12,7 +12,7 @@ const {
 
 // TODO: EXA-12673
 // TODO remember to refactor this into shared library with EBSConnector
-const PEMFILE = fs.readFileSync(path.join(__dirname, 'certs/bar-mash.pem')).toString();
+const PEMFILE = fs.readFileSync(path.join(__dirname, 'certs/exa-ebs.pem')).toString();
 
 const decrypt = (encryptedKey, encryptedContent) => {
 

@@ -74,7 +74,7 @@ const EBSConnector = function(config) {
         // TODO: EXA-12673
         // TODO experiment using just the keys or certificates (no "mash")
         // TODO experiment using simple signed certificates (this is made from )
-        "key": fs.readFileSync(path.join(__dirname, 'certs/bar-mash.pem')).toString(),
+        "key": fs.readFileSync(path.join(__dirname, 'certs/exa-ebs.pem')).toString(),
     });
 
     const signature = new ws.Signature(x509);
@@ -230,6 +230,7 @@ const EBSConnector = function(config) {
             const ctx = getContext(EDT_LIST(args));
 
             return ws.send(handlers, ctx, (ctx) => {
+
                 const doc = new dom().parseFromString(ctx.response);
                 return callback(null, parseDetail(doc));
             });
