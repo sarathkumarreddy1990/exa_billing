@@ -1,44 +1,10 @@
 // TODO - parse audit-log stuff into each result instead of separately
 
-const pki = require('node-forge').pki;
-const crypto = require('crypto');
-const fs = require('fs');
-const path = require('path');
 const dom = require('xmldom').DOMParser;
 const {
     select,
 } = require('xpath');
 
-
-// TODO: EXA-12673
-// TODO remember to refactor this into shared library with EBSConnector
-const PEMFILE = fs.readFileSync(path.join(__dirname, 'certs/exa-ebs.pem')).toString();
-
-const decrypt = (encryptedKey, encryptedContent) => {
-
-    encryptedKey = new Buffer(encryptedKey, 'base64').toString('binary');
-
-    const private_key = pki.privateKeyFromPem(PEMFILE);
-
-    const decryptedKey = new Buffer(private_key.decrypt(encryptedKey, 'RSAES-PKCS1-V1_5'), 'binary');
-
-    encryptedContent = new Buffer(encryptedContent, 'base64');
-
-    const decipher = crypto.createDecipheriv('aes-128-cbc', decryptedKey, encryptedContent.slice(0,16));
-    decipher.setAutoPadding(false);
-
-    let decryptedContent = decipher.update(encryptedContent.slice(16), null, 'binary') + decipher.final('binary');
-
-    // Remove padding bytes equal to the value of the last byte of the returned data.
-    const padding = decryptedContent.charCodeAt(decryptedContent.length - 1);
-    if (1 <= padding && padding <= 16) {
-        decryptedContent = decryptedContent.substr(0, decryptedContent.length - padding);
-    } else {
-        throw new Error('padding length invalid');
-    }
-
-    return new Buffer(decryptedContent, 'binary').toString('utf8');
-};
 
 const parseAuditID = (doc) => {
     return select("*[local-name(.)='auditID']/text()", doc)[0].nodeValue;
@@ -119,7 +85,6 @@ const parseDownloadData = (doc) => {
 };
 
 module.exports = {
-    decrypt,
 
     parseResourceResult: (doc) => {
 
@@ -143,30 +108,59 @@ module.exports = {
 
     parseDetail: (doc) => {
 
-        let detailNode = select("//*[local-name(.)='return']", doc)[0];
+        let detailNode = select("//*[local-name(.)='return']", doc);
 
-        return {
-            auditID: parseAuditID(detailNode),
-            // resultSize: select("*[local-name(.)='resultSize']/text()", detailNode)[0].nodeValue,
-            data: select("//*[local-name(.)='data']", detailNode).map((dataNode) => {
-                return parseDetailData(dataNode);
-            }),
-            // resultSize: select("//*[local-name(.)='resultSize']/text()", detailNode)[0].nodeValue,
-        };
+        if (detailNode && detailNode.length) {
+            console.log('good');
+            return {
+                auditID: parseAuditID(detailNode[0]),
+                // resultSize: select("*[local-name(.)='resultSize']/text()", detailNode)[0].nodeValue,
+                data: select("//*[local-name(.)='data']", detailNode[0]).map((dataNode) => {
+                    return parseDetailData(dataNode);
+                }),
+                // resultSize: select("//*[local-name(.)='resultSize']/text()", detailNode)[0].nodeValue,
+            };
+        }
+        return {};
+    },
+
+    parseListResponse: (doc) => {
+
+        const listResponseNode = select("//*[local-name(.)='listResponse']", doc)[0];
+
+        let retNode = select("//*[local-name(.)='return']", listResponseNode);
+
+        if (retNode.length) {
+            // console.log('good');
+            return {
+                auditID: parseAuditID(retNode[0]),
+                // resultSize: select("*[local-name(.)='resultSize']/text()", detailNode)[0].nodeValue,
+                data: select("//*[local-name(.)='data']", retNode[0]).map((dataNode) => {
+                    return parseDetailData(dataNode);
+                }),
+                // resultSize: select("//*[local-name(.)='resultSize']/text()", detailNode)[0].nodeValue,
+            };
+        }
+        return {};
     },
 
     parseInfoDetail: (doc) => {
 
-        let detailNode = select("//*[local-name(.)='return']", doc)[0];
 
-        return {
-            auditID: parseAuditID(detailNode),
-            // resultSize: select("//*[local-name(.)='resultSize']/text()", detailNode)[0].nodeValue,
-            data: select("//*[local-name(.)='data']", detailNode).map((dataNode) => {
-                return parseDetailData(dataNode);
-            }),
-            // resultSize: select("//*[local-name(.)='resultSize']/text()", detailNode)[0].nodeValue,
-        };
+        const infoResponseNode = select("//*[local-name(.)='infoResponse']", doc)[0];
+
+        let retNode = select("//*[local-name(.)='return']", infoResponseNode);
+
+        if (retNode.length) {
+            return {
+                auditID: parseAuditID(retNode[0]),
+                // resultSize: select("//*[local-name(.)='resultSize']/text()", detailNode)[0].nodeValue,
+                data: select("//*[local-name(.)='data']", retNode[0]).map((dataNode) => {
+                    return parseDetailData(dataNode);
+                }),
+                // resultSize: select("//*[local-name(.)='resultSize']/text()", detailNode)[0].nodeValue,
+            };
+        }
     },
 
     parseTypeListResult: (doc) => {
@@ -195,14 +189,24 @@ module.exports = {
 
     parseAuditLogDetails: (doc) => {
 
-        let resultNode = select("//*[local-name(.)='return']", doc)[0];
+        let resultNode = select("//*[local-name(.)='return']", doc);
+        if (resultNode && resultNode.length) {
+            // empty results don't come with audit IDs or common results
+            const commonResult = parseCommonResult(resultNode[0]);
+            return {
+                auditID: parseAuditID(resultNode[0]),
+                ...commonResult
+            };
+        }
+        return {};
+    },
 
-        const commonResult = parseCommonResult(resultNode);
+    parseEBSFault: (doc) => {
+        const ebsFaultNode = select("//*[local-name(.)='EBSFault']", doc)[0];
+
         return {
-            auditID: parseAuditID(resultNode),
-            ...commonResult
-
-        };
-
+            code: select("*[local-name(.)='code']/text()", ebsFaultNode)[0],
+            message: select("*[local-name(.)='message']/text()", ebsFaultNode)[0],
+        }
     },
 };

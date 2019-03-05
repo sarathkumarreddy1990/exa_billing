@@ -7,8 +7,12 @@ const {
 } = require('xpath');
 const dom = require('xmldom').DOMParser;
 
+const pki = require('node-forge').pki;
+const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
+
 const {
-    decrypt,
     parseAuditLogDetails,
 } = require('./xml');
 
@@ -55,6 +59,39 @@ ws.Mtom.prototype.receive = (ctx, callback) => {
 };
 
 
+
+
+// TODO: EXA-12673
+// TODO remember to refactor this into shared library with EBSConnector
+const PEMFILE = fs.readFileSync(path.join(__dirname, 'certs/exa-ebs.pem')).toString();
+
+const decrypt = (encryptedKey, encryptedContent) => {
+
+    encryptedKey = new Buffer(encryptedKey, 'base64').toString('binary');
+
+    const private_key = pki.privateKeyFromPem(PEMFILE);
+
+    const decryptedKey = new Buffer(private_key.decrypt(encryptedKey, 'RSAES-PKCS1-V1_5'), 'binary');
+
+    encryptedContent = new Buffer(encryptedContent, 'base64');
+
+    const decipher = crypto.createDecipheriv('aes-128-cbc', decryptedKey, encryptedContent.slice(0,16));
+    decipher.setAutoPadding(false);
+
+    let decryptedContent = decipher.update(encryptedContent.slice(16), null, 'binary') + decipher.final('binary');
+
+    // Remove padding bytes equal to the value of the last byte of the returned data.
+    const padding = decryptedContent.charCodeAt(decryptedContent.length - 1);
+    if (1 <= padding && padding <= 16) {
+        decryptedContent = decryptedContent.substr(0, decryptedContent.length - padding);
+    } else {
+        throw new Error('padding length invalid');
+    }
+
+    return new Buffer(decryptedContent, 'binary').toString('utf8');
+};
+
+
 ws.Xenc = function() {};
 
 ws.Xenc.prototype.send = function(ctx, callback) {
@@ -73,9 +110,10 @@ ws.Xenc.prototype.send = function(ctx, callback) {
             encryptedKeyNodes.splice(0, 1);
 
             const newNode = new dom().parseFromString(decryptedData);
-            bodyNode.replaceChild(
+
+            bodyNode.firstChild.replaceChild(
                 newNode,
-                select("//*[local-name(.)='downloadResponse']", bodyNode)[0]
+                bodyNode.firstChild.firstChild
             );
 
             // NOTE collaboration with Mtom
@@ -96,6 +134,7 @@ ws.Xenc.prototype.send = function(ctx, callback) {
                 const contentNode = select(`//*[@href='${contentURI}']//parent::*`, bodyNode)[0];
                 contentNode.removeChild(contentNode.firstChild);
                 utils.setElementValue(doc, contentNode, decryptedContent);
+
             }
 
 
