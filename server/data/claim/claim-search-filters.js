@@ -453,7 +453,21 @@ const api = {
             'claim_comment.created_dt AS first_statement_dt',
             'charge_details.charge_description',
             'insurance_provider_payer_types.description AS ins_provider_type',
-            'bgct.payment_ids AS payment_id'
+            'bgct.payment_ids AS payment_id',
+            `CASE
+                WHEN (
+                        SELECT
+                            country_alpha_3_code
+                        FROM
+                            sites
+                        WHERE
+                            id = 1
+                     ) = 'can'
+                THEN
+                    public.get_eligibility_status(claims.primary_patient_insurance_id , claims.claim_dt)
+                ELSE
+                    null
+            END AS as_eligibility_status`
         ];
 
         if(args.customArgs.filter_id=='Follow_up_queue'){
