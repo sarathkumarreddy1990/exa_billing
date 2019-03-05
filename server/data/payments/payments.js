@@ -293,7 +293,7 @@ module.exports = {
                         , patients.full_name as patient_name
                         , patients.first_name
                         , patients.last_name
-                        , patients.birth_date
+                        , patients.birth_date::text
                         , patients.account_no
                         , insurance_provider_id
                         , payments.provider_group_id
