@@ -1175,8 +1175,8 @@ define('grid', [
                               case 'valid':             i18n = 'messages.status.healthNumberValid';         color = 'green';        break;
                               case 'invalid':           i18n = 'messages.status.healthNumberInvalid';       color = 'red';          break;
                               case 'data_unavailable':  i18n = 'messages.status.healthNumberNotValidated';  color = '#2f74e2';      break;
-                              case 'null_response':     i18n = 'messages.status.noValidationData';          color = 'color:black';  break;
-                              case 'recheck':           i18n = 'messages.status.healthNumberRevalidate';    color = 'color:orange'; break;
+                              case 'null_response':     i18n = 'messages.status.noValidationData';          color = 'black';        break;
+                              case 'recheck':           i18n = 'messages.status.healthNumberRevalidate';    color = 'orange';       break;
                               default:                  i18n = 'messages.status.healthNumberNotValidated';  color = 'red';          break;
                             }
 
