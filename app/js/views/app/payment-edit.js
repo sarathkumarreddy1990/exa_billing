@@ -1171,7 +1171,7 @@ define(['jquery',
                     var payment = 0.00;
                     // get total this payment.
                     $.each(lineItems, function (index) {
-                        var $thisPay = $(this).find('td:nth-child(5)>input');
+                        var $thisPay = $(this).find('.payment__this_pay');
                         var payment_amt = $thisPay.val() ? $thisPay.val().trim() : 0.00;
                         payment += parseFloat(payment_amt);
                     });
@@ -2005,32 +2005,32 @@ define(['jquery',
                     var thisAdjustment;
 
                     $.each(lineItems, function () {
-                        thisAdjustment = $(this).find('td:nth-child(8)>input');
-                        thisPayment = $(this).find('td:nth-child(5)>input');
+                        thisAdjustment = $(this).find('.payment__this_adjustment');
+                        thisPayment = $(this).find('.payment__this_pay');
                         if (adjustment_codetype === 'refund_debit') {
-                            $(this).find('td:nth-child(5)>input').val('0.00');
-                            $(this).find('td:nth-child(6)>input').val('0.00');
-                            $(this).find('td:nth-child(5)>input').attr('disabled', true);
+                            $(this).find('.payment__this_pay').val('0.00');
+                            $(this).find('.payment__other_adjustment').val('0.00');
+                            $(this).find('.payment__this_pay').attr('disabled', true);
                             thisAdjustment.val(parseFloat(-Math.abs(thisAdjustment.val())).toFixed(2));
                         }
                         else if (adjustment_codetype === 'recoupment_debit') {
-                            $(this).find('td:nth-child(5)>input').attr('disabled', false);
+                            $(this).find('.payment__this_pay').attr('disabled', false);
                             thisAdjustment.val(parseFloat(-Math.abs(thisAdjustment.val())).toFixed(2));
                             thisPayment.val(parseFloat(-Math.abs(thisPayment.val())).toFixed(2));
                         }
                         else {
                             thisAdjustment.val(parseFloat(Math.abs(thisAdjustment.val())).toFixed(2));
                             thisPayment.val(parseFloat(Math.abs(thisPayment.val())).toFixed(2));
-                            $(this).find('td:nth-child(5)>input').attr('disabled', false);
+                            $(this).find('.payment__this_pay').attr('disabled', false);
                         }
                     });
 
                 }
                 else {
-                    lineItems.find('td:nth-child(5)>input').attr('disabled', false);
+                    lineItems.find('.payment__this_pay').attr('disabled', false);
                     $.each(lineItems, function () {
-                        thisAdjustment = $(this).find('td:nth-child(8)>input');
-                        thisPayment = $(this).find('td:nth-child(5)>input');
+                        thisAdjustment = $(this).find('.payment__this_adjustment');
+                        thisPayment = $(this).find('.payment__this_pay');
                         thisAdjustment.val(parseFloat(Math.abs(thisAdjustment.val())).toFixed(2));
                         thisPayment.val(parseFloat(Math.abs(thisPayment.val())).toFixed(2));
                     });
@@ -2041,18 +2041,18 @@ define(['jquery',
             calculateAdjustment: function (e) {
                 var row = $(e.target).closest('tr');
                 var isDebit = $('.checkDebit')[0].checked;
-                var bill_fee = parseFloat($(row).find('td:nth-child(3)').text()).toFixed(2);
-                var otherPayment = $(row).find('td:nth-child(4)').text() != '' ? parseFloat($(row).find('td:nth-child(4)').text()) : 0.00;
-                var this_pay = $(row).find('td:nth-child(5)>input').val() ? parseFloat($(row).find('td:nth-child(5)>input').val()) : 0.00;
-                var allowed_fee = $(row).find('td:nth-child(6)>input').val() ? parseFloat($(row).find('td:nth-child(6)>input').val()) : 0.00;
-                var otherAdj = parseFloat($(row).find('td:nth-child(7)').text())
+                var bill_fee = parseFloat($(row).find('.payment__bill_fee').text()).toFixed(2);
+                var otherPayment = $(row).find('.payment__others').text() != '' ? parseFloat($(row).find('.payment__others').text()) : 0.00;
+                var this_pay = $(row).find('.payment__this_pay').val() ? parseFloat($(row).find('.payment__this_pay').val()) : 0.00;
+                var allowed_fee = $(row).find('.payment__this_allowed').val() ? parseFloat($(row).find('.payment__this_allowed').val()) : 0.00;
+                var otherAdj = parseFloat($(row).find('.payment__other_adjustment').text())
                 var adjustment = bill_fee - (allowed_fee)
                 adjustment = isDebit ? -Math.abs(adjustment) : Math.abs(adjustment);
-                $(row).find('td:nth-child(8)>input').val(parseFloat(adjustment).toFixed(2));
-                var payment_amt = $(row).find('td:nth-child(5)>input').val() ? parseFloat($(row).find('td:nth-child(5)>input').val()) : 0.00;
-                var adj_amt = $(row).find('td:nth-child(8)>input').val() ? parseFloat($(row).find('td:nth-child(8)>input').val()) : 0.00;
-                var current_balance = parseFloat($(row).find('td:nth-child(3)').text()) - (otherPayment + otherAdj + payment_amt + adj_amt);
-                $(row).find('td:nth-child(9)').text(parseFloat(current_balance).toFixed(2));
+                $(row).find('.payment__this_adjustment').val(parseFloat(adjustment).toFixed(2));
+                var payment_amt = $(row).find('.payment__this_pay').val() ? parseFloat($(row).find('.payment__this_pay').val()) : 0.00;
+                var adj_amt = $(row).find('.payment__this_adjustment').val() ? parseFloat($(row).find('.payment__this_adjustment').val()) : 0.00;
+                var current_balance = parseFloat($(row).find('.payment__bill_fee').text()) - (otherPayment + otherAdj + payment_amt + adj_amt);
+                $(row).find('.payment__balance').text(parseFloat(current_balance).toFixed(2));
             },
 
             updatePaymentAdjustment: function () {
@@ -2061,16 +2061,16 @@ define(['jquery',
                 var payment = 0.0, adjustment = 0.0, other_payment = 0.0, other_adj = 0.0;
 
                 $.each(lineItems, function (index) {
-                    var otherPayment = parseFloat($(this).find('td:nth-child(4)').text().trim())
-                    var otherAdj = parseFloat($(this).find('td:nth-child(7)').text().trim())
-                    var payment_amt = $(this).find('td:nth-child(5)>input').val() ? parseFloat($(this).find('td:nth-child(5)>input').val().trim()) : 0.00;
-                    var adj_amt = $(this).find('td:nth-child(8)>input').val() ? parseFloat($(this).find('td:nth-child(8)>input').val().trim()) : 0.00;
+                    var otherPayment = parseFloat($(this).find('.payment__others').text().trim())
+                    var otherAdj = parseFloat($(this).find('.payment__other_adjustment').text().trim())
+                    var payment_amt = $(this).find('.payment__this_pay').val() ? parseFloat($(this).find('.payment__this_pay').val().trim()) : 0.00;
+                    var adj_amt = $(this).find('.payment__this_adjustment').val() ? parseFloat($(this).find('.payment__this_adjustment').val().trim()) : 0.00;
                     payment = payment + parseFloat(payment_amt);
                     other_payment = other_payment + parseFloat(otherPayment);
                     other_adj = other_adj + parseFloat(otherAdj);
                     adjustment = adjustment + parseFloat(adj_amt);
-                    var current_balance = parseFloat($(this).find('td:nth-child(3)').text().trim()) - (otherPayment + otherAdj + payment_amt + adj_amt);
-                    $(this).find('td:nth-child(9)').text(parseFloat(current_balance).toFixed(2));
+                    var current_balance = parseFloat($(this).find('.payment__bill_fee').text().trim()) - (otherPayment + otherAdj + payment_amt + adj_amt);
+                    $(this).find('.payment__balance').text(parseFloat(current_balance).toFixed(2));
                 });
 
                 $('#spPaymentApplied').text(self.formatMoneyValue(payment));
@@ -2258,7 +2258,7 @@ define(['jquery',
                     var lineItems = $("#tBodyApplyPendingPayment tr");
                     var adjustment_has_value = 0;
                     $.each(lineItems, function () {
-                        thisAdjustment = $(this).find('td:nth-child(8)>input').val();
+                        thisAdjustment = $(this).find('.payment__this_adjustment').val();
                         if (parseFloat(thisAdjustment) != 0.00) {
                             adjustment_has_value = adjustment_has_value + 1;
                         }
@@ -2286,11 +2286,11 @@ define(['jquery',
                         var _line_item = {};
                         var chargeRow = $(this);
 
-                        var bill_fee = $(this).find('td:nth-child(3)').text();
-                        var all_payment = $(this).find('td:nth-child(4)').text() ? $(this).find('td:nth-child(4)').text() : 0.00;
-                        var this_pay = $(this).find('td:nth-child(5)>input').val() ? $(this).find('td:nth-child(5)>input').val() : 0.00;
-                        var all_adjustment = $(this).find('td:nth-child(7)').text() ? $(this).find('td:nth-child(7)').text() : 0.00;
-                        var this_adjustment = $(this).find('td:nth-child(8)>input').val() ? $(this).find('td:nth-child(8)>input').val() : 0.00;
+                        var bill_fee = $(this).find('.payment__bill_fee').text();
+                        var all_payment = $(this).find('.payment__others').text() ? $(this).find('.payment__others').text() : 0.00;
+                        var this_pay = $(this).find('.payment__this_pay').val() ? $(this).find('.payment__this_pay').val() : 0.00;
+                        var all_adjustment = $(this).find('.payment__other_adjustment').text() ? $(this).find('.payment__other_adjustment').text() : 0.00;
+                        var this_adjustment = $(this).find('.payment__this_adjustment').val() ? $(this).find('.payment__this_adjustment').val() : 0.00;
                         var balance = parseFloat(bill_fee) - (parseFloat(all_payment) + parseFloat(all_adjustment) + parseFloat(this_pay) + parseFloat(this_adjustment)).toFixed(2);
 
                         _line_item["charge_id"] = chargeRow.attr('data_charge_id_id');
@@ -2298,7 +2298,7 @@ define(['jquery',
                         _line_item["adjustmentApplicationId"] = chargeRow.attr('data_payment_adjustment_id');
                         _line_item["paymentAppliedDt"] = chargeRow.attr('data_payment_applied_dt');
                         _line_item["payment"] = objIsPayInFull ? balance + parseFloat(this_pay) : parseFloat(this_pay);
-                        _line_item["adjustment"] = chargeRow.find('td:nth-child(8)>input').val() ? parseFloat(chargeRow.find('td:nth-child(8)>input').val()) : 0.00;
+                        _line_item["adjustment"] = chargeRow.find('.payment__this_adjustment').val() ? parseFloat(chargeRow.find('.payment__this_adjustment').val()) : 0.00;
 
                         var _cas = cas.filter(function (obj) {
                             return obj.charge_id == chargeRow.attr('data_charge_id_id')
