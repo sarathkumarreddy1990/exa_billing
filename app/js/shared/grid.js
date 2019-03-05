@@ -1180,7 +1180,7 @@ define('grid', [
                               default:                  i18n = 'messages.status.healthNumberNotValidated';  color = 'red';          break;
                             }
 
-                            return "<i href='#' i18nt='" + i18n + "' class='icon-ic-status' data-value='" + cellValue + "' style='color: " + color + ";text-shadow:0 0 " + color + ", 0 0 " + color + ", 0 0 " + color + ", 0 0 red, 0 0 " + color + "'></i>";
+                            return "<i href='#' i18nt='" + i18n + "' class='icon-ic-status' data-value='" + cellvalue + "' style='color: " + color + ";text-shadow:0 0 " + color + ", 0 0 " + color + ", 0 0 " + color + ", 0 0 red, 0 0 " + color + "'></i>";
                         }
                     }
                 },
