@@ -770,7 +770,7 @@ define(['jquery',
 
             bindEditClaimInsuranceDetails: function (claimData) {
                 var self = this;
-
+                var states = app.states && app.states.length && app.states[0].app_states;
 
                 if (claimData.p_insurance_provider_id || null) {
 
