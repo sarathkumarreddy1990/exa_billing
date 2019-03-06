@@ -16,7 +16,8 @@ define(['jquery',
 'views/app/payment-edit',
 'collections/app/pending-payments',
 'text!templates/claims/payment-row.html',
-'shared/address'
+'shared/address',
+'text!templates/claims/eligibilityResponseOHIP.html'
 ],
     function ($,
         _,
@@ -36,7 +37,8 @@ define(['jquery',
         editPaymentView,
         pendingPayments,
         paymentRowTemplate,
-        address
+        address,
+        insuranceOhipForm
     ) {
         var claimView = Backbone.View.extend({
             el: null,
@@ -47,6 +49,7 @@ define(['jquery',
             claimValidation: _.template(claimValidation),
             patientAlertTemplate: _.template(patientAlertTemplate),
             paymentRowTemplate: _.template(paymentRowTemplate),
+            insuranceOhipTemplate: _.template(insuranceOhipForm),
             updateResponsibleList: [],
             chargeModel: [],
             claimICDLists: [],
@@ -231,6 +234,51 @@ define(['jquery',
 
             checkInsuranceEligibility: function (e) {
                 var self = this;
+                if (app.country_alpha_3_code === 'can')
+                    self.insuranceEligibilityCan(e)
+                else
+                    self.insuranceEligibilityUsa(e)
+            },
+
+            insuranceEligibilityCan: function (e) {
+                if (!$('#txtPriPolicyNo').val().length) {
+                    commonjs.showWarning('messages.warning.shared.invalidHealthNumber');
+                    return;
+                }
+                if (!$('#txtPriGroupNo').val().length) {
+                    commonjs.showWarning('messages.warning.shared.invalidVersionCode');
+                    return;
+                }
+                else {
+                    $.ajax({
+                        url: '/exa_modules/billing/ohip/validateHealthCard',
+                        type: "GET",
+                        data: {
+                            healthNumber: $('#txtPriPolicyNo').val(),
+                            versionCode: $('#txtPriGroupNo').val()
+                        },
+                        success: function (data) {
+                            if (data && data.result) {
+                                commonjs.showDialog({
+                                    header: 'Healthcard Eligibility Result', i18nHeader: 'menuTitles.patient.PatientInsuranceEligibility', height: '70%', width: '70%',
+                                    html: self.insuranceOhipTemplate({
+                                        'insuranceData': data.result.info,
+                                        'validationInfo': JSON.parse(data.result.validation_info)
+                                    })
+                                });
+                            }
+                            else
+                                commonjs.showStatus('messages.status.noValidationData', 'largestatus');
+                        },
+                        error: function (request, status, error) {
+                            commonjs.handleXhrError(request);
+                        }
+                    });
+                }
+            },
+
+            insuranceEligibilityUsa: function (e) {
+                var self = this;
                 var serviceTypeCodes = [], serviceTypes = [];
                 var id = e && e.target && e.target.id && e.target.id;
                 var ins = '';
@@ -269,7 +317,7 @@ define(['jquery',
                 }
 
 
-                if (!$('#ddlServiceType'+ins+' :selected').length) {
+                if (!$('#ddlServiceType' + ins + ' :selected').length) {
                     commonjs.showWarning('messages.warning.shared.selectservicetype');
                     return;
                 }
@@ -300,7 +348,7 @@ define(['jquery',
                     return;
                 }
 
-                $.each($('#ddlServiceType'+ins+' :selected'), function (index, value) {
+                $.each($('#ddlServiceType' + ins + ' :selected'), function (index, value) {
                     serviceTypeCodes.push($(value).val())
                     var serviceType = $(value).attr('title').toLowerCase();
                     serviceTypes.push(serviceType.replace(/[^A-Z0-9]+/ig, "_"));
@@ -338,7 +386,7 @@ define(['jquery',
                     eligibilityData.firstName = $('#txtTerSubFirstName').val() ? $('#txtTerSubFirstName').val() : null;
                 }
 
-                $('#btnCheckEligibility' + ins).prop('disabled',true);
+                $('#btnCheckEligibility' + ins).prop('disabled', true);
                 $('#imgLoading').show();
 
 
@@ -353,19 +401,19 @@ define(['jquery',
                         commonjs.hideLoading();
 
                         data = response.data;
-                        $('#btnCheckEligibility' + ins).prop('disabled',false);
+                        $('#btnCheckEligibility' + ins).prop('disabled', false);
                         if (data && data.errors) {
                             commonjs.showWarning(data.errors.query ? data.errors.query : 'ERR: ' + JSON.stringify(data.errors) + '..');
                             return;
                         }
                         else if (!data.errors && response.insPokitdok == true) {
-                            commonjs.showNestedDialog({ header: 'Pokitdok Response', width: '80%', height: '70%', html: $(self.InsurancePokitdokTemplateForm({'InsuranceData': response.data, 'InsuranceDatavalue': response.meta})) });
+                            commonjs.showNestedDialog({ header: 'Pokitdok Response', width: '80%', height: '70%', html: $(self.InsurancePokitdokTemplateForm({ 'InsuranceData': response.data, 'InsuranceDatavalue': response.meta })) });
                         }
 
                         $('#divCoPayDetails').height('400px');
 
                         $.each($('#divPokitdok table td'), function (index, obj) {
-                            $(obj).attr('title', $(obj).text().replace(/[*$-]/,'').trim());
+                            $(obj).attr('title', $(obj).text().replace(/[*$-]/, '').trim());
                         });
 
                         $("#btnClosePokidokPopup").unbind().click(function (e) {
@@ -770,7 +818,7 @@ define(['jquery',
 
             bindEditClaimInsuranceDetails: function (claimData) {
                 var self = this;
-
+                var states = app.states && app.states.length && app.states[0].app_states;
 
                 if (claimData.p_insurance_provider_id || null) {
 

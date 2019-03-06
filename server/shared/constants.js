@@ -208,6 +208,7 @@ module.exports = {
         'patient_claim_list': 'PAYM',
         'process_write_off_payments': 'PAYM',
         'get_claim_payments': 'CLIM',
-        'can_delete_payment': 'PAYM'
+        'can_delete_payment': 'PAYM',
+        'claims_total_balance': 'CLIM'
     }
 };
