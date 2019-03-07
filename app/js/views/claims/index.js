@@ -195,7 +195,7 @@ define(['jquery',
                         infoKey: 'zip'
                     }
                 }
-                self.bindCityStateZipTemplate({}, AddressInfoMap);
+                self.bindCityStateZipTemplate({}, AddressInfoMap, 'Pri');
             },
 
             initializeDateTimePickers: function () {
@@ -860,7 +860,7 @@ define(['jquery',
                             infoKey: 'p_subscriber_zipcode'
                         }
                     }
-                    self.bindCityStateZipTemplate(claimData, AddressInfoMap);
+                    self.bindCityStateZipTemplate(claimData, AddressInfoMap, 'Pri');
 
                     document.querySelector('#txtPriDOB').value = claimData.p_subscriber_dob ? moment(claimData.p_subscriber_dob).format('L') : '';
                     document.querySelector('#txtPriStartDate').value = claimData.p_valid_from_date ? moment(claimData.p_valid_from_date).format('L') : '';
@@ -2679,7 +2679,7 @@ define(['jquery',
                             infoKey: 'subscriber_zipcode'
                         }
                     }
-                    self.bindCityStateZipTemplate(result, AddressInfoMap);
+                    self.bindCityStateZipTemplate(result, AddressInfoMap, flag);
 
                     if(result.coverage_level == "secondary" && result.medicare_insurance_type_code != null) {
                         $('#chkSecMedicarePayer').prop('checked',true);
@@ -4754,9 +4754,9 @@ define(['jquery',
 
                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
             },
-            bindCityStateZipTemplate:function(data,AddressInfoMap){
+            bindCityStateZipTemplate:function(data,AddressInfoMap, flag){
 
-                address.loadCityStateZipTemplate('#divAddressInfo', data, AddressInfoMap);
+                address.loadCityStateZipTemplate('#div' + flag + 'AddressInfo', data, AddressInfoMap);
                 if(app.country_alpha_3_code === 'can'){
                     // Adjust the style alignment
                     var $addressDiv = $('#divAddressInfo');
