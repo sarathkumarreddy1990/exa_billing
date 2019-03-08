@@ -69,7 +69,8 @@ module.exports = {
         'transaction-summary': 'Transaction Summary Report',
         'payments-realization-rate-analysis' : 'Payments Realization Rate Analysis',
         'update_claim_status': 'Claim Status',
-        'update_grid_settings': 'Studies / Claims Grid'
+        'update_grid_settings': 'Studies / Claims Grid',
+        'submitClaims': 'Submit Claims'
     },
 
     entityNames: {
@@ -100,7 +101,8 @@ module.exports = {
         claims: 'Claims',
         update_claim_status: 'Claims',
         validate_claims: 'Claims',
-        update_grid_settings: 'user_settings'
+        update_grid_settings: 'user_settings',
+        submitClaims: 'submitClaims'
     },
 
     permissionsMap: {
@@ -209,6 +211,7 @@ module.exports = {
         'process_write_off_payments': 'PAYM',
         'get_claim_payments': 'CLIM',
         'can_delete_payment': 'PAYM',
-        'claims_total_balance': 'CLIM'
+        'claims_total_balance': 'CLIM',
+        'submitClaims': 'BIVA'
     }
 };
