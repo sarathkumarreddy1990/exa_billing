@@ -62,9 +62,9 @@ module.exports = {
                 return new Error('Please validate claims');
             } else if(validationData.unique_billing_method_count > 1 ){
                 return new Error('Please select claims with same type of billing method');
-            } else if(validationData.clearing_house_count != claimIds.length || validationData.unique_clearing_house_count > 1 || req.session.country_alpha_3_code != 'can' ){
+            } else if((validationData.clearing_house_count != claimIds.length || validationData.unique_clearing_house_count > 1) && req.session.country_alpha_3_code != 'can' ){
                 return new Error('Please select claims with same type of clearing house Claims');
-            } else if (validationData.claim_status.count != claimIds.length) {
+            } else if (validationData.claim_status.length != claimIds.length) {
                 return new Error('Claim date should not be greater than the current date');
             }
         }
@@ -453,7 +453,7 @@ module.exports = {
                          }
                     } else {
                         !claimData[field] || !claimData[field].length ? errorMessages.push(` Claim - ${field} does not exists`) : null;
-                    }   
+                    }
                 }
             });
 
