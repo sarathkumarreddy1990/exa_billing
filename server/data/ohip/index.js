@@ -601,9 +601,17 @@ const OHIPDataAPI = {
                 ppi.policy_number AS "registrationNumber",                      -- TODO this is really just the insurance subscriber policy #
                 pp.last_name AS "patientLastName",                              -- TODO this should be coming from the patient_insurances table
                 pp.first_name AS "patientFirstName",                            -- TODO this should be coming from the patient_insurances table
+                get_full_name(pp.last_name,pp.first_name) AS "patientName",
+                pip.insurance_name AS "payerName",
                 pp.gender AS "patientSex",                                      -- TODO this should be coming from the patient_insurances table
                 pp.patient_info -> 'c1State' AS "provinceCode",               -- TODO this should be coming from the patient_insurances table
-                pip.insurance_code AS "paymentProgram"
+                pp.patient_info->'c1AddressLine1' AS "patientAddress",
+                pip.insurance_code AS "paymentProgram",
+                reff_pr.id AS "referringProvider",
+                rend_pr.id AS "renderingProvider",
+                reff_pr.provider_info -> 'NPI' AS "referringProviderNumber",
+                reff_pr.provider_info -> 'NPI' AS "referringProviderNpi",
+                rend_pr.provider_info -> 'NPI' AS "renderingProviderNpi"
                 FROM public.patient_insurances ppi
                 INNER JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
                 WHERE ppi.id = bc.primary_patient_insurance_id) AS insuranceDetails)
