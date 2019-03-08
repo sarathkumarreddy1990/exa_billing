@@ -707,10 +707,10 @@ define(['jquery',
                 /* Claim section end */
                 /* Additional info start*/
 
-                document.querySelector('#txtHCT').value = claim_data.hospitalization_to_date ? moment(claim_data.hospitalization_to_date).format('L') : '';
-                document.querySelector('#txtHCF').value = claim_data.hospitalization_from_date ? moment(claim_data.hospitalization_from_date).format('L') : '';
-                document.querySelector('#txtWCF').value = claim_data.unable_to_work_from_date ? moment(claim_data.unable_to_work_from_date).format('L') : '';
-                document.querySelector('#txtWCT').value = claim_data.unable_to_work_to_date ? moment(claim_data.unable_to_work_to_date).format('L') : '';
+                claim_data.hospitalization_from_date ? self.hcf.date(claim_data.hospitalization_from_date) : self.hcf.clear();
+                claim_data.hospitalization_to_date ? self.hct.date(claim_data.hospitalization_to_date) :self.hct.clear();              
+                claim_data.unable_to_work_from_date ? self.wcf.date(claim_data.unable_to_work_from_date) : self.wcf.clear();
+                claim_data.unable_to_work_to_date ? self.wct.date(claim_data.unable_to_work_to_date ) :self.wct.clear();
                 document.querySelector('#txtOtherDate').value = claim_data.same_illness_first_date ? moment(claim_data.same_illness_first_date).format('L') : '';
                 document.querySelector('#txtDate').value = claim_data.current_illness_date ? moment(claim_data.current_illness_date).format('L') : '';
 
@@ -3325,13 +3325,13 @@ define(['jquery',
                 }
 
                 /* Additional Info Section */
-                if ($('#txtWCF').val() || $('#txtWCT').val()) {
-                    if (!self.validateFromAndToDate($('#txtWCF').val(), $('#txtWCT').val()))
+                if (self.wcf.date() || self.wct.date()) {
+                    if (!self.validateFromAndToDate(self.wcf, self.wct))
                         return false;
                 }
 
-                if ($('#txtHCF').val() || $('#txtHCT').val()) {
-                    if (!self.validateFromAndToDate($('#txtHCF').val(), $('#txtHCT').val()))
+                if (self.hcf.date() || self.hct.date()) {
+                    if (!self.validateFromAndToDate(self.hcf, self.hct))
                         return false;
                     else
                         return true;
@@ -3346,7 +3346,7 @@ define(['jquery',
             },
 
             validateFromAndToDate: function (objFromDate, objToDate) {
-                var validationResult = commonjs.validateDateTimePickerRange(moment(objFromDate), moment(objToDate), true);
+                var validationResult = commonjs.validateDateTimePickerRange(objFromDate, objToDate, true);
                 if (!validationResult.valid) {
                     commonjs.showWarning(validationResult.message);
                     return false;
