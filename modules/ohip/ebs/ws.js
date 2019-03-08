@@ -17,6 +17,49 @@ const {
 } = require('./xml');
 
 
+ws.Mtom.prototype.send = function(ctx, callback) {
+
+    console.log('wrapped MtoM send');
+  var self = this
+  boundary = "my_unique_boundary"
+  var parts = [{ id: "part0",
+                 contentType: 'application/xop+xml;charset=utf-8;type="'
+                   +ctx.contentType+'"',
+		             encoding: "8bit"
+		           }]
+  var doc = new dom().parseFromString(ctx.request)
+
+  for (var i in ctx.base64Elements) {
+    var file = ctx.base64Elements[i];
+		// var elem = select(doc, file.xpath)[0];
+
+    var binary = new Buffer(file.content, 'base64');
+		var id = "part" + (parseInt(i)+1);
+
+    parts.push({ id: id
+               , contentType: file.contentType
+               , body: binary
+               , encoding: "binary"
+               , attachment: true
+               })
+       // console.log(file.xpath.toString());
+    //put an xml placeholder
+    file.elem.removeChild(file.elem.firstChild)
+    utils.appendElement(doc, file.elem, "http://www.w3.org/2004/08/xop/include", "xop:Include")
+    file.elem.firstChild.setAttribute("xmlns:xop", "http://www.w3.org/2004/08/xop/include")
+    file.elem.firstChild.setAttribute("href", "cid:" + id)
+  }
+
+  parts[0].body = new Buffer(doc.toString())
+  ctx.contentType = 'multipart/related; type="application/xop+xml";start="<part0>";boundary="'+boundary+'";start-info="'
+    + ctx.contentType +'"; action="'+ctx.action+'"'
+  ctx.request = writer.build_multipart_body(parts, boundary)
+
+  this.next.send(ctx, function(ctx) {
+    self.receive(ctx, callback)
+  })
+};
+
 ws.Mtom.prototype.receive = (ctx, callback) => {
 
     if (!ctx.resp_contentType) {
@@ -60,6 +103,24 @@ ws.Mtom.prototype.receive = (ctx, callback) => {
 
 
 
+ws.addAttachment = (ctx, property, xpath, file, contentType, index) => {
+    const prop = ctx[property];
+    const doc = new dom().parseFromString(prop);
+    const elem = select(xpath, doc)[index];
+    const content = fs.readFileSync(file).toString("base64");
+
+    utils.setElementValue(doc, elem, content);
+    ctx[property] = doc.toString();
+    if (!ctx.base64Elements) {
+        ctx.base64Elements = [];
+    }
+    ctx.base64Elements.push({
+        // xpath: xpath,
+        elem,
+        contentType,
+        content,
+    });
+};
 
 // TODO: EXA-12673
 // TODO remember to refactor this into shared library with EBSConnector
