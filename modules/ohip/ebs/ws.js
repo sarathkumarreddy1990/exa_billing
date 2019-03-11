@@ -16,48 +16,53 @@ const {
     parseAuditLogDetails,
 } = require('./xml');
 
-
+/*
+ This needed to be overriden, too, since the base ws.js couldn't handle multiple
+ attachments. The difference here is that instead of using 'file.xpath' to refer
+ to a node, we're passing the node itself as 'file.elem'
+*/
 ws.Mtom.prototype.send = function(ctx, callback) {
 
-    console.log('wrapped MtoM send');
-  var self = this
-  boundary = "my_unique_boundary"
-  var parts = [{ id: "part0",
-                 contentType: 'application/xop+xml;charset=utf-8;type="'
-                   +ctx.contentType+'"',
-		             encoding: "8bit"
-		           }]
-  var doc = new dom().parseFromString(ctx.request)
+    const self = this
+    boundary = "exa_ebs_boundary"
+    const parts = [
+        {
+            id: "part0",
+            contentType: `application/xop+xml;charset=utf-8;type="${ctx.contentType}"`,
+            encoding: '8bit',
+        },
+    ];
+    const doc = new dom().parseFromString(ctx.request);
 
-  for (var i in ctx.base64Elements) {
-    var file = ctx.base64Elements[i];
+    for (let i in ctx.base64Elements) {
+        const file = ctx.base64Elements[i];
 		// var elem = select(doc, file.xpath)[0];
 
-    var binary = new Buffer(file.content, 'base64');
-		var id = "part" + (parseInt(i)+1);
+        const binary = new Buffer(file.content, 'base64');
+		const id = `part${parseInt(i) + 1}`;
 
-    parts.push({ id: id
-               , contentType: file.contentType
-               , body: binary
-               , encoding: "binary"
-               , attachment: true
-               })
-       // console.log(file.xpath.toString());
-    //put an xml placeholder
-    file.elem.removeChild(file.elem.firstChild)
-    utils.appendElement(doc, file.elem, "http://www.w3.org/2004/08/xop/include", "xop:Include")
-    file.elem.firstChild.setAttribute("xmlns:xop", "http://www.w3.org/2004/08/xop/include")
-    file.elem.firstChild.setAttribute("href", "cid:" + id)
-  }
+        parts.push({
+            id,
+            contentType: file.contentType,
+            body: binary,
+            encoding: 'binary',
+            attachment: true,
+        });
 
-  parts[0].body = new Buffer(doc.toString())
-  ctx.contentType = 'multipart/related; type="application/xop+xml";start="<part0>";boundary="'+boundary+'";start-info="'
-    + ctx.contentType +'"; action="'+ctx.action+'"'
-  ctx.request = writer.build_multipart_body(parts, boundary)
+        file.elem.removeChild(file.elem.firstChild);
+        utils.appendElement(doc, file.elem, 'http://www.w3.org/2004/08/xop/include', 'xop:Include');
+        file.elem.firstChild.setAttribute('xmlns:xop', 'http://www.w3.org/2004/08/xop/include');
+        file.elem.firstChild.setAttribute('href', `cid: ${id}`);
+    }
 
-  this.next.send(ctx, function(ctx) {
-    self.receive(ctx, callback)
-  })
+    parts[0].body = new Buffer(doc.toString());
+    ctx.contentType = `multipart/related; type="application/xop+xml"; start="<part0>"; boundary="${boundary}"; start-info="${ctx.contentType}"; action="${ctx.action}"`;
+
+    ctx.request = writer.build_multipart_body(parts, boundary);
+
+    this.next.send(ctx, function(ctx) {
+        self.receive(ctx, callback)
+    })
 };
 
 ws.Mtom.prototype.receive = (ctx, callback) => {
@@ -237,7 +242,6 @@ ws.Audit.prototype.send = function(ctx, callback) {
 
         const doc = new dom().parseFromString(ctx.response);
         const parseObj = parseAuditLogDetails(doc);
-
         ctx.audit = {
             // Simple success or failure
             result: parseObj.msg,
