@@ -4623,6 +4623,16 @@ define(['jquery',
                     self.addPaymentLine(e)
                 }, 250));
 
+                $(".select-payment-mode").off().change(function (e) {
+                    var selectedValue = $(e.target).val();
+                    var $target = $(e.target).closest('tr').find('.checkcardno').val('');
+
+                    if (['cash', 'eft', 'adjustment'].indexOf(selectedValue) > -1) {
+                        $target.prop('disabled', true);
+                    } else {
+                        $target.prop('disabled', false);
+                    }
+                });
 
             },
 
