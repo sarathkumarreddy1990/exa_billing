@@ -6,7 +6,7 @@ var permissions = {
         var accessDeniedRightClickIDs = [];
         var billingScreenCodes = ['ADJC', 'BICO', 'BICL', 'CLST', 'BIPR', 'PRCQ', 'BILM', 'PARE', 'CASG', 'CASR', 'STCC', 'BIVA', 'PCA', 'EDRT', 'INSM', 'CLHO', 'BULG', 'BALG',
             'AGAR', 'AARD', 'CHRG', 'CLAY', 'CLIN', 'CLTR', 'CRBE', 'DICN', 'IVSL', 'MOSU', 'MNRC', 'PATS', 'PYMX', 'PAYT', 'PAIC', 'PBIC', 'PABI', 'PRCN', 'RPFR', 'REPC', 'REPS', 'TSUM', 'PACT',
-            'CLIM', 'HSTY', 'ECLM', 'CLMI', 'MASO', 'CLVA', 'ERAI', 'PAYM', 'APAY', 'DPAY', 'DCLM', 'PCLM', 'PATR', 'TOSP', 'PRRA'];
+            'CLIM', 'HSTY', 'ECLM', 'CLMI', 'MASO', 'CLVA', 'ERAI', 'PAYM', 'APAY', 'DPAY', 'DCLM', 'PCLM', 'PATR', 'TOSP', 'PRRA', 'CLFM'];
 
         mappingObject = {
             'ADJC': 'aAdjustmentCodes',
