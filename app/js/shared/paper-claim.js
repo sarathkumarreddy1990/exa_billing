@@ -101,7 +101,12 @@ define([
                         });
                 } else {
                     commonjs.hideLoading();
-                    commonjs.showError('messages.errors.invalidDataTemplate');
+                    if (templateType === 'paper_claim_full' || templateType === 'paper_claim_original') {
+                        commonjs.showError('messages.errors.userSettingConfig');
+                    }
+                    else {
+                        commonjs.showError('messages.errors.invalidDataTemplate');
+                    }
                     return false;
                 }
                 });
@@ -196,13 +201,22 @@ define([
 
                 if (!dd || typeof dd !== 'object') {
                     commonjs.hideLoading();
-                    commonjs.showError('messages.errors.invalidDataTemplate');
+                    if (templateType === 'paper_claim_full' || templateType === 'paper_claim_original') {
+                        commonjs.showError('messages.errors.invalidPrinterTemplate');
+                    }
+                    else {
+                        commonjs.showError('messages.errors.invalidDataTemplate');
+                    }
                     return false;
                 }
 
                 //template = mailMerge.mergeData(dd, claimData);
                 template = dd;
-
+                if (template.content === "Test Data" || template.content === "Need to setup") {
+                    commonjs.hideLoading();
+                    commonjs.showError('messages.errors.templateNotConfigured');
+                    return false;
+                }
                 return template;
             }
 
