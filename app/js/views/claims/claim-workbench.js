@@ -1978,7 +1978,9 @@ define(['jquery',
                                 return (data.is_acknowledgement_received === "true")
                                     ? '<i class="fa fa-check" style="color: green" aria-hidden="true"></i>'
                                     : '<i class="fa fa-times" style="color: red" aria-hidden="true"></i>';
-                            }
+                            },
+                            customAction: function (rowID, e) {
+                                return false;                            }
                         },
                         {
                             name: 'is_payment_received',
@@ -1989,6 +1991,9 @@ define(['jquery',
                                 return (data.is_payment_received === "true")
                                     ? '<i class="fa fa-check" style="color: green" aria-hidden="true"></i>'
                                     : '<i class="fa fa-times" style="color: red" aria-hidden="true"></i>';
+                            },
+                            customAction: function (rowID, e) {
+                                return false;
                             }
                         },
                         {
