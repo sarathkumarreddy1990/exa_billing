@@ -4623,6 +4623,16 @@ define(['jquery',
                     self.addPaymentLine(e)
                 }, 250));
 
+                $(".select-payment-mode").off().change(function (e) {
+                    var selectedValue = $(e.target).val();
+                    var $target = $(e.target).closest('tr').find('.checkcardno').val('');
+
+                    if (['cash', 'eft', 'adjustment'].indexOf(selectedValue) > -1) {
+                        $target.prop('disabled', true);
+                    } else {
+                        $target.prop('disabled', false);
+                    }
+                });
 
             },
 
@@ -4709,6 +4719,7 @@ define(['jquery',
                     var dtp = commonjs.bindDateTimePicker("divAccountingDate_" + obj.row_index, { format: 'L' });
                     var responsibleEle = $('#ddlPayerName_' + obj.row_index);
                     var dllPaymentMode = $('#ddlPaymentMode_' + obj.row_index);
+                    var $dllCheckCardNo = $('#txtCheckCardNo_' + obj.row_index);
                     var responsibleIndex = _.findIndex(self.responsible_list, function (item) {
                         if(obj.payer_info.payer_type_name === 'insurance' && ['primary_insurance', 'secondary_insurance', 'tertiary_insurance'].indexOf(item.payer_type_name) > -1){
                             return item.payer_id == obj.payer_info.payer_id;
@@ -4736,6 +4747,12 @@ define(['jquery',
                     $(dllPaymentMode).val(obj.mode);
                     $(dllPaymentMode).attr('data_payment_mode', obj.mode);
                     $(responsibleEle).prop('disabled', true);
+
+                    if (['cash', 'eft', 'adjustment'].indexOf(obj.mode) > -1) {
+                        $dllCheckCardNo.prop('disabled', true);
+                    } else {
+                        $dllCheckCardNo.prop('disabled', false);
+                    }
 
                     $('#divAccountingDate_' + obj.row_index).on("dp.change", function (e) {
                         if (e && e.date && e.oldDate && e.oldDate.format('L') != e.date.format('L')) {
