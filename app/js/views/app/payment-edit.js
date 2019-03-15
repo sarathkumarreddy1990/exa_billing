@@ -781,7 +781,7 @@ define(['jquery',
                 if (typeof amount === "string" && fromCas) {
                     return parseFloat(amount.replace(/[(]/g,'-').replace(/[^0-9.-]+/g, "")) || "";
                 } else if (typeof amount === "number") {
-                    return amount < 0 ? '($' + parseFloat(amount) + ')' : '$' + parseFloat(amount);
+                    return amount < 0 ? '($' + parseFloat(amount).toFixed(2) + ')' : '$' + parseFloat(amount).toFixed(2);
                 }
                 return amount;
             },
