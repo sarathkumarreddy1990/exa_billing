@@ -76,11 +76,11 @@ module.exports = {
             FROM public.providers p
                 INNER JOIN
                     provider_contacts pc ON pc.provider_id = p.id
-            WHERE 
-                NOT p.has_deleted 
-                AND NOT pc.has_deleted 
-                AND p.is_active 
-                AND p.company_id = ${params.company_id} 
+            WHERE
+                NOT p.has_deleted
+                AND NOT pc.has_deleted
+                AND p.is_active
+                AND p.company_id = ${params.company_id}
                 AND p.provider_type = ${params.provider_type}
                 AND NOT p.sys_provider -- we dont want system providers
         `;
