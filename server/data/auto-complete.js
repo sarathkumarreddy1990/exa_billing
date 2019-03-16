@@ -61,21 +61,29 @@ module.exports = {
 
         let provider_search = ` AND (p.full_name ILIKE '%${params.q}%' OR p.provider_code ILIKE '%${params.q}%' ) `;
 
-        const sql_provider = SQL`SELECT
-                                      pc.id AS id
-                                    , p.first_name
-                                    , p.id AS provider_id
-                                    , p.is_active AS is_active
-                                    , pc.id AS provider_contact_id
-                                    , p.last_name
-                                    , p.full_name
-                                    , p.provider_code
-                                    , hstore_to_json(contact_info) AS contact_info
-                                    , COUNT(1) OVER (range unbounded preceding) AS total_records
-                            FROM public.providers p
-                                INNER JOIN
-                                    provider_contacts pc ON pc.provider_id = p.id
-                            WHERE NOT p.has_deleted AND NOT pc.has_deleted AND p.is_active AND p.company_id = ${params.company_id} AND p.provider_type = ${params.provider_type} `;
+        const sql_provider = SQL`
+            SELECT
+                  pc.id AS id
+                , p.first_name
+                , p.id AS provider_id
+                , p.is_active AS is_active
+                , pc.id AS provider_contact_id
+                , p.last_name
+                , p.full_name
+                , p.provider_code
+                , hstore_to_json(contact_info) AS contact_info
+                , COUNT(1) OVER (range unbounded preceding) AS total_records
+            FROM public.providers p
+                INNER JOIN
+                    provider_contacts pc ON pc.provider_id = p.id
+            WHERE 
+                NOT p.has_deleted 
+                AND NOT pc.has_deleted 
+                AND p.is_active 
+                AND p.company_id = ${params.company_id} 
+                AND p.provider_type = ${params.provider_type}
+                AND NOT p.sys_provider
+        `;
 
         if (params.q != '') {
             sql_provider.append(provider_search);
