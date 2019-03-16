@@ -518,11 +518,19 @@ const OHIPDataAPI = {
     applyErrorReport,
 
     getOHIPConfiguration: async (args) => {
+
+        const {
+            hcv,
+            muid,
+        } = args || {};
+
         return {
             // TODO: EXA-12674
-            softwareConformanceKey: 'b5dc648e-581a-4886-ac39-c18832d12e06',
-            auditID:124355467675,
-            serviceUserMUID: 614200,
+            softwareConformanceKey: hcv
+                ? '65489ecd-0bef-4558-8871-f2e4b71b8e92'
+                : 'b5dc648e-581a-4886-ac39-c18832d12e06',
+            auditID: 124355467675,
+            serviceUserMUID: muid || 614200,
             username: "confsu+355@gmail.com",
             password: "Password1!",
             mode: OHIP_CONFIGURATION_MODE.DEMO,

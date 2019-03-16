@@ -47,10 +47,9 @@ const parseDetailData = (doc) => {
        };
     }
     catch (e) {
-        const r = {
+        return {
             ...parseCommonResult(select("*[local-name(.)='result']", doc)[0])
         };
-        return r;
     }
 };
 
@@ -62,9 +61,6 @@ const parseCSNData = (doc) => {
 };
 
 const parseTypeListData = (doc) => {
-    console.log('\n\n', doc.toString().trim());
-    console.log('parsed: ', select("*[local-name(.)='result']", doc)[0].toString());
-
     return {
         access: select("*[local-name(.)='access']/text()", doc)[0].nodeValue,
         descriptionEn: select("*[local-name(.)='descriptionEn']/text()", doc)[0].nodeValue,
@@ -93,7 +89,6 @@ const parseDownloadData = (doc) => {
         };
     }
     catch (e) {
-        // console.log(doc.toString());
         const r = {
             // the Conformance Testing environment doesn't conform to
             // the specifications, so this is the only thing we can
@@ -144,14 +139,14 @@ const parseDetail = (doc) => {
     if (!detailNode) {
         return {};
     }
-    console.log('??????', detailNode.toString());
 
+    const resultSize = select("*[local-name(.)='resultSize']/text()", detailNode);
     return {
         auditID: parseAuditID(detailNode),
         data: select("*[local-name(.)='data']", detailNode).map((dataNode) => {
             return parseDetailData(dataNode);
         }),
-        resultSize: select("*[local-name(.)='resultSize']/text()", detailNode)[0].nodeValue,
+        resultSize: resultSize.length ? resultSize[0].nodeValue: '',
     };
 };
 
@@ -196,7 +191,6 @@ module.exports = {
 
 
     parseListResponse: (doc) => {
-        // console.log('!!!!', select("//*[local-name(.)='listResponse']", doc)[0].toString());
         return parseDetail(select("//*[local-name(.)='listResponse']", doc)[0]);
 
     },
@@ -204,51 +198,33 @@ module.exports = {
     parseTypeListResponse: (doc) => {
         const getTypeListResponseNode = select("//*[local-name(.)='getTypeListResponse']", doc)[0];
         const typeListResultNode = select("//*[local-name(.)='return']", getTypeListResponseNode)[0];
-        // console.log(typeListResultNode.toString());
-        // <data>
-        //      <access>DOWNLOAD</access>
-        //      <descriptionEn>Roster Capitation Report PDF </descriptionEn>
-        //      <descriptionFr>Roster Capitation Report PDF   é                     é</descriptionFr>
-        //      <groupRequired>false</groupRequired>
-        //      <resourceType>RCP</resourceType>
-        //      <result>
-        //          <code>IEDTS0001</code>
-        //          <msg>Success</msg>
-        //      </result>
-        //      <csns>
-        //          <soloCsn>614200</soloCsn>
-        //      </csns>
-        // </data>
-        //
+
         return {
             auditID: parseAuditID(typeListResultNode),
 
             data: select("//*[local-name(.)='data']", typeListResultNode).map((typeListDataNode) => {
-                // console.log(typeListDataNode.toString());
                 return parseTypeListData(typeListDataNode);
             }),
         };
     },
 
+    parseHCVResponse: (doc) => {
+        return {};
+    },
+
     parseAuditLogDetails: (doc) => {
 
         const returnNode = select("//*[local-name(.)='return']", doc)[0];
-        // console.log('returnNode: ', returnNode.toString());
 
         // empty results don't come with audit IDs or common results :(
         if (returnNode) {
             const resultNode = select("/*[local-name(.)='response']/*[local-name(.)='result']", returnNode)[0];
-            // console.log('\n\n\nxml resultNode: ', resultNode);
 
             if (resultNode) {
-                console.log('?');
-                const commonResult = parseCommonResult(resultNode);
-                const d = {
+                return {
                     auditID: parseAuditID(resultNode),
-                    ...commonResult,
+                    ...parseCommonResult(resultNode),
                 };
-                // console.log('d: ', d);
-                return d;
             }
         }
         return {};
@@ -258,8 +234,8 @@ module.exports = {
         const ebsFaultNode = select("//*[local-name(.)='EBSFault']", doc)[0];
 
         const foo= {
-            code: select("//*[local-name(.)='code']/text()", ebsFaultNode)[0],
-            message: select("//*[local-name(.)='message']/text()", ebsFaultNode)[0],
+            code: select("//*[local-name(.)='code']/text()", ebsFaultNode)[0].nodeValue,
+            message: select("//*[local-name(.)='message']/text()", ebsFaultNode)[0].nodeValue,
         }
         return foo;
     },

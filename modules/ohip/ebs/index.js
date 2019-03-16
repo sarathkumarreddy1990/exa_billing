@@ -48,7 +48,6 @@ const edtApiUrl = 'https://ws.conf.ebs.health.gov.on.ca:1443/EDTService/EDTServi
 const hcvApiUrl = 'https://ws.conf.ebs.health.gov.on.ca:1444/HCVService/HCValidationService';
 
 
-
 const EBSConnector = function(config) {
 
     const ebsRequestData = {
@@ -217,7 +216,6 @@ const EBSConnector = function(config) {
                 return ws.send(handlers, ctx, (ctx) => {
 
                     const doc = new dom().parseFromString(ctx.response);
-
                     try {
                         auditInfo.push(ctx.audit);
                         results = results.concat(xml.parseInfoResponse(doc));
@@ -239,7 +237,6 @@ const EBSConnector = function(config) {
         },
 
         list: (args, callback) => {
-
             const ctx = getContext(EDT_LIST, args);
 
             return ws.send(handlers, ctx, (ctx) => {
@@ -254,7 +251,6 @@ const EBSConnector = function(config) {
                     });
                 }
                 catch (e) {
-                    console.log('caught exception: ', e);
                     return callback(null, {
                         faults: [xml.parseEBSFault(doc)],
                         auditInfo: [],
@@ -283,7 +279,6 @@ const EBSConnector = function(config) {
                 return ws.send(handlers, ctx, (ctx) => {
 
                     const doc = new dom().parseFromString(ctx.response);
-                    // console.log(ctx.response);
                     try {
                         return callback(null, {
                             faults: [],
@@ -292,8 +287,6 @@ const EBSConnector = function(config) {
                         });
                     }
                     catch (e) {
-                        console.log('caught exception: ', e);
-
                         return callback(null, {
                             faults: [xml.parseEBSFault(doc)],
                             auditInfo: [],
@@ -412,12 +405,16 @@ const EBSConnector = function(config) {
             });
         },
 
-        hcvValidation: (args, callback) => {
+        validateHealthCard: (args, callback) => {
             const ctx = getContext(HCV_BASIC_VALIDATE, args, hcvApiUrl);
 
             return ws.send(handlers, ctx, (ctx) => {
                 const doc = new dom().parseFromString(ctx.response);
-                return callback(null, xml.parseTypeListResult(doc));
+                return callback(null, {
+                    faults: [],
+                    auditInfo: [ctx.audit],
+                    results: [xml.parseHCVResponse(ctx.response)],
+                });
             });
         }
 
