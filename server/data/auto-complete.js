@@ -82,7 +82,7 @@ module.exports = {
                 AND p.is_active 
                 AND p.company_id = ${params.company_id} 
                 AND p.provider_type = ${params.provider_type}
-                AND NOT p.sys_provider
+                AND NOT p.sys_provider -- we dont want system providers
         `;
 
         if (params.q != '') {
