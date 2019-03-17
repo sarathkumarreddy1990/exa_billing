@@ -288,16 +288,19 @@ const loadFile = async (args) => {
 
 const updateFileStatus = async (args) => {
     const {
-        edi_file_id,
+        files,
         status,
     } = args;
 
+    const fileIds = files.map((file) => {
+        return file.edi_file_id;
+    });
     const sql = SQL`
         UPDATE billing.edi_files
         SET
             status=${status}
         WHERE
-            id = ${edi_file_id}
+            id = ANY(ARRAY[${fileIds}::int[]])
     `;
     await query(sql.text, sql.values);
 };

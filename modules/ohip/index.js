@@ -404,16 +404,17 @@ module.exports = function(billingApi) {
                 }
 
                 const separatedUploadResults = separateResults(uploadResponse, EDT_UPLOAD, responseCodes.SUCCESS);
-                const successfulUploadResults = await separatedUploadResults[responseCodes.SUCCESS];
+                const successfulUploadResults = (separatedUploadResults)[responseCodes.SUCCESS];
 
                 // // mark files that were successfully uploaded to "in_progress" status
                 if (!successfulUploadResults) {
                     return callback(null, separatedUploadResults);
                 }
+
                 billingApi.updateFileStatus({
                     status: 'in_progress',
-                    files: successfulUploadResults.map(async (uploadResult) => {
-                        return find((await storedFiles), (storedFile) => {
+                    files: successfulUploadResults.map((uploadResult) => {
+                        return find((storedFiles), (storedFile) => {
                             return uploadResult.description === storedFile.filename;
                         });
                     }),
@@ -429,27 +430,21 @@ module.exports = function(billingApi) {
                 // // 7 - submit file to OHIP
                 return ebs.submit({resourceIDs}, (submitErr, submitResponse) => {
 
+                    const separatedSubmitResults = separateResults(submitResponse, EDT_SUBMIT, responseCodes.SUCCESS);
+                    const successfulSubmitResults = separatedSubmitResults[responseCodes.SUCCESS];
                     if (submitErr) {
-                        //      a. failure -> update file status ('error'), delete file from ohip
-                        billingApi.updateFileStatus({
-                            status: 'failed',
-                            files: separa[responseCodes.SUCCESS].map(async (uploadResult) => {
-                                return find((await storedFiles), (storedFile) => {
-                                    return uploadResult.description === storedFile.filename;
-                                });
-                            }),
-                        });
                         return callback(submitErr, submitResponse);
                     }
 
-
-                    const separatedSubmitResults = separateResults(submitResponse, EDT_SUBMIT, responseCodes.SUCCESS);
+                    if (!successfulSubmitResults) {
+                        return callback(null, separatedSubmitResults);
+                    }
 
                     // mark files that were successfully submitted to "success" status
                     billingApi.updateFileStatus({
                         status: 'success',
-                        files: separatedSubmitResults[responseCodes.SUCCESS].map(async (submitResult) => {
-                            return find((await storedFiles), (storedFile) => {
+                        files: successfulSubmitResults.map((submitResult) => {
+                            return find((storedFiles), (storedFile) => {
                                 return submitResult.description === storedFile.filename;
                             });
                         }),
