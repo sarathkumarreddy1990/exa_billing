@@ -42,7 +42,7 @@ ws.Mtom.prototype.send = function(ctx, callback) {
 		// var elem = select(doc, file.xpath)[0];
 
         const binary = Buffer.from(file.content, 'base64');
-		const id = `part${parseInt(i) + 1}`;
+        const id = `part${parseInt(i) + 1}`;
 
         parts.push({
             id,
@@ -115,25 +115,20 @@ ws.addAttachment = (ctx, property, xpath, file, contentType, index) => {
     const prop = ctx[property];
     const doc = new dom().parseFromString(prop);
     const elem = select(xpath, doc)[index];
-    const readFileAsync = promisify(fs.readFile);
-    readFileAsync(file).then((content)=> {
+    const content = fs.readFileSync(file).toString("base64");
 
-        const content64 = content.toString('base64');
-        utils.setElementValue(doc, elem, content64);
-        ctx[property] = doc.toString();
-        if (!ctx.base64Elements) {
-            ctx.base64Elements = [];
-        }
-        ctx.base64Elements.push({
-            // xpath: xpath,    // NOTE upstream implementation uses xpath
-            elem,               // it would be nice to know enough xpath to
-                                // target specific element indexes :P
-                                // 1 - could eliminate this method
-            contentType,
-            content: content64,
-        });
+    utils.setElementValue(doc, elem, content);
+    ctx[property] = doc.toString();
+    if (!ctx.base64Elements) {
+        ctx.base64Elements = [];
+    }
+    ctx.base64Elements.push({
+        // xpath: xpath,    // NOTE upstream implementation uses xpath
+        elem,               // it would be nice to know enough xpath to
+                            // target specific element indexes :P
+        contentType,
+        content,
     });
-
 
 };
 

@@ -404,11 +404,15 @@ module.exports = function(billingApi) {
                 }
 
                 const separatedUploadResults = separateResults(uploadResponse, EDT_UPLOAD, responseCodes.SUCCESS);
+                const successfulUploadResults = await separatedUploadResults[responseCodes.SUCCESS];
 
                 // // mark files that were successfully uploaded to "in_progress" status
+                if (!successfulUploadResults) {
+                    return callback(null, separatedUploadResults);
+                }
                 billingApi.updateFileStatus({
                     status: 'in_progress',
-                    files: await separatedUploadResults[responseCodes.SUCCESS].map(async (uploadResult) => {
+                    files: successfulUploadResults.map(async (uploadResult) => {
                         return find((await storedFiles), (storedFile) => {
                             return uploadResult.description === storedFile.filename;
                         });
