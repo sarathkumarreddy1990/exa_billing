@@ -7,11 +7,66 @@ const {
 } = require('xpath');
 const dom = require('xmldom').DOMParser;
 
+const pki = require('node-forge').pki;
+const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 const {
-    decrypt,
+    promisify,
+} = require('util');
+
+const {
     parseAuditLogDetails,
 } = require('./xml');
 
+/*
+ This needed to be overriden, too, since the base ws.js couldn't handle multiple
+ attachments. The difference here is that instead of using 'file.xpath' to refer
+ to a node, we're passing the node itself as 'file.elem'
+*/
+ws.Mtom.prototype.send = function(ctx, callback) {
+
+    const self = this;
+    const boundary = "exa_ebs_boundary";
+    const parts = [
+        {
+            id: "part0",
+            contentType: `application/xop+xml;charset=utf-8;type="${ctx.contentType}"`,
+            encoding: '8bit',
+        },
+    ];
+    const doc = new dom().parseFromString(ctx.request);
+
+    for (let i in ctx.base64Elements) {
+        const file = ctx.base64Elements[i];
+		// var elem = select(doc, file.xpath)[0];
+
+        const binary = Buffer.from(file.content, 'base64');
+        const id = `part${parseInt(i) + 1}`;
+
+        parts.push({
+            id,
+            contentType: file.contentType,
+            body: binary,
+            encoding: 'binary',
+            attachment: true,
+        });
+
+        file.elem.removeChild(file.elem.firstChild);
+        utils.appendElement(doc, file.elem, 'http://www.w3.org/2004/08/xop/include', 'xop:Include');
+        file.elem.firstChild.setAttribute('xmlns:xop', 'http://www.w3.org/2004/08/xop/include');
+        file.elem.firstChild.setAttribute('href', `cid: ${id}`);
+    }
+
+    parts[0].body = Buffer.from(doc.toString());
+    ctx.contentType = `multipart/related; type="application/xop+xml"; start="<part0>"; boundary="${boundary}"; start-info="${ctx.contentType}"; action="${ctx.action}"`;
+
+    ctx.request = writer.build_multipart_body(parts, boundary);
+
+    this.next.send(ctx, function(ctx) {
+        self.receive(ctx, callback)
+    })
+};
 
 ws.Mtom.prototype.receive = (ctx, callback) => {
 
@@ -55,6 +110,59 @@ ws.Mtom.prototype.receive = (ctx, callback) => {
 };
 
 
+
+ws.addAttachment = (ctx, property, xpath, file, contentType, index) => {
+    const prop = ctx[property];
+    const doc = new dom().parseFromString(prop);
+    const elem = select(xpath, doc)[index];
+    const content = fs.readFileSync(file).toString("base64");
+
+    utils.setElementValue(doc, elem, content);
+    ctx[property] = doc.toString();
+    if (!ctx.base64Elements) {
+        ctx.base64Elements = [];
+    }
+    ctx.base64Elements.push({
+        // xpath: xpath,    // NOTE upstream implementation uses xpath
+        elem,               // it would be nice to know enough xpath to
+                            // target specific element indexes :P
+        contentType,
+        content,
+    });
+
+};
+
+// TODO: EXA-12673
+// TODO remember to refactor this into shared library with EBSConnector
+const PEMFILE = fs.readFileSync(path.join(__dirname, 'certs/exa-ebs.pem')).toString();
+
+const decrypt = (encryptedKey, encryptedContent) => {
+
+    encryptedKey = Buffer.from(encryptedKey, 'base64').toString('binary');
+
+    const private_key = pki.privateKeyFromPem(PEMFILE);
+
+    const decryptedKey = Buffer.from(private_key.decrypt(encryptedKey, 'RSAES-PKCS1-V1_5'), 'binary');
+
+    encryptedContent = Buffer.from(encryptedContent, 'base64');
+
+    const decipher = crypto.createDecipheriv('aes-128-cbc', decryptedKey, encryptedContent.slice(0,16));
+    decipher.setAutoPadding(false);
+
+    let decryptedContent = decipher.update(encryptedContent.slice(16), null, 'binary') + decipher.final('binary');
+
+    // Remove padding bytes equal to the value of the last byte of the returned data.
+    const padding = decryptedContent.charCodeAt(decryptedContent.length - 1);
+    if (1 <= padding && padding <= 16) {
+        decryptedContent = decryptedContent.substr(0, decryptedContent.length - padding);
+    } else {
+        throw new Error('padding length invalid');
+    }
+
+    return Buffer.from(decryptedContent, 'binary').toString('utf8');
+};
+
+
 ws.Xenc = function() {};
 
 ws.Xenc.prototype.send = function(ctx, callback) {
@@ -73,9 +181,10 @@ ws.Xenc.prototype.send = function(ctx, callback) {
             encryptedKeyNodes.splice(0, 1);
 
             const newNode = new dom().parseFromString(decryptedData);
-            bodyNode.replaceChild(
+
+            bodyNode.firstChild.replaceChild(
                 newNode,
-                select("//*[local-name(.)='downloadResponse']", bodyNode)[0]
+                bodyNode.firstChild.firstChild
             );
 
             // NOTE collaboration with Mtom
@@ -96,13 +205,16 @@ ws.Xenc.prototype.send = function(ctx, callback) {
                 const contentNode = select(`//*[@href='${contentURI}']//parent::*`, bodyNode)[0];
                 contentNode.removeChild(contentNode.firstChild);
                 utils.setElementValue(doc, contentNode, decryptedContent);
+
             }
 
-            ctx.response = doc.toString();
 
         } catch(e) {
             console.log(`error: ${e}`);
         }
+
+        ctx.response = doc.toString();
+
         callback(ctx);
     });
 };
@@ -133,9 +245,8 @@ ws.Audit.prototype.send = function(ctx, callback) {
         // duration
         ctx.audit.duration = (new Date()).getTime() - ctx.audit.dateTime.getTime();
 
-        const doc = new dom().parseFromString(ctx.response)
+        const doc = new dom().parseFromString(ctx.response);
         const parseObj = parseAuditLogDetails(doc);
-
         ctx.audit = {
             // Simple success or failure
             result: parseObj.msg,

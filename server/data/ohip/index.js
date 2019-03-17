@@ -22,7 +22,7 @@ const era_parser = require('./ohip-era-parser');
 const exaFileTypes = {
     [resourceTypes.CLAIMS]: 'can_ohip_h',
     [resourceTypes.BATCH_EDIT]: 'can_ohip_b',
-    [resourceTypes.ERROR_REPORT]: 'can_ohip_e',
+    [resourceTypes.ERROR_REPORTS]: 'can_ohip_e',
     [resourceTypes.ERROR_REPORT_EXTRACT]: 'can_ohip_f',
     [resourceTypes.CLAIMS_MAIL_FILE_REJECT_MESSAGE]: 'can_ohip_x',
     [resourceTypes.REMITTANCE_ADVICE]: 'can_ohip_p', // would it be easier to remember this as "PAYMENT?"
@@ -50,7 +50,6 @@ const exaFileTypes = {
  */
 const getExaFileType = (args) => {
     let resourceType = args.resourceType
-
     if (args.filename && !resourceType) {
         resourceType = ohipUtil.getResourceType(args.filename);
     }
@@ -147,6 +146,7 @@ const storeFile =  async (args) => {
 
     const exaFileType = getExaFileType(args);
 
+
     // 20120331 - OHIP Conformance Testing Batch Edit sample batch date, seq: 0005
     // accounting number: "CST-PRIM" from Conformance Testing Error Report sample
 
@@ -158,10 +158,10 @@ const storeFile =  async (args) => {
     };
 
     fs.writeFileSync(fileInfo.absolutePath, data, {encoding});
-
     if (isTransient || !exaFileType) {
         // if we don't care about storing the file or the database
         // will freak out if we try, then our work is done, here
+
         return fileInfo;
     }
 
@@ -194,9 +194,9 @@ const storeFile =  async (args) => {
         RETURNING id
     `;
 
-    const  dbResults = (await query(sql, [])).rows[0];
+    const  dbResults = (await query(sql, [])).rows;
 
-    fileInfo.edi_file_id = dbResults.id;
+    fileInfo.edi_file_id = dbResults[0].id;
 
     return fileInfo;
 };
@@ -288,16 +288,19 @@ const loadFile = async (args) => {
 
 const updateFileStatus = async (args) => {
     const {
-        edi_file_id,
+        files,
         status,
     } = args;
 
+    const fileIds = files.map((file) => {
+        return file.edi_file_id;
+    });
     const sql = SQL`
         UPDATE billing.edi_files
         SET
             status=${status}
         WHERE
-            id = ${edi_file_id}
+            id = ANY(ARRAY[${fileIds}::int[]])
     `;
     await query(sql.text, sql.values);
 };
@@ -359,6 +362,8 @@ const applyClaimSubmission =  async (args) => {
 
         (await query(sql.text, sql.values)).rows;
     });
+
+    // TODO: update file status to success
 
     // TODO
     // 1 - insert record into edi_file_claims table
@@ -441,7 +446,7 @@ const applyBatchEditReport = async (args) => {
     `;
 
     const dbResults = (await query(sql.text, sql.values)).rows;
-    // console.log('db results: ', dbResults);
+
 
     if (dbResults && dbResults.length) {
 
@@ -488,8 +493,7 @@ const applyErrorReport = async (args) => {
 
     // TODO
     // 1 - set error codes on edi_file_claims
-    //
-    console.log(args);
+
 };
 
 const OHIP_CONFIGURATION_MODE = {
@@ -518,11 +522,19 @@ const OHIPDataAPI = {
     applyErrorReport,
 
     getOHIPConfiguration: async (args) => {
+
+        const {
+            hcv,
+            muid,
+        } = args || {};
+
         return {
             // TODO: EXA-12674
-            softwareConformanceKey: 'b5dc648e-581a-4886-ac39-c18832d12e06',
-            auditID:124355467675,
-            serviceUserMUID: 614200,
+            softwareConformanceKey: hcv
+                ? '65489ecd-0bef-4558-8871-f2e4b71b8e92'
+                : 'b5dc648e-581a-4886-ac39-c18832d12e06',
+            auditID: 124355467675,
+            serviceUserMUID: muid || 614200,
             username: "confsu+355@gmail.com",
             password: "Password1!",
             mode: OHIP_CONFIGURATION_MODE.DEMO,

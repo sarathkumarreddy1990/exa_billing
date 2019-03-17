@@ -10,7 +10,7 @@ const getResourceIDsXML = (resourceIDs) => {
 
 module.exports = {
 
-    EDT_UPLOAD: (args) => {
+    EDT_UPLOAD: (args, ctx) => {
 
         const {
             uploads,
@@ -24,7 +24,15 @@ module.exports = {
                 resourceType,
             } = uploads[i];
 
-            innerXML = `
+            // ws.addAttachment(
+            //     ctx,
+            //     "request",
+            //     "//*[local-name(.)='content']",
+            //     upload.filename,
+            //      "text/plain"
+            //  );
+            //
+            innerXML += `
                 <upload>
                     <content />
                     <description>${description}</description>

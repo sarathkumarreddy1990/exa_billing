@@ -1,6 +1,6 @@
-const ejs = require('ejs');
+const _ = require('lodash');
 
-module.exports = ejs.compile(`<soapenv:Envelope
+module.exports = _.template(`<soapenv:Envelope
     xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
     xmlns:msa="http://msa.ebs.health.ontario.ca/"
     xmlns:idp="http://idp.ebs.health.ontario.ca/"
@@ -23,8 +23,7 @@ module.exports = ejs.compile(`<soapenv:Envelope
     </soapenv:Header>
 
     <soapenv:Body xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
-        <%# NOTE this outputs the *unescapes* output of serviceXML %>
-        <%- serviceXML %>
+        <%= serviceXML %>
     </soapenv:Body>
 
 </soapenv:Envelope>`);
