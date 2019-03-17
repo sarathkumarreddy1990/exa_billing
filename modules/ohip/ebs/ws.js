@@ -26,8 +26,8 @@ const {
 */
 ws.Mtom.prototype.send = function(ctx, callback) {
 
-    const self = this
-    boundary = "exa_ebs_boundary"
+    const self = this;
+    const boundary = "exa_ebs_boundary";
     const parts = [
         {
             id: "part0",
