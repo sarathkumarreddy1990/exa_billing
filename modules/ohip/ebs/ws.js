@@ -11,6 +11,9 @@ const pki = require('node-forge').pki;
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+const {
+    promisify,
+} = require('util');
 
 const {
     parseAuditLogDetails,
@@ -38,7 +41,7 @@ ws.Mtom.prototype.send = function(ctx, callback) {
         const file = ctx.base64Elements[i];
 		// var elem = select(doc, file.xpath)[0];
 
-        const binary = new Buffer(file.content, 'base64');
+        const binary = Buffer.from(file.content, 'base64');
 		const id = `part${parseInt(i) + 1}`;
 
         parts.push({
@@ -55,7 +58,7 @@ ws.Mtom.prototype.send = function(ctx, callback) {
         file.elem.firstChild.setAttribute('href', `cid: ${id}`);
     }
 
-    parts[0].body = new Buffer(doc.toString());
+    parts[0].body = Buffer.from(doc.toString());
     ctx.contentType = `multipart/related; type="application/xop+xml"; start="<part0>"; boundary="${boundary}"; start-info="${ctx.contentType}"; action="${ctx.action}"`;
 
     ctx.request = writer.build_multipart_body(parts, boundary);
@@ -112,19 +115,26 @@ ws.addAttachment = (ctx, property, xpath, file, contentType, index) => {
     const prop = ctx[property];
     const doc = new dom().parseFromString(prop);
     const elem = select(xpath, doc)[index];
-    const content = fs.readFileSync(file).toString("base64");
+    const readFileAsync = promisify(fs.readFile);
+    readFileAsync(file).then((content)=> {
 
-    utils.setElementValue(doc, elem, content);
-    ctx[property] = doc.toString();
-    if (!ctx.base64Elements) {
-        ctx.base64Elements = [];
-    }
-    ctx.base64Elements.push({
-        // xpath: xpath,
-        elem,
-        contentType,
-        content,
+        const content64 = content.toString('base64');
+        utils.setElementValue(doc, elem, content64);
+        ctx[property] = doc.toString();
+        if (!ctx.base64Elements) {
+            ctx.base64Elements = [];
+        }
+        ctx.base64Elements.push({
+            // xpath: xpath,    // NOTE upstream implementation uses xpath
+            elem,               // it would be nice to know enough xpath to
+                                // target specific element indexes :P
+                                // 1 - could eliminate this method
+            contentType,
+            content: content64,
+        });
     });
+
+
 };
 
 // TODO: EXA-12673
@@ -133,13 +143,13 @@ const PEMFILE = fs.readFileSync(path.join(__dirname, 'certs/exa-ebs.pem')).toStr
 
 const decrypt = (encryptedKey, encryptedContent) => {
 
-    encryptedKey = new Buffer(encryptedKey, 'base64').toString('binary');
+    encryptedKey = Buffer.from(encryptedKey, 'base64').toString('binary');
 
     const private_key = pki.privateKeyFromPem(PEMFILE);
 
-    const decryptedKey = new Buffer(private_key.decrypt(encryptedKey, 'RSAES-PKCS1-V1_5'), 'binary');
+    const decryptedKey = Buffer.from(private_key.decrypt(encryptedKey, 'RSAES-PKCS1-V1_5'), 'binary');
 
-    encryptedContent = new Buffer(encryptedContent, 'base64');
+    encryptedContent = Buffer.from(encryptedContent, 'base64');
 
     const decipher = crypto.createDecipheriv('aes-128-cbc', decryptedKey, encryptedContent.slice(0,16));
     decipher.setAutoPadding(false);
@@ -154,7 +164,7 @@ const decrypt = (encryptedKey, encryptedContent) => {
         throw new Error('padding length invalid');
     }
 
-    return new Buffer(decryptedContent, 'binary').toString('utf8');
+    return Buffer.from(decryptedContent, 'binary').toString('utf8');
 };
 
 

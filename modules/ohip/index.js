@@ -128,7 +128,7 @@ module.exports = function(billingApi) {
                         results[responseCode] = (results[responseCode] || []).concat(data);
                     }
                     else {
-                        results['other'] = (results['other'] || []).push(data);
+                        results['other'] = (results['other'] || []).concat(data);
                     }
                 });
             }
@@ -158,7 +158,7 @@ module.exports = function(billingApi) {
 
         const ebs = new EBSConnector(await billingApi.getOHIPConfiguration());
 
-        await ebs.list(args, async (listErr, listResponse) => {
+        ebs.list(args, async (listErr, listResponse) => {
 
             if (listErr) {
                 await billingApi.storeFile({
@@ -199,10 +199,6 @@ module.exports = function(billingApi) {
                     }
 
                     const separatedDownloadResults = separateResults(downloadResponse, EDT_DOWNLOAD, responseCodes.SUCCESS);
-
-                    const resourceIDs = separatedDownloadResults[responseCodes.SUCCESS].map((detailResponse) => {
-                        return detailResponse.resourceID;
-                    });
 
                     const ediFiles = await separatedDownloadResults[responseCodes.SUCCESS].reduce(async (ediFilesResult, result) => {
 
