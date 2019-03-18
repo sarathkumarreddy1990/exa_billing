@@ -1,5 +1,6 @@
 const {
     resourceTypes,
+    responseCodes,
     services,
 } = require('./ebs/constants');
 
@@ -91,7 +92,7 @@ module.exports = {
     },
 
     resourceTypes,
-
+    responseCodes,
     services,
 
     // TODO convert to i18n
