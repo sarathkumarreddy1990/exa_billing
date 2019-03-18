@@ -34,6 +34,10 @@ module.exports = {
             return true;
         }
 
+        if(moduleNameInternal == 'reportSettingsRouter') {
+            return true;
+        }
+
         if (defaultAPIs.indexOf(route) > -1) {
             return true;
         }

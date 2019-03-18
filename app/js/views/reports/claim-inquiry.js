@@ -12,7 +12,7 @@ define([
             expanded: false,
             mainTemplate: _.template(claimInquiryTemplate),
             viewModel: {
-                dateFormat: 'L',
+                dateFormat: 'MM/DD/YYYY',
                 country_alpha_3_code: 'usa',
                 sDate: null,
                 patientIds: null,

@@ -12,7 +12,7 @@ define([
             expanded: false,
             mainTemplate: _.template(claimTransactionTemplate),
             viewModel: {
-                dateFormat: 'L',
+                dateFormat: 'MM/DD/YYYY',
                 country_alpha_3_code: 'usa',
                 i18nColumnHeaderCpt: 'cptCode',
                 sDate: null,
