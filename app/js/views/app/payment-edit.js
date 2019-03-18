@@ -70,6 +70,7 @@ define(['jquery',
             isRefundApplied: false,
             casDeleted: [],
             saveClick:false,
+            paymentDateObj:null,
 
             events: {
                 'click #btnPaymentSave': 'savePayment',
@@ -196,7 +197,8 @@ define(['jquery',
                 var self = this;
                 self.from = from;
                 self.payment_id = paymentId || 0;
-                commonjs.showLoading('Loading..')
+                self.paymentDateObj = null;
+                commonjs.showLoading('messages.loadingMsg.default');
                 self.defalutCASArray = [0, 1, 2, 3, 4, 5, 6];
 
                 var yearValue = moment().year();
@@ -849,6 +851,9 @@ define(['jquery',
                 $('#selectPaymentMode').val(response.payment_mode);
                 self.changePayerMode(response.payment_mode, true);
 
+                if(commonjs.checkNotEmpty(response.payment_dt)){
+                    self.paymentDateObj =  commonjs.convertToFacilityTimeZone(response.facility_id, response.payment_dt);
+                }
                 commonjs.checkNotEmpty(response.accounting_date) ? self.dtpAccountingDate.date(response.accounting_date) : self.dtpAccountingDate.clear();
                 self.study_dt = self.dtpAccountingDate.date().format('YYYY-MM-DD');
                 self.payer_type = response.payer_type;
@@ -1080,8 +1085,26 @@ define(['jquery',
             },
 
             validatepayments: function () {
-                var self = this;
+                var self = this, startDate, endDate;
                 var amount = $.trim($("#txtAmount").val());
+                var accountingDate = self.dtpAccountingDate && self.dtpAccountingDate.date() ? self.dtpAccountingDate.date().format('YYYY-MM-DD') : null;
+
+                if (self.isFromClaim) {
+                    accountingDate = self.claimPaymentObj && self.claimPaymentObj.accounting_date ? self.claimPaymentObj.accounting_date : accountingDate;
+                    self.paymentDateObj = self.claimPaymentObj && self.claimPaymentObj.payment_dt ? commonjs.convertToFacilityTimeZone(self.claimPaymentObj.facility_id, self.claimPaymentObj.payment_dt) : self.paymentDateObj;
+                }
+
+                startDate = self.paymentDateObj ? moment(self.paymentDateObj).subtract(30, 'days').startOf('day') : moment().subtract(30, 'days').startOf('day');
+                endDate = self.paymentDateObj ? moment(self.paymentDateObj).add(30, 'days').startOf('day') : moment().add(30, 'days').startOf('day');
+
+                if (!moment(accountingDate).isBetween(startDate, endDate) && accountingDate) {
+                    return confirm(commonjs.geti18NString("messages.confirm.payments.overwriteAccountingDate"));
+                }
+
+                if (self.isFromClaim) {
+                    return true; // return true if it is from claim screen, No need other validations.
+                }
+
                 if ($('#selectPayerType').val() === '0') {
                     commonjs.showWarning("messages.warning.payments.selectPayerType");
                     $('#selectPayerType').focus();
@@ -1161,7 +1184,7 @@ define(['jquery',
 
             savePayment: function (e, claimId, paymentId, paymentStatus, paymentApplicationId) {
                 var self = this;
-                if ((!self.isFromClaim && !self.validatepayments()) || (self.isFromClaim && !self.validatePayerDetails())) {
+                if (!self.validatepayments() || (self.isFromClaim && !self.validatePayerDetails())) {
                     return false;
                 }
 
