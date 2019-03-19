@@ -13,7 +13,7 @@ define([
             expanded: false,
             mainTemplate: _.template(MainTemplate),
             viewModel: {
-                dateFormat: 'L',
+                dateFormat: 'MM/DD/YYYY',
                 country_alpha_3_code: 'usa',
                 facilities: null,
                 //selectedFacilityId: null,
