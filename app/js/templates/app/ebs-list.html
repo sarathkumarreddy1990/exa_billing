@@ -1,0 +1,45 @@
+<div class="modal_div_container_nested">
+
+    <div>
+
+        <select id="ohipMUID">
+            <option value="614200" selected="selected">614200 (default)</option>
+            <option value="001CF">001CF</option>
+            <option value="999999">999999</option>
+            <option value="$$$$$$">$$$$$$</option>
+            <option value="">(blank)</option>
+        </select>
+
+        <%= ddlResourceType %>
+
+        <select id="ohipStatus">
+            <option value=""  selected="selected">Any Resource Status</option>
+            <option value="DOWNLOADABLE">DOWNLOADABLE</option>
+            <option value="UPLOADED">UPLOADED</option>
+            <option value="SUBMITTED">SUBMITTED</option>
+            <option value="DELETED">DELETED</option>
+            <option value="WIP">WIP</option>
+            <option value="APPROVED">APPROVED</option>
+            <option value="DENIED">DENIED</option>
+
+        </select>
+    </div>
+
+
+
+    <table id="tblConformanceTesting" width="100%"></table>
+
+    <div>
+
+        <button id='resourceUploadBtn' >Upload</button>
+        <button id='resourceUpdateBtn'>Update</button>
+        <button id='resourceDeleteBtn'>Delete</button>
+        <button id='resourceSubmitBtn'>Submit</button>
+        <button id='resourceDownloadBtn'>Download</button>
+        <button id='resourceListBtn'>List</button>
+        <button id='resourceInfoBtn'>Info</button>
+        <button id='resourceGetTypeListBtn'>Get Type List</button>
+        <button>Reset</button>
+
+    </div>
+</div>

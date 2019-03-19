@@ -125,7 +125,6 @@ module.exports = {
             // content,
             // resourceID,
         } = args;
-
         let innerXML = '';
 
         for (let i = 0; i < updates.length; i++) {
@@ -134,14 +133,14 @@ module.exports = {
                 resourceID,
             } = updates[i];
 
-            innerXML = `
+            innerXML += `
                 <updates>
                     <content />
                     <resourceID>${resourceID}</resourceID>
                 </updates>
             `
         }
-
+        console.log('innerXML: ', innerXML);
         return `
             <edt:update>
                 ${innerXML}

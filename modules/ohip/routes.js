@@ -3,6 +3,7 @@
 const logger = require('../../logger');
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
 const OHIPModule = require('./index');
 const claimWorkbenchController = require('../../server/controllers/claim/claim-workbench');
 const _ = require('lodash');
@@ -15,6 +16,7 @@ module.exports = function (billingApi) {
         ohip.sandbox(req.query, (ohipErr, ohipResponse) => {
             return res.send(ohipResponse);
         });
+        // res.send({message:'Hello, world!'});
     });
 
     router.get('/downloadAndProcessResponseFiles', (req, res) => {
@@ -65,6 +67,23 @@ module.exports = function (billingApi) {
             return res.send(ohipResponse);
         });
     });
+
+    router.get('/ct', (req, res) => {
+        const ohip = new OHIPModule(billingApi);
+        console.log('/ct endpoint hit (get)');
+        ohip.conformanceTesting(req.query, (err, ohipResponse) => {
+            return res.send(ohipResponse);
+        });
+    });
+
+    router.post('/ct', (req, res) => {
+        const ohip = new OHIPModule(billingApi);
+        console.log('/ct endpoint hit (post)');
+        ohip.conformanceTesting(req.body, (err, ohipResponse) => {
+            return res.send(ohipResponse);
+        });
+    });
+
 
     return router;
 };

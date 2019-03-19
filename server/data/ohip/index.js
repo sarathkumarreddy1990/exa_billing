@@ -83,7 +83,7 @@ const getFileStore = async (args) => {
     } = args;
 
 
-    const description = ohipUtil.getResourceDescription(filename);
+    const description = filename && ohipUtil.getResourceDescription(filename);
 
     let filestore = null;
 

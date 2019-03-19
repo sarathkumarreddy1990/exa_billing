@@ -1,0 +1,120 @@
+<div class="modal_div_container_nested">
+
+    <% if (typeof auditInfo !== 'undefined') { %>
+
+    <% } %>
+
+    <% if (typeof faults !== 'undefined') { %>
+        <table width="100%">
+            <tr>
+                <th>Code</th>
+                <th>Message</th>
+            </tr>
+            <% faults.forEach(function(fault) { %>
+            <tr>
+                <td><%=fault.code%></td>
+                <td><%=fault.message%></td>
+            </tr>
+            <% }) %>
+        </tr>
+    <% } %>
+
+    <% if (typeof responseResults !== 'undefined') { %>
+        <table width="100%">
+            <tr>
+                <th>Resource ID</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Code</th>
+                <th>Message</th>
+            </tr>
+            <% responseResults.forEach(function(result) { %>
+            <tr>
+                <td><%=result.resourceID%></td>
+                <td><%=result.description%></td>
+                <td><%=result.status%></td>
+                <td><%=result.code%></td>
+                <td><%=result.msg%></td>
+            </tr>
+            <% }) %>
+        </tr>
+    <% }
+
+    if (typeof downloadData !== 'undefined') { %>
+        <table width="100%">
+            <tr>
+                <th>Resource ID</th>
+                <th>Description</th>
+                <th>Resource Type</th>
+                <th>Code</th>
+                <th>Message</th>
+            </tr>
+            <% downloadData.forEach(function(result) { %>
+            <tr>
+                <td><%=result.resourceID%></td>
+                <td><!-- Decorate with result.content link --><%=result.description%></td>
+                <td><%=result.resourceType%></td>
+                <td><%=result.code%></td>
+                <td><%=result.msg%></td>
+            </tr>
+            <% }) %>
+        </tr>
+    <% }
+
+    if (typeof detailData !== 'undefined') { %>
+        <table width="100%">
+            <tr>
+                <th>Resource ID</th>
+                <th>Description</th>
+                <th>Resource Type</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Modified</th>
+                <th>Code</th>
+                <th>Message</th>
+            </tr>
+            <% detailData.forEach(function(result) { %>
+            <tr>
+                <td><%=result.resourceID%></td>
+                <td><%=result.description%></td>
+                <td><%=result.resourceType%></td>
+                <td><%=result.status%></td>
+                <td><%=result.createTimestamp%></td>
+                <td><%=result.modifyTimestamp%></td>
+                <td><%=result.code%></td>
+                <td><%=result.msg%></td>
+            </tr>
+            <% }) %>
+        </tr>
+    <% }
+
+
+    if (typeof typeListData !== 'undefined') { %>
+        <table width="100%">
+            <tr>
+                <th>Resource Type</th>
+                <th>Access</th>
+                <th>Description (English)</th>
+                <th>Description (French)</th>
+                <th>Group Required</th>
+                <th>CSN Data</th>
+                <th>Code</th>
+                <th>Message</th>
+            </tr>
+            <% typeListData.forEach(function(result) { %>
+            <tr>
+                <td><%=result.resourceType%></td>
+                <td><%=result.access%></td>
+                <td><%=result.descriptionEn%></td>
+                <td><%=result.descriptionFr%></td>
+                <td><%=result.groupRequired%></td>
+                <td><%=result.csnData%></td>
+                <td><%=result.code%></td>
+                <td><%=result.msg%></td>
+            </tr>
+            <% }) %>
+        </tr>
+    <% } %>
+
+
+</div>
