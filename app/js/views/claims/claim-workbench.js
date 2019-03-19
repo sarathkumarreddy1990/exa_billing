@@ -2188,13 +2188,17 @@ define(['jquery',
 
             // for submit, info, download, delete
             sendResourceIDsRequest: function(service) {
+                var resourceIDs = this.getCheckedEBSResourceIDs();
+                if (!resourceIDs.length) {
+                    resourceIDs = [$('#invalidResourceID').val()];
+                }
                 return $.ajax({
                     url: '/exa_modules/billing/ohip/ct',
                     type: 'POST',
                     data: {
                         service: service,
                         muid: $("#ohipMUID").val(),
-                        resourceIDs: this.getCheckedEBSResourceIDs(),
+                        resourceIDs: resourceIDs,
                     }
                 });
             },
@@ -2424,26 +2428,17 @@ define(['jquery',
                     custompager: self.conformanceTestingPager,
                     emptyMessage: i18n.get("messages.status.noRecordFound"),
                     colNames: ["", "ID", "Description", "Status", "Code", "Message"],
-                    // i18nNames: [
-                    //     "",
-                    //     "billing.claims.fileName",
-                    //     "billing.claims.fileType",
-                    //     "billing.claims.submittedDate",
-                    //     "billing.claims.acknowledgementReceived",
-                    //     "billing.claims.paymentReceived",
-                    //     ""
-                    // ],
+
                     colModel: [
                         { name: '', index: 'id', key: true, hidden: false, search: false, width: 25,
                             formatter: function (cellvalue, options, rowObject) {
-                                return `<input type="checkbox" name="chkResource"  class="ohip_resource_chk" id="chkResource_${rowObject.resourceID}" />`
+                                return '<input type="checkbox" name="chkResource" class="ohip_resource_chk" id="chkResource_' + rowObject.resourceID + '" />'
                             }
                         },
                         {
                             name: 'resourceID',
                             search: false,
-                            width: 75,
-                            // align: 'center'
+                            width: 75
                         },
                         {
                             name: 'description',
@@ -2453,23 +2448,12 @@ define(['jquery',
                         {
                             name: 'status',
                             search: false,
-                            width: 150,
-                            // formatter: function (value, model, data) {
-                            //     return commonjs.checkNotEmpty(value)
-                            //         ? commonjs.convertToFacilityTimeZone(app.facilityID, value).format('L LT z')
-                            //         : '';
-                            // }
+                            width: 150
                         },
                         {
                             name: 'code',
                             search: false,
-                            width: 100,
-                            // align: 'center',
-                            // formatter: function (value, model, data) {
-                            //     return (data.is_acknowledgement_received === "true")
-                            //         ? '<i class="fa fa-check" style="color: green" aria-hidden="true"></i>'
-                            //         : '<i class="fa fa-times" style="color: red" aria-hidden="true"></i>';
-                            // }
+                            width: 100
                         },
                         {
                             name: 'msg',
@@ -2479,21 +2463,7 @@ define(['jquery',
                             formatter: function (value, model, data) {
                                 return data.msg || data.message;
                             }
-                        },
-                        // {
-                        //     name: 'code',
-                        //     search: false,
-                        //     sortable: false,
-                        //     width: 150,
-                        //     formatter: function (value, model, data) {
-                        //         return (data.file_type === 'can_ohip_p')
-                        //             ? '<button i18n="shared.buttons.apply" class="btn btn-primary btn-block btn-apply-file-management"></button>'
-                        //             : '';
-                        //     },
-                        //     customAction: function (rowID, e) {
-                        //         self.applyFileManagement(rowID);
-                        //     }
-                        // }
+                        }
                     ],
                     datastore: self.ebsListResults,
                     onbeforegridbind: self.initEbsListResults,

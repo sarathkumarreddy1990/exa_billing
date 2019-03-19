@@ -231,12 +231,22 @@ module.exports = {
     },
 
     parseEBSFault: (doc) => {
-        const ebsFaultNode = select("//*[local-name(.)='EBSFault']", doc)[0];
+        // because why wouldn't OHIP use two fault-schemas and only document one?
+        try {
+            const ebsFaultNode = select("//*[local-name(.)='EBSFault']", doc)[0];
 
-        const foo= {
-            code: select("//*[local-name(.)='code']/text()", ebsFaultNode)[0].nodeValue,
-            message: select("//*[local-name(.)='message']/text()", ebsFaultNode)[0].nodeValue,
+            return {
+                code: select("//*[local-name(.)='code']/text()", ebsFaultNode)[0].nodeValue,
+                message: select("//*[local-name(.)='message']/text()", ebsFaultNode)[0].nodeValue,
+            };
         }
-        return foo;
+        catch(err) {
+            const faultNode = select("//*[local-name(.)='Fault']", doc)[0];
+
+            return {
+                code: select("//*[local-name(.)='faultcode']/text()", faultNode)[0].nodeValue,
+                message: select("//*[local-name(.)='faultstring']/text()", faultNode)[0].nodeValue,
+            };
+        }
     },
 };

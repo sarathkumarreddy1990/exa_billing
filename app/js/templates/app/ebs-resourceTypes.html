@@ -1,5 +1,7 @@
 <select class='ebs-resource-type' <%= (typeof domId === 'undefined') ? '' : 'id="'+domId+'"' %>>
     <option value=""  selected="selected">All Resource Types</option>
+    <option value="$$">$$ (invalid)</option>
+    <option value="99">99 (invalid)</option>
     <option value="CL">Claims</option>
     <option value="OB">OBEC</option>
     <option value="SDC">Stale Dated Claims</option>
