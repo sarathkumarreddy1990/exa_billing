@@ -157,4 +157,13 @@ router.get('/claims_total_balance', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.get('/paper_claim_fax', async function (req, res) {
+    try {
+        const data = await claimWorkbenchController.getPaperClaimPdf(req.query);
+        httpHandler.sendPdf(req, res, data);
+    } catch (err) {
+        httpHandler.send(req, res, err.message);
+    }
+});
+
 module.exports = router;

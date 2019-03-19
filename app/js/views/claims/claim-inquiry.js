@@ -204,6 +204,7 @@ define([
                                 self.patientInquiryForm(self.claim_id, patient_details[0].patient_id, patient_details[0].patient_name, self.options.grid_id, true, true);
                             });
 
+                            self.options.patient_id = patient_details[0].patient_id;  
 
                             if (patient_details && patient_details.length > 0) {
                                 var patientHeaderInfo = commonjs.geti18NString('shared.screens.setup.claimInquiry') + ':' + patient_details[0].patient_name + ' (Acc#:' + patient_details[0].account_no + ')' + ',  ' + moment(patient_details[0].birth_date).format('L') + ',  ' + patient_details[0].gender;
@@ -236,6 +237,7 @@ define([
                             } else {
                                 $('#divClaimInquiry').height(isFromClaimScreen ? $(window).height() - 220 : $(window).height() - 260);
                             }
+                            self.clearFaxInfo();
                         }
                     },
                     error: function (err) {
@@ -276,11 +278,12 @@ define([
                         }
                     },
                     {
-                        name: 'paper_claim_full', search: false,
+                        name: 'paper_claim_full', search: false, width: '200px',
                         customAction: function (rowID) {
                         },
                         formatter: function (cellvalue, options, rowObject) {
-                            return "<input type='button' style='line-height: 1;' class='btn btn-paper-claim-full btn-primary' value='Paper Claim' data-payer-type=" + rowObject.payer_type + " i18n='shared.buttons.paperclaimFull' id='spnPaperClaim_" + rowObject.id + "'>"
+                            return "<input type='button' style='line-height: 1;' class='btn btn-paper-claim-fax btn-primary' value='Paper Claim' data-payer-type=" + rowObject.payer_type + " i18n='shared.buttons.fax' id='spnPaperClaim_" + rowObject.id + "'>" +
+                                "<input type='button' style='line-height: 1;' class='btn btn-paper-claim-full btn-primary ml-2' value='Paper Claim' data-payer-type=" + rowObject.payer_type + " i18n='shared.buttons.paperclaimFull' id='spnPaperClaim_" + rowObject.id + "'>";
                         }
                     });
                 }
@@ -305,6 +308,41 @@ define([
                             self.showPaperClaim('paper_claim_original', [self.claim_id], rowid, payerType);
                         } else if (target.className.indexOf('btn-paper-claim-full') > -1) {
                             self.showPaperClaim('paper_claim_full', [self.claim_id], rowid, payerType);
+                        } else if (target.className.indexOf('btn-paper-claim-fax') > -1) {
+                            $('#divFaxReceipientPaperClaim').show();
+                            var faxClaimId = self.claim_id;
+                            var faxInsuranceId = rowid;
+                            var faxPayerType = payerType;
+
+                            var faxUrl = [
+                                'claimIds=' + faxClaimId,
+                                'payerId=' + faxInsuranceId,
+                                'payerType=' + faxPayerType,
+                                'userId=' + app.userID,
+                                'templateType=paper_claim_full'
+                            ];
+                            faxUrl = '/exa_modules/billing/claim_workbench/paper_claim_fax?' + faxUrl.join('&');
+
+                            $('#btnClaimFaxSend').off().click(function (e) {
+                                var faxReceiverName = $('#txtFaxReceiverName').val();
+                                var faxReceiverNumber = $('#txtFaxReceiverNumber').val();
+
+                                if (!commonjs.checkNotEmpty(faxReceiverName))
+                                    return commonjs.showWarning(commonjs.geti18NString("messages.status.faxReceiverName"));
+
+                                if (!commonjs.checkNotEmpty(faxReceiverNumber))
+                                    return commonjs.showWarning(commonjs.geti18NString("messages.status.faxNumberInvalid"));
+
+                                self.faxReport({ claimID: faxClaimId, patientId: self.options.patient_id, documentName: 'Other Report', faxReceiverNumber: faxReceiverNumber, faxReceiverName: faxReceiverName }, faxUrl, function () {
+                                    commonjs.showStatus("messages.status.faxQueued");
+                                    self.saveClaimComment(0, 'Paper claim (B&W) fax sent to ' + faxReceiverName + ' (' + faxReceiverNumber + ')', 'auto');
+                                    self.clearFaxInfo();
+                                });
+                            });
+
+                            $('#btnClaimFaxCancel').off().click(function (e) {
+                                self.clearFaxInfo();
+                            });
                         }
                     },
                 });
@@ -878,7 +916,7 @@ define([
                 });
             },
 
-            saveClaimComment: function (commentId, comment) {
+            saveClaimComment: function (commentId, comment, type) {
                 var self = this;
                 $('#siteModalNested').find('#btnCICommentSave').prop('disabled', true)
                 if (commentId != 0) {
@@ -910,7 +948,7 @@ define([
                         type: 'POST',
                         data: {
                             'note': comment,
-                            'type': 'manual',
+                            'type': type || 'manual',
                             'claim_id': self.claim_id
                         },
                         success: function (data, response) {
@@ -1128,21 +1166,23 @@ define([
                 }
             },
 
-            faxReport: function(patientActivityParams, reportUrl) {
+            faxReport: function(patientActivityParams, reportUrl, cb) {
                 $.ajax({
                     url: '/faxReport',
                     type: 'POST',
                     data: {
                         facility_id: app.userInfo.default_facility_id,
                         receiverType: 'OT',
-                        receiverName: $('#txtOtherFaxName').val(),
-                        deliveryAddress: $('#txtOtherFaxNumber').val(),
+                        receiverName: patientActivityParams.faxReceiverName || $('#txtOtherFaxName').val(),
+                        deliveryAddress: patientActivityParams.faxReceiverNumber || $('#txtOtherFaxNumber').val(),
                         reportUrl: reportUrl,
                         patientId: patientActivityParams.patientId,
                         claimId: patientActivityParams.claimID,
-                        documentName: 'Patient Activity'
+                        documentName: patientActivityParams.documentName || 'Patient Activity'
                     },
                     success: function (data, response) {
+                        if (cb)
+                            cb();
                         commonjs.showStatus("messages.status.reportFaxedSuccessfully");
                         $('#divFaxRecipient').hide();
                     },
@@ -1382,6 +1422,12 @@ define([
                 $("#gs_invoice_balance").addClass('floatbox');
                 $("#tblInvoiceGrid #gs_invoice_no").addClass('integerbox');
                 commonjs.validateControls();
+            },
+
+            clearFaxInfo: function () {
+                $('#txtFaxReceiverName').val('');
+                $('#txtFaxReceiverNumber').val('');
+                $('#divFaxReceipientPaperClaim').hide();
             }
     });
 });
