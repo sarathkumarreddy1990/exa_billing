@@ -4504,7 +4504,7 @@ define(['jquery',
                         commonjs.showWarning("messages.warning.shared.paymentChargeValidation", 'largewarning');
                         return false;
                     }
-                    if (!self.validatePaymentEdit(rowID)) {
+                    if (!self.validatePaymentEdit(rowID, paymentRowData)) {
                         return false;
                     }
 
@@ -4645,33 +4645,50 @@ define(['jquery',
 
             },
 
-            validatePaymentEdit: function (rowID) {
+            validatePaymentEdit: function (rowID, paymentRowData) {
                 var self = this;
+                var accountingDateObj = self.dtpAccountingDate[rowID - 1];
+                var isPaymentUpdate = accountingDateObj.isModified || false;
+                var accountingDate = paymentRowData.accounting_date || null;
+                var startDate = paymentRowData.payment_dt ? moment(paymentRowData.payment_dt).subtract(30, 'days').startOf('day') : moment().subtract(30, 'days').startOf('day');
+                var endDate = paymentRowData.payment_dt ? moment(paymentRowData.payment_dt).add(30, 'days').startOf('day') : moment().add(30, 'days').startOf('day');
+                var $paymentMode = $('#ddlPaymentMode_' + rowID);
+                var $checkCardNo = $('#txtCheckCardNo_' + rowID);
+
                 if ($('#txtAccountingDate_' + rowID).val() === '') {
                     commonjs.showWarning("messages.warning.payments.selectAccountingDate");
                     $('#txtAccountingDate_' + rowID).focus();
                     return false;
                 }
+
                 if ($('#ddlPayerName_' + rowID).val() === '') {
                     commonjs.showWarning("messages.warning.payments.selectPayerType");
                     $('#ddlPayerName_' + rowID).focus();
                     return false;
                 }
-                if ($('#ddlPaymentMode_' + rowID).val() === '') {
+
+                if ($paymentMode.val() === '') {
                     commonjs.showWarning("messages.warning.payments.selectPaymentMode");
-                    $('#ddlPaymentMode_' + rowID).focus();
+                    $paymentMode.focus();
                     return false;
                 }
-                if ($('#ddlPaymentMode_' + rowID).val() === 'card' && $.trim($('#txtCheckCardNo_' + rowID).val()) === "") {
+
+                if ($paymentMode.val() === 'card' && $.trim($checkCardNo.val()) === "") {
                     commonjs.showWarning('messages.warning.payments.enterCardNo');
-                    $('#txtCheckCardNo_' + rowID).focus();
+                    $checkCardNo.focus();
                     return false;
                 }
-                if ($('#ddlPaymentMode_' + rowID).val() === 'check' && $.trim($('#txtCheckCardNo_' + rowID).val()) === "") {
+
+                if ($paymentMode.val() === 'check' && $.trim($checkCardNo.val()) === "") {
                     commonjs.showWarning('messages.warning.payments.enterCheckNo');
-                    $('#txtCheckCardNo_' + rowID).focus();
+                    $checkCardNo.focus();
                     return false;
                 }
+
+                if (!moment(accountingDate).isBetween(startDate, endDate) && accountingDate && isPaymentUpdate) {
+                    return confirm(commonjs.geti18NString("messages.confirm.payments.overwriteAccountingDate"));
+                }
+
                 return true;
             },
 

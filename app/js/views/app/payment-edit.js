@@ -1085,24 +1085,14 @@ define(['jquery',
             },
 
             validatepayments: function () {
-                var self = this, startDate, endDate;
+                var self = this;
                 var amount = $.trim($("#txtAmount").val());
                 var accountingDate = self.dtpAccountingDate && self.dtpAccountingDate.date() ? self.dtpAccountingDate.date().format('YYYY-MM-DD') : null;
-
-                if (self.isFromClaim) {
-                    accountingDate = self.claimPaymentObj && self.claimPaymentObj.accounting_date ? self.claimPaymentObj.accounting_date : accountingDate;
-                    self.paymentDateObj = self.claimPaymentObj && self.claimPaymentObj.payment_dt ? commonjs.convertToFacilityTimeZone(self.claimPaymentObj.facility_id, self.claimPaymentObj.payment_dt) : self.paymentDateObj;
-                }
-
-                startDate = self.paymentDateObj ? moment(self.paymentDateObj).subtract(30, 'days').startOf('day') : moment().subtract(30, 'days').startOf('day');
-                endDate = self.paymentDateObj ? moment(self.paymentDateObj).add(30, 'days').startOf('day') : moment().add(30, 'days').startOf('day');
+                var startDate = self.paymentDateObj ? moment(self.paymentDateObj).subtract(30, 'days').startOf('day') : moment().subtract(30, 'days').startOf('day');
+                var endDate = self.paymentDateObj ? moment(self.paymentDateObj).add(30, 'days').startOf('day') : moment().add(30, 'days').startOf('day');
 
                 if (!moment(accountingDate).isBetween(startDate, endDate) && accountingDate) {
                     return confirm(commonjs.geti18NString("messages.confirm.payments.overwriteAccountingDate"));
-                }
-
-                if (self.isFromClaim) {
-                    return true; // return true if it is from claim screen, No need other validations.
                 }
 
                 if ($('#selectPayerType').val() === '0') {
@@ -1184,7 +1174,7 @@ define(['jquery',
 
             savePayment: function (e, claimId, paymentId, paymentStatus, paymentApplicationId) {
                 var self = this;
-                if (!self.validatepayments() || (self.isFromClaim && !self.validatePayerDetails())) {
+                if ((!self.isFromClaim && !self.validatepayments()) || (self.isFromClaim && !self.validatePayerDetails())) {
                     return false;
                 }
 
