@@ -16,7 +16,6 @@ module.exports = function (billingApi) {
         ohip.sandbox(req.query, (ohipErr, ohipResponse) => {
             return res.send(ohipResponse);
         });
-        // res.send({message:'Hello, world!'});
     });
 
     router.get('/downloadAndProcessResponseFiles', (req, res) => {
