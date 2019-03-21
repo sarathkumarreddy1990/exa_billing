@@ -213,19 +213,15 @@ module.exports = {
     },
 
     parseAuditLogDetails: (doc) => {
-
         const returnNode = select("//*[local-name(.)='return']", doc)[0];
+        // console.log(returnNode.toString());
 
         // empty results don't come with audit IDs or common results :(
         if (returnNode) {
-            const resultNode = select("/*[local-name(.)='response']/*[local-name(.)='result']", returnNode)[0];
 
-            if (resultNode) {
-                return {
-                    auditID: parseAuditID(resultNode),
-                    ...parseCommonResult(resultNode),
-                };
-            }
+            return {
+                auditID: parseAuditID(returnNode),
+            };
         }
         return {};
     },

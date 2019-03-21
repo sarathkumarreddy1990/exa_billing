@@ -1,10 +1,43 @@
 <div class="modal_div_container_nested">
 
-    <% if (typeof auditInfo !== 'undefined') { %>
+    <% if (typeof auditInfo !== 'undefined' && auditInfo.length) { %>
+        <h3>Audit Info</h3>
+        <table width="100%">
+            <tr>
+                <th>Transaction ID</th>
+                <th>Service User MUID</th>
+                <th>End User Identifier</th>
+                <th>Date/Time</th>
+                <th>Duration (ms)</th>
+                <th>Action / Event Detail</th>
+                <th>Simple Success/Failure</th>
+                <th>Exit statuses / messages</th>
+                <th>Error Messages</th>
+                <th>Audit ID (from request)</th>
+                <th>Audit ID (from response)</th>
 
+            </tr>
+            <% auditInfo.forEach(function(audit) { %>
+            <tr>
+                <td><%=audit.transactionID%></td>
+                <td><%=audit.serviceUserMUID%></td>
+                <td><%=audit.endUser%></td>
+                <td><%=audit.dateTime%></td>
+                <td><%=audit.duration%></td>
+                <td><%=audit.actionDetail%></td>
+                <td><%=audit.result%></td>
+                <td><%=audit.status%></td>
+                <td><%=audit.errorMessages%></td>
+                <td><%=audit.requestAuditID%></td>
+                <td><%=audit.responseAuditID%></td>
+
+            </tr>
+            <% }) %>
+        </table>
     <% } %>
 
-    <% if (typeof faults !== 'undefined') { %>
+    <% if (typeof faults !== 'undefined' && faults.length) { %>
+        <h3>Faults</h3>
         <table width="100%">
             <tr>
                 <th>Code</th>
@@ -16,10 +49,11 @@
                 <td><%=fault.message%></td>
             </tr>
             <% }) %>
-        </tr>
+        </table>
     <% } %>
 
-    <% if (typeof responseResults !== 'undefined') { %>
+    <% if (typeof responseResults !== 'undefined' && responseResults.length) { %>
+        <h3>Results</h3>
         <table width="100%">
             <tr>
                 <th>Resource ID</th>
@@ -37,10 +71,11 @@
                 <td><%=result.msg%></td>
             </tr>
             <% }) %>
-        </tr>
+        </table>
     <% }
 
-    if (typeof downloadData !== 'undefined') { %>
+    if (typeof downloadData !== 'undefined' && downloadData.length) { %>
+        <h3>Downloads</h3>
         <table width="100%">
             <tr>
                 <th>Resource ID</th>
@@ -52,16 +87,18 @@
             <% downloadData.forEach(function(result) { %>
             <tr>
                 <td><%=result.resourceID%></td>
-                <td><!-- Decorate with result.content link --><%=result.description%></td>
+                <td><a href="data:application/octet-stream,<%= encodeURIComponent(result.content) %>" download='<%=result.description%>'><%=result.description%></a></td>
                 <td><%=result.resourceType%></td>
                 <td><%=result.code%></td>
                 <td><%=result.msg%></td>
             </tr>
             <% }) %>
-        </tr>
+        </table>
     <% }
 
-    if (typeof detailData !== 'undefined') { %>
+    if (typeof detailData !== 'undefined' && detailData.length) { %>
+        <div>
+        <h3>Details</h3>
         <table width="100%">
             <tr>
                 <th>Resource ID</th>
@@ -85,11 +122,12 @@
                 <td><%=result.msg%></td>
             </tr>
             <% }) %>
-        </tr>
+        </table>
     <% }
 
 
-    if (typeof typeListData !== 'undefined') { %>
+    if (typeof typeListData !== 'undefined' && typeListData.length) { %>
+        <h3>Resource Types</h3>
         <table width="100%">
             <tr>
                 <th>Resource Type</th>
@@ -113,7 +151,7 @@
                 <td><%=result.msg%></td>
             </tr>
             <% }) %>
-        </tr>
+        </table>
     <% } %>
 
 
