@@ -2393,7 +2393,6 @@ define(['jquery',
 
 
             showEBSGrid: function () {
-                console.log('showing conformance testing grid...');
                 var self = this;
                 self.conformanceTestingTable = new customGrid(self.ebsListResults, '#tblConformanceTesting');
                 self.conformanceTestingTable.render({
@@ -2453,7 +2452,6 @@ define(['jquery',
 
 
             applyFileManagement: function (fileId) {
-                console.log(fileId);
                 $.ajax({
                     url: "/exa_modules/billing/ohip/applyRemittanceAdvice",
                     type: "POST",

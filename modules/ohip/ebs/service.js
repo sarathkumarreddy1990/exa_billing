@@ -24,14 +24,6 @@ module.exports = {
                 resourceType,
             } = uploads[i];
 
-            // ws.addAttachment(
-            //     ctx,
-            //     "request",
-            //     "//*[local-name(.)='content']",
-            //     upload.filename,
-            //      "text/plain"
-            //  );
-            //
             innerXML += `
                 <upload>
                     <content />
@@ -39,7 +31,6 @@ module.exports = {
                     <resourceType>${resourceType}</resourceType>
                 </upload>
             `;
-                //  <description>${description}</description>
         }
 
         return `
@@ -140,7 +131,7 @@ module.exports = {
                 </updates>
             `
         }
-        console.log('innerXML: ', innerXML);
+        
         return `
             <edt:update>
                 ${innerXML}

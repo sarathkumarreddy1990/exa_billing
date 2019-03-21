@@ -572,7 +572,6 @@ module.exports = function(billingApi) {
                 muid,   // MoH User ID,
                 service,
             } = args;
-            console.log('ct args: ', args);
 
             const filenamesByFixtureId = {
 
@@ -602,7 +601,6 @@ module.exports = function(billingApi) {
                 const filePath = filestore.is_default ? 'OHIP' : '';
 
                 const updates = args.updates.map((update) => {
-                    // console.log('filenamesByFixtureId[update.fixtureID]: ', filenamesByFixtureId[update.fixtureID]);
                     const filename = path.join(filestore.root_directory, filePath, filenamesByFixtureId[update.fixtureID]);
                     return {
                         filename,
@@ -611,8 +609,6 @@ module.exports = function(billingApi) {
                 });
                 args.updates = updates;
             }
-
-            console.log('new and improved uploads');
 
             // we may add more functionality to EBS module one day,
             // no need to open ourselves up to vulnerabilities
@@ -628,12 +624,8 @@ module.exports = function(billingApi) {
                     ]
                 });
             }
-            // console.log('service: ', service);
-            console.log('args: ', args);
             const ebs = new EBSConnector(await billingApi.getOHIPConfiguration({muid}));
             ebs[service](args, (ebsErr, ebsResponse) => {
-                // console.log('???');
-                console.log('response: ', ebsResponse);
                 return callback(ebsErr, ebsResponse);
             });
         },

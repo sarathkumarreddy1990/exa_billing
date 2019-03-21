@@ -27,7 +27,6 @@ module.exports = function (billingApi) {
 
     //TODO needs to be POST
     router.use('/submitClaims', async (req, res) => {
-        console.log("request: ", req.query);
 
         // req.body.company_id = req.body.companyId;
         // req.body.user_id = req.body.userId;
@@ -69,7 +68,6 @@ module.exports = function (billingApi) {
 
     router.get('/ct', (req, res) => {
         const ohip = new OHIPModule(billingApi);
-        console.log('/ct endpoint hit (get)');
         ohip.conformanceTesting(req.query, (err, ohipResponse) => {
             return res.send(ohipResponse);
         });
@@ -77,7 +75,6 @@ module.exports = function (billingApi) {
 
     router.post('/ct', (req, res) => {
         const ohip = new OHIPModule(billingApi);
-        console.log('/ct endpoint hit (post)');
         ohip.conformanceTesting(req.body, (err, ohipResponse) => {
             return res.send(ohipResponse);
         });
