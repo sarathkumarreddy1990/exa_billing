@@ -170,7 +170,6 @@ const EBSConnector = function(config) {
             const auditInfo = [];
             let results = [];
             let faults = [];
-
             chunk(resourceIDs, SUBMIT_MAX).forEach((chunk, index, chunks) => {
 
                 const ctx = getContext(EDT_SUBMIT, {resourceIDs: chunk});
@@ -184,7 +183,6 @@ const EBSConnector = function(config) {
                         results = results.concat(xml.parseSubmitResponse(doc));
                     }
                     catch (e) {
-
                         faults.push(xml.parseEBSFault(doc))
                     }
 
@@ -211,7 +209,9 @@ const EBSConnector = function(config) {
 
             chunk(resourceIDs, INFO_MAX).forEach((chunk, index, chunks) => {
 
-                const ctx = getContext(EDT_INFO, {resourceIDs: chunk});
+                // TODO remove this cludgy hack after Conformance Testing is over
+
+                const ctx = getContext(EDT_INFO, {resourceIDs: (chunk[0] === '-1') ? [] : chunk});
 
                 return ws.send(handlers, ctx, (ctx) => {
 
