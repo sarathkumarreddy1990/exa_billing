@@ -1494,7 +1494,7 @@ function formatSingleClaim(claimData, servicelineList) {
                         {},{}
                     ],
                     [//Group Number
-                        {text: claimData.subscriber && claimData.subscriber[0].claim ? getOtherSubscriberValue(claimData.subscriber[0].claim[0], 'policyNo', 28) : '', colSpan:3},
+                        { text: claimData.subscriber && claimData.subscriber[0] && claimData.subscriber[0].groupNumber ? getSubstring(claimData.subscriber[0].groupNumber, 30) : ' ', colSpan:3 },
                         {},{},
                         {
                             style: 'Ans',
