@@ -209,7 +209,18 @@ module.exports = {
     },
 
     parseHCVResponse: (doc) => {
-        return {};
+        return {
+            responseCode: "ST001",
+            responseID: "62312",
+            healthNumber: '1234567890',
+            versionCode: 'OK',
+            firstName: 'Gaius',
+            secondName: 'Fracking',
+            lastName: 'Baltar',
+            gender: 'M',
+            dateOfBirth: new Date(),
+            expiryDate: new Date(),
+        };
     },
 
     parseAuditLogDetails: (doc) => {
