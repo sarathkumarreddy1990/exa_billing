@@ -1,0 +1,158 @@
+<div class="modal_div_container_nested">
+
+    <% if (typeof auditInfo !== 'undefined' && auditInfo.length) { %>
+        <h3>Audit Info</h3>
+        <table width="100%">
+            <tr>
+                <th>Transaction ID</th>
+                <th>Service User MUID</th>
+                <th>End User Identifier</th>
+                <th>Date/Time</th>
+                <th>Duration (ms)</th>
+                <th>Action / Event Detail</th>
+                <th>Simple Success/Failure</th>
+                <th>Exit statuses / messages</th>
+                <th>Error Messages</th>
+                <th>Audit ID (from request)</th>
+                <th>Audit ID (from response)</th>
+
+            </tr>
+            <% auditInfo.forEach(function(audit) { %>
+            <tr>
+                <td><%=audit.transactionID%></td>
+                <td><%=audit.serviceUserMUID%></td>
+                <td><%=audit.endUser%></td>
+                <td><%=audit.dateTime%></td>
+                <td><%=audit.duration%></td>
+                <td><%=audit.actionDetail%></td>
+                <td><%=audit.result%></td>
+                <td><%=audit.status%></td>
+                <td><%=audit.errorMessages%></td>
+                <td><%=audit.requestAuditID%></td>
+                <td><%=audit.responseAuditID%></td>
+
+            </tr>
+            <% }) %>
+        </table>
+    <% } %>
+
+    <% if (typeof faults !== 'undefined' && faults.length) { %>
+        <h3>Faults</h3>
+        <table width="100%">
+            <tr>
+                <th>Code</th>
+                <th>Message</th>
+            </tr>
+            <% faults.forEach(function(fault) { %>
+            <tr>
+                <td><%=fault.code%></td>
+                <td><%=fault.message%></td>
+            </tr>
+            <% }) %>
+        </table>
+    <% } %>
+
+    <% if (typeof responseResults !== 'undefined' && responseResults.length) { %>
+        <h3>Results</h3>
+        <table width="100%">
+            <tr>
+                <th>Resource ID</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Code</th>
+                <th>Message</th>
+            </tr>
+            <% responseResults.forEach(function(result) { %>
+            <tr>
+                <td><%=result.resourceID%></td>
+                <td><%=result.description%></td>
+                <td><%=result.status%></td>
+                <td><%=result.code%></td>
+                <td><%=result.msg%></td>
+            </tr>
+            <% }) %>
+        </table>
+    <% }
+
+    if (typeof downloadData !== 'undefined' && downloadData.length) { %>
+        <h3>Downloads</h3>
+        <table width="100%">
+            <tr>
+                <th>Resource ID</th>
+                <th>Description</th>
+                <th>Resource Type</th>
+                <th>Code</th>
+                <th>Message</th>
+            </tr>
+            <% downloadData.forEach(function(result) { %>
+            <tr>
+                <td><%=result.resourceID%></td>
+                <td><a href="data:application/octet-stream,<%= encodeURIComponent(result.content) %>" download='<%=result.description%>'><%=result.description%></a></td>
+                <td><%=result.resourceType%></td>
+                <td><%=result.code%></td>
+                <td><%=result.msg%></td>
+            </tr>
+            <% }) %>
+        </table>
+    <% }
+
+    if (typeof detailData !== 'undefined' && detailData.length) { %>
+        <div>
+        <h3>Details</h3>
+        <table width="100%">
+            <tr>
+                <th>Resource ID</th>
+                <th>Description</th>
+                <th>Resource Type</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Modified</th>
+                <th>Code</th>
+                <th>Message</th>
+            </tr>
+            <% detailData.forEach(function(result) { %>
+            <tr>
+                <td><%=result.resourceID%></td>
+                <td><%=result.description%></td>
+                <td><%=result.resourceType%></td>
+                <td><%=result.status%></td>
+                <td><%=result.createTimestamp%></td>
+                <td><%=result.modifyTimestamp%></td>
+                <td><%=result.code%></td>
+                <td><%=result.msg%></td>
+            </tr>
+            <% }) %>
+        </table>
+    <% }
+
+
+    if (typeof typeListData !== 'undefined' && typeListData.length) { %>
+        <h3>Resource Types</h3>
+        <table width="100%">
+            <tr>
+                <th>Resource Type</th>
+                <th>Access</th>
+                <th>Description (English)</th>
+                <th>Description (French)</th>
+                <th>Group Required</th>
+                <th>CSN Data</th>
+                <th>Code</th>
+                <th>Message</th>
+            </tr>
+            <% typeListData.forEach(function(result) { %>
+            <tr>
+                <td><%=result.resourceType%></td>
+                <td><%=result.access%></td>
+                <td><%=result.descriptionEn%></td>
+                <td><%=result.descriptionFr%></td>
+                <td><%=result.groupRequired%></td>
+                <td><%=result.csnData%></td>
+                <td><%=result.code%></td>
+                <td><%=result.msg%></td>
+            </tr>
+            <% }) %>
+        </table>
+    <% } %>
+
+
+</div>

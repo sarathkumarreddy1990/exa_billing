@@ -213,30 +213,35 @@ module.exports = {
     },
 
     parseAuditLogDetails: (doc) => {
-
         const returnNode = select("//*[local-name(.)='return']", doc)[0];
 
         // empty results don't come with audit IDs or common results :(
         if (returnNode) {
-            const resultNode = select("/*[local-name(.)='response']/*[local-name(.)='result']", returnNode)[0];
 
-            if (resultNode) {
-                return {
-                    auditID: parseAuditID(resultNode),
-                    ...parseCommonResult(resultNode),
-                };
-            }
+            return {
+                auditID: parseAuditID(returnNode),
+            };
         }
         return {};
     },
 
     parseEBSFault: (doc) => {
-        const ebsFaultNode = select("//*[local-name(.)='EBSFault']", doc)[0];
+        // because why wouldn't OHIP use two fault-schemas and only document one?
+        try {
+            const ebsFaultNode = select("//*[local-name(.)='EBSFault']", doc)[0];
 
-        const foo= {
-            code: select("//*[local-name(.)='code']/text()", ebsFaultNode)[0].nodeValue,
-            message: select("//*[local-name(.)='message']/text()", ebsFaultNode)[0].nodeValue,
+            return {
+                code: select("//*[local-name(.)='code']/text()", ebsFaultNode)[0].nodeValue,
+                message: select("//*[local-name(.)='message']/text()", ebsFaultNode)[0].nodeValue,
+            };
         }
-        return foo;
+        catch(err) {
+            const faultNode = select("//*[local-name(.)='Fault']", doc)[0];
+
+            return {
+                code: select("//*[local-name(.)='faultcode']/text()", faultNode)[0].nodeValue,
+                message: select("//*[local-name(.)='faultstring']/text()", faultNode)[0].nodeValue,
+            };
+        }
     },
 };

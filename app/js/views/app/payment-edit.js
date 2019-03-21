@@ -781,7 +781,7 @@ define(['jquery',
                 if (typeof amount === "string" && fromCas) {
                     return parseFloat(amount.replace(/[(]/g,'-').replace(/[^0-9.-]+/g, "")) || "";
                 } else if (typeof amount === "number") {
-                    return amount < 0 ? '($' + parseFloat(amount) + ')' : '$' + parseFloat(amount);
+                    return amount < 0 ? '($' + parseFloat(amount).toFixed(2) + ')' : '$' + parseFloat(amount).toFixed(2);
                 }
                 return amount;
             },
@@ -2314,6 +2314,20 @@ define(['jquery',
                     */
                     var totalPayment = _.reduce(line_items,function(m,x) { return m + x.payment; }, 0);
                     var totalAdjustment = _.reduce(line_items,function(m,x) { return m + x.adjustment; }, 0);
+
+                    /**
+                    *  Condition : Payment + adjustment == Order Balance
+                    *  DESC : Check payment & adjustment amount is should be equal with order balance and payer_type === 'patient' for Canadian config.
+                    */
+                    if (app.country_alpha_3_code === 'can' && self.payer_type === 'patient') {
+                        var orderBalance = parseFloat(totalPayment) + parseFloat(totalAdjustment);
+                        var currentBalance = parseFloat(self.currentOrderBalance.replace(/[(]/g, '-').replace(/[^0-9.-]+/g, "")) || "";
+                        if (currentBalance !== orderBalance) {
+                            commonjs.showWarning('messages.warning.payments.amountValidation');
+                            return false;
+                        }
+                    }
+
                     /**
                     *  Condition : If payment_payer_type === 'patient' && claim_status !== Pending Validation/Submission
                     *  DESC : No need to change Claim Status & Responsible
@@ -2408,6 +2422,7 @@ define(['jquery',
                             var feeDetails = data[0];
                             self.total_Adjustment = feeDetails.adjustment || 0;
                             self.total_Payment = feeDetails.payment || 0;
+                            self.currentOrderBalance = feeDetails.balance || 0;
                             self.setFeeFields({ billFee: feeDetails.bill_fee, adjustment: feeDetails.adjustment, balance: feeDetails.balance, others_paid: feeDetails.others_paid, patient_paid: feeDetails.patient_paid, payment: feeDetails.payment, total_adjustment: feeDetails.total_adjustment });
                         }
                         commonjs.hideLoading();

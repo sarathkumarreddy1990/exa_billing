@@ -114,7 +114,6 @@ module.exports = {
         [resourceTypes.EC_OUTSIDE_USE_REPORT] : 'EC Outside Use report',
         [resourceTypes.EC_SUMMARY_REPORT] : 'EC Summary report',
         [resourceTypes.NORTHERN_SPECIALIST_APP_GOVERNANCE] : 'Northern Specialist APP Governance',
-        [resourceTypes.CLAIMS_MAIL_FILE_REJECT_MESSAGE] : 'Claims Mail File Reject Message',
         [resourceTypes.OBEC_MAIL_FILE_REJECT_MESSAGE] : 'OBEC Mail File Reject Message',
         [resourceTypes.GENERAL_MINISTRY_COMMUNICATIONS] : 'General Ministry Communications',
         [resourceTypes.PAYMENT_SUMMARY_REPORT_PDF] : 'Payment Summary Report PDF',

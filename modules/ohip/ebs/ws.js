@@ -247,20 +247,8 @@ ws.Audit.prototype.send = function(ctx, callback) {
 
         const doc = new dom().parseFromString(ctx.response);
         const parseObj = parseAuditLogDetails(doc);
-        ctx.audit = {
-            // Simple success or failure
-            result: parseObj.msg,
+        ctx.audit.requestAuditID = parseObj.auditID;
 
-            // Exit status / messages
-            status: parseObj.code,
-
-            auditID: parseObj.auditID,
-
-            // TODO
-            // Error messages
-
-            ...ctx.audit,
-        };
         callback(ctx);
     });
 };
