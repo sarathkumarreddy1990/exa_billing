@@ -214,7 +214,6 @@ module.exports = {
 
     parseAuditLogDetails: (doc) => {
         const returnNode = select("//*[local-name(.)='return']", doc)[0];
-        // console.log(returnNode.toString());
 
         // empty results don't come with audit IDs or common results :(
         if (returnNode) {

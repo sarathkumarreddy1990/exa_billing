@@ -203,25 +203,6 @@ define(['jquery',
             }
         };
 
-        // Backbone.sync = function(method, model) {
-        //   console.log(method + ": " + model.url);
-        // };
-
-
-        // var conformanceTestingResult = Backbone.Model.extend({
-        //     // method: 'POST',
-        //     defaults: {
-        //         resourceID: '',
-        //         description: '',
-        //         status: '',
-        //         createdDate: '',
-        //         modifiedDate: '',
-        //         // resourceType: '',
-        //         // postal_code: '',
-        //         // isNPPESResult: false
-        //     }
-        // });
-
         var flattenDetailResults = function(ebsResponse) {
             return _.reduce(ebsResponse.results, (data, result) => {
                 if (result.data) {
@@ -232,14 +213,9 @@ define(['jquery',
 
         var ebsListResults = Backbone.Collection.extend({
             url: '/exa_modules/billing/ohip/ct',
-            method: 'GET',
-            type: 'GET',
-            // defaults: {
-            //     data: {
-            //         service: 'list'
-            //     }
-            // },
-            // model: conformanceTestingResult,
+            method: 'POST',
+            type: 'POST',
+
             parse: function(response, options) {
                 return flattenDetailResults(response);
             }
@@ -533,7 +509,6 @@ define(['jquery',
 
                 var claimIds = [], invoiceNo = [], existingBillingMethod = '', existingClearingHouse = '', existingEdiTemplate = '', selectedPayerName = [];
 
-//JAQUA
                 for (var i = 0; i < $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked').length; i++) {
                     var rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;
 
@@ -2093,9 +2068,7 @@ define(['jquery',
                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());
             },
 
-// JAQUA
             initEbsListResults: function(dataset) {
-                // NOTE took this from providers which uses 'self' ... may still be necessary
                 if (dataset.length) {
                     this.ebsListResults = dataset;
                 }
@@ -2269,7 +2242,7 @@ define(['jquery',
                     }).then(function(response) {
                         self.handleResourceResult(response);
                     }).catch(function(err) {
-                        // TODO handle error
+                        commonjs.showError(err);
                     });
                 });
             },
@@ -2299,7 +2272,7 @@ define(['jquery',
                     }).then(function(response) {
                         self.handleResourceResult(response);
                     }).catch(function(err) {
-                        // TODO handle error
+                        commonjs.showError(err);
                     });
                 });
             },
@@ -2309,7 +2282,7 @@ define(['jquery',
                 this.sendResourceIDsRequest(ohip.services.EDT_DELETE).then(function(response) {
                     self.handleResourceResult(response);
                 }).catch(function(err) {
-                    // TODO handle error
+                    commonjs.showError(err);
                 });
             },
 
@@ -2318,7 +2291,7 @@ define(['jquery',
                 this.sendResourceIDsRequest(ohip.services.EDT_SUBMIT).then(function(response) {
                     self.handleResourceResult(response);
                 }).catch(function(err) {
-                    // TODO handle error
+                    commonjs.showError(err);
                 });
             },
 
@@ -2334,7 +2307,7 @@ define(['jquery',
                         }, [])
                     }));
                 }).catch(function(err) {
-                    // TODO handle error
+                    commonjs.showError(err);
                 });
             },
 
@@ -2349,7 +2322,7 @@ define(['jquery',
                         }, [])
                     }));
                 }).catch(function(err) {
-                    // TODO handle error
+                    commonjs.showError(err);
                 });
             },
 
@@ -2371,7 +2344,7 @@ define(['jquery',
                         }, [])
                     }));
                 }).catch(function(err) {
-
+                    commonjs.showError(err);
                 });
             },
 
@@ -2397,7 +2370,7 @@ define(['jquery',
                 // TODO: care about page number
                 this.ebsListResults.fetch({
                     data: listParams,
-                    type: 'GET',
+                    type: 'POST',
                     success: function(models, response, options) {
                         if (response.error) {
                             commonjs.showError(err);
@@ -2412,8 +2385,8 @@ define(['jquery',
                         }));
                         $("#tblConformanceTesting").find(".ui-widget-content.jqgrow").remove();
                     },
-                    error: function(model, response) {
-                        commonjs.showError("not good");
+                    error: function(err) {
+                        commonjs.showError(err);
                     }
                 });
             },
