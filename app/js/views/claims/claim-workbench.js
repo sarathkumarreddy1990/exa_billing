@@ -203,21 +203,17 @@ define(['jquery',
             }
         };
 
-        var flattenDetailResults = function(ebsResponse) {
-            return _.reduce(ebsResponse.results, (data, result) => {
-                if (result.data) {
-                    return data.concat(result.data);
-                }
-            }, []);
-        };
-
         var ebsListResults = Backbone.Collection.extend({
             url: '/exa_modules/billing/ohip/ct',
             method: 'POST',
             type: 'POST',
 
             parse: function(response, options) {
-                return flattenDetailResults(response);
+                return _.reduce(response.results, function(data, result) {
+                    if (result.data) {
+                        return data.concat(result.data);
+                    }
+                }, []);
             }
         });
 
@@ -2128,7 +2124,7 @@ define(['jquery',
 
             getCheckedEBSResourceIDs : function() {
                 var resourceIDs = [];
-                _.forEach($('.ohip_resource_chk:checked'), (checkedResource) => {
+                _.forEach($('.ohip_resource_chk:checked'), function(checkedResource) {
                     var rowId = checkedResource.parentNode.parentNode.id;
                     var resourceID = $("#tblConformanceTesting").jqGrid('getCell', rowId, 'resourceID');
                     resourceIDs.push(resourceID);
