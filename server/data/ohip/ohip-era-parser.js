@@ -51,6 +51,7 @@ module.exports = {
     getOHIPLineItemsAndClaims: async (ohipJson, params) => {
 
         let lineItems = [];
+
         ohipJson.claims.forEach((claim, claim_index) => {
             if (claim.accountingNumber && !isNaN(claim.accountingNumber)) {
                 claim.items.forEach((serviceLine) => {
@@ -87,6 +88,7 @@ module.exports = {
                     let item = {
                         claim_number: parseInt(claim.accountingNumber),
                         cpt_code: serviceLine.serviceCode,
+                        denied_value: serviceLine.explanatoryCode !== '' && amountPaid === 0 ? 1 : 0, // Set 1 when cpts payment = zero and the explanatoryCode should not be empty
                         payment: amountPaid || 0.00,
                         adjustment: 0.00,
                         cas_details: [],
@@ -108,6 +110,7 @@ module.exports = {
                 });
             }
         });
+
         let auditDetails = {
             screen_name: params.screenName,
             module_name: params.moduleName,
@@ -115,7 +118,30 @@ module.exports = {
             client_ip: params.clientIp,
             company_id: params.companyId,
             user_id: params.userId
-        }
+        };
+
+        /**
+        *  Condition : payment === 0 && explanatoryCode !==''
+        *  DESC : Set claims status code = 4 (DENIED) for claim, When each Cpts payment must be zero and the explanatoryCode should not be empty
+        */
+        let lineItemsByGroup = _.groupBy(lineItems, 'claim_number');
+        let groupedLineItems = [];
+
+        _.map(lineItemsByGroup, (items) => {
+
+            if (_.sumBy(items, 'denied_value') === items.length) {
+                items = items.map(item => {
+                    item.claim_status_code = 4;
+                    return item;
+                });
+
+                groupedLineItems = groupedLineItems.concat(items);
+            } else {
+                groupedLineItems = groupedLineItems.concat(items);
+            }
+
+        });
+
         return {
             lineItems: lineItems,
             claimComments: [],
@@ -177,4 +203,4 @@ module.exports = {
         return paymentResult;
     }
 
-}
+};
