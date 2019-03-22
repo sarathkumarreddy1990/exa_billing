@@ -2,6 +2,8 @@ let totalBill = 0;
 let pageBrk = 'none';
 let cpt = [];
 let HeaderDets = [];
+let BillingProDet = [];
+let BillingPh;
 function getTick(data, code, fromOthers) {
     if (fromOthers && data && data.subscriber && data.subscriber[0].claimFilingCode !== 'MB' && data.subscriber[0].claimFilingCode !== 'MC' &&
         data.subscriber[0].claimFilingCode !== 'CH' && data.subscriber[0].claimFilingCode !== "") {
@@ -303,6 +305,13 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
     cpt = getTableContents(claimData, servicelineList);
     HeaderDets = getHeaderDetails(claimData);
     totalBill = getTotalBill(claimData, servicelineList);
+    if(claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode.toString().toUpperCase() == 'YFAC') {
+	    BillingProDet = getAddressDetails(claimData.payToProvider);
+	    BillingPh = claimData.payToProvider && claimData.payToProvider.phoneNo ? (getph(getSubstring(claimData.payToProvider.phoneNo, 13))) : '';
+	} else {
+	    BillingProDet = getAddressDetails(claimData.billingProvider);
+	    BillingPh = claimData.billingProvider && claimData.billingProvider.phoneNo ? (getph(getSubstring(claimData.billingProvider.phoneNo, 13))) : '';
+	}
     return ([
         {
             style: 'myTable',
@@ -857,10 +866,10 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                         { text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].servicefacility ? ( getAddressDetails(claimData.subscriber[0].claim[0].servicefacility[0])) : '', colSpan: 4 },
                         {}, {}, {},
                         {
-                            text: ( getAddressDetails(claimData.billingProvider) ), colSpan: 5
+                            text: BillingProDet, colSpan: 5
                         },
                         {}, {}, {}, {},
-                        { text: claimData.billingProvider && claimData.billingProvider.phoneNo ? (getph(claimData.billingProvider.phoneNo)) : '', colSpan: 2 , margin:[-65, -10, 0, 0]}, {}
+                        { text: BillingPh, colSpan: 2 , margin:[-65, -10, 0, 0]}, {}
                     ],
                 ],
             }, layout: 'noBorders'

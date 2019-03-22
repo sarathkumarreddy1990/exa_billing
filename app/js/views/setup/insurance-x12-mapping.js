@@ -321,6 +321,9 @@ define(['jquery',
                     case 'X':
                         ediVal = 'CH'
                         break;
+                    case 'Y':
+                        ediVal = 'YFAC'
+                        break;
                     case 'default':
                         ediVal = ''
                         break;
