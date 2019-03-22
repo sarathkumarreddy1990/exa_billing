@@ -655,8 +655,10 @@ const OHIPDataAPI = {
     },
 
     handlePayment: async (data, args) => {
-       let processedClaims =  await era_parser.processOHIPEraFile(data, args)
-       return processedClaims;
+
+        let processedClaims =  await era_parser.processOHIPEraFile(data, args);
+
+        return processedClaims;
     },
 
 

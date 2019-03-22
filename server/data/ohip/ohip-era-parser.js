@@ -134,16 +134,14 @@ module.exports = {
                     item.claim_status_code = 4;
                     return item;
                 });
-
-                groupedLineItems = groupedLineItems.concat(items);
-            } else {
-                groupedLineItems = groupedLineItems.concat(items);
             }
+
+            groupedLineItems = groupedLineItems.concat(items);
 
         });
 
         return {
-            lineItems: lineItems,
+            lineItems: groupedLineItems,
             claimComments: [],
             audit_details: auditDetails
         };
