@@ -3,6 +3,7 @@ let pageBrk = 'none';
 let HeaderDets = [];
 let ServiceFacDet = [];
 let BillingProDet = [];
+let BillingPh;
 
 function getImage(needCheck) {
     return needCheck ? 'tickImage' : 'clearDot';
@@ -707,7 +708,13 @@ function getAddress2Details(claimData) {
 function formatSingleClaim(claimData, servicelineList) {
     HeaderDets = getHeaderDetails(claimData);
     ServiceFacDet = getAddressDetails(claimData.subscriber[0].claim[0].servicefacility[0]);
-    BillingProDet = getAddressDetails(claimData.billingProvider);
+    if(claimData.subscriber[0].claimFilingCode && typeof(claimData.subscriber[0].claimFilingCode) === 'string' && claimData.subscriber[0].claimFilingCode.toUpperCase() == 'YFAC') {
+	    BillingProDet = getAddressDetails(claimData.payToProvider);
+	    BillingPh = claimData.payToProvider ? getTrimmedPhoneNo(getKeyTrimValue(claimData.payToProvider, 'phoneNo', 13)): ' ';
+	} else {
+	    BillingProDet = getAddressDetails(claimData.billingProvider);
+	    BillingPh = claimData.billingProvider ? getTrimmedPhoneNo(getKeyTrimValue(claimData.billingProvider, 'phoneNo', 13)):' ';
+	}
     let totalPaid = getClaimResponsible(claimData);
     return [
         {
@@ -1837,7 +1844,7 @@ function formatSingleClaim(claimData, servicelineList) {
                                 ]
                             },layout: 'noBorders'
                         },
-                        { text: claimData.billingProvider ? getTrimmedPhoneNo(getKeyTrimValue(claimData.billingProvider, 'phoneNo', 13)) : '', margin:[31,-6, 0 ,0], colSpan:2},
+                        { text: BillingPh, margin:[31,-6, 0 ,0], colSpan:2},
                         {}
                     ],
                     [//a. & b. NPI
