@@ -416,8 +416,8 @@ module.exports = {
 										)AS patient)
 							,( SELECT Json_agg(Row_to_json(claim)) "claim"
 							FROM   (
-                                    SELECT claims.id as "claimNumber",
-                                    order_details.order_id as "orderId",
+                                SELECT claims.id as "claimNumber",
+                                order_details.order_id as "orderId",
 										frequency as "claimFrequencyCode",
 										bgcp.charges_bill_fee_total::numeric::text AS "claimTotalCharge",
 										bgcp.payment_insurance_total::numeric::text AS "claimPaymentInsurance",
@@ -755,8 +755,8 @@ module.exports = {
                                                     c.claim_id = claims.id
                                                 ORDER BY s.order_id
                                                 LIMIT 1
-                                            ) AS order_details ON TRUE
-                                    WHERE claims.id= ANY(${claimIds})
+                                                ) AS order_details ON TRUE
+                                                WHERE claims.id= ANY(${claimIds})
                             `;
 
         return await query(sql);
