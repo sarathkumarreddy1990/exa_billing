@@ -291,7 +291,7 @@ module.exports = {
 															pay_to_state as "state",
 															pay_to_zip_code as "zipCode",
 															federal_tax_id as "federalTaxID",
-															phone_number as "phoneNo",
+															pay_to_phone_number as "phoneNo",
 															contact_person_name as "contactName"
 														FROM   billing.providers as billing_providers
 														WHERE  billing_providers.id=billing_provider_id)AS billingProvider
