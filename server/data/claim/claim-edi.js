@@ -416,7 +416,8 @@ module.exports = {
 										)AS patient)
 							,( SELECT Json_agg(Row_to_json(claim)) "claim"
 							FROM   (
-									SELECT claims.id as "claimNumber",
+                                    SELECT claims.id as "claimNumber",
+                                    order_details.order_id as "orderId",
 										frequency as "claimFrequencyCode",
 										bgcp.charges_bill_fee_total::numeric::text AS "claimTotalCharge",
 										bgcp.payment_insurance_total::numeric::text AS "claimPaymentInsurance",
@@ -738,11 +739,23 @@ module.exports = {
 											WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
 											WHEN 'tertiary_insurance' THEN tertiary_patient_insurance_id
 											END)
-									INNER JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id
-									LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id
-									LEFT JOIN relationship_status ON  subscriber_relationship_id =relationship_status.id
-									LEFT JOIN public.insurance_provider_payer_types  ON insurance_provider_payer_types.id = insurance_providers.provider_payer_type_id
-                                    LEFT JOIN provider_groups  ON  claims.ordering_facility_id = provider_groups.id
+                                            INNER JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id
+                                            LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id
+                                            LEFT JOIN relationship_status ON  subscriber_relationship_id =relationship_status.id
+                                            LEFT JOIN public.insurance_provider_payer_types  ON insurance_provider_payer_types.id = insurance_providers.provider_payer_type_id
+                                            LEFT JOIN provider_groups  ON  claims.ordering_facility_id = provider_groups.id
+                                            LEFT JOIN LATERAL (
+					                            SELECT
+                                                    s.order_id
+                                                FROM
+                                                    public.studies s
+                                                INNER JOIN billing.charges_studies AS cs ON cs.study_id = s.id
+                                                INNER JOIN billing.charges AS c on c.id = cs.charge_id
+                                                WHERE
+                                                    c.claim_id = claims.id
+                                                ORDER BY s.order_id
+                                                LIMIT 1
+                                            ) AS order_details ON TRUE
                                     WHERE claims.id= ANY(${claimIds})
                             `;
 
