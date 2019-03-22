@@ -708,7 +708,7 @@ function getAddress2Details(claimData) {
 function formatSingleClaim(claimData, servicelineList) {
     HeaderDets = getHeaderDetails(claimData);
     ServiceFacDet = getAddressDetails(claimData.subscriber[0].claim[0].servicefacility[0]);
-    if(claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode.toString().toUpperCase() == 'YFAC') {
+    if(claimData.subscriber[0].claimFilingCode && typeof(claimData.subscriber[0].claimFilingCode) === 'string' && claimData.subscriber[0].claimFilingCode.toUpperCase() == 'YFAC') {
 	    BillingProDet = getAddressDetails(claimData.payToProvider);
 	    BillingPh = claimData.payToProvider ? getTrimmedPhoneNo(getKeyTrimValue(claimData.payToProvider, 'phoneNo', 13)): ' ';
 	} else {
