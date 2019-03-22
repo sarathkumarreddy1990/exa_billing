@@ -15,21 +15,24 @@
                         <% if (country_alpha_3_code !== "can") { %>
                         <option value="paper_claim" i18n="setup.insuranceX12Mapping.paperClaim"></option>
                         <option value="patient_payment" i18n="setup.insuranceX12Mapping.patientPayment"></option>
+                        <% } %>
                     </select>
                 </div>
             </div>
             <div class="form-group row" id="clearingHouse" style="display:none">
-                <label for="ddlClaimClearingHouse" class="col-sm-2 col-form-label field-required" i18n="setup.insuranceX12Mapping.claimClearingHouse"></label>
+                <label for="ddlClaimClearingHouse" class="col-sm-2 col-form-label field-required"
+                       i18n="setup.insuranceX12Mapping.claimClearingHouse"></label>
+
                 <div class="col-sm-5">
-                    <select id="ddlClaimClearingHouse" class="form-control"  style="height:32px;" name="claimClearingHouse">
-                            <option value="" i18n="shared.buttons.select"></option>
-                            <% _.each(ediClearingHouseList, function(list) { %>
-                                <option value='<%= list.id %>'>
-                                    <%=list.name%>
-                                </option>
-                                <% }); %>
-                        </select>
-                        <% } %>
+                    <select id="ddlClaimClearingHouse" class="form-control" style="height:32px;"
+                            name="claimClearingHouse">
+                        <option value="" i18n="shared.buttons.select"></option>
+                        <% _.each(ediClearingHouseList, function(list) { %>
+                        <option value='<%= list.id %>'>
+                            <%=list.name%>
+                        </option>
+                        <% }); %>
+                    </select>
                 </div>
             </div>
             <% if (country_alpha_3_code !== "can") { %>
@@ -55,6 +58,14 @@
                 <label for="txtClaimFileIndicatorCode" class="col-sm-2 col-form-label" i18n="setup.insurance.fileIndicatorCode"></label>
                 <div class="col-sm-5">
                     <input type="text" class="form-control" id="txtClaimFileIndicatorCode" name="fileIndicatorCode" disabled>
+                </div>
+            </div>
+            <% } %>
+            <% if (country_alpha_3_code === "can") { %>
+            <div class="form-group row" id="dPayer" style="display:none">
+                <div class="col-sm-5">
+                    <input class="form-check-input" type="checkbox" id="chkdefaultPayer" name="defaultPayer">
+                    <label class="form-check-label" for="chkdefaultPayer" i18n="shared.fields.defaultPayer"></label>
                 </div>
             </div>
             <% } %>

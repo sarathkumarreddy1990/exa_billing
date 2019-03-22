@@ -181,8 +181,13 @@ define(['jquery',
                                     $('#ddlClaimBillingMethod').val(data.billing_method ? data.billing_method : '');
                                     $('#txtClaimFileIndicatorCode').val(data.indicator_code ? data.indicator_code : '');
                                     $('#selectPayerEDICode').val(data.edi_code ? data.edi_code : '');
-                                    if(data.billing_method == 'electronic_billing'){
+                                    if (data.billing_method == 'electronic_billing') {
                                         $('#clearingHouse').show();
+                                        $('#dPayer').show();
+                                    }
+                                    else {
+                                        $('#clearingHouse').hide();
+                                        $('#dPayer').hide();
                                     }
                                 }
                             }
@@ -257,7 +262,8 @@ define(['jquery',
                     "claimClearingHouse": ($('#ddlClaimClearingHouse').val() && $('#ddlClaimBillingMethod').val()=='electronic_billing' ) ? $('#ddlClaimClearingHouse').val() : null,
                     "billingMethod": $('#ddlClaimBillingMethod').val(),
                     "indicatorCode": $('#txtClaimFileIndicatorCode').val(),
-                    "ediCode": $("#selectPayerEDICode").val()
+                    "ediCode": $("#selectPayerEDICode").val(),
+                    "is_default_payer": $('input:checkbox[name=defaultPayer]').prop('checked')
                 });
                 this.model.save({
                 }, {
@@ -291,15 +297,16 @@ define(['jquery',
                 return colvalue
             },
 
-            showHouse: function(e) {
+            showHouse: function (e) {
                 var method = $('#ddlClaimBillingMethod').val();
-                if(method == 'electronic_billing'){
+                if (method == 'electronic_billing') {
                     $('#clearingHouse').show();
+                    $('#dPayer').show();
                 }
-                else{
+                else {
                     $('#clearingHouse').hide();
+                    $('#dPayer').hide();
                 }
-
             },
 
             changeEDICode: function () {

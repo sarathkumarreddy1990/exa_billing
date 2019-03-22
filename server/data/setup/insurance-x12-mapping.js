@@ -68,6 +68,7 @@ module.exports = {
                             , billing_method
                             , claim_filing_indicator_code AS indicator_code
                             , payer_edi_code AS edi_code
+                            , bip.is_default_payer
                         FROM
                             public.insurance_providers ip
                         LEFT JOIN billing.insurance_provider_details bip ON bip.insurance_provider_id  = ip.id
@@ -90,19 +91,41 @@ module.exports = {
             userId,
             billingMethod,
             indicatorCode,
-            ediCode
+            ediCode,
+            is_default_payer
         } = params;
 
-        const sql = SQL` WITH insert_house AS (
+        const sql = SQL` WITH
+                         get_default_payer AS
+                             (
+                                 SELECT
+                                     insurance_provider_id
+                                 FROM billing.insurance_provider_details
+                                 WHERE
+                                    is_default_payer
+                        )
+                        , update_default_payer AS
+                           (
+                               UPDATE billing.insurance_provider_details
+                               SET is_default_payer = false
+                               WHERE
+                                   is_default_payer = true
+                                   AND billing.insurance_provider_details.insurance_provider_id = (SELECT insurance_provider_id FROM get_default_payer)
+                                   AND insurance_provider_id <> ${id}
+                               RETURNING insurance_provider_id
+                           )
+                        ,insert_house AS (
                             INSERT INTO billing.insurance_provider_details(
                                   insurance_provider_id
                                 , clearing_house_id
                                 , billing_method
+                                , is_default_payer
                             )
                             SELECT
                                   ${id}
                                 , ${claimClearingHouse}
                                 , ${billingMethod}
+                                , ${is_default_payer}
                             WHERE NOT EXISTS (SELECT 1 FROM billing.insurance_provider_details WHERE insurance_provider_id = ${id})
                             RETURNING *, '{}'::jsonb old_values
                         )
@@ -114,6 +137,7 @@ module.exports = {
                                     , billing_method = ${billingMethod}
                                     , claim_filing_indicator_code = ${indicatorCode}
                                     , payer_edi_code = ${ediCode}
+                                    , is_default_payer = ${is_default_payer}
                                 WHERE
                                     insurance_provider_id = ${id}
                                     AND NOT EXISTS (SELECT 1 FROM insert_house)
