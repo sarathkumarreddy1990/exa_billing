@@ -97,19 +97,19 @@ module.exports = {
 
         const sql = SQL` WITH
                          get_default_payer AS
-                             (
+                            (
                                  SELECT
                                      insurance_provider_id
                                  FROM billing.insurance_provider_details
                                  WHERE
                                     is_default_payer
-                        )
+                            )
                         , update_default_payer AS
                            (
                                UPDATE billing.insurance_provider_details
                                SET is_default_payer = false
                                WHERE
-                                   is_default_payer = true
+                                   is_default_payer = ${is_default_payer}
                                    AND billing.insurance_provider_details.insurance_provider_id = (SELECT insurance_provider_id FROM get_default_payer)
                                    AND insurance_provider_id <> ${id}
                                RETURNING insurance_provider_id

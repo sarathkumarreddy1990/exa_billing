@@ -181,6 +181,8 @@ define(['jquery',
                                     $('#ddlClaimBillingMethod').val(data.billing_method ? data.billing_method : '');
                                     $('#txtClaimFileIndicatorCode').val(data.indicator_code ? data.indicator_code : '');
                                     $('#selectPayerEDICode').val(data.edi_code ? data.edi_code : '');
+                                    self.isdefaultPayer = data.is_default_payer;
+                                    $('input:checkbox[name=defaultPayer]').prop('checked', self.isdefaultPayer );
                                     if (data.billing_method == 'electronic_billing') {
                                         $('#clearingHouse').show();
                                         $('#dPayer').show();
@@ -232,6 +234,10 @@ define(['jquery',
 
             saveInsuranceX12Mapping: function() {
                 var self = this;
+                if (self.isdefaultPayer && !$('input:checkbox[name=defaultPayer]').prop('checked')) {
+                    commonjs.showWarning('messages.warning.shared.defaultPayer');
+                    return false;
+                }
                 commonjs.validateForm({
                     rules: {
                         name: {
