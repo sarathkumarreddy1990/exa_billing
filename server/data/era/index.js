@@ -181,6 +181,16 @@ module.exports = {
         return await query(sql);
     },
 
+    getDefaultPayer: async function () {
+
+        const sql = SQL` SELECT
+                            insurance_provider_id
+                         FROM
+                            billing.insurance_provider_details WHERE is_default_payer`;
+
+        return await query(sql);
+    },
+
     createPaymentApplication: async function (params, paymentDetails) {
 
         let {

@@ -2024,7 +2024,8 @@ define(['jquery',
                         edi_files_id: fileId
                     },
                     success: function (data, textStatus, jqXHR) {
-                        console.log(data)
+                        if(data.status)
+                            commonjs.handleXhrError(data, null)
                         commonjs.hideDialog()
                     },
                     error: function (err) {
