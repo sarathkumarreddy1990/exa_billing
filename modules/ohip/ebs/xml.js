@@ -137,16 +137,19 @@ const parseDetail = (doc) => {
 
     const detailNode = select("*[local-name(.)='return']", doc)[0];
     if (!detailNode) {
-        return {};
+        return {
+            auditId: '',
+            data: [],
+            resultSize: 0,
+        };
     }
 
-    const resultSize = select("*[local-name(.)='resultSize']/text()", detailNode);
     return {
-        auditID: parseAuditID(detailNode),
+        auditID: parseOptionalValue(detailNode, 'auditID'),
         data: select("*[local-name(.)='data']", detailNode).map((dataNode) => {
             return parseDetailData(dataNode);
         }),
-        resultSize: resultSize.length ? resultSize[0].nodeValue: '',
+        resultSize: parseOptionalValue(detailNode, 'resultSize'),
     };
 };
 

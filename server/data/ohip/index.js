@@ -531,7 +531,6 @@ const OHIPDataAPI = {
         } = args || {};
 
         return {
-            // TODO: EXA-12674
             hcvSoftwareConformanceKey: config.get('hcvSoftwareConformanceKey'),//'65489ecd-0bef-4558-8871-f2e4b71b8e92',
 
             edtSoftwareConformanceKey: config.get('edtSoftwareConformanceKey'),
@@ -539,7 +538,7 @@ const OHIPDataAPI = {
             hcvServiceEndpoint: config.get('hcvServiceEndpoint'),
 
             ebsCertPath: config.get('ebsCertPath'),
-            serviceUserMUID: muid || config.get('serviceUserMUID'),
+            serviceUserMUID: (typeof muid !== 'undefined') ? muid : config.get('serviceUserMUID'),
             username: config.get('ebsUsername'),
             password: config.get('ebsPassword'),
             mode: OHIP_CONFIGURATION_MODE.DEMO,

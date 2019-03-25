@@ -223,7 +223,12 @@ ws.Audit = function(config) {
 };
 ws.Audit.prototype.send = function(ctx, callback) {
 
+    const requestDoc = new dom().parseFromString(ctx.request);
+
     ctx.audit = {
+
+        requestAuditID: select("//*[local-name(.)='AuditId']/text()", requestDoc)[0].nodeValue,
+
 
         // date / time
         dateTime: new Date(),
@@ -243,10 +248,9 @@ ws.Audit.prototype.send = function(ctx, callback) {
         // duration
         ctx.audit.duration = (new Date()).getTime() - ctx.audit.dateTime.getTime();
 
-        // const doc = new dom().parseFromString();
-        const parseObj = parseAuditLogDetails(ctx.response);
-        ctx.audit.requestAuditID = parseObj.auditID;
-
+        const doc = new dom().parseFromString(ctx.response);
+        const parseObj = select("//*[local-name(.)='auditID']/text()", doc)[0];
+        ctx.audit.responseAuditID = parseObj ? parseObj.nodeValue : '';
         callback(ctx);
     });
 };

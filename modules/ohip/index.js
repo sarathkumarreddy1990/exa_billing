@@ -559,26 +559,27 @@ module.exports = function(billingApi) {
             const {
                 muid,   // MoH User ID,
                 service,
+                description,
             } = args;
 
             const filenamesByFixtureId = {
-
+                '1': 'Custom',
                 '2': 'Claim_File.txt',
                 '3': 'Stale_Dated_Claim_File.txt',
                 '4': 'OBEC FILE.txt',
                 '5': 'HCAU73.000',
             };
 
-
             if (service === 'upload') {
                 const filestore =  await billingApi.getFileStore({filename: ''});
                 const filePath = filestore.is_default ? 'OHIP' : '';
 
                 const uploads = args.uploads.map((upload) => {
-                    const filename = path.join(filestore.root_directory, filePath, filenamesByFixtureId[upload.fixtureID]);
+                    const filename = filenamesByFixtureId[upload.fixtureID];
+                    const fullFixtureFilepath = path.join(filestore.root_directory, filePath, (filename === 'Custom') ? upload.description : filename );
                     return {
                         resourceType: upload.resourceType,
-                        filename,
+                        filename: fullFixtureFilepath,
                         description: upload.description || path.basename(filename),
                     };
                 });
@@ -597,6 +598,8 @@ module.exports = function(billingApi) {
                 });
                 args.updates = updates;
             }
+
+            args.unsafe = true;
 
             // we may add more functionality to EBS module one day,
             // no need to open ourselves up to vulnerabilities

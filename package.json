@@ -50,6 +50,7 @@
         "response-time": "^2.3.2",
         "sprintf": "^0.1.5",
         "sql-template-strings": "^2.2.2",
+        "uuid": "^3.3.2",
         "ws.js": "^2.0.23",
         "xmldom": "^0.1.27",
         "xpath": "0.0.27"

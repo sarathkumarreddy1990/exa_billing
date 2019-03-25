@@ -10,26 +10,22 @@
                 <th>Date/Time</th>
                 <th>Duration (ms)</th>
                 <th>Action / Event Detail</th>
-                <th>Simple Success/Failure</th>
+                <th>Successful</th>
                 <th>Exit statuses / messages</th>
                 <th>Error Messages</th>
-                <th>Audit ID (from request)</th>
-                <th>Audit ID (from response)</th>
 
             </tr>
             <% auditInfo.forEach(function(audit) { %>
             <tr>
-                <td><%=audit.transactionID%></td>
+                <td><%=audit.requestAuditID%></td>
                 <td><%=audit.serviceUserMUID%></td>
                 <td><%=audit.endUser%></td>
                 <td><%=audit.dateTime%></td>
                 <td><%=audit.duration%></td>
                 <td><%=audit.actionDetail%></td>
-                <td><%=audit.result%></td>
+                <td><%=audit.successful ? 'Yes' : 'No'%></td>
                 <td><%=audit.status%></td>
                 <td><%=audit.errorMessages%></td>
-                <td><%=audit.requestAuditID%></td>
-                <td><%=audit.responseAuditID%></td>
 
             </tr>
             <% }) %>
@@ -45,8 +41,8 @@
             </tr>
             <% faults.forEach(function(fault) { %>
             <tr>
-                <td><%=fault.code%></td>
-                <td><%=fault.message%></td>
+                <td><%=fault.code || fault.faultcode%></td>
+                <td><%=fault.message || fault.faultstring%></td>
             </tr>
             <% }) %>
         </table>
