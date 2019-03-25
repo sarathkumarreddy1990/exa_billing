@@ -12,8 +12,6 @@
                 <th>Action / Event Detail</th>
                 <th>Successful</th>
                 <th>Exit statuses / messages</th>
-                <th>Error Messages</th>
-
             </tr>
             <% auditInfo.forEach(function(audit) { %>
             <tr>
@@ -24,9 +22,9 @@
                 <td><%=audit.duration%></td>
                 <td><%=audit.actionDetail%></td>
                 <td><%=audit.successful ? 'Yes' : 'No'%></td>
-                <td><%=audit.status%></td>
-                <td><%=audit.errorMessages%></td>
-
+                <td><%= audit.commonResults.map(function(common) {
+                    return common.code + ': ' + common.message + '<br>';
+                }).join('\n')%></td>
             </tr>
             <% }) %>
         </table>

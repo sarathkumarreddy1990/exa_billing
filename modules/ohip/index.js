@@ -6,6 +6,7 @@ const {
 } = require('lodash');
 const sprintf = require('sprintf');
 const path = require('path');
+const logger = require('../../logger');
 
 // this is the high-level business logic and algorithms for OHIP
 //  * use cases are defined here
@@ -618,6 +619,9 @@ module.exports = function(billingApi) {
             }
             const ebs = new EBSConnector(await billingApi.getOHIPConfiguration({muid}));
             ebs[service](args, (ebsErr, ebsResponse) => {
+                ebsResponse.auditInfo.forEach((audit) => {
+                    logger.info(audit);
+                });
                 return callback(ebsErr, ebsResponse);
             });
         },
