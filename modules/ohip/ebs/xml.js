@@ -237,29 +237,13 @@ module.exports = {
     },
 
     parseEBSFault: (doc) => {
-        // console.log('??')
-        // because why wouldn't OHIP use two fault-schemas and only document one?
-        // <soapenv:Fault>
-        //      <faultcode>soapenv:Server</faultcode>
-        //      <faultstring/>
-        //      <detail>
-        //          <ns1:EBSFault xmlns:ns1="http://ebs.health.ontario.ca/">
-        //              <code>SMIDL0204</code>
-        //              <message>General System Error; contact your technical support or software vendor. </message>
-        //          </ns1:EBSFault>
-        //      </detail>
-        //  </soapenv:Fault>
-        //
-        // console.log(doc.toString());
+
         const faultNode = select("//*[local-name(.)='Fault']", doc)[0];
-        // const faultNode = select("//*[local-name(.)='Body']", doc);
-        // console.log('faultNode: ', faultNode.toString());
 
         const basicFault = {
             faultcode: select("*[local-name(.)='faultcode']/text()", faultNode)[0].nodeValue,
             faultstring: parseOptionalValue(faultNode, 'faultstring'),
         };
-        // console.log('basicFault: ', basicFault);
 
         try {
             const ebsFaultNode = select("*[local-name(.)='detail']/*[local-name(.)='EBSFault']", faultNode)[0];
