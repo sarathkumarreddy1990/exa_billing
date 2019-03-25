@@ -15,7 +15,17 @@ const studiesController = require('../../controllers/studies');
 
 const helper = require('../../data');
 const _ = require('lodash');
-//const PdfPrinter = require('pdfmake');
+
+const fonts = {
+    Roboto: {
+        normal: path.join(__dirname, '../../../app/fonts/Roboto/Roboto-Regular.ttf'),
+        bold: path.join(__dirname, '../../../app/fonts/Roboto/Roboto-Medium.ttf'),
+        italics: path.join(__dirname, '../../../app/fonts/Roboto/Roboto-Italic.ttf'),
+        bolditalics: path.join(__dirname, '../../../app/fonts/Roboto/Roboto-MediumItalic.ttf')
+    }
+};
+const PdfPrinter = require('pdfmake');
+const printer = new PdfPrinter(fonts);
 
 module.exports = {
 
@@ -481,5 +491,46 @@ module.exports = {
         return validation_result;
     },
 
-    getClaimTotalBalance: data.getClaimTotalBalance
+    getClaimTotalBalance: data.getClaimTotalBalance,
+
+    getPaperClaimPdf: async function (params) {
+        let printerTemplateData = await claimPrintData.getPrinterTemplate(params);
+
+        let pdfDoc = null;
+
+        if (printerTemplateData && printerTemplateData.rows.length) {
+            printerTemplateData = printerTemplateData.rows[0];
+
+            let claimData = await ediData.getClaimData(params);
+
+            if (claimData && claimData.rows.length) {
+                claimData = claimData.rows;
+
+                printerTemplateData.template_content += 'module.exports = { dd : dd }';
+
+                let template = eval(printerTemplateData.template_content).dd;
+
+                template.pageSize = {
+                    width: parseInt(printerTemplateData.page_width) || 612,
+                    height: parseInt(printerTemplateData.page_height) || 792
+                };
+
+                template.pageMargins = [
+                    parseFloat(printerTemplateData.left_margin) || 12,
+                    parseFloat(printerTemplateData.top_margin) || 20,
+                    parseFloat(printerTemplateData.right_margin) || 0,
+                    parseFloat(printerTemplateData.bottom_margin) || 0
+                ];
+
+                pdfDoc = await printer.createPdfKitDocument(template);
+                pdfDoc.end();
+            } else {
+                throw new Error('Claim Data Not found');
+            }
+        } else {
+            throw new Error('Paper Claim Template Not Found');
+        }
+
+        return pdfDoc;
+    }
 };

@@ -22,7 +22,7 @@ define([
             expanded: false,
             mainTemplate: _.template(patientsByInsuranceCompanyTemplate),
             viewModel: {
-                dateFormat: 'L',
+                dateFormat: 'MM/DD/YYYY',
                 country_alpha_3_code: 'usa',
                 facilities: null,
                 modalities: null,

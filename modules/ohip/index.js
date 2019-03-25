@@ -5,6 +5,7 @@ const {
     find,
 } = require('lodash');
 const sprintf = require('sprintf');
+const path = require('path');
 
 // this is the high-level business logic and algorithms for OHIP
 //  * use cases are defined here
@@ -559,7 +560,43 @@ module.exports = function(billingApi) {
                 muid,   // MoH User ID,
                 service,
             } = args;
-            console.log('conformance testing ...');
+
+            const filenamesByFixtureId = {
+
+                '2': 'Claim_File.txt',
+                '3': 'Stale_Dated_Claim_File.txt',
+                '4': 'OBEC FILE.txt',
+                '5': 'HCAU73.000',
+            };
+
+
+            if (service === 'upload') {
+                const filestore =  await billingApi.getFileStore({filename: ''});
+                const filePath = filestore.is_default ? 'OHIP' : '';
+
+                const uploads = args.uploads.map((upload) => {
+                    const filename = path.join(filestore.root_directory, filePath, filenamesByFixtureId[upload.fixtureID]);
+                    return {
+                        resourceType: upload.resourceType,
+                        filename,
+                        description: upload.description || path.basename(filename),
+                    };
+                });
+                args.uploads = uploads;
+            }
+            else if (service === 'update') {
+                const filestore =  await billingApi.getFileStore({filename: ''});
+                const filePath = filestore.is_default ? 'OHIP' : '';
+
+                const updates = args.updates.map((update) => {
+                    const filename = path.join(filestore.root_directory, filePath, filenamesByFixtureId[update.fixtureID]);
+                    return {
+                        filename,
+                        resourceID: update.resourceID,
+                    };
+                });
+                args.updates = updates;
+            }
 
             // we may add more functionality to EBS module one day,
             // no need to open ourselves up to vulnerabilities
@@ -575,12 +612,8 @@ module.exports = function(billingApi) {
                     ]
                 });
             }
-            // console.log('service: ', service);
-            console.log('args: ', args);
             const ebs = new EBSConnector(await billingApi.getOHIPConfiguration({muid}));
             ebs[service](args, (ebsErr, ebsResponse) => {
-                // console.log('???');
-                console.log('response: ', ebsResponse);
                 return callback(ebsErr, ebsResponse);
             });
         },

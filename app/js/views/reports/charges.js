@@ -15,7 +15,7 @@ define(['jquery',
             expanded: false,
             mainTemplate: _.template(ChargesTemplate),
             viewModel: {
-                dateFormat: 'L',
+                dateFormat: 'MM/DD/YYYY',
                 country_alpha_3_code: 'usa',
                 facilities: null,
                 dateFrom: null,

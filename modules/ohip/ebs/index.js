@@ -207,7 +207,6 @@ const EBSConnector = function(config) {
             const auditInfo = [];
             let results = [];
             let faults = [];
-
             chunk(resourceIDs, SUBMIT_MAX).forEach((chunk, index, chunks) => {
 
                 const ctx = createEDTContext(EDT_SUBMIT, {resourceIDs: chunk});
@@ -221,7 +220,6 @@ const EBSConnector = function(config) {
                         results = results.concat(xml.parseSubmitResponse(doc));
                     }
                     catch (e) {
-
                         faults.push(xml.parseEBSFault(doc))
                     }
 
@@ -446,10 +444,9 @@ const EBSConnector = function(config) {
 
         validateHealthCard: (args, callback) => {
             const ctx = createHCVContext(HCV_BASIC_VALIDATE, args);
-console.log('?????');
+
             return ws.send(handlers, ctx, (ctx) => {
-                // console.log(ctx.response);
-                console.log('??????????');
+
                 const doc = new dom().parseFromString(ctx.response);
                 try {
                     return callback(null, {
@@ -459,7 +456,6 @@ console.log('?????');
                     });
                 }
                 catch(e) {
-                    // console.log('HCV error: ', e);
 
                     return callback(null, {
                         faults: [xml.parseEBSFault(doc)],

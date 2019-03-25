@@ -241,12 +241,12 @@ const api = {
 
         if (params.cmtFromDate != '' && params.cmtToDate != '') {
             filtersUsed.push({ name: 'FromPayDate', label: 'PayDate From', value: moment(params.cmtFromDate).format(params.dateFormat) });
-            filtersUsed.push({ name: 'ToPayDate', label: 'PayDate To', value: params.moment(params.cmtToDate).format(params.dateFormat) });
+            filtersUsed.push({ name: 'ToPayDate', label: 'PayDate To', value: moment(params.cmtToDate).format(params.dateFormat) });
         }
 
         if (params.billCreatedDateFrom != '' && params.billCreatedDateTo != '') {
-            filtersUsed.push({ name: 'FromBillCreated', label: 'Bill Created From', value: params.moment(params.billCreatedDateFrom).format(params.dateFormat) });
-            filtersUsed.push({ name: 'ToBillCreated', label: 'Bill Created To', value: params.moment(params.billCreatedDateTo).format(params.dateFormat) });
+            filtersUsed.push({ name: 'FromBillCreated', label: 'Bill Created From', value: moment(params.billCreatedDateFrom).format(params.dateFormat) });
+            filtersUsed.push({ name: 'ToBillCreated', label: 'Bill Created To', value: moment(params.billCreatedDateTo).format(params.dateFormat) });
         }
 
         //Referring Physician Info

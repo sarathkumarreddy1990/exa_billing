@@ -208,37 +208,30 @@ module.exports = {
         };
     },
 
-    parseHCVResponse: (doc) => { //Fault/detail/EBSFault/{code,message}
-    // console.log('???');
-        throw new Error('blah!');
-        // return {
-        //     responseCode: "ST001",
-        //     responseID: "62312",
-        //     healthNumber: '1234567890',
-        //     versionCode: 'OK',
-        //     firstName: 'Gaius',
-        //     secondName: 'Fracking',
-        //     lastName: 'Baltar',
-        //     gender: 'M',
-        //     dateOfBirth: new Date(),
-        //     expiryDate: new Date(),
-        // };
+    parseHCVResponse: (doc) => {
+        return {
+            responseCode: "ST001",
+            responseID: "62312",
+            healthNumber: '1234567890',
+            versionCode: 'OK',
+            firstName: 'Gaius',
+            secondName: 'Fracking',
+            lastName: 'Baltar',
+            gender: 'M',
+            dateOfBirth: new Date(),
+            expiryDate: new Date(),
+        };
     },
 
     parseAuditLogDetails: (doc) => {
-
         const returnNode = select("//*[local-name(.)='return']", doc)[0];
 
         // empty results don't come with audit IDs or common results :(
         if (returnNode) {
-            const resultNode = select("/*[local-name(.)='response']/*[local-name(.)='result']", returnNode)[0];
 
-            if (resultNode) {
-                return {
-                    auditID: parseAuditID(resultNode),
-                    ...parseCommonResult(resultNode),
-                };
-            }
+            return {
+                auditID: parseAuditID(returnNode),
+            };
         }
         return {};
     },
@@ -280,6 +273,5 @@ module.exports = {
         catch(err) {
             return basicFault;
         }
-        return foo;
     },
 };

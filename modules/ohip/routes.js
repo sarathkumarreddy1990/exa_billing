@@ -3,6 +3,7 @@
 const logger = require('../../logger');
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
 const OHIPModule = require('./index');
 const claimWorkbenchController = require('../../server/controllers/claim/claim-workbench');
 const _ = require('lodash');
@@ -20,7 +21,6 @@ module.exports = function (billingApi) {
 
     //TODO needs to be POST
     router.use('/submitClaims', async (req, res) => {
-        console.log("request: ", req.query);
 
         // req.body.company_id = req.body.companyId;
         // req.body.user_id = req.body.userId;
@@ -59,6 +59,21 @@ module.exports = function (billingApi) {
             return res.send(ohipResponse);
         });
     });
+
+    router.get('/ct', (req, res) => {
+        const ohip = new OHIPModule(billingApi);
+        ohip.conformanceTesting(req.query, (err, ohipResponse) => {
+            return res.send(ohipResponse);
+        });
+    });
+
+    router.post('/ct', (req, res) => {
+        const ohip = new OHIPModule(billingApi);
+        ohip.conformanceTesting(req.body, (err, ohipResponse) => {
+            return res.send(ohipResponse);
+        });
+    });
+
 
     return router;
 };

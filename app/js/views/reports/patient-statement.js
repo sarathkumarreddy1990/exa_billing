@@ -11,7 +11,7 @@ define([
             rendered: false,
             mainTemplate: _.template(PatientStatementTemplate),
             viewModel: {
-                dateFormat: 'L',
+                dateFormat: 'MM/DD/YYYY',
                 country_alpha_3_code: 'usa',
                 sDate: null,
                 patientIds: null,
