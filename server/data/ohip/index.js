@@ -49,7 +49,8 @@ const exaFileTypes = {
  *                          the edi_files table
  */
 const getExaFileType = (args) => {
-    let resourceType = args.resourceType
+    let resourceType = args.resourceType;
+
     if (args.filename && !resourceType) {
         resourceType = ohipUtil.getResourceType(args.filename);
     }
@@ -109,6 +110,7 @@ const getFileStore = async (args) => {
     if (dbResults && dbResults.length) {
 
         filestore = dbResults[0];
+
         for (let i = 0; i < dbResults.length; i++) {
             // matches the resource description to the name of the filestore
             if (dbResults[i].file_store_name === description) {
@@ -117,6 +119,7 @@ const getFileStore = async (args) => {
             }
         }
     }
+
     return filestore;
 };
 
@@ -158,6 +161,7 @@ const storeFile =  async (args) => {
     };
 
     fs.writeFileSync(fileInfo.absolutePath, data, {encoding});
+
     if (isTransient || !exaFileType) {
         // if we don't care about storing the file or the database
         // will freak out if we try, then our work is done, here
@@ -218,6 +222,7 @@ const getRelatedFile = async (claim_file_id, related_file_type) => {
         efr.submission_file_id = ${claim_file_id}
 `;
     let result = await query(t_sql.text, t_sql.values)
+
     if (result && result.rows && result.rows.length) {
         let file_d = result.rows[0];
         const t_fullPath = path.join(file_d.full_path, file_d.uploaded_file_name);
@@ -679,8 +684,8 @@ const OHIPDataAPI = {
     },
 
     handlePayment: async (data, args) => {
-       let processedClaims =  await era_parser.processOHIPEraFile(data, args)
-       return processedClaims;
+        let processedClaims =  await era_parser.processOHIPEraFile(data, args)
+        return processedClaims;
     },
 
 
@@ -706,7 +711,7 @@ const OHIPDataAPI = {
         whereQuery.push(` ef.file_type != 'EOB' `);
 
         if (id) {
-                whereQuery.push(` ef.id = ${id} `);
+            whereQuery.push(` ef.id = ${id} `);
         }
 
         if (uploaded_file_name) {
@@ -791,9 +796,34 @@ const OHIPDataAPI = {
             .append(sortOrder)
             .append(SQL` LIMIT ${pageSize}`)
             .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
-       return await query(sql);
+
+        return await query(sql);
 
     },
+
+    saveEligibilityLog: async (params) => {
+        const {
+            patient_id,
+            patient_insurance_id,
+            eligibility_response
+        } = params;
+
+        const sql = SQL`
+            INSERT INTO eligibility_log
+                    ( patient_id
+                    , patient_insurance_id
+                    , eligibility_response
+                    , eligibility_dt)
+            VALUES
+                    ( ${patient_id}
+                    , ${patient_insurance_id}
+                    , ${eligibility_response}
+                    , now()
+                    )
+        `;
+
+        return await query(sql);
+    }
 
 };
 
