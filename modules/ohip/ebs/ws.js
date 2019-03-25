@@ -1,4 +1,5 @@
 const ws = require('ws.js');
+const _ = require('lodash');
 const utils = require('ws.js/lib/utils');
 const writer = require('ws.js/lib/handlers/client/mtom/mime-writer.js');
 const reader = require('ws.js/lib/handlers/client/mtom/mime-reader.js');
@@ -223,7 +224,12 @@ ws.Audit = function(config) {
 };
 ws.Audit.prototype.send = function(ctx, callback) {
 
+    const requestDoc = new dom().parseFromString(ctx.request);
+
     ctx.audit = {
+
+        requestAuditID: select("//*[local-name(.)='AuditId']/text()", requestDoc)[0].nodeValue,
+
 
         // date / time
         dateTime: new Date(),
@@ -232,10 +238,7 @@ ws.Audit.prototype.send = function(ctx, callback) {
         serviceUserMUID: this.config.serviceUserMUID,
 
         // End User identifier
-        // TODO
-
-        // Action / event detail
-        // TODO
+        endUser: 'confsu+355@gmail.com',
     };
 
     this.next.send(ctx, (ctx) => {
@@ -244,9 +247,17 @@ ws.Audit.prototype.send = function(ctx, callback) {
         ctx.audit.duration = (new Date()).getTime() - ctx.audit.dateTime.getTime();
 
         const doc = new dom().parseFromString(ctx.response);
-        const parseObj = parseAuditLogDetails(doc);
-        ctx.audit.requestAuditID = parseObj.auditID;
+        const parseObj = select("//*[local-name(.)='auditID']/text()", doc)[0];
 
+        const commonResult = select("//*[local-name(.)='result']", doc);
+
+        ctx.audit.commonResults = _.uniqBy(commonResult.map((result) => {
+            return {
+                code: select("*[local-name(.)='code']/text()", result)[0].nodeValue,
+                message: select("*[local-name(.)='msg']/text()", result)[0].nodeValue,
+            };
+        }), 'code');
+        ctx.audit.responseAuditID = parseObj ? parseObj.nodeValue : '';
         callback(ctx);
     });
 };
