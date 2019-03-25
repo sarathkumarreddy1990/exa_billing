@@ -154,6 +154,8 @@ module.exports = {
     },
 
     HCV_BASIC_VALIDATE: (args) => {
+
+        // console.log('here???');
         const {
             healthNumber,
             versionCode,
@@ -175,6 +177,8 @@ module.exports = {
                 </requests>
                 <locale>'en'</locale>
             </hcv:validate>`;
+
+
     },
 
     HCV_FULL_VALIDATE: ({requests, locale}) => {

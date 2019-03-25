@@ -43,14 +43,6 @@ const validateClaimsData = require('../../server/data/claim/claim-workbench');
 const _ = require('lodash');
 
 
-const getRandomResponseCode = (codes) => {
-    return codes[Math.floor(Math.random()*codes.length)];
-};
-
-const getRandomValidHealthNumberResponseCode = () => {
-    return getRandomResponseCode([50, 51, 52, 53, 54, 55]);
-};
-
 /**
  * const getClaimSubmissionFilename - description
  *
@@ -284,11 +276,6 @@ module.exports = function(billingApi) {
 
 
     return {
-
-        sandbox: (req, callback) => {
-            filterResults(null, EDT_DOWNLOAD);
-            callback(null, {});
-        },
 
         // takes an array of Claim IDs
         submitClaims: async (req, callback) => {
@@ -540,6 +527,7 @@ module.exports = function(billingApi) {
             };
 
             const isValid = mod10Check.isValidHealthNumber(healthNumber)
+            // console.log('healthNumber', healthNumber);
 
             if (isValid) {
                 result.isValid = true

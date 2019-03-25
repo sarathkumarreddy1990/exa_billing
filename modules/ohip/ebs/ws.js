@@ -132,15 +132,11 @@ ws.addAttachment = (ctx, property, xpath, file, contentType, index) => {
 
 };
 
-// TODO: EXA-12673
-// TODO remember to refactor this into shared library with EBSConnector
-const PEMFILE = fs.readFileSync(path.join(__dirname, 'certs/exa-ebs.pem')).toString();
-
-const decrypt = (encryptedKey, encryptedContent) => {
+const decrypt = (encryptedKey, encryptedContent, pemfile) => {
 
     encryptedKey = Buffer.from(encryptedKey, 'base64').toString('binary');
 
-    const private_key = pki.privateKeyFromPem(PEMFILE);
+    const private_key = pki.privateKeyFromPem(pemfile.toString());
 
     const decryptedKey = Buffer.from(private_key.decrypt(encryptedKey, 'RSAES-PKCS1-V1_5'), 'binary');
 
@@ -163,10 +159,12 @@ const decrypt = (encryptedKey, encryptedContent) => {
 };
 
 
-ws.Xenc = function() {};
+ws.Xenc = function(options) {
+    this.pemfile = options.pemfile;
+};
 
 ws.Xenc.prototype.send = function(ctx, callback) {
-
+    const self = this;
     this.next.send(ctx, function(ctx) {
 
         const doc = new dom().parseFromString(ctx.response.toString());
@@ -176,7 +174,7 @@ ws.Xenc.prototype.send = function(ctx, callback) {
             const encryptedKeyNodes = select("//*[local-name(.)='EncryptedKey']", doc);
             const encryptedKeyValueNodes = select("//*[local-name(.)='CipherData']/*[local-name(.)='CipherValue']/text()", encryptedKeyNodes[0]);
             const encryptedBodyDataNode = select("//*[local-name(.)='EncryptedData']/*[local-name(.)='CipherData']/*[local-name(.)='CipherValue']/text()", bodyNode)[0];
-            const decryptedData = decrypt(encryptedKeyValueNodes[0].nodeValue, encryptedBodyDataNode.nodeValue);
+            const decryptedData = decrypt(encryptedKeyValueNodes[0].nodeValue, encryptedBodyDataNode.nodeValue, self.pemfile);
 
             encryptedKeyNodes.splice(0, 1);
 

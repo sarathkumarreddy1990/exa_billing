@@ -208,8 +208,21 @@ module.exports = {
         };
     },
 
-    parseHCVResponse: (doc) => {
-        return {};
+    parseHCVResponse: (doc) => { //Fault/detail/EBSFault/{code,message}
+    // console.log('???');
+        throw new Error('blah!');
+        // return {
+        //     responseCode: "ST001",
+        //     responseID: "62312",
+        //     healthNumber: '1234567890',
+        //     versionCode: 'OK',
+        //     firstName: 'Gaius',
+        //     secondName: 'Fracking',
+        //     lastName: 'Baltar',
+        //     gender: 'M',
+        //     dateOfBirth: new Date(),
+        //     expiryDate: new Date(),
+        // };
     },
 
     parseAuditLogDetails: (doc) => {
@@ -231,11 +244,41 @@ module.exports = {
     },
 
     parseEBSFault: (doc) => {
-        const ebsFaultNode = select("//*[local-name(.)='EBSFault']", doc)[0];
+        // console.log('??')
+        // because why wouldn't OHIP use two fault-schemas and only document one?
+        // <soapenv:Fault>
+        //      <faultcode>soapenv:Server</faultcode>
+        //      <faultstring/>
+        //      <detail>
+        //          <ns1:EBSFault xmlns:ns1="http://ebs.health.ontario.ca/">
+        //              <code>SMIDL0204</code>
+        //              <message>General System Error; contact your technical support or software vendor. </message>
+        //          </ns1:EBSFault>
+        //      </detail>
+        //  </soapenv:Fault>
+        //
+        // console.log(doc.toString());
+        const faultNode = select("//*[local-name(.)='Fault']", doc)[0];
+        // const faultNode = select("//*[local-name(.)='Body']", doc);
+        // console.log('faultNode: ', faultNode.toString());
 
-        const foo= {
-            code: select("//*[local-name(.)='code']/text()", ebsFaultNode)[0].nodeValue,
-            message: select("//*[local-name(.)='message']/text()", ebsFaultNode)[0].nodeValue,
+        const basicFault = {
+            faultcode: select("*[local-name(.)='faultcode']/text()", faultNode)[0].nodeValue,
+            faultstring: parseOptionalValue(faultNode, 'faultstring'),
+        };
+        // console.log('basicFault: ', basicFault);
+
+        try {
+            const ebsFaultNode = select("*[local-name(.)='detail']/*[local-name(.)='EBSFault']", faultNode)[0];
+
+            return {
+                code: select("*[local-name(.)='code']/text()", ebsFaultNode)[0].nodeValue,
+                message: select("*[local-name(.)='message']/text()", ebsFaultNode)[0].nodeValue,
+                ...basicFault,
+            };
+        }
+        catch(err) {
+            return basicFault;
         }
         return foo;
     },

@@ -499,7 +499,10 @@ const applyErrorReport = async (args) => {
 const OHIP_CONFIGURATION_MODE = {
     CONFORMANCE_TESTING: 'Conformance Testing',
     DEMO: 'Demonstration',
+    PRODUCTION: 'Production',
 };
+
+const config = require('../../config');
 
 const OHIPDataAPI = {
 
@@ -524,19 +527,21 @@ const OHIPDataAPI = {
     getOHIPConfiguration: async (args) => {
 
         const {
-            hcv,
             muid,
         } = args || {};
 
         return {
             // TODO: EXA-12674
-            softwareConformanceKey: hcv
-                ? '65489ecd-0bef-4558-8871-f2e4b71b8e92'
-                : 'b5dc648e-581a-4886-ac39-c18832d12e06',
-            auditID: 124355467675,
-            serviceUserMUID: muid || 614200,
-            username: "confsu+355@gmail.com",
-            password: "Password1!",
+            hcvSoftwareConformanceKey: config.get('hcvSoftwareConformanceKey'),//'65489ecd-0bef-4558-8871-f2e4b71b8e92',
+
+            edtSoftwareConformanceKey: config.get('edtSoftwareConformanceKey'),
+            edtServiceEndpoint: config.get('edtServiceEndpoint'),
+            hcvServiceEndpoint: config.get('hcvServiceEndpoint'),
+
+            ebsCertPath: config.get('ebsCertPath'),
+            serviceUserMUID: muid || config.get('serviceUserMUID'),
+            username: config.get('ebsUsername'),
+            password: config.get('ebsPassword'),
             mode: OHIP_CONFIGURATION_MODE.DEMO,
         };
     },
