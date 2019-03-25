@@ -185,11 +185,11 @@ define(['jquery',
                                     $('input:checkbox[name=defaultPayer]').prop('checked', self.isdefaultPayer );
                                     if (data.billing_method == 'electronic_billing') {
                                         $('#clearingHouse').show();
-                                        $('#dPayer').show();
+                                        $('#defaultPayerDiv').show();
                                     }
                                     else {
                                         $('#clearingHouse').hide();
-                                        $('#dPayer').hide();
+                                        $('#defaultPayerDiv').hide();
                                     }
                                 }
                             }
@@ -307,11 +307,12 @@ define(['jquery',
                 var method = $('#ddlClaimBillingMethod').val();
                 if (method == 'electronic_billing') {
                     $('#clearingHouse').show();
-                    $('#dPayer').show();
+                    $('#defaultPayerDiv').show()
+
                 }
                 else {
                     $('#clearingHouse').hide();
-                    $('#dPayer').hide();
+                    $('#defaultPayerDiv').hide();
                 }
             },
 

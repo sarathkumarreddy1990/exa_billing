@@ -103,6 +103,7 @@ module.exports = {
                                  FROM billing.insurance_provider_details
                                  WHERE
                                     is_default_payer
+                                 LIMIT 1
                             )
                         , update_default_payer AS
                            (
