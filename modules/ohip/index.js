@@ -570,6 +570,17 @@ module.exports = function(billingApi) {
                 '3': 'Stale_Dated_Claim_File.txt',
                 '4': 'OBEC FILE.txt',
                 '5': 'HCAU73.000',
+                '6':'HCAU73.000-malformed_header',
+                '7': 'HCAU73.000-invalid_length',
+                '8': 'Stale_Dated_Claim_File.txt-malformed_header',
+                '9': 'Stale_Dated_Claim_File.txt-invalid_length',
+                '10': 'HCAU73.000-missing_csn',
+                '11': 'HCAU73.000-header1_count',
+                '12': 'HCAU73.000-item_count',
+                '13': 'OBECFILE.blob-invalid_health_number_length',
+                '14': 'OBECFILE.blob-non_numeric_health_number',
+                '15': 'HCAU73.000-header2_count',
+                '16': 'OBECFILE.blob-invalid_transaction_code',
             };
 
             if (service === 'upload') {
