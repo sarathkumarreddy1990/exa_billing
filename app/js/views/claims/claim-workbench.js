@@ -2062,7 +2062,7 @@ define(['jquery',
                           validateMoney : true,
                           formatter: function (value, model, data) {
                               if (data.file_type === 'can_ohip_p') {
-                                var getRowColor = code => {
+                                var getRowColor = function(code) {
                                     var rowColor = {
                                         '10': 'table-warning',
                                         '20': 'table-danger',
