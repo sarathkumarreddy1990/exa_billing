@@ -234,7 +234,7 @@ define(['jquery',
 
             saveInsuranceX12Mapping: function() {
                 var self = this;
-                if (self.isdefaultPayer && !$('input:checkbox[name=defaultPayer]').prop('checked')) {
+                if (app.country_alpha_3_code === "can" && self.isdefaultPayer && !$('input:checkbox[name=defaultPayer]').prop('checked')) {
                     commonjs.showWarning('messages.warning.shared.defaultPayer');
                     return false;
                 }
@@ -269,7 +269,7 @@ define(['jquery',
                     "billingMethod": $('#ddlClaimBillingMethod').val(),
                     "indicatorCode": $('#txtClaimFileIndicatorCode').val(),
                     "ediCode": $("#selectPayerEDICode").val(),
-                    "is_default_payer": $('input:checkbox[name=defaultPayer]').prop('checked')
+                    "is_default_payer": (app.country_alpha_3_code === "can" && $('#ddlClaimBillingMethod').val() == 'electronic_billing') ? $('input:checkbox[name=defaultPayer]').prop('checked') : false
                 });
                 this.model.save({
                 }, {
