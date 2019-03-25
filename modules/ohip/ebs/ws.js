@@ -199,7 +199,7 @@ ws.Xenc.prototype.send = function(ctx, callback) {
                 const encryptedKeyValue = select("*[local-name(.)='CipherData']/*[local-name(.)='CipherValue']/text()", encryptedKeyNode)[0].nodeValue;
 
                 // contentURI has 'cid:' at the beginning so pop it off
-                const decryptedContent = decrypt(encryptedKeyValue, ctx.data[contentURI.slice(4)]).toString('binary');
+                const decryptedContent = decrypt(encryptedKeyValue, ctx.data[contentURI.slice(4)], pemfile).toString('binary');
 
                 const contentNode = select(`//*[@href='${contentURI}']//parent::*`, bodyNode)[0];
                 contentNode.removeChild(contentNode.firstChild);
@@ -209,7 +209,7 @@ ws.Xenc.prototype.send = function(ctx, callback) {
 
 
         } catch(e) {
-            console.log(`error: ${e}`);
+            console.log(`Xenc: ${e}`);
         }
 
         ctx.response = doc.toString();
