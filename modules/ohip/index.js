@@ -468,7 +468,20 @@ module.exports = function(billingApi) {
         },
 
         fileManagement: async (args, callback) => {
-            return callback(null, await billingApi.getFileManagementData(args));
+            const fileData = await billingApi.getFileManagementData(args);
+
+            for (let i = 0; i < fileData.rows.length; i++) {
+                if (fileData.rows[i].file_type === 'can_ohip_p') {
+                    const loadFileData = await billingApi.loadFile({edi_files_id: fileData.rows[i].id});
+                    const parsedResponseFile = new Parser(loadFileData.uploaded_file_name).parse(loadFileData.data);
+                    fileData.rows[i].totalAmountPayable = parsedResponseFile.totalAmountPayable;
+                    fileData.rows[i].accountingTransactions = parsedResponseFile.accountingTransactions;
+                } else {
+                    fileData.rows[i].totalAmountPayable = null;
+                }
+            }
+
+            return callback(null, fileData);
         },
 
         /**
