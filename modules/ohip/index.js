@@ -545,7 +545,8 @@ module.exports = function(billingApi) {
             if (isValid) {
                 result.isValid = true
                 ebs.validateHealthCard(args, (hcvErr, hcvResponse) => {
-                    // console.log(hcvResponse);
+                    args.eligibility_response = hcvResponse;
+                    billingApi.saveEligibilityLog(args);
                     return callback(null, hcvResponse);
                 });
             }
