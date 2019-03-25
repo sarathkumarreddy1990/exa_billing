@@ -241,6 +241,7 @@ define(['jquery',
             },
 
             insuranceEligibilityCan: function (e) {
+                var self = this;
                 if (!$('#txtPriPolicyNo').val().length) {
                     commonjs.showWarning('messages.warning.shared.invalidHealthNumber');
                     return;
@@ -255,20 +256,23 @@ define(['jquery',
                         type: "GET",
                         data: {
                             healthNumber: $('#txtPriPolicyNo').val(),
-                            versionCode: $('#txtPriGroupNo').val()
+                            versionCode: $('#txtPriGroupNo').val(),
+                            patient_id: self.cur_patient_id,
+                            patient_insurance_id: self.priClaimInsID || self.primaryPatientInsuranceId
                         },
                         success: function (data) {
-                            if (data && data.result) {
+                            if ( data.results && data.results.length ) {
+                                var eligibilityRes = data.results[0];
                                 commonjs.showDialog({
                                     header: 'Healthcard Eligibility Result', i18nHeader: 'menuTitles.patient.PatientInsuranceEligibility', height: '70%', width: '70%',
                                     html: self.insuranceOhipTemplate({
-                                        'insuranceData': data.result.info,
-                                        'validationInfo': JSON.parse(data.result.validation_info)
+                                        'insuranceData': eligibilityRes
                                     })
                                 });
                             }
-                            else
-                                commonjs.showStatus('messages.status.noValidationData', 'largestatus');
+                            else {
+                                commonjs.showWarning( 'messages.status.noValidationData', 'largestatus' );
+                            }
                         },
                         error: function (request, status, error) {
                             commonjs.handleXhrError(request);
