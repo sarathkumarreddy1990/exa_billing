@@ -243,8 +243,8 @@ ws.Audit.prototype.send = function(ctx, callback) {
         // duration
         ctx.audit.duration = (new Date()).getTime() - ctx.audit.dateTime.getTime();
 
-        const doc = new dom().parseFromString(ctx.response);
-        const parseObj = parseAuditLogDetails(doc);
+        // const doc = new dom().parseFromString();
+        const parseObj = parseAuditLogDetails(ctx.response);
         ctx.audit.requestAuditID = parseObj.auditID;
 
         callback(ctx);

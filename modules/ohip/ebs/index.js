@@ -1,9 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const {
-    select,
-} = require('xpath');
-const dom = require('xmldom').DOMParser;
+
 const {
     chunk,
 } = require('lodash');
@@ -145,6 +142,7 @@ const EBSConnector = function(config) {
                 unsafe,
             } = args;
 
+            const faults = [];
             const auditInfo = [];
             let results = [];
 
@@ -167,19 +165,17 @@ const EBSConnector = function(config) {
 
                 ws.send(handlers, ctx, (ctx) => {
 
-                    const doc = new dom().parseFromString(ctx.response);
-
                     // ctx.audit.actionDetail =
                     try {
                         return callback(null, {
                             faults: [],
                             auditInfo: [ctx.audit],
-                            results: [xml.parseUploadResponse(doc)],
+                            results: [xml.parseUploadResponse(ctx.response)],
                         });
                     }
                     catch (e) {
                         return callback(null, {
-                            faults: [xml.parseEBSFault(doc)],
+                            faults: [xml.parseEBSFault(ctx.response)],
                             auditInfo: [ctx.audit],
                             results: [],
                         });
@@ -197,20 +193,19 @@ const EBSConnector = function(config) {
             const auditInfo = [];
             let results = [];
             let faults = [];
+
             chunk(resourceIDs, SUBMIT_MAX).forEach((chunk, index, chunks) => {
 
                 const ctx = createEDTContext(EDT_SUBMIT, {resourceIDs: chunk});
 
                 return ws.send(handlers, ctx, (ctx) => {
 
-                    const doc = new dom().parseFromString(ctx.response);
-
                     try {
                         auditInfo.push(ctx.audit);
-                        results = results.concat(xml.parseSubmitResponse(doc));
+                        results = results.concat(xml.parseSubmitResponse(ctx.response));
                     }
                     catch (e) {
-                        faults.push(xml.parseEBSFault(doc))
+                        faults.push(xml.parseEBSFault(ctx.response))
                     }
 
                     if (index === (chunks.length - 1)) {
@@ -242,13 +237,12 @@ const EBSConnector = function(config) {
 
                 return ws.send(handlers, ctx, (ctx) => {
 
-                    const doc = new dom().parseFromString(ctx.response);
                     try {
                         auditInfo.push(ctx.audit);
-                        results = results.concat(xml.parseInfoResponse(doc));
+                        results = results.concat(xml.parseInfoResponse(ctx.response));
                     }
                     catch (e) {
-                        faults.push(xml.parseEBSFault(doc))
+                        faults.push(xml.parseEBSFault(ctx.response))
                     }
 
                     if (index === (chunks.length - 1)) {
@@ -267,19 +261,17 @@ const EBSConnector = function(config) {
             const ctx = createEDTContext(EDT_LIST, args);
 
             return ws.send(handlers, ctx, (ctx) => {
-                console.log(ctx.response);
-                const doc = new dom().parseFromString(ctx.response);
 
                 try {
                     return callback(null, {
                         faults: [],
                         auditInfo: [ctx.audit],
-                        results: [xml.parseListResponse(doc)],
+                        results: [xml.parseListResponse(ctx.response)],
                     });
                 }
                 catch (e) {
                     return callback(null, {
-                        faults: [xml.parseEBSFault(doc)],
+                        faults: [xml.parseEBSFault(ctx.response)],
                         auditInfo: [],
                         results: [],
                     });
@@ -295,7 +287,7 @@ const EBSConnector = function(config) {
 
             const auditInfo = [];
             let results = [];
-
+            const faults = [];
 
             const chunkSize = unsafe ? resourceIDs.length : DOWNLOAD_MAX;
 
@@ -305,17 +297,16 @@ const EBSConnector = function(config) {
 
                 return ws.send(handlers, ctx, (ctx) => {
 
-                    const doc = new dom().parseFromString(ctx.response);
                     try {
                         return callback(null, {
                             faults: [],
                             auditInfo: [ctx.audit],
-                            results: [xml.parseDownloadResponse(doc)],
+                            results: [xml.parseDownloadResponse(ctx.response)],
                         });
                     }
                     catch (e) {
                         return callback(null, {
-                            faults: [xml.parseEBSFault(doc)],
+                            faults: [xml.parseEBSFault(ctx.response)],
                             auditInfo: [],
                             results: [],
                         });
@@ -333,24 +324,25 @@ const EBSConnector = function(config) {
 
             const auditInfo = [];
             let results = [];
+            const faults = [];
 
             chunk(resourceIDs, DELETE_MAX).forEach((chunk, index, chunks) => {
 
                 const ctx = createEDTContext(EDT_DELETE, {resourceIDs: chunk});
 
                 return ws.send(handlers, ctx, (ctx) => {
-                    const doc = new dom().parseFromString(ctx.response);
+
                     try {
                         const auditInfo = [ctx.audit];
                         return callback(null, {
                             faults: [],
                             auditInfo: [ctx.audit],
-                            results: [xml.parseDeleteResponse(doc)],
+                            results: [xml.parseDeleteResponse(ctx.response)],
                         });
                     }
                     catch (e) {
                         return callback(null, {
-                            faults: [xml.parseEBSFault(doc)],
+                            faults: [xml.parseEBSFault(ctx.response)],
                             auditInfo: [],
                             results: [],
                         });
@@ -369,7 +361,7 @@ const EBSConnector = function(config) {
 
             const auditInfo = [];
             let results = [];
-
+            const faults = [];
 
             const chunkSize = unsafe ? updates.length : UPDATE_MAX;
             chunk(updates, chunkSize).forEach((chunk, index, chunks) => {
@@ -389,17 +381,16 @@ const EBSConnector = function(config) {
 
                 return ws.send(handlers, ctx, (ctx) => {
 
-                    const doc = new dom().parseFromString(ctx.response);
                     try {
                         return callback(null, {
                             faults: [],
                             auditInfo: [ctx.audit],
-                            results: [xml.parseUpdateResponse(doc)],
+                            results: [xml.parseUpdateResponse(ctx.response)],
                         });
                     }
                     catch (e) {
                         return callback(null, {
-                            faults: [xml.parseEBSFault(doc)],
+                            faults: [xml.parseEBSFault(ctx.response)],
                             auditInfo: [],
                             results: [],
                         });
@@ -412,19 +403,22 @@ const EBSConnector = function(config) {
 
             const ctx = createEDTContext(EDT_GET_TYPE_LIST, args);
 
+            const auditInfo = [];
+            let results = [];
+            const faults = [];
+
             return ws.send(handlers, ctx, (ctx) => {
 
-                const doc = new dom().parseFromString(ctx.response);
                 try {
                     return callback(null, {
                         faults: [],
                         auditInfo: [ctx.audit],
-                        results: [xml.parseTypeListResponse(doc)],
+                        results: [xml.parseTypeListResponse(ctx.response)],
                     });
                 }
                 catch (e) {
                     return callback(null, {
-                        faults: [xml.parseEBSFault(doc)],
+                        faults: [xml.parseEBSFault(ctx.response)],
                         auditInfo: [],
                         results: [],
                     });
@@ -435,20 +429,23 @@ const EBSConnector = function(config) {
         validateHealthCard: (args, callback) => {
             const ctx = createHCVContext(HCV_BASIC_VALIDATE, args);
 
+            const auditInfo = [];
+            let results = [];
+            const faults = [];
+
             return ws.send(handlers, ctx, (ctx) => {
 
-                const doc = new dom().parseFromString(ctx.response);
                 try {
                     return callback(null, {
                         faults: [],
                         auditInfo: [ctx.audit],
-                        results: [xml.parseHCVResponse(doc)],
+                        results: [xml.parseHCVResponse(ctx.response)],
                     });
                 }
                 catch(e) {
 
                     return callback(null, {
-                        faults: [xml.parseEBSFault(doc)],
+                        faults: [xml.parseEBSFault(ctx.response)],
                         auditInfo: [ctx.audit],
                         results: [],
                     });

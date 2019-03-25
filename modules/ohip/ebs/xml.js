@@ -152,26 +152,31 @@ const parseDetail = (doc) => {
 
 module.exports = {
 
-    parseUploadResponse: (doc) => {
+    parseUploadResponse: (docStr) => {
+        const doc = new dom().parseFromString(docStr);
         return parseResourceResult(select("//*[local-name(.)='uploadResponse']", doc)[0]);
     },
 
-    parseUpdateResponse: (doc) => {
+    parseUpdateResponse: (docStr) => {
+        const doc = new dom().parseFromString(docStr);
         return parseResourceResult(select("//*[local-name(.)='updateResponse']", doc)[0]);
     },
 
-    parseSubmitResponse: (doc) => {
+    parseSubmitResponse: (docStr) => {
+        const doc = new dom().parseFromString(docStr);
         return parseResourceResult(select("//*[local-name(.)='submitResponse']", doc)[0]);
     },
 
-    parseDeleteResponse: (doc) => {
+    parseDeleteResponse: (docStr) => {
+        const doc = new dom().parseFromString(docStr);
         return parseResourceResult(select("//*[local-name(.)='deleteResponse']", doc)[0]);
     },
 
 
 
 
-    parseDownloadResponse: (doc) => {
+    parseDownloadResponse: (docStr) => {
+        const doc = new dom().parseFromString(docStr);
         const downloadResponseNode = select("//*[local-name(.)='downloadResponse']", doc)[0];
 
         const downloadResultNode = select("//*[local-name(.)='return']", doc)[0];
@@ -185,17 +190,21 @@ module.exports = {
         };
     },
 
-    parseInfoResponse: (doc) => {
+    parseInfoResponse: (docStr) => {
+        const doc = new dom().parseFromString(docStr);
         return parseDetail(select("//*[local-name(.)='infoResponse']", doc)[0]);
     },
 
 
-    parseListResponse: (doc) => {
+    parseListResponse: (docStr) => {
+
+        const doc = new dom().parseFromString(docStr);
         return parseDetail(select("//*[local-name(.)='listResponse']", doc)[0]);
 
     },
 
-    parseTypeListResponse: (doc) => {
+    parseTypeListResponse: (docStr) => {
+        const doc = new dom().parseFromString(docStr);
         const getTypeListResponseNode = select("//*[local-name(.)='getTypeListResponse']", doc)[0];
         const typeListResultNode = select("//*[local-name(.)='return']", getTypeListResponseNode)[0];
 
@@ -208,7 +217,8 @@ module.exports = {
         };
     },
 
-    parseHCVResponse: (doc) => {
+    parseHCVResponse: (docStr) => {
+        const doc = new dom().parseFromString(docStr);
         return {
             responseCode: "ST001",
             responseID: "62312",
@@ -223,7 +233,8 @@ module.exports = {
         };
     },
 
-    parseAuditLogDetails: (doc) => {
+    parseAuditLogDetails: (docStr) => {
+        const doc = new dom().parseFromString(docStr);
         const returnNode = select("//*[local-name(.)='return']", doc)[0];
 
         // empty results don't come with audit IDs or common results :(
@@ -236,8 +247,9 @@ module.exports = {
         return {};
     },
 
-    parseEBSFault: (doc) => {
+    parseEBSFault: (docStr) => {
 
+        const doc = new dom().parseFromString(docStr);
         const faultNode = select("//*[local-name(.)='Fault']", doc)[0];
 
         const basicFault = {
