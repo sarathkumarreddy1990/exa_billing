@@ -131,7 +131,7 @@ module.exports = {
                 </updates>
             `
         }
-        
+
         return `
             <edt:update>
                 ${innerXML}
@@ -145,7 +145,6 @@ module.exports = {
 
     HCV_BASIC_VALIDATE: (args) => {
 
-        // console.log('here???');
         const {
             healthNumber,
             versionCode,

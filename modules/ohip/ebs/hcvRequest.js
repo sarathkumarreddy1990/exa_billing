@@ -107,9 +107,5 @@ module.exports = _.template(`
     </soapenv:Envelope>
 `);
 
-// console.log('could it be ');
-// module.exports({
-//
-// });
-// console.log('here?');
+
 // <healthNumber>1216070563</healthNumber>

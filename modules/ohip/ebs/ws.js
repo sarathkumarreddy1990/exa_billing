@@ -159,12 +159,12 @@ const decrypt = (encryptedKey, encryptedContent, pemfile) => {
 };
 
 
-ws.Xenc = function(options) {
-    this.pemfile = options.pemfile;
+ws.Xenc = function(config) {
+    this.config = config;
 };
 
 ws.Xenc.prototype.send = function(ctx, callback) {
-    const self = this;
+    const pemfile = this.config.pemfile;
     this.next.send(ctx, function(ctx) {
 
         const doc = new dom().parseFromString(ctx.response.toString());
@@ -174,7 +174,7 @@ ws.Xenc.prototype.send = function(ctx, callback) {
             const encryptedKeyNodes = select("//*[local-name(.)='EncryptedKey']", doc);
             const encryptedKeyValueNodes = select("//*[local-name(.)='CipherData']/*[local-name(.)='CipherValue']/text()", encryptedKeyNodes[0]);
             const encryptedBodyDataNode = select("//*[local-name(.)='EncryptedData']/*[local-name(.)='CipherData']/*[local-name(.)='CipherValue']/text()", bodyNode)[0];
-            const decryptedData = decrypt(encryptedKeyValueNodes[0].nodeValue, encryptedBodyDataNode.nodeValue, self.pemfile);
+            const decryptedData = decrypt(encryptedKeyValueNodes[0].nodeValue, encryptedBodyDataNode.nodeValue, pemfile);
 
             encryptedKeyNodes.splice(0, 1);
 

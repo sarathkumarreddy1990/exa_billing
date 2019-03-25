@@ -55,13 +55,6 @@ const EBSConnector = function(config) {
     const edtServiceEndpoint = config.edtServiceEndpoint || DEFAULT_EDT_SERVICE_ENDPOINT;
     const hcvServiceEndpoint = config.hcvServiceEndpoint || DEFAULT_HCV_SERVICE_ENDPOINT;
 
-    // console.log('ebsCertPath: ', config.ebsCertPath);
-    // console.log('hcvServiceEndpoint: ', hcvServiceEndpoint);
-    // console.log('hcvSoftwareConformanceKey: ',config.hcvSoftwareConformanceKey);
-    // console.log('edtServiceEndpoint: ', edtServiceEndpoint);
-    // console.log('edtSoftwareConformanceKey: ',config.edtSoftwareConformanceKey);
-    console.log('ensConfig: ', config);
-
     const edtRequestData = {
         softwareConformanceKey: config.edtSoftwareConformanceKey,
         auditID: config.auditID,
@@ -81,11 +74,8 @@ const EBSConnector = function(config) {
 
     const pemfile = fs.readFileSync(config.ebsCertPath);
 
-
     const x509 = new X509BinarySecurityToken({
-        // TODO: EXA-12673
         // TODO experiment using just the keys or certificates (no "mash")
-        // TODO experiment using simple signed certificates (this is made from )
         "key": pemfile.toString(),
     });
 
