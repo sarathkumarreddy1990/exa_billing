@@ -209,7 +209,7 @@ ws.Xenc.prototype.send = function(ctx, callback) {
 
 
         } catch(e) {
-            console.log(`error: ${e}`);
+            console.log(`Xenc: ${e}`);
         }
 
         ctx.response = doc.toString();
