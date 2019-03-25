@@ -1328,6 +1328,10 @@ var commonjs = {
                 commonjs.showError(errorMessage || 'Constraint violation');
                 break;
 
+            case '23156':
+                commonjs.showError(err.message);
+                break;
+
             case '22007':
                 commonjs.showError('messages.errors.invalidDateTimeError');
                 break;
