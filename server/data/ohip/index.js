@@ -595,7 +595,7 @@ const OHIPDataAPI = {
                     WHERE value = ANY(rend_pr.specialities)
                     ) item
                 ) AS "specialtyCodes",
-                33 AS specialityCode,
+                33 AS "specialityCode",
                 (SELECT JSON_agg(Row_to_json(claim_details)) FROM (
                 WITH cte_insurance_details AS (
                 SELECT
