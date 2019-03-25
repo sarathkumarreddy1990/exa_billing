@@ -590,18 +590,29 @@ const OHIPDataAPI = {
         const {
             claimIds,
         } = args;
-
+        let file_path = path.join(__dirname, '../../resx/speciality_codes.json');
+        let speciality_codes = fs.readFileSync(file_path, 'utf8');
         const sql = SQL`
+            WITH speciality_codes AS (
+                SELECT * FROM json_each_text(${JSON.parse(speciality_codes)})
+            )
             SELECT
                 bc.id AS claim_id,
                 bc.billing_method,
                 claim_notes AS "claimNotes",
                 npi_no AS "groupNumber",    -- this sucks
                 rend_pr.provider_info -> 'NPI' AS "providerNumber",
-
-                -- rend_pr.specialities AS "specialtyCode",
-                33 AS "specialtyCode",
-
+                (
+                    SELECT json_agg(item)
+                    FROM (
+                        SELECT
+                        key AS speciality_code,
+                        value AS speciality_desc
+                    FROM speciality_codes
+                    WHERE value = ANY(rend_pr.specialities)
+                    ) item
+                ) AS "specialtyCodes",
+                33 AS "specialityCode",
                 (SELECT JSON_agg(Row_to_json(claim_details)) FROM (
                 WITH cte_insurance_details AS (
                 SELECT
