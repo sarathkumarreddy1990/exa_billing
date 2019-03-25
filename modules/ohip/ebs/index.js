@@ -33,7 +33,9 @@ const {
     HCV_BASIC_VALIDATE,
 } = require('./service');
 const xml = require('./xml');
-const ebsRequestTemplate = require('./ebsRequest');
+const edtRequestTemplate = require('./edtRequest');
+
+const hcvRequestTemplate = require('./hcvRequest');
 
 const {
     UPLOAD_MAX,
@@ -44,29 +46,37 @@ const {
     INFO_MAX,
 } = require('./constants');
 
-const edtApiUrl = 'https://ws.conf.ebs.health.gov.on.ca:1443/EDTService/EDTService';
-const hcvApiUrl = 'https://ws.conf.ebs.health.gov.on.ca:1444/HCVService/HCValidationService';
+const DEFAULT_EDT_SERVICE_ENDPOINT = 'https://ws.conf.ebs.health.gov.on.ca:1443/EDTService/EDTService';
+const DEFAULT_HCV_SERVICE_ENDPOINT = 'https://ws.conf.ebs.health.gov.on.ca:1444/HCVService/HCValidationService';
 
 
 const EBSConnector = function(config) {
 
-    const ebsRequestData = {
-        softwareConformanceKey: config.softwareConformanceKey,
+    const edtServiceEndpoint = config.edtServiceEndpoint || DEFAULT_EDT_SERVICE_ENDPOINT;
+    const hcvServiceEndpoint = config.hcvServiceEndpoint || DEFAULT_HCV_SERVICE_ENDPOINT;
+
+    const edtRequestData = {
+        softwareConformanceKey: config.edtSoftwareConformanceKey,
         auditID: config.auditID,
         serviceUserMUID: config.serviceUserMUID,
     };
+    const hcvRequestData = {
+        softwareConformanceKey: config.hcvSoftwareConformanceKey,
+        auditID: config.auditID,
+        serviceUserMUID: config.serviceUserMUID,
+    };
+
 
     const auth = new UsernameToken({
         username: config.username,
         password: config.password,
     });
 
+    const pemfile = fs.readFileSync(config.ebsCertPath);
 
     const x509 = new X509BinarySecurityToken({
-        // TODO: EXA-12673
         // TODO experiment using just the keys or certificates (no "mash")
-        // TODO experiment using simple signed certificates (this is made from )
-        "key": fs.readFileSync(path.join(__dirname, 'certs/exa-ebs.pem')).toString(),
+        "key": pemfile.toString(),
     });
 
     const signature = new ws.Signature(x509);
@@ -78,27 +88,43 @@ const EBSConnector = function(config) {
 
     const handlers =  [
         new Audit(config),    // NOTE order in list affects duration
-        new Xenc(),
-        new Security({}, [x509, auth, signature]),
+        new Xenc({
+            pemfile,
+        }),
+        new Security(
+            {}
+            , [x509, auth, signature]
+        ),
         new Mtom(),
         new Http(),
     ];
 
     /**
-     * const getContext - description
+     * const createEDTContext - description
      *
      * @param  {type} serviceXML description
      * @param  {type} apiUrl     description
      * @return {type}            description
      */
-    const getContext = (service, serviceParams, apiUrl) => {
+     const createEDTContext = (service, serviceParams) => {
 
+         return {
+             request: edtRequestTemplate({
+                     serviceXML: (service(serviceParams) || ''),
+                     ...edtRequestData
+                 }),
+
+             url: edtServiceEndpoint,
+             contentType: 'text/xml',
+         };
+     };
+    const createHCVContext = (service, serviceParams) => {
         return {
-            request: ebsRequestTemplate({
-                serviceXML: (service(serviceParams) || ''),
-                ...ebsRequestData
-            }),
-            url: (apiUrl || edtApiUrl),
+            request: hcvRequestTemplate({
+                    serviceXML: (service(serviceParams) || ''),
+                    ...hcvRequestData
+                }),
+            url: hcvServiceEndpoint,
             contentType: 'text/xml',
         };
     };
@@ -126,7 +152,7 @@ const EBSConnector = function(config) {
 
             chunk(uploads, chunkSize).forEach((chunk, index, chunks) => {
 
-                const ctx = getContext(EDT_UPLOAD, {uploads: chunk});
+                const ctx = createEDTContext(EDT_UPLOAD, {uploads: chunk});
 
                 chunk.forEach((upload, index) => {
                     ws.addAttachment(
@@ -143,6 +169,7 @@ const EBSConnector = function(config) {
 
                     const doc = new dom().parseFromString(ctx.response);
 
+                    // ctx.audit.actionDetail =
                     try {
                         return callback(null, {
                             faults: [],
@@ -172,7 +199,7 @@ const EBSConnector = function(config) {
             let faults = [];
             chunk(resourceIDs, SUBMIT_MAX).forEach((chunk, index, chunks) => {
 
-                const ctx = getContext(EDT_SUBMIT, {resourceIDs: chunk});
+                const ctx = createEDTContext(EDT_SUBMIT, {resourceIDs: chunk});
 
                 return ws.send(handlers, ctx, (ctx) => {
 
@@ -211,7 +238,7 @@ const EBSConnector = function(config) {
 
                 // TODO remove this cludgy hack after Conformance Testing is over
 
-                const ctx = getContext(EDT_INFO, {resourceIDs: (chunk[0] === '-1') ? [] : chunk});
+                const ctx = createEDTContext(EDT_INFO, {resourceIDs: (chunk[0] === '-1') ? [] : chunk});
 
                 return ws.send(handlers, ctx, (ctx) => {
 
@@ -237,10 +264,10 @@ const EBSConnector = function(config) {
         },
 
         list: (args, callback) => {
-            const ctx = getContext(EDT_LIST, args);
+            const ctx = createEDTContext(EDT_LIST, args);
 
             return ws.send(handlers, ctx, (ctx) => {
-
+                console.log(ctx.response);
                 const doc = new dom().parseFromString(ctx.response);
 
                 try {
@@ -274,7 +301,7 @@ const EBSConnector = function(config) {
 
             chunk(resourceIDs, chunkSize).forEach((chunk, index, chunks) => {
 
-                const ctx = getContext(EDT_DOWNLOAD, {resourceIDs: chunk});
+                const ctx = createEDTContext(EDT_DOWNLOAD, {resourceIDs: chunk});
 
                 return ws.send(handlers, ctx, (ctx) => {
 
@@ -309,7 +336,7 @@ const EBSConnector = function(config) {
 
             chunk(resourceIDs, DELETE_MAX).forEach((chunk, index, chunks) => {
 
-                const ctx = getContext(EDT_DELETE, {resourceIDs: chunk});
+                const ctx = createEDTContext(EDT_DELETE, {resourceIDs: chunk});
 
                 return ws.send(handlers, ctx, (ctx) => {
                     const doc = new dom().parseFromString(ctx.response);
@@ -347,7 +374,7 @@ const EBSConnector = function(config) {
             const chunkSize = unsafe ? updates.length : UPDATE_MAX;
             chunk(updates, chunkSize).forEach((chunk, index, chunks) => {
 
-                const ctx = getContext(EDT_UPDATE, {updates:chunk});
+                const ctx = createEDTContext(EDT_UPDATE, {updates:chunk});
 
                 updates.forEach((update, index) => {
                     ws.addAttachment(
@@ -383,7 +410,7 @@ const EBSConnector = function(config) {
 
         getTypeList: (args, callback) => {
 
-            const ctx = getContext(EDT_GET_TYPE_LIST, args);
+            const ctx = createEDTContext(EDT_GET_TYPE_LIST, args);
 
             return ws.send(handlers, ctx, (ctx) => {
 
@@ -406,15 +433,26 @@ const EBSConnector = function(config) {
         },
 
         validateHealthCard: (args, callback) => {
-            const ctx = getContext(HCV_BASIC_VALIDATE, args, hcvApiUrl);
+            const ctx = createHCVContext(HCV_BASIC_VALIDATE, args);
 
             return ws.send(handlers, ctx, (ctx) => {
+
                 const doc = new dom().parseFromString(ctx.response);
-                return callback(null, {
-                    faults: [],
-                    auditInfo: [ctx.audit],
-                    results: [xml.parseHCVResponse(ctx.response)],
-                });
+                try {
+                    return callback(null, {
+                        faults: [],
+                        auditInfo: [ctx.audit],
+                        results: [xml.parseHCVResponse(doc)],
+                    });
+                }
+                catch(e) {
+
+                    return callback(null, {
+                        faults: [xml.parseEBSFault(doc)],
+                        auditInfo: [ctx.audit],
+                        results: [],
+                    });
+                }
             });
         }
 
