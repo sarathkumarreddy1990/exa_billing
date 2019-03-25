@@ -2073,22 +2073,19 @@ define(['jquery',
                                 };
 
                                 var trColor = '';
-                                var retVal = `<table class="table table-bordered">
-                                    <tbody>
-                                    <tr>
-                                        <td>Total Amount Payable</td>
-                                        <td>${data.totalAmountPayable}</td>
-                                    </tr>`;
+                                var retVal = '<table class="table table-bordered"><tbody><tr><td>';
+                                retVal += commonjs.geti18NString("billing.claims.totalAmountPayable");
+                                retVal +=  '</td><td>' + data.totalAmountPayable + '</td></tr>';
                                 for (var i = 0; i < data.accountingTransactions.length; i++) {
                                     trColor = getRowColor(data.accountingTransactions[i].transactionCode);
-                                    retVal += `<tr class="${trColor}"><td>${data.accountingTransactions[i].transactionMessage}</td>`;
-                                    retVal += `<td>${data.accountingTransactions[i].transactionAmount}</td></tr>`;
+                                    retVal += '<tr class="' + trColor + '"><td>' + data.accountingTransactions[i].transactionMessage + '}</td>';
+                                    retVal += '<td>' + data.accountingTransactions[i].transactionAmount + '</td></tr>';
                                 }
-                                retVal += `</tbody></table>`;
+                                retVal += '</tbody></table>';
                                 return retVal;
 
                               } else {
-                                  return '';
+                                return '';
                               }
                             }
                         }
