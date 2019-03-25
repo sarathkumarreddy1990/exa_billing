@@ -209,7 +209,18 @@ module.exports = {
     },
 
     parseHCVResponse: (doc) => {
-        return {};
+        return {
+            responseCode: "ST001",
+            responseID: "62312",
+            healthNumber: '1234567890',
+            versionCode: 'OK',
+            firstName: 'Gaius',
+            secondName: 'Fracking',
+            lastName: 'Baltar',
+            gender: 'M',
+            dateOfBirth: new Date(),
+            expiryDate: new Date(),
+        };
     },
 
     parseAuditLogDetails: (doc) => {
@@ -226,22 +237,25 @@ module.exports = {
     },
 
     parseEBSFault: (doc) => {
-        // because why wouldn't OHIP use two fault-schemas and only document one?
+
+        const faultNode = select("//*[local-name(.)='Fault']", doc)[0];
+
+        const basicFault = {
+            faultcode: select("*[local-name(.)='faultcode']/text()", faultNode)[0].nodeValue,
+            faultstring: parseOptionalValue(faultNode, 'faultstring'),
+        };
+
         try {
-            const ebsFaultNode = select("//*[local-name(.)='EBSFault']", doc)[0];
+            const ebsFaultNode = select("*[local-name(.)='detail']/*[local-name(.)='EBSFault']", faultNode)[0];
 
             return {
-                code: select("//*[local-name(.)='code']/text()", ebsFaultNode)[0].nodeValue,
-                message: select("//*[local-name(.)='message']/text()", ebsFaultNode)[0].nodeValue,
+                code: select("*[local-name(.)='code']/text()", ebsFaultNode)[0].nodeValue,
+                message: select("*[local-name(.)='message']/text()", ebsFaultNode)[0].nodeValue,
+                ...basicFault,
             };
         }
         catch(err) {
-            const faultNode = select("//*[local-name(.)='Fault']", doc)[0];
-
-            return {
-                code: select("//*[local-name(.)='faultcode']/text()", faultNode)[0].nodeValue,
-                message: select("//*[local-name(.)='faultstring']/text()", faultNode)[0].nodeValue,
-            };
+            return basicFault;
         }
     },
 };

@@ -637,6 +637,18 @@
         "category": "billing",
         "title": "Procedure Analysis By Insurance / Referring Provider",
         "description": "Report shows order's procedure codes per primary insurances and Referring Provider",
+        "vars": {
+            "columnHeader": {
+                "cpt": {
+                    "usa": "CPT Code",
+                    "can": "Service Code"
+                },
+                "cptDate": {
+                    "usa": "CPT Date",
+                    "can": "Service Date"
+                }
+            }
+        },
         "jsreport": {
             "html": {
                 "template": {

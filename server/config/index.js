@@ -12,7 +12,16 @@ module.exports = {
         dbConnectionBilling: 'dbConnectionBilling',
         RedisStore: 'RedisStore',
         dbCacheEnabled: 'dbCacheEnabled',
-        dbCacheTtl: 'dbCacheTtl'
+        dbCacheTtl: 'dbCacheTtl',
+
+        edtSoftwareConformanceKey: 'edtSoftwareConformanceKey',
+        ebsCertPath: 'ebsCertPath',
+        hcvSoftwareConformanceKey: 'hcvSoftwareConformanceKey',
+        serviceUserMUID: 'serviceUserMUID',
+        ebsUsername: 'ebsUsername',
+        ebsPassword: 'ebsPassword',
+        edtServiceEndpoint: 'edtServiceEndpoint',
+        hcvServiceEndpoint: 'hcvServiceEndpoint',
     },
 
     paths: [
