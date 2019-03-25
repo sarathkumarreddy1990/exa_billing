@@ -642,7 +642,15 @@ const OHIPDataAPI = {
                 billing.get_charge_icds (bch.id) AS diagnosticCodes
                 FROM billing.charges bch
                 INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
-                WHERE bch.claim_id = bc.id) AS items )
+                LEFT JOIN LATERAL
+                (
+                  SELECT 
+                      SUM(COALESCE(bpa.amount::numeric,0)) AS charge_payment
+                  FROM billing.payment_applications bpa 
+                  WHERE bpa.charge_id = bch.id
+                ) cp ON TRUE
+                WHERE bch.claim_id = bc.id
+                AND ((bch.bill_fee::numeric * bch.units) - (COALESCE(cp.charge_payment,0))) > 0) AS items )
                 SELECT * FROM cte_insurance_details, charge_details) AS claim_details ) AS "claims"
                 FROM billing.claims bc
                 INNER JOIN public.companies pc ON pc.id = bc.company_id
