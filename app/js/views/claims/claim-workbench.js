@@ -1975,12 +1975,13 @@ define(['jquery',
 
             showFileManagementGrid: function () {
                 var self = this;
+
                 self.fileManagementTable = new customGrid(self.fileManagementFiles.rows, '#tblFileManagement');
                 self.fileManagementTable.render({
                     gridelementid: '#tblFileManagement',
                     custompager: self.fileManagementPager,
                     emptyMessage: i18n.get("messages.status.noRecordFound"),
-                    colNames: ["","File Name","File Type", "Submitted Date","Acknowledgement Received","Payment Received",""],
+                    colNames: ["","File Name","File Type", "Submitted Date","Acknowledgement Received","Payment Received","","Total Amount Payable"],
                     i18nNames: [
                         "",
                         "billing.claims.fileName",
@@ -1988,7 +1989,8 @@ define(['jquery',
                         "billing.claims.submittedDate",
                         "billing.claims.acknowledgementReceived",
                         "billing.claims.paymentReceived",
-                        ""
+                        "",
+                        "billing.claims.totalAmountPayable"
                     ],
                     colModel: [
                         { name: '', index: 'id', key: true, hidden: true, search: false },
@@ -2053,6 +2055,39 @@ define(['jquery',
                             customAction: function (rowID, e) {
                                 self.applyFileManagement(rowID);
                             }
+                        },
+                        { name: 'total_amount_payable',
+                          width: 500,
+                          search: false,
+                          validateMoney : true,
+                          formatter: function (value, model, data) {
+                              if (data.file_type === 'can_ohip_p') {
+                                var getRowColor = function(code) {
+                                    var rowColor = {
+                                        '10': 'table-warning',
+                                        '20': 'table-danger',
+                                        '40': 'table-success',
+                                        '50': 'table-primary'
+                                    };
+                                    return rowColor[code] || '';
+                                };
+
+                                var trColor = '';
+                                var retVal = '<table class="table table-bordered"><tbody><tr><td>';
+                                retVal += commonjs.geti18NString("billing.claims.totalAmountPayable");
+                                retVal +=  '</td><td>' + data.totalAmountPayable + '</td></tr>';
+                                for (var i = 0; i < data.accountingTransactions.length; i++) {
+                                    trColor = getRowColor(data.accountingTransactions[i].transactionCode);
+                                    retVal += '<tr class="' + trColor + '"><td>' + data.accountingTransactions[i].transactionMessage + '}</td>';
+                                    retVal += '<td>' + data.accountingTransactions[i].transactionAmount + '</td></tr>';
+                                }
+                                retVal += '</tbody></table>';
+                                return retVal;
+
+                              } else {
+                                return '';
+                              }
+                            }
                         }
                     ],
                     datastore: self.fileManagementFiles,
@@ -2062,6 +2097,7 @@ define(['jquery',
                 });
 
                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());
+
             },
 
             initEbsListResults: function(dataset) {
