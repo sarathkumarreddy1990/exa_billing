@@ -2386,10 +2386,10 @@ define(['jquery',
                         $ohipPageNo = $('#ohipPageNo');
                         $ohipPageNo.empty();
                         for (var pageNo = 1; pageNo<=response.results[0].resultSize; pageNo++) {
-                            $ohipPageNo.append($('<option>', {
+                            $ohipPageNo.append($('<option />', {
                                 value: pageNo,
                                 text: pageNo
-                            }, '</option>'));
+                            }));
                         }
                     },
                     error: function(err) {
