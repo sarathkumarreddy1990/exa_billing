@@ -2388,8 +2388,11 @@ define(['jquery',
                     service: 'list',
                     muid: $("#ohipMUID").val(),
                     status: $("#ohipStatus").val(),
-                    resourceType: $("#ohipResourceType").val()
+                    resourceType: $("#ohipResourceType").val(),
+                    pageNo: $('#ohipPageNo').val()
                 };
+
+
 
                 if (!listParams.status) {
                     delete listParams.status;
@@ -2416,6 +2419,14 @@ define(['jquery',
                             }, [])
                         }));
                         $("#tblConformanceTesting").find(".ui-widget-content.jqgrow").remove();
+                        $ohipPageNo = $('#ohipPageNo');
+                        $ohipPageNo.empty();
+                        for (var pageNo = 1; pageNo<=response.results[0].resultSize; pageNo++) {
+                            $ohipPageNo.append($('<option>', {
+                                value: pageNo,
+                                text: pageNo
+                            }, '</option>'));
+                        }
                     },
                     error: function(err) {
                         commonjs.showError(err);
