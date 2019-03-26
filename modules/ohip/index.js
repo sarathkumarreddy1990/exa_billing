@@ -6,6 +6,7 @@ const {
 } = require('lodash');
 const sprintf = require('sprintf');
 const path = require('path');
+const logger = require('../../logger');
 
 // this is the high-level business logic and algorithms for OHIP
 //  * use cases are defined here
@@ -43,14 +44,6 @@ const Parser = require('./parser');
 const validateClaimsData = require('../../server/data/claim/claim-workbench');
 const _ = require('lodash');
 
-
-const getRandomResponseCode = (codes) => {
-    return codes[Math.floor(Math.random()*codes.length)];
-};
-
-const getRandomValidHealthNumberResponseCode = () => {
-    return getRandomResponseCode([50, 51, 52, 53, 54, 55]);
-};
 
 /**
  * const getClaimSubmissionFilename - description
@@ -286,11 +279,6 @@ module.exports = function(billingApi) {
 
     return {
 
-        sandbox: (req, callback) => {
-            filterResults(null, EDT_DOWNLOAD);
-            callback(null, {});
-        },
-
         // takes an array of Claim IDs
         submitClaims: async (req, callback) => {
             let args = req.query;
@@ -468,7 +456,20 @@ module.exports = function(billingApi) {
         },
 
         fileManagement: async (args, callback) => {
-            return callback(null, await billingApi.getFileManagementData(args));
+            const fileData = await billingApi.getFileManagementData(args);
+
+            for (let i = 0; i < fileData.rows.length; i++) {
+                if (fileData.rows[i].file_type === 'can_ohip_p') {
+                    const loadFileData = await billingApi.loadFile({edi_files_id: fileData.rows[i].id});
+                    const parsedResponseFile = new Parser(loadFileData.uploaded_file_name).parse(loadFileData.data);
+                    fileData.rows[i].totalAmountPayable = parsedResponseFile.totalAmountPayable;
+                    fileData.rows[i].accountingTransactions = parsedResponseFile.accountingTransactions;
+                } else {
+                    fileData.rows[i].totalAmountPayable = null;
+                }
+            }
+
+            return callback(null, fileData);
         },
 
         /**
@@ -541,11 +542,13 @@ module.exports = function(billingApi) {
             };
 
             const isValid = mod10Check.isValidHealthNumber(healthNumber)
+            // console.log('healthNumber', healthNumber);
 
             if (isValid) {
                 result.isValid = true
                 ebs.validateHealthCard(args, (hcvErr, hcvResponse) => {
-                    // console.log(hcvResponse);
+                    args.eligibility_response = hcvResponse;
+                    billingApi.saveEligibilityLog(args);
                     return callback(null, hcvResponse);
                 });
             }
@@ -571,26 +574,38 @@ module.exports = function(billingApi) {
             const {
                 muid,   // MoH User ID,
                 service,
+                description,
             } = args;
 
             const filenamesByFixtureId = {
-
+                '1': 'Custom',
                 '2': 'Claim_File.txt',
                 '3': 'Stale_Dated_Claim_File.txt',
                 '4': 'OBEC FILE.txt',
                 '5': 'HCAU73.000',
+                '6':'HCAU73.000-malformed_header',
+                '7': 'HCAU73.000-invalid_length',
+                '8': 'Stale_Dated_Claim_File.txt-malformed_header',
+                '9': 'Stale_Dated_Claim_File.txt-invalid_length',
+                '10': 'HCAU73.000-missing_csn',
+                '11': 'HCAU73.000-header1_count',
+                '12': 'HCAU73.000-item_count',
+                '13': 'OBECFILE.blob-invalid_health_number_length',
+                '14': 'OBECFILE.blob-non_numeric_health_number',
+                '15': 'HCAU73.000-header2_count',
+                '16': 'OBECFILE.blob-invalid_transaction_code',
             };
-
 
             if (service === 'upload') {
                 const filestore =  await billingApi.getFileStore({filename: ''});
                 const filePath = filestore.is_default ? 'OHIP' : '';
 
                 const uploads = args.uploads.map((upload) => {
-                    const filename = path.join(filestore.root_directory, filePath, filenamesByFixtureId[upload.fixtureID]);
+                    const filename = filenamesByFixtureId[upload.fixtureID];
+                    const fullFixtureFilepath = path.join(filestore.root_directory, filePath, (filename === 'Custom') ? upload.description : filename );
                     return {
                         resourceType: upload.resourceType,
-                        filename,
+                        filename: fullFixtureFilepath,
                         description: upload.description || path.basename(filename),
                     };
                 });
@@ -610,6 +625,8 @@ module.exports = function(billingApi) {
                 args.updates = updates;
             }
 
+            args.unsafe = true;
+
             // we may add more functionality to EBS module one day,
             // no need to open ourselves up to vulnerabilities
             const validServices = ['upload', 'update', 'delete', 'submit', 'list', 'info', 'download', 'getTypeList'];
@@ -626,6 +643,9 @@ module.exports = function(billingApi) {
             }
             const ebs = new EBSConnector(await billingApi.getOHIPConfiguration({muid}));
             ebs[service](args, (ebsErr, ebsResponse) => {
+                ebsResponse.auditInfo.forEach((audit) => {
+                    logger.info(audit);
+                });
                 return callback(ebsErr, ebsResponse);
             });
         },

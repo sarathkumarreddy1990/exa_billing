@@ -131,7 +131,7 @@ module.exports = {
                 </updates>
             `
         }
-        
+
         return `
             <edt:update>
                 ${innerXML}
@@ -144,6 +144,7 @@ module.exports = {
     },
 
     HCV_BASIC_VALIDATE: (args) => {
+
         const {
             healthNumber,
             versionCode,
@@ -165,6 +166,8 @@ module.exports = {
                 </requests>
                 <locale>'en'</locale>
             </hcv:validate>`;
+
+
     },
 
     HCV_FULL_VALIDATE: ({requests, locale}) => {

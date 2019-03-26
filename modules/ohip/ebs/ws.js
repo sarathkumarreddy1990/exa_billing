@@ -1,4 +1,5 @@
 const ws = require('ws.js');
+const _ = require('lodash');
 const utils = require('ws.js/lib/utils');
 const writer = require('ws.js/lib/handlers/client/mtom/mime-writer.js');
 const reader = require('ws.js/lib/handlers/client/mtom/mime-reader.js');
@@ -132,15 +133,11 @@ ws.addAttachment = (ctx, property, xpath, file, contentType, index) => {
 
 };
 
-// TODO: EXA-12673
-// TODO remember to refactor this into shared library with EBSConnector
-const PEMFILE = fs.readFileSync(path.join(__dirname, 'certs/exa-ebs.pem')).toString();
-
-const decrypt = (encryptedKey, encryptedContent) => {
+const decrypt = (encryptedKey, encryptedContent, pemfile) => {
 
     encryptedKey = Buffer.from(encryptedKey, 'base64').toString('binary');
 
-    const private_key = pki.privateKeyFromPem(PEMFILE);
+    const private_key = pki.privateKeyFromPem(pemfile.toString());
 
     const decryptedKey = Buffer.from(private_key.decrypt(encryptedKey, 'RSAES-PKCS1-V1_5'), 'binary');
 
@@ -163,10 +160,12 @@ const decrypt = (encryptedKey, encryptedContent) => {
 };
 
 
-ws.Xenc = function() {};
+ws.Xenc = function(config) {
+    this.config = config;
+};
 
 ws.Xenc.prototype.send = function(ctx, callback) {
-
+    const pemfile = this.config.pemfile;
     this.next.send(ctx, function(ctx) {
 
         const doc = new dom().parseFromString(ctx.response.toString());
@@ -176,7 +175,7 @@ ws.Xenc.prototype.send = function(ctx, callback) {
             const encryptedKeyNodes = select("//*[local-name(.)='EncryptedKey']", doc);
             const encryptedKeyValueNodes = select("//*[local-name(.)='CipherData']/*[local-name(.)='CipherValue']/text()", encryptedKeyNodes[0]);
             const encryptedBodyDataNode = select("//*[local-name(.)='EncryptedData']/*[local-name(.)='CipherData']/*[local-name(.)='CipherValue']/text()", bodyNode)[0];
-            const decryptedData = decrypt(encryptedKeyValueNodes[0].nodeValue, encryptedBodyDataNode.nodeValue);
+            const decryptedData = decrypt(encryptedKeyValueNodes[0].nodeValue, encryptedBodyDataNode.nodeValue, pemfile);
 
             encryptedKeyNodes.splice(0, 1);
 
@@ -200,7 +199,7 @@ ws.Xenc.prototype.send = function(ctx, callback) {
                 const encryptedKeyValue = select("*[local-name(.)='CipherData']/*[local-name(.)='CipherValue']/text()", encryptedKeyNode)[0].nodeValue;
 
                 // contentURI has 'cid:' at the beginning so pop it off
-                const decryptedContent = decrypt(encryptedKeyValue, ctx.data[contentURI.slice(4)]).toString('binary');
+                const decryptedContent = decrypt(encryptedKeyValue, ctx.data[contentURI.slice(4)], pemfile).toString('binary');
 
                 const contentNode = select(`//*[@href='${contentURI}']//parent::*`, bodyNode)[0];
                 contentNode.removeChild(contentNode.firstChild);
@@ -210,7 +209,7 @@ ws.Xenc.prototype.send = function(ctx, callback) {
 
 
         } catch(e) {
-            console.log(`error: ${e}`);
+            console.log(`Xenc: ${e}`);
         }
 
         ctx.response = doc.toString();
@@ -225,7 +224,12 @@ ws.Audit = function(config) {
 };
 ws.Audit.prototype.send = function(ctx, callback) {
 
+    const requestDoc = new dom().parseFromString(ctx.request);
+
     ctx.audit = {
+
+        requestAuditID: select("//*[local-name(.)='AuditId']/text()", requestDoc)[0].nodeValue,
+
 
         // date / time
         dateTime: new Date(),
@@ -234,10 +238,7 @@ ws.Audit.prototype.send = function(ctx, callback) {
         serviceUserMUID: this.config.serviceUserMUID,
 
         // End User identifier
-        // TODO
-
-        // Action / event detail
-        // TODO
+        endUser: 'confsu+355@gmail.com',
     };
 
     this.next.send(ctx, (ctx) => {
@@ -246,9 +247,17 @@ ws.Audit.prototype.send = function(ctx, callback) {
         ctx.audit.duration = (new Date()).getTime() - ctx.audit.dateTime.getTime();
 
         const doc = new dom().parseFromString(ctx.response);
-        const parseObj = parseAuditLogDetails(doc);
-        ctx.audit.requestAuditID = parseObj.auditID;
+        const parseObj = select("//*[local-name(.)='auditID']/text()", doc)[0];
 
+        const commonResult = select("//*[local-name(.)='result']", doc);
+
+        ctx.audit.commonResults = _.uniqBy(commonResult.map((result) => {
+            return {
+                code: select("*[local-name(.)='code']/text()", result)[0].nodeValue,
+                message: select("*[local-name(.)='msg']/text()", result)[0].nodeValue,
+            };
+        }), 'code');
+        ctx.audit.responseAuditID = parseObj ? parseObj.nodeValue : '';
         callback(ctx);
     });
 };

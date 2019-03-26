@@ -207,7 +207,7 @@ define([
                             self.options.patient_id = patient_details[0].patient_id;  
 
                             if (patient_details && patient_details.length > 0) {
-                                var patientHeaderInfo = commonjs.geti18NString('shared.screens.setup.claimInquiry') + ':' + patient_details[0].patient_name + ' (Acc#:' + patient_details[0].account_no + ')' + ',  ' + moment(patient_details[0].birth_date).format('L') + ',  ' + patient_details[0].gender;
+                                var patientHeaderInfo = commonjs.geti18NString('shared.screens.setup.claimInquiry') + ':' + patient_details[0].patient_name + ' (Acc#:' + patient_details[0].account_no + ')' + ',  '+ ' (Claim#:' + self.claim_id + ')' + ',  '+ moment(patient_details[0].birth_date).format('L') + ',  ' + patient_details[0].gender;
                                 $(parent.document).find('#spanModalHeader').html(patientHeaderInfo);
                             }
 

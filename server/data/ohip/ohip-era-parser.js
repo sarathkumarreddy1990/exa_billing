@@ -1,17 +1,8 @@
 const data = require('../../data/era/index');
 const paymentController = require('../payments/payments');
 const logger = require('../../../logger');
-const shared = require('../../shared');
+const _ = require('lodash');
 
-const mkdirp = require('mkdirp');
-const fs = require('fs');
-const path = require('path');
-const crypto = require('crypto');
-const _ = require('lodash')
-
-const { promisify } = require('util');
-const readFile = promisify(fs.readFile);
-const writeFile = promisify(fs.writeFile);
 
 module.exports = {
 
@@ -23,7 +14,16 @@ module.exports = {
 
         try {
 
-            logger.info(`Initializing payment creation with OHIP file`);
+            logger.info('Initializing payment creation with OHIP file');
+            let default_payer = await data.getDefaultPayer();
+
+            if(!default_payer.rows.length){
+                return {status: '23156',
+                    message: 'Default Payer Not available'};
+            }
+
+            params.insurance_provider_id = default_payer.rows[0].insurance_provider_id;
+
             let paymentDetails = await self.createPayment(payment_data, params);
             paymentDetails.isFrom = 'OHIP_EOB';
             params.created_by = params.userId || 0;
@@ -36,7 +36,7 @@ module.exports = {
 
             await data.updateERAFileStatus(paymentDetails);
 
-            logger.info(`Payment creation process done - OHIP`);
+            logger.info('Payment creation process done - OHIP');
 
             return processedClaims;
 
@@ -160,7 +160,7 @@ module.exports = {
         payerDetails.facility_id = params.facility_id || 1;
         payerDetails.created_by = params.created_by || 1;
         payerDetails.patient_id = null;
-        payerDetails.insurance_provider_id = params.insurance_provider_id || 1;  // ToDo:: params from UI
+        payerDetails.insurance_provider_id = params.insurance_provider_id;  // ToDo:: params from UI
         payerDetails.provider_group_id = null;
         payerDetails.provider_contact_id = null;
         payerDetails.payment_reason_id = null;
