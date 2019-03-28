@@ -156,7 +156,7 @@ module.exports = {
                     <healthNumber>${healthNumber}</healthNumber>
                     <versionCode>${versionCode}</versionCode>
                 </hcvRequest>`;
-                //  <feeServiceCodes>A110</feeServiceCodes>
+                // <feeServiceCodes>A110</feeServiceCodes>
         // });
 
         return `
@@ -164,13 +164,22 @@ module.exports = {
                 <requests>
                     ${innerXML}
                 </requests>
-                <locale>'en'</locale>
+                <locale>en</locale>
             </hcv:validate>`;
 
 
     },
 
     HCV_FULL_VALIDATE: ({requests, locale}) => {
-
+        // <hcv:validate>
+        //     <requests>
+        //         <hcvRequest>
+        //             <healthNumber>1216070563</healthNumber>
+        //             <versionCode>ML</versionCode>
+        //             <feeServiceCodes>A110</feeServiceCodes>
+        //         </hcvRequest>
+        //     </requests>
+        //     <locale>en</locale>
+        // </hcv:validate>
     },
 };
