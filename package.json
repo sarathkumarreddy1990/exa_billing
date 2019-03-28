@@ -1,6 +1,6 @@
 {
     "name": "exa-billing",
-    "version": "1.0.56-EXA-12011--Implement-UI-for-Conformance-Testing-cf3cef6ae7987b2625ab67267120783bb6ba469b.0",
+    "version": "1.0.56-testing-c29779c1bdafb19a5535da171114765974211aa6.0",
     "private": true,
     "description": "EXA Billing Module",
     "main": "server/app.js",
