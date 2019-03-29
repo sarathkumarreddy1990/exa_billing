@@ -266,7 +266,11 @@ define(['jquery',
                                     $('#ddlFtpType').val(communication_info.Ftp_type ? communication_info.Ftp_type : '');
                                     $('#txtSentFolder').val(communication_info.Ftp_sent_folder ? communication_info.Ftp_sent_folder : '');
                                     $('#txtReceiveFolder').val(communication_info.Ftp_receive_folder ? communication_info.Ftp_receive_folder : '');
-                                    $('#txtIdentityFilePath').val(communication_info.Ftp_identity_file ? communication_info.Ftp_identity_file : '');
+                                    $('#txtIdentityFilePath').val(communication_info.Ftp_identity_file ? communication_info.Ftp_identity_file : '');                                    
+								    var $txtPayCity = $("[for=txtPayCity]");
+                                    $txtPayCity.find("span").remove();
+                                    $txtPayCity.removeClass('field-required');
+									
                                 }
                                 self.showFTPDetails();
                                 self.bindProviderIDCodes();
@@ -417,8 +421,14 @@ define(['jquery',
             },
 
             save: function () {
+                if (!$('#txtCity').val()) {
+                    return commonjs.showWarning("messages.warning.pleaseEnterCity");
+                }
                 if (!$('#ddlState').val()) {
-                    return commonjs.showWarning("Please Select the state");
+                    return commonjs.showWarning("messages.warning.pleaseSelectState");
+                }
+                if (!$('#txtZip').val()) {
+                    return commonjs.showWarning("messages.warning.pleaseEnterZip");
                 }
                 if (!commonjs.validateZipInputCanada('txtZip')) {
                     commonjs.showWarning('messages.warning.shared.invalidPostal');
