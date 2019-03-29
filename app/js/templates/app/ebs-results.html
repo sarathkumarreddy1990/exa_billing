@@ -1,4 +1,4 @@
-<div class="modal_div_container_nested">
+<div class="modal_div_container_nested" style="padding: 20px;">
 
     <% if (typeof auditInfo !== 'undefined' && auditInfo.length) { %>
         <h3>Audit Info</h3>
@@ -146,6 +146,81 @@
             </tr>
             <% }) %>
         </table>
+    <% }
+
+    if (typeof hcvResults !== 'undefined' && hcvResults.length) { %>
+        <div>
+        <h3>Health Card Validation Results</h3>
+        <% hcvResults.forEach(function(result) { %>
+            <div style="border-top: 1px solid #000000" class="row">
+                <div class="row">
+                    <div class="col-lg-4">
+                        <b>Health Number: </b><%=result.healthNumber%>
+                    </div>
+                    <div class="col-lg-4">
+                        <b>Version Code: </b><%=result.versionCode%>
+                    </div>
+                    <div class="col-lg-4">
+                        <b>Expiry Date: </b><%=moment(new Date(result.expiryDate), 'L').format('YYYY-MM-DD')%>
+                    </div>
+
+
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-3">
+                        <b>Response Code: </b><%=result.responseCode%>
+                    </div>
+                    <div class="col-lg-3">
+                        <b>Response Action: </b><%=result.responseAction%>
+                    </div>
+                    <div class="col-lg-3">
+                        <b>Response ID: </b><%=result.responseID%>
+                    </div>
+                    <div class="col-lg-3">
+                        <b>Response Description: </b><%=result.responseDescription%>
+                    </div>
+
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-3">
+                        <b>Last Name: </b><%=result.lastName%>
+                    </div>
+                    <div class="col-lg-3">
+                        <b>First Name, Second: </b><%=result.firstName%>, <%=result.secondName%>
+                    </div>
+                    <div class="col-lg-3">
+                        <b>Date of Birth: </b><%=moment(new Date(result.dateOfBirth), 'L').format('YYYY-MM-DD')%>
+                    </div>
+                    <div class="col-lg-3">
+                        <b>Gender: </b><%=result.gender%>
+                    </div>
+
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-3">
+                        <b>Fee Service Code: </b><%=result.feeServiceCode%>
+                    </div>
+                    <div class="col-lg-3">
+                        <b>Fee Service Date: </b><%=result.feeServiceDate%>
+                    </div>
+                    <div class="col-lg-3">
+                        <b>Fee Serice Response Code: </b><%=result.feeServiceResponseCode%>
+                    </div>
+                    <div class="col-lg-3">
+                        <b>Fee Service Response Description: </b><%=result.feeServiceResponseDescription%>
+                    </div>
+
+                </div>
+            </div>
+
+
+        <% }) %>
+
+
+
     <% } %>
 
 

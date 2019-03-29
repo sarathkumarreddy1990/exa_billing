@@ -25,6 +25,9 @@ define(['jquery',
     'text!templates/app/ebs-results.html',
     'text!templates/app/ebs-fixtures.html',
     'text!templates/app/ebs-resourceTypes.html',
+    'text!templates/app/ebs-hcv-form.html',
+    'text!templates/app/ebs-hcv-request.html',
+
     'shared/ohip'
 
 ],
@@ -49,12 +52,14 @@ define(['jquery',
               ediWarning,
               FileManagementCollection,
               FileManagementHTML,
-              EBSListHTML,
+              EDTListHTML,
               EBSUploadHTML,
               EBSUpdateHTML,
               EBSResultsHTML,
               EBSFixturesHTML,
               EBSResourceTypesHTML,
+              EbsHcvFormHTML,
+              EbsHcvRequestHTML,
               ohip
           ) {
 
@@ -203,7 +208,7 @@ define(['jquery',
             }
         };
 
-        var ebsListResults = Backbone.Collection.extend({
+        var edtListResults = Backbone.Collection.extend({
             url: '/exa_modules/billing/ohip/ct',
             method: 'POST',
             type: 'POST',
@@ -253,7 +258,9 @@ define(['jquery',
                 "click #btnClaimsRefresh": "refreshClaims",
                 "click #btnClaimsCompleteRefresh": "completeRefresh",
                 "click #btnFileManagement": "showFileManagement",
-                "click #btnConformanceTesting": "showConformanceTesting"
+                "click #btnEdtEbs": "showEDTConformanceTesting",
+                "click #btnHcvEbs": "showHCVConformanceTesting",
+
             },
 
             initialize: function (options) {
@@ -261,7 +268,7 @@ define(['jquery',
                 var self = this;
 
 
-                this.ebsListResults = new ebsListResults();
+                this.edtListResults = new edtListResults();
 
                 $document.on('studyFilter:delete', function (e, id) {
                     self.removeStudyTab(id);
@@ -308,7 +315,10 @@ define(['jquery',
             render: function (queryString) {
                 var self = this;
                 self.fileManagementTemplate = _.template(FileManagementHTML);
-                self.ebsListTemplate = _.template(EBSListHTML);
+                self.hcvFormTemplate = _.template(EbsHcvFormHTML);
+                self.hcvRequestTemplate = _.template(EbsHcvRequestHTML);
+
+                self.edtListTemplate = _.template(EDTListHTML);
                 self.ebsUploadTemplate = _.template(EBSUploadHTML);
                 self.ebsUpdateTemplate = _.template(EBSUpdateHTML);
                 self.ebsResultsTemplate = _.template(EBSResultsHTML);
@@ -2102,22 +2112,77 @@ define(['jquery',
 
             initEbsListResults: function(dataset) {
                 if (dataset.length) {
-                    this.ebsListResults = dataset;
+                    this.edtListResults = dataset;
                 }
             },
 
-            showConformanceTesting: function (e) {
+            showHCVConformanceTesting: function (e) {
                 var self = this;
 
-                if (this.ebsListResults)
+                if (this.edtListResults)
                 self.conformanceTestingPager = new Pager();
 
                 commonjs.showDialog({
-                    header: 'Conformance Testing',
-                    i18nHeader: 'billing.claims.conformanceTesting',
+                    header: 'HCV Conformance Testing',
+                    // i18nHeader: 'billing.claims.conformanceTesting',
                     width: '90%',
                     height: '80%',
-                    html: self.ebsListTemplate({
+                    html: self.hcvFormTemplate({
+                        // ddlResourceType: self.ebsResourceTypesTemplate({
+                        //     domId: 'ohipResourceType'
+                        // })
+                    })
+                });
+
+                $('#btnAddHCVRequest').off('click').on('click', function() {
+                    $('#divHCVRequests').append(self.hcvRequestTemplate());
+                });
+                $('#btnHCVSubmit').off('click').on('click', function() {
+                    var hcvRequests = _.map($('.ebs-hcv-request'), function(upload) {
+                        return {
+                            healthNumber: $(upload).find('.ohip-health-number').val(),
+                            versionCode: $(upload).find('.ohip-version-code').val(),
+                            feeServiceCode: $(upload).find('.ohip-fee-service-code').val()
+                        };
+                    });
+
+
+                    $.ajax({
+                        url: '/exa_modules/billing/ohip/ct',
+                        type: 'POST',
+                        data: {
+                            service: 'validateHealthCard',
+                            muid: $("#ddlOHIPUserID").val(),
+                            hcvRequests: hcvRequests
+                        }
+                    }).then(function(response) {
+                        self.renderEBSNestedDialog('Results', self.ebsResultsTemplate({
+                            auditInfo: response.auditInfo,
+                            faults: response.faults,
+                            hcvResults: response.results,
+                        }));
+                    }).catch(function(err) {
+                        commonjs.showError(err);
+                    })
+                });
+                $('#btnHCVReset').off('click').on('click', function() {
+                    $('#divHCVRequests').empty();
+                });
+
+            },
+
+            showEDTConformanceTesting: function (e) {
+                var self = this;
+
+                if (this.edtListResults)
+                self.conformanceTestingPager = new Pager();
+
+                commonjs.showDialog({
+                    header: 'EDT Conformance Testing',
+                    // i18nHeader: 'billing.claims.conformanceTesting',
+                    width: '90%',
+                    height: '80%',
+                    html: self.edtListTemplate({
                         ddlResourceType: self.ebsResourceTypesTemplate({
                             domId: 'ohipResourceType'
                         })
@@ -2403,7 +2468,7 @@ define(['jquery',
                 }
 
                 // TODO: care about page number
-                this.ebsListResults.fetch({
+                this.edtListResults.fetch({
                     data: listParams,
                     type: 'POST',
                     success: function(models, response, options) {
@@ -2437,7 +2502,7 @@ define(['jquery',
 
             showEBSGrid: function () {
                 var self = this;
-                self.conformanceTestingTable = new customGrid(self.ebsListResults, '#tblConformanceTesting');
+                self.conformanceTestingTable = new customGrid(self.edtListResults, '#tblConformanceTesting');
                 self.conformanceTestingTable.render({
                     gridelementid: '#tblConformanceTesting',
                     custompager: self.conformanceTestingPager,
@@ -2480,7 +2545,7 @@ define(['jquery',
                             }
                         }
                     ],
-                    datastore: self.ebsListResults,
+                    datastore: self.edtListResults,
                     onbeforegridbind: self.initEbsListResults,
                     container: $('#modal_div_container'),
                     sortname: 'status',

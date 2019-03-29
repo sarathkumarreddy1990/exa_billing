@@ -173,45 +173,16 @@ const parseHCVCategory1Response = (doc) => {
     }
 };
 
-const parseHCVCategory2Response = (doc) => {
-    //      <results>
-    //          ...
-    //          <dateOfBirth>1995-06-26T00:00:00.000-04:00</dateOfBirth>
-    //          <expiryDate>2024-01-16T00:00:00.000-05:00</expiryDate>
-    //          <secondName>test second name6</secondName>
-    //          <firstName>test first name6</firstName>
-    //          <lastName>test last name6</lastName>
-    //          <gender>M</gender>
-    //      </result>
-    return {
-        firstName: select("*[local-name(.)='firstName']/text()", doc)[0].nodeValue,
-        secondName: select("*[local-name(.)='secondName']/text()", doc)[0].nodeValue,
-        lastName: select("*[local-name(.)='lastName']/text()", doc)[0].nodeValue,
-        gender: select("*[local-name(.)='gender']/text()", doc)[0].nodeValue,
-        dateOfBirth: select("*[local-name(.)='dateOfBirth']/text()", doc)[0].nodeValue,
-        expiryDate: select("*[local-name(.)='expiryDate']/text()", doc)[0].nodeValue,
-    }
-};
 
-const parseHCVCategory3Response = (doc) => {
-    //      <results>
-    //          ...
-    //          <dateOfBirth>1995-06-26T00:00:00.000-04:00</dateOfBirth>
-    //          <expiryDate>2024-01-16T00:00:00.000-05:00</expiryDate>
-    //          <secondName>test second name6</secondName>
-    //          <firstName>test first name6</firstName>
-    //          <lastName>test last name6</lastName>
-    //          <gender>M</gender>
-    //      </result>
+const parseHCVFeeServiceDetails = (doc) => {
+
     return {
-        firstName: select("*[local-name(.)='firstName']/text()", doc)[0].nodeValue,
-        secondName: select("*[local-name(.)='secondName']/text()", doc)[0].nodeValue,
-        lastName: select("*[local-name(.)='lastName']/text()", doc)[0].nodeValue,
-        gender: select("*[local-name(.)='gender']/text()", doc)[0].nodeValue,
-        dateOfBirth: select("*[local-name(.)='dateOfBirth']/text()", doc)[0].nodeValue,
-        expiryDate: select("*[local-name(.)='expiryDate']/text()", doc)[0].nodeValue,
-    }
-};
+        feeServiceCode: select("*[local-name(.)='feeServiceCode']/text()", doc)[0].nodeValue,
+        feeServiceDate: parseOptionalValue(doc, 'feeServiceDate'),
+        feeServiceResponseCode: select("*[local-name(.)='feeServiceResponseCode']/text()", doc)[0].nodeValue,
+        feeServiceResponseDescription: select("*[local-name(.)='feeServiceResponseDescription']/text()", doc)[0].nodeValue,
+    };
+}
 
 module.exports = {
 
@@ -281,67 +252,35 @@ module.exports = {
     },
 
     parseHCVResponse: (docStr) => {
-        // <c:validateResponse xmlns:c="http://hcv.health.ontario.ca/" xmlns:b="http://idp.ebs.health.ontario.ca/" xmlns:a="http://ebs.health.ontario.ca/">
-        //     <results xmlns="" xmlns:a="http://ebs.health.ontario.ca/" xmlns:b="http://idp.ebs.health.ontario.ca/" xmlns:c="http://hcv.health.ontario.ca/" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
-        //         <auditUID>519c7bff-2e04-45a7-b1df-b510e7f39f7f</auditUID>
-        //         <results>
-        //             <responseCode>10</responseCode>
-        //             <responseID>FAILED_MOD10</responseID>
-        //             <responseAction>Ask the cardholder to either visit the local ServiceOntario office or call 1 800-268-1154.</responseAction>
-        //             <responseDescription>The Health Number submitted does not exist on the ministry's system</responseDescription>
-        //             <healthNumber>9876543217</healthNumber>
-        //             <versionCode>ML</versionCode>
-        //         </results>
-        //     </results>
-        //
-        //      <results>
-        //          <healthNumber>9876543217</healthNumber>
-        //          <responseAction>Ask the cardholder to either visit the local ServiceOntario office or call 1 800-268-1154.</responseAction>
-        //          <responseCode>10</responseCode>
-        //          <responseDescription>The Health Number submitted does not exist on the ministry's system</responseDescription>
-        //          <responseID>FAILED_MOD10</responseID>
-        //          <versionCode>ML</versionCode>
-        //
-        //          <healthNumber>1006395956</healthNumber>
-        //          <responseAction>You will receive payment for billable services rendered on this day.</responseAction>
-        //          <responseCode>51</responseCode>
-        //          <responseDescription>Health card passed validation</responseDescription>
-        //          <responseID>IS_ON_ACTIVE_ROSTER</responseID>
-        //          <versionCode>WG</versionCode>
-        //      </results>
-        // </c:validateResponse>
-
-        // passes validation (on active roster)
-        // http://localhost/exa_modules/billing/ohip/validateHealthCard?healthNumber=1006395956&versionCode=WG
 
         const doc = new dom().parseFromString(docStr);
         const validateResponseNode = select("//*[local-name(.)='validateResponse']", doc)[0];
 
-        // if (validateResponseNode) {
         const outerResults = select("*[local-name(.)='results']", validateResponseNode)[0];
+        const auditID = select("*[local-name(.)='auditUID']/text()", outerResults)[0].nodeValue;
+        const innerResults = select("*[local-name(.)='results']", outerResults);
 
-        const innerResults = select("*[local-name(.)='results']", outerResults)[0];
-        const hcvCommon = {
-            auditID: select("*[local-name(.)='auditUID']/text()", outerResults)[0].nodeValue,
-            healthNumber: select("*[local-name(.)='healthNumber']/text()", innerResults)[0].nodeValue,
-            responseAction: select("*[local-name(.)='responseAction']/text()", innerResults)[0].nodeValue,
-            responseCode: select("*[local-name(.)='responseCode']/text()", innerResults)[0].nodeValue,
-            responseDescription: select("*[local-name(.)='responseDescription']/text()", innerResults)[0].nodeValue,
-            responseID: select("*[local-name(.)='responseID']/text()", innerResults)[0].nodeValue,
-            versionCode: select("*[local-name(.)='versionCode']/text()", innerResults)[0].nodeValue,
-        };
+        return innerResults.map((result) => {
+            const feeServiceDetailsNode = select("*[local-name(.)='feeServiceDetails']", result)[0];
 
-        try {
             return {
-                ...hcvCommon,
-                ...parseHCVCategory2Response(innerResults),
-            }
-        }
-        catch (e) {
-            console.log('hmmmmm')
-            return hcvCommon;
-        }
-        // }
+                healthNumber: select("*[local-name(.)='healthNumber']/text()", result)[0].nodeValue,
+                responseAction: select("*[local-name(.)='responseAction']/text()", result)[0].nodeValue,
+                responseCode: select("*[local-name(.)='responseCode']/text()", result)[0].nodeValue,
+                responseDescription: select("*[local-name(.)='responseDescription']/text()", result)[0].nodeValue,
+                responseID: select("*[local-name(.)='responseID']/text()", result)[0].nodeValue,
+                versionCode: parseOptionalValue(result, 'versionCode'),
+
+                dateOfBirth: parseOptionalValue(result, 'dateOfBirth'),
+                expiryDate: parseOptionalValue(result, 'expiryDate'),
+                secondName: parseOptionalValue(result, 'secondName'),
+                firstName: parseOptionalValue(result, 'firstName'),
+                lastName: parseOptionalValue(result, 'lastName'),
+                gender: parseOptionalValue(result, 'gender'),
+
+                ...(feeServiceDetailsNode ? parseHCVFeeServiceDetails(feeServiceDetailsNode) : {}),
+            };
+        });
     },
 
     parseAuditLogDetails: (docStr) => {

@@ -57,20 +57,20 @@ module.exports = function (billingApi) {
     router.post('/applyRemittanceAdvice', (req, res) => {
         const ohip = new OHIPModule(billingApi);
         ohip.applyRemittanceAdvice(req.body, (ohipResponse) => {
-            return httpHandler.send(req, res, ohipErr || ohipResponse);
+            return httpHandler.send(req, res, ohipResponse);
         });
     });
 
     router.get('/ct', (req, res) => {
         const ohip = new OHIPModule(billingApi);
-        ohip.conformanceTesting(req.query, (err, ohipResponse) => {
+        ohip.conformanceTesting(req.query, (ohipErr, ohipResponse) => {
             return httpHandler.send(req, res, ohipErr || ohipResponse);
         });
     });
 
     router.post('/ct', (req, res) => {
         const ohip = new OHIPModule(billingApi);
-        ohip.conformanceTesting(req.body, (err, ohipResponse) => {
+        ohip.conformanceTesting(req.body, (ohipErr, ohipResponse) => {
             return httpHandler.send(req, res, ohipErr || ohipResponse);
         });
     });

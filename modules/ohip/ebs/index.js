@@ -28,8 +28,7 @@ const {
     EDT_DOWNLOAD,
     EDT_DELETE,
     EDT_UPDATE,
-    HCV_BASIC_VALIDATE,
-    HCV_FULL_VALIDATE,
+    HCV,
 
 } = require('./service');
 const xml = require('./xml');
@@ -110,8 +109,8 @@ const EBSConnector = function(config) {
      */
     const createContext = (service, serviceParams) => {
 
-        const isHCV = (service === HCV_BASIC_VALIDATE || service === HCV_FULL_VALIDATE);
-        // console.log('isHCV: ', isHCV);
+        const isHCV = (service === HCV);
+
         return {
             request: requestTemplate({
                     serviceXML: (service(serviceParams) || DEFAULT_SERVICE_XML),
@@ -157,7 +156,6 @@ const EBSConnector = function(config) {
 
                 const ctx = createContext(EDT_UPLOAD, {uploads: chunk});
 
-
                 chunk.forEach((upload, uploadIndex) => {
                     ws.addAttachment(
                         ctx,
@@ -187,7 +185,6 @@ const EBSConnector = function(config) {
                     }
                     catch (e) {
                         faults.push(xml.parseEBSFault(response));
-                        audit.successful = false;
                     }
                     audit.actionDetail = `upload [${uploadStr}]: [${resourceIDs.join(',')}]`;
                     auditInfo.push(audit);
@@ -234,7 +231,6 @@ const EBSConnector = function(config) {
                         audit.successful = true;
                     }
                     catch (e) {
-                        audit.successful = false;
                         faults.push(xml.parseEBSFault(response));
                     }
                     audit.actionDetail = `submit: [${rids}]`;
@@ -283,7 +279,6 @@ const EBSConnector = function(config) {
                         audit.successful = true;
                     }
                     catch (e) {
-                        audit.successful = false;
                         faults.push(xml.parseEBSFault(response));
                     }
 
@@ -324,7 +319,6 @@ const EBSConnector = function(config) {
                     // }
                 }
                 catch (e) {
-                    audit.successful = false;
                     faults.push(xml.parseEBSFault(response));
                 }
 
@@ -372,7 +366,6 @@ const EBSConnector = function(config) {
                         audit.successful = true;
                     }
                     catch (e) {
-                        audit.successful = false;
                         faults.push(xml.parseEBSFault(response));
                     }
 
@@ -423,7 +416,6 @@ const EBSConnector = function(config) {
                         audit.successful = true;
                     }
                     catch (e) {
-                        audit.successful = false;
                         faults.push(xml.parseEBSFault(response));
                     }
 
@@ -488,7 +480,6 @@ const EBSConnector = function(config) {
                     }
                     catch (e) {
                         faults.push(xml.parseEBSFault(response));
-                        audit.successful = false;
                     }
                     auditInfo.push(audit);
 
@@ -523,6 +514,7 @@ const EBSConnector = function(config) {
 
                 try {
                     results.push(xml.parseTypeListResponse(response));
+                    audit.successful = true;
                 }
                 catch (e) {
                     faults.push(xml.parseEBSFault(response));
@@ -539,24 +531,23 @@ const EBSConnector = function(config) {
         },
 
         validateHealthCard: (args, callback) => {
-            // console.log('hcv params: ', args);
-            const ctx = createContext(HCV_BASIC_VALIDATE, args, true);
+            const ctx = createContext(HCV, args);
 
             const auditInfo = [];
-            const results = [];
+            let results = [];
             const faults = [];
 
             return ws.send(hcvHandlers, ctx, (ctx) => {
-                // console.log("DECRYPTED RESPONSE: ", ctx.response);
                 const {
                     audit,
                     response,
                 } = ctx;
 
-                audit.actionDetail = `getTypeList`;
+                audit.actionDetail = `validateHealthCard`;
 
                 try {
-                    results.push(xml.parseHCVResponse(response));
+                    results = results.concat(xml.parseHCVResponse(response));
+                    audit.successful = true;
                 }
                 catch (e) {
                     faults.push(xml.parseEBSFault(response));

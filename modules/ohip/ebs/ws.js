@@ -247,7 +247,10 @@ ws.Audit.prototype.send = function(ctx, callback) {
         ctx.audit.duration = (new Date()).getTime() - ctx.audit.dateTime.getTime();
 
         const doc = new dom().parseFromString(ctx.response);
-        const parseObj = select("//*[local-name(.)='auditID']/text()", doc)[0];
+        const auditIDNode = select("//*[local-name(.)='auditID']/text()", doc)[0];
+        const auditUIDNode = select("//*[local-name(.)='auditUID']/text()", doc)[0];
+        const parseObj = auditIDNode || auditUIDNode;
+
 
         const commonResult = select("//*[local-name(.)='result']", doc);
 
