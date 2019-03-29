@@ -1595,7 +1595,8 @@ define(['jquery',
 
                 var totalChargeBillFee = pagerObj.get('TotalChargeBillFee') || '$0';
                 var totalClaimBalance = pagerObj.get('TotalClaimBalance') || '$0';
-                if (filter.options.isClaimGrid) {
+                var activeTabId = $("#navbarNavAltMarkup ul li a.active").attr('id');
+                if (filter.options && filter.options.isClaimGrid && activeTabId === 'aClaims') {
                     $('#spnTotalBalance').html(totalClaimBalance);
                     $('#spnTotalBillingFee').html(totalChargeBillFee);
 
