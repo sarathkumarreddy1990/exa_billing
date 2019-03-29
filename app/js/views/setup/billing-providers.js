@@ -266,8 +266,8 @@ define(['jquery',
                                     $('#ddlFtpType').val(communication_info.Ftp_type ? communication_info.Ftp_type : '');
                                     $('#txtSentFolder').val(communication_info.Ftp_sent_folder ? communication_info.Ftp_sent_folder : '');
                                     $('#txtReceiveFolder').val(communication_info.Ftp_receive_folder ? communication_info.Ftp_receive_folder : '');
-                                    $('#txtIdentityFilePath').val(communication_info.Ftp_identity_file ? communication_info.Ftp_identity_file : '');                                    
-								    var $txtPayCity = $("[for=txtPayCity]");
+                                    $('#txtIdentityFilePath').val(communication_info.Ftp_identity_file ? communication_info.Ftp_identity_file : '');
+                                    var $txtPayCity = $("[for=txtPayCity]");
                                     $txtPayCity.find("span").remove();
                                     $txtPayCity.removeClass('field-required');
 									
