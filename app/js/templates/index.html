@@ -145,9 +145,10 @@
                                     <% if (country_alpha_3_code === "can") { %>
                                     <hr />
                                     <li id="liFM"><a class="claimMenu" id="btnFileManagement" data-value='File Management' i18n="billing.claims.fileManagement"></a></li>
-                                        <%if (typeof showConformanceTesting !== 'undefined' && showConformanceTesting) { %>
-                                        <li id="liCT"><a class="claimMenu" id="btnConformanceTesting" data-value='Conformance Testing' i18n="billing.claims.conformanceTesting"></a></li>
-                                        <% } %>
+                                    <%if (typeof showConformanceTesting !== 'undefined' && showConformanceTesting) { %>
+                                    <li id="liCT"><a class="claimMenu" id="btnEdtEbs" data-value='EDT Conformance Testing'>EDT Conformance Testing</a></li>
+                                    <li id="liCT"><a class="claimMenu" id="btnHcvEbs" data-value='HCV Conformance Testing'>HCV Conformance Testing</a></li>
+                                    <% } %>
                                     <% } %>
                             </ul>
                         </div>

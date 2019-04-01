@@ -28,12 +28,13 @@ const {
     EDT_DOWNLOAD,
     EDT_DELETE,
     EDT_UPDATE,
-    HCV_BASIC_VALIDATE,
+    HCV,
+
 } = require('./service');
 const xml = require('./xml');
-const edtRequestTemplate = require('./edtRequest');
+const requestTemplate = require('./requestTemplate');
 
-const hcvRequestTemplate = require('./hcvRequest');
+// const hcvRequestTemplate = require('./hcvRequest');
 
 const {
     UPLOAD_MAX,
@@ -44,6 +45,7 @@ const {
     INFO_MAX,
 } = require('./constants');
 
+const DEFAULT_SERVICE_XML = '';
 const DEFAULT_EDT_SERVICE_ENDPOINT = 'https://ws.conf.ebs.health.gov.on.ca:1443/EDTService/EDTService';
 const DEFAULT_HCV_SERVICE_ENDPOINT = 'https://ws.conf.ebs.health.gov.on.ca:1444/HCVService/HCValidationService';
 
@@ -85,36 +87,39 @@ const EBSConnector = function(config) {
         new Http(),
     ];
 
+    // TODO this is an unnacceptable workaround and absolutely nothing further must depend upon this
+    const hcvHandlers =  [
+        new Audit(config),    // NOTE order in list affects duration
+        new Xenc({
+            pemfile,
+        }),
+        new Security(
+            {}
+            , [x509, auth, signature]
+        ),
+        // new Mtom(),
+        new Http(),
+    ];
     /**
-     * const createEDTContext - description
+     * const createContext - description
      *
      * @param  {type} serviceXML description
      * @param  {type} apiUrl     description
      * @return {type}            description
      */
-     const createEDTContext = (service, serviceParams) => {
+    const createContext = (service, serviceParams) => {
 
-         return {
-             request: edtRequestTemplate({
-                     serviceXML: (service(serviceParams) || ''),
-                     softwareConformanceKey: config.edtSoftwareConformanceKey,
-                     auditID: uuid(),
-                     serviceUserMUID: config.serviceUserMUID,
-                 }),
+        const isHCV = (service === HCV);
 
-             url: edtServiceEndpoint,
-             contentType: 'text/xml',
-         };
-     };
-    const createHCVContext = (service, serviceParams) => {
         return {
-            request: hcvRequestTemplate({
-                    serviceXML: (service(serviceParams) || ''),
-                    softwareConformanceKey: config.hcvSoftwareConformanceKey,
-                    auditID: config.auditID,
+            request: requestTemplate({
+                    serviceXML: (service(serviceParams) || DEFAULT_SERVICE_XML),
+                    softwareConformanceKey: isHCV ? config.hcvSoftwareConformanceKey : config.edtSoftwareConformanceKey,
+                    auditID: uuid(),
                     serviceUserMUID: config.serviceUserMUID,
                 }),
-            url: hcvServiceEndpoint,
+
+            url: isHCV ? hcvServiceEndpoint : edtServiceEndpoint,
             contentType: 'text/xml',
         };
     };
@@ -149,8 +154,7 @@ const EBSConnector = function(config) {
                     return `${upload.resourceType} ${filename} ${description}`.trim();
                 }).join('|');
 
-                const ctx = createEDTContext(EDT_UPLOAD, {uploads: chunk});
-
+                const ctx = createContext(EDT_UPLOAD, {uploads: chunk});
 
                 chunk.forEach((upload, uploadIndex) => {
                     ws.addAttachment(
@@ -181,7 +185,6 @@ const EBSConnector = function(config) {
                     }
                     catch (e) {
                         faults.push(xml.parseEBSFault(response));
-                        audit.successful = false;
                     }
                     audit.actionDetail = `upload [${uploadStr}]: [${resourceIDs.join(',')}]`;
                     auditInfo.push(audit);
@@ -210,7 +213,7 @@ const EBSConnector = function(config) {
 
             chunk(resourceIDs, SUBMIT_MAX).forEach((chunk, index, chunks) => {
 
-                const ctx = createEDTContext(EDT_SUBMIT, {resourceIDs: chunk});
+                const ctx = createContext(EDT_SUBMIT, {resourceIDs: chunk});
 
                 return ws.send(handlers, ctx, (ctx) => {
 
@@ -228,7 +231,6 @@ const EBSConnector = function(config) {
                         audit.successful = true;
                     }
                     catch (e) {
-                        audit.successful = false;
                         faults.push(xml.parseEBSFault(response));
                     }
                     audit.actionDetail = `submit: [${rids}]`;
@@ -259,7 +261,7 @@ const EBSConnector = function(config) {
 
                 // TODO remove this cludgy hack after Conformance Testing is over
 
-                const ctx = createEDTContext(EDT_INFO, {resourceIDs: (chunk[0] === '-1') ? [] : chunk});
+                const ctx = createContext(EDT_INFO, {resourceIDs: (chunk[0] === '-1') ? [] : chunk});
 
                 return ws.send(handlers, ctx, (ctx) => {
 
@@ -277,7 +279,6 @@ const EBSConnector = function(config) {
                         audit.successful = true;
                     }
                     catch (e) {
-                        audit.successful = false;
                         faults.push(xml.parseEBSFault(response));
                     }
 
@@ -297,7 +298,7 @@ const EBSConnector = function(config) {
         },
 
         list: (args, callback) => {
-            const ctx = createEDTContext(EDT_LIST, args);
+            const ctx = createContext(EDT_LIST, args);
 
             const auditInfo = [];
             const results = [];
@@ -318,7 +319,6 @@ const EBSConnector = function(config) {
                     // }
                 }
                 catch (e) {
-                    audit.successful = false;
                     faults.push(xml.parseEBSFault(response));
                 }
 
@@ -347,7 +347,7 @@ const EBSConnector = function(config) {
 
             chunk(resourceIDs, chunkSize).forEach((chunk, chunkIndex, chunks) => {
 
-                const ctx = createEDTContext(EDT_DOWNLOAD, {resourceIDs: chunk});
+                const ctx = createContext(EDT_DOWNLOAD, {resourceIDs: chunk});
 
                 return ws.send(handlers, ctx, (ctx) => {
 
@@ -366,7 +366,6 @@ const EBSConnector = function(config) {
                         audit.successful = true;
                     }
                     catch (e) {
-                        audit.successful = false;
                         faults.push(xml.parseEBSFault(response));
                     }
 
@@ -398,7 +397,7 @@ const EBSConnector = function(config) {
 
             chunk(resourceIDs, DELETE_MAX).forEach((chunk, chunkIndex, chunks) => {
 
-                const ctx = createEDTContext(EDT_DELETE, {resourceIDs: chunk});
+                const ctx = createContext(EDT_DELETE, {resourceIDs: chunk});
 
                 return ws.send(handlers, ctx, (ctx) => {
 
@@ -417,7 +416,6 @@ const EBSConnector = function(config) {
                         audit.successful = true;
                     }
                     catch (e) {
-                        audit.successful = false;
                         faults.push(xml.parseEBSFault(response));
                     }
 
@@ -449,7 +447,7 @@ const EBSConnector = function(config) {
             const chunkSize = unsafe ? updates.length : UPDATE_MAX;
             chunk(updates, chunkSize).forEach((chunk, chunkIndex, chunks) => {
 
-                const ctx = createEDTContext(EDT_UPDATE, {updates:chunk});
+                const ctx = createContext(EDT_UPDATE, {updates:chunk});
 
                 chunk.forEach((update, updateIndex) => {
 
@@ -482,7 +480,6 @@ const EBSConnector = function(config) {
                     }
                     catch (e) {
                         faults.push(xml.parseEBSFault(response));
-                        audit.successful = false;
                     }
                     auditInfo.push(audit);
 
@@ -500,7 +497,7 @@ const EBSConnector = function(config) {
 
         getTypeList: (args, callback) => {
 
-            const ctx = createEDTContext(EDT_GET_TYPE_LIST, args);
+            const ctx = createContext(EDT_GET_TYPE_LIST, args);
 
             const auditInfo = [];
             const results = [];
@@ -517,6 +514,7 @@ const EBSConnector = function(config) {
 
                 try {
                     results.push(xml.parseTypeListResponse(response));
+                    audit.successful = true;
                 }
                 catch (e) {
                     faults.push(xml.parseEBSFault(response));
@@ -533,23 +531,23 @@ const EBSConnector = function(config) {
         },
 
         validateHealthCard: (args, callback) => {
-            const ctx = createHCVContext(HCV_BASIC_VALIDATE, args);
+            const ctx = createContext(HCV, args);
 
             const auditInfo = [];
-            const results = [];
+            let results = [];
             const faults = [];
 
-            return ws.send(handlers, ctx, (ctx) => {
-
+            return ws.send(hcvHandlers, ctx, (ctx) => {
                 const {
                     audit,
                     response,
                 } = ctx;
 
-                audit.actionDetail = `getTypeList`;
+                audit.actionDetail = `validateHealthCard`;
 
                 try {
-                    results.push(xml.parseHCVResponse(response));
+                    results = results.concat(xml.parseHCVResponse(response));
+                    audit.successful = true;
                 }
                 catch (e) {
                     faults.push(xml.parseEBSFault(response));

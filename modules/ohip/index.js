@@ -542,7 +542,6 @@ module.exports = function(billingApi) {
             };
 
             const isValid = mod10Check.isValidHealthNumber(healthNumber)
-            // console.log('healthNumber', healthNumber);
 
             if (isValid) {
                 result.isValid = true
@@ -629,7 +628,7 @@ module.exports = function(billingApi) {
 
             // we may add more functionality to EBS module one day,
             // no need to open ourselves up to vulnerabilities
-            const validServices = ['upload', 'update', 'delete', 'submit', 'list', 'info', 'download', 'getTypeList'];
+            const validServices = ['upload', 'update', 'delete', 'submit', 'list', 'info', 'download', 'getTypeList', 'validateHealthCard'];
             if (!validServices.includes(service)) {
                 // do error stuff
                 return callback(null, {
@@ -641,6 +640,7 @@ module.exports = function(billingApi) {
                     ]
                 });
             }
+
             const ebs = new EBSConnector(await billingApi.getOHIPConfiguration({muid}));
             ebs[service](args, (ebsErr, ebsResponse) => {
                 ebsResponse.auditInfo.forEach((audit) => {

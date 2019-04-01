@@ -1,10 +1,8 @@
 
 const getResourceIDsXML = (resourceIDs) => {
-    let xml = '';
-    for (let i=0; i<resourceIDs.length; i++) {
-        xml += `<resourceIDs>${resourceIDs[i]}</resourceIDs>`;
-    }
-    return xml;
+    return resourceIDs.map((resourceID) => {
+        return `<resourceIDs>${resourceID}</resourceIDs>`;
+    }).join('\n');
 };
 
 
@@ -18,19 +16,17 @@ module.exports = {
 
         let innerXML = '';
 
-        for (let i = 0; i < uploads.length; i++) {
-            const {
-                description,
-                resourceType,
-            } = uploads[i];
+        if (uploads) {
+            innerXML = uploads.map(({description, resourceType}) => {
 
-            innerXML += `
-                <upload>
-                    <content />
-                    <description>${description}</description>
-                    <resourceType>${resourceType}</resourceType>
-                </upload>
-            `;
+                return `
+                    <upload>
+                        <content />
+                        <description>${description}</description>
+                        <resourceType>${resourceType}</resourceType>
+                    </upload>
+                `;
+            }).join('\n');
         }
 
         return `
@@ -113,23 +109,18 @@ module.exports = {
     EDT_UPDATE: (args)=> {
         const {
             updates,
-            // content,
-            // resourceID,
         } = args;
         let innerXML = '';
 
-        for (let i = 0; i < updates.length; i++) {
-            const {
-                content,
-                resourceID,
-            } = updates[i];
+        if (updates) {
 
-            innerXML += `
-                <updates>
-                    <content />
-                    <resourceID>${resourceID}</resourceID>
-                </updates>
-            `
+            innerXML = updates.map(({resourceID}) => {
+                return `
+                    <updates>
+                        <content />
+                        <resourceID>${resourceID}</resourceID>
+                    </updates>`;
+            }).join('\n');
         }
 
         return `
@@ -143,34 +134,34 @@ module.exports = {
         return `<edt:getTypeList/>`;
     },
 
-    HCV_BASIC_VALIDATE: (args) => {
+    HCV: (args) => {
 
         const {
-            healthNumber,
-            versionCode,
+            hcvRequests,
         } = args;
+
         let innerXML = '';
-        // requests.forEach(({healthNumber, versionCode}) => {
-            innerXML += `
-                <hcvRequest>
-                    <healthNumber>${healthNumber}</healthNumber>
-                    <versionCode>${versionCode}</versionCode>
-                </hcvRequest>`;
-                //  <feeServiceCodes>A110</feeServiceCodes>
-        // });
+        if (hcvRequests) {
+            innerXML = hcvRequests.map(({healthNumber, versionCode, feeServiceCode}) => {
+
+                const feeServiceCodeStr = feeServiceCode ? `<feeServiceCodes>${feeServiceCode}</feeServiceCodes>` : '';
+
+                return `
+                    <hcvRequest>
+                        <healthNumber>${healthNumber}</healthNumber>
+                        <versionCode>${versionCode}</versionCode>
+                        ${feeServiceCodeStr}
+                    </hcvRequest>`;
+
+            }).join('\n');
+        }
 
         return `
             <hcv:validate>
                 <requests>
                     ${innerXML}
                 </requests>
-                <locale>'en'</locale>
+                <locale>en</locale>
             </hcv:validate>`;
-
-
-    },
-
-    HCV_FULL_VALIDATE: ({requests, locale}) => {
-
     },
 };

@@ -153,6 +153,37 @@ const parseDetail = (doc) => {
     };
 };
 
+const parseHCVCategory1Response = (doc) => {
+    //      <results>
+    //          ...
+    //          <dateOfBirth>1995-06-26T00:00:00.000-04:00</dateOfBirth>
+    //          <expiryDate>2024-01-16T00:00:00.000-05:00</expiryDate>
+    //          <secondName>test second name6</secondName>
+    //          <firstName>test first name6</firstName>
+    //          <lastName>test last name6</lastName>
+    //          <gender>M</gender>
+    //      </result>
+    return {
+        firstName: select("*[local-name(.)='firstName']/text()", doc)[0].nodeValue,
+        secondName: select("*[local-name(.)='secondName']/text()", doc)[0].nodeValue,
+        lastName: select("*[local-name(.)='lastName']/text()", doc)[0].nodeValue,
+        gender: select("*[local-name(.)='gender']/text()", doc)[0].nodeValue,
+        dateOfBirth: select("*[local-name(.)='dateOfBirth']/text()", doc)[0].nodeValue,
+        expiryDate: select("*[local-name(.)='expiryDate']/text()", doc)[0].nodeValue,
+    }
+};
+
+
+const parseHCVFeeServiceDetails = (doc) => {
+
+    return {
+        feeServiceCode: select("*[local-name(.)='feeServiceCode']/text()", doc)[0].nodeValue,
+        feeServiceDate: parseOptionalValue(doc, 'feeServiceDate'),
+        feeServiceResponseCode: select("*[local-name(.)='feeServiceResponseCode']/text()", doc)[0].nodeValue,
+        feeServiceResponseDescription: select("*[local-name(.)='feeServiceResponseDescription']/text()", doc)[0].nodeValue,
+    };
+}
+
 module.exports = {
 
     parseUploadResponse: (docStr) => {
@@ -221,19 +252,35 @@ module.exports = {
     },
 
     parseHCVResponse: (docStr) => {
+
         const doc = new dom().parseFromString(docStr);
-        return {
-            responseCode: "ST001",
-            responseID: "62312",
-            healthNumber: '1234567890',
-            versionCode: 'OK',
-            firstName: 'Gaius',
-            secondName: 'Fracking',
-            lastName: 'Baltar',
-            gender: 'M',
-            dateOfBirth: new Date(),
-            expiryDate: new Date(),
-        };
+        const validateResponseNode = select("//*[local-name(.)='validateResponse']", doc)[0];
+
+        const outerResults = select("*[local-name(.)='results']", validateResponseNode)[0];
+        const auditID = select("*[local-name(.)='auditUID']/text()", outerResults)[0].nodeValue;
+        const innerResults = select("*[local-name(.)='results']", outerResults);
+
+        return innerResults.map((result) => {
+            const feeServiceDetailsNode = select("*[local-name(.)='feeServiceDetails']", result)[0];
+
+            return {
+                healthNumber: select("*[local-name(.)='healthNumber']/text()", result)[0].nodeValue,
+                responseAction: select("*[local-name(.)='responseAction']/text()", result)[0].nodeValue,
+                responseCode: select("*[local-name(.)='responseCode']/text()", result)[0].nodeValue,
+                responseDescription: select("*[local-name(.)='responseDescription']/text()", result)[0].nodeValue,
+                responseID: select("*[local-name(.)='responseID']/text()", result)[0].nodeValue,
+                versionCode: parseOptionalValue(result, 'versionCode'),
+
+                dateOfBirth: parseOptionalValue(result, 'dateOfBirth'),
+                expiryDate: parseOptionalValue(result, 'expiryDate'),
+                secondName: parseOptionalValue(result, 'secondName'),
+                firstName: parseOptionalValue(result, 'firstName'),
+                lastName: parseOptionalValue(result, 'lastName'),
+                gender: parseOptionalValue(result, 'gender'),
+
+                ...(feeServiceDetailsNode ? parseHCVFeeServiceDetails(feeServiceDetailsNode) : {}),
+            };
+        });
     },
 
     parseAuditLogDetails: (docStr) => {
