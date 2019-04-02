@@ -718,15 +718,15 @@ module.exports = {
 					LEFT JOIN modifiers AS modifier3 ON modifier3.id=modifier3_id
 					LEFT JOIN modifiers AS modifier4 ON modifier4.id=modifier4_id
 					LEFT JOIN LATERAL (
-                        SELECT
-                            s.accession_no
-                        FROM
-                            public.studies s
-                        INNER JOIN billing.charges_studies AS cs ON cs.study_id = s.id
-                        WHERE
-                            cs.charge_id = charges.id
-                        ORDER BY s.id
-                    ) AS study_details ON TRUE
+                                    SELECT
+                                        s.accession_no
+                                    FROM
+                                        public.studies s
+                                    INNER JOIN billing.charges_studies AS cs ON cs.study_id = s.id
+                                    WHERE
+                                        cs.charge_id = charges.id
+                                    ORDER BY s.id
+                                ) AS study_details ON TRUE
 					WHERE claim_id=claims.id AND NOT charges.is_excluded ORDER BY charges.id ASC)
 					AS serviceLine)
 					) AS claim
