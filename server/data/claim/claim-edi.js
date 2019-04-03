@@ -648,8 +648,8 @@ module.exports = {
 					pointer3 as "pointer3",
 					pointer4 as "pointer4",
 					group_info->'cliaNumber' as "cliaNumber",
-					study_details.accession_no as "accessionNumber"
-					,(SELECT Json_agg(Row_to_json(lineAdjudication)) "lineAdjudication"
+					study_details.accession_no as "accessionNumber",
+					(SELECT Json_agg(Row_to_json(lineAdjudication)) "lineAdjudication"
 									FROM
                  (SELECT
                     display_code as "cpt",
