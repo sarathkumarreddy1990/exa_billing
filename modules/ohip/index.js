@@ -543,9 +543,14 @@ module.exports = function(billingApi) {
 
             const isValid = mod10Check.isValidHealthNumber(healthNumber)
 
+            const hcvRequests = [{
+                healthNumber,
+                versionCode,
+            }];
+
             if (isValid) {
                 result.isValid = true
-                ebs.validateHealthCard(args, (hcvErr, hcvResponse) => {
+                ebs.validateHealthCard({hcvRequests}, (hcvErr, hcvResponse) => {
                     args.eligibility_response = hcvResponse;
                     billingApi.saveEligibilityLog(args);
                     return callback(null, hcvResponse);
