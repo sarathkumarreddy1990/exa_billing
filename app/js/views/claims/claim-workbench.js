@@ -1408,11 +1408,11 @@ define(['jquery',
                                 $('#btnValidateExport').css('display', 'none');
                                 var filter_current_id = $('#claimsTabs').find('.active a').attr('data-container')
                                 var filter = commonjs.loadedStudyFilters.get(filter_current_id);
-                                if (filter.pager.get('FilterData') === "") {
+                                if (filter.pager.get('FilterData') == "") {
                                     var toDate = moment();
                                     var fromDate = moment().subtract(89, 'days');                                   
-                                    filterData = "["+JSON.stringify(fromDate.format("YYYY-MM-DD") + " - " + toDate.format("YYYY-MM-DD"))+"]"
-                                    filterCol = "["+JSON.stringify("claim_dt")+"]"
+                                    filterData = "[\"" + fromDate.format("YYYY-MM-DD") + " - " + toDate.format("YYYY-MM-DD") + "\"]"
+                                    filterCol = "[\"claim_dt\"]"
                                 }
                                 else{
                                     filterData = filter && filter.pager && JSON.stringify(filter.pager.get('FilterData')),
