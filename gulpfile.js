@@ -163,13 +163,23 @@ gulp.task('compress2', (done) => {
 });
 
 gulp.task('bump', ['git-init', 'compress'], () => {
-    const bumpType = (currentBranch === 'release') ? 'patch' : 'prerelease';
+    const bumpType = getBumpType({branch: currentBranch});
     const dirtyPreID = currentBranch + ( currentBranch === 'release' ? '' : '-' + currentCommit );
     const preID = dirtyPreID.replace(/_/g, '-');
     return gulp.src('./package.json')
         .pipe(bump({ type: bumpType, preid: preID }))
         .pipe(gulp.dest('./'));
 });
+
+function getBumpType(options) {
+    if (options.branch.startsWith('release')) {
+        return 'patch';
+    } else if (options.branch.startsWith('testing')) {
+        return 'patch';
+    } else {
+        return 'prerelease';
+    }
+}
 
 gulp.task('copy-package-json', ['bump'], () => {
     return gulp.src([
@@ -228,7 +238,7 @@ gulp.task('git-init', (done) => {
         git.revParse({ args: '--abbrev-ref HEAD' }, function (err, branch) {
             currentBranch = branch;
         });
-        git.revParse({ args: 'HEAD'}, function (err, commit) {
+        git.revParse({ args: '--short HEAD'}, function (err, commit) {
             currentCommit = commit;
         });
         done();
