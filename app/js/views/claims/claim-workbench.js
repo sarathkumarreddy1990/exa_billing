@@ -1411,7 +1411,7 @@ define(['jquery',
                                 if (filter.pager.get('FilterData') == "") {
                                     var toDate = moment();
                                     var fromDate = moment().subtract(89, 'days');                                   
-                                    filterData = "[\"" + fromDate.format("YYYY-MM-DD") + " - " + toDate.format("YYYY-MM-DD") + "\"]"
+                                    filterData = "[\""+ fromDate.format("YYYY-MM-DD") + " - " + toDate.format("YYYY-MM-DD") +"\"]"
                                     filterCol = "[\"claim_dt\"]"
                                 }
                                 else{
