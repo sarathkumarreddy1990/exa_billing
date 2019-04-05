@@ -30,7 +30,20 @@ const exaFileTypes = {
     [resourceTypes.OBEC_RESPONSE]: 'can_ohip_r',
 };
 
+const getDatePath = () => {
+    return path.join(...moment().format('YYYY/MM/DD').split('/'));
+};
 
+const mkDir = (filestorePath, filePath) => {
+    const parts = filePath.split(path.sep);
+
+    for (let i = 0; i <= parts.length; i++) {
+        const sub = path.join(filestorePath, ...parts.slice(0, i));
+        if (!fs.existsSync(sub)){
+            fs.mkdirSync(sub);
+        }
+    }
+}
 
 /**
  * const getExaFileType - determines a value for the file_type field of a
@@ -154,12 +167,14 @@ const storeFile =  async (args) => {
     // accounting number: "CST-PRIM" from Conformance Testing Error Report sample
 
     const filestore =  await getFileStore(args);
-    const filePath = filestore.is_default ? 'OHIP' : '';
+    const filePath = path.join((filestore.is_default ? 'OHIP' : ''), getDatePath());
+
     const fileInfo = {
         file_store_id: filestore.id,
         absolutePath: path.join(filestore.root_directory, filePath, filename),
     };
 
+    mkDir(filestore.root_directory, filePath);
     fs.writeFileSync(fileInfo.absolutePath, data, {encoding});
 
     if (isTransient || !exaFileType) {
@@ -659,9 +674,9 @@ const OHIPDataAPI = {
                 INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
                 LEFT JOIN LATERAL
                 (
-                  SELECT 
+                  SELECT
                       SUM(COALESCE(bpa.amount::numeric,0)) AS charge_payment
-                  FROM billing.payment_applications bpa 
+                  FROM billing.payment_applications bpa
                   WHERE bpa.charge_id = bch.id
                 ) cp ON TRUE
                 WHERE bch.claim_id = bc.id
