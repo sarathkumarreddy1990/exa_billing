@@ -8,7 +8,8 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const _ = require('lodash');
-
+const mkdirp = require('mkdirp');
+const logger = require('../../../logger');
 const {
     encoding,
     resourceTypes,
@@ -33,17 +34,6 @@ const exaFileTypes = {
 const getDatePath = () => {
     return path.join(...moment().format('YYYY/MM/DD').split('/'));
 };
-
-const mkDir = (filestorePath, filePath) => {
-    const parts = filePath.split(path.sep);
-
-    for (let i = 0; i <= parts.length; i++) {
-        const sub = path.join(filestorePath, ...parts.slice(0, i));
-        if (!fs.existsSync(sub)){
-            fs.mkdirSync(sub);
-        }
-    }
-}
 
 /**
  * const getExaFileType - determines a value for the file_type field of a
@@ -174,7 +164,7 @@ const storeFile =  async (args) => {
         absolutePath: path.join(filestore.root_directory, filePath, filename),
     };
 
-    mkDir(filestore.root_directory, filePath);
+    mkdirp.sync(path.join(filestore.root_directory, filePath));
     fs.writeFileSync(fileInfo.absolutePath, data, {encoding});
 
     if (isTransient || !exaFileType) {
