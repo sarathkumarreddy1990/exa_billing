@@ -1403,11 +1403,21 @@ define(['jquery',
                             table.renderStudy();
 
                             $('#btnValidateExport').off().click(function (e) {
+                                var filterData = '';
+                                var filterCol = '';
                                 $('#btnValidateExport').css('display', 'none');
                                 var filter_current_id = $('#claimsTabs').find('.active a').attr('data-container')
-                                var filter = commonjs.loadedStudyFilters.get(filter_current_id),
+                                var filter = commonjs.loadedStudyFilters.get(filter_current_id);
+                                if (filter.pager.get('FilterData') == "") {
+                                    var toDate = moment();
+                                    var fromDate = moment().subtract(89, 'days');                                   
+                                    filterData = "[\""+ fromDate.format("YYYY-MM-DD") + " - " + toDate.format("YYYY-MM-DD") +"\"]"
+                                    filterCol = "[\"claim_dt\"]"
+                                }
+                                else{
                                     filterData = filter && filter.pager && JSON.stringify(filter.pager.get('FilterData')),
                                     filterCol = filter && filter.pager && JSON.stringify(filter.pager.get('FilterCol'));
+                                }
                                 table.renderStudy(true, filterData, filterCol);
                             });
                         };
