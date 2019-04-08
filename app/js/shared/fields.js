@@ -142,7 +142,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         var verifiedValue = ":All;true:Yes;false:No";
         var billingMethodValue =  ":All;electronic_billing:Electronic Billing;paper_claim:Paper Claim;direct_billing:Direct Billing;patient_payment:Patient Payment";
         var payerTypeValue =  ':All;primary_insurance:Primary Insurance;secondary_insurance:Secondary Insurance;tertiary_insurance:Tertiary Insurance;ordering_facility:Ordering facility;referring_provider:Referring Provider;patient:Patient';
-
+        var billingMethodValueCan = ":All;electronic_billing:Electronic Billing;direct_billing:Direct Billing;patient_payment:Patient Payment";
+        var payerTypeValueCan = ':All;primary_insurance:Primary Insurance;ordering_facility:Ordering facility;referring_provider:Referring Provider;patient:Patient';
         $.each(app.stat_level, function ( index, stat ) {
             if ( !stat.deleted ) {
                 if ( parseInt(stat.level) === 0 ) {
@@ -324,8 +325,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "name": "payer_type",
                         "stype": "select",
                         "searchoptions": {
-                            "value": payerTypeValue,
-                            "tempvalue":payerTypeValue
+                            "value": app.country_alpha_3_code !== 'can' ? payerTypeValue : payerTypeValueCan,
+                            "tempvalue": app.country_alpha_3_code !== 'can' ? payerTypeValue : payerTypeValueCan,
                         },
                         "formatter": function ( cellvalue ) {
                             return commonjs.checkNotEmpty(cellvalue) ?
@@ -493,8 +494,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "width": 150,
                         "stype": "select",
                         "searchoptions": {
-                            "value": billingMethodValue,
-                            "tempvalue":billingMethodValue
+                            "value": app.country_alpha_3_code !== 'can' ? billingMethodValue : billingMethodValueCan,
+                            "tempvalue": app.country_alpha_3_code !== 'can' ? billingMethodValue : billingMethodValueCan
                         }
                     },
                 },
