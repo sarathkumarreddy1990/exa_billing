@@ -211,6 +211,7 @@ if (require && require.config) {
 
             window.AppServer = Appserver;
             i18n.loadConfig(function () {
+                MomentTimezone.locale(browserLocale);
                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
             });
             Backbone.emulateHTTP = false;
