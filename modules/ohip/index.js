@@ -277,6 +277,38 @@ module.exports = function(billingApi) {
     //
 
 
+    const downloadRemittanceAdvice = async ( args, callback ) => {
+        download({ resourceType: REMITTANCE_ADVICE }, ( downloadErr, ediFiles ) => {
+            return callback(downloadErr, ediFiles);
+        });
+    };
+
+    const downloadAndProcessResponseFiles = async (args, callback) => {
+
+        downloadAckFile({
+            resourceType: CLAIMS_MAIL_FILE_REJECT_MESSAGE,
+            applicator: billingApi.applyRejectMessage
+        }, (err, results) => {
+            // TODO logging etc
+        });
+
+        downloadAckFile({
+            resourceType: BATCH_EDIT,
+            applicator: billingApi.applyBatchEditReport
+        }, (err, results) => {
+            // TODO logging etc
+        });
+
+        downloadAckFile({
+            resourceType: ERROR_REPORTS,
+            applicator: billingApi.applyErrorReport
+        }, (err, results) => {
+            // TODO logging etc
+        });
+
+        callback(null, {});
+    };
+
     return {
 
         // takes an array of Claim IDs
@@ -479,48 +511,9 @@ module.exports = function(billingApi) {
          * @param  {type} callback description
          * @returns {type}          description
          */
-        downloadRemittanceAdvice: async (args, callback) => {
-            download({resourceType:REMITTANCE_ADVICE}, (downloadErr, ediFiles) => {
-                return callback(downloadErr, ediFiles);
-            });
-        },
+        downloadRemittanceAdvice,
 
-        // TODO: EXA-12016
-        downloadAndProcessResponseFiles: async (args, callback) => {
-
-            downloadAckFile({
-                resourceType: CLAIMS_MAIL_FILE_REJECT_MESSAGE,
-                applicator: billingApi.applyRejectMessage
-            }, (err, results) => {
-                // TODO logging etc
-            });
-
-            downloadAckFile({
-                resourceType: BATCH_EDIT,
-                applicator: billingApi.applyBatchEditReport
-            }, (err, results) => {
-                // TODO logging etc
-            });
-
-            downloadAckFile({
-                resourceType: ERROR_REPORTS,
-                applicator: billingApi.applyErrorReport
-            }, (err, results) => {
-                // TODO logging etc
-            });
-
-            callback(null, {});
-        },
-
-
-        // TODO: EXA-12016
-        // processResponseFiles,
-        //
-        // responseFilesRefresh: processResponseFiles,
-        //
-        // remittanceAdviceFilesRefresh: processResponseFiles,
-        //
-        // genericGovernanceReportsRefresh: processResponseFiles,
+        downloadAndProcessResponseFiles,
 
         validateHealthCard: async (args, callback) => {
             const ebs = new EBSConnector(await billingApi.getOHIPConfiguration({hcv:true}));
@@ -572,7 +565,6 @@ module.exports = function(billingApi) {
             }
             callback(f_c)
         },
-
 
         conformanceTesting: async (args, callback) => {
             const {
@@ -655,6 +647,8 @@ module.exports = function(billingApi) {
             });
         },
 
+        remittanceAdviceFilesRefresh: downloadRemittanceAdvice,
 
+        responseFilesRefresh: downloadAndProcessResponseFiles,
     };
 };
