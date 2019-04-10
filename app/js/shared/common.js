@@ -585,7 +585,7 @@ var commonjs = {
         }
         var defaultOptions = {
             format: "L LT",
-            //locale: browserLocale,
+            locale: browserLocale,
             //timeZone: null,//this.getCompanyTimeZone(),
             showClose: true,
             showClear: true,
