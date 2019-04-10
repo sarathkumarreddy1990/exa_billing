@@ -200,7 +200,7 @@ if (require && require.config) {
         permissionsjs,
         jqueryuisortable
         ) {
-            browserLocale = navigator.language;
+            browserLocale = navigator.language.toLowerCase();
             window.browserLocale = typeof browserLocale == 'undefined' ? 'en-US' : browserLocale;
             window.Immutable = Immutable;
             window.commonjs = commonjs;
