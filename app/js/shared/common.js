@@ -2101,20 +2101,15 @@ var commonjs = {
 
     /**
      * Take input moment object (and optional input date format template) and return string of YYYY-MM-DD
-     * @param   {Moment}    dateObj
+     * @param   {string}    date
      * @param   {string}    template    =   ex: MM/DD/YYYY
      * @returns {string}
      */
     getISODateString: function ( date, template ) {
         var finalTemplate = 'YYYY-MM-DD';
 
-        var dateObj = date;
-        if ( typeof date === 'string' ) {
-            dateObj = moment(date);
-        }
-
         if ( template ) {
-            return moment(dateObj, template).format(finalTemplate);
+            return moment(date, template).format(finalTemplate);
         }
 
         var dateTemplate = moment(new Date('December 31, 2017'))
@@ -2123,7 +2118,7 @@ var commonjs = {
             .replace(/31/, 'DD')
             .replace(/2017/, 'YYYY');
 
-        return moment(dateObj, dateTemplate).format(finalTemplate);
+        return moment(date, dateTemplate).format(finalTemplate);
     },
 
     isMaskValidate: function () {
