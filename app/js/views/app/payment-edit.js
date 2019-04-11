@@ -2457,7 +2457,7 @@ define(['jquery',
                 var dobVal = $('#dob').val();
 
                 if (dobVal) {
-                    canSearch = moment(dobVal).isValid();
+                    canSearch = moment(dobVal, commonjs.getDateTemplate()).isValid();
                 }
 
                 if (e.originalEvent && canSearch) {
@@ -2495,7 +2495,7 @@ define(['jquery',
                     var dobVal = $('#dob').val();
 
                     if (dobVal) {
-                        canSearch = moment(dobVal).isValid();
+                        canSearch = moment(dobVal, commonjs.getDateTemplate()).isValid();
                     }
 
                     if (canSearch) {
