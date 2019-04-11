@@ -368,7 +368,7 @@ define(['jquery',
                     eligibilityData.relationshipCode = $('#ddlPriRelationShip').val() ? $('#ddlPriRelationShip').val() : eligibilityData.RelationshipCode;
                     eligibilityData.policyNo = $('#txtPriPolicyNo').val() ? $('#txtPriPolicyNo').val() : null;
                     eligibilityData.benefitOnDate = $('#txtBenefitOnDate').val() ? $('#txtBenefitOnDate').val() : null;
-                    eligibilityData.birthDate = document.querySelector('#txtPriDOB').value;
+                    eligibilityData.birthDate = commonjs.getISODateString(document.querySelector('#txtPriDOB').value);
                     eligibilityData.lastName = $('#txtPriSubLastName').val() ? $('#txtPriSubLastName').val() : null;
                     eligibilityData.firstName = $('#txtPriSubFirstName').val() ? $('#txtPriSubFirstName').val() : null;
                 } else if (ins == 2) { // Secondary insurance
@@ -376,7 +376,7 @@ define(['jquery',
                     eligibilityData.relationshipCode = $('#ddlSecRelationShip').val() ? $('#ddlSecRelationShip').val() : eligibilityData.relationshipCode;
                     eligibilityData.policyNo = $('#txtSecPolicyNo').val() ? $('#txtSecPolicyNo').val() : null;
                     eligibilityData.benefitOnDate = $('#txtBenefitOnDate2').val() ? $('#txtBenefitOnDate2').val() : null;
-                    eligibilityData.birthDate = document.querySelector('#txtSecDOB').value;
+                    eligibilityData.birthDate = commonjs.getISODateString(document.querySelector('#txtSecDOB').value);
                     eligibilityData.lastName = $('#txtSecSubLastName').val() ? $('#txtSecSubLastName').val() : null;
                     eligibilityData.firstName = $('#txtSecSubFirstName').val() ? $('#txtSecSubFirstName').val() : null;
                 }
@@ -385,7 +385,7 @@ define(['jquery',
                     eligibilityData.relationshipCode = $('#ddlTerRelationShip').val() ? $('#ddlTerRelationShip').val() : eligibilityData.relationshipCode;
                     eligibilityData.policyNo = $('#txtTerPolicyNo').val() ? $('#txtTerPolicyNo').val() : null;
                     eligibilityData.benefitOnDate = $('#txtBenefitOnDate3').val() ? $('#txtBenefitOnDate3').val() : null;
-                    eligibilityData.birthDate = document.querySelector('#txtTerDOB').value;
+                    eligibilityData.birthDate = commonjs.getISODateString(document.querySelector('#txtTerDOB').value);
                     eligibilityData.lastName = $('#txtTerSubLastName').val() ? $('#txtTerSubLastName').val() : null;
                     eligibilityData.firstName = $('#txtTerSubFirstName').val() ? $('#txtTerSubFirstName').val() : null;
                 }
@@ -712,7 +712,7 @@ define(['jquery',
                 /* Additional info start*/
 
                 claim_data.hospitalization_from_date ? self.hcf.date(claim_data.hospitalization_from_date) : self.hcf.clear();
-                claim_data.hospitalization_to_date ? self.hct.date(claim_data.hospitalization_to_date) :self.hct.clear();              
+                claim_data.hospitalization_to_date ? self.hct.date(claim_data.hospitalization_to_date) :self.hct.clear();
                 claim_data.unable_to_work_from_date ? self.wcf.date(claim_data.unable_to_work_from_date) : self.wcf.clear();
                 claim_data.unable_to_work_to_date ? self.wct.date(claim_data.unable_to_work_to_date ) :self.wct.clear();
                 document.querySelector('#txtOtherDate').value = claim_data.same_illness_first_date ? moment(claim_data.same_illness_first_date).format('L') : '';
@@ -2857,12 +2857,12 @@ define(['jquery',
                     billing_class_id: $('#ddlBillingClass option:selected').val() != '' ? parseInt($('#ddlBillingClass option:selected').val()) : null,
                     created_by: app.userID,
                     claim_dt: self.cur_study_date ? self.cur_study_date : null,
-                    current_illness_date: $('#txtDate').val() != '' ? moment($('#txtDate').val()).format('YYYY-MM-DD') : null,
-                    same_illness_first_date: $('#txtOtherDate').val() != '' ? moment($('#txtOtherDate').val()).format('YYYY-MM-DD') : null,
-                    unable_to_work_from_date: $('#txtWCF').val() != '' ? moment($('#txtWCF').val()).format('YYYY-MM-DD') : null,
-                    unable_to_work_to_date: $('#txtWCT').val() != '' ? moment($('#txtWCT').val()).format('YYYY-MM-DD') : null,
-                    hospitalization_from_date: $('#txtHCF').val() != '' ? moment($('#txtHCF').val()).format('YYYY-MM-DD') : null,
-                    hospitalization_to_date: $('#txtHCT').val() != '' ? moment($('#txtHCT').val()).format('YYYY-MM-DD') : null,
+                    current_illness_date: $('#txtDate').val() != '' ? commonjs.getISODateString($('#txtDate').val()) : null,
+                    same_illness_first_date: $('#txtOtherDate').val() != '' ? commonjs.getISODateString($('#txtOtherDate').val()) : null,
+                    unable_to_work_from_date: $('#txtWCF').val() != '' ? commonjs.getISODateString($('#txtWCF').val()) : null,
+                    unable_to_work_to_date: $('#txtWCT').val() != '' ? commonjs.getISODateString($('#txtWCT').val()) : null,
+                    hospitalization_from_date: $('#txtHCF').val() != '' ? commonjs.getISODateString($('#txtHCF').val()) : null,
+                    hospitalization_to_date: $('#txtHCT').val() != '' ? commonjs.getISODateString($('#txtHCT').val()) : null,
                     payer_type: currentResponsible.payer_type_name || null,
                     billing_method: billingMethod,
                     billing_notes: $.trim($('#txtClaimResponsibleNotes').val()),
@@ -2879,7 +2879,7 @@ define(['jquery',
                     secondary_patient_insurance_id: self.is_secondary_available && parseInt(self.secondaryPatientInsuranceId) || ( self.is_secondary_available && parseInt(self.secClaimInsID) || null ),
                     tertiary_patient_insurance_id: self.is_tertiary_available && parseInt(self.tertiaryPatientInsuranceId) || ( self.is_tertiary_available && parseInt(self.terClaimInsID) || null )
 
-                }
+                };
 
                 /*Setting claim charge details*/
                 claim_model.charges = [];
