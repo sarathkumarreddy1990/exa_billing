@@ -1019,8 +1019,7 @@ define([
 
                 if (isFromClaim) {
                     var defaultDialogProps = {
-                        'header': 'Patient Claims: ' + patientName,
-                        'i18nHeader': "shared.moduleheader.patientClaims",
+                        'header': commonjs.geti18NString("shared.moduleheader.patientClaims") + ': ' + patientName,
                         'width': '85%',
                         'height': '75%',
                         'needShrink': true,
@@ -1065,6 +1064,11 @@ define([
                     $('#radActivityAllStatus').prop('checked', true);
                     $('#activityDetails').hide();
                     commonjs.isMaskValidate();
+                } else {
+                    if (patientName) {
+                        var patientHeaderInfo = commonjs.geti18NString('shared.moduleheader.patientClaims') + ':' + patientName ;
+                        $(parent.document).find('#spanModalHeader').html(patientHeaderInfo);
+                    }
                 }
 
 
@@ -1213,9 +1217,17 @@ define([
                 return true;
             },
 
-            patientInquiryLog: function (claimId, patientId) {
+            patientInquiryLog: function (claimId, patientId, patientName) {
                 var self = this;
-                this.$el.html(this.claimPatientLogTemplate());
+                var defaultDialogProps = {
+                    'header': commonjs.geti18NString("shared.moduleheader.patientClaimLog") + ': ' + patientName,
+                    'width': '85%',
+                    'height': '75%',
+                    'needShrink': true,
+                    'html': this.claimPatientLogTemplate()
+                }
+                commonjs.showDialog(defaultDialogProps);
+
                 self.showPatientClaimsLogGrid(claimId, patientId);
             },
 

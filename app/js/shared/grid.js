@@ -558,7 +558,7 @@ define('grid', [
                         'needShrink': true
                     });
                 self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
-                self.claimInquiryView.patientInquiryLog(studyIds,selectedStudies[0].patient_id);
+                self.claimInquiryView.patientInquiryLog(studyIds, selectedStudies[0].patient_id, selectedStudies[0].patient_name);
                 });
 
                 var liSplitOrders = commonjs.getRightClickMenu('anc_split_claim','setup.rightClickMenu.splitClaim',false,'Split Claim',false);
