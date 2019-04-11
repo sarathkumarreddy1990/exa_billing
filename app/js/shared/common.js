@@ -2116,11 +2116,7 @@ var commonjs = {
             return moment(date, template).format(finalTemplate);
         }
 
-        var dateTemplate = moment(new Date('December 31, 2017'))
-            .format('L')
-            .replace(/12/, 'MM')
-            .replace(/31/, 'DD')
-            .replace(/2017/, 'YYYY');
+        var dateTemplate = commonjs.getDateTemplate();
 
         return moment(date, dateTemplate).format(finalTemplate);
     },
