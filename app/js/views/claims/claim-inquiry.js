@@ -153,6 +153,11 @@ define([
 
             },
 
+            clearFaxInfo: function () {
+                $('#txtFaxReceiverName').val('');
+                $('#txtFaxReceiverNumber').val('');
+            },
+
             claimInquiryDetails: function (claimID, fromTogglePreNext, isFromClaimScreen) {
                 var self = this;
                 self.claim_id = claimID;
@@ -1112,7 +1117,20 @@ define([
                     $('#divFaxRecipient').show();
 
                     $('#btnSendFax').off().click(function (e) {
+                        var faxRecipientName = $('#txtOtherFaxName').val();
+                        var faxRecipientNumber = $('#txtOtherFaxNumber').val();
+
+                        if (!commonjs.checkNotEmpty(faxRecipientName))
+                            return commonjs.showWarning('messages.status.faxReceiverName');
+
+                        if (!commonjs.checkNotEmpty(faxRecipientNumber))
+                            return commonjs.showWarning('messages.status.faxNumberInvalid');
+
                         self.faxReport(patientActivityParams, reportURL);
+                        commonjs.showStatus("messages.status.faxQueued");
+                        $('#txtOtherFaxName').val('');
+                        $('#txtOtherFaxNumber').val('');
+                        $('#divFaxRecipient').hide();
                     });
 
                     $('#btnFaxCancel').off().click(function (e) {
