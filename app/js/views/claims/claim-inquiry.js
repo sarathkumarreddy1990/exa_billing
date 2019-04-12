@@ -1148,13 +1148,16 @@ define([
             },
 
             createPatientActivityParams: function(claimId, patientId) {
+                var reportBy;
+                var fromDate;
+                var toDate;
                 if ($('#radActivityAllStatus').prop("checked")) {
                     reportBy = true;
                 }
                 else if ($('#radioActivityStatus').prop("checked") && this.validateFromAndToDate(this.fromDate, this.toDate)) {
                     reportBy = false;
-                    fromDate = $('#txtDate').val();
-                    toDate = $('#txtOtherDate').val();
+                    fromDate = commonjs.getISODateString($('#txtDate').val());
+                    toDate = commonjs.getISODateString($('#txtOtherDate').val());
                 }
                 else return false;
 
