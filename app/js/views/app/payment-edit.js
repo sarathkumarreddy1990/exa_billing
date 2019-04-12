@@ -2319,14 +2319,12 @@ define(['jquery',
                     *  Condition : Payment + adjustment == Order Balance
                     *  DESC : Check payment & adjustment amount is should be equal with order balance and payer_type === 'patient' for Canadian config.
                     */
-                    if (app.country_alpha_3_code === 'can' && self.payer_type === 'patient') {
-                        var orderBalance = parseFloat(totalPayment) + parseFloat(totalAdjustment);
-                        var currentBalance = parseFloat(self.currentOrderBalance.replace(/[(]/g, '-').replace(/[^0-9.-]+/g, "")) || "";
-                        if (currentBalance !== orderBalance) {
+                        var orderBalance = $('#lblBalanceNew').text() || '0.00';
+                        var currentBalance = parseFloat(orderBalance.replace(/[-]/g, '').replace(/[(]/g, '-').replace(/[^0-9.-]+/g, "")) || 0;
+                        if (currentBalance !== 0  && app.country_alpha_3_code === 'can' && self.payer_type === 'patient') {
                             commonjs.showWarning('messages.warning.payments.amountValidation');
                             return false;
                         }
-                    }
 
                     /**
                     *  Condition : If payment_payer_type === 'patient' && claim_status !== Pending Validation/Submission
