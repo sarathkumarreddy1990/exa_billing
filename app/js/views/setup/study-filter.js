@@ -676,8 +676,8 @@ define([
                                     $('#txtLastTime').val(dateJson.durationValue);
                                     $('#ddlLast').val(dateJson.duration);
 
-                                    dateJson.fromDate ? $('#txtDateFrom').val(dateJson.fromDate) : $('#txtDateFrom').val('');
-                                    dateJson.toDate ? $('#txtDateTo').val(dateJson.toDate) : $('#txtDateTo').val('');
+                                    dateJson.fromDate ? $('#txtDateFrom').val(moment(dateJson.fromDate).format('L')) : $('#txtDateFrom').val('');
+                                    dateJson.toDate ? $('#txtDateTo').val(moment(dateJson.toDate).format('L')) : $('#txtDateTo').val('');
                                     dateJson.fromDateTime ? $('#txtFromTimeDate').val(dateJson.fromDateTime) : $('#txtFromTimeDate').val('');
                                     dateJson.toDateTime ? $('#txtToTimeDate').val(dateJson.toDateTime) : $('#txtToTimeDate').val('');
                                     dateJson.fromTime ? $('#txtFromTimeLast').val(dateJson.fromTime) : $('#txtFromTimeLast').val('');
@@ -931,15 +931,15 @@ define([
                     var filterType = 'studies';
                 if (window.location && window.location.hash.split('/')[1] == 'claim_workbench')
                     var filterType = 'claims';
-                filterName = $('#txtFilterName').val() ? $('#txtFilterName').val().trim() : '';
-                filterOrder = $('#txtFilterOrder').val() ? $('#txtFilterOrder').val().trim() : '';
-                isActive = !$('#chkIsActive').is(":checked");
-                isGlobal = $('#chkIsGlobalFilter').is(":checked");
-                isDisplayAsTab = $('#chkDisplayAsTab').is(":checked");
-                isDisplayInDropDown = $('#chkDisplayAsDDL').is(":checked");
+                var filterName = $('#txtFilterName').val() ? $('#txtFilterName').val().trim() : '';
+                var filterOrder = $('#txtFilterOrder').val() ? $('#txtFilterOrder').val().trim() : '';
+                var isActive = !$('#chkIsActive').is(":checked");
+                var isGlobal = $('#chkIsGlobalFilter').is(":checked");
+                var isDisplayAsTab = $('#chkDisplayAsTab').is(":checked");
+                var isDisplayInDropDown = $('#chkDisplayAsDDL').is(":checked");
 
                 if(!filterName){
-                    ommonjs.showWarning('messages.warning.claims.pleaseEnterFilterName');
+                    commonjs.showWarning('messages.warning.claims.pleaseEnterFilterName');
                     return;
                 }
                 if(!filterOrder){
@@ -979,8 +979,8 @@ define([
                 }
                 else if ($('#rbtDate').is(':checked')) {
                     dateJsonCondition = "Date";
-                    var fromDt = $('#txtDateFrom').val(),
-                        toDt = $('#txtDateTo').val();
+                    var fromDt = commonjs.getISODateString($('#txtDateFrom').val());
+                    var toDt = commonjs.getISODateString($('#txtDateTo').val());
                     if (fromDt && toDt) {
                         dateJsonCondition = "Date";
                         //var validationResult2 = commonjs.validateDateTimePickerRange(fromDt, toDt, true);
@@ -1285,9 +1285,9 @@ define([
                             duration: $('#ddlLast option:selected').text(),
                             fromTime: $('#txtFromTimeLast').val() ? $('#txtFromTimeLast').val() : null,
                             toTime: $('#txtToTimeLast').val() ? $('#txtToTimeLast').val() : null,
-                            fromDate: $('#txtDateFrom').val() ? $('#txtDateFrom').val() : null,
+                            fromDate: $('#txtDateFrom').val() ? commonjs.getISODateString($('#txtDateFrom').val()) : null,
                             fromDateTime: $('#txtFromTimeDate').val() ? $('#txtFromTimeDate').val() : null,
-                            toDate: $('#txtDateTo').val() ? $('#txtDateTo').val() : null,
+                            toDate: $('#txtDateTo').val() ? commonjs.getISODateString($('#txtDateTo').val()) : null,
                             toDateTime: $('#txtToTimeDate').val() ? $('#txtToTimeDate').val() : null,
                             isStudyDate: $('#rbtStudyDate').is(":checked"),
                             dateType: $('#rbtStudyDate').is(":checked") ? "study_dt" : $('#rbtStudyReceivedDate').is(":checked") ? "study_received_dt" : $('#rbtScheduledDate').is(":checked") ? "scheduled_dt" : $('#rbtStatusChangeDate').is(":checked") ? "status_last_changed_dt" : "study_dt"
@@ -1368,9 +1368,9 @@ define([
                             duration: $('#ddlLast option:selected').val(),
                             fromTime: $('#txtFromTimeLast').val() ? $('#txtFromTimeLast').val() : null,
                             toTime: $('#txtToTimeLast').val() ? $('#txtToTimeLast').val() : null,
-                            fromDate: $('#txtDateFrom').val() ? $('#txtDateFrom').val() : null,
+                            fromDate: $('#txtDateFrom').val() ? commonjs.getISODateString($('#txtDateFrom').val()) : null,
                             fromDateTime: $('#txtFromTimeDate').val() ? $('#txtFromTimeDate').val() : null,
-                            toDate: $('#txtDateTo').val() ? $('#txtDateTo').val() : null,
+                            toDate: $('#txtDateTo').val() ? commonjs.getISODateString($('#txtDateTo').val()) : null,
                             toDateTime: $('#txtToTimeDate').val() ? $('#txtToTimeDate').val() : null,
                             isStudyDate: $('#rbtStudyDate').is(":checked"),
                             dateType:  $('input[name=claimdate]:checked').val()
