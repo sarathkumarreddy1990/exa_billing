@@ -204,7 +204,7 @@ define([
                                 self.patientInquiryForm(self.claim_id, patient_details[0].patient_id, patient_details[0].patient_name, self.options.grid_id, true, true);
                             });
 
-                            self.options.patient_id = patient_details[0].patient_id;  
+                            self.options.patient_id = patient_details[0].patient_id;
 
                             if (patient_details && patient_details.length > 0) {
                                 var patientHeaderInfo = commonjs.geti18NString('shared.screens.setup.claimInquiry') + ':' + patient_details[0].patient_name + ' (Acc#:' + patient_details[0].account_no + ')' + ',  '+ ' (Claim#:' + self.claim_id + ')' + ',  '+ moment(patient_details[0].birth_date).format('L') + ',  ' + patient_details[0].gender;
@@ -250,6 +250,12 @@ define([
                 });
             },
 
+            getSubscriberDOBFormat: function ( cellvalue, options, rowObject ) {
+                return commonjs.checkNotEmpty(rowObject.subscriber_dob)
+                    ? moment(rowObject.subscriber_dob).format('L')
+                    : '';
+            },
+
             showInsuranceGrid: function (data) {
                 var self = this;
                 var colNames = ['', 'code', 'description', 'Subscriber Name', 'DOB', 'Policy No', 'Group No'];
@@ -261,7 +267,7 @@ define([
                     { name: 'insurance_code', search: false },
                     { name: 'insurance_name', search: false },
                     { name: 'name', search: false },
-                    { name: 'subscriber_dob', search: false },
+                    { name: 'subscriber_dob', search: false, formatter: self.getSubscriberDOBFormat },
                     { name: 'policy_number', search: false },
                     { name: 'group_number', search: false }
                 ];
@@ -839,7 +845,7 @@ define([
                     success: function (data, response) {
                         data = data[0];
                         if (data) {
-                            self.previousFollowUpDate = (commonjs.checkNotEmpty(data.followup_date)) ? moment(data.followup_date).format('MM/DD/YYYY') : '';
+                            self.previousFollowUpDate = (commonjs.checkNotEmpty(data.followup_date)) ? moment(data.followup_date).format('L') : '';
                             $('#txtCIFollowUpDate').val(self.previousFollowUpDate);
                         }
                         else {
@@ -967,7 +973,7 @@ define([
             saveIsInternalComment: function () {
                 var comments = [];
                 var self = this;
-                var selectedFollowUpDate = $('#txtCIFollowUpDate').val() ? moment($('#txtCIFollowUpDate').val()).format('L') : '';
+                var selectedFollowUpDate = $('#txtCIFollowUpDate').val() ? commonjs.getISODateString($('#txtCIFollowUpDate').val()) : '';
 
                 $('#tblCIClaimComments  td input:checkbox').each(function () {
                     var content = {};
