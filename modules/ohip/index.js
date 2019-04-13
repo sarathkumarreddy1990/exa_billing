@@ -5,18 +5,30 @@ const {
     find,
 } = require('lodash');
 const sprintf = require('sprintf');
+const path = require('path');
+const logger = require('../../logger');
 
 // this is the high-level business logic and algorithms for OHIP
 //  * use cases are defined here
 
 const EBSConnector = require('./ebs');
 const {
-
+    responseCodes,
     resourceTypes: {
         BATCH_EDIT,
         CLAIMS_MAIL_FILE_REJECT_MESSAGE,
         ERROR_REPORTS,
         REMITTANCE_ADVICE
+    },
+    services: {
+        EDT_UPLOAD,
+        EDT_SUBMIT,
+        EDT_LIST,
+        EDT_DOWNLOAD,
+        EDT_INFO,
+        EDT_UPDATE,
+        EDT_DELETE,
+        EDT_GET_TYPE_LIST,
     },
 } = require('./constants');
 
@@ -32,14 +44,6 @@ const Parser = require('./parser');
 const validateClaimsData = require('../../server/data/claim/claim-workbench');
 const _ = require('lodash');
 
-
-const getRandomResponseCode = (codes) => {
-    return codes[Math.floor(Math.random()*codes.length)];
-};
-
-const getRandomValidHealthNumberResponseCode = () => {
-    return getRandomResponseCode([50, 51, 52, 53, 54, 55]);
-};
 
 /**
  * const getClaimSubmissionFilename - description
@@ -73,12 +77,57 @@ module.exports = function(billingApi) {
     // ************************** PRIVATE **************************************
     //
 
-    let ohipConfig = null;
-    const getConfig = async () => {
-        if (!ohipConfig) {
-            ohipConfig = await billingApi.getOHIPConfiguration();
+    const isResourceResult = (service) => {
+        return [EDT_UPLOAD, EDT_UPDATE, EDT_DELETE, EDT_SUBMIT].includes(service);
+    };
+
+    const isDetailResult = (service) => {
+        return [EDT_INFO, EDT_LIST].includes(service);
+    };
+
+    const isDownloadResult = (service) => {
+        return [EDT_DOWNLOAD].includes(service);
+    };
+
+    const isTypeListResult = (service) => {
+        return [EDT_GET_TYPE_LIST].includes(service);
+    }
+
+    const getDataPlucker = (service) => {
+
+        if (isDetailResult(service)|| isDownloadResult(service) || isTypeListResult(service)) {
+            return (result) => {
+                return result.data;
+            }
         }
-        return ohipConfig;
+        else if (isResourceResult(service)) {
+            return (result) => {
+                return result.response;
+            }
+        }
+        else {
+            return null;
+        }
+    }
+
+    const separateResults = (ebsResponse, service, responseCode) => {
+
+        const dataPlucker = getDataPlucker(service);
+
+        return reduce(ebsResponse.results, (results, result) => {
+            const pluckedData = dataPlucker(result);
+            if (pluckedData) {
+                pluckedData.forEach((data) => {
+                    if (data.code === responseCode) {
+                        results[responseCode] = (results[responseCode] || []).concat(data);
+                    }
+                    else {
+                        results['other'] = (results['other'] || []).concat(data);
+                    }
+                });
+            }
+            return results;
+        }, {});
     };
 
     /**
@@ -101,9 +150,9 @@ module.exports = function(billingApi) {
      */
     const download = async (args, callback) => {
 
-        const ebs = new EBSConnector(await getConfig());
+        const ebs = new EBSConnector(await billingApi.getOHIPConfiguration());
 
-        await ebs.list(args, async (listErr, listResponse) => {
+        ebs.list(args, async (listErr, listResponse) => {
 
             if (listErr) {
                 await billingApi.storeFile({
@@ -121,53 +170,85 @@ module.exports = function(billingApi) {
                 });
             }
 
-            const resourceIDs = listResponse.data.map((detailResponse) => {
-                return detailResponse.resourceID;
-            });
+            const separatedListResults = separateResults(listResponse, EDT_LIST, responseCodes.SUCCESS);
+            const successfulListResults =  separatedListResults[responseCodes.SUCCESS];;
 
-            await ebs.download({resourceIDs}, async (downloadErr, downloadResponse) => {
+            if (successfulListResults) {
 
-                if (downloadErr) {
-                    await billingApi.storeFile({
-                        filename:'downloadResponse-error.txt',
-                        data: JSON.stringify(downloadResponse),
-                        isTransient: true,
-                    });
-                    return callback(downloadErr, null);
-                }
-
-                downloadResponse.results.forEach((result) => {
-
-                    result.data.forEach((download) => {
-                        billingApi.storeFile({
-                            filename: download.description,
-                            data: download.content,
-                        });
-                    });
+                const resourceIDs = successfulListResults.map((detailResponse) => {
+                    return detailResponse.resourceID;
                 });
 
-                const ediFiles = await downloadResponse.results.reduce(async (ediFilesResult, result) => {
-                    const files = result.data.map(async (d) => {
-                        const data = d.content;
-                        const filename = d.description;
-                        return {
+                // TODO something with separatedListResults['other']
+
+                ebs.download({resourceIDs}, async (downloadErr, downloadResponse) => {
+
+                    if (downloadErr) {
+                        await billingApi.storeFile({
+                            filename:'downloadResponse-error.txt',
+                            data: JSON.stringify(downloadResponse),
+                            isTransient: true,
+                        });
+                        return callback(downloadErr, null);
+                    }
+
+                    const separatedDownloadResults = separateResults(downloadResponse, EDT_DOWNLOAD, responseCodes.SUCCESS);
+
+                    const ediFiles = await separatedDownloadResults[responseCodes.SUCCESS].reduce(async (ediFilesResult, result) => {
+
+                        const data = result.content;
+                        const filename = result.description;
+
+                        const files = await {
                             data,
                             filename,
-                            ...await billingApi.storeFile({
+                            ...(await billingApi.storeFile({
                                 data,
                                 filename,
-                            }),
+                            })),
                         };
-                    });
 
-                    return ediFilesResult.concat(await files);
-                }, []);
+                        return (await ediFilesResult).concat(await files);
+                    }, []);
+                    callback(null, (await ediFiles));
+                });
+            }
+            else {
+                callback(null, []);
+            }
+        });
+    };
 
-                callback(null, ediFiles);
+    const downloadAckFile = (params, callback) => {
+
+        const {
+            resourceType,
+            applicator,
+        } = params;
+
+        download({resourceType}, async (downloadErr, downloadResponse) => {
+
+            (await downloadResponse).forEach(async (download) => {
+
+                const {
+                    filename,
+                    data,
+                } = (await download);
+
+                // always an array
+                const parsedResponseFile = new Parser(filename).parse(data);
+
+                applicator({
+                    responseFileId: download.edi_file_id,
+                    parsedResponseFile,
+                });
             });
+
+            return callback(null, downloadResponse);
 
         });
     };
+
 
     /**
      * const createEncoderContext - description
@@ -186,7 +267,7 @@ module.exports = function(billingApi) {
                 batchSequenceNumber: 5, // matches OHIP Batch Edit sample
             },
 
-        }[(await getConfig()).mode];
+        }[(await billingApi.getOHIPConfiguration()).mode];
     };
 
 
@@ -252,7 +333,7 @@ module.exports = function(billingApi) {
             //
             // in: [{data:String, filename:String, batches:[batchSequenceNumber, claimIds:[Number]]}]
             // out [{data:String, filename:String, edi_file_id, file_store_id, absolutePath, batches: [batchSequenceNumber, claimIds:[Number]]}]
-            const storedFiles = reduce(allFiles, async (storedResult, file) => {
+            const storedFiles = await reduce(allFiles, async (storedResult, file) => {
                 const storedFile = {
                     ...await billingApi.storeFile({
                         createdDate: encoderContext.batchDate,
@@ -281,71 +362,92 @@ module.exports = function(billingApi) {
                 return result;
             }, []);
 
-            (await storedFiles).forEach((storedFile) => {
-
-                billingApi.updateFileStatus({edi_file_id:storedFile.edi_file_id, status: 'success'});
-
-                storedFile.batches.forEach(async (batch) => {
-                        await billingApi.updateClaimStatus({
-                        claimIds: batch.claimIds,
-                        claimStatusCode: 'PACK',    // TODO use a constant
-                    });
-                });
-            });
 
             // // 6 - upload file to OHIP
             const uploads = uploadServiceParams.slice(0, 1);    // TODO enable multi-file uploads in EBS module
 
-            const ebs = new EBSConnector(await getConfig());
+            const ebs = new EBSConnector(await billingApi.getOHIPConfiguration());
             ebs.upload({uploads}, async (uploadErr, uploadResponse) => {
 
-                billingApi.auditTransaction(uploadResponse.auditInfo);
+
+                const {
+                    faults,
+                    results,
+                    auditInfo,
+                } = uploadResponse;
+
+                billingApi.auditTransaction(auditInfo);
 
                 if (uploadErr) {
-                    billingApi.updateFileStatus({edi_file_id, status: 'failure'});
-                    return callback(uploadErr, uploadResponse);
+                    // billingApi.updateFileStatus({edi_file_id, status: 'failure'});
+                    return callback(uploadErr, null);
                 }
 
-                const uploadResultsByStatusCode = groupBy(uploadResponse.results, 'code');
+                // (await storedFiles).forEach((storedFile) => {
+                //     billingApi.updateFileStatus({edi_file_id:storedFile.edi_file_id, status: 'in_progress'});
+                // });
 
-                // mark files that were successfully uploaded to "in_progress" status
+                if (faults.length) {
+                    // TODO note various CT scenarios
+                    return callback(null, uploadResponse);
+                }
+
+                const separatedUploadResults = separateResults(uploadResponse, EDT_UPLOAD, responseCodes.SUCCESS);
+                const successfulUploadResults = (separatedUploadResults)[responseCodes.SUCCESS];
+
+                // // mark files that were successfully uploaded to "in_progress" status
+                if (!successfulUploadResults) {
+                    return callback(null, separatedUploadResults);
+                }
+
                 billingApi.updateFileStatus({
                     status: 'in_progress',
-                    files: await uploadResultsByStatusCode['IEDTS0001'].map(async (uploadResult) => {
-                        return find((await storedFiles), (storedFile) => {
+                    files: successfulUploadResults.map((uploadResult) => {
+                        return find((storedFiles), (storedFile) => {
                             return uploadResult.description === storedFile.filename;
                         });
                     }),
                 });
 
-                const resourceIDs = uploadResultsByStatusCode['IEDTS0001'].map((uploadResult) => {
+                // TODO set file status for failed uploads (but not *all* failed uploads)
+                // separatedUploadResults['other'] is an array of non-success results
+
+                const resourceIDs = separatedUploadResults[responseCodes.SUCCESS].map((uploadResult) => {
                     return uploadResult.resourceID;
                 });
 
-                // 7 - submit file to OHIP
+                // // 7 - submit file to OHIP
                 return ebs.submit({resourceIDs}, (submitErr, submitResponse) => {
 
+                    const separatedSubmitResults = separateResults(submitResponse, EDT_SUBMIT, responseCodes.SUCCESS);
+                    const successfulSubmitResults = separatedSubmitResults[responseCodes.SUCCESS];
                     if (submitErr) {
-                        //      a. failure -> update file status ('error'), delete file from ohip
-                        billingApi.updateFileStatus({
-                            status: 'failed',
-                            files: uploadResultsByStatusCode['IEDTS0001'].map(async (uploadResult) => {
-                                return find((await storedFiles), (storedFile) => {
-                                    return uploadResult.description === storedFile.filename;
-                                });
-                            }),
-                        });
                         return callback(submitErr, submitResponse);
                     }
 
-                    // mark files that were successfully uploaded to "in_progress" status
+                    if (!successfulSubmitResults) {
+                        return callback(null, separatedSubmitResults);
+                    }
+
+                    // mark files that were successfully submitted to "success" status
                     billingApi.updateFileStatus({
                         status: 'success',
-                        files: uploadResultsByStatusCode['IEDTS0001'].map(async (uploadResult) => {
-                            return find((await storedFiles), (storedFile) => {
-                                return uploadResult.description === storedFile.filename;
+                        files: successfulSubmitResults.map((submitResult) => {
+                            return find((storedFiles), (storedFile) => {
+                                return submitResult.description === storedFile.filename;
                             });
                         }),
+                    });
+
+                    storedFiles.forEach((storedFile) => {
+                        storedFile.batches.forEach((batch) => {
+
+                            billingApi.updateClaimStatus({
+                                claimIds: batch.claimIds,
+                                claimStatusCode: 'PACK',    // TODO use a constant
+                            });
+
+                        })
                     });
 
                     return callback(null, submitResponse);
@@ -354,7 +456,20 @@ module.exports = function(billingApi) {
         },
 
         fileManagement: async (args, callback) => {
-            return callback(null, await billingApi.getFileManagementData(args));
+            const fileData = await billingApi.getFileManagementData(args);
+
+            for (let i = 0; i < fileData.rows.length; i++) {
+                if (fileData.rows[i].file_type === 'can_ohip_p') {
+                    const loadFileData = await billingApi.loadFile({edi_files_id: fileData.rows[i].id});
+                    const parsedResponseFile = new Parser(loadFileData.uploaded_file_name).parse(loadFileData.data);
+                    fileData.rows[i].totalAmountPayable = parsedResponseFile.totalAmountPayable;
+                    fileData.rows[i].accountingTransactions = parsedResponseFile.accountingTransactions;
+                } else {
+                    fileData.rows[i].totalAmountPayable = null;
+                }
+            }
+
+            return callback(null, fileData);
         },
 
         /**
@@ -370,44 +485,31 @@ module.exports = function(billingApi) {
             });
         },
 
-
-
-
         // TODO: EXA-12016
         downloadAndProcessResponseFiles: async (args, callback) => {
 
-            // TODO: "zero results" yields an error at the encryption level
-
-            // download({resourceType: CLAIMS_MAIL_FILE_REJECT_MESSAGE}, (downloadErr, downloadResponse) => {
-            //     downloadResponse.forEach(async (download) => {
-            //         await billingApi.applyRejectMessage(download);
-            //     });
-            // });
-
-            download({resourceType:BATCH_EDIT}, (downloadErr, downloadResponse) => {
-                downloadResponse.forEach(async (download) => {
-
-                    const {
-                        filename,
-                        data,
-                    } = (await download);
-
-                    const decodedBatchEdit = new Parser(filename).parse(data);
-
-                    await billingApi.applyBatchEditReport({
-                        responseFileId: download.edi_file_id,
-                        ...decodedBatchEdit[0],
-                    });
-
-                    return callback(null, 'batch edit reports downloaded');
-                });
+            downloadAckFile({
+                resourceType: CLAIMS_MAIL_FILE_REJECT_MESSAGE,
+                applicator: billingApi.applyRejectMessage
+            }, (err, results) => {
+                // TODO logging etc
             });
 
-            download({resourceType:ERROR_REPORTS}, (downloadErr, downloadResponse) => {
-                downloadResponse.forEach(async (download) => {
-                    await billingApi.applyErrorReport(download);
-                });
+            downloadAckFile({
+                resourceType: BATCH_EDIT,
+                applicator: billingApi.applyBatchEditReport
+            }, (err, results) => {
+                // TODO logging etc
             });
+
+            downloadAckFile({
+                resourceType: ERROR_REPORTS,
+                applicator: billingApi.applyErrorReport
+            }, (err, results) => {
+                // TODO logging etc
+            });
+
+            callback(null, {});
         },
 
 
@@ -421,7 +523,7 @@ module.exports = function(billingApi) {
         // genericGovernanceReportsRefresh: processResponseFiles,
 
         validateHealthCard: async (args, callback) => {
-            const ebs = new EBSConnector(await getConfig());
+            const ebs = new EBSConnector(await billingApi.getOHIPConfiguration({hcv:true}));
 
             /* This is stub/mock functionality for the Health Card Validation
              * endpoint. Theory of operation: for the sake of the demo, an
@@ -441,11 +543,17 @@ module.exports = function(billingApi) {
 
             const isValid = mod10Check.isValidHealthNumber(healthNumber)
 
+            const hcvRequests = [{
+                healthNumber,
+                versionCode,
+            }];
+
             if (isValid) {
                 result.isValid = true
-                ebs.hcvValidation(args, (hcvErr, hcvResponse) => {
-                    console.log(hcvResponse);
-                    return callback(hcvResponse);
+                ebs.validateHealthCard({hcvRequests}, (hcvErr, hcvResponse) => {
+                    args.eligibility_response = hcvResponse;
+                    billingApi.saveEligibilityLog(args);
+                    return callback(null, hcvResponse);
                 });
             }
             else {
@@ -464,5 +572,89 @@ module.exports = function(billingApi) {
             }
             callback(f_c)
         },
+
+
+        conformanceTesting: async (args, callback) => {
+            const {
+                muid,   // MoH User ID,
+                service,
+                description,
+            } = args;
+
+            const filenamesByFixtureId = {
+                '1': 'Custom',
+                '2': 'Claim_File.txt',
+                '3': 'Stale_Dated_Claim_File.txt',
+                '4': 'OBEC FILE.txt',
+                '5': 'HCAU73.000',
+                '6':'HCAU73.000-malformed_header',
+                '7': 'HCAU73.000-invalid_length',
+                '8': 'Stale_Dated_Claim_File.txt-malformed_header',
+                '9': 'Stale_Dated_Claim_File.txt-invalid_length',
+                '10': 'HCAU73.000-missing_csn',
+                '11': 'HCAU73.000-header1_count',
+                '12': 'HCAU73.000-item_count',
+                '13': 'OBECFILE.blob-invalid_health_number_length',
+                '14': 'OBECFILE.blob-non_numeric_health_number',
+                '15': 'HCAU73.000-header2_count',
+                '16': 'OBECFILE.blob-invalid_transaction_code',
+            };
+
+            if (service === 'upload') {
+                const filestore =  await billingApi.getFileStore({filename: ''});
+                const filePath = filestore.is_default ? 'OHIP' : '';
+
+                const uploads = args.uploads.map((upload) => {
+                    const filename = filenamesByFixtureId[upload.fixtureID];
+                    const fullFixtureFilepath = path.join(filestore.root_directory, filePath, (filename === 'Custom') ? upload.description : filename );
+                    return {
+                        resourceType: upload.resourceType,
+                        filename: fullFixtureFilepath,
+                        description: upload.description || path.basename(filename),
+                    };
+                });
+                args.uploads = uploads;
+            }
+            else if (service === 'update') {
+                const filestore =  await billingApi.getFileStore({filename: ''});
+                const filePath = filestore.is_default ? 'OHIP' : '';
+
+                const updates = args.updates.map((update) => {
+                    const filename = path.join(filestore.root_directory, filePath, filenamesByFixtureId[update.fixtureID]);
+                    return {
+                        filename,
+                        resourceID: update.resourceID,
+                    };
+                });
+                args.updates = updates;
+            }
+
+            args.unsafe = true;
+
+            // we may add more functionality to EBS module one day,
+            // no need to open ourselves up to vulnerabilities
+            const validServices = ['upload', 'update', 'delete', 'submit', 'list', 'info', 'download', 'getTypeList', 'validateHealthCard'];
+            if (!validServices.includes(service)) {
+                // do error stuff
+                return callback(null, {
+                    problems: [
+                        {
+                            code: 'EXACT0001',  // 'EXA Conformance Testing 1' but 'exact' is cool ;)
+                            msg: 'invalid conformance testing service',
+                        }
+                    ]
+                });
+            }
+
+            const ebs = new EBSConnector(await billingApi.getOHIPConfiguration({muid}));
+            ebs[service](args, (ebsErr, ebsResponse) => {
+                ebsResponse.auditInfo.forEach((audit) => {
+                    logger.info(audit);
+                });
+                return callback(ebsErr, ebsResponse);
+            });
+        },
+
+
     };
 };

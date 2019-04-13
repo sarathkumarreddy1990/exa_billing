@@ -291,7 +291,7 @@ module.exports = {
 															pay_to_state as "state",
 															pay_to_zip_code as "zipCode",
 															federal_tax_id as "federalTaxID",
-															phone_number as "phoneNo",
+															pay_to_phone_number as "phoneNo",
 															contact_person_name as "contactName"
 														FROM   billing.providers as billing_providers
 														WHERE  billing_providers.id=billing_provider_id)AS billingProvider
@@ -416,7 +416,8 @@ module.exports = {
 										)AS patient)
 							,( SELECT Json_agg(Row_to_json(claim)) "claim"
 							FROM   (
-									SELECT claims.id as "claimNumber",
+                                SELECT claims.id as "claimNumber",
+                                order_details.order_id as "orderId",
 										frequency as "claimFrequencyCode",
 										bgcp.charges_bill_fee_total::numeric::text AS "claimTotalCharge",
 										bgcp.payment_insurance_total::numeric::text AS "claimPaymentInsurance",
@@ -646,8 +647,9 @@ module.exports = {
 					pointer2 as "pointer2",
 					pointer3 as "pointer3",
 					pointer4 as "pointer4",
-					group_info->'cliaNumber' as "cliaNumber"
-					,(SELECT Json_agg(Row_to_json(lineAdjudication)) "lineAdjudication"
+					group_info->'cliaNumber' as "cliaNumber",
+					study_details.accession_no as "accessionNumber",
+					(SELECT Json_agg(Row_to_json(lineAdjudication)) "lineAdjudication"
 									FROM
                  (SELECT
                     display_code as "cpt",
@@ -715,6 +717,16 @@ module.exports = {
 					LEFT JOIN modifiers AS modifier2 ON modifier2.id=modifier2_id
 					LEFT JOIN modifiers AS modifier3 ON modifier3.id=modifier3_id
 					LEFT JOIN modifiers AS modifier4 ON modifier4.id=modifier4_id
+					LEFT JOIN LATERAL (
+                                        SELECT
+                                            s.accession_no
+                                        FROM
+                                            public.studies s
+                                        INNER JOIN billing.charges_studies AS cs ON cs.study_id = s.id
+                                        WHERE
+                                            cs.charge_id = charges.id
+                                        ORDER BY s.id
+                                    ) AS study_details ON TRUE
 					WHERE claim_id=claims.id AND NOT charges.is_excluded ORDER BY charges.id ASC)
 					AS serviceLine)
 					) AS claim
@@ -738,12 +750,24 @@ module.exports = {
 											WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
 											WHEN 'tertiary_insurance' THEN tertiary_patient_insurance_id
 											END)
-									INNER JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id
-									LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id
-									LEFT JOIN relationship_status ON  subscriber_relationship_id =relationship_status.id
-									LEFT JOIN public.insurance_provider_payer_types  ON insurance_provider_payer_types.id = insurance_providers.provider_payer_type_id
-                                    LEFT JOIN provider_groups  ON  claims.ordering_facility_id = provider_groups.id
-                                    WHERE claims.id= ANY(${claimIds})
+                                            INNER JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id
+                                            LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id
+                                            LEFT JOIN relationship_status ON  subscriber_relationship_id =relationship_status.id
+                                            LEFT JOIN public.insurance_provider_payer_types  ON insurance_provider_payer_types.id = insurance_providers.provider_payer_type_id
+                                            LEFT JOIN provider_groups  ON  claims.ordering_facility_id = provider_groups.id
+                                            LEFT JOIN LATERAL (
+					                            SELECT
+                                                    s.order_id
+                                                FROM
+                                                    public.studies s
+                                                INNER JOIN billing.charges_studies AS cs ON cs.study_id = s.id
+                                                INNER JOIN billing.charges AS c on c.id = cs.charge_id
+                                                WHERE
+                                                    c.claim_id = claims.id
+                                                ORDER BY s.order_id
+                                                LIMIT 1
+                                                ) AS order_details ON TRUE
+                                                WHERE claims.id= ANY(${claimIds})
                             `;
 
         return await query(sql);

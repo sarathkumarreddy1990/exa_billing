@@ -22,7 +22,7 @@ const era_parser = require('./ohip-era-parser');
 const exaFileTypes = {
     [resourceTypes.CLAIMS]: 'can_ohip_h',
     [resourceTypes.BATCH_EDIT]: 'can_ohip_b',
-    [resourceTypes.ERROR_REPORT]: 'can_ohip_e',
+    [resourceTypes.ERROR_REPORTS]: 'can_ohip_e',
     [resourceTypes.ERROR_REPORT_EXTRACT]: 'can_ohip_f',
     [resourceTypes.CLAIMS_MAIL_FILE_REJECT_MESSAGE]: 'can_ohip_x',
     [resourceTypes.REMITTANCE_ADVICE]: 'can_ohip_p', // would it be easier to remember this as "PAYMENT?"
@@ -49,7 +49,7 @@ const exaFileTypes = {
  *                          the edi_files table
  */
 const getExaFileType = (args) => {
-    let resourceType = args.resourceType
+    let resourceType = args.resourceType;
 
     if (args.filename && !resourceType) {
         resourceType = ohipUtil.getResourceType(args.filename);
@@ -84,7 +84,7 @@ const getFileStore = async (args) => {
     } = args;
 
 
-    const description = ohipUtil.getResourceDescription(filename);
+    const description = filename && ohipUtil.getResourceDescription(filename);
 
     let filestore = null;
 
@@ -110,6 +110,7 @@ const getFileStore = async (args) => {
     if (dbResults && dbResults.length) {
 
         filestore = dbResults[0];
+
         for (let i = 0; i < dbResults.length; i++) {
             // matches the resource description to the name of the filestore
             if (dbResults[i].file_store_name === description) {
@@ -118,6 +119,7 @@ const getFileStore = async (args) => {
             }
         }
     }
+
     return filestore;
 };
 
@@ -147,6 +149,7 @@ const storeFile =  async (args) => {
 
     const exaFileType = getExaFileType(args);
 
+
     // 20120331 - OHIP Conformance Testing Batch Edit sample batch date, seq: 0005
     // accounting number: "CST-PRIM" from Conformance Testing Error Report sample
 
@@ -162,6 +165,7 @@ const storeFile =  async (args) => {
     if (isTransient || !exaFileType) {
         // if we don't care about storing the file or the database
         // will freak out if we try, then our work is done, here
+
         return fileInfo;
     }
 
@@ -194,9 +198,9 @@ const storeFile =  async (args) => {
         RETURNING id
     `;
 
-    const  dbResults = (await query(sql, [])).rows[0];
+    const  dbResults = (await query(sql, [])).rows;
 
-    fileInfo.edi_file_id = dbResults.id;
+    fileInfo.edi_file_id = dbResults[0].id;
 
     return fileInfo;
 };
@@ -218,6 +222,7 @@ const getRelatedFile = async (claim_file_id, related_file_type) => {
         efr.submission_file_id = ${claim_file_id}
 `;
     let result = await query(t_sql.text, t_sql.values)
+
     if (result && result.rows && result.rows.length) {
         let file_d = result.rows[0];
         const t_fullPath = path.join(file_d.full_path, file_d.uploaded_file_name);
@@ -288,16 +293,19 @@ const loadFile = async (args) => {
 
 const updateFileStatus = async (args) => {
     const {
-        edi_file_id,
+        files,
         status,
     } = args;
 
+    const fileIds = files.map((file) => {
+        return file.edi_file_id;
+    });
     const sql = SQL`
         UPDATE billing.edi_files
         SET
             status=${status}
         WHERE
-            id = ${edi_file_id}
+            id = ANY(ARRAY[${fileIds}::int[]])
     `;
     await query(sql.text, sql.values);
 };
@@ -359,6 +367,8 @@ const applyClaimSubmission =  async (args) => {
 
         (await query(sql.text, sql.values)).rows;
     });
+
+    // TODO: update file status to success
 
     // TODO
     // 1 - insert record into edi_file_claims table
@@ -441,7 +451,7 @@ const applyBatchEditReport = async (args) => {
     `;
 
     const dbResults = (await query(sql.text, sql.values)).rows;
-    // console.log('db results: ', dbResults);
+
 
     if (dbResults && dbResults.length) {
 
@@ -488,14 +498,16 @@ const applyErrorReport = async (args) => {
 
     // TODO
     // 1 - set error codes on edi_file_claims
-    //
-    console.log(args);
+
 };
 
 const OHIP_CONFIGURATION_MODE = {
     CONFORMANCE_TESTING: 'Conformance Testing',
     DEMO: 'Demonstration',
+    PRODUCTION: 'Production',
 };
+
+const config = require('../../config');
 
 const OHIPDataAPI = {
 
@@ -518,13 +530,22 @@ const OHIPDataAPI = {
     applyErrorReport,
 
     getOHIPConfiguration: async (args) => {
+
+        const {
+            muid,
+        } = args || {};
+
         return {
-            // TODO: EXA-12674
-            softwareConformanceKey: 'b5dc648e-581a-4886-ac39-c18832d12e06',
-            auditID:124355467675,
-            serviceUserMUID: 614200,
-            username: "confsu+355@gmail.com",
-            password: "Password1!",
+            hcvSoftwareConformanceKey: config.get('hcvSoftwareConformanceKey'),//'65489ecd-0bef-4558-8871-f2e4b71b8e92',
+
+            edtSoftwareConformanceKey: config.get('edtSoftwareConformanceKey'),
+            edtServiceEndpoint: config.get('edtServiceEndpoint'),
+            hcvServiceEndpoint: config.get('hcvServiceEndpoint'),
+
+            ebsCertPath: config.get('ebsCertPath'),
+            serviceUserMUID: (typeof muid !== 'undefined') ? muid : config.get('serviceUserMUID'),
+            username: config.get('ebsUsername'),
+            password: config.get('ebsPassword'),
             mode: OHIP_CONFIGURATION_MODE.DEMO,
         };
     },
@@ -573,18 +594,29 @@ const OHIPDataAPI = {
         const {
             claimIds,
         } = args;
-
+        let file_path = path.join(__dirname, '../../resx/speciality_codes.json');
+        let speciality_codes = fs.readFileSync(file_path, 'utf8');
         const sql = SQL`
+            WITH speciality_codes AS (
+                SELECT * FROM json_each_text(${JSON.parse(speciality_codes)})
+            )
             SELECT
                 bc.id AS claim_id,
                 bc.billing_method,
                 claim_notes AS "claimNotes",
                 npi_no AS "groupNumber",    -- this sucks
                 rend_pr.provider_info -> 'NPI' AS "providerNumber",
-
-                -- rend_pr.specialities AS "specialtyCode",
-                33 AS "specialtyCode",
-
+                (
+                    SELECT json_agg(item)
+                    FROM (
+                        SELECT
+                        key AS speciality_code,
+                        value AS speciality_desc
+                    FROM speciality_codes
+                    WHERE value = ANY(rend_pr.specialities)
+                    ) item
+                ) AS "specialtyCodes",
+                33 AS "specialityCode",
                 (SELECT JSON_agg(Row_to_json(claim_details)) FROM (
                 WITH cte_insurance_details AS (
                 SELECT
@@ -625,7 +657,15 @@ const OHIPDataAPI = {
                 billing.get_charge_icds (bch.id) AS diagnosticCodes
                 FROM billing.charges bch
                 INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
-                WHERE bch.claim_id = bc.id) AS items )
+                LEFT JOIN LATERAL
+                (
+                  SELECT 
+                      SUM(COALESCE(bpa.amount::numeric,0)) AS charge_payment
+                  FROM billing.payment_applications bpa 
+                  WHERE bpa.charge_id = bch.id
+                ) cp ON TRUE
+                WHERE bch.claim_id = bc.id
+                AND ((bch.bill_fee::numeric * bch.units) - (COALESCE(cp.charge_payment,0))) > 0) AS items )
                 SELECT * FROM cte_insurance_details, charge_details) AS claim_details ) AS "claims"
                 FROM billing.claims bc
                 INNER JOIN public.companies pc ON pc.id = bc.company_id
@@ -643,8 +683,10 @@ const OHIPDataAPI = {
     },
 
     handlePayment: async (data, args) => {
-       let processedClaims =  await era_parser.processOHIPEraFile(data, args)
-       return processedClaims;
+
+        let processedClaims =  await era_parser.processOHIPEraFile(data, args);
+
+        return processedClaims;
     },
 
 
@@ -670,7 +712,7 @@ const OHIPDataAPI = {
         whereQuery.push(` ef.file_type != 'EOB' `);
 
         if (id) {
-                whereQuery.push(` ef.id = ${id} `);
+            whereQuery.push(` ef.id = ${id} `);
         }
 
         if (uploaded_file_name) {
@@ -755,9 +797,34 @@ const OHIPDataAPI = {
             .append(sortOrder)
             .append(SQL` LIMIT ${pageSize}`)
             .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
-       return await query(sql);
+
+        return await query(sql);
 
     },
+
+    saveEligibilityLog: async (params) => {
+        const {
+            patient_id,
+            patient_insurance_id,
+            eligibility_response
+        } = params;
+
+        const sql = SQL`
+            INSERT INTO eligibility_log
+                    ( patient_id
+                    , patient_insurance_id
+                    , eligibility_response
+                    , eligibility_dt)
+            VALUES
+                    ( ${patient_id}
+                    , ${patient_insurance_id}
+                    , ${eligibility_response}
+                    , now()
+                    )
+        `;
+
+        return await query(sql);
+    }
 
 };
 

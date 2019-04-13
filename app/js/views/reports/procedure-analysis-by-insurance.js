@@ -13,7 +13,7 @@ function ($, _, Backbone, UI, MainTemplate) {
         expanded: false,
         mainTemplate: _.template(MainTemplate),
         viewModel: {
-            dateFormat: 'L',
+            dateFormat: 'MM/DD/YYYY',
             i18nColumnHeaderCpt: 'cptCode',
             country_alpha_3_code: 'usa',
             facilities: null,

@@ -1132,7 +1132,8 @@ var commonjs = {
         this.closeReportWindow();
 
         //Patient Chart Window  close
-        this.closePatientChartWindow();
+        if (options.header !== "Patient Alerts")
+            this.closePatientChartWindow();
 
         if (options.onHide && typeof options.onHide === 'function') {
             options.onHide();
@@ -1325,6 +1326,10 @@ var commonjs = {
             case '23514':
                 errorMessage = errorMessage.replace(/new row for relation/g, '');
                 commonjs.showError(errorMessage || 'Constraint violation');
+                break;
+
+            case '23156':
+                commonjs.showError(err.message);
                 break;
 
             case '22007':

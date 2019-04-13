@@ -18,7 +18,18 @@ define(['jquery',
     'text!templates/claims/invoice-claim.html',
     'text!templates/claims/edi-warning.html',
     'collections/app/file-management',
-    'text!templates/app/file-management.html'
+    'text!templates/app/file-management.html',
+    'text!templates/app/ebs-list.html',
+    'text!templates/app/ebs-upload.html',
+    'text!templates/app/ebs-update.html',
+    'text!templates/app/ebs-results.html',
+    'text!templates/app/ebs-fixtures.html',
+    'text!templates/app/ebs-resourceTypes.html',
+    'text!templates/app/ebs-hcv-form.html',
+    'text!templates/app/ebs-hcv-request.html',
+
+    'shared/ohip'
+
 ],
     function ($,
               Immutable,
@@ -40,7 +51,17 @@ define(['jquery',
               invoiceClaim,
               ediWarning,
               FileManagementCollection,
-              FileManagementHTML) {
+              FileManagementHTML,
+              EDTListHTML,
+              EBSUploadHTML,
+              EBSUpdateHTML,
+              EBSResultsHTML,
+              EBSFixturesHTML,
+              EBSResourceTypesHTML,
+              EbsHcvFormHTML,
+              EbsHcvRequestHTML,
+              ohip
+          ) {
 
         var paperClaim = new PaperClaim();
         var paperClaimNested = new PaperClaim(true);
@@ -186,7 +207,22 @@ define(['jquery',
                 return this[ prop ];
             }
         };
-        return Backbone.View.extend({
+
+        var edtListResults = Backbone.Collection.extend({
+            url: '/exa_modules/billing/ohip/ct',
+            method: 'POST',
+            type: 'POST',
+
+            parse: function(response, options) {
+                return _.reduce(response.results, function(data, result) {
+                    if (result.data) {
+                        return data.concat(result.data);
+                    }
+                }, []);
+            }
+        });
+
+        var _self = Backbone.View.extend({
             currentIdleCallback: null,
             el: null,
             pager: null,
@@ -221,12 +257,18 @@ define(['jquery',
                 "click #btnValidateExport": "exportExcel",
                 "click #btnClaimsRefresh": "refreshClaims",
                 "click #btnClaimsCompleteRefresh": "completeRefresh",
-                "click #btnFileManagement": "showFileManagement"
+                "click #btnFileManagement": "showFileManagement",
+                "click #btnEdtEbs": "showEDTConformanceTesting",
+                "click #btnHcvEbs": "showHCVConformanceTesting",
+
             },
 
             initialize: function (options) {
                 this.options = options;
                 var self = this;
+
+
+                this.edtListResults = new edtListResults();
 
                 $document.on('studyFilter:delete', function (e, id) {
                     self.removeStudyTab(id);
@@ -273,6 +315,17 @@ define(['jquery',
             render: function (queryString) {
                 var self = this;
                 self.fileManagementTemplate = _.template(FileManagementHTML);
+                self.hcvFormTemplate = _.template(EbsHcvFormHTML);
+                self.hcvRequestTemplate = _.template(EbsHcvRequestHTML);
+
+                self.edtListTemplate = _.template(EDTListHTML);
+                self.ebsUploadTemplate = _.template(EBSUploadHTML);
+                self.ebsUpdateTemplate = _.template(EBSUpdateHTML);
+                self.ebsResultsTemplate = _.template(EBSResultsHTML);
+                self.ebsFixturesTemplate = _.template(EBSFixturesHTML);
+                self.ebsResourceTypesTemplate = _.template(EBSResourceTypesHTML);
+
+
                 self.template = _.template(ClaimHTML);
                 self.indexTemplate = _.template(IndexHTML);
                 self.claimValidation = _.template(claimValidation);
@@ -280,6 +333,7 @@ define(['jquery',
                 self.ediWarning = _.template(ediWarning);
                 self.$el.html(self.indexTemplate({
                     country_alpha_3_code: app.country_alpha_3_code,
+                    showConformanceTesting: true,
                     gadget: '',
                     customStudyStatus: [],
                     customOrderStatus: []
@@ -1551,7 +1605,8 @@ define(['jquery',
 
                 var totalChargeBillFee = pagerObj.get('TotalChargeBillFee') || '$0';
                 var totalClaimBalance = pagerObj.get('TotalClaimBalance') || '$0';
-                if (filter.options.isClaimGrid) {
+                var activeTabId = $("#navbarNavAltMarkup ul li a.active").attr('id');
+                if (filter.options && filter.options.isClaimGrid && activeTabId === 'aClaims') {
                     $('#spnTotalBalance').html(totalClaimBalance);
                     $('#spnTotalBillingFee').html(totalChargeBillFee);
 
@@ -1931,12 +1986,13 @@ define(['jquery',
 
             showFileManagementGrid: function () {
                 var self = this;
+
                 self.fileManagementTable = new customGrid(self.fileManagementFiles.rows, '#tblFileManagement');
                 self.fileManagementTable.render({
                     gridelementid: '#tblFileManagement',
                     custompager: self.fileManagementPager,
                     emptyMessage: i18n.get("messages.status.noRecordFound"),
-                    colNames: ["","File Name","File Type", "Submitted Date","Acknowledgement Received","Payment Received",""],
+                    colNames: ["","File Name","File Type", "Submitted Date","Acknowledgement Received","Payment Received","","Total Amount Payable"],
                     i18nNames: [
                         "",
                         "billing.claims.fileName",
@@ -1944,7 +2000,8 @@ define(['jquery',
                         "billing.claims.submittedDate",
                         "billing.claims.acknowledgementReceived",
                         "billing.claims.paymentReceived",
-                        ""
+                        "",
+                        "billing.claims.totalAmountPayable"
                     ],
                     colModel: [
                         { name: '', index: 'id', key: true, hidden: true, search: false },
@@ -2009,6 +2066,39 @@ define(['jquery',
                             customAction: function (rowID, e) {
                                 self.applyFileManagement(rowID);
                             }
+                        },
+                        { name: 'total_amount_payable',
+                          width: 500,
+                          search: false,
+                          validateMoney : true,
+                          formatter: function (value, model, data) {
+                              if (data.file_type === 'can_ohip_p') {
+                                var getRowColor = function(code) {
+                                    var rowColor = {
+                                        '10': 'table-warning',
+                                        '20': 'table-danger',
+                                        '40': 'table-success',
+                                        '50': 'table-primary'
+                                    };
+                                    return rowColor[code] || '';
+                                };
+
+                                var trColor = '';
+                                var retVal = '<table class="table table-bordered"><tbody><tr><td>';
+                                retVal += commonjs.geti18NString("billing.claims.totalAmountPayable");
+                                retVal +=  '</td><td>' + data.totalAmountPayable + '</td></tr>';
+                                for (var i = 0; i < data.accountingTransactions.length; i++) {
+                                    trColor = getRowColor(data.accountingTransactions[i].transactionCode);
+                                    retVal += '<tr class="' + trColor + '"><td>' + data.accountingTransactions[i].transactionMessage + '}</td>';
+                                    retVal += '<td>' + data.accountingTransactions[i].transactionAmount + '</td></tr>';
+                                }
+                                retVal += '</tbody></table>';
+                                return retVal;
+
+                              } else {
+                                return '';
+                              }
+                            }
                         }
                     ],
                     datastore: self.fileManagementFiles,
@@ -2018,10 +2108,459 @@ define(['jquery',
                 });
 
                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());
+
             },
 
+            initEbsListResults: function(dataset) {
+                if (dataset.length) {
+                    this.edtListResults = dataset;
+                }
+            },
+
+            showHCVConformanceTesting: function (e) {
+                var self = this;
+
+                if (this.edtListResults)
+                self.conformanceTestingPager = new Pager();
+
+                commonjs.showDialog({
+                    header: 'HCV Conformance Testing',
+                    // i18nHeader: 'billing.claims.conformanceTesting',
+                    width: '90%',
+                    height: '80%',
+                    html: self.hcvFormTemplate({
+                        // ddlResourceType: self.ebsResourceTypesTemplate({
+                        //     domId: 'ohipResourceType'
+                        // })
+                    })
+                });
+
+                $('#btnAddHCVRequest').off('click').on('click', function() {
+                    $('#divHCVRequests').append(self.hcvRequestTemplate());
+                });
+                $('#btnHCVSubmit').off('click').on('click', function() {
+                    var hcvRequests = _.map($('.ebs-hcv-request'), function(upload) {
+                        return {
+                            healthNumber: $(upload).find('.ohip-health-number').val(),
+                            versionCode: $(upload).find('.ohip-version-code').val(),
+                            feeServiceCode: $(upload).find('.ohip-fee-service-code').val()
+                        };
+                    });
+
+
+                    $.ajax({
+                        url: '/exa_modules/billing/ohip/ct',
+                        type: 'POST',
+                        data: {
+                            service: 'validateHealthCard',
+                            muid: $("#ddlOHIPUserID").val(),
+                            hcvRequests: hcvRequests
+                        }
+                    }).then(function(response) {
+                        self.renderEBSNestedDialog('Results', self.ebsResultsTemplate({
+                            auditInfo: response.auditInfo,
+                            faults: response.faults,
+                            hcvResults: response.results,
+                        }));
+                    }).catch(function(err) {
+                        commonjs.showError(err);
+                    })
+                });
+                $('#btnHCVReset').off('click').on('click', function() {
+                    $('#divHCVRequests').empty();
+                });
+
+            },
+
+            showEDTConformanceTesting: function (e) {
+                var self = this;
+
+                if (this.edtListResults)
+                self.conformanceTestingPager = new Pager();
+
+                commonjs.showDialog({
+                    header: 'EDT Conformance Testing',
+                    // i18nHeader: 'billing.claims.conformanceTesting',
+                    width: '90%',
+                    height: '80%',
+                    html: self.edtListTemplate({
+                        ddlResourceType: self.ebsResourceTypesTemplate({
+                            domId: 'ohipResourceType'
+                        })
+                    })
+                });
+
+                $('#resourceInfoBtn').off('click').on('click', function() {
+                    self.infoResource();
+                });
+                $('#resourceUploadBtn').off('click').on('click', function() {
+                    self.uploadResource();
+                });
+                $('#resourceUpdateBtn').off('click').on('click', function() {
+                    self.updateResource();
+                });
+                $('#resourceDeleteBtn').off('click').on('click', function() {
+                    self.deleteResource();
+                });
+                $('#resourceSubmitBtn').off('click').on('click', function() {
+                    self.submitResource();
+                });
+                $('#resourceDownloadBtn').off('click').on('click', function() {
+                    self.downloadResource();
+                });
+
+                $('#resourceListBtn').off('click').on('click', function() {
+                    self.getResourceList();
+                });
+                $('#resourceGetTypeListBtn').off('click').on('click', function() {
+                    self.getTypeList();
+                });
+
+                setTimeout(function() {
+
+                    // render important stuff
+                    self.showEBSGrid();
+                }, 150);
+            },
+
+
+            getCheckedEBSResourceIDs : function() {
+                var resourceIDs = [];
+                _.forEach($('.ohip_resource_chk:checked'), function(checkedResource) {
+                    var rowId = checkedResource.parentNode.parentNode.id;
+                    var resourceID = $("#tblConformanceTesting").jqGrid('getCell', rowId, 'resourceID');
+                    resourceIDs.push(resourceID);
+                });
+                return resourceIDs;
+            },
+
+            updateEBSList: function(resources) {
+
+                var $tbl = $("#tblConformanceTesting");
+                var allDataIDs = $tbl.jqGrid('getDataIDs');
+
+                var resourcesByID = _.groupBy(resources, 'resourceID');
+
+                _.forEach(allDataIDs, function(dataID) {
+
+                    var rowData = $tbl.jqGrid('getRowData', dataID);
+                    var resource = resourcesByID[rowData.resourceID] && resourcesByID[rowData.resourceID][0];
+                    if (resource) {
+
+                        _.forEach(Object.keys(resource), function(key) {
+                            $tbl.jqGrid('setCell', dataID, key, resource[key]);
+                        });
+                    }
+                });
+
+            },
+
+
+
+            // for submit, info, download, delete
+            sendResourceIDsRequest: function(service) {
+                var resourceIDs = this.getCheckedEBSResourceIDs();
+                if (!resourceIDs.length) {
+                    resourceIDs = [$('#invalidResourceID').val()];
+                }
+                return $.ajax({
+                    url: '/exa_modules/billing/ohip/ct',
+                    type: 'POST',
+                    data: {
+                        service: service,
+                        muid: $("#ohipMUID").val(),
+                        resourceIDs: resourceIDs,
+                    }
+                });
+            },
+
+
+
+
+            renderEBSNestedDialog: function(header, html) {
+                commonjs.showNestedDialog({
+                    header: header,
+                    // i18nHeader: 'billing.claims.conformanceTesting',
+                    width: '70%',
+                    height: '65%',
+                    html: html
+                });
+            },
+
+
+            handleResourceResult: function(ebsResponse) {
+                var allResults = [];
+                var successResults = _.reduce(ebsResponse.results, function(results, result) {
+                    allResults = allResults.concat(result.response);
+                    return results.concat(_.filter(result.response, function(response) {
+                        return response.code === ohip.responseCodes.SUCCESS;
+                    }));
+                }, []);
+
+                this.updateEBSList(successResults);
+
+                this.renderEBSNestedDialog('Results', this.ebsResultsTemplate({
+                    auditInfo: ebsResponse.auditInfo,
+                    faults: ebsResponse.faults,
+                    responseResults: allResults
+                }));
+
+            },
+
+
+
+            uploadResource: function() {
+                var self = this;
+                this.renderEBSNestedDialog('Upload', this.ebsUploadTemplate({
+                    ddlFixtures: self.ebsFixturesTemplate({}),
+                    ddlResourceTypes: self.ebsResourceTypesTemplate({})
+                }));
+
+
+                $('#btnEBSAddFile').click(function() {
+                    $('#tblEBSUpload').append('<tr class="ebs-upload"><td>' + self.ebsFixturesTemplate({}) + '</td><td>' + self.ebsResourceTypesTemplate({}) + '</td><td><input type="text" class="ebs-description"></td></tr>');
+                });
+
+                $('#btnEBSUpload').click(function() {
+
+                    return $.ajax({
+                        url: '/exa_modules/billing/ohip/ct',
+                        type: 'POST',
+                        data: {
+                            service: 'upload',
+                            muid: $("#ohipMUID").val(),
+                            uploads: _.map($('.ebs-upload'), function(upload) {
+                                return {
+                                    fixtureID: $(upload).find('.ebs-fixture').val(),
+                                    resourceType: $(upload).find('.ebs-resource-type').val(),
+                                    description: $(upload).find('.ebs-description').val()
+                                };
+                            })
+                        }
+                    }).then(function(response) {
+                        self.handleResourceResult(response);
+                    }).catch(function(err) {
+                        commonjs.showError(err);
+                    });
+                });
+            },
+
+            updateResource: function() {
+                var self = this;
+
+                this.renderEBSNestedDialog('Update', this.ebsUpdateTemplate({
+                    resourceIDs: self.getCheckedEBSResourceIDs(),
+                    ddlFixtures: self.ebsFixturesTemplate({})
+                }));
+
+                $('#btnEBSUpdate').click(function() {
+                    return $.ajax({
+                        url: '/exa_modules/billing/ohip/ct',
+                        type: 'POST',
+                        data: {
+                            service: 'update',
+                            muid: $("#ohipMUID").val(),
+                            updates: _.map($('.ebs-update'), function(upload) {
+                                return {
+                                    fixtureID: $(upload).find('.ebs-fixture').val(),
+                                    resourceID: $(upload).find('.ebs-resource').val()
+                                };
+                            })
+                        }
+                    }).then(function(response) {
+                        self.handleResourceResult(response);
+                    }).catch(function(err) {
+                        commonjs.showError(err);
+                    });
+                });
+            },
+
+            deleteResource: function() {
+                var self = this;
+                this.sendResourceIDsRequest(ohip.services.EDT_DELETE).then(function(response) {
+                    self.handleResourceResult(response);
+                }).catch(function(err) {
+                    commonjs.showError(err);
+                });
+            },
+
+            submitResource: function() {
+                var self = this;
+                this.sendResourceIDsRequest(ohip.services.EDT_SUBMIT).then(function(response) {
+                    self.handleResourceResult(response);
+                }).catch(function(err) {
+                    commonjs.showError(err);
+                });
+            },
+
+            downloadResource: function() {
+                var self = this;
+                this.sendResourceIDsRequest(ohip.services.EDT_DOWNLOAD).then(function(response) {
+
+                    self.renderEBSNestedDialog('Results', self.ebsResultsTemplate({
+                        auditInfo: response.auditInfo,
+                        faults: response.faults,
+                        downloadData: _.reduce(response.results, function(allData, result) {
+                            return allData.concat(result.data);
+                        }, [])
+                    }));
+                }).catch(function(err) {
+                    commonjs.showError(err);
+                });
+            },
+
+            infoResource: function() {
+                var self = this;
+                this.sendResourceIDsRequest(ohip.services.EDT_INFO).then(function(response) {
+                    self.renderEBSNestedDialog('Results', self.ebsResultsTemplate({
+                        auditInfo: response.auditInfo,
+                        faults: response.faults,
+                        detailData: _.reduce(response.results, function(allData, result) {
+                            return allData.concat(result.data);
+                        }, [])
+                    }));
+                }).catch(function(err) {
+                    commonjs.showError(err);
+                });
+            },
+
+            getTypeList: function() {
+                var self = this;
+                $.ajax({
+                    url: '/exa_modules/billing/ohip/ct',
+                    type: 'POST',
+                    data: {
+                        muid: $("#ohipMUID").val(),
+                        service: ohip.services.EDT_GET_TYPE_LIST
+                    }
+                }).then(function(response) {
+                    self.renderEBSNestedDialog('Type List', self.ebsResultsTemplate({
+                        auditInfo: response.auditInfo,
+                        faults: response.faults,
+                        typeListData: _.reduce(response.results, function(allData, result) {
+                            return allData.concat(result.data);
+                        }, [])
+                    }));
+                }).catch(function(err) {
+                    commonjs.showError(err);
+                });
+            },
+
+            getResourceList: function() {
+
+                var self = this;
+
+                var listParams = {
+                    service: 'list',
+                    muid: $("#ohipMUID").val(),
+                    status: $("#ohipStatus").val(),
+                    resourceType: $("#ohipResourceType").val(),
+                    pageNo: $('#ohipPageNo').val()
+                };
+
+
+
+                if (!listParams.status) {
+                    delete listParams.status;
+                }
+
+                if (!listParams.resourceType) {
+                    delete listParams.resourceType;
+                }
+
+                // TODO: care about page number
+                this.edtListResults.fetch({
+                    data: listParams,
+                    type: 'POST',
+                    success: function(models, response, options) {
+                        if (response.error) {
+                            commonjs.showError(err);
+                        }
+                        // $("#tr-no-records").remove();
+                        self.renderEBSNestedDialog('Results', self.ebsResultsTemplate({
+                            auditInfo: response.auditInfo,
+                            faults: response.faults,
+                            detailData: _.reduce(response.results, function(allData, result) {
+                                return allData.concat(result.data);
+                            }, [])
+                        }));
+                        $("#tblConformanceTesting").find(".ui-widget-content.jqgrow").remove();
+                        $ohipPageNo = $('#ohipPageNo');
+                        $ohipPageNo.empty();
+                        for (var pageNo = 1; pageNo<=response.results[0].resultSize; pageNo++) {
+                            $ohipPageNo.append($('<option />', {
+                                value: pageNo,
+                                text: pageNo
+                            }));
+                        }
+                    },
+                    error: function(err) {
+                        commonjs.showError(err);
+                    }
+                });
+            },
+
+
+            showEBSGrid: function () {
+                var self = this;
+                self.conformanceTestingTable = new customGrid(self.edtListResults, '#tblConformanceTesting');
+                self.conformanceTestingTable.render({
+                    gridelementid: '#tblConformanceTesting',
+                    custompager: self.conformanceTestingPager,
+                    emptyMessage: i18n.get("messages.status.noRecordFound"),
+                    colNames: ["", "ID", "Description", "Status", "Code", "Message"],
+
+                    colModel: [
+                        { name: '', index: 'id', key: true, hidden: false, search: false, width: 25,
+                            formatter: function (cellvalue, options, rowObject) {
+                                return '<input type="checkbox" name="chkResource" class="ohip_resource_chk" id="chkResource_' + rowObject.resourceID + '" />'
+                            }
+                        },
+                        {
+                            name: 'resourceID',
+                            search: false,
+                            width: 75
+                        },
+                        {
+                            name: 'description',
+                            search: false,
+                            width: 200
+                        },
+                        {
+                            name: 'status',
+                            search: false,
+                            width: 150
+                        },
+                        {
+                            name: 'code',
+                            search: false,
+                            width: 100
+                        },
+                        {
+                            name: 'msg',
+                            search: false,
+                            width: 250,
+                            // align: 'center',
+                            formatter: function (value, model, data) {
+                                return data.msg || data.message;
+                            }
+                        }
+                    ],
+                    datastore: self.edtListResults,
+                    onbeforegridbind: self.initEbsListResults,
+                    container: $('#modal_div_container'),
+                    sortname: 'status',
+                    sortorder: 'ASC',
+                    customargs: {
+                        service: 'list'
+                    }
+                });
+
+                commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());
+            },
+
+
             applyFileManagement: function (fileId) {
-                console.log(fileId);
                 $.ajax({
                     url: "/exa_modules/billing/ohip/applyRemittanceAdvice",
                     type: "POST",
@@ -2029,7 +2568,8 @@ define(['jquery',
                         edi_files_id: fileId
                     },
                     success: function (data, textStatus, jqXHR) {
-                        console.log(data)
+                        if(data.status)
+                            commonjs.handleXhrError(data, null)
                         commonjs.hideDialog()
                     },
                     error: function (err) {
@@ -2174,4 +2714,6 @@ define(['jquery',
                 }
             }
         });
+
+        return _self;
     });

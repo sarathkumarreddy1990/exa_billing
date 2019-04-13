@@ -137,7 +137,28 @@
                 <% } %>
             </div>
         </div>
-
+        <div id="divFaxReceipientPaperClaim" class="row" style="display: none;">
+            <div class="col-12 form-group form-inline">
+                <div class="col-form-label col-right-label">
+                    <label class="control-label" for="txtFaxReceiverName" i18n="shared.fields.faxReceiverName"></label>
+                </div>
+                <div class="col-form-content">
+                    <input type="text" id="txtFaxReceiverName" class="form-control mr-2" />
+                </div>
+        
+                <div class="col-form-label col-right-label ml-2">
+                    <label class="control-label" for="txtFaxReceiverNumber" i18n="shared.fields.faxReceiverNumber"></label>
+                </div>
+                <div class="col-form-content">
+                    <input type="text" id="txtFaxReceiverNumber" class="form-control maskPhone m-2" />
+                </div>
+        
+                <div class="pull-right">
+                    <input type="button" id="btnClaimFaxSend" class="btn btn-primary" i18n="shared.buttons.sendFax" />
+                    <input type="button" id="btnClaimFaxCancel" class="btn btn-primary" i18n="shared.buttons.cancel" />
+                </div>
+            </div>
+        </div>
         <div class="row">
             <div class="col-md-12"><label style="font-weight: bold" i18n="billing.COB.insurance"></label></div>
         </div>

@@ -1,6 +1,6 @@
 <% if (addressStyle === 'style1') { %>
 <div class="col-md-3 pull-left p-0">
-    <label class="control-label" for="<%= cityDomId %>" i18n="address.cityStateZip.style1"></label>
+    <label class="control-label field-required" for="<%= cityDomId %>" i18n="address.cityStateZip.style1"></label>
 </div>
 <div class="pull-left pl-1 col-md-9 get-city-state-by-zip get-zip-by-city-state">
     <input class="form-control city-input m-1 col-sm-4 pull-left" type="text" id="<%= cityDomId %>">
@@ -29,7 +29,7 @@
 <% } else if (addressStyle === 'style2') { %>
 
 <div class="col-sm-3 pull-left p-0 city-state-zip-label">
-    <label class="control-label" for="<%= cityDomId %>" i18n="address.cityStateZip.style2"></label>
+    <label class="control-label field-required" for="<%= cityDomId %>" i18n="address.cityStateZip.style2"></label>
 </div>
 <div class="pull-left pl-1 col-sm-8 city-state-zip-content">
     <input class="form-control m-1 col-sm-4 pull-left" type="text" id="<%= cityDomId %>">
@@ -43,7 +43,7 @@
         <% }); %>
     </select>
 
-    <input type="text" class="form-control col-sm-3 pull-left m-1 zip-input-can" id="<%= postalCodeDomId %>" name="zip1"
-        placeholder="Zip" maxlength="7" />
+    <input type="text" class="form-control col-sm-3 pull-left m-1 zip-input-can" id="<%= postalCodeDomId %>" name="zip1" 
+        placeholder="Postal Code" i18np="shared.fields.postalCode" maxlength="7" />
 </div>
 <% } %>
