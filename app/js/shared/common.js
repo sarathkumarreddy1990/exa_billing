@@ -570,6 +570,14 @@ var commonjs = {
         return dtpTarget.data("DateTimePicker");
     },
 
+    getDateTemplate: function () {
+        return moment(new Date('December 31, 2017'))
+            .format('L')
+            .replace(/12/, 'MM')
+            .replace(/31/, 'DD')
+            .replace(/2017/, 'YYYY');
+    },
+
     // @param {string|Object} elId - name of unique element id or jQuery object itself
     // @return {Object} instance of BS3 datetimepicker
     bindDateTimePicker: function (elId, dtpOptions) {
@@ -621,11 +629,7 @@ var commonjs = {
         var options = $.extend(true, {}, defaultOptions, dtpOptions);
         // see: https://github.com/Eonasdan/bootstrap-datetimepicker/pull/666
 
-        var dateTemplate = moment(new Date('December 31, 2017'))
-            .format('L')
-            .replace(/12/, 'MM')
-            .replace(/31/, 'DD')
-            .replace(/2017/, 'YYYY');
+        var dateTemplate = commonjs.getDateTemplate();
 
         switch (options.format) {
             case "L":
@@ -2112,11 +2116,7 @@ var commonjs = {
             return moment(date, template).format(finalTemplate);
         }
 
-        var dateTemplate = moment(new Date('December 31, 2017'))
-            .format('L')
-            .replace(/12/, 'MM')
-            .replace(/31/, 'DD')
-            .replace(/2017/, 'YYYY');
+        var dateTemplate = commonjs.getDateTemplate();
 
         return moment(date, dateTemplate).format(finalTemplate);
     },

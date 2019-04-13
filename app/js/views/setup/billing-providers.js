@@ -181,7 +181,11 @@ define(['jquery',
                 var self = this;
                 var qualifierCodes = app.provider_id_code_qualifiers;
                 var states = app.states[0].app_states;
-                $('#divBillingProvidersForm').html(this.billingProvidersFormTemplate({ qualifierCodes: qualifierCodes, states: states }));
+                $('#divBillingProvidersForm').html(this.billingProvidersFormTemplate({
+                    country_alpha_3_code: app.country_alpha_3_code,
+                    qualifierCodes: qualifierCodes,
+                    states: states
+                }));
                 if(app.country_alpha_3_code === 'can'){
                     $('#txtNpi').attr('maxlength', 4);
                 }

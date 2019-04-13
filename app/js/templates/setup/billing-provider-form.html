@@ -39,12 +39,14 @@
                             <input type="text" class="form-control" id="txtNpi" name="npiNo">
                         </div>
                     </div>
+                    <% if (country_alpha_3_code === "usa") { %>
                     <div class="form-group row">
                         <label for="txtTaxonomy" class="col-sm-3 col-form-label field-required" i18n="setup.providers.taxonomyCode"></label>
                         <div class="col-sm-5">
                             <input type="text" minlength="10" maxlength="10" class="form-control text-uppercase" id="txtTaxonomy" name="taxonomy">
                         </div>
                     </div>
+                    <% } %>
                     <div class="form-group row">
                         <label for="chkEnableFTP" class="col-sm-3 col-form-label" i18n="setup.billingProvider.enableftp"></label>
                         <div class="col-sm-5">
