@@ -29,6 +29,7 @@ const {
         EDT_UPDATE,
         EDT_DELETE,
         EDT_GET_TYPE_LIST,
+        HCV_REAL_TIME,
     },
 } = require('./constants');
 
@@ -152,7 +153,7 @@ module.exports = function(billingApi) {
 
         const ebs = new EBSConnector(await billingApi.getOHIPConfiguration());
 
-        ebs.list(args, async (listErr, listResponse) => {
+        ebs[EDT_LIST](args, async (listErr, listResponse) => {
 
             if (listErr) {
                 await billingApi.storeFile({
@@ -181,7 +182,7 @@ module.exports = function(billingApi) {
 
                 // TODO something with separatedListResults['other']
 
-                ebs.download({resourceIDs}, async (downloadErr, downloadResponse) => {
+                ebs[EDT_DOWNLOAD]({resourceIDs}, async (downloadErr, downloadResponse) => {
 
                     if (downloadErr) {
                         await billingApi.storeFile({
@@ -320,6 +321,7 @@ module.exports = function(billingApi) {
 
             let validationData = await validateClaimsData.validateEDIClaimCreation(claimIds, req.session.country_alpha_3_code);
             validationData = validationData && validationData.rows && validationData.rows.length && validationData.rows[0] || [];
+
             let claimStatus = _.uniq(validationData.claim_status);
             // Claim validation
             if (validationData) {
@@ -399,7 +401,7 @@ module.exports = function(billingApi) {
             const uploads = uploadServiceParams.slice(0, 1);    // TODO enable multi-file uploads in EBS module
 
             const ebs = new EBSConnector(await billingApi.getOHIPConfiguration());
-            ebs.upload({uploads}, async (uploadErr, uploadResponse) => {
+            ebs[EDT_UPLOAD]({uploads}, async (uploadErr, uploadResponse) => {
 
 
                 const {
@@ -449,7 +451,7 @@ module.exports = function(billingApi) {
                 });
 
                 // // 7 - submit file to OHIP
-                return ebs.submit({resourceIDs}, (submitErr, submitResponse) => {
+                return ebs[EDT_SUBMIT]({resourceIDs}, (submitErr, submitResponse) => {
 
                     const separatedSubmitResults = separateResults(submitResponse, EDT_SUBMIT, responseCodes.SUCCESS);
                     const successfulSubmitResults = separatedSubmitResults[responseCodes.SUCCESS];
@@ -543,7 +545,7 @@ module.exports = function(billingApi) {
 
             if (isValid) {
                 result.isValid = true
-                ebs.validateHealthCard({hcvRequests}, (hcvErr, hcvResponse) => {
+                ebs[HCV_REAL_TIME]({hcvRequests}, (hcvErr, hcvResponse) => {
                     args.eligibility_response = hcvResponse;
                     billingApi.saveEligibilityLog(args);
                     return callback(null, hcvResponse);
@@ -595,7 +597,7 @@ module.exports = function(billingApi) {
                 '19': 'OBECFILE.blob-invalid_transaction_code',
             };
 
-            if (service === 'upload') {
+            if (service === EDT_UPLOAD) {
                 const filestore =  await billingApi.getFileStore({filename: ''});
                 const filePath = filestore.is_default ? 'OHIP' : '';
 
@@ -610,7 +612,7 @@ module.exports = function(billingApi) {
                 });
                 args.uploads = uploads;
             }
-            else if (service === 'update') {
+            else if (service === EDT_UPDATE) {
                 const filestore =  await billingApi.getFileStore({filename: ''});
                 const filePath = filestore.is_default ? 'OHIP' : '';
 
@@ -628,7 +630,11 @@ module.exports = function(billingApi) {
 
             // we may add more functionality to EBS module one day,
             // no need to open ourselves up to vulnerabilities
-            const validServices = ['upload', 'update', 'delete', 'submit', 'list', 'info', 'download', 'getTypeList', 'validateHealthCard'];
+            const validServices = [
+                EDT_UPLOAD,     EDT_INFO,   EDT_UPDATE,     EDT_DELETE,
+                EDT_SUBMIT,     EDT_LIST,   EDT_DOWNLOAD,   EDT_GET_TYPE_LIST,
+                HCV_REAL_TIME,
+            ];
             if (!validServices.includes(service)) {
                 // do error stuff
                 return callback(null, {
@@ -643,9 +649,6 @@ module.exports = function(billingApi) {
 
             const ebs = new EBSConnector(await billingApi.getOHIPConfiguration({muid}));
             ebs[service](args, (ebsErr, ebsResponse) => {
-                ebsResponse.auditInfo.forEach((audit) => {
-                    logger.info(audit);
-                });
                 return callback(ebsErr, ebsResponse);
             });
         },

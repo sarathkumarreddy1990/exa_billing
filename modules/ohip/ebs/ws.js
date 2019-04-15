@@ -16,10 +16,9 @@ const {
     promisify,
 } = require('util');
 
-const {
-    parseAuditLogDetails,
-} = require('./xml');
+const logger = require('../../../logger');
 
+const xml = require('./xml');
 /*
  This needed to be overriden, too, since the base ws.js couldn't handle multiple
  attachments. The difference here is that instead of using 'file.xpath' to refer
@@ -73,7 +72,7 @@ ws.Mtom.prototype.receive = (ctx, callback) => {
 
     if (!ctx.resp_contentType) {
         // TODO not a big deal ... we could probably silence this
-        console.log("warning: no content type in response");
+        logger.debug("warning: no content type in response");
         callback(ctx);
         return;
     }
@@ -81,7 +80,7 @@ ws.Mtom.prototype.receive = (ctx, callback) => {
     const boundary = utils.parseBoundary(ctx.resp_contentType);
     if (!boundary) {
         // TODO not a big deal ... we could probably silence this
-        console.log("warning: no boundary in response");
+        logger.debug("warning: no boundary in response");
         callback(ctx);
         return;
     }
@@ -91,7 +90,7 @@ ws.Mtom.prototype.receive = (ctx, callback) => {
 
     if (parts.length==0) {
         // TODO not a big deal ... we could probably silence this
-        console.log("warning: no mime parts in response");
+        logger.debug("warning: no mime parts in response");
         callback(ctx);
         return;
     }
@@ -209,7 +208,7 @@ ws.Xenc.prototype.send = function(ctx, callback) {
 
 
         } catch(e) {
-            console.log(`Xenc: ${e}`);
+            logger.warn(`Xenc ${e}`);
         }
 
         ctx.response = doc.toString();
@@ -226,41 +225,62 @@ ws.Audit.prototype.send = function(ctx, callback) {
 
     const requestDoc = new dom().parseFromString(ctx.request);
 
-    ctx.audit = {
+    const auditInfo = {
 
-        requestAuditID: select("//*[local-name(.)='AuditId']/text()", requestDoc)[0].nodeValue,
-
+        requestAuditID: ctx.auditID,
 
         // date / time
         dateTime: new Date(),
 
         // Service User
-        serviceUserMUID: this.config.serviceUserMUID,
+        serviceUserMUID: ctx.serviceUserMUID,
 
         // End User identifier
-        endUser: 'confsu+355@gmail.com',
+        endUser: ctx.username,
+
+        eventDetail: ctx.eventDetail,
     };
 
     this.next.send(ctx, (ctx) => {
 
         // duration
-        ctx.audit.duration = (new Date()).getTime() - ctx.audit.dateTime.getTime();
+        auditInfo.duration = (new Date()).getTime() - auditInfo.dateTime.getTime();
 
         const doc = new dom().parseFromString(ctx.response);
         const auditIDNode = select("//*[local-name(.)='auditID']/text()", doc)[0];
         const auditUIDNode = select("//*[local-name(.)='auditUID']/text()", doc)[0];
         const parseObj = auditIDNode || auditUIDNode;
 
+        auditInfo.responseAuditID = parseObj ? parseObj.nodeValue : '';
 
-        const commonResult = select("//*[local-name(.)='result']", doc);
+        auditInfo.successful = true;   // assume true ...
+        auditInfo.exitInfo = [];
+        auditInfo.errorMessages = [];
 
-        ctx.audit.commonResults = _.uniqBy(commonResult.map((result) => {
-            return {
-                code: select("*[local-name(.)='code']/text()", result)[0].nodeValue,
-                message: select("*[local-name(.)='msg']/text()", result)[0].nodeValue,
-            };
-        }), 'code');
-        ctx.audit.responseAuditID = parseObj ? parseObj.nodeValue : '';
+        const faultNode = select("//*[local-name(.)='Fault']", doc)[0];
+        if (faultNode) {
+            auditInfo.successful = false;   // ... until proven otherwise
+            const fault = xml.parseEBSFault(ctx.response);
+
+            auditInfo.exitInfo.push(`${fault.faultcode}/${fault.code}`);
+            auditInfo.errorMessages.push(`${fault.faultstring}/${fault.message}`);
+        }
+        else {
+            const commonResultNode = select("//*[local-name(.)='result']", doc);
+            auditInfo.exitInfo = _.uniqBy(commonResultNode.map((resultNode) => {
+                return {
+                    code: select("*[local-name(.)='code']/text()", resultNode)[0].nodeValue,
+                    message: select("*[local-name(.)='msg']/text()", resultNode)[0].nodeValue,
+                };
+            }), 'code').reduce((exitInfo, info) => {
+                exitInfo.push(`${info.code}/${info.message}`);
+                return exitInfo;
+            }, []);
+        }
+
+        ctx.auditInfo = auditInfo;
+        logger.info(`EBS audit info`, auditInfo);
+
         callback(ctx);
     });
 };
