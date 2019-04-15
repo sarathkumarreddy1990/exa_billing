@@ -94,7 +94,7 @@
                     <div class="col-md-2"><label i18n="billing.fileInsurance.followUpDate"></label></div>
                     <div id="divFollowUpDate" class="col-md-3 input-group">
                         <!-- <input type="date" id="txtCIFollowUpDate">  -->
-                        <input type="text" id="txtCIFollowUpDate" class="form-control form-control-date" name="followUpDate" style="height: 30px;">
+                        <input type="text" id="txtCIFollowUpDate" class="form-control form-control-date maskDateLocale" name="followUpDate" style="height: 30px;">
                         <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px;height: 30px"> <i class="icon-ic-schedule"></i></span>
                     </div>
                 </div>
@@ -145,14 +145,14 @@
                 <div class="col-form-content">
                     <input type="text" id="txtFaxReceiverName" class="form-control mr-2" />
                 </div>
-        
+
                 <div class="col-form-label col-right-label ml-2">
                     <label class="control-label" for="txtFaxReceiverNumber" i18n="shared.fields.faxReceiverNumber"></label>
                 </div>
                 <div class="col-form-content">
                     <input type="text" id="txtFaxReceiverNumber" class="form-control maskPhone m-2" />
                 </div>
-        
+
                 <div class="pull-right">
                     <input type="button" id="btnClaimFaxSend" class="btn btn-primary" i18n="shared.buttons.sendFax" />
                     <input type="button" id="btnClaimFaxCancel" class="btn btn-primary" i18n="shared.buttons.cancel" />
