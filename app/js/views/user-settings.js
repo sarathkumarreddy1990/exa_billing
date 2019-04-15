@@ -28,7 +28,9 @@ define([
             render: function () {
                 var self = this;
                 userID = app.userID;
-                this.$el.html(template);
+                this.$el.html(template({
+                    country_alpha_3_code: app.country_alpha_3_code
+                }));
                 if (window.location && window.location.hash.split('/')[1] == 'studies') {
                     self.gridFilterName = 'studies';
                     self.default_tab = app.default_study_tab;
