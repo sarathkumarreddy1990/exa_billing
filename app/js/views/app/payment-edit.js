@@ -2320,7 +2320,7 @@ define(['jquery',
                     *  DESC : Check payment & adjustment amount is should be equal with order balance and payer_type === 'patient' for Canadian config.
                     */
                         var orderBalance = $('#lblBalanceNew').text() || '0.00';
-                        var currentBalance = parseFloat(orderBalance.replace(/[-]/g, '').replace(/[(]/g, '-').replace(/[^0-9.-]+/g, "")) || 0;
+                        var currentBalance = parseFloat(orderBalance.replace(/[,()$'"]/g, '')) || 0;
                         if (currentBalance !== 0  && app.country_alpha_3_code === 'can' && self.payer_type === 'patient') {
                             commonjs.showWarning('messages.warning.payments.amountValidation');
                             return false;
