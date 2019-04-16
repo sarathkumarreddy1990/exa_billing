@@ -516,7 +516,7 @@ module.exports = function(billingApi) {
         downloadAndProcessResponseFiles,
 
         validateHealthCard: async (args, callback) => {
-            const ebs = new EBSConnector(await billingApi.getOHIPConfiguration({hcv:true}));
+            const ebs = new EBSConnector(await billingApi.getOHIPConfiguration());
 
             /* This is stub/mock functionality for the Health Card Validation
              * endpoint. Theory of operation: for the sake of the demo, an
@@ -579,17 +579,20 @@ module.exports = function(billingApi) {
                 '3': 'Stale_Dated_Claim_File.txt',
                 '4': 'OBEC FILE.txt',
                 '5': 'HCAU73.000',
-                '6':'HCAU73.000-malformed_header',
-                '7': 'HCAU73.000-invalid_length',
-                '8': 'Stale_Dated_Claim_File.txt-malformed_header',
-                '9': 'Stale_Dated_Claim_File.txt-invalid_length',
-                '10': 'HCAU73.000-missing_csn',
-                '11': 'HCAU73.000-header1_count',
-                '12': 'HCAU73.000-item_count',
-                '13': 'OBECFILE.blob-invalid_health_number_length',
-                '14': 'OBECFILE.blob-non_numeric_health_number',
-                '15': 'HCAU73.000-header2_count',
-                '16': 'OBECFILE.blob-invalid_transaction_code',
+                '6': 'MOH_LARGE_CLAIMS.TXT',
+                '7': 'HCAU73.111',
+                '8': 'OBECA000.dat',
+                '9': 'HCAU73.000-malformed_header',
+                '10': 'HCAU73.000-invalid_length',
+                '11': 'Stale_Dated_Claim_File.txt-malformed_header',
+                '12': 'Stale_Dated_Claim_File.txt-invalid_length',
+                '13': 'HCAU73.000-missing_csn',
+                '14': 'HCAU73.000-header1_count',
+                '15': 'HCAU73.000-item_count',
+                '16': 'OBECFILE.blob-invalid_health_number_length',
+                '17': 'OBECFILE.blob-non_numeric_health_number',
+                '18': 'HCAU73.000-header2_count',
+                '19': 'OBECFILE.blob-invalid_transaction_code',
             };
 
             if (service === 'upload') {
