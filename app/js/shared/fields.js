@@ -261,7 +261,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "custom_name": "SSN",
                         "name": "patient_ssn",
                         "width": 100,
-                        "searchFlag": "%"
+                        "searchFlag": "%",
+                        "hidden": app.country_alpha_3_code === 'can'
                     }
                 },
                 "Place Of Service": {
@@ -274,6 +275,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "name": "place_of_service",
                         "width": 200,
                         "stype": "select",
+                        "hidden": app.country_alpha_3_code === 'can',
                         "searchoptions": {
                             "value": placeOfService,
                             "tempvalue": placeOfService

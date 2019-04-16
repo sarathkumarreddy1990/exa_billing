@@ -993,6 +993,9 @@ define(['jquery',
                 self.cur_patient_name = primaryStudyDetails.patient_name;
                 self.cur_patient_acc_no = primaryStudyDetails.account_no;
                 self.cur_patient_dob = primaryStudyDetails.patient_dob ? moment.utc(primaryStudyDetails.patient_dob).format('L') : null;
+                self.claim_dt_iso = commonjs.checkNotEmpty(primaryStudyDetails.study_date)
+                    ? commonjs.convertToFacilityTimeZone(primaryStudyDetails.facility_id, primaryStudyDetails.study_date).format('YYYY-MM-DD LT z')
+                    : '';
                 self.cur_study_date = (primaryStudyDetails.study_date !='null' && commonjs.checkNotEmpty(primaryStudyDetails.study_date) ? commonjs.convertToFacilityTimeZone(primaryStudyDetails.facility_id, primaryStudyDetails.study_date).format('L LT z') : '');
                 self.pri_accession_no = primaryStudyDetails.accession_no || null;
                 self.cur_study_id = primaryStudyDetails.study_id || null;
@@ -4782,12 +4785,10 @@ define(['jquery',
             bindCityStateZipTemplate:function(data,AddressInfoMap, flag){
 
                 address.loadCityStateZipTemplate('#div' + flag + 'AddressInfo', data, AddressInfoMap);
-                if(app.country_alpha_3_code === 'can'){
-                    // Adjust the style alignment
-                    var $addressDiv = $('#divAddressInfo');
-                    $addressDiv.find('.city-state-zip-label').removeClass('p-0');
-                    $addressDiv.find('.city-state-zip-content').addClass('pl-2');
-                }
+                // Adjust the style alignment
+                var $addressDiv = $('#div' + flag + 'AddressInfo');
+                $addressDiv.find('.city-state-zip-label').removeClass('p-0');
+                $addressDiv.find('.city-state-zip-content').addClass('pl-2').removeClass('pl-1');
             }
 
         });

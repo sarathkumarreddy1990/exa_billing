@@ -28,7 +28,8 @@ define([
                 allBillingProvider: false,
                 allUsers: false,
                 userIds: null,
-                userNames: null
+                userNames: null,
+                countryCode: null
             },
             selectedBillingProList: [],
             selectedFacilityList: [],
@@ -61,7 +62,8 @@ define([
 
             onReportViewClick: function (e, reportArgs) {
                 var btnClicked = e && e.target ? $(e.target) : null;
-                var reportArgsFlag = null
+                var reportArgsFlag = null;
+                var countryFlag = app.country_alpha_3_code;
                 this.getSelectedFacility();
                 this.getBillingProvider();
                 if (btnClicked && btnClicked.prop('tagName') === 'I') {
@@ -76,7 +78,8 @@ define([
                     var urlParams = {
                         studyIds: reportArgs.studyIds,
                         patient_id: reportArgs.patient_id,
-                        payment_id: reportArgs.payment_id
+                        payment_id: reportArgs.payment_id,
+                        countryCode: countryFlag
                     }
                 }
                 else {
@@ -100,7 +103,8 @@ define([
                             filterFlag: "paymentsExportPDFFlag",
                             filterData: reportArgsFilterData,
                             filterColumn: reportArgsFilterColumn,
-                            from: reportArgs.from || ''
+                            from: reportArgs.from || '',
+                            countryCode: countryFlag
                         }
                     }
                     else {
@@ -108,7 +112,8 @@ define([
                             pamentIds: reportArgs.payment_id,
                             paymentStatus: reportArgs.paymentStatus || " ",
                             filterFlag: "paymentsExportPDFFlag",
-                            patient_id: reportArgs.patient_id
+                            patient_id: reportArgs.patient_id,
+                            countryCode: countryFlag
                         }
                     }
                 }
