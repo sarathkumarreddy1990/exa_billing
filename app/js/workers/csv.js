@@ -85,7 +85,12 @@ function generateCsvData(dbResponse, callback) {
 
     var showLabel = true;
     var dbData = typeof dbResponse.data != 'object' ? JSON.parse(dbResponse.data) : dbResponse.data;
+    var countryCode = dbResponse.countryCode || '';
     var columnHeader = dbResponse.columnHeader;
+
+    if (countryCode == 'can') {
+        claimColumns["Payment ID"] = "payment_id";
+    }
 
     switch (dbResponse.reportName) {
         case 'CLAIMS':

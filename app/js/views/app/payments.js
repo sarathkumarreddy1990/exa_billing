@@ -510,7 +510,8 @@ define(['jquery',
                         commonjs.prepareCsvWorker({
                             data: data,
                             reportName: 'PAYMENTS',
-                            fileName: 'Payments'
+                            fileName: 'Payments',
+                            countryCode: app.country_alpha_3_code
                         }, {
                                 afterDownload: function () {
                                     $('#btnGenerateExcel').prop('disabled', false);
