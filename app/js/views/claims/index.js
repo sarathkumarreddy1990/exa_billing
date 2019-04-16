@@ -4785,12 +4785,10 @@ define(['jquery',
             bindCityStateZipTemplate:function(data,AddressInfoMap, flag){
 
                 address.loadCityStateZipTemplate('#div' + flag + 'AddressInfo', data, AddressInfoMap);
-                if(app.country_alpha_3_code === 'can'){
-                    // Adjust the style alignment
-                    var $addressDiv = $('#divAddressInfo');
-                    $addressDiv.find('.city-state-zip-label').removeClass('p-0');
-                    $addressDiv.find('.city-state-zip-content').addClass('pl-2');
-                }
+                // Adjust the style alignment
+                var $addressDiv = $('#div' + flag + 'AddressInfo');
+                $addressDiv.find('.city-state-zip-label').removeClass('p-0');
+                $addressDiv.find('.city-state-zip-content').addClass('pl-2').removeClass('pl-1');
             }
 
         });
