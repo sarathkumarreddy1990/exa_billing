@@ -28,7 +28,8 @@ define([
                 allBillingProvider: false,
                 allUsers: false,
                 userIds: null,
-                userNames: null
+                userNames: null,
+                countryCode: null
             },
             selectedBillingProList: [],
             selectedFacilityList: [],
@@ -61,7 +62,8 @@ define([
 
             onReportViewClick: function (e, reportArgs) {
                 var btnClicked = e && e.target ? $(e.target) : null;
-                var reportArgsFlag = null
+                var reportArgsFlag = null;
+                var countryFlag = app.country_alpha_3_code;
                 this.getSelectedFacility();
                 this.getBillingProvider();
                 if (btnClicked && btnClicked.prop('tagName') === 'I') {
@@ -108,7 +110,8 @@ define([
                             pamentIds: reportArgs.payment_id,
                             paymentStatus: reportArgs.paymentStatus || " ",
                             filterFlag: "paymentsExportPDFFlag",
-                            patient_id: reportArgs.patient_id
+                            patient_id: reportArgs.patient_id,
+                            countryCode: countryFlag
                         }
                     }
                 }
