@@ -228,6 +228,7 @@ define(['jquery',
 
                 var payment_mode = { "": "All", "Cash": "Cash", "Card": "Card", "Check": "Check", "EFT": "EFT", "Adjustment": "Adjustments" };
                 var facilities = commonjs.makeValue(commonjs.getCurrentUsersFacilitiesFromAppSettings(), ":All;", "id", "facility_name");
+                payment_mode.Check = app.country_alpha_3_code === 'can' ? 'Cheque' : payment_mode.Check;
 
                 $('#liPendingPayments').removeClass('active');
                 $('#divPayments,#ulPaymentTab #liPayments').addClass('active');
@@ -442,7 +443,7 @@ define(['jquery',
                         colvalue = 'EFT';
                         break;
                     case "check":
-                        colvalue = 'Check';
+                        colvalue = app.country_alpha_3_code === 'can' ? 'Cheque' : 'Check';
                         break;
                     case "card":
                          colvalue = 'Card';
@@ -512,7 +513,8 @@ define(['jquery',
                         commonjs.prepareCsvWorker({
                             data: data,
                             reportName: 'PAYMENTS',
-                            fileName: 'Payments'
+                            fileName: 'Payments',
+                            countryCode: app.country_alpha_3_code
                         }, {
                                 afterDownload: function () {
                                     $('#btnGenerateExcel').prop('disabled', false);
