@@ -31,7 +31,10 @@ var claimColumns = {
     "Submitted Date": "submitted_dt",
     "Date of Injury": "current_illness_date",
     "Charge Description":"charge_description",
-    "Ins Provider Type": "ins_provider_type"
+    "Ins Provider Type": "ins_provider_type",
+    "Ordering Facility": "ordering_facility_name",
+    "Facility": "facility_name",
+    "First Statement Date": "first_statement_dt"
 };
 
 var paymentsColumns = {
@@ -129,6 +132,10 @@ function generateCsvData(dbResponse, callback) {
 
             if (rowIndex && dateColumns.indexOf(colName) > -1) {
                 csvText = csvText ? moment(csvText).format('L') : '';
+            }
+
+            if (csvText && _.isArray(csvText)) {
+                csvText = csvText.join();
             }
 
             return csvText ? csvText.replace(/"/g, '""') : '';
