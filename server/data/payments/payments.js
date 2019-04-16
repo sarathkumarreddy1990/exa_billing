@@ -44,7 +44,8 @@ module.exports = {
             countFlag,
             default_facility_id,
             notes,
-            account_no
+            account_no,
+            country_code
         } = params;
 
         if (paymentStatus) {
@@ -217,7 +218,10 @@ module.exports = {
                     , alternate_payment_id
                     , payer_type
                     , payments.notes
-                    , mode AS payment_mode
+                    , ( CASE
+                           WHEN ${country_code} = 'can' AND  mode = 'check' THEN 'cheque'
+                           ELSE mode 
+                        END ) AS payment_mode
                     , card_name
                     , card_number
                     , patients.full_name as patient_name

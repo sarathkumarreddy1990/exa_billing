@@ -78,7 +78,8 @@ define([
                     var urlParams = {
                         studyIds: reportArgs.studyIds,
                         patient_id: reportArgs.patient_id,
-                        payment_id: reportArgs.payment_id
+                        payment_id: reportArgs.payment_id,
+                        countryCode: countryFlag
                     }
                 }
                 else {
@@ -102,7 +103,8 @@ define([
                             filterFlag: "paymentsExportPDFFlag",
                             filterData: reportArgsFilterData,
                             filterColumn: reportArgsFilterColumn,
-                            from: reportArgs.from || ''
+                            from: reportArgs.from || '',
+                            countryCode: countryFlag
                         }
                     }
                     else {
