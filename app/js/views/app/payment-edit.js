@@ -490,7 +490,7 @@ define(['jquery',
                     $('#searchPayer #mrn').val(patientArray[0].account_no || '');
                     $('#searchPayer #lname').val(patientArray[0].last_name || '');
                     $('#searchPayer #fname').val(patientArray[0].first_name || '');
-                    $('#searchPayer #dob').val(moment(patientArray[0].birth_date).format('L') || '');
+                    $('#searchPayer #dob').val(moment(patientArray[0].dob).format('L') || '');
                 } else {
                     $('#searchPayer #mrn').val("");
                     $('#searchPayer #lname').val("");
