@@ -475,7 +475,8 @@ define(['jquery',
                     from: self.from ?self.from: 'Billing',
                     filterData: filterData,
                     filterColumn : filterCol,
-                    filterFlag: true
+                    filterFlag: true,
+                    countryCode: app.country_alpha_3_code
 
                 }
                 self.paymentPDF.onReportViewClick(e, paymentPDFArgs);
@@ -504,7 +505,8 @@ define(['jquery',
                         filterCol: filterCol,
                         toDate: !self.isCleared ? moment().format('YYYY-MM-DD') : "",
                         fromDate: !self.isCleared ? moment().subtract(29, 'days').format('YYYY-MM-DD') : "",
-                        filterByDateType: 'accounting_date'
+                        filterByDateType: 'accounting_date',
+                        country_code: app.country_alpha_3_code
                     },
                     success: function (data, response) {
                         commonjs.prepareCsvWorker({
