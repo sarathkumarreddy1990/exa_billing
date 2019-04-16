@@ -1528,7 +1528,8 @@ define('grid', [
                                 fileName: 'Claims',
                                 filter_order: userSettings.field_order,
                                 filterType: userSettings.grid_name,
-                                columnHeader: colHeader
+                                columnHeader: colHeader,
+                                countryCode: app.country_alpha_3_code
                             }, {
                                     afterDownload: function () {
                                         $('#btnValidateExport').css('display', 'inline');
