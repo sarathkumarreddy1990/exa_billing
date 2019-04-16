@@ -453,7 +453,7 @@ define(['jquery',
                     this.payerName = insuranceArray[0].insurance_name;
                     this.payerType = 'insurance';
                     coverage_level = 'Primary Insurance';
-                    $("#hdnPayerID").val(insuranceArray[0].insurance_id);                   
+                    $("#hdnPayerID").val(insuranceArray[0].insurance_id);
                     $('#select2-txtautoPayerPIP-container').html(insuranceArray[0].insurance_name || '');
                 } else {
                     $("#lblAutoInsurance").html('');
