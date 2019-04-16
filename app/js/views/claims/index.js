@@ -1147,7 +1147,7 @@ define(['jquery',
                             from: 'claimCreation',
                             study_ids: selectedStudyIds,
                             patient_id: self.cur_patient_id || 0,
-                            claim_date: self.cur_study_date || 'now()'
+                            claim_date: self.claim_dt_iso || 'now()'
                         },
                         success: function (model, response) {
                             self.claimICDLists =[];
@@ -2267,7 +2267,7 @@ define(['jquery',
                     type: 'GET',
                     data: {
                         'patient_id': self.cur_patient_id || 0,
-                        'claim_date': self.cur_study_date || 'now()',
+                        'claim_date': self.claim_dt_iso || 'now()',
                         'order_ids': self.selectedOrderIds || [0]
                     },
                     success: function (response) {
@@ -4785,12 +4785,10 @@ define(['jquery',
             bindCityStateZipTemplate:function(data,AddressInfoMap, flag){
 
                 address.loadCityStateZipTemplate('#div' + flag + 'AddressInfo', data, AddressInfoMap);
-                if(app.country_alpha_3_code === 'can'){
-                    // Adjust the style alignment
-                    var $addressDiv = $('#divAddressInfo');
-                    $addressDiv.find('.city-state-zip-label').removeClass('p-0');
-                    $addressDiv.find('.city-state-zip-content').addClass('pl-2');
-                }
+                // Adjust the style alignment
+                var $addressDiv = $('#div' + flag + 'AddressInfo');
+                $addressDiv.find('.city-state-zip-label').removeClass('p-0');
+                $addressDiv.find('.city-state-zip-content').addClass('pl-2').removeClass('pl-1');
             }
 
         });

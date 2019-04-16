@@ -548,12 +548,12 @@ module.exports = function(billingApi) {
                 ebs[HCV_REAL_TIME]({hcvRequests}, (hcvErr, hcvResponse) => {
                     args.eligibility_response = hcvResponse;
                     billingApi.saveEligibilityLog(args);
-                    return callback(null, hcvResponse);
+                    return callback(hcvErr, hcvResponse);
                 });
             }
             else {
                 result.isValid = false;
-                return callback({ isValid: false, errMsg: "Invalid Heath card number" });
+                return callback({ isValid: false, errMsg: "Invalid Heath card number" }, {});
             }
         },
 

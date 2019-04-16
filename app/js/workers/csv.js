@@ -31,7 +31,10 @@ var claimColumns = {
     "Submitted Date": "submitted_dt",
     "Date of Injury": "current_illness_date",
     "Charge Description":"charge_description",
-    "Ins Provider Type": "ins_provider_type"
+    "Ins Provider Type": "ins_provider_type",
+    "Ordering Facility": "ordering_facility_name",
+    "Facility": "facility_name",
+    "First Statement Date": "first_statement_dt"
 };
 
 var paymentsColumns = {
@@ -85,7 +88,12 @@ function generateCsvData(dbResponse, callback) {
 
     var showLabel = true;
     var dbData = typeof dbResponse.data != 'object' ? JSON.parse(dbResponse.data) : dbResponse.data;
+    var countryCode = dbResponse.countryCode || '';
     var columnHeader = dbResponse.columnHeader;
+
+    if (countryCode == 'can') {
+        claimColumns["Payment ID"] = "payment_id";
+    }
 
     switch (dbResponse.reportName) {
         case 'CLAIMS':
@@ -129,6 +137,10 @@ function generateCsvData(dbResponse, callback) {
 
             if (rowIndex && dateColumns.indexOf(colName) > -1) {
                 csvText = csvText ? moment(csvText).format('L') : '';
+            }
+
+            if (csvText && _.isArray(csvText)) {
+                csvText = csvText.join();
             }
 
             return csvText ? csvText.replace(/"/g, '""') : '';
