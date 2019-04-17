@@ -263,7 +263,7 @@ define(['jquery',
                         success: function (data) {
                             if ( data.results && data.results.length ) {
                                 var eligibilityRes = data.results[0];
-                                commonjs.showDialog({
+                                commonjs.showNestedDialog({
                                     header: 'Healthcard Eligibility Result', i18nHeader: 'menuTitles.patient.PatientInsuranceEligibility', height: '70%', width: '70%',
                                     html: self.insuranceOhipTemplate({
                                         'insuranceData': eligibilityRes
