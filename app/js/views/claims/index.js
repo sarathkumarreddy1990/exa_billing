@@ -3504,7 +3504,7 @@ define(['jquery',
                             if (!self.isEdit) {
                                 $('.editClaimRelated').hide();
                             }
-
+                            self.updateReportURL(data.hidden_patient_id, data.hidden_order_id, rowId);
                         } else if (self.openedFrom === 'claims' || data.billed_status === 'Billed') {
                             rowId = self.openedFrom === 'studies' ? data.hidden_claim_id : rowId;
                             commonjs.getClaimStudy(rowId, function (result) {
@@ -3520,17 +3520,13 @@ define(['jquery',
                                     'order_id': order_id,
                                     'grid_id': self.options.grid_id || null
                                 });
-                                if (window.reportWindow && window.reportWindow.location.hash) {
-                                    var queryParams = window.reportWindow.location.hash.split("?");
-                                    window.reportWindow.location.hash = '#patient/patientReport/all/' + btoa(patient_id) + '/' + btoa(order_id) + '/' + btoa(study_id) + '?' + queryParams;
-                                }
 
-                                if (window.patientChartWindow) {
-                                    commonjs.closePatientChartWindow();
-                                }
-
+                                self.updateReportURL(patient_id, order_id, study_id);
                                 $('#modal_div_container').scrollTop(0);
                             });
+                        }
+                        if (window.patientChartWindow) {
+                            commonjs.closePatientChartWindow();
                         }
                     } else {
                         commonjs.showWarning("messages.warning.claims.orderNotFound");
@@ -3538,6 +3534,13 @@ define(['jquery',
 
                 } else {
                     commonjs.showWarning("messages.warning.claims.errorOnNextPrev");
+                }
+            },
+
+            updateReportURL: function (patient_id, order_id, study_id) {
+                if (window.reportWindow && window.reportWindow.location.hash) {
+                    var queryParams = window.reportWindow.location.hash.split("?")[1];
+                    window.reportWindow.location.hash = '#patient/patientReport/all/' + btoa(patient_id) + '/' + btoa(order_id) + '/' + btoa(study_id) + '?' + queryParams;
                 }
             },
 
