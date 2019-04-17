@@ -40,7 +40,9 @@ WITH payments_pdf as (
          END payer_name,
          pf.facility_name,
          to_char(to_facility_date(bp.facility_id, bp.payment_dt),'MM/DD/YYYY') AS payment_date,
-         InitCap(bp.mode) AS payment_mode
+         CASE WHEN '<%= countryFlag %>'  = 'can' AND bp.mode = 'check'
+              THEN 'Cheque'ELSE InitCap(bp.mode) 
+         END AS payment_mode
     FROM
          billing.payments bp
     INNER JOIN public.users pu ON pu.id = bp.created_by
@@ -271,12 +273,14 @@ const api = {
             accounting_date: null,
             payment_amount:null,
             accountNo : null,
-            notes : null
+            notes : null,
+            countryFlag: null
         };
 
         // company id
         params.push(reportParams.companyId);
         filters.companyId = queryBuilder.where('bp.company_id', '=', [params.length]);
+        filters.countryFlag = reportParams.countryCode;
 
         if (reportParams.paymentStatus) {
             params.push(reportParams.paymentStatus);

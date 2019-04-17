@@ -558,7 +558,7 @@ define('grid', [
                         'needShrink': true
                     });
                 self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
-                self.claimInquiryView.patientInquiryLog(studyIds,selectedStudies[0].patient_id);
+                self.claimInquiryView.patientInquiryLog(studyIds, selectedStudies[0].patient_id, selectedStudies[0].patient_name);
                 });
 
                 var liSplitOrders = commonjs.getRightClickMenu('anc_split_claim','setup.rightClickMenu.splitClaim',false,'Split Claim',false);
@@ -1182,6 +1182,8 @@ define('grid', [
 
                             return "<i href='#' i18nt='" + i18n + "' class='icon-ic-status' data-value='" + cellvalue + "' style='color: " + color + ";text-shadow:0 0 " + color + ", 0 0 " + color + ", 0 0 " + color + ", 0 0 red, 0 0 " + color + "'></i>";
                         }
+                    },
+                    customAction: function (rowID, e, that) {
                     }
                 },
                 {
@@ -1526,7 +1528,8 @@ define('grid', [
                                 fileName: 'Claims',
                                 filter_order: userSettings.field_order,
                                 filterType: userSettings.grid_name,
-                                columnHeader: colHeader
+                                columnHeader: colHeader,
+                                countryCode: app.country_alpha_3_code
                             }, {
                                     afterDownload: function () {
                                         $('#btnValidateExport').css('display', 'inline');

@@ -153,6 +153,11 @@ define([
 
             },
 
+            clearFaxInfo: function () {
+                $('#txtFaxReceiverName').val('');
+                $('#txtFaxReceiverNumber').val('');
+            },
+
             claimInquiryDetails: function (claimID, fromTogglePreNext, isFromClaimScreen) {
                 var self = this;
                 self.claim_id = claimID;
@@ -204,7 +209,7 @@ define([
                                 self.patientInquiryForm(self.claim_id, patient_details[0].patient_id, patient_details[0].patient_name, self.options.grid_id, true, true);
                             });
 
-                            self.options.patient_id = patient_details[0].patient_id;  
+                            self.options.patient_id = patient_details[0].patient_id;
 
                             if (patient_details && patient_details.length > 0) {
                                 var patientHeaderInfo = commonjs.geti18NString('shared.screens.setup.claimInquiry') + ':' + patient_details[0].patient_name + ' (Acc#:' + patient_details[0].account_no + ')' + ',  '+ ' (Claim#:' + self.claim_id + ')' + ',  '+ moment(patient_details[0].birth_date).format('L') + ',  ' + patient_details[0].gender;
@@ -250,6 +255,12 @@ define([
                 });
             },
 
+            getSubscriberDOBFormat: function ( cellvalue, options, rowObject ) {
+                return commonjs.checkNotEmpty(rowObject.subscriber_dob)
+                    ? moment(rowObject.subscriber_dob).format('L')
+                    : '';
+            },
+
             showInsuranceGrid: function (data) {
                 var self = this;
                 var colNames = ['', 'code', 'description', 'Subscriber Name', 'DOB', 'Policy No', 'Group No'];
@@ -261,7 +272,7 @@ define([
                     { name: 'insurance_code', search: false },
                     { name: 'insurance_name', search: false },
                     { name: 'name', search: false },
-                    { name: 'subscriber_dob', search: false },
+                    { name: 'subscriber_dob', search: false, formatter: self.getSubscriberDOBFormat },
                     { name: 'policy_number', search: false },
                     { name: 'group_number', search: false }
                 ];
@@ -839,7 +850,7 @@ define([
                     success: function (data, response) {
                         data = data[0];
                         if (data) {
-                            self.previousFollowUpDate = (commonjs.checkNotEmpty(data.followup_date)) ? moment(data.followup_date).format('MM/DD/YYYY') : '';
+                            self.previousFollowUpDate = (commonjs.checkNotEmpty(data.followup_date)) ? moment(data.followup_date).format('L') : '';
                             $('#txtCIFollowUpDate').val(self.previousFollowUpDate);
                         }
                         else {
@@ -967,7 +978,7 @@ define([
             saveIsInternalComment: function () {
                 var comments = [];
                 var self = this;
-                var selectedFollowUpDate = $('#txtCIFollowUpDate').val() ? moment($('#txtCIFollowUpDate').val()).format('L') : '';
+                var selectedFollowUpDate = $('#txtCIFollowUpDate').val() ? commonjs.getISODateString($('#txtCIFollowUpDate').val()) : '';
 
                 $('#tblCIClaimComments  td input:checkbox').each(function () {
                     var content = {};
@@ -1019,8 +1030,7 @@ define([
 
                 if (isFromClaim) {
                     var defaultDialogProps = {
-                        'header': 'Patient Claims: ' + patientName,
-                        'i18nHeader': "shared.moduleheader.patientClaims",
+                        'header': commonjs.geti18NString("shared.moduleheader.patientClaims") + ': ' + patientName,
                         'width': '85%',
                         'height': '75%',
                         'needShrink': true,
@@ -1065,6 +1075,11 @@ define([
                     $('#radActivityAllStatus').prop('checked', true);
                     $('#activityDetails').hide();
                     commonjs.isMaskValidate();
+                } else {
+                    if (patientName) {
+                        var patientHeaderInfo = commonjs.geti18NString('shared.moduleheader.patientClaims') + ':' + patientName ;
+                        $(parent.document).find('#spanModalHeader').html(patientHeaderInfo);
+                    }
                 }
 
 
@@ -1102,7 +1117,20 @@ define([
                     $('#divFaxRecipient').show();
 
                     $('#btnSendFax').off().click(function (e) {
+                        var faxRecipientName = $('#txtOtherFaxName').val();
+                        var faxRecipientNumber = $('#txtOtherFaxNumber').val();
+
+                        if (!commonjs.checkNotEmpty(faxRecipientName))
+                            return commonjs.showWarning('messages.status.faxReceiverName');
+
+                        if (!commonjs.checkNotEmpty(faxRecipientNumber))
+                            return commonjs.showWarning('messages.status.faxNumberInvalid');
+
                         self.faxReport(patientActivityParams, reportURL);
+                        commonjs.showStatus("messages.status.faxQueued");
+                        $('#txtOtherFaxName').val('');
+                        $('#txtOtherFaxNumber').val('');
+                        $('#divFaxRecipient').hide();
                     });
 
                     $('#btnFaxCancel').off().click(function (e) {
@@ -1138,13 +1166,16 @@ define([
             },
 
             createPatientActivityParams: function(claimId, patientId) {
+                var reportBy;
+                var fromDate;
+                var toDate;
                 if ($('#radActivityAllStatus').prop("checked")) {
                     reportBy = true;
                 }
                 else if ($('#radioActivityStatus').prop("checked") && this.validateFromAndToDate(this.fromDate, this.toDate)) {
                     reportBy = false;
-                    fromDate = $('#txtDate').val();
-                    toDate = $('#txtOtherDate').val();
+                    fromDate = commonjs.getISODateString($('#txtDate').val());
+                    toDate = commonjs.getISODateString($('#txtOtherDate').val());
                 }
                 else return false;
 
@@ -1213,9 +1244,17 @@ define([
                 return true;
             },
 
-            patientInquiryLog: function (claimId, patientId) {
+            patientInquiryLog: function (claimId, patientId, patientName) {
                 var self = this;
-                this.$el.html(this.claimPatientLogTemplate());
+                var defaultDialogProps = {
+                    'header': commonjs.geti18NString("shared.moduleheader.patientClaimLog") + ': ' + patientName,
+                    'width': '85%',
+                    'height': '75%',
+                    'needShrink': true,
+                    'html': this.claimPatientLogTemplate()
+                }
+                commonjs.showDialog(defaultDialogProps);
+
                 self.showPatientClaimsLogGrid(claimId, patientId);
             },
 

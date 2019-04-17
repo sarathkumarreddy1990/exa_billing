@@ -79,7 +79,9 @@ charge_details AS (
  payment_details AS(
     SELECT
                           pp.account_no as account_no
-                        , bp.mode as payment_mode
+                        , CASE WHEN '<%= countryCode %>' = 'can' AND bp.mode = 'check'
+                               THEN 'Cheque' ELSE bp.mode 
+                          END AS payment_mode
                         , bp.id::text AS payment_id
                         , get_full_name(pp.last_name, pp.first_name) AS payer
                         , CASE WHEN bp.payer_type = 'patient' THEN
@@ -267,7 +269,8 @@ const api = {
         const filters = {
             paymentId: null,
             patient_id: null,
-            patientId : null
+            patientId : null,
+            countryCode: null
         };
 
         params.push(reportParams.pamentIds);
@@ -276,6 +279,7 @@ const api = {
         params.push(reportParams.patient_id);
         filters.patient_id = queryBuilder.where('bp.patient_id', '=', [params.length]);
         filters.patientId = queryBuilder.where('pp.id', '=', [params.length]);
+        filters.countryCode = reportParams.countryCode;
 
         return {
             queryParams: params,

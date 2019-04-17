@@ -36,14 +36,15 @@ module.exports = function (billingApi) {
     // http://localhost/exa_modules/billing/ohip/hcv?healthNumber=1234567890&versionCode=OK
     router.get('/validateHealthCard', (req, res) => {
         ohip.validateHealthCard(req.query, (ohipErr, ohipResponse) => {
-            return httpHandler.send(req, res, ohipErr || ohipResponse);
+            ohipResponse.err = ohipErr;
+            return httpHandler.send(req, res, ohipResponse);
         });
     });
 
     // OHIP File Management Screen
     router.get('/fileManagement', (req, res) => {
         ohip.fileManagement(req.query, (ohipErr, ohipResponse) => {
-            return httpHandler.send(req, res, ohipErr || ohipResponse);
+            return httpHandler.send(req, res, ohipErr || ohipResponse.rows);
         });
     });
 

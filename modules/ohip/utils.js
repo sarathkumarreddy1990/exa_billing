@@ -2,6 +2,7 @@ const {
     getFileType,
 } = require('./parser/utils');
 
+// const MONEY_MATCHER = /[0-9]+(\.[0-9]{1,2})?$/;
 
 
 const {
@@ -45,5 +46,8 @@ module.exports = {
     getMonthCode: (value) => {
         return String.fromCharCode(MONTH_CODE_JANUARY + value.getMonth());
     },
-
+    //
+    // getNumberFromMoney: (value) => {
+    //     return value.match(MONEY_MATCHER)[0];
+    // },
 };

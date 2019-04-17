@@ -570,6 +570,14 @@ var commonjs = {
         return dtpTarget.data("DateTimePicker");
     },
 
+    getDateTemplate: function () {
+        return moment(new Date('December 31, 2017'))
+            .format('L')
+            .replace(/12/, 'MM')
+            .replace(/31/, 'DD')
+            .replace(/2017/, 'YYYY');
+    },
+
     // @param {string|Object} elId - name of unique element id or jQuery object itself
     // @return {Object} instance of BS3 datetimepicker
     bindDateTimePicker: function (elId, dtpOptions) {
@@ -585,7 +593,7 @@ var commonjs = {
         }
         var defaultOptions = {
             format: "L LT",
-            //locale: browserLocale,
+            locale: browserLocale,
             //timeZone: null,//this.getCompanyTimeZone(),
             showClose: true,
             showClear: true,
@@ -620,20 +628,18 @@ var commonjs = {
         };
         var options = $.extend(true, {}, defaultOptions, dtpOptions);
         // see: https://github.com/Eonasdan/bootstrap-datetimepicker/pull/666
+
+        var dateTemplate = commonjs.getDateTemplate();
+
         switch (options.format) {
             case "L":
-                options.extraFormats = ["MM/DD/YY", "MM/DD/YYYY", "YYYY-MM-DD"];
+                options.extraFormats = [dateTemplate, "MM/DD/YY", "MM/DD/YYYY", "YYYY-MM-DD"];
                 //boptions.timeZone = null; //remove the TZ when dealing with dates only!
                 break;
             case " L LT":
-                options.extraFormats = ["MM/DD/YYYY hh:mm A"];
+                options.extraFormats = [(dateTemplate + " hh:mm A")];
                 break;
             default:
-        }
-
-        var targetInput = dtpTarget.find('input');
-        if (!targetInput.hasClass("maskDateLocale") && targetInput.hasClass("form-control-date")) {
-            targetInput.addClass("maskDateLocale");
         }
 
         dtpTarget.datetimepicker(options);
@@ -2095,6 +2101,24 @@ var commonjs = {
             return localizationString;
         }
         return i18nString;
+    },
+
+    /**
+     * Take input moment object (and optional input date format template) and return string of YYYY-MM-DD
+     * @param   {string}    date
+     * @param   {string}    template    =   ex: MM/DD/YYYY
+     * @returns {string}
+     */
+    getISODateString: function ( date, template ) {
+        var finalTemplate = 'YYYY-MM-DD';
+
+        if ( template ) {
+            return moment(date, template).format(finalTemplate);
+        }
+
+        var dateTemplate = commonjs.getDateTemplate();
+
+        return moment(date, dateTemplate).format(finalTemplate);
     },
 
     isMaskValidate: function () {

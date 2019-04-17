@@ -181,7 +181,11 @@ define(['jquery',
                 var self = this;
                 var qualifierCodes = app.provider_id_code_qualifiers;
                 var states = app.states[0].app_states;
-                $('#divBillingProvidersForm').html(this.billingProvidersFormTemplate({ qualifierCodes: qualifierCodes, states: states }));
+                $('#divBillingProvidersForm').html(this.billingProvidersFormTemplate({
+                    country_alpha_3_code: app.country_alpha_3_code,
+                    qualifierCodes: qualifierCodes,
+                    states: states
+                }));
                 if(app.country_alpha_3_code === 'can'){
                     $('#txtNpi').attr('maxlength', 4);
                 }
@@ -288,7 +292,6 @@ define(['jquery',
                         $("#txtShortDesc").val($.trim($('#txtShortDesc').val()) || null);
                         $("#txtFederalTaxID").val($.trim($('#txtFederalTaxID').val()) || null);
                         $("#txtNpi").val($.trim($('#txtNpi').val()) || null);
-                        $("#txtTaxonomy").val($.trim($('#txtTaxonomy').val().toUpperCase()) || null);
                         $("#txtContactName").val($.trim($('#txtContactName').val()) || null);
                         $("#txtAddressLine1").val($.trim($('#txtAddressLine1').val()) || null);
                         $("#txtCity").val($.trim($('#txtCity').val()) || null);
@@ -302,6 +305,11 @@ define(['jquery',
                         $("#txtPassword").val($.trim($('#txtPassword').val()) || null);
                         $("#txtSentFolder").val($.trim($('#txtSentFolder').val()) || null);
                         $("#txtReceiveFolder").val($.trim($('#txtReceiveFolder').val()) || null);
+
+                        if (app.country_alpha_3_code === "usa") {
+                            $("#txtTaxonomy").val($.trim($('#txtTaxonomy').val().toUpperCase()) || null);
+                        }
+
                         self.saveBillingProviders();
                     }},
                     {value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
@@ -454,7 +462,7 @@ define(['jquery',
                     "shortDescription": $('#txtShortDesc').val(),
                     "federalTaxId": $('#txtFederalTaxID').val(),
                     "npiNo": $('#txtNpi').val(),
-                    "taxonomyCode": $('#txtTaxonomy').val().toUpperCase(),
+                    "taxonomyCode": (app.country_alpha_3_code === "can") ? "1234567890" : $('#txtTaxonomy').val().toUpperCase(),
                     "contactPersonName": $('#txtContactName').val(),
                     "addressLine1": $('#txtAddressLine1').val(),
                     "addressLine2": $.trim($('#txtAddressLine2').val()),

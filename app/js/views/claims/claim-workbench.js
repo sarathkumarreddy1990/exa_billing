@@ -635,32 +635,31 @@ define(['jquery',
                 }
 
                 commonjs.showLoading();
+                var isCanada = app.country_alpha_3_code === 'can';
                 var url = '/exa_modules/billing/claim_workbench/create_claim';
-                if (app.country_alpha_3_code === 'can') {
+                if (isCanada) {
                     url = '/exa_modules/billing/ohip/submitClaims';
                 }
 
-                if ($('#chkStudyHeader_' + filterID).is(':checked')) {
-                    self.selectAllClaim(filter, filterID, 'EDI');
-
-                } else {
-                    jQuery.ajax({
-                        url: url,
-                        type: "POST",
-                        data: {
-                            claimIds: claimIds.toString()
-                        },
-                        success: function (data, textStatus, jqXHR) {
-                            commonjs.hideLoading();
-                            self.ediResponse(data);
-
-                        },
-                        error: function (err) {
-                            commonjs.handleXhrError(err);
+                jQuery.ajax({
+                    url: url,
+                    type: "POST",
+                    data: {
+                        claimIds: claimIds.toString()
+                    },
+                    success: function (data, textStatus, jqXHR) {
+                        commonjs.hideLoading();
+                        if (isCanada) {
+                            self.ohipResponse(data);
                         }
-                    });
-                }
-
+                        else {
+                            self.ediResponse(data);
+                        }
+                    },
+                    error: function (err) {
+                        commonjs.handleXhrError(err);
+                    }
+                });
             },
 
             selectAllClaim: function (filter, filterID, targetType) {
@@ -670,8 +669,9 @@ define(['jquery',
 
                 var isDatePickerClear = filterCol.indexOf('claim_dt') === -1;
 
+                var isCanada = app.country_alpha_3_code === 'can';
                 var implUrl = '/exa_modules/billing/claim_workbench';
-                if (app.country_alpha_3_code === 'can') {
+                if (isCanada) {
                     implUrl = '/exa_modules/billing/ohip/submitClaims';
                 }
                 jQuery.ajax({
@@ -693,7 +693,10 @@ define(['jquery',
                     },
                     success: function (data, textStatus, jqXHR) {
                         commonjs.hideLoading();
-                        if (targetType == 'EDI') {
+                        if (isCanada) {
+                            self.ohipResponse(data);
+                        }
+                        else if (targetType == 'EDI') {
                             self.ediResponse(data);
                         } else {
                             if (!data.invalidClaim_data.length) {
@@ -710,6 +713,26 @@ define(['jquery',
                     }
                 });
             },
+
+
+            ohipResponse: function(data) {
+                if (data.validationMessages && data.validationMessages.length) {
+                    data.validationMessages.forEach(function(validationMessage) {
+                        commonjs.showWarning(validationMessage);
+                    });
+                }
+                else if (data.faults && data.faults.length) {
+                    data.faults.forEach(function(fault) {
+                        commonjs.showWarning((fault.code + '/' + fault.message)
+                            || (fault.faultcode + '/' + fault.faultstring)
+                            || 'Unable to communicate with OHIP EBS');
+                    });
+                }
+                else if (data.results && data.results.length) {
+                    commonjs.showStatus('Claims submitted successfully');
+                }
+            },
+
 
             ediResponse: function (data) {
                 self.ediResultTemplate = _.template(ediResultHTML);
@@ -1403,11 +1426,21 @@ define(['jquery',
                             table.renderStudy();
 
                             $('#btnValidateExport').off().click(function (e) {
+                                var filterData = '';
+                                var filterCol = '';
                                 $('#btnValidateExport').css('display', 'none');
                                 var filter_current_id = $('#claimsTabs').find('.active a').attr('data-container')
-                                var filter = commonjs.loadedStudyFilters.get(filter_current_id),
+                                var filter = commonjs.loadedStudyFilters.get(filter_current_id);
+                                if (filter.pager.get('FilterData') == "") {
+                                    var toDate = moment();
+                                    var fromDate = moment().subtract(89, 'days');
+                                    filterData = "[\""+ fromDate.format("YYYY-MM-DD") + " - " + toDate.format("YYYY-MM-DD") +"\"]"
+                                    filterCol = "[\"claim_dt\"]"
+                                }
+                                else{
                                     filterData = filter && filter.pager && JSON.stringify(filter.pager.get('FilterData')),
                                     filterCol = filter && filter.pager && JSON.stringify(filter.pager.get('FilterCol'));
+                                }
                                 table.renderStudy(true, filterData, filterCol);
                             });
                         };
@@ -2645,73 +2678,68 @@ define(['jquery',
                     return false;
                 }
 
-                if ($('#chkStudyHeader_' + filterID).is(':checked')) {
-                    self.selectAllClaim(filter, filterID, 'VALIDATE');
-                } else {
+                $.ajax({
+                    url: '/exa_modules/billing/claim_workbench/validate_claims',
+                    type: 'POST',
+                    data: {
+                        claim_ids: selectedClaimIds,
+                        country: app.country_alpha_3_code
+                    },
+                    success: function (data, response) {
+                        $("#btnValidateOrder").prop("disabled", false);
+                        if (data) {
+                            commonjs.hideLoading();
 
-                    $.ajax({
-                        url: '/exa_modules/billing/claim_workbench/validate_claims',
-                        type: 'POST',
-                        data: {
-                            claim_ids: selectedClaimIds,
-                            country: app.country_alpha_3_code
-                        },
-                        success: function (data, response) {
-                            $("#btnValidateOrder").prop("disabled", false);
-                            if (data) {
-                                commonjs.hideLoading();
+                            if (data.validClaim_data && data.validClaim_data.rows && data.validClaim_data.rows.length) {
+                                commonjs.showStatus("messages.status.validatedSuccessfully");
 
-                                if (data.validClaim_data && data.validClaim_data.rows && data.validClaim_data.rows.length) {
-                                    commonjs.showStatus("messages.status.validatedSuccessfully");
-
-                                    var pending_submission_status = app.claim_status.filter(function (obj) {
-                                        return obj.id === parseInt(data.validClaim_data.rows[0].claim_status_id)
-                                    });
-                                    var statusDetail = commonjs.getClaimColorCodeForStatus(pending_submission_status[0].code, 'claim');
-                                    var color_code = statusDetail && statusDetail[0] && statusDetail[0].color_code || 'transparent';
-                                    var $gridId = filter.options.gridelementid || '';
-                                    $gridId = $gridId.replace(/#/, '');
-                                    var cells = [
-                                        {
-                                            'field': 'claim_status',
-                                            'data': pending_submission_status && pending_submission_status[0].description || '',
-                                            'css': {
-                                                "backgroundColor": color_code
-                                            }
-                                        },
-                                        {
-                                            'field': 'claim_status_code',
-                                            'data': pending_submission_status && pending_submission_status[0].code || ''
+                                var pending_submission_status = app.claim_status.filter(function (obj) {
+                                    return obj.id === parseInt(data.validClaim_data.rows[0].claim_status_id)
+                                });
+                                var statusDetail = commonjs.getClaimColorCodeForStatus(pending_submission_status[0].code, 'claim');
+                                var color_code = statusDetail && statusDetail[0] && statusDetail[0].color_code || 'transparent';
+                                var $gridId = filter.options.gridelementid || '';
+                                $gridId = $gridId.replace(/#/, '');
+                                var cells = [
+                                    {
+                                        'field': 'claim_status',
+                                        'data': pending_submission_status && pending_submission_status[0].description || '',
+                                        'css': {
+                                            "backgroundColor": color_code
                                         }
-                                    ];
-
-                                    if ($gridId) {
-                                        _.each(data.validClaim_data.rows, function (obj) {
-                                            var $claimGrid = $('#' + $gridId + ' tr#' + obj.id);
-                                            var $td = $claimGrid.children('td');
-                                            commonjs.setGridCellValue(cells, $td, $gridId)
-                                        });
-                                    } else {
-                                        commonjs.showWarning(commonjs.geti18NString("messages.errors.gridIdNotExists"));
+                                    },
+                                    {
+                                        'field': 'claim_status_code',
+                                        'data': pending_submission_status && pending_submission_status[0].code || ''
                                     }
+                                ];
 
+                                if ($gridId) {
+                                    _.each(data.validClaim_data.rows, function (obj) {
+                                        var $claimGrid = $('#' + $gridId + ' tr#' + obj.id);
+                                        var $td = $claimGrid.children('td');
+                                        commonjs.setGridCellValue(cells, $td, $gridId)
+                                    });
+                                } else {
+                                    commonjs.showWarning(commonjs.geti18NString("messages.errors.gridIdNotExists"));
                                 }
 
-                                if(data.invalidClaim_data.length && data.validClaim_data.rows && data.validClaim_data.rows.length){
-                                    commonjs.showWarning(commonjs.geti18NString("messages.warning.claims.claimValidationFailed"));
-                                }
-
-                                if (data.invalidClaim_data.length) {
-                                    commonjs.showDialog({ header: 'Validation Results', i18nHeader: 'billing.claims.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });
-                                }
                             }
-                        },
-                        error: function (err, response) {
-                            $("#btnValidateOrder").prop("disabled", false);
-                            commonjs.handleXhrError(err, response);
+
+                            if(data.invalidClaim_data.length && data.validClaim_data.rows && data.validClaim_data.rows.length){
+                                commonjs.showWarning(commonjs.geti18NString("messages.warning.claims.claimValidationFailed"));
+                            }
+
+                            if (data.invalidClaim_data.length) {
+                                commonjs.showDialog({ header: 'Validation Results', i18nHeader: 'billing.claims.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });
+                            }
                         }
-                    });
-                }
+                    },
+                    error: function (err, response) {
+                        $("#btnValidateOrder").prop("disabled", false);
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
             }
         });
 

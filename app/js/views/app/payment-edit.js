@@ -454,8 +454,7 @@ define(['jquery',
                     this.payerType = 'insurance';
                     coverage_level = 'Primary Insurance';
                     $("#hdnPayerID").val(insuranceArray[0].insurance_id);
-                    $("#lblAutoInsurance").html(insuranceArray[0].insurance_name);
-                    $('#select2-txtautoPayerPIP-container').html(insuranceArray[0].insurance_code || '');
+                    $('#select2-txtautoPayerPIP-container').html(insuranceArray[0].insurance_name || '');
                 } else {
                     $("#lblAutoInsurance").html('');
                     $('#select2-txtautoPayerPIP-container').html(this.usermessage.selectCarrier);
@@ -490,7 +489,7 @@ define(['jquery',
                     $('#searchPayer #mrn').val(patientArray[0].account_no || '');
                     $('#searchPayer #lname').val(patientArray[0].last_name || '');
                     $('#searchPayer #fname').val(patientArray[0].first_name || '');
-                    $('#searchPayer #dob').val(moment(patientArray[0].birth_date).format('L') || '');
+                    $('#searchPayer #dob').val(moment(patientArray[0].dob).format('L') || '');
                 } else {
                     $('#searchPayer #mrn').val("");
                     $('#searchPayer #lname').val("");
@@ -2319,14 +2318,12 @@ define(['jquery',
                     *  Condition : Payment + adjustment == Order Balance
                     *  DESC : Check payment & adjustment amount is should be equal with order balance and payer_type === 'patient' for Canadian config.
                     */
-                    if (app.country_alpha_3_code === 'can' && self.payer_type === 'patient') {
-                        var orderBalance = parseFloat(totalPayment) + parseFloat(totalAdjustment);
-                        var currentBalance = parseFloat(self.currentOrderBalance.replace(/[(]/g, '-').replace(/[^0-9.-]+/g, "")) || "";
-                        if (currentBalance !== orderBalance) {
+                        var orderBalance = $('#lblBalanceNew').text() || '0.00';
+                        var currentBalance = parseFloat(orderBalance.replace(/[,()$'"]/g, '')) || 0;
+                        if (currentBalance !== 0  && app.country_alpha_3_code === 'can' && self.payer_type === 'patient') {
                             commonjs.showWarning('messages.warning.payments.amountValidation');
                             return false;
                         }
-                    }
 
                     /**
                     *  Condition : If payment_payer_type === 'patient' && claim_status !== Pending Validation/Submission
@@ -2457,7 +2454,7 @@ define(['jquery',
                 var dobVal = $('#dob').val();
 
                 if (dobVal) {
-                    canSearch = moment(dobVal).isValid();
+                    canSearch = moment(dobVal, commonjs.getDateTemplate()).isValid();
                 }
 
                 if (e.originalEvent && canSearch) {
@@ -2495,7 +2492,7 @@ define(['jquery',
                     var dobVal = $('#dob').val();
 
                     if (dobVal) {
-                        canSearch = moment(dobVal).isValid();
+                        canSearch = moment(dobVal, commonjs.getDateTemplate()).isValid();
                     }
 
                     if (canSearch) {

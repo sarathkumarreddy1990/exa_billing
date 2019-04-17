@@ -49,7 +49,7 @@ define(['jquery',
         },
 
         saveFollowup: function (claimIDs) {
-            var followUpDate = $('#txtFollowUpDate').val() ? moment($('#txtFollowUpDate').val()).format('L') : '';
+            var followUpDate = $('#txtFollowUpDate').val() ? commonjs.getISODateString($('#txtFollowUpDate').val()) : '';
             var followUPUserID = $('#txtFollowupUsers').val();
 
             if(followUpDate == '') {

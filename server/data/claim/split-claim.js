@@ -15,7 +15,7 @@ module.exports = {
                         , bc.id AS patient_id
                         , cpt.display_code AS cpt_code
                         , cpt.display_description AS cpt_description
-                        , public.get_full_name(p.last_name, p.first_name, p.middle_name, p.prefix_name, p.suffix_name)
+                        , public.get_full_name(p.last_name, p.first_name, p.middle_name, p.prefix_name, p.suffix_name) AS full_name
                         , p.account_no
                         , (COALESCE(TRIM(pr.last_name),'') ||' '|| COALESCE(TRIM(pr.first_name),'')) AS referringPhysician
                         , ch.id AS charge_id

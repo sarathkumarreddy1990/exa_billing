@@ -12,7 +12,9 @@ const paymentsPrintPDFDataSetQueryTemplate = _.template(`
 WITH payment_details AS(
     SELECT
           bp.id
-        , mode
+        , CASE WHEN '<%= countryFlag %>' = 'can' AND mode = 'check'
+               THEN 'Cheque' ELSE InitCap(mode) 
+          END AS mode
         , card_name
         , card_number
         , payer_type
@@ -162,13 +164,14 @@ const api = {
         const params = [];
         const filters = {
             paymentId: null,
-            paymentApplicationId: null
+            paymentApplicationId: null,
+            countryFlag: null,
 
         };
         params.push(reportParams.pamentIds);
         filters.paymentId = queryBuilder.where('bp.id', '=', [params.length]);
         filters.paymentApplicationId = queryBuilder.where('bpa.payment_id', '=', [params.length]);
-
+        filters.countryFlag = reportParams.countryCode;
 
         return {
             queryParams: params,
