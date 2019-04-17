@@ -236,7 +236,7 @@ ws.Audit.prototype.send = function(ctx, callback) {
         serviceUserMUID: ctx.serviceUserMUID,
 
         // End User identifier
-        endUser: ctx.username,
+        endUser: ctx.endUser,
 
         eventDetail: ctx.eventDetail,
     };

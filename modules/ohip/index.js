@@ -35,6 +35,7 @@ const {
 
 const {
     getMonthCode,
+    // getNumberFromMoney,
 } = require('./utils');
 
 
@@ -323,19 +324,50 @@ module.exports = function(billingApi) {
             validationData = validationData && validationData.rows && validationData.rows.length && validationData.rows[0] || [];
 
             let claimStatus = _.uniq(validationData.claim_status);
+
             // Claim validation
             if (validationData) {
-                if (claimStatus.length != 1 && claimStatus[0] != 'PS') {
-                    return new Error('Please validate claims');
-                } else if (validationData.unique_billing_method_count > 1) {
-                    return new Error('Please select claims with same type of billing method');
-                } else if (validationData.claim_status.length != claimIds.length) {
-                    return new Error('Claim date should not be greater than the current date');
+
+                const validationResponse = {
+                    validationMessages: [],
+                };
+                if (claimStatus.length != 1 || claimStatus[0] != 'PS') {
+                    validationResponse.validationMessages.push('All claims must be validated before submission');
+                }
+                if (validationData.unique_billing_method_count > 1) {
+                    validationResponse.validationMessages.push('Please select claims with same type of billing method');
+                }
+                if (validationData.claim_status.length != claimIds.length) {
+                    validationResponse.validationMessages.push('Claim date should not be greater than the current date');
+                }
+
+                if (validationResponse.validationMessages.length) {
+                    return callback(null, validationResponse);
                 }
             }
 
             // 1 - convert args.claimIds to claim data (getClaimsData)
             const claimData = await billingApi.getClaimsData({claimIds});
+            const validationMessages = claimData.reduce((validations, claim) => {
+                const claimItems = claim.claims[0].items;
+                if (!claimItems || !claimItems.length) {
+                    validations.push(`Claim ${claim.claim_id} has no billable charges`);
+                }
+                // else {
+                //
+                //     const invalidClaimItems = claimItems.filter((item) => {
+                //         console.log('Comparing money: ', getNumberFromMoney(item.feeSubmitted));
+                //         return getNumberFromMoney(item.feeSubmitted) <= 0.00;
+                //     });
+                //     if (invalidClaimItems.length) {
+                //         validations.push(`Claim ${claim.claim_id} has at least one invalid charge`);
+                //     }
+                // }
+                return validations;
+            }, []);
+            if (validationMessages.length) {
+                return callback(null, {validationMessages});
+            }
 
             // 2 - run claim data through encoder
             const claimEnc = new ClaimsEncoder(); // default 1:1/1:1
@@ -387,7 +419,7 @@ module.exports = function(billingApi) {
             //
             // in [{data:String, filename:String, edi_file_id, file_store_id, absolutePath, batches:[batchSequenceNumber,claimIds:[Number]]}]
             // >> [{resourceType:'CL', filename: (absolutePath), description: (filename)}]
-            const uploadServiceParams = reduce((await storedFiles), (result, storedFile) => {
+            const uploads = reduce((await storedFiles), (result, storedFile) => {
                 result.push({
                     resourceType: 'CL',
                     filename: storedFile.absolutePath,
@@ -397,12 +429,13 @@ module.exports = function(billingApi) {
             }, []);
 
 
-            // // 6 - upload file to OHIP
-            const uploads = uploadServiceParams.slice(0, 1);    // TODO enable multi-file uploads in EBS module
 
+            // // 6 - upload file to OHIP
+            const allSubmitClaimResults = [];
             const ebs = new EBSConnector(await billingApi.getOHIPConfiguration());
             ebs[EDT_UPLOAD]({uploads}, async (uploadErr, uploadResponse) => {
 
+                allSubmitClaimResults.push(uploadResponse);
 
                 const {
                     faults,
@@ -417,10 +450,6 @@ module.exports = function(billingApi) {
                     return callback(uploadErr, null);
                 }
 
-                // (await storedFiles).forEach((storedFile) => {
-                //     billingApi.updateFileStatus({edi_file_id:storedFile.edi_file_id, status: 'in_progress'});
-                // });
-
                 if (faults.length) {
                     // TODO note various CT scenarios
                     return callback(null, uploadResponse);
@@ -431,7 +460,7 @@ module.exports = function(billingApi) {
 
                 // // mark files that were successfully uploaded to "in_progress" status
                 if (!successfulUploadResults) {
-                    return callback(null, separatedUploadResults);
+                    return callback(null, uploadResponse);
                 }
 
                 billingApi.updateFileStatus({
@@ -450,17 +479,20 @@ module.exports = function(billingApi) {
                     return uploadResult.resourceID;
                 });
 
+
                 // // 7 - submit file to OHIP
                 return ebs[EDT_SUBMIT]({resourceIDs}, (submitErr, submitResponse) => {
+
+                    allSubmitClaimResults.push(submitResponse);
 
                     const separatedSubmitResults = separateResults(submitResponse, EDT_SUBMIT, responseCodes.SUCCESS);
                     const successfulSubmitResults = separatedSubmitResults[responseCodes.SUCCESS];
                     if (submitErr) {
-                        return callback(submitErr, submitResponse);
+                        return callback(submitErr, allSubmitClaimResults);
                     }
 
                     if (!successfulSubmitResults) {
-                        return callback(null, separatedSubmitResults);
+                        return callback(null, allSubmitClaimResults);
                     }
 
                     // mark files that were successfully submitted to "success" status
@@ -484,7 +516,7 @@ module.exports = function(billingApi) {
                         })
                     });
 
-                    return callback(null, submitResponse);
+                    return callback(null, allSubmitClaimResults);
                 });
             });
         },

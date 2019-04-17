@@ -134,6 +134,7 @@ const EBSConnector = function(config) {
 
             // these are specifically for the audit log
             auditID,
+            endUser: config.username,
             serviceUserMUID,
             eventDetail: {
                 [service]: serviceParams,
