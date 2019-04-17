@@ -246,10 +246,6 @@ define(['jquery',
                     commonjs.showWarning('messages.warning.shared.invalidHealthNumber');
                     return;
                 }
-                if (!$('#txtPriGroupNo').val().length) {
-                    commonjs.showWarning('messages.warning.shared.invalidVersionCode');
-                    return;
-                }
                 else {
                     $.ajax({
                         url: '/exa_modules/billing/ohip/validateHealthCard',
@@ -996,7 +992,8 @@ define(['jquery',
                 self.claim_dt_iso = commonjs.checkNotEmpty(primaryStudyDetails.study_date)
                     ? commonjs.convertToFacilityTimeZone(primaryStudyDetails.facility_id, primaryStudyDetails.study_date).format('YYYY-MM-DD LT z')
                     : '';
-                self.cur_study_date = (primaryStudyDetails.study_date !='null' && commonjs.checkNotEmpty(primaryStudyDetails.study_date) ? commonjs.convertToFacilityTimeZone(primaryStudyDetails.facility_id, primaryStudyDetails.study_date).format('L LT z') : '');
+                self.cur_study_date = (primaryStudyDetails.study_date !='null' && commonjs.checkNotEmpty(primaryStudyDetails.study_date)
+                    ? commonjs.convertToFacilityTimeZone(primaryStudyDetails.facility_id, primaryStudyDetails.study_date).format('YYYY-MM-DD LT z') : '');
                 self.pri_accession_no = primaryStudyDetails.accession_no || null;
                 self.cur_study_id = primaryStudyDetails.study_id || null;
                 self.isEdit = self.claim_Id ? true : false;
@@ -2805,7 +2802,7 @@ define(['jquery',
                     subscriber_zipcode: $('#txtSecZipCode').val() != '' ? $('#txtSecZipCode').val() : null,
                     subscriber_state: $('#ddlSecState option:selected').val() || null,
                     assign_benefits_to_patient: $('#chkSecAcptAsmt').prop("checked"),
-                    subscriber_dob: $('#txtSecDOB').val() != '' ? moment($('#txtSecDOB').val()).format('YYYY-MM-DD') : null,
+                    subscriber_dob: $('#txtSecDOB').val() != '' ? commonjs.getISODateString($('#txtSecDOB').val()) : null,
                     medicare_insurance_type_code: $('#selectMedicalPayer option:selected').val() != '' ? parseInt($('#selectMedicalPayer option:selected').val()) : null,
                     valid_from_date: $('#txtSecStartDate').val() != '' ? commonjs.getISODateString($('#txtSecStartDate').val()) : null,
                     valid_to_date: $('#txtSecExpDate').val() != '' ? commonjs.getISODateString($('#txtSecExpDate').val()) : null,

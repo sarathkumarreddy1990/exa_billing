@@ -1709,13 +1709,14 @@ function formatSingleClaim(claimData, servicelineList) {
                             margin: [-4,3,0,0],
                             table: {
                                 widths:[ 85, 75 ],
+                                heights:[14, 10],
                                 body: [
                                     [
                                         {text: claimData.subscriber && claimData.subscriber[0].claim ? getResubmissionCode(claimData.subscriber[0].claim[0], 'claimFrequencyCode') : '', alignment:"center"},
                                         {text: claimData.subscriber && claimData.subscriber[0].claim ? getKeyTrimValue(claimData.subscriber[0].claim[0], 'originalReference', 18) : '', alignment:"center"}
                                     ],
                                     [
-                                        {text: claimData.subscriber && claimData.subscriber[0].claim ? getKeyTrimValue(claimData.subscriber[0].claim[0], 'authorizationNo', 30) : '', alignment:"center", colSpan:2, margin:[0, 5, 0, 0]},
+                                        {text: claimData.subscriber && claimData.subscriber[0].claim ? getKeyTrimValue(claimData.subscriber[0].claim[0], 'authorizationNo', 30) : '', alignment:"center", colSpan:2},
                                         {}
                                     ]
                                 ]
