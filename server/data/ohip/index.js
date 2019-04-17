@@ -2,8 +2,6 @@ const { query, SQL, audit } = require('./../index');
 const moment = require('moment');
 const sprintf = require('sprintf');
 
-// const ediData = require('../../data/claim/claim-edi');
-// const JSONExtractor = require('./jsonExtractor');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -20,13 +18,13 @@ const ohipUtil = require('./../../../modules/ohip/utils');
 const era_parser = require('./ohip-era-parser');
 
 // corresponds to the file_type field of edi_files
-const exaFileTypes = {
+const fileTypes = {
     [resourceTypes.CLAIMS]: 'can_ohip_h',
     [resourceTypes.BATCH_EDIT]: 'can_ohip_b',
     [resourceTypes.ERROR_REPORTS]: 'can_ohip_e',
     [resourceTypes.ERROR_REPORT_EXTRACT]: 'can_ohip_f',
     [resourceTypes.CLAIMS_MAIL_FILE_REJECT_MESSAGE]: 'can_ohip_x',
-    [resourceTypes.REMITTANCE_ADVICE]: 'can_ohip_p', // would it be easier to remember this as "PAYMENT?"
+    [resourceTypes.REMITTANCE_ADVICE]: 'can_ohip_p',
     [resourceTypes.OBEC]: 'can_ohip_o',
     [resourceTypes.OBEC_RESPONSE]: 'can_ohip_r',
 };
@@ -36,7 +34,7 @@ const getDatePath = () => {
 };
 
 /**
- * const getExaFileType - determines a value for the file_type field of a
+ * const getFileType - determines a value for the file_type field of a
  * record in the edi_files table based on a filename or OHIP resource type.
  * If both parameters are specified, then the resourceType is used and the
  * filename is ignored.
@@ -51,14 +49,14 @@ const getDatePath = () => {
  * @returns {string}        a valid value for the file_type field of
  *                          the edi_files table
  */
-const getExaFileType = (args) => {
+const getFileType = (args) => {
     let resourceType = args.resourceType;
 
     if (args.filename && !resourceType) {
         resourceType = ohipUtil.getResourceType(args.filename);
     }
 
-    return exaFileTypes[resourceType];
+    return fileTypes[resourceType];
 };
 
 
@@ -150,7 +148,7 @@ const storeFile =  async (args) => {
         isTransient,
     } = args;
 
-    const exaFileType = getExaFileType(args);
+    const exaFileType = getFileType(args);
 
 
     // 20120331 - OHIP Conformance Testing Batch Edit sample batch date, seq: 0005
@@ -506,20 +504,11 @@ const applyErrorReport = async (args) => {
 
 };
 
-const OHIP_CONFIGURATION_MODE = {
-    CONFORMANCE_TESTING: 'Conformance Testing',
-    DEMO: 'Demonstration',
-    PRODUCTION: 'Production',
-};
-
 const config = require('../../config');
 
 const OHIPDataAPI = {
 
-    OHIP_CONFIGURATION_MODE,
-
-
-    getExaFileType,
+    getFileType,
 
     getFileStore,
     storeFile,
@@ -540,19 +529,36 @@ const OHIPDataAPI = {
             muid,
         } = args || {};
 
-        return {
-            hcvSoftwareConformanceKey: config.get('hcvSoftwareConformanceKey'),//'65489ecd-0bef-4558-8871-f2e4b71b8e92',
+        // convert a semicolon delimited list of key=value pairs into a configuration object
+        // e.g. "foo=1;bar=A;baz=true"
+        return (config.get('ohipModuleParams') || '').split(';').reduce((ohipConfig, param) => {
+            if (param) {    // could be an empty string
+                const paramParts = param.split('=');
+                ohipConfig[paramParts[0].trim()] = paramParts[1].trim();
+            }
+            return ohipConfig;
+        }, {
+            //
+            // this is the 'seed' object for the reduce function
+            //
 
-            edtSoftwareConformanceKey: config.get('edtSoftwareConformanceKey'),
-            edtServiceEndpoint: config.get('edtServiceEndpoint'),
-            hcvServiceEndpoint: config.get('hcvServiceEndpoint'),
+            // EBS specific ...
+            ebsConfig: {
+                enabled: config.get('ebsEnabled'),
+                ebsCertPath: config.get('ebsCertPath'),
+                serviceUserMUID: (typeof muid !== 'undefined') ? muid : config.get('serviceUserMUID'),
+                username: config.get('ebsUsername'),
+                password: config.get('ebsPassword'),
 
-            ebsCertPath: config.get('ebsCertPath'),
-            serviceUserMUID: (typeof muid !== 'undefined') ? muid : config.get('serviceUserMUID'),
-            username: config.get('ebsUsername'),
-            password: config.get('ebsPassword'),
-            mode: OHIP_CONFIGURATION_MODE.DEMO,
-        };
+                // EDT specific ...
+                edtSoftwareConformanceKey: config.get('edtSoftwareConformanceKey'),
+                edtServiceEndpoint: config.get('edtServiceEndpoint'),
+
+                // HCV specific ...
+                hcvSoftwareConformanceKey: config.get('hcvSoftwareConformanceKey'),
+                hcvServiceEndpoint: config.get('hcvServiceEndpoint'),
+            }
+        });
     },
 
     auditTransaction: async (args) => {
