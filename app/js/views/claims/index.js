@@ -246,10 +246,6 @@ define(['jquery',
                     commonjs.showWarning('messages.warning.shared.invalidHealthNumber');
                     return;
                 }
-                if (!$('#txtPriGroupNo').val().length) {
-                    commonjs.showWarning('messages.warning.shared.invalidVersionCode');
-                    return;
-                }
                 else {
                     $.ajax({
                         url: '/exa_modules/billing/ohip/validateHealthCard',
