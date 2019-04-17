@@ -635,8 +635,9 @@ define(['jquery',
                 }
 
                 commonjs.showLoading();
+                var isCanada = app.country_alpha_3_code === 'can';
                 var url = '/exa_modules/billing/claim_workbench/create_claim';
-                if (app.country_alpha_3_code === 'can') {
+                if (isCanada) {
                     url = '/exa_modules/billing/ohip/submitClaims';
                 }
 
@@ -648,8 +649,12 @@ define(['jquery',
                     },
                     success: function (data, textStatus, jqXHR) {
                         commonjs.hideLoading();
-                        self.ediResponse(data);
-
+                        if (isCanada) {
+                            self.ohipResponse(data);
+                        }
+                        else {
+                            self.ediResponse(data);
+                        }
                     },
                     error: function (err) {
                         commonjs.handleXhrError(err);
@@ -664,8 +669,9 @@ define(['jquery',
 
                 var isDatePickerClear = filterCol.indexOf('claim_dt') === -1;
 
+                var isCanada = app.country_alpha_3_code === 'can';
                 var implUrl = '/exa_modules/billing/claim_workbench';
-                if (app.country_alpha_3_code === 'can') {
+                if (isCanada) {
                     implUrl = '/exa_modules/billing/ohip/submitClaims';
                 }
                 jQuery.ajax({
@@ -687,7 +693,10 @@ define(['jquery',
                     },
                     success: function (data, textStatus, jqXHR) {
                         commonjs.hideLoading();
-                        if (targetType == 'EDI') {
+                        if (isCanada) {
+                            self.ohipResponse(data);
+                        }
+                        else if (targetType == 'EDI') {
                             self.ediResponse(data);
                         } else {
                             if (!data.invalidClaim_data.length) {
@@ -704,6 +713,26 @@ define(['jquery',
                     }
                 });
             },
+
+
+            ohipResponse: function(data) {
+                if (data.validationMessages && data.validationMessages.length) {
+                    data.validationMessages.forEach(function(validationMessage) {
+                        commonjs.showWarning(validationMessage);
+                    });
+                }
+                else if (data.faults && data.faults.length) {
+                    data.faults.forEach(function(fault) {
+                        commonjs.showWarning((fault.code + '/' + fault.message)
+                            || (fault.faultcode + '/' + fault.faultstring)
+                            || 'Unable to communicate with OHIP EBS');
+                    });
+                }
+                else if (data.results && data.results.length) {
+                    commonjs.showStatus('Claims submitted successfully');
+                }
+            },
+
 
             ediResponse: function (data) {
                 self.ediResultTemplate = _.template(ediResultHTML);

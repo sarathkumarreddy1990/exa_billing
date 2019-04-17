@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const uuid = require('uuid/v1');
-
+const logger = require('../../../logger');
 const {
     chunk,
 } = require('lodash');
@@ -20,30 +20,29 @@ const {
 } = ws;
 
 const {
-    EDT_GET_TYPE_LIST,
-    EDT_UPLOAD,
-    EDT_SUBMIT,
-    EDT_INFO,
-    EDT_LIST,
-    EDT_DOWNLOAD,
-    EDT_DELETE,
-    EDT_UPDATE,
-    HCV,
-
-} = require('./service');
-const xml = require('./xml');
-const requestTemplate = require('./requestTemplate');
-
-// const hcvRequestTemplate = require('./hcvRequest');
-
-const {
     UPLOAD_MAX,
     UPDATE_MAX,
     DELETE_MAX,
     SUBMIT_MAX,
     DOWNLOAD_MAX,
     INFO_MAX,
+
+    services: {
+        EDT_GET_TYPE_LIST,
+        EDT_UPLOAD,
+        EDT_SUBMIT,
+        EDT_INFO,
+        EDT_LIST,
+        EDT_DOWNLOAD,
+        EDT_DELETE,
+        EDT_UPDATE,
+        HCV_REAL_TIME,
+    },
 } = require('./constants');
+
+const xml = require('./xml');
+const requestTemplate = require('./requestTemplate');
+const serviceTemplate = require('./serviceTemplate');
 
 const DEFAULT_SERVICE_XML = '';
 const DEFAULT_EDT_SERVICE_ENDPOINT = 'https://ws.conf.ebs.health.gov.on.ca:1443/EDTService/EDTService';
@@ -109,18 +108,37 @@ const EBSConnector = function(config) {
      */
     const createContext = (service, serviceParams) => {
 
-        const isHCV = (service === HCV);
+        const isHCV = (service === HCV_REAL_TIME);
+
+        const serviceUserMUID = config.serviceUserMUID;
+
+        const url = isHCV ? hcvServiceEndpoint : edtServiceEndpoint;
+        logger.debug('EBS request context url', url);
+
+        const auditID = uuid();
+        logger.debug('EBS request context auditID', auditID);
+
+        const serviceXML = (serviceTemplate[service](serviceParams));
+        logger.debug('EBS request XML', serviceXML);
 
         return {
+            // these are required by ws.js
             request: requestTemplate({
-                    serviceXML: (service(serviceParams) || DEFAULT_SERVICE_XML),
+                    serviceXML,
                     softwareConformanceKey: isHCV ? config.hcvSoftwareConformanceKey : config.edtSoftwareConformanceKey,
-                    auditID: uuid(),
-                    serviceUserMUID: config.serviceUserMUID,
+                    auditID,
+                    serviceUserMUID,
                 }),
-
-            url: isHCV ? hcvServiceEndpoint : edtServiceEndpoint,
             contentType: 'text/xml',
+            url,
+
+            // these are specifically for the audit log
+            auditID,
+            endUser: config.username,
+            serviceUserMUID,
+            eventDetail: {
+                [service]: serviceParams,
+            },
         };
     };
 
@@ -133,7 +151,7 @@ const EBSConnector = function(config) {
          * @param  {type} callback description
          * @return {type}          description
          */
-        upload: (args, callback) => {
+        [EDT_UPLOAD]: (args, callback) => {
 
             const {
                 uploads,
@@ -147,12 +165,6 @@ const EBSConnector = function(config) {
             const chunkSize = unsafe ? uploads.length : UPLOAD_MAX;
 
             chunk(uploads, chunkSize).forEach((chunk, chunkIndex, chunks) => {
-
-                const uploadStr = chunk.map((upload) => {
-                    const filename = path.basename(upload.filename);
-                    const description = (upload.description === filename) ? '' : (upload.description || '');
-                    return `${upload.resourceType} ${filename} ${description}`.trim();
-                }).join('|');
 
                 const ctx = createContext(EDT_UPLOAD, {uploads: chunk});
 
@@ -170,24 +182,16 @@ const EBSConnector = function(config) {
                 ws.send(handlers, ctx, (ctx) => {
 
                     const {
-                        audit,
                         response,
                     } = ctx;
 
-                    let resourceIDs = [];
                     try {
-                        const result = xml.parseUploadResponse(response);
-                        audit.successful = true;
-                        resourceIDs = result.response.map((response) => {
-                            return response.resourceID;
-                        });
-                        results.push(result);
+                        results.push(xml.parseUploadResponse(response));
                     }
                     catch (e) {
                         faults.push(xml.parseEBSFault(response));
                     }
-                    audit.actionDetail = `upload [${uploadStr}]: [${resourceIDs.join(',')}]`;
-                    auditInfo.push(audit);
+                    auditInfo.push(ctx.auditInfo);
 
                     if (auditInfo.length === chunks.length) {
                         // TODO pass errors
@@ -201,7 +205,7 @@ const EBSConnector = function(config) {
             });
         },
 
-        submit: (args, callback) => {
+        [EDT_SUBMIT]: (args, callback) => {
 
             const {
                 resourceIDs,
@@ -218,23 +222,16 @@ const EBSConnector = function(config) {
                 return ws.send(handlers, ctx, (ctx) => {
 
                     const {
-                        audit,
                         response,
                     } = ctx;
 
-                    const rids = chunk.map((resourceID) => {
-                        return parseInt(resourceID);
-                    }).join(',');
-
                     try {
                         results.push(xml.parseSubmitResponse(response));
-                        audit.successful = true;
                     }
                     catch (e) {
                         faults.push(xml.parseEBSFault(response));
                     }
-                    audit.actionDetail = `submit: [${rids}]`;
-                    auditInfo.push(audit);
+                    auditInfo.push(ctx.auditInfo);
 
                     if (auditInfo.length === chunks.length) {
                         // TODO pass errors
@@ -248,7 +245,7 @@ const EBSConnector = function(config) {
             });
         },
 
-        info: (args, callback) => {
+        [EDT_INFO]: (args, callback) => {
             const {
                 resourceIDs,
             } = args;
@@ -266,24 +263,17 @@ const EBSConnector = function(config) {
                 return ws.send(handlers, ctx, (ctx) => {
 
                     const {
-                        audit,
                         response,
                     } = ctx;
 
-                    const rids = chunk.map((resourceID) => {
-                        return parseInt(resourceID);
-                    }).join(',');
-
                     try {
                         results.push(xml.parseInfoResponse(response));
-                        audit.successful = true;
                     }
                     catch (e) {
                         faults.push(xml.parseEBSFault(response));
                     }
 
-                    audit.actionDetail = `info: [${rids}]`;
-                    auditInfo.push(audit);
+                    auditInfo.push(ctx.auditInfo);
 
                     if (auditInfo.length === chunks.length) {
                         // TODO pass errors
@@ -297,8 +287,13 @@ const EBSConnector = function(config) {
             });
         },
 
-        list: (args, callback) => {
-            const ctx = createContext(EDT_LIST, args);
+        [EDT_LIST]: (args, callback) => {
+            const {
+                resourceType,
+                status,
+                pageNo,
+            } = args;
+            const ctx = createContext(EDT_LIST, {resourceType, status, pageNo});
 
             const auditInfo = [];
             const results = [];
@@ -307,23 +302,17 @@ const EBSConnector = function(config) {
             return ws.send(handlers, ctx, (ctx) => {
 
                 const {
-                    audit,
                     response,
                 } = ctx;
 
                 try {
-                    const listResponse = xml.parseListResponse(response);
-                    // if (listResponse) {
-                        results.push(listResponse);
-                        audit.successful = true;
-                    // }
+                    results.push(xml.parseListResponse(response));
                 }
                 catch (e) {
                     faults.push(xml.parseEBSFault(response));
                 }
 
-                audit.actionDetail = `list: [${args.resourceType || ''} ${args.status || ''}]`;
-                auditInfo.push(audit);
+                auditInfo.push(ctx.auditInfo);
 
                 return callback(null, {
                     faults,
@@ -333,7 +322,7 @@ const EBSConnector = function(config) {
             });
         },
 
-        download: (args, callback) => {
+        [EDT_DOWNLOAD]: (args, callback) => {
             const {
                 resourceIDs,
                 unsafe,
@@ -352,25 +341,17 @@ const EBSConnector = function(config) {
                 return ws.send(handlers, ctx, (ctx) => {
 
                     const {
-                        audit,
                         response,
                     } = ctx;
 
-                    const rids = chunk.map((resourceID) => {
-                        return parseInt(resourceID);
-                    }).join(',');
-
                     try {
-                        const r = xml.parseDownloadResponse(response);
-                        results.push(r);
-                        audit.successful = true;
+                        results.push(xml.parseDownloadResponse(response));
                     }
                     catch (e) {
                         faults.push(xml.parseEBSFault(response));
                     }
 
-                    audit.actionDetail = `download: [${rids}]`;
-                    auditInfo.push(audit);
+                    auditInfo.push(ctx.auditInfo);
 
                     if (auditInfo.length === chunks.length) {
                         // TODO pass errors
@@ -385,7 +366,7 @@ const EBSConnector = function(config) {
         },
 
 
-        delete: (args, callback) => {
+        [EDT_DELETE]: (args, callback) => {
 
             const {
                 resourceIDs,
@@ -402,24 +383,17 @@ const EBSConnector = function(config) {
                 return ws.send(handlers, ctx, (ctx) => {
 
                     const {
-                        audit,
                         response,
                     } = ctx;
 
-                    const rids = chunk.map((resourceID) => {
-                        return parseInt(resourceID);
-                    }).join(',');
-                    audit.actionDetail = `delete: [${rids}]`;
-
                     try {
                         results.push(xml.parseDeleteResponse(response));
-                        audit.successful = true;
                     }
                     catch (e) {
                         faults.push(xml.parseEBSFault(response));
                     }
 
-                    auditInfo.push(audit);
+                    auditInfo.push(ctx.auditInfo);
 
                     if (auditInfo.length === chunks.length) {
                         // TODO pass errors
@@ -433,7 +407,7 @@ const EBSConnector = function(config) {
             });
         },
 
-        update: (args, callback) => {
+        [EDT_UPDATE]: (args, callback) => {
 
             const {
                 updates,
@@ -464,24 +438,16 @@ const EBSConnector = function(config) {
                 return ws.send(handlers, ctx, (ctx) => {
 
                     const {
-                        audit,
                         response,
                     } = ctx;
 
-                    const updateStr = chunk.map((update) => {
-                        return `${path.basename(update.filename)} ${update.resourceID}`;
-                    }).join('|');
-
-                    audit.actionDetail = `update: [${updateStr}]`;
-
                     try {
                         results.push(xml.parseUpdateResponse(response));
-                        audit.successful = true;
                     }
                     catch (e) {
                         faults.push(xml.parseEBSFault(response));
                     }
-                    auditInfo.push(audit);
+                    auditInfo.push(ctx.auditInfo);
 
                     if (auditInfo.length === chunks.length) {
                         // TODO pass errors
@@ -495,9 +461,9 @@ const EBSConnector = function(config) {
             });
         },
 
-        getTypeList: (args, callback) => {
+        [EDT_GET_TYPE_LIST]: (args, callback) => {
 
-            const ctx = createContext(EDT_GET_TYPE_LIST, args);
+            const ctx = createContext(EDT_GET_TYPE_LIST, {});
 
             const auditInfo = [];
             const results = [];
@@ -506,21 +472,17 @@ const EBSConnector = function(config) {
             return ws.send(handlers, ctx, (ctx) => {
 
                 const {
-                    audit,
                     response,
                 } = ctx;
 
-                audit.actionDetail = `getTypeList`;
-
                 try {
                     results.push(xml.parseTypeListResponse(response));
-                    audit.successful = true;
                 }
                 catch (e) {
                     faults.push(xml.parseEBSFault(response));
                 }
 
-                auditInfo.push(audit);
+                auditInfo.push(ctx.auditInfo);
 
                 return callback(null, {
                     faults,
@@ -530,8 +492,8 @@ const EBSConnector = function(config) {
             });
         },
 
-        validateHealthCard: (args, callback) => {
-            const ctx = createContext(HCV, args);
+        [HCV_REAL_TIME]: (args, callback) => {
+            const ctx = createContext(HCV_REAL_TIME, args);
 
             const auditInfo = [];
             let results = [];
@@ -539,21 +501,17 @@ const EBSConnector = function(config) {
 
             return ws.send(hcvHandlers, ctx, (ctx) => {
                 const {
-                    audit,
                     response,
                 } = ctx;
 
-                audit.actionDetail = `validateHealthCard`;
-
                 try {
                     results = results.concat(xml.parseHCVResponse(response));
-                    audit.successful = true;
                 }
                 catch (e) {
                     faults.push(xml.parseEBSFault(response));
                 }
 
-                auditInfo.push(audit);
+                auditInfo.push(ctx.auditInfo);
 
                 return callback(null, {
                     faults,
