@@ -196,23 +196,23 @@ module.exports = function(billingApi) {
 
                     const separatedDownloadResults = separateResults(downloadResponse, EDT_DOWNLOAD, responseCodes.SUCCESS);
 
-                    const ediFiles = await separatedDownloadResults[responseCodes.SUCCESS].reduce(async (ediFilesResult, result) => {
+                    const ediFiles = separatedDownloadResults[responseCodes.SUCCESS].map(async (result) => {
 
                         const data = result.content;
                         const filename = result.description;
-
-                        const files = await {
+                        const file = await billingApi.storeFile({
                             data,
                             filename,
-                            ...(await billingApi.storeFile({
-                                data,
-                                filename,
-                            })),
-                        };
+                        });
 
-                        return (await ediFilesResult).concat(await files);
-                    }, []);
-                    callback(null, (await ediFiles));
+                        return {
+                            data,
+                            filename,
+                            ...file
+                        };
+                    });
+
+                    callback(null, ediFiles);
                 });
             }
             else {
@@ -228,9 +228,9 @@ module.exports = function(billingApi) {
             applicator,
         } = params;
 
-        download({resourceType}, async (downloadErr, downloadResponse) => {
+        download({resourceType}, (downloadErr, downloadResponse) => {
 
-            (await downloadResponse).forEach(async (download) => {
+            downloadResponse.forEach(async (download) => {
 
                 const {
                     filename,
