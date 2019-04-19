@@ -257,8 +257,8 @@ define(['jquery',
                             patient_insurance_id: self.priClaimInsID || self.primaryPatientInsuranceId
                         },
                         success: function (data) {
-                            if ( data.results && data.results.length ) {
-                                var eligibilityRes = data.results[0];
+                            if ( data ) {
+                                var eligibilityRes = (data.results && data.results.length) ? data.results[0] : data.faults && data.faults[0] || data.err
                                 commonjs.showNestedDialog({
                                     header: 'Healthcard Eligibility Result', i18nHeader: 'menuTitles.patient.patientInsuranceEligibility', height: '70%', width: '70%',
                                     html: self.insuranceOhipTemplate({
