@@ -337,7 +337,7 @@ module.exports = function(billingApi) {
                 if (validationData.unique_billing_method_count > 1) {
                     validationResponse.validationMessages.push('Please select claims with same type of billing method');
                 }
-                if (validationData.claim_status.length != claimIds.length) {
+                if ( !validationData.claim_status || validationData.claim_status.length !== claimIds.length ) {
                     validationResponse.validationMessages.push('Claim date should not be greater than the current date');
                 }
 
