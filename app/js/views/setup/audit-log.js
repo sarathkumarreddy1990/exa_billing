@@ -85,7 +85,9 @@ define([
                         {
                             name: 'created_dt',
                             width: 180,
-                            formatter: self.loggedDateFormatter,
+                            formatter: function(e,model,data) {
+                                return self.dateFormatter(data);
+                            },
                             search: false
                         },
                         {
@@ -154,7 +156,7 @@ define([
                 this.render();
             },
 
-            loggedDateFormatter: function (cellvalue, options, rowObject) {
+            dateFormatter: function (rowObject) {
                 return rowObject.created_dt ? commonjs.getFormattedDateTime(rowObject.created_dt) : '';
             },
 
@@ -192,7 +194,7 @@ define([
                         $("#clientIp").html(response.client_ip);
                         $("#module").html(response.module_name);
                         $("#screen").html(response.screen_name);
-                        $("#loggedDate").html(response.created_dt);
+                        $("#loggedDate").html(self.dateFormatter(response));
                         $("#description").html(response.description);
                         $("#showDetails").click(function () {
                             $("#oldInfoRow").toggle();
