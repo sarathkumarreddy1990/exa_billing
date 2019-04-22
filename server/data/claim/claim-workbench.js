@@ -746,7 +746,7 @@ module.exports = {
                 WHERE bc.id = ANY(${claimIds}) `;
 
         if(country == 'can') {
-            sql.append(` AND bc.claim_dt <= now()`);
+            sql.append(` AND TIMEZONE(public.get_facility_tz(bc.facility_id :: INT), bc.claim_dt) :: DATE <= CURRENT_DATE `);
         }
 
         return await query(sql.text, sql.values);
