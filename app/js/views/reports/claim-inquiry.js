@@ -12,6 +12,8 @@ define([
             expanded: false,
             mainTemplate: _.template(claimInquiryTemplate),
             viewModel: {
+                dateFormat: 'MM/DD/YYYY',
+                country_alpha_3_code: 'usa',
                 sDate: null,
                 patientIds: null,
                 patientOption: null,
@@ -96,7 +98,7 @@ define([
                 this.$el.html(this.mainTemplate(this.viewModel));
                 UI.initializeReportingViewModel(options, this.viewModel);
 
-                //    this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings());
+                UI.getReportSetting(this.viewModel, 'all', 'dateFormat'); // Get date format (and current country code) based on current country code saved in sites table(this.viewModel);
 
                 this.viewModel.dateFrom = moment().startOf('month').add(-1, 'month');    // start of the last month
                 this.viewModel.dateTo = this.viewModel.dateFrom.clone().endOf('month');  // end of the last month
@@ -106,8 +108,6 @@ define([
 
                 this.viewModel.billCreatedDateFrom = moment().startOf('month').add(-1, 'month');    // start of the last month  (CPT Pay Date)
                 this.viewModel.billCreatedDateTo = this.viewModel.billCreatedDateFrom.clone().endOf('month');  // end of the last month
-
-
             },
 
             showForm: function () {
@@ -149,7 +149,6 @@ define([
                 self.billCreatedDate.setStartDate(this.viewModel.billCreatedDateFrom);
                 self.billCreatedDate.setEndDate(this.viewModel.billCreatedDateTo);
 
-
                 // Default selection
                 $('#workedByAll').prop('checked', true);     // For Worked By Drop down
                 $('#chkServiceDateBill').attr('checked', true); // For service Date
@@ -173,8 +172,9 @@ define([
             bindDateRangePicker: function () {
                 var self = this;
                 var drpEl = $('#serviceDateBill');
+
                 //   Service date (Bill) Date Picker
-                var drpOptions = { autoUpdateInput: true, locale: { format: 'L' } };
+                var drpOptions = { autoUpdateInput: true, locale: { format: this.viewModel.dateFormat } };
                 this.drpStudyDt = commonjs.bindDateRangePicker(drpEl, drpOptions, 'past', function (start, end, format) {
                     self.viewModel.dateFrom = start;
                     self.viewModel.dateTo = end;
@@ -185,7 +185,7 @@ define([
                 });
                 //   CPT date  Date Picker
                 var cptDate = $('#serviceDateBillCPT');
-                var drpOptions = { autoUpdateInput: true, locale: { format: 'L' } };
+                var drpOptions = { autoUpdateInput: true, locale: { format: this.viewModel.dateFormat } };
                 this.commentDate = commonjs.bindDateRangePicker(cptDate, drpOptions, 'past', function (start, end, format) {
                     self.viewModel.cmtFromDate = start;
                     self.viewModel.cmtToDate = end;
@@ -196,7 +196,7 @@ define([
                 });
                 //   Bill Created date  Picker
                 var billCreatedDate = $('#serviceDateBillCreated');
-                var drpOptions = { autoUpdateInput: true, locale: { format: 'L' } };
+                var drpOptions = { autoUpdateInput: true, locale: { format: this.viewModel.dateFormat } };
                 this.billCreatedDate = commonjs.bindDateRangePicker(billCreatedDate, drpOptions, 'past', function (start, end, format) {
                     self.viewModel.billCreatedDateFrom = start;
                     self.viewModel.billCreatedDateTo = end;
@@ -256,22 +256,22 @@ define([
 
             hasValidViewModel: function () {
                 if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
-                    commonjs.showWarning('Please check report id, category, and/or format!');
+                    commonjs.showWarning('messages.status.pleaseCheckReportIdCategoryandorFormat');
                     return;
                 }
 
                 // Claim # validatation for from# &  To #
                 if ($('#claimIdFrom').val() != '' && $('#claimIdTo').val() == "") {
-                    commonjs.showWarning('Please Enter To Range (Claim #)');
+                    commonjs.showWarning('messages.status.pleaseEnterToRangeClaim');
                     return;
                 }
                 if ($('#claimIdTo').val() != '' && $('#claimIdFrom').val() == "") {
-                    commonjs.showWarning('Please Enter From Range (Claim #)');
+                    commonjs.showWarning('messages.status.pleaseEnterFromRangeClaim');
                     return;
                 }
 
                 if ($('#claimIdFrom').val() > $('#claimIdTo').val()) {
-                    commonjs.showWarning('Claim From# not Greater than To#');
+                    commonjs.showWarning('messages.status.claimFromNotGreaterThanTo');
                     return;
                 }
 
@@ -292,6 +292,8 @@ define([
                 });
 
                 return urlParams = {
+                    'dateFormat': this.viewModel.dateFormat,
+                    'country_alpha_3_code': this.viewModel.country_alpha_3_code,
                     'allFacilities': this.viewModel.allFacilities,
                     'facilityIds': this.viewModel.facilityIds,
 
@@ -379,6 +381,7 @@ define([
             },
 
             onOptionChangeSelectUser: function () {
+                $('#txtUsers').empty();
                 if ($('#ddlUsersOption').val() == 'S') {
                     $("#ddlUsersBox").show();
                     $("#divUsers").show();

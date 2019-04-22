@@ -15,37 +15,46 @@ const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
 
 const createDir = function (fileStorePath, filePath) {
+    return new Promise(function(resolve, reject) {
+        const dirPath = `${fileStorePath}\\${filePath}`;
 
-    const dirPath = `${fileStorePath}\\${filePath}`;
+        logger.info(`File store: ${fileStorePath}, ${filePath}`);
 
-    logger.info(`File store: ${fileStorePath}, ${filePath}`);
+        let dirExists = fs.existsSync(fileStorePath);
 
-    let dirExists = fs.existsSync(fileStorePath);
+        if (!dirExists) {
+            logger.info(`Root directory not found in file store -  ${fileStorePath}`);
 
-    if (!dirExists) {
-        logger.info(`Root directory not found in file store -  ${fileStorePath}`);
-        return {
-            status: false,
-            message: 'Root directory not found in file store'
-        };
-    }
-
-    if (fileStorePath) {
-        const folderExist = fs.existsSync(dirPath);
-
-        if (folderExist) {
-            return { status: true };
+            return reject({
+                file_store_status: 'Root directory not found in file store'
+            });
         }
 
-        mkdirp(dirPath);
-        return { status: true };
-    }
+        if (fileStorePath) {
+            const folderExist = fs.existsSync(dirPath);
 
-    logger.info(`Directory not found -  ${dirPath}`);
-    return {
-        status: false,
-        message: 'Directory not found in file store'
-    };
+            if (folderExist) {
+                return resolve({ status: true });
+            }
+
+            mkdirp(dirPath, function (err) {
+                if (err) {
+                    return reject({
+                        file_store_status: 'Directory not found in file store'
+                    });
+                }
+
+                return resolve({ status: true });
+            });
+
+        } else {
+            logger.info(`Directory not found -  ${dirPath}`);
+
+            return reject({
+                file_store_status: 'Directory not found in file store'
+            });
+        }
+    });
 };
 
 module.exports = {
@@ -89,7 +98,7 @@ module.exports = {
         const modeParamStr = params.body.mode.toUpperCase();
         const isPreviewMode = modeParamStr === 'PREVIEW_EOB';
         const isEob = modeParamStr.indexOf('_PDF') > -1;
-        
+
         const uploadingMode = isEob ? 'EOB' : 'ERA';
         const ediFileId = modeParamStr.split('_')[0];
 
@@ -101,8 +110,9 @@ module.exports = {
         let bufferString = tempString.replace(/(?:\r\n|\r|\n)/g, '');
 
         bufferString = bufferString.trim() || '';
+        let isValidFileContent = params.countryCode === 'can' ? (bufferString.indexOf('HR1') == -1 || bufferString.indexOf('HR4') == -1 || bufferString.indexOf('HR7') == -1) : (bufferString.indexOf('ISA') == -1 || bufferString.indexOf('CLP') == -1);
 
-        if (!isEob && (bufferString.indexOf('ISA') == -1 || bufferString.indexOf('CLP') == -1)) {
+        if (!isEob && isValidFileContent) {
             return {
                 status: 'INVALID_FILE',
             };
@@ -130,12 +140,11 @@ module.exports = {
         if (isPreviewMode) {
             logger.info('ERA Preview MODE');
             fileRootPath = `trash\\${currentTime.getFullYear()}\\${currentTime.getMonth()}`;
-            const dirResponse = createDir(fileStorePath, fileRootPath);
 
-            if (!dirResponse.status) {
-                return {
-                    file_store_status: dirResponse.message
-                };
+            try {
+                await createDir(fileStorePath, fileRootPath);
+            } catch (err) {
+                return err;
             }
 
             let diskFileName = params.session.id + '__' + fileName;
@@ -155,12 +164,10 @@ module.exports = {
 
         logger.info(`${uploadingMode} Process MODE`);
 
-        const dirResponse = createDir(fileStorePath, fileRootPath);
-
-        if (!dirResponse.status) {
-            return {
-                file_store_status: dirResponse.message
-            };
+        try {
+            await createDir(fileStorePath, fileRootPath);
+        } catch (err) {
+            return err;
         }
 
         if (fileExist != false && !isEob) {
@@ -378,7 +385,7 @@ module.exports = {
             paymentResult.created_by = payerDetails.created_by;
             paymentResult.company_id = payerDetails.company_id;
             paymentResult.uploaded_file_name = params.uploaded_file_name;
-
+            paymentResult.payer_type = payerDetails.payer_type;
             await data.createEdiPayment(paymentResult);
 
             return paymentResult;
@@ -449,18 +456,72 @@ module.exports = {
     getEOBFile: async function (params) {
         let eobFileDetails = await data.getERAFilePathById(params);
 
-        try {
-            if (eobFileDetails.rows && eobFileDetails.rows.length) {
-                const filePath = path.join(eobFileDetails.rows[0].root_directory, eobFileDetails.rows[0].file_path, eobFileDetails.rows[0].id);
-                return fs.createReadStream(filePath);
+        if (eobFileDetails.rows && eobFileDetails.rows.length) {
+            const filePath = path.join(eobFileDetails.rows[0].root_directory, eobFileDetails.rows[0].file_path, eobFileDetails.rows[0].id);
+
+            if (!fs.existsSync(filePath)) {
+                throw new Error('Root directory not found in file store');
             }
-        } catch (err) {
-            logger.error(err);
+
+            return fs.createReadStream(filePath);
         }
 
-        return {
-            name: 'error',
-            message: 'EOB File Not Found'
-        };
+        throw new Error('EOB File Not Found');
+    },
+
+    createPayment: async function(eraObject, params){
+        let paymentResult;
+        let payerDetails = {};
+        let totalAmountPayable = eraObject.totalAmountPayable ? Math.round( eraObject.totalAmountPayable * 100) / 10000 : 0.00;
+        let notes = 'Amount shown in EOB:$' + totalAmountPayable;
+
+        payerDetails.paymentId = null;
+        payerDetails.company_id = params.company_id || null;
+        payerDetails.user_id = params.user_id || null;
+        payerDetails.facility_id = params.facility_id || null;
+        payerDetails.created_by = params.created_by || null;
+        payerDetails.patient_id = null;
+        payerDetails.insurance_provider_id = params.insurance_provider_id || null;  // ToDo:: params from UI
+        payerDetails.provider_group_id = null;
+        payerDetails.provider_contact_id = null;
+        payerDetails.payment_reason_id = null;
+        payerDetails.amount = 0;
+        payerDetails.accounting_date = eraObject.paymentDate || 'now()';
+        payerDetails.invoice_no = '';
+        payerDetails.display_id = null;  // alternate_payment_id
+        payerDetails.payer_type = 'insurance';
+        payerDetails.notes = notes;
+        payerDetails.payment_mode = 'eft';
+        payerDetails.credit_card_name = null;
+        payerDetails.credit_card_number = eraObject.chequeNumber || null; // card_number
+        payerDetails.clientIp = params.clientIp;
+        payerDetails.screenName = params.screenName;
+        payerDetails.moduleName = params.moduleName;
+
+        payerDetails.logDescription = 'Payment created via ERA';
+        payerDetails.isERAPayment = true;
+        payerDetails.file_id = 0; // ToDo:: uploaded ERA file id
+
+
+        try {
+
+            paymentResult = await paymentController.createOrUpdatePayment(payerDetails);
+            paymentResult = paymentResult && paymentResult.rows && paymentResult.rows.length ? paymentResult.rows[0] : {};
+            paymentResult.file_id =  payerDetails.file_id; // imported ERA file id
+            paymentResult.created_by = payerDetails.created_by;
+            paymentResult.company_id = payerDetails.company_id;
+            paymentResult.uploaded_file_name =  'Canada_ERA.txt';
+            paymentResult.payer_type = payerDetails.payer_type;
+            paymentResult.messageText = eraObject.messageText || '';
+            paymentResult.code = 'ERA';
+
+            await data.createEdiPayment(paymentResult);
+
+        } catch (err) {
+
+            throw err;
+        }
+
+        return paymentResult;
     }
 };

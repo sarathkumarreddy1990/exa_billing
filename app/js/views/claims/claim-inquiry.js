@@ -96,14 +96,18 @@ define([
                 var claimId = this.options.claim_id
                 var isFromClaimScreen = this.options.source && this.options.source === 'claims'
 
-                $(this.el).html(this.inquiryTemplate());
+                $(this.el).html(this.inquiryTemplate({
+                    country_alpha_3_code: app.country_alpha_3_code
+                }));
                 if (this.options.source !== 'web')
                     commonjs.showDialog({
                         header: 'Claim Inquiry',
                         i18nHeader: 'billing.fileInsurance.claimInquiry',
                         width: '90%',
                         height: '85%',
-                        html: this.inquiryTemplate()
+                        html: this.inquiryTemplate({
+                            country_alpha_3_code: app.country_alpha_3_code
+                        })
                     });
                 else
                     $('.navbar').remove();
@@ -115,7 +119,7 @@ define([
                 if (this.screenID && this.screenID.indexOf('anc_patient_claim_inquiry') !== -1) {
                     $('#btnPatientClaims').hide();
                 }
-                   
+
                 this.bindEvents();
                 this.followDate =  commonjs.bindDateTimePicker("divFollowUpDate", { format: 'L', minDate: moment().startOf('day') });
                 this.followDate.date();
@@ -147,6 +151,11 @@ define([
                     self.applyToggleInquiry(e);
                 });
 
+            },
+
+            clearFaxInfo: function () {
+                $('#txtFaxReceiverName').val('');
+                $('#txtFaxReceiverNumber').val('');
             },
 
             claimInquiryDetails: function (claimID, fromTogglePreNext, isFromClaimScreen) {
@@ -200,10 +209,11 @@ define([
                                 self.patientInquiryForm(self.claim_id, patient_details[0].patient_id, patient_details[0].patient_name, self.options.grid_id, true, true);
                             });
 
+                            self.options.patient_id = patient_details[0].patient_id;
 
                             if (patient_details && patient_details.length > 0) {
-                                var patient_details = commonjs.geti18NString('shared.screens.setup.claimInquiry') + ':' + patient_details[0].patient_name + ' (Acc#:' + patient_details[0].account_no + ')' + ',  ' + moment(patient_details[0].birth_date).format('L') + ',  ' + patient_details[0].gender;
-                                $(parent.document).find('#spanModalHeader').html(patient_details)
+                                var patientHeaderInfo = commonjs.geti18NString('shared.screens.setup.claimInquiry') + ':' + patient_details[0].patient_name + ' (Acc#:' + patient_details[0].account_no + ')' + ',  '+ ' (Claim#:' + self.claim_id + ')' + ',  '+ moment(patient_details[0].birth_date).format('L') + ',  ' + patient_details[0].gender;
+                                $(parent.document).find('#spanModalHeader').html(patientHeaderInfo);
                             }
 
                             if (fromTogglePreNext) {
@@ -232,6 +242,7 @@ define([
                             } else {
                                 $('#divClaimInquiry').height(isFromClaimScreen ? $(window).height() - 220 : $(window).height() - 260);
                             }
+                            self.clearFaxInfo();
                         }
                     },
                     error: function (err) {
@@ -244,41 +255,56 @@ define([
                 });
             },
 
+            getSubscriberDOBFormat: function ( cellvalue, options, rowObject ) {
+                return commonjs.checkNotEmpty(rowObject.subscriber_dob)
+                    ? moment(rowObject.subscriber_dob).format('L')
+                    : '';
+            },
+
             showInsuranceGrid: function (data) {
                 var self = this;
+                var colNames = ['', 'code', 'description', 'Subscriber Name', 'DOB', 'Policy No', 'Group No'];
+                var i18nNames = ['', 'billing.COB.code', 'billing.COB.description', 'billing.claims.subscriberName', 'billing.COB.DOB', 'patient.patientInsurance.policyNo',
+                    'patient.patientInsurance.groupNo'
+                ];
+                var colModel = [
+                    { name: 'id', hidden: true },
+                    { name: 'insurance_code', search: false },
+                    { name: 'insurance_name', search: false },
+                    { name: 'name', search: false },
+                    { name: 'subscriber_dob', search: false, formatter: self.getSubscriberDOBFormat },
+                    { name: 'policy_number', search: false },
+                    { name: 'group_number', search: false }
+                ];
+
+                if (app.country_alpha_3_code != "can") {
+                    colNames.push('Paper Claim Original', 'Paper Claim Full');
+                    i18nNames.push('billing.COB.paperClaimOriginal', 'billing.COB.paperClaimFull');
+                    colModel.push({
+                        name: 'paper_claim_original', search: false,
+                        customAction: function (rowID) {
+                        },
+                        formatter: function (cellvalue, options, rowObject) {
+                            return "<input type='button' style='line-height: 1;' class='btn btn-paper-claim-original btn-primary' value='Paper Claim' data-payer-type=" + rowObject.payer_type + " i18n='shared.buttons.paperclaimOrg' id='spnPaperClaim_" + rowObject.id + "'>"
+                        }
+                    },
+                    {
+                        name: 'paper_claim_full', search: false, width: '200px',
+                        customAction: function (rowID) {
+                        },
+                        formatter: function (cellvalue, options, rowObject) {
+                            return "<input type='button' style='line-height: 1;' class='btn btn-paper-claim-fax btn-primary' value='Paper Claim' data-payer-type=" + rowObject.payer_type + " i18n='shared.buttons.fax' id='spnPaperClaim_" + rowObject.id + "'>" +
+                                "<input type='button' style='line-height: 1;' class='btn btn-paper-claim-full btn-primary ml-2' value='Paper Claim' data-payer-type=" + rowObject.payer_type + " i18n='shared.buttons.paperclaimFull' id='spnPaperClaim_" + rowObject.id + "'>";
+                        }
+                    });
+                }
 
                 $('#tblCIInsurance').jqGrid({
                     datatype: 'local',
                     data: data != null ? data : [],
-                    colNames: ['', 'code', 'description', 'Subscriber Name', 'DOB', 'Policy No', 'Group No', 'Paper Claim Original', 'Paper Claim Full'],
-                    i18nNames: ['', 'billing.COB.code', 'billing.COB.description', 'billing.claims.subscriberName', 'billing.COB.DOB', 'billing.claims.policyNo',
-                        'billing.claims.groupNo', 'billing.COB.paperClaimOriginal', 'billing.COB.paperClaimFull'
-                    ],
-                    colModel: [
-                        { name: 'id', hidden: true },
-                        { name: 'insurance_code', search: false },
-                        { name: 'insurance_name', search: false },
-                        { name: 'name', search: false },
-                        { name: 'subscriber_dob', search: false },
-                        { name: 'policy_number', search: false },
-                        { name: 'group_number', search: false },
-                        {
-                            name: 'paper_claim_original', search: false,
-                            customAction: function (rowID) {
-                            },
-                            formatter: function (cellvalue, options, rowObject) {
-                                return "<input type='button' style='line-height: 1;' class='btn btn-paper-claim-original btn-primary' value='Paper Claim' data-payer-type=" + rowObject.payer_type + " i18n='shared.buttons.paperclaimOrg' id='spnPaperClaim_" + rowObject.id + "'>"
-                            }
-                        },
-                        {
-                            name: 'paper_claim_full', search: false,
-                            customAction: function (rowID) {
-                            },
-                            formatter: function (cellvalue, options, rowObject) {
-                                return "<input type='button' style='line-height: 1;' class='btn btn-paper-claim-full btn-primary' value='Paper Claim' data-payer-type=" + rowObject.payer_type + " i18n='shared.buttons.paperclaimFull' id='spnPaperClaim_" + rowObject.id + "'>"
-                            }
-                        }
-                    ],
+                    colNames: colNames,
+                    i18nNames: i18nNames,
+                    colModel: colModel,
                     cmTemplate: { sortable: false },
                     customizeSort: true,
                     width: $('#claimDetails').width() - 50,
@@ -293,6 +319,41 @@ define([
                             self.showPaperClaim('paper_claim_original', [self.claim_id], rowid, payerType);
                         } else if (target.className.indexOf('btn-paper-claim-full') > -1) {
                             self.showPaperClaim('paper_claim_full', [self.claim_id], rowid, payerType);
+                        } else if (target.className.indexOf('btn-paper-claim-fax') > -1) {
+                            $('#divFaxReceipientPaperClaim').show();
+                            var faxClaimId = self.claim_id;
+                            var faxInsuranceId = rowid;
+                            var faxPayerType = payerType;
+
+                            var faxUrl = [
+                                'claimIds=' + faxClaimId,
+                                'payerId=' + faxInsuranceId,
+                                'payerType=' + faxPayerType,
+                                'userId=' + app.userID,
+                                'templateType=paper_claim_full'
+                            ];
+                            faxUrl = '/exa_modules/billing/claim_workbench/paper_claim_fax?' + faxUrl.join('&');
+
+                            $('#btnClaimFaxSend').off().click(function (e) {
+                                var faxReceiverName = $('#txtFaxReceiverName').val();
+                                var faxReceiverNumber = $('#txtFaxReceiverNumber').val();
+
+                                if (!commonjs.checkNotEmpty(faxReceiverName))
+                                    return commonjs.showWarning(commonjs.geti18NString("messages.status.faxReceiverName"));
+
+                                if (!commonjs.checkNotEmpty(faxReceiverNumber))
+                                    return commonjs.showWarning(commonjs.geti18NString("messages.status.faxNumberInvalid"));
+
+                                self.faxReport({ claimID: faxClaimId, patientId: self.options.patient_id, documentName: 'Other Report', faxReceiverNumber: faxReceiverNumber, faxReceiverName: faxReceiverName }, faxUrl, function () {
+                                    commonjs.showStatus("messages.status.faxQueued");
+                                    self.saveClaimComment(0, 'Paper claim (B&W) fax sent to ' + faxReceiverName + ' (' + faxReceiverNumber + ')', 'auto');
+                                    self.clearFaxInfo();
+                                });
+                            });
+
+                            $('#btnClaimFaxCancel').off().click(function (e) {
+                                self.clearFaxInfo();
+                            });
                         }
                     },
                 });
@@ -636,7 +697,7 @@ define([
                             },
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.type && rowObject.code == 'charge')
-                                    return "<i class='icon-ic-raw-transctipt' title='View Pay details of this charge'></i>"
+                                return "<i class='icon-ic-raw-transctipt' i18nt='shared.screens.setup.viewPayDetailsOfThisCharge'></i>"
                                 else
                                     return rowObject.payment_id;
                             },
@@ -655,9 +716,10 @@ define([
                         },
                         { name: 'charge_pointer', width: 20, search: false, sortable: false, formatter: self.pointerFormatter,
                             cellattr: function (rowId, tv, rowdata) {
-                                if(rowdata && rowdata.code == 'manual')
+                                if (rowdata && rowdata.code == 'manual')
                                     return 'style="display:none;" ';
-                            }
+                            },
+                            hidden: (app.country_alpha_3_code === "can") ? true : false
                         },
                         { name: 'charge_amount', width: 20, search: false, sortable: false,
                             cellattr: function (rowId, tv, rowdata) {
@@ -698,7 +760,7 @@ define([
                             },
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.type && rowObject.code == 'payment')
-                                    return "<i class='fa fa-eye' title='view payment details'></i>"
+                                    return "<i class='fa fa-eye' i18nt='shared.screens.setup.viewPaymentDetails'></i>"
                                 else
                                     return "";
                             },
@@ -788,7 +850,7 @@ define([
                     success: function (data, response) {
                         data = data[0];
                         if (data) {
-                            self.previousFollowUpDate = (commonjs.checkNotEmpty(data.followup_date)) ? moment(data.followup_date).format('MM/DD/YYYY') : '';
+                            self.previousFollowUpDate = (commonjs.checkNotEmpty(data.followup_date)) ? moment(data.followup_date).format('L') : '';
                             $('#txtCIFollowUpDate').val(self.previousFollowUpDate);
                         }
                         else {
@@ -865,7 +927,7 @@ define([
                 });
             },
 
-            saveClaimComment: function (commentId, comment) {
+            saveClaimComment: function (commentId, comment, type) {
                 var self = this;
                 $('#siteModalNested').find('#btnCICommentSave').prop('disabled', true)
                 if (commentId != 0) {
@@ -897,7 +959,7 @@ define([
                         type: 'POST',
                         data: {
                             'note': comment,
-                            'type': 'manual',
+                            'type': type || 'manual',
                             'claim_id': self.claim_id
                         },
                         success: function (data, response) {
@@ -916,7 +978,7 @@ define([
             saveIsInternalComment: function () {
                 var comments = [];
                 var self = this;
-                var selectedFollowUpDate = $('#txtCIFollowUpDate').val() ? moment($('#txtCIFollowUpDate').val()).format('L') : '';
+                var selectedFollowUpDate = $('#txtCIFollowUpDate').val() ? commonjs.getISODateString($('#txtCIFollowUpDate').val()) : '';
 
                 $('#tblCIClaimComments  td input:checkbox').each(function () {
                     var content = {};
@@ -968,8 +1030,7 @@ define([
 
                 if (isFromClaim) {
                     var defaultDialogProps = {
-                        'header': 'Patient Claims: ' + patientName,
-                        'i18nHeader': "shared.moduleheader.patientClaims",
+                        'header': commonjs.geti18NString("shared.moduleheader.patientClaims") + ': ' + patientName,
                         'width': '85%',
                         'height': '75%',
                         'needShrink': true,
@@ -1014,15 +1075,17 @@ define([
                     $('#radActivityAllStatus').prop('checked', true);
                     $('#activityDetails').hide();
                     commonjs.isMaskValidate();
+                } else {
+                    if (patientName) {
+                        var patientHeaderInfo = commonjs.geti18NString('shared.moduleheader.patientClaims') + ':' + patientName ;
+                        $(parent.document).find('#spanModalHeader').html(patientHeaderInfo);
+                    }
                 }
 
 
                 $(".patientClaimProcess").off().click(function (e) {
                     self.processPatientClaim(e);
                 });
-
-                var headerName = commonjs.geti18NString("shared.moduleheader.patientClaims") + patientName ;
-                $(parent.document).find('#spanModalHeader').html(headerName)
 
                 if(this.screenCode.indexOf('PACT') > -1)
                     $('#btnPatientActivity').attr('disabled', true); // if Patient Activity report have rights then only can access this report
@@ -1054,7 +1117,20 @@ define([
                     $('#divFaxRecipient').show();
 
                     $('#btnSendFax').off().click(function (e) {
+                        var faxRecipientName = $('#txtOtherFaxName').val();
+                        var faxRecipientNumber = $('#txtOtherFaxNumber').val();
+
+                        if (!commonjs.checkNotEmpty(faxRecipientName))
+                            return commonjs.showWarning('messages.status.faxReceiverName');
+
+                        if (!commonjs.checkNotEmpty(faxRecipientNumber))
+                            return commonjs.showWarning('messages.status.faxNumberInvalid');
+
                         self.faxReport(patientActivityParams, reportURL);
+                        commonjs.showStatus("messages.status.faxQueued");
+                        $('#txtOtherFaxName').val('');
+                        $('#txtOtherFaxNumber').val('');
+                        $('#divFaxRecipient').hide();
                     });
 
                     $('#btnFaxCancel').off().click(function (e) {
@@ -1090,13 +1166,16 @@ define([
             },
 
             createPatientActivityParams: function(claimId, patientId) {
+                var reportBy;
+                var fromDate;
+                var toDate;
                 if ($('#radActivityAllStatus').prop("checked")) {
                     reportBy = true;
                 }
                 else if ($('#radioActivityStatus').prop("checked") && this.validateFromAndToDate(this.fromDate, this.toDate)) {
                     reportBy = false;
-                    fromDate = $('#txtDate').val();
-                    toDate = $('#txtOtherDate').val();
+                    fromDate = commonjs.getISODateString($('#txtDate').val());
+                    toDate = commonjs.getISODateString($('#txtOtherDate').val());
                 }
                 else return false;
 
@@ -1118,21 +1197,23 @@ define([
                 }
             },
 
-            faxReport: function(patientActivityParams, reportUrl) {
+            faxReport: function(patientActivityParams, reportUrl, cb) {
                 $.ajax({
                     url: '/faxReport',
                     type: 'POST',
                     data: {
                         facility_id: app.userInfo.default_facility_id,
                         receiverType: 'OT',
-                        receiverName: $('#txtOtherFaxName').val(),
-                        deliveryAddress: $('#txtOtherFaxNumber').val(),
+                        receiverName: patientActivityParams.faxReceiverName || $('#txtOtherFaxName').val(),
+                        deliveryAddress: patientActivityParams.faxReceiverNumber || $('#txtOtherFaxNumber').val(),
                         reportUrl: reportUrl,
                         patientId: patientActivityParams.patientId,
                         claimId: patientActivityParams.claimID,
-                        documentName: 'Patient Activity'
+                        documentName: patientActivityParams.documentName || 'Patient Activity'
                     },
                     success: function (data, response) {
+                        if (cb)
+                            cb();
                         commonjs.showStatus("messages.status.reportFaxedSuccessfully");
                         $('#divFaxRecipient').hide();
                     },
@@ -1163,9 +1244,17 @@ define([
                 return true;
             },
 
-            patientInquiryLog: function (claimId, patientId) {
+            patientInquiryLog: function (claimId, patientId, patientName) {
                 var self = this;
-                this.$el.html(this.claimPatientLogTemplate());
+                var defaultDialogProps = {
+                    'header': commonjs.geti18NString("shared.moduleheader.patientClaimLog") + ': ' + patientName,
+                    'width': '85%',
+                    'height': '75%',
+                    'needShrink': true,
+                    'html': this.claimPatientLogTemplate()
+                }
+                commonjs.showDialog(defaultDialogProps);
+
                 self.showPatientClaimsLogGrid(claimId, patientId);
             },
 
@@ -1372,6 +1461,12 @@ define([
                 $("#gs_invoice_balance").addClass('floatbox');
                 $("#tblInvoiceGrid #gs_invoice_no").addClass('integerbox');
                 commonjs.validateControls();
+            },
+
+            clearFaxInfo: function () {
+                $('#txtFaxReceiverName').val('');
+                $('#txtFaxReceiverNumber').val('');
+                $('#divFaxReceipientPaperClaim').hide();
             }
     });
 });

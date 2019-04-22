@@ -13,7 +13,9 @@ WITH payments_pdf as (
     SELECT
          bp.id AS payment_id,
          get_full_name(pu.last_name,pu.first_name) AS user_full_name,
-         get_full_name(pp.last_name,pp.first_name) AS patient_full_name,
+         CASE WHEN payer_type = 'patient' THEN
+            get_full_name(pp.last_name,pp.first_name)
+         END AS patient_full_name,
          get_full_name(ppr.last_name,ppr.first_name) AS provider_full_name,
          pip.insurance_name,
          pip.insurance_code,
@@ -38,7 +40,9 @@ WITH payments_pdf as (
          END payer_name,
          pf.facility_name,
          to_char(to_facility_date(bp.facility_id, bp.payment_dt),'MM/DD/YYYY') AS payment_date,
-         InitCap(bp.mode) AS payment_mode
+         CASE WHEN '<%= countryFlag %>'  = 'can' AND bp.mode = 'check'
+              THEN 'Cheque'ELSE InitCap(bp.mode) 
+         END AS payment_mode
     FROM
          billing.payments bp
     INNER JOIN public.users pu ON pu.id = bp.created_by
@@ -75,10 +79,10 @@ WITH payments_pdf as (
                 WHEN 'patient' THEN  pp.full_name
             END)  ILIKE '%<%= payerName %>%'
       <% } else { %>
-        AND pip.insurance_name  ILIKE '%<%= payerName %>%'
+        AND ( pip.insurance_name  ILIKE '%<%= payerName %>%'
         OR ppg.group_name  ILIKE '%<%= payerName %>%'
         OR ppr.full_name  ILIKE '%<%= payerName %>%'
-        OR pp.full_name ILIKE '%<%= payerName %>%'
+        OR pp.full_name ILIKE '%<%= payerName %>%' )
       <% } %>
     <% } %>
     <% if(amount) { %>
@@ -269,12 +273,14 @@ const api = {
             accounting_date: null,
             payment_amount:null,
             accountNo : null,
-            notes : null
+            notes : null,
+            countryFlag: null
         };
 
         // company id
         params.push(reportParams.companyId);
         filters.companyId = queryBuilder.where('bp.company_id', '=', [params.length]);
+        filters.countryFlag = reportParams.countryCode;
 
         if (reportParams.paymentStatus) {
             params.push(reportParams.paymentStatus);

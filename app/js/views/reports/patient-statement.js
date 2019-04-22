@@ -11,6 +11,8 @@ define([
             rendered: false,
             mainTemplate: _.template(PatientStatementTemplate),
             viewModel: {
+                dateFormat: 'MM/DD/YYYY',
+                country_alpha_3_code: 'usa',
                 sDate: null,
                 patientIds: null,
                 patientOption: null,
@@ -24,7 +26,7 @@ define([
                 facilities: null,
                 allFacilities: null,
                 fromDate: null,
-                allBillingProvider: false,
+                allBillingProviders: false,
                 patientLastnameFrom: null,
                 patientLastnameTo: null
             },
@@ -49,6 +51,8 @@ define([
                     model: Backbone.Model.extend({})
                 });
 
+                UI.getReportSetting(this.viewModel, 'all', 'dateFormat'); // Get date format (and current country code) based on current country code saved in sites table(this.viewModel);
+
                 // initialize view model and set any defaults that are not constants
                 UI.initializeReportingViewModel(options, this.viewModel);
                 // Set date range to Facility Date
@@ -72,7 +76,6 @@ define([
                 });
                 this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings(app.facilityID));
                 this.$el.html(this.mainTemplate(this.viewModel));
-                this.initDatePicker();
                 UI.bindBillingProvider();
                 UI.bindPatient('txtPatient', this.usermessage.selectPatient, 'btnAddPatient', 'ulListPatients');
 
@@ -82,7 +85,7 @@ define([
                     width: '200px'
                 });
 
-                this.viewModel.fromDate = commonjs.bindDateTimePicker("txtFromDate", { format: "L" });
+                this.viewModel.fromDate = commonjs.bindDateTimePicker("txtFromDate", { format: this.viewModel.dateFormat });
                 this.viewModel.fromDate.date(commonjs.getFacilityCurrentDateTime(app.facilityID));
 
                 $('#ddlFacilityFilter').multiselect({
@@ -107,25 +110,8 @@ define([
                 this.viewModel.allFacilities = this.selectedFacilityList && this.selectedFacilityList.length === $("#ddlFacilityFilter option").length;
             },
 
-            getBillingProvider: function (e) {
-                var billing_pro = []
-                var selected = $("#ddlBillingProvider option:selected");
-                selected.each(function () {
-                    billing_pro.push($(this).val());
-                });
-                this.selectedBillingProList = billing_pro;
-                this.viewModel.allBillingProvider = this.selectedBillingProList && this.selectedBillingProList.length === $("#ddlBillingProvider option").length;
-            },
-            /**
-             * Initialize date pickers for the from and to dates
-             */
-            initDatePicker: function () {
-                this.viewModel.sDate = commonjs.bindDateTimePicker('sDate', { format: 'MM/DD/YYYY', defaultDate: moment() });
-            },
-
             onReportViewClick: function (e) {
                 this.getSelectedFacility();
-                this.getBillingProvider();
                 $('#minAmount').val() == "" ? $('#minAmount').val('0') : $('#minAmount').val();
                 var btnClicked = e && e.target ? $(e.target) : null;
                 if (btnClicked && btnClicked.prop('tagName') === 'I') {
@@ -142,6 +128,7 @@ define([
 
                 this.viewModel.patientOption = $('#ddlPatientOption').val();
                 this.viewModel.billingProvider = $('#ddlBillingProvider').val();
+                this.viewModel.allBillingProviders = $("#ddlBillingProvider option:selected").length === $("#ddlBillingProvider option").length;
                 this.viewModel.minAmount = $('#minAmount').val() || "0";
                 this.viewModel.patientLastnameFrom = $('#patientLastnameFrom').val() === '' ? 'a' : $('#patientLastnameFrom').val();
                 this.viewModel.patientLastnameTo = $('#patientLastnameTo').val() === '' ? 'z' : $('#patientLastnameTo').val();
@@ -154,7 +141,7 @@ define([
 
             hasValidViewModel: function () {
                 if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
-                    commonjs.showWarning('Please check report id, category, and/or format!');
+                    commonjs.showWarning('messages.status.pleaseCheckReportIdCategoryandorFormat');
                     return;
                 }
 
@@ -163,15 +150,17 @@ define([
 
             getReportParams: function () {
                 return urlParams = {
+                    dateFormat: this.viewModel.dateFormat,
+                    country_alpha_3_code: this.viewModel.country_alpha_3_code,
                     facilityIds: this.selectedFacilityList ? this.selectedFacilityList : [],
                     allFacilities: this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
                     patientOption: this.viewModel.patientOption,
                     patientIds: this.viewModel.patientIds,
-                    billingProviderIds: this.viewModel.billingProvider,
                     minAmount: this.viewModel.minAmount || "0",
                     payToProvider: $('#chkPayToProvider').prop('checked'),
                     sDate: this.viewModel.fromDate.date().format('YYYY-MM-DD'),
-                    allBillingProvider: this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
+                    allBillingProviders: this.viewModel.allBillingProviders,
+                    billingProvider: this.viewModel.billingProvider,
                     patientLastnameFrom: this.viewModel.patientLastnameFrom,
                     patientLastnameTo: this.viewModel.patientLastnameTo
                 };
@@ -191,6 +180,7 @@ define([
 
             onPatientOptionChange: function () {
                 UI.hideShowBox('ddlPatient');
+                $('#txtPatient').empty();
 
                 if ($('#ddlPatientOption').val() !== 'R') {
                     $('#ddlPatientLastNameBox').hide();

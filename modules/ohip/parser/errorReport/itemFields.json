@@ -1,0 +1,71 @@
+{
+    "transactionIdentifier": {
+        "startPos": 1,
+        "fieldLength": 2,
+        "constant": "HX"
+    },
+    "recordIdentifier": {
+        "startPos": 3,
+        "fieldLength": 1,
+        "constant": "T"
+    },
+    "serviceCode": {
+        "startPos": 4,
+        "fieldLength": 5
+    },
+    "mohReserved1": {
+        "startPos": 9,
+        "fieldLength": 2
+    },
+    "feeSubmitted": {
+        "startPos": 11,
+        "fieldLength": 6
+    },
+    "numberOfServices": {
+        "startPos": 17,
+        "fieldLength": 2
+    },
+    "serviceDate": {
+        "startPos": 19,
+        "fieldLength": 8
+    },
+    "diagnosticCode": {
+        "startPos": 27,
+        "fieldLength": 4
+    },
+    "mohReserved2": {
+        "startPos": 31,
+        "fieldLength": 32
+    },
+    "explanatoryCode": {
+        "startPos": 63,
+        "fieldLength": 2,
+        "i18n": "ohip.errorReport.explanatory"
+    },
+
+    "errorCode1": {
+        "startPos": 65,
+        "fieldLength": 3,
+        "i18n": "ohip.errorReport.error"
+    },
+    "errorCode2": {
+        "startPos": 68,
+        "fieldLength": 3,
+        "i18n": "ohip.errorReport.error"
+    },
+    "errorCode3": {
+        "startPos": 71,
+        "fieldLength": 3,
+        "i18n": "ohip.errorReport.error"
+    },
+    "errorCode4": {
+        "startPos": 74,
+        "fieldLength": 3,
+        "i18n": "ohip.errorReport.error"
+    },
+    "errorCode5": {
+        "startPos": 77,
+        "fieldLength": 3,
+        "i18n": "ohip.errorReport.error"
+    }
+}

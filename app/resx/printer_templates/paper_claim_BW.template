@@ -3,6 +3,7 @@ let pageBrk = 'none';
 let HeaderDets = [];
 let ServiceFacDet = [];
 let BillingProDet = [];
+let BillingPh;
 
 function getImage(needCheck) {
     return needCheck ? 'tickImage' : 'clearDot';
@@ -12,10 +13,14 @@ function getName(patientData, len) {
 }
 
 function getNameWithMiddle(patientData, len) {
-	if (patientData) 
-		return getSubstring((( patientData.lastName ? patientData.lastName : ' ')+ ( patientData.firstName ? (', '+patientData.firstName) : ' ') + ( patientData.middleName ? (', '+patientData.middleName) :  ' ')), len)
-	else
-		return " "
+    if (patientData){
+        let patientName = patientData.lastName || ' ';
+            patientName += patientData.firstName ? ', '+patientData.firstName : ' ';
+            patientName += patientData.middleName ? ', '+patientData.middleName : ' ';
+        return getSubstring(patientName, len);
+    } else {
+        return " ";
+    }
 }
 
 function getTrimmedPhoneNo(data) {
@@ -133,93 +138,93 @@ function getWCValues(claimData, servicelineList) {
     let wc_values = [];
     cptvalues = servicelineList;
     for (let i = 0; i < 6; i++) {
-		if(cptvalues && cptvalues[i] && claimData.subscriber && claimData.subscriber[0] && claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode){
-			if (( claimData.subscriber[0].claimFilingCode.toString().toUpperCase() ) === 'WC') {
-				wc_values.push(
-					[
-						{ text:'', fillColor: '#808080', border: [true, true, false, false]},
-						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{ text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{ text:'OB', fillColor: '#808080', border: [false, false, false, false]},
-						{ text: claimData.subscriber[0].claim[0].renderingProvider && claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo ? (claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo.toString().substring(0,12)) : '', fillColor: '#808080', border: [false, false, true, false]}
-					]
-				);
-			} else {
-				wc_values.push(
-					[
-						{text:'', fillColor: '#808080', border: [true, true, false, false]},
-						{text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{text:'', fillColor: '#808080', border: [false, false, false, false]},
-						{text:' ', fillColor: '#808080', border: [false, false, false, false]},
-						{text:' ', fillColor: '#808080', border: [false, false, true, false]
-						}
-					]
-				);
-			}
-		} else {
-			wc_values.push(
-				[
-					{text:'', fillColor: '#808080', border: [true, true, false, false]},
-					{text:'', fillColor: '#808080', border: [false, false, false, false]},
-					{text:'', fillColor: '#808080', border: [false, false, false, false]},
-					{text:'', fillColor: '#808080', border: [false, false, false, false]},
-					{text:'', fillColor: '#808080', border: [false, false, false, false]},
-					{text:'', fillColor: '#808080', border: [false, false, false, false]},
-					{text:'', fillColor: '#808080', border: [false, false, false, false]},
-					{text:'', fillColor: '#808080', border: [false, false, false, false]},
-					{text:'', fillColor: '#808080', border: [false, false, false, false]},
-					{text:'', fillColor: '#808080', border: [false, false, false, false]},
-					{text:'', fillColor: '#808080', border: [false, false, false, false]},
-					{text:'', fillColor: '#808080', border: [false, false, false, false]},
-					{text:'', fillColor: '#808080', border: [false, false, false, false]},
-					{text:'', fillColor: '#808080', border: [false, false, false, false]},
-					{text:'', fillColor: '#808080', border: [false, false, false, false]},
-					{text:'', fillColor: '#808080', border: [false, false, false, false]},
-					{text:'', fillColor: '#808080', border: [false, false, false, false]},
-					{text:'', fillColor: '#808080', border: [false, false, false, false]},
-					{text:' ', fillColor: '#808080', border: [false, false, false, false]},
-					{text:' ', fillColor: '#808080', border: [false, false, true, false]
-					}
-				]
-			);
-		}
+        if(cptvalues && cptvalues[i] && claimData.subscriber && claimData.subscriber[0] && claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode){
+            if (( claimData.subscriber[0].claimFilingCode.toString().toUpperCase() ) === 'WC') {
+                wc_values.push(
+                    [
+                        { text:'', fillColor: '#808080', border: [true, true, false, false]},
+                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        { text:'OB', fillColor: '#808080', border: [false, false, false, false]},
+                        { text: claimData.subscriber[0].claim[0].renderingProvider && claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo ? (claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo.toString().substring(0,12)) : '', fillColor: '#808080', border: [false, false, true, false]}
+                    ]
+                );
+            } else {
+                wc_values.push(
+                    [
+                        {text:'', fillColor: '#808080', border: [true, true, false, false]},
+                        {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                        {text:' ', fillColor: '#808080', border: [false, false, false, false]},
+                        {text:' ', fillColor: '#808080', border: [false, false, true, false]
+                        }
+                    ]
+                );
+            }
+        } else {
+            wc_values.push(
+                [
+                    {text:'', fillColor: '#808080', border: [true, true, false, false]},
+                    {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                    {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                    {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                    {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                    {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                    {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                    {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                    {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                    {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                    {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                    {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                    {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                    {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                    {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                    {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                    {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                    {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                    {text:' ', fillColor: '#808080', border: [false, false, false, false]},
+                    {text:' ', fillColor: '#808080', border: [false, false, true, false]
+                    }
+                ]
+            );
+        }
     }
     return wc_values;
 }
 
 function getCPTBlock(claimData, servicelineList) {
     let cpt = getCPTValues(claimData, servicelineList);
-	let wc_values = getWCValues(claimData, servicelineList);
+    let wc_values = getWCValues(claimData, servicelineList);
     return [
         [
             {
@@ -644,7 +649,7 @@ function getAddressDetails(claimData) {
                     {text: ( claimData.addressLine2 ? (((claimData.addressLine1?(claimData.addressLine1+ ', '):'')  + claimData.addressLine2).toString().toUpperCase().substring(0, 30))  : ''), margin: [0,-5, 0, 0]}
                 ],
                 [
-                    {text: claimData ? getCityStatePincode(claimData, "city", "state", "zipCode", 30) : ' ', margin: [0,-5, 0, 0]}
+                    {text: claimData && ( claimData.zipCode ? (getCityStatePincode(claimData, "city", "state", "zipCode", 30)) : (getCityStatePincode(claimData, "city", "state", "zip", 30))), margin: [0,-5, 0, 0]}
                 ],
                 [
                     {text: ' ', margin: [0,-5, 0, 0]}
@@ -659,7 +664,7 @@ function getAddressDetails(claimData) {
                     {text: (claimData ? getKeyTrimValue(claimData, 'addressLine1', 30) : ' '), margin: [0,-5, 0, 0]}
                 ],
                 [
-                    {text: (claimData ? getCityStatePincode(claimData, "city", "state", "zipCode", 30) : ' '), margin: [0,-5, 0, 0]}
+                    {text: claimData && ( claimData.zipCode ? (getCityStatePincode(claimData, "city", "state", "zipCode", 30)) : (getCityStatePincode(claimData, "city", "state", "zip", 30))), margin: [0,-5, 0, 0]}
                 ],
                 [
                     {text: ' ', margin: [0,-5, 0, 0]}
@@ -703,7 +708,13 @@ function getAddress2Details(claimData) {
 function formatSingleClaim(claimData, servicelineList) {
     HeaderDets = getHeaderDetails(claimData);
     ServiceFacDet = getAddressDetails(claimData.subscriber[0].claim[0].servicefacility[0]);
-    BillingProDet = getAddressDetails(claimData.billingProvider);
+    if(claimData.subscriber[0].claimFilingCode && typeof(claimData.subscriber[0].claimFilingCode) === 'string' && claimData.subscriber[0].claimFilingCode.toUpperCase() == 'YFAC') {
+	    BillingProDet = getAddressDetails(claimData.payToProvider);
+	    BillingPh = claimData.payToProvider ? getTrimmedPhoneNo(getKeyTrimValue(claimData.payToProvider, 'phoneNo', 13)): ' ';
+	} else {
+	    BillingProDet = getAddressDetails(claimData.billingProvider);
+	    BillingPh = claimData.billingProvider ? getTrimmedPhoneNo(getKeyTrimValue(claimData.billingProvider, 'phoneNo', 13)):' ';
+	}
     let totalPaid = getClaimResponsible(claimData);
     return [
         {
@@ -1377,7 +1388,7 @@ function formatSingleClaim(claimData, servicelineList) {
         },
         {//Ans
             style: 'Ans',
-			margin: [17, -173, 0, 0],
+            margin: [17, -173, 0, 0],
             table: {
                 widths: [98, 70, 20, 150, 109, 70, 20],
                 heights:[0, 6, 20, 20, 20, 24, 21, 22, 20, 38, 31, 21, 18, 21, 100],
@@ -1480,13 +1491,13 @@ function formatSingleClaim(claimData, servicelineList) {
                         {text: claimData.subscriber && claimData.subscriber[0].patient ? getTrimmedPhoneNo(getKeyTrimValue(claimData.subscriber[0].patient[0], 'homePhone', 13)) : '', colSpan:2, margin:[-10, 0,0,0]},
                         {},{},
                         {text: claimData.subscriber && claimData.subscriber[0].zipCode ? getKeyTrimValue(claimData.subscriber[0], 'zipCode', 12) : ''},
-                        {text: ( (claimData.subscriber && claimData.subscriber[0].relationship === "18") ? ( claimData.subscriber && claimData.subscriber[0].patient ? getTrimmedPhoneNo(getKeyTrimValue(claimData.subscriber[0].patient[0], 'homePhone', 13)):"") :"" ), colSpan:2, margin:[-25, 0,0,0]},
+                        {text: ( claimData.subscriber && claimData.subscriber[0].phoneNumber ? getTrimmedPhoneNo(getKeyTrimValue(claimData.subscriber[0], 'phoneNumber', 13)) : ''), colSpan:2, margin:[-25, 0,0,0]},
                         {}
                     ],
                     [//Other Insurance
                         {text: claimData.subscriber && claimData.subscriber[0].claim  && claimData.subscriber[0].claim[0].otherSubscriber ? getNameWithMiddle(claimData.subscriber[0].claim[0].otherSubscriber[0], 28) : '',colSpan:3},
                         {},{},{},
-                        { text: (claimData.subscriber && claimData.subscriber[0] && claimData.subscriber[0].planType) ? (claimData.subscriber[0].planType) : '', colSpan:3 },
+                        {text: claimData.subscriber && claimData.subscriber[0] && claimData.subscriber[0].groupNumber ? getSubstring(claimData.subscriber[0].groupNumber, 30) : ' ', colSpan:3},
                         {},{}
                     ],
                     [//Group Number
@@ -1698,13 +1709,14 @@ function formatSingleClaim(claimData, servicelineList) {
                             margin: [-4,3,0,0],
                             table: {
                                 widths:[ 85, 75 ],
+                                heights:[14, 10],
                                 body: [
                                     [
                                         {text: claimData.subscriber && claimData.subscriber[0].claim ? getResubmissionCode(claimData.subscriber[0].claim[0], 'claimFrequencyCode') : '', alignment:"center"},
                                         {text: claimData.subscriber && claimData.subscriber[0].claim ? getKeyTrimValue(claimData.subscriber[0].claim[0], 'originalReference', 18) : '', alignment:"center"}
                                     ],
                                     [
-                                        {text: claimData.subscriber && claimData.subscriber[0].claim ? getKeyTrimValue(claimData.subscriber[0].claim[0], 'authorizationNo', 30) : '', alignment:"center", colSpan:2, margin:[0, 5, 0, 0]},
+                                        {text: claimData.subscriber && claimData.subscriber[0].claim ? getKeyTrimValue(claimData.subscriber[0].claim[0], 'authorizationNo', 30) : '', alignment:"center", colSpan:2},
                                         {}
                                     ]
                                 ]
@@ -1793,8 +1805,19 @@ function formatSingleClaim(claimData, servicelineList) {
                         }, {}
                     ],
                     [
-                        {text:  (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].renderingProvider ? getName(claimData.subscriber[0].claim[0].renderingProvider[0], 17) : '.') + '\t\t\t\t' +
-                                (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].claimDate ? (((claimData.subscriber[0].claim[0].claimDate).toString().substring(4,6)) + " " + ((claimData.subscriber[0].claim[0].claimDate).toString().substring(6,8)) + " " + ((claimData.subscriber[0].claim[0].claimDate).toString().substring(0,4)) ) : '') , margin:[0, 26, 0, 0]},
+                        {
+                            style: 'Ans',
+                            margin: [0,20,0,0],
+                            table: {
+                                widths:[100, 45],
+                                body: [
+                                    [
+                                        {text: (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].renderingProvider ? getName(claimData.subscriber[0].claim[0].renderingProvider[0], 17) : '.') },
+                                        {text: (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].claimDate ? (((claimData.subscriber[0].claim[0].claimDate).toString().substring(4,6)) + " " + ((claimData.subscriber[0].claim[0].claimDate).toString().substring(6,8)) + " " + ((claimData.subscriber[0].claim[0].claimDate).toString().substring(0,4)) ) : '') }
+                                    ]
+                                ]
+                            },layout: 'noBorders'
+                        },
                         {
                             style: 'Ans',
                             margin: [0,0,0,0],
@@ -1822,7 +1845,7 @@ function formatSingleClaim(claimData, servicelineList) {
                                 ]
                             },layout: 'noBorders'
                         },
-                        { text: claimData.billingProvider ? getTrimmedPhoneNo(getKeyTrimValue(claimData.billingProvider, 'phoneNo', 13)) : '', margin:[31,-6, 0 ,0], colSpan:2},
+                        { text: BillingPh, margin:[31,-6, 0 ,0], colSpan:2},
                         {}
                     ],
                     [//a. & b. NPI

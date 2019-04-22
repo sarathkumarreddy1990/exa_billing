@@ -14,20 +14,20 @@
         </select>
     </td>
     <td style="width:10%;vertical-align: middle;">
-            <select class="form-control select-box" id="ddlPaymentMode_<%= row.row_index %>" style="height: 32px;">
+            <select class="form-control select-box select-payment-mode" id="ddlPaymentMode_<%= row.row_index %>" style="height: 32px;">
                     <option value="" i18n="shared.buttons.select"></option>
                     <option value="cash" i18n="billing.payments.cash"></option>
                     <option value="check" i18n="billing.payments.cheque"></option>
                     <option value="card" i18n="billing.payments.card"></option>
                     <option value="eft" i18n="billing.payments.eft"></option>
-                    <option value="adjustment" i18n="billing.payments.adjustment"></option>
+                    <option value="adjustment" i18n="billing.payments.adjustments"></option>
             </select>
     </td>
     <td style="width:10%; vertical-align: middle;">
         <input id="txtCheckCardNo_<%= row.row_index %>" type="text" value="<%= row.card_number %>" class="checkcardno form-control integerbox">
     </td>
     <td style="width: 5%;  vertical-align: middle;">
-        <input type="button" value="APPLY" id="btnApplyPayment_<%= row.row_index %>" class="pl-3 pr-3 btn pull-left paymentApply">
+        <input type="button" value="APPLY" id="btnApplyPayment_<%= row.row_index %>" i18n="report.reportFilter.apply" class="pl-3 pr-3 btn pull-left paymentApply">
     </td>
     <td style="width:8%;vertical-align: middle;">
         <span class="form-control floatbox" id="spThisPay_<%= row.row_index %>" style="background-color: transparent;"><%= row.payment_applied ? row.payment_applied : 0.00 %></span>

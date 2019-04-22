@@ -3,7 +3,8 @@ const _ = require('lodash')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
     , queryBuilder = require('../queryBuilder')
-    , logger = require('../../../../../logger');
+    , logger = require('../../../../../logger')
+    , moment = require('moment');
 
 // generate query template ***only once*** !!!
 
@@ -46,8 +47,8 @@ with claim_details as (
             pp.account_no AS "Account #",
             f.facility_name AS "Facility",
             bc.id AS "Encounter ID",
-            to_char(timezone(f.time_zone, bc.claim_dt)::date, 'MM/DD/YYYY') AS "Service",
-            pcc.display_code AS "Code",
+            to_char(timezone(f.time_zone, bc.claim_dt)::date, '<%= dateFormat %>') AS "<%= dateHeader %>",
+            pcc.display_code AS "<%= codeHeader %>",
             pcc.display_description AS "Study Description",
             pm.modality_code AS "Modality",
             (bch.bill_fee * bch.units ) AS "Charges",
@@ -104,6 +105,8 @@ const api = {
      * This method is called by controller pipline after report data is initialized (common lookups are available).
      */
     getReportData: (initialReportData) => {
+        initialReportData.report.params.codeHeader = initialReportData.report.vars.columnHeader.cpt[initialReportData.report.params.country_alpha_3_code];
+        initialReportData.report.params.dateHeader = initialReportData.report.vars.columnHeader.cptDate[initialReportData.report.params.country_alpha_3_code];
         if (initialReportData.report.params.cptIds) {
             initialReportData.report.params.cptIds = initialReportData.report.params.cptIds.map(Number);
         }
@@ -233,8 +236,8 @@ const api = {
             filtersUsed.push({name: 'providerGroupList', label: 'Provider Group', value: 'All'});
         }
 
-        filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
-        filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
+        filtersUsed.push({ name: 'fromDate', label: 'Date From', value: moment(params.fromDate).format(params.dateFormat) });
+        filtersUsed.push({ name: 'toDate', label: 'Date To', value: moment(params.toDate).format(params.dateFormat) });
         return filtersUsed;
     },
 
@@ -328,6 +331,9 @@ const api = {
             filters.payerIds = queryBuilder.whereIn(`pippt.id`, [params.length]);
         }
 
+        filters.dateFormat = reportParams.dateFormat;
+        filters.codeHeader = reportParams.codeHeader;
+        filters.dateHeader = reportParams.dateHeader;
         return {
             queryParams: params,
             templateData: filters

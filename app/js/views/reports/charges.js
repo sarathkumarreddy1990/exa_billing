@@ -15,6 +15,8 @@ define(['jquery',
             expanded: false,
             mainTemplate: _.template(ChargesTemplate),
             viewModel: {
+                dateFormat: 'MM/DD/YYYY',
+                country_alpha_3_code: 'usa',
                 facilities: null,
                 dateFrom: null,
                 dateTo: null,
@@ -39,13 +41,15 @@ define(['jquery',
             },
 
             initialize: function (options) {
-                this.showForm();     
-                this.$el.html(this.mainTemplate(this.viewModel));                  
+                this.showForm();
+                this.$el.html(this.mainTemplate(this.viewModel));
                 UI.initializeReportingViewModel(options, this.viewModel);
+
+                UI.getReportSetting(this.viewModel, 'all', 'dateFormat'); // Get date format (and current country code) based on current country code saved in sites table(this.viewModel);
 
                 // Set date range to Facility Date
                 this.viewModel.dateFrom = commonjs.getFacilityCurrentDateTime(app.facilityID);
-                this.viewModel.dateTo = this.viewModel.dateFrom.clone();              
+                this.viewModel.dateTo = this.viewModel.dateFrom.clone();
             },
 
             showForm: function () {
@@ -56,18 +60,18 @@ define(['jquery',
                 UI.setPageTitle(this.viewModel.reportTitle);
             },
 
-           
+
             render: function () {
                 var modelCollection = Backbone.Collection.extend({
                     model: Backbone.Model.extend({})
                 });
-                this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings());   
+                this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings());
                 this.$el.html(this.mainTemplate(this.viewModel));
                 // bind DRP and initialize it
                 this.bindDateRangePicker();
                 this.drpStudyDt.setStartDate(this.viewModel.dateFrom);
-                this.drpStudyDt.setEndDate(this.viewModel.dateTo);              
-              
+                this.drpStudyDt.setEndDate(this.viewModel.dateTo);
+
                 UI.bindBillingProvider();
                 $('#ddlFacilityFilter').multiselect({
                     maxHeight: 200,
@@ -82,7 +86,7 @@ define(['jquery',
             bindDateRangePicker: function () {
                 var self = this;
                 var drpEl = $('#txtDateRangeFromTo');
-                var drpOptions = { autoUpdateInput: true, locale: { format: 'L' } };
+                var drpOptions = { autoUpdateInput: true, locale: { format: this.viewModel.dateFormat } };
                 this.drpStudyDt = commonjs.bindDateRangePicker(drpEl, drpOptions, 'past', function (start, end, format) {
                     self.viewModel.dateFrom = start;
                     self.viewModel.dateTo = end;
@@ -113,12 +117,12 @@ define(['jquery',
 
             hasValidViewModel: function () {
                 if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
-                      commonjs.showWarning('Please check report id, category, and/or format!');
+                    commonjs.showWarning('messages.status.pleaseCheckReportIdCategoryandorFormat');
                     return;
                 }
 
                 if (this.viewModel.dateFrom == null || this.viewModel.dateTo == null) {
-                    commonjs.showWarning('Please select date range!');
+                    commonjs.showWarning('messages.status.pleaseSelectDateRange');
                     return;
                 }
 
@@ -150,13 +154,15 @@ define(['jquery',
             // Get Report Params
             getReportParams: function () {
                 return urlParams = {
+                    'dateFormat': this.viewModel.dateFormat,
+                    'country_alpha_3_code': this.viewModel.country_alpha_3_code,
                     'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
                     'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
                     'fromDate': this.viewModel.dateFrom.format('YYYY-MM-DD'),
                     'toDate': this.viewModel.dateTo.format('YYYY-MM-DD'),
                     'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
                     'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
-                    'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
+                    'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false
                 };
             }
         });

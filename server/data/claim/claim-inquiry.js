@@ -120,7 +120,7 @@ module.exports = {
                 , ip.insurance_code
                 , ip.insurance_name
                 , (COALESCE(TRIM(pi.subscriber_lastname),'') ||' '|| COALESCE(TRIM(pi.subscriber_firstname),'')) AS name
-                , to_char( pi.subscriber_dob , 'MM/DD/YYYY') AS subscriber_dob
+                , pi.subscriber_dob :: TEXT
                 , pi.policy_number
                 , pi.group_number
             FROM public.patient_insurances pi
@@ -352,7 +352,7 @@ module.exports = {
                                     , id
                                     , ${screenName}
                                     , ${moduleName}
-                                    , 'Billing Notes Updated  '||  'Claim ID  ' || update_billnotes.id
+                                    , 'Claim Comments/Billing Notes Updated  '||  'Claim ID  ' || update_billnotes.id
                                     , ${clientIp}
                                     , json_build_object(
                                         'old_values', COALESCE(old_values, '{}'),
@@ -432,7 +432,7 @@ module.exports = {
                         , id
                         , '${screenName}'
                         , '${moduleName}'
-                        , 'New Followup/Billing Notes created for Claim ID: ' ||  insert_followup.claim_id
+                        , 'New Followup Date Updated ' ||  insert_followup.claim_id
                         , '${clientIp}'
                         , json_build_object(
                             'old_values', COALESCE(old_values, '{}'),
@@ -450,7 +450,7 @@ module.exports = {
                         , id
                         , '${screenName}'
                         , '${moduleName}'
-                        , 'Follow Up Updated/Billing Notes for Claim ID: ' || update_followup.claim_id
+                        , 'Follow Up Updated ' || update_followup.claim_id
                         , '${clientIp}'
                         , json_build_object(
                             'old_values', COALESCE(old_values, '{}'),
@@ -532,7 +532,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Add: Claim Inquiry(${claim_id}) created`
+            logDescription: `Add: Claim Comments(${claim_id}) created`
         });
     },
 

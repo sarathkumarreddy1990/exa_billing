@@ -3,10 +3,12 @@ const indexRouter = require('../routes/index');
 const middlewares = require('../routes/middlewares');
 //const authRouter = require('../routes/auth');
 const reportingRoutes = require('../../modules/reporting/routes');
+const OHIPRoutes = require('../../modules/ohip/routes');
 const studyFiltersRouter = require('../routes/study-filters');
 const appSettingsRouter = require('../routes/app-settings');
 const claimFiltersRouter = require('../routes/claim/claim-filters');
 const autoCompleteRouter = require('../routes/auto-complete');
+const reportSettingsRouter = require('../routes/report-settings');
 const setupRouters = require('../routes/setup/');
 const paymentsRouter = require('../routes/payments');
 const claimsRouters = require('../routes/claim/index');
@@ -17,9 +19,11 @@ const patientRouter = require('../routes/patients');
 const studyFilterRouter = require('../routes/setup/study-filter');
 const eraRouter = require('../routes/era');
 const splitClaimRouter = require('../routes/claim/split-claim');
-
+const ohipDataAPI = require('./../data/ohip');
+const cronRoutes = require('../routes/cron-handlers');
 const router = function (app) {
 
+    app.use('/exa_modules/billing/cron', cronRoutes);
     app.use('/exa_modules/billing', indexRouter);
 
     //app.use(authRouter);
@@ -27,10 +31,12 @@ const router = function (app) {
 
     app.use('/exa_modules/billing/studies', studiesRouter);
     app.use('/exa_modules/billing/reports', reportingRoutes);
+    app.use('/exa_modules/billing/ohip', new OHIPRoutes(ohipDataAPI));
     app.use('/exa_modules/billing/study_filters', studyFiltersRouter);
     app.use('/exa_modules/billing/app_settings', appSettingsRouter);
     app.use('/exa_modules/billing/claim_filters', claimFiltersRouter);
     app.use('/exa_modules/billing/autoCompleteRouter', autoCompleteRouter);
+    app.use('/exa_modules/billing/reportSettingsRouter', reportSettingsRouter);
     app.use('/exa_modules/billing/setup', setupRouters);
     app.use('/exa_modules/billing/payments', paymentsRouter);
     app.use('/exa_modules/billing/pending_payments', paymentsRouter);

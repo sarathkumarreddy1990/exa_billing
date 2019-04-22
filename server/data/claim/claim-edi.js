@@ -118,7 +118,7 @@ module.exports = {
 
 									, COALESCE (NULLIF(p_pi.subscriber_address_line1,'Migration Address'),'') AS "p_subscriber_addressLine1"
 									, COALESCE (NULLIF(p_pi.subscriber_city,'Migration City'),'') AS "p_subscriber_city"
-									, p_pi.subscriber_dob AS "p_subscriber_dob"
+									, p_pi.subscriber_dob::text AS "p_subscriber_dob"
 									, COALESCE (NULLIF(p_pi.subscriber_firstname, ''), '')  AS "p_subscriber_firstName"
 									, COALESCE (NULLIF(p_pi.subscriber_middlename, ''), '')  AS "p_subscriber_middleName"
 									, COALESCE (NULLIF(p_pi.subscriber_name_suffix, ''), '')  AS "p_subscriber_suffixName"
@@ -129,7 +129,7 @@ module.exports = {
 
 									, COALESCE (NULLIF(s_pi.subscriber_address_line1 , 'Migration Address'), '') AS "s_subscriber_addressLine1"
 									, COALESCE (NULLIF(s_pi.subscriber_city , 'Migration City'), '') AS "s_subscriber_city"
-									, s_pi.subscriber_dob AS "s_subscriber_dob"
+									, s_pi.subscriber_dob::text AS "s_subscriber_dob"
 									, COALESCE (NULLIF(s_pi.subscriber_firstname, ''), '')  AS "s_subscriber_firstName"
 									, COALESCE (NULLIF(s_pi.subscriber_middlename, ''), '')  AS "s_subscriber_middleName"
 									, COALESCE (NULLIF(s_pi.subscriber_name_suffix, ''), '')  AS "s_subscriber_suffixName"
@@ -140,7 +140,7 @@ module.exports = {
 
 									, COALESCE (NULLIF(t_pi.subscriber_address_line1, 'Migration Address'),'') AS "t_subscriber_addressLine1"
 									, COALESCE (NULLIF(t_pi.subscriber_city, 'Migration City'),'') AS "t_subscriber_city"
-									, t_pi.subscriber_dob AS "t_subscriber_dob"
+									, t_pi.subscriber_dob::text AS "t_subscriber_dob"
 									, COALESCE (NULLIF(t_pi.subscriber_firstname, ''), '')  AS "t_subscriber_firstName"
 									, COALESCE (NULLIF(t_pi.subscriber_middlename, ''), '')  AS "t_subscriber_middleName"
 									, COALESCE (NULLIF(t_pi.subscriber_name_suffix, ''), '')  AS "t_subscriber_suffixName"
@@ -291,7 +291,7 @@ module.exports = {
 															pay_to_state as "state",
 															pay_to_zip_code as "zipCode",
 															federal_tax_id as "federalTaxID",
-															phone_number as "phoneNo",
+															pay_to_phone_number as "phoneNo",
 															contact_person_name as "contactName"
 														FROM   billing.providers as billing_providers
 														WHERE  billing_providers.id=billing_provider_id)AS billingProvider
@@ -328,7 +328,7 @@ module.exports = {
 
 										policy_number  as "policyNo",
 										pi.group_name as "planName",
-										group_number as "planType",
+										group_number as "groupNumber",
 										insurance_provider_details.claim_filing_indicator_code as "claimFilingCode",
 										subscriber_firstname as "firstName",
 										subscriber_lastname as "lastName",
@@ -340,8 +340,9 @@ module.exports = {
 										subscriber_city as "city",
 										subscriber_state as "state",
 										subscriber_zipcode as "zipCode",
+										home_phone_number as "phoneNumber",
 										assign_benefits_to_patient as "acceptAssignment",
-										subscriber_dob as "dob",
+										subscriber_dob::text as "dob",
 										to_char(subscriber_dob, 'YYYYMMDD')  as "dobFormat",
 										(  CASE subscriber_gender
 											WHEN 'Male' THEN 'M'
@@ -415,11 +416,17 @@ module.exports = {
 										)AS patient)
 							,( SELECT Json_agg(Row_to_json(claim)) "claim"
 							FROM   (
-									SELECT claims.id as "claimNumber",
+                                SELECT claims.id as "claimNumber",
+                                order_details.order_id as "orderId",
 										frequency as "claimFrequencyCode",
 										bgcp.charges_bill_fee_total::numeric::text AS "claimTotalCharge",
 										bgcp.payment_insurance_total::numeric::text AS "claimPaymentInsurance",
+										bgcp.payment_ordering_facility_total::NUMERIC::TEXT AS "claimPaymentOrderingFacility",
+										bgcp.payment_ordering_provider_total::NUMERIC::TEXT AS "claimPaymentProvider",
+										bgcp.adjustment_ordering_facility_total::NUMERIC::TEXT AS "claimAdjustmentOrderingFacility",
+										bgcp.adjustment_ordering_provider_total::NUMERIC::TEXT AS "claimAdjustmentProvider",
 										bgcp.payment_patient_total::numeric::text AS "claimPaymentPatient",
+										bgcp.payments_applied_total::numeric::text AS "claimPaymentTotal",
 										(SELECT places_of_service.code FROM  places_of_service WHERE  places_of_service.id=claims.place_of_service_id) as "POS",
 										to_char(date(timezone(facilities.time_zone,claim_dt)), 'YYYYMMDD') as "claimDate",							date(timezone(facilities.time_zone,claim_dt))::text as "claimDt",
 										is_employed as  "relatedCauseCode1",
@@ -568,8 +575,9 @@ module.exports = {
 					subscriber_city as "city",
 					subscriber_state as "state",
 					subscriber_zipcode as "zipCode",
+					home_phone_number as "phoneNumber",
 					assign_benefits_to_patient as "acceptAssignment",
-					subscriber_dob as "dob",
+					subscriber_dob::text as "dob",
                     to_char(subscriber_dob, 'YYYYMMDD')  as "dobFormat",
                     (CASE pi.coverage_level
                         WHEN 'primary' THEN 'P'
@@ -625,6 +633,7 @@ module.exports = {
 					modifier4.code as "mod4",
 					authorization_no as "authorizationNo",
 					allowed_amount::numeric::text as "allowedAmount",
+					(allowed_amount*charges.units)::numeric::text  as "totalAllowedAmount",
 					charges.id as "chargeID",
 					display_description as "studyDescription",
 					additional_info->'ndc_code' as NDCCode,
@@ -638,8 +647,9 @@ module.exports = {
 					pointer2 as "pointer2",
 					pointer3 as "pointer3",
 					pointer4 as "pointer4",
-					group_info->'cliaNumber' as "cliaNumber"
-					,(SELECT Json_agg(Row_to_json(lineAdjudication)) "lineAdjudication"
+					group_info->'cliaNumber' as "cliaNumber",
+					study_details.accession_no as "accessionNumber",
+					(SELECT Json_agg(Row_to_json(lineAdjudication)) "lineAdjudication"
 									FROM
                  (SELECT
                     display_code as "cpt",
@@ -657,7 +667,12 @@ module.exports = {
 					modifier2.code as "modifier2",
 					modifier3.code as "modifier3",
 					modifier4.code as "modifier4",
-					sum(pa.amount)::numeric::text as "paidAmount",
+					COALESCE(sum(pa.amount) FILTER (WHERE pa.amount_type = 'payment'),0::money)::NUMERIC::text  AS "cptPaymentTotal",
+					COALESCE(sum(pa.amount) FILTER (WHERE pa.amount_type = 'payment' AND payer_type='insurance'),0::money)::NUMERIC::text AS "paidAmount",
+					COALESCE(sum(pa.amount) FILTER (WHERE pa.amount_type = 'payment' AND payer_type='ordering_provider'),0::money)::NUMERIC::text AS "cptPaymentProvider",
+					COALESCE(sum(pa.amount) FILTER (WHERE pa.amount_type = 'payment' AND payer_type='ordering_facility'),0::money)::NUMERIC::text AS "cptPaymentOrderingFacility",
+					COALESCE(sum(pa.amount) FILTER (WHERE pa.amount_type = 'adjustment' AND payer_type='ordering_provider'),0::money)::NUMERIC::text AS "cptAdjustmentProvider",
+					COALESCE(sum(pa.amount) FILTER (WHERE pa.amount_type = 'adjustment' AND payer_type='ordering_facility'),0::money)::NUMERIC::text AS "cptAdjustmentOrderingFacility",
 					charges.units as "unit"
 					,(SELECT Json_agg(Row_to_json(lineAdjustment)) "lineAdjustment"
 									FROM
@@ -673,12 +688,13 @@ module.exports = {
 											INNER JOIN 	billing.payment_applications	 ON payment_applications.id=cas_payment_application_details.payment_application_id
 											INNER JOIN billing.payments ON  billing.payments.id=payment_applications.payment_id and payer_type='insurance' AND
 											payment_applications.charge_id = charges.id AND payment_applications.amount_type = 'adjustment'
-											INNER JOIN LATERAL ( SELECT
-                                                                                            i_pi.insurance_provider_id
-                                                                                            FROM patient_insurances i_pi
-                                                                                            WHERE i_pi.id = claims.primary_patient_insurance_id
-											                    ) AS ipi ON ipi.insurance_provider_id = payments.insurance_provider_id
-											WHERE cas_group_codes.code= gc.code ) AS CAS )
+											WHERE cas_group_codes.code= gc.code
+											AND payments.insurance_provider_id NOT IN
+											(SELECT
+												insurance_provider_id
+											FROM public.patient_insurances
+											WHERE id = ANY(ARRAY[claims.tertiary_patient_insurance_id,claims.secondary_patient_insurance_id]))
+											 ) AS CAS )
 											FROM  billing.cas_payment_application_details
 											INNER JOIN billing.cas_group_codes ON cas_group_codes.id = cas_group_code_id
 											INNER JOIN billing.payment_applications ON payment_applications.id = cas_payment_application_details.payment_application_id
@@ -688,19 +704,29 @@ module.exports = {
 											                            AND payment_applications.amount_type = 'adjustment'
 											                            GROUP BY cas_group_codes.code ) AS lineAdjustment)
                                         FROM billing.payment_applications pa
-                                        INNER JOIN billing.payments ON billing.payments.id=pa.payment_id AND payer_type='insurance'
-                                        INNER JOIN LATERAL ( SELECT
-                                                                i_pi.insurance_provider_id
-                                                            FROM patient_insurances i_pi
-                                                            WHERE i_pi.id = claims.primary_patient_insurance_id
-                                                            ) AS ipi ON ipi.insurance_provider_id = payments.insurance_provider_id
-                                        WHERE charge_id = charges.id AND pa.amount_type = 'payment') AS lineAdjudication)
+                                        INNER JOIN billing.payments ON billing.payments.id=pa.payment_id
+                                        WHERE charge_id = charges.id
+                                        AND payments.insurance_provider_id NOT IN
+                                        (SELECT insurance_provider_id
+						FROM public.patient_insurances
+                                        WHERE id = ANY(ARRAY[claims.tertiary_patient_insurance_id,claims.secondary_patient_insurance_id]))
+                                        ) AS lineAdjudication)
 					FROM billing.charges
 					INNER JOIN cpt_codes ON cpt_codes.id=cpt_id
 					LEFT JOIN modifiers AS modifier1 ON modifier1.id=modifier1_id
 					LEFT JOIN modifiers AS modifier2 ON modifier2.id=modifier2_id
 					LEFT JOIN modifiers AS modifier3 ON modifier3.id=modifier3_id
 					LEFT JOIN modifiers AS modifier4 ON modifier4.id=modifier4_id
+					LEFT JOIN LATERAL (
+                                        SELECT
+                                            s.accession_no
+                                        FROM
+                                            public.studies s
+                                        INNER JOIN billing.charges_studies AS cs ON cs.study_id = s.id
+                                        WHERE
+                                            cs.charge_id = charges.id
+                                        ORDER BY s.id
+                                    ) AS study_details ON TRUE
 					WHERE claim_id=claims.id AND NOT charges.is_excluded ORDER BY charges.id ASC)
 					AS serviceLine)
 					) AS claim
@@ -724,15 +750,26 @@ module.exports = {
 											WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
 											WHEN 'tertiary_insurance' THEN tertiary_patient_insurance_id
 											END)
-									INNER JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id
-									LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id
-									LEFT JOIN relationship_status ON  subscriber_relationship_id =relationship_status.id
-									LEFT JOIN public.insurance_provider_payer_types  ON insurance_provider_payer_types.id = insurance_providers.provider_payer_type_id
-                                    LEFT JOIN provider_groups  ON  claims.ordering_facility_id = provider_groups.id
-                                    WHERE claims.id= ANY(${claimIds})
+                                            INNER JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id
+                                            LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id
+                                            LEFT JOIN relationship_status ON  subscriber_relationship_id =relationship_status.id
+                                            LEFT JOIN public.insurance_provider_payer_types  ON insurance_provider_payer_types.id = insurance_providers.provider_payer_type_id
+                                            LEFT JOIN provider_groups  ON  claims.ordering_facility_id = provider_groups.id
+                                            LEFT JOIN LATERAL (
+					                            SELECT
+                                                    s.order_id
+                                                FROM
+                                                    public.studies s
+                                                INNER JOIN billing.charges_studies AS cs ON cs.study_id = s.id
+                                                INNER JOIN billing.charges AS c on c.id = cs.charge_id
+                                                WHERE
+                                                    c.claim_id = claims.id
+                                                ORDER BY s.order_id
+                                                LIMIT 1
+                                                ) AS order_details ON TRUE
+                                                WHERE claims.id= ANY(${claimIds})
                             `;
 
         return await query(sql);
     },
-
 };

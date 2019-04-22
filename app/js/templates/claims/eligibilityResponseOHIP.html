@@ -1,0 +1,64 @@
+<html>
+
+<head>
+    <title i18n="billing.fileInsurance.healthCardBenefitsEligibility"></title>
+</head>
+
+<body><br>
+    <p class="font-weight-bold" i18n="billing.fileInsurance.patientInformation"></p>
+    <hr>
+    <table class="table table-bordered w-100 m-auto">
+        <tbody>
+            <% if(insuranceData.errMsg) { %>
+            <tr>
+                <td class="w-30 font-weight-bold" i18n="billing.fileInsurance.errorMsg"></td>
+                <td class="w-70"><%=insuranceData.errMsg %></td>
+            </tr>
+            <% } else if(insuranceData.faultcode && insuranceData.faultstring){%>
+            <tr> 
+                <td class="w-30 font-weight-bold" i18n="billing.fileInsurance.errorMsg"></td>
+                <td class="w-70"><%=insuranceData.faultcode %></td>
+            </tr>
+            <tr>
+                <td class="w-30 font-weight-bold" i18n="billing.fileInsurance.errorDescription"></td>
+                <td class="w-70"><%=insuranceData.faultstring %></td>
+            </tr>
+            <%} else {%>
+            <tr>
+                <td class="w-30 font-weight-bold" i18n="billing.fileInsurance.patientFirstName"></td>
+                <td class="w-70"><%=insuranceData.firstName%></td>
+            </tr>
+            <tr>
+                <td class="w-30 font-weight-bold" i18n="billing.fileInsurance.patientLastName"></td>
+                <td class="w-70"><%=insuranceData.lastName%></td>
+            </tr>
+            <tr>
+                <td class="w-30 font-weight-bold" i18n="billing.fileInsurance.healthCardNumber"></td>
+                <td class="w-70"><%=insuranceData.healthNumber%></td>
+            </tr>
+            <tr>
+                <td class="w-30 font-weight-bold" i18n="billing.fileInsurance.patientBirthDate"></td>
+                <td class="w-70"><%=insuranceData.dateOfBirth%></td>
+            </tr>
+            <tr>
+                <td class="w-30 font-weight-bold" i18n="billing.fileInsurance.patientGender"></td>
+                <td class="w-70"><%=insuranceData.gender%></td>
+            </tr>
+            <tr>
+                <td class="w-30 font-weight-bold" i18n="billing.fileInsurance.expiryDate"></td>
+                <td class="w-70"><%=insuranceData.expiryDate%></td>
+            </tr>
+            <tr>
+                <td class="w-30 font-weight-bold" i18n="billing.fileInsurance.responseDescription"></td>
+                <td class="w-70"><%=insuranceData.responseDescription%></td>
+            </tr>
+            <tr>
+                <td class="w-30 font-weight-bold" i18n="billing.fileInsurance.responseAction"></td>
+                <td class="w-70"><%=insuranceData.responseAction%></td>
+            </tr>
+            <%} %>
+        </tbody>
+    </table>
+</body>
+
+</html>

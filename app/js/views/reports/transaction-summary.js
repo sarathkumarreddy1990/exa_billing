@@ -41,11 +41,11 @@ define([
 
             initialize: function (options) {
                 this.showForm();
-                this.$el.html(this.mainTemplate(this.viewModel));               
+                this.$el.html(this.mainTemplate(this.viewModel));
                 UI.initializeReportingViewModel(options, this.viewModel);
                 // Set date range to Facility Date
                 this.viewModel.dateFrom = commonjs.getFacilityCurrentDateTime(app.facilityID);
-                this.viewModel.dateTo = this.viewModel.dateFrom.clone();     
+                this.viewModel.dateTo = this.viewModel.dateFrom.clone();
             },
             showForm: function () {
                 if (!this.rendered) {
@@ -64,7 +64,7 @@ define([
                  // bind DRP and initialize it
                  this.bindDateRangePicker();
                  this.drpStudyDt.setStartDate(this.viewModel.dateFrom);
-                 this.drpStudyDt.setEndDate(this.viewModel.dateTo); 
+                 this.drpStudyDt.setEndDate(this.viewModel.dateTo);
                 $('#ddlFacilityFilter, #ddlTransactionSummary').multiselect({
                     maxHeight: 200,
                     buttonWidth: '300px',
@@ -111,17 +111,17 @@ define([
 
             hasValidViewModel: function () {
                 if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
-                    commonjs.showWarning('Please check report id, category, and/or format!');
+                    commonjs.showWarning('messages.status.pleaseCheckReportIdCategoryandorFormat');
                     return false;
                 }
 
                 if (this.viewModel.dateFrom == null || this.viewModel.dateTo == null) {
-                    commonjs.showWarning('Please select date range!');
+                    commonjs.showWarning('messages.status.pleaseSelectDateRange');
                     return false;
                 }
 
                 return true;
-            },  
+            },
 
             onPaymentByMonthorDay: function(){
                 if ($('#ddlTransactionSummary').val() == 'S') {
@@ -131,7 +131,7 @@ define([
                     this.viewModel.totalByMonthOrDay = false;
                 }
             },
-           
+
             // multi select facilities - worked
             getSelectedFacility: function (e) {
                 var selected = $("#ddlFacilityFilter option:selected");

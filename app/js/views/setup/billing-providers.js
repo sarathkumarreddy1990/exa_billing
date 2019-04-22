@@ -8,7 +8,8 @@ define(['jquery',
     'text!templates/setup/billing-provider-form.html',
     'collections/setup/billing-providers',
     'models/setup/billing-providers',
-    'models/pager'
+    'models/pager',
+    'shared/address'
 ],
     function ($,
         Immutable,
@@ -20,7 +21,8 @@ define(['jquery',
         BillingProvidersForm,
         BillingProvidersCollections,
         BillingProvidersModel,
-        Pager
+        Pager,
+        Address
     ) {
         var BillingProvidersView = Backbone.View.extend({
             billingProvidersGridTemplate: _.template(BillingProvidersGrid),
@@ -179,7 +181,50 @@ define(['jquery',
                 var self = this;
                 var qualifierCodes = app.provider_id_code_qualifiers;
                 var states = app.states[0].app_states;
-                $('#divBillingProvidersForm').html(this.billingProvidersFormTemplate({ qualifierCodes: qualifierCodes, states: states }));
+                $('#divBillingProvidersForm').html(this.billingProvidersFormTemplate({
+                    country_alpha_3_code: app.country_alpha_3_code,
+                    qualifierCodes: qualifierCodes,
+                    states: states
+                }));
+                if(app.country_alpha_3_code === 'can'){
+                    $('#txtNpi').attr('maxlength', 4);
+                }
+                var AddressInfoMap = {
+                    city: {
+                        domId: 'txtCity',
+                        infoKey: 'city'
+                    },
+                    state: {
+                        domId: 'ddlState',
+                        infoKey: 'state'
+                    },
+                    zipCode: {
+                        domId: 'txtZip',
+                        infoKey: 'zip'
+                    },
+                    zipCodePlus: {
+                        domId: 'txtZipPlus',
+                        infoKey: 'zipPlus'
+                    }
+                }
+                var payToAddressMap = {
+                    city: {
+                        domId: 'txtPayCity',
+                        infoKey: 'city'
+                    },
+                    state: {
+                        domId: 'ddlPayState',
+                        infoKey: 'state'
+                    },
+                    zipCode: {
+                        domId: 'txtPayZip',
+                        infoKey: 'zip'
+                    },
+                    zipCodePlus: {
+                        domId: 'txtPayZipPlus',
+                        infoKey: 'zipCodePlus'
+                    }
+                }
                 if (id > 0) {
                     this.model.set({ id: id });
                     this.model.fetch({
@@ -188,6 +233,8 @@ define(['jquery',
                                 var data = response[0];
                                 var communication_info = data.communication_info;
                                 if (data) {
+                                    Address.loadCityStateZipTemplate('#divAddressInfo', data, AddressInfoMap);
+                                    Address.loadCityStateZipTemplate('#divPayToAddress', data, payToAddressMap);
                                     $('#txtName').val(data.name ? data.name : '');
                                     $('#chkIsActive').prop('checked', data.inactivated_dt ? true : false);
                                     $('#txtCode').val(data.code ? data.code : '');
@@ -224,6 +271,10 @@ define(['jquery',
                                     $('#txtSentFolder').val(communication_info.Ftp_sent_folder ? communication_info.Ftp_sent_folder : '');
                                     $('#txtReceiveFolder').val(communication_info.Ftp_receive_folder ? communication_info.Ftp_receive_folder : '');
                                     $('#txtIdentityFilePath').val(communication_info.Ftp_identity_file ? communication_info.Ftp_identity_file : '');
+                                    var $txtPayCity = $("[for=txtPayCity]");
+                                    $txtPayCity.find("span").remove();
+                                    $txtPayCity.removeClass('field-required');
+									
                                 }
                                 self.showFTPDetails();
                                 self.bindProviderIDCodes();
@@ -241,10 +292,10 @@ define(['jquery',
                         $("#txtShortDesc").val($.trim($('#txtShortDesc').val()) || null);
                         $("#txtFederalTaxID").val($.trim($('#txtFederalTaxID').val()) || null);
                         $("#txtNpi").val($.trim($('#txtNpi').val()) || null);
-                        $("#txtTaxonomy").val($.trim($('#txtTaxonomy').val().toUpperCase()) || null);
                         $("#txtContactName").val($.trim($('#txtContactName').val()) || null);
                         $("#txtAddressLine1").val($.trim($('#txtAddressLine1').val()) || null);
                         $("#txtCity").val($.trim($('#txtCity').val()) || null);
+                        $("#ddlState").val($.trim($('#ddlState').val()) && $.trim($('#ddlState').val()) != 'Select' ? $.trim($('#ddlState').val()) : null);
                         $("#txtZip").val($.trim($('#txtZip').val()) || null);
                         $("#txtBillProPhoneNo").val($.trim($('#txtBillProPhoneNo').val()) || null);
                         $("#txtFaxNo").val($.trim($('#txtFaxNo').val()) || null);
@@ -254,12 +305,19 @@ define(['jquery',
                         $("#txtPassword").val($.trim($('#txtPassword').val()) || null);
                         $("#txtSentFolder").val($.trim($('#txtSentFolder').val()) || null);
                         $("#txtReceiveFolder").val($.trim($('#txtReceiveFolder').val()) || null);
+
+                        if (app.country_alpha_3_code === "usa") {
+                            $("#txtTaxonomy").val($.trim($('#txtTaxonomy').val().toUpperCase()) || null);
+                        }
+
                         self.saveBillingProviders();
                     }},
                     {value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
                         Backbone.history.navigate('#setup/billing_providers/list', true);
                     }}
                 ]});
+                Address.loadCityStateZipTemplate('#divAddressInfo', {}, AddressInfoMap);
+                Address.loadCityStateZipTemplate('#divPayToAddress', {}, payToAddressMap);
                 $('#divBillingProvidersGrid').hide();
                 $('#divBillingProvidersForm').show();
                 $('#divFTPDetails').hide();
@@ -312,6 +370,9 @@ define(['jquery',
                     city: {
                         required: true
                     },
+                    state: {
+                        required: true
+                    },
                     zip: {
                         required: true
                     },
@@ -335,6 +396,7 @@ define(['jquery',
                     contactPersonName: commonjs.getMessage("e", "Contact Person Name"),
                     addressLine1: commonjs.getMessage("e", "AddressLine1"),
                     city: commonjs.getMessage("e", "City"),
+                    state: commonjs.getMessage("e", "State"),
                     zip: commonjs.getMessage("e", "Zip"),
                     phoneNo: commonjs.getMessage("e", "Phone Number"),
                     faxNo: commonjs.getMessage("e", "Fax Number"),
@@ -367,8 +429,18 @@ define(['jquery',
             },
 
             save: function () {
+                if (!$('#txtCity').val()) {
+                    return commonjs.showWarning("messages.warning.pleaseEnterCity");
+                }
                 if (!$('#ddlState').val()) {
-                    return commonjs.showWarning("Please Select the state");
+                    return commonjs.showWarning("messages.warning.pleaseSelectState");
+                }
+                if (!$('#txtZip').val()) {
+                    return commonjs.showWarning("messages.warning.pleaseEnterZip");
+                }
+                if (!commonjs.validateZipInputCanada('txtZip')) {
+                    commonjs.showWarning('messages.warning.shared.invalidPostal');
+                    return false;
                 }
                 var isFtpEnabled = $('#chkEnableFTP').prop('checked');
                 var communication_info = {
@@ -390,7 +462,7 @@ define(['jquery',
                     "shortDescription": $('#txtShortDesc').val(),
                     "federalTaxId": $('#txtFederalTaxID').val(),
                     "npiNo": $('#txtNpi').val(),
-                    "taxonomyCode": $('#txtTaxonomy').val().toUpperCase(),
+                    "taxonomyCode": (app.country_alpha_3_code === "can") ? "1234567890" : $('#txtTaxonomy').val().toUpperCase(),
                     "contactPersonName": $('#txtContactName').val(),
                     "addressLine1": $('#txtAddressLine1').val(),
                     "addressLine2": $.trim($('#txtAddressLine2').val()),
@@ -436,12 +508,13 @@ define(['jquery',
                         delay: 250,
                         data: function (params) {
                             return {
-                                page: params.page || 20,
+                                page: params.page || 1,
                                 q: params.term || '',
                                 pageSize: 10,
                                 sortField: "insurance_code",
                                 sortOrder: "ASC",
-                                company_id: app.companyID
+                                company_id: app.companyID,
+                                isInactive: false
                             };
                         },
                         processResults: function (data, params) {

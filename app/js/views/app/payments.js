@@ -228,6 +228,7 @@ define(['jquery',
 
                 var payment_mode = { "": "All", "Cash": "Cash", "Card": "Card", "Check": "Check", "EFT": "EFT", "Adjustment": "Adjustments" };
                 var facilities = commonjs.makeValue(commonjs.getCurrentUsersFacilitiesFromAppSettings(), ":All;", "id", "facility_name");
+                payment_mode.Check = app.country_alpha_3_code === 'can' ? 'Cheque' : payment_mode.Check;
 
                 $('#liPendingPayments').removeClass('active');
                 $('#divPayments,#ulPaymentTab #liPayments').addClass('active');
@@ -246,7 +247,7 @@ define(['jquery',
                         custompager: this.pager,
                         emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                         colNames: ['<span  id="spnStatus" class="icon-ic-worklist" onclick="commonjs.popOverActions(event)" ></span>', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                        i18nNames: ['', '', '', 'billing.payments.paymentID', '', 'billing.payments.referencePaymentID', 'billing.payments.paymentDate', 'billing.payments.accountingDate', 'billing.payments.payertype', 'billing.payments.payerName', 'billing.payments.patientMRN', 'billing.payments.paymentAmount', 'billing.payments.paymentApplied', 'billing.payments.balance', 'billing.payments.adjustments', 'billing.COB.notes', 'billing.payments.postedBy', 'billing.payments.paymentmode', 'billing.payments.chequeCardNo', 'billing.payments.facility_name', '', '', ''],
+                        i18nNames: ['', '', '', 'billing.payments.paymentID', '', 'billing.payments.referencePaymentID', 'billing.payments.paymentDate', 'billing.payments.accountingDate', 'billing.payments.payertype', 'billing.payments.payerName', 'billing.payments.patientMRN', 'billing.payments.paymentAmount', 'billing.payments.paymentApplied', 'billing.payments.balance', 'billing.payments.adjustments', 'billing.COB.notes', 'billing.payments.postedBy', 'billing.payments.paymentMode', 'billing.payments.chequeCardNo', 'billing.payments.facility_name', '', '', ''],
                         colModel: [
                             {
                                 name: 'edit', width: 50, sortable: false, search: false,
@@ -300,6 +301,7 @@ define(['jquery',
                             self.editPayment(rowID, self.from);
                         },
                         onaftergridbind: function (model, gridObj) {
+                            commonjs.paymentsList = model;
                             self.bindDateRangeOnSearchBox(gridObj);
                             if (model && model.length) {
                                 self.setMoneyMask();
@@ -441,7 +443,7 @@ define(['jquery',
                         colvalue = 'EFT';
                         break;
                     case "check":
-                        colvalue = 'Check';
+                        colvalue = app.country_alpha_3_code === 'can' ? 'Cheque' : 'Check';
                         break;
                     case "card":
                          colvalue = 'Card';
@@ -474,7 +476,8 @@ define(['jquery',
                     from: self.from ?self.from: 'Billing',
                     filterData: filterData,
                     filterColumn : filterCol,
-                    filterFlag: true
+                    filterFlag: true,
+                    countryCode: app.country_alpha_3_code
 
                 }
                 self.paymentPDF.onReportViewClick(e, paymentPDFArgs);
@@ -503,13 +506,15 @@ define(['jquery',
                         filterCol: filterCol,
                         toDate: !self.isCleared ? moment().format('YYYY-MM-DD') : "",
                         fromDate: !self.isCleared ? moment().subtract(29, 'days').format('YYYY-MM-DD') : "",
-                        filterByDateType: 'accounting_date'
+                        filterByDateType: 'accounting_date',
+                        country_code: app.country_alpha_3_code
                     },
                     success: function (data, response) {
                         commonjs.prepareCsvWorker({
                             data: data,
                             reportName: 'PAYMENTS',
-                            fileName: 'Payments'
+                            fileName: 'Payments',
+                            countryCode: app.country_alpha_3_code
                         }, {
                                 afterDownload: function () {
                                     $('#btnGenerateExcel').prop('disabled', false);
@@ -638,6 +643,8 @@ define(['jquery',
                 //Append adjustment codes with credit entry
                 var writeOffAdjustmentCodeList = _.filter(self.writeOffAdjustmentCodeList.toJSON(), { accounting_entry_type: "credit" });
 
+                self.patientClaimPager = new ModelPaymentsPager();
+
                 commonjs.showDialog({
                     header: 'Small Balance Adjustment',
                     i18nHeader:'shared.buttons.smallBalanceAdjustment',
@@ -645,7 +652,11 @@ define(['jquery',
                     height: '70%',
                     html: self.balanceWriteOffTemplate({
                         writeOffAdjustmentCodeList : writeOffAdjustmentCodeList
-                    })
+                    }),
+                    onHide: function() {
+                        self.patientClaimsGrid = null;
+                        self.patientGridLoaded = false;
+                    }
                 });
                 $('#siteModal').removeAttr('tabindex'); //removed tabIndex attr on sitemodel for select2 search text area can't editable
                 $('#btnNextProcess').off().click(_.debounce(function (e) {
@@ -654,6 +665,7 @@ define(['jquery',
                         self.showPatientsGrid(e);
                     } else {
                         self.patientClaimPager.set({ "PageNo": 1 });
+                        self.patientClaimsGrid.options.customargs.writeOffAmount = $('#txtWriteOffAmt').val();
                         self.patientClaimsGrid.refreshAll();
                     }
                 }, 250));
@@ -752,9 +764,26 @@ define(['jquery',
                                 'shared.fields.claimTotalBalance'
                             ],
                             colModel: [
-                                { name: 'id', index: 'id', key: true, width: 400, sortable: false, search: false },
-                                { name: 'claim_balance_total',        width: 500, sortable: false, search: false },
-                                { name: 'charges_bill_fee_total',     width: 500, sortable: false, search: false }
+                                {
+                                    name: 'id',
+                                    key: true,
+                                    width: 400,
+                                    index: 'id',
+                                    search: false,
+                                    sortable: false
+                                },
+                                {
+                                    name: 'charges_bill_fee_total',
+                                    sortable: false,
+                                    search: false,
+                                    width: 500
+                                },
+                                {
+                                    name: 'claim_balance_total',
+                                    sortable: false,
+                                    search: false,
+                                    width: 500
+                                }
                             ],
                             sortname: 'claims.id',
                             sortorder: 'ASC',
@@ -780,6 +809,7 @@ define(['jquery',
                         $balanceWriteOff.off().click(_.debounce(function (e) {
                             var $adjustmentCode = $('#ddlWriteOffAdjCodes option:selected');
                             var _adjCodeDesc = $adjustmentCode.text().trim();
+                            var writeOffAmount = $('#txtWriteOffAmt').val();
                             var msg = commonjs.geti18NString("messages.confirm.payments.writeOffAmountAreYouSure")
                                 msg = msg.replace('WRITE_OFF_AMOUNT', writeOffAmount).replace('$ADJ_CODE_DESC', _adjCodeDesc);
 
@@ -812,14 +842,16 @@ define(['jquery',
                                             $balanceWriteOff.prop('disabled',false);
                                             $balanceWriteOff.addClass('d-none');
                                             $btnNext.prop('disabled',false);
-                                            if (self.patientClaimsGrid)
-                                                self.patientClaimsGrid.refresh();
+                                            // After write-off close popup
+                                            commonjs.hideDialog();
                                         }
 
                                     },
                                     error: function (err, response) {
                                         commonjs.handleXhrError(err, response);
                                         commonjs.hideLoading();
+                                        $balanceWriteOff.prop('disabled',false);
+                                        $btnNext.prop('disabled',false);
                                     }
                                 };
 

@@ -13,6 +13,8 @@ define([
             expanded: false,
             mainTemplate: _.template(paymentsTemplate),
             viewModel: {
+                dateFormat: 'MM/DD/YYYY',
+                country_alpha_3_code: 'usa',
                 facilities: null,
                 dateFrom: null,
                 dateTo: null,
@@ -44,7 +46,6 @@ define([
             defaultyFacilityId: null,
             ACSelect: { user: {} },
             events: {
-
                 'change #ddlUsersOption': 'onOptionChangeSelectUser',
                 'change #ddlUsersRoleOption': 'onOptionChangeSelectUserRole',
                 'change #ddlAdjustmentCodeOption': 'onOptionChangeSelectAdjustmentCode',
@@ -64,6 +65,8 @@ define([
                 this.showForm();
                 this.$el.html(this.mainTemplate(this.viewModel));
                 UI.initializeReportingViewModel(options, this.viewModel);
+
+                UI.getReportSetting(this.viewModel, 'all', 'dateFormat'); // Get date format (and current country code) based on current country code saved in sites table(this.viewModel);
 
                 // Set date range to Facility Date
                 this.viewModel.dateFrom = commonjs.getFacilityCurrentDateTime(app.facilityID);
@@ -116,7 +119,7 @@ define([
             bindDateRangePicker: function () {
                 var self = this;
                 var drpEl = $('#txtDateRangeFromTo');
-                var drpOptions = { autoUpdateInput: true, locale: { format: 'L' } };
+                var drpOptions = { autoUpdateInput: true, locale: { format: this.viewModel.dateFormat } };
                 this.drpStudyDt = commonjs.bindDateRangePicker(drpEl, drpOptions, 'past', function (start, end, format) {
                     self.viewModel.dateFrom = start;
                     self.viewModel.dateTo = end;
@@ -208,12 +211,12 @@ define([
 
             hasValidViewModel: function () {
                 if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
-                    commonjs.showWarning('Please check report id, category, and/or format!');
+                    commonjs.showWarning('messages.status.pleaseCheckReportIdCategoryandorFormat');
                     return;
                 }
 
                 if (this.viewModel.dateFrom == null || this.viewModel.dateTo == null) {
-                    commonjs.showWarning('Please select date range!');
+                    commonjs.showWarning('messages.status.pleaseSelectDateRange');
                     return;
                 }
                 return true;
@@ -253,6 +256,8 @@ define([
                 $('#ulListInsuranceProvider').data('insuranceGroupIds', []);
                 $('input[id=chkAllInsGroup]').prop('checked', false);
                 $('input[class=insGrpChk]').prop('checked', false);
+                $('#txtInsuranceName').empty();
+                $('#txtInsuranceProviderName').empty();
                 this.selectedInsGrpList = [];
 
                 if ($('#ddlInsuranceOption').val() == 'S') {
@@ -336,6 +341,8 @@ define([
                 });
 
                 return urlParams = {
+                    'dateFormat': this.viewModel.dateFormat,
+                    'country_alpha_3_code': this.viewModel.country_alpha_3_code,
                     'userIds': $('#ddlUsersOption').val() == 'S' ? usersArray : '',
                     'userName': $('#ddlUsersOption').val() == 'S' ? userNameArray : '',
                     'userRoleIds': $('#ddlUsersRoleOption').val() == 'S' ? usersRoleArray : '',

@@ -34,17 +34,19 @@
                 </div>
                 <div class="col">
                     <div class="form-group row">
-                        <label for="txtNpi" class="col-sm-3 col-form-label field-required" i18n="setup.billingProvider.npino"></label>
+                        <label for="txtNpi" class="col-sm-3 col-form-label field-required" i18n="shared.fields.npi"></label>
                         <div class="col-sm-5">
                             <input type="text" class="form-control" id="txtNpi" name="npiNo">
                         </div>
                     </div>
+                    <% if (country_alpha_3_code === "usa") { %>
                     <div class="form-group row">
-                        <label for="txtTaxonomy" class="col-sm-3 col-form-label field-required" i18n="setup.billingProvider.taxonomycode"></label>
+                        <label for="txtTaxonomy" class="col-sm-3 col-form-label field-required" i18n="setup.providers.taxonomyCode"></label>
                         <div class="col-sm-5">
                             <input type="text" minlength="10" maxlength="10" class="form-control text-uppercase" id="txtTaxonomy" name="taxonomy">
                         </div>
                     </div>
+                    <% } %>
                     <div class="form-group row">
                         <label for="chkEnableFTP" class="col-sm-3 col-form-label" i18n="setup.billingProvider.enableftp"></label>
                         <div class="col-sm-5">
@@ -155,23 +157,29 @@
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label for="txtCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingProvider.cityStateZip"></label>
-                        <div class="col-sm-3">
-                            <input type="text" class="form-control" id="txtCity" name="city" i18np="shared.fields.city">
-                        </div>
-                        <div class="col-sm-2" style="padding-left:0px;">
-                            <select id="ddlState" class="form-control" style="height:32px;" name="state">
-                                <option selected>Select</option>
+                        <div class="col-sm-12" id="divAddressInfo">
+                            <label for="txtCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingProvider.cityStateZip"></label>
+                            <div class="col-sm-3">
+                                <input type="text" class="form-control" id="txtCity" name="city" i18np="shared.fields.city">
+                            </div>
+                            <div class="col-sm-2" style="padding-left:0px;">
+                                <select id="ddlState" class="form-control" style="height:32px;" name="state">
+                                    <option selected>Select</option>
                                     <% _.each(states, function(state) { %>
-                                        <option value="<%= state %>" ><%= state %></option>
+                                    <option value="<%= state %>">
+                                        <%= state %>
+                                    </option>
                                     <% }); %>
-                            </select>
-                        </div>
-                        <div class="col-sm-2" style="padding-left:0px;">
-                            <input type="text" class="form-control integerbox" id="txtZip" name="zip" i18np="shared.fields.zip" maxlength="5">
-                        </div>
-                        <div class="col-sm-2" style="padding-left:0px;">
-                            <input type="text" class="form-control integerbox" id="txtZipPlus" name="zipPlus" i18np="shared.fields.zipPlus" maxlength="4">
+                                </select>
+                            </div>
+                            <div class="col-sm-2" style="padding-left:0px;">
+                                <input type="text" class="form-control integerbox" id="txtZip" name="zip" i18np="shared.fields.zip"
+                                    maxlength="5">
+                            </div>
+                            <div class="col-sm-2" style="padding-left:0px;">
+                                <input type="text" class="form-control integerbox" id="txtZipPlus" name="zipPlus" i18np="shared.fields.zipPlus"
+                                    maxlength="4">
+                            </div>
                         </div>
                     </div>
                     <div class="form-group row">
@@ -220,23 +228,29 @@
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label for="txtPayCity" class="col-sm-3 col-form-label" i18n="setup.billingProvider.cityStateZip"></label>
-                        <div class="col-sm-3">
-                            <input type="text" class="form-control" id="txtPayCity" name="payCity" i18np="shared.fields.city">
-                        </div>
-                        <div class="col-sm-2" style="padding-left:0px;">
-                            <select id="ddlPayState" class="form-control" style="height:32px;" name="payState">
-                                <option selected>Select</option>
-                                <% _.each(states, function(state) { %>
-                                    <option value="<%= state %>" ><%= state %></option>
-                                <% }); %>
-                            </select>
-                        </div>
-                        <div class="col-sm-2" style="padding-left:0px;">
-                            <input type="text" class="form-control integerbox" id="txtPayZip" name="payZip" i18np="shared.fields.zip" maxlength="5">
-                        </div>
-                        <div class="col-sm-2" style="padding-left:0px;">
-                            <input type="text" class="form-control integerbox" id="txtPayZipPlus" name="payZipPlus" i18np="shared.fields.zipPlus" maxlength="4">
+                        <div class="col-sm-12" id="divPayToAddress">
+                            <label for="txtPayCity" class="col-sm-3 col-form-label" i18n="setup.billingProvider.cityStateZip"></label>
+                            <div class="col-sm-3">
+                                <input type="text" class="form-control" id="txtPayCity" name="payCity" i18np="shared.fields.city">
+                            </div>
+                            <div class="col-sm-2" style="padding-left:0px;">
+                                <select id="ddlPayState" class="form-control" style="height:32px;" name="payState">
+                                    <option selected>Select</option>
+                                    <% _.each(states, function(state) { %>
+                                    <option value="<%= state %>">
+                                        <%= state %>
+                                    </option>
+                                    <% }); %>
+                                </select>
+                            </div>
+                            <div class="col-sm-2" style="padding-left:0px;">
+                                <input type="text" class="form-control integerbox" id="txtPayZip" name="payZip" i18np="shared.fields.zip"
+                                    maxlength="5">
+                            </div>
+                            <div class="col-sm-2" style="padding-left:0px;">
+                                <input type="text" class="form-control integerbox" id="txtPayZipPlus" name="payZipPlus" i18np="shared.fields.zipPlus"
+                                    maxlength="4">
+                            </div>
                         </div>
                     </div>
                     <div class="form-group row">

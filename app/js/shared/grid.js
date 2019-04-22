@@ -361,7 +361,7 @@ define('grid', [
                                     liPayerTypeArray.push($(commonjs.getRightClickMenu('ancOrderingFacility_' + billingPayers.ordering_facility_id, '', true, billingPayers.ordering_facility_name + '( Service Facility )', false)));
                                 }
                                 if (billingPayers.referring_provider_contact_id) {
-                                    liPayerTypeArray.push($(commonjs.getRightClickMenu('ancRenderingProvider_' + billingPayers.referring_provider_contact_id, '', true, billingPayers.ref_prov_full_name + '( Rendering Proivider )', false)));
+                                    liPayerTypeArray.push($(commonjs.getRightClickMenu('ancRenderingProvider_' + billingPayers.referring_provider_contact_id, '', true, billingPayers.ref_prov_full_name + '( Referring Provider )', false)));
                                 }
                                 $('#ul_change_payer_type').append(liPayerTypeArray);
                                 $('#ul_change_payer_type li').click(function (e) {
@@ -558,7 +558,7 @@ define('grid', [
                         'needShrink': true
                     });
                 self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
-                self.claimInquiryView.patientInquiryLog(studyIds,selectedStudies[0].patient_id);
+                self.claimInquiryView.patientInquiryLog(studyIds, selectedStudies[0].patient_id, selectedStudies[0].patient_name);
                 });
 
                 var liSplitOrders = commonjs.getRightClickMenu('anc_split_claim','setup.rightClickMenu.splitClaim',false,'Split Claim',false);
@@ -876,12 +876,12 @@ define('grid', [
 
             var icon_width = 24;
             colName = colName.concat([
-                ('<input type="checkbox" title="Select all studies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />'),
-                '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', ''
+                ('<input type="checkbox" i18nt="billing.payments.selectAllStudies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />'),
+                '','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', ''
             ]);
 
             i18nName = i18nName.concat([
-                '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'billing.claims.assignedTo', ''
+                '','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'billing.claims.assignedTo', ''
             ]);
 
             colModel = colModel.concat([
@@ -1157,6 +1157,36 @@ define('grid', [
                     }
                 },
                 {
+                    name: 'as_eligibility_status',
+                    width: 40,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: app.country_alpha_3_code !== 'can',
+                    isIconCol: true,
+                    formatter: function (cellvalue, options, rowObject) {
+
+                        if (app.country_alpha_3_code === 'can') {
+                            var i18n;
+                            var color;
+                            cellvalue = cellvalue || "";
+
+                            switch (cellvalue) {
+                              case 'valid':             i18n = 'messages.status.healthNumberValid';         color = 'green';        break;
+                              case 'invalid':           i18n = 'messages.status.healthNumberInvalid';       color = 'red';          break;
+                              case 'data_unavailable':  i18n = 'messages.status.healthNumberNotValidated';  color = '#2f74e2';      break;
+                              case 'null_response':     i18n = 'messages.status.noValidationData';          color = 'black';        break;
+                              case 'recheck':           i18n = 'messages.status.healthNumberRevalidate';    color = 'orange';       break;
+                              default:                  i18n = 'messages.status.healthNumberNotValidated';  color = 'red';          break;
+                            }
+
+                            return "<i href='#' i18nt='" + i18n + "' class='icon-ic-status' data-value='" + cellvalue + "' style='color: " + color + ";text-shadow:0 0 " + color + ", 0 0 " + color + ", 0 0 " + color + ", 0 0 red, 0 0 " + color + "'></i>";
+                        }
+                    },
+                    customAction: function (rowID, e, that) {
+                    }
+                },
+                {
                     name: 'hidden_study_id',
                     width: 20,
                     sortable: false,
@@ -1313,7 +1343,7 @@ define('grid', [
                     }
                 },
                 {
-                    name: 'facility_id',
+                    name: 'hidden_facility_id',
                     width: 20,
                     sortable: false,
                     resizable: false,
@@ -1498,7 +1528,8 @@ define('grid', [
                                 fileName: 'Claims',
                                 filter_order: userSettings.field_order,
                                 filterType: userSettings.grid_name,
-                                columnHeader: colHeader
+                                columnHeader: colHeader,
+                                countryCode: app.country_alpha_3_code
                             }, {
                                     afterDownload: function () {
                                         $('#btnValidateExport').css('display', 'inline');
@@ -1524,7 +1555,7 @@ define('grid', [
                 colNames: colName.concat(studyFields.colName),
                 i18nNames: i18nName.concat(studyFields.i18nName),
                 colModel: colModel.concat(studyFields.colModel),
-                emptyMessage: 'No Study found',
+                emptyMessage: commonjs.geti18NString('messages.status.noStudyFound'),
                 sortname: defSortColumn,
                 sortorder: defSortOrder,
                 caption: "Studies",

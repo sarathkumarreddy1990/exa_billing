@@ -100,7 +100,8 @@ module.exports = {
                                         code,
                                         description
                                     FROM   billing.billing_codes
-                                    WHERE  company_id=${companyID} AND inactivated_dt IS NULL ) AS billing_codes)
+                                    WHERE  company_id=${companyID} AND inactivated_dt IS NULL
+                                    ORDER BY description) AS billing_codes)
                 , cte_billing_classes AS(
                                     SELECT Json_agg(Row_to_json(billing_classes)) billing_classes
                                     FROM  (
@@ -132,6 +133,17 @@ module.exports = {
                                     country_alpha_3_code
                                     FROM   sites
                                     WHERE  id=${siteID})
+                , cte_hidden_reports AS (
+                                SELECT Json_agg(Row_to_json(hidden_reports)) hidden_reports
+                                FROM  (
+                                    SELECT report_id,value::boolean
+                                    FROM report_settings
+                                    WHERE company_id = ${companyID}
+                                    AND code = 'hidden'
+                                    AND country_alpha_3_code = (SELECT country_alpha_3_code
+                                                                FROM public.sites
+                                                                WHERE id = ${siteID})) AS hidden_reports
+                                )
                 , cte_employment_status AS(
                                     SELECT Json_agg(Row_to_json(employment_status)) employment_status
                                     FROM  (
@@ -368,6 +380,7 @@ module.exports = {
                       cte_billing_classes,
                       cte_provider_id_code_qualifiers,
                       cte_sites,
+                      cte_hidden_reports,
                       cte_studyflag,
                       cte_employment_status,
                       cte_relationship_status,

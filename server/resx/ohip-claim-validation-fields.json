@@ -1,0 +1,12 @@
+{
+    "healthNumber": true,
+    "versionCode": true,
+    "renderingProvider" : {
+        "renderingProviderNpi": true
+    },
+    "referringProvider" : {
+        "referringProviderNpi" : true
+    },
+    "patientAddress": true,
+    "provinceCode": true
+} 

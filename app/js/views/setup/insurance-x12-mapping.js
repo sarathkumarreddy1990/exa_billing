@@ -55,6 +55,11 @@ define(['jquery',
                 if (this.ediClearingHouses && !this.ediClearingHouses.length)
                     this.getEDIClearingHousesList();
 
+                if (app.country_alpha_3_code === "can") {
+                    self.billing_method = _.reject(self.billing_method, function (field) {
+                        return (field && (field.value == "paper_claim" || field.value == "patient_payment"))
+                    }) || [];
+                }
                 var billingMethodValue = commonjs.buildGridSelectFilter({
                     arrayOfObjects: this.billing_method,
                     searchKey: 'value',
@@ -99,6 +104,7 @@ define(['jquery',
                         },
                         {
                             name: 'claimclearinghouse',
+                            hidden: app.country_alpha_3_code === "can",
                             formatter: function(cellvalue, options, rowObject) {
                                 var name = "";
                                 var clearingHouseID = rowObject.claimclearinghouse;
@@ -158,7 +164,10 @@ define(['jquery',
 
             renderForm: function(id) {
                 var self = this;
-                $('#divInsuranceX12MappingForm').html(this.insuranceX12MappingFormTemplate({'ediClearingHouseList' : self.ediClearingHouses}));
+                $('#divInsuranceX12MappingForm').html(this.insuranceX12MappingFormTemplate({
+                    country_alpha_3_code: app.country_alpha_3_code,
+                    'ediClearingHouseList' : self.ediClearingHouses
+                }));
                 if(id > 0) {
                     this.model.set({id: id});
                     this.model.fetch({
@@ -172,8 +181,15 @@ define(['jquery',
                                     $('#ddlClaimBillingMethod').val(data.billing_method ? data.billing_method : '');
                                     $('#txtClaimFileIndicatorCode').val(data.indicator_code ? data.indicator_code : '');
                                     $('#selectPayerEDICode').val(data.edi_code ? data.edi_code : '');
-                                    if(data.billing_method == 'electronic_billing'){
+                                    self.isdefaultPayer = data.is_default_payer;
+                                    $('input:checkbox[name=defaultPayer]').prop('checked', self.isdefaultPayer );
+                                    if (data.billing_method == 'electronic_billing') {
                                         $('#clearingHouse').show();
+                                        $('#defaultPayerDiv').show();
+                                    }
+                                    else {
+                                        $('#clearingHouse').hide();
+                                        $('#defaultPayerDiv').hide();
                                     }
                                 }
                             }
@@ -218,6 +234,10 @@ define(['jquery',
 
             saveInsuranceX12Mapping: function() {
                 var self = this;
+                if (app.country_alpha_3_code === "can" && self.isdefaultPayer && !$('input:checkbox[name=defaultPayer]').prop('checked')) {
+                    commonjs.showWarning('messages.warning.shared.defaultPayer');
+                    return false;
+                }
                 commonjs.validateForm({
                     rules: {
                         name: {
@@ -248,7 +268,8 @@ define(['jquery',
                     "claimClearingHouse": ($('#ddlClaimClearingHouse').val() && $('#ddlClaimBillingMethod').val()=='electronic_billing' ) ? $('#ddlClaimClearingHouse').val() : null,
                     "billingMethod": $('#ddlClaimBillingMethod').val(),
                     "indicatorCode": $('#txtClaimFileIndicatorCode').val(),
-                    "ediCode": $("#selectPayerEDICode").val()
+                    "ediCode": $("#selectPayerEDICode").val(),
+                    "is_default_payer": (app.country_alpha_3_code === "can" && $('#ddlClaimBillingMethod').val() == 'electronic_billing') ? $('input:checkbox[name=defaultPayer]').prop('checked') : false
                 });
                 this.model.save({
                 }, {
@@ -282,15 +303,17 @@ define(['jquery',
                 return colvalue
             },
 
-            showHouse: function(e) {
+            showHouse: function (e) {
                 var method = $('#ddlClaimBillingMethod').val();
-                if(method == 'electronic_billing'){
+                if (method == 'electronic_billing') {
                     $('#clearingHouse').show();
-                }
-                else{
-                    $('#clearingHouse').hide();
-                }
+                    $('#defaultPayerDiv').show()
 
+                }
+                else {
+                    $('#clearingHouse').hide();
+                    $('#defaultPayerDiv').hide();
+                }
             },
 
             changeEDICode: function () {
@@ -320,6 +343,9 @@ define(['jquery',
                         break;
                     case 'X':
                         ediVal = 'CH'
+                        break;
+                    case 'Y':
+                        ediVal = 'YFAC'
                         break;
                     case 'default':
                         ediVal = ''

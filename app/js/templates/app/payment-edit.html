@@ -10,6 +10,7 @@
 
     #PaymentForm .select2-container {
         z-index: 999;
+        width:60% !important;
     }
 
     .maskPendingPay {
@@ -33,7 +34,7 @@
 </style>
 
 <div class="form-group row">
-    <div class="col-lg-12">
+    <div class="col-lg-10">
         <form id="PaymentForm" class="form-horizontals" style="margin-top: 25px;">
             <div class="row">
                 <div class="col">
@@ -58,7 +59,7 @@
                     </div>
                     <div class="form-group row">
                         <label for="chkpayerInsurance" class="control-label col-sm-4"></label>
-                        <div class="col-sm-5">
+                        <div class="col-sm-8">
                             <div id="divPayerInsurnace" class="payerFields">
                                 <span>
                                     <input type="hidden" id="hdnPayerID" class="form-control">
@@ -71,13 +72,37 @@
                                 </span>
                             </div>
                             <div id="divPayerPatient" style="display:none;" class="payerFields">
+                                <div id="searchPayer" class="form-inline mb-1">
+                                    <div>
+                                        <span class="col-xs-6 pr-1 mb-1 form-inline">
+                                            <input type="text" id="lname" class="form-control search-payer w-100" i18np="billing.payments.lastName"
+                                                placeholder="Last Name">
+                                        </span>
+                                        <span class="form-inline mb-1">
+                                            <input type="text" id="fname" class="form-control search-payer w-100" i18np="billing.payments.firstName"
+                                                placeholder="First Name">
+                                        </span>
+                                        <span class="col-xs-6 pr-1 form-inline">
+                                            <input type="text" id="mrn" class="form-control search-payer w-100" i18np="billing.payments.mrn"
+                                                placeholder="MRN">
+                                        </span>
+                                        <span class="form-inline">
+                                            <input type="text" id="dob" class="form-control maskDateLocale search-payer w-100" i18np="shared.fields.dob"
+                                                placeholder="DOB">
+                                        </span>
+                                    </div>
+                                </div>
                                 <span>
-                                    <select id="txtautoPayerPP" style="width:450px;" tabindex="2"></select>
-                                    <a disabled='disabled' class="btn btn-primary selectPatientSave" id="spnSearchPayerPatient" title="Search">
-                                        <i class="icon-ic-search"></i>
-                                    </a>
+                                    <span>
+                                        <select id="txtautoPayerPP" tabindex="2"></select>
+                                        <a disabled='disabled' class="" id="btnClearPatSearch" title="Clear">
+                                            <i class="fa fa-undo"></i>
+                                        </a>
+                                        <a disabled='disabled' class="selectPatientSave" id="spnSearchPayerPatient" title="Search">
+                                            <i class="fa fa-search"></i>
+                                        </a>
+                                    </span>
                                     <input type="button" class="btnPatientSelectSave d-none" id="btnPatientSelectSave">
-                                    <span id="lblAutoPatient"> </span>
                                 </span>
                             </div>
                             <div id="divPayerOrderFacility" style="display:none;" class="payerFields">
@@ -101,7 +126,7 @@
                         </div>
                     </div>
                     <div class="form-group row" id="divInputType">
-                            <label for="chkpayerInsurance" class="control-label col-sm-4" id="lblInputType" i18n="billing.payments.inputType"></label>
+                            <label for="chkpayerInsurance" class="control-label col-sm-4"></label>
                         <div class="col-sm-8 mt-auto">
                             <span class="radio-inline" for='chkIpEob' id='lblIpEob'>
                                 <input id='chkIpEob' tabindex="3" type='radio' class="inputType mt-3" name="ipType" value='inpEOB'>
@@ -111,8 +136,8 @@
                                 <input id='chkIpInvoice' tabindex="4" type='radio' class="inputType ml-3" name="ipType" value='inpInvoice'>
                                 <label for="chkIpInvoice" class="field-chk ml-2" style="min-width: 20px!important" i18n="billing.payments.invoice"></label>
                             </span>
-                            <input type="text" id="txtInvoice" class="form-control invoiceNo" i18np="billing.payments.invoice" tabindex="5" style=" width: 160px;display: inline;" tabindex="10">
-                            <input type="button" id="btnPaymentApplyAll" class="btn btn-default" tabindex="5" value="Apply All" style="display: none;">
+                            <input type="text" id="txtInvoice" class="form-control invoiceNo" i18np="billing.payments.invoice" tabindex="5" style="width: 160px; display: inline;" tabindex="10">
+                            <input type="button" id="btnPaymentApplyAll" class="btn btn-default" tabindex="5" i18n="shared.buttons.applyAll" value="Apply All" style="display: none;">
                         </div>
                     </div>
                 </div>
@@ -151,7 +176,7 @@
                         </div>
                     </div>
                     <div class="form-group row">
-                            <label for="selectPaymentMode" class="control-label field-required col-sm-3" i18n="billing.payments.paymentASmode"></label>
+                            <label for="selectPaymentMode" class="control-label field-required col-sm-3" i18n="billing.payments.paymentMode"></label>
                             <div class="col-sm-4">
                                 <select class="form-control" id="selectPaymentMode" tabindex="11">
                                     <option value="0">Select</option>
@@ -178,7 +203,7 @@
                         <label class="control-label  field-required col-sm-4" for="txtAccountingDate" i18n="billing.payments.accountingDate"></label>
                         <div class="col-sm-4">
                             <div id="divAccountingDate" class="input-group" style="min-width: 224px;">
-                                <input type="text" id="txtAccountingDate" style="min-width: 195px;" class="form-control form-control-date" name="fromDate" tabindex="6" placeholder="MM/DD/YYYY">
+                                <input type="text" id="txtAccountingDate" style="min-width: 195px;" class="form-control form-control-date maskDateLocale" name="fromDate" tabindex="6" placeholder="MM/DD/YYYY">
                                 <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px;">
                                     <i class="icon-ic-schedule"></i>
                                 </span>
@@ -225,6 +250,10 @@
                     </div>
                 </div>
             </div>
+    </div>
+    <div class="col-lg-2 p-3">
+        <input type="button" id="btnPaymentPrev" class="btn btn-default nextPrevPayment" i18n="billing.fileInsurance.previous" tabindex="22">
+        <input type="button" id="btnPaymentNext" class="btn btn-default nextPrevPayment" i18n="billing.fileInsurance.next" tabindex="23">
     </div>
     </form>
 </div>

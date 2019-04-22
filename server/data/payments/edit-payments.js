@@ -537,7 +537,7 @@ module.exports = {
                     WHERE company_id = ${params.companyID}
                         AND inactivated_dt IS NULL
                     ORDER BY regexp_replace(code, '^([^[:digit:]]*).*$', '\\1'),
-                             regexp_replace(code, '^.*?([[:digit:]]*)$', '\\1')::bigint
+                             NULLIF(regexp_replace(code, '^.*?([[:digit:]]*)$', '\\1'),'')::bigint
                         )
                     AS cas_reason_codes)
             SELECT *
@@ -704,7 +704,8 @@ module.exports = {
                         suffix_name) AS full_name,
                     owner_id,
                     patient_info as more_info,
-                    birth_date::text
+                    to_char(patients.birth_date, 'YYYY-MM-DD') as birth_date,
+                    COUNT(1) OVER (range unbounded preceding) as total_records                    
                 FROM patients
                 ${filter.filterQuery}
                 ORDER BY ${filter.sortField} ASC

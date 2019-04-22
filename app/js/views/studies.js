@@ -259,6 +259,7 @@ define(['jquery',
                 self.template = _.template(StudyHTML);
                 self.indexTemplate = _.template(IndexHTML);
                 self.$el.html(self.indexTemplate({
+                    country_alpha_3_code: app.country_alpha_3_code,
                     gadget: '',
                     customOrderStatus: app.customOrderStatus,
                     customStudyStatus: app.customStudyStatus
@@ -285,6 +286,7 @@ define(['jquery',
                             filter_id: "All_Studies",
                             filter_info: null,
                             filter_name: commonjs.geti18NString("shared.fields.allStudies"),
+                            i18n_name: "shared.fields.allStudies",
                             filter_order: 0,
                             id: "All_Studies"
                         });
@@ -814,6 +816,7 @@ define(['jquery',
                     var processFilters = function (arrays, data) {
                         var id = data.filter_id;
                         var name = data.filter_name;
+                        var i18nName = data.i18n_name;
                         var info = data.filter_info;
                         var options = processOptions(info);
                         var liStudyTab = [
@@ -838,6 +841,7 @@ define(['jquery',
                             options.showEncOnly,
                             '" data-toggle="tab" title="',
                             name,
+                            (i18nName ? '" i18n="' + i18nName + '" i18nt="' + i18nName : ''),
                             '">',
                             name,
                             '</a></li>'

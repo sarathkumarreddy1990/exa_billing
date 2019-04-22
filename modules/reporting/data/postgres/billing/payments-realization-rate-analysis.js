@@ -2,11 +2,12 @@ const _ = require('lodash')
     , Promise = require('bluebird')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
-    , queryBuilder = require('../queryBuilder');
+    , queryBuilder = require('../queryBuilder')
+    , moment = require('moment');
 
 const paymentRealizationRateAnalysisQueryTemplate = _.template(`
     WITH
-        paymaneRealizationRateAnalysis AS (
+        paymentRealizationRateAnalysis AS (
       SELECT
           bc.id AS claim_id,
           payment_details.payment_accounting_date,
@@ -49,12 +50,21 @@ const paymentRealizationRateAnalysisQueryTemplate = _.template(`
           ) AS payment_details ON payment_details.claim_id = bc.id
           LEFT JOIN LATERAL(
                SELECT
-                      i_bch.claim_id AS claim_id,
-		bp.payer_type
-               FROM billing.payments bp
+                    i_bch.claim_id AS claim_id,
+                    (CASE bp.payer_type
+                          WHEN 'patient' THEN 'Patient'
+                          WHEN 'insurance' THEN 'Insurance'
+                          WHEN 'ordering_facility' THEN 'Ordering Facility'
+                          WHEN 'ordering_provider' THEN 'Provider'
+                          END
+                    ) AS payer_type
+               FROM
+                    billing.payments bp
                INNER JOIN billing.payment_applications bpa  ON bpa.payment_id = bp.id
                INNER JOIN billing.charges i_bch ON i_bch.id = bpa.charge_id
                WHERE i_bch.claim_id = bc.id
+               ORDER BY
+                   bpa.id DESC
                LIMIT 1
           ) AS payment_payer_details ON payment_payer_details.claim_id = bc.id
           LEFT JOIN provider_contacts  ON provider_contacts.id = bc.referring_provider_contact_id
@@ -81,18 +91,18 @@ const paymentRealizationRateAnalysisQueryTemplate = _.template(`
           bgct.adjustments_applied_total,
           bgct.claim_balance_total,
           payment_details.payment_accounting_date,
-          payer_name,
+          insurance_providers.insurance_name,
           payment_payer_details.payer_type,
-          insurance_payer_name)
+          ippt.description)
       SELECT
           claim_id AS "Claim ID"
-        , to_char(payment_accounting_date, 'MM/DD/YYYY') AS "Payment Accounting Date"
+        , to_char(payment_accounting_date, '<%= dateFormat %>') AS "Payment Accounting Date"
         , provider_name   AS "Billing Provider"
         , facility_name AS "Facility Name"
         , payer_type AS "Payer Type"
-        , payer_name AS "Payer Name"
-        , insurance_payer_name AS "Insurance Provider"
-        , to_char(scheduled_dt, 'MM/DD/YYYY') AS "Service Date"
+        , payer_name AS "Primary Insurance"
+        , insurance_payer_name AS "Insurance Group"
+        , to_char(scheduled_dt, '<%= dateFormat %>') AS "Service Date"
         , modality_code AS "Modality"
         , patient_name AS "Patient Name"
         , account_no AS "Account #"
@@ -102,7 +112,7 @@ const paymentRealizationRateAnalysisQueryTemplate = _.template(`
         , balance AS "Balance"
         , rate_paid AS "Rate Paid (%)"
     FROM
-          paymaneRealizationRateAnalysis
+          paymentRealizationRateAnalysis
 `);
 
 const api = {
@@ -167,13 +177,13 @@ const api = {
         }
 
         if (params.accountingDateFrom != '' && params.accountingDateTo != '') {
-            filtersUsed.push({ name: 'accountingfromDate', label: 'Accounting Date From', value: params.accountingDateFrom });
-            filtersUsed.push({ name: 'accountingtoDate', label: 'Accounting Date To', value: params.accountingDateTo });
+            filtersUsed.push({ name: 'accountingfromDate', label: 'Accounting Date From', value: moment(params.accountingDateFrom).format(params.dateFormat) });
+            filtersUsed.push({ name: 'accountingtoDate', label: 'Accounting Date To', value: moment(params.accountingDateTo).format(params.dateFormat) });
         }
 
         if (params.serviceDateFrom != '' && params.serviceDateTo != '') {
-            filtersUsed.push({ name: 'serviceDateFrom', label: 'Service Date From', value: params.serviceDateFrom });
-            filtersUsed.push({ name: 'serviceDateTo', label: 'Service Date To', value: params.serviceDateTo });
+            filtersUsed.push({ name: 'serviceDateFrom', label: 'Service Date From', value: moment(params.serviceDateFrom).format(params.dateFormat) });
+            filtersUsed.push({ name: 'serviceDateTo', label: 'Service Date To', value: moment(params.serviceDateTo).format(params.dateFormat) });
         }
 
         if (params.insuranceIds && params.insuranceIds.length) {
@@ -264,6 +274,7 @@ const api = {
             filters.insGroups = queryBuilder.whereIn(`ippt.id`, [params.length]);
         }
 
+        filters.dateFormat = reportParams.dateFormat;
         return {
             queryParams: params,
             templateData: filters

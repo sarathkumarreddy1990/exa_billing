@@ -3,41 +3,43 @@
      data_payment_application_id="<%= payment.payment_application_id %>"
     data_claim_id="<%= payment.claimId %>" data_payment_applied_dt="<%= payment.payment_applied_dt %>">
     <td style="white-space: nowrap !important">
-        <span>
+        <span class="payment__cpt_code">
             <%= payment.cpt_code %>
         </span>
     </td>
     <td style="white-space: nowrap !important">
-        <span>
+        <span class="payment__cpt_desc">
             <%= payment.cpt_description %>
         </span>
     </td>
     <td style="white-space: nowrap !important" class="textRight">
-        <span class="billfee">
+        <span class="billfee payment__bill_fee">
             <%= payment.bill_fee %>
         </span>
     </td>
     <td style="white-space: nowrap !important" class="textRight">
-        <span>
+        <span class="payment__others">
             <%= payment.other_payment %>
         </span>
     </td>
     <td style="white-space: nowrap !important">
-        <input value="<%= payment.payment_amount %>" type="text" class="input-xs maskFeeAllowMinus this_pay" placeholder="0.00">
+        <input value="<%= payment.payment_amount %>" type="text" class="input-xs maskFeeAllowMinus this_pay payment__this_pay" placeholder="0.00">
     </td>
+    <% if (country_alpha_3_code !== "can") { %>
     <td style="white-space: nowrap !important">
-        <input type="text" class="input-xs this_allowed maskFeeAllowMinus" value="<%= payment.allowed_amount %>">
+        <input type="text" class="input-xs this_allowed maskFeeAllowMinus payment__this_allowed" value="<%= payment.allowed_amount %>">
     </td>
+    <% } %>
     <td style="white-space: nowrap !important" class="textRight">
-        <span>
+        <span class="payment__other_adjustment">
             <%= payment.other_adjustment %>
         </span>
     </td>
     <td style="white-space: nowrap !important">
-        <input type="text" class="input-xs this_adjustment maskFeeAllowMinus" value="<%= payment.adjustment %>" placeholder="0.00">
+        <input type="text" class="input-xs this_adjustment maskFeeAllowMinus payment__this_adjustment" value="<%= payment.adjustment %>" placeholder="0.00">
     </td>
     <td style="white-space: nowrap !important" class="textRight">
-        <span>
+        <span class="payment__balance">
             <%= payment.balance %>
         </span>
     </td>

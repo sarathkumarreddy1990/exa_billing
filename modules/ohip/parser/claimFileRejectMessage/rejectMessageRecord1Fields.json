@@ -1,0 +1,41 @@
+{
+    "transactionIdentifier": {
+        "startPos": 1,
+        "fieldLength": 1,
+        "constant": "M"
+    },
+    "recordIdentifier" : {
+        "startPos": 2,
+        "fieldLength": 2,
+        "constant": "01"
+    },
+    "messageReason": {
+        "startPos": 4,
+        "fieldLength": 20
+    },
+    "invalidRecordLength": {
+        "startPos": 24,
+        "fieldLength": 5
+    },
+    "messageType": {
+        "startPos": 29,
+        "fieldLength": 3
+    },
+    "mohReserved1": {
+        "startPos": 32,
+        "fieldLength": 1
+    },
+    "filler": {
+        "startPos": 33,
+        "fieldLength": 7,
+        "constant": "RECORD="
+    },
+    "recordImage": {
+        "startPos": 40,
+        "fieldLength": 37
+    },
+    "mohReserved2": {
+        "startPos": 77,
+        "fieldLength": 42
+    }
+}

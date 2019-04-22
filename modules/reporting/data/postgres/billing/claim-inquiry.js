@@ -3,7 +3,8 @@ const _ = require('lodash')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
     , queryBuilder = require('../queryBuilder')
-    , logger = require('../../../../../logger');
+    , logger = require('../../../../../logger')
+    , moment = require('moment');
 // generate query template ***only once*** !!!
 const claimInquiryDataSetQueryTemplate = _.template(`
     WITH patient_paid_claims as
@@ -54,7 +55,7 @@ const claimInquiryDataSetQueryTemplate = _.template(`
            p.full_name as patient_name,
            p.account_no,
            COALESCE(p.patient_info->'ssn','') AS ssn,
-           COALESCE(to_char(p.birth_date,'MM/DD/YYYY'),'') AS dob,
+           COALESCE(to_char(p.birth_date,'<%= dateFormat %>'),'') AS dob,
            COALESCE(p.patient_info->'c1HomePhone','') AS phone,
            COALESCE(claim_totals.claim_balance_total, 0::MONEY) AS claim_balance_total,
            bc.payer_type,
@@ -262,7 +263,7 @@ const claimInquiryDataSetQueryTemplate1 = _.template(`
                 cc.claim_id as id,
                 'claim' as type ,
                 note as comments ,
-                to_char(created_dt::date,'MM/DD/YYYY') as commented_dt,
+                to_char(created_dt::date,'<%= dateFormat %>') as commented_dt,
                 null as amount,
                 u.username as commented_by,
                 null as code,
@@ -276,7 +277,7 @@ const claimInquiryDataSetQueryTemplate1 = _.template(`
                 c.claim_id as id,
                 'charge' as type,
                 cc.short_description as comments,
-                to_char(c.charge_dt::date,'MM/DD/YYYY') as commented_dt,
+                to_char(c.charge_dt::date,'<%= dateFormat %>') as commented_dt,
                 (c.bill_fee*c.units) as amount,
                 u.username as commented_by,
                 cc.display_code as code,
@@ -296,7 +297,7 @@ const claimInquiryDataSetQueryTemplate1 = _.template(`
                  WHEN bp.payer_type = 'ordering_provider' THEN
                        p.full_name
             END as comments,
-            to_char(bp.accounting_date,'MM/DD/YYYY') as commented_dt,
+            to_char(bp.accounting_date,'<%= dateFormat %>') as commented_dt,
             sum(pa.amount) as amount,
             u.username as commented_by,
             CASE amount_type
@@ -339,6 +340,8 @@ const api = {
      * This method is called by controller pipline after report data is initialized (common lookups are available).
      */
     getReportData: (initialReportData) => {
+        initialReportData.report.styles.cssStyleSSN = initialReportData.report.vars.columnHidden.ssn[initialReportData.report.params.country_alpha_3_code] ? "display: none" : "";
+        initialReportData.report.styles.cssStyleExpiration = initialReportData.report.vars.columnHidden.expiration[initialReportData.report.params.country_alpha_3_code] ? "display: none" : "";
         initialReportData.filters = api.createReportFilters(initialReportData);
         if (initialReportData.report.params.userIds && initialReportData.report.params.userIds.length > 0) {
             initialReportData.report.params.userIds = initialReportData.report.params.userIds.map(Number);
@@ -385,7 +388,7 @@ const api = {
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
                 var carrierNameIndex = 19;
-                var carrierIdIndex = 23;
+                var carrierIdIndex = 25;
                 var lastCarrierId = 0;
                 var lastCarrierName = '';
                 var lastProcessedIndex = 0;
@@ -478,23 +481,26 @@ const api = {
                         p_coverage: claimInquiryDataSet.rows[i][20].length ? (claimInquiryDataSet.rows[i][20].slice(0))[0] : '',
                         p_company_name: claimInquiryDataSet.rows[i][20].length ? (claimInquiryDataSet.rows[i][20].slice(0))[1] : '',
                         p_exp_date: claimInquiryDataSet.rows[i][20].length ? (claimInquiryDataSet.rows[i][20].slice(0))[2] : '',
-                        p_group_no: claimInquiryDataSet.rows[i][20].length ? (claimInquiryDataSet.rows[i][20].slice(0))[3] : '',
-                        p_policy_no: claimInquiryDataSet.rows[i][20].length ? (claimInquiryDataSet.rows[i][20].slice(0))[4] : '',
+                        p_policy_no: claimInquiryDataSet.rows[i][20].length ? (claimInquiryDataSet.rows[i][20].slice(0))[3] : '',
+                        p_group_no: claimInquiryDataSet.rows[i][20].length ? (claimInquiryDataSet.rows[i][20].slice(0))[4] : '',
                         s_coverage: claimInquiryDataSet.rows[i][21].length ? (claimInquiryDataSet.rows[i][21].slice(0))[0] : '',
                         s_company_name: claimInquiryDataSet.rows[i][21].length ? (claimInquiryDataSet.rows[i][21].slice(0))[1] : '',
                         s_exp_date: claimInquiryDataSet.rows[i][21].length ? (claimInquiryDataSet.rows[i][21].slice(0))[2] : '',
-                        s_group_no: claimInquiryDataSet.rows[i][21].length ? (claimInquiryDataSet.rows[i][21].slice(0))[3] : '',
-                        s_policy_no: claimInquiryDataSet.rows[i][21].length ? (claimInquiryDataSet.rows[i][21].slice(0))[4] : '',
+                        s_policy_no: claimInquiryDataSet.rows[i][21].length ? (claimInquiryDataSet.rows[i][21].slice(0))[3] : '',
+                        s_group_no: claimInquiryDataSet.rows[i][21].length ? (claimInquiryDataSet.rows[i][21].slice(0))[4] : '',
                         t_coverage: claimInquiryDataSet.rows[i][22].length ? (claimInquiryDataSet.rows[i][22].slice(0))[0] : '',
                         t_company_name: claimInquiryDataSet.rows[i][22].length ? (claimInquiryDataSet.rows[i][22].slice(0))[1] : '',
                         t_exp_date: claimInquiryDataSet.rows[i][22].length ? (claimInquiryDataSet.rows[i][22].slice(0))[2] : '',
-                        t_group_no: claimInquiryDataSet.rows[i][22].length ? (claimInquiryDataSet.rows[i][22].slice(0))[3] : '',
-                        t_policy_no: claimInquiryDataSet.rows[i][22].length ? (claimInquiryDataSet.rows[i][22].slice(0))[4] : '',
+                        t_policy_no: claimInquiryDataSet.rows[i][22].length ? (claimInquiryDataSet.rows[i][22].slice(0))[3] : '',
+                        t_group_no: claimInquiryDataSet.rows[i][22].length ? (claimInquiryDataSet.rows[i][22].slice(0))[4] : '',
                         billing_provider: claimInquiryDataSet.rows[i][23],
                         claim_balance: claimInquiryDataSet.rows[i][24],
                         carrier_count: 1,
                         total_carrier_balance: parseFloat(total_balance).toFixed(2) || '0.00'
                     };
+
+                    claimObj.policyHeader = initialReportData.report.vars.columnHeader.policy[initialReportData.report.params.country_alpha_3_code];
+                    claimObj.groupHeader = initialReportData.report.vars.columnHeader.group[initialReportData.report.params.country_alpha_3_code];
 
                     commentsByCarrier[claimId] = {
                         claim: [claimObj],
@@ -565,17 +571,19 @@ const api = {
             const billingProviderInfo = _(lookups.billingProviderInfo).map(f => f.name).value();
             filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
         }
+
         if (params.fromDate != '' && params.toDate != '') {
-            filtersUsed.push({ name: 'fromDate', label: 'Claim Date From', value: params.fromDate });
-            filtersUsed.push({ name: 'toDate', label: 'Claim Date To', value: params.toDate });
+            filtersUsed.push({ name: 'fromDate', label: 'Claim Date From', value: moment(params.fromDate).format(params.dateFormat) });
+            filtersUsed.push({ name: 'toDate', label: 'Claim Date To', value: moment(params.toDate).format(params.dateFormat) });
         }
+
         if (params.cmtFromDate != '' && params.cmtToDate != '') {
-            filtersUsed.push({ name: 'FromPayDate', label: 'CommentDate From', value: params.cmtFromDate });
-            filtersUsed.push({ name: 'ToPayDate', label: 'CommentDate To', value: params.cmtToDate });
+            filtersUsed.push({ name: 'FromPayDate', label: 'Comment Date From', value: moment(params.cmtFromDate).format(params.dateFormat) });
+            filtersUsed.push({ name: 'ToPayDate', label: 'Comment Date To', value: moment(params.cmtToDate).format(params.dateFormat) });
         }
         if (params.billCreatedDateFrom != '' && params.billCreatedDateTo != '') {
-            filtersUsed.push({ name: 'FromBillCreated', label: 'Bill Created From', value: params.billCreatedDateFrom });
-            filtersUsed.push({ name: 'ToBillCreated', label: 'Bill Created To', value: params.billCreatedDateTo });
+            filtersUsed.push({ name: 'FromBillCreated', label: 'Bill Created From', value: moment(params.billCreatedDateFrom).format(params.dateFormat) });
+            filtersUsed.push({ name: 'ToBillCreated', label: 'Bill Created To', value: moment(params.billCreatedDateTo).format(params.dateFormat) });
         }
         if (params.userIds && params.userIds.length > 0) {
             filtersUsed.push({ name: 'users', label: 'Users', value: params.userName });
@@ -733,6 +741,8 @@ const api = {
                 filters.paymentUserIds = queryBuilder.whereIn('i_bp.created_by', [params.length]);
             }
         }
+
+        filters.dateFormat = reportParams.dateFormat;
         return {
             queryParams: params,
             templateData: filters

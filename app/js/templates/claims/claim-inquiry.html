@@ -59,14 +59,18 @@
                 <div class="row">
                     <div class="col-md-3"><label class="font-weight" i18n="billing.fileInsurance.serviceFacility"></label></div>
                     <div class="col-md-4"><label id="lblCIOrdFac"></label></div>
+                    <% if (country_alpha_3_code !== "can") { %>
                     <div class="col-md-2"><label class="font-weight" i18n="billing.refund.placeOfService"></label></div>
                     <div class="col-md-3"><label id="lblCIPOS"></label></div>
+                    <% } %>
                 </div>
                 <div class="row">
                     <div class="col-md-3"><label class="font-weight" i18n="billing.fileInsurance.billFee"></label></div>
                     <div class="col-md-4"><label id="lblCIBillFee" style="float:right"></label></div>
+                    <% if (country_alpha_3_code !== "can") { %>
                     <div class="col-md-2"><label class="font-weight" i18n="billing.payments.allowed"></label></div>
                     <div class="col-md-3"><label id="lblCIAllowed" style="float:right"></label></div>
+                    <% } %>
                 </div>
                 <div class="row">
                     <div class="col-md-3"><label class="font-weight" i18n="billing.payments.patientPaid"></label></div>
@@ -90,7 +94,7 @@
                     <div class="col-md-2"><label i18n="billing.fileInsurance.followUpDate"></label></div>
                     <div id="divFollowUpDate" class="col-md-3 input-group">
                         <!-- <input type="date" id="txtCIFollowUpDate">  -->
-                        <input type="text" id="txtCIFollowUpDate" class="form-control form-control-date" name="followUpDate" style="height: 30px;">
+                        <input type="text" id="txtCIFollowUpDate" class="form-control form-control-date maskDateLocale" name="followUpDate" style="height: 30px;">
                         <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px;height: 30px"> <i class="icon-ic-schedule"></i></span>
                     </div>
                 </div>
@@ -106,7 +110,11 @@
             </div>
             <div class="col-md-6">
                 <div class="row">
-                    <div class="col-md-2"><label style="font-weight: bold" i18n="billing.fileInsurance.icd"></label></div>
+                    <div class="col-md-2">
+                        <% if (country_alpha_3_code !== "can") { %>
+                            <label style="font-weight: bold" i18n="billing.fileInsurance.icd"></label>
+                        <% } %>
+                    </div>
                     <div class="col-md-4">
                         <input type="button" id="btnPatientClaims" class="btn btn-primary" style="float:right; line-height: 1;" i18n="setup.rightClickMenu.patientClaims">
                     </div>
@@ -117,6 +125,7 @@
                         <button type="button" class="btn btn-primary" id="btnCIPrintInvoice" style="line-height: 1;" data-rformat="pdf"><span i18n="shared.buttons.printInvoice"></span><i class="fa fa-external-link"></i></button>
                     </div>
                 </div>
+                <% if (country_alpha_3_code !== "can") { %>
                 <div class="row">
                     <div class="col-md-12"><legend class="viztekLegend" style="font-weight: bold;font-size: 15px"></legend></div>
                 </div>
@@ -125,9 +134,31 @@
                             <table id='tblCIDiagnosis'></table>
                     </div>
                 </div>
+                <% } %>
             </div>
         </div>
+        <div id="divFaxReceipientPaperClaim" class="row" style="display: none;">
+            <div class="col-12 form-group form-inline">
+                <div class="col-form-label col-right-label">
+                    <label class="control-label" for="txtFaxReceiverName" i18n="shared.fields.faxReceiverName"></label>
+                </div>
+                <div class="col-form-content">
+                    <input type="text" id="txtFaxReceiverName" class="form-control mr-2" />
+                </div>
 
+                <div class="col-form-label col-right-label ml-2">
+                    <label class="control-label" for="txtFaxReceiverNumber" i18n="shared.fields.faxReceiverNumber"></label>
+                </div>
+                <div class="col-form-content">
+                    <input type="text" id="txtFaxReceiverNumber" class="form-control maskPhone m-2" />
+                </div>
+
+                <div class="pull-right">
+                    <input type="button" id="btnClaimFaxSend" class="btn btn-primary" i18n="shared.buttons.sendFax" />
+                    <input type="button" id="btnClaimFaxCancel" class="btn btn-primary" i18n="shared.buttons.cancel" />
+                </div>
+            </div>
+        </div>
         <div class="row">
             <div class="col-md-12"><label style="font-weight: bold" i18n="billing.COB.insurance"></label></div>
         </div>
@@ -165,19 +196,19 @@
                            <th>Allowed</th>
                            <th>Paid</th>
                            <th>Adjustment</th>
-                           <th>Cas1</th>
+                           <th>CAS 1</th>
                            <th>Amt</th>
-                           <th>Cas2</th>
+                           <th>CAS 2</th>
                            <th>Amt</th>
-                           <th>Cas3</th>
+                           <th>CAS 3</th>
                            <th>Amt</th>
-                           <th>Cas4</th>
+                           <th>CAS 4</th>
                            <th>Amt</th>
-                           <th>Cas5</th>
+                           <th>CAS 5</th>
                            <th>Amt</th>
-                           <th>Cas6</th>
+                           <th>CAS 6</th>
                            <th>Amt</th>
-                           <th>Cas7</th>
+                           <th>CAS 7</th>
                            <th>Amt</th>
                        </tr>
                    </thead>

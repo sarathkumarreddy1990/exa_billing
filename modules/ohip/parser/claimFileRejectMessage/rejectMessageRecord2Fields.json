@@ -1,0 +1,59 @@
+{
+    "transactionIdentifier" : {
+        "startPos": 1,
+        "fieldLength": 1,
+        "constant": "M",
+        "exclude": true
+    },
+    "recordIdentifier" : {
+        "startPos": 2,
+        "fieldLength": 2,
+        "constant": "02",
+        "exclude": true
+    },
+    "filler1" : {
+        "startPos": 4,
+        "fieldLength": 5,
+        "constant": "FILE:",
+        "exclude": true
+    },
+    "providerFileName" : {
+        "startPos": 9,
+        "fieldLength": 12
+    },
+    "filler2" : {
+        "startPos": 21,
+        "fieldLength": 5,
+        "constant": "DATE:",
+        "exclude": true
+    },
+    "mailFileDate" : {
+        "startPos": 26,
+        "fieldLength": 8
+    },
+    "filler3" : {
+        "startPos": 34,
+        "fieldLength": 5,
+        "constant": "TIME=",
+        "exclude": true
+    },
+    "mailFileTime" : {
+        "startPos": 39,
+        "fieldLength": 6
+    },
+    "filler4" : {
+        "startPos": 45,
+        "fieldLength": 6,
+        "constant": "PDATE:",
+        "exclude": true
+    },
+    "processDate" : {
+        "startPos": 51,
+        "fieldLength": 8
+    },
+    "mohReserved" : {
+        "startPos": 59,
+        "fieldLength": 60,
+        "exclude": true
+    }
+}

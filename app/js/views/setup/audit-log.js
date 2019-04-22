@@ -207,9 +207,9 @@ define([
                 var endTo = moment(companyCurrentDateTime).endOf('day');
                 if (moment(companyCurrentDateTime).hour() >= 23) endTo.add(1, 'day');
                 //this.dtpOptions.timeZone = commonjs.getCompanyTimeZone();
-                this.dtpFrom = commonjs.bindDateTimePicker('divFromDate', this.dtpOptions);
+                this.dtpFrom = commonjs.bindDateTimePicker('divFromDate', { format: 'L LT' }, this.dtpOptions);
                 this.dtpFrom.date(startFrom);
-                this.dtpTo = commonjs.bindDateTimePicker('divToDate', this.dtpOptions);
+                this.dtpTo = commonjs.bindDateTimePicker('divToDate', { format: 'L LT' }, this.dtpOptions);
                 this.dtpTo.date(endTo);
                 commonjs.isMaskValidate();
             },

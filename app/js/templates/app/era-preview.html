@@ -5,49 +5,61 @@
         <div class="col">
             <div class="form-group form-inline">
                 <label id="lblInsPRoviderName" for="auditFromDate" i18n="billing.payments.insuranceProvider" class="control-label">
-                     : <br/>
+                </label>
+                <label class="control-label"> :
                     <b>
                         <%= eraData.payerIdentification && eraData.payerIdentification.name ? eraData.payerIdentification.name : '' %>
                     </b>
                 </label>
             </div>
             <div class="form-group form-inline">
-                <label id="lblPayerId" for="auditFromDate" i18n="billing.payments.payerID" class="control-label"/>    
-                     : <br/>
+                <label id="lblPayerId" for="auditFromDate" i18n="billing.payments.payerID" class="control-label"></label>
+                <label class="control-label">
+                    : <br />
                     <b>
                         <%= eraData.payerIdentification && eraData.payerIdentification.idCode ? eraData.payerIdentification.idCode : '' %>
                     </b>
+                </label>
             </div>
             <div class="form-group form-inline">
-                <label id="paymentDate" for="auditFromDate" i18n="billing.claims.date" class="control-label"/>
-                     : <br/>
+                <label id="paymentDate" for="auditFromDate" i18n="billing.claims.date" class="control-label">
+                </label>
+                <label class="control-label">
+                    : <br />
                     <b>
                         <%= eraData.financialInformation && eraData.financialInformation.length > 0 ? eraData.financialInformation[0].date || '' : '' %>
                     </b>
+                </label>
             </div>
         </div>
         <div class="col">
             <div class="form-group form-inline">
                 <label id="lblInsProviderAddress" i18n="billing.claims.address" for="auditFromDate" class="control-label">
-                     : <br/>
+                </label>
+                <label class="control-label">
+                    : <br />
                     <b>
                         <%= eraData.payerIdentification && eraData.payerIdentification.payerAddress && eraData.payerIdentification.payerAddress.addressInformation ? eraData.payerIdentification.payerAddress.addressInformation : '' %>
                     </b>
                 </label>
             </div>
             <div class="form-group form-inline">
-                <label id="lblInsProviderCityState" for="auditFromDate" i18n="setup.billingprovider.cityStateZip" class="control-label"/>
-                     : <br/>
+                <label id="lblInsProviderCityState" for="auditFromDate" i18n="setup.billingprovider.cityStateZip" class="control-label">
+                </label>
+                <label class="control-label">
+                    : <br />
                     <b>
-                        <%= eraData.payerIdentification && eraData.payerIdentification.payerCityStateZipCode && eraData.payerIdentification.payerCityStateZipCode.payerCity ? eraData.payerIdentification.payerCityStateZipCode.payerCity : '' %>/
-                        <%= eraData.payerIdentification && eraData.payerIdentification.payerCityStateZipCode && eraData.payerIdentification.payerCityStateZipCode.payerState ? eraData.payerIdentification.payerCityStateZipCode.payerState : '' %>/
-                        <%= eraData.payerIdentification && eraData.payerIdentification.payerCityStateZipCode && eraData.payerIdentification.payerCityStateZipCode.payerZIPCode ? eraData.payerIdentification.payerCityStateZipCode.payerZIPCode : '' %>
+                        <%= eraData.payerIdentification && eraData.payerIdentification.payerCityStateZipCode && eraData.payerIdentification.payerCityStateZipCode.payerCity ? eraData.payerIdentification.payerCityStateZipCode.payerCity : '--' %>/
+                        <%= eraData.payerIdentification && eraData.payerIdentification.payerCityStateZipCode && eraData.payerIdentification.payerCityStateZipCode.payerState ? eraData.payerIdentification.payerCityStateZipCode.payerState : '--' %>/
+                        <%= eraData.payerIdentification && eraData.payerIdentification.payerCityStateZipCode && eraData.payerIdentification.payerCityStateZipCode.payerZIPCode ? eraData.payerIdentification.payerCityStateZipCode.payerZIPCode : '--' %>
                     </b>
                 </label>
             </div>
             <div class="form-group form-inline">
                 <label id="lblInsProviderPhoneNo" for="auditFromDate" i18n="billing.claims.phone" class="control-label">
-                     : <br/>
+                </label>
+                <label class="control-label">
+                    : <br />
                     <b>
                         <%= eraData.payerIdentification && eraData.payerIdentification.payerContactInformation && eraData.payerIdentification.payerContactInformation.commNumber1 ? eraData.payerIdentification.payerContactInformation.commNumber1 : '' %>
                     </b>
@@ -61,33 +73,44 @@
         <div style="margin-top: 20px;">
             <div class="col-md-12" style="border-top: 2px solid #d6d6d6; padding-top: 10px;">
                 <div class="col-md-6 topMargin" style="float: left;">
-                    <label i18n="billing.fileInsurance.patientName"> :
+                    <label i18n="billing.fileInsurance.patientName">
+                    </label>
+                    <label> :
                         <%= claimPaymentInformation.patientName && claimPaymentInformation.patientName.lastName ? claimPaymentInformation.patientName.lastName : '' %>,
                         <%= claimPaymentInformation.patientName && claimPaymentInformation.patientName.firstName ? claimPaymentInformation.patientName.firstName : '' %>
                     </label>
                 </div>
                 <div class="col-md-6 topMargin" style="float: right;">
-                    <label i18n="billing.claims.paid"> :
+                    <label i18n="billing.claims.paid">
+                    </label>
+                    <label> :
                         <%= claimPaymentInformation.paidAmount || '0.00' %>
                     </label>
                 </div>
                 <div class="col-md-6 topMargin" style="float: right;">
-                    <label i18n="billing.claims.patientResponsible"> :
+                    <label i18n="billing.claims.patientResponsible">
+                    </label>
+                    <label> :
                         <%= claimPaymentInformation.patientResponsibleAmount || '0.00' %>
                     </label>
                 </div>
                 <div class="col-md-6 topMargin" style="float: right;">
-                    <label i18n="billing.fileInsurance.claimNo"> :
+                    <label i18n="billing.fileInsurance.claimNo">
+                    </label>
+                    <label> :
                         <%= claimPaymentInformation.claimNumber || '' %>
                     </label>
                 </div>
                 <div class="col-md-6 topMargin" style="float: right;">
-                    <label i18n="billing.claims.claimStatusCode"> :
+                    <label i18n="billing.claims.claimStatusCode">
+                    </label>
+                    <label> :
                         <%= claimPaymentInformation.claimStatusCode || '' %>
                     </label>
                 </div>
                 <div class="col-md-6 topMargin" style="float: right; margin-bottom: 10px;">
-                    <label i18n="billing.claims.payerClaimControlNoClaimRef"> :
+                    <label i18n="billing.claims.payerClaimControlNoClaimRef"/>:
+                    <label> :
                         <%= claimPaymentInformation.payerClaimContorlNumber || '' %>
                     </label>
                 </div>

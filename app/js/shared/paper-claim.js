@@ -12,21 +12,25 @@ define([
             this.pdfDetails = {
                 'paper_claim_original': {
                     header: 'Paper Claim',
+                    i18nHeader: 'billing.payments.paperClaim',
                     api: '/exa_modules/billing/claim_workbench/claim_json'
                 },
 
                 'paper_claim_full': {
                     header: 'Paper Claim',
+                    i18nHeader: 'billing.payments.paperClaim',
                     api: '/exa_modules/billing/claim_workbench/claim_json'
                 },
 
                 'direct_invoice': {
                     header: 'Direct Billing',
+                    i18nHeader: 'setup.insuranceX12Mapping.directBilling',
                     api: '/exa_modules/billing/claim_workbench/invoice_data'
                 },
 
                 'patient_invoice': {
                     header: 'Patient Invoice',
+                    i18nHeader: 'setup.userSettings.patientInvoice',
                     api: '/exa_modules/billing/claim_workbench/invoice_data'
                 },
             };
@@ -46,7 +50,7 @@ define([
                 } else if (templateType === "paper_claim_original" && claimIDs.length > 500) {
                     return commonjs.showWarning("messages.warning.paperClaimOriginalForm");
                 }
-                   
+
                 if (commonjs.openPdfNewWindow) {
                     win = window.open('', '_blank');
                 }
@@ -97,7 +101,12 @@ define([
                         });
                 } else {
                     commonjs.hideLoading();
-                    commonjs.showError('messages.errors.invalidDataTemplate');
+                    if (templateType === 'paper_claim_full' || templateType === 'paper_claim_original') {
+                        commonjs.showError('messages.errors.userSettingConfig');
+                    }
+                    else {
+                        commonjs.showError('messages.errors.invalidDataTemplate');
+                    }
                     return false;
                 }
                 });
@@ -136,6 +145,7 @@ define([
 
                     showDialog({
                         header: self.pdfDetails[templateType].header,
+                        i18nHeader: self.pdfDetails[templateType].i18nHeader,
                         width: '90%',
                         height: '75%',
                         url: res.data.pdfBlob,
@@ -191,13 +201,22 @@ define([
 
                 if (!dd || typeof dd !== 'object') {
                     commonjs.hideLoading();
-                    commonjs.showError('messages.errors.invalidDataTemplate');
+                    if (templateType === 'paper_claim_full' || templateType === 'paper_claim_original') {
+                        commonjs.showError('messages.errors.invalidPrinterTemplate');
+                    }
+                    else {
+                        commonjs.showError('messages.errors.invalidDataTemplate');
+                    }
                     return false;
                 }
 
                 //template = mailMerge.mergeData(dd, claimData);
                 template = dd;
-
+                if (template.content === "Test Data" || template.content === "Need to setup") {
+                    commonjs.hideLoading();
+                    commonjs.showError('messages.errors.templateNotConfigured');
+                    return false;
+                }
                 return template;
             }
 
@@ -251,6 +270,7 @@ define([
                         payerType:options.payerType
                     }, success: function (data, response) {
                         $("#btnClaimsRefresh").click();
+                        data = _.reject(data, { id: null });
                         callback(null, data.length > 0 ? data[0] : {});
                     }, error: function (err, response) {
                         commonjs.handleXhrError(err, response);

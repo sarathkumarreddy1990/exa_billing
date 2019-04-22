@@ -79,6 +79,7 @@ var commonjs = {
     currentStudyFilter: '',
     localCacheMaxErrorLimit: 0,
     filterData: {},
+    paymentsList: [],
 
     /**
      * Setting up zip autocomplete:
@@ -208,6 +209,13 @@ var commonjs = {
                 .on('click', handleApplyZip);
 
         });
+    },
+
+    hideItem: function(report_id, item) {
+        var idx = app.hidden_reports.map(function(e) { return e.report_id; }).indexOf(report_id);
+        if (idx != -1 && app.hidden_reports[idx].value) {
+            $(item).attr("style", "display: none");
+        }
     },
 
     getDates: function (data) {
@@ -408,7 +416,25 @@ var commonjs = {
     prevNotes: [],
     orderNotes: [],
     autoCompleteChanged: false,
-
+    patientInfo: {},
+    // A = Alphabetic
+    // N = Numeric
+    // X = Alphanumeric
+    healthNumberValidation: [
+        { province_code : 'QC' , format:'' , limit:'' , province: "Quebec" }, // No need any validation
+        { province_code : 'YT' , format:'N' , regexp:'^[0-9]{0,9}$' , province: "Yukon" },
+        { province_code : 'AB' , format:'N' , regexp:'^[0-9]{0,9}$' , province: "Alberta" },
+        { province_code : 'NU' , format:'N' , regexp:'^[0-9]{0,9}$' , province: "Nunavut" },
+        { province_code : 'ON' , format:'N' , regexp:'^[0-9]{0,10}$' , province: "Ontario" },
+        { province_code : 'MB' , format:'N' , regexp:'^[0-9]{0,9}$' , province: "Manitoba" },
+        { province_code : 'NS' , format:'N' , regexp:'^[0-9]{0,10}$' , province: "Nova Scotia" },
+        { province_code : 'SK' , format:'N' , regexp:'^[0-9]{0,9}$' , province: "Saskatchewan" },
+        { province_code : 'NB' , format:'N' , regexp:'^[0-9]{0,9}$' , province: "New Brunswick" },
+        { province_code : 'BC' , format:'N' , regexp:'^[0-9]{0,10}$' , province: "British Columbia" },
+        { province_code : 'PE' , format:'N' , regexp:'^[0-9]{0,8}$' , province: "Prince Edward Island" },
+        { province_code : 'NT' , format:'X' , regexp:'^[a-zA-Z0-9_]{0,8}$' , province: "Northwest Territories" },
+        { province_code : 'NL' , format:'N' , regexp:'^[0-9]{0,12}$' , province: "Newfoundland and Labrador" },
+    ],
     pageSize: [
         { 'value': '', 'text': 'Select' },
         { 'value': '25', 'text': '25' },
@@ -544,6 +570,14 @@ var commonjs = {
         return dtpTarget.data("DateTimePicker");
     },
 
+    getDateTemplate: function () {
+        return moment(new Date('December 31, 2017'))
+            .format('L')
+            .replace(/12/, 'MM')
+            .replace(/31/, 'DD')
+            .replace(/2017/, 'YYYY');
+    },
+
     // @param {string|Object} elId - name of unique element id or jQuery object itself
     // @return {Object} instance of BS3 datetimepicker
     bindDateTimePicker: function (elId, dtpOptions) {
@@ -559,7 +593,7 @@ var commonjs = {
         }
         var defaultOptions = {
             format: "L LT",
-            //locale: browserLocale,
+            locale: browserLocale,
             //timeZone: null,//this.getCompanyTimeZone(),
             showClose: true,
             showClear: true,
@@ -594,19 +628,18 @@ var commonjs = {
         };
         var options = $.extend(true, {}, defaultOptions, dtpOptions);
         // see: https://github.com/Eonasdan/bootstrap-datetimepicker/pull/666
+
+        var dateTemplate = commonjs.getDateTemplate();
+
         switch (options.format) {
             case "L":
-                options.extraFormats = ["MM/DD/YY", "MM/DD/YYYY", "YYYY-MM-DD"];
+                options.extraFormats = [dateTemplate, "MM/DD/YY", "MM/DD/YYYY", "YYYY-MM-DD"];
                 //boptions.timeZone = null; //remove the TZ when dealing with dates only!
                 break;
             case " L LT":
-                options.extraFormats = ["MM/DD/YYYY hh:mm A"];
+                options.extraFormats = [(dateTemplate + " hh:mm A")];
                 break;
             default:
-        }
-
-        if(!dtpTarget.find('input').hasClass("maskDateLocale")){
-            dtpTarget.find('input').addClass("maskDateLocale");
         }
 
         dtpTarget.datetimepicker(options);
@@ -655,7 +688,7 @@ var commonjs = {
             "Last 30 Days": [moment().subtract(29, "days"), moment()],
             "This Month": [moment().startOf("month"), moment().endOf("month")],
             "Last Month": [moment().subtract(1, "months").startOf("month"), moment().subtract(1, "months").endOf("month")],
-            "This Year": [moment().startOf("year"), moment()]
+            "This Year": [moment().startOf("year"), moment().endOf("year")]
         };
         var futureRangeSet = {
             "Today": [moment(), moment()],
@@ -664,7 +697,7 @@ var commonjs = {
             "Next 30 Days": [moment(), moment().add(29, "days")],
             "This Month": [moment().startOf("month"), moment().endOf("month")],
             "Next Month": [moment().add(1, "months").startOf("month"), moment().add(1, "months").endOf("month")],
-            "This Year": [moment().startOf("year"), moment()]
+            "This Year": [moment().startOf("year"), moment().endOf("year")]
         };
         // 1940s, 1950s, etc, etc
         var birthDecadeRangeSet = {};
@@ -1105,11 +1138,12 @@ var commonjs = {
         this.closeReportWindow();
 
         //Patient Chart Window  close
-        this.closePatientChartWindow();
+        if (options.header !== "Patient Alerts")
+            this.closePatientChartWindow();
 
         if (options.onHide && typeof options.onHide === 'function') {
             options.onHide();
-        }          
+        }
     },
 
     closeReportWindow: function () {
@@ -1298,6 +1332,10 @@ var commonjs = {
             case '23514':
                 errorMessage = errorMessage.replace(/new row for relation/g, '');
                 commonjs.showError(errorMessage || 'Constraint violation');
+                break;
+
+            case '23156':
+                commonjs.showError(err.message);
                 break;
 
             case '22007':
@@ -2063,6 +2101,24 @@ var commonjs = {
             return localizationString;
         }
         return i18nString;
+    },
+
+    /**
+     * Take input moment object (and optional input date format template) and return string of YYYY-MM-DD
+     * @param   {string}    date
+     * @param   {string}    template    =   ex: MM/DD/YYYY
+     * @returns {string}
+     */
+    getISODateString: function ( date, template ) {
+        var finalTemplate = 'YYYY-MM-DD';
+
+        if ( template ) {
+            return moment(date, template).format(finalTemplate);
+        }
+
+        var dateTemplate = commonjs.getDateTemplate();
+
+        return moment(date, dateTemplate).format(finalTemplate);
     },
 
     isMaskValidate: function () {
@@ -5177,6 +5233,22 @@ var commonjs = {
 
             //$(document).on('keydown', null, shortcut, handlerFn);
         }
+    },
+
+    validateZipInputCanada: function (_eleId) {
+        var _ele = '#' + _eleId;
+        if ($(_ele).val().length > 0 && app.country_alpha_3_code == 'can') {
+            if ($(_ele).val().length == 7) {
+                var postal = new RegExp(/^(?!.*[DFIOQU])[A-VXY][0-9][A-Z] ?[0-9][A-Z][0-9]$/);
+                var zip_data = $(_ele).val();
+                return postal.test(zip_data);
+            }
+            else {
+                return false;
+            }
+        }
+        else
+            return true;
     },
 
     hasModalClosed: function () {

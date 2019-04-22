@@ -1,0 +1,42 @@
+{
+    "transactionIdentifier": {
+        "startPos": 1,
+        "fieldLength": 2,
+        "constant": "HX"
+    },
+
+    "recordIdentifier": {
+        "startPos": 3,
+        "fieldLength": 1,
+        "constant": "9"
+    },
+
+    "header1Count": {
+        "startPos": 4,
+        "fieldLength": 7,
+        "format": "N"
+    },
+
+    "header2Count": {
+        "startPos": 11,
+        "fieldLength": 7,
+        "format": "N"
+    },
+
+    "itemCount": {
+        "startPos": 18,
+        "fieldLength": 7,
+        "format": "N"
+    },
+
+    "messageCount": {
+        "startPos": 25,
+        "fieldLength": 7,
+        "format": "N"
+    },
+
+    "mohReserved": {
+        "startPos": 32,
+        "fieldLength": 48
+    }
+}

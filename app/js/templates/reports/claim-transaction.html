@@ -147,7 +147,7 @@
                     </div>
                 </div>
                 <div id="divReferringPhysician" style="display: none; padding-left: 15px;">
-                    <label class="inline field-chk">Ref. Physician</label>
+                    <label class="inline field-chk" i18n="report.reportFilter.refPhysician"></label>
                     <div>
                         <ul id="ulListReferringPhysicians" class="ulSelectionList tagList" style="overflow: auto;width: 330px;height:50px; border: 1px solid;">
                         </ul>
@@ -177,13 +177,13 @@
                 <div class="col-form-label" id='accountingAndActualPaymentInfo'>
                     <div class="col-form-label">
                         <input type="radio" class="cptDateOption" id="accountingDate" name="accountingAndActualPayment" value="accounting_date" style="padding-right:1px;">
-                        <label for="accountingDate" class="inline field-chk"> Accounting Date</label>
+                        <label for="accountingDate" class="inline field-chk" i18n="report.reportFilter.accountingDate"></label>
                     </div>
                 </div>
                 <div class="col-form-label" id='accountingAndActualPaymentInfo'>
                     <div class="col-form-label">
                         <input type="radio" class="cptDateOption" id="paymentDate" name="accountingAndActualPayment" value="payment_dt">
-                        <label for="paymentDate" class="inline field-chk" style="padding-right:1px;"> Payment Date</label>
+                        <label for="paymentDate" class="inline field-chk" style="padding-right:1px;" i18n="billing.payments.paymentDate"></label>
                     </div>
                 </div>
             </div>
@@ -192,7 +192,7 @@
             <!--Todo : From setup Have to find dynamically -->
             <div class="form-group form-inline">
                 <div>
-                    <label class="inline field-chk" i18n="report.reportFilter.selectCPT"></label>
+                    <label id="selectLabel" class="inline field-chk" i18n="report.reportFilter.selectCPT"></label>
                     <div class="input-group">
                         <select id="ddlUsersOption" class="form-control form-control-lg">
                             <option value="All">ALL</option>
@@ -202,15 +202,15 @@
                 </div>
                 <div id="ddlUsersBox" class="form-group form-inline" style="display: none;">
                     <div style="max-width:200px;">
-                        <label class="control-label" i18n="report.reportFilter.cpt"></label>
-                        <a class="btn btn-primary" id="btnCPTCode" title="Add CPT's">
+                        <label id="cptLabel" class="control-label" i18n="report.reportFilter.cpt"></label>
+                        <a class="btn btn-primary" id="btnCPTCode" title="Add">
                             <i class="icon-ic-plus"></i>
                         </a>
                         <select id="txtCPTCode" style="width:250px; border:1px solid;"> </select>
                     </div>
                 </div>
                 <div id="divUsers" style="display: none; padding-left: 15px;">
-                    <label class="inline field-chk">CPTS Selected</label>
+                    <label id="selectedLabel" class="inline field-chk" i18n="report.reportFilter.cptsSelected"></label>
                     <ul id="ulListCPTCodeDetails" class="ulSelectionList tagList" style="overflow: auto;width: 330px;height:50px; border: 1px solid;"></ul>
                     </ul>
                 </div>
@@ -249,7 +249,7 @@
         </div>
         <div class="col" style=" max-width: 200px;">
             <div class="form-group form-inline">
-                <label class="inline field-chk" i18n="report.reportFilter.reportFilterBy"> Report Filter (Order By)</label>
+                <label class="inline field-chk" i18n="report.reportFilter.reportFilterBy"></label>
                 <div class="input-group">
                     <select id="ddlOrderBySelection" class="form-control" style="height: 100%; width: 135px">
                         <option value="claimId" i18n="billing.fileInsurance.claim">Claim #</option>

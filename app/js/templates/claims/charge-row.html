@@ -21,6 +21,7 @@
         <td class="charges__cpt-description">
             <div id="divChargeCptDesc_<%= row.data_row_id %>"></div>
         </td>
+        <% if (country_alpha_3_code !== 'can') { %>
         <td>
             <input id="ddlPointer1_<%= row.data_row_id %>" class="form-control inputModifiers typeahead diagCodes" data-type="P1" data-value="<%= row.data_row_id %>" type="text">
         </td>
@@ -50,8 +51,13 @@
             <input type="text" id="txtModifier4_<%= row.data_row_id %>" class="form-control inputModifiers modifiers" data-type="M4" data-value="<%= row.data_row_id %>">
         </td>
         <td>
-            <input value="<%= row.units ? row.units : 1.000 %>"  id="txtUnits_<%= row.data_row_id %>" type="text" class="form-control maskUnits units floatbox" style="width: 75px">
+            <input value="<%= row.units ? row.units : 1.000 %>"  id="txtUnits_<%= row.data_row_id %>" type="text" class="form-control maskUnits units floatbox" style="width: 75px" maxlength="7">
         </td>
+        <% } else{%>
+        <td>
+            <input value="<%= row.units ? row.units : 1 %>"  id="txtUnits_<%= row.data_row_id %>" type="text" class="form-control integerbox" style="width: 75px; text-align: right" maxlength="2">
+        </td>
+        <% } %>
         <td>
             <input disabled value="<%= row.bill_fee ? row.bill_fee : 0.00 %>" id="txtBillFee_<%= row.data_row_id %>" type="text" class="billFee form-control-med form-control maskFee floatbox"  style="display:inline-block;width:auto;" edit="false">
             <span id="editBillFee_<%= row.data_row_id %>" class="icon-ic-edit" style="margin-left: 4px;cursor:pointer;" i18nt="shared.buttons.edit"></span>
@@ -59,6 +65,7 @@
         <td>
             <input disabled value="<%= row.total_bill_fee ? row.total_bill_fee : 0.00 %>" id="txtTotalBillFee_<%= row.data_row_id %>" type="text" class="totalbill form-control floatbox text-right">
         </td>
+        <% if (country_alpha_3_code !== 'can') { %>
         <td>
             <input disabled value="<%= row.allowed_fee ? row.allowed_fee : 0.00 %>" id="txtAllowedFee_<%= row.data_row_id %>" type="text" class="maskFee allowedFee form-control floatbox">
         </td>
@@ -68,6 +75,7 @@
         <td>
             <input id="txtAuthInfo_<%= row.data_row_id %>" type="text" class="form-control " value="<%= row.authorization_no %>">
         </td>
+        <% } %>
         <td>
             <input id="checkExclude_<%= row.data_row_id %>" type="checkbox">
         </td>

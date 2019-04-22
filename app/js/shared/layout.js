@@ -111,6 +111,9 @@ var layout = {
 
         this.lastModule = this.currentModule;
         this.lastScreen = this.currentScreen;
+
+        commonjs.hideItem('diagnosis-count', '#aDiagnosisCountListItem');
+        commonjs.hideItem('insurance-vs-lop', '#aInsuranceLOPListItem');
     },
 
     killView: function (viewObj) {
@@ -212,9 +215,8 @@ var layout = {
         }
 
         var screenTitle = layout.moduleHeaders[module] ? layout.moduleHeaders[module].toUpperCase() : 'BILLING';
-        screenTitle = commonjs.geti18NString("shared.moduleheader." + screenTitle.toLowerCase());
         $("#aNavTitlebar").text(screenTitle.toUpperCase());
-        //$('#aNavTitlebar').attr("href", location.href);
+        $("#aNavTitlebar").attr("i18n", "shared.moduleheader." + screenTitle.toLowerCase());
 
         $('.daterangepicker').remove();
         this.triggerSettingsRefresh(module, currentScreen);

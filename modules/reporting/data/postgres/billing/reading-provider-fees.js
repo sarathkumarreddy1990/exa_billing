@@ -3,7 +3,8 @@ const _ = require('lodash')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
     , queryBuilder = require('../queryBuilder')
-    , logger = require('../../../../../logger');
+    , logger = require('../../../../../logger')
+    , moment = require('moment');
 
 // generate query template ***only once*** !!!
 
@@ -14,8 +15,8 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
             , pcc.display_description
             , pcc.display_code
             , bpa.amount
-            , to_char(bp.accounting_date, 'MM/DD/YYYY') as accounting_date
-            , to_char(bp.payment_dt, 'MM/DD/YYYY') as payment_dt
+            , to_char(bp.accounting_date, '<%= dateFormat %>') as accounting_date
+            , to_char(bp.payment_dt, '<%= dateFormat %>') as payment_dt
             , CASE bp.payer_type
                 WHEN 'patient' THEN get_full_name(pp.last_name, pp.first_name, pp.middle_name,pp.prefix_name, pp.suffix_name)
                 WHEN 'insurance' THEN pip.insurance_name
@@ -23,7 +24,7 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
                 WHEN 'ordering_facility' THEN ppg.group_name END AS payer_name
             , render_provider.group_name
             , COALESCE(pplc.reading_provider_percent_level,0) AS reading_provider_percent_level
-            , to_char(bc.claim_dt, 'MM/DD/YYYY') as claim_dt
+            , to_char(bc.claim_dt, '<%= dateFormat %>') as claim_dt
         FROM billing.claims bc
         INNER JOIN billing.charges bch ON  bch.claim_id = bc.id
         INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
@@ -53,7 +54,7 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
                 COALESCE(rpf.group_name, '- No Group Assigned -' )
             ELSE ''
             END AS "Group Name"
-        , COALESCE(rpf.display_code, '─ TOTAL ─'::TEXT ) AS "CPT Code"
+        , COALESCE(rpf.display_code, '─ TOTAL ─'::TEXT ) AS "<%= codeHeader %>"
         , COALESCE(rpf.display_description,'---') AS "Description"
         , claim_dt AS "Claim Date"
         , rpf.payer_name AS "Payer Name"
@@ -83,7 +84,7 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
     SELECT
     NULL AS "Claim ID",
     NULL AS "Group_name",
-   '─ GRAND TOTAL ─'::TEXT AS "CPT Code"
+    '─ GRAND TOTAL ─'::TEXT AS "CPT Code"
     , NULL AS "Description"
     , '---' AS "Claim Date"
     , NULL AS "Payer Name"
@@ -94,8 +95,6 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
     , round(SUM((rpf.amount::numeric/100) * rpf.reading_provider_percent_level),2) AS "Reading Fee"
 FROM
     reading_provider_fees rpf
-
-
 `);
 
 const api = {
@@ -105,6 +104,7 @@ const api = {
      * This method is called by controller pipline after report data is initialized (common lookups are available).
      */
     getReportData: (initialReportData) => {
+        initialReportData.report.params.codeHeader = initialReportData.report.vars.columnHeader.cpt[initialReportData.report.params.country_alpha_3_code];
         // convert Array of Referring provider Ids String to Integer
         if (initialReportData.report.params.refProviderGroupList) {
             initialReportData.report.params.refProviderGroupList = initialReportData.report.params.refProviderGroupList.map(Number);
@@ -176,9 +176,8 @@ const api = {
             filtersUsed.push({ name: 'providerGroupList', label: 'Provider Group', value: 'All' });
         }
 
-
-        filtersUsed.push({ name: 'fromDate', label: 'From', value: params.fromDate });
-        filtersUsed.push({ name: 'toDate', label: 'To', value: params.toDate });
+        filtersUsed.push({ name: 'fromDate', label: 'Date From', value: moment(params.fromDate).format(params.dateFormat) });
+        filtersUsed.push({ name: 'toDate', label: 'Date To', value: moment(params.toDate).format(params.dateFormat) });
         return filtersUsed;
     },
 
@@ -240,6 +239,8 @@ const api = {
             filters.billingProID = queryBuilder.whereIn('bpr.id', [params.length]);
         }
 
+        filters.dateFormat = reportParams.dateFormat;
+        filters.codeHeader = reportParams.codeHeader;
         return {
             queryParams: params,
             templateData: filters

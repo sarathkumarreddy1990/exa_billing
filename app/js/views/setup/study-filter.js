@@ -289,8 +289,8 @@ define([
                 "click #rbtLast": "changeDateTimeStdFilter",
                 "click #rbtNext": "changeDateTimeStdFilter",
                 "click #rbtDate": "changeDateTimeStdFilter",
-                "click #btnAddInstitutionStudyFilter": "addInstitutionList",
-                "click #btnRemoveInstitutionStudyFilter": 'removeInstitutionList',
+                "click #btnClAddInstitutionStudyFilter": "addClInstitutionList",
+                "click #btnClRemoveInstitutionStudyFilter": "removeClInstitutionList",
                 "click #btnAddClaimInfo": "addItemToList",
                 "click #btnRemoveClaimInfo": "removeItemFromList",
                 "click #btnAddBillingMethod": "addItemToList",
@@ -369,6 +369,7 @@ define([
                 else
                     $('#ddlStudyDefaultTab').val(app.default_study_tab);
                 this.studyFilterTable = new customGrid();
+                $('#siteModal').removeAttr('tabindex');
                 this.studyFilterTable.render({
                     gridelementid: '#tblStudyFilterGrid',
                     custompager: new Pager(),
@@ -386,9 +387,6 @@ define([
                                 self.showForm(rowID);
                             },
                             formatter: function (e, model, data) {
-                                if (data.user_id != app.userID && data.is_global_filter) {
-                                    return "";
-                                }
                                 return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>";
                             },
                             cellattr: function () {
@@ -418,9 +416,6 @@ define([
                             },
 
                             formatter: function (e, model, data) {
-                                if (data.user_id != app.userID && data.is_global_filter) {
-                                    return "";
-                                }
                                 return "<i class='icon-ic-delete' i18nt='messages.status.clickHereToDelete'></i>";
                             },
 
@@ -681,8 +676,8 @@ define([
                                     $('#txtLastTime').val(dateJson.durationValue);
                                     $('#ddlLast').val(dateJson.duration);
 
-                                    dateJson.fromDate ? $('#txtDateFrom').val(dateJson.fromDate) : $('#txtDateFrom').val('');
-                                    dateJson.toDate ? $('#txtDateTo').val(dateJson.toDate) : $('#txtDateTo').val('');
+                                    dateJson.fromDate ? $('#txtDateFrom').val(moment(dateJson.fromDate).format('L')) : $('#txtDateFrom').val('');
+                                    dateJson.toDate ? $('#txtDateTo').val(moment(dateJson.toDate).format('L')) : $('#txtDateTo').val('');
                                     dateJson.fromDateTime ? $('#txtFromTimeDate').val(dateJson.fromDateTime) : $('#txtFromTimeDate').val('');
                                     dateJson.toDateTime ? $('#txtToTimeDate').val(dateJson.toDateTime) : $('#txtToTimeDate').val('');
                                     dateJson.fromTime ? $('#txtFromTimeLast').val(dateJson.fromTime) : $('#txtFromTimeLast').val('');
@@ -752,7 +747,9 @@ define([
                                     $('#ddlBilledStatus').val(studyInfoJson.billedstatus);
 
                                     if (studyInfoJson.study_description && studyInfoJson.study_description.condition !== undefined && studyInfoJson.study_description.condition != "" && studyInfoJson.study_description.list.length && studyInfoJson.study_description.list !== undefined) {
-                                        $("input:radio[name=StudyDescription][value=" + studyInfoJson.study_description.condition.replace('Contains', '') + "]").prop("checked", true);
+                                        if (!(studyInfoJson.study_description.condition == 'Contains')) {
+                                            $("input:radio[name=StudyDescription][value=" + studyInfoJson.study_description.condition.replace('Contains', '') + "]").prop("checked", true);
+                                        }
                                         $('#chkContainsStudyDescription').prop('checked', studyInfoJson.study_description.condition.indexOf('Contains') >= 0 ? true : false);
                                         $.each(studyInfoJson.study_description.list, function (index, studyDescriptionData) {
                                             if ($('#ulListStudyDescriptions a[data-id="' + studyDescriptionData.text + '"]').length === 0)
@@ -934,15 +931,15 @@ define([
                     var filterType = 'studies';
                 if (window.location && window.location.hash.split('/')[1] == 'claim_workbench')
                     var filterType = 'claims';
-                filterName = $('#txtFilterName').val() ? $('#txtFilterName').val().trim() : '';
-                filterOrder = $('#txtFilterOrder').val() ? $('#txtFilterOrder').val().trim() : '';
-                isActive = !$('#chkIsActive').is(":checked");
-                isGlobal = $('#chkIsGlobalFilter').is(":checked");
-                isDisplayAsTab = $('#chkDisplayAsTab').is(":checked");
-                isDisplayInDropDown = $('#chkDisplayAsDDL').is(":checked");
+                var filterName = $('#txtFilterName').val() ? $('#txtFilterName').val().trim() : '';
+                var filterOrder = $('#txtFilterOrder').val() ? $('#txtFilterOrder').val().trim() : '';
+                var isActive = !$('#chkIsActive').is(":checked");
+                var isGlobal = $('#chkIsGlobalFilter').is(":checked");
+                var isDisplayAsTab = $('#chkDisplayAsTab').is(":checked");
+                var isDisplayInDropDown = $('#chkDisplayAsDDL').is(":checked");
 
                 if(!filterName){
-                    ommonjs.showWarning('messages.warning.claims.pleaseEnterFilterName');
+                    commonjs.showWarning('messages.warning.claims.pleaseEnterFilterName');
                     return;
                 }
                 if(!filterOrder){
@@ -982,8 +979,8 @@ define([
                 }
                 else if ($('#rbtDate').is(':checked')) {
                     dateJsonCondition = "Date";
-                    var fromDt = $('#txtDateFrom').val(),
-                        toDt = $('#txtDateTo').val();
+                    var fromDt = commonjs.getISODateString($('#txtDateFrom').val());
+                    var toDt = commonjs.getISODateString($('#txtDateTo').val());
                     if (fromDt && toDt) {
                         dateJsonCondition = "Date";
                         //var validationResult2 = commonjs.validateDateTimePickerRange(fromDt, toDt, true);
@@ -1261,6 +1258,22 @@ define([
                     imageDelivery = [];
                 }
 
+
+                var studyDescCondition = '';
+                var studyDescIsContains = $('#rbtStudyDescription').is(":checked");
+                var studyDescIsNotContains = $('#rbtIsNotStudyDescription').is(":checked");
+                var studyDescContains = $('#chkContainsStudyDescription').is(":checked");
+
+                if (studyDescIsContains && !studyDescIsNotContains) {
+                    studyDescCondition = "Is";
+                } else if (!studyDescIsContains && studyDescIsNotContains) {
+                    studyDescCondition = "IsNot";
+                }
+
+                if (studyDescContains) {
+                    studyDescCondition += "Contains";
+                }
+
                 var jsonData = {};
 
                 if (self.opener == "studies") {
@@ -1272,9 +1285,9 @@ define([
                             duration: $('#ddlLast option:selected').text(),
                             fromTime: $('#txtFromTimeLast').val() ? $('#txtFromTimeLast').val() : null,
                             toTime: $('#txtToTimeLast').val() ? $('#txtToTimeLast').val() : null,
-                            fromDate: $('#txtDateFrom').val() ? $('#txtDateFrom').val() : null,
+                            fromDate: $('#txtDateFrom').val() ? commonjs.getISODateString($('#txtDateFrom').val()) : null,
                             fromDateTime: $('#txtFromTimeDate').val() ? $('#txtFromTimeDate').val() : null,
-                            toDate: $('#txtDateTo').val() ? $('#txtDateTo').val() : null,
+                            toDate: $('#txtDateTo').val() ? commonjs.getISODateString($('#txtDateTo').val()) : null,
                             toDateTime: $('#txtToTimeDate').val() ? $('#txtToTimeDate').val() : null,
                             isStudyDate: $('#rbtStudyDate').is(":checked"),
                             dateType: $('#rbtStudyDate').is(":checked") ? "study_dt" : $('#rbtStudyReceivedDate').is(":checked") ? "study_received_dt" : $('#rbtScheduledDate').is(":checked") ? "scheduled_dt" : $('#rbtStatusChangeDate').is(":checked") ? "status_last_changed_dt" : "study_dt"
@@ -1324,7 +1337,7 @@ define([
                                 list: arrFlag
                             },
                             study_description: {
-                                condition: $('input[name=StudyDescription]:checked').val() !== undefined ? $('input[name=StudyDescription]:checked').val() : $('#chkContainsStudyDescription').is(":checked") ? $('#chkContainsStudyDescription').val() : '',
+                                condition: studyDescCondition,
                                 list: arrStudyDescriptions
                             },
                             billedstatus: $('#ddlBilledStatus').val(),
@@ -1355,9 +1368,9 @@ define([
                             duration: $('#ddlLast option:selected').val(),
                             fromTime: $('#txtFromTimeLast').val() ? $('#txtFromTimeLast').val() : null,
                             toTime: $('#txtToTimeLast').val() ? $('#txtToTimeLast').val() : null,
-                            fromDate: $('#txtDateFrom').val() ? $('#txtDateFrom').val() : null,
+                            fromDate: $('#txtDateFrom').val() ? commonjs.getISODateString($('#txtDateFrom').val()) : null,
                             fromDateTime: $('#txtFromTimeDate').val() ? $('#txtFromTimeDate').val() : null,
-                            toDate: $('#txtDateTo').val() ? $('#txtDateTo').val() : null,
+                            toDate: $('#txtDateTo').val() ? commonjs.getISODateString($('#txtDateTo').val()) : null,
                             toDateTime: $('#txtToTimeDate').val() ? $('#txtToTimeDate').val() : null,
                             isStudyDate: $('#rbtStudyDate').is(":checked"),
                             dateType:  $('input[name=claimdate]:checked').val()
@@ -1406,9 +1419,9 @@ define([
                     {
                         success: function (model, response) {
                             if (!response.length)
-                                commonjs.showStatus("Already Exists");
+                                commonjs.showStatus("messages.warning.shared.alreadyexists");
                             else {
-                                commonjs.showStatus("Saved Succesfully");
+                                commonjs.showStatus("messages.warning.shared.savedSuccesfully");
                                 if (filterType == "studies")
                                     $('#btnStudiesCompleteRefresh').click();
                                 else if (filterType == "claims")
@@ -1617,23 +1630,23 @@ define([
                 return isChecked;
             },
 
-            addInstitutionList: function () {
+            addClInstitutionList: function () {
                 var self = this;
-                if (commonjs.checkNotEmpty($('#txtInstitutionStudyFilter').val()) && self.validateRadioButton('Institution', 'Institution')) {
-                    var opt = document.createElement('Option');
+                var institutionFilter = commonjs.checkNotEmpty($('#txtInstitutionStudyFilter').val());
+                if (institutionFilter && self.validateRadioButton('Institution', 'Institution')) {
                     opt.text = $.trim($('#txtInstitutionStudyFilter').val());
                     opt.value = $.trim($('#txtPatientID').val());
                     document.getElementById('listInstitution').options.add(opt);
                     $('#txtInstitutionStudyFilter').val('');
                     return false;
                 }
-                else {
+                else if (!institutionFilter) {
                     commonjs.showWarning("messages.warning.setup.entertextandselect");
                     return false;
                 }
             },
 
-            removeInstitutionList: function () {
+            removeClInstitutionList: function () {
                 if ($('#listInstitution option:selected').length > 0) {
                     $('#listInstitution option:selected').remove();
                 }

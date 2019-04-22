@@ -300,7 +300,9 @@ module.exports = {
                     patient_prefix: item.patient_prefix || '',
                     patient_suffix: item.patient_suffix || '',
                     claim_index : claimIds.indexOf(claimNumber),
-                    code: null  // ERA purpose adjustment code value is null
+                    code: null,  // ERA purpose adjustment code value is null
+                    claim_status: item.claim_status || ''
+
                 });
             }
         });
@@ -313,6 +315,7 @@ module.exports = {
         paymentDetails.created_by = parseInt(params.userId);
         paymentDetails.company_id = parseInt(params.companyId);
         paymentDetails.uploaded_file_name = ''; // Assign empty for ERA argument
+        paymentDetails.payer_type = params.payer_type || '';
 
         let result = await eraData.createPaymentApplication(params, paymentDetails);
 
@@ -380,7 +383,9 @@ module.exports = {
 
     getPatientClaims: data.getPatientClaims,
 
-    processWriteOffPayment: data.createWriteOffPayment
+    processWriteOffPayment: data.createWriteOffPayment,
+
+    canDeletePayment: data.canDeletePayment
 
 };
 

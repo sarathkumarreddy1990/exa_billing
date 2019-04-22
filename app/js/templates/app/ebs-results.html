@@ -1,0 +1,212 @@
+<div class="modal_div_container_nested" style="padding: 20px;">
+
+    <% if (typeof auditInfo !== 'undefined' && auditInfo.length) { %>
+        <h3>Audit Info</h3>
+        <textarea id="audit-log-entry" class='col-lg-12' rows="12"><% auditInfo.forEach(function(audit) { %>
+Request AuditID : <%=audit.requestAuditID%>
+Response AuditID : <%=audit.responseAuditID%>
+Service User : <%=audit.serviceUserMUID%>
+End User identifier : <%=audit.endUser%>
+Time/date/duration : <%=audit.dateTime%> / <%=audit.duration%>ms
+Action / event detail : <%=JSON.stringify(audit.eventDetail)%>
+Simple Success Failure : <%=audit.successful ? 'Yes' : 'No'%>
+Exit status / messages : <%= audit.exitInfo.join('\n')%>
+Error messages :  <%= audit.errorMessages.join('\n')%>
+        <% }) %></textarea>
+    <% } %>
+
+    <% if (typeof faults !== 'undefined' && faults.length) { %>
+        <h3>Faults</h3>
+        <table width="100%">
+            <tr>
+                <th>Code</th>
+                <th>Message</th>
+            </tr>
+            <% faults.forEach(function(fault) { %>
+            <tr>
+                <td><%=fault.code || fault.faultcode%></td>
+                <td><%=fault.message || fault.faultstring%></td>
+            </tr>
+            <% }) %>
+        </table>
+    <% } %>
+
+    <% if (typeof responseResults !== 'undefined' && responseResults.length) { %>
+        <h3>Results</h3>
+        <table width="100%">
+            <tr>
+                <th>Resource ID</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Code</th>
+                <th>Message</th>
+            </tr>
+            <% responseResults.forEach(function(result) { %>
+            <tr>
+                <td><%=result.resourceID%></td>
+                <td><%=result.description%></td>
+                <td><%=result.status%></td>
+                <td><%=result.code%></td>
+                <td><%=result.msg%></td>
+            </tr>
+            <% }) %>
+        </table>
+    <% }
+
+    if (typeof downloadData !== 'undefined' && downloadData.length) { %>
+        <h3>Downloads</h3>
+        <table width="100%">
+            <tr>
+                <th>Resource ID</th>
+                <th>Description</th>
+                <th>Resource Type</th>
+                <th>Code</th>
+                <th>Message</th>
+            </tr>
+            <% downloadData.forEach(function(result) { %>
+            <tr>
+                <td><%=result.resourceID%></td>
+                <td><a href="data:application/octet-stream,<%= encodeURIComponent(result.content) %>" download='<%=result.description%>'><%=result.description%></a></td>
+                <td><%=result.resourceType%></td>
+                <td><%=result.code%></td>
+                <td><%=result.msg%></td>
+            </tr>
+            <% }) %>
+        </table>
+    <% }
+
+    if (typeof detailData !== 'undefined' && detailData.length) { %>
+        <div>
+        <h3>Details</h3>
+        <table width="100%">
+            <tr>
+                <th>Resource ID</th>
+                <th>Description</th>
+                <th>Resource Type</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Modified</th>
+                <th>Code</th>
+                <th>Message</th>
+            </tr>
+            <% detailData.forEach(function(result) { %>
+            <tr>
+                <td><%=result.resourceID%></td>
+                <td><%=result.description%></td>
+                <td><%=result.resourceType%></td>
+                <td><%=result.status%></td>
+                <td><%=result.createTimestamp%></td>
+                <td><%=result.modifyTimestamp%></td>
+                <td><%=result.code%></td>
+                <td><%=result.msg%></td>
+            </tr>
+            <% }) %>
+        </table>
+    <% }
+
+
+    if (typeof typeListData !== 'undefined' && typeListData.length) { %>
+        <h3>Resource Types</h3>
+        <table width="100%">
+            <tr>
+                <th>Resource Type</th>
+                <th>Access</th>
+                <th>Description (English)</th>
+                <th>Description (French)</th>
+                <th>Group Required</th>
+                <th>CSN Data</th>
+                <th>Code</th>
+                <th>Message</th>
+            </tr>
+            <% typeListData.forEach(function(result) { %>
+            <tr>
+                <td><%=result.resourceType%></td>
+                <td><%=result.access%></td>
+                <td><%=result.descriptionEn%></td>
+                <td><%=result.descriptionFr%></td>
+                <td><%=result.groupRequired%></td>
+                <td><%=result.csnData%></td>
+                <td><%=result.code%></td>
+                <td><%=result.msg%></td>
+            </tr>
+            <% }) %>
+        </table>
+    <% }
+
+    if (typeof hcvResults !== 'undefined' && hcvResults.length) { %>
+        <div>
+        <h3>Health Card Validation Results</h3>
+        <% hcvResults.forEach(function(result) { %>
+            <div style="border-top: 1px solid #000000" class="row">
+                <div class="row">
+                    <div class="col-lg-4">
+                        <b>Health Number: </b><%=result.healthNumber%>
+                    </div>
+                    <div class="col-lg-4">
+                        <b>Version Code: </b><%=result.versionCode%>
+                    </div>
+                    <div class="col-lg-4">
+                        <b>Expiry Date: </b><%=moment(new Date(result.expiryDate), 'L').format('YYYY-MM-DD')%>
+                    </div>
+
+
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-3">
+                        <b>Response Code: </b><%=result.responseCode%>
+                    </div>
+                    <div class="col-lg-3">
+                        <b>Response Action: </b><%=result.responseAction%>
+                    </div>
+                    <div class="col-lg-3">
+                        <b>Response ID: </b><%=result.responseID%>
+                    </div>
+                    <div class="col-lg-3">
+                        <b>Response Description: </b><%=result.responseDescription%>
+                    </div>
+
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-3">
+                        <b>Last Name: </b><%=result.lastName%>
+                    </div>
+                    <div class="col-lg-3">
+                        <b>First Name, Second: </b><%=result.firstName%>, <%=result.secondName%>
+                    </div>
+                    <div class="col-lg-3">
+                        <b>Date of Birth: </b><%=moment(new Date(result.dateOfBirth), 'L').format('YYYY-MM-DD')%>
+                    </div>
+                    <div class="col-lg-3">
+                        <b>Gender: </b><%=result.gender%>
+                    </div>
+
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-3">
+                        <b>Fee Service Code: </b><%=result.feeServiceCode%>
+                    </div>
+                    <div class="col-lg-3">
+                        <b>Fee Service Date: </b><%=result.feeServiceDate%>
+                    </div>
+                    <div class="col-lg-3">
+                        <b>Fee Serice Response Code: </b><%=result.feeServiceResponseCode%>
+                    </div>
+                    <div class="col-lg-3">
+                        <b>Fee Service Response Description: </b><%=result.feeServiceResponseDescription%>
+                    </div>
+
+                </div>
+            </div>
+
+
+        <% }) %>
+
+
+
+    <% } %>
+
+
+</div>

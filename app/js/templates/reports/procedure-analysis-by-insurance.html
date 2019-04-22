@@ -89,7 +89,7 @@
         <div class="col-3">
             <div class="form-group form-inline" id="refProviderGroup" style="display:none;">
                 <div class="col-form-label" style="max-width: 110px">
-                    <label class="control-label">Ref. Pro Group</label>
+                    <label class="control-label" i18n="report.reportFilter.refProGroup"></label>
                 </div>
                 <div class="form-content">
                     <div class="input-group" class="divListBox">
@@ -105,7 +105,7 @@
                             <select id="txtProviderGroupName"> </select>
                         </div>
                         <div>
-                            <a class="btn btn-primary displayAlignLeft" id="btnAddProviderGroup" title="Add Referring Physican Group">
+                            <a class="btn btn-primary displayAlignLeft" id="btnAddProviderGroup" i18nt="report.reportFilter.addReferringPhysicianGroup">
                                 <i class="icon-ic-plus"></i>
                             </a>
                         </div>
@@ -120,13 +120,13 @@
             </div>
             <div class="form-group form-inline" id="procedureByCPTCodes">
                 <div class="col-form-label" style="max-width: 110px">
-                    <label class="inline field-chk" i18n="report.reportFilter.cptCodes" />
+                    <label id="cptLabel" class="inline field-chk" i18n="report.reportFilter.cptCodes" />
                 </div>
                 <div class="form-content">
                     <div class="input-group" class="divListBox">
                         <select id="ddlCPTCodeBinding" class="form-control form-control-lg">
-                            <option value="All">All CPT's</option>
-                            <option value="S">Selected</option>
+                            <option id="allOption" value="All" i18n="report.reportFilter.allCPTCodes"></option>
+                            <option value="S" i18n="report.reportFilter.selected"></option>
                         </select>
                     </div>
                 </div>
@@ -136,7 +136,7 @@
                             <select id="txtCPTCode"></select>
                         </div>
                         <div>
-                            <a class="btn btn-primary displayAlignLeft" id="btnCPTCode" title="Add Insurance">
+                            <a class="btn btn-primary displayAlignLeft" id="btnCPTCode" i18nt="report.reportFilter.addInsurance">
                                 <i class="icon-ic-plus"></i>
                             </a>
                         </div>
@@ -170,7 +170,7 @@
                             <select id="txtInsuranceName"> </select>
                         </div>
                         <div>
-                            <a class="btn btn-primary displayAlignLeft" id="btnAddInsurance" title="Add Insurance">
+                            <a class="btn btn-primary displayAlignLeft" id="btnAddInsurance" i18nt="report.reportFilter.addInsurance">
                                 <i class="icon-ic-plus"></i>
                             </a>
                         </div>
@@ -186,7 +186,7 @@
 
             <div class="form-group form-inline" id="procedureByRefPro" style="display:none;">
                 <div class="col-form-label" style="max-width: 110px">
-                    <label class="control-label">Ref. Provider</label>
+                    <label class="control-label" i18n="report.reportFilter.refProvider"></label>
                 </div>
                 <div class="form-content">
                     <div class="input-group" class="divListBox">
@@ -202,7 +202,7 @@
                             <select id="txtReferringPhysician"> </select>
                         </div>
                         <div>
-                            <a class="btn btn-primary displayAlignLeft" id="btnAddReferringPhysician" title="Add provider">
+                            <a class="btn btn-primary displayAlignLeft" id="btnAddReferringPhysician" i18nt="report.reportFilter.addProvider">
                                 <i class="icon-ic-plus"></i>
                             </a>
                         </div>
@@ -235,7 +235,7 @@
                             <select id="txtInsuranceProviderName"> </select>
                         </div>
                         <div>
-                            <a class="btn btn-primary displayAlignLeft" id="btnAddInsuranceProvider" title="Add Payer Type">
+                            <a class="btn btn-primary displayAlignLeft" id="btnAddInsuranceProvider" i18nt="report.reportFilter.addPayerType">
                                 <i class="icon-ic-plus"></i>
                             </a>
                         </div>

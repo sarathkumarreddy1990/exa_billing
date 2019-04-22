@@ -12,6 +12,9 @@ define([
             expanded: false,
             mainTemplate: _.template(claimTransactionTemplate),
             viewModel: {
+                dateFormat: 'MM/DD/YYYY',
+                country_alpha_3_code: 'usa',
+                i18nColumnHeaderCpt: 'cptCode',
                 sDate: null,
                 patientIds: null,
                 patientOption: null,
@@ -76,7 +79,7 @@ define([
                 'click #btnXmlReport': 'onReportViewClick',
                 "click #chkAllClaims": "selectAllClaims",
                 "click #chkAllInsGroup": "selectAllInsGroup",
-                "change .insGrpChk": "chkInsGroup",               
+                "change .insGrpChk": "chkInsGroup",
                 "click #chkAllFacility": "selectAllFacility",
                 "click #showCheckboxesClaim": "showCheckboxesClaim",
                 "click #showInsGroupCheckboxes": "showInsuranceGroupList",
@@ -93,7 +96,8 @@ define([
                 this.$el.html(this.mainTemplate(this.viewModel));
                 UI.initializeReportingViewModel(options, this.viewModel);
 
-                //    this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings());
+                UI.getReportSetting(this.viewModel, 'all', 'dateFormat'); // Get date format (and current country code) based on current country code saved in sites table
+                UI.getReportSetting(this.viewModel, 'claim-transaction', 'i18nColumnHeaderCpt'); // Get cpt i18n header based on country code
 
                 this.viewModel.dateFrom = moment().startOf('month').add(-1, 'month');    // start of the last month
                 this.viewModel.dateTo = this.viewModel.dateFrom.clone().endOf('month');  // end of the last month
@@ -103,8 +107,6 @@ define([
 
                 this.viewModel.billCreatedDateFrom = moment().startOf('month').add(-1, 'month');    // start of the last month  (CPT Pay Date)
                 this.viewModel.billCreatedDateTo = this.viewModel.billCreatedDateFrom.clone().endOf('month');  // end of the last month
-
-
             },
 
             showForm: function () {
@@ -131,7 +133,7 @@ define([
 
                 // pre-select default facility
                 this.selectDefaultFacility();
-                self.bindDateRangePicker();  //  Binding date range pickers                
+                self.bindDateRangePicker();  //  Binding date range pickers
                 self.bindUserAutocomplete();   // Referring Docotor Auto complete
 
                 //   Service date (Bill) Date Picker
@@ -159,19 +161,31 @@ define([
                     includeSelectAllOption: true,
                     enableCaseInsensitiveFiltering: true
                 });
-               
+
                 $('#ddlClaimSelectBoxes').multiselect({
                     maxHeight: 170,
-                    buttonWidth: '200px'                  
-                });            
+                    buttonWidth: '200px'
+                });
+
+                var selectedLabel = this.viewModel.i18nColumnHeaderCpt + 'Selected';
+                var selectLabel = this.viewModel.i18nColumnHeaderCpt + 'Select';
+                var cptLabel = this.viewModel.i18nColumnHeaderCpt;
+
+                $("#selectedLabel").attr("i18n", selectedLabel);
+                $("#selectLabel").attr("i18n", selectLabel);
+                $("#cptLabel").attr("i18n", cptLabel);
+
+                commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());
             },
 
+            // comment
             // Date Range Binding
             bindDateRangePicker: function () {
                 var self = this;
                 var drpEl = $('#serviceDateBill');
+
                 //   Service date (Bill) Date Picker
-                var drpOptions = { autoUpdateInput: true, locale: { format: 'L' } };
+                var drpOptions = { autoUpdateInput: true, locale: { format: this.viewModel.dateFormat } };
                 this.drpStudyDt = commonjs.bindDateRangePicker(drpEl, drpOptions, 'past', function (start, end, format) {
                     self.viewModel.dateFrom = start;
                     self.viewModel.dateTo = end;
@@ -180,9 +194,10 @@ define([
                     self.viewModel.dateFrom = null;
                     self.viewModel.dateTo = null;
                 });
+
                 //   CPT date  Date Picker
                 var cptDate = $('#serviceDateBillCPT');
-                var drpOptions = { autoUpdateInput: true, locale: { format: 'L' } };
+                var drpOptions = { autoUpdateInput: true, locale: { format: this.viewModel.dateFormat } };
                 this.commentDate = commonjs.bindDateRangePicker(cptDate, drpOptions, 'past', function (start, end, format) {
                     self.viewModel.cmtFromDate = start;
                     self.viewModel.cmtToDate = end;
@@ -191,9 +206,9 @@ define([
                     self.viewModel.cmtFromDate = null;
                     self.viewModel.cmtToDate = null;
                 });
-                //   Bill Created date  Picker
+
                 var billCreatedDate = $('#serviceDateBillCreated');
-                var drpOptions = { autoUpdateInput: true, locale: { format: 'L' } };
+                var drpOptions = { autoUpdateInput: true, locale: { format: this.viewModel.dateFormat } };
                 this.billCreatedDate = commonjs.bindDateRangePicker(billCreatedDate, drpOptions, 'past', function (start, end, format) {
                     self.viewModel.billCreatedDateFrom = start;
                     self.viewModel.billCreatedDateTo = end;
@@ -248,22 +263,22 @@ define([
 
             hasValidViewModel: function () {
                 if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
-                    commonjs.showWarning('Please check report id, category, and/or format!');
+                    commonjs.showWarning('messages.status.pleaseCheckReportIdCategoryandorFormat');
                     return;
                 }
 
                 // Claim # validatation for from# &  To #
                 if ($('#claimIdFrom').val() != '' && $('#claimIdTo').val() == "") {
-                    commonjs.showWarning('Please Enter To Range (Claim #)');
+                    commonjs.showWarning('messages.status.pleaseEnterToRangeClaim');
                     return;
                 }
                 if ($('#claimIdTo').val() != '' && $('#claimIdFrom').val() == "") {
-                    commonjs.showWarning('Please Enter From Range (Claim #)');
+                    commonjs.showWarning('messages.status.pleaseEnterFromRangeClaim');
                     return;
                 }
 
                 if ($('#claimIdFrom').val() > $('#claimIdTo').val()) {
-                    commonjs.showWarning('Claim From# not Greater than To#');
+                    commonjs.showWarning('messages.status.claimFromNotGreaterThanTo');
                     return;
                 }
 
@@ -271,13 +286,15 @@ define([
                    // commonjs.showWarning('Please Select Service / Pay / Bill Created Date');
                     return;
                 }
-               
+
                 return true;
             },
 
             // Binding Report Params
             getReportParams: function () {
                 return urlParams = {
+                    'dateFormat': this.viewModel.dateFormat,
+                    'country_alpha_3_code': this.viewModel.country_alpha_3_code,
                     'allFacilities': this.viewModel.allFacilities,
                     'facilityIds': this.viewModel.facilityIds,
 
@@ -305,7 +322,7 @@ define([
                     insuranceOption: this.viewModel.insuranceOption ? this.viewModel.insuranceOption : '',
                     'insuranceGroupList': this.viewModel.insuranceGroupList,
 
-                    allInsuranceGroup: this.viewModel.allInsGrpSelection ? this.viewModel.allInsGrpSelection : '',                    
+                    allInsuranceGroup: this.viewModel.allInsGrpSelection ? this.viewModel.allInsGrpSelection : '',
 
                     userIds: this.viewModel.userIds ? this.viewModel.userIds : '',
                     referringProIds: this.viewModel.refPhyId ? this.viewModel.refPhyId : '',
@@ -377,6 +394,7 @@ define([
             },
 
             onOptionChangeSelectRefPhysician: function () {
+                $('#txtReferringPhysician').empty();
                 if ($('#ddlReferringPhysicianOption').val() == 'S') {
                     $("#ddlReferringPhysicianBox").show();
                     $("#divReferringPhysician").show();
@@ -393,6 +411,7 @@ define([
 
 
             onOptionChangeSelectCPT: function () {
+                $('#txtCPTCode').empty();
                 if ($('#ddlCptCode').val() == 'S')
                     $("#ddlCPTCodeBox").show();
                 else
@@ -450,7 +469,7 @@ define([
                 $('#ddlFacilityFilter').multiselect("deselectAll", false).multiselect("refresh");
                 this.viewModel.allFacilities = false;
             },
-            
+
             // Facility Changes -- worked
             onFacilityChange: function () {
                 $('#billingProDropdown').hide();
@@ -469,7 +488,7 @@ define([
                 selected.each(function () {
                     claimSelections.push($(this).val());
                 });
-                this.selectedClaimList = claimSelections;             
+                this.selectedClaimList = claimSelections;
                 // this.viewModel.allClaimSelection = this.selectedClaimList && this.selectedClaimList.length === $('#ddlClaimSelectBoxes option').length;
 
             },

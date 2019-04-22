@@ -1,5 +1,6 @@
 const SearchFilter = require('./claim-search-filters');
 const { SQL, query, queryWithAudit } = require('../index');
+const filterValidator = require('./../filter-validator')();
 
 module.exports = {
 
@@ -361,13 +362,21 @@ module.exports = {
         } = params;
 
         let sql = SQL`
-                    SELECT  study_id,
-                            studies.order_id
-					FROM    billing.charges_studies
-                            INNER JOIN billing.charges ON billing.charges.id = billing.charges_studies.charge_id
-                            INNER JOIN public.studies ON public.studies.id = billing.charges_studies.study_id
-					WHERE   billing.charges.claim_id = ${claim_id}
-					LIMIT   1`;
+                    SELECT
+                        study_id,
+                        studies.order_id,
+                        studies.study_status,
+                        CASE
+                            WHEN studies.study_status = 'APP' THEN 1
+                            ELSE 2
+                        END  AS status_index
+                    FROM
+                        billing.charges_studies
+                    INNER JOIN billing.charges ON billing.charges.id = billing.charges_studies.charge_id
+                    INNER JOIN public.studies ON public.studies.id = billing.charges_studies.study_id
+                    WHERE   billing.charges.claim_id = ${claim_id}
+                    ORDER BY status_index ,study_id
+                    LIMIT 1`;
 
         return await query(sql);
     },
@@ -426,7 +435,6 @@ module.exports = {
 
     updateFollowUp: async (params) => {
         let {
-            claimIDs,
             followupDate,
             followUpDetails,
             companyId,
@@ -435,19 +443,30 @@ module.exports = {
             userId,
             entityName,
             moduleName,
-            assignedTo
+            claimFollowupData
         } = params;
         let sql;
-        claimIDs = claimIDs.split(',');
 
         if (followupDate == '') {
             sql = SQL`
-                    WITH cancle_followups AS(
-                        DELETE FROM billing.claim_followups
-                        WHERE
-                            claim_id = ANY(${claimIDs})
-                            AND assigned_to = ${assignedTo}
-                        RETURNING *, '{}'::jsonb old_values),
+                    WITH claim_data AS (
+                        SELECT 
+                              "claimId" AS claim_id
+                            , "assignedTo" AS assigned_to
+                        FROM json_to_recordset(${JSON.stringify(claimFollowupData)}) AS claim_data
+                        (
+                            "claimId" BIGINT,
+                            "assignedTo" INTEGER
+                        )
+                    )
+                    ,cancle_followups AS(
+                        DELETE FROM billing.claim_followups cf
+                        WHERE EXISTS (SELECT 
+                                        1 
+                                      FROM claim_data cd 
+                                      WHERE cd.claim_id = cf.claim_id
+                                      AND cd.assigned_to = cf.assigned_to
+                        )RETURNING *, '{}'::jsonb old_values),
                         audit_cte AS (
                             SELECT billing.create_audit(
                                 ${companyId},
@@ -708,7 +727,7 @@ module.exports = {
         return await query(sql.text, sql.values);
     },
 
-    validateEDIClaimCreation: async(claimIds) => {
+    validateEDIClaimCreation: async(claimIds, country) => {
         const sql = SQL` SELECT
                         array_agg(claim_status.code) AS claim_status
                     , COUNT(DISTINCT(bc.billing_method)) AS unique_billing_method_count
@@ -725,6 +744,10 @@ module.exports = {
                 LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id
                 LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id
                 WHERE bc.id = ANY(${claimIds}) `;
+
+        if(country == 'can') {
+            sql.append(` AND TIMEZONE(public.get_facility_tz(bc.facility_id :: INT), bc.claim_dt) :: DATE <= CURRENT_DATE `);
+        }
 
         return await query(sql.text, sql.values);
     },
@@ -788,6 +811,93 @@ module.exports = {
                         ) patient_payments ON true
                         WHERE
                             c.id = ${id} `;
+
+        return await query(sql);
+    },
+
+    getClaimTotalBalance: async function (args) {
+
+        args.isClaimBalanceTotal = true;
+        args.isCount= false;
+        let claimGridFilter = await SearchFilter.getWL(args);
+        let balanceFilter = '';
+        args.claimBalancefilterData = args.claimBalancefilterData || 0;
+
+        // create claim balance filter query
+        if(args.colModel){
+            args.colModel.searchColumns = ['bgct.claim_balance_total'];
+            balanceFilter = await filterValidator.generateQuery([args.colModel], JSON.stringify(['claim_balance']), JSON.stringify([args.claimBalancefilterData]), '');
+        }
+
+        const sql = SQL`WITH
+	        -- --------------------------------------------------------------------------------------------------------------
+            -- Apply claims grid filters
+            -- --------------------------------------------------------------------------------------------------------------
+            claim_details AS ( `;
+
+        sql.append(claimGridFilter);
+
+        sql.append(`)
+	        -- --------------------------------------------------------------------------------------------------------------
+            -- Calculate charge bill fee for claim.
+            -- --------------------------------------------------------------------------------------------------------------
+            ,claim_charge_fee AS (
+                SELECT
+                    sum(c.bill_fee * c.units)       AS charges_bill_fee_total
+                    ,c.claim_id
+                FROM
+                    billing.charges AS c
+                INNER JOIN claim_details AS cd ON cd.claim_id = c.claim_id
+                INNER JOIN public.cpt_codes AS pc ON pc.id = c.cpt_id
+                LEFT OUTER JOIN billing.charges_studies AS cs ON c.id = cs.charge_id
+                GROUP BY c.claim_id
+             )
+            -- --------------------------------------------------------------------------------------------------------------
+            -- Claim payments list.
+            -- --------------------------------------------------------------------------------------------------------------
+            ,claim_payments_list AS (
+                SELECT
+                     ccf.claim_id
+		            ,ccf.charges_bill_fee_total
+		            ,bgct.claim_balance_total
+                FROM
+                    claim_charge_fee ccf
+                LEFT JOIN LATERAL (
+                    SELECT
+                        coalesce(sum(pa.amount)    FILTER (WHERE pa.amount_type = 'payment'),0::money)    AS payments_applied_total
+                        ,coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment'
+                        AND (adj.accounting_entry_type != 'refund_debit' OR pa.adjustment_code_id IS NULL)),0::money) AS ajdustments_applied_total
+                        ,coalesce(sum(pa.amount)   FILTER (WHERE adj.accounting_entry_type = 'refund_debit'),0::money) AS refund_amount
+                        ,c.claim_id
+		            FROM
+                        billing.charges AS c
+                    LEFT JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
+                    LEFT JOIN billing.payments AS p ON pa.payment_id = p.id
+                    LEFT JOIN billing.adjustment_codes adj ON adj.id = pa.adjustment_code_id
+		            GROUP BY c.claim_id
+                ) AS applications ON applications.claim_id = ccf.claim_id
+
+                INNER JOIN LATERAL (
+			        SELECT
+			            ccf.charges_bill_fee_total - (
+				            applications.payments_applied_total +
+				            applications.ajdustments_applied_total +
+				            applications.refund_amount
+			            ) AS claim_balance_total
+                ) AS bgct ON TRUE `);
+
+        sql.append(balanceFilter);
+
+        sql.append(`
+            )
+            -- --------------------------------------------------------------------------------------------------------------
+            -- Getting claims total balance and charges total billFee
+            -- --------------------------------------------------------------------------------------------------------------
+                SELECT
+                    sum(cp.claim_balance_total) AS claim_balance_total,
+                    sum(cp.charges_bill_fee_total) AS charges_bill_fee_total
+                FROM
+                    claim_payments_list cp `);
 
         return await query(sql);
     }

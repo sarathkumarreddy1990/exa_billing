@@ -12,7 +12,8 @@ module.exports = {
         era: 'era',
         edi: 'edi',
         claim_workbench: 'claims',
-        user_settings: 'claims'
+        user_settings: 'claims',
+        ohip: 'ohip'
     },
 
     screenNames: {
@@ -69,7 +70,9 @@ module.exports = {
         'transaction-summary': 'Transaction Summary Report',
         'payments-realization-rate-analysis' : 'Payments Realization Rate Analysis',
         'update_claim_status': 'Claim Status',
-        'update_grid_settings': 'Studies / Claims Grid'
+        'update_grid_settings': 'Studies / Claims Grid',
+        'submitClaims': 'Submit Claims',
+        'fileManagement': 'File Management'
     },
 
     entityNames: {
@@ -100,7 +103,9 @@ module.exports = {
         claims: 'Claims',
         update_claim_status: 'Claims',
         validate_claims: 'Claims',
-        update_grid_settings: 'user_settings'
+        update_grid_settings: 'user_settings',
+        submitClaims: 'submitClaims',
+        fileManagement: 'fileManagement'
     },
 
     permissionsMap: {
@@ -207,6 +212,11 @@ module.exports = {
         'claim_summary': 'CLIM',
         'patient_claim_list': 'PAYM',
         'process_write_off_payments': 'PAYM',
-        'get_claim_payments': 'CLIM'
+        'get_claim_payments': 'CLIM',
+        'can_delete_payment': 'PAYM',
+        'claims_total_balance': 'CLIM',
+        'submitClaims': 'BIVA',
+        'fileManagement': 'CLFM',
+        'paper_claim_fax': 'CLIM'
     }
 };

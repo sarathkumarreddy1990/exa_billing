@@ -49,11 +49,11 @@ define(['jquery',
         },
 
         saveFollowup: function (claimIDs) {
-            var followUpDate = $('#txtFollowUpDate').val() ? moment($('#txtFollowUpDate').val()).format('L') : '';
+            var followUpDate = $('#txtFollowUpDate').val() ? commonjs.getISODateString($('#txtFollowUpDate').val()) : '';
             var followUPUserID = $('#txtFollowupUsers').val();
 
             if(followUpDate == '') {
-                commonjs.showWarning('Please Select Follow-up Date');
+                commonjs.showWarning('billing.fileInsurance.pleaseSelectFollowUpDate');
                 return;
             }
 
@@ -68,7 +68,6 @@ define(['jquery',
                 url: '/exa_modules/billing/claim_workbench/follow_ups',
                 type: 'PUT',
                 data: {
-                    'claimIDs': claimIDs.join(','),
                     'followupDate': followUpDate,
                     'assignedTo': followUPUserID ? followUPUserID : app.userID,
                     'followUpDetails': JSON.stringify(followUpDetails)
@@ -133,18 +132,26 @@ define(['jquery',
 
         resetFollowUp: function(claimIDs) {
             claimIDs = claimIDs.split(',');
-            var assigned_id = $('#tblClaimGridFollow_up_queue').getRowData(claimIDs).assigned_id;
+            var hidden_assigned_id;
+            var claimFollowupData = [];
+            _.each(claimIDs, function (claimId) {
+                hidden_assigned_id = $('#tblClaimGridFollow_up_queue').getRowData(claimId).hidden_assigned_id;
+                claimFollowupData.push({
+                    'claimId': claimId,
+                    'assignedTo': hidden_assigned_id
+                });
+            });
+
             $.ajax({
                 url: '/exa_modules/billing/claim_workbench/follow_ups',
                 type: 'PUT',
                 data: {
-                    'claimIDs': claimIDs.join(','),
                     'followupDate': '',
-                    'assignedTo': assigned_id,
-                    'followUpDetails': ''
+                    'followUpDetails': '',
+                    'claimFollowupData': claimFollowupData
                 },
                 success: function (data, response) {
-                    commonjs.showStatus('Followup canceled successfully');
+                    commonjs.showStatus('billing.fileInsurance.followupCanceledSuccessfully');
                     $('#btnClaimsRefresh').trigger('click');
                 },
                 error: function (err) {

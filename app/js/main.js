@@ -97,7 +97,8 @@ var rjsConfig = {
             deps: ['jquery', 'underscore']
         },
         'i18nscript': {
-            deps: ['jquery']
+            deps: ['jquery'],
+            exports: 'i18n'
         },
         'app-settings': {
             'deps': ['immutable', 'underscore', 'commonjs']
@@ -199,16 +200,20 @@ if (require && require.config) {
         permissionsjs,
         jqueryuisortable
         ) {
-            browserLocale = navigator.language;
+            browserLocale = navigator.language.toLowerCase();
             window.browserLocale = typeof browserLocale == 'undefined' ? 'en-US' : browserLocale;
             window.Immutable = Immutable;
             window.commonjs = commonjs;
             window.appLayout = layout;
             window.appRights = permissions;
+            window.i18n = i18n;
             window._get = _get;
 
             window.AppServer = Appserver;
-
+            i18n.loadConfig(function () {
+                MomentTimezone.locale(browserLocale);
+                commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
+            });
             Backbone.emulateHTTP = false;
 
             new Appserver(function () {

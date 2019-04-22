@@ -3,7 +3,8 @@ const _ = require('lodash')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
     , queryBuilder = require('../queryBuilder')
-    , logger = require('../../../../../logger');
+    , logger = require('../../../../../logger')
+    , moment = require('moment');
 
 // generate query template ***only once*** !!!
 
@@ -14,7 +15,7 @@ WITH payerMixDetails AS (
         pip.insurance_code AS insurance_code,
         pip.insurance_name AS insurance_name,
         f.facility_name AS facility_name,
-        to_char(bc.claim_dt, 'MM/DD/YYYY') AS claim_date,
+        to_char(bc.claim_dt, '<%= dateFormat %>') AS claim_date,
         SUM(bch.bill_fee *  bch.units) AS bill_fee,
         COUNT(bc.id) AS claim_count
     FROM
@@ -42,7 +43,7 @@ WITH payerMixDetails AS (
         facility_name ASC
     )
     SELECT
-        display_code AS "CPT Code",
+        display_code AS "<%= codeHeader %>",
         insurance_code AS "Insurance Code",
         insurance_name AS "Insurance Name",
         COALESCE(facility_name,' ─ ─ Total ─ ─ ') AS "Facility Name",
@@ -53,7 +54,7 @@ WITH payerMixDetails AS (
          payerMixDetails
     UNION ALL
     SELECT
-        null::TEXT AS "CPT Code",
+        null::TEXT AS "<%= codeHeader %>",
         null::TEXT AS "Insurance Code",
         null::TEXT AS "Insurance Name",
         '─ GRAND TOTAL ─'::TEXT AS "Facility Name",
@@ -72,6 +73,7 @@ const api = {
      * This method is called by controller pipline after report data is initialized (common lookups are available).
      */
     getReportData: (initialReportData) => {
+        initialReportData.report.params.codeHeader = initialReportData.report.vars.columnHeader.cpt[initialReportData.report.params.country_alpha_3_code];
         return Promise.join(
             api.createpayerMixDataSet(initialReportData.report.params),
             dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
@@ -133,8 +135,8 @@ const api = {
             filtersUsed.push({ name: 'billingProviderInfo', label: 'Billing Provider', value: billingProviderInfo });
         }
 
-        filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
-        filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
+        filtersUsed.push({ name: 'fromDate', label: 'Date From', value: moment(params.fromDate).format(params.dateFormat) });
+        filtersUsed.push({ name: 'toDate', label: 'Date To', value: moment(params.toDate).format(params.dateFormat) });
         return filtersUsed;
     },
 
@@ -160,7 +162,6 @@ const api = {
             claimDate: null,
             facilityIds: null,
             billingProID: null
-
         };
 
         // company id
@@ -189,6 +190,8 @@ const api = {
             filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
         }
 
+        filters.dateFormat = reportParams.dateFormat;
+        filters.codeHeader = reportParams.codeHeader;
         return {
             queryParams: params,
             templateData: filters
