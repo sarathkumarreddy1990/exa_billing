@@ -195,7 +195,7 @@ define(['jquery',
             render: function (paymentId, from) {
                 var self = this;
                 self.from = from;
-                self.payment_id = 0;
+                self.payment_id = paymentId || 0;
                 commonjs.showLoading('Loading..')
                 self.defalutCASArray = [0, 1, 2, 3, 4, 5, 6];
 
