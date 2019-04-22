@@ -2185,7 +2185,7 @@ define(['jquery',
                         url: '/exa_modules/billing/ohip/ct',
                         type: 'POST',
                         data: {
-                            service: 'validateHealthCard',
+                            service: 'validate',
                             muid: $("#ddlOHIPUserID").val(),
                             hcvRequests: hcvRequests
                         }
@@ -2294,7 +2294,7 @@ define(['jquery',
             sendResourceIDsRequest: function(service) {
                 var resourceIDs = this.getCheckedEBSResourceIDs();
                 if (!resourceIDs.length) {
-                    resourceIDs = [$('#invalidResourceID').val()];
+                    resourceIDs = $.trim($('#invalidResourceID').val()).split(',');
                 }
                 return $.ajax({
                     url: '/exa_modules/billing/ohip/ct',

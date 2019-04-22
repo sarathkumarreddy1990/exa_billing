@@ -544,7 +544,7 @@ const OHIPDataAPI = {
 
             // EBS specific ...
             ebsConfig: {
-                enabled: config.get('ebsEnabled'),
+                isProduction: config.get('ebsProduction'),
                 ebsCertPath: config.get('ebsCertPath'),
                 serviceUserMUID: (typeof muid !== 'undefined') ? muid : config.get('serviceUserMUID'),
                 username: config.get('ebsUsername'),
