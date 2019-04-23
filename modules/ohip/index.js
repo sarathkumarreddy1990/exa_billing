@@ -15,6 +15,7 @@ const EBSConnector = require('./ebs');
 const {
     responseCodes,
     resourceTypes: {
+        CLAIMS,
         BATCH_EDIT,
         CLAIMS_MAIL_FILE_REJECT_MESSAGE,
         ERROR_REPORTS,
@@ -31,6 +32,8 @@ const {
         EDT_GET_TYPE_LIST,
         HCV_REAL_TIME,
     },
+    CLAIM_STATUS_PENDING_ACKNOWLEDGMENT_DEFAULT,
+
 } = require('./constants');
 
 const {
@@ -151,25 +154,13 @@ module.exports = function(billingApi) {
      * @param  {function} callback  standard callback mechanism;
      */
     const download = async (args, callback) => {
-
-        const ebs = new EBSConnector(await billingApi.getOHIPConfiguration());
+        const ohipConfig = await billingApi.getOHIPConfiguration()
+        const ebs = new EBSConnector(ohipConfig.ebsConfig);
 
         ebs[EDT_LIST](args, async (listErr, listResponse) => {
 
             if (listErr) {
-                await billingApi.storeFile({
-                    filename:'listResponse-error.txt',
-                    data: JSON.stringify(listResponse),
-                    isTransient: true,
-                });
                 return callback(listErr, null);
-            }
-            else {
-                await billingApi.storeFile({
-                    filename:'listResponse.txt',
-                    data: JSON.stringify(listResponse),
-                    isTransient: true,
-                });
             }
 
             const separatedListResults = separateResults(listResponse, EDT_LIST, responseCodes.SUCCESS);
@@ -186,11 +177,6 @@ module.exports = function(billingApi) {
                 ebs[EDT_DOWNLOAD]({resourceIDs}, async (downloadErr, downloadResponse) => {
 
                     if (downloadErr) {
-                        await billingApi.storeFile({
-                            filename:'downloadResponse-error.txt',
-                            data: JSON.stringify(downloadResponse),
-                            isTransient: true,
-                        });
                         return callback(downloadErr, null);
                     }
 
@@ -259,17 +245,9 @@ module.exports = function(billingApi) {
      * @returns {type}      description
      */
     const createEncoderContext = async () => {
-
         return {
-            [billingApi.OHIP_CONFIGURATION_MODE.CONFORMANCE_TESTING]: {
-                batchDate: new Date(),
-            },
-            [billingApi.OHIP_CONFIGURATION_MODE.DEMO]: {
-                batchDate: new Date('2012-03-31'),
-                batchSequenceNumber: 5, // matches OHIP Batch Edit sample
-            },
-
-        }[(await billingApi.getOHIPConfiguration()).mode];
+            batchDate: new Date(),
+        };
     };
 
 
@@ -318,7 +296,7 @@ module.exports = function(billingApi) {
             let args = req.query;
             let params = req.body;
 
-            let claimIds = params.claimIds.split(',');  // NOTE this will explode when 'All_Claims' are checked
+            let claimIds = params.claimIds.split(',');
 
             let validationData = await validateClaimsData.validateEDIClaimCreation(claimIds, req.session.country_alpha_3_code);
             validationData = validationData && validationData.rows && validationData.rows.length && validationData.rows[0] || [];
@@ -370,7 +348,10 @@ module.exports = function(billingApi) {
             }
 
             // 2 - run claim data through encoder
-            const claimEnc = new ClaimsEncoder(); // default 1:1/1:1
+            const ohipConfig = await billingApi.getOHIPConfiguration();
+            logger.debug('ohipConfig: ', ohipConfig);
+
+            const claimEnc = new ClaimsEncoder(ohipConfig); // default 1:1/1:1
             // const claimEnc = new ClaimsEncoder({batchesPerFile:5});
             // const claimEnc = new ClaimsEncoder({claimsPerBatch:5});
             const encoderContext = await createEncoderContext();
@@ -421,7 +402,7 @@ module.exports = function(billingApi) {
             // >> [{resourceType:'CL', filename: (absolutePath), description: (filename)}]
             const uploads = reduce((await storedFiles), (result, storedFile) => {
                 result.push({
-                    resourceType: 'CL',
+                    resourceType: CLAIMS,
                     filename: storedFile.absolutePath,
                     description: storedFile.filename,
                 });
@@ -432,7 +413,7 @@ module.exports = function(billingApi) {
 
             // // 6 - upload file to OHIP
             const allSubmitClaimResults = [];
-            const ebs = new EBSConnector(await billingApi.getOHIPConfiguration());
+            const ebs = new EBSConnector(ohipConfig.ebsConfig);
             ebs[EDT_UPLOAD]({uploads}, async (uploadErr, uploadResponse) => {
 
                 allSubmitClaimResults.push(uploadResponse);
@@ -491,9 +472,6 @@ module.exports = function(billingApi) {
                         return callback(submitErr, allSubmitClaimResults);
                     }
 
-                    if (!successfulSubmitResults) {
-                        return callback(null, allSubmitClaimResults);
-                    }
 
                     // mark files that were successfully submitted to "success" status
                     billingApi.updateFileStatus({
@@ -505,12 +483,14 @@ module.exports = function(billingApi) {
                         }),
                     });
 
+                    const claimStatusCode = ohipConfig.pendAckCode || CLAIM_STATUS_PENDING_ACKNOWLEDGMENT_DEFAULT;
+
                     storedFiles.forEach((storedFile) => {
                         storedFile.batches.forEach((batch) => {
 
                             billingApi.updateClaimStatus({
                                 claimIds: batch.claimIds,
-                                claimStatusCode: 'PACK',    // TODO use a constant
+                                claimStatusCode,
                             });
 
                         })
@@ -524,8 +504,9 @@ module.exports = function(billingApi) {
         fileManagement: async (args, callback) => {
             const fileData = await billingApi.getFileManagementData(args);
 
+            const remittanceAdviceFileType = billingApi.getFileType(REMITTANCE_ADVICE);
             for (let i = 0; i < fileData.rows.length; i++) {
-                if (fileData.rows[i].file_type === 'can_ohip_p') {
+                if (fileData.rows[i].file_type === remittanceAdviceFileType) {
                     const loadFileData = await billingApi.loadFile({edi_files_id: fileData.rows[i].id});
                     const parsedResponseFile = new Parser(loadFileData.uploaded_file_name).parse(loadFileData.data);
                     fileData.rows[i].totalAmountPayable = parsedResponseFile.totalAmountPayable;
@@ -550,7 +531,7 @@ module.exports = function(billingApi) {
         downloadAndProcessResponseFiles,
 
         validateHealthCard: async (args, callback) => {
-            const ebs = new EBSConnector(await billingApi.getOHIPConfiguration());
+            const ebs = new EBSConnector((await billingApi.getOHIPConfiguration()).ebsConfig);
 
             /* This is stub/mock functionality for the Health Card Validation
              * endpoint. Theory of operation: for the sake of the demo, an
@@ -679,7 +660,7 @@ module.exports = function(billingApi) {
                 });
             }
 
-            const ebs = new EBSConnector(await billingApi.getOHIPConfiguration({muid}));
+            const ebs = new EBSConnector((await billingApi.getOHIPConfiguration({muid})).ebsConfig);
             ebs[service](args, (ebsErr, ebsResponse) => {
                 return callback(ebsErr, ebsResponse);
             });
