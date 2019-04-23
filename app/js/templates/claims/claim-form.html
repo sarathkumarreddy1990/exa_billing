@@ -579,13 +579,14 @@
                         <input type="text" class="form-control" id="txtPriZipCode" i18np="billing.claims.zipCode">
                     </div>
                 </div>
-
+                <% if(country_alpha_3_code !== 'can') { %>
                 <div class="form-group row editClaimRelated">
                     <label for="ddlServiceType" class="col-sm-3 col-form-label" i18n="billing.claims.serviceType"></label>
                     <div class="col-sm-5">
                         <select id="ddlServiceType" class="selectpicker" style="width: 250px;" multiple="multiple" />
                     </div>
                 </div>
+                <% } %>
                 <div class="form-group row editClaimRelated">
                     <label for="txtBenefitOnDate" class="col-sm-3 col-form-label field-required" i18n="billing.claims.benefitOnDate"></label>
                     <div class="col-sm-4 input-group" id="divBOD1">
@@ -771,13 +772,14 @@
                         <input type="text" class="form-control" id="txtSecZipCode" i18np="billing.claims.zipCode">
                     </div>
                 </div>
-
+                <% if(country_alpha_3_code !== 'can') { %>
                 <div class="form-group row editClaimRelated">
                     <label for="ddlServiceType2" class="col-sm-3 col-form-label" i18n="billing.claims.serviceType"></label>
                     <div class="col-sm-5">
                         <select id="ddlServiceType2"  class="selectpicker" style="width: 250px;" multiple="multiple" />
                     </div>
                 </div>
+                <% } %>
                 <div class="form-group row editClaimRelated">
                     <label for="txtBenefitOnDate" class="col-sm-3 col-form-label field-required" i18n="billing.claims.benefitOnDate"></label>
                     <div class="col-sm-4 input-group" id="divBOD2">
@@ -1072,13 +1074,14 @@
                         <input type="text" class="form-control" id="txtTerZipCode" i18np="billing.claims.zipCode">
                     </div>
                 </div>
-
+                <% if(country_alpha_3_code !== 'can') { %>
                 <div class="form-group row editClaimRelated">
                     <label for="ddlServiceType3" class="col-sm-3 col-form-label" i18n="billing.claims.serviceType"></label>
                     <div class="col-sm-5">
                         <select id="ddlServiceType3"  class="selectpicker" style="width: 250px;" multiple="multiple" />
                     </div>
                 </div>
+                <% } %>
                 <div class="form-group row editClaimRelated">
                     <label for="txtBenefitOnDate" class="col-sm-3 col-form-label field-required" i18n="billing.claims.benefitOnDate"></label>
                     <div class="col-sm-4 input-group" id="divBOD3">
