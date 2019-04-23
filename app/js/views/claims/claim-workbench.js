@@ -2103,6 +2103,7 @@ define(['jquery',
                         { name: 'total_amount_payable',
                           width: 500,
                           search: false,
+                          sortable: false,
                           validateMoney : true,
                           formatter: function (value, model, data) {
                               if (data.file_type === 'can_ohip_p') {
