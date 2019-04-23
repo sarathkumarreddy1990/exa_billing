@@ -4,6 +4,7 @@ let cpt = [];
 let HeaderDets = [];
 let BillingProDet = [];
 let BillingPh;
+let Auth_Number;
 function getTick(data, code, fromOthers) {
     if (fromOthers && data && data.subscriber && data.subscriber[0].claimFilingCode !== 'MB' && data.subscriber[0].claimFilingCode !== 'MC' &&
         data.subscriber[0].claimFilingCode !== 'CH' && data.subscriber[0].claimFilingCode !== "") {
@@ -83,6 +84,10 @@ function getTableContents(claimData, servicelineList) {
     for (let i = 0; i < 6; i++) {
         if(servicelineList[i] && servicelineList[i].examCpt) {
             let claimDate = claimData.subscriber[0].claim[0].claimDate ? claimData.subscriber[0].claim[0].claimDate.toString() : '';
+            if (!Auth_Number)
+            {
+                Auth_Number = servicelineList[i].authorizationNo;
+            }
             cptRows.push([
                     {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
                     { text: claimData.subscriber[0].claimFilingCode ? (claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'WC' ? 'OB' : '') : '' },
@@ -802,8 +807,9 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                                 && claimData.subscriber[0].claim[0].icd[11].code) ? ((claimData.subscriber[0].claim[0].icd[11].code).toString().replace(/\.|,/g, "")) : '', margin: [0, -14, 0, 0]
                         },
                         {
-                            text: (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0] && claimData.subscriber[0].claim[0].authorizationNo)
-                                ? getSubstring(claimData.subscriber[0].claim[0].authorizationNo, 30) : '', colspan: 2, margin: [0, -17, 0, 0]
+                            text: (claimData && claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0] && claimData.subscriber[0].claim[0].authorizationNo) ?
+                                getSubstring(claimData.subscriber[0].claim[0].authorizationNo, 30)
+                                    : getSubstring(Auth_Number,30) , colspan: 2, margin: [0, -17, 0, 0]
                         },
                         {}
 
