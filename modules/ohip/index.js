@@ -412,11 +412,18 @@ module.exports = function(billingApi) {
 
 
             // // 6 - upload file to OHIP
-            const allSubmitClaimResults = [];
+            const allSubmitClaimResults = {
+                faults: [],
+                auditInfo: [],
+                results: [],
+            };
             const ebs = new EBSConnector(ohipConfig.ebsConfig);
             ebs[EDT_UPLOAD]({uploads}, async (uploadErr, uploadResponse) => {
 
-                allSubmitClaimResults.push(uploadResponse);
+                allSubmitClaimResults.faults = allSubmitClaimResults.faults.concat(uploadResponse.faults);
+                allSubmitClaimResults.auditInfo = allSubmitClaimResults.auditInfo.concat(uploadResponse.auditInfo);
+                allSubmitClaimResults.results = allSubmitClaimResults.results.concat(uploadResponse.results);
+
 
                 const {
                     faults,
@@ -464,7 +471,10 @@ module.exports = function(billingApi) {
                 // // 7 - submit file to OHIP
                 return ebs[EDT_SUBMIT]({resourceIDs}, (submitErr, submitResponse) => {
 
-                    allSubmitClaimResults.push(submitResponse);
+                    allSubmitClaimResults.faults = allSubmitClaimResults.faults.concat(submitResponse.faults);
+                    allSubmitClaimResults.auditInfo = allSubmitClaimResults.auditInfo.concat(submitResponse.auditInfo);
+                    allSubmitClaimResults.results = allSubmitClaimResults.results.concat(submitResponse.results);
+
 
                     const separatedSubmitResults = separateResults(submitResponse, EDT_SUBMIT, responseCodes.SUCCESS);
                     const successfulSubmitResults = separatedSubmitResults[responseCodes.SUCCESS];
@@ -504,7 +514,8 @@ module.exports = function(billingApi) {
         fileManagement: async (args, callback) => {
             const fileData = await billingApi.getFileManagementData(args);
 
-            const remittanceAdviceFileType = billingApi.getFileType(REMITTANCE_ADVICE);
+            const remittanceAdviceFileType = billingApi.getFileType({resourceType:REMITTANCE_ADVICE});
+            console.log('Remittance Advice Filetype: ', REMITTANCE_ADVICE);
             for (let i = 0; i < fileData.rows.length; i++) {
                 if (fileData.rows[i].file_type === remittanceAdviceFileType) {
                     const loadFileData = await billingApi.loadFile({edi_files_id: fileData.rows[i].id});
