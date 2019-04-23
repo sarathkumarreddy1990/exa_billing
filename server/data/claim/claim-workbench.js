@@ -727,12 +727,21 @@ module.exports = {
         return await query(sql.text, sql.values);
     },
 
-    validateEDIClaimCreation: async(claimIds, country) => {
-        const sql = SQL` SELECT
+    validateEDIClaimCreation: async(claimIds) => {
+        const sql = SQL` 
+                WITH invalid_claim AS
+                (
+                    SELECT COUNT(1) AS claim_count
+                    FROM billing.claims bc 
+                    WHERE bc.id = ANY(${claimIds}) 
+                    AND TIMEZONE(public.get_facility_tz(bc.facility_id :: INT), bc.claim_dt) :: DATE > CURRENT_DATE
+                )
+                SELECT
                         array_agg(claim_status.code) AS claim_status
                     , COUNT(DISTINCT(bc.billing_method)) AS unique_billing_method_count
                     , COUNT(clearing_house_id) AS clearing_house_count
                     , COUNT(DISTINCT(clearing_house_id)) AS unique_clearing_house_count
+                    , (SELECT claim_count FROM invalid_claim) AS invalid_claim_count
                 FROM billing.claims bc
                 INNER JOIN billing.claim_status ON claim_status.id = bc.claim_status_id
                 LEFT JOIN patient_insurances ON patient_insurances.id =
@@ -744,10 +753,6 @@ module.exports = {
                 LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id
                 LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id
                 WHERE bc.id = ANY(${claimIds}) `;
-
-        if(country == 'can') {
-            sql.append(` AND TIMEZONE(public.get_facility_tz(bc.facility_id :: INT), bc.claim_dt) :: DATE <= CURRENT_DATE `);
-        }
 
         return await query(sql.text, sql.values);
     },
