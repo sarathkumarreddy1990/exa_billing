@@ -646,8 +646,8 @@ define(['jquery',
                 self.patientClaimPager = new ModelPaymentsPager();
 
                 commonjs.showDialog({
-                    header: 'Balance Write Off',
-                    i18nHeader:'shared.fields.balanceWriteOff',
+                    header: 'Small Balance Adjustment',
+                    i18nHeader:'shared.buttons.smallBalanceAdjustment',
                     width: '85%',
                     height: '70%',
                     html: self.balanceWriteOffTemplate({
@@ -671,7 +671,6 @@ define(['jquery',
                 }, 250));
 
                 $("#ddlWriteOffAdjCodes").select2({
-                    placeholder: commonjs.geti18NString("report.reportFilter.adjustmentCode"),
                     allowClear: true
                 });
 
