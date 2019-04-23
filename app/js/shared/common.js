@@ -5142,6 +5142,9 @@ var commonjs = {
     },
 
     prepareCsvWorker: function (requestData, options) {
+        if ( requestData ) {
+            requestData.browserLocale = browserLocale;
+        }
         var csvWorker;
 
         try {
