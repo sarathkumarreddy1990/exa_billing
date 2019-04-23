@@ -301,7 +301,6 @@ module.exports = function(billingApi) {
             let validationData = await validateClaimsData.validateEDIClaimCreation(claimIds);
             validationData = validationData && validationData.rows && validationData.rows.length && validationData.rows[0] || [];
 
-            let claimStatus = _.without(_.uniq(validationData.claim_status), 'PS');
             let claimStatus = _.without(_.uniq(validationData.claim_status), 'PS'); // (Pending Submission - PS) removed to check for other claim status availability
             // Claim validation
             if (validationData) {
