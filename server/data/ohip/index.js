@@ -386,18 +386,98 @@ const applyClaimSubmission =  async (args) => {
 
 const applyRejectMessage = async (args) => {
     const {
-        filename,
+        responseFileId,
+        parsedResponseFile,
     } = args;
 
+    const {
+        rejectMessageRecord1: {
+            messageType,
+            messageReason,
+            invalidRecordLength,
+        },
+        rejectMessageRecord2: {
+            mailFileDate,
+            providerFileName,
+            processDate,
+        },
+    } = parsedResponseFile;
 
-    const sql = new SubmissionsByBatchHeader(args);
+    const comment = [
+        `messageType=${messageType}`,
+        `messageReason=${messageReason}`,
+        `invalidRecordLength=${invalidRecordLength}`,
+    ].join(`;`);
 
-    // TODO
-    // 1 - set error codes on edi_file_claims (what do "pending ack" claims transition to, now?)
-    // 2 - add entry to
+    const sql = SQL`
+        WITH original_file AS (
+            
+            -- Should only be one matching file with uploaded_file_name on the same date
+            
+            SELECT
+                id
+            FROM
+                billing.edi_files
+            WHERE
+                file_type = 'can_ohip_h'
+                AND status = 'success'
+                AND created_dt::date = ${moment(mailFileDate, 'YYYYMMDD').format('YYYY-MM-DD')}::date
+                AND uploaded_file_name = ${providerFileName}
+        ), reject_file AS (
+        
+            -- status of 'success' just means file was obtained
+        
+            UPDATE
+                billing.edi_files
+            SET
+                status = 'success',
+                processed_dt = ${moment(processDate, 'YYYYMMDD').format('YYYY-MM-DD')}
+            WHERE
+                id = ${responseFileId}
+            RETURNING
+                id
+        ), related_file AS (
+            INSERT INTO billing.edi_related_files (
+                submission_file_id,
+                response_file_id,
+                comment
+            )
+            SELECT
+                ( SELECT original_file.id FROM original_file ),
+                ( SELECT reject_file.id FROM reject_file ),
+                ${comment}
+            RETURNING
+                *
+        ), claim_ids AS (
+            SELECT DISTINCT
+                efc.claim_id
+            FROM
+                billing.edi_file_claims efc
+            INNER JOIN related_file rf
+                ON rf.submission_file_id = efc.edi_file_id 
+        ), reject_status AS (
+            SELECT 
+                id 
+            FROM 
+                billing.claim_status 
+            WHERE 
+                code = 'R'
+                AND inactivated_dt IS NULL 
+                AND is_system_status 
+        )
+        UPDATE
+            billing.claims
+        SET
+            claim_status_id = ( SELECT id FROM reject_status )
+        FROM
+            claim_ids
+        WHERE
+            id = claim_ids.claim_id
+        RETURNING
+            id;
+    `;
 
-
-    console.log(args);
+    await query(sql.text, sql.values);
 };
 
 
@@ -441,12 +521,11 @@ const applyBatchEditReport = async (args) => {
                 response_file_id
             )
             SELECT
-            (
-                SELECT submission_file_id FROM related_submission_files LIMIT 1
-            ),
-            ${responseFileId}
+                ( SELECT submission_file_id FROM related_submission_files LIMIT 1 ),
+                ${responseFileId}
             LIMIT 1
-        RETURNING submission_file_id
+            RETURNING 
+                submission_file_id
         )
         SELECT *
         FROM insert_related_file_cte
