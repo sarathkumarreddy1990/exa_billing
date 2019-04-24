@@ -733,7 +733,29 @@ const OHIPDataAPI = {
                 rend_pr.id AS "renderingProvider",
                 reff_pr.provider_info -> 'NPI' AS "referringProviderNumber",
                 reff_pr.provider_info -> 'NPI' AS "referringProviderNpi",
-                rend_pr.provider_info -> 'NPI' AS "renderingProviderNpi"
+                rend_pr.provider_info -> 'NPI' AS "renderingProviderNpi",
+                bp.address_line1 AS "billing_pro_addressLine1",
+                bp.city AS billing_pro_city,
+                bp.name AS "billing_pro_firstName",
+                bp.state AS "billing_pro_state",
+                bp.zip_code AS "billing_pro_zip",
+                CASE WHEN (SELECT charges_bill_fee_total FROM billing.get_claim_totals(bc.id)) > 0::money
+                    THEN (SELECT charges_bill_fee_total FROM billing.get_claim_totals(bc.id)) ELSE null END AS "claim_totalCharge",
+                pp.patient_info->'c1AddressLine1' AS "patient_address1",
+                pp.patient_info->'c1City' AS "patient_city",
+                pp.birth_date AS "patient_dob",
+                COALESCE (NULLIF(pp.first_name, ''), '') AS "patient_firstName",
+                COALESCE (NULLIF(pp.last_name, ''), '') AS "patient_lastName",
+                COALESCE (NULLIF(pp.gender, ''), '') AS "patient_gender",
+                pp.patient_info->'c1State' AS "patient_province",
+                pp.patient_info->'c1Zip' AS "patient_zipCode",
+                rend_pr.first_name AS "reading_physician_full_name",
+                reff_pr.first_name AS "ref_full_name",
+                pg.group_info->'AddressLine1' AS "service_facility_addressLine1",
+                pg.group_info->'City' AS "service_facility_city",
+                pg.group_name AS "service_facility_firstName",
+                pg.group_info->'State' AS "service_facility_state",
+                pg.group_info->'Zip' AS "service_facility_zip"
                 FROM public.patient_insurances ppi
                 INNER JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
                 WHERE ppi.id = bc.primary_patient_insurance_id) AS insuranceDetails)
@@ -758,6 +780,7 @@ const OHIPDataAPI = {
                 AND ((bch.bill_fee::numeric * bch.units) - (COALESCE(cp.charge_payment,0))) > 0) AS items )
                 SELECT * FROM cte_insurance_details, charge_details) AS claim_details ) AS "claims"
                 FROM billing.claims bc
+                LEFT JOIN public.provider_groups pg ON pg.id = bc.ordering_facility_id
                 INNER JOIN public.companies pc ON pc.id = bc.company_id
                 INNER JOIN public.patients pp ON pp.id = bc.patient_id
                 INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id

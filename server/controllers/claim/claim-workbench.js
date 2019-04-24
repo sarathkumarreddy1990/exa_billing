@@ -440,6 +440,12 @@ module.exports = {
         let valdationClaimJson = await readFileAsync(file_path, 'utf8');
         valdationClaimJson = JSON.parse(valdationClaimJson);
 
+        if (claimDetails[0].billing_method == 'patient_payment' || claimDetails[0].billing_method == 'direct_billing') {
+            valdationClaimJson = valdationClaimJson.patient_payment;
+        } else {
+            valdationClaimJson = valdationClaimJson.default;
+        }
+
         let validation_result = {
             invalidClaim_data: [],
             validClaim_data: []
@@ -450,22 +456,25 @@ module.exports = {
 
         _.each(claimDetails, (currentClaim) => {
             let errorMessages = [];
-            let claimData = currentClaim.claims[0].insuranceDetails;
+            let claimData = currentClaim && currentClaim.claims && currentClaim.claims[0] && currentClaim.claims[0].insuranceDetails;
 
-            _.each(valdationClaimJson, (fieldValue, field) => {
-                if (fieldValue) {
-                    if(typeof fieldValue === 'object') {
-                         if(claimData[field]) {
-                            _.each(fieldValue, (data, dataField) => {
-                                if (data)
-                                    !claimData[dataField] || !claimData[dataField].length ? errorMessages.push(` Claim - ${dataField} does not exists`) : null;
-                            });
-                         }
-                    } else {
-                        !claimData[field] || !claimData[field].length ? errorMessages.push(` Claim - ${field} does not exists`) : null;
+            if (claimData) {
+                _.each(valdationClaimJson, (fieldValue, field) => {
+                    if (fieldValue) {
+                        if (typeof fieldValue === 'object') {
+                            if (claimData[field]) {
+                                _.each(fieldValue, (data, dataField) => {
+                                    if (data) {
+                                        !claimData[dataField] || !claimData[dataField].length ? errorMessages.push(` Claim - ${dataField} does not exists`) : null;
+                                    }
+                                });
+                            }
+                        } else {
+                            !claimData[field] || !claimData[field].length ? errorMessages.push(` Claim - ${field} does not exists`) : null;
+                        }
                     }
-                }
-            });
+                });
+            }
 
             if (!errorMessages.length) {
                 params.success_claimID.push(currentClaim.claim_id);
