@@ -84,10 +84,8 @@ function getTableContents(claimData, servicelineList) {
     for (let i = 0; i < 6; i++) {
         if(servicelineList[i] && servicelineList[i].examCpt) {
             let claimDate = claimData.subscriber[0].claim[0].claimDate ? claimData.subscriber[0].claim[0].claimDate.toString() : '';
-            if (!Auth_Number)
-            {
-                Auth_Number = servicelineList[i].authorizationNo;
-            }
+            Auth_Number = Auth_Number || servicelineList[i].authorizationNo;
+
             cptRows.push([
                     {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
                     { text: claimData.subscriber[0].claimFilingCode ? (claimData.subscriber[0].claimFilingCode.toString().toUpperCase() === 'WC' ? 'OB' : '') : '' },

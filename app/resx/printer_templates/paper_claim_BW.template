@@ -109,11 +109,8 @@ function getCPTValues(data, servicelineList) {
     for (let i = 0; i < 6; i++) {
         if (cptvalues && cptvalues[i]) {
             totalBillFee = (parseFloat(totalBillFee) + (cptvalues ? parseFloat(getFeeValue(cptvalues[i], 'totalBillFee')) : 0 ));
+            Auth_Number = Auth_Number || servicelineList[i].authorizationNo;
 
-            if (!Auth_Number)
-            {
-                Auth_Number = cptvalues[i].authorizationNo;
-            }
             cpt.push([
                 { text: (cptvalues[i].studyDate?((cptvalues[i].studyDate).toString().substring(4,6)):""), border: [true, false, true, true]},
                 { text: (cptvalues[i].studyDate?((cptvalues[i].studyDate).toString().substring(6, 8)):""), border: [true, false, true, true]},
