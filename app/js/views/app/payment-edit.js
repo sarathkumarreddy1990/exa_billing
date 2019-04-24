@@ -2339,7 +2339,7 @@ define(['jquery',
                      
                     if (!self.overPaymentValidation()) {
                         return false;
-                    }                     
+                    } 
 
                     /**
                     *  Condition : If payment_payer_type === 'patient' && claim_status !== Pending Validation/Submission
