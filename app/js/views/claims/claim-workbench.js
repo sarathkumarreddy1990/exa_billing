@@ -2659,7 +2659,7 @@ define(['jquery',
                     var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_billing_method');
 
                     if (app.country_alpha_3_code === 'can') {
-                        if (!billingMethod || (billingMethod !== 'electronic_billing' && billingMethod !== 'direct_billing')) {
+                        if (!billingMethod) {
                             return commonjs.showWarning('messages.status.pleaseSelectValidClaimsMethod');
                         }
 

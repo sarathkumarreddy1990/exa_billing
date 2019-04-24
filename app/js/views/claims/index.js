@@ -3564,7 +3564,7 @@ define(['jquery',
                     return false;
                 }
 
-                if (app.country_alpha_3_code === 'can' && self.billing_method !== 'electronic_billing' && self.billing_method !== 'direct_billing') {
+                if (app.country_alpha_3_code === 'can' && !self.billing_method) {
                     return commonjs.showWarning('messages.status.pleaseSelectValidClaimsMethod');
                 }
 
