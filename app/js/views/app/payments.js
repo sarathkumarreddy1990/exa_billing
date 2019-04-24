@@ -871,7 +871,7 @@ define(['jquery',
                 self.patientGridLoaded = true;
                 $("#tblPatientClaimsGrid").setGridWidth($(".modal-body").width() - 10);
                 $("#tblPatientClaimsGrid").setGridHeight(($(".modal-body").height() - 140));
-                $('#txtWriteOffAmt').off().on("blur",function(){
+                $('#txtWriteOffAmt').off("blur").on("blur", function () {
                     if ($("#txtWriteOffAmt").val() != writeOffAmount && !$balanceWriteOff.hasClass('d-none')) {
                         $balanceWriteOff.addClass('d-none');
                     }
