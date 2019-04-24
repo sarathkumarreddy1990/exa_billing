@@ -298,24 +298,23 @@ module.exports = function(billingApi) {
 
             let claimIds = params.claimIds.split(',');
 
-            let validationData = await validateClaimsData.validateEDIClaimCreation(claimIds, req.session.country_alpha_3_code);
+            let validationData = await validateClaimsData.validateEDIClaimCreation(claimIds);
             validationData = validationData && validationData.rows && validationData.rows.length && validationData.rows[0] || [];
 
-            let claimStatus = _.uniq(validationData.claim_status);
-
+            let claimStatus = _.without(_.uniq(validationData.claim_status), 'PS'); // (Pending Submission - PS) removed to check for other claim status availability
             // Claim validation
             if (validationData) {
 
                 const validationResponse = {
                     validationMessages: [],
                 };
-                if (claimStatus.length != 1 || claimStatus[0] != 'PS') {
+                if (claimStatus.length) {
                     validationResponse.validationMessages.push('All claims must be validated before submission');
                 }
                 if (validationData.unique_billing_method_count > 1) {
                     validationResponse.validationMessages.push('Please select claims with same type of billing method');
                 }
-                if ( !validationData.claim_status || validationData.claim_status.length !== claimIds.length ) {
+                if (validationData.invalid_claim_count > 0) {
                     validationResponse.validationMessages.push('Claim date should not be greater than the current date');
                 }
 
