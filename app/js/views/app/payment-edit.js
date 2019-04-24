@@ -1140,6 +1140,25 @@ define(['jquery',
                 this.invoicePendPaymentTable.refreshAll();
             },
 
+            /**
+            *  Condition : Payment + adjustment == Order Balance
+            *  DESC : Check payment & adjustment amount is should be equal with order balance and payer_type === 'patient' for Canadian config.
+            */
+
+            overPaymentValidation: function () {
+                var self = this;
+                var orderBalance = $('#lblBalanceNew').text() || '0.00';
+                var currentBalance = parseFloat(orderBalance.replace(/[,()$'"]/g, '')) || 0;
+
+                self.payer_type = self.isFromClaim ? self.claimPaymentObj.payer_type : self.payer_type;
+                if (currentBalance !== 0 && app.country_alpha_3_code === 'can' && self.payer_type === 'patient') {
+                    commonjs.showWarning('messages.warning.payments.amountValidation');
+                    commonjs.hideLoading();
+                    return false;
+                }
+                return true;
+            },
+
             savePayment: function (e, claimId, paymentId, paymentStatus, paymentApplicationId) {
                 var self = this;
                 if ((!self.isFromClaim && !self.validatepayments()) || (self.isFromClaim && !self.validatePayerDetails())) {
@@ -1166,6 +1185,10 @@ define(['jquery',
                 };
 
                 if (self.isFromClaim && self.claimPaymentObj) {
+                    if (!self.overPaymentValidation()) {
+                        return false;
+                    }
+
                     var lineItems = $("#tBodyApplyPendingPayment tr");
                     var payment = 0.00;
                     // get total this payment.
@@ -2313,17 +2336,10 @@ define(['jquery',
                     */
                     var totalPayment = _.reduce(line_items,function(m,x) { return m + x.payment; }, 0);
                     var totalAdjustment = _.reduce(line_items,function(m,x) { return m + x.adjustment; }, 0);
-
-                    /**
-                    *  Condition : Payment + adjustment == Order Balance
-                    *  DESC : Check payment & adjustment amount is should be equal with order balance and payer_type === 'patient' for Canadian config.
-                    */
-                        var orderBalance = $('#lblBalanceNew').text() || '0.00';
-                        var currentBalance = parseFloat(orderBalance.replace(/[,()$'"]/g, '')) || 0;
-                        if (currentBalance !== 0  && app.country_alpha_3_code === 'can' && self.payer_type === 'patient') {
-                            commonjs.showWarning('messages.warning.payments.amountValidation');
-                            return false;
-                        }
+                     
+                    if (!self.overPaymentValidation()) {
+                        return false;
+                    } 
 
                     /**
                     *  Condition : If payment_payer_type === 'patient' && claim_status !== Pending Validation/Submission
