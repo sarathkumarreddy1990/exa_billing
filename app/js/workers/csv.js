@@ -60,6 +60,8 @@ var dateColumns = ['Claim Date', 'PAYMENT DATE', 'ACCOUNTING DATE'];
 onmessage = function (req) {
     console.log('Request received from client');
 
+    moment.locale(req.data.browserLocale);
+
     new Promise(function (resolve, reject) {
         generateCsvData(req.data, function (err, result) {
             if (result) {
