@@ -3880,7 +3880,8 @@ define(['jquery',
 
                 for (var j = 0; j < patients.length; j++) {
                     var patientList = patients[j];
-                    patientList.birth_date = commonjs.getDateFormat(patientList.birth_date);
+                    var dateTemplate = commonjs.getDateTemplate();
+                    patientList.birth_date = moment(patientList.birth_date).format(dateTemplate);
                     var patient_info = commonjs.hstoreParse(patientList.patient_info);
                     var owner_info = commonjs.hstoreParse(patientList.owner_info);
                     patientList.phone = (patient_info.c1HomePhone) ? patient_info.c1HomePhone : '';
