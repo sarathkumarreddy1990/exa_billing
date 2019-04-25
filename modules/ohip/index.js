@@ -606,7 +606,7 @@ module.exports = function(billingApi) {
                 '4': 'OBEC FILE.txt',
                 '5': 'HCAU73.000',
                 '6': 'MOH_LARGE_CLAIMS.TXT',
-                '7': 'HCAU73.111',
+                '7': 'SDAU73.000',
                 '8': 'OBECA000.dat',
                 '9': 'HCAU73.000-malformed_header',
                 '10': 'HCAU73.000-invalid_length',
