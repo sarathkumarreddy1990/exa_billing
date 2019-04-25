@@ -238,7 +238,7 @@ define([
                 for (var i = 0; i < auditExcelData.models.length; i++) {
                     var row = "";
                     var auditResult = auditExcelData.models[i].attributes;
-                    row += '"' + moment(auditResult.created_dt).format('L') + '",';
+                    row += '"' + self.dateFormatter(auditResult) + '",';
                     row += '"' + auditResult.screen_name + '",';
                     row += '"' + auditResult.username + '",';
                     row += '"' + auditResult.description + '",';
