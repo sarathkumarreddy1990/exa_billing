@@ -342,7 +342,7 @@
                 <div class="form-group row">
                     <label for="txtClaimDate" class="col-sm-3 col-form-label field-required" i18n="billing.claims.claimDate"></label>
                     <div class="col-sm-3">
-                        <input type="text" id="txtClaimDate" class="form-control form-control-date maskDateLocale" name="ClaimDate">
+                        <input type="text" id="txtClaimDate" class="form-control form-control-date maskDateLocale" name="ClaimDate" i18np="dateFormat">
                     </div>
                 </div>
                 <div class="form-group row">
@@ -491,10 +491,10 @@
                 <div class="form-group row">
                     <label class="col-sm-3 col-form-label" i18n="billing.claims.insuranceStartExpiryDate"></label>
                     <div class="col-sm-2">
-                        <input type="text" class="form-control maskDateLocale" placeholder="MM/DD/YYYY" id="txtPriStartDate" disabled>
+                        <input type="text" class="form-control maskDateLocale" i18np="dateFormat" id="txtPriStartDate" disabled>
                     </div>
                     <div class="col-sm-2">
-                        <input type="text" class="form-control maskDateLocale" placeholder="MM/DD/YYYY" id="txtPriExpDate" disabled>
+                        <input type="text" class="form-control maskDateLocale" i18np="dateFormat" id="txtPriExpDate" disabled>
                     </div>
                 </div>
                 <div class="form-group row">
@@ -532,7 +532,7 @@
                 <div class="form-group row">
                     <label for="txtPriDOB" class="col-sm-3 col-form-label field-required" i18n="billing.claims.dob"></label>
                     <div class="col-sm-3 input-group" id="divPriDOB">
-                        <input type="text" id="txtPriDOB" class="form-control form-control-date maskDateLocale" name="dob1">
+                        <input type="text" id="txtPriDOB" class="form-control form-control-date maskDateLocale" name="dob1" i18np="dateFormat">
                         <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
                     </div>
                 </div>
@@ -590,7 +590,7 @@
                 <div class="form-group row editClaimRelated">
                     <label for="txtBenefitOnDate" class="col-sm-3 col-form-label field-required" i18n="billing.claims.benefitOnDate"></label>
                     <div class="col-sm-4 input-group" id="divBOD1">
-                        <input type="text" id="txtBenefitOnDate" class="form-control form-control-date maskDateLocale" name="BenefitOnDate">
+                        <input type="text" id="txtBenefitOnDate" class="form-control form-control-date maskDateLocale" name="BenefitOnDate" i18np="dateFormat">
                         <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
                     </div>
                     <div class="col-sm-3">
@@ -684,10 +684,10 @@
                 <div class="form-group row">
                     <label class="col-sm-3 col-form-label" i18n="billing.claims.insuranceStartExpiryDate"></label>
                     <div class="col-sm-2">
-                        <input type="text" class="form-control maskDateLocale" placeholder="MM/DD/YYYY" id="txtSecStartDate" disabled>
+                        <input type="text" class="form-control maskDateLocale" i18np="dateFormat" id="txtSecStartDate" disabled>
                     </div>
                     <div class="col-sm-2">
-                        <input type="text" class="form-control maskDateLocale" placeholder="MM/DD/YYYY" id="txtSecExpDate" disabled>
+                        <input type="text" class="form-control maskDateLocale" i18np="dateFormat" id="txtSecExpDate" disabled>
                     </div>
                 </div>
                 <div class="form-group row">
@@ -725,7 +725,7 @@
                 <div class="form-group row">
                     <label for="txtSecDOB" class="col-sm-3 col-form-label field-required" i18n="billing.claims.dob"></label>
                     <div class="col-sm-3 input-group" id="divSecDOB">
-                        <input type="text" id="txtSecDOB" class="form-control form-control-date maskDateLocale" name="dob2">
+                        <input type="text" id="txtSecDOB" class="form-control form-control-date maskDateLocale" name="dob2" i18np="dateFormat">
                         <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
                     </div>
                 </div>
@@ -783,7 +783,7 @@
                 <div class="form-group row editClaimRelated">
                     <label for="txtBenefitOnDate" class="col-sm-3 col-form-label field-required" i18n="billing.claims.benefitOnDate"></label>
                     <div class="col-sm-4 input-group" id="divBOD2">
-                            <input type="text" id="txtBenefitOnDate2" class="form-control form-control-date maskDateLocale" name="BenefitOnDate">
+                            <input type="text" id="txtBenefitOnDate2" class="form-control form-control-date maskDateLocale" name="BenefitOnDate" i18np="dateFormat">
                             <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
                     </div>
                     <div class="col-sm-3">
@@ -841,7 +841,7 @@
                 <div class="form-group row">
                     <label for="txtDate" class="col-sm-3 col-form-label" i18n="billing.claims.date"></label>
                     <div class="col-sm-3 input-group" id="divInjuryDate">
-                        <input type="text" id="txtDate" class="form-control form-control-date maskDateLocale">
+                        <input type="text" id="txtDate" class="form-control form-control-date maskDateLocale" i18np="dateFormat">
                         <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; ">
                             <i class="icon-ic-schedule"></i>
                         </span>
@@ -850,7 +850,7 @@
                         <label for="txtOtherDate" class="col-form-label" i18n="billing.claims.otherDate"></label>
                     </div>
                     <div class="col-sm-3 input-group" id="divOtherDate">
-                        <input type="text" id="txtOtherDate" class="form-control form-control-date maskDateLocale">
+                        <input type="text" id="txtOtherDate" class="form-control form-control-date maskDateLocale" i18np="dateFormat">
                         <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; ">
                             <i class="icon-ic-schedule"></i>
                         </span>
@@ -867,14 +867,14 @@
                         <label for="txtWCF" class="col-form-label" i18n="billing.claims.fromDate"></label>
                     </div>
                     <div class="col-sm-3 input-group" id="divWCF">
-                        <input type="text" id="txtWCF" class="form-control form-control-date maskDateLocale">
+                        <input type="text" id="txtWCF" class="form-control form-control-date maskDateLocale" i18np="dateFormat">
                         <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
                     </div>
                     <div class="col-sm-2">
                         <label for="txtWCT" class="col-form-label" i18n="billing.claims.toDate"></label>
                     </div>
                     <div class="col-sm-3 input-group" id="divWCT">
-                        <input type="text" id="txtWCT" class="form-control form-control-date maskDateLocale">
+                        <input type="text" id="txtWCT" class="form-control form-control-date maskDateLocale" i18np="dateFormat">
                         <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
                     </div>
                 </div>
@@ -887,12 +887,12 @@
                 <div class="form-group row">
                     <label for="txtHCF" class="col-sm-3 col-form-label" i18n="billing.claims.fromDate"></label>
                     <div class="col-sm-3 input-group" id="divHCF">
-                        <input type="text" id="txtHCF" class="form-control form-control-date maskDateLocale">
+                        <input type="text" id="txtHCF" class="form-control form-control-date maskDateLocale" i18np="dateFormat">
                         <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
                     </div>
                     <label for="txtHCT" class="col-sm-2 col-form-label" i18n="billing.claims.toDate"></label>
                     <div class="col-sm-3 input-group" id="divHCT">
-                        <input type="text" id="txtHCT" class="form-control form-control-date maskDateLocale">
+                        <input type="text" id="txtHCT" class="form-control form-control-date maskDateLocale" i18np="dateFormat">
                         <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
                     </div>
                 </div>
@@ -986,10 +986,10 @@
                 <div class="form-group row">
                     <label class="col-sm-3 col-form-label" i18n="billing.claims.insuranceStartExpiryDate"></label>
                     <div class="col-sm-2">
-                        <input type="text" class="form-control maskDateLocale" placeholder="MM/DD/YYYY" id="txtTerStartDate" disabled>
+                        <input type="text" class="form-control maskDateLocale" i18np="dateFormat" id="txtTerStartDate" disabled>
                     </div>
                     <div class="col-sm-2">
-                        <input type="text" class="form-control maskDateLocale" placeholder="MM/DD/YYYY" id="txtTerExpDate" disabled>
+                        <input type="text" class="form-control maskDateLocale" i18np="dateFormat" id="txtTerExpDate" disabled>
                     </div>
                 </div>
                 <div class="form-group row">
@@ -1027,7 +1027,7 @@
                 <div class="form-group row">
                     <label for="txtTerDOB" class="col-sm-3 col-form-label field-required" i18n="billing.claims.dob"></label>
                     <div class="col-sm-3 input-group" id="divTerDOB">
-                        <input type="text" id="txtTerDOB" class="form-control form-control-date maskDateLocale" name="dob3">
+                        <input type="text" id="txtTerDOB" class="form-control form-control-date maskDateLocale" name="dob3" i18np="dateFormat">
                         <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
                     </div>
                 </div>
@@ -1085,7 +1085,7 @@
                 <div class="form-group row editClaimRelated">
                     <label for="txtBenefitOnDate" class="col-sm-3 col-form-label field-required" i18n="billing.claims.benefitOnDate"></label>
                     <div class="col-sm-4 input-group" id="divBOD3">
-                        <input type="text" id="txtBenefitOnDate3" class="form-control form-control-date maskDateLocale" name="BenefitOnDate">
+                        <input type="text" id="txtBenefitOnDate3" class="form-control form-control-date maskDateLocale" name="BenefitOnDate" i18np="dateFormat">
                         <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
                     </div>
                     <div class="col-sm-3">
@@ -1151,7 +1151,7 @@
                         <label for="txtOtherDate" class="col-form-label" i18n="billing.claims.otherDate"></label>
                     </div>
                     <div class="col-sm-3 input-group" id="divOtherDate">
-                        <input type="text" id="txtOtherDate" class="form-control form-control-date">
+                        <input type="text" id="txtOtherDate" class="form-control form-control-date" i18np="dateFormat">
                         <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; ">
                             <i class="icon-ic-schedule"></i>
                         </span>
@@ -1385,7 +1385,7 @@
                                     <td class='w-space' style="width:9%;vertical-align: middle;">
                                         <div id="divAccountingDate_<%= row.row_index %>" class="input-group">
                                             <input type="text" value="<%= row.accounting_date %>" data-format="MM/DD/YYYY" id="txtAccountingDate_<%= row.row_index %>"
-                                                class="form-control form-control-date maskDateLocale" style="min-width:90px;">
+                                                class="form-control form-control-date maskDateLocale" style="min-width:90px;" i18np="dateFormat">
                                             <span class="input-group-addon add-on pr-0 text-center" style="border: 1px solid #ced7db;width: 30px;line-height: 30px;height: 32px;">
                                                 <i class="icon-ic-schedule icon-ic-calendar"></i>
                                             </span>
