@@ -71,17 +71,23 @@ define([
                         {
                             name: 'logged_in_dt',
                             width: 180,
-                            formatter: self.loggedIndateFormatter
+                            formatter: function(e,model,rowObject) {
+                                return self.dateFormatter(rowObject.logged_in_dt);
+                            }
                         },
                         {
                             name: 'logged_out_dt',
                             width: 180,
-                            formatter: self.loggedOutdateFormatter
+                            formatter: function(e,model,rowObject) {
+                                return self.dateFormatter(rowObject.logged_out_dt);
+                            }
                         },
                         {
                             name: 'last_access_dt',
                             width: 180,
-                            formatter: self.accessdateFormatter
+                            formatter: function(e,model,rowObject) {
+                                return self.dateFormatter(rowObject.last_access_dt);
+                            }
                         },
                         {
                             name: 'login_source',
@@ -125,16 +131,8 @@ define([
                 this.render();
             },
 
-            loggedIndateFormatter: function (cellvalue, options, rowObject) {
-                return commonjs.checkNotEmpty(rowObject.logged_in_dt) ? commonjs.getFormattedDateTime(rowObject.logged_in_dt) : '';
-            },
-
-            loggedOutdateFormatter: function (cellvalue, options, rowObject) {
-                return commonjs.checkNotEmpty(rowObject.logged_out_dt) ? commonjs.getFormattedDateTime(rowObject.logged_out_dt) : '';
-            },
-
-            accessdateFormatter: function (cellvalue, options, rowObject) {
-                return commonjs.checkNotEmpty(rowObject.last_access_dt) ? commonjs.getFormattedDateTime(rowObject.last_access_dt) : '';
+            dateFormatter: function (_date) {
+                return commonjs.checkNotEmpty(_date) ? commonjs.getFormattedDateTime(_date) : '';
             },
 
             displayDetails: function(id){
@@ -154,9 +152,9 @@ define([
                         });
                         var clientInfo = commonjs.hstoreParse(response.client_info);
                         $("#userName").html(response.username);
-                        $("#logInDt").html(response.logged_in_dt);
-                        $("#logOutDt").html(response.logged_out_dt);
-                        $("#lastAccessedDt").html(response.last_access_dt);
+                        $("#logInDt").html(self.dateFormatter(response.logged_in_dt));
+                        $("#logOutDt").html(self.dateFormatter(response.logged_out_dt));
+                        $("#lastAccessedDt").html(self.dateFormatter(response.last_access_dt));
                         $("#browser").html(clientInfo.browser);
                         $("#browserVersion").html(clientInfo.browserversion);
                         $("#operatingSystem").html(clientInfo.os);
