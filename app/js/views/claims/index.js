@@ -4213,7 +4213,7 @@ define(['jquery',
                 $('#ddlClaimStatus').val($("option[data-desc = 'PV']").val());
                 $('#ddlClaimResponsible').val('PPP');
 
-                self.claim_dt_iso = commonjs.convertToFacilityTimeZone(app.facilityID, app.currentdate).format('L LT z');
+                self.claim_dt_iso = commonjs.convertToFacilityTimeZone(app.facilityID, app.currentdate).format('YYYY-MM-DD LT z');
                 self.studyDate = commonjs.getConvertedFacilityTime(app.currentdate, '', 'L', app.facilityID);
                 document.querySelector('#txtClaimDate').value = self.studyDate;
 
