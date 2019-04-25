@@ -486,8 +486,6 @@ define(['jquery',
                             self.claim_dt_iso = commonjs.checkNotEmpty(claimDetails.claim_dt)
                                 ? commonjs.convertToFacilityTimeZone(claimDetails.facility_id, claimDetails.claim_dt).format('YYYY-MM-DD LT z')
                                 : '';
-
-                            self.cur_study_date = (commonjs.checkNotEmpty(claimDetails.claim_dt) ? commonjs.convertToFacilityTimeZone(claimDetails.facility_id, claimDetails.claim_dt).format('L LT z') : '');
                             self.priClaimInsID = claimDetails.primary_patient_insurance_id || null;
                             self.secClaimInsID = claimDetails.secondary_patient_insurance_id || null;
                             self.terClaimInsID = claimDetails.tertiary_patient_insurance_id || null;
@@ -992,8 +990,6 @@ define(['jquery',
                 self.claim_dt_iso = commonjs.checkNotEmpty(primaryStudyDetails.study_date)
                     ? commonjs.convertToFacilityTimeZone(primaryStudyDetails.facility_id, primaryStudyDetails.study_date).format('YYYY-MM-DD LT z')
                     : '';
-                self.cur_study_date = (primaryStudyDetails.study_date !='null' && commonjs.checkNotEmpty(primaryStudyDetails.study_date)
-                    ? commonjs.convertToFacilityTimeZone(primaryStudyDetails.facility_id, primaryStudyDetails.study_date).format('YYYY-MM-DD LT z') : '');
                 self.pri_accession_no = primaryStudyDetails.accession_no || null;
                 self.cur_study_id = primaryStudyDetails.study_id || null;
                 self.isEdit = self.claim_Id ? true : false;
@@ -4217,7 +4213,7 @@ define(['jquery',
                 $('#ddlClaimStatus').val($("option[data-desc = 'PV']").val());
                 $('#ddlClaimResponsible').val('PPP');
 
-                self.cur_study_date = commonjs.convertToFacilityTimeZone(app.facilityID, app.currentdate).format('L LT z');
+                self.claim_dt_iso = commonjs.convertToFacilityTimeZone(app.facilityID, app.currentdate).format('L LT z');
                 self.studyDate = commonjs.getConvertedFacilityTime(app.currentdate, '', 'L', app.facilityID);
                 document.querySelector('#txtClaimDate').value = self.studyDate;
 
@@ -4233,6 +4229,7 @@ define(['jquery',
                 $('#ddlFacility').val(patient_details.facility_id || '');
                 $('#select2-ddlRenderingProvider-container').html(renderingProvider);
                 $('#select2-ddlOrdFacility-container').html(service_facility_name);
+                $('#select2-ddlReferringProvider-container').html(self.usermessage.selectStudyRefProvider);
 
                 // Claim w/o charge code  -- end
 
