@@ -515,7 +515,7 @@ module.exports = function(billingApi) {
             const fileData = await billingApi.getFileManagementData(args);
 
             const remittanceAdviceFileType = billingApi.getFileType({resourceType:REMITTANCE_ADVICE});
-            console.log('Remittance Advice Filetype: ', REMITTANCE_ADVICE);
+            
             for (let i = 0; i < fileData.rows.length; i++) {
                 if (fileData.rows[i].file_type === remittanceAdviceFileType) {
                     const loadFileData = await billingApi.loadFile({edi_files_id: fileData.rows[i].id});
