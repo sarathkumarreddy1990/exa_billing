@@ -221,13 +221,14 @@ module.exports = function(billingApi) {
                 const {
                     filename,
                     data,
+                    edi_file_id: responseFileId,
                 } = (await download);
 
                 // always an array
                 const parsedResponseFile = new Parser(filename).parse(data);
 
                 applicator({
-                    responseFileId: download.edi_file_id,
+                    responseFileId,
                     parsedResponseFile,
                 });
             });
@@ -515,7 +516,7 @@ module.exports = function(billingApi) {
             const fileData = await billingApi.getFileManagementData(args);
 
             const remittanceAdviceFileType = billingApi.getFileType({resourceType:REMITTANCE_ADVICE});
-            
+
             for (let i = 0; i < fileData.rows.length; i++) {
                 if (fileData.rows[i].file_type === remittanceAdviceFileType) {
                     const loadFileData = await billingApi.loadFile({edi_files_id: fileData.rows[i].id});

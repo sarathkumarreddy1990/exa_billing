@@ -411,9 +411,9 @@ const applyRejectMessage = async (args) => {
 
     const sql = SQL`
         WITH original_file AS (
-            
+
             -- Should only be one matching file with uploaded_file_name on the same date
-            
+
             SELECT
                 id
             FROM
@@ -424,9 +424,9 @@ const applyRejectMessage = async (args) => {
                 AND created_dt::date = ${moment(mailFileDate, 'YYYYMMDD').format('YYYY-MM-DD')}::date
                 AND uploaded_file_name = ${providerFileName}
         ), reject_file AS (
-        
+
             -- status of 'success' just means file was obtained
-        
+
             UPDATE
                 billing.edi_files
             SET
@@ -454,16 +454,16 @@ const applyRejectMessage = async (args) => {
             FROM
                 billing.edi_file_claims efc
             INNER JOIN related_file rf
-                ON rf.submission_file_id = efc.edi_file_id 
+                ON rf.submission_file_id = efc.edi_file_id
         ), reject_status AS (
-            SELECT 
-                id 
-            FROM 
-                billing.claim_status 
-            WHERE 
+            SELECT
+                id
+            FROM
+                billing.claim_status
+            WHERE
                 code = 'R'
-                AND inactivated_dt IS NULL 
-                AND is_system_status 
+                AND inactivated_dt IS NULL
+                AND is_system_status
         )
         UPDATE
             billing.claims
@@ -490,17 +490,10 @@ const applyRejectMessage = async (args) => {
  */
 const applyBatchEditReport = async (args) => {
 
-    // NOTE
-    // need to already have EDI CLaim Files entry with correct batch sequence number for OHIP CT Batch Edit
     const {
-        batchCreateDate,
-        batchSequenceNumber,
         responseFileId,
-        comment,    // not really used right now
+        parsedResponseFile,
     } = args;
-    // console.log('batch create date: ', moment(batchCreateDate).format('YYYY-MM-DD'));
-    // console.log('batch sequence number: ', batchSequenceNumber);
-
 
     const sql = SQL`
         WITH related_submission_files AS (
@@ -512,8 +505,8 @@ const applyBatchEditReport = async (args) => {
             WHERE
                 ef.file_type = 'can_ohip_h'
                 AND ef.status = 'success'
-                AND ef.created_dt::date = ${moment(batchCreateDate).format('YYYY-MM-DD')}::date
-                AND efc.batch_number = ${batchSequenceNumber}
+                AND ef.created_dt::date = ${moment(parsedResponseFile[0].batchCreateDate, 'YYYYMMDD').format('YYYY-MM-DD')}
+                AND efc.batch_number = ${parsedResponseFile[0].batchSequenceNumber}
         ),
         insert_related_file_cte AS (
             INSERT INTO billing.edi_related_files (
@@ -524,7 +517,7 @@ const applyBatchEditReport = async (args) => {
                 ( SELECT submission_file_id FROM related_submission_files LIMIT 1 ),
                 ${responseFileId}
             LIMIT 1
-            RETURNING 
+            RETURNING
                 submission_file_id
         )
         SELECT *
@@ -534,9 +527,7 @@ const applyBatchEditReport = async (args) => {
 
     const dbResults = (await query(sql.text, sql.values)).rows;
 
-
     if (dbResults && dbResults.length) {
-
         await updateClaimStatus({
             claimStatusCode: 'PP',  // Pending Payment
             claimIds: dbResults.map((claim_file) => {
@@ -545,31 +536,7 @@ const applyBatchEditReport = async (args) => {
         });
     }
 
-
-    // 1 - SELECT corresponding claim submission file
-    //      a. edi_files.file_type = 'can_ohip_h'
-    //      b. edi_files.created_dt = batchCreateDate
-    //      c. edi_files.status = 'pending'
-    //      d. edi_file_claims.batch_number = batchSequenceNumber
-    //      e. edi_file_claims.edi_file_id = edi_files.id
-    //      f. preserve edi_files.id
-
-    // 2 - INSERT record into edi_related_files
-    //      a. edi_related_files.ubmission_file_id = #1f
-    //      b. what could be used for edi_related_files.comment?
-
-    // 3 - UPDATE claim statuses (transition from "pending ack" to "pending payment")
-    //      a. edi_file_claims.edi_file_id = edi_files.id
-    //      b. fine claims from edi_file_claims and set status?
-    //      c. what should be status for claims in rejected batch?
-    //
-    // 4 - UPDATE claim file status
-    //      a. edi_file_claims.edi_file_id = edi_files.id
-    //      b. set status to 'accepted' or 'rejected'
-    //      c. set error messages/codes
-    //
     return {};
-
 };
 
 const applyErrorReport = async (args) => {
