@@ -248,6 +248,10 @@ module.exports = function(billingApi) {
     const createEncoderContext = async () => {
         return {
             batchDate: new Date(),
+
+            // NOTE uncomment for EBS conformance test environment e2e test
+            // batchDate: new Date('2012-03-31'),
+            // batchSequenceNumber: 5,
         };
     };
 

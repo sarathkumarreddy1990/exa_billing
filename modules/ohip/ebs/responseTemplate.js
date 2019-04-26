@@ -1,7 +1,7 @@
 
 const uuid = require('uuid/v1');
 const fs = require('fs');
-// const sprintf = require('sprintf');
+
 const {
     formatDate,
     formatAlphanumeric,
@@ -46,11 +46,6 @@ HX90000001000000000000040000000
 
 
 const getClaimFileStats = (resource) => {
-    // TODO
-    // 1 - read file in
-    // 2 - get batch count
-    // 2 - count claims
-    // 3 - count records
 
     const claimFileData = fs.readFileSync(resource.filename, 'ascii');
     const claimFileRecords = claimFileData.split('\r');
@@ -125,21 +120,19 @@ const OHIPretendo = {
             resourceType,
         }
         resources.push(resource);
-        // console.log('resources: ', resources);
         return resource;
     },
 
-    update: ({resourceID, status}) => {
+    [EDT_UPDATE]: ({resourceID, status}) => {
         // TODO
     },
-    submit: (resourceID) => {
+
+    [EDT_SUBMIT]: (resourceID) => {
         const resource = resources.find((r) => {
             return parseInt(resourceID) === r.resourceID;
         });
         resource.status = 'SUBMITTED';
-        // TODO: trigger creation of a BATCH EDIT REPORT
-        //
-        // console.log('claim file stats: ', getClaimFileStats(resource));
+
         const claimFileStats = getClaimFileStats(resource);
         const batchEditReports = claimFileStats.forEach((batch) => {
             resources.push({
@@ -162,34 +155,26 @@ const OHIPretendo = {
         });
         return resource;
     },
-    download: (resourceID) => {
-        // console.log('OHIPretendo.download resourceID: ', resourceID);
+    [EDT_DOWNLOAD]: (resourceID) => {
+
         const resource = resources.find((r) => {
-            // console.log('OHIPretendo.download r: ', r);
             return parseInt(resourceID) === parseInt(r.resourceID);
         });
-        // console.log('OHIPretendo.download resource: ', resource);
+
         return resource;
     },
 
-    delete: () => {
-
+    [EDT_DELETE]: () => {
+        //TODO
     },
 
-    info: ({resourceType, status, resourceIDs}) => {
+    [EDT_INFO]: (resourceIDs) => {
         return resources.filter((resource) => {
             return resourceIDs.includes(resource.resourceID);
         });
     },
-    list: ({resourceType, status, resourceIDs}) => {
-        // console.log('list params: ', resourceType, status, resourceIDs);
-        // console.log('resources: ', resources);
-
+    [EDT_LIST]: ({resourceType, status}) => {
         return resources.filter((resource) => {
-            // console.log('processing resource: ', resource);
-            // console.log('\tresourceType: ', resource.resourceType === resourceType);
-            // console.log('\tstatus: ', (!status || resource.status === status));
-
             return (!resourceType || resource.resourceType === resourceType)
                 && (!status || resource.status === status);
         });
@@ -212,7 +197,6 @@ const responseFixturesByService = {
         params: ['updates'],
     },
     [EDT_DELETE]: {
-        errorCodes: [],    // TODO support other exit codes
         params: ['resourceIDs'],
     },
 
@@ -223,7 +207,6 @@ const responseFixturesByService = {
     },
     [EDT_INFO]: {
         // successfulResourceStatus: ['UPLOADED'],
-        errorCodes: [,],    // TODO support other exit codes
 
         params: ['resourceIDs'],
     },
