@@ -2047,7 +2047,22 @@ define(['jquery',
                         {
                             name: 'file_type',
                             search: false,
-                            width: 100
+                            width: 100,
+                            formatter: function (value, model, data) {
+                                switch (data.file_type) {
+                                    case 'can_ohip_p':
+                                        return i18n.get('billing.payments.payment');
+                                    case 'can_ohip_b':
+                                        return i18n.get('billing.claims.acknowledgement');
+                                    case 'can_ohip_x':
+                                        return i18n.get('billing.claims.rejection');
+                                    case 'can_ohip_e':
+                                        return i18n.get('billing.claims.correction');
+                                    case 'can_ohip_h':
+                                    default:
+                                        return i18n.get('billing.claims.submission');
+                                }
+                            }
                         },
                         {
                             name: 'updated_date_time',
@@ -2070,7 +2085,8 @@ define(['jquery',
                                     : '<i class="fa fa-times" style="color: red" aria-hidden="true"></i>';
                             },
                             customAction: function (rowID, e) {
-                                return false;                            }
+                                return false;
+                            }
                         },
                         {
                             name: 'is_payment_received',
