@@ -214,20 +214,21 @@ module.exports = function(billingApi) {
             applicator,
         } = params;
 
-        download({resourceType}, (downloadErr, downloadResponse) => {
+        download({resourceType}, async (downloadErr, downloadResponse) => {
 
             downloadResponse.forEach(async (download) => {
 
                 const {
                     filename,
                     data,
+                    edi_file_id: responseFileId,
                 } = (await download);
 
                 // always an array
                 const parsedResponseFile = new Parser(filename).parse(data);
 
                 applicator({
-                    responseFileId: download.edi_file_id,
+                    responseFileId,
                     parsedResponseFile,
                 });
             });
@@ -247,6 +248,10 @@ module.exports = function(billingApi) {
     const createEncoderContext = async () => {
         return {
             batchDate: new Date(),
+
+            // NOTE uncomment for EBS conformance test environment e2e test
+            // batchDate: new Date('2012-03-31'),
+            // batchSequenceNumber: 5,
         };
     };
 
@@ -411,11 +416,18 @@ module.exports = function(billingApi) {
 
 
             // // 6 - upload file to OHIP
-            const allSubmitClaimResults = [];
+            const allSubmitClaimResults = {
+                faults: [],
+                auditInfo: [],
+                results: [],
+            };
             const ebs = new EBSConnector(ohipConfig.ebsConfig);
             ebs[EDT_UPLOAD]({uploads}, async (uploadErr, uploadResponse) => {
 
-                allSubmitClaimResults.push(uploadResponse);
+                allSubmitClaimResults.faults = allSubmitClaimResults.faults.concat(uploadResponse.faults);
+                allSubmitClaimResults.auditInfo = allSubmitClaimResults.auditInfo.concat(uploadResponse.auditInfo);
+                allSubmitClaimResults.results = allSubmitClaimResults.results.concat(uploadResponse.results);
+
 
                 const {
                     faults,
@@ -463,7 +475,10 @@ module.exports = function(billingApi) {
                 // // 7 - submit file to OHIP
                 return ebs[EDT_SUBMIT]({resourceIDs}, (submitErr, submitResponse) => {
 
-                    allSubmitClaimResults.push(submitResponse);
+                    allSubmitClaimResults.faults = allSubmitClaimResults.faults.concat(submitResponse.faults);
+                    allSubmitClaimResults.auditInfo = allSubmitClaimResults.auditInfo.concat(submitResponse.auditInfo);
+                    allSubmitClaimResults.results = allSubmitClaimResults.results.concat(submitResponse.results);
+
 
                     const separatedSubmitResults = separateResults(submitResponse, EDT_SUBMIT, responseCodes.SUCCESS);
                     const successfulSubmitResults = separatedSubmitResults[responseCodes.SUCCESS];
@@ -503,7 +518,8 @@ module.exports = function(billingApi) {
         fileManagement: async (args, callback) => {
             const fileData = await billingApi.getFileManagementData(args);
 
-            const remittanceAdviceFileType = billingApi.getFileType(REMITTANCE_ADVICE);
+            const remittanceAdviceFileType = billingApi.getFileType({resourceType:REMITTANCE_ADVICE});
+
             for (let i = 0; i < fileData.rows.length; i++) {
                 if (fileData.rows[i].file_type === remittanceAdviceFileType) {
                     const loadFileData = await billingApi.loadFile({edi_files_id: fileData.rows[i].id});
@@ -594,7 +610,7 @@ module.exports = function(billingApi) {
                 '4': 'OBEC FILE.txt',
                 '5': 'HCAU73.000',
                 '6': 'MOH_LARGE_CLAIMS.TXT',
-                '7': 'HCAU73.111',
+                '7': 'SDAU73.000',
                 '8': 'OBECA000.dat',
                 '9': 'HCAU73.000-malformed_header',
                 '10': 'HCAU73.000-invalid_length',

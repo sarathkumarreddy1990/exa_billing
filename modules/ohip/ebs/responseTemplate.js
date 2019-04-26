@@ -1,5 +1,11 @@
 
 const uuid = require('uuid/v1');
+const fs = require('fs');
+
+const {
+    formatDate,
+    formatAlphanumeric,
+} = require('../encoder/util');
 
 const {
     services: {
@@ -23,6 +29,64 @@ const {
     }
 } = require('./constants');
 
+const _ = require('lodash');
+
+const batchEditTemplate = _.template(
+`HB1V0300001000000<%=batchId%>J207315781257822HCP/WCBBGAA170332<%=numClaims%><%=numRecords%><%=batchProcessDate%>     ***  BATCH TOTALS  ***`);
+
+const errorReportTemplate = _.template(`
+HX1V03J          00000000001021520035220120229
+HXH1003100755  20000210CST-PRIMHCPP                             VH5
+HXT                                                             VJ5V40V42V41
+HXT                                                             VJ5V40V42V41
+HXTA003A  0054100120020807780
+HXTK023A  0054100120020807780
+HX90000001000000000000040000000
+`);
+
+
+const getClaimFileStats = (resource) => {
+
+    const claimFileData = fs.readFileSync(resource.filename, 'ascii');
+    const claimFileRecords = claimFileData.split('\r');
+
+    const batchFile = claimFileRecords.reduce((results, record) => {
+        if (/^HEBV03/.test(record)) {
+            results.push({
+                batchId: record.substr(7, 12),
+                claims: [],
+            })
+        }
+        else if (/^HEH/.test(record)) {
+            results[results.length-1].claims.push({
+                paymentProgram: record.substr(31, 3),
+                items: [],
+            })
+
+        }
+        else if (/^HET/.test(record)) {
+            const currentBatch = results[results.length - 1];
+            currentBatch.claims[currentBatch.claims.length - 1].items.push({
+                serviceCode: record.substr(3, 5),
+            });
+        }
+        else if (/^HEE/.test(record)) {
+            const currentBatch = results[results.length - 1];
+            currentBatch.numClaims = parseInt(record.substr(3, 4));
+            currentBatch.numRecords = currentBatch.numClaims
+                                    + parseInt(record.substr(7, 4))
+                                    + parseInt(record.substr(11, 5));
+                                    + 2; // batch header and batch trailer
+        }
+
+        return results;
+    }, []);
+
+    return batchFile;
+};
+
+
+
 const messagesByResultCode = {
     [SUCCESS]: 'Success',
     [FILE_UPLOAD_FAILED]: 'File Upload Failed',
@@ -32,10 +96,21 @@ const messagesByResultCode = {
 
 };
 
+const getServiceName = (ctx) => {
+    return Object.keys(ctx.eventDetail)[0];
+};
+
+const getServiceParams = (ctx, serviceName) => {
+    return ctx.eventDetail[serviceName || getServiceName(ctx)];
+};
+
+
+
 let nextResourceID = 60000;
 const resources = [];
 
 const OHIPretendo = {
+
     [EDT_UPLOAD]: ({filename, description, resourceType}) => {
         const resource = {
             resourceID: nextResourceID++,
@@ -47,28 +122,58 @@ const OHIPretendo = {
         resources.push(resource);
         return resource;
     },
-    update: ({resourceID, status}) => {
+
+    [EDT_UPDATE]: ({resourceID, status}) => {
         // TODO
     },
-    submit: (resourceID) => {
+
+    [EDT_SUBMIT]: (resourceID) => {
         const resource = resources.find((r) => {
             return parseInt(resourceID) === r.resourceID;
         });
         resource.status = 'SUBMITTED';
-        // TODO: trigger creation of a BATCH EDIT REPORT
+
+        const claimFileStats = getClaimFileStats(resource);
+        const batchEditReports = claimFileStats.forEach((batch) => {
+            resources.push({
+                resourceID: nextResourceID,
+                status: 'DOWNLOADABLE',
+                content: batchEditTemplate({
+                    batchId: batch.batchId,
+                    numClaims: formatAlphanumeric(batch.numClaims, 5, '0'),
+                    numRecords: formatAlphanumeric(batch.numRecords, 6, '0'),
+                    batchProcessDate: formatDate(new Date()),
+                }),
+                description: `BE${nextResourceID}.000`,
+                resourceType: 'BE',
+                createTimestamp: new Date(),
+                modifyTimestamp: new Date(),
+
+            });
+            nextResourceID++;
+
+        });
+        return resource;
+    },
+    [EDT_DOWNLOAD]: (resourceID) => {
+
+        const resource = resources.find((r) => {
+            return parseInt(resourceID) === parseInt(r.resourceID);
+        });
+
         return resource;
     },
 
-    delete: () => {
-
+    [EDT_DELETE]: () => {
+        //TODO
     },
 
-    info: ({resourceType, status, resourceIDs}) => {
+    [EDT_INFO]: (resourceIDs) => {
         return resources.filter((resource) => {
             return resourceIDs.includes(resource.resourceID);
         });
     },
-    list: ({resourceType, status, resourceIDs}) => {
+    [EDT_LIST]: ({resourceType, status}) => {
         return resources.filter((resource) => {
             return (!resourceType || resource.resourceType === resourceType)
                 && (!status || resource.status === status);
@@ -92,7 +197,6 @@ const responseFixturesByService = {
         params: ['updates'],
     },
     [EDT_DELETE]: {
-        errorCodes: [],    // TODO support other exit codes
         params: ['resourceIDs'],
     },
 
@@ -103,7 +207,6 @@ const responseFixturesByService = {
     },
     [EDT_INFO]: {
         // successfulResourceStatus: ['UPLOADED'],
-        errorCodes: [,],    // TODO support other exit codes
 
         params: ['resourceIDs'],
     },
@@ -111,7 +214,7 @@ const responseFixturesByService = {
     // results in downloadResult responses
     [EDT_DOWNLOAD]: {
         // validResourceStatuses: [''],
-        arrayName: 'resourceIDs'
+        params: ['resourceIDs'],
     },
 
     // results in typeListResult responses
@@ -126,12 +229,91 @@ const responseFixturesByService = {
     },
 };
 
+
 const generateDetailResult = (ctx) => {
-    return '';
+
+    const serviceName = getServiceName(ctx);
+    // console.log(`serviceName: ${JSON.stringify(serviceName)}`);
+
+    const serviceParams = getServiceParams(ctx, serviceName);
+    // console.log(`serviceParams: ${JSON.stringify(serviceParams)}`);
+
+    const innerDetailFixture = responseFixturesByService[serviceName];
+    // console.log(`innerDetailFixture: ${JSON.stringify(innerDetailFixture)}`);
+
+    const resources = OHIPretendo[serviceName](serviceParams);
+    // console.log('LIST RESOURCE: ', resources);
+
+    if (!resources.length) {
+        return '';
+    }
+    const innerDetailXML = resources.map((resource) => {
+        return `
+            <data>
+                <createTimestamp>${resource.createTimestamp}</createTimestamp>
+                <resourceID>${resource.resourceID}</resourceID>
+                <status>${resource.status}</status>
+                <description>${resource.description}</description>
+                <resourceType>${resource.resourceType}</resourceType>
+                <modifyTimestamp>${resource.modifyTimestamp}</modifyTimestamp>
+                <result>
+                    <code>${SUCCESS}</code>
+                    <msg>${messagesByResultCode[SUCCESS]}</msg>
+                </result>
+
+            </data>
+        `;
+    }).join('\n');
+
+    return `
+        <return>
+            <auditID>${uuid()}</auditID>
+            ${innerDetailXML}
+            <resultSize>1</resultSize>
+        </return>
+    `;
 };
 
 const generateDownloadResult = (ctx) => {
-    return '';
+
+    const serviceName = getServiceName(ctx);
+    // console.log(`serviceName: ${JSON.stringify(serviceName)}`);
+
+    const serviceParams = getServiceParams(ctx, serviceName);
+    // console.log(`serviceParams: ${JSON.stringify(serviceParams)}`);
+
+    const innerDetailFixture = responseFixturesByService[serviceName];
+    // console.log(`innerDetailFixture: ${JSON.stringify(innerDetailFixture)}`);
+
+    const innerXML = getServiceParams(ctx, serviceName)[innerDetailFixture['params'][0]].map((resourceID) => {
+
+        const resource = OHIPretendo[serviceName](resourceID);
+        // console.log('resources: ', resources);
+
+        return `
+            <data>
+                <content>${resource.content}</content>
+                <resourceID>${resource.resourceID}</resourceID>
+                <resourceType>${resource.resourceType}</resourceType>
+                <description>${resource.description}</description>
+                <result>
+                    <code>${SUCCESS}</code>
+                    <msg>${messagesByResultCode[SUCCESS]}</msg>
+                </result>
+            </data>
+        `;
+
+    });
+
+    // console.log()
+
+
+    return `
+        <return>
+            <auditID>${uuid()}</auditID>
+            ${innerXML}
+        </return>
+    `;
 };
 
 const generateTypeListResult = (ctx) => {
@@ -140,23 +322,23 @@ const generateTypeListResult = (ctx) => {
 
 const generateResourceResult = (ctx) => {
 
-    const serviceName = Object.keys(ctx.eventDetail)[0];
-    console.log('service name: ', serviceName);
+    const serviceName = getServiceName(ctx);
+    // console.log('service name: ', serviceName);
 
     // NOTE in the context of generateResourceResult, this will always
     // correspond to EDT_UPLOAD, EDT_UPDATE, EDT_DELETE, or EDT_SUBMIT
     const responseFixture = responseFixturesByService[serviceName];
     // console.log('params: ', responseFixture['params'][0]);
 
-    const arrayParam = ctx.eventDetail[serviceName][responseFixture['params'][0]];
+    const arrayParam = getServiceParams(ctx, serviceName)[responseFixture['params'][0]];
     const numErrors = Math.min(responseFixture.errorCodes.length, arrayParam.length - 1);
-    console.log('array params: ', arrayParam);
+    // console.log('array params: ', arrayParam);
 
-    console.log('numErrors: ', numErrors);
+    // console.log('numErrors: ', numErrors);
     // const responses = arrayParam.slice(0, (numErrors * -1)).map((arg) => {
     const responses = arrayParam.reduce((results, arg, index) => {
         if (index < arrayParam.length - numErrors) {
-            console.log('feeding args: ', arg);
+            // console.log('feeding args: ', arg);
 
             const resource = OHIPretendo[serviceName](arg);
 
@@ -178,7 +360,7 @@ const generateResourceResult = (ctx) => {
 
     let innerResponseXML = responses.map((response) => {
 
-        console.log('RESPONSES 3: ', response);
+        // console.log('RESPONSES 3: ', response);
 
         const descriptionStr = response.description ? `<description>${response.description}</description>` : '';
         const statusStr = response.status ? `<status>${response.status}</status>` : '';
@@ -197,6 +379,8 @@ const generateResourceResult = (ctx) => {
         `;
     });
 
+    // console.log(`innerResponseXML: ${innerResponseXML}`);
+
     return `
         <return>
             <auditID>${uuid()}</auditID>
@@ -208,6 +392,7 @@ const generateResourceResult = (ctx) => {
 module.exports = {
 
     [EDT_UPLOAD]: (ctx) => {
+        console.log('NERF upload: ', ctx.eventDetail);
         return `
             <uploadResponse>
                 ${generateResourceResult(ctx)}
@@ -216,6 +401,7 @@ module.exports = {
     },
 
     [EDT_UPDATE]: (ctx) => {
+        console.log('NERF update: ', ctx.eventDetail);
         return `
             <updateResponse>
                 ${generateResourceResult(ctx)}
@@ -224,6 +410,7 @@ module.exports = {
     },
 
     [EDT_DELETE]: (ctx) => {
+        console.log('NERF delete: ', ctx.eventDetail);
         return `
             <deleteResponse>
                 ${generateResourceResult(ctx)}
@@ -232,6 +419,7 @@ module.exports = {
     },
 
     [EDT_SUBMIT]: (ctx) => {
+        console.log('NERF submit: ', ctx.eventDetail);
         return `
             <submitResponse>
                 ${generateResourceResult(ctx)}
@@ -240,6 +428,7 @@ module.exports = {
     },
 
     [EDT_LIST]: (ctx) => {
+        console.log('NERF list: ', ctx.eventDetail);
         return `
             <listResponse>
                 ${generateDetailResult(ctx)}
@@ -248,6 +437,7 @@ module.exports = {
     },
 
     [EDT_INFO]: (ctx) => {
+        console.log('NERF info: ', ctx.eventDetail);
         return `
             <infoResponse>
                 ${generateDetailResult(ctx)}
@@ -256,6 +446,7 @@ module.exports = {
     },
 
     [EDT_GET_TYPE_LIST]: (ctx) => {
+        console.log('NERF getTypeList: ', ctx.eventDetail);
         return `
             <getTypeListResponse>
                 ${generateTypeListResult(ctx)}
@@ -264,14 +455,16 @@ module.exports = {
     },
 
     [EDT_DOWNLOAD]: (ctx) => {
+        console.log('NERF dowload: ', ctx.eventDetail);
         return `
-            <Response>
+            <downloadResponse>
                 ${generateDownloadResult(ctx)}
-            </Response>
+            </downloadResponse>
         `;
     },
 
     [HCV_REAL_TIME]: (ctx) => {
+        console.log('NERF validate: ', ctx.eventDetail);
         return `
             <Response>
                 ${generateResourceResult(ctx)}
