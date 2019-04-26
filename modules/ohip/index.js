@@ -214,7 +214,7 @@ module.exports = function(billingApi) {
             applicator,
         } = params;
 
-        download({resourceType}, (downloadErr, downloadResponse) => {
+        download({resourceType}, async (downloadErr, downloadResponse) => {
 
             downloadResponse.forEach(async (download) => {
 

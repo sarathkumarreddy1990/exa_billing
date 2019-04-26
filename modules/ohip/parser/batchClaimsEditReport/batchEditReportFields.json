@@ -24,8 +24,7 @@
     },
     "batchCreateDate": {
         "startPos": 18,
-        "fieldLength": 8,
-        "format":"D"
+        "fieldLength": 8
     },
     "batchSequenceNumber": {
         "startPos": 26,

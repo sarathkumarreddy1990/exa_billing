@@ -12,6 +12,10 @@ const {
     encoding,
     resourceTypes,
     resourceDescriptions,
+
+    CLAIM_STATUS_REJECTED_DEFAULT,
+    CLAIM_STATUS_PENDING_PAYMENT_DEFAULT,
+
 } = require('./../../../modules/ohip/constants');
 
 const ohipUtil = require('./../../../modules/ohip/utils');
@@ -409,6 +413,8 @@ const applyRejectMessage = async (args) => {
         `invalidRecordLength=${invalidRecordLength}`,
     ].join(`;`);
 
+    const rejectStatus = CLAIM_STATUS_REJECTED_DEFAULT;
+
     const sql = SQL`
         WITH original_file AS (
 
@@ -461,7 +467,7 @@ const applyRejectMessage = async (args) => {
             FROM
                 billing.claim_status
             WHERE
-                code = 'R'
+                code = ${rejectStatus}
                 AND inactivated_dt IS NULL
                 AND is_system_status
         )
@@ -495,6 +501,8 @@ const applyBatchEditReport = async (args) => {
         parsedResponseFile,
     } = args;
 
+    const batchCreateDate = moment(parsedResponseFile[0].batchCreateDate, 'YYYYMMDD').format('YYYY-MM-DD');
+
     const sql = SQL`
         WITH related_submission_files AS (
             SELECT
@@ -505,7 +513,7 @@ const applyBatchEditReport = async (args) => {
             WHERE
                 ef.file_type = 'can_ohip_h'
                 AND ef.status = 'success'
-                AND ef.created_dt::date = ${moment(parsedResponseFile[0].batchCreateDate, 'YYYYMMDD').format('YYYY-MM-DD')}
+                AND ef.created_dt::date = ${batchCreateDate}
                 AND efc.batch_number = ${parsedResponseFile[0].batchSequenceNumber}
         ),
         insert_related_file_cte AS (
@@ -516,6 +524,7 @@ const applyBatchEditReport = async (args) => {
             SELECT
                 ( SELECT submission_file_id FROM related_submission_files LIMIT 1 ),
                 ${responseFileId}
+            WHERE EXISTS (SELECT 1 FROM related_submission_files)
             LIMIT 1
             RETURNING
                 submission_file_id
@@ -529,7 +538,7 @@ const applyBatchEditReport = async (args) => {
 
     if (dbResults && dbResults.length) {
         await updateClaimStatus({
-            claimStatusCode: 'PP',  // Pending Payment
+            claimStatusCode: CLAIM_STATUS_PENDING_PAYMENT_DEFAULT,  // Pending Payment
             claimIds: dbResults.map((claim_file) => {
                 return claim_file.claim_id;
             }),
