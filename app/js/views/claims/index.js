@@ -4649,7 +4649,7 @@ define(['jquery',
                 var self = this;
                 var accountingDateObj = self.dtpAccountingDate[rowID - 1];
                 var isPaymentUpdate = accountingDateObj.isModified || false;
-                var accountingDate = paymentRowData.accounting_date || null;
+                var accountingDate = isPaymentUpdate ? accountingDateObj.date().format('YYYY-MM-DD') : ( paymentRowData.accounting_date || accountingDateObj.date().format('YYYY-MM-DD') );
                 var startDate = paymentRowData.payment_dt ? moment(paymentRowData.payment_dt).subtract(30, 'days').startOf('day') : moment().subtract(30, 'days').startOf('day');
                 var endDate = paymentRowData.payment_dt ? moment(paymentRowData.payment_dt).add(30, 'days').startOf('day') : moment().add(30, 'days').startOf('day');
                 var $paymentMode = $('#ddlPaymentMode_' + rowID);
