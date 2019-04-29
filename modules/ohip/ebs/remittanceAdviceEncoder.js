@@ -14,31 +14,31 @@ const {
 } = require('./constants');
 
 const claims = [];
-
-const resources = [
-    {
-        resourceID: 60000,
-        status: 'SUBMITTED',
-        filename: '/home/drew/projects/exa-sandbox/Filestores/OHIP/2019/04/29/HDAU73.000',
-        description: 'HDAU73.000',
-        resourceType: 'CL'
-    },
-    {
-        resourceID: 60001,
-        status: 'SUBMITTED',
-        filename: '/home/drew/projects/exa-sandbox/Filestores/OHIP/2019/04/29/HDAU74.000',
-        description: 'HDAU74.000',
-        resourceType: 'CL'
-    },
-    {
-        resourceID: 60002,
-        status: 'SUBMITTED',
-        filename: '/home/drew/projects/exa-sandbox/Filestores/OHIP/2019/04/29/HDAU73.001',
-        description: 'HDAU73.001',
-        resourceType: 'CL'
-    },
-
-];
+//
+// const resources = [
+//     {
+//         resourceID: 60000,
+//         status: 'SUBMITTED',
+//         filename: '/home/drew/projects/exa-sandbox/Filestores/OHIP/2019/04/29/HDAU73.000',
+//         description: 'HDAU73.000',
+//         resourceType: 'CL'
+//     },
+//     {
+//         resourceID: 60001,
+//         status: 'SUBMITTED',
+//         filename: '/home/drew/projects/exa-sandbox/Filestores/OHIP/2019/04/29/HDAU74.000',
+//         description: 'HDAU74.000',
+//         resourceType: 'CL'
+//     },
+//     {
+//         resourceID: 60002,
+//         status: 'SUBMITTED',
+//         filename: '/home/drew/projects/exa-sandbox/Filestores/OHIP/2019/04/29/HDAU73.001',
+//         description: 'HDAU73.001',
+//         resourceType: 'CL'
+//     },
+//
+// ];
 
 
 const getClaimFileInfo = (resource) => {
@@ -123,7 +123,7 @@ const messageFacilityFields = require('../parser/remittanceAdvice/messageFacilit
 
 let claimNumber = 1234567;
 
-module.exports = () => {
+module.exports = (resources) => {
 
     // produce a keyed object suitable for generating RA files (each key
     // will result in a separate RA file):
@@ -170,15 +170,15 @@ module.exports = () => {
 
 
         currentRAFile.push('<<THIS IS A PLACEHOLDER>>');
-        console.log('hr1Record: ', currentRAFile[0]);
+        // console.log('hr1Record: ', currentRAFile[0]);
 
         const hr2Record = 'HR2                              632 Thistle Cres                              ';
         currentRAFile.push(hr2Record);
-        console.log('hr2Record: ', hr2Record);
+        // console.log('hr2Record: ', hr2Record);
 
         const hr3Record = 'HR3THUNDER BAY     ON P7A4Z5                                                   ';
         currentRAFile.push(hr3Record);
-        console.log('hr3Record: ', hr3Record);
+        // console.log('hr3Record: ', hr3Record);
 
         let totalAmountPayable = 0;
         claimInfo.forEach((claim) => {
@@ -211,7 +211,7 @@ module.exports = () => {
                 return formatAlphanumeric((fieldDescriptor.constant || hr4Data[key]), fieldDescriptor.fieldLength);
             }).join('');
             currentRAFile.push(hr4Record);
-            console.log('hr4Record: ', hr4Record);
+            // console.log('hr4Record: ', hr4Record);
 
 
             claim.items.forEach((item) => {
@@ -237,7 +237,7 @@ module.exports = () => {
                     return formatAlphanumeric((fieldDescriptor.constant || hr5Data[key]), fieldDescriptor.fieldLength);
                 }).join('');
                 currentRAFile.push(hr5Record);
-                console.log('hr5Record: ', hr5Record);
+                // console.log('hr5Record: ', hr5Record);
                 // HR5U712131411912017121101X091B 002358002358
                 // HR5U712123457412019042201 X179   5678  5678 34
             });
@@ -278,7 +278,7 @@ module.exports = () => {
                 return formatAlphanumeric((fieldDescriptor.constant || data[key]), fieldDescriptor.fieldLength, fieldDescriptor.padding || ' ', fieldDescriptor.leftJustified);
             }).join('');
             currentRAFile.push(hr7Record);
-            console.log('hr7Record: ', hr7Record);
+            // console.log('hr7Record: ', hr7Record);
         });
 
 
@@ -301,7 +301,7 @@ module.exports = () => {
             return formatAlphanumeric((fieldDescriptor.constant || hr1Data[key]), fieldDescriptor.fieldLength, fieldDescriptor.padding || ' ', fieldDescriptor.leftJustified);
         }).join('');
         currentRAFile[0] = hr1Record;
-        console.log('hr1Record: ', hr1Record);
+        // console.log('hr1Record: ', hr1Record);
 
 
         return raFiles;

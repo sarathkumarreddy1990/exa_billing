@@ -294,6 +294,7 @@ ws.Nerf = function(config) {
 
 ws.Nerf.prototype.send = function(ctx, callback) {
     ctx.response = responseTemplates[Object.keys(ctx.eventDetail)[0]](ctx);
+    // console.log('NERF response: ', ctx.response);
     callback(ctx);
 };
 
