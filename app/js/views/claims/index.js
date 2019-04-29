@@ -242,6 +242,12 @@ define(['jquery',
 
             insuranceEligibilityCan: function (e) {
                 var self = this;
+
+                if (['hcp','wsib'].indexOf(self.priInsCode.toLowerCase()) === -1) {
+                    commonjs.showWarning('Eligibility check not applicable for RMB claims');
+                    return;
+                }
+
                 if (!$('#txtPriPolicyNo').val().length) {
                     commonjs.showWarning('messages.warning.shared.invalidHealthNumber');
                     return;
@@ -829,6 +835,7 @@ define(['jquery',
 
                     self.priInsID = claimData.p_insurance_provider_id
                     self.priInsName = claimData.p_insurance_name;
+                    self.priInsCode = claimData.p_insurance_code;
                     $('#select2-ddlPriInsurance-container').html(claimData.p_insurance_name);
                     $('#chkPriAcptAsmt').prop('checked', claimData.p_assign_benefits_to_patient);
                     $('#lblPriInsPriAddr').html(claimData.p_address1);
@@ -3461,6 +3468,7 @@ define(['jquery',
                     flag = 'Pri'
                     payer_type = 'PIP_P';
                     self.priInsID = '';
+                    self.priInsCode = '';
                     self.priInsName = '';
                     self.is_primary_available = false;
                     self.priClaimInsID = null;
