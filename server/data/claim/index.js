@@ -670,7 +670,9 @@ module.exports = {
                                 COALESCE(pa.amount::numeric::text,'0.00') AS payment_applied,
                                 COALESCE(pa.adjustment::numeric::text,'0.00') AS adjustment_applied,
                                 payer_details.payer_info,
-                                row_number() OVER( ORDER BY p.id ) as row_index
+                                row_number() OVER( ORDER BY p.id ) as row_index,
+                                p.payment_dt,
+                                p.facility_id
 	                        FROM
                                 billing.payments AS p
                                 INNER JOIN (
