@@ -989,9 +989,6 @@ define(['jquery',
                 self.cur_patient_name = primaryStudyDetails.patient_name;
                 self.cur_patient_acc_no = primaryStudyDetails.account_no;
                 self.cur_patient_dob = primaryStudyDetails.patient_dob ? moment.utc(primaryStudyDetails.patient_dob).format('L') : null;
-                self.claim_dt_iso = commonjs.checkNotEmpty(primaryStudyDetails.study_date)
-                    ? commonjs.convertToFacilityTimeZone(primaryStudyDetails.facility_id, primaryStudyDetails.study_date).format('YYYY-MM-DD LT z')
-                    : '';
                 self.cur_study_date = (primaryStudyDetails.study_date !='null' && commonjs.checkNotEmpty(primaryStudyDetails.study_date)
                     ? commonjs.convertToFacilityTimeZone(primaryStudyDetails.facility_id, primaryStudyDetails.study_date).format('YYYY-MM-DD LT z') : '');
                 self.pri_accession_no = primaryStudyDetails.accession_no || null;
@@ -1144,7 +1141,6 @@ define(['jquery',
                             from: 'claimCreation',
                             study_ids: selectedStudyIds,
                             patient_id: self.cur_patient_id || 0,
-                            claim_date: self.claim_dt_iso || 'now()'
                         },
                         success: function (model, response) {
                             self.claimICDLists =[];
@@ -1169,6 +1165,10 @@ define(['jquery',
                                     var index = $('#tBodyCharge').find('tr').length;
                                     item.data_row_id = index;
                                     self.addLineItems(item, index, true);
+
+                                    self.claim_dt_iso = commonjs.checkNotEmpty(primaryStudyDetails.study_date)
+                                        ? commonjs.convertToFacilityTimeZone(primaryStudyDetails.facility_id, primaryStudyDetails.study_date).format('YYYY-MM-DD LT z')
+                                        : '';
 
                                     self.chargeModel.push({
                                         id: null,
@@ -4217,7 +4217,7 @@ define(['jquery',
                 $('#ddlClaimStatus').val($("option[data-desc = 'PV']").val());
                 $('#ddlClaimResponsible').val('PPP');
 
-                self.cur_study_date = commonjs.convertToFacilityTimeZone(app.facilityID, app.currentdate).format('L LT z');
+                self.claim_dt_iso = commonjs.convertToFacilityTimeZone(app.facilityID, app.currentdate).format('L LT z');
                 self.studyDate = commonjs.getConvertedFacilityTime(app.currentdate, '', 'L', app.facilityID);
                 document.querySelector('#txtClaimDate').value = self.studyDate;
 
