@@ -17,7 +17,8 @@
 
     "transactionType": {
         "startPos": 15,
-        "fieldLength": 1
+        "fieldLength": 1,
+        "enumerated": ["1", "2"]
     },
 
     "providerNumber": {
@@ -47,7 +48,8 @@
 
     "provinceCode": {
         "startPos": 51,
-        "fieldLength": 2
+        "fieldLength": 2,
+        "enumerated": ["AB","BC","MB","NL","NB","NT","NS","ON","PE","SK","NU","YT"]
     },
 
     "healthRegistrationNumber": {
@@ -62,7 +64,8 @@
 
     "paymentProgram": {
         "startPos": 67,
-        "fieldLength": 3
+        "fieldLength": 3,
+        "enumerated": ["HCP","RMB","WSIB"]
     },
 
     "serviceLocationIndicator": {
