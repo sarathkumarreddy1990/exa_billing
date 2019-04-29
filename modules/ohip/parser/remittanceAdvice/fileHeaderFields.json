@@ -38,7 +38,8 @@
     },
     "dataSequence": {
         "startPos": 21,
-        "fieldLength": 1
+        "fieldLength": 1,
+        "enumerated": ["4", "5", "6", "7"]
     },
     "paymentDate": {
         "startPos": 22,
@@ -46,15 +47,19 @@
     },
     "payeeName": {
         "startPos": 30,
-        "fieldLength": 30
+        "fieldLength": 30,
+        "padding": " ",
+        "leftJustified": true
     },
     "totalAmountPayable": {
         "startPos": 60,
-        "fieldLength": 9
+        "fieldLength": 9,
+        "padding": "0"
     },
     "totalAmountPayableSign": {
         "startPos": 69,
-        "fieldLength": 1
+        "fieldLength": 1,
+        "enumerated": [" ", "-"]
     },
 
     "chequeNumber": {
@@ -64,6 +69,7 @@
 
     "mohReserved2": {
         "startPos": 78,
-        "fieldLength": 2
+        "fieldLength": 2,
+        "constant": " "
     }
 }

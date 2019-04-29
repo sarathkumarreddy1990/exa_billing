@@ -25,7 +25,8 @@
     },
     "transactionAmount": {
         "startPos": 15,
-        "fieldLength": 8
+        "fieldLength": 8,
+        "padding": "0"
     },
     "transactionAmountSign": {
         "startPos": 23,
@@ -34,7 +35,9 @@
     },
     "transactionMessage": {
         "startPos": 24,
-        "fieldLength": 50
+        "fieldLength": 50,
+        "padding": " ",
+        "leftJustified": true
     },
     "mohReserved": {
         "startPos": 74,

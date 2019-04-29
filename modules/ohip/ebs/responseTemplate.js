@@ -7,6 +7,9 @@ const {
     formatAlphanumeric,
 } = require('../encoder/util');
 
+
+const remittanceAdviceEncoder = require('./remittanceAdviceEncoder');
+
 const {
     services: {
         EDT_UPLOAD,
@@ -31,8 +34,11 @@ const {
 
 const _ = require('lodash');
 
-const batchEditTemplate = _.template(
-`HB1V0300001000000<%=batchId%>J207315781257822HCP/WCBBGAA170332<%=numClaims%><%=numRecords%><%=batchProcessDate%>     ***  BATCH TOTALS  ***`);
+const batchEditTemplate = _.template(`HB1V0300001000000<%=batchId%>J207315781257822HCP/WCBBGAA170332<%=numClaims%><%=numRecords%><%=batchProcessDate%>     ***  BATCH TOTALS  ***`);
+const rejectMessageTemplate = _.template(
+``
+);
+
 
 const errorReportTemplate = _.template(`
 HX1V03J          00000000001021520035220120229
@@ -45,38 +51,68 @@ HX90000001000000000000040000000
 `);
 
 
+
 const getClaimFileStats = (resource) => {
 
     const claimFileData = fs.readFileSync(resource.filename, 'ascii');
     const claimFileRecords = claimFileData.split('\r');
 
-    const batchFile = claimFileRecords.reduce((results, record) => {
+    const batchFile = claimFileRecords.reduce((results, record, index) => {
         if (/^HEBV03/.test(record)) {
-            results.push({
-                batchId: record.substr(7, 12),
+            const batch = {
+                batchId: record.substr(7, 12),  // for Batch Edit reports
+                providerNumber: record.substr(29, 6),
+                groupNumber: record.substr(25, 4),
+                specialty: record.substr(35, 2),
                 claims: [],
-            })
+            };
+            if (!index) {
+                // the recordImage of a Reject Message corresponds to the
+                // first 37 characters of the first record of a claims file
+                batch.recordImage = record.substr(0, 37);
+            }
+            results.push(batch);
         }
         else if (/^HEH/.test(record)) {
             results[results.length-1].claims.push({
+                healthRegistrationNumber: record.substr(3, 10), // this or use Registration Number from header-2 record.substr(3,12)
+                versionCode: record.substr(13, 2),    // from claim header - 1
+                accountingNumber: record.substr(23, 8),   // from claim header - 1
                 paymentProgram: record.substr(31, 3),
+                serviceLocationIndicator: record.substr(58, 4), // from claim header - 1
+
                 items: [],
-            })
+            });
 
         }
+        else if (/^HER/.test(record)) {
+            results[results.length-1].claims.push({
+                patientLastName: record.substr(15, 9),    // "spaces except for RMB claims" (from claim header - 2)
+                patientFirstName: record.substr(24, 5),   // "spaces except for RMB claims" (from claim header - 2)
+                provinceCode: record.substr(30, 2),   // from claim header - 1
+                items: [],
+            });
+        }
+
         else if (/^HET/.test(record)) {
             const currentBatch = results[results.length - 1];
             currentBatch.claims[currentBatch.claims.length - 1].items.push({
                 serviceCode: record.substr(3, 5),
+                feeSubmitted: record.substr(10, 6),
+                numberOfServices: record.substr(16, 2),
+                serviceDate: record.substr(18, 8),
             });
         }
         else if (/^HEE/.test(record)) {
+
             const currentBatch = results[results.length - 1];
+
             currentBatch.numClaims = parseInt(record.substr(3, 4));
             currentBatch.numRecords = currentBatch.numClaims
                                     + parseInt(record.substr(7, 4))
-                                    + parseInt(record.substr(11, 5));
+                                    + parseInt(record.substr(11, 5))
                                     + 2; // batch header and batch trailer
+
         }
 
         return results;
@@ -133,8 +169,8 @@ const OHIPretendo = {
         });
         resource.status = 'SUBMITTED';
 
-        const claimFileStats = getClaimFileStats(resource);
-        const batchEditReports = claimFileStats.forEach((batch) => {
+        resource.claimFileStats = getClaimFileStats(resource);
+        const batchEditReports = resource.claimFileStats.forEach((batch) => {
             resources.push({
                 resourceID: nextResourceID,
                 status: 'DOWNLOADABLE',
@@ -153,6 +189,19 @@ const OHIPretendo = {
             nextResourceID++;
 
         });
+
+        // console.log('RESOURCES: ', resources);
+        remittanceAdviceEncoder(resources).forEach((remittanceAdvice) => {
+            resources.push({
+                resourceID: nextResourceID++,
+                status: 'DOWNLOADABLE',
+                ...remittanceAdvice,
+                resourceType: 'RA',
+                createTimestamp: new Date(),
+                modifyTimestamp: new Date(),
+            });
+        });
+
         return resource;
     },
     [EDT_DOWNLOAD]: (resourceID) => {
@@ -288,7 +337,7 @@ const generateDownloadResult = (ctx) => {
     const innerXML = getServiceParams(ctx, serviceName)[innerDetailFixture['params'][0]].map((resourceID) => {
 
         const resource = OHIPretendo[serviceName](resourceID);
-        // console.log('resources: ', resources);
+        // console.log('generateDownloadResult() resource: ', resource);
 
         return `
             <data>
@@ -341,6 +390,7 @@ const generateResourceResult = (ctx) => {
             // console.log('feeding args: ', arg);
 
             const resource = OHIPretendo[serviceName](arg);
+            console.log('generateResourceResult() resource: ', resource);
 
             return results.concat({
                 description: resource.description,
