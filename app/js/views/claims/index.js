@@ -82,6 +82,7 @@ define(['jquery',
             patientsPager: null,
             patientTotalRecords: 0,
             patientAddress: {},
+            priInsCode : '',
             elIDs: {
                 'primaryInsAddress1': '#txtPriSubPriAddr',
                 'primaryInsAddress2': '#txtPriSubSecAddr',
@@ -243,13 +244,17 @@ define(['jquery',
             insuranceEligibilityCan: function (e) {
                 var self = this;
 
-                if (['hcp','wsib'].indexOf(self.priInsCode.toLowerCase()) === -1) {
-                    commonjs.showWarning('Eligibility check not applicable for RMB claims');
-                    return;
-                }
-
                 if (!$('#txtPriPolicyNo').val().length) {
                     commonjs.showWarning('messages.warning.shared.invalidHealthNumber');
+                    return;
+                }
+                if (self.priInsCode === '' || $('#ddlPriInsurance').val() === '') {
+                    commonjs.showWarning('messages.warning.claims.selectPriInsurance');
+                    $('#ddlPriInsurance').focus();
+                    return;
+                }
+                if (self.priInsCode !== '' && ['hcp','wsib'].indexOf(self.priInsCode.toLowerCase()) === -1) {
+                    commonjs.showWarning('messages.warning.shared.invalidEligibilityCheck');
                     return;
                 }
                 else {
