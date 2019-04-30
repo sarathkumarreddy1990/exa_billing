@@ -581,7 +581,7 @@ module.exports = function(billingApi) {
             }
             else {
                 result.isValid = false;
-                var errMsg = "The Health number submitted does not exist on ministry's system";
+                const errMsg = "The Health number submitted does not exist on ministry's system";
                 args.eligibility_response = {
                     faults: [],
                     auditInfo: [],
