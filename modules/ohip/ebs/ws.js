@@ -19,6 +19,8 @@ const {
 const logger = require('../../../logger');
 
 const xml = require('./xml');
+const responseTemplates = require('./responseTemplate');
+
 /*
  This needed to be overriden, too, since the base ws.js couldn't handle multiple
  attachments. The difference here is that instead of using 'file.xpath' to refer
@@ -285,6 +287,16 @@ ws.Audit.prototype.send = function(ctx, callback) {
     });
 };
 
+
+ws.Nerf = function(config) {
+    this.config = config;
+};
+
+ws.Nerf.prototype.send = function(ctx, callback) {
+    ctx.response = responseTemplates[Object.keys(ctx.eventDetail)[0]](ctx);
+    // console.log('NERF response: ', ctx.response);
+    callback(ctx);
+};
 
 
 module.exports = ws;

@@ -1,12 +1,31 @@
 {
-    "healthNumber": true,
-    "versionCode": true,
-    "renderingProvider" : {
-        "renderingProviderNpi": true
-    },
-    "referringProvider" : {
-        "referringProviderNpi" : true
-    },
-    "patientAddress": true,
-    "provinceCode": true
-} 
+	"default": {
+		"healthNumber": true,
+		"versionCode": true,
+		"patientAddress": true,
+		"provinceCode": true
+	},
+	"patient_payment": {
+		"billing_pro_addressLine1": true,
+		"billing_pro_city": true,
+		"billing_pro_firstName": true,
+		"billing_pro_state": true,
+		"billing_pro_zip": true,
+		"claim_totalCharge": true,
+		"patient_address1": true,
+		"patient_city": true,
+		"patient_dob": true,
+		"patient_firstName": true,
+		"patient_lastName": true,
+		"patient_gender": true,
+		"patient_province": true,
+		"patient_zipCode": true,
+		"reading_physician_full_name": true,
+		"ref_full_name": true,
+		"service_facility_addressLine1": true,
+		"service_facility_city": true,
+		"service_facility_firstName": true,
+		"service_facility_state": true,
+		"service_facility_zip": true
+	}
+}

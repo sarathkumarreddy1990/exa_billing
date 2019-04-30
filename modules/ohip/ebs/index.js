@@ -17,6 +17,7 @@ const {
     Mtom,
     Xenc,
     Audit,
+    Nerf,
 } = ws;
 
 const {
@@ -58,7 +59,6 @@ const EBSConnector = function(config) {
         username: config.username,
         password: config.password,
     });
-
     const pemfile = fs.readFileSync(config.ebsCertPath);
 
     const x509 = new X509BinarySecurityToken({
@@ -75,30 +75,40 @@ const EBSConnector = function(config) {
 
     const handlers =  [
         new Audit(config),    // NOTE order in list affects duration
-        new Xenc({
-            pemfile,
-        }),
-        new Security(
-            {}
-            , [x509, auth, signature]
-        ),
-        new Mtom(),
-        new Http(),
-    ];
+    ].concat(config.isProduction
+        ? [
+            new Xenc({
+                pemfile,
+            }),
+            new Security(
+                {}
+                , [x509, auth, signature]
+            ),
+            new Mtom(),
+            new Http(),
+        ]
+        : [
+            new Nerf()
+        ]);
 
     // TODO this is an unnacceptable workaround and absolutely nothing further must depend upon this
     const hcvHandlers =  [
         new Audit(config),    // NOTE order in list affects duration
-        new Xenc({
-            pemfile,
-        }),
-        new Security(
-            {}
-            , [x509, auth, signature]
-        ),
-        // new Mtom(),
-        new Http(),
-    ];
+    ].concat(config.isProduction
+        ? [
+            new Xenc({
+                pemfile,
+            }),
+            new Security(
+                {}
+                , [x509, auth, signature]
+            ),
+            // new Mtom(),
+            new Http(),
+        ]
+        : [
+            new Nerf()
+        ]);
     /**
      * const createContext - description
      *
@@ -180,7 +190,6 @@ const EBSConnector = function(config) {
                 });
 
                 ws.send(handlers, ctx, (ctx) => {
-
                     const {
                         response,
                     } = ctx;

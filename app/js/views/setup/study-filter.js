@@ -1634,6 +1634,7 @@ define([
                 var self = this;
                 var institutionFilter = commonjs.checkNotEmpty($('#txtInstitutionStudyFilter').val());
                 if (institutionFilter && self.validateRadioButton('Institution', 'Institution')) {
+                    var opt = document.createElement('Option');
                     opt.text = $.trim($('#txtInstitutionStudyFilter').val());
                     opt.value = $.trim($('#txtPatientID').val());
                     document.getElementById('listInstitution').options.add(opt);

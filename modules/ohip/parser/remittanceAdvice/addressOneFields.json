@@ -22,6 +22,7 @@
 
     "mohReserved": {
         "startPos": 59,
-        "fieldLength": 21
+        "fieldLength": 21,
+        "constant": " "
     }
 }

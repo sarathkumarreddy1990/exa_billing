@@ -646,8 +646,8 @@ define(['jquery',
                 self.patientClaimPager = new ModelPaymentsPager();
 
                 commonjs.showDialog({
-                    header: 'Balance Write Off',
-                    i18nHeader:'shared.fields.balanceWriteOff',
+                    header: 'Small Balance Adjustment',
+                    i18nHeader:'shared.buttons.smallBalanceAdjustment',
                     width: '85%',
                     height: '70%',
                     html: self.balanceWriteOffTemplate({
@@ -671,7 +671,6 @@ define(['jquery',
                 }, 250));
 
                 $("#ddlWriteOffAdjCodes").select2({
-                    placeholder: commonjs.geti18NString("report.reportFilter.adjustmentCode"),
                     allowClear: true
                 });
 
@@ -872,7 +871,7 @@ define(['jquery',
                 self.patientGridLoaded = true;
                 $("#tblPatientClaimsGrid").setGridWidth($(".modal-body").width() - 10);
                 $("#tblPatientClaimsGrid").setGridHeight(($(".modal-body").height() - 140));
-                $('#txtWriteOffAmt').off().on("blur",function(){
+                $('#txtWriteOffAmt').off("blur").on("blur", function () {
                     if ($("#txtWriteOffAmt").val() != writeOffAmount && !$balanceWriteOff.hasClass('d-none')) {
                         $balanceWriteOff.addClass('d-none');
                     }

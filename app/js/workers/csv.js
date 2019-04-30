@@ -52,7 +52,6 @@ var paymentsColumns = {
     "NOTES": "notes",
     "POSTED BY": "user_full_name",
     "PAYMENT MODE": "payment_mode",
-    "CHECK/CARD NUMBER": "card_number",
     "FACILITY": "facility_name",
 };
 
@@ -60,6 +59,8 @@ var dateColumns = ['Claim Date', 'PAYMENT DATE', 'ACCOUNTING DATE'];
 
 onmessage = function (req) {
     console.log('Request received from client');
+
+    moment.locale(req.data.browserLocale);
 
     new Promise(function (resolve, reject) {
         generateCsvData(req.data, function (err, result) {
@@ -93,6 +94,9 @@ function generateCsvData(dbResponse, callback) {
 
     if (countryCode == 'can') {
         claimColumns["Payment ID"] = "payment_id";
+        paymentsColumns["CHEQUE/CARD NUMBER"] = "card_number";
+    } else {
+        paymentsColumns["CHECK/CARD NUMBER"] = "card_number";
     }
 
     switch (dbResponse.reportName) {

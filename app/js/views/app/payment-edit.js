@@ -70,6 +70,7 @@ define(['jquery',
             isRefundApplied: false,
             casDeleted: [],
             saveClick:false,
+            paymentDateObj:null,
 
             events: {
                 'click #btnPaymentSave': 'savePayment',
@@ -195,8 +196,9 @@ define(['jquery',
             render: function (paymentId, from) {
                 var self = this;
                 self.from = from;
-                self.payment_id = 0;
-                commonjs.showLoading('Loading..')
+                self.payment_id = paymentId || 0;
+                self.paymentDateObj = null;
+                commonjs.showLoading('messages.loadingMsg.default');
                 self.defalutCASArray = [0, 1, 2, 3, 4, 5, 6];
 
                 var yearValue = moment().year();
@@ -849,6 +851,9 @@ define(['jquery',
                 $('#selectPaymentMode').val(response.payment_mode);
                 self.changePayerMode(response.payment_mode, true);
 
+                if(commonjs.checkNotEmpty(response.payment_dt)){
+                    self.paymentDateObj =  commonjs.convertToFacilityTimeZone(response.facility_id, response.payment_dt);
+                }
                 commonjs.checkNotEmpty(response.accounting_date) ? self.dtpAccountingDate.date(response.accounting_date) : self.dtpAccountingDate.clear();
                 self.study_dt = self.dtpAccountingDate.date().format('YYYY-MM-DD');
                 self.payer_type = response.payer_type;
@@ -1082,6 +1087,14 @@ define(['jquery',
             validatepayments: function () {
                 var self = this;
                 var amount = $.trim($("#txtAmount").val());
+                var accountingDate = self.dtpAccountingDate && self.dtpAccountingDate.date() ? self.dtpAccountingDate.date().format('YYYY-MM-DD') : null;
+                var startDate = self.paymentDateObj ? moment(self.paymentDateObj).subtract(30, 'days').startOf('day') : moment().subtract(30, 'days').startOf('day');
+                var endDate = self.paymentDateObj ? moment(self.paymentDateObj).add(30, 'days').startOf('day') : moment().add(30, 'days').startOf('day');
+
+                if (!moment(accountingDate).isBetween(startDate, endDate) && accountingDate) {
+                    return confirm(commonjs.geti18NString("messages.confirm.payments.overwriteAccountingDate"));
+                }
+
                 if ($('#selectPayerType').val() === '0') {
                     commonjs.showWarning("messages.warning.payments.selectPayerType");
                     $('#selectPayerType').focus();
@@ -1140,6 +1153,25 @@ define(['jquery',
                 this.invoicePendPaymentTable.refreshAll();
             },
 
+            /**
+            *  Condition : Payment + adjustment == Order Balance
+            *  DESC : Check payment & adjustment amount is should be equal with order balance and payer_type === 'patient' for Canadian config.
+            */
+
+            overPaymentValidation: function () {
+                var self = this;
+                var orderBalance = $('#lblBalanceNew').text() || '0.00';
+                var currentBalance = parseFloat(orderBalance.replace(/[,()$'"]/g, '')) || 0;
+
+                self.payer_type = self.isFromClaim ? self.claimPaymentObj.payer_type : self.payer_type;
+                if (currentBalance !== 0 && app.country_alpha_3_code === 'can' && self.payer_type === 'patient') {
+                    commonjs.showWarning('messages.warning.payments.amountValidation');
+                    commonjs.hideLoading();
+                    return false;
+                }
+                return true;
+            },
+
             savePayment: function (e, claimId, paymentId, paymentStatus, paymentApplicationId) {
                 var self = this;
                 if ((!self.isFromClaim && !self.validatepayments()) || (self.isFromClaim && !self.validatePayerDetails())) {
@@ -1166,6 +1198,10 @@ define(['jquery',
                 };
 
                 if (self.isFromClaim && self.claimPaymentObj) {
+                    if (!self.overPaymentValidation()) {
+                        return false;
+                    }
+
                     var lineItems = $("#tBodyApplyPendingPayment tr");
                     var payment = 0.00;
                     // get total this payment.
@@ -2313,17 +2349,10 @@ define(['jquery',
                     */
                     var totalPayment = _.reduce(line_items,function(m,x) { return m + x.payment; }, 0);
                     var totalAdjustment = _.reduce(line_items,function(m,x) { return m + x.adjustment; }, 0);
-
-                    /**
-                    *  Condition : Payment + adjustment == Order Balance
-                    *  DESC : Check payment & adjustment amount is should be equal with order balance and payer_type === 'patient' for Canadian config.
-                    */
-                        var orderBalance = $('#lblBalanceNew').text() || '0.00';
-                        var currentBalance = parseFloat(orderBalance.replace(/[,()$'"]/g, '')) || 0;
-                        if (currentBalance !== 0  && app.country_alpha_3_code === 'can' && self.payer_type === 'patient') {
-                            commonjs.showWarning('messages.warning.payments.amountValidation');
-                            return false;
-                        }
+                     
+                    if (!self.overPaymentValidation()) {
+                        return false;
+                    } 
 
                     /**
                     *  Condition : If payment_payer_type === 'patient' && claim_status !== Pending Validation/Submission

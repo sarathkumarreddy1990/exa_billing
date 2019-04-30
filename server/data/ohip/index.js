@@ -2,8 +2,6 @@ const { query, SQL, audit } = require('./../index');
 const moment = require('moment');
 const sprintf = require('sprintf');
 
-// const ediData = require('../../data/claim/claim-edi');
-// const JSONExtractor = require('./jsonExtractor');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -14,19 +12,23 @@ const {
     encoding,
     resourceTypes,
     resourceDescriptions,
+
+    CLAIM_STATUS_REJECTED_DEFAULT,
+    CLAIM_STATUS_PENDING_PAYMENT_DEFAULT,
+
 } = require('./../../../modules/ohip/constants');
 
 const ohipUtil = require('./../../../modules/ohip/utils');
 const era_parser = require('./ohip-era-parser');
 
 // corresponds to the file_type field of edi_files
-const exaFileTypes = {
+const fileTypes = {
     [resourceTypes.CLAIMS]: 'can_ohip_h',
     [resourceTypes.BATCH_EDIT]: 'can_ohip_b',
     [resourceTypes.ERROR_REPORTS]: 'can_ohip_e',
     [resourceTypes.ERROR_REPORT_EXTRACT]: 'can_ohip_f',
     [resourceTypes.CLAIMS_MAIL_FILE_REJECT_MESSAGE]: 'can_ohip_x',
-    [resourceTypes.REMITTANCE_ADVICE]: 'can_ohip_p', // would it be easier to remember this as "PAYMENT?"
+    [resourceTypes.REMITTANCE_ADVICE]: 'can_ohip_p',
     [resourceTypes.OBEC]: 'can_ohip_o',
     [resourceTypes.OBEC_RESPONSE]: 'can_ohip_r',
 };
@@ -36,7 +38,7 @@ const getDatePath = () => {
 };
 
 /**
- * const getExaFileType - determines a value for the file_type field of a
+ * const getFileType - determines a value for the file_type field of a
  * record in the edi_files table based on a filename or OHIP resource type.
  * If both parameters are specified, then the resourceType is used and the
  * filename is ignored.
@@ -51,14 +53,14 @@ const getDatePath = () => {
  * @returns {string}        a valid value for the file_type field of
  *                          the edi_files table
  */
-const getExaFileType = (args) => {
+const getFileType = (args) => {
     let resourceType = args.resourceType;
 
     if (args.filename && !resourceType) {
         resourceType = ohipUtil.getResourceType(args.filename);
     }
 
-    return exaFileTypes[resourceType];
+    return fileTypes[resourceType];
 };
 
 
@@ -150,7 +152,7 @@ const storeFile =  async (args) => {
         isTransient,
     } = args;
 
-    const exaFileType = getExaFileType(args);
+    const exaFileType = getFileType(args);
 
 
     // 20120331 - OHIP Conformance Testing Batch Edit sample batch date, seq: 0005
@@ -388,18 +390,100 @@ const applyClaimSubmission =  async (args) => {
 
 const applyRejectMessage = async (args) => {
     const {
-        filename,
+        responseFileId,
+        parsedResponseFile,
     } = args;
 
+    const {
+        rejectMessageRecord1: {
+            messageType,
+            messageReason,
+            invalidRecordLength,
+        },
+        rejectMessageRecord2: {
+            mailFileDate,
+            providerFileName,
+            processDate,
+        },
+    } = parsedResponseFile;
 
-    const sql = new SubmissionsByBatchHeader(args);
+    const comment = [
+        `messageType=${messageType}`,
+        `messageReason=${messageReason}`,
+        `invalidRecordLength=${invalidRecordLength}`,
+    ].join(`;`);
 
-    // TODO
-    // 1 - set error codes on edi_file_claims (what do "pending ack" claims transition to, now?)
-    // 2 - add entry to
+    const rejectStatus = CLAIM_STATUS_REJECTED_DEFAULT;
 
+    const sql = SQL`
+        WITH original_file AS (
 
-    console.log(args);
+            -- Should only be one matching file with uploaded_file_name on the same date
+
+            SELECT
+                id
+            FROM
+                billing.edi_files
+            WHERE
+                file_type = 'can_ohip_h'
+                AND status = 'success'
+                AND created_dt::date = ${moment(mailFileDate, 'YYYYMMDD').format('YYYY-MM-DD')}::date
+                AND uploaded_file_name = ${providerFileName}
+        ), reject_file AS (
+
+            -- status of 'success' just means file was obtained
+
+            UPDATE
+                billing.edi_files
+            SET
+                status = 'success',
+                processed_dt = ${moment(processDate, 'YYYYMMDD').format('YYYY-MM-DD')}
+            WHERE
+                id = ${responseFileId}
+            RETURNING
+                id
+        ), related_file AS (
+            INSERT INTO billing.edi_related_files (
+                submission_file_id,
+                response_file_id,
+                comment
+            )
+            SELECT
+                ( SELECT original_file.id FROM original_file ),
+                ( SELECT reject_file.id FROM reject_file ),
+                ${comment}
+            RETURNING
+                *
+        ), claim_ids AS (
+            SELECT DISTINCT
+                efc.claim_id
+            FROM
+                billing.edi_file_claims efc
+            INNER JOIN related_file rf
+                ON rf.submission_file_id = efc.edi_file_id
+        ), reject_status AS (
+            SELECT
+                id
+            FROM
+                billing.claim_status
+            WHERE
+                code = ${rejectStatus}
+                AND inactivated_dt IS NULL
+                AND is_system_status
+        )
+        UPDATE
+            billing.claims
+        SET
+            claim_status_id = ( SELECT id FROM reject_status )
+        FROM
+            claim_ids
+        WHERE
+            id = claim_ids.claim_id
+        RETURNING
+            id;
+    `;
+
+    await query(sql.text, sql.values);
 };
 
 
@@ -412,17 +496,12 @@ const applyRejectMessage = async (args) => {
  */
 const applyBatchEditReport = async (args) => {
 
-    // NOTE
-    // need to already have EDI CLaim Files entry with correct batch sequence number for OHIP CT Batch Edit
     const {
-        batchCreateDate,
-        batchSequenceNumber,
         responseFileId,
-        comment,    // not really used right now
+        parsedResponseFile,
     } = args;
-    // console.log('batch create date: ', moment(batchCreateDate).format('YYYY-MM-DD'));
-    // console.log('batch sequence number: ', batchSequenceNumber);
 
+    const batchCreateDate = moment(parsedResponseFile[0].batchCreateDate, 'YYYYMMDD').format('YYYY-MM-DD');
 
     const sql = SQL`
         WITH related_submission_files AS (
@@ -434,8 +513,8 @@ const applyBatchEditReport = async (args) => {
             WHERE
                 ef.file_type = 'can_ohip_h'
                 AND ef.status = 'success'
-                AND ef.created_dt::date = ${moment(batchCreateDate).format('YYYY-MM-DD')}::date
-                AND efc.batch_number = ${batchSequenceNumber}
+                AND ef.created_dt::date = ${batchCreateDate}
+                AND efc.batch_number = ${parsedResponseFile[0].batchSequenceNumber}
         ),
         insert_related_file_cte AS (
             INSERT INTO billing.edi_related_files (
@@ -443,12 +522,12 @@ const applyBatchEditReport = async (args) => {
                 response_file_id
             )
             SELECT
-            (
-                SELECT submission_file_id FROM related_submission_files LIMIT 1
-            ),
-            ${responseFileId}
+                ( SELECT submission_file_id FROM related_submission_files LIMIT 1 ),
+                ${responseFileId}
+            WHERE EXISTS (SELECT 1 FROM related_submission_files)
             LIMIT 1
-        RETURNING submission_file_id
+            RETURNING
+                submission_file_id
         )
         SELECT *
         FROM insert_related_file_cte
@@ -457,42 +536,16 @@ const applyBatchEditReport = async (args) => {
 
     const dbResults = (await query(sql.text, sql.values)).rows;
 
-
     if (dbResults && dbResults.length) {
-
         await updateClaimStatus({
-            claimStatusCode: 'PP',  // Pending Payment
+            claimStatusCode: CLAIM_STATUS_PENDING_PAYMENT_DEFAULT,  // Pending Payment
             claimIds: dbResults.map((claim_file) => {
                 return claim_file.claim_id;
             }),
         });
     }
 
-
-    // 1 - SELECT corresponding claim submission file
-    //      a. edi_files.file_type = 'can_ohip_h'
-    //      b. edi_files.created_dt = batchCreateDate
-    //      c. edi_files.status = 'pending'
-    //      d. edi_file_claims.batch_number = batchSequenceNumber
-    //      e. edi_file_claims.edi_file_id = edi_files.id
-    //      f. preserve edi_files.id
-
-    // 2 - INSERT record into edi_related_files
-    //      a. edi_related_files.ubmission_file_id = #1f
-    //      b. what could be used for edi_related_files.comment?
-
-    // 3 - UPDATE claim statuses (transition from "pending ack" to "pending payment")
-    //      a. edi_file_claims.edi_file_id = edi_files.id
-    //      b. fine claims from edi_file_claims and set status?
-    //      c. what should be status for claims in rejected batch?
-    //
-    // 4 - UPDATE claim file status
-    //      a. edi_file_claims.edi_file_id = edi_files.id
-    //      b. set status to 'accepted' or 'rejected'
-    //      c. set error messages/codes
-    //
     return {};
-
 };
 
 const applyErrorReport = async (args) => {
@@ -506,20 +559,11 @@ const applyErrorReport = async (args) => {
 
 };
 
-const OHIP_CONFIGURATION_MODE = {
-    CONFORMANCE_TESTING: 'Conformance Testing',
-    DEMO: 'Demonstration',
-    PRODUCTION: 'Production',
-};
-
 const config = require('../../config');
 
 const OHIPDataAPI = {
 
-    OHIP_CONFIGURATION_MODE,
-
-
-    getExaFileType,
+    getFileType,
 
     getFileStore,
     storeFile,
@@ -540,19 +584,36 @@ const OHIPDataAPI = {
             muid,
         } = args || {};
 
-        return {
-            hcvSoftwareConformanceKey: config.get('hcvSoftwareConformanceKey'),//'65489ecd-0bef-4558-8871-f2e4b71b8e92',
+        // convert a semicolon delimited list of key=value pairs into a configuration object
+        // e.g. "foo=1;bar=A;baz=true"
+        return (config.get('ohipModuleParams') || '').split(';').reduce((ohipConfig, param) => {
+            if (param) {    // could be an empty string
+                const paramParts = param.split('=');
+                ohipConfig[paramParts[0].trim()] = paramParts[1].trim();
+            }
+            return ohipConfig;
+        }, {
+            //
+            // this is the 'seed' object for the reduce function
+            //
 
-            edtSoftwareConformanceKey: config.get('edtSoftwareConformanceKey'),
-            edtServiceEndpoint: config.get('edtServiceEndpoint'),
-            hcvServiceEndpoint: config.get('hcvServiceEndpoint'),
+            // EBS specific ...
+            ebsConfig: {
+                isProduction: config.get('ebsProduction'),
+                ebsCertPath: config.get('ebsCertPath'),
+                serviceUserMUID: (typeof muid !== 'undefined') ? muid : config.get('serviceUserMUID'),
+                username: config.get('ebsUsername'),
+                password: config.get('ebsPassword'),
 
-            ebsCertPath: config.get('ebsCertPath'),
-            serviceUserMUID: (typeof muid !== 'undefined') ? muid : config.get('serviceUserMUID'),
-            username: config.get('ebsUsername'),
-            password: config.get('ebsPassword'),
-            mode: OHIP_CONFIGURATION_MODE.DEMO,
-        };
+                // EDT specific ...
+                edtSoftwareConformanceKey: config.get('edtSoftwareConformanceKey'),
+                edtServiceEndpoint: config.get('edtServiceEndpoint'),
+
+                // HCV specific ...
+                hcvSoftwareConformanceKey: config.get('hcvSoftwareConformanceKey'),
+                hcvServiceEndpoint: config.get('hcvServiceEndpoint'),
+            }
+        });
     },
 
     auditTransaction: async (args) => {
@@ -621,7 +682,7 @@ const OHIPDataAPI = {
                     WHERE value = ANY(rend_pr.specialities)
                     ) item
                 ) AS "specialtyCodes",
-                33 AS "specialityCode",
+                33 AS "specialtyCode",  -- NOTE this is only meant to be a temporary workaround
                 (SELECT JSON_agg(Row_to_json(claim_details)) FROM (
                 WITH cte_insurance_details AS (
                 SELECT
@@ -648,7 +709,29 @@ const OHIPDataAPI = {
                 rend_pr.id AS "renderingProvider",
                 reff_pr.provider_info -> 'NPI' AS "referringProviderNumber",
                 reff_pr.provider_info -> 'NPI' AS "referringProviderNpi",
-                rend_pr.provider_info -> 'NPI' AS "renderingProviderNpi"
+                rend_pr.provider_info -> 'NPI' AS "renderingProviderNpi",
+                bp.address_line1 AS "billing_pro_addressLine1",
+                bp.city AS billing_pro_city,
+                bp.name AS "billing_pro_firstName",
+                bp.state AS "billing_pro_state",
+                bp.zip_code AS "billing_pro_zip",
+                CASE WHEN (SELECT charges_bill_fee_total FROM billing.get_claim_totals(bc.id)) > 0::money
+                    THEN (SELECT charges_bill_fee_total FROM billing.get_claim_totals(bc.id)) ELSE null END AS "claim_totalCharge",
+                pp.patient_info->'c1AddressLine1' AS "patient_address1",
+                pp.patient_info->'c1City' AS "patient_city",
+                pp.birth_date AS "patient_dob",
+                COALESCE (NULLIF(pp.first_name, ''), '') AS "patient_firstName",
+                COALESCE (NULLIF(pp.last_name, ''), '') AS "patient_lastName",
+                COALESCE (NULLIF(pp.gender, ''), '') AS "patient_gender",
+                pp.patient_info->'c1State' AS "patient_province",
+                pp.patient_info->'c1Zip' AS "patient_zipCode",
+                rend_pr.first_name AS "reading_physician_full_name",
+                reff_pr.first_name AS "ref_full_name",
+                pg.group_info->'AddressLine1' AS "service_facility_addressLine1",
+                pg.group_info->'City' AS "service_facility_city",
+                pg.group_name AS "service_facility_firstName",
+                pg.group_info->'State' AS "service_facility_state",
+                pg.group_info->'Zip' AS "service_facility_zip"
                 FROM public.patient_insurances ppi
                 INNER JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
                 WHERE ppi.id = bc.primary_patient_insurance_id) AS insuranceDetails)
@@ -673,6 +756,7 @@ const OHIPDataAPI = {
                 AND ((bch.bill_fee::numeric * bch.units) - (COALESCE(cp.charge_payment,0))) > 0) AS items )
                 SELECT * FROM cte_insurance_details, charge_details) AS claim_details ) AS "claims"
                 FROM billing.claims bc
+                LEFT JOIN public.provider_groups pg ON pg.id = bc.ordering_facility_id
                 INNER JOIN public.companies pc ON pc.id = bc.company_id
                 INNER JOIN public.patients pp ON pp.id = bc.patient_id
                 INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
