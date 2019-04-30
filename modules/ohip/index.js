@@ -581,7 +581,17 @@ module.exports = function(billingApi) {
             }
             else {
                 result.isValid = false;
-                return callback({ isValid: false, errMsg: "Invalid Heath card number" }, {});
+                var errMsg = "The Health number submitted does not exist on ministry's system";
+                args.eligibility_response = {
+                    faults: [],
+                    auditInfo: [],
+                    results: [],
+                    err: [{
+                        errDescription : errMsg
+                    }]
+                };
+                billingApi.saveEligibilityLog(args);
+                return callback({ isValid: false, errMsg: errMsg }, {});
             }
         },
 
