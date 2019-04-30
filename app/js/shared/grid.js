@@ -1167,17 +1167,14 @@ define('grid', [
                     formatter: function (cellvalue, options, rowObject) {
 
                         if (app.country_alpha_3_code === 'can') {
-                            var i18n;
                             var color;
                             var result = cellvalue && cellvalue.split('__')[0] || '';
-                            var responseDesc = cellvalue && cellvalue.split('__')[1] || 'messages.status.healthNumberNotValidated';
+                            var i18n = cellvalue && cellvalue.split('__')[1] || 'messages.status.healthNumberNotValidated';
 
                             switch (result) {
-                              case 'valid':             i18n = responseDesc;   color = 'green';    break;
-                              case 'invalid':           i18n = responseDesc;   color = 'red';      break;
-                              case 'future_date':       i18n = responseDesc;   color = 'orange';   break;
-                              case 'data_unavailable':  i18n = 'messages.status.healthNumberNotValidated';  color = 'red';      break;
-                              default:                  i18n = 'messages.status.healthNumberNotValidated';  color = 'red';      break;
+                                case 'valid':        color = 'green';    break;
+                                case 'future_date':  color = 'orange';   break;
+                                default:             color = 'red';      break;
                             }
 
                             return "<i href='#' i18nt='" + i18n + "' class='icon-ic-status' data-value='" + cellvalue + "' style='color: " + color + ";text-shadow:0 0 " + color + ", 0 0 " + color + ", 0 0 " + color + ", 0 0 " + color + ", 0 0 " + color + "'></i>";
