@@ -19,7 +19,10 @@ WITH paymentsByInsCompany as (
         SUM((SELECT payments_applied_total FROM billing.get_payment_totals(bp.id))) as payment_applied_amount,
         SUM(bp.amount) as amount,
         bp.card_number AS cheque_card_number,
-        bp.mode AS payment_mode,
+        CASE WHEN bp.mode = 'check' AND '<%= countryCode %>' = 'can' THEN 
+        'Cheque' 
+        ELSE 
+            InitCap(bp.mode) END AS payment_mode,
         timezone(f.time_zone,bp.payment_dt) AS payment_date
     FROM
         billing.payments bp
@@ -45,7 +48,11 @@ WITH paymentsByInsCompany as (
         amount AS "Amount",
         payment_applied_amount AS "Applied",
         payment_balance AS "Balance",
-        cheque_card_number AS "Cheque/Card #",
+         <% if (countryCode  == 'can') { %> 
+                cheque_card_number AS "Cheque/Card #",
+           <% } else { %>
+                cheque_card_number AS "Check/Card #",
+            <% } %>
         payment_mode AS "Payment Mode",
         to_char(payment_date, 'MM/DD/YYYY') AS "Payment Date"
     FROM
@@ -117,7 +124,6 @@ const api = {
         filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
         filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
         return filtersUsed;
-        return filtersUsed;
     },
 
     // ================================================================================================================
@@ -141,7 +147,8 @@ const api = {
             companyId: null,
             paymentDate: null,
             facilityIds: null,
-            billingProID: null
+            billingProID: null,
+            countryCode: null
 
         };
 
@@ -154,7 +161,7 @@ const api = {
             params.push(reportParams.facilityIds);
             filters.facilityIds = queryBuilder.whereIn('bp.facility_id', [params.length]);
         }
-
+        filters.countryCode = reportParams.countryCode;
         //  scheduled_dt
         if (reportParams.fromDate === reportParams.toDate) {
             params.push(reportParams.fromDate);

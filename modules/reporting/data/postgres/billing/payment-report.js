@@ -15,6 +15,9 @@ const summaryQueryTemplate = _.template(`
                     CASE
                        WHEN bp.mode = 'eft' THEN
                             UPPER(bp.mode)
+                       WHEN bp.mode = 'check' AND '<%= country_alpha_3_code %>' = 'can' 
+                       THEN
+                            'Cheque'
                        ELSE
                            InitCap(bp.mode)
                     END                 AS payment_mode,
@@ -212,10 +215,16 @@ const detailQueryTemplate = _.template(`
                     CASE
                        WHEN p.mode = 'eft' THEN
                             UPPER(p.mode)
+                       WHEN p.mode = 'check' AND '<%= country_alpha_3_code %>' = 'can' THEN
+                            'Cheque'
                        ELSE
                            InitCap(p.mode)
                     END  AS "Payment Mode",
-         	        p.card_number AS "Check #",
+                    <% if (country_alpha_3_code == 'can') { %> 
+                        p.card_number AS "Cheque #",
+                    <% } else { %>
+                        p.card_number AS "Check #",
+                    <% } %>
          	        payment_totals.payments_applied_total AS "Applied Total",
          	        p.amount "Payment Amount",
                     (p.amount - payment_totals.payments_applied_total) AS "Balance",
@@ -392,7 +401,8 @@ const api = {
             adjustmentCodeIds: null,
             allAdjustmentCode: null,
             insuranceIds: null,
-            insGroups: null
+            insGroups: null,
+            country_alpha_3_code: null
         };
 
 
@@ -461,6 +471,7 @@ const api = {
             params.push(reportParams.insuranceGroupIds);
             filters.insGroups = queryBuilder.whereIn(`ippt.id`, [params.length]);
         }
+        filters.country_alpha_3_code = reportParams.country_alpha_3_code;
 
         return {
             queryParams: params,
@@ -491,7 +502,8 @@ const api = {
             adjustmentCodeIds: null,
             allAdjustmentCode: null,
             insuranceIds: null,
-            insGroups: null
+            insGroups: null,
+            country_alpha_3_code: null
         };
 
 
@@ -559,6 +571,8 @@ const api = {
             params.push(reportParams.insuranceGroupIds);
             filters.insGroups = queryBuilder.whereIn(`ippt.id`, [params.length]);
         }
+        
+        filters.country_alpha_3_code = reportParams.country_alpha_3_code;
 
         filters.dateFormat = reportParams.dateFormat;
         return {
