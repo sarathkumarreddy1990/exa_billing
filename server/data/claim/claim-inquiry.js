@@ -144,7 +144,7 @@ module.exports = {
                         , type AS code
                         , null AS type
                         , note AS comments
-                        , created_dt::date as commented_dt
+                        , created_dt as commented_dt
                         , is_internal
                         , null AS charge_amount
                         , '{}'::text[] AS charge_pointer
@@ -160,7 +160,7 @@ module.exports = {
                         , 'charge' AS code
                         , cpt.display_code AS  type
                         , cpt.short_description AS comments
-                        , ch.charge_dt::date as commented_dt
+                        , ch.charge_dt as commented_dt
                         , false AS is_internal
                         , (ch.units * ch.bill_fee) AS charge_amount
                         , ARRAY[COALESCE(pointer1, ''), COALESCE(pointer2, ''), COALESCE(pointer3, ''), COALESCE(pointer4, '')] AS charge_pointer
