@@ -3,7 +3,8 @@ const _ = require('lodash')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
     , queryBuilder = require('../queryBuilder')
-    , logger = require('../../../../../logger');
+    , logger = require('../../../../../logger')
+    , commonIndex = require('../../../../../server/shared/index');
 
 // generate query template ***only once*** !!!
 
@@ -13,7 +14,7 @@ WITH payment_details AS(
     SELECT
           bp.id
         , CASE WHEN '<%= countryFlag %>' = 'can' AND mode = 'check'
-               THEN 'Cheque' ELSE InitCap(mode) 
+               THEN 'Cheque' ELSE InitCap(mode)
           END AS mode
         , card_name
         , card_number
@@ -23,7 +24,7 @@ WITH payment_details AS(
         , payment_balance_total
         , payments_applied_total
         , adjustments_applied_total
-        , to_char(bp.payment_dt,'MM/DD/YYYY') AS payment_dt
+        , to_char(bp.payment_dt, '<%= browserDateFormat %>') AS payment_dt
         , (CASE payer_type
                 WHEN 'insurance' THEN insurance_providers.insurance_name
 	            WHEN 'ordering_facility' THEN provider_groups.group_name
@@ -45,7 +46,7 @@ WITH payment_details AS(
     ),
     patient_details AS(
     SELECT
-        to_char(to_facility_date(bc.facility_id, claim_dt),'MM/DD/YYYY') AS claim_date,
+        to_char(to_facility_date(bc.facility_id, claim_dt),'<%= browserDateFormat %>') AS claim_date,
         pp.id AS patient_id,
         COALESCE(pp.account_no, '─ ─ Total ─ ─') AS account_no,
         pp.full_name,
@@ -166,12 +167,13 @@ const api = {
             paymentId: null,
             paymentApplicationId: null,
             countryFlag: null,
-
+            browserDateFormat : null
         };
         params.push(reportParams.pamentIds);
         filters.paymentId = queryBuilder.where('bp.id', '=', [params.length]);
         filters.paymentApplicationId = queryBuilder.where('bpa.payment_id', '=', [params.length]);
         filters.countryFlag = reportParams.countryCode;
+        filters.browserDateFormat = commonIndex.getLocaleFormat(reportParams.browserLocale);
 
         return {
             queryParams: params,

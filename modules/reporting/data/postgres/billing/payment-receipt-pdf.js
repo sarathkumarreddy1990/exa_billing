@@ -3,7 +3,8 @@ const _ = require('lodash')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
     , queryBuilder = require('../queryBuilder')
-    , logger = require('../../../../../logger');
+    , logger = require('../../../../../logger')
+    , commonIndex = require('../../../../../server/shared/index');
 
 // generate query template ***only once*** !!!
 
@@ -15,7 +16,7 @@ WITH patient_dtails AS (
        pp.account_no as account_no,
        (pp.patient_info->'c1AddressLine1'::text) || ' , ' || (pp.patient_info->'c1AddressLine2'::text) ||' , '|| (pp.patient_info->'c1City'::text) As address,
        (pp.patient_info->'c1WorkPhone'::text)  As phone_number,
-       to_char(bc.claim_dt,'MM/DD/YYYY') as claim_dt,
+       to_char(bc.claim_dt, '<%= browserDateFormat %>') as claim_dt,
        bgct.adjustments_applied_total as adjustmet,
        bgct.claim_balance_total as balance,
        bgct.charges_allowed_amount_total as allowed_amount,
@@ -39,11 +40,11 @@ charge_details AS (
       , (pp.patient_info->'c1AddressLine1'::text) || ' ' || (pp.patient_info->'c1AddressLine2'::text) ||' '|| (pp.patient_info->'c1City'::text) AS address
       , (pp.patient_info->'c1WorkPhone'::text)  AS phone_number
       , bc.id AS claim_id
-      , to_char(to_facility_date(bc.facility_id,claim_dt), 'MM/DD/YYYY') AS claim_dt
+      , to_char(to_facility_date(bc.facility_id,claim_dt), '<%= browserDateFormat %>') AS claim_dt
       , pcc.display_code
       , pcc.display_description
       , billing.get_charge_icds(ch.id)
-      , to_char(ch.charge_dt, 'MM/DD/YYYY') as commented_dt
+      , to_char(ch.charge_dt, '<%= browserDateFormat %>') as commented_dt
       , ( ch.bill_fee * ch.units) AS charge_amount
       , billing.get_charge_icds(ch.id) AS charge_pointer
       , bgct.claim_balance_total as balance
@@ -80,7 +81,7 @@ charge_details AS (
     SELECT
                           pp.account_no as account_no
                         , CASE WHEN '<%= countryCode %>' = 'can' AND bp.mode = 'check'
-                               THEN 'Cheque' ELSE bp.mode 
+                               THEN 'Cheque' ELSE bp.mode
                           END AS payment_mode
                         , bp.id::text AS payment_id
                         , get_full_name(pp.last_name, pp.first_name) AS payer
@@ -93,8 +94,8 @@ charge_details AS (
                             WHEN bp.payer_type = 'ordering_provider' THEN
                                     p.full_name
                             END  as payer
-                        , to_char(bp.payment_dt,'MM/DD/YYYY') as payment_date
-                        , to_char(bp.accounting_date,'MM/DD/YYYY') as accounting_date
+                        , to_char(bp.payment_dt,'<%= browserDateFormat %>') as payment_date
+                        , to_char(bp.accounting_date, '<%= browserDateFormat %>') as accounting_date
                         , SUM(CASE WHEN pa.amount_type = 'payment' THEN pa.amount ELSE 0.00::money END)::text as payment_amount
                         , SUM(CASE
                             WHEN pa.amount_type ='payment' THEN
@@ -270,7 +271,8 @@ const api = {
             paymentId: null,
             patient_id: null,
             patientId : null,
-            countryCode: null
+            countryCode: null,
+            browserDateFormat : null
         };
 
         params.push(reportParams.pamentIds);
@@ -280,6 +282,8 @@ const api = {
         filters.patient_id = queryBuilder.where('bp.patient_id', '=', [params.length]);
         filters.patientId = queryBuilder.where('pp.id', '=', [params.length]);
         filters.countryCode = reportParams.countryCode;
+        filters.browserDateFormat = commonIndex.getLocaleFormat(reportParams.browserLocale);
+
 
         return {
             queryParams: params,
