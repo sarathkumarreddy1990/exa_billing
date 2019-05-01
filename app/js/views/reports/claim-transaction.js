@@ -308,15 +308,15 @@ define([
                     'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
                     billingProFlag: this.viewModel.allBillingProvider == 'true' ? true : false,
 
-                    'fromDate': ($('#chkServiceDateBill').prop('checked')) == true ? this.viewModel.dateFrom.format('MM/DD/YYYY') : '',
-                    'toDate': ($('#chkServiceDateBill').prop('checked')) == true ? this.viewModel.dateTo.format('MM/DD/YYYY') : '',
+                    'fromDate': ($('#chkServiceDateBill').prop('checked')) == true && this.viewModel.dateFrom ? this.viewModel.dateFrom.format('MM/DD/YYYY') : '',
+                    'toDate': ($('#chkServiceDateBill').prop('checked')) == true && this.viewModel.dateTo ? this.viewModel.dateTo.format('MM/DD/YYYY') : '',
 
-                    'cmtFromDate': ($('#chkServicePayDateCPT').prop('checked')) == true ? this.viewModel.cmtFromDate.format('MM/DD/YYYY') : '',
-                    'cmtToDate': ($('#chkServicePayDateCPT').prop('checked')) == true ? this.viewModel.cmtToDate.format('MM/DD/YYYY') : '',
+                    'cmtFromDate': ($('#chkServicePayDateCPT').prop('checked')) == true && this.viewModel.cmtFromDate ? this.viewModel.cmtFromDate.format('MM/DD/YYYY') : '',
+                    'cmtToDate': ($('#chkServicePayDateCPT').prop('checked')) == true && this.viewModel.cmtToDate ? this.viewModel.cmtToDate.format('MM/DD/YYYY') : '',
                     'cptDateOption': $('#chkServicePayDateCPT').is(':checked') ? $("input[name='accountingAndActualPayment']:checked").val() : '',
 
-                    'billCreatedDateFrom': ($('#billCreatedDate').prop('checked')) == true ? this.viewModel.billCreatedDateFrom.format('MM/DD/YYYY') : '',
-                    'billCreatedDateTo': ($('#billCreatedDate').prop('checked')) == true ? this.viewModel.billCreatedDateTo.format('MM/DD/YYYY') : '',
+                    'billCreatedDateFrom': ($('#billCreatedDate').prop('checked')) == true && this.viewModel.billCreatedDateFrom ? this.viewModel.billCreatedDateFrom.format('MM/DD/YYYY') : '',
+                    'billCreatedDateTo': ($('#billCreatedDate').prop('checked')) == true && this.viewModel.billCreatedDateTo ? this.viewModel.billCreatedDateTo.format('MM/DD/YYYY') : '',
 
                     insuranceIds: this.viewModel.insuranceIds,
                     insuranceOption: this.viewModel.insuranceOption ? this.viewModel.insuranceOption : '',
