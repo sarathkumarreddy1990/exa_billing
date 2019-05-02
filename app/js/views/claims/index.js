@@ -497,8 +497,6 @@ define(['jquery',
                             self.claim_dt_iso = commonjs.checkNotEmpty(claimDetails.claim_dt)
                                 ? commonjs.convertToFacilityTimeZone(claimDetails.facility_id, claimDetails.claim_dt).format('YYYY-MM-DD LT z')
                                 : '';
-
-                            self.cur_study_date = (commonjs.checkNotEmpty(claimDetails.claim_dt) ? commonjs.convertToFacilityTimeZone(claimDetails.facility_id, claimDetails.claim_dt).format('L LT z') : '');
                             self.priClaimInsID = claimDetails.primary_patient_insurance_id || null;
                             self.secClaimInsID = claimDetails.secondary_patient_insurance_id || null;
                             self.terClaimInsID = claimDetails.tertiary_patient_insurance_id || null;
@@ -1001,8 +999,9 @@ define(['jquery',
                 self.cur_patient_name = primaryStudyDetails.patient_name;
                 self.cur_patient_acc_no = primaryStudyDetails.account_no;
                 self.cur_patient_dob = primaryStudyDetails.patient_dob ? moment.utc(primaryStudyDetails.patient_dob).format('L') : null;
-                self.cur_study_date = (primaryStudyDetails.study_date !='null' && commonjs.checkNotEmpty(primaryStudyDetails.study_date)
-                    ? commonjs.convertToFacilityTimeZone(primaryStudyDetails.facility_id, primaryStudyDetails.study_date).format('YYYY-MM-DD LT z') : '');
+                self.claim_dt_iso = commonjs.checkNotEmpty(primaryStudyDetails.study_date)
+                    ? commonjs.convertToFacilityTimeZone(primaryStudyDetails.facility_id, primaryStudyDetails.study_date).format('YYYY-MM-DD LT z')
+                    : '';
                 self.pri_accession_no = primaryStudyDetails.accession_no || null;
                 self.cur_study_id = primaryStudyDetails.study_id || null;
                 self.isEdit = self.claim_Id ? true : false;
@@ -4246,6 +4245,7 @@ define(['jquery',
                 $('#ddlFacility').val(patient_details.facility_id || '');
                 $('#select2-ddlRenderingProvider-container').html(renderingProvider);
                 $('#select2-ddlOrdFacility-container').html(service_facility_name);
+                $('#select2-ddlReferringProvider-container').html(self.usermessage.selectStudyRefProvider);
 
                 // Claim w/o charge code  -- end
 
