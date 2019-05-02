@@ -22,7 +22,7 @@ WITH payments_pdf as (
          bp.alternate_payment_id,
          bp.facility_id,
          bp.payment_dt,
-         to_char(bp.accounting_date, 'MM/DD/YYYY') AS accounting_date,
+         to_char(bp.accounting_date, '<%= dateFormat %>') AS accounting_date,
          bp.payer_type,
          bp.invoice_no,
          bp.amount,
@@ -39,9 +39,9 @@ WITH payments_pdf as (
               WHEN payer_type = 'ordering_provider' THEN ppr.full_name
          END payer_name,
          pf.facility_name,
-         to_char(to_facility_date(bp.facility_id, bp.payment_dt),'MM/DD/YYYY') AS payment_date,
+         to_char(to_facility_date(bp.facility_id, bp.payment_dt),'<%= dateFormat %>') AS payment_date,
          CASE WHEN '<%= countryFlag %>'  = 'can' AND bp.mode = 'check'
-              THEN 'Cheque'ELSE InitCap(bp.mode) 
+              THEN 'Cheque'ELSE InitCap(bp.mode)
          END AS payment_mode
     FROM
          billing.payments bp
@@ -146,7 +146,7 @@ WITH payments_pdf as (
               payment_id,
               patient_full_name,
               account_no,
-              notes,              
+              notes,
               cheque_card_number,
               payment_date,
               accounting_date,
@@ -389,6 +389,7 @@ const api = {
             }
         });
 
+        filters.dateFormat = reportParams.dateFormat;
         return {
             queryParams: params,
             templateData: filters
