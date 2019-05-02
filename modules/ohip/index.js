@@ -455,7 +455,7 @@ module.exports = function(billingApi) {
                     return callback(null, uploadResponse);
                 }
 
-                billingApi.updateFileStatus({
+                await billingApi.updateFileStatus({
                     status: 'in_progress',
                     files: successfulUploadResults.map((uploadResult) => {
                         return find((storedFiles), (storedFile) => {
@@ -473,7 +473,7 @@ module.exports = function(billingApi) {
 
 
                 // // 7 - submit file to OHIP
-                return ebs[EDT_SUBMIT]({resourceIDs}, (submitErr, submitResponse) => {
+                return ebs[EDT_SUBMIT]({resourceIDs}, async (submitErr, submitResponse) => {
 
                     allSubmitClaimResults.faults = allSubmitClaimResults.faults.concat(submitResponse.faults);
                     allSubmitClaimResults.auditInfo = allSubmitClaimResults.auditInfo.concat(submitResponse.auditInfo);
@@ -488,7 +488,7 @@ module.exports = function(billingApi) {
 
 
                     // mark files that were successfully submitted to "success" status
-                    billingApi.updateFileStatus({
+                    await billingApi.updateFileStatus({
                         status: 'success',
                         files: successfulSubmitResults.map((submitResult) => {
                             return find((storedFiles), (storedFile) => {
