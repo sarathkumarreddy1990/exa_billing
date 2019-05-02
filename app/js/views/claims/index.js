@@ -82,6 +82,7 @@ define(['jquery',
             patientsPager: null,
             patientTotalRecords: 0,
             patientAddress: {},
+            priInsCode : '',
             elIDs: {
                 'primaryInsAddress1': '#txtPriSubPriAddr',
                 'primaryInsAddress2': '#txtPriSubSecAddr',
@@ -242,8 +243,18 @@ define(['jquery',
 
             insuranceEligibilityCan: function (e) {
                 var self = this;
+
                 if (!$('#txtPriPolicyNo').val().length) {
                     commonjs.showWarning('messages.warning.shared.invalidHealthNumber');
+                    return;
+                }
+                if (self.priInsCode === '' || $('#ddlPriInsurance').val() === '') {
+                    commonjs.showWarning('messages.warning.claims.selectPriInsurance');
+                    $('#ddlPriInsurance').focus();
+                    return;
+                }
+                if (self.priInsCode !== '' && ['hcp','wsib'].indexOf(self.priInsCode.toLowerCase()) === -1) {
+                    commonjs.showWarning('messages.warning.shared.invalidEligibilityCheck');
                     return;
                 }
                 else {
@@ -827,6 +838,7 @@ define(['jquery',
 
                     self.priInsID = claimData.p_insurance_provider_id
                     self.priInsName = claimData.p_insurance_name;
+                    self.priInsCode = claimData.p_insurance_code;
                     $('#select2-ddlPriInsurance-container').html(claimData.p_insurance_name);
                     $('#chkPriAcptAsmt').prop('checked', claimData.p_assign_benefits_to_patient);
                     $('#lblPriInsPriAddr').html(claimData.p_address1);
@@ -987,9 +999,14 @@ define(['jquery',
                 self.cur_patient_name = primaryStudyDetails.patient_name;
                 self.cur_patient_acc_no = primaryStudyDetails.account_no;
                 self.cur_patient_dob = primaryStudyDetails.patient_dob ? moment.utc(primaryStudyDetails.patient_dob).format('L') : null;
+<<<<<<< HEAD
                 self.claim_dt_iso = commonjs.checkNotEmpty(primaryStudyDetails.study_date)
                     ? commonjs.convertToFacilityTimeZone(primaryStudyDetails.facility_id, primaryStudyDetails.study_date).format('YYYY-MM-DD LT z')
                     : '';
+=======
+                self.cur_study_date = (primaryStudyDetails.study_date !='null' && commonjs.checkNotEmpty(primaryStudyDetails.study_date)
+                    ? commonjs.convertToFacilityTimeZone(primaryStudyDetails.facility_id, primaryStudyDetails.study_date).format('YYYY-MM-DD LT z') : '');
+>>>>>>> 76da29ce6cb8acc3b5d8c68d94837162416c41a6
                 self.pri_accession_no = primaryStudyDetails.accession_no || null;
                 self.cur_study_id = primaryStudyDetails.study_id || null;
                 self.isEdit = self.claim_Id ? true : false;
@@ -1140,7 +1157,6 @@ define(['jquery',
                             from: 'claimCreation',
                             study_ids: selectedStudyIds,
                             patient_id: self.cur_patient_id || 0,
-                            claim_date: self.claim_dt_iso || 'now()'
                         },
                         success: function (model, response) {
                             self.claimICDLists =[];
@@ -1165,6 +1181,10 @@ define(['jquery',
                                     var index = $('#tBodyCharge').find('tr').length;
                                     item.data_row_id = index;
                                     self.addLineItems(item, index, true);
+
+                                    self.claim_dt_iso = commonjs.checkNotEmpty(primaryStudyDetails.study_date)
+                                        ? commonjs.convertToFacilityTimeZone(primaryStudyDetails.facility_id, primaryStudyDetails.study_date).format('YYYY-MM-DD LT z')
+                                        : '';
 
                                     self.chargeModel.push({
                                         id: null,
@@ -3457,6 +3477,7 @@ define(['jquery',
                     flag = 'Pri'
                     payer_type = 'PIP_P';
                     self.priInsID = '';
+                    self.priInsCode = '';
                     self.priInsName = '';
                     self.is_primary_available = false;
                     self.priClaimInsID = null;
