@@ -7,6 +7,7 @@ const {
     formatAlphanumeric,
 } = require('../encoder/util');
 
+const logger = require('../../../logger');
 
 const remittanceAdviceEncoder = require('./remittanceAdviceEncoder');
 
@@ -371,6 +372,8 @@ const generateTypeListResult = (ctx) => {
 
 const generateResourceResult = (ctx) => {
 
+    logger.debug('NERF generateResourceResult() resources in', resources);
+
     const serviceName = getServiceName(ctx);
     // console.log('service name: ', serviceName);
 
@@ -378,6 +381,7 @@ const generateResourceResult = (ctx) => {
     // correspond to EDT_UPLOAD, EDT_UPDATE, EDT_DELETE, or EDT_SUBMIT
     const responseFixture = responseFixturesByService[serviceName];
     // console.log('params: ', responseFixture['params'][0]);
+
 
     const arrayParam = getServiceParams(ctx, serviceName)[responseFixture['params'][0]];
     const numErrors = Math.min(responseFixture.errorCodes.length, arrayParam.length - 1);
@@ -390,7 +394,7 @@ const generateResourceResult = (ctx) => {
             // console.log('feeding args: ', arg);
 
             const resource = OHIPretendo[serviceName](arg);
-            console.log('generateResourceResult() resource: ', resource);
+            logger.debug(`NERF generateResourceResult() resources out (index=${index})`, resources);
 
             return results.concat({
                 description: resource.description,

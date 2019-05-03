@@ -1056,7 +1056,7 @@ define([
                         var billingProviderList = app.billing_providers,
                         ddlBillingProvider = $('#ddlBillingProvider');
                         ddlBillingProvider.empty();
-                        ddlBillingProvider.append("<option value='0'>Select</option>");
+                        ddlBillingProvider.append("<option value='0' i18n='shared.fields.all'></option>");
 
                         if (billingProviderList && billingProviderList.length > 0) {
                             for (var b = 0; b < billingProviderList.length; b++) {
@@ -1066,6 +1066,7 @@ define([
                                 }));
                             }
                         }
+                        commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
                     }, 300);
 
                     this.fromDate =  commonjs.bindDateTimePicker("divFDate", { format: 'L' });
