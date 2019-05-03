@@ -8,8 +8,6 @@ const _ = require('lodash')
 // generate query template ***only once*** !!!
 
 const patientStatementDataSetQueryTemplate = _.template(`
-
-
 WITH claim_data as(
     SELECT
        bc.id as claim_id
@@ -26,8 +24,8 @@ WITH claim_data as(
 						WHEN 'primary' THEN 'P'
 						WHEN 'secondary' THEN 'S'
                         WHEN 'tertiary' THEN 'T' END AS cov_level,
-        to_char(valid_from_date, 'MM/DD/YYYY') as valid_from_date,
-        to_char(valid_to_date, 'MM/DD/YYYY') AS valid_to_date,
+        to_char(valid_from_date, '<%= dateFormat %>') as valid_from_date,
+        to_char(valid_to_date, '<%= dateFormat %>') AS valid_to_date,
         policy_number AS policy_no,
         group_number AS group_no,
         ip.insurance_name    AS company_name
@@ -153,7 +151,7 @@ WITH claim_data as(
         pi.coverage_level  as billing_proaddress1,
         pi.group_number as billing_proaddress2,
         pi.policy_number as billing_procity,
-        to_char(pi.valid_to_date, 'MM/DD/YYYY') as billing_prostate,
+        to_char(pi.valid_to_date, '<%= dateFormat %>') as billing_prostate,
         bp.zip_code as billing_prozip,
         bp.zip_code_plus as billing_zip_plus,
         bp.phone_number as billing_phoneno,
@@ -388,7 +386,7 @@ WITH claim_data as(
               , null
               , null
               , null
-              , to_char('2018-04-12'::date, 'MM/DD/YYYY')
+              , to_char('2018-04-12'::date, '<%= dateFormat %>')
               , full_name
               , account_no
               , address1
@@ -435,7 +433,7 @@ WITH claim_data as(
           , city
           , state
           , zip
-          , to_char(enc_date ,'MM/DD/YYYY') AS enc_date
+          , to_char(enc_date ,'<%= dateFormat %>') AS enc_date
           , description
           , code
           , enc_id::text
@@ -458,7 +456,7 @@ WITH claim_data as(
           , null
           , pid
           , enc_id
-          , to_char(enc_date ,'MM/DD/YYYY')::date AS enc_date
+          , enc_date::date
           , row_flag
           , sort_order
           , null
@@ -843,10 +841,9 @@ const api = {
             filters.billingProviderIds = queryBuilder.whereIn(`bp.id`, [params.length]);
         }
 
+        filters.dateFormat = reportParams.dateFormat;
         filters.reportBy =  reportParams.reportBy;
-
         filters.claimId = reportParams.claimId;
-
         return {
             queryParams: params,
             templateData: filters
