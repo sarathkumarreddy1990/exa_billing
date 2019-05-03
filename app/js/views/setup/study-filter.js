@@ -590,7 +590,10 @@ define([
                     });
                 } else {
                     $('#ulListClaimOrdFacility').delegate('a.remove', 'click', function () {
-                        $('#listClaimOrdFacility option[value="' + $(this).attr('data-id') + '"]').prop('selected', false);
+                        var data_id = $(this).attr('data-id');
+                        $('#listClaimOrdFacility option[value="' + data_id + '"]').prop('selected', false);
+                        $('#ddlClaimOrdFacility option[value="' + data_id + '"]').remove();
+                        $('#ddlClaimOrdFacility').val('');
                         $(this).closest('li').remove();
                     });
 
