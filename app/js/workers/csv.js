@@ -2,7 +2,7 @@ importScripts('/exa_modules/billing/static/node_modules/underscore/underscore.js
 importScripts('/exa_modules/billing/static/node_modules/moment/min/moment-with-locales.js');
 importScripts('/exa_modules/billing/static/node_modules/moment-timezone/builds/moment-timezone-with-data.js');
 
-var claimColumns = {
+const claimColumns = {
 
     "Claim No": "claim_id",
     "Claim Date": "claim_dt",
@@ -37,7 +37,7 @@ var claimColumns = {
     "First Statement Date": "first_statement_dt"
 };
 
-var paymentsColumns = {
+const paymentsColumns = {
     "PAYMENT ID": "id",
     "REFERENCE PAYMENT ID": "alternate_payment_id",
     "PAYMENT DATE": "payment_dt",
@@ -55,7 +55,16 @@ var paymentsColumns = {
     "FACILITY": "facility_name",
 };
 
-var dateColumns = ['Claim Date', 'PAYMENT DATE', 'ACCOUNTING DATE'];
+const dateColumns = [
+    'Claim Date',
+    'PAYMENT DATE',
+    'ACCOUNTING DATE',
+    'Date Of Birth',
+    'Follow-up Date',
+    'Submitted Date',
+    'Date of Injury',
+    'First Statement Date'
+];
 
 onmessage = function (req) {
     console.log('Request received from client');
