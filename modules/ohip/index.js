@@ -47,6 +47,7 @@ const ClaimsEncoder = require('./encoder/claims');
 const mod10Check = require('./hcv/mod10Check');
 const Parser = require('./parser');
 const validateClaimsData = require('../../server/data/claim/claim-workbench');
+const claimWorkBenchController = require('../../server/controllers/claim/claim-workbench');
 const _ = require('lodash');
 
 
@@ -301,7 +302,7 @@ module.exports = function(billingApi) {
             let args = req.query;
             let params = req.body;
 
-            let claimIds = params.claimIds.split(',');
+            let claimIds = params.isAllClaims ? await claimWorkBenchController.getClaimsForEDI(params) : params.claimIds.split(',');
 
             let validationData = await validateClaimsData.validateEDIClaimCreation(claimIds);
             validationData = validationData && validationData.rows && validationData.rows.length && validationData.rows[0] || [];

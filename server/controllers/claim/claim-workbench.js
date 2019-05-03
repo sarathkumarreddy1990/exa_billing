@@ -27,6 +27,20 @@ const fonts = {
 const PdfPrinter = require('pdfmake');
 const printer = new PdfPrinter(fonts);
 
+const getClaimsForEDI = async (params) => {
+    params.isCount = false;
+    const claims = await data.getData(params);
+    let claimIds = [];
+
+    _.each(claims.rows, (claim) => {
+        claimIds.push(claim.id);
+    });
+
+    params.claimIds = claimIds.toString();
+
+    return claimIds;
+}
+
 module.exports = {
 
     getData: function (params) {
@@ -63,7 +77,7 @@ module.exports = {
 
     getEDIClaim: async (req) => {
         let params = req.body;
-        let claimIds = (params.claimIds).split(',');
+        let claimIds = params.isAllClaims ? await getClaimsForEDI(params) : (params.claimIds).split(',');
         let validationData = await data.validateEDIClaimCreation(claimIds, req.session.country_alpha_3_code);
         validationData = validationData && validationData.rows && validationData.rows.length && validationData.rows[0] || [];
 
@@ -541,5 +555,7 @@ module.exports = {
         }
 
         return pdfDoc;
-    }
+    },
+
+    getClaimsForEDI:getClaimsForEDI
 };
