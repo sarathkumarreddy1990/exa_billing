@@ -150,8 +150,10 @@ define(['jquery',
                     })
                 });
 
-                if(app.country_alpha_3_code === 'can'){
+                if (app.country_alpha_3_code === 'can') {
                     $('#txtPriGroupNo').attr('maxlength', 2);
+                } else {
+                    $('label[for=txtPriPolicyNo]').append("<span class='Required' style='color: red;padding-left: 5px;'>*</span>");
                 }
                 self.clearDependentVariables();
                 // Hide non-edit tabs
@@ -244,7 +246,7 @@ define(['jquery',
             insuranceEligibilityCan: function (e) {
                 var self = this;
 
-                if (!$('#txtPriPolicyNo').val().length) {
+                if ($('#txtPriPolicyNo').val().length == 0 && self.priInsCode != '' && ['hcp', 'wsib'].indexOf(self.priInsCode.toLowerCase()) > -1) {
                     commonjs.showWarning('messages.warning.shared.invalidHealthNumber');
                     return;
                 }
@@ -657,6 +659,14 @@ define(['jquery',
                                 self.bindClaimPaymentLines(claimDetails.payment_details, false);
                                 self.bindClaimPaymentEvent();
                             /* Bind claim payment Details - end */
+
+                            if (app.country_alpha_3_code === 'can') {
+                                $('label[for=txtPriPolicyNo] span').remove();
+                                if (claimDetails.existing_insurance && claimDetails.existing_insurance.length && claimDetails.existing_insurance[0].insurance_code && ['HCP', 'WSIB'].indexOf(claimDetails.existing_insurance[0].insurance_code.toUpperCase()) >= 0) {
+                                    self.priInsCode = claimDetails.existing_insurance[0].insurance_code;
+                                    $('label[for=txtPriPolicyNo]').append("<span class='Required' style='color: red;padding-left: 5px;'>*</span>");
+                                }
+                            }
 
                             commonjs.hideLoading();
                         }
@@ -2474,6 +2484,7 @@ define(['jquery',
                         if($('#ddlPriInsurance').val() !='') {
                             $('#chkPriAcptAsmt').prop('checked', true);
                         }
+                        self.checkHealthNumberEligiblity();
                         break;
                     case 'ddlSecInsurance':
                         self.secInsID = res.id;
@@ -3121,7 +3132,6 @@ define(['jquery',
                 /* Insurance section */
                 var mandatory_fields = {
                     primaryfields: [
-                        $('#txtPriPolicyNo').val().trim(),
                         $('#ddlPriRelationShip option:selected').val().trim() || '',
                         $('#txtPriSubFirstName').val().trim(),
                         $('#txtPriSubLastName').val().trim(),
@@ -3129,24 +3139,37 @@ define(['jquery',
                         $('#ddlPriGender').val() ? $('#ddlPriGender').val().trim() : '',
                         $('#txtPriSubPriAddr').val().trim(),
                         $('#txtPriCity').val().trim(),
-                        $('#ddlPriState option:selected').val().trim() || '',
+                        $('#ddlPriState option:selected').val() && $('#ddlPriState option:selected').val().trim() || '',
                         $('#txtPriZipCode').val().trim()
                     ],
                     primaryfieldObjs: [
-                        {obj: $('#txtPriPolicyNo'), msg: 'Please select policy # in primary insurance'},
-                        {obj: $('#ddlPriRelationShip'),msg: 'Please select subscriber relationship in primary insurance'},
-                        {obj: $('#txtPriSubFirstName'), msg: 'Please enter subscriber first name in primary insurance'},
-                        {obj: $('#txtPriSubLastName'), msg: 'Please enter subscriber last name in primary insurance'},
-                        {obj: $('#txtPriDOB'), msg: 'Please enter subscriber DOB in primary insurance'},
-                        {obj: $('#ddlPriGender'), msg: 'Please select subscriber gender in primary insurance'},
-                        {obj: $('#txtPriSubPriAddr'), msg: 'Please enter subscriber address in primary insurance'},
-                        {obj: $('#txtPriCity'), msg: 'Please enter subscriber city in primary insurance'},
-                        {obj: $('#ddlPriState'), msg: 'Please select state # in primary insurance'},
-                        {obj: $('#txtPriZipCode'), msg: 'Please enter zip code in primary insurance'}
+                        { obj: $('#ddlPriRelationShip'), msg: 'messages.warning.claims.selectRelationshipPrimaryInsurance' },
+                        { obj: $('#txtPriSubFirstName'), msg: 'messages.warning.claims.enterFirstnamePrimaryInsurance' },
+                        { obj: $('#txtPriSubLastName'), msg: 'messages.warning.claims.enterLastnamePrimaryInsurance' },
+                        { obj: $('#txtPriDOB'), msg: 'messages.warning.claims.enterDOBPrimaryInsurance' },
+                        { obj: $('#ddlPriGender'), msg: 'messages.warning.claims.selectGenderPrimaryInsurance' },
+                        { obj: $('#txtPriSubPriAddr'), msg: 'messages.warning.claims.enterAddressPrimaryInsurance' },
+                        { obj: $('#txtPriCity'), msg: 'messages.warning.claims.enterCityPrimaryInsurance' },
+                        { obj: $('#ddlPriState'), msg: 'messages.warning.claims.selectStatePrimaryInsurance' },
+                        { obj: $('#txtPriZipCode'), msg: 'messages.warning.claims.enterZipcodePrimaryInsurance' }
                     ]
                 }
 
-                if (app.country_alpha_3_code !== 'can') {
+                var txtPriPolicyNo = ($('#txtPriPolicyNo').val() && $('#txtPriPolicyNo').val().trim()) || '';
+
+                if (app.country_alpha_3_code === 'can') {
+                    if (self.priInsCode && ['HCP', 'WSIB'].indexOf(self.priInsCode.toUpperCase()) >= 0) {
+                        if (!txtPriPolicyNo) {
+                            commonjs.showWarning('messages.warning.shared.invalidHealthNumber');
+                            $('#txtPriPolicyNo').focus();
+                            return false;
+                        }
+                    }
+                } else {
+                    mandatory_fields.primaryfields.push(txtPriPolicyNo)
+                    mandatory_fields.primaryfieldObjs.push(
+                        { obj: $('#txtPriPolicyNo'), msg: 'messages.warning.claims.selectPolicyPrimaryInsurance' }
+                    );
 
                     mandatory_fields.secondaryfields = [
                         $('#txtSecPolicyNo').val().trim(),
@@ -3161,16 +3184,16 @@ define(['jquery',
                         $('#txtSecZipCode').val().trim()
                     ];
                     mandatory_fields.secondaryfieldObjs = [
-                        { obj: $('#txtSecPolicyNo'), msg: 'Please enter policy # in secondary insurance' },
-                        { obj: $('#ddlSecRelationShip'), msg: 'Please select subscriber relationship in secondary insurance' },
-                        { obj: $('#txtSecSubFirstName'), msg: 'Please enter subscriber first name in secondary insurance' },
-                        { obj: $('#txtSecSubLastName'), msg: 'Please enter subscriber last name in secondary insurance' },
-                        { obj: $('#ddlSecGender'), msg: 'Please select subscriber gender in secondary insurance' },
-                        { obj: $('#txtSecDOB'), msg: 'Please enter subscriber DOB in secondary insurance' },
-                        { obj: $('#txtSecSubPriAddr'), msg: 'Please enter subscriber address in secondary insurance' },
-                        { obj: $('#txtSecCity'), msg: 'Please enter subscriber city in secondary insurance' },
-                        { obj: $('#ddlSecState'), msg: 'Please select state # in secondary insurance' },
-                        { obj: $('#txtSecZipCode'), msg: 'Please enter zip code in secondary insurance' }
+                        { obj: $('#txtSecPolicyNo'), msg: 'messages.warning.claims.selectPolicySecondaryInsurance' },
+                        { obj: $('#ddlSecRelationShip'), msg: 'messages.warning.claims.selectRelationshipSecondaryInsurance' },
+                        { obj: $('#txtSecSubFirstName'), msg: 'messages.warning.claims.enterFirstnameSecondaryInsurance' },
+                        { obj: $('#txtSecSubLastName'), msg: 'messages.warning.claims.enterLastnameSecondaryInsurance' },
+                        { obj: $('#ddlSecGender'), msg: 'messages.warning.claims.selectGenderSecondaryInsurance' },
+                        { obj: $('#txtSecDOB'), msg: 'messages.warning.claims.enterDOBSecondaryInsurance' },
+                        { obj: $('#txtSecSubPriAddr'), msg: 'messages.warning.claims.enterAddressSecondaryInsurance' },
+                        { obj: $('#txtSecCity'), msg: 'messages.warning.claims.enterCitySecondaryInsurance' },
+                        { obj: $('#ddlSecState'), msg: 'messages.warning.claims.selectStateSecondaryInsurance' },
+                        { obj: $('#txtSecZipCode'), msg: 'messages.warning.claims.enterZipcodeSecondaryInsurance' }
                     ];
                     mandatory_fields.tertiaryfields = [
                         $('#txtTerPolicyNo').val().trim(),
@@ -3185,16 +3208,16 @@ define(['jquery',
                         $('#txtTerZipCode').val().trim()
                     ];
                     mandatory_fields.tertiaryfieldObjs = [
-                        { obj: $('#txtTerPolicyNo'), msg: 'Please enter policy # in tertiary insurance' },
-                        { obj: $('#ddlTerRelationShip'), msg: 'Please select subscriber relationship in tertiary insurance' },
-                        { obj: $('#txtTerSubFirstName'), msg: 'Please enter subscriber first name in tertiary insurance' },
-                        { obj: $('#txtTerSubLastName'), msg: 'Please enter subscriber last name in tertiary insurance' },
-                        { obj: $('#ddlTerGender'), msg: 'Please select subscriber gender in tertiary insurance' },
-                        { obj: $('#txtTerDOB'), msg: 'Please enter subscriber DOB in tertiary insurance' },
-                        { obj: $('#txtTerSubPriAddr'), msg: 'Please enter subscriber address in tertiary insurance' },
-                        { obj: $('#txtTerCity'), msg: 'Please enter subscriber city in tertiary insurance' },
-                        { obj: $('#ddlTerState'), msg: 'Please select state # in tertiary insurance' },
-                        { obj: $('#txtTerZipCode'), msg: 'Please enter zip code in tertiary insurance' }
+                        { obj: $('#txtTerPolicyNo'), msg: 'messages.warning.claims.selectPolicyTertiaryInsurance' },
+                        { obj: $('#ddlTerRelationShip'), msg: 'messages.warning.claims.selectRelationshipTertiaryInsurance' },
+                        { obj: $('#txtTerSubFirstName'), msg: 'messages.warning.claims.enterFirstnameTertiaryInsurance' },
+                        { obj: $('#txtTerSubLastName'), msg: 'messages.warning.claims.enterLastnameTertiaryInsurance' },
+                        { obj: $('#ddlTerGender'), msg: 'messages.warning.claims.selectGenderTertiaryInsurance' },
+                        { obj: $('#txtTerDOB'), msg: 'messages.warning.claims.enterDOBTertiaryInsurance' },
+                        { obj: $('#txtTerSubPriAddr'), msg: 'messages.warning.claims.enterAddressTertiaryInsurance' },
+                        { obj: $('#txtTerCity'), msg: 'messages.warning.claims.enterCityTertiaryInsurance' },
+                        { obj: $('#ddlTerState'), msg: 'messages.warning.claims.selectStateTertiaryInsurance' },
+                        { obj: $('#txtTerZipCode'), msg: 'messages.warning.claims.enterZipcodeTertiaryInsurance' }
                     ];
 
                 }
@@ -4816,6 +4839,14 @@ define(['jquery',
                 var $addressDiv = $('#div' + flag + 'AddressInfo');
                 $addressDiv.find('.city-state-zip-label').removeClass('p-0');
                 $addressDiv.find('.city-state-zip-content').addClass('pl-2').removeClass('pl-1');
+            },
+            checkHealthNumberEligiblity: function () {
+                if (app.country_alpha_3_code === 'can') {
+                    $('label[for=txtPriPolicyNo] span').remove();
+                    if (this.priInsCode && ['HCP', 'WSIB'].indexOf(this.priInsCode.toUpperCase()) >= 0) {
+                        $('label[for=txtPriPolicyNo]').append("<span class='Required' style='color: red;padding-left: 5px;'>*</span>");
+                    }
+                }
             }
 
         });
