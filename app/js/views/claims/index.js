@@ -270,6 +270,8 @@ define(['jquery',
                         success: function (data) {
                             if ( data ) {
                                 var eligibilityRes = (data.results && data.results.length) ? data.results[0] : data.faults && data.faults[0] || data.err
+                                eligibilityRes.dateOfBirth = (eligibilityRes.dateOfBirth &&  commonjs.getFormattedDate(eligibilityRes.dateOfBirth)) || '';
+                                eligibilityRes.expiryDate = (eligibilityRes.expiryDate &&  commonjs.getFormattedDate(eligibilityRes.expiryDate)) || '';
                                 commonjs.showNestedDialog({
                                     header: 'Healthcard Eligibility Result', i18nHeader: 'menuTitles.patient.patientInsuranceEligibility', height: '70%', width: '70%',
                                     html: self.insuranceOhipTemplate({
