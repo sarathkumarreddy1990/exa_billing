@@ -440,6 +440,7 @@ module.exports = {
                                             WHERE claims.id=charges.claim_id AND display_description ILIKE '%MAMMO%' LIMIT 1) as "mammoStudyDescription",
 										to_char(current_illness_date, 'YYYYMMDD')  as "illnessDateFormat",
 										authorization_no as "authorizationNo",
+										auth_no.service_line_auth_no AS "serviceLineAuthNo",
 										original_reference as "originalReference",
 										patient_info->'c1State' as "state",
 										facility_info->'facility_mammoLicenseId' as "mammoCertificationNO",
@@ -755,6 +756,21 @@ module.exports = {
                                             LEFT JOIN relationship_status ON  subscriber_relationship_id =relationship_status.id
                                             LEFT JOIN public.insurance_provider_payer_types  ON insurance_provider_payer_types.id = insurance_providers.provider_payer_type_id
                                             LEFT JOIN provider_groups  ON  claims.ordering_facility_id = provider_groups.id
+                                            LEFT JOIN LATERAL ( 
+                                                SELECT 
+                                                    bch.authorization_no AS service_line_auth_no
+                                                FROM 
+                                                    billing.charges bch
+                                                INNER JOIN cpt_codes
+                                                    ON cpt_codes.id = bch.cpt_id
+                                                WHERE 
+                                                    bch.claim_id = claims.id
+                                                    AND NOT bch.is_excluded
+                                                    AND bch.authorization_no IS NOT NULL
+                                                ORDER BY  
+                                                    bch.id ASC 
+                                                LIMIT 1 
+                                                ) AS auth_no ON TRUE
                                             LEFT JOIN LATERAL (
 					                            SELECT
                                                     s.order_id
