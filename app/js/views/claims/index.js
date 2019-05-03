@@ -999,9 +999,6 @@ define(['jquery',
                 self.cur_patient_name = primaryStudyDetails.patient_name;
                 self.cur_patient_acc_no = primaryStudyDetails.account_no;
                 self.cur_patient_dob = primaryStudyDetails.patient_dob ? moment.utc(primaryStudyDetails.patient_dob).format('L') : null;
-                self.claim_dt_iso = commonjs.checkNotEmpty(primaryStudyDetails.study_date)
-                    ? commonjs.convertToFacilityTimeZone(primaryStudyDetails.facility_id, primaryStudyDetails.study_date).format('YYYY-MM-DD LT z')
-                    : '';
                 self.pri_accession_no = primaryStudyDetails.accession_no || null;
                 self.cur_study_id = primaryStudyDetails.study_id || null;
                 self.isEdit = self.claim_Id ? true : false;
@@ -1026,7 +1023,6 @@ define(['jquery',
                     }
                 }
 
-                self.studyDate = commonjs.getConvertedFacilityTime(primaryStudyDetails.study_date, '', 'L', primaryStudyDetails.facility_id);
                 self.getLineItemsAndBind(self.selectedStudyIds);
                 if (options && options.from === 'patientSearch') {
                     $('.claimProcess').hide();
@@ -1143,6 +1139,7 @@ define(['jquery',
                 var self = this;
                 self.chargeModel = [];
                 self.patientAlerts = [];
+                self.studyDate = commonjs.getConvertedFacilityTime(app.currentdate, '', 'L', app.facilityID);
                 if (selectedStudyIds) {
                     commonjs.showLoading();
                     $.ajax({
@@ -1171,14 +1168,14 @@ define(['jquery',
                                 self.patientAlerts = _defaultDetails.alerts;
                                 self.showAlertBadge();
                                 /* Patient Alert data Bind Ended */
-
+                                self.claim_dt_iso = commonjs.getConvertedFacilityTime(app.currentdate, '', 'L', app.facilityID);
                                 _.each(modelDetails.charges, function (item) {
                                     var index = $('#tBodyCharge').find('tr').length;
                                     item.data_row_id = index;
                                     self.addLineItems(item, index, true);
 
-                                    self.claim_dt_iso = commonjs.checkNotEmpty(primaryStudyDetails.study_date)
-                                        ? commonjs.convertToFacilityTimeZone(primaryStudyDetails.facility_id, primaryStudyDetails.study_date).format('YYYY-MM-DD LT z')
+                                    self.claim_dt_iso = commonjs.checkNotEmpty(item.study_date)
+                                        ? commonjs.convertToFacilityTimeZone(item.facility_id, item.study_date).format('YYYY-MM-DD LT z')
                                         : '';
 
                                     self.chargeModel.push({
