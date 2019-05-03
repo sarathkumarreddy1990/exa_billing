@@ -31,6 +31,24 @@ define([
                 this.auditInfoList = new AuditLogCollections(true);
             },
 
+            validateDateRange: function() {
+                var result = commonjs.validateDateTimePickerRange(this.dtpFrom, this.dtpTo, false, "day");
+                if (result && result.valid) {
+                    return true;
+                }
+                switch (result.type) {
+                    case "warning":
+                        commonjs.showWarning(result.message);
+                        break;
+                    case "error":
+                        commonjs.showError(result.message);
+                        break;
+                    default:
+                        commonjs.showError("Unkown error occurred! Validation type: " + result.type);
+                }
+                return false;
+            },
+
             render: function () {
                 var self = this;
                 $('#divAuditLogGrid').show();
@@ -134,18 +152,22 @@ define([
                     header: { screen: 'AuditLog', ext: 'auditLog' }, grid: { id: '#tblAuditLogGrid' }, buttons: [
                         {
                             value: 'Export To Excel', class: 'btn btn-danger', i18n: 'shared.buttons.exportToExcel', clickEvent: function () {
-                                self.exportExcel();
+                                if (self.validateDateRange()) {
+                                    self.exportExcel();
+                                }
                             }
                         },
                         {
                             value: 'Reload', class: 'btn', i18n: 'shared.buttons.reload', clickEvent: function () {
-                                self.auditLogTable.options.customargs = {
-                                    from_date: self.dtpFrom.date().format(),
-                                    to_date: self.dtpTo.date().format()
+                                if (self.validateDateRange()) {
+                                    self.auditLogTable.options.customargs = {
+                                        from_date: self.dtpFrom.date().format(),
+                                        to_date: self.dtpTo.date().format()
+                                    }
+                                    self.pager.set({ "PageNo": 1 });
+                                    self.auditLogTable.refreshAll();
+                                    commonjs.showStatus("messages.status.reloadedSuccessfully");
                                 }
-                                self.pager.set({ "PageNo": 1 });
-                                self.auditLogTable.refreshAll();
-                                commonjs.showStatus("messages.status.reloadedSuccessfully");
                             }
                         }
                     ]
