@@ -322,17 +322,42 @@ const updateClaimStatus = async (args) => {
         claimIds,
         accountingNumber,
         claimStatusCode,
+        userId,
+        claimNote,
+
     } = args;
 
     const sql = SQL`
-        UPDATE billing.claims
+        WITH
+        submissionDate AS (
+        	SELECT timezone(get_facility_tz(1::int), now()::timestamp) LIMIT 1
+        )
+        , addClaimComment AS (
+            INSERT INTO billing.claim_comments (
+                  note
+                , type
+                , claim_id
+                , created_by
+                , created_dt
+            )
+            VALUES (
+                  ${claimNote}
+                , 'auto'
+                , UNNEST(${claimIds}::int[])
+                , ${userId}
+                , now()
+            ) RETURNING *
+        )
+
+        UPDATE billing.claims claims
         SET
             claim_status_id = (
                 SELECT id
                 FROM billing.claim_status
                 WHERE code=${claimStatusCode}
                 LIMIT 1
-            )
+            ),
+            submitted_dt = (SELECT * FROM submissionDate)
         WHERE
             id = ANY(ARRAY[${claimIds}::int[]])
     `;
@@ -752,7 +777,7 @@ const OHIPDataAPI = {
                   FROM billing.payment_applications bpa
                   WHERE bpa.charge_id = bch.id
                 ) cp ON TRUE
-                WHERE bch.claim_id = bc.id
+                WHERE bch.claim_id = bc.id AND NOT bch.is_excluded
                 AND ((bch.bill_fee::numeric * bch.units) - (COALESCE(cp.charge_payment,0))) > 0) AS items )
                 SELECT * FROM cte_insurance_details, charge_details) AS claim_details ) AS "claims"
                 FROM billing.claims bc

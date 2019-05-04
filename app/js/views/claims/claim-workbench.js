@@ -601,7 +601,8 @@ define(['jquery',
                     }
 
                     data = {
-                        claimIds: claimIds.toString()
+                        claimIds: claimIds.toString(),
+                        userId: app.userID
                     }
 
                     if (existingBillingMethod === 'paper_claim') {
@@ -703,7 +704,8 @@ define(['jquery',
                         customArgs: {
                             filter_id: filterID,
                             isClaimGrid: true
-                        }
+                        },
+                        userId: app.userID
                     },
                     success: function (data, textStatus, jqXHR) {
                         commonjs.hideLoading();
