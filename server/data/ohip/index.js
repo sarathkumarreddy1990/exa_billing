@@ -322,17 +322,42 @@ const updateClaimStatus = async (args) => {
         claimIds,
         accountingNumber,
         claimStatusCode,
+        userId,
+        claimNote,
+
     } = args;
 
     const sql = SQL`
-        UPDATE billing.claims
+        WITH
+        submissionDate AS (
+        	SELECT timezone(get_facility_tz(1::int), now()::timestamp) LIMIT 1
+        )
+        , addClaimComment AS (
+            INSERT INTO billing.claim_comments (
+                  note
+                , type
+                , claim_id
+                , created_by
+                , created_dt
+            )
+            VALUES (
+                  ${claimNote}
+                , 'auto'
+                , UNNEST(${claimIds}::int[])
+                , ${userId}
+                , now()
+            ) RETURNING *
+        )
+
+        UPDATE billing.claims claims
         SET
             claim_status_id = (
                 SELECT id
                 FROM billing.claim_status
                 WHERE code=${claimStatusCode}
                 LIMIT 1
-            )
+            ),
+            submitted_dt = (SELECT * FROM submissionDate)
         WHERE
             id = ANY(ARRAY[${claimIds}::int[]])
     `;
