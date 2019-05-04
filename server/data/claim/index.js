@@ -20,7 +20,7 @@ module.exports = {
         let sql = SQL`WITH
                         get_study_date AS(
                             SELECT 
-                               study_dt::DATE
+                               study_dt
                             FROM public.studies 
                             WHERE id = ${firstStudyId}
                         ),
@@ -199,6 +199,7 @@ module.exports = {
                                                 FROM claim_details
                                             ) AS claims
                                     ) AS claim_details
+                                    , ( SELECT study_dt FROM get_study_date )
 	                                ,( SELECT COALESCE(json_agg(row_to_json(claim_problems)),'[]') problems
 		                                FROM (
                                                 SELECT
