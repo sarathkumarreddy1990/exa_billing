@@ -302,8 +302,11 @@ module.exports = function(billingApi) {
             let args = req.query;
             let params = req.body;
 
-            let claimIds = params.isAllClaims ? await claimWorkBenchController.getClaimsForEDI(params) : params.claimIds.split(',');
-
+            if (params.isAllClaims) {
+                params.claimIds = await claimWorkBenchController.getClaimsForEDI(params);
+            }
+    
+            let claimIds = params.claimIds.split(',');
             let validationData = await validateClaimsData.validateEDIClaimCreation(claimIds);
             validationData = validationData && validationData.rows && validationData.rows.length && validationData.rows[0] || [];
 

@@ -36,9 +36,7 @@ const getClaimsForEDI = async (params) => {
         claimIds.push(claim.id);
     });
 
-    params.claimIds = claimIds.toString();
-
-    return claimIds;
+    return claimIds.toString();
 }
 
 module.exports = {
@@ -77,7 +75,12 @@ module.exports = {
 
     getEDIClaim: async (req) => {
         let params = req.body;
-        let claimIds = params.isAllClaims ? await getClaimsForEDI(params) : (params.claimIds).split(',');
+
+        if (params.isAllClaims) {
+            params.claimIds = await getClaimsForEDI(params);
+        }
+
+        let claimIds = params.claimIds.split(',');
         let validationData = await data.validateEDIClaimCreation(claimIds, req.session.country_alpha_3_code);
         validationData = validationData && validationData.rows && validationData.rows.length && validationData.rows[0] || [];
 
