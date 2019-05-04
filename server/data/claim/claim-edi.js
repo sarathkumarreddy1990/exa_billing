@@ -440,7 +440,7 @@ module.exports = {
                                             WHERE claims.id=charges.claim_id AND display_description ILIKE '%MAMMO%' LIMIT 1) as "mammoStudyDescription",
 										to_char(current_illness_date, 'YYYYMMDD')  as "illnessDateFormat",
 										authorization_no as "authorizationNo",
-										auth_no.service_line_auth_no AS "serviceLineAuthNo",
+                                        auth_no.service_line_auth_no AS "serviceLineAuthNo",
 										original_reference as "originalReference",
 										patient_info->'c1State' as "state",
 										facility_info->'facility_mammoLicenseId' as "mammoCertificationNO",
