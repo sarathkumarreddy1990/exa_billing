@@ -13,6 +13,7 @@ define([
             expanded: false,
             mainTemplate: _.template(billingPaymentsPDFTemplate),
             viewModel: {
+                dateFormat: 'MM/DD/YYYY',
                 facilities: null,
                 dateFrom: null,
                 dateTo: null,
@@ -40,6 +41,7 @@ define([
                 this.showForm();
                 this.$el.html(this.mainTemplate(this.viewModel));
                 UI.initializeReportingViewModel(options, this.viewModel);
+                UI.getReportSetting(this.viewModel, 'all', 'dateFormat'); // Get date format (and current country code) based on current country code saved in sites table(this.viewModel);
 
                 this.viewModel.dateFrom = commonjs.getFacilityCurrentDateTime(1);
                 this.viewModel.dateTo = this.viewModel.dateFrom.clone();
@@ -136,6 +138,8 @@ define([
                 else {
                     reportArgsFlag = 'payments-pdf';
                 }
+
+                urlParams.dateFormat = this.viewModel.dateFormat;
                 UI.showReport(reportArgsFlag, this.viewModel.reportCategory, 'pdf', urlParams, true);
             },
 

@@ -528,7 +528,7 @@ define(['jquery',
                     var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_billing_method');
 
                     var rowData = $(filter.options.gridelementid).jqGrid('getRowData', rowId);
-                    var claimDt = rowData.claim_dt;
+                    var claimDt = moment(rowData.claim_dt).format('L');
                     var futureClaim = claimDt && moment(claimDt).diff(moment(), 'days');
 
                     if (e.target) {
@@ -645,7 +645,8 @@ define(['jquery',
                     url: url,
                     type: "POST",
                     data: {
-                        claimIds: claimIds.toString()
+                        claimIds: claimIds.toString(),
+                        userId: app.userID
                     },
                     success: function (data, textStatus, jqXHR) {
                         commonjs.hideLoading();
@@ -689,7 +690,8 @@ define(['jquery',
                         customArgs: {
                             filter_id: filterID,
                             isClaimGrid: true
-                        }
+                        },
+                        userId: app.userID
                     },
                     success: function (data, textStatus, jqXHR) {
                         commonjs.hideLoading();

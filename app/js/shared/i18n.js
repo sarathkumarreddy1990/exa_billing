@@ -132,7 +132,7 @@ var i18n = {
                 if (typeof key === 'undefined')
                     key = it.text();
 
-                it.attr('i18np', key).attr("placeholder", key=='dateFormat' ? commonjs.getDateTemplate() : this.get(key));
+                it.attr('i18np', key).attr("placeholder", key === 'dateFormat' ? commonjs.getDateTemplate() : this.get(key));
             }
 
             if (it.is('[i18nt]')) {

@@ -36,6 +36,7 @@ const api = {
         // ============================================================================================================
         // normalize & validate report parameters
         const reportParams = api.getReportParams(req, res);
+        reportParams.browserLocale = (req.headers[`accept-language`] || `en-US`).split(/;/)[0].split(/,/)[0].toLowerCase();
         if (!reportParams.valid) {
             return responseHandler.sendHtml(req, res, null, '<h1>Invalid Report Parameters</h1><p><pre>' + JSON.stringify(reportParams, null, 2) + '</pre></p>');
         }
