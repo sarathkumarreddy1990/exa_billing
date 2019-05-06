@@ -645,7 +645,8 @@ define(['jquery',
                     url: url,
                     type: "POST",
                     data: {
-                        claimIds: claimIds.toString()
+                        claimIds: claimIds.toString(),
+                        userId: app.userID
                     },
                     success: function (data, textStatus, jqXHR) {
                         commonjs.hideLoading();
@@ -689,7 +690,8 @@ define(['jquery',
                         customArgs: {
                             filter_id: filterID,
                             isClaimGrid: true
-                        }
+                        },
+                        userId: app.userID
                     },
                     success: function (data, textStatus, jqXHR) {
                         commonjs.hideLoading();

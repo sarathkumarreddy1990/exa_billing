@@ -505,6 +505,8 @@ module.exports = function(billingApi) {
                             billingApi.updateClaimStatus({
                                 claimIds: batch.claimIds,
                                 claimStatusCode,
+                                claimNote: 'Electronically submitted through MCEDT-EBS',
+                                userId: params.userId,
                             });
 
                         })
