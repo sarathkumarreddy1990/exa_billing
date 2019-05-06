@@ -13,6 +13,7 @@ define([
             expanded: false,
             mainTemplate: _.template(MainTemplate),
             viewModel: {
+                dateFormat: 'MM/DD/YYYY',
                 facilities: null,
                 allFacilities: false,
                 facilityIds: null,
@@ -53,6 +54,7 @@ define([
                 this.showForm();
                 this.$el.html(this.mainTemplate(this.viewModel));
                 UI.initializeReportingViewModel(options, this.viewModel);
+                UI.getReportSetting(this.viewModel, 'all', 'dateFormat'); // Get date format (and current country code) based on current country code saved in sites table(this.viewModel);
 
                 // Set date range to Facility Date
                 this.viewModel.dateFrom = commonjs.getFacilityCurrentDateTime(app.facilityID);
@@ -252,6 +254,7 @@ define([
 
             getReportParams: function () {
                 var urlParams = {
+                    'dateFormat': this.viewModel.dateFormat,
                     'facilityIds': this.selectedFacilityList || [],
                     'allFacilities': this.viewModel.allFacilities ||'',
                     'fromDate': this.viewModel.fromDate.date().format('YYYY-MM-DD'),
