@@ -38,8 +38,8 @@ module.exports = {
                                     public.patient_insurances
                                 WHERE
                                     patient_id = ${params.patient_id}
-                                    AND (valid_to_date >= (SELECT study_dt FROM get_study_date)  OR valid_to_date IS NULL)
-                                    AND (valid_from_date <= (SELECT study_dt FROM get_study_date) OR valid_from_date IS NULL)
+                                    AND (valid_to_date >= (SELECT study_dt::DATE FROM get_study_date)  OR valid_to_date IS NULL)
+                                    AND (valid_from_date <= (SELECT study_dt::DATE FROM get_study_date) OR valid_from_date IS NULL)
                                     AND coverage_level = 'primary'
                             ) as expiry ON TRUE
                                 WHERE
