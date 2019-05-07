@@ -17,6 +17,11 @@ const getNumeric = (numericStr) => {
     return parseInt(numericStr);
 };
 
+const getMoney = (moneyStr) => {
+    return getNumeric(moneyStr) / 100;
+};
+
+
 const getText = (alphanumericStr) => {
     return `${alphanumericStr}`.trim();
 };
@@ -24,6 +29,7 @@ const getText = (alphanumericStr) => {
 
 const fieldParsers = {
     'N': getNumeric,
+    'M': getMoney,
     'D': getDate,
     'generic': getText,
 };
