@@ -567,6 +567,8 @@ const applyBatchEditReport = async (args) => {
             claimIds: dbResults.map((claim_file) => {
                 return claim_file.claim_id;
             }),
+            claimNote: 'Electronically acknowledged via MCEDT-EBS',
+            userId: 1,
         });
     }
 
