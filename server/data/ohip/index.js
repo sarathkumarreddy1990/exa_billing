@@ -287,9 +287,10 @@ const loadFile = async (args) => {
     } = (await query(sql.text, sql.values)).rows[0];
 
     const absolutePath = path.join(root_directory, file_path, uploaded_file_name);
+    const data = fs.existsSync(absolutePath) && fs.readFileSync(absolutePath, {encoding});
 
     return {
-        data: fs.readFileSync(absolutePath, {encoding}),
+        data,
         file_store_id,
         root_directory,
         file_path,
@@ -856,7 +857,7 @@ const OHIPDataAPI = {
         const sql = SQL`
                 SELECT
                     ef.id,
-                    ef.id AS file_name,
+                    ef.uploaded_file_name AS file_name,
                     ef.file_store_id,
                     ef.created_dt AS updated_date_time,
                     ef.status AS current_status,
@@ -864,7 +865,6 @@ const OHIPDataAPI = {
                     ef.file_path,
                     ef.file_size AS size,
                     ef.file_md5,
-                    ef.uploaded_file_name,
                     file_payments.payment_id,
                     eob.eob_file_id,
                     'true' as is_payment_received,
