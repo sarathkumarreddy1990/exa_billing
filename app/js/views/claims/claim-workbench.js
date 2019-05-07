@@ -2055,7 +2055,7 @@ define(['jquery',
                     colModel: [
                         { name: '', index: 'id', key: true, hidden: true, search: false },
                         {
-                            name: 'file_name',
+                            name: 'uploaded_file_name',
                             search: false,
                             width: 100,
                             align: 'center'
