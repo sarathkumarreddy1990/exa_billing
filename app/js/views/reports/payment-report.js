@@ -14,7 +14,7 @@ define([
             mainTemplate: _.template(paymentsTemplate),
             viewModel: {
                 dateFormat: 'MM/DD/YYYY',
-                country_alpha_3_code: 'usa',
+                country_alpha_3_code: app.country_alpha_3_code,
                 facilities: null,
                 dateFrom: null,
                 dateTo: null,
