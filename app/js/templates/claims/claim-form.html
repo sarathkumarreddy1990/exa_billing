@@ -371,7 +371,11 @@
                     </div>
                 </div>
                 <div class="form-group row">
-                    <label for="ddlRenderingProvider" class="col-sm-3 col-form-label" i18n="billing.claims.renderingProvider"></label>
+                    <% if(country_alpha_3_code !== 'can') { %>
+                        <label for="ddlRenderingProvider" class="col-sm-3 col-form-label" i18n="billing.claims.renderingProvider"></label>
+                    <% } else { %>
+                        <label for="ddlRenderingProvider" class="col-sm-3 col-form-label field-required" i18n="billing.claims.renderingProvider"></label>
+                    <% } %>
                     <div class="col-sm-5">
                         <select class="form-control select-box" id="ddlRenderingProvider">
                         </select>

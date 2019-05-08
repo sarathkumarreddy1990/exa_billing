@@ -3132,6 +3132,12 @@ define(['jquery',
                     return false;
                 }
 
+                if (!self.ACSelect.readPhy.contact_id && app.country_alpha_3_code === 'can') {
+                    commonjs.showWarning("messages.warning.shared.selectRenderingProvider");
+                    $('#ddlRenderingProvider').focus();
+                    return false;
+                }
+
                 /* Insurance section */
                 var mandatory_fields = {
                     primaryfields: [
