@@ -2475,7 +2475,7 @@ define(['jquery',
                 if (this.from === 'ris')
                     Backbone.history.navigate('#billing/payments/filter/ris', true);
                 else
-                    Backbone.history.navigate('#billing/payments/filter', true);
+                    Backbone.history.navigate('#billing/payments/list', true);
             },
 
             searchPayer: _.debounce(function (e) {
