@@ -515,123 +515,140 @@ define(['jquery',
 
                 var claimIds = [], invoiceNo = [], existingBillingMethod = '', existingClearingHouse = '', existingEdiTemplate = '', selectedPayerName = [];
 
-                for (var i = 0; i < $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked').length; i++) {
-                    var rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;
+                var isCheckedAll = $('#chkStudyHeader_' + filterID).prop('checked');
+                var data = {};
 
-                    var claimStatus = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'claim_status_code');
+                if (isCheckedAll && billingMethodFormat === 'electronic_billing') {
+                    var filterData = JSON.stringify(filter.pager.get('FilterData'));
+                    var filterCol = JSON.stringify(filter.pager.get('FilterCol'));
 
-                    if (claimStatus == "PV") {
-                        commonjs.showWarning('messages.status.pleaseValidateClaims');
+                    var isDatePickerClear = filterCol.indexOf('claim_dt') === -1;
+
+                    data = {
+                        filterData: filterData,
+                        filterCol: filterCol,
+                        sortField: filter.pager.get('SortField'),
+                        sortOrder: filter.pager.get('SortOrder'),
+                        pageNo: 1,
+                        pageSize: 1000,
+                        company_id: app.companyID,
+                        user_id: app.userID,
+                        isDatePickerClear: isDatePickerClear,
+                        customArgs: {
+                            filter_id: filterID,
+                            isClaimGrid: true
+                        },
+                        isAllClaims: true
+                    }
+                } else {
+                    for (var i = 0; i < $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked').length; i++) {
+                        var rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;
+
+                        var claimStatus = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'claim_status_code');
+
+                        if (claimStatus === "PV") {
+                            commonjs.showWarning('messages.status.pleaseValidateClaims');
+                            return false;
+                        }
+
+                        var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_billing_method');
+
+                        var rowData = $(filter.options.gridelementid).jqGrid('getRowData', rowId);
+                        var claimDt = moment(rowData.claim_dt).format('L');
+                        var futureClaim = claimDt && moment(claimDt).diff(moment(), 'days');
+
+                        if (e.target) {
+                            if (billingMethodFormat !== billingMethod) {
+                                commonjs.showWarning('messages.status.pleaseSelectValidClaimsMethod');
+                                return false;
+                            }
+                        }
+
+                        if (app.country_alpha_3_code === "can" && futureClaim > 0 && billingMethodFormat === 'electronic_billing') {
+                            commonjs.showWarning('messages.status.futureClaimWarning');
+                            return false;
+                        }
+
+                        if (existingBillingMethod === '') existingBillingMethod = billingMethod;
+                        if (existingBillingMethod !== billingMethod) {
+                            commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfBillingMethod');
+                            return false;
+                        } else {
+                            existingBillingMethod = billingMethod;
+                        }
+
+                        var clearingHouse = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_clearing_house');
+                        if (existingClearingHouse === '') existingClearingHouse = clearingHouse;
+                        if (app.country_alpha_3_code !== "can" && existingClearingHouse !== clearingHouse && billingMethod === 'electronic_billing') {
+                            commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfClearingHouseClaims');
+                            return false;
+                        } else {
+                            existingClearingHouse = clearingHouse;
+                        }
+
+                        var payerName = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'payer_name');
+                        selectedPayerName.push(payerName)
+
+                        var invoice_no = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_invoice_no');
+                        invoiceNo.push(invoice_no);
+                        claimIds.push(rowId);
+                    }
+
+
+                    if (claimIds && !claimIds.length) {
+                        commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfBillingMethod');
                         return false;
                     }
 
-                    var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_billing_method');
+                    data = {
+                        claimIds: claimIds.toString(),
+                        userId: app.userID
+                    }
 
-                    var rowData = $(filter.options.gridelementid).jqGrid('getRowData', rowId);
-                    var claimDt = moment(rowData.claim_dt).format('L');
-                    var futureClaim = claimDt && moment(claimDt).diff(moment(), 'days');
+                    if (existingBillingMethod === 'paper_claim') {
+                        var paperClaimFormat =
+                            localStorage.getItem('default_paperclaim_format') === 'ORIGINAL' ?
+                            'paper_claim_original' : 'paper_claim_full';
 
+                        paperClaim.print(paperClaimFormat, claimIds);
+                        return;
+                    }
+
+                    var sortBy = '';
                     if (e.target) {
-                        if (billingMethodFormat != billingMethod) {
-                            commonjs.showWarning('messages.status.pleaseSelectValidClaimsMethod');
-                            return false;
+                        if (e.target.innerHTML.indexOf('Patient Name') > -1) {
+                            sortBy = 'patient_name';
+                        } else if (e.target.innerHTML.indexOf('Service Date') > -1) {
+                            sortBy = 'service_date';
+                        }
+                    }
+                    var uniquePayerName = $.unique(selectedPayerName);
+
+                    if (existingBillingMethod === 'direct_billing') {
+                        if (uniquePayerName && uniquePayerName.length && uniquePayerName.length > 1) {
+                            self.printInvoiceClaim('direct_invoice', claimIds, sortBy)
+                            return;
+                        } else if (invoiceNo && invoiceNo[0] && invoiceNo[0].length > 0) {
+                            paperClaim.print('direct_invoice', claimIds, {
+                                sortBy: sortBy,
+                                invoiceNo: invoiceNo[0]
+                            });
+                            return;
+                        } else {
+                            paperClaim.print('direct_invoice', claimIds, {
+                                sortBy: sortBy,
+                                invoiceNo: invoiceNo[0]
+                            });
+                            return;
                         }
                     }
 
-                    if (app.country_alpha_3_code == "can" && futureClaim > 0 && billingMethodFormat == 'electronic_billing') {
-                        commonjs.showWarning('messages.status.futureClaimWarning');
-                        return false;
-                    }
-
-                    if (existingBillingMethod == '') existingBillingMethod = billingMethod
-                    if (existingBillingMethod != billingMethod) {
-                        commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfBillingMethod');
-                        return false;
-                    } else {
-                        existingBillingMethod = billingMethod;
-                    }
-
-                    var clearingHouse = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_clearing_house');
-                    if (existingClearingHouse == '') existingClearingHouse = clearingHouse;
-                    if (app.country_alpha_3_code !== "can" && existingClearingHouse != clearingHouse && billingMethod == 'electronic_billing') {
-                        commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfClearingHouseClaims');
-                        return false;
-                    } else {
-                        existingClearingHouse = clearingHouse;
-                    }
-
-                    var payerName = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'payer_name');
-                    selectedPayerName.push(payerName)
-
-                    // var ediTemplate = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'edi_template');
-                    // if (existingEdiTemplate == '') existingEdiTemplate = ediTemplate;
-                    // if (existingEdiTemplate != ediTemplate) {
-                    //     commonjs.showWarning('Please select claims with same type of  edi template Claims ');
-                    //     return false;
-                    // } else {
-                    //     existingEdiTemplate = ediTemplate;
-                    // }
-                    var invoice_no = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_invoice_no');
-                    invoiceNo.push(invoice_no);
-                    claimIds.push(rowId);
-                }
-
-
-                if (claimIds && claimIds.length == 0) {
-                    commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfBillingMethod');
-                    return false;
-                }
-
-                /// Possible values for template type --
-                /// "direct_invoice"
-                /// "paper_claim_full"
-                /// "paper_claim_original"
-                /// "patient_invoice"
-                if (existingBillingMethod === 'paper_claim') {
-                    var paperClaimFormat =
-                        localStorage.getItem('default_paperclaim_format') === 'ORIGINAL'
-                            ? 'paper_claim_original' : 'paper_claim_full';
-
-                    paperClaim.print(paperClaimFormat, claimIds);
-                    return;
-                }
-
-                var sortBy = '';
-                if (e.target) {
-                    if (e.target.innerHTML.indexOf('Patient Name') > -1) {
-                        sortBy = 'patient_name';
-                    } else if (e.target.innerHTML.indexOf('Service Date') > -1) {
-                        sortBy = 'service_date';
-                    }
-                }
-                var uniquePayerName = $.unique(selectedPayerName);
-
-                if (existingBillingMethod === 'direct_billing') {
-                    if (uniquePayerName && uniquePayerName.length && uniquePayerName.length > 1) {
-                        self.printInvoiceClaim('direct_invoice', claimIds, sortBy)
-                        return;
-                    }
-                    else if (invoiceNo && invoiceNo[0] && invoiceNo[0].length > 0) {
-                        paperClaim.print('direct_invoice', claimIds, {
-                            sortBy: sortBy,
-                            invoiceNo: invoiceNo[0]
+                    if (existingBillingMethod === 'patient_payment') {
+                        paperClaim.print('patient_invoice', claimIds, {
+                            sortBy: 'patient_name'
                         });
                         return;
                     }
-                    else {
-                        paperClaim.print('direct_invoice', claimIds, {
-                            sortBy: sortBy,
-                            invoiceNo: invoiceNo[0]
-                        });
-                        return;
-                    }
-                }
-
-                if (existingBillingMethod === 'patient_payment') {
-                    paperClaim.print('patient_invoice', claimIds, {
-                        sortBy: 'patient_name'
-                    });
-                    return;
                 }
 
                 commonjs.showLoading();
@@ -644,10 +661,7 @@ define(['jquery',
                 jQuery.ajax({
                     url: url,
                     type: "POST",
-                    data: {
-                        claimIds: claimIds.toString(),
-                        userId: app.userID
-                    },
+                    data: data,
                     success: function (data, textStatus, jqXHR) {
                         commonjs.hideLoading();
                         if (isCanada) {
@@ -2041,7 +2055,7 @@ define(['jquery',
                     colModel: [
                         { name: '', index: 'id', key: true, hidden: true, search: false },
                         {
-                            name: 'file_name',
+                            name: 'uploaded_file_name',
                             search: false,
                             width: 100,
                             align: 'center'

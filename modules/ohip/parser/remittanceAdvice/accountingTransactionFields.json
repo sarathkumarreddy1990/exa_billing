@@ -26,7 +26,8 @@
     "transactionAmount": {
         "startPos": 15,
         "fieldLength": 8,
-        "padding": "0"
+        "padding": "0",
+        "format": "M"
     },
     "transactionAmountSign": {
         "startPos": 23,

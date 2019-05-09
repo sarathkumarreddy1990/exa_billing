@@ -54,7 +54,8 @@
     "totalAmountPayable": {
         "startPos": 60,
         "fieldLength": 9,
-        "padding": "0"
+        "padding": "0",
+        "format": "M"
     },
     "totalAmountPayableSign": {
         "startPos": 69,

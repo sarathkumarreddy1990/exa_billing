@@ -23,7 +23,7 @@ const ClaimHeader2Encoder = function(options) {
         // required: mandatory
         // field length: 12
         // format: alphanumeric
-        return util.formatAlphanumeric(claimData.registrationNumber, 12);
+        return util.formatAlphanumeric(claimData.registrationNumber, 12, ' ', true);
     };
 
     const getPatientLastName = (claimData) => {

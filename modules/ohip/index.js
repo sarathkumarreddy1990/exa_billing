@@ -47,6 +47,7 @@ const ClaimsEncoder = require('./encoder/claims');
 const mod10Check = require('./hcv/mod10Check');
 const Parser = require('./parser');
 const validateClaimsData = require('../../server/data/claim/claim-workbench');
+const claimWorkBenchController = require('../../server/controllers/claim/claim-workbench');
 const _ = require('lodash');
 
 
@@ -238,7 +239,6 @@ module.exports = function(billingApi) {
         });
     };
 
-
     /**
      * const createEncoderContext - description
      *
@@ -301,8 +301,11 @@ module.exports = function(billingApi) {
             let args = req.query;
             let params = req.body;
 
-            let claimIds = params.claimIds.split(',');
+            if (params.isAllClaims) {
+                params.claimIds = await claimWorkBenchController.getClaimsForEDI(params);
+            }
 
+            let claimIds = params.claimIds.split(',');
             let validationData = await validateClaimsData.validateEDIClaimCreation(claimIds);
             validationData = validationData && validationData.rows && validationData.rows.length && validationData.rows[0] || [];
 
@@ -520,17 +523,29 @@ module.exports = function(billingApi) {
         fileManagement: async (args, callback) => {
             const fileData = await billingApi.getFileManagementData(args);
 
+            const failers = [];
             const remittanceAdviceFileType = billingApi.getFileType({resourceType:REMITTANCE_ADVICE});
 
             for (let i = 0; i < fileData.rows.length; i++) {
                 if (fileData.rows[i].file_type === remittanceAdviceFileType) {
                     const loadFileData = await billingApi.loadFile({edi_files_id: fileData.rows[i].id});
-                    const parsedResponseFile = new Parser(loadFileData.uploaded_file_name).parse(loadFileData.data);
-                    fileData.rows[i].totalAmountPayable = parsedResponseFile.totalAmountPayable;
-                    fileData.rows[i].accountingTransactions = parsedResponseFile.accountingTransactions;
+                    if (loadFileData.data) {
+                        const parsedResponseFile = new Parser(loadFileData.uploaded_file_name).parse(loadFileData.data);
+                        fileData.rows[i].totalAmountPayable = parsedResponseFile.totalAmountPayable;
+                        fileData.rows[i].accountingTransactions = parsedResponseFile.accountingTransactions;
+                    }
+                    else {
+                        // TODO either attempt to self-heal or remove the file from the results
+                        // (removing from the results, for now)
+                        failers.push(i);
+                    }
                 } else {
                     fileData.rows[i].totalAmountPayable = null;
                 }
+            }
+
+            while (failers.length) {
+                fileData.rows.splice(failers.pop(), 1);
             }
 
             return callback(null, fileData);

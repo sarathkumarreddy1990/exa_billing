@@ -1180,15 +1180,18 @@ define(['jquery',
                                 self.patientAlerts = _defaultDetails.alerts;
                                 self.showAlertBadge();
                                 /* Patient Alert data Bind Ended */
-                                self.claim_dt_iso = commonjs.getConvertedFacilityTime(app.currentdate, '', 'L', app.facilityID);
+
+                                self.claim_dt_iso = modelDetails && commonjs.checkNotEmpty(modelDetails.study_dt)
+                                        ? commonjs.convertToFacilityTimeZone(self.facilityId, modelDetails.study_dt)
+                                        : commonjs.convertToFacilityTimeZone(app.facilityID, app.currentdate);
+                                self.studyDate = self.claim_dt_iso ? self.claim_dt_iso.format('L') : self.studyDate;
+                                $('#txtClaimDate').val(self.studyDate || '');
+                                self.claim_dt_iso = self.claim_dt_iso.format('YYYY-MM-DD LT z');
+
                                 _.each(modelDetails.charges, function (item) {
                                     var index = $('#tBodyCharge').find('tr').length;
                                     item.data_row_id = index;
                                     self.addLineItems(item, index, true);
-
-                                    self.claim_dt_iso = commonjs.checkNotEmpty(item.study_date)
-                                        ? commonjs.convertToFacilityTimeZone(item.facility_id, item.study_date).format('YYYY-MM-DD LT z')
-                                        : '';
 
                                     self.chargeModel.push({
                                         id: null,
@@ -3126,6 +3129,12 @@ define(['jquery',
                 if (!$('#ddlBillingProvider').val()) {
                     commonjs.showWarning("messages.warning.shared.selectbillingProvider");
                     $('#ddlBillingProvider').focus();
+                    return false;
+                }
+
+                if (!self.ACSelect.readPhy.contact_id && app.country_alpha_3_code === 'can') {
+                    commonjs.showWarning("messages.warning.shared.selectRenderingProvider");
+                    $('#ddlRenderingProvider').focus();
                     return false;
                 }
 
