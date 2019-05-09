@@ -1431,7 +1431,8 @@ define([
                                     $('#btnClaimsCompleteRefresh').click();
                                 commonjs.hideLoading();
                                 self.showGrid();
-                                $('#ddlStudyDefaultTab').append("<option value=" + response[0].id + ">" + filterName + "</option>");
+                                if (!$("#ddlStudyDefaultTab option[value='" + response[0].id + "']").length)
+                                    $('#ddlStudyDefaultTab').append("<option value=" + response[0].id + ">" + filterName + "</option>");
                                 if (window.appLayout && window.appLayout.refreshAppSettings)
                                     window.appLayout.refreshAppSettings();
                             }
