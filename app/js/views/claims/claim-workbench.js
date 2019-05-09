@@ -2055,15 +2055,15 @@ define(['jquery',
                     colModel: [
                         { name: '', index: 'id', key: true, hidden: true, search: false },
                         {
-                            name: 'uploaded_file_name',
+                            name: 'file_name',
                             search: false,
-                            width: 100,
+                            width: 150,
                             align: 'center'
                         },
                         {
                             name: 'file_type',
                             search: false,
-                            width: 100,
+                            width: 150,
                             formatter: function (value, model, data) {
                                 switch (data.file_type) {
                                     case 'can_ohip_p':
@@ -2083,7 +2083,7 @@ define(['jquery',
                         {
                             name: 'updated_date_time',
                             search: false,
-                            width: 200,
+                            width: 175,
                             formatter: function (value, model, data) {
                                 return commonjs.checkNotEmpty(value)
                                     ? commonjs.convertToFacilityTimeZone(app.facilityID, value).format('L LT z')
