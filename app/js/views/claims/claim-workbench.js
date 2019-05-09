@@ -2125,7 +2125,7 @@ define(['jquery',
                             width: 150,
                             formatter: function (value, model, data) {
                                 return (data.file_type === 'can_ohip_p')
-                                    ? '<button i18n="shared.buttons.apply" class="btn btn-primary btn-block btn-apply-file-management"></button>'
+                                    ? '<button i18n="shared.buttons.apply" class="btn btn-primary btn-block"></button>'
                                     : '';
                             },
                             customAction: function (rowID, e) {
@@ -2634,9 +2634,9 @@ define(['jquery',
                         edi_files_id: fileId
                     },
                     success: function (data, textStatus, jqXHR) {
-                        if(data.status)
+                        if(data.status) {
                             commonjs.handleXhrError(data, null)
-                        commonjs.hideDialog()
+                        }
                     },
                     error: function (err) {
                         commonjs.handleXhrError(err);
