@@ -669,6 +669,9 @@ define(['jquery',
                             }
 
                             commonjs.hideLoading();
+                        } else {
+                            commonjs.hideLoading();
+                            commonjs.showWarning('billing.era.claimNotExists');
                         }
                     },
                     error: function (model, response) {
