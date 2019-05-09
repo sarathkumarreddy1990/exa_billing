@@ -31,8 +31,10 @@
                             <option value i18n="shared.button.select"></option>
                             <option value="direct_invoice" i18n="setup.paperClaimTemplates.directingInvoice"></option>
                             <option value="patient_invoice" i18n="setup.paperClaimTemplates.patientInvoice"></option>
+                            <% if(countryCode !== 'can') {%>
                             <option value="paper_claim_full" i18n="setup.paperClaimTemplates.paperClaimFull" selected="selected"></option>
                             <option value="paper_claim_original" i18n="setup.paperClaimTemplates.paperClaimOrg"></option>
+                            <% }%>
                         </select>
                     </div>
                 </div>
