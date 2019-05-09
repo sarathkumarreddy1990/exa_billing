@@ -2041,12 +2041,23 @@ define(['jquery',
                     gridelementid: '#tblFileManagement',
                     custompager: self.fileManagementPager,
                     emptyMessage: i18n.get("messages.status.noRecordFound"),
-                    colNames: ["","File Name","File Type", "Submitted Date","Acknowledgement Received","Payment Received","","Total Amount Payable"],
+                    colNames: [
+                        "",
+                        "File Name",
+                        "File Type",
+                        "Submitted Date",
+                        "Status",
+                        "Acknowledgement Received",
+                        "Payment Received",
+                        "",
+                        "Total Amount Payable"
+                    ],
                     i18nNames: [
                         "",
                         "billing.claims.fileName",
                         "billing.claims.fileType",
                         "billing.claims.submittedDate",
+                        "patient.patient.status",
                         "billing.claims.acknowledgementReceived",
                         "billing.claims.paymentReceived",
                         "",
@@ -2088,6 +2099,37 @@ define(['jquery',
                                 return commonjs.checkNotEmpty(value)
                                     ? commonjs.convertToFacilityTimeZone(app.facilityID, value).format('L LT z')
                                     : '';
+                            }
+                        },
+                        {
+                            name: 'current_status',
+                            search: false,
+                            width: 100,
+                            formatter: function (value, model, data) {
+                                switch (data.file_type) {
+                                    case 'can_ohip_h':
+                                        switch (value) {
+                                            case 'in_progress': 
+                                                return i18n.get('billing.claims.uploaded');
+                                            case 'success':
+                                                return i18n.get('billing.claims.submitted');
+                                            case 'pending':
+                                            default:
+                                                return i18n.get('billing.claims.created');
+                                        }
+                                    case 'can_ohip_b':
+                                    case 'can_ohip_e':
+                                    case 'can_ohip_x':
+                                        return (value === 'success')
+                                            ? i18n.get('billing.claims.processed')
+                                            : i18n.get('billing.claims.downloaded');
+                                    case 'can_ohip_p':
+                                        return (value === 'success')
+                                            ? i18n.get('billing.claims.applied') 
+                                            : i18n.get('billing.claims.downloaded');
+                                    default:
+                                        return value;
+                                }
                             }
                         },
                         {
