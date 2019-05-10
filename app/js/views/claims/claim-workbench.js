@@ -2041,17 +2041,7 @@ define(['jquery',
                     gridelementid: '#tblFileManagement',
                     custompager: self.fileManagementPager,
                     emptyMessage: i18n.get("messages.status.noRecordFound"),
-                    colNames: [
-                        "",
-                        "File Name",
-                        "File Type",
-                        "Submitted Date",
-                        "Status",
-                        "Acknowledgement Received",
-                        "Payment Received",
-                        "",
-                        "Total Amount Payable"
-                    ],
+                    colNames: ["","File Name","File Type", "Submitted Date","Acknowledgement Received","Payment Received","File Status","","Total Amount Payable"],
                     i18nNames: [
                         "",
                         "billing.claims.fileName",
@@ -2060,6 +2050,7 @@ define(['jquery',
                         "patient.patient.status",
                         "billing.claims.acknowledgementReceived",
                         "billing.claims.paymentReceived",
+                        "File Status",
                         "",
                         "billing.claims.totalAmountPayable"
                     ],
@@ -2161,17 +2152,45 @@ define(['jquery',
                             }
                         },
                         {
+                            name: 'current_status',
+                            search: false,
+                            width: 100,
+                            align: 'center',
+                            formatter: function (value, model, data) {
+                                switch (data.current_status) {
+                                    case 'pending':
+                                        return 'Pending';
+                                    case 'in_progress':
+                                        return 'In Progress';
+                                    case 'success':
+                                        return 'Success';
+                                    case 'failure':
+                                        return 'Failure';
+                                    default:
+                                        return '';
+                                }
+                            }
+                        },
+                        {
                             name: 'apply_button',
                             search: false,
                             sortable: false,
                             width: 150,
                             formatter: function (value, model, data) {
-                                return (data.file_type === 'can_ohip_p')
-                                    ? '<button i18n="shared.buttons.apply" class="btn btn-primary btn-block"></button>'
-                                    : '';
+                                var button = '';
+
+                                if(data.file_type === 'can_ohip_p') {
+                                    button =  '<button i18n="shared.buttons.apply" class="btn btn-primary btn-block"></button>';
+                                }
+                                if (data.file_type === 'can_ohip_p' && data.current_status === 'success') {
+                                    button =  '<button i18n="shared.buttons.apply" class="btn btn-primary btn-block" disabled></button>';
+                                }
+
+                                return button;
                             },
-                            customAction: function (rowID, e) {
-                                self.applyFileManagement(rowID);
+                            customAction: function (rowID, e, data) {
+                                var rowData = data.getData(rowID);
+                                self.applyFileManagement(rowID, rowData.payment_id);
                             }
                         },
                         { name: 'total_amount_payable',
@@ -2668,20 +2687,31 @@ define(['jquery',
             },
 
 
-            applyFileManagement: function (fileId) {
+            applyFileManagement: function (fileId, paymentId) {
+
+                var $applyBtn = $('#tblFileManagement tr#'+ fileId).find('button');
+                $applyBtn.prop('disabled',true);
+
                 $.ajax({
                     url: "/exa_modules/billing/ohip/applyRemittanceAdvice",
                     type: "POST",
                     data: {
-                        edi_files_id: fileId
+                        edi_files_id: fileId,
+                        payment_id : paymentId && paymentId.length && paymentId[0] || null
                     },
                     success: function (data, textStatus, jqXHR) {
-                        if(data.status) {
-                            commonjs.handleXhrError(data, null)
+                        if(data.status === 'Error') {
+                            commonjs.handleXhrError(data.err, null);
+                            $applyBtn.prop('disabled', false);
+                        }
+                        else if(data.status === 'InProgress') {
+                            commonjs.showStatus(data.message);
+                            $applyBtn.prop('disabled', false);
                         }
                     },
                     error: function (err) {
                         commonjs.handleXhrError(err);
+                        $applyBtn.prop('disabled', false);
                     }
                 });
             },

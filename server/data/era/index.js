@@ -246,10 +246,12 @@ module.exports = {
                                 application_details.claim_index,
                                 application_details.claim_status,
                                 c.claim_status_id,
-                                c.patient_id
+                                c.patient_id,
+                                cs.code AS claim_payment_status
                             FROM
                                 application_details
                             INNER JOIN billing.claims c on c.id = application_details.claim_number
+                            LEFT JOIN billing.claim_status cs ON cs.id = c.claim_status_id
                             WHERE application_details.charge_id NOT IN ( SELECT id FROM billing.charges WHERE claim_id = application_details.claim_number )
                         )
                         ,matched_charges AS (
@@ -272,11 +274,13 @@ module.exports = {
                                 application_details.claim_index,
                                 application_details.claim_status,
                                 c.claim_status_id,
-                                c.patient_id
+                                c.patient_id,
+                                cs.code AS claim_payment_status
                             FROM
                                 application_details
                             INNER JOIN billing.claims c on c.id = application_details.claim_number
                             INNER JOIN billing.charges ch on ch.id = application_details.charge_id AND ch.claim_id = application_details.claim_number
+                            LEFT JOIN billing.claim_status cs ON cs.id = c.claim_status_id
                         )
                         ,final_claim_charges AS (
                             SELECT * FROM matched_charges
@@ -309,8 +313,8 @@ module.exports = {
                             INNER JOIN billing.charges ch on ch.id = fcc.charge_id
                             WHERE
                                 (   CASE
-                                    WHEN 'OHIP_EOB' = ${paymentDetails.isFrom}  THEN true
-                                    WHEN fcc.patient_lname != ''
+                                    WHEN 'OHIP_EOB' = ${paymentDetails.isFrom} AND fcc.claim_payment_status = 'PP' THEN true
+                                    WHEN fcc.patient_lname != '' AND 'EOB' = ${paymentDetails.isFrom}
                                     THEN lower(p.last_name) = lower(fcc.patient_lname)
                                         ELSE '0'
                                     END

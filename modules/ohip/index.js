@@ -9,7 +9,8 @@ const {
 
 const path = require('path');
 const logger = require('../../logger');
-
+const remittanceAdviceProcessor = path.join(__dirname,'/remittanceAdviceProcessor');
+const fork = require('child_process').fork;
 // this is the high-level business logic and algorithms for OHIP
 //  * use cases are defined here
 
@@ -606,16 +607,41 @@ module.exports = {
         }
     },
 
-    applyRemittanceAdvice: async (args, callback) => {
-        const f_c = await billingApi.loadFile(args);
-        if(f_c.data){
-            const parser = new Parser(f_c.uploaded_file_name)
-            f_c.ra_json = parser.parse(f_c.data);
-            let response =  await billingApi.handlePayment(f_c, args);
-            return callback(response)
-        }
-        callback(f_c)
-    },
+        applyRemittanceAdvice: async (args, callback) => {
+            const f_c = await billingApi.loadFile(args);
+            if(f_c.data){
+                const parser = new Parser(f_c.uploaded_file_name)
+                f_c.ra_json = parser.parse(f_c.data);
+
+                let remittanceAdviceFork = fork(remittanceAdviceProcessor);
+
+                remittanceAdviceFork.send({
+                    f_c,
+                    args
+                });
+
+                remittanceAdviceFork.on('error', e => {
+                    logger.info(`OHIP Parser ERROR: ${remittanceAdviceFork.pid}`, e);
+
+                    return callback({
+                        status:'Error',
+                        message : `OHIP Parser ERROR: ${remittanceAdviceFork.pid}`,
+                        err: e
+                    });
+                });
+
+                remittanceAdviceFork.on('exit', (response) => {
+                    remittanceAdviceFork = null;
+                });
+
+                remittanceAdviceFork.on('message', (response) => {
+                    return callback(response);
+                });
+
+            } else {
+                callback(f_c);
+            }
+        },
 
     conformanceTesting: async (args, callback) => {
         const {
