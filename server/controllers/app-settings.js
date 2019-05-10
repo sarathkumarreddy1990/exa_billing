@@ -16,6 +16,12 @@ module.exports = {
         let file_path = path.join(__dirname, '../../app/resx/countries.json');
         let countries = await readFileAsync(file_path, 'utf8');
         countries = JSON.parse(countries);
+        let usaInfo = countries.find(country => country.alpha_3_code === 'usa');
+
+        if (usaInfo) {
+            usaInfo.provinces = (response.rows[0].states && response.rows[0].states.length && response.rows[0].states[0].app_states).sort();
+        }
+
         response.rows[0].hotkeys = hotkeys;
         response.rows[0].countries = countries || [];
         return response;
