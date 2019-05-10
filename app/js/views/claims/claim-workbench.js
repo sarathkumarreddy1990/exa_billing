@@ -2194,11 +2194,11 @@ define(['jquery',
                                 var trColor = '';
                                 var retVal = '<table class="table table-bordered"><tbody><tr><td>';
                                 retVal += commonjs.geti18NString("billing.claims.totalAmountPayable");
-                                retVal +=  '</td><td>' + data.totalAmountPayable + '</td></tr>';
+                                retVal +=  '</td><td>$' + data.totalAmountPayable.toFixed(2) + '</td></tr>';
                                 for (var i = 0; i < data.accountingTransactions.length; i++) {
                                     trColor = getRowColor(data.accountingTransactions[i].transactionCode);
                                     retVal += '<tr class="' + trColor + '"><td>' + data.accountingTransactions[i].transactionMessage + '}</td>';
-                                    retVal += '<td>' + data.accountingTransactions[i].transactionAmount + '</td></tr>';
+                                    retVal += '<td>$' + data.accountingTransactions[i].transactionAmount.toFixed(2) + '</td></tr>';
                                 }
                                 retVal += '</tbody></table>';
                                 return retVal;
@@ -2211,8 +2211,8 @@ define(['jquery',
                     ],
                     datastore: self.fileManagementFiles,
                     container: $('#modal_div_container'),
-                    sortname: 'file_name',
-                    sortorder: 'ASC'
+                    sortname: 'updated_date_time',
+                    sortorder: 'DESC'
                 });
 
                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());
