@@ -2,7 +2,14 @@ const { query, SQL, audit } = require('./../index');
 const moment = require('moment');
 const sprintf = require('sprintf');
 
+const {
+    promisify,
+} = require('util');
+
 const fs = require('fs');
+const readDirAsync = promisify(fs.readdir);
+const writeFileAsync = promisify(fs.writeFile);
+
 const path = require('path');
 const crypto = require('crypto');
 const _ = require('lodash');
@@ -147,9 +154,11 @@ const storeFile =  async (args) => {
 
     const {
         createdDate,
-        filename,
+        filename: originalFilename,
         data,
         isTransient,
+        appendFileSequence,
+        fileSequenceOffset,
     } = args;
 
     const exaFileType = getFileType(args);
@@ -160,14 +169,35 @@ const storeFile =  async (args) => {
 
     const filestore =  await getFileStore(args);
     const filePath = path.join((filestore.is_default ? 'OHIP' : ''), getDatePath());
+    const dirPath = path.join(filestore.root_directory, filePath);
+
+    // Create dir if missing
+    mkdirp.sync(dirPath);
+
+    let filename = originalFilename;
+
+    if ( appendFileSequence ) {
+        try {
+            const filenames = await readDirAsync(dirPath);
+
+            const index = String(filenames.length + fileSequenceOffset);
+
+            // Use index as the final 4 chars (. + 3 numbers) in the filename
+            filename += `.${index.padStart(3, '0')}`;
+
+        }
+        catch ( e ) {
+            logger.logError(`Could not get file count for directory ${dirPath}`, e);
+        }
+
+    }
 
     const fileInfo = {
         file_store_id: filestore.id,
-        absolutePath: path.join(filestore.root_directory, filePath, filename),
+        absolutePath: path.join(dirPath, filename),
     };
 
-    mkdirp.sync(path.join(filestore.root_directory, filePath));
-    fs.writeFileSync(fileInfo.absolutePath, data, {encoding});
+    await writeFileAsync(fileInfo.absolutePath, data, {encoding});
 
     if (isTransient || !exaFileType) {
         // if we don't care about storing the file or the database
@@ -274,7 +304,8 @@ const loadFile = async (args) => {
             ef.uploaded_file_name as uploaded_file_name,
             fs.root_directory || '/' || file_path as full_path
         FROM
-            billing.edi_files ef INNER JOIN file_stores fs ON ef.file_store_id = fs.id
+            billing.edi_files ef 
+        INNER JOIN file_stores fs ON ef.file_store_id = fs.id
         WHERE
             ef.id = ${edi_files_id}
     `;

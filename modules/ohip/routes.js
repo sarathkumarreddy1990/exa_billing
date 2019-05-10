@@ -4,14 +4,12 @@ const logger = require('../../logger');
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const OHIPModule = require('./index');
+const ohip = require('./index');
 const claimWorkbenchController = require('../../server/controllers/claim/claim-workbench');
 const _ = require('lodash');
 const httpHandler = require('../../server/shared/http');
 
-module.exports = function (billingApi) {
-
-    const ohip = new OHIPModule(billingApi);
+module.exports = function () {
 
     router.get('/downloadAndProcessResponseFiles', (req, res) => {
         ohip.downloadAndProcessResponseFiles(req.query, (ohipErr, ohipResponse) => {
@@ -56,21 +54,18 @@ module.exports = function (billingApi) {
     });
 
     router.post('/applyRemittanceAdvice', (req, res) => {
-        const ohip = new OHIPModule(billingApi);
         ohip.applyRemittanceAdvice(req.body, (ohipResponse) => {
             return httpHandler.send(req, res, ohipResponse);
         });
     });
 
     router.get('/ct', (req, res) => {
-        const ohip = new OHIPModule(billingApi);
         ohip.conformanceTesting(req.query, (ohipErr, ohipResponse) => {
             return httpHandler.send(req, res, ohipErr || ohipResponse);
         });
     });
 
     router.post('/ct', (req, res) => {
-        const ohip = new OHIPModule(billingApi);
         ohip.conformanceTesting(req.body, (ohipErr, ohipResponse) => {
             return httpHandler.send(req, res, ohipErr || ohipResponse);
         });
