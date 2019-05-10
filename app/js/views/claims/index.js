@@ -4193,6 +4193,7 @@ define(['jquery',
                 self.primaryPatientInsuranceId = '';
                 self.secondaryPatientInsuranceId = '';
                 self.tertiaryPatientInsuranceId = '';
+                self.priInsCode = '';
 
                 $.each(flag, function (i) {
                     $('label[id="lbl' + flag[i] + 'InsPriAddr"]').text('');
