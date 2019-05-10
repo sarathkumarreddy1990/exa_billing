@@ -99,9 +99,9 @@ function bindHead(claimNo, data, columns, value) {
                     } else if (key === 'city') {
                         dataRow.push(
                             (data[i][value]['address2'] ? (data[i][value]['address2'] + "\n") : "") +
-                            (data[i][value][key] ? data[i][value][key] : '') + '  ' +
-                            (data[i][value]['state'] ? data[i][value]['state'] : "") + '  ' +
-                            (data[i][value]['zip_code'] ? +data[i][value]['zip_code'] : "")
+                            (data[i][value][key] ? data[i][value][key] : '') + 
+                            (data[i][value]['state'] ? '  ' + data[i][value]['state'] : "") + 
+                            (data[i][value]['zip_code'] ? '  ' +data[i][value]['zip_code'] : "")
                         );
                     } else if (key === 'facility_address1') {
                         dataRow.push(data[i]["facility_name"] ? data[i]["facility_name"] + '\n' + data[i][value][key] + ' \n' + (data[i][value]['facility_address2'] ? data[i][value]['facility_address2'] : "") : '');
