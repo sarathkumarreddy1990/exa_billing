@@ -3983,6 +3983,7 @@ define(['jquery',
                     var $target = $(e.target || e.srcElement).closest('.studyList').length
                     if (!$target && $(e.target || e.srcElement).attr('id') != 'btnClaimWStudy' && $(e.target || e.srcElement).attr('id') != 'btnClaimWOStudy') {
                         self.selectPatient(e);
+                        e.stopPropagation();
                     }
                 });
             },
