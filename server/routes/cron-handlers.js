@@ -4,9 +4,7 @@ const express = require('express');
 const router = express.Router();
 const logger = require('../../logger');
 
-const billingApi = require('../data/ohip');
-
-const ohip = require('../../modules/ohip')(billingApi);
+const ohip = require('../../modules/ohip');
 
 const restrictAccess = ( req, res, next ) => {
     const ipList = [
