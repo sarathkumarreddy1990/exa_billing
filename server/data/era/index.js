@@ -434,8 +434,7 @@ module.exports = {
         const sql = SQL`
                     WITH claim_payment AS (
                             SELECT
-                                DISTINCT ch.id AS charge_id
-                                ,ch.claim_id
+                                 ch.claim_id
                                 ,efp.payment_id
                                 ,pa.applied_dt
                             FROM
@@ -444,6 +443,7 @@ module.exports = {
                             INNER JOIN billing.payments AS p ON pa.payment_id  = p.id
                             INNER JOIN billing.edi_file_payments AS efp ON pa.payment_id = efp.payment_id
                             WHERE efp.edi_file_id = ${file_id}  AND mode = 'eft'
+                            GROUP BY ch.claim_id, efp.payment_id, pa.applied_dt
                             ORDER BY pa.applied_dt DESC
                     )
                     ,unapplied_charges AS (
