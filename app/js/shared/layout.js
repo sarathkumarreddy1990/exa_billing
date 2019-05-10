@@ -114,6 +114,9 @@ var layout = {
 
         commonjs.hideItem('diagnosis-count', '#aDiagnosisCountListItem');
         commonjs.hideItem('insurance-vs-lop', '#aInsuranceLOPListItem');
+        commonjs.hideItem('diagnosis-count', '#aDiagnosisCountDropDownItem');
+        commonjs.hideItem('insurance-vs-lop', '#aInsuranceLOPDropDownItem');
+
     },
 
     killView: function (viewObj) {
