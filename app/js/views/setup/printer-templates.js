@@ -195,7 +195,7 @@ define(['jquery',
                 var self = this;
                 this.templateToogleMode = true;
                 $('#divPaperClaimTemplatesForm').html(this.paperClaimTemplatesFormTemplate({
-                    countryCode: app.country_alpha_3_code
+                    country_alpha_3_code: app.country_alpha_3_code
                 }));
                 $('#divPaperClaimTemplatesGrid').hide();
                 $('#divPaperClaimTemplatesForm').show();
