@@ -2041,7 +2041,17 @@ define(['jquery',
                     gridelementid: '#tblFileManagement',
                     custompager: self.fileManagementPager,
                     emptyMessage: i18n.get("messages.status.noRecordFound"),
-                    colNames: ["","File Name","File Type", "Submitted Date","Acknowledgement Received","Payment Received","File Status","","Total Amount Payable"],
+                    colNames: [
+                        "",
+                        "File Name",
+                        "File Type",
+                        "Submitted Date",
+                        "Status",
+                        "Acknowledgement Received",
+                        "Payment Received",
+                        "",
+                        "Total Amount Payable"
+                    ],
                     i18nNames: [
                         "",
                         "billing.claims.fileName",
@@ -2050,7 +2060,6 @@ define(['jquery',
                         "patient.patient.status",
                         "billing.claims.acknowledgementReceived",
                         "billing.claims.paymentReceived",
-                        "File Status",
                         "",
                         "billing.claims.totalAmountPayable"
                     ],
@@ -2100,7 +2109,7 @@ define(['jquery',
                                 switch (data.file_type) {
                                     case 'can_ohip_h':
                                         switch (value) {
-                                            case 'in_progress': 
+                                            case 'in_progress':
                                                 return i18n.get('billing.claims.uploaded');
                                             case 'success':
                                                 return i18n.get('billing.claims.submitted');
@@ -2116,7 +2125,7 @@ define(['jquery',
                                             : i18n.get('billing.claims.downloaded');
                                     case 'can_ohip_p':
                                         return (value === 'success')
-                                            ? i18n.get('billing.claims.applied') 
+                                            ? i18n.get('billing.claims.applied')
                                             : i18n.get('billing.claims.downloaded');
                                     default:
                                         return value;
@@ -2149,26 +2158,6 @@ define(['jquery',
                             },
                             customAction: function (rowID, e) {
                                 return false;
-                            }
-                        },
-                        {
-                            name: 'current_status',
-                            search: false,
-                            width: 100,
-                            align: 'center',
-                            formatter: function (value, model, data) {
-                                switch (data.current_status) {
-                                    case 'pending':
-                                        return 'Pending';
-                                    case 'in_progress':
-                                        return 'In Progress';
-                                    case 'success':
-                                        return 'Success';
-                                    case 'failure':
-                                        return 'Failure';
-                                    default:
-                                        return '';
-                                }
                             }
                         },
                         {
