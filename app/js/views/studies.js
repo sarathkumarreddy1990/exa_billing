@@ -583,6 +583,7 @@ define(['jquery',
                             $('#tblGrid' + dataContainerValue).first().children().first().addClass('dg-body');
                             $uiJQHTableKids.first().height('40px');
                             $uiJQHTableKids.last().css('line-height', '2');
+                            $('#divStatusSearch').find('input[type=checkbox]:checked').prop('checked',false)
 
                            fastdom.measure(function () {
                                if ( this.getState('isScrolling') === true || this.getState('isMeasuring') === true ) {
@@ -1369,6 +1370,7 @@ define(['jquery',
                             filter.customGridTable.jqGrid('GridUnload');
                             commonjs.setFilter(null, null);
                             self.setTabContents(fid, isprior, isDicomSearch, isRisOrderSearch, showEncOnly);
+                            $('#divStatusSearch').find('input[type=checkbox]:checked').prop('checked',false)
                             commonjs.hideLoading();
                         }
                     },
