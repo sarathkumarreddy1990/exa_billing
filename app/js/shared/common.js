@@ -918,6 +918,7 @@ var commonjs = {
         options.modalDialogId = '#modalDialog';
         options.modalDivContainerId = '#modal_div_container';
         options.iframeContainerId = 'site_modal_iframe_container';
+        options.isNested = false;
 
         commonjs.showDefaultDialog(options);
         commonjs.initHideEvent(options);
@@ -930,6 +931,7 @@ var commonjs = {
         options.modalDialogId = '#modalDialogNested';
         options.modalDivContainerId = '#modal_div_container_nested';
         options.iframeContainerId = 'site_modal_iframe_container_nested';
+        options.isNested = true;
 
         commonjs.showDefaultDialog(options);
         commonjs.initHideEvent(options);
@@ -1134,8 +1136,11 @@ var commonjs = {
         $siteModal.modal('dispose');
         //commonjs.docResize();
 
-        //Report window close
-        this.closeReportWindow();
+        // Don't close report window if closing from nested modal
+        if ( !options.isNested ) {
+            //Report window close
+            this.closeReportWindow();
+        }
 
         //Patient Chart Window  close
         if (options.header !== "Patient Alerts")
