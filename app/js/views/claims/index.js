@@ -668,8 +668,10 @@ define(['jquery',
                                 }
                             }
 
-                            commonjs.hideLoading();
+                        } else {
+                            commonjs.showWarning('billing.era.claimNotExists');
                         }
+                        commonjs.hideLoading();
                     },
                     error: function (model, response) {
                         $('.claimProcess').attr('disabled', false);
