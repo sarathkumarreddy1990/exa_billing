@@ -624,7 +624,7 @@ module.exports = {
                 logger.info(`OHIP Payment process error: ${remittanceAdviceFork.pid}`, e);
 
                 return callback({
-                    status:'Error',
+                    status:'ERROR',
                     message : `OHIP Payment process error: ${remittanceAdviceFork.pid}`,
                     err: e
                 });

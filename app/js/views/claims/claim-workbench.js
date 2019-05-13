@@ -2681,10 +2681,10 @@ define(['jquery',
                         payment_id : paymentId && paymentId.length && paymentId[0] || null
                     },
                     success: function (data, textStatus, jqXHR) {
-                        if(data.status === 'Error') {
+                        if(data.status === 'ERROR') {
                             commonjs.handleXhrError(data.err, null);
                         }
-                        else if(data.status === 'InProgress') {
+                        else if(data.status === 'IN_PROGRESS') {
                             commonjs.showStatus(data.message);
                         }
                         $applyBtn.prop('disabled', false);

@@ -5,7 +5,7 @@
     const parseFile = async (req) => {
 
         process.send({
-            status:'InProgress',
+            status:'IN_PROGRESS',
             message : 'OHIP Payment in progress'
         });
 
