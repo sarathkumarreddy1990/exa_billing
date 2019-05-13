@@ -2683,12 +2683,11 @@ define(['jquery',
                     success: function (data, textStatus, jqXHR) {
                         if(data.status === 'Error') {
                             commonjs.handleXhrError(data.err, null);
-                            $applyBtn.prop('disabled', false);
                         }
                         else if(data.status === 'InProgress') {
                             commonjs.showStatus(data.message);
-                            $applyBtn.prop('disabled', false);
                         }
+                        $applyBtn.prop('disabled', false);
                     },
                     error: function (err) {
                         commonjs.handleXhrError(err);
