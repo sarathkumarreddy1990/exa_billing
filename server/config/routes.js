@@ -19,7 +19,6 @@ const patientRouter = require('../routes/patients');
 const studyFilterRouter = require('../routes/setup/study-filter');
 const eraRouter = require('../routes/era');
 const splitClaimRouter = require('../routes/claim/split-claim');
-const ohipDataAPI = require('./../data/ohip');
 const cronRoutes = require('../routes/cron-handlers');
 const router = function (app) {
 
@@ -31,7 +30,7 @@ const router = function (app) {
 
     app.use('/exa_modules/billing/studies', studiesRouter);
     app.use('/exa_modules/billing/reports', reportingRoutes);
-    app.use('/exa_modules/billing/ohip', new OHIPRoutes(ohipDataAPI));
+    app.use('/exa_modules/billing/ohip', new OHIPRoutes());
     app.use('/exa_modules/billing/study_filters', studyFiltersRouter);
     app.use('/exa_modules/billing/app_settings', appSettingsRouter);
     app.use('/exa_modules/billing/claim_filters', claimFiltersRouter);

@@ -52,6 +52,11 @@ define(['jquery',
                     { 'value': "paper_claim_original", 'text': "Paper Claim (RED)" }
 
                 ];
+                if (app.country_alpha_3_code === 'can') {
+                    this.templateType = _.reject(this.templateType, function (item) {
+                        return item.value == 'paper_claim_full' || item.value == 'paper_claim_original';
+                    })
+                }
                 this.paperClaimTemplatesList = new PaperClaimTemplatesCollections();
                 $(this.el).html(this.paperClaimTemplatesGridTemplate());
             },
@@ -189,7 +194,9 @@ define(['jquery',
             renderForm: function (id) {
                 var self = this;
                 this.templateToogleMode = true;
-                $('#divPaperClaimTemplatesForm').html(this.paperClaimTemplatesFormTemplate());
+                $('#divPaperClaimTemplatesForm').html(this.paperClaimTemplatesFormTemplate({
+                    country_alpha_3_code: app.country_alpha_3_code
+                }));
                 $('#divPaperClaimTemplatesGrid').hide();
                 $('#divPaperClaimTemplatesForm').show();
                 if (id > 0) {
@@ -247,6 +254,7 @@ define(['jquery',
                         }
                     ]
                 });
+                $('#ddlTemplateType option[value="patient_invoice"]').prop('selected', app.country_alpha_3_code === 'can');
                 commonjs.processPostRender();
             },
 

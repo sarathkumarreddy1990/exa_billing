@@ -1518,7 +1518,7 @@ define('grid', [
                             }
                         },
                         success: function (data, response) {
-
+                            var facilityTz = app.facilities.map(function (val) { return { 'id': val.id, 'value': val.time_zone } });
                             commonjs.prepareCsvWorker({
                                 data: data,
                                 reportName: 'CLAIMS',
@@ -1526,7 +1526,9 @@ define('grid', [
                                 filter_order: userSettings.field_order,
                                 filterType: userSettings.grid_name,
                                 columnHeader: colHeader,
-                                countryCode: app.country_alpha_3_code
+                                countryCode: app.country_alpha_3_code,
+                                facilities: facilityTz,
+                                companyTz: app.company.time_zone
                             }, {
                                     afterDownload: function () {
                                         $('#btnValidateExport').css('display', 'inline');

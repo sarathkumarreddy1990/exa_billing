@@ -55,13 +55,16 @@ const paymentsColumns = {
     "FACILITY": "facility_name",
 };
 
-const dateColumns = [
+const dateColumnsWithTimeZone = [
     'Claim Date',
     'PAYMENT DATE',
+    'Submitted Date',
+];
+
+const dateColumnsWithOutTimeZone = [
     'ACCOUNTING DATE',
     'Date Of Birth',
     'Follow-up Date',
-    'Submitted Date',
     'Date of Injury',
     'First Statement Date'
 ];
@@ -100,6 +103,8 @@ function generateCsvData(dbResponse, callback) {
     var dbData = typeof dbResponse.data != 'object' ? JSON.parse(dbResponse.data) : dbResponse.data;
     var countryCode = dbResponse.countryCode || '';
     var columnHeader = dbResponse.columnHeader;
+    var facilities = dbResponse.facilities;
+    var companyTz = dbResponse.companyTz;
 
     if (countryCode == 'can') {
         claimColumns["Payment ID"] = "payment_id";
@@ -144,11 +149,19 @@ function generateCsvData(dbResponse, callback) {
     }
 
     var csvSimplified = '"' + dbData.map(function (dbRow, rowIndex) {
-
+        var facilityTimeZone = [];
+        if (rowIndex) {
+            facilityTimeZone = _.where(facilities, { id: parseInt(dbRow.facility_id) });
+        }
         return columns.map(function (colName, colIndex) {
             var csvText = showLabel && rowIndex == 0 ? colName : dbRow[columnMap[colName]];
 
-            if (rowIndex && dateColumns.indexOf(colName) > -1) {
+            if (rowIndex && dateColumnsWithTimeZone.indexOf(colName) > -1 && csvText) {
+                    csvText = facilityTimeZone.length ? moment(csvText).tz(facilityTimeZone[0].value).format('L') : moment(csvText).tz(companyTz).format('L');
+            }
+            csvText = csvText || '';
+
+            if (rowIndex && dateColumnsWithOutTimeZone.indexOf(colName) > -1) {
                 csvText = csvText ? moment(csvText).format('L') : '';
             }
 

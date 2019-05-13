@@ -560,7 +560,7 @@ module.exports = {
         } = params;
 
         return await query(SQL`SELECT
-                                followup_date
+                                followup_date::text
                             FROM
                                 billing.claim_followups
                             WHERE claim_id = ${claim_id}

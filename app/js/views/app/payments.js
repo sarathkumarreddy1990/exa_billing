@@ -494,6 +494,7 @@ define(['jquery',
                 filterCol = JSON.stringify(self.pager.get("FilterCol"));
                 var searchFilterFlag = grid.getGridParam("postData")._search;
                 $('#btnGenerateExcel').prop('disabled', true);
+                var facilityTz = app.facilities.map(function (val) { return { 'id': val.id, 'value': val.time_zone } });
                 commonjs.showLoading();
                 $.ajax({
                     url: "/exa_modules/billing/payments/payments_list",
@@ -514,7 +515,9 @@ define(['jquery',
                             data: data,
                             reportName: 'PAYMENTS',
                             fileName: 'Payments',
-                            countryCode: app.country_alpha_3_code
+                            countryCode: app.country_alpha_3_code,
+                            facilities: facilityTz,
+                            companyTz: app.company.time_zone
                         }, {
                                 afterDownload: function () {
                                     $('#btnGenerateExcel').prop('disabled', false);

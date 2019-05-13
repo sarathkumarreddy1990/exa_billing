@@ -246,10 +246,12 @@ module.exports = {
                                 application_details.claim_index,
                                 application_details.claim_status,
                                 c.claim_status_id,
-                                c.patient_id
+                                c.patient_id,
+                                cs.code AS claim_payment_status
                             FROM
                                 application_details
                             INNER JOIN billing.claims c on c.id = application_details.claim_number
+                            LEFT JOIN billing.claim_status cs ON cs.id = c.claim_status_id
                             WHERE application_details.charge_id NOT IN ( SELECT id FROM billing.charges WHERE claim_id = application_details.claim_number )
                         )
                         ,matched_charges AS (
@@ -272,11 +274,13 @@ module.exports = {
                                 application_details.claim_index,
                                 application_details.claim_status,
                                 c.claim_status_id,
-                                c.patient_id
+                                c.patient_id,
+                                cs.code AS claim_payment_status
                             FROM
                                 application_details
                             INNER JOIN billing.claims c on c.id = application_details.claim_number
                             INNER JOIN billing.charges ch on ch.id = application_details.charge_id AND ch.claim_id = application_details.claim_number
+                            LEFT JOIN billing.claim_status cs ON cs.id = c.claim_status_id
                         )
                         ,final_claim_charges AS (
                             SELECT * FROM matched_charges
@@ -309,8 +313,8 @@ module.exports = {
                             INNER JOIN billing.charges ch on ch.id = fcc.charge_id
                             WHERE
                                 (   CASE
-                                    WHEN 'OHIP_EOB' = ${paymentDetails.isFrom}  THEN true
-                                    WHEN fcc.patient_lname != ''
+                                    WHEN 'OHIP_EOB' = ${paymentDetails.from} AND fcc.claim_payment_status = 'PP' THEN true
+                                    WHEN fcc.patient_lname != '' AND 'EOB' = ${paymentDetails.from}
                                     THEN lower(p.last_name) = lower(fcc.patient_lname)
                                         ELSE '0'
                                     END
@@ -336,7 +340,7 @@ module.exports = {
                                 amount = ( SELECT COALESCE(sum(payment),'0')::numeric FROM matched_claims ),
                                 notes =  notes || E'\n' || 'Amount received for matching orders : ' || ( SELECT COALESCE(sum(payment),'0')::numeric FROM matched_claims ) || E'\n\n' || ${paymentDetails.uploaded_file_name} || E'\n\n\n' || ${paymentDetails.messageText}
                             WHERE id = ${paymentDetails.id}
-                            AND ${paymentDetails.isFrom} IN ('EOB', 'OHIP_EOB')
+                            AND ${paymentDetails.from} IN ('EOB', 'OHIP_EOB')
                         )
                         ,insert_claim_comments AS (
                             INSERT INTO billing.claim_comments
@@ -370,7 +374,7 @@ module.exports = {
                             FROM
                                 matched_claims
                             WHERE
-                                ${paymentDetails.isFrom} NOT IN ('TOS_PAYMENT', 'OHIP_EOB')
+                                ${paymentDetails.from} NOT IN ('TOS_PAYMENT', 'OHIP_EOB')
                                 AND ('patient' != ${paymentDetails.payer_type} OR claim_status NOT IN ('PV','PS'))
                         )
                         ------------------------------------------------------------
@@ -395,7 +399,7 @@ module.exports = {
                             FROM matched_claims mc
                             INNER JOIN billing.get_claim_totals(mc.claim_id) claim_details ON TRUE
 			                WHERE billing.claims.id = mc.claim_id
-                                AND 'OHIP_EOB' = ${paymentDetails.isFrom}
+                                AND 'OHIP_EOB' = ${paymentDetails.from}
                             RETURNING id as claim_id
                         )
                         SELECT
@@ -434,8 +438,7 @@ module.exports = {
         const sql = SQL`
                     WITH claim_payment AS (
                             SELECT
-                                DISTINCT ch.id AS charge_id
-                                ,ch.claim_id
+                                 ch.claim_id
                                 ,efp.payment_id
                                 ,pa.applied_dt
                             FROM
@@ -444,6 +447,7 @@ module.exports = {
                             INNER JOIN billing.payments AS p ON pa.payment_id  = p.id
                             INNER JOIN billing.edi_file_payments AS efp ON pa.payment_id = efp.payment_id
                             WHERE efp.edi_file_id = ${file_id}  AND mode = 'eft'
+                            GROUP BY ch.claim_id, efp.payment_id, pa.applied_dt
                             ORDER BY pa.applied_dt DESC
                     )
                     ,unapplied_charges AS (

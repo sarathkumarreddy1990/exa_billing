@@ -668,8 +668,10 @@ define(['jquery',
                                 }
                             }
 
-                            commonjs.hideLoading();
+                        } else {
+                            commonjs.showWarning('billing.era.claimNotExists');
                         }
+                        commonjs.hideLoading();
                     },
                     error: function (model, response) {
                         $('.claimProcess').attr('disabled', false);
@@ -3983,6 +3985,7 @@ define(['jquery',
                     var $target = $(e.target || e.srcElement).closest('.studyList').length
                     if (!$target && $(e.target || e.srcElement).attr('id') != 'btnClaimWStudy' && $(e.target || e.srcElement).attr('id') != 'btnClaimWOStudy') {
                         self.selectPatient(e);
+                        e.stopPropagation();
                     }
                 });
             },
@@ -4192,6 +4195,7 @@ define(['jquery',
                 self.primaryPatientInsuranceId = '';
                 self.secondaryPatientInsuranceId = '';
                 self.tertiaryPatientInsuranceId = '';
+                self.priInsCode = '';
 
                 $.each(flag, function (i) {
                     $('label[id="lbl' + flag[i] + 'InsPriAddr"]').text('');

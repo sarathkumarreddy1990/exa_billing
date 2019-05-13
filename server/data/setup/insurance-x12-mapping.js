@@ -41,6 +41,9 @@ module.exports = {
                         LEFT JOIN billing.insurance_provider_details bip ON bip.insurance_provider_id  = ip.id
                         LEFT JOIN billing.edi_clearinghouses ch ON ch.id = bip.clearing_house_id `;
 
+        whereQuery.push('ip.deleted_dt IS NULL');
+        whereQuery.push('ip.is_active IS true');
+
         if (whereQuery.length) {
             sql.append(SQL` WHERE `)
                 .append(whereQuery.join(' AND '));

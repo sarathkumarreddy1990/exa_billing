@@ -2041,12 +2041,23 @@ define(['jquery',
                     gridelementid: '#tblFileManagement',
                     custompager: self.fileManagementPager,
                     emptyMessage: i18n.get("messages.status.noRecordFound"),
-                    colNames: ["","File Name","File Type", "Submitted Date","Acknowledgement Received","Payment Received","","Total Amount Payable"],
+                    colNames: [
+                        "",
+                        "File Name",
+                        "File Type",
+                        "Submitted Date",
+                        "Status",
+                        "Acknowledgement Received",
+                        "Payment Received",
+                        "",
+                        "Total Amount Payable"
+                    ],
                     i18nNames: [
                         "",
                         "billing.claims.fileName",
                         "billing.claims.fileType",
                         "billing.claims.submittedDate",
+                        "patient.patient.status",
                         "billing.claims.acknowledgementReceived",
                         "billing.claims.paymentReceived",
                         "",
@@ -2055,15 +2066,15 @@ define(['jquery',
                     colModel: [
                         { name: '', index: 'id', key: true, hidden: true, search: false },
                         {
-                            name: 'uploaded_file_name',
+                            name: 'file_name',
                             search: false,
-                            width: 100,
+                            width: 150,
                             align: 'center'
                         },
                         {
                             name: 'file_type',
                             search: false,
-                            width: 100,
+                            width: 150,
                             formatter: function (value, model, data) {
                                 switch (data.file_type) {
                                     case 'can_ohip_p':
@@ -2083,11 +2094,42 @@ define(['jquery',
                         {
                             name: 'updated_date_time',
                             search: false,
-                            width: 200,
+                            width: 175,
                             formatter: function (value, model, data) {
                                 return commonjs.checkNotEmpty(value)
                                     ? commonjs.convertToFacilityTimeZone(app.facilityID, value).format('L LT z')
                                     : '';
+                            }
+                        },
+                        {
+                            name: 'current_status',
+                            search: false,
+                            width: 100,
+                            formatter: function (value, model, data) {
+                                switch (data.file_type) {
+                                    case 'can_ohip_h':
+                                        switch (value) {
+                                            case 'in_progress':
+                                                return i18n.get('billing.claims.uploaded');
+                                            case 'success':
+                                                return i18n.get('billing.claims.submitted');
+                                            case 'pending':
+                                            default:
+                                                return i18n.get('billing.claims.created');
+                                        }
+                                    case 'can_ohip_b':
+                                    case 'can_ohip_e':
+                                    case 'can_ohip_x':
+                                        return (value === 'success')
+                                            ? i18n.get('billing.claims.processed')
+                                            : i18n.get('billing.claims.downloaded');
+                                    case 'can_ohip_p':
+                                        return (value === 'success')
+                                            ? i18n.get('billing.claims.applied')
+                                            : i18n.get('billing.claims.downloaded');
+                                    default:
+                                        return value;
+                                }
                             }
                         },
                         {
@@ -2124,12 +2166,12 @@ define(['jquery',
                             sortable: false,
                             width: 150,
                             formatter: function (value, model, data) {
-                                return (data.file_type === 'can_ohip_p')
-                                    ? '<button i18n="shared.buttons.apply" class="btn btn-primary btn-block btn-apply-file-management"></button>'
-                                    : '';
+                                var disableStatus = data.current_status === 'success' ? "disabled" : "";
+                                return data.file_type === 'can_ohip_p' ? '<button i18n="shared.buttons.apply" class="btn btn-primary btn-block" ' + disableStatus + '/>' : '';
                             },
-                            customAction: function (rowID, e) {
-                                self.applyFileManagement(rowID);
+                            customAction: function (rowID, e, data) {
+                                var rowData = data.getData(rowID);
+                                self.applyFileManagement(rowID, rowData.payment_id);
                             }
                         },
                         { name: 'total_amount_payable',
@@ -2152,11 +2194,11 @@ define(['jquery',
                                 var trColor = '';
                                 var retVal = '<table class="table table-bordered"><tbody><tr><td>';
                                 retVal += commonjs.geti18NString("billing.claims.totalAmountPayable");
-                                retVal +=  '</td><td>' + data.totalAmountPayable + '</td></tr>';
+                                retVal +=  '</td><td>$' + data.totalAmountPayable.toFixed(2) + '</td></tr>';
                                 for (var i = 0; i < data.accountingTransactions.length; i++) {
                                     trColor = getRowColor(data.accountingTransactions[i].transactionCode);
                                     retVal += '<tr class="' + trColor + '"><td>' + data.accountingTransactions[i].transactionMessage + '}</td>';
-                                    retVal += '<td>' + data.accountingTransactions[i].transactionAmount + '</td></tr>';
+                                    retVal += '<td>$' + data.accountingTransactions[i].transactionAmount.toFixed(2) + '</td></tr>';
                                 }
                                 retVal += '</tbody></table>';
                                 return retVal;
@@ -2169,8 +2211,8 @@ define(['jquery',
                     ],
                     datastore: self.fileManagementFiles,
                     container: $('#modal_div_container'),
-                    sortname: 'file_name',
-                    sortorder: 'ASC'
+                    sortname: 'updated_date_time',
+                    sortorder: 'DESC'
                 });
 
                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());
@@ -2626,20 +2668,30 @@ define(['jquery',
             },
 
 
-            applyFileManagement: function (fileId) {
+            applyFileManagement: function (fileId, paymentId) {
+
+                var $applyBtn = $('#tblFileManagement tr#'+ fileId).find('button');
+                $applyBtn.prop('disabled',true);
+
                 $.ajax({
                     url: "/exa_modules/billing/ohip/applyRemittanceAdvice",
                     type: "POST",
                     data: {
-                        edi_files_id: fileId
+                        edi_files_id: fileId,
+                        payment_id : paymentId && paymentId.length && paymentId[0] || null
                     },
                     success: function (data, textStatus, jqXHR) {
-                        if(data.status)
-                            commonjs.handleXhrError(data, null)
-                        commonjs.hideDialog()
+                        if(data.status === 'ERROR') {
+                            commonjs.handleXhrError(data.err, null);
+                        }
+                        else if(data.status === 'IN_PROGRESS') {
+                            commonjs.showStatus(data.message);
+                        }
+                        $applyBtn.prop('disabled', false);
                     },
                     error: function (err) {
                         commonjs.handleXhrError(err);
+                        $applyBtn.prop('disabled', false);
                     }
                 });
             },
