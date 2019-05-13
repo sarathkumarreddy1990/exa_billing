@@ -25,7 +25,7 @@ module.exports = {
             params.insurance_provider_id = default_payer.rows[0].insurance_provider_id;
 
             let paymentDetails = await self.createPayment(payment_data, params);
-            paymentDetails.isFrom = 'OHIP_EOB';
+
             params.created_by = params.userId || 0;
             params.company_id = params.companyId || 0;
             let lineItemsAndClaimLists = await self.getOHIPLineItemsAndClaims(payment_data.ra_json, params);
@@ -149,41 +149,43 @@ module.exports = {
     },
 
     createPayment: async function (f_data, params) {
-        let paymentResult;
-        let payerDetails = {};
+
+        let paymentResult = {};
+        let result = {};
+        let ohipPaymentResults = {};
         let eraObject = f_data.ra_json;
         let totalAmountPayable = eraObject.totalAmountPayable ? Math.round(eraObject.totalAmountPayable * 100) / 10000 : 0.00;
         let notes = 'Amount shown in EOB:$' + totalAmountPayable;
-        payerDetails.paymentId = null;
-        payerDetails.company_id = params.company_id || 1;
-        payerDetails.user_id = params.user_id || 1;
-        payerDetails.facility_id = params.facility_id || 1;
-        payerDetails.created_by = params.created_by || 1;
-        payerDetails.patient_id = null;
-        payerDetails.insurance_provider_id = params.insurance_provider_id;  // ToDo:: params from UI
-        payerDetails.provider_group_id = null;
-        payerDetails.provider_contact_id = null;
-        payerDetails.payment_reason_id = null;
-        payerDetails.amount = 0;
-        payerDetails.accounting_date = eraObject.paymentDate || 'now()';
-        payerDetails.invoice_no = '';
-        payerDetails.display_id = null;  // alternate_payment_id
-        payerDetails.payer_type = 'insurance';
-        payerDetails.notes = notes;
-        payerDetails.payment_mode = 'eft';
-        payerDetails.credit_card_name = null;
-        payerDetails.credit_card_number = eraObject.chequeNumber || null; // card_number
-        payerDetails.clientIp = params.clientIp;
-        payerDetails.screenName = params.screenName;
-        payerDetails.moduleName = params.moduleName;
-
-        payerDetails.logDescription = 'Payment created via ERA';
-        payerDetails.isERAPayment = true;
-        payerDetails.file_id = params.edi_files_id || 0; // ToDo:: uploaded ERA file id
+        let payerDetails = {
+            amount       : 0,
+            notes        : notes,
+            user_id      : params.user_id || 1,
+            file_id      : params.edi_files_id || 0,
+            clientIp     : params.clientIp,
+            payer_type   : 'insurance',
+            paymentId    : params.payment_id || null,
+            company_id   : params.company_id || 1,
+            patient_id   : null,
+            invoice_no   : '',
+            display_id   : null,  // alternate_payment_id
+            created_by   : params.created_by || 1,
+            screenName   : params.screenName,
+            moduleName   : params.moduleName,
+            facility_id  : params.facility_id || 1,
+            isERAPayment : true,
+            payment_mode : 'eft',
+            credit_card_name    : null,
+            provider_group_id   : null,
+            provider_contact_id : null,
+            payment_reason_id   : null,
+            logDescription      : 'Payment created via ERA',
+            accounting_date     : eraObject.paymentDate || 'now()',
+            credit_card_number  : eraObject.chequeNumber || null,
+            insurance_provider_id : params.insurance_provider_id,
+        };
 
         try {
-            paymentResult = await paymentController.createOrUpdatePayment(payerDetails);
-            paymentResult = paymentResult && paymentResult.rows && paymentResult.rows.length ? paymentResult.rows[0] : {};
+
             paymentResult.file_id =  payerDetails.file_id; // imported ERA file id
             paymentResult.created_by = payerDetails.created_by;
             paymentResult.company_id = payerDetails.company_id;
@@ -191,14 +193,27 @@ module.exports = {
             paymentResult.payer_type = payerDetails.payer_type;
             paymentResult.messageText = eraObject.messageText || '';
             paymentResult.code = 'ERA';
-            await data.createEdiPayment(paymentResult);
+            paymentResult.from = 'OHIP_EOB';
+
+            if(params.payment_id === '' || !params.payment_id ) {
+                result = await paymentController.createOrUpdatePayment(payerDetails);
+                result = result && result.rows && result.rows.length ? result.rows[0] : {};
+
+                ohipPaymentResults = {
+                    ...paymentResult,
+                    ...result
+                };
+
+                await data.createEdiPayment(ohipPaymentResults);
+            }
+
+            return ohipPaymentResults;
 
         } catch (err) {
 
             throw err;
         }
 
-        return paymentResult;
     }
 
 };

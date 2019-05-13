@@ -2109,7 +2109,7 @@ define(['jquery',
                                 switch (data.file_type) {
                                     case 'can_ohip_h':
                                         switch (value) {
-                                            case 'in_progress': 
+                                            case 'in_progress':
                                                 return i18n.get('billing.claims.uploaded');
                                             case 'success':
                                                 return i18n.get('billing.claims.submitted');
@@ -2125,7 +2125,7 @@ define(['jquery',
                                             : i18n.get('billing.claims.downloaded');
                                     case 'can_ohip_p':
                                         return (value === 'success')
-                                            ? i18n.get('billing.claims.applied') 
+                                            ? i18n.get('billing.claims.applied')
                                             : i18n.get('billing.claims.downloaded');
                                     default:
                                         return value;
@@ -2166,12 +2166,12 @@ define(['jquery',
                             sortable: false,
                             width: 150,
                             formatter: function (value, model, data) {
-                                return (data.file_type === 'can_ohip_p')
-                                    ? '<button i18n="shared.buttons.apply" class="btn btn-primary btn-block"></button>'
-                                    : '';
+                                var disableStatus = data.current_status === 'success' ? "disabled" : "";
+                                return data.file_type === 'can_ohip_p' ? '<button i18n="shared.buttons.apply" class="btn btn-primary btn-block" ' + disableStatus + '/>' : '';
                             },
-                            customAction: function (rowID, e) {
-                                self.applyFileManagement(rowID);
+                            customAction: function (rowID, e, data) {
+                                var rowData = data.getData(rowID);
+                                self.applyFileManagement(rowID, rowData.payment_id);
                             }
                         },
                         { name: 'total_amount_payable',
@@ -2668,20 +2668,30 @@ define(['jquery',
             },
 
 
-            applyFileManagement: function (fileId) {
+            applyFileManagement: function (fileId, paymentId) {
+
+                var $applyBtn = $('#tblFileManagement tr#'+ fileId).find('button');
+                $applyBtn.prop('disabled',true);
+
                 $.ajax({
                     url: "/exa_modules/billing/ohip/applyRemittanceAdvice",
                     type: "POST",
                     data: {
-                        edi_files_id: fileId
+                        edi_files_id: fileId,
+                        payment_id : paymentId && paymentId.length && paymentId[0] || null
                     },
                     success: function (data, textStatus, jqXHR) {
-                        if(data.status) {
-                            commonjs.handleXhrError(data, null)
+                        if(data.status === 'ERROR') {
+                            commonjs.handleXhrError(data.err, null);
                         }
+                        else if(data.status === 'IN_PROGRESS') {
+                            commonjs.showStatus(data.message);
+                        }
+                        $applyBtn.prop('disabled', false);
                     },
                     error: function (err) {
                         commonjs.handleXhrError(err);
+                        $applyBtn.prop('disabled', false);
                     }
                 });
             },
