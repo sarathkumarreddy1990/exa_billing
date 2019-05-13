@@ -160,7 +160,6 @@ module.exports = function(options) {
                     const providerSpecialtyFiles = reduce(claimsBySpecialtyCode, (specialtyResult, specialtyClaims, specialtyCode) => {
 
                         context.specialtyCode = specialtyCode;
-                        console.log('specialtyClaims.length: ', specialtyClaims.length);
 
                         // batch all the claims for this billing number / license number combo
 
@@ -168,13 +167,11 @@ module.exports = function(options) {
                         // example (when claimsPerBatch == 2):
                         // specialtyBatches = [[claim1, claim2], [claim3, claim4], [claim5, claim6], [claim7, claim8], ...]
                         const specialtyBatches = chunk(specialtyClaims, claimsPerBatch || CLAIMS_PER_BATCH_MAX);
-                        console.log('specialtyBatches.length: ', specialtyBatches.length);
 
                         // fileChunks is an array of all files (arrays of arrays of claims) for this specialty
                         // example (when batchesPerFile == 3):
                         // fileChunks = [[[claim1, claim2], [claim3, claim4], [claim5, claim6]], [[claim7, claim8], ...], ...]
                         const fileChunks = chunk(specialtyBatches, batchesPerFile || BATCHES_PER_FILE_MAX);
-                        console.log('fileChunks.length: ', fileChunks.length);
 
                         // reset batchSequenceNumber
                         context.batchSequenceNumber = batchSequenceNumberStart;
