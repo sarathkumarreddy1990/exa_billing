@@ -313,8 +313,8 @@ module.exports = {
                             INNER JOIN billing.charges ch on ch.id = fcc.charge_id
                             WHERE
                                 (   CASE
-                                    WHEN 'OHIP_EOB' = ${paymentDetails.isFrom} AND fcc.claim_payment_status = 'PP' THEN true
-                                    WHEN fcc.patient_lname != '' AND 'EOB' = ${paymentDetails.isFrom}
+                                    WHEN 'OHIP_EOB' = ${paymentDetails.from} AND fcc.claim_payment_status = 'PP' THEN true
+                                    WHEN fcc.patient_lname != '' AND 'EOB' = ${paymentDetails.from}
                                     THEN lower(p.last_name) = lower(fcc.patient_lname)
                                         ELSE '0'
                                     END
@@ -340,7 +340,7 @@ module.exports = {
                                 amount = ( SELECT COALESCE(sum(payment),'0')::numeric FROM matched_claims ),
                                 notes =  notes || E'\n' || 'Amount received for matching orders : ' || ( SELECT COALESCE(sum(payment),'0')::numeric FROM matched_claims ) || E'\n\n' || ${paymentDetails.uploaded_file_name} || E'\n\n\n' || ${paymentDetails.messageText}
                             WHERE id = ${paymentDetails.id}
-                            AND ${paymentDetails.isFrom} IN ('EOB', 'OHIP_EOB')
+                            AND ${paymentDetails.from} IN ('EOB', 'OHIP_EOB')
                         )
                         ,insert_claim_comments AS (
                             INSERT INTO billing.claim_comments
@@ -374,7 +374,7 @@ module.exports = {
                             FROM
                                 matched_claims
                             WHERE
-                                ${paymentDetails.isFrom} NOT IN ('TOS_PAYMENT', 'OHIP_EOB')
+                                ${paymentDetails.from} NOT IN ('TOS_PAYMENT', 'OHIP_EOB')
                                 AND ('patient' != ${paymentDetails.payer_type} OR claim_status NOT IN ('PV','PS'))
                         )
                         ------------------------------------------------------------
@@ -399,7 +399,7 @@ module.exports = {
                             FROM matched_claims mc
                             INNER JOIN billing.get_claim_totals(mc.claim_id) claim_details ON TRUE
 			                WHERE billing.claims.id = mc.claim_id
-                                AND 'OHIP_EOB' = ${paymentDetails.isFrom}
+                                AND 'OHIP_EOB' = ${paymentDetails.from}
                             RETURNING id as claim_id
                         )
                         SELECT

@@ -193,13 +193,14 @@ module.exports = {
             paymentResult.payer_type = payerDetails.payer_type;
             paymentResult.messageText = eraObject.messageText || '';
             paymentResult.code = 'ERA';
-            paymentResult.isFrom = 'OHIP_EOB';
+            paymentResult.from = 'OHIP_EOB';
 
             if(params.payment_id === '' || !params.payment_id ) {
                 result = await paymentController.createOrUpdatePayment(payerDetails);
                 result = result && result.rows && result.rows.length ? result.rows[0] : {};
 
-                ohipPaymentResults = {...paymentResult,
+                ohipPaymentResults = {
+                    ...paymentResult,
                     ...result
                 };
 

@@ -2166,16 +2166,8 @@ define(['jquery',
                             sortable: false,
                             width: 150,
                             formatter: function (value, model, data) {
-                                var button = '';
-
-                                if(data.file_type === 'can_ohip_p') {
-                                    button =  '<button i18n="shared.buttons.apply" class="btn btn-primary btn-block"></button>';
-                                }
-                                if (data.file_type === 'can_ohip_p' && data.current_status === 'success') {
-                                    button =  '<button i18n="shared.buttons.apply" class="btn btn-primary btn-block" disabled></button>';
-                                }
-
-                                return button;
+                                var disableStatus = data.current_status === 'success' ? "disabled" : "";
+                                return data.file_type === 'can_ohip_p' ? '<button i18n="shared.buttons.apply" class="btn btn-primary btn-block" ' + disableStatus + '/>' : '';
                             },
                             customAction: function (rowID, e, data) {
                                 var rowData = data.getData(rowID);

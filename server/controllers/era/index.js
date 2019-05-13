@@ -409,7 +409,7 @@ module.exports = {
         let lineItemsAndClaimLists = await eraParser.getFormatedLineItemsAndClaims(claimLists, params);
 
         paymentDetails.code = 'ERA';
-        paymentDetails.isFrom = 'EOB';
+        paymentDetails.from = 'EOB';
 
         let processedClaims = await data.createPaymentApplication(lineItemsAndClaimLists, paymentDetails);
 

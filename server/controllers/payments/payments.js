@@ -311,7 +311,7 @@ module.exports = {
         params.claimComments = [];
         params.audit_details = auditDetails;
         paymentDetails.id = params.paymentId;
-        paymentDetails.isFrom = params.from === 'tos_payment' ? 'TOS_PAYMENT' : 'PAYMENT';
+        paymentDetails.from = params.from === 'tos_payment' ? 'TOS_PAYMENT' : 'PAYMENT';
         paymentDetails.created_by = parseInt(params.userId);
         paymentDetails.company_id = parseInt(params.companyId);
         paymentDetails.uploaded_file_name = ''; // Assign empty for ERA argument

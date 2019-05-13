@@ -9,16 +9,20 @@
             message : 'OHIP Payment in progress'
         });
 
-        const config = require('../../server/config/index');
+        logger.info(`Initializing configuration file for OHIP payment process`);
 
+        const config = require('../../server/config/index');
         await config.initialize();
 
+        logger.info(`OHIP payment process started (${process.pid})`);
+
         const era_parser = require('./../../server/data/ohip/ohip-era-parser');
-
-
         let processedClaims = await era_parser.processOHIPEraFile(req.f_c, req.args);
 
+        logger.info(`OHIP payment process ended (${process.pid})`);
+
         if (!processedClaims) {
+            logger.info(`OHIP process exit (${process.pid})`);
             process.exit(0);
         }
     };
