@@ -10,8 +10,7 @@ const summaryQueryTemplate = _.template(`
 WITH chargeReport AS (
     SELECT
         get_full_name(p.last_name, p.first_name,p.middle_name, p.prefix_name, p.suffix_name) AS patient_name,
-        SUM(bill_fee*units) AS total_charge,
-        SUM(allowed_amount*units) AS total_contract
+        SUM(bill_fee*units) AS total_charge
     FROM
         billing.charges bch
     INNER JOIN billing.claims bc on bc.id = bch.claim_id
@@ -30,8 +29,7 @@ WITH chargeReport AS (
   )
   SELECT
         COALESCE(patient_name, 'Grand Total')     AS "Patient Name",
-        total_charge  AS "Total Charge",
-        total_contract AS "Total Contract"
+        total_charge  AS "Total Charge"
   FROM
      chargeReport cc
         `);
@@ -66,7 +64,6 @@ const detailQueryTemplate = _.template(`
     <% } %>
 
     , (bch.bill_fee*bch.units)								AS "Charge"
-	, (bch.allowed_amount*bch.units)						AS "Contract"
 
 FROM billing.charges bch
 INNER JOIN billing.claims bc on bc.id = bch.claim_id
