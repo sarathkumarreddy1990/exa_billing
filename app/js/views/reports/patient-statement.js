@@ -85,7 +85,7 @@ define([
                     width: '200px'
                 });
 
-                this.viewModel.fromDate = commonjs.bindDateTimePicker("txtFromDate", { format: this.viewModel.dateFormat });
+                this.viewModel.fromDate = commonjs.bindDateTimePicker("txtFromDate", { format: 'L' });
                 this.viewModel.fromDate.date(commonjs.getFacilityCurrentDateTime(app.facilityID));
 
                 $('#ddlFacilityFilter').multiselect({
