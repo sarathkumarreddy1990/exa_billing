@@ -24,15 +24,15 @@ module.exports = {
             ,inactivated_dt = ${inactivated_dt}
         WHERE id = ${args.id}
         AND NOT EXISTS (
-            SELECT 
+            SELECT
                 1
             FROM billing.grid_filters
-            WHERE filter_name = ${args.filterName} 
-            AND filter_type = ${args.filterType} 
-            AND id !=  ${args.id} 
+            WHERE filter_name = ${args.filterName}
+            AND filter_type = ${args.filterType}
+            AND id !=  ${args.id}
             LIMIT 1
         ) RETURNING *,
-        (SELECT 
+        (SELECT
             row_to_json(old_row)
          FROM (SELECT * FROM   billing.grid_filters
          WHERE id = ${args.id}) old_row) old_values
