@@ -921,8 +921,10 @@ define([
                         }
                     });
                 }
-                else
+                else {
                     this.model = new studyFiltersModel();
+                    self.changeDateTimeStdFilter();
+                }
                 commonjs.validateControls();
                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
             },
@@ -1759,8 +1761,6 @@ define([
                     $('#txtFilterOrder').val('');
                     $('#chkDisplayAsTab').prop('checked', false);
                     $('#chkDisplayAsDDL').prop('checked', true);
-                    $('#rbtStudyDate').prop('checked', true);
-                    $('#rbtPreformatted').prop('checked', true);
                 }
 
                 $('#txtLastTime').val('');
@@ -1833,10 +1833,8 @@ define([
                 $('#listClaimInfo option').remove();
                 $('#listBalance').val('');
 
-                this.enableDateFrom();
-                this.enableLastNext();
-                this.enablePreformatted();
                 this.uncheckRadioButtons();
+                this.changeDateTimeStdFilter();
                 this.setupLists();
 
                 $('#ulListStudyDescriptions').empty();
@@ -1850,8 +1848,9 @@ define([
             uncheckRadioButtons: function () {
                 var $inputs = $("#studyFiltersForm").find('input');
                 var $radioButtons = $inputs.filter('[type=radio]');
-                $radioButtons.filter('[class="clearField"]').prop('checked', false)
-                $radioButtons.filter('[id=rbtStudyDate]').prop('checked',true);
+                $radioButtons.filter('.clearField').prop('checked', false);
+                $radioButtons.filter('#rbtStudyDate').prop('checked', true);
+                $radioButtons.filter('#rbtPreformatted').prop('checked', true);
                 $inputs.filter('[name=LastChangedByMe]').prop('checked', false);
             },
 
