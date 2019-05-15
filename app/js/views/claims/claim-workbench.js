@@ -2068,7 +2068,7 @@ define(['jquery',
                         "billing.claims.totalAmountPayable"
                     ],
                     colModel: [
-                        { name: '', index: 'id', key: true, search: false, width: 50 },
+                        { name: '', index: 'id', key: true, search: false, width: 25 },
                         {
                             name: 'file_name',
                             search: false,
