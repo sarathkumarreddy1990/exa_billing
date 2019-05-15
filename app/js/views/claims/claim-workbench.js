@@ -1402,17 +1402,23 @@ define(['jquery',
                 self.datePickerCleared = false // to bind the date by default(three months) -- EXA-11340
 
                 if (filterID) {
-
+                    
                     if (filterID === "Files") {
+                        self.fileManagementPager = new Pager();
                         self.showFileManagementGrid({
-                            pager: new Pager(),
+                            pager: self.fileManagementPager,
                             files: new FileManagementCollection(),
-                            tableId: '#tblClaimGrid' + filterID
+                            tableElementId: '#tblClaimGrid' + filterID
+                        });
+
+                        self.setFooter({
+                            pager: self.fileManagementPager,
+                            options: { filterid: filterID }
                         });
 
                         return;
                     }
-                    
+
                     var filter = commonjs.loadedStudyFilters.get(filterID);
                     commonjs.currentStudyFilter = filterID;
 
@@ -2042,7 +2048,7 @@ define(['jquery',
 
                 self.fileManagementTable = new customGrid();
                 self.fileManagementTable.render({
-                    gridelementid: options.tableId,
+                    gridelementid: options.tableElementId,
                     custompager: options.pager,
                     emptyMessage: i18n.get("messages.status.noRecordFound"),
                     colNames: [
@@ -2220,7 +2226,9 @@ define(['jquery',
                     disablepaging: false,
                     disablesort: false,
                     disablesearch: false
-                });
+                });             
+
+                commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());
             },
 
             initEbsListResults: function(dataset) {
