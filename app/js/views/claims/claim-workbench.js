@@ -18,7 +18,6 @@ define(['jquery',
     'text!templates/claims/invoice-claim.html',
     'text!templates/claims/edi-warning.html',
     'collections/app/file-management',
-    'text!templates/app/file-management.html',
     'text!templates/app/ebs-list.html',
     'text!templates/app/ebs-upload.html',
     'text!templates/app/ebs-update.html',
@@ -51,7 +50,6 @@ define(['jquery',
               invoiceClaim,
               ediWarning,
               FileManagementCollection,
-              FileManagementHTML,
               EDTListHTML,
               EBSUploadHTML,
               EBSUpdateHTML,
@@ -257,7 +255,6 @@ define(['jquery',
                 "click #btnValidateExport": "exportExcel",
                 "click #btnClaimsRefresh": "refreshClaims",
                 "click #btnClaimsCompleteRefresh": "completeRefresh",
-                "click #btnFileManagement": "showFileManagement",
                 "click #btnEdtEbs": "showEDTConformanceTesting",
                 "click #btnHcvEbs": "showHCVConformanceTesting",
 
@@ -314,7 +311,6 @@ define(['jquery',
 
             render: function (queryString) {
                 var self = this;
-                self.fileManagementTemplate = _.template(FileManagementHTML);
                 self.hcvFormTemplate = _.template(EbsHcvFormHTML);
                 self.hcvRequestTemplate = _.template(EbsHcvRequestHTML);
 
@@ -2174,7 +2170,7 @@ define(['jquery',
                             width: 150,
                             formatter: function (value, model, data) {
                                 var disableStatus = data.current_status === 'success' ? "disabled" : "";
-                                return data.file_type === 'can_ohip_p' ? '<button i18n="shared.buttons.apply" class="btn btn-primary btn-block" ' + disableStatus + '/>' : '';
+                                return data.file_type === 'can_ohip_p' ? '<button i18n="shared.buttons.apply" id="file' + data.id + '" class="btn btn-primary btn-block" ' + disableStatus + '/>' : '';
                             },
                             customAction: function (rowID, e, data) {
                                 var rowData = data.getData(rowID);
@@ -2678,7 +2674,7 @@ define(['jquery',
 
             applyFileManagement: function (fileId, paymentId) {
 
-                var $applyBtn = $('#tblFileManagement tr#'+ fileId).find('button');
+                var $applyBtn = $('#file'+ fileId);
                 $applyBtn.prop('disabled',true);
 
                 $.ajax({
