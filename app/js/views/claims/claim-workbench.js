@@ -363,7 +363,22 @@ define(['jquery',
                             i18n_name: "shared.fields.allClaims",
                             filter_order: 0,
                             id: "All_Claims"
-                        })
+                        });
+                        
+                        if (app.country_alpha_3_code === "can") {
+                            claimsFilters.push({
+                                assigned_users: null,
+                                display_as_tab: true,
+                                display_in_ddl: true,
+                                filter_id: "Files",
+                                filter_info: null,
+                                filter_name: commonjs.geti18NString("billing.claims.files"),
+                                i18n_name: "billing.claims.files",
+                                filter_order: 0,
+                                id: "Files"
+                            });
+                        }
+
                         claimsFilters.push({
                             assigned_users: null,
                             display_as_tab: true,
@@ -1389,7 +1404,19 @@ define(['jquery',
             setTabContents: function (filterID, isPrior, isDicomSearch, isRisOrderSearch, showEncOnly) {
                 var self = this;
                 self.datePickerCleared = false // to bind the date by default(three months) -- EXA-11340
+
                 if (filterID) {
+
+                    if (filterID === "Files") {
+                        self.showFileManagementGrid({
+                            pager: new Pager(),
+                            files: new FileManagementCollection(),
+                            tableId: '#tblClaimGrid' + filterID
+                        });
+
+                        return;
+                    }
+                    
                     var filter = commonjs.loadedStudyFilters.get(filterID);
                     commonjs.currentStudyFilter = filterID;
 
@@ -2014,32 +2041,13 @@ define(['jquery',
 
             },
 
-            showFileManagement: function (e) {
+            showFileManagementGrid: function (options) {
                 var self = this;
 
-                self.fileManagementFiles = new FileManagementCollection();
-                self.fileManagementPager = new Pager();
-
-                commonjs.showDialog({
-                    header: 'File Managmenet',
-                    i18nHeader: 'billing.claims.fileManagement',
-                    width: '90%',
-                    height: '80%',
-                    html: self.fileManagementTemplate()
-                });
-
-                setTimeout(function() {
-                    self.showFileManagementGrid();
-                }, 150);
-            },
-
-            showFileManagementGrid: function () {
-                var self = this;
-
-                self.fileManagementTable = new customGrid(self.fileManagementFiles.rows, '#tblFileManagement');
+                self.fileManagementTable = new customGrid();
                 self.fileManagementTable.render({
-                    gridelementid: '#tblFileManagement',
-                    custompager: self.fileManagementPager,
+                    gridelementid: options.tableId,
+                    custompager: options.pager,
                     emptyMessage: i18n.get("messages.status.noRecordFound"),
                     colNames: [
                         "",
@@ -2064,12 +2072,11 @@ define(['jquery',
                         "billing.claims.totalAmountPayable"
                     ],
                     colModel: [
-                        { name: '', index: 'id', key: true, hidden: true, search: false },
+                        { name: '', index: 'id', key: true, search: false, width: 50 },
                         {
                             name: 'file_name',
                             search: false,
-                            width: 150,
-                            align: 'center'
+                            width: 150
                         },
                         {
                             name: 'file_type',
@@ -2209,14 +2216,15 @@ define(['jquery',
                             }
                         }
                     ],
-                    datastore: self.fileManagementFiles,
-                    container: $('#modal_div_container'),
-                    sortname: 'updated_date_time',
-                    sortorder: 'DESC'
+                    datastore: options.files,
+                    container: self.el,
+                    pager: '#gridPagerFileManagement',
+                    sortname: 'id',
+                    sortorder: 'DESC',
+                    disablepaging: false,
+                    disablesort: false,
+                    disablesearch: false
                 });
-
-                commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());
-
             },
 
             initEbsListResults: function(dataset) {
