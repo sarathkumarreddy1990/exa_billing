@@ -4802,9 +4802,11 @@ define(['jquery',
                         }
                     })
 
-                    self.dtpAccountingDate.push(dtp);
-                    self.dtpAccountingDate[obj.row_index - 1].isModified = false;
-                    obj.accounting_date ? self.dtpAccountingDate[index].date(obj.accounting_date) : self.dtpAccountingDate[index].clear();
+                    if (dtp) {
+                        self.dtpAccountingDate.push(dtp);
+                        self.dtpAccountingDate[obj.row_index - 1].isModified = false;
+                        obj.accounting_date ? self.dtpAccountingDate[index].date(obj.accounting_date) : self.dtpAccountingDate[index].clear();
+                    }
                     obj.data_row_id = obj.row_index;
 
                     if (responsibleIndex > -1) {
