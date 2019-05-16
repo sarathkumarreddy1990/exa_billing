@@ -7,6 +7,9 @@ const { staticAssetsRoot } = require('../shared/constants');
 
 router.get('/', function (req, res) {
     let currentTheme = 'default';
+    const countryCode = req.session && req.session.country_alpha_3_code
+        ? req.session.country_alpha_3_code
+        : 'usa';
 
     if (req.session && req.session.currentTheme && ['default', 'dark'].indexOf(req.session.currentTheme) > -1) {
         currentTheme = req.session.currentTheme;
@@ -15,6 +18,7 @@ router.get('/', function (req, res) {
     res.render('index', {
         title: 'EXA-Billing',
         cssPath: staticAssetsRoot + '/skins/' + currentTheme,
+        countryCode: countryCode,
         staticAssetsRoot
     });
 });

@@ -344,10 +344,22 @@ define([
                                 if (!commonjs.checkNotEmpty(faxReceiverNumber))
                                     return commonjs.showWarning(commonjs.geti18NString("messages.status.faxNumberInvalid"));
 
-                                self.faxReport({ claimID: faxClaimId, patientId: self.options.patient_id, documentName: 'Other Report', faxReceiverNumber: faxReceiverNumber, faxReceiverName: faxReceiverName }, faxUrl, function () {
-                                    commonjs.showStatus("messages.status.faxQueued");
-                                    self.saveClaimComment(0, 'Paper claim (B&W) fax sent to ' + faxReceiverName + ' (' + faxReceiverNumber + ')', 'auto');
-                                    self.clearFaxInfo();
+                                // Getting Study id for selected claim
+                                commonjs.getClaimStudy(faxClaimId, function (result) {
+
+                                    self.faxReport({
+                                        claimID: faxClaimId,
+                                        study_id: result && result.study_id || 0,
+                                        order_id: result && result.order_id || 0,
+                                        patientId: self.options.patient_id,
+                                        documentName: 'Other Report',
+                                        faxReceiverNumber: faxReceiverNumber,
+                                        faxReceiverName: faxReceiverName
+                                    }, faxUrl, function () {
+                                        commonjs.showStatus("messages.status.faxQueued");
+                                        self.saveClaimComment(0, 'Paper claim (B&W) fax sent to ' + faxReceiverName + ' (' + faxReceiverNumber + ')', 'auto');
+                                        self.clearFaxInfo();
+                                    });
                                 });
                             });
 
@@ -1127,7 +1139,13 @@ define([
                         if (!commonjs.checkNotEmpty(faxRecipientNumber))
                             return commonjs.showWarning('messages.status.faxNumberInvalid');
 
-                        self.faxReport(patientActivityParams, reportURL);
+                        // Getting Study id for selected claim
+                        commonjs.getClaimStudy(claimId, function (result) {
+                            patientActivityParams.study_id = result && result.study_id || 0;
+                            patientActivityParams.order_id = result && result.order_id || 0;
+                            self.faxReport(patientActivityParams, reportURL);
+                        });
+
                         commonjs.showStatus("messages.status.faxQueued");
                         $('#txtOtherFaxName').val('');
                         $('#txtOtherFaxNumber').val('');
@@ -1210,7 +1228,9 @@ define([
                         reportUrl: reportUrl,
                         patientId: patientActivityParams.patientId,
                         claimId: patientActivityParams.claimID,
-                        documentName: patientActivityParams.documentName || 'Patient Activity'
+                        documentName: patientActivityParams.documentName || 'Patient Activity',
+                        study_id: patientActivityParams.study_id,
+                        order_id: patientActivityParams.order_id
                     },
                     success: function (data, response) {
                         if (cb)
