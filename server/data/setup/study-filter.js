@@ -27,7 +27,7 @@ module.exports = {
             SELECT
                 1
             FROM billing.grid_filters
-            WHERE filter_name = ${args.filterName}
+            WHERE filter_name ILIKE ${args.filterName}
             AND filter_type = ${args.filterType}
             AND id !=  ${args.id}
             LIMIT 1
@@ -64,7 +64,7 @@ module.exports = {
                     SELECT
                       1
                     FROM billing.grid_filters
-                    WHERE filter_name = ${args.filterName}
+                    WHERE filter_name ILIKE ${args.filterName}
                     AND filter_type = ${args.filterType}
                     LIMIT 1
                 ) AND NOT EXISTS(SELECT * FROM update_grid_filter)
