@@ -17,14 +17,13 @@
         logger.info(`OHIP payment process started (${process.pid})`);
 
         const eraParser = require('./../../server/data/ohip/ohip-era-parser');
-        let processedClaims = await eraParser.processOHIPEraFile(req.f_c, req.args);
+        await eraParser.processOHIPEraFile(req.f_c, req.args);
 
         logger.info(`OHIP payment process ended (${process.pid})`);
 
-        if (!processedClaims) {
-            logger.info(`OHIP process exit (${process.pid})`);
-            process.exit(0);
-        }
+        logger.info(`OHIP process exit (${process.pid})`);
+        process.exit(0);
+
     };
 
     process.on('message', parseFile);
