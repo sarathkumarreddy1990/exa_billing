@@ -17,6 +17,14 @@ module.exports = {
         return sprintf('%8.8s', (value || '').split('-').join(''));
     },
 
+
+    formatTime: (value) => {
+        if (value instanceof Date) {
+            return sprintf("%2.2s%'02.2s%'02.2s", value.getHours(), value.getMinutes(), value.getSeconds());
+        }
+        return sprintf('%6.6s', (value || '').split(':').join(''));
+    },
+
     /**
      * formatAlphanumeric - Converts the specified value to a string containing
      * only uppercase characters and digits.

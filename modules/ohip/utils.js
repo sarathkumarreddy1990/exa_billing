@@ -1,3 +1,5 @@
+const path = require('path');
+
 const {
     getFileType,
 } = require('./parser/utils');
@@ -33,6 +35,11 @@ module.exports = {
 
     getResourceDescription: (filename) => {
         return resourceDescriptions[getResourceType(filename)];
+    },
+
+    // shameless wrapper, but it removes dependence upon path module from some clients
+    getResourceFilename: (absolutePath) => {
+        return path.basename(absolutePath);
     },
 
     /**

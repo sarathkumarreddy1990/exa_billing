@@ -5,11 +5,17 @@ const fs = require('fs');
 const {
     formatDate,
     formatAlphanumeric,
+    formatTime,
 } = require('../encoder/util');
+const {
+    getMonthCode,
+    getResourceFilename,
+} = require('./../utils');
 
 const logger = require('../../../logger');
 
 const remittanceAdviceEncoder = require('./remittanceAdviceEncoder');
+const rejectMessageEncoder = require('./nerf/rejectMessageEncoder');
 
 const {
     services: {
@@ -35,10 +41,15 @@ const {
 
 const _ = require('lodash');
 
+
+// matches service codes beginning with 'X' -- used to determine if an entire Claims File should be rejected or not
+const rejectionFlagMatcher = /X[0-9]{3}[A-Z]/;
+
+// matches service codes beginning with 'E' -- used to determine if a claim (within a batch) should be rejected or not
+const correctionFlagMatcher = /E[0-9]{3}[A-Z]/;
+
+
 const batchEditTemplate = _.template(`HB1V0300001000000<%=batchId%>J207315781257822HCP/WCBBGAA170332<%=numClaims%><%=numRecords%><%=batchProcessDate%>     ***  BATCH TOTALS  ***`);
-const rejectMessageTemplate = _.template(
-``
-);
 
 
 const errorReportTemplate = _.template(`
@@ -58,7 +69,11 @@ const getClaimFileStats = (resource) => {
     const claimFileData = fs.readFileSync(resource.filename, 'ascii');
     const claimFileRecords = claimFileData.split('\r');
 
-    const batchFile = claimFileRecords.reduce((results, record, index) => {
+    let shouldRejectSubmission = false;
+    let recordImage = null;
+    let groupNumber = null;
+
+    const batches = claimFileRecords.reduce((results, record, index) => {
         if (/^HEBV03/.test(record)) {
             const batch = {
                 batchId: record.substr(7, 12),  // for Batch Edit reports
@@ -70,7 +85,8 @@ const getClaimFileStats = (resource) => {
             if (!index) {
                 // the recordImage of a Reject Message corresponds to the
                 // first 37 characters of the first record of a claims file
-                batch.recordImage = record.substr(0, 37);
+                recordImage = record.substr(0, 37);
+                groupNumber = recordImage.substr(25, 4);
             }
             results.push(batch);
         }
@@ -96,9 +112,24 @@ const getClaimFileStats = (resource) => {
         }
 
         else if (/^HET/.test(record)) {
+
             const currentBatch = results[results.length - 1];
-            currentBatch.claims[currentBatch.claims.length - 1].items.push({
-                serviceCode: record.substr(3, 5),
+            const currentClaim = currentBatch.claims[currentBatch.claims.length - 1];
+
+            // determine if this Claims File was intended to be corrected, if
+            // the Claim itself should be rejected, or neither
+            const serviceCode = record.substr(3, 5);
+            if (rejectionFlagMatcher.test(serviceCode)) {
+                console.log(`\n\n****NERF**** rejection flag set (${serviceCode})`);
+                shouldRejectSubmission = true;
+            }
+            else if (correctionFlagMatcher.test(serviceCode)) {
+                console.log(`\n\n****NERF**** correction flag set (${serviceCode})`);
+                currentClaim.shouldRejectClaim = true;
+            }
+
+            currentClaim.items.push({
+                serviceCode,
                 feeSubmitted: record.substr(10, 6),
                 numberOfServices: record.substr(16, 2),
                 serviceDate: record.substr(18, 8),
@@ -119,7 +150,13 @@ const getClaimFileStats = (resource) => {
         return results;
     }, []);
 
-    return batchFile;
+    return {
+        batches,
+        recordImage,
+        groupNumber,
+        shouldRejectSubmission,
+        totalRecordLength: claimFileRecords.length,
+    };
 };
 
 
@@ -144,17 +181,22 @@ const getServiceParams = (ctx, serviceName) => {
 
 
 let nextResourceID = 60000;
+let nextBatchEditSequenceNumber = 0;
 const resources = [];
 
 const OHIPretendo = {
 
     [EDT_UPLOAD]: ({filename, description, resourceType}) => {
+        const uploadDate = new Date();
         const resource = {
             resourceID: nextResourceID++,
             status: 'UPLOADED',
             filename,
             description,
             resourceType,
+
+            createTimestamp: uploadDate,
+            modifyTimestamp: uploadDate,
         }
         resources.push(resource);
         return resource;
@@ -165,43 +207,64 @@ const OHIPretendo = {
     },
 
     [EDT_SUBMIT]: (resourceID) => {
+        const processDate = new Date();
         const resource = resources.find((r) => {
             return parseInt(resourceID) === r.resourceID;
         });
+        resources.modifyTimestamp = processDate;
         resource.status = 'SUBMITTED';
 
         resource.claimFileStats = getClaimFileStats(resource);
-        const batchEditReports = resource.claimFileStats.forEach((batch) => {
-            resources.push({
-                resourceID: nextResourceID,
-                status: 'DOWNLOADABLE',
-                content: batchEditTemplate({
-                    batchId: batch.batchId,
-                    numClaims: formatAlphanumeric(batch.numClaims, 5, '0'),
-                    numRecords: formatAlphanumeric(batch.numRecords, 6, '0'),
-                    batchProcessDate: formatDate(new Date()),
-                }),
-                description: `BE${nextResourceID}.000`,
-                resourceType: 'BE',
-                createTimestamp: new Date(),
-                modifyTimestamp: new Date(),
 
-            });
-            nextResourceID++;
-
-        });
-
-        // console.log('RESOURCES: ', resources);
-        remittanceAdviceEncoder(resources).forEach((remittanceAdvice) => {
+        if (resource.claimFileStats.shouldRejectSubmission) {
             resources.push({
                 resourceID: nextResourceID++,
                 status: 'DOWNLOADABLE',
-                ...remittanceAdvice,
-                resourceType: 'RA',
-                createTimestamp: new Date(),
-                modifyTimestamp: new Date(),
+                content: rejectMessageEncoder({
+                    recordImage: resource.claimFileStats.recordImage,
+                    providerFileName: getResourceFilename(resource.filename),
+                    mailFileDate: formatDate(resource.createTimestamp),
+                    mailFileTime: formatTime(resource.createTimestamp),
+
+                }),
+                description: `X${getMonthCode(processDate)}${resource.claimFileStats.groupNumber}.${formatAlphanumeric(nextBatchEditSequenceNumber++, 3, '0')}`,
+                resourceType: 'MR',
+                createTimestamp: processDate,
+                modifyTimestamp: processDate,
             });
-        });
+        }
+        else {
+            const batchEditReports = resource.claimFileStats.batches.forEach((batch) => {
+                // console.log('NERF processing claimFileStats batch: ', batch);
+                resources.push({
+                    resourceID: nextResourceID++,
+                    status: 'DOWNLOADABLE',
+                    content: batchEditTemplate({
+                        batchId: batch.batchId,
+                        numClaims: formatAlphanumeric(batch.numClaims, 5, '0'),
+                        numRecords: formatAlphanumeric(batch.numRecords, 6, '0'),
+                        batchProcessDate: formatDate(new Date()),
+                    }),
+                    description: `B${getMonthCode(processDate)}${batch.groupNumber}.${formatAlphanumeric(nextBatchEditSequenceNumber++, 3, '0')}`,
+                    resourceType: 'BE',
+                    createTimestamp: new Date(),
+                    modifyTimestamp: new Date(),
+                });
+            });
+
+            // console.log('RESOURCES: ', resources);
+            remittanceAdviceEncoder(resources).forEach((remittanceAdvice) => {
+                resources.push({
+                    resourceID: nextResourceID++,
+                    status: 'DOWNLOADABLE',
+                    ...remittanceAdvice,
+                    resourceType: 'RA',
+                    createTimestamp: new Date(),
+                    modifyTimestamp: new Date(),
+                });
+            });
+
+        }
 
         return resource;
     },
