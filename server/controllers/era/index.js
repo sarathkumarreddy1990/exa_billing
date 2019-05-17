@@ -386,6 +386,7 @@ module.exports = {
             paymentResult.company_id = payerDetails.company_id;
             paymentResult.uploaded_file_name = params.uploaded_file_name;
             paymentResult.payer_type = payerDetails.payer_type;
+            paymentResult.messageText = ''; // this column only for ohip payment.
             await data.createEdiPayment(paymentResult);
 
             return paymentResult;

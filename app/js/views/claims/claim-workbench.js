@@ -18,7 +18,6 @@ define(['jquery',
     'text!templates/claims/invoice-claim.html',
     'text!templates/claims/edi-warning.html',
     'collections/app/file-management',
-    'text!templates/app/file-management.html',
     'text!templates/app/ebs-list.html',
     'text!templates/app/ebs-upload.html',
     'text!templates/app/ebs-update.html',
@@ -51,7 +50,6 @@ define(['jquery',
               invoiceClaim,
               ediWarning,
               FileManagementCollection,
-              FileManagementHTML,
               EDTListHTML,
               EBSUploadHTML,
               EBSUpdateHTML,
@@ -257,7 +255,6 @@ define(['jquery',
                 "click #btnValidateExport": "exportExcel",
                 "click #btnClaimsRefresh": "refreshClaims",
                 "click #btnClaimsCompleteRefresh": "completeRefresh",
-                "click #btnFileManagement": "showFileManagement",
                 "click #btnEdtEbs": "showEDTConformanceTesting",
                 "click #btnHcvEbs": "showHCVConformanceTesting",
 
@@ -314,7 +311,6 @@ define(['jquery',
 
             render: function (queryString) {
                 var self = this;
-                self.fileManagementTemplate = _.template(FileManagementHTML);
                 self.hcvFormTemplate = _.template(EbsHcvFormHTML);
                 self.hcvRequestTemplate = _.template(EbsHcvRequestHTML);
 
@@ -363,7 +359,22 @@ define(['jquery',
                             i18n_name: "shared.fields.allClaims",
                             filter_order: 0,
                             id: "All_Claims"
-                        })
+                        });
+                        
+                        if (app.country_alpha_3_code === "can") {
+                            claimsFilters.push({
+                                assigned_users: null,
+                                display_as_tab: true,
+                                display_in_ddl: true,
+                                filter_id: "Files",
+                                filter_info: null,
+                                filter_name: commonjs.geti18NString("billing.claims.files"),
+                                i18n_name: "billing.claims.files",
+                                filter_order: 0,
+                                id: "Files"
+                            });
+                        }
+
                         claimsFilters.push({
                             assigned_users: null,
                             display_as_tab: true,
@@ -1389,7 +1400,25 @@ define(['jquery',
             setTabContents: function (filterID, isPrior, isDicomSearch, isRisOrderSearch, showEncOnly) {
                 var self = this;
                 self.datePickerCleared = false // to bind the date by default(three months) -- EXA-11340
+
                 if (filterID) {
+                    
+                    if (filterID === "Files") {
+                        self.fileManagementPager = new Pager();
+                        self.showFileManagementGrid({
+                            pager: self.fileManagementPager,
+                            files: new FileManagementCollection(),
+                            tableElementId: '#tblClaimGrid' + filterID
+                        });
+
+                        self.setFooter({
+                            pager: self.fileManagementPager,
+                            options: { filterid: filterID }
+                        });
+
+                        return;
+                    }
+
                     var filter = commonjs.loadedStudyFilters.get(filterID);
                     commonjs.currentStudyFilter = filterID;
 
@@ -2014,32 +2043,13 @@ define(['jquery',
 
             },
 
-            showFileManagement: function (e) {
+            showFileManagementGrid: function (options) {
                 var self = this;
 
-                self.fileManagementFiles = new FileManagementCollection();
-                self.fileManagementPager = new Pager();
-
-                commonjs.showDialog({
-                    header: 'File Managmenet',
-                    i18nHeader: 'billing.claims.fileManagement',
-                    width: '90%',
-                    height: '80%',
-                    html: self.fileManagementTemplate()
-                });
-
-                setTimeout(function() {
-                    self.showFileManagementGrid();
-                }, 150);
-            },
-
-            showFileManagementGrid: function () {
-                var self = this;
-
-                self.fileManagementTable = new customGrid(self.fileManagementFiles.rows, '#tblFileManagement');
+                self.fileManagementTable = new customGrid();
                 self.fileManagementTable.render({
-                    gridelementid: '#tblFileManagement',
-                    custompager: self.fileManagementPager,
+                    gridelementid: options.tableElementId,
+                    custompager: options.pager,
                     emptyMessage: i18n.get("messages.status.noRecordFound"),
                     colNames: [
                         "",
@@ -2064,12 +2074,11 @@ define(['jquery',
                         "billing.claims.totalAmountPayable"
                     ],
                     colModel: [
-                        { name: '', index: 'id', key: true, hidden: true, search: false },
+                        { name: '', index: 'id', key: true, search: false, width: 25 },
                         {
                             name: 'file_name',
                             search: false,
-                            width: 150,
-                            align: 'center'
+                            width: 150
                         },
                         {
                             name: 'file_type',
@@ -2167,7 +2176,7 @@ define(['jquery',
                             width: 150,
                             formatter: function (value, model, data) {
                                 var disableStatus = data.current_status === 'success' ? "disabled" : "";
-                                return data.file_type === 'can_ohip_p' ? '<button i18n="shared.buttons.apply" class="btn btn-primary btn-block" ' + disableStatus + '/>' : '';
+                                return data.file_type === 'can_ohip_p' ? '<button i18n="shared.buttons.apply" id="file' + data.id + '" class="btn btn-primary btn-block" ' + disableStatus + '/>' : '';
                             },
                             customAction: function (rowID, e, data) {
                                 var rowData = data.getData(rowID);
@@ -2209,14 +2218,17 @@ define(['jquery',
                             }
                         }
                     ],
-                    datastore: self.fileManagementFiles,
-                    container: $('#modal_div_container'),
-                    sortname: 'updated_date_time',
-                    sortorder: 'DESC'
-                });
+                    datastore: options.files,
+                    container: self.el,
+                    pager: '#gridPagerFileManagement',
+                    sortname: 'id',
+                    sortorder: 'DESC',
+                    disablepaging: false,
+                    disablesort: false,
+                    disablesearch: false
+                });             
 
                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());
-
             },
 
             initEbsListResults: function(dataset) {
@@ -2670,7 +2682,7 @@ define(['jquery',
 
             applyFileManagement: function (fileId, paymentId) {
 
-                var $applyBtn = $('#tblFileManagement tr#'+ fileId).find('button');
+                var $applyBtn = $('#file'+ fileId);
                 $applyBtn.prop('disabled',true);
 
                 $.ajax({

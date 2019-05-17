@@ -159,6 +159,7 @@ const storeFile =  async (args) => {
         isTransient,
         appendFileSequence,
         fileSequenceOffset,
+        resource_id,
     } = args;
 
     const exaFileType = getFileType(args);
@@ -219,7 +220,8 @@ const storeFile =  async (args) => {
             file_path,
             file_size,
             file_md5,
-            uploaded_file_name
+            uploaded_file_name,
+            resource_no
         )
         VALUES(
             1
@@ -231,6 +233,7 @@ const storeFile =  async (args) => {
             ,${stats.size}
             ,'${md5Hash}'
             ,'${filename}'
+            ,nullif('${resource_id}', 'undefined')
         )
         RETURNING id
     `;
@@ -301,10 +304,11 @@ const loadFile = async (args) => {
             fs.root_directory as root_directory,
             ef.file_path as file_path,
             ef.id as file_id,
+            ef.resource_no as resource_id,
             ef.uploaded_file_name as uploaded_file_name,
             fs.root_directory || '/' || file_path as full_path
         FROM
-            billing.edi_files ef 
+            billing.edi_files ef
         INNER JOIN file_stores fs ON ef.file_store_id = fs.id
         WHERE
             ef.id = ${edi_files_id}
@@ -339,13 +343,28 @@ const updateFileStatus = async (args) => {
     const fileIds = files.map((file) => {
         return file.edi_file_id;
     });
+
     const sql = SQL`
-        UPDATE billing.edi_files
+
+        WITH tempTbl as (
+            SELECT
+                *
+            FROM json_populate_recordset(null::record, ${JSON.stringify(files)}) AS (
+                edi_file_id int
+                , resource_id text
+            )
+        )
+        UPDATE
+            billing.edi_files ef
         SET
             status=${status}
+            , resource_no=(select coalesce (ef.resource_no, tempTbl.resource_id))  -- we never update resourceIDs
+        FROM
+            tempTbl
         WHERE
-            id = ANY(ARRAY[${fileIds}::int[]])
+            ef.id = tempTbl.edi_file_id
     `;
+
     await query(sql.text, sql.values);
 };
 

@@ -180,9 +180,11 @@ const download = async (args, callback) => {
 
                     const data = result.content;
                     const filename = result.description;
+                    const resource_id = result.resourceID;
                     const file = await billingApi.storeFile({
                         data,
                         filename,
+                        resource_id,
                     });
 
                     return {
@@ -456,9 +458,11 @@ module.exports = {
             await billingApi.updateFileStatus({
                 status: 'in_progress',
                 files: successfulUploadResults.map((uploadResult) => {
-                    return find((storedFiles), (storedFile) => {
+                    const storedFile = find((storedFiles), (storedFile) => {
                         return uploadResult.description === storedFile.filename;
                     });
+                    storedFile.resource_id = uploadResult.resourceID;
+                    return storedFile;
                 }),
             });
 

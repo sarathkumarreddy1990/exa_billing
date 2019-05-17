@@ -664,14 +664,14 @@ module.exports = {
         let sql = SQL`
                     SELECT
                         claims.id as claim_id
-                        ,(CASE payer_type
-                            WHEN 'primary_insurance' THEN insurance_providers.insurance_name
-                            WHEN 'secondary_insurance' THEN insurance_providers.insurance_name
-                            WHEN 'teritary_insurance' THEN insurance_providers.insurance_name
-                            WHEN 'ordering_facility' THEN provider_groups.group_name
-                            WHEN 'referring_provider' THEN ref_provider.full_name
-                            WHEN 'rendering_provider' THEN render_provider.full_name
-                            WHEN 'patient' THEN patients.full_name        END) AS payer_name
+                        ,(CASE 
+                            WHEN (payer_type = 'primary_insurance') OR 
+                                (payer_type  = 'secondary_insurance') OR 
+                                (payer_type  = 'tertiary_insurance') THEN insurance_providers.insurance_name
+                            WHEN payer_type  = 'ordering_facility' THEN provider_groups.group_name
+                            WHEN payer_type  = 'referring_provider' THEN ref_provider.full_name
+                            WHEN payer_type  = 'rendering_provider' THEN render_provider.full_name
+                            WHEN payer_type  = 'patient' THEN patients.full_name        END) AS payer_name
                         , claim_dt
                         , claims.facility_id
                         , claim_status.description as claim_status
@@ -686,14 +686,14 @@ module.exports = {
                     INNER JOIN patients ON claims.patient_id = patients.id
                     INNER JOIN LATERAL billing.get_claim_payments(claims.id, false) bgcp ON TRUE
                     LEFT JOIN provider_contacts  ON provider_contacts.id=claims.referring_provider_contact_id
-                    LEFT JOIN providers as ref_provider ON ref_provider.id=provider_contacts.id
+                    LEFT JOIN providers as ref_provider ON ref_provider.id = provider_contacts.provider_id
                     LEFT JOIN provider_contacts as rendering_pro_contact ON rendering_pro_contact.id=claims.rendering_provider_contact_id
-                    LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.id
+                    LEFT JOIN providers as render_provider ON render_provider.id = rendering_pro_contact.provider_id
                     LEFT JOIN patient_insurances ON patient_insurances.id =
                         (  CASE payer_type
                         WHEN 'primary_insurance' THEN primary_patient_insurance_id
                         WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
-                        WHEN 'teritary_insurance' THEN tertiary_patient_insurance_id
+                        WHEN 'tertiary_insurance' THEN tertiary_patient_insurance_id
                         END)
                     LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id
                     LEFT JOIN provider_groups ON claims.ordering_facility_id = provider_groups.id
