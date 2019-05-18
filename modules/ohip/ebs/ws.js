@@ -11,15 +11,12 @@ const dom = require('xmldom').DOMParser;
 const pki = require('node-forge').pki;
 const crypto = require('crypto');
 const fs = require('fs');
-const path = require('path');
-const {
-    promisify,
-} = require('util');
 
 const logger = require('../../../logger');
 
 const xml = require('./xml');
-const responseTemplates = require('./responseTemplate');
+// const responseTemplates = require('./responseTemplate');
+const nerf = require('./nerf');
 
 /*
  This needed to be overriden, too, since the base ws.js couldn't handle multiple
@@ -293,8 +290,8 @@ ws.Nerf = function(config) {
 };
 
 ws.Nerf.prototype.send = function(ctx, callback) {
-    ctx.response = responseTemplates[Object.keys(ctx.eventDetail)[0]](ctx);
     logger.debug('NERF request', ctx.request);
+    ctx.response = nerf[Object.keys(ctx.eventDetail)[0]](ctx);
     logger.debug('NERF response', ctx.response);
     callback(ctx);
 };

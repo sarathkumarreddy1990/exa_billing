@@ -4,43 +4,20 @@ const _ = require('lodash');
 const {
     formatDate,
     formatAlphanumeric,
-} = require('../encoder/util');
+} = require('./../../encoder/util');
 
 const {
     resourceTypes: {
         CLAIMS,
     },
 
-} = require('./constants');
+} = require('./../constants');
+
+// NOTE to generate only one HR4 segment per claim, set this to zero (0)
+//      to generate an 10941 HR4 segments, set to 10941
+const TARGET_SIZE = 0;
 
 const claims = [];
-//
-// const resources = [
-//     {
-//         resourceID: 60000,
-//         status: 'SUBMITTED',
-//         filename: '/home/drew/projects/exa-sandbox/Filestores/OHIP/2019/04/29/HDAU73.000',
-//         description: 'HDAU73.000',
-//         resourceType: 'CL'
-//     },
-//     {
-//         resourceID: 60001,
-//         status: 'SUBMITTED',
-//         filename: '/home/drew/projects/exa-sandbox/Filestores/OHIP/2019/04/29/HDAU74.000',
-//         description: 'HDAU74.000',
-//         resourceType: 'CL'
-//     },
-//     {
-//         resourceID: 60002,
-//         status: 'SUBMITTED',
-//         filename: '/home/drew/projects/exa-sandbox/Filestores/OHIP/2019/04/29/HDAU73.001',
-//         description: 'HDAU73.001',
-//         resourceType: 'CL'
-//     },
-//
-// ];
-
-
 const getClaimFileInfo = (resource) => {
 
     const claimFileData = fs.readFileSync(resource.filename, 'ascii');
@@ -112,14 +89,14 @@ const getClaimFileInfo = (resource) => {
 };
 
 
-const fileHeaderFields = require('../parser/remittanceAdvice/fileHeaderFields');
-const addressOneFields = require('../parser/remittanceAdvice/addressOneFields');
-const addressTwoFields = require('../parser/remittanceAdvice/addressTwoFields');
-const claimHeaderFields = require('../parser/remittanceAdvice/claimHeaderFields');
-const claimItemFields = require('../parser/remittanceAdvice/claimItemFields');
-const balanceForwardFields = require('../parser/remittanceAdvice/balanceForwardFields');
-const accountingTransactionFields = require('../parser/remittanceAdvice/accountingTransactionFields');
-const messageFacilityFields = require('../parser/remittanceAdvice/messageFacilityFields');
+const fileHeaderFields = require('./../../parser/remittanceAdvice/fileHeaderFields');
+const addressOneFields = require('./../../parser/remittanceAdvice/addressOneFields');
+const addressTwoFields = require('./../../parser/remittanceAdvice/addressTwoFields');
+const claimHeaderFields = require('./../../parser/remittanceAdvice/claimHeaderFields');
+const claimItemFields = require('./../../parser/remittanceAdvice/claimItemFields');
+const balanceForwardFields = require('./../../parser/remittanceAdvice/balanceForwardFields');
+const accountingTransactionFields = require('./../../parser/remittanceAdvice/accountingTransactionFields');
+const messageFacilityFields = require('./../../parser/remittanceAdvice/messageFacilityFields');
 
 let claimNumber = 1234567;
 
@@ -149,9 +126,6 @@ module.exports = (resources) => {
         return groupedClaimInfo;
     }, {});
 
-    // console.log(`claimInfoByBillingNumber: ${JSON.stringify(claimInfoByBillingNumber)}`);
-
-
     const raFilesByBillingNumber = Object.keys(claimInfoByBillingNumber).reduce((raFiles, billingNumber) => {
 
         const billingNumberParts = billingNumber.split('-');
@@ -163,90 +137,70 @@ module.exports = (resources) => {
         const currentRAFile = raFiles[billingNumber];
 
         const claimInfo = claimInfoByBillingNumber[billingNumber];
-        // console.log('claimInfo: ', claimInfo);
 
         const remittanceAdviceStr = '';
-        // console.log('claimsFile: ', claimInfoBySpecialty);
 
 
         currentRAFile.push('<<THIS IS A PLACEHOLDER>>');
-        // console.log('hr1Record: ', currentRAFile[0]);
 
         const hr2Record = 'HR2                              632 Thistle Cres                              ';
         currentRAFile.push(hr2Record);
-        // console.log('hr2Record: ', hr2Record);
 
         const hr3Record = 'HR3THUNDER BAY     ON P7A4Z5                                                   ';
         currentRAFile.push(hr3Record);
-        // console.log('hr3Record: ', hr3Record);
 
         let totalAmountPayable = 0;
+        let claimMultiplier = TARGET_SIZE && (TARGET_SIZE / claimInfo.length) || claimInfo.length;
         claimInfo.forEach((claim) => {
 
-            // console.log('CLAIM: ', claim);
-            const hr4Data = {
+            for (let i=0; i<claimMultiplier; i++) {
 
-                claimNumber: 'U712' + claimNumber,    //ministry reference number (based on real world sample)
-                transactionType: "1",    //1
+                const hr4Data = {
 
-                providerNumber, // corresponds to real world sample
-                specialty,          // from claim header - 1
-                groupIdentifier: groupNumber,
+                    claimNumber: 'U712' + claimNumber,    //ministry reference number (based on real world sample)
+                    transactionType: "1",
 
-                ...claim,
+                    providerNumber, // corresponds to real world sample
+                    specialty,          // from claim header - 1
+                    groupIdentifier: groupNumber,
 
-                // accountingNumber: "",   // from claim header - 1
-                // patientLastName: "",    // "spaces except for RMB claims" (from claim header - 2)
-                // patientFirstName: "",   // "spaces except for RMB claims" (from claim header - 2)
-                // provinceCode: "",   // from claim header - 1
-                // healthRegistrationNumber: "",
-                // versionCode: "",    // from claim header - 1
-                // paymentProgram: "", // from claim header - 1
-                // serviceLocationIndicator: "", // from claim header - 1
-            };
-            claimNumber++;  // NOTE this gets incremented in two places (this is the first)
-
-            const hr4Record = Object.keys(claimHeaderFields).map((key) => {
-                const fieldDescriptor = claimHeaderFields[key];
-                return formatAlphanumeric((fieldDescriptor.constant || hr4Data[key]), fieldDescriptor.fieldLength);
-            }).join('');
-            currentRAFile.push(hr4Record);
-            // console.log('hr4Record: ', hr4Record);
-
-
-            claim.items.forEach((item) => {
-                // console.log('ITEM: ', item);
-                const feeSubmitted = parseInt(item.feeSubmitted);
-                totalAmountPayable += feeSubmitted;
-
-                const hr5Data = {
-                    claimNumber: 'U712' + claimNumber,    // 11 chars
-                    transactionType: "1",    // 1 char
-                    amountSubmitted: formatAlphanumeric(feeSubmitted, 6, '0'),     // 6
-                    amountPaid: formatAlphanumeric(feeSubmitted, 6, '0'),     // 6
-                    amountPaidSign: " ", // 1
-                    explanatoryCode: "  ", //2
-
-                    ...item,
+                    ...claim,
                 };
-                // console.log('hr5Data: ', hr5Data);
-                claimNumber++;  // NOTE this is the second place this is incremented
+                claimNumber++;  // NOTE this gets incremented in two places (this is the first)
 
-                const hr5Record = Object.keys(claimItemFields).map((key) => {
-                    const fieldDescriptor = claimItemFields[key];
-                    return formatAlphanumeric((fieldDescriptor.constant || hr5Data[key]), fieldDescriptor.fieldLength);
+                const hr4Record = Object.keys(claimHeaderFields).map((key) => {
+                    const fieldDescriptor = claimHeaderFields[key];
+                    return formatAlphanumeric((fieldDescriptor.constant || hr4Data[key]), fieldDescriptor.fieldLength);
                 }).join('');
-                currentRAFile.push(hr5Record);
-                // console.log('hr5Record: ', hr5Record);
-                // HR5U712131411912017121101X091B 002358002358
-                // HR5U712123457412019042201 X179   5678  5678 34
-            });
+                currentRAFile.push(hr4Record);
 
-            // console.log('Total Amount Payable: ', totalAmountPayable);
-            // "serviceDate": "",    // 8 chars,
-            // "numberOfServices": "",   // 2
-            // "amountSubmitted": "",    //6
-            // "serviceCode": "",    // 5
+                claim.items.forEach((item) => {
+                    const feeSubmitted = parseInt(item.feeSubmitted) / 100 / claimMultiplier;
+                    console.log('feeSubmitted: ', feeSubmitted);
+                    totalAmountPayable += feeSubmitted;
+                    console.log('totalAmountPayable: ', totalAmountPayable);
+
+                    // const amountSubmitted = ;
+
+                    const hr5Data = {
+                        claimNumber: 'U712' + claimNumber,
+                        transactionType: "1",
+                        amountSubmitted: formatAlphanumeric(/([0-9]*)[.]/.exec(feeSubmitted * claimMultiplier)[1], 6, '0'),
+                        amountPaid: formatAlphanumeric(/([0-9]*)[.]/.exec(feeSubmitted)[1], 6, '0'),     // NOTE could divide feeSubmitted by claimMultiplier ...
+                        amountPaidSign: " ",
+                        explanatoryCode: "  ",
+
+                        ...item,
+                    };
+                    claimNumber++;  // NOTE this is the second place this is incremented
+
+                    const hr5Record = Object.keys(claimItemFields).map((key) => {
+                        const fieldDescriptor = claimItemFields[key];
+                        return formatAlphanumeric((fieldDescriptor.constant || hr5Data[key]), fieldDescriptor.fieldLength);
+                    }).join('');
+                    currentRAFile.push(hr5Record);
+                });
+            }
         });
 
         // NOTE skipping HR6 record (an edge case that transcends the scope of this fixture engine)
@@ -256,7 +210,7 @@ module.exports = (resources) => {
                 transactionCode: '20',
                 chequeIndicator: ' ',   // based on real world sample
                 transactionDate: formatDate(new Date()),
-                transactionAmount: formatAlphanumeric('250', 8, '0'),
+                transactionAmount: formatAlphanumeric('350', 8, '0'),
                 transactionAmountSign: '-',
                 transactionMessage: 'PAYMENT REDUCTION-OPTED-IN', //50
             },
@@ -264,7 +218,7 @@ module.exports = (resources) => {
                 transactionCode: '40',
                 chequeIndicator: ' ',   // based on real world sample
                 transactionDate: formatDate(new Date()),
-                transactionAmount: formatAlphanumeric('250', 8, '0'),
+                transactionAmount: formatAlphanumeric('350', 8, '0'),
                 transactionAmountSign: ' ',
                 transactionMessage: 'GROUP MANAGEMENT LEADERSHIP PAYMENT', //50
             },
@@ -274,11 +228,9 @@ module.exports = (resources) => {
 
             const hr7Record = Object.keys(accountingTransactionFields).map((key) => {
                 const fieldDescriptor = accountingTransactionFields[key];
-                // console.log('claimInfoBySpecialty: ', claimInfoBySpecialty);
                 return formatAlphanumeric((fieldDescriptor.constant || data[key]), fieldDescriptor.fieldLength, fieldDescriptor.padding || ' ', fieldDescriptor.leftJustified);
             }).join('');
             currentRAFile.push(hr7Record);
-            // console.log('hr7Record: ', hr7Record);
         });
 
 
@@ -290,19 +242,16 @@ module.exports = (resources) => {
             dataSequence: "4",
             paymentDate: formatDate(new Date()),
             payeeName: 'Skippertech Radiology, Ltd.',
-            totalAmountPayable,
+            totalAmountPayable: Math.round(totalAmountPayable * 100),
             totalAmountPayableSign: ' ',
             chequeNumber: "99999999",
         };
 
         const hr1Record = Object.keys(fileHeaderFields).map((key) => {
             const fieldDescriptor = fileHeaderFields[key];
-            // console.log('claimInfoBySpecialty: ', claimInfoBySpecialty);
             return formatAlphanumeric((fieldDescriptor.constant || hr1Data[key]), fieldDescriptor.fieldLength, fieldDescriptor.padding || ' ', fieldDescriptor.leftJustified);
         }).join('');
         currentRAFile[0] = hr1Record;
-        // console.log('hr1Record: ', hr1Record);
-
 
         return raFiles;
     }, {});
