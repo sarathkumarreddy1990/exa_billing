@@ -2699,11 +2699,9 @@ define(['jquery',
                         else if(data.status === 'IN_PROGRESS') {
                             commonjs.showStatus(data.message);
                         }
-                        $applyBtn.prop('disabled', false);
                     },
                     error: function (err) {
                         commonjs.handleXhrError(err);
-                        $applyBtn.prop('disabled', false);
                     }
                 });
             },

@@ -638,9 +638,7 @@ module.exports = {
                 remittanceAdviceFork = null;
             });
 
-            remittanceAdviceFork.on('message', (response) => {
-                return callback(response);
-            });
+            remittanceAdviceFork.on('message', callback);
 
         } else {
             callback(f_c);
