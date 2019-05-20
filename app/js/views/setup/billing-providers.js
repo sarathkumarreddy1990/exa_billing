@@ -60,7 +60,7 @@ define(['jquery',
                     custompager: new Pager(),
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['', '', '', '', '', '', '', ''],
-                    i18nNames: ['', '', '', 'setup.common.code', 'setup.common.name', 'setup.billingprovider.address', 'setup.billingprovider.phoneNo', 'shared.fields.inactive'],
+                    i18nNames: ['', '', '', 'setup.common.code', 'setup.common.name', 'setup.billingProvider.address', 'setup.billingProvider.phoneno', 'shared.fields.inactive'],
                     colModel: [
                         {
                             name: 'id',
