@@ -343,6 +343,7 @@ define([
             // Insurance List Box for (All, selected Insurance, Insurance Group)
             onOptionChange: function () {
                 if ($('#ddlInsuranceOption').val() == 'S') {
+                    $('#txtInsuranceName').empty();
                     $("#ddlOptionBox").show();
                     $("#ddlOptionBoxList").show();
                     $("#ddlInsuranceGroupBox").hide();
@@ -352,6 +353,7 @@ define([
                     this.selectedInsGrpList = []; // empty the selected insurance group list
                 }
                 else if ($('#ddlInsuranceOption').val() == 'G') {
+                    $('#txtInsuranceProviderName').empty();
                     $("#ddlOptionBox").hide();
                     $("#ddlOptionBoxList").hide();
                     $("#ddlInsuranceGroupBox").show();
