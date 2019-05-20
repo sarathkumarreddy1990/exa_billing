@@ -136,14 +136,16 @@ const detailQueryTemplate = _.template(`
             SELECT
                 bp.id payment_id,
                 bc.id  claim_id,
-                SUM(CASE WHEN amount_type= 'payment' then bpa.amount  else 0::money end) as applied_amount,
-                SUM(CASE WHEN amount_type= 'adjustment' then bpa.amount  else 0::money end) as adjustment
+                SUM(CASE WHEN amount_type= 'payment' then bpa.amount  else 0::money end) AS applied_amount,
+                SUM(CASE WHEN amount_type= 'adjustment' then bpa.amount  else 0::money end) AS adjustment,
+                MAX(bac.description) AS description
                 <% if (userIds) { %> , MAX(users.username) AS user_name    <% } %>
             FROM
                 billing.payments bp
             LEFT JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
             LEFT JOIN billing.charges bch on bch.id = bpa.charge_id
             LEFT Join billing.claims  bc on bc.id = bch.claim_id
+            LEFT JOIN billing.adjustment_codes bac ON bac.id = bpa.adjustment_code_id
             <% if (billingProID) { %>  INNER JOIN billing.providers bpr ON bpr.id = bc.billing_provider_id <% } %>
             <% if (userIds) { %>  INNER join public.users  users on users.id = bp.created_by    <% } %>
             <% if (userRoleIds) { %>
@@ -220,7 +222,7 @@ const detailQueryTemplate = _.template(`
                        ELSE
                            InitCap(p.mode)
                     END  AS "Payment Mode",
-                    <% if (country_alpha_3_code == 'can') { %> 
+                    <% if (country_alpha_3_code == 'can') { %>
                         p.card_number AS "Cheque #",
                     <% } else { %>
                         p.card_number AS "Check #",
@@ -229,8 +231,9 @@ const detailQueryTemplate = _.template(`
          	        p.amount "Payment Amount",
                     (p.amount - payment_totals.payments_applied_total) AS "Balance",
                     pd.applied_amount AS "Applied Amount",
-                    pd.adjustment AS "Adjustment Amount"
-                    <% if (userIds) { %>, user_name AS "User Name"   <% } %>
+                    pd.adjustment AS "Adjustment Amount",
+                    pd.description AS "Adjustment Code"
+                    <% if (userIds) { %>, user_name AS "User Name" <% } %>
                 FROM
                     payment_data pd
                 INNER join billing.payments p on p.id = pd.payment_id
