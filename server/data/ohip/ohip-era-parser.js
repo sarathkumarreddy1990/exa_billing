@@ -16,6 +16,7 @@ module.exports = {
 
             logger.info('Initializing payment creation with OHIP file');
             let default_payer = await data.getDefaultPayer();
+            const startTime = new Date().getTime();
 
             if(!default_payer.rows.length){
                 return {status: '23156',
@@ -35,8 +36,10 @@ module.exports = {
             await data.applyPaymentApplication(lineItemsAndClaimLists.audit_details, paymentDetails);
 
             await data.updateERAFileStatus(paymentDetails);
+            const endTime = new Date().getTime();
 
             logger.info('Payment creation process done - OHIP');
+            logger.info(`Time taken for OHIP Payment creation: ${endTime - startTime}ms`);
 
             return processedClaims;
 
