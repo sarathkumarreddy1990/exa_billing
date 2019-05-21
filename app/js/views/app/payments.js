@@ -102,7 +102,6 @@ define(['jquery',
                 this.patientClaimList = new patientClaimLists();
                 this.adjustmentCodeList = new modelCollection(adjustment_codes);
                 this.claimStatusList = new modelCollection(claim_status);
-                this.writeOffAdjustmentCodeList = new modelCollection(app.adjustment_code_list);
 
                 commonjs.initHotkeys({
                     NEW_PAYMENT: '#btnPaymentAdd'
@@ -643,9 +642,6 @@ define(['jquery',
 
             showAdjustmentWriteOff: _.debounce(function (e) {
                 var self = this;
-                //Append adjustment codes with credit entry
-                var writeOffAdjustmentCodeList = _.filter(self.writeOffAdjustmentCodeList.toJSON(), { accounting_entry_type: "credit" });
-
                 self.patientClaimPager = new ModelPaymentsPager();
 
                 commonjs.showDialog({
@@ -653,9 +649,7 @@ define(['jquery',
                     i18nHeader:'shared.buttons.smallBalanceAdjustment',
                     width: '85%',
                     height: '70%',
-                    html: self.balanceWriteOffTemplate({
-                        writeOffAdjustmentCodeList : writeOffAdjustmentCodeList
-                    }),
+                    html: self.balanceWriteOffTemplate(),
                     onHide: function() {
                         self.patientClaimsGrid = null;
                         self.patientGridLoaded = false;
@@ -672,10 +666,6 @@ define(['jquery',
                         self.patientClaimsGrid.refreshAll();
                     }
                 }, 250));
-
-                $("#ddlWriteOffAdjCodes").select2({
-                    allowClear: true
-                });
 
                 commonjs.validateControls();
                 commonjs.isMaskValidate();
@@ -810,17 +800,9 @@ define(['jquery',
                         }
 
                         $balanceWriteOff.off().click(_.debounce(function (e) {
-                            var $adjustmentCode = $('#ddlWriteOffAdjCodes option:selected');
-                            var _adjCodeDesc = $adjustmentCode.text().trim();
                             var writeOffAmount = $('#txtWriteOffAmt').val();
                             var msg = commonjs.geti18NString("messages.confirm.payments.writeOffAmountAreYouSure")
-                                msg = msg.replace('WRITE_OFF_AMOUNT', writeOffAmount).replace('$ADJ_CODE_DESC', _adjCodeDesc);
-
-                            if ($adjustmentCode.val() === '') {
-                                commonjs.showWarning("report.reportFilter.adjustmentCode");
-                                $('#ddlWriteOffAdjCodes').select2('open');
-                                return false;
-                            }
+                                msg = msg.replace('WRITE_OFF_AMOUNT', writeOffAmount);
 
                             if (confirm(msg)) {
 
@@ -829,7 +811,6 @@ define(['jquery',
                                     type: 'POST',
                                     data: {
                                         defaultFacilityId : app.default_facility_id || app.facilityID || null,
-                                        adjustmentCodeId : $adjustmentCode.val(),
                                         writeOffAmount : writeOffAmount,
                                         companyId : app.companyID,
                                         from : 'write-off'
