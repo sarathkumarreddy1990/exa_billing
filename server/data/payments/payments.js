@@ -1547,39 +1547,39 @@ module.exports = {
                     claims.id AS claim_id
                     , claims.patient_id
                     , ip.id AS payment_id
-		            , cs.code AS claim_status_code
+                    , cs.code AS claim_status_code
                     , bch.id AS charge_id
-		            , 0::money AS payment
-		            , ((bch.bill_fee * bch.units) - ( bgct.other_payment + bgct.other_adjustment )) AS adjustment
-		            , '[]'::jsonb AS cas_details
-		            , cpl.claim_balance_total
+                    , 0::money AS payment
+                    , ((bch.bill_fee * bch.units) - ( bgct.other_payment + bgct.other_adjustment )) AS adjustment
+                    , '[]'::jsonb AS cas_details
+                    , cpl.claim_balance_total
                 FROM
                     billing.claims
                 INNER JOIN insert_payment ip ON ip.patient_id = claims.patient_id
                 INNER JOIN billing.claim_status cs ON cs.id = claims.claim_status_id
                 INNER JOIN claim_payments_list cpl ON cpl.claim_id = claims.id
                 INNER JOIN billing.charges bch ON bch.claim_id = claims.id
-		        INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
-		        INNER JOIN LATERAL billing.get_charge_other_payment_adjustment(bch.id) bgct ON TRUE
+                INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
+                INNER JOIN LATERAL billing.get_charge_other_payment_adjustment(bch.id) bgct ON TRUE
                 WHERE cpl.claim_balance_total != 0::money
-		        ORDER BY claims.id ASC
+                ORDER BY claims.id ASC
             )
             -- --------------------------------------------------------------------------------------------------------------
             -- Formating charge lineItems for credit adjustment. Create payment application
             -- --------------------------------------------------------------------------------------------------------------
 	        , credit_adjustment_charges AS (
-	        	SELECT
-	        		billing.create_payment_applications(
-	        		    payment_id
-	        		    , charge_id
-	        		    , payment
-	        		    , ( CASE WHEN adjustment > 0::money THEN adjustment ELSE 0::money END )
-	        		    , ( SELECT id FROM billing.adjustment_codes WHERE code = 'SBCA' )
-	        		    , ${userId}
-	        		    , cas_details
-	        		    , (${JSON.stringify(auditDetails)})::jsonb
-	        		    , now()
-	        	      )  AS details
+                SELECT
+                billing.create_payment_applications(
+                    payment_id
+                    , charge_id
+                    , payment
+                    , ( CASE WHEN adjustment > 0::money THEN adjustment ELSE 0::money END )
+                    , ( SELECT id FROM billing.adjustment_codes WHERE code = 'SBCA' )
+                    , ${userId}
+                    , cas_details
+                    , (${JSON.stringify(auditDetails)})::jsonb
+                    , now()
+                    )  AS details
 	        	FROM
                     claim_charges
                 WHERE claim_balance_total > 0::money
@@ -1588,17 +1588,17 @@ module.exports = {
             -- Formating charge lineItems for debit adjustment. Create payment application
             -- --------------------------------------------------------------------------------------------------------------
 	        , debit_adjustment_charges AS (
-		        SELECT
-		        	billing.create_payment_applications(
-		        	    payment_id
-		        	    , charge_id
-		        	    , payment
-		        	    , ( CASE WHEN adjustment < 0::money THEN adjustment ELSE 0::money END )
-		        	    , ( SELECT id FROM billing.adjustment_codes WHERE code = 'SBDA' )
-		        	    , ${userId}
-		        	    , cas_details
-		        	    , (${JSON.stringify(auditDetails)})::jsonb
-		        	    , now() + INTERVAL '0.03' SECOND
+                SELECT
+                billing.create_payment_applications(
+                    payment_id
+                    , charge_id
+                    , payment
+                    , ( CASE WHEN adjustment < 0::money THEN adjustment ELSE 0::money END )
+                    , ( SELECT id FROM billing.adjustment_codes WHERE code = 'SBDA' )
+                    , ${userId}
+                    , cas_details
+                    , (${JSON.stringify(auditDetails)})::jsonb
+                    , now() + INTERVAL '0.03' SECOND
                     ) AS details
 		        FROM
                     claim_charges
