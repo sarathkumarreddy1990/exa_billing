@@ -405,6 +405,18 @@
                 "sortable": false
             },
             "field_code": "payment_id"
+        },
+        {
+            "id": 34,
+            "field_name": "ICD Description",
+            "i18n_name": "patient.advancedSearch.icdDescription",
+            "field_info": {
+                "custom_name": "ICD Description",
+                "name": "icd_description",
+                "width": 250,
+                "defaultValue": ""
+            },
+            "field_code": "icd_description"
         }
     ],
     "study_fields": [
@@ -1182,6 +1194,18 @@
                 "searchFlag": "%",
                 "stype": "select"
             }
+        },
+        {
+            "id": 68,
+            "field_name": "ICD Description",
+            "i18n_name": "patient.advancedSearch.icdDescription",
+            "field_info": {
+                "custom_name": "ICD Description",
+                "name": "icd_description",
+                "width": 250,
+                "defaultValue": ""
+            },
+            "field_code": "icd_description"
         }
     ]
 }

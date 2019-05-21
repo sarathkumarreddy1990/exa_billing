@@ -183,6 +183,11 @@ const colModel = [
         name: 'ins_provider_type',
         searchColumns: ['insurance_provider_payer_types.description'],
         searchFlag: '%'
+    },
+    {
+        name: 'icd_description',
+        searchColumns: ['claim_icds.description'],
+        searchFlag: 'arrayString'
     }
 ];
 
@@ -270,6 +275,7 @@ const api = {
             case 'first_statement_dt': return 'claim_comment.created_dt';
             case 'charge_description': return `nullif(charge_details.charge_description,'')`;
             case 'ins_provider_type': return 'insurance_provider_payer_types.description';
+            case 'icd_description': return 'claim_icds.description';
         }
 
         return args;
@@ -400,6 +406,15 @@ const api = {
 
         }
 
+        if(tables.claim_icds) {
+            r += ` LEFT JOIN LATERAL (
+                    SELECT ARRAY_AGG(description) AS description
+                    FROM icd_codes 
+                    INNER JOIN billing.claim_icds ON claim_icds.icd_id = icd_codes.id
+                    WHERE claim_id = claims.id
+                ) AS claim_icds ON TRUE `;
+        }
+
         return r;
     },
 
@@ -467,7 +482,8 @@ const api = {
                     public.get_eligibility_status(claims.primary_patient_insurance_id , claims.claim_dt)
                 ELSE
                     null
-            END AS as_eligibility_status`
+            END AS as_eligibility_status`,
+            `claim_icds.description AS icd_description`
         ];
 
         if(args.customArgs.filter_id=='Follow_up_queue'){

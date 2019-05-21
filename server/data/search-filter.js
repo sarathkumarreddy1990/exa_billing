@@ -308,6 +308,11 @@ const colModel = [
         name: 'eligibility_verified',
         searchColumns: [`(eligibility.verified OR COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)`]
         , searchFlag: 'bool_null'
+    },
+    {
+        name: 'icd_description',
+        searchColumns: ['icd_codes.description'],
+        searchFlag: 'arrayString'
     }
 ];
 
@@ -487,6 +492,7 @@ const api = {
             case 'study_cpt_id': return 'study_cpt.study_cpt_id';
             case 'ins_provider_type': return 'insurance_providers.provider_types';
             case "eligibility_verified": return `(COALESCE(eligibility.verified, false) OR COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)`;
+            case 'icd_description': return `icd_codes.description`;
 
         }
 
@@ -540,7 +546,7 @@ const api = {
     },
     getWLQueryJoin: function (columns) {
         let tables = columns instanceof Object && columns || api.getTables(columns);
-        let imp_orders = tables.vehicles || tables.users || tables.providers || tables.auth || tables.eligibility;
+        let imp_orders = tables.vehicles || tables.users || tables.providers || tables.auth || tables.eligibility || tables.icd_codes;
         let imp_provider_contacts = tables.imagedelivery || tables.providers_ref;
         let imp_facilities = tables.tat;
         let r = '';
@@ -693,8 +699,16 @@ const api = {
                 ) AS report_delivery ON TRUE
                 `;
         }
-        //if (tables.user_study_assignments && user_id) r += ` LEFT JOIN user_study_assignments ON (user_study_assignments.study_id = studies.id AND user_study_assignments.user_id = ${user_id}) `;
-        //if (tables.user_patient_assignments && user_id) r += ` LEFT JOIN user_patient_assignments ON (user_patient_assignments.patient_id = studies.patient_id AND user_patient_assignments.user_id = ${user_id}) `;
+
+        if (tables.icd_codes){
+            r += `
+                LEFT JOIN LATERAL (
+                    SELECT 
+                        ARRAY_AGG(icd_codes.description) AS description
+                    FROM icd_codes
+                    WHERE icd_codes.code = ANY(orders.icd_codes)
+                ) AS icd_codes ON TRUE `;
+        }
 
         return r;
     },
@@ -850,7 +864,8 @@ const api = {
             `insurance_providers.provider_types AS ins_provider_type`,
             `(SELECT array_agg(insurance_name) FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = orders.primary_patient_insurance_id OR id = orders.secondary_patient_insurance_id OR id = orders.tertiary_patient_insurance_id )) AS insurance_providers`,
             `(COALESCE(eligibility.verified, false) OR COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)   AS eligibility_verified`,
-            `eligibility.dt AS eligibility_dt`
+            `eligibility.dt AS eligibility_dt`,
+            `icd_codes.description AS icd_description`
         ];
 
         return stdcolumns.concat(
