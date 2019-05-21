@@ -409,7 +409,8 @@ const api = {
         if(tables.claim_icds) {
             r += ` 
                 LEFT JOIN LATERAL (
-                    SELECT ARRAY_AGG(description) AS description
+                    SELECT 
+                        ARRAY_AGG(description) AS description
                     FROM icd_codes 
                     INNER JOIN billing.claim_icds ON claim_icds.icd_id = icd_codes.id
                     WHERE claim_id = claims.id
