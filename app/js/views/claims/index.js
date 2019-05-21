@@ -4088,6 +4088,8 @@ define(['jquery',
                             var patient_details = data && data.length && data[0].patient_details ? data[0].patient_details : {};
 
                             if (charges && charges.length) {
+                                $studyDetails.empty();
+                                $list.empty();
                                 _.each(charges, function (study) {
                                     study.study_description = study.study_description ? study.study_description : '--';
                                     study.accession_no = study.accession_no ? study.accession_no : '--';
