@@ -1388,7 +1388,6 @@ module.exports = {
             screenName,
             moduleName,
             writeOffAmount,
-            adjustmentCodeId,
             defaultFacilityId
         } = params;
 
