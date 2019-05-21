@@ -357,7 +357,6 @@ module.exports = {
 
         // 2 - run claim data through encoder
         const ohipConfig = await billingApi.getOHIPConfiguration();
-        logger.debug('ohipConfig: ', ohipConfig);
 
         const claimEnc = new ClaimsEncoder(ohipConfig); // default 1:1/1:1
         // const claimEnc = new ClaimsEncoder({batchesPerFile:5});

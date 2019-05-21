@@ -37,14 +37,9 @@ const {
 
 
 const fs = require('fs');
-const _ = require('lodash');
 
 const resources = [];
-
 let nextResourceID = 60000;
-
-let nextBatchEditSequenceNumber = 0;
-
 
 // matches service codes beginning with 'X' -- used to determine if an entire Claims File should be rejected
 const rejectionFlagMatcher = /X[0-9]{3}[A-Z]/;
@@ -56,25 +51,29 @@ const correctionFlagMatcher = /E[0-9]{3}[A-Z]/;
 const badBatchFlagMatcher = /Z[0-9]{3}[A-Z]/;
 
 
-const batchEditTemplate = _.template(`HB1V0300001000000<%=batchId%>J207315781257822HCP/WCBBGAA170332<%=numClaims%><%=numRecords%><%=batchProcessDate%>     ***  BATCH TOTALS  ***`);
+// const remittanceAdviceEncoder = require('./remittanceAdviceEncoder');
+const getRejectMessages = require('./rejectMessageProcessor');
+const getBatchEditReports = require('./batchEditProcessor');
+const getErrorReports = require('./errorReportProcessor');
 
-
-const remittanceAdviceEncoder = require('./remittanceAdviceEncoder');
-const rejectMessageEncoder = require('./rejectMessageEncoder');
-
-const getClaimFileStats = (resource) => {
+const getClaimFileInfo = (resource) => {
 
     const claimFileData = fs.readFileSync(resource.filename, 'ascii');
     const claimFileRecords = claimFileData.split('\r');
 
-    let shouldRejectSubmission = false;
     let recordImage = null;
     let groupNumber = null;
+
+    // assume this will be false until we hit a submission rejection flag
+    let shouldReject = false;
+
+    const rejectBatches = [];
+    // const acceptBatches = [];
 
     let currentBatch = null;
     let currentClaim = null;
 
-    const batches = claimFileRecords.reduce((results, record, index) => {
+    const acceptBatches = claimFileRecords.reduce((acceptBatches, record, index) => {
         if (/^HEBV03/.test(record)) {
 
             currentBatch = {
@@ -82,10 +81,11 @@ const getClaimFileStats = (resource) => {
                 providerNumber: record.substr(29, 6),
                 groupNumber: record.substr(25, 4),
                 specialty: record.substr(35, 2),
-                claims: [],
+                operatorNumber: record.substr(19, 6),
 
-                // shouldReject: false,
-                rejects: [],
+                shouldReject: false,
+                rejectClaims: [],
+                acceptClaims: [],
             };
 
             if (!index) {
@@ -94,13 +94,16 @@ const getClaimFileStats = (resource) => {
                 recordImage = record.substr(0, 37);
                 groupNumber = recordImage.substr(25, 4);
             }
-            results.push(currentBatch);
+
+            // assume it will end up here until we hit a batch-rejection flag
+            acceptBatches.push(currentBatch);
         }
         else if (/^HEH/.test(record)) {
 
             currentClaim = {
                 healthRegistrationNumber: record.substr(3, 10), // this or use Registration Number from header-2 record.substr(3,12)
                 versionCode: record.substr(13, 2),    // from claim header - 1
+                patientDOB: record.substr(15, 8),
                 accountingNumber: record.substr(23, 8),   // from claim header - 1
                 paymentProgram: record.substr(31, 3),
                 serviceLocationIndicator: record.substr(58, 4), // from claim header - 1
@@ -109,11 +112,10 @@ const getClaimFileStats = (resource) => {
                 shouldReject: false,
             };
 
-            currentBatch.claims.push(currentClaim);
+            // assume it will end up here until we hit a claim-rejection flag
+            currentBatch.acceptClaims.push(currentClaim);
         }
         else if (/^HER/.test(record)) {
-            // const currentBatch = results[results.length-1];
-            // currentClaim = currentBatch.claims[currentBatch.claims.length - 1];
 
             currentClaim.patientLastName = record.substr(15, 9);    // "spaces except for RMB claims" (from claim header - 2)
             currentClaim.patientFirstName = record.substr(24, 5);   // "spaces except for RMB claims" (from claim header - 2)
@@ -122,24 +124,20 @@ const getClaimFileStats = (resource) => {
 
         else if (/^HET/.test(record)) {
 
-            // const currentBatch = results[results.length - 1];
-            // const currentClaim = currentBatch.claims[currentBatch.claims.length - 1];
-
-
             // determine if this Claims File was intended to be corrected, if
             // the Claim itself should be rejected, or neither
             const serviceCode = record.substr(3, 5);
             if (rejectionFlagMatcher.test(serviceCode)) {
-                console.log(`\n\n****NERF**** bad submission flag set (${serviceCode})`);
-                shouldRejectSubmission = true;
+                logger.info(`****NERF**** bad submission flag set (${serviceCode})`);
+                shouldReject = true;    // useful for Remittance Advice encoder
             }
             else if (badBatchFlagMatcher.test(serviceCode)) {
-                console.log(`\n\n****NERF**** bad batch flag set (${serviceCode})`);
-                // currentBatch.shouldReject = true;
+                logger.info(`****NERF**** bad batch flag set (${serviceCode})`);
+                rejectBatches.push(acceptBatches.pop());   // useful for Batch Edit encoder
             }
             else if (correctionFlagMatcher.test(serviceCode)) {
-                console.log(`\n\n****NERF**** bad claim flag set (${serviceCode})`);
-                currentBatch.rejects.push(currentClaim);
+                logger.info(`****NERF**** bad claim flag set (${serviceCode})`);
+                currentBatch.rejectClaims.push(currentBatch.acceptClaims.pop());   // useful for Error Reports encoder
             }
 
             currentClaim.items.push({
@@ -151,68 +149,46 @@ const getClaimFileStats = (resource) => {
         }
         else if (/^HEE/.test(record)) {
 
-            // const currentBatch = results[results.length - 1];
-
             currentBatch.numClaims = parseInt(record.substr(3, 4));
             currentBatch.numRecords = currentBatch.numClaims
                                     + parseInt(record.substr(7, 4))
                                     + parseInt(record.substr(11, 5))
                                     + 2; // batch header and batch trailer
-
         }
 
-        return results;
+        return acceptBatches;
     }, []);
 
     return {
-        batches,
+        acceptBatches,
+        rejectBatches,
         recordImage,
         groupNumber,
-        shouldRejectSubmission,
+        shouldReject,
         totalRecordLength: claimFileRecords.length,
     };
 };
 
+const addResources = (newResources) => {
+    while (newResources.length) {
+        resources.push({
+            ...newResources.pop(),
+            resourceID: nextResourceID++,
+        });
+    }
+};
 
 const handleSubmission = (resource, processDate) => {
 
-    resource.claimFileStats = getClaimFileStats(resource);
+    resource.claimFileInfo = getClaimFileInfo(resource);
 
-    if (resource.claimFileStats.shouldRejectSubmission) {
-        resources.push({
-            resourceID: nextResourceID++,
-            status: 'DOWNLOADABLE',
-            content: rejectMessageEncoder({
-                recordImage: resource.claimFileStats.recordImage,
-                providerFileName: getResourceFilename(resource.filename),
-                mailFileDate: formatDate(resource.createTimestamp),
-                mailFileTime: formatTime(resource.createTimestamp),
-
-            }),
-            description: `X${getMonthCode(processDate)}${resource.claimFileStats.groupNumber}.${formatAlphanumeric(nextBatchEditSequenceNumber++, 3, '0')}`,
-            resourceType: 'MR',
-            createTimestamp: processDate,
-            modifyTimestamp: processDate,
-        });
+    if (resource.claimFileInfo.shouldReject) {
+        addResources(getRejectMessages(resource, processDate));
     }
     else {
-        const batchEditReports = resource.claimFileStats.batches.forEach((batch) => {
-            // console.log('NERF processing claimFileStats batch: ', batch);
-            resources.push({
-                resourceID: nextResourceID++,
-                status: 'DOWNLOADABLE',
-                content: batchEditTemplate({
-                    batchId: batch.batchId,
-                    numClaims: formatAlphanumeric(batch.numClaims, 5, '0'),
-                    numRecords: formatAlphanumeric(batch.numRecords, 6, '0'),
-                    batchProcessDate: formatDate(new Date()),
-                }),
-                description: `B${getMonthCode(processDate)}${batch.groupNumber}.${formatAlphanumeric(nextBatchEditSequenceNumber++, 3, '0')}`,
-                resourceType: 'BE',
-                createTimestamp: new Date(),
-                modifyTimestamp: new Date(),
-            });
-        });
+        addResources(getErrorReports(resource, processDate));
+
+        addResources(getBatchEditReports(resource, processDate));
     }
 };
 

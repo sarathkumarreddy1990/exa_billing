@@ -25,7 +25,8 @@
     },
     "operatorNumber": {
         "startPos": 18,
-        "fieldLength": 6
+        "fieldLength": 6,
+        "constant": "0"
     },
     "groupNumber": {
         "startPos": 24,
