@@ -1582,7 +1582,8 @@ module.exports = {
 	        		    , now()
 	        	      )  AS details
 	        	FROM
-	        	    claim_charges
+                    claim_charges
+                WHERE claim_balance_total > 0::money
             )
             -- --------------------------------------------------------------------------------------------------------------
             -- Formating charge lineItems for debit adjustment. Create payment application
@@ -1601,7 +1602,8 @@ module.exports = {
 		        	    , now() + INTERVAL '0.03' SECOND
                     ) AS details
 		        FROM
-		            claim_charges
+                    claim_charges
+                WHERE claim_balance_total < 0::money
 	        )
             -- --------------------------------------------------------------------------------------------------------------
             -- It will update responsible party, claim status for given claim.
