@@ -314,7 +314,7 @@ module.exports = {
                             WHERE
                                 (   CASE
                                     WHEN 'OHIP_EOB' = ${paymentDetails.from} AND fcc.claim_payment_status = 'PP' THEN true
-                                    WHEN fcc.patient_lname != '' AND 'EOB' = ${paymentDetails.from}
+                                    WHEN fcc.patient_lname != '' AND 'OHIP_EOB' != ${paymentDetails.from}
                                     THEN lower(p.last_name) = lower(fcc.patient_lname)
                                         ELSE '0'
                                     END
