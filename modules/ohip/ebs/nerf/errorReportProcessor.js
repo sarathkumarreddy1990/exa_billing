@@ -31,7 +31,14 @@ let nextErrorReportFileSequenceNumber = 0;
 // returns an array of resources -- may be multiple resources per input resource
 module.exports = (resource, processDate) => {
 
+    const {
+        claimFileInfo,
+    } = resource;
+
+    let hasClaimRejects = false;
+
     // console.log(`resource.claimFileInfo: `, resource.claimFileInfo)
+
     const errorReportRecords = _.reduce(_.groupBy(resource.claimFileInfo.acceptBatches, ({groupNumber, providerNumber}) => {
         return `${groupNumber}-${providerNumber}`;
     }), (errorReport, gpnBatches, gpnKey) => {
@@ -56,7 +63,7 @@ module.exports = (resource, processDate) => {
                 providerNumber,
                 specialtyCode: specialty,
 
-                claimProcessDate: processDate,
+                claimProcessDate: formatDate(processDate),
 
                 mohOfficeCode: 'U', // from real world sample
                 stationNumber: 473, // from real world sample
@@ -71,6 +78,8 @@ module.exports = (resource, processDate) => {
             const batchRecords = specialtyBatches.reduce((results, batch) => {
 
                 return batch.rejectClaims.reduce((results, claim) => {
+
+                    hasClaimRejects = true;
 
                     hx9Data.header1Count++;
 
@@ -121,12 +130,15 @@ module.exports = (resource, processDate) => {
 
     }, []);
 
-    return [{
-        status: 'DOWNLOADABLE',
-        content: errorReportRecords.join('\n'),
-        description: `E${getMonthCode(processDate)}${resource.claimFileInfo.groupNumber}.${formatAlphanumeric(nextErrorReportFileSequenceNumber++, 3, '0')}`,
-        resourceType: ERROR_REPORTS,
-        createTimestamp: processDate,
-        modifyTimestamp: processDate,
-    }];
+    if (hasClaimRejects) {
+        return [{
+            status: 'DOWNLOADABLE',
+            content: errorReportRecords.join('\n'),
+            description: `E${getMonthCode(processDate)}${resource.claimFileInfo.groupNumber}.${formatAlphanumeric(nextErrorReportFileSequenceNumber++, 3, '0')}`,
+            resourceType: ERROR_REPORTS,
+            createTimestamp: processDate,
+            modifyTimestamp: processDate,
+        }];
+    }
+    return [];
 };

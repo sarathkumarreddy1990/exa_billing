@@ -1,47 +1,49 @@
+const path = require('path');
+
+const {
+    resourceTypes: {
+        CLAIMS_MAIL_FILE_REJECT_MESSAGE,
+    },
+} = require('./../constants');
 
 const {
     formatDate,
     formatAlphanumeric,
-} = require('../../encoder/util');
+    formatTime,
+} = require('./../../encoder/util');
 
+const {
+    getMonthCode,
+    getResourceFilename,
+} = require('./../../utils');
 
 const record1Fields = require('../../parser/claimFileRejectMessage/rejectMessageRecord1Fields');
 const record2Fields = require('../../parser/claimFileRejectMessage/rejectMessageRecord2Fields');
 
-const sampleParams = {
-    "messageReason": "0123456789ABCDEF0123",  // 20 chars
-    "invalidRecordLength": "00004",    // 5 chars
-    "messageType": "???",    // 3 chars
-    "recordImage": "HEBV03 201904280001000000AU7301221033",    // 37 chars
-
-    "providerFileName": "HG123456.000",   // 12 chars
-    "mailFileDate": formatDate(new Date()),   // 8 chars
-    "mailFileTime": "101000",   // 6 chars
-    "processDate": formatDate(new Date()),    // 8 chars
-};
+let nextRejectMessageFileSequenceNumber = 0;
 
 
-// const record2 = Object.keys(record2Fields);
-
-
-
-module.exports = (params) => {
-
+module.exports = (resource, processDate) => {
 
     params = {
         // recordImage: "HEBV03 201904280001000000AU7301221033",    // 37 chars
+        recordImage: resource.claimFileInfo.recordImage,
+
         // providerFileName: "HG123456.000",   // 12 chars
+        providerFileName: path.basename(resource.filename),
+
         // mailFileDate: formatDate(new Date()),   // 8 chars
+        mailFileDate: formatDate(processDate),
+
         // mailFileTime: "101000",   // 6 chars
+        mailFileTime: formatTime(processDate),
 
         messageReason: "0123456789ABCDEF0123",  // 20 chars
         invalidRecordLength: "00004",    // 5 chars
         messageType: "???",    // 3 chars
 
-        processDate: formatDate(new Date()),    // 8 chars
-        ...params,
+        processDate: formatDate(processDate),    // 8 chars
     };
-    const paramKeys = Object.keys(params);
 
     const record1 = Object.keys(record1Fields).map((key) => {
         const fieldDescriptor = record1Fields[key];
@@ -53,5 +55,12 @@ module.exports = (params) => {
         return formatAlphanumeric((fieldDescriptor.constant || params[key]), fieldDescriptor.fieldLength);
     }).join('');
 
-    return [record1, record2].join('\n');
+    return [{
+        status: 'DOWNLOADABLE',
+        content: [record1, record2].join('\n'),
+        description: `X${getMonthCode(processDate)}${resource.claimFileInfo.groupNumber}.${formatAlphanumeric(nextRejectMessageFileSequenceNumber++, 3, '0')}`,
+        resourceType: CLAIMS_MAIL_FILE_REJECT_MESSAGE,
+        createTimestamp: processDate,
+        modifyTimestamp: processDate,
+    }];
 };

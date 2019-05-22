@@ -172,7 +172,7 @@ const getClaimFileInfo = (resource) => {
 const addResources = (newResources) => {
     while (newResources.length) {
         resources.push({
-            ...newResources.pop(),
+            ...(newResources.pop()),
             resourceID: nextResourceID++,
         });
     }
