@@ -456,6 +456,19 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         },
                         "formatter": function ( cellvalue ) {
                             cellvalue = cellvalue || '';
+
+                            if (app.country_alpha_3_code === "can") {
+                                var errors = cellvalue.split('\n');
+                                var codes = [];
+
+                                for (var i = 0; i < errors.length; i++) {
+                                    var code = errors[i].split(' - ');
+                                    codes.push(code[0]);
+                                }
+                                
+                                return codes.join();
+                            }
+                            
                             cellvalue = cellvalue.replace(/(?:\n)/g, '<br />');
                             var regex = /<br\s*[\/]?>/gi;
                             return cellvalue.replace(regex, "\n");
