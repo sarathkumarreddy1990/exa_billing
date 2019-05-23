@@ -21,6 +21,9 @@ const {
         DATA_PROCESSING_FAILED,
         DATA_NOT_PROCESSED,
 
+    },
+    resourceTypes: {
+        CLAIMS,
     }
 } = require('./../constants');
 
@@ -40,6 +43,10 @@ const fs = require('fs');
 
 const resources = [];
 let nextResourceID = 60000;
+const REMITTANCE_ADVICE_RESOURCE_ID = nextResourceID++;
+
+let REMITTANCE_ADVICE = 0;
+// resources[REMITTANCE_ADVICE] = {/* placeholder*/};
 
 // matches service codes beginning with 'X' -- used to determine if an entire Claims File should be rejected
 const rejectionFlagMatcher = /X[0-9]{3}[A-Z]/;
@@ -51,7 +58,7 @@ const correctionFlagMatcher = /E[0-9]{3}[A-Z]/;
 const badBatchFlagMatcher = /Z[0-9]{3}[A-Z]/;
 
 
-// const remittanceAdviceEncoder = require('./remittanceAdviceEncoder');
+const updateRemittanceAdvice = require('./remittanceAdviceProcessor');
 const getRejectMessages = require('./rejectMessageProcessor');
 const getBatchEditReports = require('./batchEditProcessor');
 const getErrorReports = require('./errorReportProcessor');
@@ -192,25 +199,11 @@ const handleSubmission = (resource, processDate) => {
     }
 };
 
-const updateRemittanceAdvice = () => {
-    // remittanceAdviceEncoder(resources).forEach((remittanceAdvice) => {
-    //     resources.push({
-    //         resourceID: nextResourceID++,
-    //         status: 'DOWNLOADABLE',
-    //         ...remittanceAdvice,
-    //         resourceType: 'RA',
-    //         createTimestamp: new Date(),
-    //         modifyTimestamp: new Date(),
-    //     });
-    // });
-}
-
 const getResourcesByID = (resourceIDs) => {
     return resources.filter((resource) => {
         return resourceIDs.includes(parseInt(resource.resourceID));
     });
 };
-
 
 module.exports = {
 
@@ -285,7 +278,12 @@ module.exports = {
             });
         }, []);
 
-        updateRemittanceAdvice();
+        updateRemittanceAdvice(resources).forEach((resource) => {
+            resources.push({
+                resourceID: nextResourceID++,
+                ...resource,
+            });
+        });
 
         return xml[EDT_SUBMIT](submitResults);
     },

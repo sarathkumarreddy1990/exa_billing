@@ -37,8 +37,6 @@ module.exports = (resource, processDate) => {
 
     let hasClaimRejects = false;
 
-    // console.log(`resource.claimFileInfo: `, resource.claimFileInfo)
-
     const errorReportRecords = _.reduce(_.groupBy(resource.claimFileInfo.acceptBatches, ({groupNumber, providerNumber}) => {
         return `${groupNumber}-${providerNumber}`;
     }), (errorReport, gpnBatches, gpnKey) => {

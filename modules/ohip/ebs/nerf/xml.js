@@ -82,7 +82,6 @@ const generateDetailDataXML = (resource, responseCode) => {
 };
 
 const generateResourceResultsXML = (results) => {
-    console.log('RESULTS: ', results);
 
     const innerXML = results.map((result) => {
         return generateResponseResultXML(result.resource, result.responseCode);
