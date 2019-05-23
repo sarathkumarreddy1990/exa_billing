@@ -1290,7 +1290,7 @@
                 <div class="form-group row">
                     <label for="txtClaimResponsibleNotes" class="col-sm-3 col-form-label" i18n="billing.claims.billingNotes"></label>
                     <div class="col-sm-5">
-                        <textarea id="txtClaimResponsibleNotes" class="form-control form-control-lg" rows="2"></textarea>
+                        <textarea id="txtClaimResponsibleNotes" class="form-control form-control-lg" rows="2" <%= country_alpha_3_code === 'can' ? 'disabled' : '' %> ></textarea>
                     </div>
                 </div>
             </div>
