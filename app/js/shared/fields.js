@@ -670,6 +670,18 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "hidden": app.country_alpha_3_code !== 'can'
                     },
                     "field_code": "payment_id"
+                },
+                "ICD Description": {
+                    "id": 34,
+                    "field_name": "ICD Description",
+                    "i18n_name": "patient.advancedSearch.icdDescription",
+                    "field_info": {
+                        "custom_name": "ICD Description",
+                        "name": "icd_description",
+                        "width": 250,
+                        "defaultValue": ""
+                    },
+                    "field_code": "icd_description"
                 }
             });
         }else{
@@ -1829,6 +1841,18 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     }
                 }
             },
+            "ICD Description": {
+                "id": 68,
+                "field_name": "ICD Description",
+                "i18n_name": "patient.advancedSearch.icdDescription",
+                "field_info": {
+                    "custom_name": "ICD Description",
+                    "name": "icd_description",
+                    "width": 250,
+                    "defaultValue": ""
+                },
+                "field_code": "icd_description"
+            }
         });
 
     }
