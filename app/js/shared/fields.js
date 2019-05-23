@@ -449,6 +449,11 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "name": "billing_notes",
                         "width": 100,
                         "defaultValue": "",
+                        "cellattr": function (id, cellvalue, rowObject) {
+                            if (app.country_alpha_3_code === "can") {
+                                return 'title="' + rowObject.billing_notes + '"';
+                            }
+                        },
                         "formatter": function ( cellvalue ) {
                             cellvalue = cellvalue || '';
 
