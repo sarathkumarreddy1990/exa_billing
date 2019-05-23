@@ -1564,10 +1564,7 @@ module.exports = {
                 INNER JOIN LATERAL billing.get_charge_other_payment_adjustment(bch.id) bgct ON TRUE
                 LEFT JOIN LATERAL (
                     SELECT
-                        CASE
-                            WHEN ((i_bch.bill_fee * i_bch.units) - ( i_bgct.other_payment + i_bgct.other_adjustment )) < 0::money THEN true ELSE false
-                        END
-                        AS is_debit_adjustment
+                        ((i_bch.bill_fee * i_bch.units) - ( i_bgct.other_payment + i_bgct.other_adjustment )) < 0::money AS is_debit_adjustment
                     FROM billing.charges i_bch
                     INNER JOIN LATERAL billing.get_charge_other_payment_adjustment(i_bch.id) i_bgct ON TRUE
                     WHERE i_bch.claim_id = claims.id
