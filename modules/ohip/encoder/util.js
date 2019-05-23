@@ -17,14 +17,23 @@ module.exports = {
         return sprintf('%8.8s', (value || '').split('-').join(''));
     },
 
+
+    formatTime: (value) => {
+        if (value instanceof Date) {
+            return sprintf("%2.2s%'02.2s%'02.2s", value.getHours(), value.getMinutes(), value.getSeconds());
+        }
+        return sprintf('%6.6s', (value || '').split(':').join(''));
+    },
+
     /**
      * formatAlphanumeric - Converts the specified value to a string containing
      * only uppercase characters and digits.
      *
-     * @param  {string} value the string value that should be formated
+     * @param  {string} value the string value that should be formated (null and
+     *                  undefined will be converted to the empty string)
      * @param  {number} length the string value that should be formated
      * @param  {string} padding the character to pad the specified value with
-     *                  (the default is )
+     *                  (the default is spaces)
      * @param  {boolean} leftJustified whether or not the string should be
      *                  left left-justified or not (the default is false)
      *
@@ -32,10 +41,14 @@ module.exports = {
      *                        characters
      */
     formatAlphanumeric: (value, length, padding, leftJustified) => {
+
+        // this allows value to be explicitly zero, but null and undefined result in an empty string
+        const saneValue = (value === null || value === undefined) ? '' : value;
+
         const lenMod = length ? `${length}.${length}` : '';
         const padMod = padding ? `'${padding}` : '';
         const algnMod = leftJustified ? `-` : '';
-        return sprintf(`%${padMod}${algnMod}${lenMod}s`, (value || '').toString().toUpperCase());
+        return sprintf(`%${padMod}${algnMod}${lenMod}s`, saneValue.toString().toUpperCase());
     },
 
     /**

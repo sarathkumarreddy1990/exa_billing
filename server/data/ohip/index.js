@@ -176,7 +176,6 @@ const storeFile =  async (args) => {
     mkdirp.sync(dirPath);
 
     let filename = originalFilename;
-
     if ( appendFileSequence ) {
         try {
             const filenames = await readDirAsync(dirPath);
@@ -185,10 +184,9 @@ const storeFile =  async (args) => {
 
             // Use index as the final 4 chars (. + 3 numbers) in the filename
             filename += `.${index.padStart(3, '0')}`;
-
         }
         catch ( e ) {
-            logger.logError(`Could not get file count for directory ${dirPath}`, e);
+            logger.error(`Could not get file count for directory ${dirPath}`, e);
         }
 
     }
