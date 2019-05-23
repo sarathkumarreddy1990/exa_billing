@@ -1553,6 +1553,7 @@ module.exports = {
                     , ((bch.bill_fee * bch.units) - ( bgct.other_payment + bgct.other_adjustment )) AS adjustment
                     , '[]'::jsonb AS cas_details
                     , cpl.claim_balance_total
+                    , COALESCE (is_debit_adjustment, false) AS is_debit_adjustment
                 FROM
                     billing.claims
                 INNER JOIN insert_payment ip ON ip.patient_id = claims.patient_id
@@ -1561,6 +1562,18 @@ module.exports = {
                 INNER JOIN billing.charges bch ON bch.claim_id = claims.id
                 INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
                 INNER JOIN LATERAL billing.get_charge_other_payment_adjustment(bch.id) bgct ON TRUE
+                LEFT JOIN LATERAL (
+                    SELECT
+                        CASE
+                            WHEN ((i_bch.bill_fee * i_bch.units) - ( i_bgct.other_payment + i_bgct.other_adjustment )) < 0::money THEN true ELSE false
+                        END
+                        AS is_debit_adjustment
+                    FROM billing.charges i_bch
+                    INNER JOIN LATERAL billing.get_charge_other_payment_adjustment(i_bch.id) i_bgct ON TRUE
+                    WHERE i_bch.claim_id = claims.id
+                    AND ( CASE WHEN ((i_bch.bill_fee * i_bch.units) - ( i_bgct.other_payment + i_bgct.other_adjustment )) < 0::money THEN true ELSE false END )
+                    LIMIT 1
+                ) ida ON true
                 WHERE cpl.claim_balance_total != 0::money
                 ORDER BY claims.id ASC
             )
@@ -1602,7 +1615,7 @@ module.exports = {
                     ) AS details
 		        FROM
                     claim_charges
-                WHERE claim_balance_total < 0::money
+                WHERE (claim_balance_total < 0::money OR is_debit_adjustment)
 	        )
             -- --------------------------------------------------------------------------------------------------------------
             -- It will update responsible party, claim status for given claim.
