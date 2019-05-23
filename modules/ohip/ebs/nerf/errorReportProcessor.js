@@ -3,7 +3,6 @@ const _ = require('lodash');
 const {
     resourceTypes: {
         ERROR_REPORTS,
-
     },
 } = require('./../constants');
 
@@ -26,7 +25,6 @@ const explanationCodeMessageFields = require('./../../parser/errorReport/explana
 const trailerRecordFields = require('./../../parser/errorReport/trailerRecordFields');
 
 let nextErrorReportFileSequenceNumber = 0;
-
 
 // returns an array of resources -- may be multiple resources per input resource
 module.exports = (resource, processDate) => {

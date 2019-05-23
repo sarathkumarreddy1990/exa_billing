@@ -16,12 +16,7 @@ const {
         CLAIMS,
         REMITTANCE_ADVICE,
     },
-
 } = require('./../constants');
-
-// NOTE to generate only one HR4 segment per claim, set this to zero (0)
-//      to generate an 10941 HR4 segments, set to 10941
-const TARGET_SIZE = 0;
 
 const claims = [];
 

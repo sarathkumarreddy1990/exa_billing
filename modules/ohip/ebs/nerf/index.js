@@ -46,7 +46,6 @@ let nextResourceID = 60000;
 const REMITTANCE_ADVICE_RESOURCE_ID = nextResourceID++;
 
 let REMITTANCE_ADVICE = 0;
-// resources[REMITTANCE_ADVICE] = {/* placeholder*/};
 
 // matches service codes beginning with 'X' -- used to determine if an entire Claims File should be rejected
 const rejectionFlagMatcher = /X[0-9]{3}[A-Z]/;
