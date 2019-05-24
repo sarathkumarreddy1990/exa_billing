@@ -353,16 +353,26 @@ define(['jquery',
                 $('#divInputType span').show();
                 this.clearPayerFields();
                 if (val === 'insurance') {
+                    var $payerInsurance = $('#txtautoPayerPIP');
                     $('#select2-txtautoPayerPIP-container').html(commonjs.geti18NString('billing.payments.selectInsurance'));
                     $('#divPayerInsurnace').show();
+                    if ($payerInsurance.length) { // clear selected insurance when switching Payer type
+                        $payerInsurance.find('option').remove();
+                        this.setInsuranceAutoComplete();
+                    }
                     $('#lblIpEob').show();
                     $('#chkIpEob').prop('checked', true);
-                    $('#divPayerInsurnace').show();
                     $('#lblInputType').text('Input Type');
                 }
                 else if (val === 'patient') {
+                    var $payerPatient = $('#txtautoPayerPP');
                     $('#select2-txtautoPayerPP-container').html(commonjs.geti18NString('billing.payments.selectPatient'));
                     $('#divPayerPatient').show();
+                    if ($payerPatient.length) { // clear selected patient when switching Payer type
+                        $payerPatient.find('option').remove();
+                        this.setPatientAutoComplete();
+                    }
+
                     $('#lblIpEob').hide();
                     $('#divInputType span').hide();
                     $('#txtInvoice').hide();
@@ -373,14 +383,26 @@ define(['jquery',
                     $('#searchPayer #dob').val('');
                 }
                 else if (val === 'ordering_facility') {
+                    var $payerOrdFacility = $('#txtautoPayerPOF');
                     $('#select2-txtautoPayerPOF-container').html(commonjs.geti18NString('billing.payments.selectOrderingFacility'));
                     $('#divPayerOrderFacility').show();
+                    if ($payerOrdFacility.length) { // clear selected ordering facility when switching Payer type
+                        $payerOrdFacility.find('option').remove();
+                        this.setOFAutoComplete();
+                    }
+
                     $('#lblIpEob').hide();
                     $('#lblInputType').text('Input Type');
                 }
                 else if (val === 'ordering_provider') {
+                    var $payerOrdProvider = $('#txtautoPayerPR');
                     $('#select2-txtautoPayerPR-container').html(commonjs.geti18NString('billing.payments.selectProvider'));
                     $('#divPayerProvider').show();
+                    if ($payerOrdProvider.length) { // clear selected ordering provider when switching Payer type
+                        $payerOrdProvider.find('option').remove();
+                        this.setProviderAutoComplete();
+                    }
+
                     $('#lblIpEob').hide();
                     $('#lblInputType').text('Input Type');
                 }
