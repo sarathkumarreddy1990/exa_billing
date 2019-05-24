@@ -185,9 +185,7 @@ function bindpayment(claimNo, data, columns, amount_type) {
                     columns.forEach(function(column) {
                         if (column == 'payment_dt') {
                             dataRow.push(row[column] ? Dateformat(row[column]) : '');
-                        } else if (column == 'payments_applied_total') {
-                            dataRow.push({text: (row[column] || '$0.00') , alignment:'right' });
-                        } else if ((column == 'ajdustments_applied_total')) {
+                        } else if (column == 'payments_applied_total' || column == 'ajdustments_applied_total') {
                             dataRow.push({text: (row[column] || '$0.00') , alignment:'right' });
                         } else if (column == 'amount_type' && row[column] == 'payment') {
                             dataRow.push('Payment');
