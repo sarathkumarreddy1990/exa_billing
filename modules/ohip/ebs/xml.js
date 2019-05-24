@@ -15,7 +15,7 @@ const parseStatus = (doc) => {
 };
 
 const parseResourceID = (doc) => {
-    return select("*[local-name(.)='resourceID']/text()", doc)[0].nodeValue;
+    return parseInt(select("*[local-name(.)='resourceID']/text()", doc)[0].nodeValue);
 };
 
 const parseOptionalValue = (doc, name) => {

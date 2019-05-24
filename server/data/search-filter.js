@@ -890,7 +890,7 @@ const api = {
                                 id = 1
                         ) = 'can'
                     THEN
-                        public.get_eligibility_status(claims.primary_patient_insurance_id , claims.claim_dt)
+                        public.get_eligibility_status(orders.primary_patient_insurance_id , studies.study_dt)
                     ELSE
                         null
                 END AS as_eligibility_status`

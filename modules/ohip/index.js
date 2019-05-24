@@ -41,6 +41,7 @@ const {
 
 const {
     getMonthCode,
+    getResourceFilename,
     // getNumberFromMoney,
 } = require('./utils');
 
@@ -264,29 +265,34 @@ const downloadRemittanceAdvice = async ( args, callback ) => {
 };
 
 const downloadAndProcessResponseFiles = async (args, callback) => {
+    const downloadResults = [];
+    const downloadHandler = (err, results) => {
+        if (err) {
+            logger.error('OHIP downloadAndProcessResponseFiles', err);
+        }
+        downloadResults.push({
+            err,
+            results,
+        });
+        if (downloadResults.length === 3) {
+            callback(null, downloadResults);
+        }
+    }
 
     downloadAckFile({
         resourceType: CLAIMS_MAIL_FILE_REJECT_MESSAGE,
         applicator: billingApi.applyRejectMessage
-    }, (err, results) => {
-        // TODO logging etc
-    });
+    }, downloadHandler);
 
     downloadAckFile({
         resourceType: BATCH_EDIT,
         applicator: billingApi.applyBatchEditReport
-    }, (err, results) => {
-        // TODO logging etc
-    });
+    }, downloadHandler);
 
     downloadAckFile({
         resourceType: ERROR_REPORTS,
         applicator: billingApi.applyErrorReport
-    }, (err, results) => {
-        // TODO logging etc
-    });
-
-    callback(null, {});
+    }, downloadHandler);
 };
 
 module.exports = {
@@ -351,7 +357,6 @@ module.exports = {
 
         // 2 - run claim data through encoder
         const ohipConfig = await billingApi.getOHIPConfiguration();
-        logger.debug('ohipConfig: ', ohipConfig);
 
         const claimEnc = new ClaimsEncoder(ohipConfig); // default 1:1/1:1
         // const claimEnc = new ClaimsEncoder({batchesPerFile:5});
@@ -408,7 +413,7 @@ module.exports = {
             result.push({
                 resourceType: CLAIMS,
                 filename: storedFile.absolutePath,
-                description: storedFile.filename,
+                description: getResourceFilename(storedFile.absolutePath),
             });
             return result;
         }, []);
@@ -459,7 +464,7 @@ module.exports = {
                 status: 'in_progress',
                 files: successfulUploadResults.map((uploadResult) => {
                     const storedFile = find((storedFiles), (storedFile) => {
-                        return uploadResult.description === storedFile.filename;
+                        return uploadResult.description === getResourceFilename(storedFile.absolutePath);
                     });
                     storedFile.resource_id = uploadResult.resourceID;
                     return storedFile;
@@ -494,7 +499,7 @@ module.exports = {
                     status: 'success',
                     files: successfulSubmitResults.map((submitResult) => {
                         return find((storedFiles), (storedFile) => {
-                            return submitResult.description === storedFile.filename;
+                            return submitResult.description === getResourceFilename(storedFile.absolutePath);
                         });
                     }),
                 });
