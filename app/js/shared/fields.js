@@ -449,8 +449,26 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "name": "billing_notes",
                         "width": 100,
                         "defaultValue": "",
+                        "cellattr": function (id, cellvalue, rowObject) {
+                            if (app.country_alpha_3_code === "can") {
+                                return 'title="' + rowObject.billing_notes + '"';
+                            }
+                        },
                         "formatter": function ( cellvalue ) {
                             cellvalue = cellvalue || '';
+
+                            if (app.country_alpha_3_code === "can") {
+                                var errors = cellvalue.split('\n');
+                                var codes = [];
+
+                                for (var i = 0; i < errors.length; i++) {
+                                    var code = errors[i].split(' - ');
+                                    codes.push(code[0]);
+                                }
+                                
+                                return codes.join();
+                            }
+                            
                             cellvalue = cellvalue.replace(/(?:\n)/g, '<br />');
                             var regex = /<br\s*[\/]?>/gi;
                             return cellvalue.replace(regex, "\n");
