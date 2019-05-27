@@ -4105,7 +4105,7 @@ define(['jquery',
                                 $studyDetails.append('<button style="height:33px;" type="button" i18n="billing.fileInsurance.createWithoutStudy" class="btn top-buffer processClaim" id="btnClaimWOStudy"></button>');
                                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
 
-                                $('.processStudy').on().click(function (e) {
+                                $('.processStudy').click(function (e) {
                                     var $checkedInputs = $studyDetails.find('input').filter('[name=chkStudy]:checked');
                                     $('#btnClaimWOStudy').prop('disabled', $checkedInputs.length || false);
                                 });
