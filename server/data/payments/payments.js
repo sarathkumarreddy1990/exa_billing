@@ -344,12 +344,12 @@ module.exports = {
                         ORDER BY edi_file_id 
                         LIMIT 1
                     ) era_payment ON TRUE
-					LEFT JOIN LATERAL(
+                    LEFT JOIN LATERAL(
                         SELECT
-							edi_files.id
+                            edi_files.id
                         FROM 
                             billing.edi_file_payments 
-						INNER JOIN billing.edi_files ON edi_files.id = edi_file_payments.edi_file_id AND edi_files.file_type = 'EOB'
+                        INNER JOIN billing.edi_files ON edi_files.id = edi_file_payments.edi_file_id AND edi_files.file_type = 'EOB'
                         WHERE edi_file_payments.payment_id = payments.id
                     ) era_pdf ON TRUE
                     WHERE

@@ -222,16 +222,11 @@ define([
             },
 
             showERAButtons: function() {
-                var ifrDoc, previewEOBObj, processEOBObj
+                var ifrDoc = $("ifrEobFileUpload").contents();
 
-                if ( document && document.getElementById("ifrEobFileUpload") && document.getElementById("ifrEobFileUpload").contentWindow 
-                && document.getElementById("ifrEobFileUpload").contentWindow.document) {
-                    ifrDoc = document.getElementById("ifrEobFileUpload").contentWindow.document;
-                    previewEOBObj = ifrDoc.getElementById('btnPreview_EOB') && ifrDoc.getElementById('btnPreview_EOB').style;
-                    processEOBObj = ifrDoc.getElementById('btnProcess_EOB') && ifrDoc.getElementById('btnProcess_EOB').style;
-
-                    processEOBObj ? processEOBObj.removeProperty('display') : '';
-                    previewEOBObj? previewEOBObj.removeProperty('display') : '';
+                if (ifrDoc) {
+                    $(ifrDoc).find('#btnProcess_EOB').css('display', 'block');
+                    $(ifrDoc).find('#btnPreview_EOB').css('display', 'block');
                 }
             },
 

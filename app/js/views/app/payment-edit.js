@@ -907,7 +907,6 @@ define(['jquery',
                         $('#eobPreviewPayment').removeClass('hidden');
                     } else {
                         $('#eobPaymentUpload').removeClass('hidden');
-                        
                     }
                 }
             },
@@ -3337,42 +3336,30 @@ define(['jquery',
             },
 
             reloadEobPDF: function() {
-                var ifrDoc;
                 var fileStatus;
                 var fileStoreExist;
-                var fileDuplicateObj;
-                var fileUploadedObj;
 
-                if ( document && document.getElementById("ifrEobFileUpload") && document.getElementById("ifrEobFileUpload").contentWindow 
-                && document.getElementById("ifrEobFileUpload").contentWindow.document) {
-                    ifrDoc = document.getElementById("ifrEobFileUpload").contentWindow.document;
-                    ifrDoc.getElementById('btnPreview_EOB').style.display = 'none';
-                    ifrDoc.getElementById('btnProcess_EOB').style.display = 'none';
-                    fileStatus = ifrDoc.getElementById('fileStatus');
-                    fileStoreExist = ifrDoc.getElementById('fileStoreExist');
-                    fileDuplicateObj = ifrDoc.getElementById('fileIsDuplicate');
-                    fileUploadedObj = ifrDoc.getElementById('fileNameUploaded');
+                var ifrDoc = $("#ifrEobFileUpload").contents();
+                if (ifrDoc) {
+                    $(ifrDoc).find('#btnProcess_EOB').css('display', 'none');
+                    $(ifrDoc).find('#btnPreview_EOB').css('display', 'none');
+                    fileStatus = $(ifrDoc).find('#fileStatus');
+                    fileStoreExist = $(ifrDoc).find('#fileStoreExist');
 
-                    if ((fileStatus.textContent).toLowerCase() === 'ok') {
+                    if ((fileStatus.text()).toLowerCase() === 'ok') {
                         $('#eobPreviewPayment').removeClass('hidden');
                         $('#eobPaymentUpload').addClass('hidden');
-                    } else if (fileStoreExist && fileStoreExist.innerHTML == 'FILE_STORE_NOT_EXISTS') {
+                    } else if (fileStoreExist && fileStoreExist.text() == 'FILE_STORE_NOT_EXISTS') {
                         commonjs.showWarning("messages.warning.era.fileStoreNotconfigured");
-                        fileDuplicateObj.innerHTML = '';
-                        fileUploadedObj.innerHTML = '';
-                        fileStoreExist.innerHTML = '';
+                        $(ifrDoc).find('#fileIsDuplicate, #fileNameUploaded, #fileStoreExist').html('');
                         return false;
-                    } else if (fileStatus && fileStatus.innerHTML == 'INVALID_FILE') {
+                    } else if (fileStatus && fileStatus.text() == 'INVALID_FILE') {
                         commonjs.showWarning("messages.warning.era.invalidFileFormat");
-                        fileStatus.innerHTML = '';
-                        fileUploadedObj.innerHTML = '';
-                        fileStoreExist.innerHTML = '';
+                        $(ifrDoc).find('#fileStatus, #fileNameUploaded, #fileStoreExist').html('');
                         return false;
-                    } else if (fileStoreExist && fileStoreExist.innerHTML != '') {
-                        commonjs.showWarning(fileStoreExist.innerHTML);
-                        fileDuplicateObj.innerHTML = '';
-                        fileUploadedObj.innerHTML = '';
-                        fileStoreExist.innerHTML = '';
+                    } else if (fileStoreExist && fileStoreExist.text() != '') {
+                        commonjs.showWarning(fileStoreExist.text());
+                        $(ifrDoc).find('#fileIsDuplicate, #fileNameUploaded, #fileStoreExist').html('');
                         return false;
                     }
                 }
