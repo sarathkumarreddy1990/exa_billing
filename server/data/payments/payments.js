@@ -324,6 +324,8 @@ module.exports = {
                         , (select adjustments_applied_total from billing.get_payment_totals(payments.id)) AS adjustment_amount
                         , (select payment_status from billing.get_payment_totals(payments.id)) AS current_status
                         , billing.payments.XMIN as payment_row_version
+                        , era_payment.edi_file_id 
+                        , era_pdf.id AS eob_file_id
                     FROM billing.payments
                     INNER JOIN public.users ON users.id = payments.created_by
                     LEFT JOIN public.patients ON patients.id = payments.patient_id
@@ -333,7 +335,23 @@ module.exports = {
                     -- LEFT JOIN public.providers ON providers.id = payments.provider_contact_id
                     LEFT JOIN public.provider_contacts ON provider_contacts.id = payments.provider_contact_id
                     LEFT JOIN public.providers ref_provider ON provider_contacts.provider_id = ref_provider.id
-
+                    LEFT JOIN LATERAL(
+                        SELECT
+                            edi_file_id
+                        FROM 
+                            billing.edi_file_payments 
+                        WHERE edi_file_payments.payment_id = payments.id
+                        ORDER BY edi_file_id 
+                        LIMIT 1
+                    ) era_payment ON TRUE
+					LEFT JOIN LATERAL(
+                        SELECT
+							edi_files.id
+                        FROM 
+                            billing.edi_file_payments 
+						INNER JOIN billing.edi_files ON edi_files.id = edi_file_payments.edi_file_id AND edi_files.file_type = 'EOB'
+                        WHERE edi_file_payments.payment_id = payments.id
+                    ) era_pdf ON TRUE
                     WHERE
                         payments.id = ${id}`;
 

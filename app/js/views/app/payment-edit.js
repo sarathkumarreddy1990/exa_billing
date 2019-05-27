@@ -71,7 +71,9 @@ define(['jquery',
             casDeleted: [],
             saveClick:false,
             paymentDateObj:null,
-
+            isEscKeyPress:false,
+            eobFileId: null,
+            ediFileId: null,
             events: {
                 'click #btnPaymentSave': 'savePayment',
                 'click #btnApplyCAS': 'getPayemntApplications',
@@ -107,7 +109,10 @@ define(['jquery',
                 'keypress #claimId, #invoiceNo': 'searchInvoiceOrClaim',
                 'click .nextPrevPayment': 'nextPrevPayment',
                 "keyup .search-payer": "searchPayer",
-                "click #btnClearPatSearch": "resetPatSearch"
+                "click #btnClearPatSearch": "resetPatSearch",
+                "click #eobPreviewPayment img": "showPDF",
+                "click .EOBPaymentUpload": "uploadPDF",
+                "click #btnReloadEOB": "reloadEobPDF"
             },
 
             usermessage: {
@@ -893,6 +898,18 @@ define(['jquery',
                     self.loadSelectedGrid(e, paymentID, response.payer_type, self.payer_id);
                 });
                 self.showStudyCpt(self.payer_id,self.study_dt);
+
+                if (response.edi_file_id) {
+                    self.ediFileId = response.edi_file_id;
+                    
+                    if (response.eob_file_id) {
+                        self.eobFileId = response.eob_file_id;
+                        $('#eobPreviewPayment').removeClass('hidden');
+                    } else {
+                        $('#eobPaymentUpload').removeClass('hidden');
+                        
+                    }
+                }
             },
 
             showStudyCpt: function (payerId, study_dt) {
@@ -3273,6 +3290,93 @@ define(['jquery',
                     commonjs.showWarning("messages.warning.payments.noRecords");
                 }
                 $('.nextPrevPayment').prop('disabled', false);
+            },
+
+            showPDF: function() {
+                var self = this;
+                if (self.eobFileId == null) {
+                    $.ajax({
+                        url: '/exa_modules/billing/era/eob_file_id',
+                        type: 'GET',
+                        data: {
+                            paymentID: self.payment_id
+                        },
+                        success: function (data, response) {
+                            if (data.rows && data.rows.length) {
+                                self.eobFileId = data.rows[0].eob_file_id;
+                            }
+
+                            commonjs.showDialog({
+                                url: '/exa_modules/billing/era/eob_pdf?file_id=' + self.eobFileId + '&company_id=' + app.companyID,
+                                width: '80%',
+                                height: '80%',
+                                header: 'EOB',
+                                i18nHeader: "billing.payments.eob"
+                            });
+                        },
+                        error: function (err, response) {
+                            commonjs.handleXhrError(err, response);
+                        }
+                    });
+                } else {
+                    commonjs.showDialog({
+                        url: '/exa_modules/billing/era/eob_pdf?file_id=' + self.eobFileId + '&company_id=' + app.companyID,
+                        width: '80%',
+                        height: '80%',
+                        header: 'EOB',
+                        i18nHeader: "billing.payments.eob"
+                    });
+                }
+
+            },
+            
+            uploadPDF: function(e) {
+                var self = this;
+                $('.EOBPaymentUpload').attr('id', self.ediFileId)
+                var iframe = $('#ifrEobFileUpload')[0];
+                iframe.contentWindow.fireUpload(e);
+            },
+
+            reloadEobPDF: function() {
+                var ifrDoc;
+                var fileStatus;
+                var fileStoreExist;
+                var fileDuplicateObj;
+                var fileUploadedObj;
+
+                if ( document && document.getElementById("ifrEobFileUpload") && document.getElementById("ifrEobFileUpload").contentWindow 
+                && document.getElementById("ifrEobFileUpload").contentWindow.document) {
+                    ifrDoc = document.getElementById("ifrEobFileUpload").contentWindow.document;
+                    ifrDoc.getElementById('btnPreview_EOB').style.display = 'none';
+                    ifrDoc.getElementById('btnProcess_EOB').style.display = 'none';
+                    fileStatus = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileStatus');
+                    fileStoreExist = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileStoreExist');
+                    fileDuplicateObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileIsDuplicate');
+                    fileUploadedObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileNameUploaded');
+
+                    if ((fileStatus.textContent).toLowerCase() === 'ok') {
+                        $('#eobPreviewPayment').removeClass('hidden');
+                        $('#eobPaymentUpload').addClass('hidden');
+                    } else if (fileStoreExist && fileStoreExist.innerHTML == 'FILE_STORE_NOT_EXISTS') {
+                        commonjs.showWarning("messages.warning.era.fileStoreNotconfigured");
+                        fileDuplicateObj.innerHTML = '';
+                        fileUploadedObj.innerHTML = '';
+                        fileStoreExist.innerHTML = '';
+                        return false;
+                    } else if (fileStatus && fileStatus.innerHTML == 'INVALID_FILE') {
+                        commonjs.showWarning("messages.warning.era.invalidFileFormat");
+                        fileStatus.innerHTML = '';
+                        fileUploadedObj.innerHTML = '';
+                        fileStoreExist.innerHTML = '';
+                        return false;
+                    } else if (fileStoreExist && fileStoreExist.innerHTML != '') {
+                        commonjs.showWarning(fileStoreExist.innerHTML);
+                        fileDuplicateObj.innerHTML = '';
+                        fileUploadedObj.innerHTML = '';
+                        fileStoreExist.innerHTML = '';
+                        return false;
+                    }
+                }
             }
 
         });

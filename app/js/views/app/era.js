@@ -216,6 +216,28 @@ define([
                     fileUploadedObj.innerHTML = '';
                 }
                 this.uploadMode = null;
+                if (layout.currentModule !== 'Payments') {
+                    this.showERAButtons();
+                }
+            },
+
+            showERAButtons: function() {
+                var ifrDoc, previewEOBObj, processEOBObj
+
+                if ( document && document.getElementById("ifrEobFileUpload") && document.getElementById("ifrEobFileUpload").contentWindow 
+                && document.getElementById("ifrEobFileUpload").contentWindow.document) {
+                    ifrDoc = document.getElementById("ifrEobFileUpload").contentWindow.document;
+                    previewEOBObj = ifrDoc.getElementById('btnPreview_EOB');
+                    processEOBObj = ifrDoc.getElementById('btnProcess_EOB');
+                }
+
+                if (processEOBObj && processEOBObj.style) {
+                    processEOBObj.style.removeProperty('display');
+                }
+
+                if (previewEOBObj && previewEOBObj.style) {
+                    previewEOBObj.style.removeProperty('display');
+                }
             },
 
             setPhoneMask: function (obj1, obj2) {
@@ -398,6 +420,10 @@ define([
                 var fileStatus = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileStatus');
 
                 var hdnPreviewFileName = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('hdnPreviewFileName');
+
+                if (layout.currentModule !== 'Payments') {
+                    this.showERAButtons();
+                }
 
                 if(hdnPreviewFileName && hdnPreviewFileName.innerHTML && hdnPreviewFileName.innerHTML.length > 0) {
                     this.showEraPreview(hdnPreviewFileName.innerHTML);

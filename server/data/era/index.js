@@ -761,5 +761,17 @@ module.exports = {
 
         return await query(sql);
 
+    },
+
+    getEOBFileId: async function ({
+        paymentID
+    }) {
+        let sql = SQL`SELECT 
+                        edi_files.id AS eob_file_id 
+                    FROM billing.edi_file_payments 
+                    INNER JOIN billing.edi_files ON edi_files.id = edi_file_payments.edi_file_id AND file_type = 'EOB'
+                    WHERE edi_file_payments.payment_id = ${paymentID}`;
+
+        return await query(sql);
     }
 };
