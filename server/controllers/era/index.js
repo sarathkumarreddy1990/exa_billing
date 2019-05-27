@@ -526,7 +526,5 @@ module.exports = {
         return paymentResult;
     },
 
-    getEOBFileId: async function (query) {
-        return data.getEOBFileId(query);
-    },
+    getEOBFileId: data.getEOBFileId
 };

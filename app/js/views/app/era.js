@@ -227,16 +227,11 @@ define([
                 if ( document && document.getElementById("ifrEobFileUpload") && document.getElementById("ifrEobFileUpload").contentWindow 
                 && document.getElementById("ifrEobFileUpload").contentWindow.document) {
                     ifrDoc = document.getElementById("ifrEobFileUpload").contentWindow.document;
-                    previewEOBObj = ifrDoc.getElementById('btnPreview_EOB');
-                    processEOBObj = ifrDoc.getElementById('btnProcess_EOB');
-                }
+                    previewEOBObj = ifrDoc.getElementById('btnPreview_EOB') && ifrDoc.getElementById('btnPreview_EOB').style;
+                    processEOBObj = ifrDoc.getElementById('btnProcess_EOB') && ifrDoc.getElementById('btnProcess_EOB').style;
 
-                if (processEOBObj && processEOBObj.style) {
-                    processEOBObj.style.removeProperty('display');
-                }
-
-                if (previewEOBObj && previewEOBObj.style) {
-                    previewEOBObj.style.removeProperty('display');
+                    processEOBObj ? processEOBObj.removeProperty('display') : '';
+                    previewEOBObj? previewEOBObj.removeProperty('display') : '';
                 }
             },
 

@@ -111,7 +111,7 @@ define(['jquery',
                 "keyup .search-payer": "searchPayer",
                 "click #btnClearPatSearch": "resetPatSearch",
                 "click #eobPreviewPayment img": "showPDF",
-                "click .EOBPaymentUpload": "uploadPDF",
+                "click .btnEobPaymentUpload": "uploadPDF",
                 "click #btnReloadEOB": "reloadEobPDF"
             },
 
@@ -3306,33 +3306,32 @@ define(['jquery',
                                 self.eobFileId = data.rows[0].eob_file_id;
                             }
 
-                            commonjs.showDialog({
-                                url: '/exa_modules/billing/era/eob_pdf?file_id=' + self.eobFileId + '&company_id=' + app.companyID,
-                                width: '80%',
-                                height: '80%',
-                                header: 'EOB',
-                                i18nHeader: "billing.payments.eob"
-                            });
+                            self.showDocument();
                         },
                         error: function (err, response) {
                             commonjs.handleXhrError(err, response);
                         }
                     });
                 } else {
-                    commonjs.showDialog({
-                        url: '/exa_modules/billing/era/eob_pdf?file_id=' + self.eobFileId + '&company_id=' + app.companyID,
-                        width: '80%',
-                        height: '80%',
-                        header: 'EOB',
-                        i18nHeader: "billing.payments.eob"
-                    });
+                    self.showDocument();
                 }
 
+            },
+
+            showDocument: function() {
+                var self = this;
+                commonjs.showDialog({
+                    url: '/exa_modules/billing/era/eob_pdf?file_id=' + self.eobFileId + '&company_id=' + app.companyID,
+                    width: '80%',
+                    height: '80%',
+                    header: 'EOB',
+                    i18nHeader: "billing.payments.eob"
+                });
             },
             
             uploadPDF: function(e) {
                 var self = this;
-                $('.EOBPaymentUpload').attr('id', self.ediFileId)
+                $('.btnEobPaymentUpload').attr('id', self.ediFileId)
                 var iframe = $('#ifrEobFileUpload')[0];
                 iframe.contentWindow.fireUpload(e);
             },
@@ -3349,10 +3348,10 @@ define(['jquery',
                     ifrDoc = document.getElementById("ifrEobFileUpload").contentWindow.document;
                     ifrDoc.getElementById('btnPreview_EOB').style.display = 'none';
                     ifrDoc.getElementById('btnProcess_EOB').style.display = 'none';
-                    fileStatus = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileStatus');
-                    fileStoreExist = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileStoreExist');
-                    fileDuplicateObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileIsDuplicate');
-                    fileUploadedObj = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileNameUploaded');
+                    fileStatus = ifrDoc.getElementById('fileStatus');
+                    fileStoreExist = ifrDoc.getElementById('fileStoreExist');
+                    fileDuplicateObj = ifrDoc.getElementById('fileIsDuplicate');
+                    fileUploadedObj = ifrDoc.getElementById('fileNameUploaded');
 
                     if ((fileStatus.textContent).toLowerCase() === 'ok') {
                         $('#eobPreviewPayment').removeClass('hidden');
