@@ -1174,6 +1174,7 @@ define(['jquery',
                 // Retreive selected rows
                 var curSelection = $('.tab-pane.active .ui-jqgrid-bdiv table tr.customRowSelect');
 
+                $('#btnStudiesRefresh, #btnStudiesRefreshAll').prop('disabled', true);
                 var self = this, dicomwhere = "";
                 if (isFromDatepicker && isFromDatepicker.target) {
                     if (isFromDatepicker.target.id == 'showQCApplyFilter') {
@@ -1337,6 +1338,7 @@ define(['jquery',
             },
 
             refreshAllStudies: function () {
+                $('#btnStudiesRefresh, #btnStudiesRefreshAll').prop('disabled', true);
                 var self = this;
                 // commonjs.isHomePageVisited = false;
                 var filter = commonjs.loadedStudyFilters.get(commonjs.currentStudyFilter);

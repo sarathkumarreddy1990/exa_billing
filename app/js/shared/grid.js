@@ -1432,6 +1432,7 @@ define('grid', [
                     options.updateStudiesPager(model, gridObj);
                 }
                 selectedStudyArray = [];
+                $('#btnStudiesRefresh, #btnStudiesRefreshAll, #btnClaimsRefresh, #btnClaimRefreshAll').prop('disabled', false);
             };
 
             var rowattr = function (domData, data) {
