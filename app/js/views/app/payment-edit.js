@@ -17,6 +17,7 @@ define(['jquery',
     'views/reports/payments-pdf',
     'views/claims/claim-inquiry',
     'collections/app/studycpt-list'],
+    'shared/trackFormChanges']
 
     function (
         jQuery,
@@ -71,7 +72,7 @@ define(['jquery',
             casDeleted: [],
             saveClick:false,
             paymentDateObj:null,
-
+            isEscKeyPress:false,
             events: {
                 'click #btnPaymentSave': 'savePayment',
                 'click #btnApplyCAS': 'getPayemntApplications',
@@ -2054,23 +2055,23 @@ define(['jquery',
 
             updateRefundRecoupment: function () {
                 var lineItems = $("#tBodyApplyPendingPayment tr");
-                var isDebit = $('.checkDebit')[0].checked;
-                var adjustment_codetype = $('#ddlAdjustmentCode_fast').find(':selected').attr('data_code_type');
+                var isDebit = $('.checkDebit').length && $('.checkDebit')[0].checked;
+                var adjustmentCodeType = $('#ddlAdjustmentCode_fast').find(':selected').attr('data_code_type');
 
-                if (isDebit && adjustment_codetype) {
+                if (isDebit && adjustmentCodeType) {
                     $('#btnPayfullAppliedPendingPayments').attr('disabled', true);
                     var thisAdjustment;
 
                     $.each(lineItems, function () {
                         thisAdjustment = $(this).find('.payment__this_adjustment');
                         thisPayment = $(this).find('.payment__this_pay');
-                        if (adjustment_codetype === 'refund_debit') {
+                        if (adjustmentCodeType === 'refund_debit') {
                             $(this).find('.payment__this_pay').val('0.00');
                             $(this).find('.payment__other_adjustment').val('0.00');
                             $(this).find('.payment__this_pay').attr('disabled', true);
                             thisAdjustment.val(parseFloat(-Math.abs(thisAdjustment.val())).toFixed(2));
                         }
-                        else if (adjustment_codetype === 'recoupment_debit') {
+                        else if (adjustmentCodeType === 'recoupment_debit') {
                             $(this).find('.payment__this_pay').attr('disabled', false);
                             thisAdjustment.val(parseFloat(-Math.abs(thisAdjustment.val())).toFixed(2));
                             thisPayment.val(parseFloat(-Math.abs(thisPayment.val())).toFixed(2));
@@ -2446,6 +2447,10 @@ define(['jquery',
                             self.paymentApplicationId = paymentApplicationId;
                             self.getClaimBasedCharges(claimId, paymentId, 'applied', chargeId, paymentApplicationId, false);
                             $('.modal-footer button').focus();
+                            if (self.isEscKeyPress) {
+                                self.isEscKeyPress = false;
+                                self.closePayment();
+                            }
                         },
                         error: function (err, response) {
                             targetObj.removeAttr('disabled');
@@ -2473,6 +2478,20 @@ define(['jquery',
                             self.currentOrderBalance = feeDetails.balance || 0;
                             self.setFeeFields({ billFee: feeDetails.bill_fee, adjustment: feeDetails.adjustment, balance: feeDetails.balance, others_paid: feeDetails.others_paid, patient_paid: feeDetails.patient_paid, payment: feeDetails.payment, total_adjustment: feeDetails.total_adjustment });
                         }
+                        var id = layout.currentModule == 'Claims' ? 'modalBodyNested' : 'modalBody';
+                        $('#' + id).trackFormChanges(function (unsaved) {
+                            if (layout.currentModule == 'Payments') {
+                                if (unsaved) {
+                                    var saveConfirm = confirm(commonjs.geti18NString("messages.confirm.unsavedFormConfirm"));
+                                    if (saveConfirm) {
+                                        self.isEscKeyPress = true;
+                                        $('#btnSaveAppliedPendingPayments').trigger('click');
+                                    }
+                                } else {
+                                    self.closePayment();
+                                }
+                            }
+                        })
                         commonjs.hideLoading();
                     },
                     error: function (err) {
@@ -3250,6 +3269,14 @@ define(['jquery',
                     commonjs.showWarning("messages.warning.payments.noRecords");
                 }
                 $('.nextPrevPayment').prop('disabled', false);
+            },
+            
+            closePayment: function (e) {
+                if (layout.currentModule == 'Claims') {
+                    $('#siteModalNested .close').trigger('click');
+                } else {
+                    $('#siteModal .close').trigger('click');
+                }
             }
 
         });
