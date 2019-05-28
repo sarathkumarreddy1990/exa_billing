@@ -763,9 +763,7 @@ module.exports = {
 
     },
 
-    getEOBFileId: async function ({
-        paymentID
-    }) {
+    getEOBFileId: async (paymentID) => {
         let sql = SQL`SELECT 
                         edi_files.id AS eob_file_id 
                     FROM billing.edi_file_payments 

@@ -225,8 +225,7 @@ define([
                 var ifrDoc = $("ifrEobFileUpload").contents();
 
                 if (ifrDoc) {
-                    $(ifrDoc).find('#btnProcess_EOB').css('display', 'block');
-                    $(ifrDoc).find('#btnPreview_EOB').css('display', 'block');
+                    $(ifrDoc).find('#btnProcess_EOB, #btnPreview_EOB').css('display', 'block');
                 }
             },
 

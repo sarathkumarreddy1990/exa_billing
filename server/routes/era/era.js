@@ -69,7 +69,7 @@ router.get('/eob_pdf', async function (req, res) {
 });
 
 router.get('/eob_file_id', async function (req, res) {
-    const data = await eraController.getEOBFileId(req.query);
+    const data = await eraController.getEOBFileId(req.query.paymentID);
     httpHandler.send(req, res, data);
 });
 
