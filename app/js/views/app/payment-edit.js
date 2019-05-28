@@ -3341,8 +3341,7 @@ define(['jquery',
 
                 var ifrDoc = $("#ifrEobFileUpload").contents();
                 if (ifrDoc) {
-                    $(ifrDoc).find('#btnProcess_EOB').css('display', 'none');
-                    $(ifrDoc).find('#btnPreview_EOB').css('display', 'none');
+                    $(ifrDoc).find('#btnProcess_EOB, #btnPreview_EOB').css('display', 'none');
                     fileStatus = $(ifrDoc).find('#fileStatus');
                     fileStoreExist = $(ifrDoc).find('#fileStoreExist');
 
