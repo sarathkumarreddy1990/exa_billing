@@ -408,6 +408,11 @@ define([
                                             $("#ddlStudyDefaultTab option[value='"+model.id+"']")[0].remove();
                                             if (window.appLayout && window.appLayout.refreshAppSettings)
                                                 window.appLayout.refreshAppSettings();
+                                            if (self.opener == "studies") {
+                                                $('#btnStudiesCompleteRefresh').click();
+                                            } else if (self.opener == "claims") {
+                                                $('#btnClaimsCompleteRefresh').click();
+                                            }   
                                         },
                                         error: function (model, response) {
                                         }
