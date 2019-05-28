@@ -802,9 +802,9 @@ define(['jquery',
 
             formatMoneyValue: function (amount, fromCas) {
                 if (typeof amount === "string" && fromCas) {
-                    return parseFloat(amount.replace(/[(]/g,'-').replace(/[^0-9.-]+/g, "")) || "";
+                    return parseFloat(amount.replace(/[(]/g, '-').replace(/[^0-9.-]+/g, "")) || "";
                 } else if (typeof amount === "number") {
-                    return amount < 0 ? '($' + parseFloat(amount).toFixed(2) + ')' : '$' + parseFloat(amount).toFixed(2);
+                    return amount < 0 ? '($' + parseFloat(amount * (-1)).toFixed(2) + ')' : '$' + parseFloat(amount).toFixed(2);
                 }
                 return amount;
             },
@@ -1688,6 +1688,7 @@ define(['jquery',
                         self.appliedPaymentTable.refreshAll();
                     };
                 }
+                $('#totalPaymentBalance').parent().remove();
                 self.getAppliedBalance(paymentId);
             },
 
@@ -1697,6 +1698,7 @@ define(['jquery',
                 self.defalutCASArray = [0, 1, 2, 3, 4, 5, 6];
                 self.casSegmentsSelected = [];
                 self.isFromClaim = rowData.isFromClaim || false;
+                self.paymentStatus = paymentStatus || '';
                 paymentID = self.payment_id || paymentID;
                 var patient_paid = rowData.patient_paid ? self.formatMoneyValue(rowData.patient_paid) : '0.00';
                 var others_paid = rowData.others_paid ? self.formatMoneyValue(rowData.others_paid) : '0.00';
@@ -1737,6 +1739,14 @@ define(['jquery',
                     }
                 })
 
+                var $totalPaymentBalance = $('#totalPaymentBalance');
+                if (!$totalPaymentBalance.length && !self.isFromClaim) {
+                    var $modalHeader = $('#siteModal .modal-header #spanModalHeader').parent();
+                    $modalHeader.append('<h6 class="pull-right"><strong id="totalPaymentBalance" class="mr-5"></strong></h6>');
+                    $totalPaymentBalance = $('#totalPaymentBalance');
+                }
+                var paymentHeader = commonjs.geti18NString("menuTitles.order.totalPaymentRecordBalance") + ' : ' + self.formatMoneyValue($('#lblBalance').text());
+                $totalPaymentBalance.text(paymentHeader);
                 commonjs.processPostRender();
                 commonjs.validateControls();
                 commonjs.isMaskValidate();
@@ -1803,6 +1813,7 @@ define(['jquery',
                         $('#tBodyApplyPendingPayment').empty();
                         $('#ddlAdjustmentCode_fast').empty();
                         $ddlResponsible.empty();
+                        self.charges = charges;
                         $.each(charges, function (index, payment) {
                             var paymentDet = {}
                             paymentDet.index = index;
@@ -2115,7 +2126,7 @@ define(['jquery',
             updatePaymentAdjustment: function () {
                 var self = this;
                 var lineItems = $("#tBodyApplyPendingPayment tr");
-                var payment = 0.0, adjustment = 0.0, other_payment = 0.0, other_adj = 0.0;
+                var payment = 0.0, adjustment = 0.0, other_payment = 0.0, other_adj = 0.0, paymentBalance = 0.0;
 
                 $.each(lineItems, function (index) {
                     var otherPayment = parseFloat($(this).find('.payment__others').text().trim())
@@ -2128,6 +2139,14 @@ define(['jquery',
                     adjustment = adjustment + parseFloat(adj_amt);
                     var current_balance = parseFloat($(this).find('.payment__bill_fee').text().trim()) - (otherPayment + otherAdj + payment_amt + adj_amt);
                     $(this).find('.payment__balance').text(parseFloat(current_balance).toFixed(2));
+                    var cpt_id = parseInt($(this).attr('data_charge_id_id').trim()) || null;
+                    paymentBalance = paymentBalance + parseFloat(payment_amt);
+                    if (cpt_id) {
+                        var charge = _.find(self.charges, { id: cpt_id });
+                        if (charge) {
+                            paymentBalance = paymentBalance - (charge.payment_amount || 0);
+                        }
+                    }
                 });
 
                 $('#spPaymentApplied').text(self.formatMoneyValue(payment));
@@ -2137,6 +2156,9 @@ define(['jquery',
                 var orderBalance = orderBillFee - (parseFloat(adjustment) + parseFloat(payment) + parseFloat(other_payment) + parseFloat(other_adj));
                 var orderAdjustment = parseFloat(adjustment) + parseFloat(other_adj);
 
+                var balancePayment = (self.formatMoneyValue($('#lblBalance').text(), true) - paymentBalance) || 0;
+                var paymentHeader = commonjs.geti18NString("menuTitles.order.totalPaymentRecordBalance") + ' : ' + self.formatMoneyValue(balancePayment)
+                $('#totalPaymentBalance').text(paymentHeader);
                 $('#lblBalanceNew').text(self.formatMoneyValue(orderBalance));
                 $('#lblAdjustment').text(self.formatMoneyValue(orderAdjustment));
             },
@@ -2445,6 +2467,7 @@ define(['jquery',
                             paymentStatus != 'applied' ? paymentApplicationId = model[0].details.create_payment_applications.payment_application_id : paymentApplicationId;
                             self.paymentApplicationId = paymentApplicationId;
                             self.getClaimBasedCharges(claimId, paymentId, 'applied', chargeId, paymentApplicationId, false);
+                            self.getAppliedBalance(paymentId);
                             $('.modal-footer button').focus();
                         },
                         error: function (err, response) {
