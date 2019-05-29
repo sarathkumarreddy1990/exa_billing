@@ -1575,6 +1575,17 @@ module.exports = {
                 ORDER BY claims.id ASC
             )
             -- --------------------------------------------------------------------------------------------------------------
+            -- Getting same applied date for payment application
+            -- --------------------------------------------------------------------------------------------------------------
+            , claim_application_date AS (
+                SELECT
+                    clock_timestamp() AS applied_dt,
+                    claim_id
+                FROM
+                claim_charges
+                GROUP BY claim_id
+            )
+            -- --------------------------------------------------------------------------------------------------------------
             -- Formating charge lineItems for credit adjustment. Create payment application
             -- --------------------------------------------------------------------------------------------------------------
 	        , credit_adjustment_charges AS (
@@ -1608,10 +1619,11 @@ module.exports = {
                     , ${userId}
                     , cas_details
                     , (${JSON.stringify(auditDetails)})::jsonb
-                    , now() + INTERVAL '0.03' SECOND
+                    , cad.applied_dt
                     ) AS details
 		        FROM
                     claim_charges
+                LEFT JOIN claim_application_date cad ON cad.claim_id = claim_charges.claim_id
                 WHERE (claim_balance_total < 0::money OR is_debit_adjustment)
 	        )
             -- --------------------------------------------------------------------------------------------------------------
