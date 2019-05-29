@@ -254,6 +254,18 @@
     <div class="col-lg-2 p-3">
         <input type="button" id="btnPaymentPrev" class="btn btn-default nextPrevPayment" i18n="billing.fileInsurance.previous" tabindex="22">
         <input type="button" id="btnPaymentNext" class="btn btn-default nextPrevPayment" i18n="billing.fileInsurance.next" tabindex="23">
+        <div id="eobPreviewPayment" class="eobPaymentPreview hidden">
+            <img src= "/exa_modules/billing/static/images/pdf-icon.jpg" class="image">
+            <div class="middle">
+                <span i18n="billing.fileInsurance.viewEobPdf"></span>
+            </div>
+        </div>
+        <div id="eobPaymentUpload" class="eobPaymentUpload hidden">
+            <button type="button" class="btn btn-danger btnEobPaymentUpload" i18n="shared.buttons.uploadPDF" name='uploadPDF' style="color: white;" value="Upload">Upload PDF</button>
+        </div>
+        <iframe id="ifrEobFileUpload" frameborder="0" scrolling="no" src="/exa_modules/billing/era/upload" class="eraIframe">
+        </iframe>
+        <button type="button" class="btn btn-primary eobMargin" id="btnReloadEOB" style="display: none;" i18n="shared.buttons.reload"></button>
     </div>
     </form>
 </div>

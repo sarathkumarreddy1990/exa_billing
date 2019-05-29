@@ -524,5 +524,7 @@ module.exports = {
         }
 
         return paymentResult;
-    }
+    },
+
+    getEOBFileId: data.getEOBFileId
 };

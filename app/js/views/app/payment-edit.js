@@ -71,7 +71,9 @@ define(['jquery',
             casDeleted: [],
             saveClick:false,
             paymentDateObj:null,
-
+            isEscKeyPress:false,
+            eobFileId: null,
+            ediFileId: null,
             events: {
                 'click #btnPaymentSave': 'savePayment',
                 'click #btnApplyCAS': 'getPayemntApplications',
@@ -107,7 +109,10 @@ define(['jquery',
                 'keypress #claimId, #invoiceNo': 'searchInvoiceOrClaim',
                 'click .nextPrevPayment': 'nextPrevPayment',
                 "keyup .search-payer": "searchPayer",
-                "click #btnClearPatSearch": "resetPatSearch"
+                "click #btnClearPatSearch": "resetPatSearch",
+                "click #eobPreviewPayment img": "showPDF",
+                "click .btnEobPaymentUpload": "uploadPDF",
+                "click #btnReloadEOB": "reloadEobPDF"
             },
 
             usermessage: {
@@ -893,6 +898,17 @@ define(['jquery',
                     self.loadSelectedGrid(e, paymentID, response.payer_type, self.payer_id);
                 });
                 self.showStudyCpt(self.payer_id,self.study_dt);
+
+                if (response.edi_file_id) {
+                    self.ediFileId = response.edi_file_id;
+                    
+                    if (response.eob_file_id) {
+                        self.eobFileId = response.eob_file_id;
+                        $('#eobPreviewPayment').removeClass('hidden');
+                    } else {
+                        $('#eobPaymentUpload').removeClass('hidden');
+                    }
+                }
             },
 
             showStudyCpt: function (payerId, study_dt) {
@@ -3273,6 +3289,79 @@ define(['jquery',
                     commonjs.showWarning("messages.warning.payments.noRecords");
                 }
                 $('.nextPrevPayment').prop('disabled', false);
+            },
+
+            showPDF: function() {
+                var self = this;
+                if (self.eobFileId == null) {
+                    $.ajax({
+                        url: '/exa_modules/billing/era/eob_file_id',
+                        type: 'GET',
+                        data: {
+                            paymentID: self.payment_id
+                        },
+                        success: function (data, response) {
+                            if (data.rows && data.rows.length) {
+                                self.eobFileId = data.rows[0].eob_file_id;
+                            }
+
+                            self.showDocument();
+                        },
+                        error: function (err, response) {
+                            commonjs.handleXhrError(err, response);
+                        }
+                    });
+                } else {
+                    self.showDocument();
+                }
+
+            },
+
+            showDocument: function() {
+                var self = this;
+                commonjs.showDialog({
+                    url: '/exa_modules/billing/era/eob_pdf?file_id=' + self.eobFileId + '&company_id=' + app.companyID,
+                    width: '80%',
+                    height: '80%',
+                    header: 'EOB',
+                    i18nHeader: "billing.payments.eob"
+                });
+            },
+            
+            uploadPDF: function(e) {
+                var self = this;
+                $('.btnEobPaymentUpload').attr('id', self.ediFileId)
+                var iframe = $('#ifrEobFileUpload')[0];
+                iframe.contentWindow.fireUpload(e);
+            },
+
+            reloadEobPDF: function() {
+                var fileStatus;
+                var fileStoreExist;
+
+                var ifrDoc = $("#ifrEobFileUpload").contents();
+                if (ifrDoc) {
+                    $(ifrDoc).find('#btnProcess_EOB, #btnPreview_EOB').css('display', 'none');
+                    fileStatus = $(ifrDoc).find('#fileStatus');
+                    fileStoreExist = $(ifrDoc).find('#fileStoreExist');
+
+                    if ((fileStatus.text()).toLowerCase() === 'ok') {
+                        $('#eobPreviewPayment').removeClass('hidden');
+                        $('#eobPaymentUpload').addClass('hidden');
+                    } else if (fileStoreExist && fileStoreExist.text() == 'FILE_STORE_NOT_EXISTS') {
+                        commonjs.showWarning("messages.warning.era.fileStoreNotconfigured");
+                        $(ifrDoc).find('#fileIsDuplicate, #fileNameUploaded, #fileStoreExist').html('');
+                        return false;
+                    } else if (fileStatus && fileStatus.text() == 'INVALID_FILE') {
+                        commonjs.showWarning("messages.warning.era.invalidFileFormat");
+                        $(ifrDoc).find('#fileStatus, #fileNameUploaded, #fileStoreExist').html('');
+                        return false;
+                    } else if (fileStoreExist && fileStoreExist.text() != '') {
+                        commonjs.showWarning(fileStoreExist.text());
+                        $(ifrDoc).find('#fileIsDuplicate, #fileNameUploaded, #fileStoreExist').html('');
+                        return false;
+                    }
+                }
             }
 
         });

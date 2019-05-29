@@ -63,7 +63,16 @@ html
     script(type='text/javascript', src=staticAssetsRoot + '/node_modules/underscore/underscore.js')
     script.
         parent.commonjs.hideLoading();
-        parent.document.getElementById('btnReloadERA').click();
+        var reloadERA = parent.document.getElementById('btnReloadERA');
+        var reloadEob = parent.document.getElementById('btnReloadEOB');
+
+        if (reloadERA) {
+            reloadERA.click();
+        }
+
+        if (reloadEob) {
+            reloadEob.click();
+        }
         window.app = {};
 
         var rjsConfig = {
