@@ -710,6 +710,8 @@ define('grid', [
         };
 
         self.batchClaim = function () {
+            gridID = '#tblGrid' + commonjs.currentStudyFilter;
+            $tblGrid = $(gridID);
             var $checkedInputs = $tblGrid.find('input').filter('[name=chkStudy]:checked');
             var selectedCount = $checkedInputs.length;
             var currentFilter = commonjs.studyFilters.find(function (filter) {
