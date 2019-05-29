@@ -2987,6 +2987,7 @@ define(['jquery',
                 if (self.validateClaimData()) {
                     self.setClaimDetails();
 
+                    $('#divPageLoading').hide();
                     commonjs.showLoading();
                     saveButton.prop('disabled', true);
                     $claimProcess.prop('disabled', true);
