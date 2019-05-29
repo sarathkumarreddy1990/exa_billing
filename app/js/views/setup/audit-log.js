@@ -240,50 +240,43 @@ define([
 
             exportExcel: function() {
                 var self = this;
+                var filterObj = grid.jqGrid('getGridParam','postData');
                 self.excelFlag = true;
-                var self = this;
-                var responseJSON = self.auditLogList;
-                var ReportTitle = 'Audit Log';
-                var ShowLabel = 'Audit';
-                var auditExcelData = typeof responseJSON != 'object' ? JSON.parse(responseJSON) : responseJSON;
-                var CSV = '';
-                CSV += ReportTitle + '\r';
-                if (ShowLabel) {
-                    var row = "";
 
-                    row += 'LOGGED DATE' + ',';
-                    row += 'SCREEN' + ',';
-                    row += 'USER' + ',';
-                    row += 'LOG DESCRIPTION' + ',';
-                }
-                row = row.slice(0, -1);
-                CSV += row + '\r\n';
-
-                for (var i = 0; i < auditExcelData.models.length; i++) {
-                    var row = "";
-                    var auditResult = auditExcelData.models[i].attributes;
-                    row += '"' + self.dateFormatter(auditResult) + '",';
-                    row += '"' + auditResult.screen_name + '",';
-                    row += '"' + auditResult.username + '",';
-                    row += '"' + auditResult.description + '",';
-                    row.slice(0, row.length - 1);
-                    CSV += row + '\r\n';
-                }
-
-                if (CSV == '') {
-                    alert("Invalid data");
-                    return;
-                }
-                var fileName = "";
-                fileName += ReportTitle.replace(/ /g, "_");
-                var uri = 'data:text/csv;charset=utf-8,' + escape(CSV);
-                var link = document.createElement("a");
-                link.href = uri;
-                link.style = "visibility:hidden";
-                link.download = fileName + ".csv";
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                $('#btnExportToExcelauditLog').prop('disabled', true);
+                jQuery.ajax({
+                    url: "/exa_modules/billing/setup/audit_log",
+                    type: "GET",
+                    data: {
+                        username: filterObj.username,
+                        screen_name: filterObj.screen_name,
+                        description: filterObj.description,
+                        sortField: filterObj.sidx,
+                        sortOrder: filterObj.sord,
+                        from_date: self.dtpFrom && self.dtpFrom.date() ? self.dtpFrom.date().format() : "",
+                        to_date: self.dtpTo && self.dtpTo.date() ? self.dtpTo.date().format() : "",
+                        disablePaging: true
+                    },
+                    success: function (data, textStatus, jqXHR) {
+                        commonjs.prepareCsvWorker({
+                            data: data,
+                            reportName: 'AUDITLOG',
+                            fileName: 'Audit_Log',
+                            columnHeader: 'Audit Log',
+                            countryCode: app.country_alpha_3_code,
+                            facilities: app.facilities.map(function (val) { return { 'id': val.id, 'value': val.time_zone } }),
+                            companyTz: app.company.time_zone
+                        }, {
+                                afterDownload: function () {
+                                    $('#btnExportToExcelauditLog').prop('disabled', false);
+                                }
+                            });
+                    },
+                    error: function (err) {
+                        commonjs.handleXhrError(err);
+                        $('#btnExportToExcelauditLog').prop('disabled', false);
+                    }
+                })
             }
 
         });

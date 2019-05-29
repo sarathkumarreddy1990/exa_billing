@@ -55,7 +55,7 @@ const paymentsColumns = {
     "FACILITY": "facility_name",
 };
 
-const dateColumnsWithTimeZone = [
+const dateColumnsWithTimeZoneConversion = [
     'Claim Date',
     'PAYMENT DATE',
     'Submitted Date',
@@ -68,6 +68,16 @@ const dateColumnsWithOutTimeZone = [
     'Date of Injury',
     'First Statement Date'
 ];
+const dateColumnsWithTimeZone = [
+    'LOGGED DATE'
+];
+
+const auditColumns = {
+    "LOGGED DATE":"created_dt",
+    "SCREEN": "screen_name",
+    "USER": "username",
+    "LOG DESCRIPTION": "description"
+};
 
 onmessage = function (req) {
     console.log('Request received from client');
@@ -128,6 +138,9 @@ function generateCsvData(dbResponse, callback) {
         case 'PAYMENTS':
             columnMap = paymentsColumns;
             break
+        case 'AUDITLOG':
+            columnMap = auditColumns;
+            break;
     }
 
     var tmpColDelim = String.fromCharCode(11); // vertical tab character
@@ -156,7 +169,7 @@ function generateCsvData(dbResponse, callback) {
         return columns.map(function (colName, colIndex) {
             var csvText = showLabel && rowIndex == 0 ? colName : dbRow[columnMap[colName]];
 
-            if (rowIndex && dateColumnsWithTimeZone.indexOf(colName) > -1 && csvText) {
+            if (rowIndex && dateColumnsWithTimeZoneConversion.indexOf(colName) > -1 && csvText) {
                     csvText = facilityTimeZone.length ? moment(csvText).tz(facilityTimeZone[0].value).format('L') : moment(csvText).tz(companyTz).format('L');
             }
             csvText = csvText || '';
@@ -165,6 +178,9 @@ function generateCsvData(dbResponse, callback) {
                 csvText = csvText ? moment(csvText).format('L') : '';
             }
 
+            if (rowIndex && dateColumnsWithTimeZone.indexOf(colName) > -1 && csvText) {
+                csvText = facilityTimeZone.length ? moment(csvText).tz(facilityTimeZone[0].value).format('L LT z') : moment(csvText).tz(companyTz).format('L LT z');
+            }
             if (csvText && _.isArray(csvText)) {
                 csvText = csvText.join();
             }
