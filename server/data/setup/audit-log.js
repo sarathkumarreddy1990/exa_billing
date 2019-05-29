@@ -14,7 +14,8 @@ module.exports = {
             sortOrder,
             sortField,
             pageNo,
-            pageSize
+            pageSize,
+            disablePaging
         } = params;
 
         if (username) {
@@ -58,10 +59,12 @@ module.exports = {
         sql.append(SQL` ORDER BY  `)
             .append(sortField)
             .append(' ')
-            .append(sortOrder)
-            .append(SQL` LIMIT ${pageSize}`)
-            .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
+            .append(sortOrder);
 
+        if (!disablePaging) {
+            sql.append(SQL` LIMIT ${pageSize}`)
+            sql.append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
+        }
         return await query(sql);
     },
 
