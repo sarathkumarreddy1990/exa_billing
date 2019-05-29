@@ -2984,7 +2984,7 @@ define(['jquery',
                         $("#txtCVN").attr("disabled", "disabled");
                         break;
                     case "check":
-                    case "EFT":
+                    case "eft":
                         $("#txtCheque").removeAttr("disabled");
                         $("#txtCardName").attr("disabled", "disabled");
                         $("#paymentExpiryMonth").attr("disabled", "disabled");

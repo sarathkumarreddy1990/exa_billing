@@ -4692,7 +4692,7 @@ define(['jquery',
                     var selectedValue = $(e.target).val();
                     var $target = $(e.target).closest('tr').find('.checkcardno').val('');
 
-                    if (['cash', 'eft', 'adjustment'].indexOf(selectedValue) > -1) {
+                    if (['cash', 'adjustment'].indexOf(selectedValue) > -1) {
                         $target.prop('disabled', true);
                     } else {
                         $target.prop('disabled', false);
@@ -4832,7 +4832,7 @@ define(['jquery',
                     $(dllPaymentMode).attr('data_payment_mode', obj.mode);
                     $(responsibleEle).prop('disabled', true);
 
-                    if (['cash', 'eft', 'adjustment'].indexOf(obj.mode) > -1) {
+                    if (['cash', 'adjustment'].indexOf(obj.mode) > -1) {
                         $dllCheckCardNo.prop('disabled', true);
                     } else {
                         $dllCheckCardNo.prop('disabled', false);
