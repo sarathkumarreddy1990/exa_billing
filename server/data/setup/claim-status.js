@@ -9,6 +9,7 @@ module.exports = {
             code,
             description,
             isSystemStatus,
+            display_order,
             sortOrder,
             sortField,
             pageNo,
@@ -22,6 +23,10 @@ module.exports = {
 
         if (description) {
             whereQuery.push(` description ILIKE '%${description}%'`);
+        }
+
+        if (display_order) {
+            whereQuery.push(` display_order = ${display_order}`);
         }
 
         if (isSystemStatus == 'true') {

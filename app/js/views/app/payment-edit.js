@@ -73,6 +73,8 @@ define(['jquery',
             saveClick:false,
             paymentDateObj:null,
             isEscKeyPress:false,
+            eobFileId: null,
+            ediFileId: null,
             events: {
                 'click #btnPaymentSave': 'savePayment',
                 'click #btnApplyCAS': 'getPayemntApplications',
@@ -108,7 +110,10 @@ define(['jquery',
                 'keypress #claimId, #invoiceNo': 'searchInvoiceOrClaim',
                 'click .nextPrevPayment': 'nextPrevPayment',
                 "keyup .search-payer": "searchPayer",
-                "click #btnClearPatSearch": "resetPatSearch"
+                "click #btnClearPatSearch": "resetPatSearch",
+                "click #eobPreviewPayment img": "showPDF",
+                "click .btnEobPaymentUpload": "uploadPDF",
+                "click #btnReloadEOB": "reloadEobPDF"
             },
 
             usermessage: {
@@ -803,9 +808,9 @@ define(['jquery',
 
             formatMoneyValue: function (amount, fromCas) {
                 if (typeof amount === "string" && fromCas) {
-                    return parseFloat(amount.replace(/[(]/g,'-').replace(/[^0-9.-]+/g, "")) || "";
+                    return parseFloat(amount.replace(/[(]/g, '-').replace(/[^0-9.-]+/g, "")) || "";
                 } else if (typeof amount === "number") {
-                    return amount < 0 ? '($' + parseFloat(amount).toFixed(2) + ')' : '$' + parseFloat(amount).toFixed(2);
+                    return amount < 0 ? '($' + parseFloat(amount * (-1)).toFixed(2) + ')' : '$' + parseFloat(amount).toFixed(2);
                 }
                 return amount;
             },
@@ -894,6 +899,17 @@ define(['jquery',
                     self.loadSelectedGrid(e, paymentID, response.payer_type, self.payer_id);
                 });
                 self.showStudyCpt(self.payer_id,self.study_dt);
+
+                if (response.edi_file_id) {
+                    self.ediFileId = response.edi_file_id;
+                    
+                    if (response.eob_file_id) {
+                        self.eobFileId = response.eob_file_id;
+                        $('#eobPreviewPayment').removeClass('hidden');
+                    } else {
+                        $('#eobPaymentUpload').removeClass('hidden');
+                    }
+                }
             },
 
             showStudyCpt: function (payerId, study_dt) {
@@ -1689,6 +1705,7 @@ define(['jquery',
                         self.appliedPaymentTable.refreshAll();
                     };
                 }
+                $('#totalPaymentBalance').parent().remove();
                 self.getAppliedBalance(paymentId);
             },
 
@@ -1698,6 +1715,7 @@ define(['jquery',
                 self.defalutCASArray = [0, 1, 2, 3, 4, 5, 6];
                 self.casSegmentsSelected = [];
                 self.isFromClaim = rowData.isFromClaim || false;
+                self.paymentStatus = paymentStatus || '';
                 paymentID = self.payment_id || paymentID;
                 var patient_paid = rowData.patient_paid ? self.formatMoneyValue(rowData.patient_paid) : '0.00';
                 var others_paid = rowData.others_paid ? self.formatMoneyValue(rowData.others_paid) : '0.00';
@@ -1738,6 +1756,14 @@ define(['jquery',
                     }
                 })
 
+                var $totalPaymentBalance = $('#totalPaymentBalance');
+                if (!$totalPaymentBalance.length && !self.isFromClaim) {
+                    var $modalHeader = $('#siteModal .modal-header #spanModalHeader').parent();
+                    $modalHeader.append('<h6 class="pull-right"><strong id="totalPaymentBalance" class="mr-5"></strong></h6>');
+                    $totalPaymentBalance = $('#totalPaymentBalance');
+                }
+                var paymentHeader = commonjs.geti18NString("menuTitles.order.totalPaymentRecordBalance") + ' : ' + self.formatMoneyValue($('#lblBalance').text());
+                $totalPaymentBalance.text(paymentHeader);
                 commonjs.processPostRender();
                 commonjs.validateControls();
                 commonjs.isMaskValidate();
@@ -1804,6 +1830,7 @@ define(['jquery',
                         $('#tBodyApplyPendingPayment').empty();
                         $('#ddlAdjustmentCode_fast').empty();
                         $ddlResponsible.empty();
+                        self.charges = charges;
                         $.each(charges, function (index, payment) {
                             var paymentDet = {}
                             paymentDet.index = index;
@@ -2116,7 +2143,7 @@ define(['jquery',
             updatePaymentAdjustment: function () {
                 var self = this;
                 var lineItems = $("#tBodyApplyPendingPayment tr");
-                var payment = 0.0, adjustment = 0.0, other_payment = 0.0, other_adj = 0.0;
+                var payment = 0.0, adjustment = 0.0, other_payment = 0.0, other_adj = 0.0, paymentBalance = 0.0;
 
                 $.each(lineItems, function (index) {
                     var otherPayment = parseFloat($(this).find('.payment__others').text().trim())
@@ -2129,6 +2156,14 @@ define(['jquery',
                     adjustment = adjustment + parseFloat(adj_amt);
                     var current_balance = parseFloat($(this).find('.payment__bill_fee').text().trim()) - (otherPayment + otherAdj + payment_amt + adj_amt);
                     $(this).find('.payment__balance').text(parseFloat(current_balance).toFixed(2));
+                    var cpt_id = parseInt($(this).attr('data_charge_id_id').trim()) || null;
+                    paymentBalance = paymentBalance + parseFloat(payment_amt);
+                    if (cpt_id) {
+                        var charge = _.find(self.charges, { id: cpt_id });
+                        if (charge) {
+                            paymentBalance = paymentBalance - (charge.payment_amount || 0);
+                        }
+                    }
                 });
 
                 $('#spPaymentApplied').text(self.formatMoneyValue(payment));
@@ -2138,6 +2173,9 @@ define(['jquery',
                 var orderBalance = orderBillFee - (parseFloat(adjustment) + parseFloat(payment) + parseFloat(other_payment) + parseFloat(other_adj));
                 var orderAdjustment = parseFloat(adjustment) + parseFloat(other_adj);
 
+                var balancePayment = (self.formatMoneyValue($('#lblBalance').text(), true) - paymentBalance) || 0;
+                var paymentHeader = commonjs.geti18NString("menuTitles.order.totalPaymentRecordBalance") + ' : ' + self.formatMoneyValue(balancePayment)
+                $('#totalPaymentBalance').text(paymentHeader);
                 $('#lblBalanceNew').text(self.formatMoneyValue(orderBalance));
                 $('#lblAdjustment').text(self.formatMoneyValue(orderAdjustment));
             },
@@ -2446,6 +2484,7 @@ define(['jquery',
                             paymentStatus != 'applied' ? paymentApplicationId = model[0].details.create_payment_applications.payment_application_id : paymentApplicationId;
                             self.paymentApplicationId = paymentApplicationId;
                             self.getClaimBasedCharges(claimId, paymentId, 'applied', chargeId, paymentApplicationId, false);
+                            self.getAppliedBalance(paymentId);
                             $('.modal-footer button').focus();
                             if (self.isEscKeyPress) {
                                 self.isEscKeyPress = false;
@@ -2980,7 +3019,7 @@ define(['jquery',
                         $("#txtCVN").attr("disabled", "disabled");
                         break;
                     case "check":
-                    case "EFT":
+                    case "eft":
                         $("#txtCheque").removeAttr("disabled");
                         $("#txtCardName").attr("disabled", "disabled");
                         $("#paymentExpiryMonth").attr("disabled", "disabled");
@@ -3269,6 +3308,79 @@ define(['jquery',
                     commonjs.showWarning("messages.warning.payments.noRecords");
                 }
                 $('.nextPrevPayment').prop('disabled', false);
+            },
+
+            showPDF: function() {
+                var self = this;
+                if (self.eobFileId == null) {
+                    $.ajax({
+                        url: '/exa_modules/billing/era/eob_file_id',
+                        type: 'GET',
+                        data: {
+                            paymentID: self.payment_id
+                        },
+                        success: function (data, response) {
+                            if (data.rows && data.rows.length) {
+                                self.eobFileId = data.rows[0].eob_file_id;
+                            }
+
+                            self.showDocument();
+                        },
+                        error: function (err, response) {
+                            commonjs.handleXhrError(err, response);
+                        }
+                    });
+                } else {
+                    self.showDocument();
+                }
+
+            },
+
+            showDocument: function() {
+                var self = this;
+                commonjs.showDialog({
+                    url: '/exa_modules/billing/era/eob_pdf?file_id=' + self.eobFileId + '&company_id=' + app.companyID,
+                    width: '80%',
+                    height: '80%',
+                    header: 'EOB',
+                    i18nHeader: "billing.payments.eob"
+                });
+            },
+            
+            uploadPDF: function(e) {
+                var self = this;
+                $('.btnEobPaymentUpload').attr('id', self.ediFileId)
+                var iframe = $('#ifrEobFileUpload')[0];
+                iframe.contentWindow.fireUpload(e);
+            },
+
+            reloadEobPDF: function() {
+                var fileStatus;
+                var fileStoreExist;
+
+                var ifrDoc = $("#ifrEobFileUpload").contents();
+                if (ifrDoc) {
+                    $(ifrDoc).find('#btnProcess_EOB, #btnPreview_EOB').css('display', 'none');
+                    fileStatus = $(ifrDoc).find('#fileStatus');
+                    fileStoreExist = $(ifrDoc).find('#fileStoreExist');
+
+                    if ((fileStatus.text()).toLowerCase() === 'ok') {
+                        $('#eobPreviewPayment').removeClass('hidden');
+                        $('#eobPaymentUpload').addClass('hidden');
+                    } else if (fileStoreExist && fileStoreExist.text() == 'FILE_STORE_NOT_EXISTS') {
+                        commonjs.showWarning("messages.warning.era.fileStoreNotconfigured");
+                        $(ifrDoc).find('#fileIsDuplicate, #fileNameUploaded, #fileStoreExist').html('');
+                        return false;
+                    } else if (fileStatus && fileStatus.text() == 'INVALID_FILE') {
+                        commonjs.showWarning("messages.warning.era.invalidFileFormat");
+                        $(ifrDoc).find('#fileStatus, #fileNameUploaded, #fileStoreExist').html('');
+                        return false;
+                    } else if (fileStoreExist && fileStoreExist.text() != '') {
+                        commonjs.showWarning(fileStoreExist.text());
+                        $(ifrDoc).find('#fileIsDuplicate, #fileNameUploaded, #fileStoreExist').html('');
+                        return false;
+                    }
+                }
             },
             
             closePayment: function (e) {

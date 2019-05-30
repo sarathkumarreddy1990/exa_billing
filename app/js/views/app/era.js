@@ -216,6 +216,17 @@ define([
                     fileUploadedObj.innerHTML = '';
                 }
                 this.uploadMode = null;
+                if (layout.currentModule !== 'Payments') {
+                    this.showERAButtons();
+                }
+            },
+
+            showERAButtons: function() {
+                var ifrDoc = $("ifrEobFileUpload").contents();
+
+                if (ifrDoc) {
+                    $(ifrDoc).find('#btnProcess_EOB, #btnPreview_EOB').css('display', 'block');
+                }
             },
 
             setPhoneMask: function (obj1, obj2) {
@@ -398,6 +409,10 @@ define([
                 var fileStatus = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileStatus');
 
                 var hdnPreviewFileName = document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('hdnPreviewFileName');
+
+                if (layout.currentModule !== 'Payments') {
+                    this.showERAButtons();
+                }
 
                 if(hdnPreviewFileName && hdnPreviewFileName.innerHTML && hdnPreviewFileName.innerHTML.length > 0) {
                     this.showEraPreview(hdnPreviewFileName.innerHTML);
