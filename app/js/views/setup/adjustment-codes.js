@@ -118,10 +118,15 @@ define(['jquery',
                             hidden: true
                         }
                     ],
-                    afterInsertRow: function (rowid, rowdata) {
-                        if (rowdata.inactivated_dt) {
-                            var $row = $('#tblAdjustmentCodesGrid').find('#' + rowid);
-                            $row.css('text-decoration', 'line-through');
+                    afterInsertRow: function (rowId, rowData) {
+                        var gridRow = $('#tblAdjustmentCodesGrid #' + rowId);
+
+                        if (rowData.inactivated_dt) {
+                            gridRow.css('text-decoration', 'line-through');
+                        }
+
+                        if (rowData.is_system_code) {
+                            gridRow.find('.icon-ic-delete').hide();
                         }
                     },
                     datastore: self.adjustmentCodesList,
@@ -164,7 +169,7 @@ define(['jquery',
             },
 
             renderForm: function (id) {
-                var self=this;
+                var self = this;
                 $('#divAdjustmentCodesForm').html(this.adjustmentCodesFormTemplate());
                 if (id > 0) {
                     this.model.set({ id: id });
@@ -172,11 +177,13 @@ define(['jquery',
                         success: function (model, response) {
                             if (response && response.length > 0) {
                                 var data = response[0];
+
                                 if (data) {
-                                    $('#txtCode').val(data.code ? data.code : '');
-                                    $('#txtDescription').val(data.description ? data.description : '');
-                                    $('#ddlEntryType').val(data.accounting_entry_type ? data.accounting_entry_type : '');
-                                    $('#chkActive').prop('checked', data.inactivated_dt ? true : false);
+                                    $('#txtCode').val(data.code || '');
+                                    $('#txtDescription').val(data.description || '');
+                                    $('#ddlEntryType').val(data.accounting_entry_type || '');
+                                    $('#chkActive').prop('checked', data.inactivated_dt || false);
+                                    $('#txtCode, #ddlEntryType, #chkActive').attr('disabled', data.is_system_code);
                                 }
                             }
                         }
