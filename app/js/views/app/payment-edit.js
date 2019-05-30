@@ -3047,6 +3047,8 @@ define(['jquery',
 
             validatePaymentDelete: function () {
                 var self = this;
+                var nextPrevButton = $('.nextPrevPayment');
+                nextPrevButton.prop('disabled', true);
                 $.ajax({
                     url: '/exa_modules/billing/pending_payments/can_delete_payment',
                     type: 'get',
@@ -3056,20 +3058,23 @@ define(['jquery',
                     success: function (data, response) {
                         if (data[0].can_delete_payment) {
                             if (confirm(commonjs.geti18NString("messages.status.areYouSureToDeleteThisPayment"))) {
-                                self.deletePayment();
+                                self.deletePayment(nextPrevButton);
                             }
                         } else {
                             alert(commonjs.geti18NString("messages.status.paymentAppliedToClaimsPleaseUnapplyBeforeDelete"));
                         }
+                        nextPrevButton.prop('disabled', false);
                     },
                     error: function (err, response) {
+                        nextPrevButton.prop('disabled', false);
                         commonjs.handleXhrError(err, response);
                     }
                 });
             },
 
-            deletePayment: function () {
+            deletePayment: function (btnPrevNext) {
                 var self = this;
+                btnPrevNext.prop('disabled', true);
                 $.ajax({
                     url: '/exa_modules/billing/pending_payments/payment',
                     type: 'DELETE',
@@ -3078,12 +3083,14 @@ define(['jquery',
                     },
                     success: function (data, response) {
                         commonjs.showStatus("messages.status.paymentHasBeenDeletedSuccessfully");
+                        btnPrevNext.prop('disabled', false);
                         if (self.from === 'ris')
                             Backbone.history.navigate('#billing/payments/filter/ris', true);
                         else
                             Backbone.history.navigate('#billing/payments/filter', true);
                     },
                     error: function (err, response) {
+                        btnPrevNext.prop('disabled', false);
                         commonjs.handleXhrError(err, response);
                     }
                 });
