@@ -2170,6 +2170,7 @@ var commonjs = {
             prefix: '',
             rightAlign: true,
             allowMinus: false,
+            undoOnEscape: false,
             oncomplete: function () { return false; }
         });
 
@@ -2181,6 +2182,7 @@ var commonjs = {
             prefix: '',
             rightAlign: true,
             allowMinus: true,
+            undoOnEscape: false,
             oncomplete: function () { return false; }
         });
 
