@@ -31,7 +31,7 @@ END AS "description",
     <% if (facilityIds) { %>AND <% print(facilityIds); } %>
     <% if(billingProID) { %> AND <% print(billingProID); } %>
     GROUP BY
-      GROUPING SETS ((icd.code, f.facility_name), (icd.code, f.facility_name,icd.description), ())
+      GROUPING SETS ((icd.code), (icd.code, f.facility_name,icd.description), ())
     ORDER BY
          icd.code
         , f.facility_name
