@@ -30,6 +30,8 @@ define(['jquery',
             paperClaimTemplatesList: [],
             model: null,
             paperClaimTemplatesTable: null,
+            defaultPageHeight: 792,
+            defaultPageWidth: 612,
             pager: null,
             templateData: {
                 originalForm: "{}",
@@ -38,6 +40,9 @@ define(['jquery',
             templateToogleMode: true,
             highlighClass: {
                 'background': '#bbddff', 'border-radius': '6px'
+            },
+            events: { 
+                'change #ddlTemplateType' : 'changeTemplateType'
             },
 
             initialize: function (options) {
@@ -59,6 +64,14 @@ define(['jquery',
                 }
                 this.paperClaimTemplatesList = new PaperClaimTemplatesCollections();
                 $(this.el).html(this.paperClaimTemplatesGridTemplate());
+                self.currentPageHeight = self.defaultPageHeight;
+                self.currentPageWidth = self.defaultPageWidth;
+            },
+
+            changeTemplateType: function(e) {
+                let self = this;
+                $('#txtPageHeight').val(self.defaultPageHeight);
+                $('#txtPageWidth').val(self.defaultPageWidth);
             },
 
             render: function () {
@@ -199,6 +212,8 @@ define(['jquery',
                 }));
                 $('#divPaperClaimTemplatesGrid').hide();
                 $('#divPaperClaimTemplatesForm').show();
+                self.currentPageHeight = self.defaultPageHeight;
+                self.currentPageWidth = self.defaultPageWidth;
                 if (id > 0) {
                     this.model.set({ id: id });
                     this.model.fetch({
@@ -218,6 +233,8 @@ define(['jquery',
                                     $('#txtPageHeight').val(data.page_height ? data.page_height : 0);
                                     $('#txtPageWidth').val(data.page_width ? data.page_width : 0);
                                     $('#ddlTemplateType').val(data.template_type ? data.template_type : '');
+                                    self.currentPageHeight = $('#txtPageHeight').val();
+                                    self.currentPageWidth = $('#txtPageWidth').val();
                                 }
                             }
                         }
@@ -237,14 +254,12 @@ define(['jquery',
                         },
                         {
                             value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
-                                $("#txtTemplateName").val($.trim($('#txtTemplateName').val()) || null);
-                                self.savePaperClaimTemplates(false);
+                                self.confirmPaperClaimAlignment(false);
                             }
                         },
                         {
                             value: 'Save and Close', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.saveAndClose', clickEvent: function () {
-                                $("#txtTemplateName").val($.trim($('#txtTemplateName').val()) || null);
-                                self.savePaperClaimTemplates(true);
+                                self.confirmPaperClaimAlignment(true);
                             }
                         },
                         {
@@ -256,6 +271,27 @@ define(['jquery',
                 });
                 $('#ddlTemplateType option[value="patient_invoice"]').prop('selected', app.country_alpha_3_code === 'can');
                 commonjs.processPostRender();
+            },
+
+            confirmPaperClaimAlignment: function (doGoBack) {
+                var self = this;
+                var txtPageHeight = $('#txtPageHeight');
+                var txtPageWidth = $('#txtPageWidth');
+                var txtTemplateName = $('#txtTemplateName');
+                txtTemplateName.val($.trim(txtTemplateName.val()) || null);
+                if (txtPageHeight.val() != self.currentPageHeight || txtPageWidth.val() != self.currentPageWidth) {
+                    var confirmMsg = commonjs.geti18NString("messages.confirm.alignmentConfirm");
+                    if (confirm(confirmMsg)) {
+                        self.currentPageHeight = txtPageHeight.val();
+                        self.currentPageWidth = txtPageWidth.val();
+                        self.savePaperClaimTemplates(doGoBack);
+                    } else {
+                        txtPageHeight.val(self.currentPageHeight);
+                        txtPageWidth.val(self.currentPageWidth);
+                    }
+                } else {
+                    self.savePaperClaimTemplates(doGoBack);
+                }
             },
 
             savePaperClaimTemplates: function (doGoBack) {
