@@ -69,7 +69,7 @@ define(['jquery',
             },
 
             changeTemplateType: function(e) {
-                let self = this;
+                var self = this;
                 $('#txtPageHeight').val(self.defaultPageHeight);
                 $('#txtPageWidth').val(self.defaultPageWidth);
             },
