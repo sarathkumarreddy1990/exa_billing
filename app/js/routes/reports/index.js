@@ -334,7 +334,7 @@ define([
             },
 
             checkLicense: function (currentScreen) {
-                return layout.checkLicense(currentScreen);
+                return true;
             },
         });
     });
