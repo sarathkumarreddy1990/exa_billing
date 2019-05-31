@@ -5397,7 +5397,8 @@ var facilityModules = {
         transactionSummary: 'Transaction Summary',
         agedARDetail: 'Aged AR Detail',
         paymentPDF: 'Payments Received',
-        paymentsRealizationRateAnalysis: 'Payments Realization Rate Analysis'
+        paymentsRealizationRateAnalysis: 'Payments Realization Rate Analysis',
+        collections: 'Collections'
     }
 };
 
