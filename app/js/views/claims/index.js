@@ -3684,14 +3684,19 @@ define(['jquery',
                     }
                     if (nextRowData.attr('id') && nextRowData.length > 0) {
                         var rowId = nextRowData.attr('id');
-                        self.clearInsuranceFields(true, ['Pri', 'Sec', 'Ter']);
                         $(e.target).prop('disabled', true);
                         var data = parentGrid.getRowData(rowId);
                         if (data.hidden_claim_id == self.claim_Id) {
                             nextRowData = $(e.target).attr('id') == 'btnPrevClaim' ? nextRowData.prev() : nextRowData.next();
                             rowId = nextRowData.attr('id');
                             data = parentGrid.getRowData(rowId);
+                            if(!rowId) {
+                                commonjs.showWarning("messages.warning.claims.orderNotFound");
+                                $(e.target).prop('disabled', false);
+                                return;
+                            }
                         }
+                        self.clearInsuranceFields(true, ['Pri', 'Sec', 'Ter']);
 
                         if (self.openedFrom === 'studies' && data.billed_status === 'UnBilled') {
                             self.claim_Id = null;
