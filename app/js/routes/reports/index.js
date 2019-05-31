@@ -26,7 +26,8 @@ define([
     'routes/reports/aged-ar-summary',
     'routes/reports/aged-ar-details',
     'routes/reports/insurance-vs-lop',
-    'routes/reports/payments-realization-rate-analysis'
+    'routes/reports/payments-realization-rate-analysis',
+    'routes/reports/collections'
 ], function (
     Backbone,
     BackboneSubroute,
@@ -55,7 +56,8 @@ define([
     AgedArSummaryRoute,
     AgedArDetailsRoute,
     InsuranceVSLopRoute,
-    PaymentsRealizationRateAnalysisRoute
+    PaymentsRealizationRateAnalysisRoute,
+    CollectionsRoute
 ) {
         return Backbone.SubRoute.extend({
             routes: {
@@ -82,7 +84,8 @@ define([
                 "r/aged-ar-summary": "startAgedARSummaryReporting",
                 "r/aged-ar-details": "startAgedARDetailsReporting",
                 "r/insurance-vs-lop": "startInsuranceVSLopReporting",
-                "r/payments-realization-rate-analysis" : "startPaymentsRealizationRateAnalysisReporting"
+                "r/payments-realization-rate-analysis" : "startPaymentsRealizationRateAnalysisReporting",
+                "r/collections": "startCollectionsReporting"
             },
 
             accessDeniedTemplate: _.template(AccessDeniedTemplate),
@@ -314,8 +317,16 @@ define([
                 }
             },
 
+            startCollectionsReporting: function (subroute) {
+                if (this.checkLicense('Collections') && !this.collectionsRouter) {
+                    this.defaultArgs.routePrefix = 'reports/r/';
+                    this.collectionsRouter = new CollectionsRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
             initialize: function () {
-                //this.options = options;
                 if (!this.reportView) {
                     this.reportView = new ReportView({ el: $('#root') });
                     this.defaultArgs.outerLayout = this.reportView;
@@ -323,7 +334,6 @@ define([
             },
 
             checkLicense: function (currentScreen) {
-                //return layout.checkLicense(currentScreen);
                 return true;
             },
         });

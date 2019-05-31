@@ -5,7 +5,7 @@ var permissions = {
         var accessDeniedScreens = [];
         var accessDeniedRightClickIDs = [];
         var billingScreenCodes = ['ADJC', 'BICO', 'BICL', 'CLST', 'BIPR', 'PRCQ', 'BILM', 'PARE', 'CASG', 'CASR', 'STCC', 'BIVA', 'PCA', 'EDRT', 'INSM', 'CLHO', 'BULG', 'BALG',
-            'AGAR', 'AARD', 'CHRG', 'CLAY', 'CLIN', 'CLTR', 'CRBE', 'DICN', 'IVSL', 'MOSU', 'MNRC', 'PATS', 'PYMX', 'PAYT', 'PAIC', 'PBIC', 'PABI', 'PRCN', 'RPFR', 'REPC', 'REPS', 'TSUM', 'PACT',
+            'AGAR', 'AARD', 'CHRG', 'CLAY', 'CLIN', 'CLTR', 'COLR', 'CRBE', 'DICN', 'IVSL', 'MOSU', 'MNRC', 'PATS', 'PYMX', 'PAYT', 'PAIC', 'PBIC', 'PABI', 'PRCN', 'RPFR', 'REPC', 'REPS', 'TSUM', 'PACT',
             'CLIM', 'HSTY', 'ECLM', 'CLMI', 'MASO', 'CLVA', 'ERAI', 'PAYM', 'APAY', 'DPAY', 'DCLM', 'PCLM', 'PATR', 'TOSP', 'PRRA', 'CLFM'];
 
         mappingObject = {
@@ -33,6 +33,7 @@ var permissions = {
             'CLAY': 'aClaimActivity',
             'CLIN': 'aClaimInquiry',
             'CLTR': 'aClaimTransaction',
+            'COLR': 'aCollections',
             'CRBE': 'aCreditBalanceEncounters',
             //'DSPS': 'aDateSVC', //this report is display none
             'DICN': 'aDiagnosisCount',

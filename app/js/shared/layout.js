@@ -51,6 +51,7 @@ var layout = {
         'Claim Activity': '#aClaimActivity',
         'Claim Inquiry': '#aClaimInquiry',
         'Claim Transaction': '#aClaimTransaction',
+        'Collections': '#aCollections',
         'Credit Balance Encounters': '#aCreditBalanceEncounters',
         'Date Of SVC Payment': '#aDateSVC',
         'Diagnosis Count': '#aDiagnosisCount',
