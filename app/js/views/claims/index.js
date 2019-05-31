@@ -4765,6 +4765,7 @@ define(['jquery',
                 var paymentRow = self.paymentRowTemplate({ row: _rowObj });
                 $('#tBodyPayment').append(paymentRow);
 
+                self.checkAccountingDateChangePermission(index);
                 var dtp = commonjs.bindDateTimePicker("divAccountingDate_" + index, { format: 'L' });
                 dtp.date(facilityTimeZoneObj);
                 self.dtpAccountingDate.push(dtp);
@@ -4799,6 +4800,7 @@ define(['jquery',
                         $('#tBodyPayment').append(paymentRow);
                     }
 
+                    self.checkAccountingDateChangePermission(obj.row_index);
                     var dtp = commonjs.bindDateTimePicker("divAccountingDate_" + obj.row_index, { format: 'L' });
                     var responsibleEle = $('#ddlPayerName_' + obj.row_index);
                     var dllPaymentMode = $('#ddlPaymentMode_' + obj.row_index);
@@ -4870,6 +4872,15 @@ define(['jquery',
                     if (this.priInsCode && ['HCP', 'WSIB'].indexOf(this.priInsCode.toUpperCase()) >= 0) {
                         $('label[for=txtPriPolicyNo]').append("<span class='Required' style='color: red;padding-left: 5px;'>*</span>");
                     }
+                }
+            },
+            checkAccountingDateChangePermission: function (index) {
+                var changeAccountingDates = app.userInfo.user_settings && app.userInfo.user_settings.userCanChangeAccountingDates;
+                if (!changeAccountingDates || changeAccountingDates === 'false') {
+                    $("#txtAccountingDate_" + index).prop('disabled', true);
+                    $("#divAccountingDate_" + index + " span").off().on('click', function () {
+                        commonjs.showWarning('messages.errors.accessdenied');
+                    });
                 }
             }
 

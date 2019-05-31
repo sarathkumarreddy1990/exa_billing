@@ -246,6 +246,13 @@ define(['jquery',
                 else {
                     $('#divStudyCpt').hide();
                 }
+                var changeAccountingDates = app.userInfo.user_settings.userCanChangeAccountingDates;
+                if (!changeAccountingDates || changeAccountingDates === 'false') {
+                    $("#txtAccountingDate").prop('disabled', true);
+                    $("#divAccountingDate span").off().on('click',function(){
+                        commonjs.showWarning('messages.errors.accessdenied');
+                    });
+                } 
             },
 
             showPaymentsGrid: function () {
