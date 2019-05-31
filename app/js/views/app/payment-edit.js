@@ -16,8 +16,8 @@ define(['jquery',
     'text!templates/app/patientSearchResult.html',
     'views/reports/payments-pdf',
     'views/claims/claim-inquiry',
-    'collections/app/studycpt-list'],
-    'shared/trackFormChanges']
+    'collections/app/studycpt-list',
+    'shared/trackFormChanges'],
 
     function (
         jQuery,
