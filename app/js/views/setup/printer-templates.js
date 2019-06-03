@@ -301,30 +301,14 @@ define(['jquery',
                     rules: {
                         templateName: {
                             required: true
+                        },
+                        templateType: {
+                            required: true
                         }
-                        // templateType: {
-                        //     requires: true
-                        // }
-                        // leftMargin: {
-                        //     required: true
-                        // },
-                        // topMargin: {
-                        //     required: true
-                        // },
-                        // rightMargin: {
-                        //     required: true
-                        // },
-                        // bottomMargin: {
-                        //     required: true
-                        // }
                     },
                     messages: {
-                        templateName: commonjs.getMessage("e", "Template Name")
-                        // templateName: commonjs.getMessage("e", "Template type")
-                        // leftMargin: commonjs.getMessage("e", "Margin Left"),
-                        // topMargin: commonjs.getMessage("e", "Margin Top"),
-                        // rightMargin: commonjs.getMessage("e", "Margin Right"),
-                        // bottomMargin: commonjs.getMessage("e", "Margin Bottom")
+                        templateName: commonjs.getMessage("e", "Template Name"),
+                        templateType: commonjs.getMessage("e", "Template type")
                     },
                     submitHandler: function () {
                         self.save(self.doGoback);
