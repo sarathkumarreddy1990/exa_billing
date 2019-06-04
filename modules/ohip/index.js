@@ -130,6 +130,84 @@ const separateResults = (ebsResponse, service, responseCode) => {
     }, {});
 };
 
+
+/**
+ * const getNewResourceIDs - a very expensive function that compares a list of
+ * "existing" resource IDs to a very expensive list of all resource IDs to
+ * determine which resources would be considered "new" to EXA.
+ *
+ * @param  {type} args     parameters to the list service
+ * @param  {type} callback where to put the results of
+ * @returns {type}          a very valuable list of resource IDs which would
+ *                          be considered "new" to the EXA billing module
+ */
+const getNewResourceIDs = async (args, callback) => {
+
+    const {
+        resourceType,
+    } = args;
+
+    const ohipConfig = await billingApi.getOHIPConfiguration();
+    const ebs = new EBSConnector(ohipConfig.ebsConfig);
+
+    const existingResourceIDs = await billingApi.getResourceIDs(args);
+
+    const pages = [];
+    let numPages = 1;
+
+    const processListResults = (err, results) => {
+
+        if (err) {
+            logger.error('getNewResourceIDs: processListResults', err);
+        }
+        else {
+            pages.push(results);
+        }
+
+        if (pages.length >= numPages) {
+
+            console.log('async service calls finished; processing results ...');
+
+            const resourceIDs = pages.reduce((pageResults, currentPage) => {
+
+                return currentPage.results.reduce((results, result) => {
+
+                    return result.data.reduce((dataResults, currentData) => {
+
+                        console.log('FUCK MY LIFE: ', typeof currentData.resourceID);
+
+                        if (!existingResourceIDs.includes(currentData.resourceID.toString())) {
+                            dataResults.push(currentData.resourceID);
+                        }
+                        return dataResults;
+
+                    }, results);
+
+                }, pageResults);
+
+            }, []);
+
+            callback(null, {resourceIDs});
+        }
+    };
+
+    ebs[EDT_LIST](args, async (listErr, listResponse) => {
+        // provides number of pages and first batch of downloadable resourceIDs
+
+        numPages = listResponse.results[0].resultSize;
+
+        for (let pageNo=2; pageNo <= numPages; pageNo++) {
+            // spin off a bunch of asynchronous service-calls and pass processListResults as the callback
+            console.log('SPINNING OFF ASYNC LIST FOR PAGENO=', pageNo);
+
+            ebs[EDT_LIST]({resourceType, pageNo}, processListResults);
+        }
+
+        processListResults(listErr, listResponse);
+    });
+};
+
+
 /**
  * const download - downloads the available resources which match the
  * specified resourceType. When the downloads succeed, then an array of
@@ -204,6 +282,45 @@ const download = async (args, callback) => {
     });
 };
 
+const downloadNew = (args, callback) => {
+
+
+    getNewResourceIDs(args, async (err, {resourceIDs}) => {
+
+        const ohipConfig = await billingApi.getOHIPConfiguration();
+        const ebs = new EBSConnector(ohipConfig.ebsConfig);
+
+        ebs[EDT_DOWNLOAD]({resourceIDs}, async (downloadErr, downloadResponse) => {
+
+            if (downloadErr) {
+                return callback(downloadErr, null);
+            }
+
+            const separatedDownloadResults = separateResults(downloadResponse, EDT_DOWNLOAD, responseCodes.SUCCESS);
+
+            const ediFiles = separatedDownloadResults[responseCodes.SUCCESS].map(async (result) => {
+
+                const data = result.content;
+                const filename = result.description;
+                const resource_id = result.resourceID;
+                const file = await billingApi.storeFile({
+                    data,
+                    filename,
+                    resource_id,
+                });
+
+                return {
+                    data,
+                    filename,
+                    ...file
+                };
+            });
+
+            callback(null, ediFiles);
+        });
+    });
+};
+
 const downloadAckFile = (params, callback) => {
 
     const {
@@ -211,7 +328,7 @@ const downloadAckFile = (params, callback) => {
         applicator,
     } = params;
 
-    download({resourceType}, async (downloadErr, downloadResponse) => {
+    downloadNew({resourceType}, async (downloadErr, downloadResponse) => {
 
         downloadResponse.forEach(async (download) => {
 
@@ -235,6 +352,9 @@ const downloadAckFile = (params, callback) => {
     });
 };
 
+
+
+
 /**
  * const createEncoderContext - description
  *
@@ -252,10 +372,6 @@ const createEncoderContext = async () => {
 };
 
 
-
-//
-// *************************** PUBLIC **************************************
-//
 
 
 const downloadRemittanceAdvice = async ( args, callback ) => {
@@ -295,7 +411,15 @@ const downloadAndProcessResponseFiles = async (args, callback) => {
     }, downloadHandler);
 };
 
+//
+// *************************** PUBLIC **************************************
+//
+
 module.exports = {
+
+    sandbox: (args, callback) => {
+        getNewResourceIDs(args, callback);
+    },
 
     // takes an array of Claim IDs
     submitClaims: async (req, callback) => {
