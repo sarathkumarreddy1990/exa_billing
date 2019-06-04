@@ -389,6 +389,8 @@ define(['jquery',
                         claimsFilters = claimsFilters.concat(response)
                         commonjs.claimsFilters = Immutable.List(claimsFilters);
                         self.setFiltertabs(claimsFilters);
+                        // set default claim format
+                        $("#btnClaimFormat").text(commonjs.geti18NString('billing.payments.electronicClaim'));
                     },
                     error: function (model, response) {
                         commonjs.handleXhrError(model, response);
@@ -928,12 +930,6 @@ define(['jquery',
             setFiltertabs: function (filters) {
                 var self = this;
                 commonjs.showLoading('Fetching data..');
-
-                // if (commonjs.loadedStudyFilters.size > 0) {
-                //     commonjs.loadedStudyFilters.forEach(function (gridObj) {
-                //         gridObj.customGridTable.jqGrid('GridUnload');
-                //     });
-                // }
                 commonjs.setFilter(null, null);
                 $('#divTabsContainer').show();
 
