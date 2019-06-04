@@ -267,35 +267,30 @@ define('grid', [
                 $divObj.append(liBillingCode);
                 self.checkSubMenuRights('li_ul_change_billing_code');
                 var liArrayBillingCode = [];
+                
+                var billingCodeList = [
+                    {
+                        id: null,
+                        code: null,
+                        description: null
+                    }].concat(app.billing_codes || []);
 
-                $.each(app.billing_codes, function (index, billing_code) {
-                        var $billingCodeLink = $(commonjs.getRightClickMenu('ancBillingCode_' + billing_code.id,'setup.rightClickMenu.billingCode',true,billing_code.description ,false));
-
-                        $billingCodeLink.click(function () {
-                            $.ajax({
-                                url: '/exa_modules/billing/claim_workbench/claims/update',
-                                type: 'PUT',
-                                data: {
-                                    claimIds:  studyArray,
-                                    billing_code_id:billing_code.id,
-                                    process:"Billing Code"
-                                },
-                                success: function (data, response) {
-
-                                    if (data && data.length) {
-                                        commonjs.showStatus('messages.status.billingCodeChanged');
-                                        _.each(data, function (obj) {
-                                            $target.jqGrid('setCell', obj.id, 'billing_code', billing_code.description);
-                                        });
-                                    }
-
-                                },
-                                error: function (err, response) {
-                                    commonjs.handleXhrError(err, response);
-                                }
-                            });
-                        });
-                        liArrayBillingCode[liArrayBillingCode.length] = $billingCodeLink;
+                $.each(billingCodeList, function (index, billing_code) {
+                    var data = {
+                        billing_option: 'BILLINGCODE',
+                        claimIds: studyArray,
+                        process: "Billing Code",
+                        billing_code_id: billing_code ? billing_code.id : null 
+                    };
+                    var billing = {
+                        status_message: 'messages.status.billingCodeChanged',
+                        column: 'billing_code',
+                        description: billing_code ? billing_code.description : null 
+                    }
+                    var $billingCodeLink = $(commonjs.getRightClickMenu('ancBillingCode_' + (data.billing_code_id || 'none'), 'setup.rightClickMenu.billingCode', true, (index == 0 ? commonjs.geti18NString('setup.rightClickMenu.none') : billing.description), false));
+                    
+                    self.billingLinkEvent($billingCodeLink, data, billing, $target);
+                    liArrayBillingCode[liArrayBillingCode.length] = $billingCodeLink;
                 });
                 $('#ul_change_billing_code').append(liArrayBillingCode);
 
@@ -304,33 +299,32 @@ define('grid', [
                 $divObj.append(liBillingClass);
                 self.checkSubMenuRights('li_ul_change_billing_class');
                 var liArrayBillingClass = [];
-                $.each(app.billing_classes, function (index, billing_class) {
-                    var $BillingClassLink = $(commonjs.getRightClickMenu('ancBillingClass_' + billing_class.id,'setup.rightClickMenu.billingClass',true,billing_class.description ,false));
+                
+                var billingClassList = [
+                    {
+                        id: null,
+                        code: null,
+                        description: null
+                    }].concat(app.billing_classes || []);
 
-                        $BillingClassLink.click(function () {
-                                $.ajax({
-                                    url: '/exa_modules/billing/claim_workbench/claims/update',
-                                    type: 'PUT',
-                                    data: {
-                                        claimIds:studyArray,
-                                        billing_class_id:billing_class.id,
-                                        process:"Billing Class"
-                                    },
-                                    success: function (data, response) {
-                                        if (data && data.length) {
-                                            commonjs.showStatus('messages.status.billingClassChanged');
-                                            _.each(data, function (obj) {
-                                                $target.jqGrid('setCell', obj.id, 'billing_class', billing_class.description);
-                                            });
-                                        }
-                                    },
-                                    error: function (err, response) {
-                                        commonjs.handleXhrError(err, response);
-                                    }
-                                });
-                            });
+                $.each(billingClassList, function (index, billing_class) {
+                    var data = {
+                        billing_option: 'BILLINGCLASS',
+                        claimIds: studyArray,
+                        process: "Billing Class",
+                        billing_class_id:billing_class ? billing_class.id : null
+                    };
 
-                        liArrayBillingClass[liArrayBillingClass.length] = $BillingClassLink;
+                    var billing = {
+                        status_message: 'messages.status.billingClassChanged',
+                        column: 'billing_class',
+                        description: billing_class ? billing_class.description : null 
+                    };
+
+                    var $BillingClassLink = $(commonjs.getRightClickMenu('ancBillingClass_' + (data.billing_class_id || 'none'), 'setup.rightClickMenu.billingClass', true, (index == 0 ? commonjs.geti18NString('setup.rightClickMenu.none') : billing.description), false));
+                    
+                    self.billingLinkEvent($BillingClassLink, data, billing, $target);
+                    liArrayBillingClass[liArrayBillingClass.length] = $BillingClassLink;
                 });
                 $('#ul_change_billing_class').append(liArrayBillingClass);
 
@@ -1790,6 +1784,27 @@ define('grid', [
                     }
                 });
             }
+        },
+        self.billingLinkEvent = function ($billingLink, dataobject, billing, $target) {
+            $billingLink.off().click(function () {
+                $.ajax({
+                    url: '/exa_modules/billing/claim_workbench/claims/update',
+                    type: 'PUT',
+                    data: dataobject,
+                    success: function (data, response) {
+                        if (data && data.length) {
+                            commonjs.showStatus(billing.status_message);
+                            _.each(data, function (obj) {
+                                $target.jqGrid('setCell', obj.id, billing.column, billing.description);
+                            });
+                        }
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
+            })
         }
+
     };
 });
