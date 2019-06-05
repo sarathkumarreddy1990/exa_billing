@@ -166,15 +166,11 @@ const getNewResourceIDs = async (args, callback) => {
 
         if (pages.length >= numPages) {
 
-            console.log('async service calls finished; processing results ...');
-
             const resourceIDs = pages.reduce((pageResults, currentPage) => {
 
                 return currentPage.results.reduce((results, result) => {
 
                     return result.data.reduce((dataResults, currentData) => {
-
-                        console.log('FUCK MY LIFE: ', typeof currentData.resourceID);
 
                         if (!existingResourceIDs.includes(currentData.resourceID.toString())) {
                             dataResults.push(currentData.resourceID);
@@ -198,8 +194,6 @@ const getNewResourceIDs = async (args, callback) => {
 
         for (let pageNo=2; pageNo <= numPages; pageNo++) {
             // spin off a bunch of asynchronous service-calls and pass processListResults as the callback
-            console.log('SPINNING OFF ASYNC LIST FOR PAGENO=', pageNo);
-
             ebs[EDT_LIST]({resourceType, pageNo}, processListResults);
         }
 
@@ -207,11 +201,12 @@ const getNewResourceIDs = async (args, callback) => {
     });
 };
 
-
 /**
- * const download - downloads the available resources which match the
- * specified resourceType. When the downloads succeed, then an array of
- * file information objects is passed to the callback. Example:
+ * const downloadNew - downloads resources from EBS servers which would be
+ * considered "new" to EXA (i.e. resources that have not already been
+ * downloaded and imported into EXA). An array with the following structure is
+ * passed to the callback:
+ *
  *     [
  *        {
  *            file_store_id: Number,
@@ -221,32 +216,18 @@ const getNewResourceIDs = async (args, callback) => {
  *        // ...
  *     ]
  *
- * @param  {object} args    {
- *                              resourceType: String
- *                          }
- * @param  {function} callback  standard callback mechanism;
+ * @param  {type} args     description
+ * @param  {type} callback description
+ * @returns {type}          description
  */
-const download = async (args, callback) => {
-    const ohipConfig = await billingApi.getOHIPConfiguration()
-    const ebs = new EBSConnector(ohipConfig.ebsConfig);
+const downloadNew = (args, callback) => {
 
-    ebs[EDT_LIST](args, async (listErr, listResponse) => {
+    getNewResourceIDs(args, async (err, {resourceIDs}) => {
 
-        if (listErr) {
-            return callback(listErr, null);
-        }
+        const ohipConfig = await billingApi.getOHIPConfiguration();
+        const ebs = new EBSConnector(ohipConfig.ebsConfig);
 
-        const separatedListResults = separateResults(listResponse, EDT_LIST, responseCodes.SUCCESS);
-        const successfulListResults =  separatedListResults[responseCodes.SUCCESS];;
-
-        if (successfulListResults) {
-
-            const resourceIDs = successfulListResults.map((detailResponse) => {
-                return detailResponse.resourceID;
-            });
-
-            // TODO something with separatedListResults['other']
-
+        if (resourceIDs.length) {
             ebs[EDT_DOWNLOAD]({resourceIDs}, async (downloadErr, downloadResponse) => {
 
                 if (downloadErr) {
@@ -269,55 +250,16 @@ const download = async (args, callback) => {
                     return {
                         data,
                         filename,
-                        ...file
+                        ...file,
                     };
                 });
 
-                callback(null, ediFiles);
+                callback(null, (await Promise.all(ediFiles)));
             });
         }
         else {
             callback(null, []);
         }
-    });
-};
-
-const downloadNew = (args, callback) => {
-
-
-    getNewResourceIDs(args, async (err, {resourceIDs}) => {
-
-        const ohipConfig = await billingApi.getOHIPConfiguration();
-        const ebs = new EBSConnector(ohipConfig.ebsConfig);
-
-        ebs[EDT_DOWNLOAD]({resourceIDs}, async (downloadErr, downloadResponse) => {
-
-            if (downloadErr) {
-                return callback(downloadErr, null);
-            }
-
-            const separatedDownloadResults = separateResults(downloadResponse, EDT_DOWNLOAD, responseCodes.SUCCESS);
-
-            const ediFiles = separatedDownloadResults[responseCodes.SUCCESS].map(async (result) => {
-
-                const data = result.content;
-                const filename = result.description;
-                const resource_id = result.resourceID;
-                const file = await billingApi.storeFile({
-                    data,
-                    filename,
-                    resource_id,
-                });
-
-                return {
-                    data,
-                    filename,
-                    ...file
-                };
-            });
-
-            callback(null, ediFiles);
-        });
     });
 };
 
@@ -330,13 +272,13 @@ const downloadAckFile = (params, callback) => {
 
     downloadNew({resourceType}, async (downloadErr, downloadResponse) => {
 
-        downloadResponse.forEach(async (download) => {
+        downloadResponse.forEach((download) => {
 
             const {
                 filename,
                 data,
                 edi_file_id: responseFileId,
-            } = (await download);
+            } = (download);
 
             // always an array
             const parsedResponseFile = new Parser(filename).parse(data);
@@ -348,7 +290,6 @@ const downloadAckFile = (params, callback) => {
         });
 
         return callback(null, downloadResponse);
-
     });
 };
 
@@ -375,7 +316,7 @@ const createEncoderContext = async () => {
 
 
 const downloadRemittanceAdvice = async ( args, callback ) => {
-    download({ resourceType: REMITTANCE_ADVICE }, ( downloadErr, ediFiles ) => {
+    downloadNew({ resourceType: REMITTANCE_ADVICE }, ( downloadErr, ediFiles ) => {
         return callback(downloadErr, ediFiles);
     });
 };
@@ -386,6 +327,7 @@ const downloadAndProcessResponseFiles = async (args, callback) => {
         if (err) {
             logger.error('OHIP downloadAndProcessResponseFiles', err);
         }
+
         downloadResults.push({
             err,
             results,
@@ -463,16 +405,7 @@ module.exports = {
             if (!claimItems || !claimItems.length) {
                 validations.push(`Claim ${claim.claim_id} has no billable charges`);
             }
-            // else {
-            //
-            //     const invalidClaimItems = claimItems.filter((item) => {
-            //         console.log('Comparing money: ', getNumberFromMoney(item.feeSubmitted));
-            //         return getNumberFromMoney(item.feeSubmitted) <= 0.00;
-            //     });
-            //     if (invalidClaimItems.length) {
-            //         validations.push(`Claim ${claim.claim_id} has at least one invalid charge`);
-            //     }
-            // }
+
             return validations;
         }, []);
         if (validationMessages.length) {
@@ -482,9 +415,10 @@ module.exports = {
         // 2 - run claim data through encoder
         const ohipConfig = await billingApi.getOHIPConfiguration();
 
-        const claimEnc = new ClaimsEncoder(ohipConfig); // default 1:1/1:1
+        const claimEnc = new ClaimsEncoder(ohipConfig);
         // const claimEnc = new ClaimsEncoder({batchesPerFile:5});
         // const claimEnc = new ClaimsEncoder({claimsPerBatch:5});
+
         const encoderContext = await createEncoderContext();
         const submissionsByGroup = claimEnc.encode(claimData, encoderContext);
 

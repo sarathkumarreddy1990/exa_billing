@@ -45,16 +45,14 @@ const resources = [];
 let nextResourceID = 60000;
 const REMITTANCE_ADVICE_RESOURCE_ID = nextResourceID++;
 
-let REMITTANCE_ADVICE = 0;
-
 // matches service codes beginning with 'X' -- used to determine if an entire Claims File should be rejected
-const rejectionFlagMatcher = /X[0-9]{3}[A-Z]/;
+const rejectionFlagMatcher = /X999[BC]/;
 
 // matches service codes beginning with 'E' -- used to determine if a claim (within a batch) should be rejected
-const correctionFlagMatcher = /E[0-9]{3}[A-Z]/;
+const correctionFlagMatcher = /E999[BC]/;
 
 // matches service codes beginning with 'Z' -- used to determine if an entire batch (within a submission) should be rejected
-const badBatchFlagMatcher = /Z[0-9]{3}[A-Z]/;
+const badBatchFlagMatcher = /Z999[BC]/;
 
 
 const updateRemittanceAdvice = require('./remittanceAdviceProcessor');
@@ -295,21 +293,22 @@ module.exports = {
             status,
             pageNo,
         } = ctx.eventDetail.list;
+        console.log('Context event details for list: ', ctx.eventDetail.list);
 
-        const listResults = resources.filter((resource) => {
+        const results = resources.filter((resource) => {
 
             return (!resourceType || resource.resourceType === resourceType)
                 && (!status || resource.status === status);
 
-        }).reduce((results, resource) => {
+        }).reduce((listResults, resource) => {
 
-            return results.concat({
+            return listResults.concat({
                 resource,
                 responseCode: SUCCESS,
             });
         }, []);
 
-        return xml[EDT_LIST](listResults);
+        return xml[EDT_LIST]({results, pageNo});
     },
 
     [EDT_INFO]: (ctx) => {
