@@ -123,7 +123,12 @@ define([
                     showcaption: false,
                     disableadd: true,
                     disablereload: true,
-                    pager: '#gridPager_ClaimStatus'
+                    pager: '#gridPager_ClaimStatus',
+                    onaftergridbind: function (model, gridObj) {
+                        $('input[name=display_order]').addClass('integerbox');
+                        commonjs.validateControls();
+                    }
+
                 });
 
                 commonjs.initializeScreen({header: {screen: 'ClaimStatus', ext: 'claimStatus'}, grid: {id: '#tblClaimStatusGrid'}, buttons: [

@@ -37,6 +37,7 @@ module.exports = {
                         , description
                         , accounting_entry_type
                         , inactivated_dt
+                        , is_system_code
                         , COUNT(1) OVER (range unbounded preceding) AS total_records
                     FROM   
                         billing.adjustment_codes `;
@@ -65,6 +66,7 @@ module.exports = {
                         , description
                         , accounting_entry_type
                         , inactivated_dt
+                        , is_system_code
                     FROM   
                         billing.adjustment_codes 
                     WHERE 
@@ -156,6 +158,7 @@ module.exports = {
         const sql = SQL`DELETE FROM 
                             billing.adjustment_codes 
                         WHERE id = ${id}
+                        AND NOT is_system_code
                         RETURNING *, '{}'::jsonb old_values
                         `;
 

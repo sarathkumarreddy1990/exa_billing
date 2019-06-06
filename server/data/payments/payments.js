@@ -44,7 +44,8 @@ module.exports = {
             countFlag,
             default_facility_id,
             notes,
-            account_no
+            account_no,
+            country_code
         } = params;
 
         if (paymentStatus) {
@@ -217,7 +218,10 @@ module.exports = {
                     , alternate_payment_id
                     , payer_type
                     , payments.notes
-                    , mode AS payment_mode
+                    , ( CASE
+                           WHEN ${country_code} = 'can' AND  mode = 'check' THEN 'cheque'
+                           ELSE mode 
+                        END ) AS payment_mode
                     , card_name
                     , card_number
                     , patients.full_name as patient_name
@@ -320,6 +324,8 @@ module.exports = {
                         , (select adjustments_applied_total from billing.get_payment_totals(payments.id)) AS adjustment_amount
                         , (select payment_status from billing.get_payment_totals(payments.id)) AS current_status
                         , billing.payments.XMIN as payment_row_version
+                        , era_payment.edi_file_id 
+                        , era_pdf.id AS eob_file_id
                     FROM billing.payments
                     INNER JOIN public.users ON users.id = payments.created_by
                     LEFT JOIN public.patients ON patients.id = payments.patient_id
@@ -329,7 +335,23 @@ module.exports = {
                     -- LEFT JOIN public.providers ON providers.id = payments.provider_contact_id
                     LEFT JOIN public.provider_contacts ON provider_contacts.id = payments.provider_contact_id
                     LEFT JOIN public.providers ref_provider ON provider_contacts.provider_id = ref_provider.id
-
+                    LEFT JOIN LATERAL(
+                        SELECT
+                            edi_file_id
+                        FROM 
+                            billing.edi_file_payments 
+                        WHERE edi_file_payments.payment_id = payments.id
+                        ORDER BY edi_file_id 
+                        LIMIT 1
+                    ) era_payment ON TRUE
+                    LEFT JOIN LATERAL(
+                        SELECT
+                            edi_files.id
+                        FROM 
+                            billing.edi_file_payments 
+                        INNER JOIN billing.edi_files ON edi_files.id = edi_file_payments.edi_file_id AND edi_files.file_type = 'EOB'
+                        WHERE edi_file_payments.payment_id = payments.id
+                    ) era_pdf ON TRUE
                     WHERE
                         payments.id = ${id}`;
 
@@ -1275,7 +1297,7 @@ module.exports = {
                         INNER JOIN patients p ON p.id = claims.patient_id
                         INNER JOIN LATERAL billing.get_claim_totals(claims.id) bgct ON TRUE
                         WHERE p.id = ${patientId}
-                        AND bgct.claim_balance_total > 0::money
+                        AND bgct.claim_balance_total != 0::money
                         ORDER BY claims.id ASC `;
         } else {
 
@@ -1384,7 +1406,6 @@ module.exports = {
             screenName,
             moduleName,
             writeOffAmount,
-            adjustmentCodeId,
             defaultFacilityId
         } = params;
 
@@ -1398,29 +1419,20 @@ module.exports = {
 
         const sql =SQL`WITH
             -- --------------------------------------------------------------------------------------------------------------
-            -- Total patient claims.
-            -- --------------------------------------------------------------------------------------------------------------
-            patient_details AS (
-                SELECT
-                    p.id as patient_id
-                    ,c.id as claim_id
-                FROM
-                    billing.claims c
-                INNER JOIN patients p ON p.id = c.patient_id
-             )
-            -- --------------------------------------------------------------------------------------------------------------
             -- Calculate charge bill fee for claim.
             -- --------------------------------------------------------------------------------------------------------------
-            ,claim_charge_fee AS (
+            claim_charge_fee AS (
                 SELECT
                     sum(c.bill_fee * c.units)       AS charges_bill_fee_total
                     ,c.claim_id
+                    ,cl.patient_id
                 FROM
                     billing.charges AS c
-                INNER JOIN patient_details AS pd ON pd.claim_id = c.claim_id
+                INNER JOIN billing.claims AS cl ON c.claim_id = cl.id
+                INNER JOIN patients AS p ON p.id = cl.patient_id
                 INNER JOIN public.cpt_codes AS pc ON pc.id = c.cpt_id
                 LEFT OUTER JOIN billing.charges_studies AS cs ON c.id = cs.charge_id
-                GROUP BY c.claim_id
+                GROUP BY c.claim_id,cl.patient_id
              )
             -- --------------------------------------------------------------------------------------------------------------
             -- Claim payments list.
@@ -1553,48 +1565,85 @@ module.exports = {
                     claims.id AS claim_id
                     , claims.patient_id
                     , ip.id AS payment_id
-                    , charges.line_items
                     , cs.code AS claim_status_code
+                    , bch.id AS charge_id
+                    , 0::money AS payment
+                    , ((bch.bill_fee * bch.units) - ( bgct.other_payment + bgct.other_adjustment )) AS adjustment
+                    , '[]'::jsonb AS cas_details
+                    , cpl.claim_balance_total
+                    , COALESCE (is_debit_adjustment, false) AS is_debit_adjustment
                 FROM
                     billing.claims
                 INNER JOIN insert_payment ip ON ip.patient_id = claims.patient_id
                 INNER JOIN billing.claim_status cs ON cs.id = claims.claim_status_id
                 INNER JOIN claim_payments_list cpl ON cpl.claim_id = claims.id
-                INNER JOIN LATERAL (
-                        SELECT
-                            json_agg(
-                                json_build_object(
-                                                'charge_id'		,bch.id,
-                                                'payment'		,0,
-                                                'adjustment'	,((bch.bill_fee * bch.units) -  (bgct.other_payment+ bgct.other_adjustment))::numeric,
-                                                'cas_details'	,'[]'::jsonb,
-                                                'applied_dt' 	, now()
-                                )
-                            )::jsonb AS line_items
-                        FROM
-                            billing.charges bch
-                        INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
-                        INNER JOIN LATERAL billing.get_charge_other_payment_adjustment(bch.id) bgct ON TRUE
-                        WHERE bch.claim_id = claims.id
-                ) AS charges ON TRUE
-                WHERE cpl.claim_balance_total > 0::money
+                INNER JOIN billing.charges bch ON bch.claim_id = claims.id
+                INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
+                INNER JOIN LATERAL billing.get_charge_other_payment_adjustment(bch.id) bgct ON TRUE
+                LEFT JOIN LATERAL (
+                    SELECT
+                        ((i_bch.bill_fee * i_bch.units) - ( i_bgct.other_payment + i_bgct.other_adjustment )) < 0::money AS is_debit_adjustment
+                    FROM billing.charges i_bch
+                    INNER JOIN LATERAL billing.get_charge_other_payment_adjustment(i_bch.id) i_bgct ON TRUE
+                    WHERE i_bch.claim_id = claims.id
+                    AND ( CASE WHEN ((i_bch.bill_fee * i_bch.units) - ( i_bgct.other_payment + i_bgct.other_adjustment )) < 0::money THEN true ELSE false END )
+                    LIMIT 1
+                ) ida ON true
+                WHERE cpl.claim_balance_total != 0::money
+                ORDER BY claims.id ASC
             )
             -- --------------------------------------------------------------------------------------------------------------
-            -- It will create payment application of given charge lineItems
+            -- Getting same applied date for payment application
             -- --------------------------------------------------------------------------------------------------------------
-            , insert_application AS (
+            , claim_application_date AS (
                 SELECT
-                    billing.create_payment_applications(
-                            payment_id
-                            , ${adjustmentCodeId}
-                            , ${userId}
-                            , line_items
-                            , (${JSON.stringify(auditDetails)})::jsonb
-                    ) AS details
-
+                    clock_timestamp() AS applied_dt,
+                    claim_id
                 FROM
-                    claim_charges
+                claim_charges
+                GROUP BY claim_id
             )
+            -- --------------------------------------------------------------------------------------------------------------
+            -- Formating charge lineItems for credit adjustment. Create payment application
+            -- --------------------------------------------------------------------------------------------------------------
+	        , credit_adjustment_charges AS (
+                SELECT
+                billing.create_payment_applications(
+                    payment_id
+                    , charge_id
+                    , payment
+                    , ( CASE WHEN adjustment > 0::money THEN adjustment ELSE 0::money END )
+                    , ( SELECT id FROM billing.adjustment_codes WHERE code = 'SBCA' )
+                    , ${userId}
+                    , cas_details
+                    , (${JSON.stringify(auditDetails)})::jsonb
+                    , now()
+                    )  AS details
+	        	FROM
+                    claim_charges
+                WHERE claim_balance_total > 0::money
+            )
+            -- --------------------------------------------------------------------------------------------------------------
+            -- Formating charge lineItems for debit adjustment. Create payment application
+            -- --------------------------------------------------------------------------------------------------------------
+	        , debit_adjustment_charges AS (
+                SELECT
+                billing.create_payment_applications(
+                    payment_id
+                    , charge_id
+                    , payment
+                    , ( CASE WHEN adjustment < 0::money THEN adjustment ELSE 0::money END )
+                    , ( SELECT id FROM billing.adjustment_codes WHERE code = 'SBDA' )
+                    , ${userId}
+                    , cas_details
+                    , (${JSON.stringify(auditDetails)})::jsonb
+                    , cad.applied_dt
+                    ) AS details
+		        FROM
+                    claim_charges
+                LEFT JOIN claim_application_date cad ON cad.claim_id = claim_charges.claim_id
+                WHERE (claim_balance_total < 0::money OR is_debit_adjustment)
+	        )
             -- --------------------------------------------------------------------------------------------------------------
             -- It will update responsible party, claim status for given claim.
             -- --------------------------------------------------------------------------------------------------------------
@@ -1611,10 +1660,13 @@ module.exports = {
                 FROM
                     claim_charges
                 WHERE claim_status_code NOT IN ('PV','PS')
+                GROUP BY claim_charges.claim_id
             )
         SELECT null,id,null FROM insert_audit_cte
         UNION ALL
-        SELECT details,null,null FROM insert_application
+        SELECT details,null,null FROM credit_adjustment_charges
+	    UNION ALL
+        SELECT details,null,null FROM debit_adjustment_charges
         UNION ALL
         SELECT null,null,result::text FROM change_responsible_party
     `;

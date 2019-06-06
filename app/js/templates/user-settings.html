@@ -91,6 +91,7 @@
                     <legend class="viztekLegend">
                             <h5 i18n="setup.userSettings.headings.printerTemplates"></h5>
                         </legend>
+                <% if (country_alpha_3_code !== "can") { %>
                 <div class="form-group row">
                     <div class="col-sm-4 col-form-label">
                         <label class="control-label " for="ddlPaperClaimFullForm" i18n="setup.userSettings.paperClaimFullForm"></label>
@@ -112,6 +113,7 @@
                         </select>
                     </div>
                 </div>
+                <% } %>
                 <div class="form-group  row">
                     <div class="col-form-label col-sm-4">
                         <label class="control-label " for="ddlDirectInvoice" i18n="setup.userSettings.directInvoice"></label>

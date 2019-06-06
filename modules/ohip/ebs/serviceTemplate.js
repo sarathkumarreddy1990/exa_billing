@@ -1,3 +1,6 @@
+const {
+    services,
+} = require('./constants');
 
 const getResourceIDsXML = (resourceIDs) => {
     return resourceIDs.map((resourceID) => {
@@ -8,7 +11,7 @@ const getResourceIDsXML = (resourceIDs) => {
 
 module.exports = {
 
-    EDT_UPLOAD: (args, ctx) => {
+    [services.EDT_UPLOAD]: (args, ctx) => {
 
         const {
             uploads,
@@ -36,7 +39,7 @@ module.exports = {
         `;
     },
 
-    EDT_SUBMIT: (args) => {
+    [services.EDT_SUBMIT]: (args) => {
 
         const {
             resourceIDs
@@ -49,7 +52,7 @@ module.exports = {
         `;
     },
 
-    EDT_DOWNLOAD: (args) => {
+    [services.EDT_DOWNLOAD]: (args) => {
         const {
             resourceIDs
         } = args;
@@ -61,7 +64,7 @@ module.exports = {
         `;
     },
 
-    EDT_LIST: (args)=> {
+    [services.EDT_LIST]: (args)=> {
 
         const {
             resourceType,
@@ -82,7 +85,7 @@ module.exports = {
         `;
     },
 
-    EDT_INFO: (args)=> {
+    [services.EDT_INFO]: (args)=> {
         const {
             resourceIDs,
         } = args;
@@ -94,7 +97,7 @@ module.exports = {
         `;
     },
 
-    EDT_DELETE: (args)=> {
+    [services.EDT_DELETE]: (args)=> {
         const {
             resourceIDs,
         } = args;
@@ -106,7 +109,7 @@ module.exports = {
         `;
     },
 
-    EDT_UPDATE: (args)=> {
+    [services.EDT_UPDATE]: (args)=> {
         const {
             updates,
         } = args;
@@ -130,11 +133,11 @@ module.exports = {
         `;
     },
 
-    EDT_GET_TYPE_LIST: (args) => {
+    [services.EDT_GET_TYPE_LIST]: (args) => {
         return `<edt:getTypeList/>`;
     },
 
-    HCV: (args) => {
+    [services.HCV_REAL_TIME]: (args) => {
 
         const {
             hcvRequests,

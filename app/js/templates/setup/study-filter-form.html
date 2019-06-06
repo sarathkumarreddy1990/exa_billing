@@ -306,7 +306,7 @@
                                 </td>
                                 <td>
                                     <div id="divDateFrom" class="input-group fc-short">
-                                            <input type="text" id="txtDateFrom" class="form-control form-control-date">
+                                            <input type="text" id="txtDateFrom" class="form-control form-control-date maskDateLocale" i18np="dateFormat">
                                             <span class="input-group-addon add-on datePickerSpan"><i class="icon-ic-schedule"></i></span>
                                     </div>
                                 </td>
@@ -321,7 +321,7 @@
                                 </td>
                                 <td>
                                     <div id="divDateTo" class="input-group fc-short">
-                                            <input type="text" id="txtDateTo" class="form-control form-control-date">
+                                            <input type="text" id="txtDateTo" class="form-control form-control-date maskDateLocale" i18np="dateFormat">
                                             <span class="input-group-addon add-on datePickerSpan"><i class="icon-ic-schedule"></i></span>
                                     </div>
                                 </td>
@@ -362,7 +362,7 @@
                                                    i18n="setup.studyFilters.isNot"></label>
                                         </div>
                                         <div class="form-list col-md-2 col-sm-2">
-                                            <input type="radio" id="rbtContainsPatientName" name="PatientName" class="form-check-input"
+                                            <input type="radio" id="rbtContainsPatientName" name="PatientName" class="form-check-input clearField"
                                                    value="Contains">
                                             <label class="form-check-label" for="rbtContainsPatientName"
                                                    i18n="setup.studyFilters.contains"></label>
@@ -411,7 +411,7 @@
                                 <td>
                                     <div class="row form-inline">
                                         <div class="form-list col-md-2 col-sm-2">
-                                            <input class="form-check-label" type="radio" id="rbtIsPatientID" class="form-check-input clearField"
+                                            <input type="radio" id="rbtIsPatientID" class="form-check-input clearField"
                                                    name="PatientID" value="Is">
                                             <label class="form-check-label" for="rbtIsPatientID"
                                                    i18n="setup.studyFilters.is"></label></label>
@@ -513,10 +513,10 @@
                                                                                                          class="form-control" i18np="setup.studyFilters.institution">
                                                     </div>
                                                     <div class="col-form-label col-md-3 col-sm-3">
-                                                        <button id="btnClAddInstitutionStudyFilter"
-                                                                class="btn btn-primary">
+                                                        <a class="btn btn-primary" id="btnClAddInstitutionStudyFilter"
+                                                        i18nt="setup.studyFilters.addInstitution">
                                                             <i class="icon-ic-plus"></i>
-                                                        </button>
+                                                        </a>
                                                     </div>
                                                 </div>
                                             </td>

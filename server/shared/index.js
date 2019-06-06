@@ -4,6 +4,7 @@ const {
     screenNames,
     entityNames
 } = require('./constants');
+const moment = require('moment');
 
 module.exports = {
 
@@ -18,7 +19,7 @@ module.exports = {
     roundFee: function (value) {
         return this.round(value, 2);
     },
-    
+
     roundUnits: function (value) {
         return this.round(value, 3);
     },
@@ -87,5 +88,20 @@ module.exports = {
 
     isReadableStream: function (obj) {
         return this.isStream(obj) && typeof obj._read === 'function' && typeof obj._readableState === 'object';
+    },
+
+    getLocaleDate: function (date, locale) {
+        if (!date)
+            return null;
+        let localeFomat = this.getLocaleFormat(locale)
+        return moment(date).locale(locale).format(localeFomat);
+    },
+
+    getLocaleFormat(locale) {
+        return moment(new Date('December 31, 2017'))
+            .locale(locale).format('L')
+            .replace(/12/, 'MM')
+            .replace(/31/, 'DD')
+            .replace(/2017/, 'YYYY');
     }
 };

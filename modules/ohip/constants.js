@@ -71,6 +71,11 @@ const specialtyCodes = {
 
 module.exports = {
 
+    CLAIM_STATUS_PENDING_ACKNOWLEDGMENT_DEFAULT: 'PA',
+    CLAIM_STATUS_REJECTED_DEFAULT: 'R',
+    CLAIM_STATUS_PENDING_PAYMENT_DEFAULT: 'PP',
+
+
     MONTH_CODE_JANUARY: 65, // 'January' as a processing cycle month code
 
     encoding: 'ascii',      // encoding scheme to read and write files in

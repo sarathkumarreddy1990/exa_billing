@@ -142,7 +142,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         var verifiedValue = ":All;true:Yes;false:No";
         var billingMethodValue =  ":All;electronic_billing:Electronic Billing;paper_claim:Paper Claim;direct_billing:Direct Billing;patient_payment:Patient Payment";
         var payerTypeValue =  ':All;primary_insurance:Primary Insurance;secondary_insurance:Secondary Insurance;tertiary_insurance:Tertiary Insurance;ordering_facility:Ordering facility;referring_provider:Referring Provider;patient:Patient';
-
+        var billingMethodValueCan = ":All;electronic_billing:Electronic Billing;direct_billing:Direct Billing;patient_payment:Patient Payment";
+        var payerTypeValueCan = ':All;primary_insurance:Primary Insurance;ordering_facility:Ordering facility;referring_provider:Referring Provider;patient:Patient';
         $.each(app.stat_level, function ( index, stat ) {
             if ( !stat.deleted ) {
                 if ( parseInt(stat.level) === 0 ) {
@@ -260,7 +261,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "custom_name": "SSN",
                         "name": "patient_ssn",
                         "width": 100,
-                        "searchFlag": "%"
+                        "searchFlag": "%",
+                        "hidden": app.country_alpha_3_code === 'can'
                     }
                 },
                 "Place Of Service": {
@@ -273,6 +275,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "name": "place_of_service",
                         "width": 200,
                         "stype": "select",
+                        "hidden": app.country_alpha_3_code === 'can',
                         "searchoptions": {
                             "value": placeOfService,
                             "tempvalue": placeOfService
@@ -324,8 +327,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "name": "payer_type",
                         "stype": "select",
                         "searchoptions": {
-                            "value": payerTypeValue,
-                            "tempvalue":payerTypeValue
+                            "value": app.country_alpha_3_code !== 'can' ? payerTypeValue : payerTypeValueCan,
+                            "tempvalue": app.country_alpha_3_code !== 'can' ? payerTypeValue : payerTypeValueCan,
                         },
                         "formatter": function ( cellvalue ) {
                             return commonjs.checkNotEmpty(cellvalue) ?
@@ -446,8 +449,26 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "name": "billing_notes",
                         "width": 100,
                         "defaultValue": "",
+                        "cellattr": function (id, cellvalue, rowObject) {
+                            if (app.country_alpha_3_code === "can") {
+                                return 'title="' + rowObject.billing_notes + '"';
+                            }
+                        },
                         "formatter": function ( cellvalue ) {
                             cellvalue = cellvalue || '';
+
+                            if (app.country_alpha_3_code === "can") {
+                                var errors = cellvalue.split('\n');
+                                var codes = [];
+
+                                for (var i = 0; i < errors.length; i++) {
+                                    var code = errors[i].split(' - ');
+                                    codes.push(code[0]);
+                                }
+                                
+                                return codes.join();
+                            }
+                            
                             cellvalue = cellvalue.replace(/(?:\n)/g, '<br />');
                             var regex = /<br\s*[\/]?>/gi;
                             return cellvalue.replace(regex, "\n");
@@ -493,8 +514,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "width": 150,
                         "stype": "select",
                         "searchoptions": {
-                            "value": billingMethodValue,
-                            "tempvalue":billingMethodValue
+                            "value": app.country_alpha_3_code !== 'can' ? billingMethodValue : billingMethodValueCan,
+                            "tempvalue": app.country_alpha_3_code !== 'can' ? billingMethodValue : billingMethodValueCan
                         }
                     },
                 },
@@ -667,6 +688,18 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "hidden": app.country_alpha_3_code !== 'can'
                     },
                     "field_code": "payment_id"
+                },
+                "ICD Description": {
+                    "id": 34,
+                    "field_name": "ICD Description",
+                    "i18n_name": "patient.advancedSearch.icdDescription",
+                    "field_info": {
+                        "custom_name": "ICD Description",
+                        "name": "icd_description",
+                        "width": 250,
+                        "defaultValue": ""
+                    },
+                    "field_code": "icd_description"
                 }
             });
         }else{
@@ -1826,6 +1859,18 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     }
                 }
             },
+            "ICD Description": {
+                "id": 68,
+                "field_name": "ICD Description",
+                "i18n_name": "patient.advancedSearch.icdDescription",
+                "field_info": {
+                    "custom_name": "ICD Description",
+                    "name": "icd_description",
+                    "width": 250,
+                    "defaultValue": ""
+                },
+                "field_code": "icd_description"
+            }
         });
 
     }

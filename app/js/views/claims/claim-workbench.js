@@ -18,7 +18,6 @@ define(['jquery',
     'text!templates/claims/invoice-claim.html',
     'text!templates/claims/edi-warning.html',
     'collections/app/file-management',
-    'text!templates/app/file-management.html',
     'text!templates/app/ebs-list.html',
     'text!templates/app/ebs-upload.html',
     'text!templates/app/ebs-update.html',
@@ -51,7 +50,6 @@ define(['jquery',
               invoiceClaim,
               ediWarning,
               FileManagementCollection,
-              FileManagementHTML,
               EDTListHTML,
               EBSUploadHTML,
               EBSUpdateHTML,
@@ -257,7 +255,6 @@ define(['jquery',
                 "click #btnValidateExport": "exportExcel",
                 "click #btnClaimsRefresh": "refreshClaims",
                 "click #btnClaimsCompleteRefresh": "completeRefresh",
-                "click #btnFileManagement": "showFileManagement",
                 "click #btnEdtEbs": "showEDTConformanceTesting",
                 "click #btnHcvEbs": "showHCVConformanceTesting",
 
@@ -314,7 +311,6 @@ define(['jquery',
 
             render: function (queryString) {
                 var self = this;
-                self.fileManagementTemplate = _.template(FileManagementHTML);
                 self.hcvFormTemplate = _.template(EbsHcvFormHTML);
                 self.hcvRequestTemplate = _.template(EbsHcvRequestHTML);
 
@@ -363,7 +359,22 @@ define(['jquery',
                             i18n_name: "shared.fields.allClaims",
                             filter_order: 0,
                             id: "All_Claims"
-                        })
+                        });
+                        
+                        if (app.country_alpha_3_code === "can") {
+                            claimsFilters.push({
+                                assigned_users: null,
+                                display_as_tab: true,
+                                display_in_ddl: true,
+                                filter_id: "Files",
+                                filter_info: null,
+                                filter_name: commonjs.geti18NString("billing.claims.files"),
+                                i18n_name: "billing.claims.files",
+                                filter_order: 0,
+                                id: "Files"
+                            });
+                        }
+
                         claimsFilters.push({
                             assigned_users: null,
                             display_as_tab: true,
@@ -515,152 +526,166 @@ define(['jquery',
 
                 var claimIds = [], invoiceNo = [], existingBillingMethod = '', existingClearingHouse = '', existingEdiTemplate = '', selectedPayerName = [];
 
-                for (var i = 0; i < $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked').length; i++) {
-                    var rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;
+                var isCheckedAll = $('#chkStudyHeader_' + filterID).prop('checked');
+                var data = {};
 
-                    var claimStatus = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'claim_status_code');
+                if (isCheckedAll && billingMethodFormat === 'electronic_billing') {
+                    var filterData = JSON.stringify(filter.pager.get('FilterData'));
+                    var filterCol = JSON.stringify(filter.pager.get('FilterCol'));
 
-                    if (claimStatus == "PV") {
-                        commonjs.showWarning('messages.status.pleaseValidateClaims');
+                    var isDatePickerClear = filterCol.indexOf('claim_dt') === -1;
+
+                    data = {
+                        filterData: filterData,
+                        filterCol: filterCol,
+                        sortField: filter.pager.get('SortField'),
+                        sortOrder: filter.pager.get('SortOrder'),
+                        pageNo: 1,
+                        pageSize: 1000,
+                        company_id: app.companyID,
+                        user_id: app.userID,
+                        isDatePickerClear: isDatePickerClear,
+                        customArgs: {
+                            filter_id: filterID,
+                            isClaimGrid: true
+                        },
+                        isAllClaims: true
+                    }
+                } else {
+                    for (var i = 0; i < $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked').length; i++) {
+                        var rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;
+
+                        var claimStatus = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'claim_status_code');
+
+                        if (claimStatus === "PV") {
+                            commonjs.showWarning('messages.status.pleaseValidateClaims');
+                            return false;
+                        }
+
+                        var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_billing_method');
+
+                        var rowData = $(filter.options.gridelementid).jqGrid('getRowData', rowId);
+                        var claimDt = moment(rowData.claim_dt).format('L');
+                        var futureClaim = claimDt && moment(claimDt).diff(moment(), 'days');
+
+                        if (e.target) {
+                            if (billingMethodFormat !== billingMethod) {
+                                commonjs.showWarning('messages.status.pleaseSelectValidClaimsMethod');
+                                return false;
+                            }
+                        }
+
+                        if (app.country_alpha_3_code === "can" && futureClaim > 0 && billingMethodFormat === 'electronic_billing') {
+                            commonjs.showWarning('messages.status.futureClaimWarning');
+                            return false;
+                        }
+
+                        if (existingBillingMethod === '') existingBillingMethod = billingMethod;
+                        if (existingBillingMethod !== billingMethod) {
+                            commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfBillingMethod');
+                            return false;
+                        } else {
+                            existingBillingMethod = billingMethod;
+                        }
+
+                        var clearingHouse = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_clearing_house');
+                        if (existingClearingHouse === '') existingClearingHouse = clearingHouse;
+                        if (app.country_alpha_3_code !== "can" && existingClearingHouse !== clearingHouse && billingMethod === 'electronic_billing') {
+                            commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfClearingHouseClaims');
+                            return false;
+                        } else {
+                            existingClearingHouse = clearingHouse;
+                        }
+
+                        var payerName = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'payer_name');
+                        selectedPayerName.push(payerName)
+
+                        var invoice_no = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_invoice_no');
+                        invoiceNo.push(invoice_no);
+                        claimIds.push(rowId);
+                    }
+
+
+                    if (claimIds && !claimIds.length) {
+                        commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfBillingMethod');
                         return false;
                     }
 
-                    var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_billing_method');
+                    data = {
+                        claimIds: claimIds.toString(),
+                        userId: app.userID
+                    }
 
-                    var rowData = $(filter.options.gridelementid).jqGrid('getRowData', rowId);
-                    var claimDt = rowData.claim_dt;
-                    var futureClaim = claimDt && moment(claimDt).diff(moment(), 'days');
+                    if (existingBillingMethod === 'paper_claim') {
+                        var paperClaimFormat =
+                            localStorage.getItem('default_paperclaim_format') === 'ORIGINAL' ?
+                            'paper_claim_original' : 'paper_claim_full';
 
+                        paperClaim.print(paperClaimFormat, claimIds);
+                        return;
+                    }
+
+                    var sortBy = '';
                     if (e.target) {
-                        if (billingMethodFormat != billingMethod) {
-                            commonjs.showWarning('messages.status.pleaseSelectValidClaimsMethod');
-                            return false;
+                        if (e.target.innerHTML.indexOf('Patient Name') > -1) {
+                            sortBy = 'patient_name';
+                        } else if (e.target.innerHTML.indexOf('Service Date') > -1) {
+                            sortBy = 'service_date';
+                        }
+                    }
+                    var uniquePayerName = $.unique(selectedPayerName);
+
+                    if (existingBillingMethod === 'direct_billing') {
+                        if (uniquePayerName && uniquePayerName.length && uniquePayerName.length > 1) {
+                            self.printInvoiceClaim('direct_invoice', claimIds, sortBy)
+                            return;
+                        } else if (invoiceNo && invoiceNo[0] && invoiceNo[0].length > 0) {
+                            paperClaim.print('direct_invoice', claimIds, {
+                                sortBy: sortBy,
+                                invoiceNo: invoiceNo[0]
+                            });
+                            return;
+                        } else {
+                            paperClaim.print('direct_invoice', claimIds, {
+                                sortBy: sortBy,
+                                invoiceNo: invoiceNo[0]
+                            });
+                            return;
                         }
                     }
 
-                    if (app.country_alpha_3_code == "can" && futureClaim > 0 && billingMethodFormat == 'electronic_billing') {
-                        commonjs.showWarning('messages.status.futureClaimWarning');
-                        return false;
-                    }
-
-                    if (existingBillingMethod == '') existingBillingMethod = billingMethod
-                    if (existingBillingMethod != billingMethod) {
-                        commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfBillingMethod');
-                        return false;
-                    } else {
-                        existingBillingMethod = billingMethod;
-                    }
-
-                    var clearingHouse = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_clearing_house');
-                    if (existingClearingHouse == '') existingClearingHouse = clearingHouse;
-                    if (app.country_alpha_3_code !== "can" && existingClearingHouse != clearingHouse && billingMethod == 'electronic_billing') {
-                        commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfClearingHouseClaims');
-                        return false;
-                    } else {
-                        existingClearingHouse = clearingHouse;
-                    }
-
-                    var payerName = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'payer_name');
-                    selectedPayerName.push(payerName)
-
-                    // var ediTemplate = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'edi_template');
-                    // if (existingEdiTemplate == '') existingEdiTemplate = ediTemplate;
-                    // if (existingEdiTemplate != ediTemplate) {
-                    //     commonjs.showWarning('Please select claims with same type of  edi template Claims ');
-                    //     return false;
-                    // } else {
-                    //     existingEdiTemplate = ediTemplate;
-                    // }
-                    var invoice_no = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_invoice_no');
-                    invoiceNo.push(invoice_no);
-                    claimIds.push(rowId);
-                }
-
-
-                if (claimIds && claimIds.length == 0) {
-                    commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfBillingMethod');
-                    return false;
-                }
-
-                /// Possible values for template type --
-                /// "direct_invoice"
-                /// "paper_claim_full"
-                /// "paper_claim_original"
-                /// "patient_invoice"
-                if (existingBillingMethod === 'paper_claim') {
-                    var paperClaimFormat =
-                        localStorage.getItem('default_paperclaim_format') === 'ORIGINAL'
-                            ? 'paper_claim_original' : 'paper_claim_full';
-
-                    paperClaim.print(paperClaimFormat, claimIds);
-                    return;
-                }
-
-                var sortBy = '';
-                if (e.target) {
-                    if (e.target.innerHTML.indexOf('Patient Name') > -1) {
-                        sortBy = 'patient_name';
-                    } else if (e.target.innerHTML.indexOf('Service Date') > -1) {
-                        sortBy = 'service_date';
-                    }
-                }
-                var uniquePayerName = $.unique(selectedPayerName);
-
-                if (existingBillingMethod === 'direct_billing') {
-                    if (uniquePayerName && uniquePayerName.length && uniquePayerName.length > 1) {
-                        self.printInvoiceClaim('direct_invoice', claimIds, sortBy)
-                        return;
-                    }
-                    else if (invoiceNo && invoiceNo[0] && invoiceNo[0].length > 0) {
-                        paperClaim.print('direct_invoice', claimIds, {
-                            sortBy: sortBy,
-                            invoiceNo: invoiceNo[0]
+                    if (existingBillingMethod === 'patient_payment') {
+                        paperClaim.print('patient_invoice', claimIds, {
+                            sortBy: 'patient_name'
                         });
                         return;
                     }
-                    else {
-                        paperClaim.print('direct_invoice', claimIds, {
-                            sortBy: sortBy,
-                            invoiceNo: invoiceNo[0]
-                        });
-                        return;
-                    }
-                }
-
-                if (existingBillingMethod === 'patient_payment') {
-                    paperClaim.print('patient_invoice', claimIds, {
-                        sortBy: 'patient_name'
-                    });
-                    return;
                 }
 
                 commonjs.showLoading();
+                var isCanada = app.country_alpha_3_code === 'can';
                 var url = '/exa_modules/billing/claim_workbench/create_claim';
-                if (app.country_alpha_3_code === 'can') {
+                if (isCanada) {
                     url = '/exa_modules/billing/ohip/submitClaims';
                 }
 
-                if ($('#chkStudyHeader_' + filterID).is(':checked')) {
-                    self.selectAllClaim(filter, filterID, 'EDI');
-
-                } else {
-                    jQuery.ajax({
-                        url: url,
-                        type: "POST",
-                        data: {
-                            claimIds: claimIds.toString()
-                        },
-                        success: function (data, textStatus, jqXHR) {
-                            commonjs.hideLoading();
-                            self.ediResponse(data);
-
-                        },
-                        error: function (err) {
-                            commonjs.handleXhrError(err);
+                jQuery.ajax({
+                    url: url,
+                    type: "POST",
+                    data: data,
+                    success: function (data, textStatus, jqXHR) {
+                        commonjs.hideLoading();
+                        if (isCanada) {
+                            self.ohipResponse(data);
                         }
-                    });
-                }
-
+                        else {
+                            self.ediResponse(data);
+                        }
+                    },
+                    error: function (err) {
+                        commonjs.handleXhrError(err);
+                    }
+                });
             },
 
             selectAllClaim: function (filter, filterID, targetType) {
@@ -670,8 +695,9 @@ define(['jquery',
 
                 var isDatePickerClear = filterCol.indexOf('claim_dt') === -1;
 
+                var isCanada = app.country_alpha_3_code === 'can';
                 var implUrl = '/exa_modules/billing/claim_workbench';
-                if (app.country_alpha_3_code === 'can') {
+                if (isCanada) {
                     implUrl = '/exa_modules/billing/ohip/submitClaims';
                 }
                 jQuery.ajax({
@@ -689,11 +715,15 @@ define(['jquery',
                         customArgs: {
                             filter_id: filterID,
                             isClaimGrid: true
-                        }
+                        },
+                        userId: app.userID
                     },
                     success: function (data, textStatus, jqXHR) {
                         commonjs.hideLoading();
-                        if (targetType == 'EDI') {
+                        if (isCanada) {
+                            self.ohipResponse(data);
+                        }
+                        else if (targetType == 'EDI') {
                             self.ediResponse(data);
                         } else {
                             if (!data.invalidClaim_data.length) {
@@ -710,6 +740,26 @@ define(['jquery',
                     }
                 });
             },
+
+
+            ohipResponse: function(data) {
+                if (data.validationMessages && data.validationMessages.length) {
+                    data.validationMessages.forEach(function(validationMessage) {
+                        commonjs.showWarning(validationMessage);
+                    });
+                }
+                else if (data.faults && data.faults.length) {
+                    data.faults.forEach(function(fault) {
+                        commonjs.showWarning((fault.code + '/' + fault.message)
+                            || (fault.faultcode + '/' + fault.faultstring)
+                            || 'Unable to communicate with OHIP EBS');
+                    });
+                }
+                else if (data.results && data.results.length) {
+                    commonjs.showStatus('Claims submitted successfully');
+                }
+            },
+
 
             ediResponse: function (data) {
                 self.ediResultTemplate = _.template(ediResultHTML);
@@ -1350,7 +1400,25 @@ define(['jquery',
             setTabContents: function (filterID, isPrior, isDicomSearch, isRisOrderSearch, showEncOnly) {
                 var self = this;
                 self.datePickerCleared = false // to bind the date by default(three months) -- EXA-11340
+
                 if (filterID) {
+                    
+                    if (filterID === "Files") {
+                        self.fileManagementPager = new Pager();
+                        self.showFileManagementGrid({
+                            pager: self.fileManagementPager,
+                            files: new FileManagementCollection(),
+                            tableElementId: '#tblClaimGrid' + filterID
+                        });
+
+                        self.setFooter({
+                            pager: self.fileManagementPager,
+                            options: { filterid: filterID }
+                        });
+
+                        return;
+                    }
+
                     var filter = commonjs.loadedStudyFilters.get(filterID);
                     commonjs.currentStudyFilter = filterID;
 
@@ -1403,11 +1471,21 @@ define(['jquery',
                             table.renderStudy();
 
                             $('#btnValidateExport').off().click(function (e) {
+                                var filterData = '';
+                                var filterCol = '';
                                 $('#btnValidateExport').css('display', 'none');
                                 var filter_current_id = $('#claimsTabs').find('.active a').attr('data-container')
-                                var filter = commonjs.loadedStudyFilters.get(filter_current_id),
+                                var filter = commonjs.loadedStudyFilters.get(filter_current_id);
+                                if (filter.pager.get('FilterData') == "") {
+                                    var toDate = moment();
+                                    var fromDate = moment().subtract(89, 'days');
+                                    filterData = "[\""+ fromDate.format("YYYY-MM-DD") + " - " + toDate.format("YYYY-MM-DD") +"\"]"
+                                    filterCol = "[\"claim_dt\"]"
+                                }
+                                else{
                                     filterData = filter && filter.pager && JSON.stringify(filter.pager.get('FilterData')),
                                     filterCol = filter && filter.pager && JSON.stringify(filter.pager.get('FilterCol'));
+                                }
                                 table.renderStudy(true, filterData, filterCol);
                             });
                         };
@@ -1675,6 +1753,7 @@ define(['jquery',
                 // Retreive selected rows
                 var curSelection = $('.tab-pane.active .ui-jqgrid-bdiv table tr.customRowSelect');
 
+                $('#btnClaimsRefresh, #btnClaimRefreshAll').prop('disabled', true);
                 var self = this, dicomwhere = "";
                 if (isFromDatepicker && isFromDatepicker.target) {
                     if (isFromDatepicker.target.id == 'showQCApplyFilter') {
@@ -1832,6 +1911,7 @@ define(['jquery',
             },
 
             refreshAllClaims: function () {
+                $('#btnClaimsRefresh, #btnClaimRefreshAll').prop('disabled', true);
                 var self = this;
                 // commonjs.isHomePageVisited = false;
                 var filter = commonjs.loadedStudyFilters.get(commonjs.currentStudyFilter);
@@ -1965,65 +2045,102 @@ define(['jquery',
 
             },
 
-            showFileManagement: function (e) {
+            showFileManagementGrid: function (options) {
                 var self = this;
 
-                self.fileManagementFiles = new FileManagementCollection();
-                self.fileManagementPager = new Pager();
-
-                commonjs.showDialog({
-                    header: 'File Managmenet',
-                    i18nHeader: 'billing.claims.fileManagement',
-                    width: '90%',
-                    height: '80%',
-                    html: self.fileManagementTemplate()
-                });
-
-                setTimeout(function() {
-                    self.showFileManagementGrid();
-                }, 150);
-            },
-
-            showFileManagementGrid: function () {
-                var self = this;
-
-                self.fileManagementTable = new customGrid(self.fileManagementFiles.rows, '#tblFileManagement');
+                self.fileManagementTable = new customGrid();
                 self.fileManagementTable.render({
-                    gridelementid: '#tblFileManagement',
-                    custompager: self.fileManagementPager,
+                    gridelementid: options.tableElementId,
+                    custompager: options.pager,
                     emptyMessage: i18n.get("messages.status.noRecordFound"),
-                    colNames: ["","File Name","File Type", "Submitted Date","Acknowledgement Received","Payment Received","","Total Amount Payable"],
+                    colNames: [
+                        "",
+                        "File Name",
+                        "File Type",
+                        "Submitted Date",
+                        "Status",
+                        "Acknowledgement Received",
+                        "Payment Received",
+                        "",
+                        "Total Amount Payable"
+                    ],
                     i18nNames: [
                         "",
                         "billing.claims.fileName",
                         "billing.claims.fileType",
                         "billing.claims.submittedDate",
+                        "patient.patient.status",
                         "billing.claims.acknowledgementReceived",
                         "billing.claims.paymentReceived",
                         "",
                         "billing.claims.totalAmountPayable"
                     ],
                     colModel: [
-                        { name: '', index: 'id', key: true, hidden: true, search: false },
+                        { name: '', index: 'id', key: true, search: false, width: 25 },
                         {
                             name: 'file_name',
                             search: false,
-                            width: 100,
-                            align: 'center'
+                            width: 150
                         },
                         {
                             name: 'file_type',
                             search: false,
-                            width: 100
+                            width: 150,
+                            formatter: function (value, model, data) {
+                                switch (data.file_type) {
+                                    case 'can_ohip_p':
+                                        return i18n.get('billing.payments.payment');
+                                    case 'can_ohip_b':
+                                        return i18n.get('billing.claims.acknowledgement');
+                                    case 'can_ohip_x':
+                                        return i18n.get('billing.claims.rejection');
+                                    case 'can_ohip_e':
+                                        return i18n.get('billing.claims.correction');
+                                    case 'can_ohip_h':
+                                    default:
+                                        return i18n.get('billing.claims.submission');
+                                }
+                            }
                         },
                         {
                             name: 'updated_date_time',
                             search: false,
-                            width: 200,
+                            width: 175,
                             formatter: function (value, model, data) {
                                 return commonjs.checkNotEmpty(value)
                                     ? commonjs.convertToFacilityTimeZone(app.facilityID, value).format('L LT z')
                                     : '';
+                            }
+                        },
+                        {
+                            name: 'current_status',
+                            search: false,
+                            width: 100,
+                            formatter: function (value, model, data) {
+                                switch (data.file_type) {
+                                    case 'can_ohip_h':
+                                        switch (value) {
+                                            case 'in_progress':
+                                                return i18n.get('billing.claims.uploaded');
+                                            case 'success':
+                                                return i18n.get('billing.claims.submitted');
+                                            case 'pending':
+                                            default:
+                                                return i18n.get('billing.claims.created');
+                                        }
+                                    case 'can_ohip_b':
+                                    case 'can_ohip_e':
+                                    case 'can_ohip_x':
+                                        return (value === 'success')
+                                            ? i18n.get('billing.claims.processed')
+                                            : i18n.get('billing.claims.downloaded');
+                                    case 'can_ohip_p':
+                                        return (value === 'success')
+                                            ? i18n.get('billing.claims.applied')
+                                            : i18n.get('billing.claims.downloaded');
+                                    default:
+                                        return value;
+                                }
                             }
                         },
                         {
@@ -2037,7 +2154,8 @@ define(['jquery',
                                     : '<i class="fa fa-times" style="color: red" aria-hidden="true"></i>';
                             },
                             customAction: function (rowID, e) {
-                                return false;                            }
+                                return false;
+                            }
                         },
                         {
                             name: 'is_payment_received',
@@ -2059,17 +2177,18 @@ define(['jquery',
                             sortable: false,
                             width: 150,
                             formatter: function (value, model, data) {
-                                return (data.file_type === 'can_ohip_p')
-                                    ? '<button i18n="shared.buttons.apply" class="btn btn-primary btn-block btn-apply-file-management"></button>'
-                                    : '';
+                                var disableStatus = data.current_status === 'success' ? "disabled" : "";
+                                return data.file_type === 'can_ohip_p' ? '<button i18n="shared.buttons.apply" id="file' + data.id + '" class="btn btn-primary btn-block" ' + disableStatus + '/>' : '';
                             },
-                            customAction: function (rowID, e) {
-                                self.applyFileManagement(rowID);
+                            customAction: function (rowID, e, data) {
+                                var rowData = data.getData(rowID);
+                                self.applyFileManagement(rowID, rowData.payment_id);
                             }
                         },
                         { name: 'total_amount_payable',
                           width: 500,
                           search: false,
+                          sortable: false,
                           validateMoney : true,
                           formatter: function (value, model, data) {
                               if (data.file_type === 'can_ohip_p') {
@@ -2086,11 +2205,11 @@ define(['jquery',
                                 var trColor = '';
                                 var retVal = '<table class="table table-bordered"><tbody><tr><td>';
                                 retVal += commonjs.geti18NString("billing.claims.totalAmountPayable");
-                                retVal +=  '</td><td>' + data.totalAmountPayable + '</td></tr>';
+                                retVal +=  '</td><td>$' + data.totalAmountPayable.toFixed(2) + '</td></tr>';
                                 for (var i = 0; i < data.accountingTransactions.length; i++) {
                                     trColor = getRowColor(data.accountingTransactions[i].transactionCode);
                                     retVal += '<tr class="' + trColor + '"><td>' + data.accountingTransactions[i].transactionMessage + '}</td>';
-                                    retVal += '<td>' + data.accountingTransactions[i].transactionAmount + '</td></tr>';
+                                    retVal += '<td>$' + data.accountingTransactions[i].transactionAmount.toFixed(2) + '</td></tr>';
                                 }
                                 retVal += '</tbody></table>';
                                 return retVal;
@@ -2101,14 +2220,17 @@ define(['jquery',
                             }
                         }
                     ],
-                    datastore: self.fileManagementFiles,
-                    container: $('#modal_div_container'),
-                    sortname: 'file_name',
-                    sortorder: 'ASC'
-                });
+                    datastore: options.files,
+                    container: self.el,
+                    pager: '#gridPagerFileManagement',
+                    sortname: 'id',
+                    sortorder: 'DESC',
+                    disablepaging: false,
+                    disablesort: false,
+                    disablesearch: false
+                });             
 
                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());
-
             },
 
             initEbsListResults: function(dataset) {
@@ -2152,7 +2274,7 @@ define(['jquery',
                         url: '/exa_modules/billing/ohip/ct',
                         type: 'POST',
                         data: {
-                            service: 'validateHealthCard',
+                            service: 'validate',
                             muid: $("#ddlOHIPUserID").val(),
                             hcvRequests: hcvRequests
                         }
@@ -2261,7 +2383,7 @@ define(['jquery',
             sendResourceIDsRequest: function(service) {
                 var resourceIDs = this.getCheckedEBSResourceIDs();
                 if (!resourceIDs.length) {
-                    resourceIDs = [$('#invalidResourceID').val()];
+                    resourceIDs = $.trim($('#invalidResourceID').val()).split(',');
                 }
                 return $.ajax({
                     url: '/exa_modules/billing/ohip/ct',
@@ -2560,17 +2682,25 @@ define(['jquery',
             },
 
 
-            applyFileManagement: function (fileId) {
+            applyFileManagement: function (fileId, paymentId) {
+
+                var $applyBtn = $('#file'+ fileId);
+                $applyBtn.prop('disabled',true);
+
                 $.ajax({
                     url: "/exa_modules/billing/ohip/applyRemittanceAdvice",
                     type: "POST",
                     data: {
-                        edi_files_id: fileId
+                        edi_files_id: fileId,
+                        payment_id : paymentId && paymentId.length && paymentId[0] || null
                     },
                     success: function (data, textStatus, jqXHR) {
-                        if(data.status)
-                            commonjs.handleXhrError(data, null)
-                        commonjs.hideDialog()
+                        if(data.status === 'ERROR') {
+                            commonjs.handleXhrError(data.err, null);
+                        }
+                        else if(data.status === 'IN_PROGRESS') {
+                            commonjs.showStatus(data.message);
+                        }
                     },
                     error: function (err) {
                         commonjs.handleXhrError(err);
@@ -2625,7 +2755,7 @@ define(['jquery',
                     var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_billing_method');
 
                     if (app.country_alpha_3_code === 'can') {
-                        if (!billingMethod || (billingMethod !== 'electronic_billing' && billingMethod !== 'direct_billing')) {
+                        if (!billingMethod) {
                             return commonjs.showWarning('messages.status.pleaseSelectValidClaimsMethod');
                         }
 
@@ -2645,73 +2775,68 @@ define(['jquery',
                     return false;
                 }
 
-                if ($('#chkStudyHeader_' + filterID).is(':checked')) {
-                    self.selectAllClaim(filter, filterID, 'VALIDATE');
-                } else {
+                $.ajax({
+                    url: '/exa_modules/billing/claim_workbench/validate_claims',
+                    type: 'POST',
+                    data: {
+                        claim_ids: selectedClaimIds,
+                        country: app.country_alpha_3_code
+                    },
+                    success: function (data, response) {
+                        $("#btnValidateOrder").prop("disabled", false);
+                        if (data) {
+                            commonjs.hideLoading();
 
-                    $.ajax({
-                        url: '/exa_modules/billing/claim_workbench/validate_claims',
-                        type: 'POST',
-                        data: {
-                            claim_ids: selectedClaimIds,
-                            country: app.country_alpha_3_code
-                        },
-                        success: function (data, response) {
-                            $("#btnValidateOrder").prop("disabled", false);
-                            if (data) {
-                                commonjs.hideLoading();
+                            if (data.validClaim_data && data.validClaim_data.rows && data.validClaim_data.rows.length) {
+                                commonjs.showStatus("messages.status.validatedSuccessfully");
 
-                                if (data.validClaim_data && data.validClaim_data.rows && data.validClaim_data.rows.length) {
-                                    commonjs.showStatus("messages.status.validatedSuccessfully");
-
-                                    var pending_submission_status = app.claim_status.filter(function (obj) {
-                                        return obj.id === parseInt(data.validClaim_data.rows[0].claim_status_id)
-                                    });
-                                    var statusDetail = commonjs.getClaimColorCodeForStatus(pending_submission_status[0].code, 'claim');
-                                    var color_code = statusDetail && statusDetail[0] && statusDetail[0].color_code || 'transparent';
-                                    var $gridId = filter.options.gridelementid || '';
-                                    $gridId = $gridId.replace(/#/, '');
-                                    var cells = [
-                                        {
-                                            'field': 'claim_status',
-                                            'data': pending_submission_status && pending_submission_status[0].description || '',
-                                            'css': {
-                                                "backgroundColor": color_code
-                                            }
-                                        },
-                                        {
-                                            'field': 'claim_status_code',
-                                            'data': pending_submission_status && pending_submission_status[0].code || ''
+                                var pending_submission_status = app.claim_status.filter(function (obj) {
+                                    return obj.id === parseInt(data.validClaim_data.rows[0].claim_status_id)
+                                });
+                                var statusDetail = commonjs.getClaimColorCodeForStatus(pending_submission_status[0].code, 'claim');
+                                var color_code = statusDetail && statusDetail[0] && statusDetail[0].color_code || 'transparent';
+                                var $gridId = filter.options.gridelementid || '';
+                                $gridId = $gridId.replace(/#/, '');
+                                var cells = [
+                                    {
+                                        'field': 'claim_status',
+                                        'data': pending_submission_status && pending_submission_status[0].description || '',
+                                        'css': {
+                                            "backgroundColor": color_code
                                         }
-                                    ];
-
-                                    if ($gridId) {
-                                        _.each(data.validClaim_data.rows, function (obj) {
-                                            var $claimGrid = $('#' + $gridId + ' tr#' + obj.id);
-                                            var $td = $claimGrid.children('td');
-                                            commonjs.setGridCellValue(cells, $td, $gridId)
-                                        });
-                                    } else {
-                                        commonjs.showWarning(commonjs.geti18NString("messages.errors.gridIdNotExists"));
+                                    },
+                                    {
+                                        'field': 'claim_status_code',
+                                        'data': pending_submission_status && pending_submission_status[0].code || ''
                                     }
+                                ];
 
+                                if ($gridId) {
+                                    _.each(data.validClaim_data.rows, function (obj) {
+                                        var $claimGrid = $('#' + $gridId + ' tr#' + obj.id);
+                                        var $td = $claimGrid.children('td');
+                                        commonjs.setGridCellValue(cells, $td, $gridId)
+                                    });
+                                } else {
+                                    commonjs.showWarning(commonjs.geti18NString("messages.errors.gridIdNotExists"));
                                 }
 
-                                if(data.invalidClaim_data.length && data.validClaim_data.rows && data.validClaim_data.rows.length){
-                                    commonjs.showWarning(commonjs.geti18NString("messages.warning.claims.claimValidationFailed"));
-                                }
-
-                                if (data.invalidClaim_data.length) {
-                                    commonjs.showDialog({ header: 'Validation Results', i18nHeader: 'billing.claims.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });
-                                }
                             }
-                        },
-                        error: function (err, response) {
-                            $("#btnValidateOrder").prop("disabled", false);
-                            commonjs.handleXhrError(err, response);
+
+                            if(data.invalidClaim_data.length && data.validClaim_data.rows && data.validClaim_data.rows.length){
+                                commonjs.showWarning(commonjs.geti18NString("messages.warning.claims.claimValidationFailed"));
+                            }
+
+                            if (data.invalidClaim_data.length) {
+                                commonjs.showDialog({ header: 'Validation Results', i18nHeader: 'billing.claims.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });
+                            }
                         }
-                    });
-                }
+                    },
+                    error: function (err, response) {
+                        $("#btnValidateOrder").prop("disabled", false);
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
             }
         });
 

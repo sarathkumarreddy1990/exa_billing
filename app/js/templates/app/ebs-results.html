@@ -2,32 +2,17 @@
 
     <% if (typeof auditInfo !== 'undefined' && auditInfo.length) { %>
         <h3>Audit Info</h3>
-        <table width="100%">
-            <tr>
-                <th>Transaction ID</th>
-                <th>Service User MUID</th>
-                <th>End User Identifier</th>
-                <th>Date/Time</th>
-                <th>Duration (ms)</th>
-                <th>Action / Event Detail</th>
-                <th>Successful</th>
-                <th>Exit statuses / messages</th>
-            </tr>
-            <% auditInfo.forEach(function(audit) { %>
-            <tr>
-                <td><%=audit.requestAuditID%></td>
-                <td><%=audit.serviceUserMUID%></td>
-                <td><%=audit.endUser%></td>
-                <td><%=audit.dateTime%></td>
-                <td><%=audit.duration%></td>
-                <td><%=audit.actionDetail%></td>
-                <td><%=audit.successful ? 'Yes' : 'No'%></td>
-                <td><%= audit.commonResults.map(function(common) {
-                    return common.code + ': ' + common.message + '<br>';
-                }).join('\n')%></td>
-            </tr>
-            <% }) %>
-        </table>
+        <textarea id="audit-log-entry" class='col-lg-12' rows="12"><% auditInfo.forEach(function(audit) { %>
+Request AuditID : <%=audit.requestAuditID%>
+Response AuditID : <%=audit.responseAuditID%>
+Service User : <%=audit.serviceUserMUID%>
+End User identifier : <%=audit.endUser%>
+Time/date/duration : <%=audit.dateTime%> / <%=audit.duration%>ms
+Action / event detail : <%=JSON.stringify(audit.eventDetail)%>
+Simple Success Failure : <%=audit.successful ? 'Yes' : 'No'%>
+Exit status / messages : <%= audit.exitInfo.join('\n')%>
+Error messages :  <%= audit.errorMessages.join('\n')%>
+        <% }) %></textarea>
     <% } %>
 
     <% if (typeof faults !== 'undefined' && faults.length) { %>

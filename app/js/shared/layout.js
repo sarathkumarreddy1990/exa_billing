@@ -51,6 +51,7 @@ var layout = {
         'Claim Activity': '#aClaimActivity',
         'Claim Inquiry': '#aClaimInquiry',
         'Claim Transaction': '#aClaimTransaction',
+        'Collections': '#aCollections',
         'Credit Balance Encounters': '#aCreditBalanceEncounters',
         'Date Of SVC Payment': '#aDateSVC',
         'Diagnosis Count': '#aDiagnosisCount',
@@ -114,6 +115,9 @@ var layout = {
 
         commonjs.hideItem('diagnosis-count', '#aDiagnosisCountListItem');
         commonjs.hideItem('insurance-vs-lop', '#aInsuranceLOPListItem');
+        commonjs.hideItem('diagnosis-count', '#aDiagnosisCountDropDownItem');
+        commonjs.hideItem('insurance-vs-lop', '#aInsuranceLOPDropDownItem');
+
     },
 
     killView: function (viewObj) {

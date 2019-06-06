@@ -23,7 +23,8 @@
     },
     "mohReserved1": {
         "startPos": 32,
-        "fieldLength": 1
+        "fieldLength": 1,
+        "constant": " "
     },
     "filler": {
         "startPos": 33,
@@ -36,6 +37,7 @@
     },
     "mohReserved2": {
         "startPos": 77,
-        "fieldLength": 42
+        "fieldLength": 42,
+        "constant": " "
     }
 }

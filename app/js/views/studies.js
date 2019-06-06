@@ -583,6 +583,7 @@ define(['jquery',
                             $('#tblGrid' + dataContainerValue).first().children().first().addClass('dg-body');
                             $uiJQHTableKids.first().height('40px');
                             $uiJQHTableKids.last().css('line-height', '2');
+                            $('#divStatusSearch').find('input[type=checkbox]:checked').prop('checked',false)
 
                            fastdom.measure(function () {
                                if ( this.getState('isScrolling') === true || this.getState('isMeasuring') === true ) {
@@ -1173,6 +1174,7 @@ define(['jquery',
                 // Retreive selected rows
                 var curSelection = $('.tab-pane.active .ui-jqgrid-bdiv table tr.customRowSelect');
 
+                $('#btnStudiesRefresh, #btnStudiesRefreshAll').prop('disabled', true);
                 var self = this, dicomwhere = "";
                 if (isFromDatepicker && isFromDatepicker.target) {
                     if (isFromDatepicker.target.id == 'showQCApplyFilter') {
@@ -1336,6 +1338,7 @@ define(['jquery',
             },
 
             refreshAllStudies: function () {
+                $('#btnStudiesRefresh, #btnStudiesRefreshAll').prop('disabled', true);
                 var self = this;
                 // commonjs.isHomePageVisited = false;
                 var filter = commonjs.loadedStudyFilters.get(commonjs.currentStudyFilter);
@@ -1369,6 +1372,7 @@ define(['jquery',
                             filter.customGridTable.jqGrid('GridUnload');
                             commonjs.setFilter(null, null);
                             self.setTabContents(fid, isprior, isDicomSearch, isRisOrderSearch, showEncOnly);
+                            $('#divStatusSearch').find('input[type=checkbox]:checked').prop('checked',false)
                             commonjs.hideLoading();
                         }
                     },

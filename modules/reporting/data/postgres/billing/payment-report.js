@@ -15,6 +15,9 @@ const summaryQueryTemplate = _.template(`
                     CASE
                        WHEN bp.mode = 'eft' THEN
                             UPPER(bp.mode)
+                       WHEN bp.mode = 'check' AND '<%= country_alpha_3_code %>' = 'can' 
+                       THEN
+                            'Cheque'
                        ELSE
                            InitCap(bp.mode)
                     END                 AS payment_mode,
@@ -133,14 +136,15 @@ const detailQueryTemplate = _.template(`
             SELECT
                 bp.id payment_id,
                 bc.id  claim_id,
-                SUM(CASE WHEN amount_type= 'payment' then bpa.amount  else 0::money end) as applied_amount,
-                SUM(CASE WHEN amount_type= 'adjustment' then bpa.amount  else 0::money end) as adjustment
+                SUM(CASE WHEN amount_type= 'payment' then bpa.amount  else 0::money end) AS applied_amount,
+                SUM(CASE WHEN amount_type= 'adjustment' then bpa.amount  else 0::money end) AS adjustment,
+                bac.description AS description
                 <% if (userIds) { %> , MAX(users.username) AS user_name    <% } %>
             FROM
                 billing.payments bp
             LEFT JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
             LEFT JOIN billing.charges bch on bch.id = bpa.charge_id
-            LEFT Join billing.claims  bc on bc.id = bch.claim_id
+            LEFT JOIN billing.claims  bc on bc.id = bch.claim_id
             <% if (billingProID) { %>  INNER JOIN billing.providers bpr ON bpr.id = bc.billing_provider_id <% } %>
             <% if (userIds) { %>  INNER join public.users  users on users.id = bp.created_by    <% } %>
             <% if (userRoleIds) { %>
@@ -165,13 +169,24 @@ const detailQueryTemplate = _.template(`
                   <% if (adjustmentCodeIds) { %> AND  <% print(adjustmentCodeIds); } %>
                 )have_adjustment on have_adjustment.payment_id = bp.id and have_adjustment.charge_id = bpa.charge_id
                <% } %>
+               LEFT JOIN LATERAL (
+                   SELECT
+                       i_bac.description
+                   FROM
+                       billing.payment_applications i_bpa
+                   INNER JOIN billing.adjustment_codes i_bac ON i_bac.id = i_bpa.adjustment_code_id
+                   WHERE
+                       i_bpa.payment_id = bp.id
+                   ORDER BY i_bpa.id
+                   LIMIT 1
+              ) bac ON TRUE
            WHERE
             <%= claimDate %>
             <% if (facilityIds) { %>AND <% print(facilityIds); } %>
             <% if(billingProID) { %> AND <% print(billingProID); } %>
             <% if (userIds) { %>AND <% print(userIds); } %>
             <% if (userRoleIds) { %>AND <% print(userRoleIds); } %>
-            GROUP BY bp.id,bc.id )
+            GROUP BY bp.id, bc.id, bac.description )
                 SELECT
                     to_char(p.accounting_date, '<%= dateFormat %>')   AS "Accounting Date",
                     f.facility_name  AS "Facility Name",
@@ -212,16 +227,23 @@ const detailQueryTemplate = _.template(`
                     CASE
                        WHEN p.mode = 'eft' THEN
                             UPPER(p.mode)
+                       WHEN p.mode = 'check' AND '<%= country_alpha_3_code %>' = 'can' THEN
+                            'Cheque'
                        ELSE
                            InitCap(p.mode)
                     END  AS "Payment Mode",
-         	        p.card_number AS "Check #",
+                    <% if (country_alpha_3_code == 'can') { %>
+                        p.card_number AS "Cheque #",
+                    <% } else { %>
+                        p.card_number AS "Check #",
+                    <% } %>
          	        payment_totals.payments_applied_total AS "Applied Total",
          	        p.amount "Payment Amount",
                     (p.amount - payment_totals.payments_applied_total) AS "Balance",
                     pd.applied_amount AS "Applied Amount",
-                    pd.adjustment AS "Adjustment Amount"
-                    <% if (userIds) { %>, user_name AS "User Name"   <% } %>
+                    pd.adjustment AS "Adjustment Amount",
+                    pd.description AS "Adjustment Code"
+                    <% if (userIds) { %>, user_name AS "User Name" <% } %>
                 FROM
                     payment_data pd
                 INNER join billing.payments p on p.id = pd.payment_id
@@ -392,7 +414,8 @@ const api = {
             adjustmentCodeIds: null,
             allAdjustmentCode: null,
             insuranceIds: null,
-            insGroups: null
+            insGroups: null,
+            country_alpha_3_code: null
         };
 
 
@@ -461,6 +484,7 @@ const api = {
             params.push(reportParams.insuranceGroupIds);
             filters.insGroups = queryBuilder.whereIn(`ippt.id`, [params.length]);
         }
+        filters.country_alpha_3_code = reportParams.country_alpha_3_code;
 
         return {
             queryParams: params,
@@ -491,7 +515,8 @@ const api = {
             adjustmentCodeIds: null,
             allAdjustmentCode: null,
             insuranceIds: null,
-            insGroups: null
+            insGroups: null,
+            country_alpha_3_code: null
         };
 
 
@@ -559,6 +584,8 @@ const api = {
             params.push(reportParams.insuranceGroupIds);
             filters.insGroups = queryBuilder.whereIn(`ippt.id`, [params.length]);
         }
+        
+        filters.country_alpha_3_code = reportParams.country_alpha_3_code;
 
         filters.dateFormat = reportParams.dateFormat;
         return {

@@ -15,7 +15,7 @@ const parseStatus = (doc) => {
 };
 
 const parseResourceID = (doc) => {
-    return select("*[local-name(.)='resourceID']/text()", doc)[0].nodeValue;
+    return parseInt(select("*[local-name(.)='resourceID']/text()", doc)[0].nodeValue);
 };
 
 const parseOptionalValue = (doc, name) => {
@@ -120,13 +120,12 @@ const parseResourceResult = (doc) => {
                 };
             }
             catch (e) {
-                const r = {
+                return {
                     // the Conformance Testing environment doesn't conform to
                     // the specifications, so this is the only thing we can
                     // really expect if the response isn't an EBS Fault :(
                     ...parseCommonResult(resultNode),
                 };
-                return r;
             }
         }),
     };

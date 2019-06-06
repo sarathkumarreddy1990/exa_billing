@@ -200,7 +200,7 @@ if (require && require.config) {
         permissionsjs,
         jqueryuisortable
         ) {
-            browserLocale = navigator.language;
+            browserLocale = navigator.language.toLowerCase();
             window.browserLocale = typeof browserLocale == 'undefined' ? 'en-US' : browserLocale;
             window.Immutable = Immutable;
             window.commonjs = commonjs;
@@ -211,6 +211,7 @@ if (require && require.config) {
 
             window.AppServer = Appserver;
             i18n.loadConfig(function () {
+                MomentTimezone.locale(browserLocale);
                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
             });
             Backbone.emulateHTTP = false;

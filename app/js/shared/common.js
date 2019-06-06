@@ -570,6 +570,14 @@ var commonjs = {
         return dtpTarget.data("DateTimePicker");
     },
 
+    getDateTemplate: function () {
+        return moment(new Date('December 31, 2017'))
+            .format('L')
+            .replace(/12/, 'MM')
+            .replace(/31/, 'DD')
+            .replace(/2017/, 'YYYY');
+    },
+
     // @param {string|Object} elId - name of unique element id or jQuery object itself
     // @return {Object} instance of BS3 datetimepicker
     bindDateTimePicker: function (elId, dtpOptions) {
@@ -585,7 +593,7 @@ var commonjs = {
         }
         var defaultOptions = {
             format: "L LT",
-            //locale: browserLocale,
+            locale: browserLocale,
             //timeZone: null,//this.getCompanyTimeZone(),
             showClose: true,
             showClear: true,
@@ -620,20 +628,18 @@ var commonjs = {
         };
         var options = $.extend(true, {}, defaultOptions, dtpOptions);
         // see: https://github.com/Eonasdan/bootstrap-datetimepicker/pull/666
+
+        var dateTemplate = commonjs.getDateTemplate();
+
         switch (options.format) {
             case "L":
-                options.extraFormats = ["MM/DD/YY", "MM/DD/YYYY", "YYYY-MM-DD"];
+                options.extraFormats = [dateTemplate, "MM/DD/YY", "MM/DD/YYYY", "YYYY-MM-DD"];
                 //boptions.timeZone = null; //remove the TZ when dealing with dates only!
                 break;
             case " L LT":
-                options.extraFormats = ["MM/DD/YYYY hh:mm A"];
+                options.extraFormats = [(dateTemplate + " hh:mm A")];
                 break;
             default:
-        }
-
-        var targetInput = dtpTarget.find('input');
-        if (!targetInput.hasClass("maskDateLocale") && targetInput.hasClass("form-control-date")) {
-            targetInput.addClass("maskDateLocale");
         }
 
         dtpTarget.datetimepicker(options);
@@ -912,6 +918,7 @@ var commonjs = {
         options.modalDialogId = '#modalDialog';
         options.modalDivContainerId = '#modal_div_container';
         options.iframeContainerId = 'site_modal_iframe_container';
+        options.isNested = false;
 
         commonjs.showDefaultDialog(options);
         commonjs.initHideEvent(options);
@@ -924,6 +931,7 @@ var commonjs = {
         options.modalDialogId = '#modalDialogNested';
         options.modalDivContainerId = '#modal_div_container_nested';
         options.iframeContainerId = 'site_modal_iframe_container_nested';
+        options.isNested = true;
 
         commonjs.showDefaultDialog(options);
         commonjs.initHideEvent(options);
@@ -1128,8 +1136,11 @@ var commonjs = {
         $siteModal.modal('dispose');
         //commonjs.docResize();
 
-        //Report window close
-        this.closeReportWindow();
+        // Don't close report window if closing from nested modal
+        if ( !options.isNested ) {
+            //Report window close
+            this.closeReportWindow();
+        }
 
         //Patient Chart Window  close
         if (options.header !== "Patient Alerts")
@@ -2097,6 +2108,24 @@ var commonjs = {
         return i18nString;
     },
 
+    /**
+     * Take input moment object (and optional input date format template) and return string of YYYY-MM-DD
+     * @param   {string}    date
+     * @param   {string}    template    =   ex: MM/DD/YYYY
+     * @returns {string}
+     */
+    getISODateString: function ( date, template ) {
+        var finalTemplate = 'YYYY-MM-DD';
+
+        if ( template ) {
+            return moment(date, template).format(finalTemplate);
+        }
+
+        var dateTemplate = commonjs.getDateTemplate();
+
+        return moment(date, dateTemplate).format(finalTemplate);
+    },
+
     isMaskValidate: function () {
         $(".maskPhone").inputmask({ mask: "[(999)999-9999", skipOptionalPartCharacter: ["(", ")"] });
         $(".postal-code-mask").inputmask({ mask: "99999[-9999]" });
@@ -2141,6 +2170,7 @@ var commonjs = {
             prefix: '',
             rightAlign: true,
             allowMinus: false,
+            undoOnEscape: false,
             oncomplete: function () { return false; }
         });
 
@@ -2152,6 +2182,7 @@ var commonjs = {
             prefix: '',
             rightAlign: true,
             allowMinus: true,
+            undoOnEscape: false,
             oncomplete: function () { return false; }
         });
 
@@ -5118,6 +5149,9 @@ var commonjs = {
     },
 
     prepareCsvWorker: function (requestData, options) {
+        if ( requestData ) {
+            requestData.browserLocale = browserLocale;
+        }
         var csvWorker;
 
         try {
@@ -5363,7 +5397,8 @@ var facilityModules = {
         transactionSummary: 'Transaction Summary',
         agedARDetail: 'Aged AR Detail',
         paymentPDF: 'Payments Received',
-        paymentsRealizationRateAnalysis: 'Payments Realization Rate Analysis'
+        paymentsRealizationRateAnalysis: 'Payments Realization Rate Analysis',
+        collections: 'Collections'
     }
 };
 

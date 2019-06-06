@@ -153,6 +153,11 @@ define([
 
             },
 
+            clearFaxInfo: function () {
+                $('#txtFaxReceiverName').val('');
+                $('#txtFaxReceiverNumber').val('');
+            },
+
             claimInquiryDetails: function (claimID, fromTogglePreNext, isFromClaimScreen) {
                 var self = this;
                 self.claim_id = claimID;
@@ -204,7 +209,7 @@ define([
                                 self.patientInquiryForm(self.claim_id, patient_details[0].patient_id, patient_details[0].patient_name, self.options.grid_id, true, true);
                             });
 
-                            self.options.patient_id = patient_details[0].patient_id;  
+                            self.options.patient_id = patient_details[0].patient_id;
 
                             if (patient_details && patient_details.length > 0) {
                                 var patientHeaderInfo = commonjs.geti18NString('shared.screens.setup.claimInquiry') + ':' + patient_details[0].patient_name + ' (Acc#:' + patient_details[0].account_no + ')' + ',  '+ ' (Claim#:' + self.claim_id + ')' + ',  '+ moment(patient_details[0].birth_date).format('L') + ',  ' + patient_details[0].gender;
@@ -250,6 +255,12 @@ define([
                 });
             },
 
+            getSubscriberDOBFormat: function ( cellvalue, options, rowObject ) {
+                return commonjs.checkNotEmpty(rowObject.subscriber_dob)
+                    ? moment(rowObject.subscriber_dob).format('L')
+                    : '';
+            },
+
             showInsuranceGrid: function (data) {
                 var self = this;
                 var colNames = ['', 'code', 'description', 'Subscriber Name', 'DOB', 'Policy No', 'Group No'];
@@ -261,7 +272,7 @@ define([
                     { name: 'insurance_code', search: false },
                     { name: 'insurance_name', search: false },
                     { name: 'name', search: false },
-                    { name: 'subscriber_dob', search: false },
+                    { name: 'subscriber_dob', search: false, formatter: self.getSubscriberDOBFormat },
                     { name: 'policy_number', search: false },
                     { name: 'group_number', search: false }
                 ];
@@ -333,10 +344,22 @@ define([
                                 if (!commonjs.checkNotEmpty(faxReceiverNumber))
                                     return commonjs.showWarning(commonjs.geti18NString("messages.status.faxNumberInvalid"));
 
-                                self.faxReport({ claimID: faxClaimId, patientId: self.options.patient_id, documentName: 'Other Report', faxReceiverNumber: faxReceiverNumber, faxReceiverName: faxReceiverName }, faxUrl, function () {
-                                    commonjs.showStatus("messages.status.faxQueued");
-                                    self.saveClaimComment(0, 'Paper claim (B&W) fax sent to ' + faxReceiverName + ' (' + faxReceiverNumber + ')', 'auto');
-                                    self.clearFaxInfo();
+                                // Getting Study id for selected claim
+                                commonjs.getClaimStudy(faxClaimId, function (result) {
+
+                                    self.faxReport({
+                                        claimID: faxClaimId,
+                                        study_id: result && result.study_id || 0,
+                                        order_id: result && result.order_id || 0,
+                                        patientId: self.options.patient_id,
+                                        documentName: 'Other Report',
+                                        faxReceiverNumber: faxReceiverNumber,
+                                        faxReceiverName: faxReceiverName
+                                    }, faxUrl, function () {
+                                        commonjs.showStatus("messages.status.faxQueued");
+                                        self.saveClaimComment(0, 'Paper claim (B&W) fax sent to ' + faxReceiverName + ' (' + faxReceiverNumber + ')', 'auto');
+                                        self.clearFaxInfo();
+                                    });
                                 });
                             });
 
@@ -839,7 +862,7 @@ define([
                     success: function (data, response) {
                         data = data[0];
                         if (data) {
-                            self.previousFollowUpDate = (commonjs.checkNotEmpty(data.followup_date)) ? moment(data.followup_date).format('MM/DD/YYYY') : '';
+                            self.previousFollowUpDate = (commonjs.checkNotEmpty(data.followup_date)) ? moment(data.followup_date).format('L') : '';
                             $('#txtCIFollowUpDate').val(self.previousFollowUpDate);
                         }
                         else {
@@ -967,7 +990,7 @@ define([
             saveIsInternalComment: function () {
                 var comments = [];
                 var self = this;
-                var selectedFollowUpDate = $('#txtCIFollowUpDate').val() ? moment($('#txtCIFollowUpDate').val()).format('L') : '';
+                var selectedFollowUpDate = $('#txtCIFollowUpDate').val() ? commonjs.getISODateString($('#txtCIFollowUpDate').val()) : '';
 
                 $('#tblCIClaimComments  td input:checkbox').each(function () {
                     var content = {};
@@ -1019,8 +1042,7 @@ define([
 
                 if (isFromClaim) {
                     var defaultDialogProps = {
-                        'header': 'Patient Claims: ' + patientName,
-                        'i18nHeader': "shared.moduleheader.patientClaims",
+                        'header': commonjs.geti18NString("shared.moduleheader.patientClaims") + ': ' + patientName,
                         'width': '85%',
                         'height': '75%',
                         'needShrink': true,
@@ -1046,7 +1068,7 @@ define([
                         var billingProviderList = app.billing_providers,
                         ddlBillingProvider = $('#ddlBillingProvider');
                         ddlBillingProvider.empty();
-                        ddlBillingProvider.append("<option value='0'>Select</option>");
+                        ddlBillingProvider.append("<option value='0' i18n='shared.fields.all'></option>");
 
                         if (billingProviderList && billingProviderList.length > 0) {
                             for (var b = 0; b < billingProviderList.length; b++) {
@@ -1056,6 +1078,7 @@ define([
                                 }));
                             }
                         }
+                        commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
                     }, 300);
 
                     this.fromDate =  commonjs.bindDateTimePicker("divFDate", { format: 'L' });
@@ -1065,6 +1088,11 @@ define([
                     $('#radActivityAllStatus').prop('checked', true);
                     $('#activityDetails').hide();
                     commonjs.isMaskValidate();
+                } else {
+                    if (patientName) {
+                        var patientHeaderInfo = commonjs.geti18NString('shared.moduleheader.patientClaims') + ':' + patientName ;
+                        $(parent.document).find('#spanModalHeader').html(patientHeaderInfo);
+                    }
                 }
 
 
@@ -1102,7 +1130,26 @@ define([
                     $('#divFaxRecipient').show();
 
                     $('#btnSendFax').off().click(function (e) {
-                        self.faxReport(patientActivityParams, reportURL);
+                        var faxRecipientName = $('#txtOtherFaxName').val();
+                        var faxRecipientNumber = $('#txtOtherFaxNumber').val();
+
+                        if (!commonjs.checkNotEmpty(faxRecipientName))
+                            return commonjs.showWarning('messages.status.faxReceiverName');
+
+                        if (!commonjs.checkNotEmpty(faxRecipientNumber))
+                            return commonjs.showWarning('messages.status.faxNumberInvalid');
+
+                        // Getting Study id for selected claim
+                        commonjs.getClaimStudy(claimId, function (result) {
+                            patientActivityParams.study_id = result && result.study_id || 0;
+                            patientActivityParams.order_id = result && result.order_id || 0;
+                            self.faxReport(patientActivityParams, reportURL);
+                        });
+
+                        commonjs.showStatus("messages.status.faxQueued");
+                        $('#txtOtherFaxName').val('');
+                        $('#txtOtherFaxNumber').val('');
+                        $('#divFaxRecipient').hide();
                     });
 
                     $('#btnFaxCancel').off().click(function (e) {
@@ -1138,13 +1185,16 @@ define([
             },
 
             createPatientActivityParams: function(claimId, patientId) {
+                var reportBy;
+                var fromDate;
+                var toDate;
                 if ($('#radActivityAllStatus').prop("checked")) {
                     reportBy = true;
                 }
                 else if ($('#radioActivityStatus').prop("checked") && this.validateFromAndToDate(this.fromDate, this.toDate)) {
                     reportBy = false;
-                    fromDate = $('#txtDate').val();
-                    toDate = $('#txtOtherDate').val();
+                    fromDate = commonjs.getISODateString($('#txtDate').val());
+                    toDate = commonjs.getISODateString($('#txtOtherDate').val());
                 }
                 else return false;
 
@@ -1178,7 +1228,9 @@ define([
                         reportUrl: reportUrl,
                         patientId: patientActivityParams.patientId,
                         claimId: patientActivityParams.claimID,
-                        documentName: patientActivityParams.documentName || 'Patient Activity'
+                        documentName: patientActivityParams.documentName || 'Patient Activity',
+                        study_id: patientActivityParams.study_id,
+                        order_id: patientActivityParams.order_id
                     },
                     success: function (data, response) {
                         if (cb)
@@ -1213,9 +1265,17 @@ define([
                 return true;
             },
 
-            patientInquiryLog: function (claimId, patientId) {
+            patientInquiryLog: function (claimId, patientId, patientName) {
                 var self = this;
-                this.$el.html(this.claimPatientLogTemplate());
+                var defaultDialogProps = {
+                    'header': commonjs.geti18NString("shared.moduleheader.patientClaimLog") + ': ' + patientName,
+                    'width': '85%',
+                    'height': '75%',
+                    'needShrink': true,
+                    'html': this.claimPatientLogTemplate()
+                }
+                commonjs.showDialog(defaultDialogProps);
+
                 self.showPatientClaimsLogGrid(claimId, patientId);
             },
 

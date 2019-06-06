@@ -151,7 +151,7 @@ function bindPatient(claimNo, data, columns) {
     return body;
 }
 
-function bindCharges(claimNo, data, columns) {
+function bindCharges(claimNo, data, columns, isCanada=false) {
     var body = [];
     if (data && data.length) {
         data.forEach(function(row) {
@@ -167,6 +167,8 @@ function bindCharges(claimNo, data, columns) {
                             dataRow.push(row[column] ? row[column] + (row["modifier2"] ? ", " + row["modifier2"] : "") + (row["modifier3"] ? ", " + row["modifier3"] : "") + (row["modifier4"] ? ", " + row["modifier4"] : "") : '');
                         } else if (column === "bill_fee") {
                             dataRow.push( {text: (row[column] || '') , alignment:'right' });
+                        } else if (column === "units" && isCanada) {
+                            dataRow.push( {text: (row[column] || '') , margin:[15,0,0,0] });
                         } else {
                             dataRow.push(row[column] ? row[column] : '');
                         }
@@ -212,6 +214,55 @@ function bindTotal(claimNo, data, columns) {
     if (!body.length) body.push("");
     return body;
 }
+
+function bindGridHeader(app) {
+    var width = [];
+    var body = [];
+
+    if (app && app.country_alpha_3_code == 'can') {
+        width = [48, 0, 0, 95, 320, 75];
+        body.push ([ {text: "CPT"}, {text: ""}, {text: ""}, {text: "Unit"}, {text: "CPT Description "},{text: "Price",alignment: "center"} ]);
+    } else {
+        width = [48, 65, 95, 45, 210, 75];
+        body.push ([ {text: "CPT"}, {text: "Modifier"}, {text: "Diagnostic Code"}, {text: "Unit"}, {text: "CPT Description "},{text: "Price",alignment: "center"} ]);
+    }
+
+    body.push ([ {text: "________________________________________________________________________________________________________________________________",bold: "true",colSpan: 6}, {}, {}, {}, {}, {} ]);
+
+    var tableHeader = {
+        widths: width,
+        headerRows: 1,
+        body: body
+    };
+
+    return tableHeader;
+}
+
+function bindGridData(app, claim_no, chargeDetails) {
+    var tableWidth = [];
+    var tableBody = [];
+    var body = [];
+
+    if (app && app.country_alpha_3_code == 'can') {
+        tableWidth = [50, 110, 289, 100];
+        tableBody = bindCharges(claim_no, chargeDetails, ['display_code', 'units', 'display_description', 'bill_fee'], true);
+    } else {
+        tableWidth = [48, 65, 95, 45, 180, 100];
+        tableBody = bindCharges(claim_no, chargeDetails, ['display_code', 'modifier1', 'get_charge_icds', 'units', 'display_description', 'bill_fee']);
+    }
+
+    body.push({
+        style: 'myTable',
+        table: {
+            widths: tableWidth,
+            body: tableBody
+        },
+        layout: 'noBorders'
+    });
+
+    return body;
+}
+
 
 function bindGrandTotal(data, columns) {
     var body = [];
@@ -311,14 +362,7 @@ function Invoice() {
             {
                 style: 'myTable',
                 fontSize: 10,
-                table: {
-                    widths: [48, 65, 95, 45, 210, 75],
-                    headerRows: 1,
-                    body: [
-                        [ {text: "CPT"}, {text: "Modifier"}, {text: "Diagnostic Code"}, {text: "Unit"}, {text: "CPT Description "},{text: "Price",alignment: "center"} ],
-                        [ {text: "________________________________________________________________________________________________________________________________",bold: "true",colSpan: 6}, {}, {}, {}, {}, {} ],
-                    ]
-                },
+                table: bindGridHeader(app),
                 layout: 'noBorders',
             },
         ],
@@ -331,6 +375,7 @@ function Invoice() {
             pageBrk = 'after';
         }
         let total = bindTotal(ClaimDetails[i].claim_no, chargeDetails, ['bill_fee']);
+        let gridData = bindGridData(app, ClaimDetails[i].claim_no, chargeDetails);
         grand_total = bindGrandTotal(chargeDetails, ['bill_fee']);
         body.push(
             [
@@ -359,18 +404,8 @@ function Invoice() {
                     table: {
                         widths: [445, 120],
                         headerRows: 1,
-                        body: [
-                            [
-                                {
-                                    style: 'myTable',
-                                    table: {
-                                        widths: [48, 65, 95, 45, 180, 100],
-                                        body: bindCharges(ClaimDetails[i].claim_no, chargeDetails, ['display_code', 'modifier1', 'get_charge_icds', 'units', 'display_description', 'bill_fee'])
-                                    },layout: 'noBorders'
-                                },
-
-                            ]
-                        ]
+                        body: 
+                            [gridData]
                     },layout: 'noBorders',colSpan: 2
                 }, {}
             ],

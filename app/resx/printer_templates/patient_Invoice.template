@@ -99,9 +99,9 @@ function bindHead(claimNo, data, columns, value) {
                     } else if (key === 'city') {
                         dataRow.push(
                             (data[i][value]['address2'] ? (data[i][value]['address2'] + "\n") : "") +
-                            (data[i][value][key] ? data[i][value][key] : '') + '  ' +
-                            (data[i][value]['state'] ? data[i][value]['state'] : "") + '  ' +
-                            (data[i][value]['zip_code'] ? +data[i][value]['zip_code'] : "")
+                            (data[i][value][key] ? data[i][value][key] : '') + 
+                            (data[i][value]['state'] ? '  ' + data[i][value]['state'] : "") + 
+                            (data[i][value]['zip_code'] ? '  ' +data[i][value]['zip_code'] : "")
                         );
                     } else if (key === 'facility_address1') {
                         dataRow.push(data[i]["facility_name"] ? data[i]["facility_name"] + '\n' + data[i][value][key] + ' \n' + (data[i][value]['facility_address2'] ? data[i][value]['facility_address2'] : "") : '');
@@ -156,6 +156,8 @@ function bindClaim(claimNo, data, columns) {
                             dataRow.push(row[column] ? Dateformat(row[column]) : '');
                         } else if (column == "patient_name") {
                             dataRow.push(row[column] ? "Patient Address:\n" + row[column] : '');
+                        } else if(column == 'bill_fee' || column == 'claim_balance') {
+                            dataRow.push({text: (row[column] || ' ') , alignment:'right' });
                         } else {
                             dataRow.push(row[column] ? row[column] : '');
                         }
@@ -183,10 +185,8 @@ function bindpayment(claimNo, data, columns, amount_type) {
                     columns.forEach(function(column) {
                         if (column == 'payment_dt') {
                             dataRow.push(row[column] ? Dateformat(row[column]) : '');
-                        } else if (column == 'payments_applied_total') {
-                            dataRow.push(row[column] ? row[column] : '');
-                        } else if ((column == 'ajdustments_applied_total' && row[column] != "$0.00")) {
-                            dataRow.push(row[column] ? row[column] : '');
+                        } else if (column == 'payments_applied_total' || column == 'ajdustments_applied_total') {
+                            dataRow.push({text: (row[column] || '$0.00') , alignment:'right' });
                         } else if (column == 'amount_type' && row[column] == 'payment') {
                             dataRow.push('Payment');
                         } else if (column == 'amount_type' && row[column] == 'adjustment') {
@@ -302,7 +302,7 @@ function bindInvoice(data, columns) {
                         body.push({
                             style: 'myTable',
                             table: {
-                                widths: [400, 90],
+                                widths: [490],
                                 body: [
                                     [{
                                         style: 'myTable',
@@ -332,26 +332,16 @@ function bindInvoice(data, columns) {
                                                 }]
                                             ]
                                         },
-                                        layout: 'noBorders',
-                                        colSpan: 2
-                                    }, {}],
+                                        layout: 'noBorders'
+                                    }],
                                     [{
                                         style: 'myTable',
                                         table: {
-                                            widths: [55, 75, 65, 150],
-                                            body: bindClaim(row.claim_no, chargeDetails, ['claim_no', 'service_date', 'display_code', 'display_description'])
-                                        },
-                                        layout: 'noBorders'
-                                    }, {
-                                        style: 'myTable',
-                                        alignment: "right",
-                                        table: {
-                                            widths: [85],
-                                            body: bindClaim(row.claim_no, chargeDetails, ["bill_fee"])
+                                            widths: [55, 75, 65, 150, 115],
+                                            body: bindClaim(row.claim_no, chargeDetails, ['claim_no', 'service_date', 'display_code', 'display_description', 'bill_fee'])
                                         },
                                         layout: 'noBorders'
                                     }],
-
                                 ]
                             },
                             layout: 'noBorders',
@@ -360,58 +350,40 @@ function bindInvoice(data, columns) {
                         body.push({
                                 style: 'myTable',
                                 table: {
-                                    widths: [400, 90],
+                                    widths: [490],
                                     body: [
                                         [{
                                             style: 'myTable',
                                             table: {
-                                                widths: [55, 75, 65, 150],
-                                                body: bindpayment(row.claim_no, PaymentDetails, ["claim_id", 'payment_dt', "amount_type", "payer_name"], payment)
+                                                widths: [55, 75, 65, 150, 115],
+                                                body: bindpayment(row.claim_no, PaymentDetails, ["claim_id", 'payment_dt', "amount_type", "payer_name", "payments_applied_total"], payment)
                                             },
                                             layout: 'noBorders'
-                                        }, {
-                                            style: 'myTable',
-                                            alignment: "right",
-                                            table: {
-                                                widths: [85],
-                                                body: bindpayment(row.claim_no, PaymentDetails, ["payments_applied_total"], payment)
-                                            },
-                                            layout: 'noBorders'
-                                        }, ],
+                                        }],
                                         [{
                                             style: 'myTable',
                                             table: {
-                                                widths: [55, 75, 65, 150],
-                                                body: bindpayment(row.claim_no, PaymentDetails, ["claim_id", 'payment_dt', "amount_type", "payer_name"], adjustment)
+                                                widths: [55, 75, 65, 150, 115],
+                                                body: bindpayment(row.claim_no, PaymentDetails, ["claim_id", 'payment_dt', "amount_type", "payer_name", "ajdustments_applied_total"], adjustment)
                                             },
                                             layout: 'noBorders'
-                                        }, {
-                                            style: 'myTable',
-                                            alignment: "right",
-                                            table: {
-                                                widths: [85],
-                                                body: bindpayment(row.claim_no, PaymentDetails, ["ajdustments_applied_total"], adjustment)
-                                            },
-                                            layout: 'noBorders'
-                                        }, ],
+                                        }],
                                         [{
                                             style: 'myTable',
                                             table: {
-                                                widths: [55, 75, 65, 150, 85],
+                                                widths: [370, 115],
                                                 body: [
-                                                    [{}, {}, {}, {
-                                                        text: "Total",
-                                                        alignment: "right"
-                                                    }, {}]
+                                                    [
+                                                        {text: "Total",alignment: "right"}, 
+                                                        {
+                                                            style: 'myTable',
+                                                            table: {
+                                                                widths: [115],
+                                                                body: bindClaim(row.claim_no, ClaimDetails, ["claim_balance"])
+                                                            }, layout: 'noBorders'
+                                                        }
+                                                    ]
                                                 ]
-                                            },
-                                            layout: 'noBorders'
-                                        }, {
-                                            style: 'myTable',
-                                            alignment: "right",
-                                            table: {
-                                                widths: [85],
-                                                body: bindClaim(row.claim_no, ClaimDetails, ["claim_balance"])
                                             },
                                             layout: 'noBorders'
                                         }],

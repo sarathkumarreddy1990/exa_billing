@@ -13,24 +13,35 @@ const ClaimHeader2Encoder = require('./claimHeader2Encoder');
 const ItemEncoder = require('./itemEncoder');
 const BatchTrailerEncoder = require('./batchTrailerEncoder');
 
-const MAX_BATCH_SIZE = 100;
-
-//
-// DEFAULTS
-//
+const CLAIMS_PER_BATCH_DEFAULT = 500;   // suggested "manageable size" mentioned in Interface to Health Care Systems Technical Specifications 6-5
+const CLAIMS_PER_BATCH_MAX = 10000;
 const BATCHES_PER_FILE_DEFAULT = 1;
-const CLAIMS_PER_BATCH_DEFAULT = 1;
+const BATCHES_PER_FILE_MAX = 10000;
+const BATCH_SEQUENCE_NUMBER_START_DEFAULT = 0;
+
+const getOption = (value, defaultValue, maxValue) => {
+
+    if (value === 'max') {
+        return maxValue;
+    }
+    try {
+        return maxValue
+             ? Math.min(parseInt(value || defaultValue), maxValue)
+             : parseInt(value || defaultValue);
+    }
+    catch (e) {
+        // TODO log info
+        return defaultValue;
+    }
+};
 
 module.exports = function(options) {
-    // HGAU73.441
-    //
 
     options = options || {};
 
-    const batchesPerFile = options.batchesPerFile || BATCHES_PER_FILE_DEFAULT;
-    const claimsPerBatch = options.claimsPerBatch || CLAIMS_PER_BATCH_DEFAULT;
-    const claimsPerFile = claimsPerBatch * batchesPerFile;
-
+    const claimsPerBatch = getOption(options.claimsPerBatch, CLAIMS_PER_BATCH_DEFAULT, CLAIMS_PER_BATCH_MAX);
+    const batchesPerFile = getOption(options.batchesPerFile, BATCHES_PER_FILE_DEFAULT, BATCHES_PER_FILE_MAX);
+    const batchSequenceNumberStart = getOption(options.batchSequenceNumber, BATCH_SEQUENCE_NUMBER_START_DEFAULT);
 
     const batchHeader = new BatchHeaderEncoder(options);
     const claimHeader1 = new ClaimHeader1Encoder(options);
@@ -38,50 +49,14 @@ module.exports = function(options) {
     const item = new ItemEncoder(options);
     const batchTrailer = new BatchTrailerEncoder(options);
 
-    //
-    // [{
-    //     "insuranceDetails": {
-    //         "referringProviderNumber": null,
-    //         "payee": "P",
-    //         "accountingNumber": 12,
-    //         "dateOfBirth": "1954-07-22",
-    //         "registrationNumber": "9876543217",
-    //         "patientFirstName": "William",
-    //         "patientSex": "M",
-    //         "paymentProgram": "RMB",
-    //         "serviceLocationIndicator": "HOP",
-    //         "provinceCode": null,
-    //         "healthNumber": "9876543217",
-    //         "masterNumber": "HOP",
-    //         "patientLastName": "Burns",
-    //         "versionCode": "OK"
-    //     },
-    //     "items": [
-    //         {
-    //             "feeSubmitted": "$37.25",
-    //             "diagnosticcodes": null,
-    //             "serviceDate": "2019-02-15T04:00:00-05:00",
-    //             "serviceCode": "X009B",
-    //             "numberOfServices": 1
-    //         },
-    //         {
-    //             "feeSubmitted": "$16.40",
-    //             "diagnosticcodes": null,
-    //             "serviceDate": "2019-02-15T04:00:00-05:00",
-    //             "serviceCode": "X009C",
-    //             "numberOfServices": 1
-    //         }
-    //     ]
-    // }]
-
-
+    /**
+     * const encodeBatch - encodes one batch of claims.
+     *
+     * @param  {array} batch    an array of claims
+     * @param  {object} context description an object with information about the
+     * @returns {string}        the string contents of an encoded batch
+     */
     const encodeBatch = (batch, context) => {
-
-        console.log(JSON.stringify(batch));
-
-        const {
-            batchSequenceNumber,
-        } = context;
 
         let rCount = 0;
         let hCount = 0;
@@ -92,7 +67,7 @@ module.exports = function(options) {
         batchStr += batchHeader.encode(batch, context);
 
         batch.forEach((b) => {
-            // console.log('claim: ', claim);
+
             const claim = b.claims[0];
 
             const header1 = claimHeader1.encode(claim.insuranceDetails, context);
@@ -119,13 +94,30 @@ module.exports = function(options) {
         return batchStr;
     };
 
+    /**
+     * const encodeClaimFile - encodes an array of batches.
+     *
+     * @param  {array} fileBatches an array of batches to be encoded in one file
+     * @param  {object} context     description
+     * @returns {object} an object with the encoded file data and batch tracking information
+     *       {
+     *           data: String,
+     *           batches: [
+     *               {
+     *                   batchSequenceNumber: Number,
+     *                   claimsIds: [Number, Number, Number...]
+     *               },
+     *               ...
+     *           ],
+     *       },
+     */
     const encodeClaimFile = (fileBatches, context) => {
 
         let data = '';
 
         const batches = reduce(fileBatches, (result, batch) => {
 
-            data += encodeBatch(batch, {...context});
+            data += encodeBatch(batch, context);
 
             result.push({
                 batchSequenceNumber: context.batchSequenceNumber,
@@ -133,7 +125,6 @@ module.exports = function(options) {
                     return claim.claim_id;
                 }),
             });
-
 
             context.batchSequenceNumber++;
 
@@ -144,41 +135,9 @@ module.exports = function(options) {
             data,
             batches,
         };
-
     };
 
     return {
-
-        // {
-        //      ((groupNumber)) : {
-        //          ((providerNumber)) : {
-        //              ((specialtyCode)) : {
-        //                  claims: [],
-        //              },
-        //              ... other specialtyCodes
-        //          },
-        //          ... other provider numbers
-        //      },
-        //      ... other group numbers
-        // }
-
-        // {
-        //      groupNumber: [
-        //          {
-        //              data,
-        //              batches: [
-        //                  {
-        //                      batchSequenceNumber:Number,
-        //                      claimsIds:[Number]
-        //                  },
-        //                  ...
-        //              ],
-        //          },
-        //          ...
-        //      ],
-        //
-        //      ...
-        // }
 
         encode: (claimData, context) => {
 
@@ -189,7 +148,7 @@ module.exports = function(options) {
                 groupResult[groupNumber] = []; // create an array for this group
 
                 // get all the files for this billing number (group + provider number)
-                const providerFiles = reduce(groupBy(groupClaims, 'providerNumber'), (providerResult, providerClaims, providerNumber) => {
+                const groupProviderFiles = reduce(groupBy(groupClaims, 'providerNumber'), (providerResult, providerClaims, providerNumber) => {
 
                     context.providerNumber = providerNumber;
 
@@ -198,28 +157,38 @@ module.exports = function(options) {
                     const claimsBySpecialtyCode = groupBy(providerClaims, 'specialtyCode');
 
                     // get all the files for this license# (provider number + specialty code)
-                    const specialtyFiles = reduce(claimsBySpecialtyCode, (specialtyResult, specialtyClaims, specialtyCode) => {
+                    const providerSpecialtyFiles = reduce(claimsBySpecialtyCode, (specialtyResult, specialtyClaims, specialtyCode) => {
 
                         context.specialtyCode = specialtyCode;
 
                         // batch all the claims for this billing number / license number combo
-                        const fileChunks = chunk(chunk(specialtyClaims, claimsPerBatch), batchesPerFile);
 
-                        context.batchSequenceNumber = (context.batchSequenceNumber || 0);
+                        // specialtyBatches is an array of all batches (arrays of claims) for this specialty
+                        // example (when claimsPerBatch == 2):
+                        // specialtyBatches = [[claim1, claim2], [claim3, claim4], [claim5, claim6], [claim7, claim8], ...]
+                        const specialtyBatches = chunk(specialtyClaims, claimsPerBatch || CLAIMS_PER_BATCH_MAX);
 
-                        // encode and add append the files to the specialty files
+                        // fileChunks is an array of all files (arrays of arrays of claims) for this specialty
+                        // example (when batchesPerFile == 3):
+                        // fileChunks = [[[claim1, claim2], [claim3, claim4], [claim5, claim6]], [[claim7, claim8], ...], ...]
+                        const fileChunks = chunk(specialtyBatches, batchesPerFile || BATCHES_PER_FILE_MAX);
+
+                        // reset batchSequenceNumber
+                        context.batchSequenceNumber = batchSequenceNumberStart;
+
+                        // add the encoded Claims Files for this specialty to the the array of Claims Files for the current Provider
                         return specialtyResult.concat(fileChunks.map((fileChunk) => {
                             return encodeClaimFile(fileChunk, context);
                         }));
 
                     }, []);
 
-                    // add the specialty files to the provider files
-                    return providerResult.concat(specialtyFiles);
+                    // add the encoded Claims Files for the current Provider to the array of Claims Files for the current Group
+                    return providerResult.concat(providerSpecialtyFiles);
                 }, []);
 
                 // add the provider files to the group files
-                groupResult[groupNumber] = groupResult[groupNumber].concat(providerFiles);
+                groupResult[groupNumber] = groupResult[groupNumber].concat(groupProviderFiles);
                 return groupResult;
             }, {});
         },

@@ -38,7 +38,8 @@
 
     "mohReserved1": {
         "startPos": 31,
-        "fieldLength": 1
+        "fieldLength": 1,
+        "constant": " "
     },
 
     "amountSubmitted": {
@@ -65,6 +66,7 @@
 
     "mohReserved2": {
         "startPos": 47,
-        "fieldLength": 33
+        "fieldLength": 33,
+        "constant": " "
     }
 }

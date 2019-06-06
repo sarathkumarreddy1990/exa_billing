@@ -711,6 +711,89 @@
         }
     },
     {
+        "id": "collections",
+        "category": "billing",
+        "title": "Collections",
+        "description": "Report shows claims that are in the 'Collections Review' claim status.",
+        "vars": {
+            "columnHeader": {
+                "cpt": {
+                    "usa": "Procedure Code",
+                    "can": "Service Code"
+                },
+                "cptDescription": {
+                    "usa": "Procedure Code Description",
+                    "can": "Service Code Description"
+                },
+                "patientState":{
+                    "usa": "Patient State",
+                    "can":"Patient Province"
+                },
+                "patientZip":{
+                    "usa": "Patient ZIP",
+                    "can": "Patient Postal Code"
+                },
+                "guarantorState":{
+                    "usa": "Guarantor  State",
+                    "can":"Guarantor  Province"
+                },
+                "guarantorZip":{
+                    "usa": "Guarantor ZIP",
+                    "can": "Guarantor Postal Code"
+                },
+                "groupNumber":{
+                    "usa": "Primary Insurance Group #",
+                    "can": "Primary Insurance Version Code"
+                }
+            },
+            "columnHidden": {
+                "patientSSN": {
+                    "usa": false,
+                    "can": true
+                },
+                "guarantorSSN": {
+                    "usa": false,
+                    "can": true
+                },
+                "diagnosisCode":{
+                    "usa": false,
+                    "can": true
+                },
+                "secondaryInsurance":{
+                    "usa": false,
+                    "can": true
+                }
+            }
+        },
+        "jsreport": {
+            "html": {
+                "template": {
+                    "name": "default-table-html"
+                }
+            },
+            "pdf": {
+                "template": {
+                    "name": "default-table-pdf"
+                }
+            },
+            "xlsx": {
+                "template": {
+                    "name": "default-table-excel"
+                }
+            },
+            "csv": {
+                "template": {
+                    "name": "default-table-csv"
+                }
+            },
+            "xml": {
+                "template": {
+                    "name": "default-table-xml"
+                }
+            }
+        }
+    },
+    {
         "id": "claim-inquiry",
         "category": "billing",
         "title": "Claim Inquiry",

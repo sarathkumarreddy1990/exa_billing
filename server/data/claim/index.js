@@ -18,6 +18,12 @@ module.exports = {
         const firstStudyId = studyIds.length > 0 ? studyIds[0] : null;
 
         let sql = SQL`WITH
+                        get_study_date AS(
+                            SELECT 
+                               study_dt
+                            FROM public.studies 
+                            WHERE id = ${firstStudyId}
+                        ),
                         beneficiary_details as (
                             SELECT
                                 pi.id
@@ -31,8 +37,10 @@ module.exports = {
                                 FROM
                                     public.patient_insurances
                                 WHERE
-                                    patient_id = ${params.patient_id} AND (valid_to_date >= (${params.claim_date})::date  OR valid_to_date IS NULL)
-                                    AND (valid_from_date <= (${params.claim_date})::date OR valid_from_date IS NULL) AND coverage_level = 'primary'
+                                    patient_id = ${params.patient_id}
+                                    AND (valid_to_date >= (SELECT study_dt::DATE FROM get_study_date)  OR valid_to_date IS NULL)
+                                    AND (valid_from_date <= (SELECT study_dt::DATE FROM get_study_date) OR valid_from_date IS NULL)
+                                    AND coverage_level = 'primary'
                             ) as expiry ON TRUE
                                 WHERE
                                     pi.patient_id = ${params.patient_id}  AND (expiry.valid_to_date = pi.valid_to_date OR expiry.valid_to_date IS NULL) AND pi.coverage_level = 'primary'
@@ -191,6 +199,7 @@ module.exports = {
                                                 FROM claim_details
                                             ) AS claims
                                     ) AS claim_details
+                                    , ( SELECT study_dt FROM get_study_date )
 	                                ,( SELECT COALESCE(json_agg(row_to_json(claim_problems)),'[]') problems
 		                                FROM (
                                                 SELECT
@@ -487,6 +496,7 @@ module.exports = {
                     , ipp.insurance_info->'State' AS p_state
                     , ipp.insurance_info->'ZipCode' AS p_zip
                     , ipp.insurance_name AS p_insurance_name
+                    , ipp.insurance_code AS p_insurance_code
                     , (SELECT billing_method as p_billing_method FROM billing.insurance_provider_details WHERE insurance_provider_id = ipp.id)
                     , cpi.insurance_provider_id AS p_insurance_provider_id
                     , cpi.subscriber_zipcode AS p_subscriber_zipcode
@@ -670,7 +680,9 @@ module.exports = {
                                 COALESCE(pa.amount::numeric::text,'0.00') AS payment_applied,
                                 COALESCE(pa.adjustment::numeric::text,'0.00') AS adjustment_applied,
                                 payer_details.payer_info,
-                                row_number() OVER( ORDER BY p.id ) as row_index
+                                row_number() OVER( ORDER BY p.id ) as row_index,
+                                p.payment_dt,
+                                p.facility_id
 	                        FROM
                                 billing.payments AS p
                                 INNER JOIN (

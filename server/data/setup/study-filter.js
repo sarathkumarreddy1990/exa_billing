@@ -14,8 +14,7 @@ module.exports = {
         let insert_update_study_filter = SQL` WITH update_grid_filter AS
         ( UPDATE
         billing.grid_filters
-        SET
-        filter_order = ${args.filterOrder}
+        SET  filter_order = ${args.filterOrder}
             ,filter_type = ${args.filterType}
             ,filter_name = ${args.filterName}
             ,filter_info = ${args.jsonData}
@@ -23,13 +22,21 @@ module.exports = {
             ,is_global_filter = ${args.isGlobal}
             ,display_in_ddl = ${args.isDisplayInDropDown}
             ,inactivated_dt = ${inactivated_dt}
-            WHERE
-        id = ${args.id}
-            AND NOT EXISTS (SELECT 1 FROM  billing.grid_filters WHERE filter_name ILIKE ${args.filterName} AND id !=  ${args.id} LIMIT 1)
-        RETURNING *,(SELECT row_to_json(old_row)
-        FROM   (SELECT * FROM   billing.grid_filters
-        WHERE  id = ${args.id}) old_row) old_values
-        ),
+        WHERE id = ${args.id}
+        AND NOT EXISTS (
+            SELECT
+                1
+            FROM billing.grid_filters
+            WHERE filter_name ILIKE ${args.filterName}
+            AND filter_type = ${args.filterType}
+            AND id !=  ${args.id}
+            LIMIT 1
+        ) RETURNING *,
+        (SELECT
+            row_to_json(old_row)
+         FROM (SELECT * FROM   billing.grid_filters
+         WHERE id = ${args.id}) old_row) old_values
+         ),
          insert_grid_filter AS
         (
             INSERT INTO billing.grid_filters (
@@ -54,7 +61,12 @@ module.exports = {
                 ,${args.isDisplayInDropDown}
                 ,${inactivated_dt}
                 WHERE NOT EXISTS (
-                    SELECT 1 FROM billing.grid_filters WHERE filter_name ILIKE ${args.filterName} LIMIT 1
+                    SELECT
+                      1
+                    FROM billing.grid_filters
+                    WHERE filter_name ILIKE ${args.filterName}
+                    AND filter_type = ${args.filterType}
+                    LIMIT 1
                 ) AND NOT EXISTS(SELECT * FROM update_grid_filter)
                 RETURNING *, '{}'::jsonb old_values
         ),

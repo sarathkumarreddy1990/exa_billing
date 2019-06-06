@@ -3,7 +3,8 @@ const _ = require('lodash')
     , db = require('../db')
     , dataHelper = require('../dataHelper')
     , queryBuilder = require('../queryBuilder')
-    , logger = require('../../../../../logger');
+    , logger = require('../../../../../logger')
+    , moment = require('moment');
 
 // generate query template ***only once*** !!!
 
@@ -583,9 +584,7 @@ const api = {
         else
             filtersUsed.push({ name: 'insuranceGroup', label: 'Insurance Group', value: 'All' });
 
-
-        filtersUsed.push({ name: 'Cut Off Date', label: 'Date From', value: params.fromDate });
-
+        filtersUsed.push({ name: 'Cut Off Date', label: 'Date From', value: moment(params.fromDate).format(params.dateFormat) });
         return filtersUsed;
     },
 

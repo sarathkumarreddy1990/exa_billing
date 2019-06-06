@@ -13,6 +13,7 @@ define([
             expanded: false,
             mainTemplate: _.template(billingPaymentsPDFTemplate),
             viewModel: {
+                dateFormat: 'MM/DD/YYYY',
                 facilities: null,
                 dateFrom: null,
                 dateTo: null,
@@ -28,7 +29,8 @@ define([
                 allBillingProvider: false,
                 allUsers: false,
                 userIds: null,
-                userNames: null
+                userNames: null,
+                countryCode: null
             },
             selectedBillingProList: [],
             selectedFacilityList: [],
@@ -39,6 +41,7 @@ define([
                 this.showForm();
                 this.$el.html(this.mainTemplate(this.viewModel));
                 UI.initializeReportingViewModel(options, this.viewModel);
+                UI.getReportSetting(this.viewModel, 'all', 'dateFormat'); // Get date format (and current country code) based on current country code saved in sites table(this.viewModel);
 
                 this.viewModel.dateFrom = commonjs.getFacilityCurrentDateTime(1);
                 this.viewModel.dateTo = this.viewModel.dateFrom.clone();
@@ -61,7 +64,8 @@ define([
 
             onReportViewClick: function (e, reportArgs) {
                 var btnClicked = e && e.target ? $(e.target) : null;
-                var reportArgsFlag = null
+                var reportArgsFlag = null;
+                var countryFlag = app.country_alpha_3_code;
                 this.getSelectedFacility();
                 this.getBillingProvider();
                 if (btnClicked && btnClicked.prop('tagName') === 'I') {
@@ -76,7 +80,8 @@ define([
                     var urlParams = {
                         studyIds: reportArgs.studyIds,
                         patient_id: reportArgs.patient_id,
-                        payment_id: reportArgs.payment_id
+                        payment_id: reportArgs.payment_id,
+                        countryCode: countryFlag
                     }
                 }
                 else {
@@ -100,7 +105,8 @@ define([
                             filterFlag: "paymentsExportPDFFlag",
                             filterData: reportArgsFilterData,
                             filterColumn: reportArgsFilterColumn,
-                            from: reportArgs.from || ''
+                            from: reportArgs.from || '',
+                            countryCode: countryFlag
                         }
                     }
                     else {
@@ -108,7 +114,8 @@ define([
                             pamentIds: reportArgs.payment_id,
                             paymentStatus: reportArgs.paymentStatus || " ",
                             filterFlag: "paymentsExportPDFFlag",
-                            patient_id: reportArgs.patient_id
+                            patient_id: reportArgs.patient_id,
+                            countryCode: countryFlag
                         }
                     }
                 }
@@ -131,6 +138,8 @@ define([
                 else {
                     reportArgsFlag = 'payments-pdf';
                 }
+
+                urlParams.dateFormat = this.viewModel.dateFormat;
                 UI.showReport(reportArgsFlag, this.viewModel.reportCategory, 'pdf', urlParams, true);
             },
 

@@ -71,7 +71,9 @@ const services = {
     EDT_INFO: 'info',
     EDT_UPDATE: 'update',
     EDT_DELETE: 'delete',
-    EDT_GET_TYPE_LIST: 'getTypeList'
+    EDT_GET_TYPE_LIST: 'getTypeList',
+    HCV_REAL_TIME: 'validate',
+    // HCV_OVERNIGHT: 'obec',
 };
 
 module.exports = {

@@ -81,7 +81,7 @@ module.exports = {
         let pokitdok_client_secret = pokitdokSecretKey.rows[2].info.value;
 
         let pokitdok = new PokitDok(pokitdok_client_id, pokitdok_client_secret);
-        let birthDate = moment(params.birthDate, 'MM-DD-YYYY').format('YYYY-MM-DD');
+        let birthDate = params.birthDate;
 
         return await new Promise((resolve, reject) => {
 

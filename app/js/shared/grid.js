@@ -558,7 +558,7 @@ define('grid', [
                         'needShrink': true
                     });
                 self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
-                self.claimInquiryView.patientInquiryLog(studyIds,selectedStudies[0].patient_id);
+                self.claimInquiryView.patientInquiryLog(studyIds, selectedStudies[0].patient_id, selectedStudies[0].patient_name);
                 });
 
                 var liSplitOrders = commonjs.getRightClickMenu('anc_split_claim','setup.rightClickMenu.splitClaim',false,'Split Claim',false);
@@ -710,6 +710,8 @@ define('grid', [
         };
 
         self.batchClaim = function () {
+            gridID = '#tblGrid' + commonjs.currentStudyFilter;
+            $tblGrid = $(gridID);
             var $checkedInputs = $tblGrid.find('input').filter('[name=chkStudy]:checked');
             var selectedCount = $checkedInputs.length;
             var currentFilter = commonjs.studyFilters.find(function (filter) {
@@ -1167,21 +1169,20 @@ define('grid', [
                     formatter: function (cellvalue, options, rowObject) {
 
                         if (app.country_alpha_3_code === 'can') {
-                            var i18n;
                             var color;
-                            cellvalue = cellvalue || "";
+                            var result = cellvalue && cellvalue.split('__')[0] || '';
+                            var i18n = cellvalue && cellvalue.split('__')[1] || 'messages.status.healthNumberNotValidated';
 
-                            switch (cellvalue) {
-                              case 'valid':             i18n = 'messages.status.healthNumberValid';         color = 'green';        break;
-                              case 'invalid':           i18n = 'messages.status.healthNumberInvalid';       color = 'red';          break;
-                              case 'data_unavailable':  i18n = 'messages.status.healthNumberNotValidated';  color = '#2f74e2';      break;
-                              case 'null_response':     i18n = 'messages.status.noValidationData';          color = 'black';        break;
-                              case 'recheck':           i18n = 'messages.status.healthNumberRevalidate';    color = 'orange';       break;
-                              default:                  i18n = 'messages.status.healthNumberNotValidated';  color = 'red';          break;
+                            switch (result) {
+                                case 'valid':        color = 'green';    break;
+                                case 'future_date':  color = 'orange';   break;
+                                default:             color = 'red';      break;
                             }
 
-                            return "<i href='#' i18nt='" + i18n + "' class='icon-ic-status' data-value='" + cellvalue + "' style='color: " + color + ";text-shadow:0 0 " + color + ", 0 0 " + color + ", 0 0 " + color + ", 0 0 red, 0 0 " + color + "'></i>";
+                            return "<i href='#' i18nt='" + i18n + "' class='icon-ic-status' data-value='" + cellvalue + "' style='color: " + color + ";text-shadow:0 0 " + color + ", 0 0 " + color + ", 0 0 " + color + ", 0 0 " + color + ", 0 0 " + color + "'></i>";
                         }
+                    },
+                    customAction: function (rowID, e, that) {
                     }
                 },
                 {
@@ -1433,6 +1434,7 @@ define('grid', [
                     options.updateStudiesPager(model, gridObj);
                 }
                 selectedStudyArray = [];
+                $('#btnStudiesRefresh, #btnStudiesRefreshAll, #btnClaimsRefresh, #btnClaimRefreshAll').prop('disabled', false);
             };
 
             var rowattr = function (domData, data) {
@@ -1519,14 +1521,17 @@ define('grid', [
                             }
                         },
                         success: function (data, response) {
-
+                            var facilityTz = app.facilities.map(function (val) { return { 'id': val.id, 'value': val.time_zone } });
                             commonjs.prepareCsvWorker({
                                 data: data,
                                 reportName: 'CLAIMS',
                                 fileName: 'Claims',
                                 filter_order: userSettings.field_order,
                                 filterType: userSettings.grid_name,
-                                columnHeader: colHeader
+                                columnHeader: colHeader,
+                                countryCode: app.country_alpha_3_code,
+                                facilities: facilityTz,
+                                companyTz: app.company.time_zone
                             }, {
                                     afterDownload: function () {
                                         $('#btnValidateExport').css('display', 'inline');

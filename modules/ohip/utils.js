@@ -1,7 +1,10 @@
+const path = require('path');
+
 const {
     getFileType,
 } = require('./parser/utils');
 
+// const MONEY_MATCHER = /[0-9]+(\.[0-9]{1,2})?$/;
 
 
 const {
@@ -34,6 +37,11 @@ module.exports = {
         return resourceDescriptions[getResourceType(filename)];
     },
 
+    // shameless wrapper, but it removes dependence upon path module from some clients
+    getResourceFilename: (absolutePath) => {
+        return path.basename(absolutePath);
+    },
+
     /**
      * Returns the alpha representation for the date of a processing cycle,
      * letters A through L (January through December).
@@ -45,5 +53,8 @@ module.exports = {
     getMonthCode: (value) => {
         return String.fromCharCode(MONTH_CODE_JANUARY + value.getMonth());
     },
-
+    //
+    // getNumberFromMoney: (value) => {
+    //     return value.match(MONEY_MATCHER)[0];
+    // },
 };
