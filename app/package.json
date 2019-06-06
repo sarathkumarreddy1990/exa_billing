@@ -33,5 +33,10 @@
         "requirejs": "^2.3.5",
         "requirejs-text": "^2.0.15",
         "select2": "^4.0.5"
+    },
+    "engine-strict": true,
+    "engines": {
+        "node": ">=10.15.3",
+        "npm": ">=6.9.0"
     }
 }
