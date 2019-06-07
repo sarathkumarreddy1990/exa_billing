@@ -27,7 +27,7 @@
         "cookie-parser": "^1.4.4",
         "express": "^4.17.1",
         "express-promise-router": "^3.0.2",
-        "express-session": "^1.15.6",
+        "express-session": "^1.16.1",
         "http-errors": "~1.6.2",
         "jsreport-client": "^0.4.1",
         "less-middleware": "^2.2.1",
