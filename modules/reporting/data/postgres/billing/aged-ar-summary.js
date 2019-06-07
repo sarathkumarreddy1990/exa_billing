@@ -1,62 +1,72 @@
-const _ = require('lodash')
-    , Promise = require('bluebird')
-    , db = require('../db')
-    , dataHelper = require('../dataHelper')
-    , queryBuilder = require('../queryBuilder')
-    , logger = require('../../../../../logger')
-    , moment = require('moment');
+const _ = require('lodash');
+const Promise = require('bluebird');
+const db = require('../db');
+const dataHelper = require('../dataHelper');
+const queryBuilder = require('../queryBuilder');
+const logger = require('../../../../../logger');
+const moment = require('moment');
 
 // generate query template ***only once*** !!!
 
 const agedARSummaryDataSetQueryTemplate = _.template(`
-
 WITH charges_cwt AS (
     SELECT
-          bc.id                           AS claim_id
-        , max(date_part('day', ((timezone(f.time_zone,  <%= cutOffDate %>)))  - timezone(f.time_zone, bc.claim_dt))) as age
-        , sum(c.bill_fee * c.units)       AS charges_bill_fee_total
-    FROM  billing.claims AS bc
-        INNER JOIN billing.charges AS c ON c.claim_id = bc.id
-        INNER JOIN facilities f on f.id = bc.facility_id
-    WHERE (timezone(f.time_zone, bc.claim_dt)::date <=   <%= cutOffDate %>)
+          bc.id AS claim_id
+        , max(date_part('day', ((timezone(f.time_zone,  <%= cutOffDate %>)))  - timezone(f.time_zone, bc.claim_dt))) AS age
+        , SUM(c.bill_fee * c.units) AS charges_bill_fee_total
+    FROM
+        billing.claims AS bc
+    INNER JOIN billing.charges AS c ON c.claim_id = bc.id
+    INNER JOIN facilities f on f.id = bc.facility_id
+    WHERE
+        (timezone(f.time_zone, bc.claim_dt)::date <=   <%= cutOffDate %>)
     GROUP BY bc.id
-),
+  ),
 applications_cwt AS (
     SELECT  cc.claim_id
-        ,  coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'payment'),0::money)    AS payments_applied_total
-        , coalesce(sum(pa.amount)   FILTER (WHERE pa.amount_type = 'adjustment'),0::money) AS ajdustments_applied_total
+        ,  coalesce(SUM(pa.amount) FILTER (WHERE pa.amount_type = 'payment'),0::MONEY) AS payments_applied_total
+        , coalesce(SUM(pa.amount) FILTER (WHERE pa.amount_type = 'adjustment'),0::MONEY) AS adjustments_applied_total
     FROM charges_cwt cc
     INNER JOIN billing.charges AS c  ON c.claim_id = cc.claim_id
     INNER JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
     INNER JOIN billing.payments AS p ON pa.payment_id = p.id
-    WHERE p.accounting_date <= <%= cutOffDate %>
+    WHERE
+        p.accounting_date <= <%= cutOffDate %>
     GROUP BY cc.claim_id
-),
-get_claim_details AS(
+ ),
+get_claim_details AS (
     SELECT
-        cc.claim_id as claim_id,
-        cc.age as age,
-       (cc.charges_bill_fee_total - ( coalesce(ac.payments_applied_total,0::money) +  coalesce(ac.ajdustments_applied_total,0::money))) AS balance
+        cc.claim_id AS claim_id,
+        cc.age AS age,
+        (cc.charges_bill_fee_total - ( coalesce(ac.payments_applied_total,0::MONEY) +  coalesce(ac.adjustments_applied_total,0::MONEY))) AS balance
     FROM charges_cwt cc
     LEFT JOIN applications_cwt ac ON cc.claim_id = ac.claim_id
-    WHERE (cc.charges_bill_fee_total - ( coalesce(ac.payments_applied_total,0::money) +  coalesce(ac.ajdustments_applied_total,0::money) )) != 0::money
+    WHERE (cc.charges_bill_fee_total - ( coalesce(ac.payments_applied_total,0::MONEY) +  coalesce(ac.adjustments_applied_total,0::MONEY) )) != 0::MONEY
  ),
 aged_ar_summary_details AS(
  SELECT
- <% if (facilityIds) { %> MAX(pf.facility_name) <% } else  { %> 'All'::text <% } %> as "Facility",
- <% if(incPatDetail == 'true') { %>
-            CASE WHEN primary_patient_insurance_id is not null THEN 'Primary Insurance' ELSE '-- No payer --'  END AS "Responsible Party",
- <%} else {%>
- CASE WHEN payer_type = 'primary_insurance' THEN 'Insurance'
-      WHEN payer_type = 'secondary_insurance' THEN 'Insurance'
-      WHEN payer_type = 'tertiary_insurance' THEN 'Insurance'
-      WHEN payer_type = 'referring_provider' THEN 'Provider'
-      WHEN payer_type = 'patient' THEN 'Patient'
-      WHEN payer_type = 'ordering_facility' THEN 'Ordering Facility'
-END AS "Responsible Party",
+    <% if (facilityIds) { %> MAX(pf.facility_name) <% } else  { %> 'All'::text <% } %> AS "Facility",
+    <% if(incPatDetail == 'true') { %>
+         CASE
+            WHEN primary_patient_insurance_id IS NOT NULL THEN
+                'Primary Insurance'
+            ELSE
+                '-- No payer --'
+        END AS "Responsible Party",
+    <%} else {%>
+    CASE
+       WHEN payer_type = 'primary_insurance' THEN 'Insurance'
+       WHEN payer_type = 'secondary_insurance' THEN 'Insurance'
+       WHEN payer_type = 'tertiary_insurance' THEN 'Insurance'
+       WHEN payer_type = 'referring_provider' THEN 'Provider'
+       WHEN payer_type = 'patient' THEN 'Patient'
+       WHEN payer_type = 'ordering_facility' THEN 'Ordering Facility'
+    END AS "Responsible Party",
     <% } %>
-<% if(incPatDetail == 'true') { %>
-        CASE WHEN primary_patient_insurance_id is not null THEN pip.insurance_name
+    <% if(incPatDetail == 'true') { %>
+        CASE
+            WHEN primary_patient_insurance_id IS NOT NULL THEN
+                pip.insurance_name
         ELSE
             CASE
                 WHEN payer_type = 'secondary_insurance' THEN pip.insurance_name
@@ -65,241 +75,217 @@ END AS "Responsible Party",
                 WHEN payer_type = 'patient' THEN get_full_name(pp.last_name,pp.first_name)
                 WHEN payer_type = 'ordering_facility' THEN ppg.group_name
             END
-  END AS "Payer Name",
-<%} else {%>
- CASE WHEN payer_type = 'primary_insurance' THEN pip.insurance_name
-      WHEN payer_type = 'secondary_insurance' THEN pip.insurance_name
-      WHEN payer_type = 'tertiary_insurance' THEN pip.insurance_name
-      WHEN payer_type = 'referring_provider' THEN  ppr.full_name
-      WHEN payer_type = 'patient' THEN get_full_name(pp.last_name,pp.first_name)
-      WHEN payer_type = 'ordering_facility' THEN ppg.group_name
-END AS "Payer Name",
- <% } %>
-  pippt.description AS "Provider Type",
- CASE
- WHEN MAX(pip.insurance_info->'ediCode') ='A' THEN 'Attorney'
- WHEN MAX(pip.insurance_info->'ediCode') ='C' THEN 'Medicare'
- WHEN MAX(pip.insurance_info->'ediCode') ='D' THEN 'Medicaid'
- WHEN MAX(pip.insurance_info->'ediCode') ='F' THEN 'Commercial'
- WHEN MAX(pip.insurance_info->'ediCode') ='G' THEN 'Blue Cross'
- WHEN MAX(pip.insurance_info->'ediCode') ='R' THEN 'RailRoad MC'
- WHEN MAX(pip.insurance_info->'ediCode') ='W' THEN 'Workers Compensation'
- WHEN MAX(pip.insurance_info->'ediCode') ='X' THEN 'X Champus'
- WHEN MAX(pip.insurance_info->'ediCode') ='Y' THEN 'Y Facility'
- WHEN MAX(pip.insurance_info->'ediCode' )='M' THEN 'M DMERC'
-ELSE   ''
-END  AS  "EDI",
- COALESCE(count(gcd.balance) FILTER(where gcd.age <= 30 ),0) AS "0-30 Count",
- COALESCE(SUM(gcd.balance) FILTER(where gcd.age <= 30 ),0::money) AS "0-30 Sum",
- COALESCE(count(gcd.balance) FILTER(where gcd.age > 30 and gcd.age <=60  ),0) AS "31-60 Count",
- COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 30 and gcd.age <=60  ),0::money) AS "31-60 Sum",
- COALESCE(count(gcd.balance) FILTER(where gcd.age > 60 and gcd.age <=90  ),0) AS "61-90 Count",
- COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 60 and gcd.age <=90  ),0::money) AS "61-90 Sum",
- COALESCE(count(gcd.balance) FILTER(where gcd.age > 90 and gcd.age <=120  ),0) AS "91-120 Count",
- COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 90 and gcd.age <=120  ),0::money) AS "91-120 Sum" ,
- <% if(excelExtented == 'true') { %>
-    COALESCE(count(gcd.balance) FILTER(where gcd.age > 120 and gcd.age <=150  ),0) AS "121-150 Count",
-    COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 120 and gcd.age <=150  ),0::money) AS "121-150 Sum",
-
-    COALESCE(count(gcd.balance) FILTER(where gcd.age > 150 and gcd.age <=180  ),0) AS "151-180 Count",
-    COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 120 and gcd.age <=150  ),0::money) AS "151-180 Sum",
-
-    COALESCE(count(gcd.balance) FILTER(where gcd.age > 180 and gcd.age <=210  ),0) AS "181-210 Count",
-    COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 180 and gcd.age <=210  ),0::money) AS "181-210 Sum",
-
-    COALESCE(count(gcd.balance) FILTER(where gcd.age > 210 and gcd.age <=240  ),0) AS "211-240 Count",
-    COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 210 and gcd.age <=240  ),0::money) AS "211-240 Sum",
-
-    COALESCE(count(gcd.balance) FILTER(where gcd.age > 240 and gcd.age <=270  ),0) AS "240-270 Count",
-    COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 240 and gcd.age <=270  ),0::money) AS "240-270 Sum",
-
-    COALESCE(count(gcd.balance) FILTER(where gcd.age > 270 and gcd.age <=300  ),0) AS "271-300 Count",
-    COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 270 and gcd.age <=300  ),0::money) AS "271-300 Sum",
-
-    COALESCE(count(gcd.balance) FILTER(where gcd.age > 300 and gcd.age <=330  ),0) AS "301-330 Count",
-    COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 300 and gcd.age <=330  ),0::money) AS "301-330 Sum",
-
-    COALESCE(count(gcd.balance) FILTER(where gcd.age > 330 and gcd.age <=360  ),0) AS "331-360 Count",
-    COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 330 and gcd.age <=360  ),0::money) AS "331-360 Sum",
-
-    COALESCE(count(gcd.balance) FILTER(where gcd.age > 361 and gcd.age <=450  ),0) AS "361-450(Q4) Count",
-    COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 361 and gcd.age <=450  ),0::money) AS "361-450(Q4) Sum",
-
-    COALESCE(count(gcd.balance) FILTER(where gcd.age > 451 and gcd.age <=540  ),0) AS "451-540(Q3) Count",
-    COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 451 and gcd.age <=540  ),0::money) AS "451-540(Q3) Sum",
-
-    COALESCE(count(gcd.balance) FILTER(where gcd.age > 541 and gcd.age <=630  ),0) AS "541-630(Q2) Count",
-    COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 541 and gcd.age <=630  ),0::money) AS "541-630(Q2) Sum",
-
-    COALESCE(count(gcd.balance) FILTER(where gcd.age > 631 and gcd.age <=730  ),0) AS "631-730(Q1) Count",
-    COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 631 and gcd.age <=730  ),0::money) AS "631-730(Q1) Sum",
-
-    COALESCE(count(gcd.balance) FILTER(where gcd.age > 730  ),0) AS "730+ Count",
-    COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 730),0::money) AS "730+ Sum",
-
+       END AS "Payer Name",
+    <%} else {%>
+       CASE
+          WHEN payer_type = 'primary_insurance' THEN pip.insurance_name
+          WHEN payer_type = 'secondary_insurance' THEN pip.insurance_name
+          WHEN payer_type = 'tertiary_insurance' THEN pip.insurance_name
+          WHEN payer_type = 'referring_provider' THEN  ppr.full_name
+          WHEN payer_type = 'patient' THEN get_full_name(pp.last_name,pp.first_name)
+          WHEN payer_type = 'ordering_facility' THEN ppg.group_name
+       END AS "Payer Name",
+    <% } %>
+    pippt.description AS "Provider Type",
+    CASE
+       WHEN MAX(pip.insurance_info->'ediCode') ='A' THEN 'Attorney'
+       WHEN MAX(pip.insurance_info->'ediCode') ='C' THEN 'Medicare'
+       WHEN MAX(pip.insurance_info->'ediCode') ='D' THEN 'Medicaid'
+       WHEN MAX(pip.insurance_info->'ediCode') ='F' THEN 'Commercial'
+       WHEN MAX(pip.insurance_info->'ediCode') ='G' THEN 'Blue Cross'
+       WHEN MAX(pip.insurance_info->'ediCode') ='R' THEN 'RailRoad MC'
+       WHEN MAX(pip.insurance_info->'ediCode') ='W' THEN 'Workers Compensation'
+       WHEN MAX(pip.insurance_info->'ediCode') ='X' THEN 'X Champus'
+       WHEN MAX(pip.insurance_info->'ediCode') ='Y' THEN 'Y Facility'
+       WHEN MAX(pip.insurance_info->'ediCode' )='M' THEN 'M DMERC'
+    ELSE   ''
+    END  AS  "EDI",
+    COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age <= 30 ),0) AS "0-30 Count",
+    COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age <= 30 ),0::MONEY) AS "0-30 Sum",
+    COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 30 and gcd.age <=60  ),0) AS "31-60 Count",
+    COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 30 and gcd.age <=60  ),0::MONEY) AS "31-60 Sum",
+    COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 60 and gcd.age <=90  ),0) AS "61-90 Count",
+    COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 60 and gcd.age <=90  ),0::MONEY) AS "61-90 Sum",
+    COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 90 and gcd.age <=120  ),0) AS "91-120 Count",
+    COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 90 and gcd.age <=120  ),0::MONEY) AS "91-120 Sum" ,
+    <% if(excelExtented == 'true') { %>
+        COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 120 and gcd.age <=150  ),0) AS "121-150 Count",
+        COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 120 and gcd.age <=150  ),0::MONEY) AS "121-150 Sum",
+        COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 150 and gcd.age <=180  ),0) AS "151-180 Count",
+        COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 120 and gcd.age <=150  ),0::MONEY) AS "151-180 Sum",
+        COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 180 and gcd.age <=210  ),0) AS "181-210 Count",
+        COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 180 and gcd.age <=210  ),0::MONEY) AS "181-210 Sum",
+        COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 210 and gcd.age <=240  ),0) AS "211-240 Count",
+        COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 210 and gcd.age <=240  ),0::MONEY) AS "211-240 Sum",
+        COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 240 and gcd.age <=270  ),0) AS "240-270 Count",
+        COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 240 and gcd.age <=270  ),0::MONEY) AS "240-270 Sum",
+        COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 270 and gcd.age <=300  ),0) AS "271-300 Count",
+        COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 270 and gcd.age <=300  ),0::MONEY) AS "271-300 Sum",
+        COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 300 and gcd.age <=330  ),0) AS "301-330 Count",
+        COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 300 and gcd.age <=330  ),0::MONEY) AS "301-330 Sum",
+        COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 330 and gcd.age <=360  ),0) AS "331-360 Count",
+        COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 330 and gcd.age <=360  ),0::MONEY) AS "331-360 Sum",
+        COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 361 and gcd.age <=450  ),0) AS "361-450(Q4) Count",
+        COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 361 and gcd.age <=450  ),0::MONEY) AS "361-450(Q4) Sum",
+        COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 451 and gcd.age <=540  ),0) AS "451-540(Q3) Count",
+        COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 451 and gcd.age <=540  ),0::MONEY) AS "451-540(Q3) Sum",
+        COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 541 and gcd.age <=630  ),0) AS "541-630(Q2) Count",
+        COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 541 and gcd.age <=630  ),0::MONEY) AS "541-630(Q2) Sum",
+        COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 631 and gcd.age <=730  ),0) AS "631-730(Q1) Count",
+        COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 631 and gcd.age <=730  ),0::MONEY) AS "631-730(Q1) Sum",
+        COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 730  ),0) AS "730+ Count",
+        COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 730),0::MONEY) AS "730+ Sum",
     <% } else { %>
-        COALESCE(COUNT(gcd.balance) FILTER(where gcd.age > 120 ),0) AS "120+ Count",
-        COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 120 ),0::money) AS "120+ Sum"      ,
+        COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 120 ),0) AS "120+ Count",
+        COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 120 ),0::MONEY) AS "120+ Sum",
     <%}%>
- SUM(gcd.balance) AS "Total Balance",
- COUNT(gcd.balance) AS "Total Count"
- FROM billing.claims bc
+    SUM(gcd.balance) AS "Total Balance",
+    COUNT(gcd.balance) AS "Total Count"
+ FROM
+    billing.claims bc
  INNER JOIN get_claim_details gcd ON gcd.claim_id = bc.id
  INNER JOIN public.patients pp ON pp.id = bc.patient_id
  INNER JOIN public.facilities pf ON pf.id = bc.facility_id
-
  <% if(incPatDetail == 'true') { %>
     LEFT JOIN public.patient_insurances ppi ON ppi.id = primary_patient_insurance_id
  <%} else {%>
-    LEFT JOIN public.patient_insurances ppi ON ppi.id = CASE WHEN payer_type = 'primary_insurance' THEN primary_patient_insurance_id
-    WHEN payer_type = 'secondary_insurance' THEN secondary_patient_insurance_id
-    WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id
-END
-<% } %>
-
+    LEFT JOIN public.patient_insurances ppi ON ppi.id =
+        CASE
+            WHEN payer_type = 'primary_insurance' THEN primary_patient_insurance_id
+            WHEN payer_type = 'secondary_insurance' THEN secondary_patient_insurance_id
+            WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id
+        END
+ <% } %>
  LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
  LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
  LEFT JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id
  LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
  LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
-
   <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
-     WHERE 1 = 1
+     WHERE TRUE
      AND <%=companyId%>
      AND payer_type != 'patient'
      <% if (facilityIds) { %>AND <% print(facilityIds); } %>
      <% if(billingProID) { %> AND <% print(billingProID); } %>
-     <% if(excCreditBal == 'true'){ %> AND  gcd.balance::money > '0' <% } %>
+     <% if(excCreditBal == 'true'){ %> AND  gcd.balance::MONEY > '0' <% } %>
      <% if(insGroups) { %> AND <%=insGroups%> <%}%>
      <% if(insuranceIds) { %> AND <%=insuranceIds%> <%}%>
  GROUP BY "Responsible Party","Payer Name",pippt.description
-
  <% if(incPatDetail == 'true') { %>
     ORDER BY "Responsible Party" DESC
    <% } %>
  ),
  aged_ar_summary_details_p AS(
     SELECT
-     'All'::text  as "Facility",
-
-     <% if(incPatDetail == 'true') { %>
-        CASE WHEN primary_patient_insurance_id is not null THEN 'Primary Insurance' ELSE '-- No payer --'  END AS "Responsible Party",
-<%} else {%>
-CASE WHEN payer_type = 'primary_insurance' THEN 'Insurance'
-  WHEN payer_type = 'secondary_insurance' THEN 'Insurance'
-  WHEN payer_type = 'tertiary_insurance' THEN 'Insurance'
-  WHEN payer_type = 'referring_provider' THEN 'Provider'
-  WHEN payer_type = 'patient' THEN 'Patient'
-  WHEN payer_type = 'ordering_facility' THEN 'Ordering Facility'
-END AS "Responsible Party",
-<% } %>
-
-    CASE WHEN payer_type = 'primary_insurance' THEN pip.insurance_name
-         WHEN payer_type = 'secondary_insurance' THEN pip.insurance_name
-         WHEN payer_type = 'tertiary_insurance' THEN pip.insurance_name
-         WHEN payer_type = 'referring_provider' THEN  ppr.full_name
-         WHEN payer_type = 'patient' THEN get_full_name(pp.last_name,pp.first_name)
-         WHEN payer_type = 'ordering_facility' THEN ppg.group_name
-   END AS "Payer Name",
-
-     pippt.description AS "Provider Type",
-    CASE
-    WHEN MAX(pip.insurance_info->'ediCode') ='A' THEN 'Attorney'
-    WHEN MAX(pip.insurance_info->'ediCode') ='C' THEN 'Medicare'
-    WHEN MAX(pip.insurance_info->'ediCode') ='D' THEN 'Medicaid'
-    WHEN MAX(pip.insurance_info->'ediCode') ='F' THEN 'Commercial'
-    WHEN MAX(pip.insurance_info->'ediCode') ='G' THEN 'Blue Cross'
-    WHEN MAX(pip.insurance_info->'ediCode') ='R' THEN 'RailRoad MC'
-    WHEN MAX(pip.insurance_info->'ediCode') ='W' THEN 'Workers Compensation'
-    WHEN MAX(pip.insurance_info->'ediCode') ='X' THEN 'X Champus'
-    WHEN MAX(pip.insurance_info->'ediCode') ='Y' THEN 'Y Facility'
-    WHEN MAX(pip.insurance_info->'ediCode' )='M' THEN 'M DMERC'
-   ELSE   ''
-   END  AS  "EDI",
-    COALESCE(count(gcd.balance) FILTER(where gcd.age <= 30 ),0) AS "0-30 Count",
-    COALESCE(SUM(gcd.balance) FILTER(where gcd.age <= 30 ),0::money) AS "0-30 Sum",
-    COALESCE(count(gcd.balance) FILTER(where gcd.age > 30 and gcd.age <=60  ),0) AS "31-60 Count",
-    COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 30 and gcd.age <=60  ),0::money) AS "31-60 Sum",
-    COALESCE(count(gcd.balance) FILTER(where gcd.age > 60 and gcd.age <=90  ),0) AS "61-90 Count",
-    COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 60 and gcd.age <=90  ),0::money) AS "61-90 Sum",
-    COALESCE(count(gcd.balance) FILTER(where gcd.age > 90 and gcd.age <=120  ),0) AS "91-120 Count",
-    COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 90 and gcd.age <=120  ),0::money) AS "91-120 Sum" ,
-
-           <% if(excelExtented == 'true') { %>
-            COALESCE(count(gcd.balance) FILTER(where gcd.age > 120 and gcd.age <=150  ),0) AS "121-150 Count",
-            COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 120 and gcd.age <=150  ),0::money) AS "121-150 Sum",
-
-            COALESCE(count(gcd.balance) FILTER(where gcd.age > 150 and gcd.age <=180  ),0) AS "151-180 Count",
-            COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 120 and gcd.age <=150  ),0::money) AS "151-180 Sum",
-
-            COALESCE(count(gcd.balance) FILTER(where gcd.age > 180 and gcd.age <=210  ),0) AS "181-210 Count",
-            COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 180 and gcd.age <=210  ),0::money) AS "181-210 Sum",
-
-            COALESCE(count(gcd.balance) FILTER(where gcd.age > 210 and gcd.age <=240  ),0) AS "211-240 Count",
-            COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 210 and gcd.age <=240  ),0::money) AS "211-240 Sum",
-
-            COALESCE(count(gcd.balance) FILTER(where gcd.age > 240 and gcd.age <=270  ),0) AS "240-270 Count",
-            COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 240 and gcd.age <=270  ),0::money) AS "240-270 Sum",
-
-            COALESCE(count(gcd.balance) FILTER(where gcd.age > 270 and gcd.age <=300  ),0) AS "271-300 Count",
-            COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 270 and gcd.age <=300  ),0::money) AS "271-300 Sum",
-
-            COALESCE(count(gcd.balance) FILTER(where gcd.age > 300 and gcd.age <=330  ),0) AS "301-330 Count",
-            COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 300 and gcd.age <=330  ),0::money) AS "301-330 Sum",
-
-            COALESCE(count(gcd.balance) FILTER(where gcd.age > 330 and gcd.age <=360  ),0) AS "331-360 Count",
-            COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 330 and gcd.age <=360  ),0::money) AS "331-360 Sum",
-
-            COALESCE(count(gcd.balance) FILTER(where gcd.age > 361 and gcd.age <=450  ),0) AS "361-450(Q4) Count",
-            COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 361 and gcd.age <=450  ),0::money) AS "361-450(Q4) Sum",
-
-            COALESCE(count(gcd.balance) FILTER(where gcd.age > 451 and gcd.age <=540  ),0) AS "451-540(Q3) Count",
-            COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 451 and gcd.age <=540  ),0::money) AS "451-540(Q3) Sum",
-
-            COALESCE(count(gcd.balance) FILTER(where gcd.age > 541 and gcd.age <=630  ),0) AS "541-630(Q2) Count",
-            COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 541 and gcd.age <=630  ),0::money) AS "541-630(Q2) Sum",
-
-            COALESCE(count(gcd.balance) FILTER(where gcd.age > 631 and gcd.age <=730  ),0) AS "631-730(Q1) Count",
-            COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 631 and gcd.age <=730  ),0::money) AS "631-730(Q1) Sum",
-
-            COALESCE(count(gcd.balance) FILTER(where gcd.age > 730  ),0) AS "730+ Count",
-            COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 730),0::money) AS "730+ Sum",
-
-            <% } else { %>
-                COALESCE(COUNT(gcd.balance) FILTER(where gcd.age > 120 ),0) AS "120+ Count",
-                COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 120 ),0::money) AS "120+ Sum",
-            <%}%>
-
-    SUM(gcd.balance) AS "Total Balance",
-    COUNT(gcd.balance) AS "Total Count"
+        'All'::text  as "Facility",
+        <% if(incPatDetail == 'true') { %>
+          CASE
+             WHEN primary_patient_insurance_id IS NOT NULL THEN 'Primary Insurance'
+             ELSE '-- No payer --'  END AS "Responsible Party",
+        <%} else {%>
+          CASE
+             WHEN payer_type = 'primary_insurance' THEN 'Insurance'
+             WHEN payer_type = 'secondary_insurance' THEN 'Insurance'
+             WHEN payer_type = 'tertiary_insurance' THEN 'Insurance'
+             WHEN payer_type = 'referring_provider' THEN 'Provider'
+             WHEN payer_type = 'patient' THEN 'Patient'
+             WHEN payer_type = 'ordering_facility' THEN 'Ordering Facility'
+          END AS "Responsible Party",
+        <% } %>
+          CASE
+             WHEN payer_type = 'primary_insurance' THEN pip.insurance_name
+             WHEN payer_type = 'secondary_insurance' THEN pip.insurance_name
+             WHEN payer_type = 'tertiary_insurance' THEN pip.insurance_name
+             WHEN payer_type = 'referring_provider' THEN  ppr.full_name
+             WHEN payer_type = 'patient' THEN get_full_name(pp.last_name,pp.first_name)
+             WHEN payer_type = 'ordering_facility' THEN ppg.group_name
+          END AS "Payer Name",
+        pippt.description AS "Provider Type",
+        CASE
+           WHEN MAX(pip.insurance_info->'ediCode') ='A' THEN 'Attorney'
+           WHEN MAX(pip.insurance_info->'ediCode') ='C' THEN 'Medicare'
+           WHEN MAX(pip.insurance_info->'ediCode') ='D' THEN 'Medicaid'
+           WHEN MAX(pip.insurance_info->'ediCode') ='F' THEN 'Commercial'
+           WHEN MAX(pip.insurance_info->'ediCode') ='G' THEN 'Blue Cross'
+           WHEN MAX(pip.insurance_info->'ediCode') ='R' THEN 'RailRoad MC'
+           WHEN MAX(pip.insurance_info->'ediCode') ='W' THEN 'Workers Compensation'
+           WHEN MAX(pip.insurance_info->'ediCode') ='X' THEN 'X Champus'
+           WHEN MAX(pip.insurance_info->'ediCode') ='Y' THEN 'Y Facility'
+           WHEN MAX(pip.insurance_info->'ediCode' )='M' THEN 'M DMERC'
+        ELSE   ''
+        END  AS  "EDI",
+        COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age <= 30 ),0) AS "0-30 Count",
+        COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age <= 30 ),0::MONEY) AS "0-30 Sum",
+        COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 30 and gcd.age <=60  ),0) AS "31-60 Count",
+        COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 30 and gcd.age <=60  ),0::MONEY) AS "31-60 Sum",
+        COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 60 and gcd.age <=90  ),0) AS "61-90 Count",
+        COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 60 and gcd.age <=90  ),0::MONEY) AS "61-90 Sum",
+        COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 90 and gcd.age <=120  ),0) AS "91-120 Count",
+        COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 90 and gcd.age <=120  ),0::MONEY) AS "91-120 Sum" ,
+        <% if(excelExtented == 'true') { %>
+           COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 120 and gcd.age <=150  ),0) AS "121-150 Count",
+           COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 120 and gcd.age <=150  ),0::MONEY) AS "121-150 Sum",
+           COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 150 and gcd.age <=180  ),0) AS "151-180 Count",
+           COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 120 and gcd.age <=150  ),0::MONEY) AS "151-180 Sum",
+           COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 180 and gcd.age <=210  ),0) AS "181-210 Count",
+           COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 180 and gcd.age <=210  ),0::MONEY) AS "181-210 Sum",
+           COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 210 and gcd.age <=240  ),0) AS "211-240 Count",
+           COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 210 and gcd.age <=240  ),0::MONEY) AS "211-240 Sum",
+           COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 240 and gcd.age <=270  ),0) AS "240-270 Count",
+           COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 240 and gcd.age <=270  ),0::MONEY) AS "240-270 Sum",
+           COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 270 and gcd.age <=300  ),0) AS "271-300 Count",
+           COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 270 and gcd.age <=300  ),0::MONEY) AS "271-300 Sum",
+           COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 300 and gcd.age <=330  ),0) AS "301-330 Count",
+           COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 300 and gcd.age <=330  ),0::MONEY) AS "301-330 Sum",
+           COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 330 and gcd.age <=360  ),0) AS "331-360 Count",
+           COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 330 and gcd.age <=360  ),0::MONEY) AS "331-360 Sum",
+           COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 361 and gcd.age <=450  ),0) AS "361-450(Q4) Count",
+           COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 361 and gcd.age <=450  ),0::MONEY) AS "361-450(Q4) Sum",
+           COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 451 and gcd.age <=540  ),0) AS "451-540(Q3) Count",
+           COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 451 and gcd.age <=540  ),0::MONEY) AS "451-540(Q3) Sum",
+           COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 541 and gcd.age <=630  ),0) AS "541-630(Q2) Count",
+           COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 541 and gcd.age <=630  ),0::MONEY) AS "541-630(Q2) Sum",
+           COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 631 and gcd.age <=730  ),0) AS "631-730(Q1) Count",
+           COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 631 and gcd.age <=730  ),0::MONEY) AS "631-730(Q1) Sum",
+           COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 730  ),0) AS "730+ Count",
+           COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 730),0::MONEY) AS "730+ Sum",
+        <% } else { %>
+            COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 120 ),0) AS "120+ Count",
+            COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 120 ),0::MONEY) AS "120+ Sum",
+        <% } %>
+        SUM(gcd.balance) AS "Total Balance",
+        COUNT(gcd.balance) AS "Total Count"
     FROM billing.claims bc
     INNER JOIN get_claim_details gcd ON gcd.claim_id = bc.id
     INNER JOIN public.patients pp ON pp.id = bc.patient_id
     INNER JOIN public.facilities pf ON pf.id = bc.facility_id
-   LEFT JOIN public.patient_insurances ppi ON ppi.id = CASE WHEN payer_type = 'primary_insurance' THEN primary_patient_insurance_id
-       WHEN payer_type = 'secondary_insurance' THEN secondary_patient_insurance_id
-       WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id
-   END
+    LEFT JOIN public.patient_insurances ppi ON ppi.id =
+            CASE WHEN payer_type = 'primary_insurance' THEN primary_patient_insurance_id
+                 WHEN payer_type = 'secondary_insurance' THEN secondary_patient_insurance_id
+                 WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id
+            END
     LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
     LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
     LEFT JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id
     LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
     LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
     <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
-
-        WHERE 1 = 1
+        WHERE TRUE
         AND <%=companyId%>
         <% if (facilityIds) { %>AND <% print(facilityIds); } %>
         <% if(billingProID) { %> AND <% print(billingProID); } %>
-        <% if(excCreditBal == 'true'){ %> AND  gcd.balance::money > '0' <% } %>
+        <% if(excCreditBal == 'true'){ %> AND  gcd.balance::MONEY > '0' <% } %>
         <% if(insGroups) { %> AND <%=insGroups%> <%}%>
         <% if(insuranceIds) { %> AND <%=insuranceIds%> <%}%>
-    GROUP BY "Responsible Party","Payer Name",pippt.description
-
-    )
+    GROUP BY
+          "Responsible Party"
+        , "Payer Name"
+        , pippt.description
+  )
  SELECT
     "Facility",
     "Responsible Party",
+    to_char(<%= cutOffDate %>, 'MM/DD/YYYY') AS "Cut-off Date",
     "Payer Name",
     "Provider Type",
     "EDI",
@@ -314,177 +300,165 @@ END AS "Responsible Party",
     <% if(excelExtented == 'true') { %>
         "121-150 Count",
         "121-150 Sum",
-
         "151-180 Count",
         "151-180 Sum",
-
         "181-210 Count",
         "181-210 Sum",
-
         "211-240 Count",
         "211-240 Sum",
-
         "240-270 Count",
         "240-270 Sum",
-
         "271-300 Count",
         "271-300 Sum",
-
         "301-330 Count",
         "301-330 Sum",
-
         "331-360 Count",
         "331-360 Sum",
-
         "361-450(Q4) Count",
         "361-450(Q4) Sum",
-
         "451-540(Q3) Count",
         "451-540(Q3) Sum",
-
         "541-630(Q2) Count",
         "541-630(Q2) Sum",
-
         "631-730(Q1) Count",
         "631-730(Q1) Sum",
-
         "730+ Count",
         "730+ Sum",
-
-        <% } else { %>
-            "120+ Count",
-            "120+ Sum",
-        <%}%>
+    <% } else { %>
+        "120+ Count",
+        "120+ Sum",
+    <% } %>
     "Total Balance",
     "Total Count"
-FROM
- aged_ar_summary_details
-
- <% if(insGroups == null  && insuranceIds == null) { %>
-UNION ALL
-
-SELECT
-    null::text "Facility",
-    null::text responsible_party,
-    ('--- Patient ---')::text "Payer Name",
-    null::text,
-    null::text,
-    COALESCE(count(gcd.balance) FILTER(where gcd.age <= 30 ),0) AS "0-30 Count",
-    COALESCE(SUM(gcd.balance) FILTER(where gcd.age <= 30 ),0::money) AS "0-30 Sum",
-    COALESCE(count(gcd.balance) FILTER(where gcd.age > 30 and gcd.age <=60  ),0) AS "31-60 Count",
-    COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 30 and gcd.age <=60  ),0::money) AS "31-60 Sum",
-    COALESCE(count(gcd.balance) FILTER(where gcd.age > 60 and gcd.age <=90  ),0) AS "61-90 Count",
-    COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 60 and gcd.age <=90  ),0::money) AS "61-90 Sum",
-    COALESCE(count(gcd.balance) FILTER(where gcd.age > 90 and gcd.age <=120  ),0) AS "91-120 Count",
-    COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 90 and gcd.age <=120  ),0::money) AS "91-120 Sum" ,
+ FROM
+    aged_ar_summary_details
+<% if(insGroups == null  && insuranceIds == null) { %>
+  UNION ALL
+   SELECT
+        NULL::TEXT "Facility",
+        NULL::TEXT responsible_party,
+        NULL::TEXT "Cut-off Date",
+        ('--- Patient ---')::text "Payer Name",
+        NULL::TEXT,
+        NULL::TEXT,
+        COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age <= 30 ),0) AS "0-30 Count",
+        COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age <= 30 ),0::MONEY) AS "0-30 Sum",
+        COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 30 and gcd.age <=60  ),0) AS "31-60 Count",
+        COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 30 and gcd.age <=60  ),0::MONEY) AS "31-60 Sum",
+        COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 60 and gcd.age <=90  ),0) AS "61-90 Count",
+        COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 60 and gcd.age <=90  ),0::MONEY) AS "61-90 Sum",
+        COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 90 and gcd.age <=120  ),0) AS "91-120 Count",
+        COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 90 and gcd.age <=120  ),0::MONEY) AS "91-120 Sum" ,
         <% if(excelExtented == 'true') { %>
-        COALESCE(count(gcd.balance) FILTER(where gcd.age > 120 and gcd.age <=150  ),0) AS "121-150 Count",
-        COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 120 and gcd.age <=150  ),0::money) AS "121-150 Sum" ,
-        COALESCE(count(gcd.balance) FILTER(where gcd.age > 150 and gcd.age <=180  ),0) AS "151-180 Count",
-        COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 150 and gcd.age <=180  ),0::money) AS "151-180 Sum" ,
-        COALESCE(count(gcd.balance) FILTER(where gcd.age > 180 and gcd.age <=210  ),0) AS "181-210 Count",
-        COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 180 and gcd.age <=210  ),0::money) AS "181-210 Sum" ,
-        COALESCE(count(gcd.balance) FILTER(where gcd.age > 210 and gcd.age <=240  ),0) AS "211-240 Count",
-        COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 210 and gcd.age <=240  ),0::money) AS "210-240 Sum" ,
-        COALESCE(count(gcd.balance) FILTER(where gcd.age > 240 and gcd.age <=270  ),0) AS "241-270 Count",
-        COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 240 and gcd.age <=270  ),0::money) AS "241-270 Sum" ,
-        COALESCE(count(gcd.balance) FILTER(where gcd.age > 270 and gcd.age <=300  ),0) AS "271-300 Count",
-        COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 270 and gcd.age <=300  ),0::money) AS "271-300 Sum" ,
-        COALESCE(count(gcd.balance) FILTER(where gcd.age > 300 and gcd.age <=330  ),0) AS "301-330 Count",
-        COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 300 and gcd.age <=330  ),0::money) AS "301-330 Sum" ,
-        COALESCE(count(gcd.balance) FILTER(where gcd.age > 330 and gcd.age <=360  ),0) AS "331-360 Count",
-        COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 330 and gcd.age <=360  ),0::money) AS "331-360 Sum" ,
-        COALESCE(count(gcd.balance) FILTER(where gcd.age > 360 and gcd.age <=450  ),0) AS "361-450(Q4) Count",
-        COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 360 and gcd.age <=450  ),0::money) AS "361-450(Q4) Sum",
-        COALESCE(count(gcd.balance) FILTER(where gcd.age > 450 and gcd.age <=540  ),0) AS "451-540(Q3) Count",
-        COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 450 and gcd.age <=540  ),0::money) AS "451-540(Q3) Sum",
-        COALESCE(count(gcd.balance) FILTER(where gcd.age > 540 and gcd.age <=630  ),0) AS "540-630(Q2) Count",
-        COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 540 and gcd.age <=630  ),0::money) AS "540-630(Q2) Sum",
-        COALESCE(count(gcd.balance) FILTER(where gcd.age > 630 and gcd.age <=730  ),0) AS "630-730(Q1)) Count",
-        COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 630 and gcd.age <=730  ),0::money) AS "630-730(Q1) Sum",
-        COALESCE(COUNT(gcd.balance) FILTER(where gcd.age > 730 ),0) AS "730+ Count",
-        COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 730 ),0::money) AS "730+ Sum",
+          COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 120 and gcd.age <=150  ),0) AS "121-150 Count",
+          COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 120 and gcd.age <=150  ),0::MONEY) AS "121-150 Sum" ,
+          COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 150 and gcd.age <=180  ),0) AS "151-180 Count",
+          COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 150 and gcd.age <=180  ),0::MONEY) AS "151-180 Sum" ,
+          COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 180 and gcd.age <=210  ),0) AS "181-210 Count",
+          COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 180 and gcd.age <=210  ),0::MONEY) AS "181-210 Sum" ,
+          COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 210 and gcd.age <=240  ),0) AS "211-240 Count",
+          COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 210 and gcd.age <=240  ),0::MONEY) AS "210-240 Sum" ,
+          COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 240 and gcd.age <=270  ),0) AS "241-270 Count",
+          COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 240 and gcd.age <=270  ),0::MONEY) AS "241-270 Sum" ,
+          COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 270 and gcd.age <=300  ),0) AS "271-300 Count",
+          COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 270 and gcd.age <=300  ),0::MONEY) AS "271-300 Sum" ,
+          COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 300 and gcd.age <=330  ),0) AS "301-330 Count",
+          COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 300 and gcd.age <=330  ),0::MONEY) AS "301-330 Sum" ,
+          COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 330 and gcd.age <=360  ),0) AS "331-360 Count",
+          COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 330 and gcd.age <=360  ),0::MONEY) AS "331-360 Sum" ,
+          COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 360 and gcd.age <=450  ),0) AS "361-450(Q4) Count",
+          COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 360 and gcd.age <=450  ),0::MONEY) AS "361-450(Q4) Sum",
+          COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 450 and gcd.age <=540  ),0) AS "451-540(Q3) Count",
+          COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 450 and gcd.age <=540  ),0::MONEY) AS "451-540(Q3) Sum",
+          COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 540 and gcd.age <=630  ),0) AS "540-630(Q2) Count",
+          COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 540 and gcd.age <=630  ),0::MONEY) AS "540-630(Q2) Sum",
+          COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 630 and gcd.age <=730  ),0) AS "630-730(Q1)) Count",
+          COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 630 and gcd.age <=730  ),0::MONEY) AS "630-730(Q1) Sum",
+          COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 730 ),0) AS "730+ Count",
+          COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 730 ),0::MONEY) AS "730+ Sum",
         <% } else { %>
-            COALESCE(COUNT(gcd.balance) FILTER(where gcd.age > 120 ),0) AS "120+ Count",
-            COALESCE(SUM(gcd.balance) FILTER(where gcd.age > 120 ),0::money) AS "120+ Sum",
-        <%}%>
-         SUM(gcd.balance) AS "Total Balance",
-         COUNT(gcd.balance) AS "Total Count"
-         FROM billing.claims bc
-         INNER JOIN get_claim_details gcd ON gcd.claim_id = bc.id
-         INNER JOIN public.patients pp ON pp.id = bc.patient_id
-         INNER JOIN public.facilities pf ON pf.id = bc.facility_id
-        LEFT JOIN public.patient_insurances ppi ON ppi.id = CASE WHEN payer_type = 'primary_insurance' THEN primary_patient_insurance_id
-            WHEN payer_type = 'secondary_insurance' THEN secondary_patient_insurance_id
-            WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id
-        END
-         LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
-         LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
-         LEFT JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id
-         LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
-         LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
-         <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
-
-             WHERE 1 = 1
-             AND <%=companyId%>
-             <% if (facilityIds) { %>AND <% print(facilityIds); } %>
-             <% if(billingProID) { %> AND <% print(billingProID); } %>
-             <% if(excCreditBal == 'true'){ %> AND  gcd.balance::money > '0' <% } %>
-             <% if(insGroups) { %> AND <%=insGroups%> <%}%>
-             <% if(insuranceIds) { %> AND <%=insuranceIds%> <%}%>
-             AND payer_type = 'patient'
+          COALESCE(COUNT(gcd.balance) FILTER(WHERE gcd.age > 120 ),0) AS "120+ Count",
+          COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 120 ),0::MONEY) AS "120+ Sum",
+        <% } %>
+        SUM(gcd.balance) AS "Total Balance",
+        COUNT(gcd.balance) AS "Total Count"
+        FROM
+            billing.claims bc
+        INNER JOIN get_claim_details gcd ON gcd.claim_id = bc.id
+        INNER JOIN public.patients pp ON pp.id = bc.patient_id
+        INNER JOIN public.facilities pf ON pf.id = bc.facility_id
+        LEFT JOIN public.patient_insurances ppi ON ppi.id =
+                CASE WHEN payer_type = 'primary_insurance' THEN primary_patient_insurance_id
+                     WHEN payer_type = 'secondary_insurance' THEN secondary_patient_insurance_id
+                     WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id
+                END
+        LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
+        LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
+        LEFT JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id
+        LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
+        LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
+        <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
+        WHERE TRUE
+            AND <%=companyId%>
+            <% if (facilityIds) { %>AND <% print(facilityIds); } %>
+            <% if(billingProID) { %> AND <% print(billingProID); } %>
+            <% if(excCreditBal == 'true'){ %> AND  gcd.balance::MONEY > '0' <% } %>
+            <% if(insGroups) { %> AND <%=insGroups%> <%}%>
+            <% if(insuranceIds) { %> AND <%=insuranceIds%> <% } %>
+            AND payer_type = 'patient'
 <% } %>
- UNION ALL
- SELECT
-    null::text "Facility",
-    null::text responsible_party,
-    ('--- Total A R ---')::text "Payer Name",
-    null::text "Provider Type",
-    null::text "EDI",
-    sum("0-30 Count") AS "0-30 Count",
-    sum(cast("0-30 Sum" AS NUMERIC))::MONEY as "0-30 Sum",
-    sum("31-60 Count") AS "31-60 Count",
-    sum(cast("31-60 Sum" AS NUMERIC))::MONEY as "31-60 Sum",
-    sum("61-90 Count") AS "61-90 Count",
-    sum(cast("61-90 Sum" AS NUMERIC))::MONEY as "61-90 Sum",
-    sum("91-120 Count") AS "91-120 Count",
-    sum(cast("91-120 Sum" AS NUMERIC))::MONEY as "91-120 Sum",
-    <% if(excelExtented == 'true') { %>
-        sum("121-150 Count") AS "121-150 Count",
-        sum(cast("121-150 Sum" AS NUMERIC))::MONEY as "121-150 Sum",
-        sum("151-180 Count") AS "151-180 Count",
-        sum(cast("151-180 Sum" AS NUMERIC))::MONEY as "151-180 Sum",
-        sum("181-210 Count") AS "181-210 Count",
-        sum(cast("181-210 Sum" AS NUMERIC))::MONEY as "181-210 Sum",
-        sum("211-240 Count") AS "211-240 Count",
-        sum(cast("211-240 Sum" AS NUMERIC))::MONEY as "211-240 Sum",
-        sum("240-270 Count") AS "240-270 Count",
-        sum(cast("240-270 Sum" AS NUMERIC))::MONEY as "240-270 Sum",
-        sum("271-300 Count") AS "271-300 Count",
-        sum(cast("271-300 Sum" AS NUMERIC))::MONEY as "271-300 Sum",
-        sum("301-330 Count") AS "301-330 Count",
-        sum(cast("301-330 Sum" AS NUMERIC))::MONEY as "301-330 Sum",
-        sum("331-360 Count") AS "331-360 Count",
-        sum(cast("331-360 Sum" AS NUMERIC))::MONEY as "331-360 Sum",
-        sum("361-450(Q4) Count") AS "361-450(Q4) Count",
-        sum(cast("361-450(Q4) Sum" AS NUMERIC))::MONEY as "361-450(Q4) Sum",
-        sum("451-540(Q3) Count") AS "121-150  Count",
-        sum(cast("451-540(Q3) Sum" AS NUMERIC))::MONEY as "451-540(Q3) Sum",
-        sum("541-630(Q2) Count") AS "541-630(Q2) Count",
-        sum(cast("541-630(Q2) Sum" AS NUMERIC))::MONEY as "541-630(Q2) Sum",
-        sum("631-730(Q1) Count") AS "631-730(Q1) Count",
-        sum(cast("631-730(Q1) Sum" AS NUMERIC))::MONEY as "631-730(Q1) Sum",
-        sum("730+ Count") AS "730+ Count",
-        sum(cast("730+ Sum" AS NUMERIC))::MONEY as "730+ Sum",
+  UNION ALL
+   SELECT
+        NULL::TEXT "Facility",
+        NULL::TEXT responsible_party,
+        NULL::TEXT "Cut-off Date",
+        ('--- Total A R ---')::text "Payer Name",
+        NULL::TEXT "Provider Type",
+        NULL::TEXT "EDI",
+        SUM("0-30 Count") AS "0-30 Count",
+        SUM(CAST("0-30 Sum" AS NUMERIC))::MONEY as "0-30 Sum",
+        SUM("31-60 Count") AS "31-60 Count",
+        SUM(CAST("31-60 Sum" AS NUMERIC))::MONEY as "31-60 Sum",
+        SUM("61-90 Count") AS "61-90 Count",
+        SUM(CAST("61-90 Sum" AS NUMERIC))::MONEY as "61-90 Sum",
+        SUM("91-120 Count") AS "91-120 Count",
+        SUM(CAST("91-120 Sum" AS NUMERIC))::MONEY as "91-120 Sum",
+        <% if(excelExtented == 'true') { %>
+            SUM("121-150 Count") AS "121-150 Count",
+            SUM(CAST("121-150 Sum" AS NUMERIC))::MONEY as "121-150 Sum",
+            SUM("151-180 Count") AS "151-180 Count",
+            SUM(CAST("151-180 Sum" AS NUMERIC))::MONEY as "151-180 Sum",
+            SUM("181-210 Count") AS "181-210 Count",
+            SUM(CAST("181-210 Sum" AS NUMERIC))::MONEY as "181-210 Sum",
+            SUM("211-240 Count") AS "211-240 Count",
+            SUM(CAST("211-240 Sum" AS NUMERIC))::MONEY as "211-240 Sum",
+            SUM("240-270 Count") AS "240-270 Count",
+            SUM(CAST("240-270 Sum" AS NUMERIC))::MONEY as "240-270 Sum",
+            SUM("271-300 Count") AS "271-300 Count",
+            SUM(CAST("271-300 Sum" AS NUMERIC))::MONEY as "271-300 Sum",
+            SUM("301-330 Count") AS "301-330 Count",
+            SUM(CAST("301-330 Sum" AS NUMERIC))::MONEY as "301-330 Sum",
+            SUM("331-360 Count") AS "331-360 Count",
+            SUM(CAST("331-360 Sum" AS NUMERIC))::MONEY as "331-360 Sum",
+            SUM("361-450(Q4) Count") AS "361-450(Q4) Count",
+            SUM(CAST("361-450(Q4) Sum" AS NUMERIC))::MONEY as "361-450(Q4) Sum",
+            SUM("451-540(Q3) Count") AS "121-150  Count",
+            SUM(CAST("451-540(Q3) Sum" AS NUMERIC))::MONEY as "451-540(Q3) Sum",
+            SUM("541-630(Q2) Count") AS "541-630(Q2) Count",
+            SUM(CAST("541-630(Q2) Sum" AS NUMERIC))::MONEY as "541-630(Q2) Sum",
+            SUM("631-730(Q1) Count") AS "631-730(Q1) Count",
+            SUM(CAST("631-730(Q1) Sum" AS NUMERIC))::MONEY as "631-730(Q1) Sum",
+            SUM("730+ Count") AS "730+ Count",
+            SUM(CAST("730+ Sum" AS NUMERIC))::MONEY as "730+ Sum",
         <% } else { %>
-            sum("120+ Count") AS "120+ Count",
-            sum(cast("120+ Sum" AS NUMERIC))::MONEY as "120+ Sum",
-        <%}%>
-    sum(cast("Total Balance" AS NUMERIC))::MONEY as "Total Balance",
-    sum("Total Count") AS "Total Count"
-FROM
-aged_ar_summary_details_p
- order by 1
+            SUM("120+ Count") AS "120+ Count",
+            SUM(CAST("120+ Sum" AS NUMERIC))::MONEY as "120+ Sum",
+        <% } %>
+        SUM(CAST("Total Balance" AS NUMERIC))::MONEY as "Total Balance",
+        SUM("Total Count") AS "Total Count"
+   FROM
+      aged_ar_summary_details_p
+ ORDER BY 1
 `);
 
 const api = {
@@ -532,7 +506,31 @@ const api = {
      *  If no transformations are to take place just return resolved promise => return Promise.resolve(rawReportData);
      */
     transformReportData: (rawReportData) => {
-        return Promise.resolve(rawReportData);
+        let rawReportDataSet = rawReportData.dataSets[0];
+        if (rawReportDataSet && rawReportDataSet.rowCount === 0) {
+            return Promise.resolve(rawReportData);
+        }
+        return new Promise((resolve, reject) => {
+            let agedARSummaryColumns = rawReportDataSet.columns;
+            let excelExtendedFlag = rawReportData.report.params;
+            const rowIndexes = {
+                amountSum_30: _.findIndex(agedARSummaryColumns, ['name', '0-30 Sum']),
+                amountSum_60: _.findIndex(agedARSummaryColumns, ['name', '31-60 Sum']),
+                amountSum_90: _.findIndex(agedARSummaryColumns, ['name', '61-90 Sum']),
+                amountSum_120: _.findIndex(agedARSummaryColumns, ['name', '91-120 Sum']),
+                amountSum_130: _.findIndex(agedARSummaryColumns, ['name', '120+ Sum']),
+                total_balance: _.findIndex(agedARSummaryColumns, ['name', 'Total Balance'])
+            }
+            if (excelExtendedFlag && excelExtendedFlag.excelExtended !== 'true') {
+                agedARSummaryColumns[rowIndexes.amountSum_30].cssClass = 'text-right';
+                agedARSummaryColumns[rowIndexes.amountSum_60].cssClass = 'text-right';
+                agedARSummaryColumns[rowIndexes.amountSum_90].cssClass = 'text-right';
+                agedARSummaryColumns[rowIndexes.amountSum_120].cssClass = 'text-right';
+                agedARSummaryColumns[rowIndexes.amountSum_130].cssClass = 'text-right';
+                agedARSummaryColumns[rowIndexes.total_balance].cssClass = 'text-right';
+            }
+            return resolve(rawReportData);
+        });
     },
 
     /**
