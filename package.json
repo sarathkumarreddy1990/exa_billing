@@ -20,7 +20,7 @@
         "test": "mocha --recursive test/unit"
     },
     "dependencies": {
-        "bluebird": "^3.5.1",
+        "bluebird": "^3.5.5",
         "body-parser": "^1.18.3",
         "connect-flash": "^0.1.1",
         "connect-redis": "^3.3.3",
