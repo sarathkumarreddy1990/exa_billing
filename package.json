@@ -46,7 +46,7 @@
         "pug": "2.0.0-beta11",
         "pump": "^3.0.0",
         "request": "^2.87.0",
-        "request-promise-native": "^1.0.5",
+        "request-promise-native": "^1.0.7",
         "response-time": "^2.3.2",
         "sprintf": "^0.1.5",
         "sql-template-strings": "^2.2.2",
