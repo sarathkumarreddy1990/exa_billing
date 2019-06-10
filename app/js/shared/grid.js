@@ -298,8 +298,7 @@ define('grid', [
                 var liBillingClass = commonjs.getRightClickMenu('ul_change_billing_class','setup.rightClickMenu.billingClass',false,'Change Billing Class',true);
                 $divObj.append(liBillingClass);
                 self.checkSubMenuRights('li_ul_change_billing_class');
-                var liArrayBillingClass = [];
-                
+                var liArrayBillingClass = [];               
                 var billingClassList = [
                     {
                         id: null,
