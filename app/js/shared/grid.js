@@ -266,15 +266,13 @@ define('grid', [
                 var liBillingCode = commonjs.getRightClickMenu('ul_change_billing_code','setup.rightClickMenu.billingCode',false,'Change Billing Code',true);
                 $divObj.append(liBillingCode);
                 self.checkSubMenuRights('li_ul_change_billing_code');
-                var liArrayBillingCode = [];
-                
+                var liArrayBillingCode = [];              
                 var billingCodeList = [
                     {
                         id: null,
                         code: null,
                         description: null
                     }].concat(app.billing_codes || []);
-
                 $.each(billingCodeList, function (index, billing_code) {
                     var data = {
                         billing_option: 'BILLINGCODE',
@@ -288,7 +286,6 @@ define('grid', [
                         description: billing_code ? billing_code.description : null 
                     }
                     var $billingCodeLink = $(commonjs.getRightClickMenu('ancBillingCode_' + (data.billing_code_id || 'none'), 'setup.rightClickMenu.billingCode', true, (index == 0 ? commonjs.geti18NString('setup.rightClickMenu.none') : billing.description), false));
-                    
                     self.billingLinkEvent($billingCodeLink, data, billing, $target);
                     liArrayBillingCode[liArrayBillingCode.length] = $billingCodeLink;
                 });
@@ -305,7 +302,6 @@ define('grid', [
                         code: null,
                         description: null
                     }].concat(app.billing_classes || []);
-
                 $.each(billingClassList, function (index, billing_class) {
                     var data = {
                         billing_option: 'BILLINGCLASS',
@@ -313,15 +309,12 @@ define('grid', [
                         process: "Billing Class",
                         billing_class_id:billing_class ? billing_class.id : null
                     };
-
                     var billing = {
                         status_message: 'messages.status.billingClassChanged',
                         column: 'billing_class',
                         description: billing_class ? billing_class.description : null 
                     };
-
                     var $BillingClassLink = $(commonjs.getRightClickMenu('ancBillingClass_' + (data.billing_class_id || 'none'), 'setup.rightClickMenu.billingClass', true, (index == 0 ? commonjs.geti18NString('setup.rightClickMenu.none') : billing.description), false));
-                    
                     self.billingLinkEvent($BillingClassLink, data, billing, $target);
                     liArrayBillingClass[liArrayBillingClass.length] = $BillingClassLink;
                 });
@@ -1804,6 +1797,5 @@ define('grid', [
                 });
             })
         }
-
     };
 });
