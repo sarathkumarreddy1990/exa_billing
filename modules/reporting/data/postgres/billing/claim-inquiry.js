@@ -154,9 +154,24 @@ const claimInquiryDataSetQueryTemplate = _.template(`
             INNER JOIN LATERAL (
                 SELECT
                     i_bc.id AS claim_id,
-                    json_build_array(p_pi.coverage_level,p_ip.insurance_name,to_char(p_pi.valid_to_date,'MM/DD/YYYY'),p_pi.policy_number,p_pi.group_number) AS primary_coverage_level,
-                    json_build_array(s_pi.coverage_level,s_ip.insurance_name,to_char(s_pi.valid_to_date,'MM/DD/YYYY'),s_pi.policy_number,s_pi.group_number) AS secondary_coverage_level,
-                    json_build_array(t_pi.coverage_level,t_ip.insurance_name,to_char(t_pi.valid_to_date,'MM/DD/YYYY'),t_pi.policy_number,t_pi.group_number) AS tertiary_coverage_level
+                    json_build_array(
+                            p_pi.coverage_level,
+                            p_ip.insurance_name,
+                            to_char(p_pi.valid_to_date,'MM/DD/YYYY'),
+                            p_pi.policy_number,p_pi.group_number
+                    ) AS primary_coverage_level,
+                    json_build_array(
+                            s_pi.coverage_level,
+                            s_ip.insurance_name,
+                            to_char(s_pi.valid_to_date,'MM/DD/YYYY'),
+                            s_pi.policy_number,s_pi.group_number
+                    ) AS secondary_coverage_level,
+                    json_build_array(
+                            t_pi.coverage_level,
+                            t_ip.insurance_name,
+                            to_char(t_pi.valid_to_date,'MM/DD/YYYY'),
+                            t_pi.policy_number,t_pi.group_number
+                    ) AS tertiary_coverage_level
                 FROM
                     billing.claims i_bc
                 LEFT JOIN public.patient_insurances p_pi ON p_pi.id = i_bc.primary_patient_insurance_id
