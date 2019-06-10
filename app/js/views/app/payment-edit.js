@@ -631,6 +631,7 @@ define(['jquery',
             },
 
             resetPatSearch: function () {
+                
                 if (!this.payment_id) {
                     this.payer_id = 0;
                 }
