@@ -206,9 +206,9 @@ const claimInquiryDataSetQueryTemplate = _.template(`
 const claimInquiryDataSetQueryTemplate1 = _.template(`
     WITH claim_data as (
             SELECT
-                bc.id AS claim_id
-              , p.full_name
-              , p.account_no
+               bc.id AS claim_id
+              ,p.full_name
+              ,p.account_no
             FROM
                 billing.claims bc
             INNER JOIN public.patients p on p.id = bc.patient_id
@@ -287,9 +287,9 @@ const claimInquiryDataSetQueryTemplate1 = _.template(`
                   <% if(billingProID) { %> AND <% print(billingProID); } %>
                   <% if(insGroups) { %> AND <%=insGroups%> <%}%>
             GROUP BY
-                  bc.id
-                , p.full_name
-                , p.account_no
+                 bc.id
+                ,p.full_name
+                ,p.account_no
             ORDER BY
                 p.full_name
                ,p.account_no ASC
@@ -298,8 +298,8 @@ const claimInquiryDataSetQueryTemplate1 = _.template(`
         (
             SELECT
                 cc.claim_id AS id,
-                'claim' AS type ,
-                note AS comments ,
+                'claim' AS type,
+                note AS comments,
                 to_char(created_dt::date,'<%= dateFormat %>') AS commented_dt,
                 NULL AS amount,
                 u.username AS commented_by,
@@ -328,7 +328,7 @@ const claimInquiryDataSetQueryTemplate1 = _.template(`
             UNION ALL
             SELECT
                 bc.claim_id AS id,
-                amount_type AS type ,
+                amount_type AS type,
                 CASE
                     WHEN bp.payer_type = 'patient' THEN
                        pp.full_name
@@ -364,12 +364,12 @@ const claimInquiryDataSetQueryTemplate1 = _.template(`
             LEFT JOIN public.provider_contacts  pc on pc.id = bp.provider_contact_id
             LEFT JOIN public.providers p on p.id = pc.provider_id
             GROUP BY
-                bp.id ,
-                bc.claim_id ,
-                amount_type ,
-                comments ,
-                commented_dt ,
-                commented_by ,
+                bp.id,
+                bc.claim_id,
+                amount_type,
+                comments,
+                commented_dt,
+                commented_by,
                 code
         )
         SELECT
