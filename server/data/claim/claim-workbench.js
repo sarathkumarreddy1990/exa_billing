@@ -60,7 +60,8 @@ module.exports = {
             clientIp,
             claimIds,
             companyId,
-            userId
+            userId,
+            billing_option
         } = params;
 
         params.logDescriptions = 'Updated ' + params.process + '  for claims ';
@@ -70,10 +71,10 @@ module.exports = {
 
         if (params.claim_status_id) {
             updateData = SQL`claim_status_id = ${claim_status_id}`;
-        } else if (params.billing_code_id) {
-            updateData = SQL`billing_code_id = ${billing_code_id}`;
-        } else if (params.billing_class_id) {
-            updateData = SQL`billing_class_id = ${billing_class_id}`;
+        } else if (billing_option ==='BILLINGCODE' || params.billing_code_id) {
+            updateData = SQL`billing_code_id =  NULLIF(${billing_code_id},'')::bigint`;
+        } else if (billing_option ==='BILLINGCLASS' || params.billing_class_id) {
+            updateData = SQL`billing_class_id =  NULLIF(${billing_class_id},'')::bigint`;
         }
 
         let sql = SQL`with update_cte as (UPDATE
@@ -82,7 +83,7 @@ module.exports = {
                     `;
 
         sql.append(updateData);
-        sql.append(SQL`WHERE  id = ANY(${claimIds}) RETURNING id, '{}'::jsonb old_values)`);
+        sql.append(SQL` WHERE  id = ANY(${claimIds}) RETURNING id, '{}'::jsonb old_values)`);
 
         sql.append(SQL`SELECT billing.create_audit(
                                   ${companyId}

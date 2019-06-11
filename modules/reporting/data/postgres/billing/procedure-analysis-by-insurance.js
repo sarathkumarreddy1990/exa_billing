@@ -1,101 +1,132 @@
-const _ = require('lodash')
-    , Promise = require('bluebird')
-    , db = require('../db')
-    , dataHelper = require('../dataHelper')
-    , queryBuilder = require('../queryBuilder')
-    , logger = require('../../../../../logger')
-    , moment = require('moment');
+const _ = require('lodash');
+const Promise = require('bluebird');
+const db = require('../db');
+const dataHelper = require('../dataHelper');
+const queryBuilder = require('../queryBuilder');
+const logger = require('../../../../../logger');
+const moment = require('moment');
 
 // generate query template ***only once*** !!!
 
 const ProcedureAnalysisInsuranceDataSetQueryTemplate = _.template(`
-with claim_details as (
-    WITH payment_details AS ( SELECT
-        CASE WHEN bpa.amount_type = 'payment' THEN bpa.amount END payment_amount,
-        CASE WHEN bpa.amount_type = 'adjustment' THEN bpa.amount END adjustment,
-        CASE WHEN bp.payer_type = 'patient' THEN 'P'
-             WHEN (bp.payer_type = 'insurance' and (bp.insurance_provider_id = ppi.insurance_provider_id))  THEN 'I'
-             ELSE 'O' END pymt_tag,
-           bpa.charge_id
-     FROM billing.payments bp
+WITH claim_details AS (
+    WITH payment_details AS (
+     SELECT
+         CASE WHEN bpa.amount_type = 'payment' THEN bpa.amount END payment_amount,
+         CASE WHEN bpa.amount_type = 'adjustment' THEN bpa.amount END adjustment,
+         CASE WHEN bp.payer_type = 'patient' THEN 'P'
+              WHEN (bp.payer_type = 'insurance' and (bp.insurance_provider_id = ppi.insurance_provider_id))  THEN 'I'
+              ELSE 'O' END pymt_tag,
+         bpa.charge_id
+     FROM
+        billing.payments bp
      INNER JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
      INNER JOIN billing.charges bch on bch.id = bpa.charge_id
      INNER JOIN billing.claims bc on bc.id = bch.claim_id
      INNER JOIN public.patient_insurances ppi ON ppi.id =  bc.primary_patient_insurance_id
-    ORDER BY payment_id ),
-    payment_summary AS  (  SELECT
-            COALESCE (SUM(payment_amount) FILTER ( WHERE pymt_tag = 'P'), 0::money) AS pmt_p,
-            COALESCE (SUM(adjustment) FILTER ( WHERE pymt_tag = 'P'), 0::money) AS adj_p,
-            COALESCE (SUM(payment_amount) FILTER ( WHERE pymt_tag = 'I'), 0::money) AS pmt_i,
-            COALESCE (SUM(adjustment) FILTER ( WHERE pymt_tag = 'I'), 0::money) AS adj_i,
-            COALESCE (SUM(payment_amount) FILTER ( WHERE pymt_tag = 'O'), 0::money) AS pmt_o,
-            COALESCE (SUM(adjustment) FILTER ( WHERE pymt_tag = 'O'), 0::money) AS adj_o,
-            charge_id,
-            sum( COALESCE(COALESCE(NULLIF(payment_amount::numeric, 'NaN'),'0')::money, 0::money) + COALESCE(COALESCE(NULLIF(adjustment::numeric, 'NaN'),'0')::money, 0::money)) AS cpt_pymt_adj
-        FROM
-            payment_details
-        GROUP BY
-            charge_id
-        HAVING
-            SUM(COALESCE(NULLIF(payment_amount::numeric, 'NaN'),'0')::money)::numeric > 0
-            OR SUM(COALESCE(NULLIF(adjustment::numeric, 'NaN'),'0')::money)::numeric > 0)
-        SELECT
-            pip.insurance_name AS "Insurance",
-            bp.name AS "Billing Provider",
-            pippt.description AS "Payer Type",
-            get_full_name (pp.last_name, pp.first_name, pp.middle_name, pp.prefix_name, pp.suffix_name) AS "Patient",
-            pp.account_no AS "Account #",
-            f.facility_name AS "Facility",
-            bc.id AS "Encounter ID",
-            to_char(timezone(f.time_zone, bc.claim_dt)::date, '<%= dateFormat %>') AS "<%= dateHeader %>",
-            pcc.display_code AS "<%= codeHeader %>",
-            pcc.display_description AS "Study Description",
-            pm.modality_code AS "Modality",
-            (bch.bill_fee * bch.units ) AS "Charges",
-            (bch.allowed_amount * bch.units ) AS "Allowed Amount",
-            COALESCE (ps.pmt_i, 0::money) AS "Ins Pay",
-            COALESCE (ps.adj_i, 0::money) AS "Ins Adj",
-            COALESCE (ps.pmt_p, 0::money) AS "Patient Pay",
-            COALESCE (ps.adj_p, 0::money) AS "Patient Adj",
-            COALESCE (ps.pmt_o, 0::money) AS "Others Pay",
-            COALESCE (ps.adj_o, 0::money) AS "Others Adj",
-            (bch.bill_fee * bch.units ) - COALESCE (cpt_pymt_adj , 0::money) AS "Balance"
-            <% if ( refProviderFlagValue === 'true' ) { %>
-           , ppr.full_name   AS "Referring Physician"
-
-            <% } %>
-        FROM
-        billing.claims bc
-        INNER JOIN public.patients pp ON pp.id = bc.patient_id
-        INNER JOIN public.facilities AS f ON f.id = bc.facility_id
-        INNER JOIN billing.charges bch ON bch.claim_id = bc.id
-        INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
-        LEFT JOIN payment_summary ps ON ps.charge_id = bch.id
-        INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
-        INNER JOIN billing.charges_studies bcs ON bcs.charge_id = bch.id
-        INNER JOIN public.studies pss on pss.id = bcs.study_id
-        INNER  JOIN public.patient_insurances AS ppi ON ppi.id =  bc.primary_patient_insurance_id
-        LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
-        LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
-        LEFT JOIN public.modalities pm on pm.id = pss.modality_id
-        <% if ( refProviderFlagValue === 'true' ) { %>
-            LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
-            LEFT JOIN public.providers as ppr ON ppr.id = ppc.provider_id
-            <% } %>
-
-        WHERE 1=1
-        AND   <%= companyId %>
-        AND <%= claimDate %>
-       <% if (facilityIds) { %> AND <% print(facilityIds); } %>
-       <% if(billingProID) { %> AND <% print(billingProID); } %>
-       <% if(insuranceProviderIds) { %>AND <% print(insuranceProviderIds);} %>
-       <% if(cptIds) { %>AND <% print(cptIds);} %>
-       <% if(referringProID) { %>AND <% print(referringProID);} %>
-       <% if(providerGroupID) { %>AND <% print(providerGroupID);} %>
-       <% if(payerIds) { %>AND <% print(payerIds);} %>
-
+     ORDER BY payment_id
+    ),
+    payment_summary AS (
+     SELECT
+         COALESCE (SUM(payment_amount) FILTER ( WHERE pymt_tag = 'P'), 0::MONEY) AS pmt_p,
+         COALESCE (SUM(adjustment) FILTER ( WHERE pymt_tag = 'P'), 0::MONEY) AS adj_p,
+         COALESCE (SUM(payment_amount) FILTER ( WHERE pymt_tag = 'I'), 0::MONEY) AS pmt_i,
+         COALESCE (SUM(adjustment) FILTER ( WHERE pymt_tag = 'I'), 0::MONEY) AS adj_i,
+         COALESCE (SUM(payment_amount) FILTER ( WHERE pymt_tag = 'O'), 0::MONEY) AS pmt_o,
+         COALESCE (SUM(adjustment) FILTER ( WHERE pymt_tag = 'O'), 0::MONEY) AS adj_o,
+         charge_id,
+         SUM( COALESCE(COALESCE(NULLIF(payment_amount::numeric, 'NaN'),'0')::MONEY, 0::MONEY) + COALESCE(COALESCE(NULLIF(adjustment::numeric, 'NaN'),'0')::MONEY, 0::MONEY)) AS cpt_pymt_adj
+     FROM
+         payment_details
+     GROUP BY
+          charge_id
+     HAVING
+          SUM(COALESCE(NULLIF(payment_amount::numeric, 'NaN'),'0')::MONEY)::numeric > 0
+          OR SUM(COALESCE(NULLIF(adjustment::numeric, 'NaN'),'0')::MONEY)::numeric > 0
     )
-    select * from claim_details
+     SELECT
+         pip.insurance_name AS "Insurance",
+         bp.name AS "Billing Provider",
+         pippt.description AS "Payer Type",
+         get_full_name (pp.last_name, pp.first_name, pp.middle_name, pp.prefix_name, pp.suffix_name) AS "Patient",
+         pp.account_no AS "Account #",
+         f.facility_name AS "Facility",
+         bc.id AS "Encounter ID",
+         to_char(timezone(f.time_zone, bc.claim_dt)::date, '<%= dateFormat %>') AS "<%= dateHeader %>",
+         pcc.display_code AS "<%= codeHeader %>",
+         pcc.display_description AS "Study Description",
+         pm.modality_code AS "Modality",
+         SUM((bch.bill_fee * bch.units)) AS "Charges",
+         SUM((bch.allowed_amount * bch.units)) AS "Allowed Amount",
+         SUM(COALESCE (ps.pmt_i, 0::MONEY)) AS "Ins Pay",
+         SUM(COALESCE (ps.adj_i, 0::MONEY)) AS "Ins Adj",
+         SUM(COALESCE (ps.pmt_p, 0::MONEY)) AS "Patient Pay",
+         SUM(COALESCE (ps.adj_p, 0::MONEY)) AS "Patient Adj",
+         SUM(COALESCE (ps.pmt_o, 0::MONEY)) AS "Others Pay",
+         SUM(COALESCE (ps.adj_o, 0::MONEY)) AS "Others Adj",
+         SUM((bch.bill_fee * bch.units ) - COALESCE (cpt_pymt_adj , 0::MONEY)) AS "Balance"
+         <% if ( refProviderFlagValue === 'true' ) { %>
+           , ppr.full_name   AS "Referring Physician"
+         <% } %>
+     FROM
+        billing.claims bc
+     INNER JOIN public.patients pp ON pp.id = bc.patient_id
+     INNER JOIN public.facilities AS f ON f.id = bc.facility_id
+     INNER JOIN billing.charges bch ON bch.claim_id = bc.id
+     INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
+     INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
+     INNER JOIN billing.charges_studies bcs ON bcs.charge_id = bch.id
+     INNER JOIN public.studies pss on pss.id = bcs.study_id
+     INNER JOIN public.patient_insurances AS ppi ON ppi.id =  bc.primary_patient_insurance_id
+     LEFT JOIN payment_summary ps ON ps.charge_id = bch.id
+     LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
+     LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
+     LEFT JOIN public.modalities pm on pm.id = pss.modality_id
+     <% if ( refProviderFlagValue === 'true' ) { %>
+        LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
+        LEFT JOIN public.providers as ppr ON ppr.id = ppc.provider_id
+     <% } %>
+     WHERE
+        <%= companyId %>
+        AND <%= claimDate %>
+        <% if (facilityIds) { %> AND <% print(facilityIds); } %>
+        <% if(billingProID) { %> AND <% print(billingProID); } %>
+        <% if(insuranceProviderIds) { %>AND <% print(insuranceProviderIds);} %>
+        <% if(cptIds) { %>AND <% print(cptIds);} %>
+        <% if(referringProID) { %>AND <% print(referringProID);} %>
+        <% if(providerGroupID) { %>AND <% print(providerGroupID);} %>
+        <% if(payerIds) { %>AND <% print(payerIds);} %>
+     GROUP BY
+        GROUPING SETS
+            (
+              ( <% if (refProviderFlagValue === 'true') { %>
+                    "Referring Physician"
+                <% } else { %>
+                    "Insurance"
+                <% } %>
+              ),
+              (
+                 "Insurance"
+               , "Billing Provider"
+               , "Payer Type"
+               , "Patient"
+               , "Account #"
+               , "Facility"
+               , "Encounter ID"
+               , "CPT Date"
+               , "CPT Code"
+               , "Study Description"
+               , "Modality"
+               <% if ( refProviderFlagValue === 'true' ) { %>
+                  , "Referring Physician"
+               <% } %>
+               , cpt_pymt_adj),
+              ())
+  )
+    SELECT
+        *
+    FROM
+       claim_details
 `);
 
 const api = {
@@ -161,7 +192,35 @@ const api = {
      *  If no transformations are to take place just return resolved promise => return Promise.resolve(rawReportData);
      */
     transformReportData: (rawReportData) => {
-        return Promise.resolve(rawReportData);
+        let rawReportDataSet = rawReportData.dataSets[0];
+        if (rawReportDataSet && rawReportDataSet.rowCount === 0) {
+            return Promise.resolve(rawReportData);
+        }
+        return new Promise((resolve, reject) => {
+            let procedureAnlayseColumns = rawReportDataSet.columns;
+            const rowIndexes = {
+                charges: _.findIndex(procedureAnlayseColumns, ['name', 'Charges']),
+                allowedAmount: _.findIndex(procedureAnlayseColumns, ['name', 'Allowed Amount']),
+                insurancePayment: _.findIndex(procedureAnlayseColumns, ['name', 'Ins Pay']),
+                insuranceAdjustment: _.findIndex(procedureAnlayseColumns, ['name', 'Ins Adj']),
+                patientPayment: _.findIndex(procedureAnlayseColumns, ['name', 'Patient Pay']),
+                patientAdjustment: _.findIndex(procedureAnlayseColumns, ['name', 'Patient Adj']),
+                othersPayment: _.findIndex(procedureAnlayseColumns, ['name', 'Others Pay']),
+                othersAdjustment: _.findIndex(procedureAnlayseColumns, ['name', 'Others Adj']),
+                balance: _.findIndex(procedureAnlayseColumns, ['name', 'Balance']),
+
+            }
+            procedureAnlayseColumns[rowIndexes.charges].cssClass = 'text-right';
+            procedureAnlayseColumns[rowIndexes.allowedAmount].cssClass = 'text-right';
+            procedureAnlayseColumns[rowIndexes.insurancePayment].cssClass = 'text-right';
+            procedureAnlayseColumns[rowIndexes.insuranceAdjustment].cssClass = 'text-right';
+            procedureAnlayseColumns[rowIndexes.patientPayment].cssClass = 'text-right';
+            procedureAnlayseColumns[rowIndexes.patientAdjustment].cssClass = 'text-right';
+            procedureAnlayseColumns[rowIndexes.othersPayment].cssClass = 'text-right';
+            procedureAnlayseColumns[rowIndexes.othersAdjustment].cssClass = 'text-right';
+            procedureAnlayseColumns[rowIndexes.balance].cssClass = 'text-right';
+            return resolve(rawReportData);
+        });
     },
 
     /**
