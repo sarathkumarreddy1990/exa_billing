@@ -1,271 +1,264 @@
-const _ = require('lodash')
-    , Promise = require('bluebird')
-    , db = require('../db')
-    , dataHelper = require('../dataHelper')
-    , queryBuilder = require('../queryBuilder')
-    , logger = require('../../../../../logger')
-    , moment = require('moment');
-;
+const _ = require('lodash');
+const Promise = require('bluebird');
+const db = require('../db');
+const dataHelper = require('../dataHelper');
+const queryBuilder = require('../queryBuilder');
+const moment = require('moment');
 
 const summaryQueryTemplate = _.template(`
-          WITH paymentsSummaryQuery as (
-                SELECT
-                    bp.payer_type as payer_type,
-                    bp.id as payment_id,
-                    CASE
-                       WHEN bp.mode = 'eft' THEN
-                            UPPER(bp.mode)
-                       WHEN bp.mode = 'check' AND '<%= country_alpha_3_code %>' = 'can' 
-                       THEN
-                            'Cheque'
-                       ELSE
-                           InitCap(bp.mode)
-                    END                 AS payment_mode,
-                    SUM(CASE
-                            WHEN bpa.amount_type ='payment' THEN
-                                 bpa.amount
-                            ELSE
-                                 0.00::MONEY
-                        END
-                       ) AS payment_applied,
-                    SUM(CASE
-                            WHEN bpa.amount_type ='adjustment' THEN
-                                bpa.amount
-                            ELSE
-                                0.00::MONEY
-                            END
-                        ) AS adjustment,
-                    MAX(bp.amount) AS total_payment
-                FROM
-                    billing.payments bp
-                LEFT JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
-                LEFT JOIN facilities f on f.id = bp.facility_id
-                <% if (billingProID) { %>
-                    INNER JOIN billing.charges bch on bch.id = bpa.charge_id
-                    INNER JOIN billing.claims bc on bc.id = bch.claim_id
-                    INNER JOIN billing.providers bpr ON bpr.id = bc.billing_provider_id
-                <% } %>
-                <% if (userIds) { %>  INNER join public.users on users.id = bp.created_by    <% } %>
-                <% if (userRoleIds) { %>
-                    <% if (userIds) { %>
-                         INNER JOIN  public.user_groups ON users.user_group_id = public.user_groups.id AND public.user_groups.is_active
-                         INNER JOIN public.user_roles ON  public.user_roles.id = ANY(public.user_groups.user_roles) AND public.user_roles.is_active
-                       <% } else { %>
-                         INNER join public.users  on users.id = bp.created_by
-                         INNER JOIN  public.user_groups ON users.user_group_id = public.user_groups.id AND public.user_groups.is_active
-                         INNER JOIN public.user_roles ON  public.user_roles.id = ANY(public.user_groups.user_roles) AND public.user_roles.is_active
-                      <% } %>
-                   <%  } %>
-                <% if (paymentStatus) { %>  INNER JOIN LATERAL billing.get_payment_totals(bp.id) AS payment_totals ON TRUE   <% } %>
-                <% if (adjustmentCodeIds || allAdjustmentCode == 'true') { %>
-                    INNER JOIN LATERAL (
-                        SELECT
-                           DISTINCT i_bpa.payment_id as payment_id,
-                           i_bpa.charge_id as charge_id,
-                           CASE when adjustment_code_id is null then false else true END as has_adjustment
-                        FROM  billing.payment_applications i_bpa
-                        WHERE i_bpa.payment_id = bp.id
-                      AND  i_bpa.adjustment_code_id is not null
-                      <% if (adjustmentCodeIds) { %> AND  <% print(adjustmentCodeIds); } %>
-                    )have_adjustment on have_adjustment.payment_id = bp.id and have_adjustment.charge_id = bpa.charge_id
-                <% } %>
-                <% if(insGroups || insuranceIds) { %>
-                    LEFT JOIN insurance_providers ip ON ip.id = bp.insurance_provider_id
-                    LEFT JOIN provider_groups ON bp.provider_group_id = provider_groups.id
-                    LEFT JOIN  insurance_provider_payer_types ippt ON ippt.id = ip.provider_payer_type_id
-                  <%}%>
-                WHERE
-                <%= claimDate %>
-                <% if (facilityIds) { %>AND <% print(facilityIds); } %>
-                <% if(billingProID) { %> AND <% print(billingProID); } %>
-                <% if (userIds) { %>AND <% print(userIds); } %>
-                <% if (userRoleIds) { %>AND <% print(userRoleIds); } %>
-                <% if (paymentStatus) { %>AND  <% print(paymentStatus); } %>
-                <% if(insuranceIds) { %> AND <%=insuranceIds%> <%}%>
-                <% if(insGroups) { %> AND <%=insGroups%> <%}%>
-                GROUP BY
-                     bp.payer_type, bp.id
-          )
-          SELECT
-                <% if (summaryType == "Payment Mode")  { %>
-
-                    CASE
-                    WHEN payment_mode IS NULL THEN 'Total'
-                    ELSE
-                    payment_mode
-                    END             AS "Payment Mode",
-
-                <% } else { %>
-                    CASE
-                    WHEN payer_type IS NULL THEN 'Payer Type Total'
-                    ELSE
-
-                    CASE
-                    WHEN
-                       payer_type = 'patient' THEN  'Patient'
-
-                     WHEN
-                      payer_type = 'insurance' THEN 'Insurance'
-                     WHEN
-                       payer_type = 'ordering_facility' THEN 'Ordering Facility'
-                      WHEN
-                       payer_type = 'ordering_provider' THEN 'Provider'
-
-                    END
-                    END  AS "Payer Type",
-                <% } %>
-                    SUM(payment_applied)  AS "Total Payment Applied",
-                    SUM(total_payment - payment_applied) AS "Total Payment UnApplied",
-                    SUM(total_payment) AS "Total Payment Amount",
-                    SUM(adjustment) AS "Total Adjustment"
+    WITH paymentSummaryQuery AS (
+        SELECT
+             bp.payer_type,
+             bp.id AS payment_id,
+             CASE
+                WHEN bp.mode = 'eft' THEN
+                     UPPER(bp.mode)
+                WHEN bp.mode = 'check' AND '<%= country_alpha_3_code %>' = 'can'
+                THEN
+                     'Cheque'
+                ELSE
+                    InitCap(bp.mode)
+             END  AS payment_mode,
+             SUM(CASE
+                     WHEN bpa.amount_type ='payment' THEN
+                          bpa.amount
+                     ELSE
+                          0.00::MONEY
+                 END
+                ) AS payment_applied,
+             SUM(CASE
+                     WHEN bpa.amount_type ='adjustment' THEN
+                         bpa.amount
+                     ELSE
+                         0.00::MONEY
+                     END
+                ) AS adjustment,
+             MAX(bp.amount) AS total_payment
+        FROM
+            billing.payments bp
+        LEFT JOIN billing.payment_applications bpa ON bpa.payment_id = bp.id
+        LEFT JOIN facilities f ON f.id = bp.facility_id
+        <% if (billingProID || facilityLists) { %>
+           INNER JOIN billing.charges bch ON bch.id = bpa.charge_id
+           INNER JOIN billing.claims bc ON bc.id = bch.claim_id
+           INNER JOIN billing.providers bpr ON bpr.id = bc.billing_provider_id
+        <% } %>
+        <% if (userIds) { %>  INNER JOIN public.users ON users.id = bp.created_by <% } %>
+           <% if (userRoleIds) { %>
+             <% if (userIds) { %>
+               INNER JOIN  public.user_groups ON users.user_group_id = public.user_groups.id AND public.user_groups.is_active
+               INNER JOIN public.user_roles ON  public.user_roles.id = ANY(public.user_groups.user_roles) AND public.user_roles.is_active
+             <% } else { %>
+               INNER JOIN public.users  ON users.id = bp.created_by
+               INNER JOIN  public.user_groups ON users.user_group_id = public.user_groups.id AND public.user_groups.is_active
+               INNER JOIN public.user_roles ON  public.user_roles.id = ANY(public.user_groups.user_roles) AND public.user_roles.is_active
+             <% } %>
+           <%  } %>
+        <% if (paymentStatus) { %>  INNER JOIN LATERAL billing.get_payment_totals(bp.id) AS payment_totals ON TRUE   <% } %>
+        <% if (adjustmentCodeIds || allAdjustmentCode == 'true') { %>
+        INNER JOIN LATERAL (
+            SELECT
+                DISTINCT i_bpa.payment_id AS payment_id,
+                i_bpa.charge_id AS charge_id,
+                CASE when adjustment_code_id is null then false else true END AS has_adjustment
             FROM
-                paymentsSummaryQuery
-
-                <% if (summaryType == "Payment Mode")  { %>
-                    GROUP BY
-                    ROLLUP (payment_mode) ORDER BY payment_mode
-                    <% } else { %>
-                        GROUP BY
-                        ROLLUP (payer_type) ORDER BY payer_type
-                        <% } %>
-        `);
+                billing.payment_applications i_bpa
+            WHERE
+                i_bpa.payment_id = bp.id
+                AND i_bpa.adjustment_code_id is not null
+                <% if (adjustmentCodeIds) { %> AND  <% print(adjustmentCodeIds); } %>
+        ) have_adjustment ON have_adjustment.payment_id = bp.id and have_adjustment.charge_id = bpa.charge_id
+        <% } %>
+        <% if(insGroups || insuranceIds) { %>
+           LEFT JOIN insurance_providers ip ON ip.id = bp.insurance_provider_id
+           LEFT JOIN provider_groups ON bp.provider_group_id = provider_groups.id
+           LEFT JOIN insurance_provider_payer_types ippt ON ippt.id = ip.provider_payer_type_id
+        <% } %>
+        WHERE
+           <%= claimDate %>
+           <% if (facilityIds) { %>AND <% print(facilityIds); } %>
+           <% if (facilityLists) { %>AND <% print(facilityLists); } %>
+           <% if(billingProID) { %> AND <% print(billingProID); } %>
+           <% if (userIds) { %>AND <% print(userIds); } %>
+           <% if (userRoleIds) { %>AND <% print(userRoleIds); } %>
+           <% if (paymentStatus) { %>AND  <% print(paymentStatus); } %>
+           <% if(insuranceIds) { %> AND <%=insuranceIds%> <%}%>
+           <% if(insGroups) { %> AND <%=insGroups%> <%}%>
+        GROUP BY
+             bp.payer_type, bp.id
+    )
+        SELECT
+             <% if (summaryType == "Payment Mode")  { %>
+                CASE
+                   WHEN payment_mode IS NULL THEN 'Total'
+                ELSE
+                   payment_mode
+                END AS "Payment Mode",
+            <% } else { %>
+                CASE
+                   WHEN payer_type IS NULL THEN 'Payer Type Total'
+                ELSE
+                    CASE
+                        WHEN payer_type = 'patient' THEN  'Patient'
+                        WHEN payer_type = 'insurance' THEN 'Insurance'
+                        WHEN payer_type = 'ordering_facility' THEN 'Ordering Facility'
+                        WHEN payer_type = 'ordering_provider' THEN 'Provider'
+                    END
+                END  AS "Payer Type",
+            <% } %>
+            SUM(payment_applied) AS "Total Payment Applied",
+            SUM(total_payment - payment_applied) AS "Total Payment UnApplied",
+            SUM(total_payment) AS "Total Payment Amount",
+            SUM(adjustment) AS "Total Adjustment"
+        FROM
+            paymentSummaryQuery
+        <% if (summaryType == "Payment Mode")  { %>
+            GROUP BY
+                ROLLUP (payment_mode)
+            ORDER BY payment_mode
+        <% } else { %>
+            GROUP BY
+                ROLLUP (payer_type)
+            ORDER BY payer_type
+        <% } %>
+  `);
 // Data set #2, detailed query
 const detailQueryTemplate = _.template(`
-         WITH payment_data as
-         (
-            SELECT
-                bp.id payment_id,
-                bc.id  claim_id,
-                SUM(CASE WHEN amount_type= 'payment' then bpa.amount  else 0::money end) AS applied_amount,
-                SUM(CASE WHEN amount_type= 'adjustment' then bpa.amount  else 0::money end) AS adjustment,
-                bac.description AS description
-                <% if (userIds) { %> , MAX(users.username) AS user_name    <% } %>
-            FROM
-                billing.payments bp
-            LEFT JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
-            LEFT JOIN billing.charges bch on bch.id = bpa.charge_id
-            LEFT JOIN billing.claims  bc on bc.id = bch.claim_id
-            <% if (billingProID) { %>  INNER JOIN billing.providers bpr ON bpr.id = bc.billing_provider_id <% } %>
-            <% if (userIds) { %>  INNER join public.users  users on users.id = bp.created_by    <% } %>
-            <% if (userRoleIds) { %>
-                <% if (userIds) { %>
-                     INNER JOIN  public.user_groups ON users.user_group_id = public.user_groups.id AND public.user_groups.is_active
-                     INNER JOIN public.user_roles ON  public.user_roles.id = ANY(public.user_groups.user_roles) AND public.user_roles.is_active
-                   <% } else { %>
-                     INNER join public.users users on users.id = bp.created_by
-                     INNER JOIN  public.user_groups ON users.user_group_id = public.user_groups.id AND public.user_groups.is_active
-                     INNER JOIN public.user_roles ON  public.user_roles.id = ANY(public.user_groups.user_roles) AND public.user_roles.is_active
-                  <% } %>
-               <%  } %>
-               <% if (adjustmentCodeIds || allAdjustmentCode == 'true') { %>
-                INNER JOIN LATERAL (
-                    SELECT
-                       DISTINCT i_bpa.payment_id as payment_id,
-                       i_bpa.charge_id as charge_id,
-                       CASE when adjustment_code_id is null then false else true END as has_adjustment
-                    FROM  billing.payment_applications i_bpa
-                    WHERE i_bpa.payment_id = bp.id
-                  AND  i_bpa.adjustment_code_id is not null
-                  <% if (adjustmentCodeIds) { %> AND  <% print(adjustmentCodeIds); } %>
-                )have_adjustment on have_adjustment.payment_id = bp.id and have_adjustment.charge_id = bpa.charge_id
-               <% } %>
-               LEFT JOIN LATERAL (
-                   SELECT
-                       i_bac.description
-                   FROM
-                       billing.payment_applications i_bpa
-                   INNER JOIN billing.adjustment_codes i_bac ON i_bac.id = i_bpa.adjustment_code_id
-                   WHERE
-                       i_bpa.payment_id = bp.id
-                   ORDER BY i_bpa.id
-                   LIMIT 1
-              ) bac ON TRUE
-           WHERE
+    WITH payment_data AS (
+        SELECT
+            bp.id payment_id,
+            bc.id  claim_id,
+            SUM(CASE WHEN amount_type= 'payment' then bpa.amount  else 0::money end) AS applied_amount,
+            SUM(CASE WHEN amount_type= 'adjustment' then bpa.amount  else 0::money end) AS adjustment,
+            bac.description AS description
+            <% if (userIds) { %> , MAX(users.username) AS user_name  <% } %>
+        FROM
+            billing.payments bp
+        LEFT JOIN billing.payment_applications bpa ON bpa.payment_id = bp.id
+        LEFT JOIN billing.charges bch ON bch.id = bpa.charge_id
+        LEFT JOIN billing.claims  bc ON bc.id = bch.claim_id
+        <% if (billingProID) { %>  INNER JOIN billing.providers bpr ON bpr.id = bc.billing_provider_id <% } %>
+        <% if (userIds) { %>  INNER JOIN public.users  users ON users.id = bp.created_by    <% } %>
+        <% if (userRoleIds) { %>
+            <% if (userIds) { %>
+                INNER JOIN  public.user_groups ON users.user_group_id = public.user_groups.id AND public.user_groups.is_active
+                INNER JOIN public.user_roles ON  public.user_roles.id = ANY(public.user_groups.user_roles) AND public.user_roles.is_active
+            <% } else { %>
+                INNER JOIN public.users users ON users.id = bp.created_by
+                INNER JOIN  public.user_groups ON users.user_group_id = public.user_groups.id AND public.user_groups.is_active
+                INNER JOIN public.user_roles ON  public.user_roles.id = ANY(public.user_groups.user_roles) AND public.user_roles.is_active
+            <% } %>
+        <% } %>
+        <% if (adjustmentCodeIds || allAdjustmentCode == 'true') { %>
+            INNER JOIN LATERAL (
+                SELECT
+                    DISTINCT i_bpa.payment_id AS payment_id,
+                    i_bpa.charge_id AS charge_id,
+                    CASE
+                        WHEN adjustment_code_id IS NULL THEN FALSE
+                    ELSE
+                        TRUE
+                    END AS has_adjustment
+                FROM
+                    billing.payment_applications i_bpa
+                WHERE
+                    i_bpa.payment_id = bp.id
+                    AND i_bpa.adjustment_code_id is not null
+                    <% if (adjustmentCodeIds) { %> AND  <% print(adjustmentCodeIds); } %>
+            ) have_adjustment ON have_adjustment.payment_id = bp.id and have_adjustment.charge_id = bpa.charge_id
+        <% } %>
+        LEFT JOIN LATERAL (
+                SELECT
+                    i_bac.description
+                FROM
+                    billing.payment_applications i_bpa
+                INNER JOIN billing.adjustment_codes i_bac ON i_bac.id = i_bpa.adjustment_code_id
+                WHERE
+                    i_bpa.payment_id = bp.id
+                ORDER BY
+                    i_bpa.id
+                LIMIT 1
+        ) bac ON TRUE
+        WHERE
             <%= claimDate %>
             <% if (facilityIds) { %>AND <% print(facilityIds); } %>
+            <% if (facilityLists) { %>AND <% print(facilityLists); } %>
             <% if(billingProID) { %> AND <% print(billingProID); } %>
             <% if (userIds) { %>AND <% print(userIds); } %>
             <% if (userRoleIds) { %>AND <% print(userRoleIds); } %>
-            GROUP BY bp.id, bc.id, bac.description )
-                SELECT
-                    to_char(p.accounting_date, '<%= dateFormat %>')   AS "Accounting Date",
-                    f.facility_name  AS "Facility Name",
-                    pd.payment_id AS "Payment ID",
-         	        pd.claim_id AS "Claim  ID",
-         	        get_full_name(pp.last_name, pp.first_name, pp.middle_name, pp.prefix_name, pp.suffix_name) AS "Patient Name",
-         	        pp.account_no "Account #" ,
-         	        to_char(c.claim_dt, '<%= dateFormat %>') "Claim Date",
-
-
-                     CASE
-                      WHEN
-                         p.payer_type = 'patient' THEN  'Patient'
-
-                       WHEN
-                        p.payer_type = 'insurance' THEN 'Insurance'
-                       WHEN
-                         p.payer_type = 'ordering_facility' THEN 'Ordering Facility'
-                        WHEN
-                         p.payer_type = 'ordering_provider' THEN 'Provider'
-                         END  AS "Payer Type",
-                     pippt.description AS "Payer Group",
-                     CASE
-                      WHEN
-                         p.payer_type = 'patient' THEN
-                         get_full_name(p_pp.last_name,
-                                        p_pp.first_name,
-                                        p_pp.middle_name,
-                                        p_pp.prefix_name,
-                                        p_pp.suffix_name)
-                       WHEN
-                        p.payer_type = 'insurance' THEN ip.insurance_name
-                       WHEN
-                         p.payer_type = 'ordering_facility' THEN f.facility_name
-                        WHEN
-                         p.payer_type = 'ordering_provider' then pr.last_name ||','|| pr.first_name
-                         END  AS "Payer Name",
-                    CASE
-                       WHEN p.mode = 'eft' THEN
-                            UPPER(p.mode)
-                       WHEN p.mode = 'check' AND '<%= country_alpha_3_code %>' = 'can' THEN
-                            'Cheque'
-                       ELSE
-                           InitCap(p.mode)
-                    END  AS "Payment Mode",
-                    <% if (country_alpha_3_code == 'can') { %>
-                        p.card_number AS "Cheque #",
-                    <% } else { %>
-                        p.card_number AS "Check #",
-                    <% } %>
-         	        payment_totals.payments_applied_total AS "Applied Total",
-         	        p.amount "Payment Amount",
-                    (p.amount - payment_totals.payments_applied_total) AS "Balance",
-                    pd.applied_amount AS "Applied Amount",
-                    pd.adjustment AS "Adjustment Amount",
-                    pd.description AS "Adjustment Code"
-                    <% if (userIds) { %>, user_name AS "User Name" <% } %>
-                FROM
-                    payment_data pd
-                INNER join billing.payments p on p.id = pd.payment_id
-                INNER JOIN LATERAL billing.get_payment_totals(p.id) AS payment_totals ON TRUE
-                LEFT join facilities f on f.id = p.facility_id
-                LEFT join billing.claims c on c.id = pd.claim_id
-                LEFT join billing.claim_status cs on cs.id = c.claim_status_id
-                LEFT join public.insurance_providers ip on ip.id = p.insurance_provider_id
-                LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = ip.provider_payer_type_id
-                LEFT join public.Provider_contacts pc on pc.id = provider_contact_id
-                LEFT join public.Providers pr on pr.id = pc.provider_id
-                LEFT join public.patients pp on pp.id = c.patient_id
-                LEFT join public.patients p_pp on p_pp.id = p.patient_id
-                <% if(insGroups) { %>
-                LEFT JOIN provider_groups ON p.provider_group_id  = provider_groups.id
-                LEFT JOIN  insurance_provider_payer_types ippt ON ippt.id = ip.provider_payer_type_id
-                <%}%>
-                WHERE TRUE
-                <% if (paymentStatus) { %> AND <%= paymentStatus %> <% } %>
-                <% if(insuranceIds) { %> AND <%=insuranceIds%> <%}%>
-                <% if(insGroups) { %> AND <%=insGroups%> <%}%>
-            `);
+        GROUP BY
+            bp.id, bc.id, bac.description
+    )
+    SELECT
+        to_char(p.accounting_date, '<%= dateFormat %>')   AS "Accounting Date",
+        f.facility_name  AS "Paid Location",
+        fac.facility_name  AS "Claim Facility",
+        pd.payment_id AS "Payment ID",
+        pd.claim_id AS "Claim  ID",
+        get_full_name(pp.last_name, pp.first_name, pp.middle_name, pp.prefix_name, pp.suffix_name) AS "Patient Name",
+        pp.account_no "Account #",
+        to_char(c.claim_dt, '<%= dateFormat %>') "Claim Date",
+        CASE
+            WHEN p.payer_type = 'patient' THEN  'Patient'
+            WHEN p.payer_type = 'insurance' THEN 'Insurance'
+            WHEN p.payer_type = 'ordering_facility' THEN 'Ordering Facility'
+            WHEN p.payer_type = 'ordering_provider' THEN 'Provider'
+        END AS "Payer Type",
+        pippt.description AS "Payer Group",
+        CASE
+            WHEN p.payer_type = 'patient' THEN
+                get_full_name(p_pp.last_name,
+                            p_pp.first_name,
+                            p_pp.middle_name,
+                            p_pp.prefix_name,
+                            p_pp.suffix_name)
+            WHEN p.payer_type = 'insurance' THEN ip.insurance_name
+            WHEN p.payer_type = 'ordering_facility' THEN f.facility_name
+            WHEN p.payer_type = 'ordering_provider' then pr.last_name ||','|| pr.first_name
+        END AS "Payer Name",
+        CASE
+           WHEN p.mode = 'eft' THEN
+                UPPER(p.mode)
+           WHEN p.mode = 'check' AND '<%= country_alpha_3_code %>' = 'can' THEN
+                'Cheque'
+           ELSE
+               InitCap(p.mode)
+        END AS "Payment Mode",
+        <% if (country_alpha_3_code == 'can') { %>
+            p.card_number AS "Cheque #",
+        <% } else { %>
+            p.card_number AS "Check #",
+        <% } %>
+        payment_totals.payments_applied_total AS "Applied Total",
+        p.amount "Payment Amount",
+        (p.amount - payment_totals.payments_applied_total) AS "Balance",
+        pd.applied_amount AS "Applied Amount",
+        pd.adjustment AS "Adjustment Amount",
+        pd.description AS "Adjustment Code"
+        <% if (userIds) { %>, user_name AS "User Name" <% } %>
+    FROM
+        payment_data pd
+    INNER JOIN billing.payments p ON p.id = pd.payment_id
+    INNER JOIN LATERAL billing.get_payment_totals(p.id) AS payment_totals ON TRUE
+    LEFT JOIN facilities f ON f.id = p.facility_id
+    LEFT JOIN billing.claims c ON c.id = pd.claim_id
+    LEFT JOIN facilities fac ON fac.id = c.facility_id
+    LEFT JOIN billing.claim_status cs ON cs.id = c.claim_status_id
+    LEFT JOIN public.insurance_providers ip ON ip.id = p.insurance_provider_id
+    LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = ip.provider_payer_type_id
+    LEFT JOIN public.Provider_contacts pc ON pc.id = provider_contact_id
+    LEFT JOIN public.Providers pr ON pr.id = pc.provider_id
+    LEFT JOIN public.patients pp ON pp.id = c.patient_id
+    LEFT JOIN public.patients p_pp ON p_pp.id = p.patient_id
+    <% if(insGroups) { %>
+       LEFT JOIN provider_groups ON p.provider_group_id  = provider_groups.id
+       LEFT JOIN  insurance_provider_payer_types ippt ON ippt.id = ip.provider_payer_type_id
+    <% } %>
+    WHERE TRUE
+        <% if (paymentStatus) { %> AND <%= paymentStatus %> <% } %>
+        <% if(insuranceIds) { %> AND <%=insuranceIds%> <%}%>
+        <% if(insGroups) { %> AND <%=insGroups%> <%}%>
+ `);
 
 const api = {
 
@@ -316,10 +309,38 @@ const api = {
     },
 
     transformReportData: (rawReportData) => {
-        //   if (rawReportData.dataSets[0].rowCount === 0) {
-        return Promise.resolve(rawReportData);
-        // }
+        let rawReportDataSet = rawReportData.dataSets[0];
+        let summaryDataSet = rawReportData.dataSets[0].summaryDataSets[0];
+        if (rawReportDataSet && rawReportDataSet.rowCount === 0) {
+            return Promise.resolve(rawReportData);
+        }
+        return new Promise((resolve, reject) => {
+            let paymentColumns = rawReportDataSet.columns;
+            let paymentSummaryColumns = summaryDataSet.columns;
+            const rowIndexes = {
+                totalPaymentApplied: _.findIndex(paymentSummaryColumns, ['name', 'Total Payment Applied']),
+                totalPaymentUnApplied: _.findIndex(paymentSummaryColumns, ['name', 'Total Payment UnApplied']),
+                totalPaymentAmount: _.findIndex(paymentSummaryColumns, ['name', 'Total Payment Amount']),
+                totalAdjustment: _.findIndex(paymentSummaryColumns, ['name', 'Total Adjustment']),
+                appliedTotal: _.findIndex(paymentColumns, ['name', 'Applied Total']),
+                paymentAmount: _.findIndex(paymentColumns, ['name', 'Payment Amount']),
+                balance: _.findIndex(paymentColumns, ['name', 'Balance']),
+                appliedAmount: _.findIndex(paymentColumns, ['name', 'Applied Amount']),
+                adjustmentAmount: _.findIndex(paymentColumns, ['name', 'Adjustment Amount'])
+            }
+            paymentSummaryColumns[rowIndexes.totalPaymentApplied].cssClass = 'text-right';
+            paymentSummaryColumns[rowIndexes.totalPaymentUnApplied].cssClass = 'text-right';
+            paymentSummaryColumns[rowIndexes.totalPaymentAmount].cssClass = 'text-right';
+            paymentSummaryColumns[rowIndexes.totalAdjustment].cssClass = 'text-right';
+            paymentColumns[rowIndexes.appliedTotal].cssClass = 'text-right';
+            paymentColumns[rowIndexes.paymentAmount].cssClass = 'text-right';
+            paymentColumns[rowIndexes.balance].cssClass = 'text-right';
+            paymentColumns[rowIndexes.appliedAmount].cssClass = 'text-right';
+            paymentColumns[rowIndexes.adjustmentAmount].cssClass = 'text-right';
+            return resolve(rawReportData);
+        });
     },
+
     getJsReportOptions: (reportParams, reportDefinition) => {
         return reportDefinition.jsreport[reportParams.reportFormat];
     },
@@ -331,9 +352,15 @@ const api = {
         const params = initialReportData.report.params;
         const filtersUsed = [];
         if (params.allFacilities && params.facilityIds)
-            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
+            filtersUsed.push({ name: 'facilities', label: 'Paid Facilities', value: 'All' });
         else {
             const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.map(Number).indexOf(parseInt(f.id, 10)) > -1).map(f => f.name).value();
+            filtersUsed.push({ name: 'facilities', label: 'Paid Facilities', value: facilityNames });
+        }
+        if (params.selectAllFacilities && params.facilityLists)
+            filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
+        else {
+            const facilityNames = _(lookups.facilities).filter(f => params.facilityLists && params.facilityLists.map(Number).indexOf(parseInt(f.id, 10)) > -1).map(f => f.name).value();
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
         }
         // Billing provider Filter
@@ -415,14 +442,21 @@ const api = {
             allAdjustmentCode: null,
             insuranceIds: null,
             insGroups: null,
-            country_alpha_3_code: null
+            country_alpha_3_code: null,
+            facilityLists: null
         };
 
 
-        //claim facilities
+        //Paid facilities
         if (!reportParams.allFacilities && reportParams.facilityIds) {
             params.push(reportParams.facilityIds);
             filters.facilityIds = queryBuilder.whereIn('bp.facility_id', [params.length]);
+        }
+
+        //claim facilities
+        if (!reportParams.selectAllFacilities && reportParams.facilityLists) {
+            params.push(reportParams.facilityLists);
+            filters.facilityLists = queryBuilder.whereIn('bc.facility_id', [params.length]);
         }
 
         //  scheduled_dt
@@ -470,8 +504,8 @@ const api = {
             filters.adjustmentCodeIds = queryBuilder.whereIn('i_bpa.adjustment_code_id', [params.length]);
         }
 
-         // Select All Adjustment Code
-         filters.allAdjustmentCode = reportParams.allAdjustmentCode;
+        // Select All Adjustment Code
+        filters.allAdjustmentCode = reportParams.allAdjustmentCode;
 
         // Insurance Id Mapping
         if (reportParams.insuranceIds && reportParams.insuranceIds.length) {
@@ -494,7 +528,7 @@ const api = {
     // ================================================================================================================
     // --- DATA SET #2
     createDetailDataSet: (reportParams) => {
-        // 1 - build the query context. Each report will 'know' how to do this, based on report params and query/queries to be executed...
+        // 1 - build the query context. Each report will 'know' how to do this, based ON report params and query/queries to be executed...
         const queryContext = api.getDetailQueryContext(reportParams);
         // 2 - geenrate query to execute
         const query = detailQueryTemplate(queryContext.templateData);
@@ -516,14 +550,21 @@ const api = {
             allAdjustmentCode: null,
             insuranceIds: null,
             insGroups: null,
-            country_alpha_3_code: null
+            country_alpha_3_code: null,
+            facilityLists: null
         };
 
 
-        //claim facilities
+        //Payment facilities
         if (!reportParams.allFacilities && reportParams.facilityIds) {
             params.push(reportParams.facilityIds);
             filters.facilityIds = queryBuilder.whereIn('bp.facility_id', [params.length]);
+        }
+
+        //Claim facilities
+        if (!reportParams.selectAllFacilities && reportParams.facilityLists) {
+            params.push(reportParams.facilityLists);
+            filters.facilityLists = queryBuilder.whereIn('bc.facility_id', [params.length]);
         }
 
         //  scheduled_dt
@@ -564,14 +605,14 @@ const api = {
             filters.paymentStatus = queryBuilder.whereIn('payment_totals.payment_status', [params.length]);
         }
 
-         // Adjustment Code ID
-            if (reportParams.adjustmentCodeIds) {
-                params.push(reportParams.adjustmentCodeIds);
-                filters.adjustmentCodeIds = queryBuilder.whereIn('i_bpa.adjustment_code_id', [params.length]);
-            }
+        // Adjustment Code ID
+        if (reportParams.adjustmentCodeIds) {
+            params.push(reportParams.adjustmentCodeIds);
+            filters.adjustmentCodeIds = queryBuilder.whereIn('i_bpa.adjustment_code_id', [params.length]);
+        }
 
-         // Select All Adjustment Code
-            filters.allAdjustmentCode = reportParams.allAdjustmentCode;
+        // Select All Adjustment Code
+        filters.allAdjustmentCode = reportParams.allAdjustmentCode;
 
         // Insurance Id Mapping
         if (reportParams.insuranceIds && reportParams.insuranceIds.length) {
@@ -584,7 +625,7 @@ const api = {
             params.push(reportParams.insuranceGroupIds);
             filters.insGroups = queryBuilder.whereIn(`ippt.id`, [params.length]);
         }
-        
+
         filters.country_alpha_3_code = reportParams.country_alpha_3_code;
 
         filters.dateFormat = reportParams.dateFormat;

@@ -39,9 +39,11 @@ define([
                 insGroupOption: null,
                 insuranceIds: null,
                 insuranceGroupIds: null,
-                allInsGrpSelection: false
+                allInsGrpSelection: false,
+                selectAllFacilities: false
             },
             selectedBillingProList: [],
+            selectedPaidFacilityList: [],
             selectedFacilityList: [],
             defaultyFacilityId: null,
             ACSelect: { user: {} },
@@ -92,7 +94,7 @@ define([
                 this.drpStudyDt.setStartDate(this.viewModel.dateFrom);
                 this.drpStudyDt.setEndDate(this.viewModel.dateTo);
                 // For Facility Filter with Multiple Select
-                $('#ddlFacilityFilter,  #ddlUsersOption, #ddlUsersRoleOption, #ddlAdjustmentCodeOption, #ddlInsuranceOption').multiselect({
+                $('#ddlFacilityFilter, #ddlFacilityLocationFilter, #ddlUsersOption, #ddlUsersRoleOption, #ddlAdjustmentCodeOption, #ddlInsuranceOption').multiselect({
                     maxHeight: 200,
                     buttonWidth: '250px',
                     width: '300px',
@@ -223,13 +225,20 @@ define([
             },
 
             getSelectedFacility: function (e) {
-                var selected = $("#ddlFacilityFilter option:selected");
+                var selectedPaidLocation = $("#ddlFacilityFilter option:selected");
                 var facilities = [];
-                selected.each(function () {
+                selectedPaidLocation.each(function () {
                     facilities.push($(this).val());
                 });
-                this.selectedFacilityList = facilities
-                this.viewModel.allFacilities = this.selectedFacilityList && this.selectedFacilityList.length === $("#ddlFacilityFilter option").length;
+                this.selectedPaidFacilityList = facilities
+                this.viewModel.allFacilities = this.selectedPaidFacilityList && this.selectedPaidFacilityList.length === $("#ddlFacilityFilter option").length;
+                var selectedFacilityLocation = $("#ddlFacilityLocationFilter option:selected");
+                var facilityList = [];
+                selectedFacilityLocation.each(function () {
+                    facilityList.push($(this).val());
+                });
+                this.selectedFacilityList = facilityList
+                this.viewModel.selectAllFacilities = this.selectedFacilityList && this.selectedFacilityList.length === $("#ddlFacilityLocationFilter option").length;
             },
 
             // multi select billing provider - worked
@@ -350,7 +359,7 @@ define([
                     'adjustmentCode': $('#ddlAdjustmentCodeOption').val() == 'S' ? adjustmentCodeArray : '',
                     'adjustmentCodeIds': $('#ddlAdjustmentCodeOption').val() == 'S' ? adjustmentCodeIds : '',
                     'allAdjustmentCode': $('#ddlAdjustmentCodeOption').val() == 'allAdjustment' || '',
-                    'facilityIds': this.selectedFacilityList || [],
+                    'facilityIds': this.selectedPaidFacilityList || [],
                     'allFacilities': this.viewModel.allFacilities || '',
                     'fromDate': this.viewModel.dateFrom.format('YYYY-MM-DD'),
                     'toDate': this.viewModel.dateTo.format('YYYY-MM-DD'),
@@ -362,7 +371,9 @@ define([
                     'insuranceIds': this.viewModel.insuranceIds,
                     'insuranceOption': this.viewModel.insuranceOption || '',
                     'insuranceGroupIds': this.viewModel.insuranceGroupIds,
-                    'allInsuranceGroup': this.viewModel.allInsGrpSelection || ''
+                    'allInsuranceGroup': this.viewModel.allInsGrpSelection || '',
+                    'facilityLists': this.selectedFacilityList || '',
+                    'selectAllFacilities': this.viewModel.selectAllFacilities || ''
                 };
             }
         });
