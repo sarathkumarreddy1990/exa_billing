@@ -1377,7 +1377,8 @@ define('grid', [
             var gridIDPrefix = '#jqgh_' + gridID.slice(1);
 
             var subGridNeed = ((app.showpriors && true) || true);
-            var studyFieldsCollection = new StudyFields(null, { gridOptions: null, field_order: userSettings.field_order, filterType: userSettings.grid_name });
+            var gridSettings = options.isClaimGrid ? app.claim_user_settings : app.study_user_settings;
+            var studyFieldsCollection = new StudyFields(null, { gridOptions: gridSettings.grid_field_settings, field_order: userSettings.field_order, filterType: userSettings.grid_name });
             var studyFields = studyFieldsCollection.reduce(function (fieldSet, field) {
                 fieldSet.colName[fieldSet.colName.length] = field.get('field_name');
                 fieldSet.i18nName[fieldSet.i18nName.length] = field.get('i18n_name') || '';
@@ -1690,11 +1691,12 @@ define('grid', [
                     }
                     studyFieldsCollection.add({
                         'id': col.custom_id,
+                        'field_name': col.custom_name,
                         'field_info': {
                             'width': col.width
                         }
                     }, { 'merge': true });
-                    updateResizeColumn(studyFieldsCollection.toJSON());
+                    updateResizeColumn(studyFieldsCollection.toJSON(), options.isClaimGrid);
                 },
                 afterInsertRow: afterInsertRow,
                 onbeforegridbind: updateCollection,

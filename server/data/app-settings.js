@@ -66,6 +66,7 @@ module.exports = {
                                     SELECT id AS user_setting_id,
                                         field_order,
                                         grid_name,
+                                        grid_field_settings,
                                         default_column_order_by,
                                         default_column ,
                                         default_tab

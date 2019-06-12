@@ -59,6 +59,13 @@ define([
                 var claimFieldOrder = [];
                 var claimSettingFields = [];
                 var billingClaimGridFields = [];
+
+                if (self.gridFilterName == 'studies') {
+                    billingClaimGridFields = app.study_user_settings.grid_field_settings;
+                } else if (self.gridFilterName == 'claims') {
+                    billingClaimGridFields = app.claim_user_settings.grid_field_settings;
+                }
+
                 claim_col_name = $('#ddlBillingDefaultColumns').val();
                 claim_sort_order = $('#ddlBillingSortOrder').val();
                 $('#ulSortList li').each(function () {
@@ -66,7 +73,13 @@ define([
                     claimFieldOrder.push(input.attr('id').split('~')[1]);
                     if (input.is(':checked')) {
                         claimSettingFields.push(input.attr('id').split('~')[1]);
-                        billingClaimGridFields.push({ "name": input.val(), "id": input.attr('id').split('~')[1], "width": $(this).find('input[type=hidden]')[0].value });
+                        if (_.findIndex(billingClaimGridFields, { name: input.val() }) == -1) {
+                            billingClaimGridFields.push({
+                                "name": input.val(),
+                                "id": input.attr('id').split('~')[1],
+                                "width": $(this).find('input[type=hidden]')[0].value || 0
+                            });
+                        }
                     }
                 });
 
@@ -76,7 +89,7 @@ define([
                     userId: userId,
                     claim_col_name: claim_col_name,
                     claim_sort_order: claim_sort_order,
-                    billingClaimGridFields: billingClaimGridFields,
+                    billingClaimGridFields: JSON.stringify(billingClaimGridFields),
                     claimFieldOrder: JSON.stringify(claimFieldOrder),
                     claimSettingFields: claimSettingFields,
                     paper_claim_full: $('#ddlPaperClaimFullForm').val() ? parseInt($('#ddlPaperClaimFullForm').val()) : null,
@@ -89,12 +102,13 @@ define([
                     {
                         success: function (model, response) {
 
-                            $('#save_settings').attr('disabled', false);
+                            $('#save_settings').prop('disabled', false);
                             if (self.gridFilterName == 'studies'){
                                 app.study_user_settings.field_order = claimSettingFields.map(Number);
                                 app.study_user_settings.default_column_order_by =claim_sort_order;
                                 app.study_user_settings.default_column =claim_col_name;
                                 app.study_user_settings.default_tab =self.default_tab;
+                                app.study_user_settings.grid_field_settings = billingClaimGridFields;
                                 $('#btnStudiesCompleteRefresh').click();
                             }
                             else if (self.gridFilterName == 'claims'){
@@ -102,6 +116,7 @@ define([
                                 app.claim_user_settings.default_column_order_by =claim_sort_order;
                                 app.claim_user_settings.default_column =claim_col_name;
                                 app.claim_user_settings.default_tab =self.default_tab;
+                                app.claim_user_settings.grid_field_settings = billingClaimGridFields;
                                 $('#btnClaimsCompleteRefresh').click();
                             }
 
