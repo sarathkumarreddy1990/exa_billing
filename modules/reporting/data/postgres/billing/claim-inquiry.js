@@ -313,7 +313,7 @@ const claimInquiryDataSetQueryTemplate1 = _.template(`
             UNION ALL
             SELECT
                 c.claim_id AS id,
-                'charge' Stype,
+                'charge' AS type,
                 cc.short_description AS comments,
                 to_char(c.charge_dt::date,'<%= dateFormat %>') AS commented_dt,
                 (c.bill_fee*c.units) AS amount,
