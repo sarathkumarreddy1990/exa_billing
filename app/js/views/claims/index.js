@@ -745,16 +745,16 @@ define(['jquery',
                 claim_data.unable_to_work_to_date ? self.wct.date(claim_data.unable_to_work_to_date ) :self.wct.clear();
                 document.querySelector('#txtOtherDate').value = claim_data.same_illness_first_date ? moment(claim_data.same_illness_first_date).format('L') : '';
                 document.querySelector('#txtDate').value = claim_data.current_illness_date ? moment(claim_data.current_illness_date).format('L') : '';
-
+                var isCauseCode = (claim_data.is_employed || claim_data.is_auto_accident || claim_data.is_other_accident);
 
                 $('input[name="outSideLab"]').prop('checked', claim_data.service_by_outside_lab);
                 $('input[name="employment"]').prop('checked', claim_data.is_employed);
                 $('input[name="autoAccident"]').prop('checked', claim_data.is_auto_accident);
                 $('input[name="otherAccident"]').prop('checked', claim_data.is_other_accident);
-                $('#txtOriginalRef').val(claim_data.original_reference ? claim_data.original_reference : '');
-                $('#txtAuthorization').val(claim_data.authorization_no ? claim_data.authorization_no : '');
-                $('#frequency').val(claim_data.frequency ? claim_data.frequency : '');
-
+                $('#txtOriginalRef').val(claim_data.original_reference || '');
+                $('#txtAuthorization').val(claim_data.authorization_no || '');
+                $('#frequency').val(claim_data.frequency || '');
+                $('#txtAccidentState').val(claim_data.accident_state).prop('disabled', !isCauseCode);
                 /* Additional info end */
                 /* Billing summary start */
 
@@ -1152,6 +1152,16 @@ define(['jquery',
                 if (isFrom && isFrom != 'reload') {
                     $('#modal_div_container').animate({ scrollTop: 0 }, 100);
                 }
+
+                $('#chkEmployment, #chkAutoAccident, #chkOtherAccident').off().change(function () {
+                    var isCauseCode = $('#chkEmployment').prop('checked') || $('#chkAutoAccident').prop('checked') || $('#chkOtherAccident').prop('checked');
+                    var $accidentState = $("#txtAccidentState");
+                    $accidentState.prop("disabled", !isCauseCode);
+
+                    if (!isCauseCode) {
+                        $accidentState.val('');
+                    }
+                });
             },
             getLineItemsAndBind: function (selectedStudyIds) {
                 var self = this;
@@ -2772,13 +2782,15 @@ define(['jquery',
                 var currentResponsible = _.find(self.responsible_list, function(d) { return d.payer_type == $('#ddlClaimResponsible').val(); });
                 var currentPayer_type = $('#ddlClaimResponsible').val().split('_')[0];
                 var facility_id = $('#ddlFacility option:selected').val() != '' ? parseInt($('#ddlFacility option:selected').val()) : null;
+                var isCauseCode = $('#chkEmployment').prop('checked') || $('#chkAutoAccident').prop('checked') || $('#chkOtherAccident').prop('checked');
+
                 if (currentPayer_type == "PIP") {
                     billingMethod = currentResponsible.billing_method || 'direct_billing';
-                }
-                else if (currentPayer_type == "PPP")
+                } else if (currentPayer_type == "PPP") {
                     billingMethod = 'patient_payment';
-                else
+                } else {
                     billingMethod = 'direct_billing';
+                }
 
                 if (self.priInsID && self.validatePatientAddress("primary") && confirm(commonjs.geti18NString("messages.confirm.updatePatientAddress"))) {
                     isUpdatePatientInfo = true;
@@ -2905,10 +2917,11 @@ define(['jquery',
                     original_reference: $.trim($('#txtOriginalRef').val()),
                     authorization_no: $.trim($('#txtAuthorization').val()),
                     frequency: $('#ddlFrequencyCode option:selected').val() != '' ? $('#ddlFrequencyCode option:selected').val() : null,
-                    is_auto_accident: $('#chkAutoAccident').is(':checked'),
-                    is_other_accident: $('#chkOtherAccident').is(':checked'),
-                    is_employed: $('#chkEmployment').is(':checked'),
-                    service_by_outside_lab: $('#chkOutSideLab').is(':checked'),
+                    is_auto_accident: $('#chkAutoAccident').prop('checked'),
+                    is_other_accident: $('#chkOtherAccident').prop('checked'),
+                    is_employed: $('#chkEmployment').prop('checked'),
+                    accident_state: isCauseCode && $('#txtAccidentState').val() || null,
+                    service_by_outside_lab: $('#chkOutSideLab').prop('checked'),
                     claim_status_id: $('#ddlClaimStatus option:selected').val() != '' ? parseInt($('#ddlClaimStatus option:selected').val()) : null,
                     primary_patient_insurance_id: self.is_primary_available && parseInt(self.primaryPatientInsuranceId) || ( self.is_primary_available && parseInt(self.priClaimInsID) || null ),
                     secondary_patient_insurance_id: self.is_secondary_available && parseInt(self.secondaryPatientInsuranceId) || ( self.is_secondary_available && parseInt(self.secClaimInsID) || null ),
@@ -3382,6 +3395,14 @@ define(['jquery',
                 }
 
                 /* Additional Info Section */
+                var accidentState = $('#txtAccidentState');
+
+                if (accidentState.val().length === 1) {
+                    commonjs.showWarning("order.additionalInfo.accidentStateValidation");
+                    accidentState.focus();
+                    return false;
+                }
+
                 if (self.wcf.date() || self.wct.date()) {
                     if (!self.validateFromAndToDate(self.wcf, self.wct))
                         return false;
@@ -4245,7 +4266,7 @@ define(['jquery',
                 $('#chkEmployment, #chkAutoAccident, #chkOtherAccident, #chkOutSideLab').prop("checked", false);
                 $('#txtDate, #txtOtherDate, #txtWCF,#txtWCT, #txtHCF,#txtHCT').val('');
                 $('#txtClaimNotes').empty();
-                $('#txtOriginalRef, #txtAuthorization').val('');
+                $('#txtOriginalRef, #txtAuthorization, #txtAccidentState').val('');
                 $('#ddlFrequencyCode option:contains("Select")').prop("selected", true);
 
                 //clear Billing Section
@@ -4313,7 +4334,7 @@ define(['jquery',
                 }, 200);
 
                 self.openedFrom = 'patientSearch';
-
+                commonjs.validateControls();
             },
 
             showSelf: function() {
