@@ -1,305 +1,347 @@
-const _ = require('lodash')
-    , Promise = require('bluebird')
-    , db = require('../db')
-    , dataHelper = require('../dataHelper')
-    , queryBuilder = require('../queryBuilder')
-    , logger = require('../../../../../logger')
-    , moment = require('moment');
+const _ = require('lodash');
+const Promise = require('bluebird');
+const db = require('../db');
+const dataHelper = require('../dataHelper');
+const queryBuilder = require('../queryBuilder');
+const logger = require('../../../../../logger');
+const moment = require('moment');
 // generate query template ***only once*** !!!
 const claimInquiryDataSetQueryTemplate = _.template(`
-    WITH patient_paid_claims as
+    WITH patient_paid_claims AS
         (
             SELECT
                 DISTINCT bch.claim_id
-            FROM billing.payments bp
+            FROM
+                billing.payments bp
             INNER JOIN billing.payment_applications bpa ON bpa.payment_id = bp.id
             INNER JOIN billing.charges bch ON bch.id = bpa.charge_id
             WHERE bp.payer_type = 'patient'
         ),
-      insurance_paid_claims as (
+        insurance_paid_claims AS (
             SELECT
                 DISTINCT bch.claim_id
-            FROM billing.payments bp
+            FROM
+                billing.payments bp
             INNER JOIN billing.payment_applications bpa ON bpa.payment_id = bp.id
             INNER JOIN billing.charges bch ON bch.id = bpa.charge_id
             WHERE bp.payer_type = 'insurance'
         ),
-      unpaid_claims as (
+        unpaid_claims AS (
             SELECT
-                id as claim_id
-            FROM billing.claims bc
+                id AS claim_id
+            FROM
+                billing.claims bc
             WHERE NOT EXISTS(SELECT
                                 DISTINCT bch.claim_id
-                            FROM billing.payments bp
+                            FROM
+                                billing.payments bp
                             INNER JOIN billing.payment_applications bpa ON bpa.payment_id = bp.id
                             INNER JOIN billing.charges bch ON bch.id = bpa.charge_id
                             WHERE bch.claim_id = bc.id)
         ),
-      total_claims as (
-        <% if(patPaid && !insPaid && !unPaid) { %> <%= patPaidQuery %>  <% }
-        else if(!patPaid && insPaid && !unPaid) { %> <%= insPaidQuery %>  <% }
-        else if(!patPaid && !insPaid && unPaid) { %> <%= unpaidQuery %> <% }
-        else if(patPaid && insPaid && !unPaid) { %>
-            <%= [patPaidQuery,insPaidQuery].join(' UNION ') %>
-        <% } else if(!patPaid && insPaid && unPaid) { %>
-            <%= [insPaidQuery,unpaidQuery ].join(' UNION ') %>
-        <% } else if(patPaid && !insPaid && unPaid) { %>
-            <%= [patPaidQuery,unpaidQuery].join(' UNION ') %>
-        <% } else { %>
-            <%= [patPaidQuery,insPaidQuery,unpaidQuery].join(' UNION ') %>
-        <% } %>
+        total_claims AS (
+            <% if(patPaid && !insPaid && !unPaid) { %> <%= patPaidQuery %>  <% }
+                else if(!patPaid && insPaid && !unPaid) { %> <%= insPaidQuery %>  <% }
+                else if(!patPaid && !insPaid && unPaid) { %> <%= unpaidQuery %> <% }
+                else if(patPaid && insPaid && !unPaid) { %>
+                    <%= [patPaidQuery,insPaidQuery].join(' UNION ') %>
+                <% } else if(!patPaid && insPaid && unPaid) { %>
+                    <%= [insPaidQuery,unpaidQuery ].join(' UNION ') %>
+                <% } else if(patPaid && !insPaid && unPaid) { %>
+                    <%= [patPaidQuery,unpaidQuery].join(' UNION ') %>
+                <% } else { %>
+                    <%= [patPaidQuery,insPaidQuery,unpaidQuery].join(' UNION ') %>
+            <% } %>
         ),
-    claim_data as (
-        SELECT
-           bc.id as claim_id,
-           p.full_name as patient_name,
-           p.account_no,
-           COALESCE(p.patient_info->'ssn','') AS ssn,
-           COALESCE(to_char(p.birth_date,'<%= dateFormat %>'),'') AS dob,
-           COALESCE(p.patient_info->'c1HomePhone','') AS phone,
-           COALESCE(claim_totals.claim_balance_total, 0::MONEY) AS claim_balance_total,
-           bc.payer_type,
-           NULLIF(ip.insurance_name,'')  AS insurance_name,
-           NULLIF(ip.insurance_code,'')  AS insurance_code,
-           NULLIF(ip.insurance_info->'Address1','')  AS address1,
-           NULLIF(ip.insurance_info->'Address2','')  AS address2,
-           NULLIF(ip.insurance_info->'City','') AS city,
-           NULLIF(ip.insurance_info->'State','')  AS state,
-           NULLIF(ip.insurance_info->'ZipCode','')  AS zip,
-           NULLIF(ip.insurance_info->'ZipPlus','')  AS zip_plus,
-           NULLIF(ip.insurance_info->'PhoneNo','')  AS phone_no,
-           NULLIF(ip.insurance_info->'FaxNo','')  AS fax_no,
-           to_char(bc.claim_dt, 'MM/DD/YYYY'),
-           CASE
-             WHEN bc.payer_type = 'primary_insurance' OR bc.payer_type = 'secondary_insurance' OR bc.payer_type = 'tertiary_insurance' THEN ip.insurance_name
-             WHEN bc.payer_type = 'patient'  THEN p.full_name
-             WHEN bc.payer_type = 'ordering_facility' THEN f.facility_name
-             WHEN bc.payer_type = 'referring_provider' THEN null
-             ELSE  NULL
-           END AS carrier,
-           coalesce(coverage_level.primary_coverage_level,'{}'),
-           coalesce(coverage_level.secondary_coverage_level,'{}'),
-           coalesce(coverage_level.tertiary_coverage_level,'{}'),
-           bp.name,
-           coalesce(claim_totals.claim_balance_total,0::money)::numeric AS claim_balance,
-           CASE
-             WHEN bc.payer_type = 'primary_insurance' OR bc.payer_type = 'secondary_insurance' OR bc.payer_type = 'tertiary_insurance' THEN ip.id
-             WHEN bc.payer_type = 'patient'  THEN p.id
-             WHEN bc.payer_type = 'ordering_facility' THEN f.id
-             WHEN bc.payer_type = 'referring_provider' THEN null
-             ELSE  NULL
-           END AS carrier_id
-        FROM
-            billing.claims bc
-        INNER JOIN LATERAL billing.get_claim_totals(bc.id) AS claim_totals ON TRUE
-        INNER JOIN total_claims ON total_claims.claim_id = bc.id
-        INNER JOIN public.patients p on p.id = bc.patient_id
-        INNER JOIN public.facilities f on f.id = bc.facility_id
-        INNER JOIN billing.providers bp on bp.id = bc.billing_provider_id
-        <% if(commentedDt) { %>
-        INNER JOIN LATERAL (
+        claim_data AS (
             SELECT
+                bc.id AS claim_id,
+                p.full_name AS patient_name,
+                p.account_no,
+                COALESCE(p.patient_info->'ssn','') AS ssn,
+                COALESCE(to_char(p.birth_date,'<%= dateFormat %>'),'') AS dob,
+                COALESCE(p.patient_info->'c1HomePhone','') AS phone,
+                COALESCE(claim_totals.claim_balance_total, 0::MONEY) AS claim_balance_total,
+                bc.payer_type,
+                NULLIF(ip.insurance_name,'') AS insurance_name,
+                NULLIF(ip.insurance_code,'') AS insurance_code,
+                NULLIF(ip.insurance_info->'Address1','') AS address1,
+                NULLIF(ip.insurance_info->'Address2','') AS address2,
+                NULLIF(ip.insurance_info->'City','') AS city,
+                NULLIF(ip.insurance_info->'State','') AS state,
+                NULLIF(ip.insurance_info->'ZipCode','') AS zip,
+                NULLIF(ip.insurance_info->'ZipPlus','') AS zip_plus,
+                NULLIF(ip.insurance_info->'PhoneNo','') AS phone_no,
+                NULLIF(ip.insurance_info->'FaxNo','') AS fax_no,
+                to_char(bc.claim_dt, 'MM/DD/YYYY'),
+                CASE
+                  WHEN bc.payer_type = 'primary_insurance' OR bc.payer_type = 'secondary_insurance' OR bc.payer_type = 'tertiary_insurance' THEN ip.insurance_name
+                  WHEN bc.payer_type = 'patient'  THEN p.full_name
+                  WHEN bc.payer_type = 'ordering_facility' THEN f.facility_name
+                  WHEN bc.payer_type = 'referring_provider' THEN pr.full_name
+                  ELSE  NULL
+                END AS carrier,
+                COALESCE(coverage_level.primary_coverage_level,'{}'),
+                COALESCE(coverage_level.secondary_coverage_level,'{}'),
+                COALESCE(coverage_level.tertiary_coverage_level,'{}'),
+                bp.name,
+                COALESCE(claim_totals.claim_balance_total,0::money)::numeric AS claim_balance,
+                CASE
+                  WHEN bc.payer_type = 'primary_insurance' OR bc.payer_type = 'secondary_insurance' OR bc.payer_type = 'tertiary_insurance' THEN ip.id
+                  WHEN bc.payer_type = 'patient'  THEN p.id
+                  WHEN bc.payer_type = 'ordering_facility' THEN f.id
+                  WHEN bc.payer_type = 'referring_provider' THEN null
+                  ELSE  NULL
+                END AS carrier_id
+            FROM
+                billing.claims bc
+            INNER JOIN LATERAL billing.get_claim_totals(bc.id) AS claim_totals ON TRUE
+            INNER JOIN total_claims ON total_claims.claim_id = bc.id
+            INNER JOIN public.patients p on p.id = bc.patient_id
+            INNER JOIN public.facilities f on f.id = bc.facility_id
+            INNER JOIN billing.providers bp on bp.id = bc.billing_provider_id
+            <% if(commentedDt) { %>
+              INNER JOIN LATERAL (
+                SELECT
                     i_cc.claim_id,
                     created_dt::date AS commented_dt
-                FROM billing.claim_comments i_cc
-                WHERE  i_cc.is_internal
+                FROM
+                    billing.claim_comments i_cc
+                WHERE i_cc.is_internal
                 UNION
                 SELECT
                     i_c.claim_id,
                     i_c.charge_dt::date AS commented_dt
-                FROM billing.charges i_c
+                FROM
+                    billing.charges i_c
                 UNION
                 SELECT
-                  i_bc.claim_id,
-                  bp.accounting_date AS commented_dt
-                FROM billing.payments bp
+                    i_bc.claim_id,
+                    bp.accounting_date AS commented_dt
+                FROM
+                    billing.payments bp
                 INNER JOIN billing.payment_applications pa on pa.payment_id = bp.id
                 INNER JOIN billing.charges i_bc on i_bc.id = pa.charge_id
-            ) billing_comments ON billing_comments.claim_id = bc.id
-        <%}%>
-        <% if (paymentUserIds ||  chargeUserIds || comentUserIds) { %>
+              ) billing_comments ON billing_comments.claim_id = bc.id
+            <% } %>
+            <% if (paymentUserIds ||  chargeUserIds || comentUserIds) { %>
             INNER JOIN LATERAL (
                 SELECT
                     i_bch.claim_id
-                FROM billing.charges i_bch
+                FROM
+                    billing.charges i_bch
                 WHERE <% print(chargeUserIds) %>
                 UNION
                 SELECT
                     i_bcc.claim_id
-                FROM billing.claim_comments i_bcc
+                FROM
+                    billing.claim_comments i_bcc
                 WHERE <% print(comentUserIds) %>
                 UNION
                 SELECT
                     i_bch.claim_id
-                FROM billing.payments i_bp
+                FROM
+                    billing.payments i_bp
                 INNER JOIN billing.payment_applications i_bpa on i_bpa.payment_id = i_bp.id
                 INNER JOIN billing.charges i_bch on i_bch.id = i_bpa.charge_id
                 WHERE <% print(paymentUserIds) %>
             ) user_claim_ids ON user_claim_ids.claim_id = bc.id
-        <%}%>
-        LEFT JOIN public.patient_insurances pi on pi.id = ( CASE WHEN  bc.payer_type = 'primary_insurance' THEN primary_patient_insurance_id
+            <% } %>
+            LEFT JOIN public.patient_insurances pi on pi.id =
+                                                          ( CASE WHEN  bc.payer_type = 'primary_insurance' THEN primary_patient_insurance_id
                                                                  WHEN  bc.payer_type = 'secondary_insurance' THEN secondary_patient_insurance_id
                                                                  WHEN  bc.payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id END)
             INNER JOIN LATERAL (
+                SELECT
+                    i_bc.id AS claim_id,
+                    json_build_array(
+                            p_pi.coverage_level,
+                            p_ip.insurance_name,
+                            to_char(p_pi.valid_to_date,'MM/DD/YYYY'),
+                            p_pi.policy_number,p_pi.group_number
+                    ) AS primary_coverage_level,
+                    json_build_array(
+                            s_pi.coverage_level,
+                            s_ip.insurance_name,
+                            to_char(s_pi.valid_to_date,'MM/DD/YYYY'),
+                            s_pi.policy_number,s_pi.group_number
+                    ) AS secondary_coverage_level,
+                    json_build_array(
+                            t_pi.coverage_level,
+                            t_ip.insurance_name,
+                            to_char(t_pi.valid_to_date,'MM/DD/YYYY'),
+                            t_pi.policy_number,t_pi.group_number
+                    ) AS tertiary_coverage_level
+                FROM
+                    billing.claims i_bc
+                LEFT JOIN public.patient_insurances p_pi ON p_pi.id = i_bc.primary_patient_insurance_id
+                LEFT JOIN public.patient_insurances s_pi ON s_pi.id = i_bc.secondary_patient_insurance_id
+                LEFT JOIN public.patient_insurances t_pi ON t_pi.id = i_bc.tertiary_patient_insurance_id
+                LEFT JOIN public.insurance_providers p_ip ON p_ip.id = p_pi.insurance_provider_id
+                LEFT JOIN public.insurance_providers s_ip ON s_ip.id = s_pi.insurance_provider_id
+                LEFT JOIN public.insurance_providers t_ip ON t_ip.id = t_pi.insurance_provider_id
+                WHERE i_bc.id = bc.id
+                <% if(insuranceIds) { %> AND (<% print(p_insuranceIds); %> OR <% print(s_insuranceIds); %> OR <% print(t_insuranceIds); %> ) <%}%>
+            ) coverage_level ON coverage_level.claim_id = bc.id
+             <% if (billingProID) { %> INNER JOIN billing.providers bpp ON bpp.id = bc.billing_provider_id <% } %>
+            LEFT JOIN public.insurance_providers ip ON ip.id = pi.insurance_provider_id
+            LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = ip.provider_payer_type_id
+            LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
+            LEFT JOIN public.providers pr ON  pr.id = ppc.provider_id
+            WHERE <%= companyId %>
+                <% if(claimDate) { %> AND <%=claimDate%> <%}%>
+                <% if(commentedDt) { %> AND <%=commentedDt%> <%}%>
+                <% if(sumbittedDt) { %> AND <%=sumbittedDt%> <%}%>
+                <% if (facilityIds) { %>AND <% print(facilityIds); } %>
+                <% if(insGroups) { %> AND <%=insGroups%> <%}%>
+                <% if(billingProID) { %> AND <% print(billingProID); } %>
+            ORDER BY
+                 p.full_name,p.account_no ASC)
             SELECT
-               i_bc.id AS claim_id,
-               json_build_array(p_pi.coverage_level,p_ip.insurance_name,to_char(p_pi.valid_to_date,'MM/DD/YYYY'),p_pi.policy_number,p_pi.group_number) AS primary_coverage_level,
-               json_build_array(s_pi.coverage_level,s_ip.insurance_name,to_char(s_pi.valid_to_date,'MM/DD/YYYY'),s_pi.policy_number,s_pi.group_number) AS secondary_coverage_level,
-               json_build_array(t_pi.coverage_level,t_ip.insurance_name,to_char(t_pi.valid_to_date,'MM/DD/YYYY'),t_pi.policy_number,t_pi.group_number) AS tertiary_coverage_level
-            FROM billing.claims i_bc
-            LEFT JOIN public.patient_insurances p_pi ON p_pi.id = i_bc.primary_patient_insurance_id
-            LEFT JOIN public.patient_insurances s_pi ON s_pi.id = i_bc.secondary_patient_insurance_id
-            LEFT JOIN public.patient_insurances t_pi ON t_pi.id = i_bc.tertiary_patient_insurance_id
-            LEFT JOIN public.insurance_providers p_ip ON p_ip.id = p_pi.insurance_provider_id
-            LEFT JOIN public.insurance_providers s_ip ON s_ip.id = s_pi.insurance_provider_id
-            LEFT JOIN public.insurance_providers t_ip ON t_ip.id = t_pi.insurance_provider_id
-            WHERE i_bc.id = bc.id
-            <% if(insuranceIds) { %> AND (<% print(p_insuranceIds); %> OR <% print(s_insuranceIds); %> OR <% print(t_insuranceIds); %> ) <%}%>
-        ) coverage_level ON coverage_level.claim_id = bc.id
-        <% if (billingProID) { %> INNER JOIN billing.providers bpp ON bpp.id = bc.billing_provider_id <% } %>
-       LEFT JOIN public.insurance_providers ip ON ip.id = pi.insurance_provider_id
-        LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = ip.provider_payer_type_id
-        LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
-        LEFT JOIN public.providers pr ON  pr.id = ppc.provider_id
-        WHERE <%= companyId %>
-        <% if(claimDate) { %> AND <%=claimDate%> <%}%>
-        <% if(commentedDt) { %> AND <%=commentedDt%> <%}%>
-        <% if(sumbittedDt) { %> AND <%=sumbittedDt%> <%}%>
-        <% if (facilityIds) { %>AND <% print(facilityIds); } %>
-        <% if(insGroups) { %> AND <%=insGroups%> <%}%>
-        <% if(billingProID) { %> AND <% print(billingProID); } %>
-         ORDER BY p.full_name,p.account_no ASC)
-        SELECT
-             *
-        FROM
-             claim_data
-        ORDER BY carrier
+                 *
+            FROM
+                 claim_data
+            ORDER BY carrier
     `);
 const claimInquiryDataSetQueryTemplate1 = _.template(`
-    with claim_data as (
-        SELECT
-        bc.id as claim_id
-        , p.full_name
-        , p.account_no
-     FROM
-         billing.claims bc
-     INNER JOIN public.patients p on p.id = bc.patient_id
-     INNER JOIN public.facilities f on f.id = bc.facility_id
-     INNER JOIN billing.charges bch ON bch.claim_id = bc.id
-     <% if (billingProID) { %> INNER JOIN billing.providers bpp ON bpp.id = bc.billing_provider_id <% } %>
-     <% if(commentedDt) { %>
-        INNER JOIN LATERAL (
+    WITH claim_data as (
             SELECT
-                    i_cc.claim_id,
-                    created_dt::date AS commented_dt
-                FROM billing.claim_comments i_cc
-                WHERE  i_cc.is_internal
-                UNION
-                SELECT
-                    i_c.claim_id,
-                    i_c.charge_dt::date AS commented_dt
-                FROM billing.charges i_c
-                UNION
-                SELECT
-                  i_bc.claim_id,
-                  bp.accounting_date AS commented_dt
-                FROM billing.payments bp
-                INNER JOIN billing.payment_applications pa on pa.payment_id = bp.id
-                INNER JOIN billing.charges i_bc on i_bc.id = pa.charge_id
-            ) billing_comments ON billing_comments.claim_id = bc.id
-        <%}%>
-        <% if (paymentUserIds ||  chargeUserIds || comentUserIds) { %>
+               bc.id AS claim_id
+              ,p.full_name
+              ,p.account_no
+            FROM
+                billing.claims bc
+            INNER JOIN public.patients p on p.id = bc.patient_id
+            INNER JOIN public.facilities f on f.id = bc.facility_id
+            INNER JOIN billing.charges bch ON bch.claim_id = bc.id
+            <% if (billingProID) { %> INNER JOIN billing.providers bpp ON bpp.id = bc.billing_provider_id <% } %>
+            <% if(commentedDt) { %>
             INNER JOIN LATERAL (
-                SELECT
-                    i_bch.claim_id
-                FROM billing.charges i_bch
-                WHERE <% print(chargeUserIds) %>
-                UNION
-                SELECT
-                    i_bcc.claim_id
-                FROM billing.claim_comments i_bcc
-                WHERE <% print(comentUserIds) %>
-                UNION
-                SELECT
-                    i_bch.claim_id
-                FROM billing.payments i_bp
-                INNER JOIN billing.payment_applications i_bpa on i_bpa.payment_id = i_bp.id
-                INNER JOIN billing.charges i_bch on i_bch.id = i_bpa.charge_id
-                WHERE <% print(paymentUserIds) %>
+                   SELECT
+                       i_cc.claim_id,
+                       created_dt::date AS commented_dt
+                   FROM
+                       billing.claim_comments i_cc
+                   WHERE i_cc.is_internal
+                   UNION
+                   SELECT
+                       i_c.claim_id,
+                       i_c.charge_dt::date AS commented_dt
+                   FROM billing.charges i_c
+                   UNION
+                   SELECT
+                       i_bc.claim_id,
+                       bp.accounting_date AS commented_dt
+                   FROM billing.payments bp
+                   INNER JOIN billing.payment_applications pa on pa.payment_id = bp.id
+                   INNER JOIN billing.charges i_bc on i_bc.id = pa.charge_id
+               ) billing_comments ON billing_comments.claim_id = bc.id
+            <% } %>
+            <% if (paymentUserIds ||  chargeUserIds || comentUserIds) { %>
+            INNER JOIN LATERAL (
+                   SELECT
+                        i_bch.claim_id
+                    FROM billing.charges i_bch
+                    WHERE <% print(chargeUserIds) %>
+                    UNION
+                    SELECT
+                        i_bcc.claim_id
+                    FROM billing.claim_comments i_bcc
+                    WHERE <% print(comentUserIds) %>
+                    UNION
+                    SELECT
+                        i_bch.claim_id
+                    FROM billing.payments i_bp
+                    INNER JOIN billing.payment_applications i_bpa on i_bpa.payment_id = i_bp.id
+                    INNER JOIN billing.charges i_bch on i_bch.id = i_bpa.charge_id
+                    WHERE <% print(paymentUserIds) %>
             ) user_claim_ids ON user_claim_ids.claim_id = bc.id
-        <%}%>
-    LEFT JOIN public.patient_insurances pi on pi.id = ( CASE WHEN  bc.payer_type = 'primary_insurance' THEN primary_patient_insurance_id
+            <% } %>
+            LEFT JOIN public.patient_insurances pi on pi.id =
+                                                       ( CASE WHEN  bc.payer_type = 'primary_insurance' THEN primary_patient_insurance_id
                                                               WHEN  bc.payer_type = 'secondary_insurance' THEN secondary_patient_insurance_id
                                                               WHEN  bc.payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id END)
-    LEFT JOIN public.insurance_providers ip ON ip.id = pi.insurance_provider_id
-    INNER JOIN LATERAL (
-        SELECT
-           i_bc.id AS claim_id
-        FROM billing.claims i_bc
-        LEFT JOIN public.patient_insurances p_pi ON p_pi.id = i_bc.primary_patient_insurance_id
-        LEFT JOIN public.patient_insurances s_pi ON s_pi.id = i_bc.secondary_patient_insurance_id
-        LEFT JOIN public.patient_insurances t_pi ON t_pi.id = i_bc.tertiary_patient_insurance_id
-        LEFT JOIN public.insurance_providers p_ip ON p_ip.id = p_pi.insurance_provider_id
-        LEFT JOIN public.insurance_providers s_ip ON s_ip.id = s_pi.insurance_provider_id
-        LEFT JOIN public.insurance_providers t_ip ON t_ip.id = t_pi.insurance_provider_id
-        WHERE i_bc.id = bc.id
-        <% if(insuranceIds) { %> AND (<% print(p_insuranceIds); %> OR <% print(s_insuranceIds); %> OR <% print(t_insuranceIds); %> ) <%}%>
-    ) coverage_level ON coverage_level.claim_id = bc.id
-     LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = ip.provider_payer_type_id
-     LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
-     LEFT JOIN public.providers pr ON  pr.id = ppc.provider_id
-     WHERE <%= companyId %>
-           <% if(claimDate) { %> AND <%=claimDate%> <%}%>
-           <% if(sumbittedDt) { %> AND <%=sumbittedDt%> <%}%>
-           <% if(commentedDt) { %> AND <%=commentedDt%> <%}%>
-           <% if (facilityIds) { %>AND <% print(facilityIds); } %>
-           <% if(billingProID) { %> AND <% print(billingProID); } %>
-           <% if(insGroups) { %> AND <%=insGroups%> <%}%>
-      GROUP BY bc.id , p.full_name,p.account_no
-      ORDER BY p.full_name,p.account_no ASC),
-      billing_comments as
+            LEFT JOIN public.insurance_providers ip ON ip.id = pi.insurance_provider_id
+            INNER JOIN LATERAL (
+                    SELECT
+                        i_bc.id AS claim_id
+                    FROM
+                        billing.claims i_bc
+                    LEFT JOIN public.patient_insurances p_pi ON p_pi.id = i_bc.primary_patient_insurance_id
+                    LEFT JOIN public.patient_insurances s_pi ON s_pi.id = i_bc.secondary_patient_insurance_id
+                    LEFT JOIN public.patient_insurances t_pi ON t_pi.id = i_bc.tertiary_patient_insurance_id
+                    LEFT JOIN public.insurance_providers p_ip ON p_ip.id = p_pi.insurance_provider_id
+                    LEFT JOIN public.insurance_providers s_ip ON s_ip.id = s_pi.insurance_provider_id
+                    LEFT JOIN public.insurance_providers t_ip ON t_ip.id = t_pi.insurance_provider_id
+                    WHERE i_bc.id = bc.id
+                    <% if(insuranceIds) { %> AND (<% print(p_insuranceIds); %> OR <% print(s_insuranceIds); %> OR <% print(t_insuranceIds); %> ) <%}%>
+            ) coverage_level ON coverage_level.claim_id = bc.id
+            LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = ip.provider_payer_type_id
+            LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
+            LEFT JOIN public.providers pr ON  pr.id = ppc.provider_id
+            WHERE <%= companyId %>
+                  <% if(claimDate) { %> AND <%=claimDate%> <%}%>
+                  <% if(sumbittedDt) { %> AND <%=sumbittedDt%> <%}%>
+                  <% if(commentedDt) { %> AND <%=commentedDt%> <%}%>
+                  <% if (facilityIds) { %>AND <% print(facilityIds); } %>
+                  <% if(billingProID) { %> AND <% print(billingProID); } %>
+                  <% if(insGroups) { %> AND <%=insGroups%> <%}%>
+            GROUP BY
+                 bc.id
+                ,p.full_name
+                ,p.account_no
+            ORDER BY
+                p.full_name
+               ,p.account_no ASC
+            ),
+        billing_comments as
         (
-            select
-                cc.claim_id as id,
-                'claim' as type ,
-                note as comments ,
-                to_char(created_dt::date,'<%= dateFormat %>') as commented_dt,
-                null as amount,
-                u.username as commented_by,
-                null as code,
-                null::bigint as payment_id
-            from  billing.claim_comments cc
+            SELECT
+                cc.claim_id AS id,
+                'claim' AS type,
+                note AS comments,
+                to_char(created_dt::date,'<%= dateFormat %>') AS commented_dt,
+                NULL AS amount,
+                u.username AS commented_by,
+                NULL AS code,
+                NULL::bigint as payment_id
+            FROM
+                billing.claim_comments cc
             INNER JOIN claim_data cd on cd.claim_id = cc.claim_id
-            inner join users u  on u.id = cc.created_by
-            where  cc.is_internal
+            INNER JOIN users u on u.id = cc.created_by
+            WHERE  cc.is_internal
             UNION ALL
-            select
-                c.claim_id as id,
-                'charge' as type,
-                cc.short_description as comments,
-                to_char(c.charge_dt::date,'<%= dateFormat %>') as commented_dt,
-                (c.bill_fee*c.units) as amount,
-                u.username as commented_by,
-                cc.display_code as code,
-                null::bigint as payment_id
-            from billing.charges c
+            SELECT
+                c.claim_id AS id,
+                'charge' AS type,
+                cc.short_description AS comments,
+                to_char(c.charge_dt::date,'<%= dateFormat %>') AS commented_dt,
+                (c.bill_fee*c.units) AS amount,
+                u.username AS commented_by,
+                cc.display_code AS code,
+                NULL::bigint AS payment_id
+            FROM
+                 billing.charges c
             INNER JOIN claim_data cd on cd.claim_id = c.claim_id
-            inner join cpt_codes cc on cc.id = c.cpt_id
-            inner join users u  on u.id = c.created_by
+            INNER JOIN cpt_codes cc on cc.id = c.cpt_id
+            INNER JOIN users u  on u.id = c.created_by
             UNION ALL
-            select  bc.claim_id as id,amount_type as type,
-            CASE WHEN bp.payer_type = 'patient' THEN
+            SELECT
+                bc.claim_id AS id,
+                amount_type AS type,
+                CASE
+                    WHEN bp.payer_type = 'patient' THEN
                        pp.full_name
-                 WHEN bp.payer_type = 'insurance' THEN
+                    WHEN bp.payer_type = 'insurance' THEN
                        pip.insurance_name
-                 WHEN bp.payer_type = 'ordering_facility' THEN
+                    WHEN bp.payer_type = 'ordering_facility' THEN
                        pg.group_name
-                 WHEN bp.payer_type = 'ordering_provider' THEN
+                    WHEN bp.payer_type = 'ordering_provider' THEN
                        p.full_name
-            END as comments,
-            to_char(bp.accounting_date,'<%= dateFormat %>') as commented_dt,
-            sum(pa.amount) as amount,
-            u.username as commented_by,
+                END AS comments,
+            to_char(bp.accounting_date,'<%= dateFormat %>') AS commented_dt,
+            SUM(pa.amount) AS amount,
+            u.username AS commented_by,
             CASE amount_type
                  WHEN 'adjustment' THEN 'Adj'
                  WHEN 'payment' THEN (CASE bp.payer_type
@@ -308,31 +350,39 @@ const claimInquiryDataSetQueryTemplate1 = _.template(`
                                      WHEN 'ordering_facility' THEN 'Ordering facility'
                                      WHEN 'ordering_provider' THEN 'Provider'
                                      END)
-            END as code,
-            bp.id as payment_id
-            from billing.payments bp
-            inner join billing.payment_applications pa on pa.payment_id = bp.id
-            inner join billing.charges bc on bc.id = pa.charge_id
+            END AS code,
+            bp.id AS payment_id
+            FROM
+                billing.payments bp
+            INNER JOIN billing.payment_applications pa on pa.payment_id = bp.id
+            INNER JOIN billing.charges bc on bc.id = pa.charge_id
             INNER JOIN claim_data cd on cd.claim_id = bc.claim_id
-            inner join users u  on u.id = bp.created_by
+            INNER JOIN users u on u.id = bp.created_by
             LEFT JOIN public.patients pp on pp.id = bp.patient_id
             LEFT JOIN public.insurance_providers pip on pip.id = bp.insurance_provider_id
             LEFT JOIN public.provider_groups  pg on pg.id = bp.provider_group_id
             LEFT JOIN public.provider_contacts  pc on pc.id = bp.provider_contact_id
             LEFT JOIN public.providers p on p.id = pc.provider_id
-        group by bp.id,bc.claim_id,amount_type,comments,commented_dt,commented_by,code
+            GROUP BY
+                bp.id,
+                bc.claim_id,
+                amount_type,
+                comments,
+                commented_dt,
+                commented_by,
+                code
         )
         SELECT
             *
         FROM
            billing_comments
         ORDER BY
-         CASE type
-            WHEN 'charge' THEN 1
-            WHEN 'payment' THEN 2
-            WHEN 'adjustment' THEN 3
-            ELSE 4
-         END
+            CASE type
+                WHEN 'charge' THEN 1
+                WHEN 'payment' THEN 2
+                WHEN 'adjustment' THEN 3
+                ELSE 4
+            END
     `);
 const api = {
     /**
