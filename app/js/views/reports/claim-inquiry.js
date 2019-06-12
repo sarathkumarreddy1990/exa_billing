@@ -270,7 +270,7 @@ define([
                     return;
                 }
 
-                if ($('#claimIdFrom').val() > $('#claimIdTo').val()) {
+                if (parseInt($('#claimIdFrom').val()) > parseInt($('#claimIdTo').val())) {
                     commonjs.showWarning('messages.status.claimFromNotGreaterThanTo');
                     return;
                 }
