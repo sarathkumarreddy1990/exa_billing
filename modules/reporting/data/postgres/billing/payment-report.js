@@ -196,7 +196,7 @@ const detailQueryTemplate = _.template(`
         pd.payment_id AS "Payment ID",
         pd.claim_id AS "Claim  ID",
         get_full_name(pp.last_name, pp.first_name, pp.middle_name, pp.prefix_name, pp.suffix_name) AS "Patient Name",
-        pp.account_no "Account #" ,
+        pp.account_no "Account #",
         to_char(c.claim_dt, '<%= dateFormat %>') "Claim Date",
         CASE
             WHEN p.payer_type = 'patient' THEN  'Patient'
