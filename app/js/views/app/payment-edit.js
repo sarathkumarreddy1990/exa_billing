@@ -2530,16 +2530,14 @@ define(['jquery',
                         }
                         var id = layout.currentModule == 'Claims' ? 'modalBodyNested' : 'modalBody';
                         $('#' + id).trackFormChanges(function (unsaved) {
-                            if (layout.currentModule == 'Payments') {
-                                if (unsaved) {
-                                    var saveConfirm = confirm(commonjs.geti18NString("messages.confirm.unsavedFormConfirm"));
-                                    if (saveConfirm) {
-                                        self.isEscKeyPress = true;
-                                        $('#btnSaveAppliedPendingPayments').trigger('click');
-                                    }
-                                } else {
-                                    self.closePayment();
+                            if (unsaved) {
+                                var saveConfirm = confirm(commonjs.geti18NString("messages.confirm.unsavedFormConfirm"));
+                                if (saveConfirm) {
+                                    self.isEscKeyPress = true;
+                                    $('#btnSaveAppliedPendingPayments').trigger('click');
                                 }
+                            } else {
+                                self.closePayment();
                             }
                         })
                         commonjs.hideLoading();
