@@ -57,7 +57,19 @@ ws.Mtom.prototype.send = function(ctx, callback) {
         file.elem.firstChild.setAttribute('href', `cid: ${id}`);
     }
 
-    parts[0].body = Buffer.from(doc.toString());
+    const docString = doc.toString();
+    if ( parts.length > 1 ) {
+        let count = 1;
+        const docStringNew = docString.replace(/<content>[A-Za-z0-9=\/\\]*\s*<\/content>/gim, ( text ) => {
+            const str = `<inc:Include href="cid:part${count++}" xmlns:inc="http://www.w3.org/2004/08/xop/include" />`;
+            return `<content>${str}</content>`;
+        });
+        parts[ 0 ].body = Buffer.from(docStringNew);
+    }
+    else {
+        parts[ 0 ].body = Buffer.from(docString);
+    }
+
     ctx.contentType = `multipart/related; type="application/xop+xml"; start="<part0>"; boundary="${boundary}"; start-info="${ctx.contentType}"; action="${ctx.action}"`;
 
     ctx.request = writer.build_multipart_body(parts, boundary);
