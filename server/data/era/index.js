@@ -719,9 +719,9 @@ module.exports = {
                             ORDER BY bp.id, bch.claim_id, bpa.applied_dt
                         ),
                         grouped_claim_payments AS (
-                            SELECT 
-                    	        payment_id,
-                    	        claim_id,
+                            SELECT
+                                payment_id,
+                                claim_id,
                                 applied_dt,
                                 SUM(payments_applied) AS tot_payments_applied,
                                 SUM(adjustments_applied) AS tot_adjustments_applied,
@@ -733,11 +733,11 @@ module.exports = {
                         processed_eob_payments AS(
                             SELECT
                                 payment_id,
-                    	        claim_id, 
-                    	        applied_dt,
-                    	        cpp.*,
-                    	        patients.id AS patient_id,
-                    	        patients.account_no,
+                                claim_id,
+                                applied_dt,
+                                cpp.*,
+                                patients.id AS patient_id,
+                                patients.account_no,
                                 get_full_name (patients.last_name,patients.first_name) AS pat_name,
                                 gcp.tot_payments_applied,
                                 gcp.tot_adjustments_applied,
