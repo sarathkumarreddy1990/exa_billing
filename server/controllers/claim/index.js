@@ -76,9 +76,25 @@ module.exports = {
 
         /// TODO: need to rescratch
         let pokitdokSecretKey = await data.getKeys();
-        let insEligibility = pokitdokSecretKey.rows[0].info.value;
-        let pokitdok_client_id = pokitdokSecretKey.rows[1].info.value;
-        let pokitdok_client_secret = pokitdokSecretKey.rows[2].info.value;
+        let pokitdokResponse = pokitdokSecretKey && pokitdokSecretKey.rows || [];
+        let insEligibility = false;
+        let pokitdok_client_id = '';
+        let pokitdok_client_secret = '';
+
+        pokitdokResponse.forEach(function (data) {
+            
+            if (data.info) {
+                if (data.info.id === "pokitdok_client_id") {
+                    pokitdok_client_id = data.info.value;
+                }
+                else if (data.info.id === "pokitdok_client_secret") {
+                    pokitdok_client_secret = data.info.value;
+                }
+                else if (data.info.id === "insPokitdok") {
+                    insEligibility = data.info.value;
+                }
+            }
+        });
 
         let pokitdok = new PokitDok(pokitdok_client_id, pokitdok_client_secret);
         let birthDate = params.birthDate;
@@ -87,7 +103,7 @@ module.exports = {
 
             pokitdok.eligibility({
                 member: {
-                    birth_date: birthDate,
+                    birth_date: moment(birthDate).format('YYYY-MM-DD'),
                     first_name: params.firstName,
                     last_name: params.lastName,
                     id: params.policyNo

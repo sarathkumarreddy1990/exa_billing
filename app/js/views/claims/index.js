@@ -425,8 +425,19 @@ define(['jquery',
                             commonjs.showWarning(data.errors.query ? data.errors.query : 'ERR: ' + JSON.stringify(data.errors) + '..');
                             return;
                         }
-                        else if (!data.errors && response.insPokitdok == true) {
-                            commonjs.showNestedDialog({ header: 'Pokitdok Response', width: '80%', height: '70%', html: $(self.InsurancePokitdokTemplateForm({ 'InsuranceData': response.data, 'InsuranceDatavalue': response.meta })) });
+                        else if (data && !data.errors && response.insPokitdok) {
+                            commonjs.showNestedDialog({
+                                header: 'Pokitdok Response',
+                                width: '80%',
+                                height: '70%',
+                                html: $(self.InsurancePokitdokTemplateForm({
+                                    'InsuranceData': response.data,
+                                    'InsuranceDatavalue': response.meta
+                                }))
+                            });
+                        }
+                        else if (response && response.error === 'invalid_client') {
+                            commonjs.showError("messages.errors.invalidPokitdokIp");
                         }
 
                         $('#divCoPayDetails').height('400px');
