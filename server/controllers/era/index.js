@@ -438,9 +438,10 @@ module.exports = {
 
     getProcessedEraFileDetails: async function (params) {
         let eraResponse = await data.getProcessedFileData(params);
+        let eraResponseValues = eraResponse.rows && eraResponse.rows[0].payer_details;
 
-        if (eraResponse.rows && eraResponse.rows[0].file_name) {
-            const filePath = path.join(eraResponse.rows[0].root_directory, eraResponse.rows[0].file_path, eraResponse.rows[0].file_name);
+        if (eraResponseValues && eraResponseValues.file_name) {
+            const filePath = path.join(eraResponseValues.root_directory, eraResponseValues.file_path, eraResponseValues.file_name);
 
             try {
                 const eraResponseJson = await this.getRawEobResponse(filePath);

@@ -41,7 +41,7 @@
                                     <label id="lblInsPRoviderName" for="auditFromDate" i18n="setup.userSettings.insuranceProviders" class="control-label"></label>
                                     <label class="control-label"> :
                                         <b>
-                                            <%= ins.insurance_name %>
+                                            <%= ins.payer_details.insurance_name %>
                                         </b>
                                     </label>
                                 </div>
@@ -49,7 +49,7 @@
                                     <label id="lblPayerId" for="auditFromDate" i18n="billing.payments.payerID" class="control-label"></label>
                                     <label class="control-label"> :
                                         <b>
-                                            <%= ins.payer_id %>
+                                            <%= ins.payer_details.payer_id %>
                                         </b>
                                     </label>
                                 </div>
@@ -57,7 +57,7 @@
                                     <label id="paymentDate" for="auditFromDate" i18n="billing.payments.paymentDate" class="control-label"></label>
                                     <label class="control-label"> :
                                         <b>
-                                            <%= ins.payment_dt ? ins.payment_dt : '' %>
+                                            <%= ins.payer_details.payment_dt ? ins.payer_details.payment_dt : '' %>
                                         </b>
                                     </label>
                                 </div>
@@ -67,8 +67,8 @@
                                     <label id="lblInsProviderAddress" for="auditFromDate" i18n="billing.claims.address" class="control-label"></label>
                                     <label class="control-label"> :
                                         <b>
-                                            <%= ins.address1 %>
-                                            <%= ins.address2 ? '/'+ ins.address2 : '' %>
+                                            <%= ins.payer_details.address1 %>
+                                            <%= ins.payer_details.address2 ? '/'+ ins.payer_details.address2 : '' %>
                                         </b>
                                     </label>
                                 </div>
@@ -76,9 +76,9 @@
                                     <label id="lblInsProviderCityState" for="auditFromDate" i18n="setup.billingprovider.cityStateZip" class="control-label"></label>
                                     <label class="control-label"> :
                                         <b>
-                                            <%= ins.city %>/
-                                            <%= ins.state || '--' %>/
-                                            <%= ins.zip || '--' %>
+                                            <%= ins.payer_details.city %>/
+                                            <%= ins.payer_details.state || '--' %>/
+                                            <%= ins.payer_details.zip || '--' %>
                                         </b>
                                     </label>
                                 </div>
@@ -86,41 +86,43 @@
                                     <label id="lblInsProviderPhoneNo" for="auditFromDate" i18n="billing.claims.phone" class="control-label"></label>
                                     <label class="control-label"> :
                                         <b>
-                                            <%= ins.phone_no %>
+                                            <%= ins.payer_details.phone_no %>
                                         </b>
                                     </label>
                                 </div>
                             </div>
                         </div>
-                        <div id="divResponseSection" style="overflow: auto; margin-top: 10px; margin: auto;margin-top: 10px;" class="row">
-                            <% if (claims&& claims.length ) { %>
+                        <div id="divResponseSection" class="text-nowrap row margin-auto">
+                            <% if (claims && claims.length ) { %>
                                 <% _.each(claims, function(claim, key){ %>
-                                    <div class="col-md-12" id="divClaimDetails_<%= key %>" style="border-top: 1px solid #dfe2e6;">
-                                        <div class="col-md-6 topMargin" style="float: left;">
+                                    <div class="col-md-12 form-group form-inline border-top" id="divClaimDetails_<%= key %>">
+                                        <div class="col-md-6 float-left mt-2">
+                                            <label i18n="shared.fields.paymentId"></label>
+                                            <label class="control-label"> :
+                                                <%= claim.payment_id %>
+                                            </label>
+                                        </div>
+                                        <div class="col-md-6 float-left mt-2">
                                             <label i18n="billing.fileInsurance.patientName"></label>
                                             <label class="control-label">
-                                                :
                                                 <%= claim.pat_name %>
                                             </label>
                                         </div>
-                                        <div class="col-md-6 topMargin" style="float: right;">
+                                        <div class="col-md-6 float-left mt-2">
                                             <label i18n="billing.fileInsurance.claimNo"></label>
-                                            <label class="control-label">
-                                                :
+                                            <label class="control-label"> :
                                                 <%= claim.claim_id %>
                                             </label>
                                         </div>
-                                        <div class="col-md-6 topMargin" style="float: right;">
+                                        <div class="col-md-6 float-left mt-2">
                                             <label i18n="billing.COB.noOfCharges"></label>
-                                            <label class="control-label">
-                                                :
+                                            <label class="control-label"> :
                                                 <%= claim.charges.length ? claim.charges.length: 0 %>
                                             </label>
                                         </div>
-                                        <div class="col-md-6 topMargin" style="float: right;">
+                                        <div class="col-md-6 float-left mt-2">
                                             <label i18n="billing.COB.account"></label>
-                                            <label class="control-label">
-                                                :
+                                            <label class="control-label"> :
                                                 <%= claim.account_no %>
                                             </label>
                                         </div>
@@ -130,47 +132,43 @@
                                                     <th i18n ="billing.claims.date">Date</th>
                                                     <th i18n ="billing.payments.cptCode">CPT Code</th>
                                                     <th class="txtAlignRight" i18n="shared.fields.billFee">Bill Fee</th>
+                                                    <th class="txtAlignRight" i18n="shared.fields.Amount">Amount</th>
                                                     <th class="txtAlignRight" i18n="billing.payments.adjustments">Adjustment</th>
-                                                    <th class="txtAlignRight" i18n="billing.payments.allowed">Allowed</th>
-                                                    <th i18n="setup.common.modifier">Modifier</th>
                                                 </thead>
                                                 <tbody>
                                                     <% _.each(claim.charges, function(charge, key){ %>
                                                         <tr>
                                                             <td>
-                                                                <%= charge.charge_dt %>
+                                                                <%= moment(charge.applied_dt).format('L') %>
                                                             </td>
                                                             <td>
                                                                 <%= charge.cpt_decsription %>
                                                             </td>
                                                             <td class="txtAlignRight">
-                                                                <% if (charge.amount_type === 'payment' ) { %>
-                                                                    <%= charge.bill_fee %>
-                                                                        <% } %>
+                                                                <%= charge.bill_fee %>
                                                             </td>
                                                             <td class="txtAlignRight">
-                                                                <% if (charge.amount_type === 'adjustment' ) { %>
-                                                                    <%= charge.bill_fee %>
-                                                                        <% } %>
+                                                            <% if (charge.payments_applied) { %>
+                                                                <%= charge.payments_applied %>
+                                                            <%}%>
                                                             </td>
                                                             <td class="txtAlignRight">
-                                                                <%= charge.allowed_fee %>
-                                                            </td>
-                                                            <td>
-                                                                <%= charge.modifiers %>
+                                                            <% if (charge.adjustments_applied) { %>
+                                                                <%= charge.adjustments_applied %>
+                                                            <% } %>
+
                                                             </td>
                                                         </tr>
                                                         <% }); %>
                                                             <tr>
                                                                 <td> </td>
                                                                 <td></td>
-                                                                <td class="txtAlignRight"> Total : $<%= claim.totalBillFee %>
+                                                                <td class="txtAlignRight"> Total : <%= claim.tot_bill_fee || 0.00 %>
                                                                 </td>
-                                                                <td class="txtAlignRight"> Total : $<%= claim.totalAdjusmtment %>
+                                                                <td class="txtAlignRight"> Total : <%= claim.tot_payments_applied || 0.00 %>
                                                                 </td>
-                                                                <td class="txtAlignRight"> Total : $<%= claim.totalAllowedFee %>
+                                                                <td class="txtAlignRight"> Total : <%= claim.tot_adjustments_applied || 0.00 %>
                                                                 </td>
-                                                                <td></td>
                                                             </tr>
                                                 </tbody>
                                             </table>
