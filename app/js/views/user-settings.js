@@ -61,9 +61,9 @@ define([
                 var billingClaimGridFields = [];
 
                 if (self.gridFilterName == 'studies') {
-                    billingClaimGridFields = app.study_user_settings.grid_field_settings;
+                    billingClaimGridFields = app.study_user_settings.grid_field_settings || [];
                 } else if (self.gridFilterName == 'claims') {
-                    billingClaimGridFields = app.claim_user_settings.grid_field_settings;
+                    billingClaimGridFields = app.claim_user_settings.grid_field_settings || [];
                 }
 
                 claim_col_name = $('#ddlBillingDefaultColumns').val();

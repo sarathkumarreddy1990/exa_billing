@@ -1378,7 +1378,7 @@ define('grid', [
 
             var subGridNeed = ((app.showpriors && true) || true);
             var gridSettings = options.isClaimGrid ? app.claim_user_settings : app.study_user_settings;
-            var studyFieldsCollection = new StudyFields(null, { gridOptions: gridSettings.grid_field_settings, field_order: userSettings.field_order, filterType: userSettings.grid_name });
+            var studyFieldsCollection = new StudyFields(null, { gridOptions: gridSettings.grid_field_settings || [], field_order: userSettings.field_order, filterType: userSettings.grid_name });
             var studyFields = studyFieldsCollection.reduce(function (fieldSet, field) {
                 fieldSet.colName[fieldSet.colName.length] = field.get('field_name');
                 fieldSet.i18nName[fieldSet.i18nName.length] = field.get('i18n_name') || '';
