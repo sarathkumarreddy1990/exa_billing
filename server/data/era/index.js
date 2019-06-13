@@ -670,94 +670,93 @@ module.exports = {
         } = params;
 
         const sql = SQL`
-
-            WITH insurance_details AS(
-                SELECT
-                    bp.id as payment_id ,
-                    pip.id ,
-                    pip.insurance_name ,
-                    pip.insurance_info->'PayerID' AS payer_id,
-                    bp.payment_dt AS payment_dt,
-                    pip.insurance_info->'Address1' AS address1,
-                    pip.insurance_info->'Address2' AS address2,
-                    pip.insurance_info->'City'  AS city,
-                    pip.insurance_info->'State' AS state,
-                    pip.insurance_info->'PhoneNo' AS phone_no,
-                    pip.insurance_info->'ZipCode' AS zip,
-				    fs.root_directory,
-				    bef.id as file_name,
-				    bef.file_path
-                FROM
-                    billing.edi_files bef
-                    INNER JOIN file_stores fs on fs.id = bef.file_store_id
-                    INNER JOIN billing.edi_file_payments befp ON befp.edi_file_id = bef.id
-                    INNER JOIN billing.payments bp on bp.id = befp.payment_id
-                    INNER JOIN public.insurance_providers pip on pip.id = bp.insurance_provider_id
-                    where bef.id = ${file_id} AND bp.mode = 'eft'
-                ),
-                charge_details AS (
-                    (SELECT Json_agg(Row_to_json(chargeDetails)) "chargeDetails"
-                    FROM
-                   (
+                    WITH
+                        payer_details AS (
+                            SELECT
+                                pip.id,
+                                pip.insurance_name,
+                                pip.insurance_info->'PayerID' AS payer_id,
+                                timezone(get_facility_tz(bp.facility_id::int),bp.payment_dt) AS payment_dt,
+                                pip.insurance_info->'Address1' AS address1,
+                                pip.insurance_info->'Address2' AS address2,
+                                pip.insurance_info->'City' AS city,
+                                pip.insurance_info->'State' AS state,
+                                pip.insurance_info->'PhoneNo' AS phone_no,
+                                pip.insurance_info->'ZipCode' AS zip,
+                                fs.root_directory,
+                                bef.id::text AS file_name,
+                                bef.file_path
+                            FROM billing.edi_files bef
+                            INNER JOIN file_stores fs ON fs.id = bef.file_store_id
+                            INNER JOIN billing.edi_file_payments befp ON befp.edi_file_id = bef.id
+                            INNER JOIN billing.payments bp ON bp.id = befp.payment_id
+                            INNER JOIN public.insurance_providers pip ON pip.id = bp.insurance_provider_id
+                            WHERE bef.id = ${file_id} AND bp.mode = 'eft'
+                            LIMIT 1
+                        ),
+                        charge_payments AS (
+                            SELECT
+                                bp.id AS payment_id,
+                                bch.claim_id,
+                                bpa.charge_id,
+                                pcc.display_code AS cpt_decsription,
+                                (bch.bill_fee * bch.units) AS bill_fee,
+                                COALESCE(SUM(bpa.amount) FILTER (WHERE bpa.amount_type = 'payment'), 0::money) AS payments_applied,
+                                COALESCE(SUM(bpa.amount) FILTER (WHERE bpa.amount_type = 'adjustment'), 0::money) AS adjustments_applied,
+                                bpa.applied_dt
+                            FROM billing.edi_files bef
+                            INNER JOIN billing.edi_file_payments befp ON befp.edi_file_id = bef.id
+                            INNER JOIN billing.payments bp ON bp.id = befp.payment_id
+                            INNER JOIN billing.payment_applications bpa ON bpa.payment_id = bp.id
+                            INNER JOIN billing.charges bch ON bch.id = bpa.charge_id
+                            INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
+                    	    INNER JOIN billing.claims ON claims.id = bch.claim_id
+                            INNER JOIN patients ON patients.id = claims.patient_id
+                            WHERE bef.id = ${file_id} 
+                            AND bch.claim_id IS NOT NULL 
+                            AND bp.mode = 'eft'
+                            GROUP BY bpa.applied_dt, bpa.charge_id, bp.id, bch.claim_id, pcc.display_code, bch.bill_fee, bch.units
+                            ORDER BY bp.id, bch.claim_id, bpa.applied_dt
+                        ),
+                        grouped_claim_payments AS (
+                            SELECT 
+                    	        payment_id,
+                    	        claim_id,
+                                applied_dt,
+                                SUM(payments_applied) AS tot_payments_applied,
+                                SUM(adjustments_applied) AS tot_adjustments_applied,
+                                SUM(bill_fee) AS tot_bill_fee
+                            FROM charge_payments
+                            GROUP BY payment_id, claim_id, applied_dt
+                            ORDER BY payment_id
+                        ),
+                        processed_eob_payments AS(
+                            SELECT
+                                payment_id,
+                    	        claim_id, 
+                    	        applied_dt,
+                    	        cpp.*,
+                    	        patients.id AS patient_id,
+                    	        patients.account_no,
+                                get_full_name (patients.last_name,patients.first_name) AS pat_name,
+                                gcp.tot_payments_applied,
+                                gcp.tot_adjustments_applied,
+                                gcp.tot_bill_fee
+                            FROM grouped_claim_payments gcp
+                            INNER JOIN billing.claims ON claims.id = claim_id
+                            INNER JOIN patients ON patients.id = claims.patient_id
+                            LEFT JOIN LATERAL (
+                                SELECT
+                                    json_agg(row_to_json(c.*)) AS charges
+                                FROM charge_payments c
+                                WHERE c.applied_dt = gcp.applied_dt
+                                GROUP BY c.applied_dt
+                                ) cpp ON true
+                            ORDER BY payment_id
+                        )
                     SELECT
-                    bch.claim_id,
-                    bch.charge_dt::date,
-                    pcc.display_code AS cpt_decsription,
-                    (bch.bill_fee * bch.units) AS bill_fee,
-                    bpa.amount_type,
-                    (bch.allowed_amount * bch.units) AS allowed_fee ,
-                    (
-                        SELECT
-                         ('[' || modifier1.code || ',
-                         ' || modifier2.code || ',
-                         ' || modifier3.code ||  ',
-                         ' || modifier4.code || ']')
-                        FROM billing.charges
-                        LEFT JOIN modifiers AS modifier1 on modifier1.id = modifier1_id
-                        LEFT join modifiers AS modifier2 on modifier2.id = modifier2_id
-                        LEFT join modifiers AS modifier3 on modifier3.id = modifier3_id
-                        LEFT join modifiers AS modifier4 on modifier4.id = modifier4_id
-                            WHERE charges.id = bpa.charge_id
-                        ) as modifiers
-                    FROM
-                    billing.edi_files bef
-                    LEFT JOIN billing.edi_file_payments befp ON befp.edi_file_id = bef.id
-                    LEFT JOIN billing.payments bp on bp.id = befp.payment_id
-                    --LEFT JOIN public.insurance_providers pip on pip.id = bp.insurance_provider_id
-
-                    LEFT JOIN billing.payment_applications bpa on bpa.payment_id = bp .id
-                    LEFT JOIN billing.charges bch on bch.id = bpa.charge_id
-                    LEFT JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
-
-                    WHERE bef.id = ${file_id} AND bch.claim_id IS NOT NULL AND bp.mode = 'eft'
-                ) AS chargeDetails )
-                    ),
-                claim_details AS (
-                    (SELECT Json_agg(Row_to_json(claimsDetails)) "claimsDetails"
-                     FROM
-                    (  SELECT
-                        patients.id,
-                        patients.account_no,
-                        get_full_name (patients.last_name,patients.first_name) AS pat_name,
-                        claim_id
-                        FROM
-                        (
-                            SELECT DISTINCT
-                            bch.claim_id
-                            FROM billing.edi_files
-                            INNER JOIN billing.edi_file_payments efp on efp.edi_file_id  = edi_files.id
-                            LEFT JOIN billing.payments pay on pay.id = efp.payment_id
-                            LEFT  JOIN billing.payment_applications bpa on bpa.payment_id = pay.id
-                            LEFT  JOIN billing.charges bch on bch.id = bpa.charge_id
-                            where edi_files.id = ${file_id} AND pay.mode = 'eft'
-                        ) AS claim_details
-
-                        inner join billing.claims on claims.id = claim_details.claim_id
-                        inner join patients on patients.id = claims.patient_id
-                    ) AS claimsDetails      )
-                )
-                SELECT * FROM insurance_details, charge_details, claim_details
-        `;
+                        ( SELECT (row_to_json(payer_details.*)) AS payer_details FROM payer_details ),
+                        ( SELECT json_agg(row_to_json(processed_eob_payments.*)) AS processed_eob_payments FROM processed_eob_payments )`;
 
         return await query(sql);
 

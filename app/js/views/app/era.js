@@ -483,7 +483,7 @@ define([
 
             showPayments: function (fileId, fileName) {
                 var self = this;
-                commonjs.showLoading('Generating preview. please wait');
+                commonjs.showLoading(commonjs.geti18NString('messages.status.generateEraPreview'));
                 if (fileId) {
                     $.ajax({
                         url: '/exa_modules/billing/era/era_details',
@@ -500,43 +500,20 @@ define([
                                 fileName = fileName.substr(0, fileName.lastIndexOf('.'));
 
                                 var ins = model.rows[0];
-                                var claims = [];
+                                ins.payer_details.payment_dt = moment(ins.payer_details.payment_dt).format('L');
 
-                                var claimDetails = ins.claimsDetails;
-                                var chargeDetails = ins.chargeDetails;
-
-                                var totalBillFee = 0.00;
-                                var totalAllowedFee = 0.00;
-                                var totalAdjusmtment = 0.00;
-                                $.each(claimDetails, function (index, row) {
-                                    totalBillFee = 0.00;
-                                    totalAllowedFee = 0.00;
-                                    totalAdjusmtment = 0.00;
-                                    row["charges"] = [];
-                                    for (var j = 0; j < chargeDetails.length; j++) {
-                                        if (row.claim_id === chargeDetails[j].claim_id) {
-                                            if (chargeDetails[j].amount_type == 'payment')
-                                                totalBillFee += parseFloat(chargeDetails[j].bill_fee.substr(1).replace(',', ''));
-                                            else
-                                                totalAdjusmtment += parseFloat(chargeDetails[j].bill_fee.substr(1).replace(',', ''));
-
-                                            totalAllowedFee += parseFloat(chargeDetails[j].allowed_fee.substr(1).replace(',', ''));
-                                            row["charges"].push(chargeDetails[j]);
-                                        }
-                                    }
-                                    claims.push(row);
-                                    row["totalBillFee"] = totalBillFee;
-                                    row["totalAllowedFee"] = totalAllowedFee;
-                                    row["totalAdjusmtment"] = totalAdjusmtment;
-                                });
-
-                                $('#eraResultTitle').html(commonjs.geti18NString("shared.fields.result") + fileName);
+                                $('#eraResultTitle').html(commonjs.geti18NString("shared.fields.result") + ': ' + fileName);
                                 commonjs.showDialog({
-                                    header: commonjs.geti18NString("shared.fields.result") + fileName,
+                                    header: commonjs.geti18NString("shared.fields.result") + ': ' + fileName,
                                     width: '80%',
                                     height: '70%',
                                     padding: '0px',
-                                    html: self.eraResponseTemplate({ claims: claims, ins: ins })
+                                    html: self.eraResponseTemplate({
+                                        claims: ins.processed_eob_payments || [],
+                                        ins: ins,
+                                        moment: moment
+                                    })
+
                                 });
 
                                 try {
@@ -550,7 +527,6 @@ define([
                                 }
 
                                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
-                                $('#divResponseSection').height($(window).height() - 450);
                                 $('#era-processed-preview').height(($(window).height() - 360));
                             }
                             else {
