@@ -710,7 +710,7 @@ module.exports = {
                             INNER JOIN billing.payment_applications bpa ON bpa.payment_id = bp.id
                             INNER JOIN billing.charges bch ON bch.id = bpa.charge_id
                             INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
-                    	    INNER JOIN billing.claims ON claims.id = bch.claim_id
+                            INNER JOIN billing.claims ON claims.id = bch.claim_id
                             INNER JOIN patients ON patients.id = claims.patient_id
                             WHERE bef.id = ${file_id} 
                             AND bch.claim_id IS NOT NULL 
