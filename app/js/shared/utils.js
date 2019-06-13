@@ -103,12 +103,13 @@ define([ 'jquery', 'underscore' ], function ( jQuery, _ ) {
         //getTATCount();
     };
 
-    var updateReorderColumn = function ( studyFields, isClaimGrid  ) {
+    var updateColumn = function (studyFields, isClaimGrid) {
         var field_order = [];
-        var gridOptions = studyFields.map(function ( col ) {
-            field_order[ field_order.length ] = col.id;
+        var gridOptions = studyFields.map(function (col) {
+            field_order[field_order.length] = col.id;
             return {
-                'name': name,
+                'id': col.id,
+                'name': col.field_name,
                 'width': col.field_info.width || 0
             };
         });
@@ -118,46 +119,24 @@ define([ 'jquery', 'underscore' ], function ( jQuery, _ ) {
             "type": "POST",
             "data": {
                 "gridName": gridName,
-                "fieldOrder": field_order
+                "fieldOrder": field_order,
+                "gridOptions": JSON.stringify(gridOptions)
             },
-            "success": function ( data ) {
-                if ( data ) {
+            "success": function (data) {
+                if (data) {
                     if (isClaimGrid) {
                         app.claim_user_settings.field_order = field_order;
+                        app.claim_user_settings.grid_field_settings = gridOptions;
                     } else {
                         app.study_user_settings.field_order = field_order;
+                        app.study_user_settings.grid_field_settings = gridOptions;
                     }
                 }
             },
-            "error": function ( err ) {
+            "error": function (err) {
                 commonjs.handleXhrError(err);
             }
         });
-    };
-
-     var updateResizeColumn = function ( studyFields ) {
-    //     var gridOptions = studyFields.map(function ( col ) {
-    //         return {
-    //             'name': col.field_name,
-    //             'width': col.field_info.width || 0
-    //         };
-    //     });
-    //     jQuery.ajax({
-    //         "url": "/userSetting",
-    //         "type": "PUT",
-    //         "data": {
-    //             "flag": "updateResizeCol",
-    //             "grid_options": JSON.stringify(gridOptions)
-    //         },
-    //         "success": function ( data ) {
-    //             if ( data ) {
-    //                 app.usersettings.grid_options = gridOptions;
-    //             }
-    //         },
-    //         "error": function ( err ) {
-    //             commonjs.handleXhrError(err);
-    //         }
-    //     });
     };
 
     var getDatasetName = function ( datasetname ) {
@@ -312,8 +291,8 @@ define([ 'jquery', 'underscore' ], function ( jQuery, _ ) {
         disableRightClick: disableRightClick,
         setRightMenuPosition: setRightMenuPosition,
         updateCollection: updateCollection,
-        updateReorderColumn: updateReorderColumn,
-        updateResizeColumn: updateResizeColumn,
+        updateReorderColumn: updateColumn,
+        updateResizeColumn: updateColumn,
         setScrollHandler: setScrollHandler
     };
 });
