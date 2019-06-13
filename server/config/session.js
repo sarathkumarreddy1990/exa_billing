@@ -24,6 +24,7 @@ module.exports = function (app) {
         store: new RedisStore({
             host: redisInfo.host,
             port: redisInfo.port,
+            pass: redisInfo.password,
             db: 1,
             prefix: 'exa:session:',
             ttl: 1 * 24 * 60 * 60
