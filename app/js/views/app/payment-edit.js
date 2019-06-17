@@ -2531,8 +2531,7 @@ define(['jquery',
                         var id = layout.currentModule == 'Claims' ? 'modalBodyNested' : 'modalBody';
                         $('#' + id).trackFormChanges(function (unsaved) {
                             if (unsaved) {
-                                var saveConfirm = confirm(commonjs.geti18NString("messages.confirm.unsavedFormConfirm"));
-                                if (saveConfirm) {
+                                if (confirm(commonjs.geti18NString("messages.confirm.unsavedFormConfirm"))) {
                                     self.isEscKeyPress = true;
                                     $('#btnSaveAppliedPendingPayments').trigger('click');
                                 }
