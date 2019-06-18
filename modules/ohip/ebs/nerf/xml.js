@@ -1,6 +1,9 @@
 const uuid = require('uuid/v1');
 
 // const logger = require('../../../../logger');
+const {
+    chunk,
+} = require('lodash');
 
 const {
     services: {
@@ -108,12 +111,24 @@ const generateDownloadResultsXML = (results) => {
     `;
 };
 
-const generateDetailResultsXML = (results) => {
+const PAGE_SIZE = 50;
+
+const generateDetailResultsXML = (results, pageNo) => {
 
     // TODO this will need to become very clever about paging in order to support
     // testing of improvements to file housekeeping
+    if (!results.length) {
+        return '';
+    }
+    // console.log('RESULTS ... ', results);
+    // console.log('PAGE SIZE: ', PAGE_SIZE);
+    const pages = chunk(results, PAGE_SIZE);
 
-    const innerDetailXML = results.map((result) => {
+    // console.log('PAGES: ', pages);
+    // console.log('PAGE NUM: ', pageNo);
+    const selectedPage = pages[(pageNo || 1) - 1];
+
+    const innerDetailXML = selectedPage.map((result) => {
         return generateDetailDataXML(result.resource, result.responseCode);
     }).join('\n');
 
@@ -121,7 +136,7 @@ const generateDetailResultsXML = (results) => {
         <return>
             <auditID>${uuid()}</auditID>
             ${innerDetailXML}
-            <resultSize>1</resultSize>
+            <resultSize>${pages.length}</resultSize>
         </return>
     `;
 };
@@ -176,12 +191,19 @@ module.exports = {
     },
 
     // results in detail responses
-    [EDT_LIST]: (results) => {
+    [EDT_LIST]: (args) => {
+
+        const {
+            results,
+            pageNo,
+        } = args;
+
         return `
             <listResponse>
-                ${generateDetailResultsXML(results)}
+                ${generateDetailResultsXML(results, pageNo)}
             </listResponse>`;
     },
+
     [EDT_INFO]: (results) => {
         return `
             <infoResponse>

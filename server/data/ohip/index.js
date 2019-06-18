@@ -273,7 +273,23 @@ const getRelatedFile = async (claim_file_id, related_file_type) => {
         err: `Could not find the file path of requested edi file - ${claim_file_id}`
     }
 
-}
+};
+
+const getResourceIDs = async (args) => {
+    const {
+        resourceType,
+    } = args;
+
+    const sql = SQL`
+        SELECT resource_no
+        FROM billing.edi_files
+        WHERE file_type=${getFileType(args)}
+    `;
+
+    return (await query(sql.text, sql.values)).rows.map((edi_file) => {
+        return edi_file.resource_no;
+    });
+};
 
 
 
@@ -653,6 +669,8 @@ const OHIPDataAPI = {
     applyRejectMessage,
     applyBatchEditReport,
     applyErrorReport,
+
+    getResourceIDs,
 
     getOHIPConfiguration: async (args) => {
 
