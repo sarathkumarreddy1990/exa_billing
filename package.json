@@ -29,6 +29,7 @@
         "express-promise-router": "^3.0.2",
         "express-session": "^1.16.1",
         "http-errors": "~1.6.2",
+        "ioredis": "^4.10.0",
         "jsreport-client": "^1.0.2",
         "less-middleware": "^2.2.1",
         "ln": "^0.4.3",
