@@ -97,4 +97,4 @@ async function init () {
 
 }
 
-init().catch(logger.logError);
+init().catch(logger.error);
