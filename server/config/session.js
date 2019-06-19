@@ -24,7 +24,7 @@ module.exports = function (app, companyId) {
         port: redisInfo.port,
         password: redisInfo.password,
         db: 0,
-        keyPrefix: `${String(companyId).padStart(6, '0')}:web:session:`, // uses web "application" cuz that's where session is
+        keyPrefix: `${String(companyId).padStart(10, '0')}:web:session:`, // uses web "application" cuz that's where session is
         ttl: 1 * 24 * 60 * 60
     })
 
