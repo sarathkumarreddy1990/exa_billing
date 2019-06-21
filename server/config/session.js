@@ -19,14 +19,25 @@ passport.deserializeUser(function (userInfo, done) {
 
 module.exports = function (app, companyId) {
     const redisInfo = config.get(config.keys.RedisStore);
-    const client = new Redis({
-        host: redisInfo.host,
-        port: redisInfo.port,
+    const redisOptions = {
         password: redisInfo.password,
         db: 0,
         keyPrefix: `${String(companyId).padStart(10, '0')}:web:session:`, // uses web "application" cuz that's where session is
         ttl: 1 * 24 * 60 * 60
-    })
+    };
+    let client;
+    if ( redisInfo.clusterNodes && redisInfo.clusterNodes.length > 0 ) {
+        client = new Redis.Cluster(redisInfo.clusterNodes, {
+            redisOptions,
+        });
+    }
+    else {
+        client = new Redis({
+            ...redisOptions,
+            host: redisInfo.host,
+            port: redisInfo.port,
+        });
+    }
 
     app.use(session({
         resave: false,
