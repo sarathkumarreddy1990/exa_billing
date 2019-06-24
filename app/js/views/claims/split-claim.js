@@ -102,7 +102,8 @@ define([
                     success: function (data, response) {
                         if (data && data[0]) {
                             var CPTList = self.cptListTemplate({ charges: data[0].claim_details });
-                            $('#divAllCPTList').append(CPTList).fadeIn("slow");
+                            $('#divSelectedCPTList').empty();
+                            $('#divAllCPTList').html(CPTList).fadeIn("slow");
                             self.setEvents();
                             commonjs.hideLoading();
                             commonjs.initializeScreen({ header: { screen: 'Split Claim', ext: 'createSplit' } }, true);
