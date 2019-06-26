@@ -1170,9 +1170,10 @@ define([
 
                     if (nextRowData.attr('id') && nextRowData.length > 0) {
                         var rowId = nextRowData.attr('id');
-                        $(e.target).prop('disabled', true);
                         var data = $(self.grid_id, parent.document).getRowData(rowId);
-                        $('#ddlBillingProvider option:contains("Select")').prop("selected", true);
+
+                        $(e.target).prop('disabled', true);
+                        $('#ddlBillingProvider').val(0); // Set billing provider option as default ALL
                         self.patientInquiryForm(rowId, data.hidden_patient_id, data.patient_name, self.grid_id, false)
 
                     } else {
