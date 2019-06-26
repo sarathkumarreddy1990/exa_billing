@@ -1,11 +1,11 @@
-const logger = require('../../../logger')
-    , responseHandler = require('../../../server/shared/http')
-    , dataHelper = require('../data/postgres/dataHelper')
-    , _ = require('lodash')
-    , moment = require('moment-timezone')
-    , DEBUG_ENABLED = false
-    ;
-    const jsReportClient = require("jsreport-client")('http://localhost:5488/', 'jsradmin', 'JSR1q2w3e4r5t');
+const logger = require('../../../logger');
+const responseHandler = require('../../../server/shared/http');
+const dataHelper = require('../data/postgres/dataHelper');
+const _ = require('lodash');
+const moment = require('moment-timezone');
+const DEBUG_ENABLED = false;
+const commonIndex = require('../../../server/shared/index');
+const jsReportClient = require("jsreport-client")('http://localhost/reporting/', 'jsradmin', 'JSR1q2w3e4r5t');
 let reqNum = 0;
 
 const lengthExceedsTemplate = `
