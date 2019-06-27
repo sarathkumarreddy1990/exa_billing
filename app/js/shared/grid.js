@@ -201,9 +201,13 @@ define('grid', [
 
             var studyIds = studyArray.join();
             if (isClaimGrid) {
-                var liClaimStatus = commonjs.getRightClickMenu('ul_change_claim_status','setup.rightClickMenu.billingStatus',false,'Change Claim Status',true);
-                $divObj.append(liClaimStatus);
-                self.checkSubMenuRights('li_ul_change_claim_status');
+                var liClaimStatus = commonjs.getRightClickMenu('ul_change_claim_status', 'setup.rightClickMenu.claimStatus', false, 'Change Claim Status', true);
+
+                // If the user have rights to change the claim status, then will show the claim status in right click menu
+                if (rightclickMenuRights.indexOf('li_ul_change_claim_status') === -1 ) {
+                    $divObj.append(liClaimStatus);
+                }
+
                 var liArray = [];
                 commonjs.getClaimStudy(selectedStudies[0].study_id, function (result) {
                     if (result) {

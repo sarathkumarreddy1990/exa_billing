@@ -180,6 +180,10 @@ define(['jquery',
                 if(self.screenCode.indexOf('PATR') > -1)
                     $('#btPatientDocuemnt').attr('disabled', true)
 
+                if (self.screenCode.indexOf('ECST') > -1) { // If the user don't have rights for edit claim status, claim status change action is disabled.
+                    $('#ddlClaimStatus').prop({'disabled': true, 'title': commonjs.geti18NString("messages.errors.accessdenied")});
+                }
+
                 self.initializeDateTimePickers();
                 $('#modal_div_container').animate({ scrollTop: 0 }, 100);
 
