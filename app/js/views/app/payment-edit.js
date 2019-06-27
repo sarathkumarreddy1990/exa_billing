@@ -2135,15 +2135,15 @@ define(['jquery',
             },
 
             calculateAdjustment: function (e) {
-                var row = $(e.target).closest('tr');
+                var $row = $(e.target).closest('tr');
                 var isDebit = $('.checkDebit')[0].checked;
-                var $billFee = $(row).find('.payment__bill_fee');
-                var $thisPay = $(row).find('.payment__this_pay');
-                var $thisAdj = $(row).find('.payment__this_adjustment');
-                var $otherAdj = $(row).find('.payment__other_adjustment');
-                var $allowedFee = $(row).find('.payment__this_allowed');
-                var $otherPayment = $(row).find('.payment__others');
-                var $paymentBalance = $(row).find('.payment__balance');
+                var $billFee = $row.find('.payment__bill_fee');
+                var $thisPay = $row.find('.payment__this_pay');
+                var $thisAdj = $row.find('.payment__this_adjustment');
+                var $otherAdj = $row.find('.payment__other_adjustment');
+                var $allowedFee = $row.find('.payment__this_allowed');
+                var $otherPayment = $row.find('.payment__others');
+                var $paymentBalance = $row.find('.payment__balance');
                 var otherAdj = parseFloat($otherAdj.text());
                 var billFee = parseFloat($billFee.text()).toFixed(2);
                 var allowedFee = $allowedFee.val() ? parseFloat($allowedFee.val()) : 0.00;
