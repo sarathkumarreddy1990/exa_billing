@@ -99,13 +99,18 @@ function ($, _, Backbone, UI, MainTemplate) {
             this.drpStudyDt.setStartDate(this.viewModel.dateFrom);
             this.drpStudyDt.setEndDate(this.viewModel.dateTo);
 
-            $('#ddlFacilityFilter, #ddlProcedureBySelectBoxes').multiselect({
+            $('#ddlFacilityFilter').multiselect({
                 maxHeight: 200,
                 buttonWidth: '300px',
                 width: '300px',
                 enableFiltering: true,
                 includeSelectAllOption: true,
                 enableCaseInsensitiveFiltering: true
+            });
+            $('#ddlProcedureBySelectBoxes').multiselect({
+                maxHeight: 200,
+                buttonWidth: 200,
+                width: 200
             });
             UI.bindBillingProvider();
             UI.bindReferringPhysicianGroupAutoComplete();
