@@ -2139,20 +2139,30 @@ define(['jquery',
             },
 
             calculateAdjustment: function (e) {
-                var row = $(e.target).closest('tr');
+                var $row = $(e.target).closest('tr');
                 var isDebit = $('.checkDebit')[0].checked;
-                var bill_fee = parseFloat($(row).find('.payment__bill_fee').text()).toFixed(2);
-                var otherPayment = $(row).find('.payment__others').text() != '' ? parseFloat($(row).find('.payment__others').text()) : 0.00;
-                var this_pay = $(row).find('.payment__this_pay').val() ? parseFloat($(row).find('.payment__this_pay').val()) : 0.00;
-                var allowed_fee = $(row).find('.payment__this_allowed').val() ? parseFloat($(row).find('.payment__this_allowed').val()) : 0.00;
-                var otherAdj = parseFloat($(row).find('.payment__other_adjustment').text())
-                var adjustment = bill_fee - (allowed_fee)
+                var $billFee = $row.find('.payment__bill_fee');
+                var $thisPay = $row.find('.payment__this_pay');
+                var $thisAdj = $row.find('.payment__this_adjustment');
+                var $otherAdj = $row.find('.payment__other_adjustment');
+                var $allowedFee = $row.find('.payment__this_allowed');
+                var $otherPayment = $row.find('.payment__others');
+                var $paymentBalance = $row.find('.payment__balance');
+                var otherAdj = parseFloat($otherAdj.text());
+                var billFee = parseFloat($billFee.text()).toFixed(2);
+                var allowedFee = $allowedFee.val() ? parseFloat($allowedFee.val()) : 0.00;
+                var otherPayment = $otherPayment.text() != '' ? parseFloat($otherPayment.text()) : 0.00;
+                var adjustment = billFee - allowedFee;
                 adjustment = isDebit ? -Math.abs(adjustment) : Math.abs(adjustment);
-                $(row).find('.payment__this_adjustment').val(parseFloat(adjustment).toFixed(2));
-                var payment_amt = $(row).find('.payment__this_pay').val() ? parseFloat($(row).find('.payment__this_pay').val()) : 0.00;
-                var adj_amt = $(row).find('.payment__this_adjustment').val() ? parseFloat($(row).find('.payment__this_adjustment').val()) : 0.00;
-                var current_balance = parseFloat($(row).find('.payment__bill_fee').text()) - (otherPayment + otherAdj + payment_amt + adj_amt);
-                $(row).find('.payment__balance').text(parseFloat(current_balance).toFixed(2));
+
+                if ($allowedFee.val() != '') {
+                    $thisAdj.val(parseFloat(adjustment).toFixed(2));
+                }
+                var paymentAmt = $thisPay.val() ? parseFloat($thisPay.val()) : 0.00;
+                var adjAmt = $thisAdj.val() ? parseFloat($thisAdj.val()) : 0.00;
+                var currentBalance = parseFloat($billFee.text()) - (otherPayment + otherAdj + paymentAmt + adjAmt);
+
+                $paymentBalance.text(parseFloat(currentBalance).toFixed(2));
             },
 
             updatePaymentAdjustment: function () {
