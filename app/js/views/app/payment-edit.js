@@ -1799,6 +1799,10 @@ define(['jquery',
                         }
                     });
                 }
+
+                if (self.screenCode.indexOf('ECST') > -1) { // If the user don't have rights for edit claim status, claim status change action is disabled.
+                    $('#ddlClaimStatus').prop({'disabled': true, 'title': commonjs.geti18NString("messages.errors.accessdenied")});
+                }
             },
 
             setFeeFields: function (claimDetail, isInitial) {
