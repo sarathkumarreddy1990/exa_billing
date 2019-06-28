@@ -194,20 +194,23 @@ define([
                     }
                 }
 
-                $('#btnAddInsurance').unbind('click').click(function () {
-                    if ($('#select2-txtInsuranceName-container > a.select2-default').length > 0) {
-                        commonjs.showWarning('Please select one Insurance to add');
-                        return false;
-                    }
-                    if ($('#ulListInsurance li a[data-id="' + $('#txtInsuranceName').select2('data')[0].id + '"]').length) {
-                        commonjs.showWarning("Insurance is already selected");
-                        return false;
+                $('#btnAddInsurance').off('click').on('click', function () {
+                    var insurance = $('#txtInsuranceName');
+                    var insuranceData = insurance.select2('data')[0];
+                    var ulListInsurance = $('#ulListInsurance');
+
+                    if (!insuranceData) {
+                        return commonjs.showWarning("messages.warning.shared.selectOneInsurance");
                     }
 
-                    var data_id = $('#txtInsuranceName').select2('data')[0].id;
-                    var bind_text = $('#txtInsuranceName').select2('data')[0].insurance_name;
-                    $('#ulListInsurance').append('<li id="' + data_id + '"><span style="background:#3c91f0; color:white; border:1px solid black">' + bind_text + '</span><a class="remove" data-id="' + $('#txtInsuranceName').select2('data')[0].id + '"><span class="icon-ic-close" style="margin-left:8px;"></span></a></li>')
-                    $('#txtInsuranceName a span').html('Select User');
+                    var insuranceId = insuranceData.id;
+
+                    if (ulListInsurance.find('li a[data-id="' + insuranceId + '"]').length) {
+                        return commonjs.showWarning("messages.warning.shared.insuranceExist");
+                    }
+
+                    ulListInsurance.append('<li id="' + insuranceId + '"><span style="background:#3c91f0; color:white; border:1px solid black">' + insuranceData.insurance_name + '</span><a class="remove" data-id="' + insuranceId + '"><span class="icon-ic-close" style="margin-left:8px;"></span></a></li>');
+                    insurance.html('');
                 });
 
                 $('#ulListInsurance').delegate('a.remove', 'click', function () {
@@ -260,19 +263,23 @@ define([
                         return res.description;
                     }
                 }
-                $('#btnAddInsuranceProvider').unbind('click').click(function () {
-                    if ($('#select2-txtInsuranceProviderName-container > a.select2-default').length > 0) {
-                        commonjs.showWarning('Please select one Insurance provider to add');
-                        return false;
+                $('#btnAddInsuranceProvider').off('click').on('click', function () {
+                    var insuranceProvider = $('#txtInsuranceProviderName');
+                    var insuranceProviderData = insuranceProvider.select2('data')[0];
+                    var ulListInsuranceProvider = $('#ulListInsuranceProvider');
+
+                    if (!insuranceProviderData) {
+                        return commonjs.showWarning("messages.warning.shared.selectOneInsuranceGroup");
                     }
-                    if ($('#ulListInsuranceProvider li a[data-id="' + $('#txtInsuranceProviderName').select2('data')[0].id + '"]').length) {
-                        commonjs.showWarning("Insurance group is already selected");
-                        return false;
+
+                    var insuranceProviderId = insuranceProviderData.id;
+
+                    if (ulListInsuranceProvider.find('li a[data-id="' + insuranceProviderId + '"]').length) {
+                        return commonjs.showWarning("messages.warning.shared.insuranceGroupExist");
                     }
-                    var data_id = $('#txtInsuranceProviderName').select2('data')[0].id;
-                    var bind_text = $('#txtInsuranceProviderName').select2('data')[0].description;
-                    $('#ulListInsuranceProvider').append('<li id="' + data_id + '"><span style="background:#3c91f0; color:white; border:1px solid black">' + bind_text + '</span><a class="remove" data-id="' + $('#txtInsuranceProviderName').select2('data')[0].id + '"><span class="icon-ic-close" style="margin-left:8px;"></span></a></li>')
-                    $('#txtInsuranceProviderName a span').html('Select User');
+
+                    ulListInsuranceProvider.append('<li id="' + insuranceProviderId + '"><span style="background:#3c91f0; color:white; border:1px solid black">' + insuranceProviderData.description + '</span><a class="remove" data-id="' + insuranceProviderId + '"><span class="icon-ic-close" style="margin-left:8px;"></span></a></li>');
+                    insuranceProvider.html('');
                 });
 
                 $('#ulListInsuranceProvider').delegate('a.remove', 'click', function () {
