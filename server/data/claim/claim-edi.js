@@ -432,6 +432,7 @@ module.exports = {
 										is_employed as  "relatedCauseCode1",
 										is_other_accident as  "relatedCauseCode2",
 										is_auto_accident as  "relatedCauseCode3",
+										accident_state as  "autoAccidentState",
 										current_illness_date::date as "illnessDate",
 										service_by_outside_lab as "outSideLab",
                                         account_no as "accountNumber",

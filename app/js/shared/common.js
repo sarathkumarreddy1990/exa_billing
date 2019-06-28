@@ -3143,10 +3143,12 @@ var commonjs = {
             else {
                 return true;
             }
-            if ((charCode > 64 && charCode < 91) || (charCode > 96 && charCode < 123))
-                return true;
+            var regex = new RegExp("^[a-zA-Z]+$");
+            var str = String.fromCharCode(charCode);
 
-            return false;
+            if (!regex.test(str)) {
+                e.preventDefault();
+            }
         };
         $(".stringbox").on("keypress keyup blur", function (e, t) {
             try {
