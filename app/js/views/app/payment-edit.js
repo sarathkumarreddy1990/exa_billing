@@ -1409,7 +1409,9 @@ define(['jquery',
                     onaftergridbind: function (model, gridObj) {
                         self.setMoneyMask();
                         //$("#gs_claim_id").focus()
-                    }
+                    },
+                    delayedPagerUpdate: true,
+                    pagerApiUrl: '/exa_modules/billing/pending_payments/payment_count'
                 });
 
                 setTimeout(function () {
