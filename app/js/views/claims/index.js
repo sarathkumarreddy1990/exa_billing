@@ -439,11 +439,11 @@ define(['jquery',
                             });
                         }
                         else if (!data.errors && response.insPokitdok == true) {
-                            commonjs.showNestedDialog({ 
+                            commonjs.showNestedDialog({
                                 header: 'Pokitdok Response',
                                 i18nHeader: 'shared.fields.pokitdokresponse',
-                                width: '80%', 
-                                height: '70%', 
+                                width: '80%',
+                                height: '70%',
                                 html: $(self.InsurancePokitdokTemplateForm({
                                     'InsuranceData': response.data,
                                     'InsuranceDatavalue': response.meta,
