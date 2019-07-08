@@ -25,17 +25,23 @@ define([
                 reportFormat: null,
                 reportDate: null,
                 billingProvider: null,
-                allBillingProvider: false
+                allBillingProvider: false,
+                insuranceOption: null,
+                insuranceIds: null,
+                insuranceGroupIds: null
             },
             selectedFacilityListDetail: [],
             defaultyFacilityId: null,
+            selectedInsGrpList: [],
             events: {
                 'click #btnViewReport': 'onReportViewClick',
                 'click #btnViewReportNewTabPayByInsComp': 'onReportViewClick',
                 'click #btnPdfReport': 'onReportViewClick',
                 'click #btnExcelReport': 'onReportViewClick',
                 'click #btnCsvReport': 'onReportViewClick',
-                'click #btnXmlReport': 'onReportViewClick'
+                'click #btnXmlReport': 'onReportViewClick',
+                'click #showInsGroupCheckboxes': 'showInsuranceGroupList',
+                'change #ddlInsuranceOption': 'onInsuranceOptionChange'
             },
 
             initialize: function (options) {
@@ -66,6 +72,10 @@ define([
                 this.bindDateRangePicker();
                 this.drpStudyDt.setStartDate(this.viewModel.dateFrom);
                 this.drpStudyDt.setEndDate(this.viewModel.dateTo);
+                $('#ddlInsuranceOption')
+                .append('<option value="All">' + commonjs.geti18NString('shared.buttons.allInsurance'))
+                .append('<option value="S">' + commonjs.geti18NString('shared.buttons.insurances'))
+                .append('<option value="G">' + commonjs.geti18NString('shared.buttons.insuranceGroup'));
 
                 $('#ddlFacilityFilter').multiselect({
                     maxHeight: 200,
@@ -75,8 +85,16 @@ define([
                     includeSelectAllOption: true,
                     enableCaseInsensitiveFiltering: true
                 });
-                // Binding Billing Provider MultiSelect
+                $('#ddlInsuranceOption').multiselect({
+                    maxHeight: '200px',
+                    buttonWidth: '210px',
+                    width: '300px'
+                });
+
                 UI.bindBillingProvider();
+                UI.bindInsuranceAutocomplete(commonjs.geti18NString('report.reportFilter.selectInsurance'), 'btnAddInsurance', 'ulListInsurance');
+                UI.bindInsuranceProviderAutocomplete('Select Insurance Group', 'btnAddInsuranceProvider', 'ulListInsuranceProvider');
+
             },
 
             bindDateRangePicker: function () {
@@ -94,7 +112,6 @@ define([
                 commonjs.isMaskValidate();
             },
 
-
             onReportViewClick: function (e) {
                 var btnClicked = e && e.target ? $(e.target) : null;
                 this.getSelectedFacility();
@@ -106,6 +123,13 @@ define([
                 var openInNewTab = btnClicked ? btnClicked.attr('id') === 'btnViewReportNewTabPayByInsComp' : false;
                 this.viewModel.reportFormat = rFormat;
                 this.viewModel.openInNewTab = openInNewTab && rFormat === 'html';
+                this.viewModel.insuranceIds = $('ul#ulListInsurance li').map(function () {
+                    return this.id;
+                }).get();
+                this.viewModel.insuranceGroupIds = $('ul#ulListInsuranceProvider li').map(function () {
+                    return this.id;
+                }).get();
+                this.viewModel.insuranceOption = $('#ddlInsuranceOption').val();
                 if (this.hasValidViewModel()) {
                     var urlParams = this.getReportParams();
                     UI.showReport(this.viewModel.reportId, this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
@@ -139,7 +163,7 @@ define([
 
             // multi select billing provider - worked
             getBillingProvider: function (e) {
-                var billing_pro = []
+                var billing_pro = [];
                 var selected = $("#ddlBillingProvider option:selected");
                 selected.each(function () {
                     billing_pro.push($(this).val());
@@ -148,16 +172,60 @@ define([
                 this.viewModel.allBillingProvider = this.selectedBillingProList && this.selectedBillingProList.length === $("#ddlBillingProvider option").length;
             },
 
+             // Insurance List Box for (All, selected Insurance, Insurance Group)
+             onInsuranceOptionChange: function () {
+                if ($('#ddlInsuranceOption').val() == 'S') {
+                    $("#ddlOptionBox").removeClass('d-none');
+                    $("#ddlOptionBoxList").removeClass('d-none');
+                    $("#ddlInsuranceGroupBox").addClass('d-none');
+                    $("#ddlInsuranceGroupBoxList").addClass('d-none');
+                    $('#ulListInsuranceProvider').empty();
+                    this.viewModel.insuranceGroupIds = [];
+                    $('#ulListInsurance').data('insuranceGroupIds', []);
+                    this.selectedInsGrpList = [];
+                    $('#txtInsuranceProviderName').empty();
+                }
+                else if ($('#ddlInsuranceOption').val() == 'G') {
+                    $("#ddlOptionBox").addClass('d-none');
+                    $("#ddlOptionBoxList").addClass('d-none');
+                    $("#ddlInsuranceGroupBox").removeClass('d-none');
+                    $("#ddlInsuranceGroupBoxList").removeClass('d-none');
+                    $('#ulListInsurance').empty();
+                    $('#ulListInsuranceProvider').empty();
+                    this.viewModel.insuranceIds = [];
+                    $('#ulListInsurance').data('insuranceIds', []);
+                    $('#txtInsuranceName').empty()
+                }
+                else {
+                    $("#ddlOptionBox").addClass('d-none');
+                    $("#ddlOptionBoxList").addClass('d-none');
+                    $("#ddlInsuranceGroupBox").addClass('d-none');
+                    $("#ddlInsuranceGroupBoxList").addClass('d-none');
+                    $('#ulListInsurance').empty();
+                    $('#ulListInsuranceProvider').empty();
+                    this.viewModel.insuranceIds = [];
+                    this.viewModel.insuranceGroupIds = [];
+                    $('#ulListInsurance').data('insuranceIds', []);
+                    $('#ulListInsuranceProvider').data('insuranceGroupIds', []);
+                    this.selectedInsGrpList = [];
+                    $('#txtInsuranceName').empty();
+                    $('#txtInsuranceProviderName').empty();
+                }
+            },
+
             getReportParams: function () {
                 return urlParams = {
-                    'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
-                    'allFacilities': this.viewModel.allFacilities ? this.viewModel.allFacilities : '',
+                    'facilityIds': this.selectedFacilityList || [],
+                    'allFacilities': this.viewModel.allFacilities || '',
                     'fromDate': this.viewModel.dateFrom.format('YYYY-MM-DD'),
                     'toDate': this.viewModel.dateTo.format('YYYY-MM-DD'),
-                    'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
-                    'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
-                    'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
-                    countryCode: app.country_alpha_3_code,
+                    'billingProvider': this.selectedBillingProList || [],
+                    'allBillingProvider': this.viewModel.allBillingProvider || '',
+                    'billingProFlag': this.viewModel.allBillingProvider || '',
+                    'countryCode': app.country_alpha_3_code,
+                    'insuranceIds': this.viewModel.insuranceIds || '',
+                    'insuranceOption': this.viewModel.insuranceOption || '',
+                    'insuranceGroupIds': this.viewModel.insuranceGroupIds || ''
                 };
             }
         });

@@ -1,21 +1,29 @@
+<style>
+    .ulListBindBox {
+        overflow: auto;
+        width: 330px;
+        height: 50px;
+        border: 1px solid;
+    }
+</style>
 <form class="form-horizontal form-list" novalidate="" _lpchecked="1" id="paymentsByInsuranceCompanyForm">
     <!-- row: form elements -->
-    <div class="col-xs-12 col-md-12 col-lg-12">
+    <div class="row">
         <!-- col: form elements -->
-        <div class="col-xs-4">
+        <div class="col">
             <div class="form-group form-inline">
-                    <label class="control-label field-required" for="txtDateRangeFromTo" i18n="report.reportFilter.accountingDate" />
                 <div>
+                    <label class="control-label field-required" for="txtDateRangeFromTo" i18n="report.reportFilter.accountingDate" />
                     <div id="divReportDate" class="input-group">
                         <input type="text" id="txtDateRangeFromTo" class="form-control" required="required" name="dateRange">
                         <span class="input-group-addon add-on datePickerSpanReport">
-                                <i class="fa fa-calendar"></i>
+                            <i class="fa fa-calendar"></i>
                         </span>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-xs-4">
+        <div class="col">
             <div class="form-group form-inline">
                 <div class="col-form-label" class="multiselect">
                     <label class="control-label" i18n="report.reportFilter.facilities" />
@@ -29,24 +37,47 @@
                 </div>
             </div>
         </div>
-        <div class="col-xs-4" style="display:none;">
+        <div class="col">
             <div class="form-group form-inline">
-                <div class="col-form-label">
-                    <label class="control-label" i18n="report.reportFilter.billingProvider">
-                    </label>
+                <div>
+                    <label class="control-label" i18n="report.reportFilter.selectInsurance"></label>
+                    <div class="input-group">
+                        <select id="ddlInsuranceOption" class="form-control form-control-lg"/>
+                    </div>
                 </div>
-                <div class="col-form-label" class="multiselect">
-                    <label class="control-label" i18n="report.reportFilter.billingProvider" />
-
-                    <select id="ddlBillingProvider" multiple="multiple" />
+                <div id="ddlOptionBox" class="ddl form-group form-inline w-75 d-none">
+                        <label class="control-label" i18n="shared.buttons.insurances"></label>
+                        <a class="btn btn-primary" id="btnAddInsurance">
+                            <i class="icon-ic-plus"></i>
+                        </a>
+                        <select id="txtInsuranceName" class="border border-dark"> </select>
+                    </div>
+                </div>
+                <div id="ddlInsuranceGroupBox" class="ddl form-group form-inline w-75 d-none">
+                    <label class="control-label" i18n="shared.buttons.insuranceGroup"></label>
+                    <a class="btn btn-primary" id="btnAddInsuranceProvider">
+                        <i class="icon-ic-plus"></i>
+                    </a>
+                    <select id="txtInsuranceProviderName" class="border border-dark"> </select>
+                </div>
+                <div id="divListInsuranceProvider" class="w-75"></div>
+                <div id="ddlOptionBoxList" class="d-none">
+                    <div id="divListInsurance">
+                        <ul id="ulListInsurance" class="ulSelectionList tagList ulListBindBox">
+                        </ul>
+                    </div>
+                </div>
+                <div id="ddlInsuranceGroupBoxList" class="d-none">
+                    <div id="divListInsuranceProvider">
+                        <ul id="ulListInsuranceProvider" class="ulSelectionList tagList ulListBindBox">
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     <!-- /col: form elements -->
-
     </div>
-    <!-- /row: form elements -->
 
     <!-- row: form buttons -->
     <div class="col-xs-12 <!--col-xs-offset-1-->">
@@ -73,7 +104,7 @@
     <!-- /row: form buttons -->
 </form>
 <!-- row: iframe -->
-<div class="col-xs-12 form-top-padding" id="divReportFrame" style="overflow: auto; text-align: center">
+<div class="col-xs-12 form-top-padding text-center" id="divReportFrame" style="overflow: auto;">
     <iframe id="reportFrame" frameBorder="0" style="width: 100%; min-height:100px"></iframe>
 </div>
 <!-- /row: iframe -->

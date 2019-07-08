@@ -2,12 +2,14 @@ define([
     'jquery',
     'backbone',
     'backbonesubroute',
+    'shared/routing',
     'views/reports/payments-by-ins-company'
 ],
     function (
         $,
         Backbone,
         SubRoute,
+        RoutingUtils,
         PaymentsByInsCompanyView
     ) {
         return Backbone.SubRoute.extend({
@@ -26,11 +28,12 @@ define([
 
             initializeRouter: function () {
                 this.options.screen = facilityModules.reportScreens.paymentsByinscompany;
-                this.options.currentView = this.paymentByInsCompanyScreen;
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {
+                    RoutingUtils.clearView(this.options.currentView);
                     this.paymentByInsCompanyScreen = new PaymentsByInsCompanyView(this.options);
+                    this.options.currentView = this.paymentByInsCompanyScreen;
                 }
             }
         });
