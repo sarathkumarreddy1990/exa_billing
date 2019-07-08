@@ -379,8 +379,9 @@ define(['jquery',
             },
 
             setMoneyMask: function (obj1, obj2) {
-                $(".ui-jqgrid-htable thead:first tr.ui-search-toolbar input[name=available_balance],[name=applied],[name=amount],[name=adjustment_amount]").addClass('floatbox');
-                $(".ui-jqgrid-htable thead:first tr.ui-search-toolbar input[name=payment_id]").addClass('integerbox');
+                var $gridFields = $(".ui-jqgrid-htable thead:first tr.ui-search-toolbar");
+                $gridFields.find("input[name=available_balance],[name=applied],[name=amount],[name=adjustment_amount]").addClass('negativeFloatBox');
+                $gridFields.find("input[name=payment_id]").addClass('integerbox');
                 commonjs.validateControls();
             },
 
