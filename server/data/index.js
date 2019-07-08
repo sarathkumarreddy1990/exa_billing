@@ -1,12 +1,13 @@
 const { Pool } = require('pg');
 const SQL = require('sql-template-strings');
 const url = require('url');
-
+const process = require('process');
 const logger = require('../../logger');
 const config = require('../config');
 const constants = require('../shared/constants');
 
 const dbConnString = config.get(config.keys.dbConnectionBilling);
+const dbConnectionPoolingEnabled = config.get(config.keys.dbConnectionPoolingEnabled);
 
 const poolConfig = ((connStr) => {
     const params = url.parse(connStr);
@@ -24,17 +25,44 @@ const poolConfig = ((connStr) => {
     return config;
 })(dbConnString);
 
-poolConfig.application_name = 'exa-billing';
+poolConfig.application_name = 'exa_billing';
 poolConfig.max = 4;
 poolConfig.min = 2;
 poolConfig.idleTimeoutMillis = 120000;     // close idle clients after 2 minute (default is 30 seconds)
 poolConfig.connectionTimeoutMillis = 75000;
 
+if (typeof dbConnectionPoolingEnabled === 'boolean' && !dbConnectionPoolingEnabled) {
+    // disable DB pooling when using dedicated connection pooling middleware (pgpool-II, Heimdall Data, pgBouncer, etc, etc)
+    poolConfig.min = Infinity;
+    poolConfig.max = Infinity;
+    poolConfig.idleTimeoutMillis = 1;
+    poolConfig.evictionRunIntervalMillis = 1;
+    logger.info(`PID: ${process.pid}, PG POOL (${poolConfig.application_name}): Connection pooling is disabled`);
+}
+
 const pool = new Pool(poolConfig);
 
 pool.on('error', (err) => {
-    logger.error('PG POOL on.error: ' + err.message);
+    logger.error(`PID: ${process.pid}, PG POOL (${poolConfig.application_name}): on.error - ${err.message}`);
 });
+
+// uncomment to debug DB pool usage
+/*
+pool.on('connect', function (client) {
+    logger.info(`PID: ${process.pid}, PG POOL (${poolConfig.application_name}): on.connect - totalCount: ${pool.totalCount}, idleCount: ${pool.idleCount}, waitingCount: ${pool.waitingCount}`);
+	console.log(`PID: ${process.pid}, PG POOL (${poolConfig.application_name}): on.connect - totalCount: ${pool.totalCount}, idleCount: ${pool.idleCount}, waitingCount: ${pool.waitingCount}`);
+});
+
+pool.on('acquire', function (client) {
+    logger.info(`PID: ${process.pid}, PG POOL (${poolConfig.application_name}): on.aquire - totalCount: ${pool.totalCount}, idleCount: ${pool.idleCount}, waitingCount: ${pool.waitingCount}`);
+	console.log(`PID: ${process.pid}, PG POOL (${poolConfig.application_name}): on.aquire - totalCount: ${pool.totalCount}, idleCount: ${pool.idleCount}, waitingCount: ${pool.waitingCount}`);
+});
+
+pool.on('remove', function (client) {
+    logger.info(`PID: ${process.pid}, PG POOL (${poolConfig.application_name}): on.remove - totalCount: ${pool.totalCount}, idleCount: ${pool.idleCount}, waitingCount: ${pool.waitingCount}`);
+	console.log(`PID: ${process.pid}, PG POOL (${poolConfig.application_name}): on.remove - totalCount: ${pool.totalCount}, idleCount: ${pool.idleCount}, waitingCount: ${pool.waitingCount}`);
+});
+*/
 
 const pgData = {
 
