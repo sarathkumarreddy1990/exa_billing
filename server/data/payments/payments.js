@@ -49,7 +49,7 @@ module.exports = {
         } = params;
 
         if (paymentStatus) {
-            whereQuery.push(`(select payment_status from billing.get_payment_totals(payments.id))=ANY(string_to_array('${params.paymentStatus}',','))`);
+            whereQuery.push(`payment_totals.payment_status = ANY(string_to_array('${params.paymentStatus}',','))`);
         }
 
         if (payment_id) {
@@ -93,19 +93,19 @@ module.exports = {
         }
 
         if (amount) {
-            whereQuery.push(`amount = ${amount}::money`);
+            whereQuery.push(`amount = '${amount}'::money`);
         }
 
         if (available_balance) {
-            whereQuery.push(`(select payment_balance_total from billing.get_payment_totals(payments.id))=${available_balance}::money`);
+            whereQuery.push(`payment_totals.payment_balance_total = '${available_balance}'::money`);
         }
 
         if (applied) {
-            whereQuery.push(`(select payments_applied_total from billing.get_payment_totals(payments.id))=${applied}::money`);
+            whereQuery.push(`payment_totals.payments_applied_total = '${applied}'::money`);
         }
 
         if (adjustment_amount) {
-            whereQuery.push(`(select adjustments_applied_total from billing.get_payment_totals(payments.id))=${adjustment_amount}::money`);
+            whereQuery.push(`payment_totals.adjustments_applied_total = '${adjustment_amount}'::money`);
         }
 
         if (user_full_name) {

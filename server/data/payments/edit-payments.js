@@ -57,11 +57,11 @@ module.exports = {
         }
 
         if (billing_fee) {
-            whereQuery.push(`(select charges_bill_fee_total from billing.get_claim_totals(bc.id))=${billing_fee}::money`);
+            whereQuery.push(`(SELECT charges_bill_fee_total FROM billing.get_claim_totals(bc.id)) = '${billing_fee}'::money`);
         }
 
         if (balance) {
-            whereQuery.push(`((SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) = ${balance}::money)`);
+            whereQuery.push(`((SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) = '${balance}'::money)`);
         }
 
         if (params.customArgs && params.customArgs.patientId && params.customArgs.patientId > 0) {
