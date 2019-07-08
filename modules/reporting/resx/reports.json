@@ -612,7 +612,7 @@
             },
             "pdf": {
                 "template": {
-                    "name": "default-table-landscape-pdf"
+                    "name": "default-table-pdf"
                 }
             },
             "xlsx": {
@@ -1494,6 +1494,14 @@
         "category": "billing",
         "title": "Payments By Insurance Company",
         "description": "Calculate Insurance Company wise payments",
+        "vars": {
+            "columnHeader": {
+                "card_cheque": {
+                    "usa": "Check/Card #",
+                    "can": "Cheque/Card #"
+                }
+            }
+        },
         "jsreport": {
             "html": {
                 "template": {
