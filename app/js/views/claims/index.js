@@ -438,7 +438,7 @@ define(['jquery',
                                 }))
                             });
                         }
-                        else if (!data.errors && response.insPokitdok == true) {
+                        else if (data && !data.errors && response.insPokitdok) {
                             commonjs.showNestedDialog({
                                 header: 'Pokitdok Response',
                                 i18nHeader: 'shared.fields.pokitdokresponse',
@@ -452,7 +452,10 @@ define(['jquery',
                             });
                         } else if (!response.insPokitdok) {
                             return commonjs.showWarning('messages.warning.claims.pleaseConfigurePokitdok');
+                        } else if (response && response.error === 'invalid_client') {
+                            return commonjs.showError("messages.errors.invalidPokitdokIp");
                         }
+
                         $('#divCoPayDetails').height('400px');
 
                         $.each($('#divPokitdok table td'), function (index, obj) {
