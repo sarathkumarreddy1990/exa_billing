@@ -4,7 +4,6 @@ const config = require('../../../../server/config')
     , dbConnectionPoolingEnabled = config.get(config.keys.dbConnectionPoolingEnabled)
     , pgConnStrngParser = require('pg-connection-string').parse
     , pg = require('pg')
-    , process = require('process')
     , pgTypes = require('pg').types   //https://github.com/brianc/node-pg-types
     , _ = require('lodash')
     , typeResolver = require('./typeResolver')
@@ -44,13 +43,13 @@ pgPoolConfig.idleTimeoutMillis = 600000;
 pgPoolConfig.application_name = 'exa_billing_reporting';
 pgPoolConfig.Promise = require('bluebird');
 
-if (typeof dbConnectionPoolingEnabled === 'boolean' && !dbConnectionPoolingEnabled) {
+if (dbConnectionPoolingEnabled === false) {
     // disable DB pooling when using dedicated connection pooling middleware (pgpool-II, Heimdall Data, pgBouncer, etc, etc)
     pgPoolConfig.min = Infinity;
     pgPoolConfig.max = Infinity;
     pgPoolConfig.idleTimeoutMillis = 1;
     pgPoolConfig.evictionRunIntervalMillis = 1;
-    logger.logInfo(`PID: ${process.pid}, PG POOL (${pgPoolConfig.application_name}): Connection pooling is disabled`);
+    logger.info(`PID: ${process.pid}, PG POOL (${pgPoolConfig.application_name}): Connection pooling is disabled`);
 }
 
 // create the pool somewhere globally so its lifetime lasts for as long as your app is running
@@ -64,25 +63,21 @@ pool.on('error', function (err, client) {
     // this is a rare occurrence but can happen if there is a network partition
     // between your application and the database, the database restarts, etc.
     // and so you might want to handle it and at least log it out
-    logger.info(`PID: ${process.pid}, PG POOL (${pgPoolConfig.application_name}): on.error - ${err.message}`);
-    console.error(`PID: ${process.pid}, PG POOL (${pgPoolConfig.application_name}): on.error - ${err.message}`, err.stack);
+    logger.error(`PID: ${process.pid}, PG POOL (${pgPoolConfig.application_name}): on.error - ${err.message}`, err);
 });
 
 // uncomment to debug DB pool usage
 /*
 pool.on('connect', function (client) {
     logger.info(`PID: ${process.pid}, PG POOL (${pgPoolConfig.application_name}): on.connect - totalCount: ${pool.totalCount}, idleCount: ${pool.idleCount}, waitingCount: ${pool.waitingCount}`);
-	console.log(`PID: ${process.pid}, PG POOL (${pgPoolConfig.application_name}): on.connect - totalCount: ${pool.totalCount}, idleCount: ${pool.idleCount}, waitingCount: ${pool.waitingCount}`);
 });
 
 pool.on('acquire', function (client) {
     logger.info(`PID: ${process.pid}, PG POOL (${pgPoolConfig.application_name}): on.aquire - totalCount: ${pool.totalCount}, idleCount: ${pool.idleCount}, waitingCount: ${pool.waitingCount}`);
-	console.log(`PID: ${process.pid}, PG POOL (${pgPoolConfig.application_name}): on.aquire - totalCount: ${pool.totalCount}, idleCount: ${pool.idleCount}, waitingCount: ${pool.waitingCount}`);
 });
 
 pool.on('remove', function (client) {
     logger.info(`PID: ${process.pid}, PG POOL (${pgPoolConfig.application_name}): on.remove - totalCount: ${pool.totalCount}, idleCount: ${pool.idleCount}, waitingCount: ${pool.waitingCount}`);
-	console.log(`PID: ${process.pid}, PG POOL (${pgPoolConfig.application_name}): on.remove - totalCount: ${pool.totalCount}, idleCount: ${pool.idleCount}, waitingCount: ${pool.waitingCount}`);
 });
 */
 

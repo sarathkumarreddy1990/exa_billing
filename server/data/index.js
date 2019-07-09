@@ -1,7 +1,6 @@
 const { Pool } = require('pg');
 const SQL = require('sql-template-strings');
 const url = require('url');
-const process = require('process');
 const logger = require('../../logger');
 const config = require('../config');
 const constants = require('../shared/constants');
@@ -31,7 +30,7 @@ poolConfig.min = 2;
 poolConfig.idleTimeoutMillis = 120000;     // close idle clients after 2 minute (default is 30 seconds)
 poolConfig.connectionTimeoutMillis = 75000;
 
-if (typeof dbConnectionPoolingEnabled === 'boolean' && !dbConnectionPoolingEnabled) {
+if (dbConnectionPoolingEnabled === false) {
     // disable DB pooling when using dedicated connection pooling middleware (pgpool-II, Heimdall Data, pgBouncer, etc, etc)
     poolConfig.min = Infinity;
     poolConfig.max = Infinity;
@@ -43,24 +42,21 @@ if (typeof dbConnectionPoolingEnabled === 'boolean' && !dbConnectionPoolingEnabl
 const pool = new Pool(poolConfig);
 
 pool.on('error', (err) => {
-    logger.error(`PID: ${process.pid}, PG POOL (${poolConfig.application_name}): on.error - ${err.message}`);
+    logger.error(`PID: ${process.pid}, PG POOL (${poolConfig.application_name}): on.error - ${err.message}`, err);
 });
 
 // uncomment to debug DB pool usage
 /*
 pool.on('connect', function (client) {
     logger.info(`PID: ${process.pid}, PG POOL (${poolConfig.application_name}): on.connect - totalCount: ${pool.totalCount}, idleCount: ${pool.idleCount}, waitingCount: ${pool.waitingCount}`);
-	console.log(`PID: ${process.pid}, PG POOL (${poolConfig.application_name}): on.connect - totalCount: ${pool.totalCount}, idleCount: ${pool.idleCount}, waitingCount: ${pool.waitingCount}`);
 });
 
 pool.on('acquire', function (client) {
     logger.info(`PID: ${process.pid}, PG POOL (${poolConfig.application_name}): on.aquire - totalCount: ${pool.totalCount}, idleCount: ${pool.idleCount}, waitingCount: ${pool.waitingCount}`);
-	console.log(`PID: ${process.pid}, PG POOL (${poolConfig.application_name}): on.aquire - totalCount: ${pool.totalCount}, idleCount: ${pool.idleCount}, waitingCount: ${pool.waitingCount}`);
 });
 
 pool.on('remove', function (client) {
     logger.info(`PID: ${process.pid}, PG POOL (${poolConfig.application_name}): on.remove - totalCount: ${pool.totalCount}, idleCount: ${pool.idleCount}, waitingCount: ${pool.waitingCount}`);
-	console.log(`PID: ${process.pid}, PG POOL (${poolConfig.application_name}): on.remove - totalCount: ${pool.totalCount}, idleCount: ${pool.idleCount}, waitingCount: ${pool.waitingCount}`);
 });
 */
 
