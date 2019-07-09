@@ -26,7 +26,8 @@ module.exports = {
             pageNo,
             pageSize,
             isFromClaim,
-            paymentID
+            paymentID,
+            countFlag
         } = params;
 
 
@@ -57,11 +58,11 @@ module.exports = {
         }
 
         if (billing_fee) {
-            whereQuery.push(`(select charges_bill_fee_total from billing.get_claim_totals(bc.id))=${billing_fee}::money`);
+            whereQuery.push(`(SELECT charges_bill_fee_total FROM billing.get_claim_totals(bc.id)) = '${billing_fee}'::money`);
         }
 
         if (balance) {
-            whereQuery.push(`((SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) = ${balance}::money)`);
+            whereQuery.push(`((SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total) FROM billing.get_claim_totals(bc.id)) = '${balance}'::money)`);
         }
 
         if (params.customArgs && params.customArgs.patientId && params.customArgs.patientId > 0) {
@@ -172,9 +173,10 @@ module.exports = {
         }
 
         let joinQuery = ' ';
-        let paymentWhereQuery = ` WHERE NOT EXISTS (SELECT 1 FROM billing.payment_applications bpa
-        INNER JOIN billing.payments bp ON bp.id = bpa.payment_id
-        WHERE  bpa.charge_id = bch.id
+        let paymentWhereQuery = ` WHERE NOT EXISTS (SELECT 1 FROM billing.payments bp
+        INNER JOIN billing.payment_applications bpa ON bp.id = bpa.payment_id
+        INNER JOIN billing.charges bch ON bch.id = bpa.charge_id
+        WHERE bch.claim_id = bc.id
         AND payment_id = ${params.customArgs.paymentID})
         AND (claim_totals.charges_bill_fee_total - (claim_totals.payments_applied_total + claim_totals.adjustments_applied_total + refund_amount)) > 0::money  `;
 
@@ -199,6 +201,24 @@ module.exports = {
             paymentWhereQuery = paymentWhereQuery + ` AND pip.insurance_provider_id = ${params.customArgs.payerId} `;
         }
 
+        if (countFlag == 'true') {
+            const sql =  SQL`SELECT 
+                                COUNT(1) AS total_records
+                            FROM billing.claims bc
+                            INNER JOIN billing.get_claim_totals(bc.id) AS claim_totals ON true
+                            INNER JOIN public.patients pp on pp.id = bc.patient_id `;
+
+            sql.append(joinQuery)
+                .append(paymentWhereQuery);
+
+            if (whereQuery.length) {
+                sql.append(SQL` AND `)
+                    .append(whereQuery.join(' AND '));
+            }
+
+            return await query(sql);
+        }
+
         const sql = SQL`SELECT
                     bc.id AS claim_id,
                     bc.patient_id,
@@ -212,13 +232,11 @@ module.exports = {
 
                     claim_totals.claim_cpt_description AS display_description,
                     claim_totals.charges_bill_fee_total as billing_fee,
-                    claim_totals.charges_bill_fee_total - (claim_totals.payments_applied_total + claim_totals.adjustments_applied_total + refund_amount) AS balance,
+                    claim_totals.charges_bill_fee_total - (claim_totals.payments_applied_total + claim_totals.adjustments_applied_total + refund_amount) AS balance
 
-                    COUNT(1) OVER (range unbounded preceding) AS total_records
                 FROM billing.claims bc
-                INNER JOIN LATERAL (SELECT * FROM billing.get_claim_totals(bc.id)) AS claim_totals ON true
-                INNER JOIN public.patients pp on pp.id = bc.patient_id
-                INNER JOIN billing.charges bch on bch.claim_id = bc.id `;
+                INNER JOIN billing.get_claim_totals(bc.id) AS claim_totals ON true
+                INNER JOIN public.patients pp on pp.id = bc.patient_id `;
 
         sql.append(joinQuery);
         sql.append(paymentWhereQuery);

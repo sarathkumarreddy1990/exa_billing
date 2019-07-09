@@ -218,7 +218,7 @@ WITH claim_data AS (
       dc.pid
     , dc.enc_id
     , bucket_date
-    HAVING <%= encounterTotal %> > 0::money
+    HAVING <%= encounterTotal %> > '0'
     ),
 
     sum_statement_credit_cte AS (

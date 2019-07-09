@@ -1409,7 +1409,9 @@ define(['jquery',
                     onaftergridbind: function (model, gridObj) {
                         self.setMoneyMask();
                         //$("#gs_claim_id").focus()
-                    }
+                    },
+                    delayedPagerUpdate: true,
+                    pagerApiUrl: '/exa_modules/billing/pending_payments/payment_count'
                 });
 
                 setTimeout(function () {
@@ -3312,8 +3314,9 @@ define(['jquery',
             },
 
             setMoneyMask: function (obj1, obj2) {
-                $(".ui-jqgrid-htable thead:first tr.ui-search-toolbar input[name=billing_fee],[name=balance],[name=bill_fee],[name=adjustment],[name=this_adjustment],[name=payment]").addClass('floatbox');
-                $(".ui-jqgrid-htable thead:first tr.ui-search-toolbar input[name=claim_id]").addClass('integerbox');
+                var $gridFields = $(".ui-jqgrid-htable thead:first tr.ui-search-toolbar");
+                $gridFields.find("input[name=billing_fee],[name=balance],[name=bill_fee],[name=adjustment],[name=this_adjustment],[name=payment]").addClass('negativeFloatBox');
+                $gridFields.find("input[name=claim_id]").addClass('integerbox');
                 commonjs.validateControls();
             },
 

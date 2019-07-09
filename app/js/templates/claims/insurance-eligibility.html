@@ -40,7 +40,7 @@
         margin-left: 20px;
     }
 </style>
-
+<% if (InsuranceData) { %>
 <div id="divForm_PokiDok" style="width: 100%;margin-left: 0px;">
     <div class='Form' id='divPokitdok' style="padding-top: 5px;overflow: auto;overflow-x: hidden;">
         <form class="form-group" id="formAllergyInfo">
@@ -995,30 +995,29 @@
         </form>
         </div>
     </div>
-    <div id="bodyFailedReasons">
-        <div id="divPokitdokError" class="divDispatchingOrdersBackground form-horizontal form-list commonBorder" style="display: none;">
-            <div class="col-xs-12" style="margin-bottom: 20px;">
-                <div class="row">
-                    <div id="divErrors" class="failedOrdersTable lightColor commonBorder table-bordered">
-                        <table class="table table-bordered" style="margin-bottom: 0 !important; border-top: none !important;">
-                            <thead>
-                                <tr>
-                                    <th>
-                                        <b>
-                                            <span i18n="patient.patientInsurance.field">field</span>
-                                        </b>field</th>
-                                    <th>
-                                        <b>
-                                            <span i18n="patient.patientInsurance.failedReason">failedReason</span>
-                                        </b>failedReason</th>
-                                </tr>
-                            </thead>
-                            <tbody id="bodyFailedReasons" class="table-hover slotsTable">
-                            </tbody>
-                        </table>
-                    </div>
+    <% } else if(errors) { %>
+    <div id="divPokitdokError" class="divDispatchingOrdersBackground form-horizontal form-list commonBorder">
+        <div class="col-xs-12 mb-20">
+            <div class="row">
+                <div id="divErrors" class="failedOrdersTable lightColor commonBorder table-bordered ml-4 w-75">
+                    <table class="table table-bordered mb-0 border-top">
+                        <thead>
+                            <tr>
+                                <th><b><span i18n="patient.patientInsurance.field"></span></b></th>
+                                <th><b><span i18n="patient.patientInsurance.failedReason"></span></b></th>
+                            </tr>
+                        </thead>
+                        <tbody id="bodyFailedReasons" class="table-hover slotsTable">
+                            <% _.each(errors, function(errorMsg, value) { %>
+                            <tr>
+                                <td><%= value %></td>
+                                <td><%= JSON.stringify(errorMsg) %></td>
+                            </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
-</div>
+    <% } %>

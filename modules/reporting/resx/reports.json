@@ -447,7 +447,7 @@
             },
             "pdf": {
                 "template": {
-                    "name": "default-table-pdf"
+                    "name": "default-table-landscape-pdf"
                 }
             },
             "xlsx": {

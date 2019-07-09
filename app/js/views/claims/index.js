@@ -405,6 +405,10 @@ define(['jquery',
                     eligibilityData.firstName = $('#txtTerSubFirstName').val() ? $('#txtTerSubFirstName').val() : null;
                 }
 
+                if (!eligibilityData.insuranceProviderId) {
+                    return commonjs.showWarning('messages.status.pleaseSelectInsuranceProvider');   
+                }
+
                 $('#btnCheckEligibility' + ins).prop('disabled', true);
                 $('#imgLoading').show();
 
@@ -422,22 +426,34 @@ define(['jquery',
                         data = response.data;
                         $('#btnCheckEligibility' + ins).prop('disabled', false);
                         if (data && data.errors) {
-                            commonjs.showWarning(data.errors.query ? data.errors.query : 'ERR: ' + JSON.stringify(data.errors) + '..');
-                            return;
+                            return commonjs.showNestedDialog({
+                                header: 'Pokitdok Response',
+                                i18nHeader: 'shared.fields.pokitdokresponse',
+                                width: '80%',
+                                height: '70%',
+                                html: $(self.InsurancePokitdokTemplateForm({
+                                    'InsuranceData': '',
+                                    'InsuranceDatavalue': '',
+                                    'errors': data.errors
+                                }))
+                            });
                         }
                         else if (data && !data.errors && response.insPokitdok) {
                             commonjs.showNestedDialog({
                                 header: 'Pokitdok Response',
+                                i18nHeader: 'shared.fields.pokitdokresponse',
                                 width: '80%',
                                 height: '70%',
                                 html: $(self.InsurancePokitdokTemplateForm({
                                     'InsuranceData': response.data,
-                                    'InsuranceDatavalue': response.meta
+                                    'InsuranceDatavalue': response.meta,
+                                    'errors': ''
                                 }))
                             });
-                        }
-                        else if (response && response.error === 'invalid_client') {
-                            commonjs.showError("messages.errors.invalidPokitdokIp");
+                        } else if (!response.insPokitdok) {
+                            return commonjs.showWarning('messages.warning.claims.pleaseConfigurePokitdok');
+                        } else if (response && response.error === 'invalid_client') {
+                            return commonjs.showError("messages.errors.invalidPokitdokIp");
                         }
 
                         $('#divCoPayDetails').height('400px');
