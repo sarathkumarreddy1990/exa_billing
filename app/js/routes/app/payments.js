@@ -40,8 +40,9 @@ define([
             },
 
             showAllPayments: function (from) {
+                var isFromPaymentEdit = this.options.screen === 'Edit Payments';
                 this.initializeRouter();
-                this.paymentsScreen.showGrid(false, from);
+                this.paymentsScreen.showGrid(isFromPaymentEdit, from);
             },
 
             filterPayments: function () {
