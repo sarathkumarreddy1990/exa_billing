@@ -1,61 +1,70 @@
-const _ = require('lodash')
-    , Promise = require('bluebird')
-    , db = require('../db')
-    , dataHelper = require('../dataHelper')
-    , queryBuilder = require('../queryBuilder')
-    , logger = require('../../../../../logger');
+const _ = require('lodash');
+const Promise = require('bluebird');
+const db = require('../db');
+const dataHelper = require('../dataHelper');
+const queryBuilder = require('../queryBuilder');
 
 // generate query template ***only once*** !!!
-
 const paymentByInsuranceCompanyDataSetQueryTemplate = _.template(`
-WITH paymentsByInsCompany as (
-    SELECT
-        bp.id AS payment_id,
-        ip.insurance_code AS insurance_code,
-        ip.insurance_name AS insurance_name,
-        f.facility_name AS facility_name,
-        f.id AS facility_id,
-        SUM((SELECT payment_balance_total FROM billing.get_payment_totals(bp.id))) as payment_balance,
-        SUM((SELECT payments_applied_total FROM billing.get_payment_totals(bp.id))) as payment_applied_amount,
-        SUM(bp.amount) as amount,
-        bp.card_number AS cheque_card_number,
-        CASE WHEN bp.mode = 'check' AND '<%= countryCode %>' = 'can'
-             THEN 'Cheque' ELSE InitCap(bp.mode)
-        END AS payment_mode,
-        timezone(f.time_zone,bp.payment_dt) AS payment_date
-    FROM
-        billing.payments bp
-        INNER JOIN public.insurance_providers ip ON ip.id = bp.insurance_provider_id
-        LEFT JOIN public.facilities f ON f.id = bp.facility_id
-        <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
-    WHERE 1=1
-    AND bp.payer_type = 'insurance'
-    AND <%= companyId %>
-    AND <%= paymentDate %>
-    <% if (facilityIds) { %>AND <% print(facilityIds); } %>
-    <% if(billingProID) { %> AND <% print(billingProID); } %>
-    GROUP BY
-      grouping sets( (ip.insurance_name) ,
-       (payment_id,insurance_code, ip.insurance_name,facility_name, f.id, bp.card_number, bp.mode,payment_date),())
-  ORDER BY
-    ip.insurance_name,
-    bp.id
-)
+    WITH paymentsByInsCompany AS (
+        SELECT
+            bp.id AS payment_id,
+            ip.insurance_code,
+            ip.insurance_name,
+            f.facility_name,
+            f.id AS facility_id,
+            ippt.description AS provider_type,
+            SUM((SELECT payment_balance_total FROM billing.get_payment_totals(bp.id))) AS payment_balance,
+            SUM((SELECT payments_applied_total FROM billing.get_payment_totals(bp.id))) AS payment_applied_amount,
+            SUM(bp.amount) AS amount,
+            bp.card_number AS cheque_card_number,
+            CASE
+                WHEN bp.mode = 'check' AND '<%= countryCode %>' = 'can' THEN 'Cheque'
+                ELSE InitCap(bp.mode)
+            END AS payment_mode,
+            timezone(f.time_zone,bp.payment_dt) AS payment_date
+        FROM
+            billing.payments bp
+            INNER JOIN public.insurance_providers ip ON ip.id = bp.insurance_provider_id
+            LEFT JOIN public.facilities f ON f.id = bp.facility_id
+            LEFT JOIN insurance_provider_payer_types ippt ON ippt.id = ip.provider_payer_type_id
+            <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
+        WHERE TRUE
+            AND bp.payer_type = 'insurance'
+            AND <%= companyId %>
+            AND <%= paymentDate %>
+            <% if (facilityIds) { %>AND <% print(facilityIds); } %>
+            <% if(billingProID) { %> AND <% print(billingProID); } %>
+            <% if(insuranceIds) { %> AND <%=insuranceIds%> <% } %>
+            <% if (insGroups) { %>AND <% print(insGroups); } %>
+        GROUP BY
+            GROUPING SETS(
+                (ip.insurance_name),
+                ( payment_id,
+                  insurance_code,
+                  ip.insurance_name,
+                  ippt.description,
+                  facility_name,
+                  f.id,
+                  bp.card_number,
+                  bp.mode,payment_date
+                ),())
+        ORDER BY
+            ip.insurance_name,
+            bp.id
+    )
     SELECT
         payment_id AS "Payment ID",
         insurance_name AS "Insurance Name",
+        provider_type AS "Provider Type",
         amount AS "Amount",
         payment_applied_amount AS "Applied",
         payment_balance AS "Balance",
-        <% if (countryCode  == 'can') { %> 
-            cheque_card_number AS "Cheque/Card #",
-        <% } else { %>
-            cheque_card_number AS "Check/Card #",
-        <% } %>
+        cheque_card_number AS  "<%= countryConfigCard %>",
         payment_mode AS "Payment Mode",
         to_char(payment_date, 'MM/DD/YYYY') AS "Payment Date"
     FROM
-         paymentsByInsCompany
+        paymentsByInsCompany
 `);
 
 const api = {
@@ -65,13 +74,19 @@ const api = {
      * This method is called by controller pipline after report data is initialized (common lookups are available).
      */
     getReportData: (initialReportData) => {
+        let countryCode = initialReportData.report.params.countryCode;
+        initialReportData.report.params.countryConfigCard = initialReportData.report.vars.columnHeader.card_cheque[countryCode];
         return Promise.join(
             api.createpaymentByInsuranceCompanyDataSet(initialReportData.report.params),
             dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId, initialReportData.report.params.billingProvider),
+            dataHelper.getInsuranceProvidersInfo(initialReportData.report.params.companyId, initialReportData.report.params.insuranceIds),
+            dataHelper.getInsuranceGroupInfo(initialReportData.report.params.companyId, initialReportData.report.params.insuranceGroupIds),
             // other data sets could be added here...
-            (paymentByInsuranceCompanyDataSet, providerInfo) => {
+            (paymentByInsuranceCompanyDataSet, providerInfo, insuranceProvidersInfo, providerGroupInfo) => {
                 // add report filters
                 initialReportData.lookups.billingProviderInfo = providerInfo || [];
+                initialReportData.lookups.insuranceProviders = insuranceProvidersInfo || [];
+                initialReportData.lookups.providerGroup = providerGroupInfo || [];
                 initialReportData.filters = api.createReportFilters(initialReportData);
 
                 // add report specific data sets
@@ -89,7 +104,22 @@ const api = {
      *  If no transformations are to take place just return resolved promise => return Promise.resolve(rawReportData);
      */
     transformReportData: (rawReportData) => {
-        return Promise.resolve(rawReportData);
+        let rawReportDataSet = rawReportData.dataSets[0];
+        if (rawReportDataSet && rawReportDataSet.rowCount === 0) {
+            return Promise.resolve(rawReportData);
+        }
+        return new Promise((resolve, reject) => {
+            let paymentColumns = rawReportDataSet.columns;
+            const rowIndexes = {
+                totalPaymentApplied: _.findIndex(paymentColumns, ['name', 'Amount']),
+                totalPaymentUnApplied: _.findIndex(paymentColumns, ['name', 'Applied']),
+                totalPaymentAmount: _.findIndex(paymentColumns, ['name', 'Balance'])
+            }
+            paymentColumns[rowIndexes.totalPaymentApplied].cssClass = 'text-right';
+            paymentColumns[rowIndexes.totalPaymentUnApplied].cssClass = 'text-right';
+            paymentColumns[rowIndexes.totalPaymentAmount].cssClass = 'text-right';
+            return resolve(rawReportData);
+        });
     },
 
     /**
@@ -113,13 +143,28 @@ const api = {
         const filtersUsed = [];
         filtersUsed.push({ name: 'company', label: 'Company', value: lookups.company.name });
 
-        if (params.allFacilities && params.facilityIds)
+        if (params.allFacilities && params.facilityIds) {
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: 'All' });
+        }
         else {
             const facilityNames = _(lookups.facilities).filter(f => params.facilityIds && params.facilityIds.map(Number).indexOf(parseInt(f.id, 10)) > -1).map(f => f.name).value();
             filtersUsed.push({ name: 'facilities', label: 'Facilities', value: facilityNames });
         }
+        if (params.insuranceIds && params.insuranceIds.length) {
+            const insuranceInfo = _(lookups.insuranceProviders).map(f => f.name).value();
+            filtersUsed.push({ name: 'insurance', label: 'Insurance', value: insuranceInfo });
+        }
+        else {
+            filtersUsed.push({ name: 'insurance', label: 'Insurance', value: 'All' });
+        }
 
+        if (params.insuranceGroupIds && params.insuranceGroupIds.length) {
+            const insuranceGroupInfo = _(lookups.providerGroup).map(f => f.description).value();
+            filtersUsed.push({ name: 'insuranceGroup', label: 'Insurance Group', value: insuranceGroupInfo });
+        }
+        else {
+            filtersUsed.push({ name: 'insuranceGroup', label: 'Insurance Group', value: 'All' });
+        }
         filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
         filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
         return filtersUsed;
@@ -147,8 +192,9 @@ const api = {
             paymentDate: null,
             facilityIds: null,
             billingProID: null,
-            countryCode: null
-
+            countryCode: null,
+            insuranceIds: null,
+            insGroups: null
         };
 
         // company id
@@ -160,8 +206,10 @@ const api = {
             params.push(reportParams.facilityIds);
             filters.facilityIds = queryBuilder.whereIn('bp.facility_id', [params.length]);
         }
+
         filters.countryCode = reportParams.countryCode;
-        //  scheduled_dt
+
+        //  Accounting Date
         if (reportParams.fromDate === reportParams.toDate) {
             params.push(reportParams.fromDate);
             filters.paymentDate = queryBuilder.whereDate('bp.accounting_date', '=', [params.length]);
@@ -171,16 +219,20 @@ const api = {
             filters.paymentDate = queryBuilder.whereDateBetween('bp.accounting_date', [params.length - 1, params.length]);
         }
 
-        // billingProvider single or multiple
-        // if (reportParams.billingProvider) {
-        //     params.push(reportParams.billingProvider);
-        //     filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
-        // }
-
-        return {
-            queryParams: params,
-            templateData: filters
+          // Insurance Id Mapping
+          if (reportParams.insuranceIds && reportParams.insuranceIds.length) {
+            params.push(reportParams.insuranceIds);
+            filters.insuranceIds = queryBuilder.whereIn(`ip.id`, [params.length]);
         }
+
+        // Insurance Group ID Mapping
+        if (reportParams.insuranceGroupIds && reportParams.insuranceGroupIds.length) {
+            params.push(reportParams.insuranceGroupIds);
+            filters.insGroups = queryBuilder.whereIn(`ippt.id`, [params.length]);
+        }
+
+
+        filters.countryConfigCard = reportParams.countryConfigCard;
 
         return {
             queryParams: params,
