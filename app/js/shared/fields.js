@@ -700,6 +700,20 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "defaultValue": ""
                     },
                     "field_code": "icd_description"
+                },
+                "Responsible Party": {
+                    "id": 35,
+                    "field_code": "payer_name",
+                    "field_name": "Responsible Party",
+                    "i18n_name": "setup.userSettings.responsibleParty",
+                    "field_info": {
+                        "custom_name": "Responsible Party",
+                        "name": "payer_name",
+                        "width": 250,
+                        "searchFlag": "=",
+                        "sortable": true,
+                        "defaultValue": ""
+                    }
                 }
             });
         }else{
