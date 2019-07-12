@@ -5,7 +5,8 @@ define(['backbone'], function (Backbone) {
             companyId: "",
             code: "",
             description: "",
-            isActive: ""
+            isActive: "",
+            colorCode: ""
         },
         initialize: function (models) {
         }

@@ -285,6 +285,7 @@ define('grid', [
                         billing_code_id: billing_code ? billing_code.id : null 
                     };
                     var billing = {
+                        color_code: billing_code ? billing_code.color_code : null, 
                         status_message: 'messages.status.billingCodeChanged',
                         column: 'billing_code',
                         description: billing_code ? billing_code.description : null 
@@ -314,6 +315,7 @@ define('grid', [
                         billing_class_id:billing_class ? billing_class.id : null
                     };
                     var billing = {
+                        color_code: billing_class ? billing_class.color_code : null,
                         status_message: 'messages.status.billingClassChanged',
                         column: 'billing_class',
                         description: billing_class ? billing_class.description : null 
@@ -1793,7 +1795,7 @@ define('grid', [
                         if (data && data.length) {
                             commonjs.showStatus(billing.status_message);
                             _.each(data, function (obj) {
-                                $target.jqGrid('setCell', obj.id, billing.column, billing.description);
+                                $target.jqGrid('setCell', obj.id, billing.column, billing.description, { background: billing.color_code || 'transparent'});
                             });
                         }
                     },
