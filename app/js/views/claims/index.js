@@ -204,21 +204,9 @@ define(['jquery',
                 $('#modal_div_container').animate({ scrollTop: 0 }, 100);
 
                 // Append dynamic address details for canadian config
-                var AddressInfoMap = {
-                    city: {
-                        domId: 'txtPriCity',
-                        infoKey: 'city'
-                    },
-                    state: {
-                        domId: 'ddlPriState',
-                        infoKey: 'state'
-                    },
-                    zipCode: {
-                        domId: 'txtPriZipCode',
-                        infoKey: 'zip'
-                    }
-                }
-                self.bindCityStateZipTemplate({}, AddressInfoMap, 'Pri');
+                self.bindAddressInfo('Pri');
+                self.bindAddressInfo('Sec');
+                self.bindAddressInfo('Ter');
             },
 
             initializeDateTimePickers: function () {
@@ -927,22 +915,7 @@ define(['jquery',
                     $('#txtPriSubSecAddr').val(claimData.p_subscriber_address_line2);
 
                     // Append dynamic address details for canadian config
-                    var AddressInfoMap = {
-                        city: {
-                            domId: 'txtPriCity',
-                            infoKey: 'p_subscriber_city'
-                        },
-                        state: {
-                            domId: 'ddlPriState',
-                            infoKey: 'p_subscriber_state'
-                        },
-                        zipCode: {
-                            domId: 'txtPriZipCode',
-                            infoKey: 'p_subscriber_zipcode'
-                        }
-                    }
-                    self.bindCityStateZipTemplate(claimData, AddressInfoMap, 'Pri');
-
+                    self.bindAddressInfo('Pri',claimData,'p');
                     document.querySelector('#txtPriDOB').value = claimData.p_subscriber_dob ? moment(claimData.p_subscriber_dob).format('L') : '';
                     document.querySelector('#txtPriStartDate').value = claimData.p_valid_from_date ? moment(claimData.p_valid_from_date).format('L') : '';
                     document.querySelector('#txtPriExpDate').value = claimData.p_valid_to_date ? moment(claimData.p_valid_to_date).format('L') : '';
@@ -990,6 +963,7 @@ define(['jquery',
                         $('#ddlSecState').val(claimData.s_subscriber_state);
                     }
 
+                    self.bindAddressInfo('Sec',claimData,'s');
                     document.querySelector('#txtSecDOB').value = claimData.s_subscriber_dob ? moment(claimData.s_subscriber_dob).format('L') : '';
                     document.querySelector('#txtSecStartDate').value = claimData.s_valid_from_date ? moment(claimData.s_valid_from_date).format('L') : '';
                     document.querySelector('#txtSecExpDate').value = claimData.s_valid_to_date ? moment(claimData.s_valid_to_date).format('L') : '';
@@ -1034,6 +1008,7 @@ define(['jquery',
                         $('#ddlTerState').val(claimData.t_subscriber_state);
                     }
 
+                    self.bindAddressInfo('Ter',claimData,'t');
                     document.querySelector('#txtTerDOB').value = claimData.t_subscriber_dob ? moment(claimData.t_subscriber_dob).format('L') : '';
                     document.querySelector('#txtTerStartDate').value = claimData.t_valid_from_date ? moment(claimData.t_valid_from_date).format('L') : '';
                     document.querySelector('#txtTerExpDate').value = claimData.t_valid_to_date ? moment(claimData.t_valid_to_date).format('L') : '';
@@ -5033,6 +5008,24 @@ define(['jquery',
                 $document
                     .off('keydown', this.bindShortCutEvent)
                     .on('keydown', this.bindShortCutEvent);
+            },
+
+            bindAddressInfo: function (id, data, key) { // Append dynamic address details for canadian config
+                var AddressInfoMap = {
+                    city: {
+                        domId: 'txt' + id + 'City',
+                        infoKey: (key && key + '_subscriber_city') || 'city'
+                    },
+                    state: {
+                        domId: 'ddl' + id + 'State',
+                        infoKey: (key && key + '_subscriber_state') || 'state'
+                    },
+                    zipCode: {
+                        domId: 'txt' + id + 'ZipCode',
+                        infoKey: (key && key + '_subscriber_zipcode') || 'zip'
+                    }
+                }
+                this.bindCityStateZipTemplate(data || {}, AddressInfoMap, id);
             }
         });
 
