@@ -101,8 +101,8 @@ WITH claim_details AS(
                 OR payer_type = 'tertiary_insurance'
         THEN bgct.claim_balance_total
         END AS "Insurance Balance",
-    insurance_code  AS "Insurance (Paid)",
-    insurance_name  AS "Insurance (Cur)",
+    insurance_code  AS "Insurance (Cur)",
+    insurance_name  AS "Insurance (Paid)",
     ref_doctor_name AS "Ref. Doctor",
     insurance_payer_type AS "Insurance Payer Type"
     FROM claim_details
