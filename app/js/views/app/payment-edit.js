@@ -2062,7 +2062,7 @@ define(['jquery',
                             self.saveAllPayments(e, claimId, paymentId, paymentStatus, chargeId, paymentApplicationId);
                         });
 
-                        self.reloadPaymentFields(claimId, paymentId, paymentApplicationId);
+                        self.reloadPaymentFields(claimId, paymentId, paymentApplicationId, isInitialBind);
 
                         $('#txtResponsibleNotes').val(payerTypes[0].billing_notes);
 
@@ -2526,7 +2526,7 @@ define(['jquery',
                 }
             },
 
-            reloadPaymentFields: function (claimId, paymentId, paymentApplicationId) {
+            reloadPaymentFields: function (claimId, paymentId, paymentApplicationId, isInitialBind) {
                 var self = this;
                 jQuery.ajax({
                     url: "/exa_modules/billing/pending_payments/fee_details",
@@ -2544,17 +2544,19 @@ define(['jquery',
                             self.currentOrderBalance = feeDetails.balance || 0;
                             self.setFeeFields({ billFee: feeDetails.bill_fee, adjustment: feeDetails.adjustment, balance: feeDetails.balance, others_paid: feeDetails.others_paid, patient_paid: feeDetails.patient_paid, payment: feeDetails.payment, total_adjustment: feeDetails.total_adjustment });
                         }
-                        var id = layout.currentModule == 'Claims' ? 'modalBodyNested' : 'modalBody';
-                        $('#' + id).trackFormChanges(function (unsaved) {
-                            if (unsaved) {
-                                if (confirm(commonjs.geti18NString("messages.confirm.unsavedFormConfirm"))) {
-                                    self.isEscKeyPress = true;
-                                    $('#btnSaveAppliedPendingPayments').trigger('click');
+                        if (isInitialBind) {
+                            var id = layout.currentModule == 'Claims' || layout.currentScreen == 'Studies' ? 'modalBodyNested' : 'modalBody';
+                            $('#' + id).trackFormChanges(function (unsaved) {
+                                if (unsaved) {
+                                    if (confirm(commonjs.geti18NString("messages.confirm.unsavedFormConfirm"))) {
+                                        self.isEscKeyPress = true;
+                                        $('#btnSaveAppliedPendingPayments').trigger('click');
+                                    }
+                                } else {
+                                    self.closePayment();
                                 }
-                            } else {
-                                self.closePayment();
-                            }
-                        })
+                            })
+                        }
                         commonjs.hideLoading();
                     },
                     error: function (err) {
@@ -3416,7 +3418,7 @@ define(['jquery',
             },
             
             closePayment: function (e) {
-                if (layout.currentModule == 'Claims') {
+                if (layout.currentModule == 'Claims' || layout.currentScreen == 'Studies') {
                     $('#siteModalNested .close').trigger('click');
                 } else {
                     $('#siteModal .close').trigger('click');
