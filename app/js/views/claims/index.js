@@ -95,6 +95,7 @@ define(['jquery',
                 this.model = new newClaimModel();
                 this.patInsModel = new modelPatientInsurance();
 
+                this.createShortCut();
                 var modelCollection = Backbone.Collection.extend({
                     model: Backbone.Model.extend({})
                 });
@@ -170,6 +171,8 @@ define(['jquery',
                 $('#siteModal').removeAttr('tabindex'); //removed tabIndex attr for select2 search text can't editable
 
                 if (isFrom != 'patientSearch') {
+                    $('#siteModal .close')[0].title = 'Esc';
+                    $('#siteModal .btn-secondary')[0].title = 'Esc';
                     self.bindDetails();
                     self.bindTabMenuEvents();
                 }
@@ -4720,10 +4723,13 @@ define(['jquery',
                                                 error: function (model, response) {
                                                     commonjs.handleXhrError(model, response);
                                                     commonjs.hideLoading();
+                                                    self.createShortCut();
                                                 }
                                             }
 
                                             $.ajax(getPaymentDEtails);
+                                        } else {
+                                            self.createShortCut();
                                         }
                                     });
 
@@ -4757,6 +4763,7 @@ define(['jquery',
                     }
                 });
 
+                self.createShortCut();
             },
 
             validatePaymentEdit: function (rowID, paymentRowData) {
@@ -4837,6 +4844,7 @@ define(['jquery',
                         self.dtpAccountingDate[index - 1].isModified = true;
                     }
                 });
+                $('#ddlPayerName_' + index).focus();
                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
 
                 self.bindClaimPaymentEvent();
@@ -4939,8 +4947,65 @@ define(['jquery',
                         commonjs.showWarning('messages.errors.accessdenied');
                     });
                 }
-            }
+            },
+            bindShortCutEvent: function (e) {
+                if (!$('.woClaimRelated').length) {
+                    return;
+                }
 
+                var keyCode = e.keyCode || e.which;
+                var isAltkey = e.altKey && !e.ctrlKey;
+                var altKey = isAltkey && !e.shiftKey;
+                var shiftAlt = e.shiftKey && isAltkey;
+                var activeElement;
+
+                switch (keyCode) {
+                    case 27:
+                        if (!altKey && !shiftAlt) {
+                            $('#siteModal').modal('hide');
+                            $('#siteModalNested').modal('hide');
+                        }
+                        break;
+                    case 65:
+                        activeElement = altKey && 'newClaimNavAddInfo';
+                        break;
+                    case 66:
+                        activeElement = altKey && 'newClaimNavBillSummary';
+                        break;
+                    case 67:
+                        activeElement = shiftAlt ? 'newClaimNavClaims' : altKey && 'newClaimNavCharge';
+                        break;
+                    case 68:
+                        activeElement = altKey && 'btPatientDocuemnt';
+                        break;
+                    case 73:
+                        activeElement = altKey && 'newClaimNavIns';
+                        break;
+                    case 78:
+                        activeElement = shiftAlt ? 'btnNextClaim' : altKey && 'btnPatientNotes';
+                        break;
+                    case 80:
+                        activeElement = shiftAlt ? 'btnPrevClaim' : altKey && 'newClaimNavPayments';
+                        break;
+                    case 83:
+                        activeElement = altKey && 'btnSaveClaim';
+                        break;
+                    case 86:
+                        activeElement = altKey && 'btnValidateClaim';
+                        break;
+                    case 107:
+                        activeElement = altKey && 'btnNewPayment';
+                }
+
+                if (activeElement) {
+                    $('#' + activeElement).trigger('click');
+                }
+            },
+            createShortCut: function () {
+                $document
+                    .off('keydown', this.bindShortCutEvent)
+                    .on('keydown', this.bindShortCutEvent);
+            }
         });
 
         return claimView;
