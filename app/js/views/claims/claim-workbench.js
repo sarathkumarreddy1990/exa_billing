@@ -2866,31 +2866,17 @@ define(['jquery',
                 });
             },
 
-            initializeEditForm: function (studyInfo) {
-                var claimView = new claimsView({ worklist: this});
-    
-                if (studyInfo.order_id) {
-                    claimView.showEditClaimForm(studyInfo.studyIds, 'claims', studyInfo);
-                } else {
-                    commonjs.getClaimStudy(studyInfo.studyIds, function (result) {
-                        studyInfo.study_id = result && result.study_id || studyInfo.study_id;
-                        studyInfo.order_id = result && result.order_id || 0;
-                        claimView.showEditClaimForm(studyInfo.studyIds, 'claims', studyInfo);
-                    });
-                }
-            },
-
             processClaim: function(e) {
-                var self = this;
-                var gridRowData = $('#tblClaimGridAll_Claims').jqGrid( 'getRowData', e.target.id );
-
-                self.initializeEditForm({
-                    studyIds: gridRowData.hidden_claim_id,
-                    study_id: e.target.id,
-                    patient_name: gridRowData.hidden_patient_name,
-                    patient_id: gridRowData.hidden_patient_id,
-                    order_id: gridRowData.hidden_order_id,
+                var claimView = new claimsView({ worklist: this});
+                var studyInfo = {
+                    studyIds: e.target.id,
                     grid_id: '#tblClaimGridAll_Claims'
+                };
+
+                commonjs.getClaimStudy(studyInfo.studyIds, function (result) {
+                    studyInfo.study_id = result && result.study_id || 0;
+                    studyInfo.order_id = result && result.order_id || 0;
+                    claimView.showEditClaimForm(studyInfo.studyIds, 'reclaim', studyInfo);
                 });
             },
 

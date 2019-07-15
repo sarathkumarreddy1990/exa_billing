@@ -587,6 +587,11 @@ define(['jquery',
                                 return false;
                             }
 
+                            if (isFrom === 'reclaim') {
+                                self.options.patient_name = claimDetails.patient_name;
+                                self.options.patient_id = claimDetails.patient_id;
+                            }
+
                             self.initializeClaimEditForm(isFrom);
                             /* Bind chargeLineItems events - started*/
                             if(self.screenCode.indexOf('DCLM') > -1) {
