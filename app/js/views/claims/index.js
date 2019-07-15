@@ -115,6 +115,7 @@ define(['jquery',
                     var rights = (window.appRights).init();
                     this.screenCode = rights.screenCode;
                 }
+                this.claimWorkBench = this.options && this.options.worklist || null;
             },
             urlNavigation: function () { //To restrict the change in URL based on tab selection. Maintain Same URL for every tab in claim creation screen
                 var self = this;
@@ -126,12 +127,24 @@ define(['jquery',
             render: function (isFrom) {
                 var self = this;
                 this.rendered = true;
-
                 commonjs.showDialog({
                     header: 'Claim Creation',
                     i18nHeader: 'shared.fields.claimCreation',
                     width: '95%',
                     height: '75%',
+                    isFromClaim: true,
+                    onHidden: function (options) {
+                        var prevValidationResults = commonjs.previousValidationResults;
+
+                        if (prevValidationResults && !options.fromValidate) {
+                            if (prevValidationResults.isFromEDI) {
+                                self.claimWorkBench.ediResponse(prevValidationResults.result);
+                            } else {
+                                self.claimWorkBench.showValidationResult(prevValidationResults.result);
+                            }
+                        }
+
+                    },
                     html: this.claimCreationTemplate({
                         country_alpha_3_code: app.country_alpha_3_code,
                         patient_name: self.cur_patient_name,
@@ -619,7 +632,7 @@ define(['jquery',
                                 $('#checkExclude_' + index).prop('checked', data.is_excluded);
                             });
 
-                            if (self.openedFrom && self.openedFrom === 'patientSearch')
+                            if (self.openedFrom === 'patientSearch' || commonjs.previousValidationResults)
                                 $('.claimProcess').hide(); // hide Next/Prev btn if opened from patient search
 
                             // trigger blur event for update Total bill fee, balance etc.
@@ -3705,7 +3718,17 @@ define(['jquery',
                                 }
                             }
                             else {
-                                commonjs.showNestedDialog({ header: 'Validation Results', i18nHeader: 'billing.claims.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });
+                                commonjs.showNestedDialog({ 
+                                    header: 'Validation Results', 
+                                    i18nHeader: 'billing.claims.validationResults', 
+                                    width: '70%', 
+                                    height: '60%', 
+                                    html: self.claimValidation({ response_data: data.invalidClaim_data }),
+                                    onShown: function () {
+                                        $('#revalidateClaim').hide();
+                                        $('.processClaimEdit').removeClass('processClaimEdit');
+                                    }
+                                 });
                             }
                         }
                     },

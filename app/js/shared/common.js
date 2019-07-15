@@ -40,7 +40,8 @@ var settingsReceived = false
     , arrInterval = []
     , isPatientSearch = true
     , filterQueries = []
-    , prevTime,
+    , prevTime
+    , previousValidationResults,
     setupStatusCodes = function (data) {
         commonjs.statusCodes = data;
         // Below is for my convenience
@@ -1073,7 +1074,21 @@ var commonjs = {
             $modalContainer.modal({ show: true, keyboard: boolKeyboard });
         }
 
-        $modalContainer.on('hide', function (event) {
+        if (typeof options.onShown === 'function') {
+            $modalContainer.off('shown.bs.modal').on('shown.bs.modal', function (e) {
+                // callback function when the modal has been made visible to the user
+                options.onShown();
+            });
+        }
+
+        if (typeof options.onHidden === 'function') {
+            $modalContainer.off('hidden.bs.modal').on('hidden.bs.modal', function (event) {
+                // callback function when the modal has finished being hidden from the user
+                options.onHidden(options);
+            });
+        }
+
+        $modalContainer.off('hide.bs.modal').on('hide.bs.modal', function (event) {
             if ($modalContainer.find('iframe')) {
                 var url = $modalContainer.find('iframe').attr('src');
                 if (url) {
