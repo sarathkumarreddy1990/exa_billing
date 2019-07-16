@@ -1748,7 +1748,11 @@ define(['jquery',
                     header: casDialogHeader,
                     width: rowData.isFromClaim ? '75%' : '85%',
                     height: rowData.isFromClaim ? '65%' : '72%',
-                    html: casDialogHtml
+                    html: casDialogHtml,
+                    onShown: function () {
+                        var thisPayment = $($('.payment__this_pay')[0]);
+                        thisPayment.focus().val(thisPayment.val());
+                    }
                 };
 
                 if (rowData.isFromClaim) {
