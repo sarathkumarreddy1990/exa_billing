@@ -49,8 +49,8 @@ define(['jquery',
                     gridelementid: '#tblBillingCodesGrid',
                     custompager: new Pager(),
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['','','','','',''],
-                    i18nNames: ['', '', '', 'setup.common.code', 'setup.common.description', 'is_active'],
+                    colNames: ['','','','','','',''],
+                    i18nNames: ['', '', '', 'setup.common.code', 'setup.common.description', 'is_active', 'setup.statusColorCode.colorCode'],
                     colModel: [
                         {
                             name: 'id',
@@ -102,6 +102,13 @@ define(['jquery',
                         {
                             name: 'inactivated_dt',
                             hidden: true
+                        },
+                        {
+                            name: 'color_code',
+                            search: false,
+                            cellattr: function (rowId, tv, rawObject) {
+                                return 'style="background-color:' + tv + '"';
+                            }
                         }
                     ],
                     afterInsertRow: function (rowid, rowdata) {
@@ -161,9 +168,10 @@ define(['jquery',
                             if (response && response.length > 0) {
                                 var data = response[0];
                                 if (data) {
-                                    $('#txtCode').val(data.code ? data.code : '');
-                                    $('#txtDescription').val(data.description ? data.description : '');
+                                    $('#txtCode').val(data.code || '');
+                                    $('#txtDescription').val(data.description || '');
                                     $('#chkActive').prop('checked', data.inactivated_dt ? true : false);
+                                    $('#billingCodeColor').val(data.color_code || '');
                                 }
                             }
                         }
@@ -216,7 +224,9 @@ define(['jquery',
                     "code": $('#txtCode').val(),
                     "description": $('#txtDescription').val(),
                     "isActive" : !$('#chkActive').prop('checked'),
-                    "companyId" : app.companyID
+                    "companyId" : app.companyID,
+                    "colorCode" : $('#billingCodeColor').val()
+
                 });
                 this.model.save({
                 }, {

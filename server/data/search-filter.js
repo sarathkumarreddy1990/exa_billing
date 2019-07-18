@@ -878,7 +878,9 @@ const api = {
                     AS payer_type`, // Billing
                 'orders.id as claim_no', // Billing
                 ` '' AS claim_status`,
+                ` billing_codes.id AS billing_code_id`,
                 ` billing_codes.description AS billing_code`,
+                ` billing_classes.id AS billing_class_id`,
                 ` billing_classes.description AS billing_class`,
                 `CASE
                     WHEN (

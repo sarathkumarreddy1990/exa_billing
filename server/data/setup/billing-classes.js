@@ -11,7 +11,8 @@ module.exports = {
             sortOrder,
             sortField,
             pageNo,
-            pageSize
+            pageSize,
+            colorCode
         } = params;
 
         if (code) {
@@ -22,11 +23,16 @@ module.exports = {
             whereQuery.push(` description ILIKE '%${description}%'`);
         }
 
+        if (colorCode) {
+            whereQuery.push(` color_code ILIKE '%${colorCode}%'`);
+        }
+
         const sql = SQL`SELECT 
                           id
                         , code
                         , description
                         , inactivated_dt
+                        , color_code
                         , COUNT(1) OVER (range unbounded preceding) AS total_records
                     FROM   
                         billing.billing_classes `;
@@ -54,6 +60,7 @@ module.exports = {
                         , code
                         , description
                         , inactivated_dt
+                        , color_code
                     FROM   
                         billing.billing_classes 
                     WHERE 
@@ -67,7 +74,8 @@ module.exports = {
             code,
             description,
             isActive,
-            companyId
+            companyId,
+            colorCode
         } = params;
 
         let inactivated_date = isActive ? null : ' now() ';
@@ -77,12 +85,14 @@ module.exports = {
                               company_id
                             , code
                             , description
-                            , inactivated_dt)
+                            , inactivated_dt
+                            , color_code)
                         VALUES(
                                ${companyId}
                              , ${code}
                              , ${description}
-                             , ${inactivated_date} )
+                             , ${inactivated_date}
+                             , ${colorCode} )
                              RETURNING *, '{}'::jsonb old_values`;
 
         return await queryWithAudit(sql, {
@@ -97,7 +107,8 @@ module.exports = {
             code,
             description,
             id,
-            isActive
+            isActive,
+            colorCode
         } = params;
 
         let inactivated_date = isActive ? null : ' now() ';
@@ -108,6 +119,7 @@ module.exports = {
                               code = ${code}
                             , description = ${description}
                             , inactivated_dt = ${inactivated_date}
+                            , color_code = ${colorCode}
                         WHERE
                             id = ${id} 
                             RETURNING *,

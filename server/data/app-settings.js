@@ -99,7 +99,8 @@ module.exports = {
                                     FROM  (
                                     SELECT id,
                                         code,
-                                        description
+                                        description,
+                                        color_code
                                     FROM   billing.billing_codes
                                     WHERE  company_id=${companyID} AND inactivated_dt IS NULL
                                     ORDER BY description) AS billing_codes)
@@ -108,7 +109,8 @@ module.exports = {
                                     FROM  (
                                     SELECT id,
                                         code,
-                                        description
+                                        description,
+                                        color_code
                                     FROM   billing.billing_classes
                                     WHERE  company_id=${companyID} AND inactivated_dt IS NULL ) AS billing_classes)
                 , cte_provider_id_code_qualifiers AS(
