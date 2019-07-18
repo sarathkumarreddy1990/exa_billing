@@ -24,6 +24,44 @@ const itemFields = require('./../../parser/errorReport/itemFields');
 const explanationCodeMessageFields = require('./../../parser/errorReport/explanationCodeMessageFields');
 const trailerRecordFields = require('./../../parser/errorReport/trailerRecordFields');
 
+
+// matches service codes beginning with 'E' -- used to determine if a claim (within a batch) should be rejected
+// const claimCorrectionFlagMatcher = /E99([0-9])[BC]/;
+// const itemCorrectionFlagMatcher = /E[0-8]{2}([0-9])[BC]/;
+
+const errorCodes = [
+    'AC1', 'VHA', 'ET1', 'TM3', 'VH9'
+];
+
+const explanatoryCodes = {
+    '11': 'No. of services exceed maximum allowed',
+};
+
+const getExplanatoryCodeMessage = (item) => {
+    return {
+        explanatoryCode: item.explanatoryCode,
+        explanatoryDescription: explanatoryCodes[item.explanatoryCode],
+    };
+};
+
+// an array of arrays of error code indices -- these are the "templates"
+const errorTemplates = [
+    /* (yes this could just as well have been done algorithmically, but then
+        the larger algorithm would be much harder to understand) */
+    [],
+    [0],
+    [0, 1],
+    [0, 1, 2],
+    [0, 1, 2, 3],
+    [0, 1, 2, 3, 4],
+];
+
+const addErrors = (errorKey, obj) => {
+    errorTemplates[errorKey % 6].forEach((errorCodeIndex, errorTemplateIndex) => {
+        obj[`errorCode${errorTemplateIndex + 1}`] = errorCodes[errorCodeIndex];
+    });
+};
+
 let nextErrorReportFileSequenceNumber = 0;
 
 // returns an array of resources -- may be multiple resources per input resource
@@ -77,37 +115,67 @@ module.exports = (resource, processDate) => {
 
                     hasClaimRejects = true;
 
-                    hx9Data.header1Count++;
+                    if (claim.errorKey % 6) {
+                        addErrors(claim.errorKey, claim);
+                    }
 
                     const hxhRecord = Object.keys(claimHeader1Fields).map((key) => {
                         const fieldDescriptor = claimHeader1Fields[key];
                         return formatAlphanumeric((fieldDescriptor.constant || claim[key]), fieldDescriptor.fieldLength);
                     }).join('');
                     results.push(hxhRecord);
-
+                    hx9Data.header1Count++;
 
                     if (claim.paymentProgram === 'RMB') {
 
-                        hx9Data.header2Count++;
 
                         const hxrRecord = Object.keys(claimHeader2Fields).map((key) => {
                             const fieldDescriptor = claimHeader2Fields[key];
                             return formatAlphanumeric((fieldDescriptor.constant || claim[key]), fieldDescriptor.fieldLength);
                         }).join('');
                         results.push(hxrRecord);
+                        hx9Data.header2Count++;
                     }
 
-                    return claim.items.reduce((results, item) => {
+                    // TODO only add item-level errors for service codes matching item-correction-flag
+                    return claim.rejectItems.reduce((results, item) => {
 
-                        hx9Data.itemCount++;
+
+                        if (item.errorKey % 6) {
+                            addErrors(item.errorKey, item);
+                        }
+
+                        if (parseInt(item.explanatoryKey)) {
+                            // TODO hardcoding this to an arbitrary explanatory code sucks
+                            item.explanatoryCode = 11;
+                        }
+
 
                         const hxtRecord = Object.keys(itemFields).map((key) => {
                             const fieldDescriptor = itemFields[key];
                             return formatAlphanumeric((fieldDescriptor.constant || item[key]), fieldDescriptor.fieldLength);
                         }).join('');
-                        return results.concat(hxtRecord);
 
-                        // TODO add HX8 records
+                        results.push(hxtRecord);
+                        hx9Data.itemCount++;
+
+                        if (item.explanatoryCode) {
+
+                            const message = getExplanatoryCodeMessage(item);
+
+
+                            const hx8Record = Object.keys(explanationCodeMessageFields).map((key) => {
+                                const fieldDescriptor = explanationCodeMessageFields[key];
+                                // some of these should be left justified but it matters not
+                                return formatAlphanumeric((fieldDescriptor.constant || message[key]), fieldDescriptor.fieldLength);
+                            }).join('');
+
+                            results.push(hx8Record);
+                            hx9Data.messageCount++;
+                        }
+
+                        return results;
+
                     }, results);
 
                 }, results);

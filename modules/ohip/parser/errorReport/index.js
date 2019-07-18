@@ -88,7 +88,7 @@ const ErrorReportParser = function(options) {
                 healthNumber: parseObj.healthNumber,
                 versionCode: parseObj.versionCode,
                 patientDateOfBirth: parseObj.patientDateOfBirth,
-                accountingNumber: parseObj.accountingNumber,
+                accountingNumber: parseInt(parseObj.accountingNumber),
                 paymentProgram: parseObj.paymentProgram,
                 payee: parseObj.payee,
                 referringProviderNumber: parseObj.referringProviderNumber,

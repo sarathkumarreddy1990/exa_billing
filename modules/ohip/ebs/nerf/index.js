@@ -43,13 +43,22 @@ const fs = require('fs');
 
 const resources = [];
 let nextResourceID = 60000;
+
+// this is really crummy and should be reconsidered
 const REMITTANCE_ADVICE_RESOURCE_ID = nextResourceID++;
+
 
 // matches service codes beginning with 'X' -- used to determine if an entire Claims File should be rejected
 const rejectionFlagMatcher = /X999[BC]/;
 
 // matches service codes beginning with 'E' -- used to determine if a claim (within a batch) should be rejected
-const correctionFlagMatcher = /E999[BC]/;
+// first group = claim level error codes, second group = item explanatory codes, third group = item level error codes
+const correctionFlagMatcher = /E([0-9])([0-9])([0-9])[BC]/;
+const CLAIM_ERROR_KEY = 1;
+const ITEM_EXPLANATORY_KEY = 2;
+const ITEM_ERROR_KEY = 3;
+
+
 
 // matches service codes beginning with 'Z' -- used to determine if an entire batch (within a submission) should be rejected
 const badBatchFlagMatcher = /Z999[BC]/;
@@ -87,7 +96,8 @@ const getClaimFileInfo = (resource) => {
                 specialty: record.substr(35, 2),
                 operatorNumber: record.substr(19, 6),
 
-                shouldReject: false,
+                rejected: false,
+                // rejectClaims: {},
                 rejectClaims: [],
                 acceptClaims: [],
             };
@@ -112,8 +122,10 @@ const getClaimFileInfo = (resource) => {
                 paymentProgram: record.substr(31, 3),
                 serviceLocationIndicator: record.substr(58, 4), // from claim header - 1
 
-                items: [],
-                shouldReject: false,
+                errors: [], // claim correction at the header level
+                items: [],  // TODO refactor as 'acceptItems' and update Remittance Advice encoder
+                rejectItems: [],
+                rejected: false,
             };
 
             // assume it will end up here until we hit a claim-rejection flag
@@ -131,25 +143,68 @@ const getClaimFileInfo = (resource) => {
             // determine if this Claims File was intended to be corrected, if
             // the Claim itself should be rejected, or neither
             const serviceCode = record.substr(3, 5);
+
+            // Per section 6.2 of the Interface to Health Care Systems Technical Specifications,
+            // Claims data in electronic input form may be subject to rejection by the ministry at three levels:
+            // 1 - Rejection of entire file submission
+            // 2 - Rejection of batch within a file
+            // 3 - Rejection of a claim within a batch
+
             if (rejectionFlagMatcher.test(serviceCode)) {
-                logger.info(`****NERF**** bad submission flag set (${serviceCode})`);
+                logger.info(`****NERF**** bad submission flag set; submission to be rejected (${serviceCode})`);
                 shouldReject = true;    // useful for Remittance Advice encoder
             }
-            else if (badBatchFlagMatcher.test(serviceCode)) {
-                logger.info(`****NERF**** bad batch flag set (${serviceCode})`);
+            else if (badBatchFlagMatcher.test(serviceCode) && !currentBatch.rejected) {
+                logger.info(`****NERF**** bad batch flag set; batch to be rejected (${serviceCode})`);
                 rejectBatches.push(acceptBatches.pop());   // useful for Batch Edit encoder
+                currentBatch.rejected = true;   // don't be in this branch for this batch again
             }
-            else if (correctionFlagMatcher.test(serviceCode)) {
-                logger.info(`****NERF**** bad claim flag set (${serviceCode})`);
-                currentBatch.rejectClaims.push(currentBatch.acceptClaims.pop());   // useful for Error Reports encoder
+            else {
+                const results = correctionFlagMatcher.exec(serviceCode) || [];
+
+                const claimErrorKey = results[CLAIM_ERROR_KEY];
+                const itemExplanatoryKey = results[ITEM_EXPLANATORY_KEY];
+                const itemErrorKey = results[ITEM_ERROR_KEY];
+
+                if (claimErrorKey || itemExplanatoryKey || itemErrorKey) {
+
+                    logger.info(`****NERF**** bad claim flag set; claim to be rejected (${serviceCode})`);
+
+                    if (!currentClaim.rejected) {
+                        currentBatch.rejectClaims.push(currentBatch.acceptClaims.pop());   // useful for Error Reports encoder
+                        currentClaim.rejected = true;   // don't be in this branch for this claim again
+                    }
+
+                    currentClaim.errorKey = claimErrorKey;
+
+
+                    // NOTE that this else-block is very similar to the else-block below, except that
+                    // in this context, we're only processing 'items with errors' for 'claims that require correction
+
+                    currentClaim.rejectItems.push({
+
+                        explanatoryKey: itemExplanatoryKey,
+                        errorKey: itemErrorKey,   // error report encoder will know to access errorKey for items within rejectItems
+
+                        serviceCode,
+                        feeSubmitted: record.substr(10, 6),
+                        numberOfServices: record.substr(16, 2),
+                        serviceDate: record.substr(18, 8),
+                    });
+                }
+                else {
+                    // only process acceptItems for accepted/non-rejected claims
+
+                    currentClaim.items.push({
+                        serviceCode,
+                        feeSubmitted: record.substr(10, 6),
+                        numberOfServices: record.substr(16, 2),
+                        serviceDate: record.substr(18, 8),
+                    });
+                }
+
             }
 
-            currentClaim.items.push({
-                serviceCode,
-                feeSubmitted: record.substr(10, 6),
-                numberOfServices: record.substr(16, 2),
-                serviceDate: record.substr(18, 8),
-            });
         }
         else if (/^HEE/.test(record)) {
 
