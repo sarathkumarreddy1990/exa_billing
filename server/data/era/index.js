@@ -1,5 +1,7 @@
 const { query, SQL } = require('./../index');
 const _ = require('lodash');
+const queryMakers = require('./../query-maker-map');
+const generator = queryMakers.get('datetime');
 
 module.exports = {
 
@@ -20,7 +22,10 @@ module.exports = {
             pageNo,
             pageSize,
             uploaded_file_name,
-            payment_id
+            payment_id,
+            fromDate,
+            toDate,
+            customArgs
         } = params;
 
         whereQuery.push(` ef.file_type != 'EOB' `);
@@ -38,7 +43,12 @@ module.exports = {
         }
 
         if (updated_date_time) {
-            whereQuery.push(` ef.created_dt::date = '${updated_date_time}'::date`);
+            const updatedDateTimeFilter = generator('ef.created_dt', updated_date_time, customArgs);
+            whereQuery.push(updatedDateTimeFilter);
+
+        } else if (fromDate && toDate) {
+            whereQuery.push(` ef.created_dt::date BETWEEN '${fromDate}'::date AND '${toDate}'::date`);
+
         }
 
         if (current_status) {
@@ -92,8 +102,9 @@ module.exports = {
                                                     efp.payment_id = ANY(file_payments.payment_id)
                                                     AND efp.edi_file_id != ef.id
                                                 ) AS eob ON TRUE
+                                INNER JOIN companies ON companies.id = ${params.companyId}
                                 WHERE
-                                company_id =  ${params.customArgs.companyID} `);
+                                company_id = ${params.companyId} `);
 
         if (whereQuery.length) {
             sql.append(SQL` AND `);

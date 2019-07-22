@@ -785,7 +785,7 @@ function customGrid ( datastore, gridID ) {
                     $('#' + element.id).val(filterValue);
                 }
     
-                if ( /mu_last_updated|check_indate|(.*_(dt|date)$)/.test(element.name) ) {
+                if ( /mu_last_updated|check_indate|(.*_(dt|date|date_time)$)/.test(element.name) ) {
                     var dates = getDates(filterValue);
                     filterData.push(dates);
                     filterRegData.push(new Data(element.name, dates));

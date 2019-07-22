@@ -20,6 +20,7 @@ define([
             pager: null,
             events: {
             },
+            isCleared: false,
 
             initialize: function (options) {
                 var self = this;
@@ -113,7 +114,18 @@ define([
                     showcaption: false,
                     disableadd: true,
                     disablereload: true,
-                    pager: '#gridPager_UserLog'
+                    pager: '#gridPager_UserLog',
+                    customargs: {
+                        options: {
+                            isCompanyBase: true
+                        },
+                        toDate: !self.isCleared ? moment().format('YYYY-MM-DD') : "",
+                        fromDate: !self.isCleared ? moment().subtract(2, 'days').format('YYYY-MM-DD') : ""
+                    },
+                    onaftergridbind: function (model, gridObj) {
+                        self.bindDateRangeOnSearchBox(gridObj);
+                    }
+
                 });
 
                 commonjs.initializeScreen({header: {screen: 'UserLog', ext: 'userLog'}, grid: {id: '#tblUserLogGrid'}, buttons: [
@@ -133,6 +145,64 @@ define([
 
             dateFormatter: function (_date) {
                 return commonjs.checkNotEmpty(_date) ? commonjs.getFormattedDateTime(_date) : '';
+            },
+
+            //Bind the default date range on logged-in date column
+            searchUserLog: function () {
+                var self = this;
+                self.pager.set({"PageNo": 1});
+                self.userLogTable.options.customargs = {
+                    options: {
+                        isCompanyBase: true
+                    },
+                    toDate: !self.isCleared ? moment().format('YYYY-MM-DD') : "",
+                    fromDate: !self.isCleared ? moment().subtract(2, 'days').format('YYYY-MM-DD') : ""
+                };
+                self.userLogTable.refresh();
+            },
+
+            //Bind the date range filter
+            bindDateRangeOnSearchBox: function (gridObj) {
+                var self = this;
+                var columnsToBind = ['logged_in_dt'];
+                var drpOptions = {
+                    locale: {
+                        format: "L"
+                    }
+                };
+                var currentFilter = 1;
+
+                _.each(columnsToBind, function (col) {
+                    var colSelector = '#gs_' + col;
+                    var colElement = $(colSelector);
+
+                    if (!colElement.val() && !self.isCleared) {
+                        var toDate = moment(),
+                            fromDate = moment().subtract(2, 'days');
+                        colElement.val(fromDate.format("L") + " - " + toDate.format("L"));
+                    }
+
+                    var drp = commonjs.bindDateRangePicker(colElement, drpOptions, "past", function (start, end, format) {
+                        if (start && end) {
+                            currentFilter.startDate = start.format('L');
+                            currentFilter.endDate = end.format('L');
+                            $('input[name=daterangepicker_start]').removeAttr("disabled");
+                            $('input[name=daterangepicker_end]').removeAttr("disabled");
+                            $('.ranges ul li').each(function (i) {
+                                if ($(this).hasClass('active')) {
+                                    currentFilter.rangeIndex = i;
+                                }
+                            });
+                        }
+                    });
+                    colElement.on("apply.daterangepicker", function (obj) {
+                        gridObj.refresh();
+                    });
+                    colElement.on("cancel.daterangepicker", function () {
+                        self.isCleared = true;
+                        self.searchUserLog();
+                    });
+                });
             },
 
             displayDetails: function(id){

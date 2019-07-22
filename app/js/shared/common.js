@@ -685,6 +685,7 @@ var commonjs = {
         var pastRangeSet = {
             "Today": [moment(), moment()],
             "Yesterday": [moment().subtract(1, "days"), moment().subtract(1, "days")],
+            "Last 3 Days": [moment().subtract(2, "days"), moment()],
             "Last 7 Days": [moment().subtract(6, "days"), moment()],
             "Last 30 Days": [moment().subtract(29, "days"), moment()],
             "This Month": [moment().startOf("month"), moment().endOf("month")],

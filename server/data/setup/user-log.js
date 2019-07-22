@@ -1,4 +1,6 @@
 const { SQL, query } = require('../index');
+const queryMakers = require('./../query-maker-map');
+const generator = queryMakers.get('datetime');
 
 module.exports = {
     getData: async function (params) {
@@ -14,7 +16,10 @@ module.exports = {
             sortOrder,
             sortField,
             pageNo,
-            pageSize
+            pageSize,
+            customArgs,
+            fromDate,
+            toDate
         } = params;
 
         if (username) {
@@ -26,7 +31,11 @@ module.exports = {
         }
 
         if (logged_in_dt) {
-            whereQuery.push(` logged_in_dt::date =  '${logged_in_dt}'::date`);
+            const loggedInDateFilter = generator('logged_in_dt', logged_in_dt, customArgs);
+            whereQuery.push(loggedInDateFilter);
+
+        } else if (fromDate && toDate) {
+            whereQuery.push(` logged_in_dt::date BETWEEN '${fromDate}'::date AND '${toDate}'::date`);
         }
 
         if (logged_out_dt) {
@@ -56,7 +65,8 @@ module.exports = {
                             , COUNT(1) OVER (range unbounded preceding) AS total_records
                         FROM
                             users u
-                        INNER JOIN user_log ul ON ul.user_id = u.id `;
+                        INNER JOIN user_log ul ON ul.user_id = u.id
+                        INNER JOIN companies on companies.id = ${params.companyId} `;
 
         if (whereQuery.length) {
             sql.append(SQL` WHERE `)
