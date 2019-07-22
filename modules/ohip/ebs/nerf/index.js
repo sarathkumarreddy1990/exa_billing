@@ -81,7 +81,6 @@ const getClaimFileInfo = (resource) => {
     let shouldReject = false;
 
     const rejectBatches = [];
-    // const acceptBatches = [];
 
     let currentBatch = null;
     let currentClaim = null;
@@ -97,7 +96,6 @@ const getClaimFileInfo = (resource) => {
                 operatorNumber: record.substr(19, 6),
 
                 rejected: false,
-                // rejectClaims: {},
                 rejectClaims: [],
                 acceptClaims: [],
             };
@@ -123,7 +121,7 @@ const getClaimFileInfo = (resource) => {
                 serviceLocationIndicator: record.substr(58, 4), // from claim header - 1
 
                 errors: [], // claim correction at the header level
-                items: [],  // TODO refactor as 'acceptItems' and update Remittance Advice encoder
+                items: [],
                 rejectItems: [],
                 rejected: false,
             };
@@ -296,8 +294,6 @@ module.exports = {
     },
 
     [EDT_UPDATE]: (ctx) => {
-        logger.debug('OHIP EBS Nerf update', ctx.eventDetail);
-        // TODO
         return xml[EDT_UPDATE]([]);
     },
 
@@ -309,7 +305,6 @@ module.exports = {
                 responseCode: SUCCESS,
             });
         }, []);
-        // TODO
         return xml[EDT_DELETE](deleteResults);
     },
 
@@ -348,7 +343,6 @@ module.exports = {
             status,
             pageNo,
         } = ctx.eventDetail.list;
-        console.log('Context event details for list: ', ctx.eventDetail.list);
 
         const results = resources.filter((resource) => {
 

@@ -26,8 +26,6 @@ const trailerRecordFields = require('./../../parser/errorReport/trailerRecordFie
 
 
 // matches service codes beginning with 'E' -- used to determine if a claim (within a batch) should be rejected
-// const claimCorrectionFlagMatcher = /E99([0-9])[BC]/;
-// const itemCorrectionFlagMatcher = /E[0-8]{2}([0-9])[BC]/;
 
 const errorCodes = [
     'AC1', 'VHA', 'ET1', 'TM3', 'VH9'

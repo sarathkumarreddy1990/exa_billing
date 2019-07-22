@@ -248,38 +248,6 @@ const storeFile =  async (args) => {
     return fileInfo;
 };
 
-// const getRelatedFile = async (claim_file_id, related_file_type) => {
-//     const t_sql = SQL`
-//     SELECT
-//         fs.id as file_store_id,
-//         fs.root_directory as root_directory,
-//         ef.file_path as file_path,
-//         ef.id as file_id,
-//         ef.uploaded_file_name as uploaded_file_name,
-//         fs.root_directory || '/' || file_path as full_path
-//     FROM
-//         billing.edi_files ef
-//         INNER JOIN file_stores fs ON ef.file_store_id = fs.id
-//         INNER JOIN billing.edi_related_files efr ON efr.response_file_id = ef.id AND ef.file_type = ${related_file_type}
-//     WHERE
-//         efr.submission_file_id = ${claim_file_id}
-// `;
-//     let result = await query(t_sql.text, t_sql.values)
-//
-//     if (result && result.rows && result.rows.length) {
-//         let file_d = result.rows[0];
-//         const t_fullPath = path.join(file_d.full_path, file_d.uploaded_file_name);
-//         file_d.data = fs.readFileSync(t_fullPath, { encoding });
-//         return file_d;
-//     }
-//
-//     return {
-//         data: null,
-//         err: `Could not find the file path of requested edi file - ${claim_file_id}`
-//     }
-//
-// };
-
 const getResourceIDs = async (args) => {
     const {
         resourceType,
@@ -397,8 +365,6 @@ const updateClaimStatus = async (args) => {
 
     } = args;
 
-    // console.log('updateClaimStatus args: ', args);
-
     const sql = SQL`
         WITH
         submissionDate AS (
@@ -433,10 +399,6 @@ const updateClaimStatus = async (args) => {
         WHERE
             id = ANY(ARRAY[${claimIds}::int[]])
     `;
-
-    // console.log('updateClaimStatus SQL: ', sql.text);
-    // console.log('updateClaimStatus values: ', sql.values);
-
 
     return (await query(sql.text, sql.values));
 };
@@ -639,9 +601,6 @@ const applyBatchEditReport = async (args) => {
     return {};
 };
 
-// errorDescriptionsByCode
-// TODO  import explanatory codes
-// TODO move error codes and explanatory codes in to resx/OHIP
 const toBillingNotes = (obj) => {
     return obj.errorCodes.map((errorCode) => {
         return `${errorCode} - ${errorDescriptionsByCode[errorCode]}`;
@@ -660,7 +619,6 @@ const applyErrorReport = async (args) => {
 
     const deniedStatus = CLAIM_STATUS_DENIED_DEFAULT;
     const processDate = new Date();
-    // parsedResponseFile[0].claims[0].accountingNumber
 
     const claimIds = parsedResponseFile.reduce((prfResults, prf) => {
         return prf.claims.reduce((claimResults, claim) => {
@@ -668,15 +626,6 @@ const applyErrorReport = async (args) => {
             return claimResults;
         }, prfResults);
     }, []);
-
-    /*
-        1 - find record in claims by claim id/#
-        2 - insert comments into claim_comments
-        3 - update claim status to denied
-        4 - insert this file to edi_related_files
-
-        5 - find *last* record in edi_claim_files by claim_id ?
-    */
 
     const billingNotesByClaimId = parsedResponseFile.reduce((prfResults, prf) => {
         return prf.claims.reduce((claimResults, claim) => {
@@ -689,8 +638,6 @@ const applyErrorReport = async (args) => {
             return claimResults;
         }, prfResults);
     }, {});
-
-    console.log('BILLING NOTES BY CLAIM ID: ', JSON.stringify(billingNotesByClaimId));
 
     const sql = SQL`
         WITH claim AS (
@@ -769,53 +716,10 @@ const applyErrorReport = async (args) => {
             , error_file.id as error_file_id
             , error_file.uploaded_file_name as error_file_name
             FROM original_file, error_file
-        `;
-        // parsedResponseFile[0].claims[0].accountingNumber
-         // {
-         //     "responseFileId":"2936",
-         //     "parsedResponseFile":[
-         //         {
-         //             "groupNumber":"BGAA",
-         //             "providerNumber":"170332",
-         //             "specialtyCode":"33",
-         //             "operatorNumber":"0",
-         //             "claimProcessDate":"2019-06-13T00:00:00.000Z",
-         //             "claims":[
-         //                 {
-         //                     "healthNumber":"",
-         //                     "versionCode":"OK",
-         //                     "patientDateOfBirth":"",
-         //                     "accountingNumber":"00002316",
-         //                     "paymentProgram":"HCP",
-         //                     "payee":"",
-         //                     "masterNumber":"",
-         //                     "patientAdmissionDate":"",
-         //                     "referringLabLicense":"",
-         //                     "serviceLocationIndicator":"IHF",
-         //                     "errorCodes":[],
-         //                     "items":[
-         //                         {
-         //                             "serviceCode":"E999B",
-         //                             "feeSubmitted":"001234",
-         //                             "numberOfServices":"01",
-         //                             "serviceDate":"20190605",
-         //                             "diagnosticCode":"",
-         //                             "explanatoryCode":"",
-         //                             "errorCodes":[]
-         //                         }
-         //                     ]
-         //                 }
-         //             ]
-         //         }
-         //     ]
-         // }
+    `;
 
-     console.log('applyErrorReport: ', JSON.stringify(parsedResponseFile));
-    console.log('SQL: ', sql.text);
-    console.log('VALUES: ', sql.values);
 
     const dbResults = (await query(sql.text, sql.values));
-    // console.log('DB RESULTS: ', dbResults)
 
     if (dbResults.rows && dbResults.rows.length) {
         console.log('updating claim status for IDs: ', claimIds);
@@ -836,7 +740,6 @@ const OHIPDataAPI = {
     getFileStore,
     storeFile,
     loadFile,
-    // getRelatedFile,  // doesn't seem to be used anywhere
     updateFileStatus,
 
     updateClaimStatus,
