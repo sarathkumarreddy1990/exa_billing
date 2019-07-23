@@ -15,6 +15,10 @@ const crypto = require('crypto');
 const _ = require('lodash');
 const mkdirp = require('mkdirp');
 const logger = require('../../../logger');
+const config = require('../../config');
+const errorDescriptionsByCode = require('../../resx/ohip/errorReport/error');
+const explanatoryDescriptionsByCode = require('../../resx/ohip/errorReport/explanatory');
+
 const {
     encoding,
     resourceTypes,
@@ -22,6 +26,7 @@ const {
 
     CLAIM_STATUS_REJECTED_DEFAULT,
     CLAIM_STATUS_PENDING_PAYMENT_DEFAULT,
+    CLAIM_STATUS_DENIED_DEFAULT,
 
 } = require('./../../../modules/ohip/constants');
 
@@ -243,38 +248,6 @@ const storeFile =  async (args) => {
     return fileInfo;
 };
 
-const getRelatedFile = async (claim_file_id, related_file_type) => {
-    const t_sql = SQL`
-    SELECT
-        fs.id as file_store_id,
-        fs.root_directory as root_directory,
-        ef.file_path as file_path,
-        ef.id as file_id,
-        ef.uploaded_file_name as uploaded_file_name,
-        fs.root_directory || '/' || file_path as full_path
-    FROM
-        billing.edi_files ef
-        INNER JOIN file_stores fs ON ef.file_store_id = fs.id
-        INNER JOIN billing.edi_related_files efr ON efr.response_file_id = ef.id AND ef.file_type = ${related_file_type}
-    WHERE
-        efr.submission_file_id = ${claim_file_id}
-`;
-    let result = await query(t_sql.text, t_sql.values)
-
-    if (result && result.rows && result.rows.length) {
-        let file_d = result.rows[0];
-        const t_fullPath = path.join(file_d.full_path, file_d.uploaded_file_name);
-        file_d.data = fs.readFileSync(t_fullPath, { encoding });
-        return file_d;
-    }
-
-    return {
-        data: null,
-        err: `Could not find the file path of requested edi file - ${claim_file_id}`
-    }
-
-};
-
 const getResourceIDs = async (args) => {
     const {
         resourceType,
@@ -464,18 +437,6 @@ const applyClaimSubmission =  async (args) => {
 
         (await query(sql.text, sql.values)).rows;
     });
-
-    // TODO: update file status to success
-
-    // TODO
-    // 1 - insert record into edi_file_claims table
-    //      a. need to know claim ID
-    //      b. need to know file ID
-    //      c. need to know batch number
-    // 2 - update claim status to pending acknowledgement
-    //      a.
-
-
 };
 
 const applyRejectMessage = async (args) => {
@@ -640,18 +601,137 @@ const applyBatchEditReport = async (args) => {
     return {};
 };
 
+const toBillingNotes = (obj) => {
+    return obj.errorCodes.map((errorCode) => {
+        return `${errorCode} - ${errorDescriptionsByCode[errorCode]}`;
+    });
+};
+
 const applyErrorReport = async (args) => {
 
     const {
         accountingNumber,
+        responseFileId,
+        comment,
+        parsedResponseFile,
     } = args;
 
-    // TODO
-    // 1 - set error codes on edi_file_claims
 
+    const deniedStatus = CLAIM_STATUS_DENIED_DEFAULT;
+    const processDate = new Date();
+
+    const claimIds = parsedResponseFile.reduce((prfResults, prf) => {
+        return prf.claims.reduce((claimResults, claim) => {
+            claimResults.push(claim.accountingNumber);
+            return claimResults;
+        }, prfResults);
+    }, []);
+
+    const billingNotesByClaimId = parsedResponseFile.reduce((prfResults, prf) => {
+        return prf.claims.reduce((claimResults, claim) => {
+            claimResults[claim.accountingNumber] = claim.items.reduce((billingNotes, item) => {
+                if (item.explanatoryCode) {
+                    billingNotes.push(`${item.explanatoryCode} - ${explanatoryDescriptionsByCode[item.explanatoryCode]}`);
+                }
+                return billingNotes.concat(toBillingNotes(item));
+            }, toBillingNotes(claim)).join('\n');
+            return claimResults;
+        }, prfResults);
+    }, {});
+
+    const sql = SQL`
+        WITH claim AS (
+            UPDATE
+                billing.claims
+            SET
+                claim_status_id = (
+                    SELECT
+                        id
+                    FROM
+                        billing.claim_status
+                    WHERE
+                        code = ${deniedStatus}
+                        AND inactivated_dt IS NULL
+                        AND is_system_status
+                ),
+                billing_notes = correction.value
+            FROM json_each_text(${JSON.stringify(billingNotesByClaimId)}) AS correction
+            WHERE
+                -- TODO extract affected claimIDs/accountingNumbers from parsedFile and pass as array (dont cast)
+                id = correction.key::bigint
+            RETURNING
+                 id
+        )
+        , original_file AS (
+
+            SELECT
+                ef.id
+                , ef.uploaded_file_name
+            FROM
+                billing.edi_files ef
+                INNER JOIN (
+                    SELECT
+                        id
+                        , edi_file_id
+                    FROM
+                        billing.edi_file_claims efc
+                    WHERE
+                        efc.claim_id = ANY((SELECT id FROM claim))
+                ) efc ON efc.edi_file_id = ef.id
+            WHERE
+                file_type = 'can_ohip_h'
+                AND status = 'success'
+            LIMIT 1
+        )
+        , error_file AS (
+
+            -- status of 'success' just means file was obtained
+
+            UPDATE
+                billing.edi_files
+            SET
+                status = 'success',
+                processed_dt = ${moment(processDate, 'YYYYMMDD').format('YYYY-MM-DD')}
+            WHERE
+                id = ${responseFileId}
+            RETURNING
+                *
+        )
+        , related_file AS (
+            INSERT INTO billing.edi_related_files (
+                submission_file_id,
+                response_file_id,
+                comment
+            )
+            SELECT
+                ( SELECT original_file.id FROM original_file ),
+                ( SELECT id FROM error_file ),
+                null
+            RETURNING
+                *
+        )
+        SELECT
+            original_file.id as submission_file_id
+            , original_file.uploaded_file_name as submission_file_name
+            , error_file.id as error_file_id
+            , error_file.uploaded_file_name as error_file_name
+            FROM original_file, error_file
+    `;
+
+
+    const dbResults = (await query(sql.text, sql.values));
+
+    if (dbResults.rows && dbResults.rows.length) {
+        console.log('updating claim status for IDs: ', claimIds);
+        await updateClaimStatus({
+            claimStatusCode: deniedStatus,  // Pending Payment
+            claimIds,
+            claimNote: 'Electronically corrected via MCEDT-EBS',
+            userId: 1,
+        });
+    }
 };
 
-const config = require('../../config');
 
 const OHIPDataAPI = {
 
@@ -660,7 +740,6 @@ const OHIPDataAPI = {
     getFileStore,
     storeFile,
     loadFile,
-    getRelatedFile,
     updateFileStatus,
 
     updateClaimStatus,
