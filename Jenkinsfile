@@ -1,18 +1,9 @@
 // -*- mode: groovy; -*-
 // Don't save artifacts on pull requests by default
-final save_artifacts_default = !env.CHANGE_ID
+final save_artifacts_default = false
 pipeline {
     parameters {
         booleanParam(name: 'SAVE_ARTIFACTS', defaultValue: save_artifacts_default, description: "Save artifacts from build")
-        choice(
-            name: 'label',
-            choices: [
-                // First choice is default
-                'nodejs:8.12.0',
-                'nodejs:8.13.0',
-                'nodejs:10.14.1',
-            ],
-            description: 'NodeJS version.  See $JENKINS_HOST/configure -> Docker Agent Templates to add new')
     }
     environment {
         SAVE_ARTIFACTS = String.valueOf(params.SAVE_ARTIFACTS)
@@ -22,48 +13,32 @@ pipeline {
         ansiColor('xterm')
         timestamps()
     }
-    agent { node { label params.label as String} }
+    agent { node { label 'windows2016-nvm' } }
     stages {
-	stage('Show Environment') {
+	stage('Environment') {
 	    steps {
-		powershell 'Get-ChildItem Env:'
-		fileExists 'package.json'
+		sh 'printenv | sort'
+		sh 'node --version'
+		sh 'npm --version'
+		sh 'use-node-npm.sh'
+		sh 'node --version'
+		sh 'npm --version'
+		sh 'rm -vf *.zip dist/*.zip'
 	    }
 	}
-	stage('Install NPM packages') {
+	stage('npm ci') {
 	    steps {
-		powershell '''
-# Unsure on Powershell's arbitrary variable as boolean behavior
-$NpmInstallUnSafe = -Not(-Not($Env:TAG_NAME))
-npm ci
-if (-Not($?)) {
-  if ($NpmInstallUnSafe) {
-    Throw "npm ci failed and not safe to do npm install"
-  }
-  npm install
-  if (-Not($?)) {
-      Throw "npm install failed"
-  }
-}
-'''
+		sh 'npm ci'
 	    }
 	}
 	stage('Build') {
 	    steps {
-		powershell 'npx gulp --no-color check-build-environment'
-		powershell 'npm run build' // gulp build misses pre-reqs
+		sh 'npm run build'
+		sh 'npx gulp ftp-upload'
 	    }
 	}
     }
     post {
-	success {
-	    script {
-		if (params.SAVE_ARTIFACTS) {
-		    powershell 'npx gulp ftp-upload'
-		    archiveArtifacts artifacts: 'dist/*.zip', fingerprint: true
-		}
-	    }
-	}
 	failure {
 	    echo "Figure out where the logs are..."
 	}
