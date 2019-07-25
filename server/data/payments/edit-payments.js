@@ -349,11 +349,11 @@ module.exports = {
         }
 
         if (adjustment) {
-            havingQuery.push(`((SELECT adjustments_applied_total from billing.get_claim_totals(bc.id)) - COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'adjustment'),0::money)) = (${adjustment})::money`);
+            havingQuery.push(`((SELECT adjustments_applied_total from billing.get_claim_totals(bc.id)) - COALESCE(sum(bpa.amount) FILTER(where bpa.amount_type = 'adjustment'),0::money)) = ('${adjustment}')::money`);
         }
 
         if (balance) {
-            whereQuery.push(`((SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total + refund_amount) from billing.get_claim_totals(bc.id)) = (${balance})::money)`);
+            whereQuery.push(`((SELECT charges_bill_fee_total - (payments_applied_total + adjustments_applied_total + refund_amount) from billing.get_claim_totals(bc.id)) = ('${balance}')::money)`);
         }
 
         if (claim_date) {
