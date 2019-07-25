@@ -3293,8 +3293,12 @@ define(['jquery',
                     },
                     success: function (data, response) {
                         if (data && data.length) {
+                            var totalPaymentBalance = self.formatMoneyValue(data[0].balance);
+                            var paymentHeader = commonjs.geti18NString("menuTitles.order.totalPaymentRecordBalance") + ' : ' + totalPaymentBalance
                             $('#lblApplied').html(self.formatMoneyValue(data[0].applied));
-                            $('#lblBalance').html(self.formatMoneyValue(data[0].balance));
+                            $('#lblBalance').html(totalPaymentBalance);
+                            $('#totalPaymentBalance').text(paymentHeader);
+
                             if (data[0].applied && parseFloat(data[0].applied.replace('$', '')) > 0) {
                                 $("#selectPayerType").prop("disabled", true);
                             }
