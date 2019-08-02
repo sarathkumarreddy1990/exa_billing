@@ -906,7 +906,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                         },
                         { text: '' },
                         { text: claimData.billingProvider && claimData.billingProvider.npiNo ? getSubstring(claimData.billingProvider.npiNo, 10) : '' },
-                        { text: claimData.billingProvider && claimData.billingProvider.legacyID ? getSubstring(claimData.billingProvider.legacyID, 14) : '' }
+                        { text: claimData.billingProvider && claimData.billingProvider.payerAssignedProviderID ? getSubstring(claimData.billingProvider.payerAssignedProviderID, 14) : '' }
                     ]
                 ],
             }, layout: 'noBorders', pageBreak: pageBrk,
