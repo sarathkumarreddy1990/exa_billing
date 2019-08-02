@@ -2099,6 +2099,9 @@ define(['jquery',
                 $('.checkDebit').prop('checked', false);
                 $('.this_pay').val(pay_val);
                 $('.this_adjustment').val(pay_val);
+                $('.payment__this_allowed').val(pay_val);
+
+                this.updatePaymentAdjustment();
             },
 
             updateRefundRecoupment: function () {
