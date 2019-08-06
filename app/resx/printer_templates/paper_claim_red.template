@@ -529,8 +529,17 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                                 claimData.subscriber[0].claim[0].relatedCauseCode3.toString().toUpperCase() === 'TRUE') ? '√' : '', alignment: 'center', margin: [-22, 0, 0, 0]
                         },
                         {
-                            text: (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].relatedCauseCode3.toString() &&
-                                claimData.subscriber[0].claim[0].relatedCauseCode3.toString().toUpperCase() === 'FALSE') ? '√' : '', margin: [-26, 0, 0, 0]
+                            style: 'Ans',
+                            margin: [-26,-2,0,0],
+                            table: {
+                                widths:[25, 12],
+                                body: [
+                                    [
+                                        {text: (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].relatedCauseCode3.toString() && claimData.subscriber[0].claim[0].relatedCauseCode3.toString().toUpperCase() === 'FALSE') ? '√' : ' '},
+                                        {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0] && claimData.subscriber[0].claim[0].autoAccidentState||' ', margin:[-3,-3,0,0]}
+                                    ]
+                                ]
+                            },layout: 'noBorders'
                         },
                         { text: "", colSpan: 2 }, {}
                     ],
