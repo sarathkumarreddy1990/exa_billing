@@ -1361,30 +1361,43 @@ function formatSingleClaim(claimData, servicelineList) {
                         {},{},{}
                     ],
                     [
-                        {image: 'checkboxImage', fit: [10, 10], alignmnet:"right", margin:[35,0,0,0]},
-                        {text:"YES", alignmnet:"center"},
-                        {image: 'checkboxImage', fit: [10, 10], alignmnet:"right", margin:[10,0,0,0]},
-                        {text:"NO", alignmnet:"center", margin:[-10,0,0,0]}
+                        {image: 'checkboxImage', fit: [10, 10], margin:[35,0,0,0]},
+                        {text:"YES"},
+                        {image: 'checkboxImage', fit: [10, 10], margin:[10,0,0,0]},
+                        {text:"NO", margin:[-10,0,0,0]}
                     ],
                     [
                         {text:"b.AUTO ACCIDENT?",colSpan:3},
                         {},{},{text:"PLACE(State)", margin:[-5,0,0,0]}
                     ],
                     [
-                        {image: 'checkboxImage', fit: [10, 10], alignmnet:"right", margin:[35,0,0,0]},
-                        {text:"YES", alignmnet:"center"},
-                        {image: 'checkboxImage', fit: [10, 10], alignmnet:"right", margin:[10,0,0,0]},
-                        {text:"NO\t|______|", alignmnet:"center", margin:[-10,0,0,0]}
+                        {image: 'checkboxImage', fit: [10, 10], margin:[35,0,0,0]},
+                        {text:"YES"},
+                        {image: 'checkboxImage', fit: [10, 10], margin:[10,0,0,0]},
+                        {
+                            style: 'Ques',
+                            margin: [-10,-2,0,0],
+                            table: {
+                                widths:[10,25],
+                                body: [
+                                    [
+                                        {text:"NO"},
+                                        {text:"|_______|", margin:[-5,1,0,0]}
+                                    ]
+                                ]
+                                
+                            },layout: 'noBorders'
+                        }
                     ],
                     [
                         {text:"c. OTHER ACCIDENT",colSpan:4},
                         {},{},{}
                     ],
                     [
-                        {image: 'checkboxImage', fit: [10, 10], alignmnet:"right", margin:[35,0,0,0]},
-                        {text:"YES", alignmnet:"center"},
-                        {image: 'checkboxImage', fit: [10, 10], alignmnet:"right", margin:[10,0,0,0]},
-                        {text:"NO", alignmnet:"center", margin:[-10,0,0,0]}
+                        {image: 'checkboxImage', fit: [10, 10], margin:[35,0,0,0]},
+                        {text:"YES"},
+                        {image: 'checkboxImage', fit: [10, 10], margin:[10,0,0,0]},
+                        {text:"NO", margin:[-10,0,0,0]}
                     ],
                 ]
             },layout: 'noBorders', colSpan:4
@@ -1544,11 +1557,12 @@ function formatSingleClaim(claimData, servicelineList) {
                             style: 'Ans',
                             margin: [28,-6,0,0],
                             table: {
-                                widths:[38, 25],
+                                widths:[38, 25, 12],
                                 body: [
                                     [
                                         {image: getImage(claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].relatedCauseCode3.toString() && claimData.subscriber[0].claim[0].relatedCauseCode3.toString().toUpperCase() === 'TRUE'), fit: [8, 8]},
-                                        {image: getImage(claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].relatedCauseCode3.toString() && claimData.subscriber[0].claim[0].relatedCauseCode3.toString().toUpperCase() === 'FALSE'), fit: [8, 8]}
+                                        {image: getImage(claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].relatedCauseCode3.toString() && claimData.subscriber[0].claim[0].relatedCauseCode3.toString().toUpperCase() === 'FALSE'), fit: [8, 8]},
+                                        {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0] && claimData.subscriber[0].claim[0].autoAccidentState||' ', margin:[-3,-5,0,0]}
                                     ]
                                 ]
                             },layout: 'noBorders'
