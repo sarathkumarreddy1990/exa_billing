@@ -31,7 +31,7 @@ module.exports = {
                                             file_store_id
                                     FROM   companies
                                     WHERE  id=${companyID}
-                                    AND    NOT has_deleted )AS company )
+                                    AND    deleted_dt IS NULL )AS company )
                     , cte_modalities AS(
                                   SELECT Json_agg(Row_to_json(modalities)) modalities
                                   FROM   (
