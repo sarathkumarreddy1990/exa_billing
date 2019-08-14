@@ -25,8 +25,7 @@ const initializeWeb = async function () {
             FROM
                 companies
             WHERE
-                is_active
-                AND deleted_dt IS NULL    
+                deleted_dt IS NULL    
         `;
 
         if ( companyCode ) {
