@@ -703,7 +703,6 @@ define(['jquery',
                             if (app.country_alpha_3_code === 'can') {
                                 $('label[for=txtPriPolicyNo] span').remove();
                                 if (claimDetails.existing_insurance && claimDetails.existing_insurance.length && claimDetails.existing_insurance[0].insurance_code && ['HCP', 'WSIB'].indexOf(claimDetails.existing_insurance[0].insurance_code.toUpperCase()) >= 0) {
-                                    self.priInsCode = claimDetails.existing_insurance[0].insurance_code;
                                     $('label[for=txtPriPolicyNo]').append("<span class='Required' style='color: red;padding-left: 5px;'>*</span>");
                                 }
                             }
