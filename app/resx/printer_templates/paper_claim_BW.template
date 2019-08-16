@@ -108,7 +108,7 @@ function getCPTValues(data, servicelineList) {
     cptvalues = servicelineList;
     for (let i = 0; i < 6; i++) {
         if (cptvalues && cptvalues[i]) {
-            totalBillFee = (parseFloat(totalBillFee) + (cptvalues ? parseFloat(getFeeValue(cptvalues[i], 'totalBillFee')) : 0 ));
+            totalBillFee = (parseFloat(totalBillFee) + (cptvalues ? parseFloat(getFeeValue(cptvalues[i], 'totalBillFee')) : 0 )).toFixed(2);
             Auth_Number = Auth_Number || servicelineList[i].authorizationNo;
 
             cpt.push([
