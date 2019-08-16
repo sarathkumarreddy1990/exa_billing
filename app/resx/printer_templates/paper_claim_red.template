@@ -185,7 +185,7 @@ function getTotalBill(claimData, servicelineList) {
                 _totalBill += servicelineList[i].totalBillFee ? +servicelineList[i].totalBillFee : 0.00;
             }
         }
-		_totalBill = _totalBill.toFixed(2);
+        _totalBill = _totalBill.toFixed(2);
     }
     return _totalBill;
 }
