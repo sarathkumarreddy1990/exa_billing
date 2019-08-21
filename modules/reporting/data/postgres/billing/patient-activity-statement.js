@@ -1,9 +1,10 @@
-const _ = require('lodash')
-    , Promise = require('bluebird')
-    , db = require('../db')
-    , dataHelper = require('../dataHelper')
-    , queryBuilder = require('../queryBuilder')
-    , logger = require('../../../../../logger');
+const _ = require('lodash');
+const Promise = require('bluebird');
+const db = require('../db');
+const dataHelper = require('../dataHelper');
+const queryBuilder = require('../queryBuilder');
+const logger = require('../../../../../logger');
+const commonIndex = require('../../../../../server/shared/index');
 
 // generate query template ***only once*** !!!
 
@@ -841,7 +842,7 @@ const api = {
             filters.billingProviderIds = queryBuilder.whereIn(`bp.id`, [params.length]);
         }
 
-        filters.dateFormat = reportParams.dateFormat;
+        filters.dateFormat = reportParams.dateFormat || commonIndex.getLocaleFormat(reportParams.browserLocale);
         filters.reportBy =  reportParams.reportBy;
         filters.claimId = reportParams.claimId;
         return {
