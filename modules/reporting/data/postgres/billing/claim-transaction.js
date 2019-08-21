@@ -13,7 +13,7 @@ WITH claim_details AS(
         obc.id AS claim_id ,
         opp.last_name AS pat_last_name ,
         opp.first_name AS pat_first_name ,
-        to_char(obc.claim_dt,'<%= dateFormat %>') AS claim_date ,
+        to_char(timezone(get_facility_tz(obc.facility_id::integer), obc.claim_dt)::DATE, '<%= dateFormat %>') AS claim_date,
         max(cd.payment_dt) AS paid_date ,
         SUM(obch.bill_fee * obch.units) AS charge_amount ,
         obc.payer_type as payer_type,

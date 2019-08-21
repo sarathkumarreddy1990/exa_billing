@@ -15,7 +15,7 @@ WITH payerMixDetails AS (
         pip.insurance_code AS insurance_code,
         pip.insurance_name AS insurance_name,
         f.facility_name AS facility_name,
-        to_char(bc.claim_dt, '<%= dateFormat %>') AS claim_date,
+        to_char(timezone(get_facility_tz(bc.facility_id::integer), bc.claim_dt)::DATE, '<%= dateFormat %>') AS claim_date,
         SUM(bch.bill_fee *  bch.units) AS bill_fee,
         COUNT(bc.id) AS claim_count
     FROM
@@ -26,7 +26,7 @@ WITH payerMixDetails AS (
     LEFT JOIN public.patient_insurances ppi ON ppi.id = ANY (ARRAY[bc.primary_patient_insurance_id,bc.secondary_patient_insurance_id,bc.tertiary_patient_insurance_id])
     LEFT JOIN public.insurance_providers pip ON pip.id= ppi.insurance_provider_id
     <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
-    WHERE 1=1
+    WHERE TRUE
         AND <%= companyId %>
         AND <%= claimDate %>
         <% if (facilityIds) { %>AND <% print(facilityIds); } %>
@@ -37,7 +37,8 @@ WITH payerMixDetails AS (
               pip.insurance_code,
               pip.insurance_name,
               f.facility_name,
-              bc.claim_dt))
+              bc.claim_dt,
+              bc.facility_id))
     ORDER BY
         insurance_name,
         facility_name ASC
