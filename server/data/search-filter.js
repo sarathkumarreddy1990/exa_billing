@@ -769,7 +769,7 @@ const api = {
             'studies.study_status as status_code',
             'studies.referring_physician_id', // TODO: Why is this any different from referring_provider and why do i need id if having name already ?
             'studies.cpt_codes',
-            'studies.notes as notes', // TODO: this should not be returned as column (maybe has_notes but now whole notes)
+            'study_notes_to_json(studies.id) as notes', // TODO: this should not be returned as column (maybe has_notes but now whole notes)
             'studies.has_deleted', // TODO: this column should not be deleted Status should be deleted and if its really purged it shouldnt be there
             'studies.study_description',
             'studies.institution as institution',
@@ -847,7 +847,7 @@ const api = {
             `auth.as_authorization
                 AS as_authorization`,
             'report_delivery.report_queue_status',
-            `are_notes_empty(studies.notes, patients.notes, orders.order_notes)
+            `are_notes_empty(studies.id, patients.id, orders.id)
                 AS empty_notes_flag`,
             `study_cpt.study_cpt_id`,
             // Lock
