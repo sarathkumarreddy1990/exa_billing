@@ -10,7 +10,7 @@ AS (
     SELECT
           account_no AS account_number
         , bc.id AS claim_id
-        , to_char(bc.claim_dt, '<%= browserDateFormat %>') AS claim_date
+        , to_char(timezone(get_facility_tz(bc.facility_id::integer), bc.claim_dt)::DATE, '<%= browserDateFormat %>') AS claim_date
         , f.time_zone
         , bc.claim_dt
         , bpr.id AS bpr
