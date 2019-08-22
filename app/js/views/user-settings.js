@@ -194,7 +194,7 @@ define([
                         if (self.gridFilterName == 'studies')
                             self.billingDisplayFields = result.study_fields;
                         if (app.country_alpha_3_code === "can") {
-                            self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && (field.field_code == "clearing_house" || 
+                            self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && (field.field_code == "clearing_house" ||
                             field.field_code == "patient_ssn" || field.field_code == "place_of_service" )) }) || [];
                         } else {
                             self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && field.field_code == "payment_id") }) || [];
@@ -242,7 +242,8 @@ define([
                         self.billingDisplayFields = _.reject(self.billingDisplayFields, function(obj){ return obj.field_code === 'billed_status'; });
 
                         for (var i = 0; i < self.billingDisplayFields.length; i++) {
-                            if (self.billingDisplayFields[i].field_code !== 'charge_description' && self.billingDisplayFields[i].field_code !== 'payment_id') {
+                            var code = self.billingDisplayFields[ i ].field_code;
+                            if (code !== 'charge_description' && code !== 'payment_id' && code !== 'notes') {
                                 var field_name = commonjs.geti18NString(self.billingDisplayFields[i].i18n_name);
                                 $('<option/>').val(self.billingDisplayFields[i].field_code).html(field_name).appendTo('#ddlBillingDefaultColumns');
                             }

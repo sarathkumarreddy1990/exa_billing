@@ -493,7 +493,8 @@ const api = {
             case 'ins_provider_type': return 'insurance_providers.provider_types';
             case "eligibility_verified": return `(COALESCE(eligibility.verified, false) OR COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)`;
             case 'icd_description': return `icd_codes.description`;
-
+            // Adding `notes` just in case user saved previously as default
+            case `notes`: return `study_notes_to_json(studies.id)`;
         }
 
         return args;
