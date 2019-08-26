@@ -6,7 +6,22 @@ module.exports = {
         let { companyID, userID, siteID } = params;
 
         let sql = SQL`
-                    WITH cte_facilities AS
+                    WITH cte_call_categories AS
+                    (
+                        SELECT Json_agg(Row_to_json(call_categories)) AS "callCategories"
+                        FROM (
+                                SELECT
+                                    id,
+                                    name
+                                FROM
+                                    call_categories
+                                WHERE
+                                    deleted_dt IS NULL
+                                    AND company_id = ${companyID}
+                             ) AS call_categories
+                    )
+
+                    , cte_facilities AS
                     (
                             SELECT Json_agg(Row_to_json(facilities)) facilities
                             FROM   (
@@ -54,7 +69,8 @@ module.exports = {
                                             facilities as user_facilities,
                                             user_type,
                                             default_facility_id,
-                                            hstore_to_json(user_settings) AS user_settings
+                                            hstore_to_json(user_settings) AS user_settings,
+                                            get_full_name(last_name, first_name, middle_initial, NULL, suffix) AS "userFullName"
                                    FROM   users
                                    WHERE  company_id=${companyID}
                                    AND    NOT has_deleted
@@ -372,7 +388,8 @@ module.exports = {
                                 WHERE (user_id= ${userID}  OR is_global_filter)
                             ) AS grid_filter)
                SELECT *
-               FROM   cte_company,
+               FROM   cte_call_categories,
+                      cte_company,
                       cte_facilities,
                       cte_modalities,
                       cte_user,
