@@ -6,7 +6,7 @@ const _ = require('lodash');
 const moment = require('moment-timezone');
 const DEBUG_ENABLED = false;
 const commonIndex = require('../../../server/shared/index');
-const jsReportConfig = config.get(config.keys.jsreport);
+const jsReportConfig = config.get(config.keys.jsreport) || {};
 const jsReportClient = require("jsreport-client")(jsReportConfig.url, jsReportConfig.username, jsReportConfig.password);
 let reqNum = 0;
 
