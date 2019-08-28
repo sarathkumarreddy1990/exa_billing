@@ -303,7 +303,8 @@ define([
                                 pageSize: 10,
                                 sortField: "group_name",
                                 sortOrder: "ASC",
-                                company_id: app.companyID
+                                companyId: app.companyID,
+                                groupType: 'PG'
                             };
                         },
                         processResults: function (data, params) {
