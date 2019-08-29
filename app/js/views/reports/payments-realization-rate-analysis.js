@@ -124,8 +124,8 @@ define([
                     self.viewModel.accountingDateTo = end;
                 });
                 accountingDate.on('cancel.daterangepicker', function (ev, drp) {
-                    self.viewModel.serviceDateFrom = null;
-                    self.viewModel.serviceDateTo = null;
+                    self.viewModel.accountingDateFrom = null;
+                    self.viewModel.accountingDateTo = null;
                 });
                 commonjs.isMaskValidate();
             },
@@ -159,6 +159,14 @@ define([
             hasValidViewModel: function () {
                 if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
                     commonjs.showWarning('messages.status.pleaseCheckReportIdCategoryandorFormat');
+                    return;
+                }
+                if (!this.viewModel.accountingDateFrom || !this.viewModel.accountingDateTo) {
+                    commonjs.showWarning('messages.warning.payments.selectAccountingDate');
+                    return;
+                }
+                if (!this.viewModel.serviceDateFrom || !this.viewModel.serviceDateTo) {
+                    commonjs.showWarning('messages.status.pleaseSelectDateRange');
                     return;
                 }
                 return true;
