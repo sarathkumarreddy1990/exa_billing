@@ -278,10 +278,6 @@ define([
                     return commonjs.showWarning('messages.status.claimFromNotGreaterThanTo');
                 }
 
-                if (!($('#chkServiceDateBill').prop('checked')) && !($('#chkServicePayDateCPT').prop('checked')) && !($('#billCreatedDate').prop('checked'))) {
-                    return commonjs.showWarning('Please Select Service / Pay / Bill Created Date');
-                }
-
                 if (!this.viewModel.dateFrom || !this.viewModel.dateTo) {
                     return commonjs.showWarning('messages.status.pleaseSelectDateRange');
                 }
