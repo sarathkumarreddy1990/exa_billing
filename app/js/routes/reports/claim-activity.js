@@ -2,12 +2,14 @@ define([
   'jquery',
   'backbone',
   'backbonesubroute',
+  'shared/routing',
   'views/reports/claim-activity'
 ],
   function (
       $,
       Backbone,
       SubRoute,
+      RoutingUtils,
       ClaimActivityView
   ) {
       return Backbone.SubRoute.extend({
@@ -26,11 +28,12 @@ define([
 
           initializeRouter: function () {
               this.options.screen = facilityModules.reportScreens.claimActivity;
-              this.options.currentView = this.claimActivityScreen;
               layout.initializeLayout(this);
 
               if (!layout.initialized) {
+                  RoutingUtils.clearView(this.options.currentView);
                   this.claimActivityScreen = new ClaimActivityView(this.options);
+                  this.options.currentView = this.claimActivityScreen;
               }
           }
       });

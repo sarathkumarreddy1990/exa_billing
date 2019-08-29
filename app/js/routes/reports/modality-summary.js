@@ -2,12 +2,14 @@ define([
     'jquery',
     'backbone',
     'backbonesubroute',
+    'shared/routing',
     'views/reports/modality-summary'
 ],
     function (
         $,
         Backbone,
         SubRoute,
+        RoutingUtils,
         ModalitySummaryView
     ) {
         return Backbone.SubRoute.extend({
@@ -26,11 +28,12 @@ define([
 
             initializeRouter: function () {
                 this.options.screen = facilityModules.reportScreens.modalitySummary;
-                this.options.currentView = this.modalitySummaryScreen;
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {
+                    RoutingUtils.clearView(this.options.currentView);
                     this.modalitySummaryScreen = new ModalitySummaryView(this.options);
+                    this.options.currentView = this.modalitySummaryScreen;
                 }
             }
         });

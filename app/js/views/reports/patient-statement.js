@@ -141,11 +141,17 @@ define([
 
             hasValidViewModel: function () {
                 if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
-                    commonjs.showWarning('messages.status.pleaseCheckReportIdCategoryandorFormat');
-                    return;
+                    return commonjs.showWarning('messages.status.pleaseCheckReportIdCategoryandorFormat');
                 }
 
-                return true;
+                if (!(this.viewModel.fromDate && this.viewModel.fromDate.date())) {
+                    return commonjs.showWarning('messages.status.pleaseSelectDate');
+                }
+
+                if (this.viewModel.fromDate.date().diff(commonjs.getFacilityCurrentDateTime(app.facilityID)) > 0) {
+                    return commonjs.showWarning('messages.status.pleaseDoNotSelectFutureDate');
+                }
+                return;
             },
 
             getReportParams: function () {

@@ -2,12 +2,14 @@ define([
     'jquery',
     'backbone',
     'backbonesubroute',
+    'shared/routing',
     'views/reports/charges'
 ],
     function (
         $,
         Backbone,
         SubRoute,
+        RoutingUtils,
         ChargesView
     ) {
         return Backbone.SubRoute.extend({
@@ -26,11 +28,12 @@ define([
 
             initializeRouter: function () {
                 this.options.screen = facilityModules.reportScreens.charges;
-                this.options.currentView = this.chargesScreen;
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {
+                    RoutingUtils.clearView(this.options.currentView);
                     this.chargesScreen = new ChargesView(this.options);
+                    this.options.currentView = this.chargesScreen;
                 }
             }
         });

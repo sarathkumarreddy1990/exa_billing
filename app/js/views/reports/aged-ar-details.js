@@ -114,9 +114,10 @@ define(['jquery',
                 }).get();
                 this.viewModel.insuranceOption = $('#ddlInsuranceOption').val();
                 this.viewModel.insGroupOption = $('#insuranceGroupListBoxs').val();
-                var urlParams = this.getReportParams();
-                var urlParams = this.getReportParams();
-                UI.showReport('aged-ar-details', 'billing', this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
+                if (this.hasValidViewModel()) {
+                    var urlParams = this.getReportParams();
+                    UI.showReport('aged-ar-details', 'billing', this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
+                }
             },
 
             hasValidViewModel: function () {

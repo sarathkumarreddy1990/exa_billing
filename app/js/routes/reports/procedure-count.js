@@ -2,12 +2,14 @@ define([
     'jquery',
     'backbone',
     'backbonesubroute',
+    'shared/routing',
     'views/reports/procedure-count'
 ],
     function (
         $,
         Backbone,
         SubRoute,
+        RoutingUtils,
         ProcedureCountView
     ) {
         return Backbone.SubRoute.extend({
@@ -26,11 +28,12 @@ define([
 
             initializeRouter: function () {
                 this.options.screen = facilityModules.reportScreens.procedureCount;
-                this.options.currentView = this.procedureCountScreen;
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {
+                    RoutingUtils.clearView(this.options.currentView);
                     this.procedureCountScreen = new ProcedureCountView(this.options);
+                    this.options.currentView = this.procedureCountScreen;
                 }
             }
         });

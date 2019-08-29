@@ -2,12 +2,14 @@ define([
     'jquery',
     'backbone',
     'backbonesubroute',
+    'shared/routing',
     'views/reports/transaction-summary'
 ],
     function (
         $,
         Backbone,
         SubRoute,
+        RoutingUtils,
         TransactionSummaryView
     ) {
         return Backbone.SubRoute.extend({
@@ -26,11 +28,12 @@ define([
 
             initializeRouter: function () {
                 this.options.screen = facilityModules.reportScreens.transactionSummary;
-                this.options.currentView = this.transactionSummaryScreen;
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {
+                    RoutingUtils.clearView(this.options.currentView);
                     this.transactionSummaryScreen = new TransactionSummaryView(this.options);
+                    this.options.currentView = this.transactionSummaryScreen;
                 }
             }
         });

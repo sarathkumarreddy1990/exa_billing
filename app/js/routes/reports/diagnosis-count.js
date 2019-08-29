@@ -2,12 +2,14 @@ define([
   'jquery',
   'backbone',
   'backbonesubroute',
+  'shared/routing',
   'views/reports/diagnosis-count'
 ],
   function (
     $,
     Backbone,
     SubRoute,
+    RoutingUtils,
     DiagnosisCountView
   ) {
     return Backbone.SubRoute.extend({
@@ -26,11 +28,12 @@ define([
 
       initializeRouter: function () {
         this.options.screen = facilityModules.reportScreens.diagnosisCount;
-        this.options.currentView = this.diagnosisCountScreen;
         layout.initializeLayout(this);
 
         if (!layout.initialized) {
+          RoutingUtils.clearView(this.options.currentView);
           this.diagnosisCountScreen = new DiagnosisCountView(this.options);
+          this.options.currentView = this.diagnosisCountScreen;
         }
       }
     });

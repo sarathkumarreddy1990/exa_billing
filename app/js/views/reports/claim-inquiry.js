@@ -256,31 +256,39 @@ define([
 
             hasValidViewModel: function () {
                 if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
-                    commonjs.showWarning('messages.status.pleaseCheckReportIdCategoryandorFormat');
-                    return;
+                    return commonjs.showWarning('messages.status.pleaseCheckReportIdCategoryandorFormat');
                 }
 
                 // Claim # validatation for from# &  To #
                 if ($('#claimIdFrom').val() != '' && $('#claimIdTo').val() == "") {
-                    commonjs.showWarning('messages.status.pleaseEnterToRangeClaim');
-                    return;
+                    return commonjs.showWarning('messages.status.pleaseEnterToRangeClaim');
                 }
                 if ($('#claimIdTo').val() != '' && $('#claimIdFrom').val() == "") {
-                    commonjs.showWarning('messages.status.pleaseEnterFromRangeClaim');
-                    return;
+                    return commonjs.showWarning('messages.status.pleaseEnterFromRangeClaim');
                 }
 
                 if (parseInt($('#claimIdFrom').val()) > parseInt($('#claimIdTo').val())) {
-                    commonjs.showWarning('messages.status.claimFromNotGreaterThanTo');
-                    return;
+                    return commonjs.showWarning('messages.status.claimFromNotGreaterThanTo');
                 }
 
                 if (!($('#chkServiceDateBill').prop('checked')) && !($('#chkServicePayDateCPT').prop('checked')) && !($('#billCreatedDate').prop('checked'))) {
-                   // commonjs.showWarning('Please Select Service / Pay / Bill Created Date');
-                    return;
+                    return commonjs.showWarning('Please Select Service / Pay / Bill Created Date');
                 }
 
-                return true;
+                if (!this.viewModel.dateFrom || !this.viewModel.dateTo) {
+                    return commonjs.showWarning('messages.status.pleaseSelectDateRange');
+                }
+                if (!this.viewModel.cmtFromDate || !this.viewModel.cmtToDate) {
+                    return commonjs.showWarning('messages.status.commentDateRange');
+                }
+                if (!this.viewModel.billCreatedDateFrom || !this.viewModel.billCreatedDateTo) {
+                    return commonjs.showWarning('messages.status.bilcreatedDateRange');
+                }
+
+                if ($("#ddlClaimSelectBoxes option:selected").length < 1) {
+                    return commonjs.showWarning('messages.status.claimSelection');
+                }
+                return;
             },
 
             // Binding Report Params

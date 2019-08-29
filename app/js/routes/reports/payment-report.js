@@ -2,12 +2,14 @@ define([
     'jquery',
     'backbone',
     'backbonesubroute',
+    'shared/routing',
     'views/reports/payment-report'
 ],
     function (
         $,
         Backbone,
         SubRoute,
+        RoutingUtils,
         PaymentsView
     ) {
         return Backbone.SubRoute.extend({
@@ -26,11 +28,12 @@ define([
 
             initializeRouter: function () {
                 this.options.screen = facilityModules.reportScreens.paymentReport;
-                this.options.currentView = this.paymentScreen;
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {
+                    RoutingUtils.clearView(this.options.currentView);
                     this.paymentScreen = new PaymentsView(this.options);
+                    this.options.currentView = this.paymentScreen;
                 }
             }
         });

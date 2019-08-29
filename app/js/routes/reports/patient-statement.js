@@ -2,12 +2,14 @@ define([
     'jquery',
     'backbone',
     'backbonesubroute',
+    'shared/routing',
     'views/reports/patient-statement'
 ],
     function (
         $,
         Backbone,
         SubRoute,
+        RoutingUtils,
         PatientStatementView
     ) {
         return Backbone.SubRoute.extend({
@@ -26,11 +28,12 @@ define([
 
             initializeRouter: function () {
                 this.options.screen = facilityModules.reportScreens.patientStatement;
-                this.options.currentView = this.patientStatementScreen;
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {
+                    RoutingUtils.clearView(this.options.currentView);
                     this.patientStatementScreen = new PatientStatementView(this.options);
+                    this.options.currentView = this.patientStatementScreen;
                 }
             }
         });
