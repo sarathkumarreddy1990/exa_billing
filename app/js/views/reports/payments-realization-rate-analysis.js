@@ -158,16 +158,13 @@ define([
 
             hasValidViewModel: function () {
                 if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
-                    commonjs.showWarning('messages.status.pleaseCheckReportIdCategoryandorFormat');
-                    return;
+                    return commonjs.showWarning('messages.status.pleaseCheckReportIdCategoryandorFormat');
                 }
                 if (!this.viewModel.accountingDateFrom || !this.viewModel.accountingDateTo) {
-                    commonjs.showWarning('messages.warning.payments.selectAccountingDate');
-                    return;
+                    return commonjs.showWarning('messages.warning.payments.selectAccountingDate');
                 }
                 if (!this.viewModel.serviceDateFrom || !this.viewModel.serviceDateTo) {
-                    commonjs.showWarning('messages.status.pleaseSelectDateRange');
-                    return;
+                    return  commonjs.showWarning('messages.status.pleaseSelectDateRange');
                 }
                 return true;
             },
