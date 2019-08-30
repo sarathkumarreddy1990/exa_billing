@@ -285,7 +285,7 @@ define([
                     return commonjs.showWarning('messages.status.commentDateRange');
                 }
                 if (!this.viewModel.billCreatedDateFrom || !this.viewModel.billCreatedDateTo) {
-                    return commonjs.showWarning('messages.status.bilcreatedDateRange');
+                    return commonjs.showWarning('messages.status.bill-created-date');
                 }
 
                 if ($("#ddlClaimSelectBoxes option:selected").length < 1) {
