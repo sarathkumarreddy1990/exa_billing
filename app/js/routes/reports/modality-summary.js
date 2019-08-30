@@ -32,8 +32,7 @@ define([
 
                 if (!layout.initialized) {
                     RoutingUtils.clearView(this.options.currentView);
-                    this.modalitySummaryScreen = new ModalitySummaryView(this.options);
-                    this.options.currentView = this.modalitySummaryScreen;
+                    this.options.currentView = this.modalitySummaryScreen = new ModalitySummaryView(this.options);
                 }
             }
         });

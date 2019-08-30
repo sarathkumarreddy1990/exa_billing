@@ -32,8 +32,7 @@ define([
 
                 if (!layout.initialized) {
                     RoutingUtils.clearView(this.options.currentView);
-                    this.monthlyRecapScreen = new MonthlyRecapView(this.options);
-                    this.options.currentView = this.monthlyRecapScreen;
+                    this.options.currentView = this.monthlyRecapScreen = new MonthlyRecapView(this.options);
                 }
             }
         });

@@ -291,7 +291,7 @@ define([
                 if ($("#ddlClaimSelectBoxes option:selected").length < 1) {
                     return commonjs.showWarning('messages.status.claimSelection');
                 }
-                return;
+                return true;
             },
 
             // Binding Report Params

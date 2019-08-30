@@ -32,8 +32,7 @@ define([
 
                 if (!layout.initialized) {
                     RoutingUtils.clearView(this.options.currentView);
-                    this.referringProviderCountScreen = new ReferringProviderCountView(this.options);
-                    this.options.currentView = this.referringProviderCountScreen;
+                    this.options.currentView = this.referringProviderCountScreen = new ReferringProviderCountView(this.options);
                 }
             }
         });

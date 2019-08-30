@@ -32,8 +32,7 @@ define([
 
         if (!layout.initialized) {
           RoutingUtils.clearView(this.options.currentView);
-          this.diagnosisCountScreen = new DiagnosisCountView(this.options);
-          this.options.currentView = this.diagnosisCountScreen;
+          this.options.currentView = this.diagnosisCountScreen = new DiagnosisCountView(this.options);
         }
       }
     });

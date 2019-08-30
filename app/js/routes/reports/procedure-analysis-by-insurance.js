@@ -32,8 +32,7 @@ define([
 
                 if (!layout.initialized) {
                     RoutingUtils.clearView(this.options.currentView);
-                    this.procedureAnalysisInsuranceScreen = new ProcedureAnalysisInsuranceView(this.options);
-                    this.options.currentView = this.procedureAnalysisInsuranceScreen;
+                    this.options.currentView = this.procedureAnalysisInsuranceScreen = new ProcedureAnalysisInsuranceView(this.options);
                 }
             }
         });

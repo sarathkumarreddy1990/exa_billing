@@ -32,8 +32,7 @@ define([
 
                 if (!layout.initialized) {
                     RoutingUtils.clearView(this.options.currentView);
-                    this.claimTransactionScreen = new ClaimTransactionView(this.options);
-                    this.options.currentView = this.claimTransactionScreen;
+                    this.options.currentView = this.claimTransactionScreen = new ClaimTransactionView(this.options);
                 }
             }
         });

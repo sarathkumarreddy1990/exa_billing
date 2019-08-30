@@ -33,8 +33,7 @@ define([
 
                 if (!layout.initialized) {
                     RoutingUtils.clearView(this.options.currentView);
-                    this.agedARDetailScreen = new AgedARDetailsView(this.options);
-                    this.options.currentView = this.agedARDetailScreen;
+                    this.options.currentView = this.agedARDetailScreen = new AgedARDetailsView(this.options);
                 }
             }
         });

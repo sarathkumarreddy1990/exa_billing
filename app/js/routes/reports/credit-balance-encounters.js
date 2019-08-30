@@ -32,8 +32,7 @@ define([
 
                 if (!layout.initialized) {
                     RoutingUtils.clearView(this.options.currentView);
-                    this.creditBalanceEncounterScreen = new CreditBalanceEncountersView(this.options);
-                    this.options.currentView = this.creditBalanceEncounterScreen;
+                    this.options.currentView = this.creditBalanceEncounterScreen = new CreditBalanceEncountersView(this.options);
                 }
             }
         });

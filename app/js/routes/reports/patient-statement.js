@@ -32,8 +32,7 @@ define([
 
                 if (!layout.initialized) {
                     RoutingUtils.clearView(this.options.currentView);
-                    this.patientStatementScreen = new PatientStatementView(this.options);
-                    this.options.currentView = this.patientStatementScreen;
+                    this.options.currentView = this.patientStatementScreen = new PatientStatementView(this.options);
                 }
             }
         });

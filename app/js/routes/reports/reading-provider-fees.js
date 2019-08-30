@@ -32,8 +32,7 @@ define([
 
                 if (!layout.initialized) {
                     RoutingUtils.clearView(this.options.currentView);
-                    this.readingProviderFeesScreen = new ReadingProviderFeesView(this.options);
-                    this.options.currentView = this.readingProviderFeesScreen;
+                    this.options.currentView = this.readingProviderFeesScreen = new ReadingProviderFeesView(this.options);
                 }
             }
         });

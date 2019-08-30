@@ -32,8 +32,7 @@ define([
 
                 if (!layout.initialized) {
                     RoutingUtils.clearView(this.options.currentView);
-                    this.transactionSummaryScreen = new TransactionSummaryView(this.options);
-                    this.options.currentView = this.transactionSummaryScreen;
+                    this.options.currentView = this.transactionSummaryScreen = new TransactionSummaryView(this.options);
                 }
             }
         });

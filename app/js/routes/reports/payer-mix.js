@@ -32,8 +32,7 @@ define([
 
                 if (!layout.initialized) {
                     RoutingUtils.clearView(this.options.currentView);
-                    this.payerMixScreen = new PayerMixView(this.options);
-                    this.options.currentView = this.payerMixScreen;
+                    this.options.currentView = this.payerMixScreen = new PayerMixView(this.options);
                 }
             }
         });

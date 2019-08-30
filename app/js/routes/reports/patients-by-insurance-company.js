@@ -32,8 +32,7 @@ define([
 
                 if (!layout.initialized) {
                     RoutingUtils.clearView(this.options.currentView);
-                    this.patientsByInsuranceScreen = new PatientsByInsCompanyView(this.options);
-                    this.options.currentView = this.patientsByInsuranceScreen;
+                    this.options.currentView = this.patientsByInsuranceScreen = new PatientsByInsCompanyView(this.options);
                 }
             }
         });

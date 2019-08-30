@@ -32,8 +32,7 @@ define([
 
                 if (!layout.initialized) {
                     RoutingUtils.clearView(this.options.currentView);
-                    this.chargesScreen = new ChargesView(this.options);
-                    this.options.currentView = this.chargesScreen;
+                    this.options.currentView = this.chargesScreen = new ChargesView(this.options);
                 }
             }
         });

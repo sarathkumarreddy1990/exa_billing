@@ -32,8 +32,7 @@ define([
 
                 if (!layout.initialized) {
                     RoutingUtils.clearView(this.options.currentView);
-                    this.procedureCountScreen = new ProcedureCountView(this.options);
-                    this.options.currentView = this.procedureCountScreen;
+                    this.options.currentView = this.procedureCountScreen = new ProcedureCountView(this.options);
                 }
             }
         });

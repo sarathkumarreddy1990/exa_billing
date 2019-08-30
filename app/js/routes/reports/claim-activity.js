@@ -32,8 +32,7 @@ define([
 
               if (!layout.initialized) {
                   RoutingUtils.clearView(this.options.currentView);
-                  this.claimActivityScreen = new ClaimActivityView(this.options);
-                  this.options.currentView = this.claimActivityScreen;
+                  this.options.currentView = this.claimActivityScreen = new ClaimActivityView(this.options);
               }
           }
       });

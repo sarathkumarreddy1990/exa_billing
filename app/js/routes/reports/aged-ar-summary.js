@@ -32,8 +32,7 @@ define([
 
                 if (!layout.initialized) {
                     RoutingUtils.clearView(this.options.currentView);
-                    this.agedARSummaryScreen = new AgedARSummaryView(this.options);
-                    this.options.currentView = this.agedARSummaryScreen;
+                    this.options.currentView = this.agedARSummaryScreen = new AgedARSummaryView(this.options);
                 }
             }
         });
