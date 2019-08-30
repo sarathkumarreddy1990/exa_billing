@@ -241,10 +241,14 @@ define([
                         // Remove Billed status column in dropdown
                         self.billingDisplayFields = _.reject(self.billingDisplayFields, function(obj){ return obj.field_code === 'billed_status'; });
 
+                        var noSortColumn = ['payment_id', 'charge_description', 'ins_provider_type', 'providerAlerts', 'ordered_by', 'cpt_codes', 'icd_codes', 'stat_level', 'notes', 'claim_no', 'mudatacaptured'];
+
                         for (var i = 0; i < self.billingDisplayFields.length; i++) {
-                            if (self.billingDisplayFields[i].field_code !== 'charge_description' && self.billingDisplayFields[i].field_code !== 'payment_id') {
-                                var field_name = commonjs.geti18NString(self.billingDisplayFields[i].i18n_name);
-                                $('<option/>').val(self.billingDisplayFields[i].field_code).html(field_name).appendTo('#ddlBillingDefaultColumns');
+                            var field =  self.billingDisplayFields[i];
+
+                            if (noSortColumn.indexOf(field.field_code) === -1) {
+                                var field_name = commonjs.geti18NString(field.i18n_name);
+                                $('<option/>').val(field.field_code).html(field_name).appendTo('#ddlBillingDefaultColumns');
                             }
                         }
 
