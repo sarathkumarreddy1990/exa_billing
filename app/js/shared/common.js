@@ -1638,11 +1638,7 @@ var commonjs = {
     },
 
     validateFutureDate: function (txtBoxValue, msg) {
-        var dateValue = moment(txtBoxValue, "MM/DD/YYYY");
-        if (moment(commonjs.getCurrentDate()).diff(dateValue) < 0) {
-            return false;
-        }
-        return true;
+        return moment(commonjs.getCurrentDate(), 'L').diff((txtBoxValue).format('L')) >= 0;
     },
 
     dateRangesOverlap: function (startTime1, endTime1, startTime2, endTime2) {

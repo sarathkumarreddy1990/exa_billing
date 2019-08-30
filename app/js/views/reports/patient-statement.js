@@ -148,7 +148,7 @@ define([
                     return commonjs.showWarning('messages.status.pleaseSelectDate');
                 }
 
-                if (this.viewModel.fromDate.date() && (!commonjs.validateFutureDate(this.viewModel.fromDate.date().format('L')))) {
+                if (this.viewModel.fromDate.date() && !commonjs.validateFutureDate( this.viewModel.fromDate.date())) {
                     return commonjs.showWarning('messages.status.pleaseDoNotSelectFutureDate');
                 }
                 return true;
