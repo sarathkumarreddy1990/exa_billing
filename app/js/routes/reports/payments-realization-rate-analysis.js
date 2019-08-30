@@ -2,12 +2,14 @@ define([
     'jquery',
     'backbone',
     'backbonesubroute',
+    'shared/routing',
     'views/reports/payments-realization-rate-analysis'
 ],
     function (
         $,
         Backbone,
         SubRoute,
+        RoutingUtils,
         PaymentsRealizationRateAnalysisView
     ) {
         return Backbone.SubRoute.extend({
@@ -26,11 +28,12 @@ define([
 
             initializeRouter: function () {
                 this.options.screen = facilityModules.reportScreens.paymentsRealizationRateAnalysis;
-                this.options.currentView = this.PaymentsRealizationRateAnalysisScreen;
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {
+                    RoutingUtils.clearView(this.options.currentView);
                     this.PaymentsRealizationRateAnalysisScreen = new PaymentsRealizationRateAnalysisView(this.options);
+                    this.options.currentView = this.PaymentsRealizationRateAnalysisScreen;
                 }
             }
         });
