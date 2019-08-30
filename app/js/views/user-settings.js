@@ -244,7 +244,7 @@ define([
                         var noSortColumn = ['payment_id', 'charge_description', 'ins_provider_type', 'providerAlerts', 'ordered_by', 'cpt_codes', 'icd_codes', 'stat_level', 'notes', 'claim_no', 'mudatacaptured'];
 
                         for (var i = 0; i < self.billingDisplayFields.length; i++) {
-                            var field =  self.billingDisplayFields[i];
+                            var field = self.billingDisplayFields[i];
 
                             if (noSortColumn.indexOf(field.field_code) === -1) {
                                 var field_name = commonjs.geti18NString(field.i18n_name);
