@@ -140,15 +140,17 @@ define([
             },
 
             hasValidViewModel: function () {
+                var fromDateValue = this.viewModel.fromDate.date();
+                
                 if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
                     return commonjs.showWarning('messages.status.pleaseCheckReportIdCategoryandorFormat');
                 }
 
-                if (!(this.viewModel.fromDate && this.viewModel.fromDate.date())) {
+                if (!(this.viewModel.fromDate && fromDateValue)) {
                     return commonjs.showWarning('messages.status.pleaseSelectDate');
                 }
 
-                if (this.viewModel.fromDate.date() && !commonjs.validateFutureDate( this.viewModel.fromDate.date())) {
+                if (fromDateValue && !commonjs.validateFutureDate(fromDateValue)) {
                     return commonjs.showWarning('messages.status.pleaseDoNotSelectFutureDate');
                 }
                 return true;
