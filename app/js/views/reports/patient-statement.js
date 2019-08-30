@@ -151,7 +151,7 @@ define([
                 if (this.viewModel.fromDate.date().diff(commonjs.getFacilityCurrentDateTime(app.facilityID)) > 0) {
                     return commonjs.showWarning('messages.status.pleaseDoNotSelectFutureDate');
                 }
-                return;
+                return true;
             },
 
             getReportParams: function () {
