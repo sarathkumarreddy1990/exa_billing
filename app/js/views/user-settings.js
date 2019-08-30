@@ -206,19 +206,24 @@ define([
                             field_order = [];
                         var sortColumn, sortOrder;
                         var displayField = [];
+                        var billingDisplayFieldsFlag = false;
 
                         for (var i = 0; i < self.checkedBillingDisplayFields.length; i++) {
                             for (var j = 0; j < self.billingDisplayFields.length; j++) {
-                                if (self.checkedBillingDisplayFields[i] == self.billingDisplayFields[j].id) {
+                                var currentDisplayField = self.billingDisplayFields[j];
+
+                                if (self.checkedBillingDisplayFields[i] == currentDisplayField.id) {
                                     displayFields.push({
-                                        field_name: self.billingDisplayFields[j].field_name,
-                                        i18n_name: self.billingDisplayFields[j].i18n_name,
-                                        width: self.billingDisplayFields[j].field_info.width,
+                                        field_name: currentDisplayField.field_name,
+                                        i18n_name: currentDisplayField.i18n_name,
+                                        width: currentDisplayField.field_info.width,
                                         id: self.checkedBillingDisplayFields[i],
-                                        screen_name: opener
+                                        screen_name: opener,
+                                        field_code: currentDisplayField.field_code
                                     });
                                     continue;
                                 }
+
                             }
                         }
                         var gridNames = displayFields.map(function (field) {
@@ -239,16 +244,27 @@ define([
                         self.ulListBinding(displayFields, 'ulSortList', checkedGridFields);
 
                         // Remove Billed status column in dropdown
-                        self.billingDisplayFields = _.reject(self.billingDisplayFields, function(obj){ return obj.field_code === 'billed_status'; });
+                        self.billingDisplayFields = _.reject(self.billingDisplayFields, function (obj) {
+                            return (!checkedGridFields.includes(obj.id) || obj.field_code === 'billed_status');
+                        });
 
                         for (var i = 0; i < self.billingDisplayFields.length; i++) {
-                            if (self.billingDisplayFields[i].field_code !== 'charge_description' && self.billingDisplayFields[i].field_code !== 'payment_id') {
-                                var field_name = commonjs.geti18NString(self.billingDisplayFields[i].i18n_name);
-                                $('<option/>').val(self.billingDisplayFields[i].field_code).html(field_name).appendTo('#ddlBillingDefaultColumns');
+                            var currentDisplayField = self.billingDisplayFields[i];
+
+                            if (currentDisplayField.field_code !== 'charge_description' && currentDisplayField.field_code !== 'payment_id') {
+
+                                if (result_data.default_column === currentDisplayField.field_code) {
+                                    billingDisplayFieldsFlag = true;
+                                }
+
+                                var field_name = commonjs.geti18NString(currentDisplayField.i18n_name);
+                                $('<option/>').val(currentDisplayField.field_code).html(field_name).appendTo('#ddlBillingDefaultColumns');
                             }
                         }
 
-                        $('#ddlBillingDefaultColumns').val(result_data.default_column);
+                        var defaultDisplayField = displayFields[0];
+                        var defaultColumn = billingDisplayFieldsFlag ? result_data.default_column : defaultDisplayField && defaultDisplayField.field_code;
+                        $('#ddlBillingDefaultColumns').val(defaultColumn);
                         $('#ddlBillingSortOrder').val(result_data.default_column_order_by);
                         self.loadPrinterTemplates('ddlPaperClaimFullForm','paper_claim_full', result_data.paper_claim_full);
                         self.loadPrinterTemplates('ddlPaperClaimOriginalForm','paper_claim_original', result_data.paper_claim_original);
