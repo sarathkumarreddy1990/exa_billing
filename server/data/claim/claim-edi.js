@@ -268,11 +268,20 @@ module.exports = {
 															fax_number as "faxNumber",
 															zip_code_plus as "zip_code_plus",
 															contact_person_name as "contactName",
-															(SELECT qualifier_code FROM billing.provider_id_code_qualifiers LEFT JOIN billing.provider_id_codes   ON  provider_id_code_qualifiers.id=provider_id_codes.qualifier_id
-																 WHERE provider_id_codes.billing_provider_id=billing_providers.id AND provider_id_codes.insurance_provider_id = insurance_providers.id ) as "legacyID"
-
-														FROM   billing.providers as billing_providers
-														WHERE  billing_providers.id=billing_provider_id)AS billingProvider1
+															bp_id_codes.qualifier_code AS "legacyID",
+															bp_id_codes.payer_assigned_provider_id AS "payerAssignedProviderID"
+                                                            FROM   billing.providers as billing_providers
+                                                            LEFT JOIN LATERAL (
+                                                                SELECT
+                                                                qualifier_code,
+                                                                payer_assigned_provider_id
+                                                                FROM billing.provider_id_code_qualifiers
+                                                                LEFT JOIN billing.provider_id_codes  ON provider_id_code_qualifiers.id=provider_id_codes.qualifier_id
+                                                                WHERE provider_id_codes.billing_provider_id = billing_providers.id
+                                                                AND provider_id_codes.insurance_provider_id = insurance_providers.id
+                                                        ) AS bp_id_codes ON TRUE
+                                                        WHERE  billing_providers.id=billing_provider_id
+                                                        )AS billingProvider1
 
 					)
 
