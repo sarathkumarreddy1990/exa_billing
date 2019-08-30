@@ -3191,7 +3191,8 @@ define(['jquery',
                         $('#txtPriSubPriAddr').val().trim(),
                         $('#txtPriCity').val().trim(),
                         $('#ddlPriState option:selected').val() && $('#ddlPriState option:selected').val().trim() || '',
-                        $('#txtPriZipCode').val().trim()
+                        $('#txtPriZipCode').val().trim(),
+                        $('#select2-ddlPriInsurance-container').text().trim() || ''
                     ],
                     primaryfieldObjs: [
                         { obj: $('#ddlPriRelationShip'), msg: 'messages.warning.claims.selectRelationshipPrimaryInsurance' },
@@ -3202,7 +3203,8 @@ define(['jquery',
                         { obj: $('#txtPriSubPriAddr'), msg: 'messages.warning.claims.enterAddressPrimaryInsurance' },
                         { obj: $('#txtPriCity'), msg: 'messages.warning.claims.enterCityPrimaryInsurance' },
                         { obj: $('#ddlPriState'), msg: 'messages.warning.claims.selectStatePrimaryInsurance' },
-                        { obj: $('#txtPriZipCode'), msg: 'messages.warning.claims.enterZipcodePrimaryInsurance' }
+                        { obj: $('#txtPriZipCode'), msg: 'messages.warning.claims.enterZipcodePrimaryInsurance' },
+                        { obj: $('#ddlPriInsurance'), msg: 'messages.warning.claims.selectCarrierPrimaryInsurance' }
                     ]
                 }
 
@@ -3232,7 +3234,8 @@ define(['jquery',
                         $('#txtSecSubPriAddr').val().trim(),
                         $('#txtSecCity').val().trim(),
                         $('#ddlSecState option:selected').val().trim() || '',
-                        $('#txtSecZipCode').val().trim()
+                        $('#txtSecZipCode').val().trim(),
+                        $('#select2-ddlSecInsurance-container').text().trim() || ''
                     ];
                     mandatory_fields.secondaryfieldObjs = [
                         { obj: $('#txtSecPolicyNo'), msg: 'messages.warning.claims.selectPolicySecondaryInsurance' },
@@ -3244,7 +3247,8 @@ define(['jquery',
                         { obj: $('#txtSecSubPriAddr'), msg: 'messages.warning.claims.enterAddressSecondaryInsurance' },
                         { obj: $('#txtSecCity'), msg: 'messages.warning.claims.enterCitySecondaryInsurance' },
                         { obj: $('#ddlSecState'), msg: 'messages.warning.claims.selectStateSecondaryInsurance' },
-                        { obj: $('#txtSecZipCode'), msg: 'messages.warning.claims.enterZipcodeSecondaryInsurance' }
+                        { obj: $('#txtSecZipCode'), msg: 'messages.warning.claims.enterZipcodeSecondaryInsurance' },
+                        { obj: $('#ddlSecInsurance'), msg: 'messages.warning.claims.selectCarrierSecondaryInsurance' }
                     ];
                     mandatory_fields.tertiaryfields = [
                         $('#txtTerPolicyNo').val().trim(),
@@ -3256,7 +3260,8 @@ define(['jquery',
                         $('#txtTerSubPriAddr').val().trim(),
                         $('#txtTerCity').val().trim(),
                         $('#ddlTerState option:selected').val().trim() || '',
-                        $('#txtTerZipCode').val().trim()
+                        $('#txtTerZipCode').val().trim(),
+                        $('#select2-ddlTerInsurance-container').text().trim() || ''
                     ];
                     mandatory_fields.tertiaryfieldObjs = [
                         { obj: $('#txtTerPolicyNo'), msg: 'messages.warning.claims.selectPolicyTertiaryInsurance' },
@@ -3268,7 +3273,8 @@ define(['jquery',
                         { obj: $('#txtTerSubPriAddr'), msg: 'messages.warning.claims.enterAddressTertiaryInsurance' },
                         { obj: $('#txtTerCity'), msg: 'messages.warning.claims.enterCityTertiaryInsurance' },
                         { obj: $('#ddlTerState'), msg: 'messages.warning.claims.selectStateTertiaryInsurance' },
-                        { obj: $('#txtTerZipCode'), msg: 'messages.warning.claims.enterZipcodeTertiaryInsurance' }
+                        { obj: $('#txtTerZipCode'), msg: 'messages.warning.claims.enterZipcodeTertiaryInsurance' },
+                        { obj: $('#ddlTerInsurance'), msg: 'messages.warning.claims.selectCarrierTertiaryInsurance' }
                     ];
 
                 }
