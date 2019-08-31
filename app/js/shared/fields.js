@@ -27,6 +27,24 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         "ABRT"
     ];
 
+    var billingClassesColorCode = function (rowObject) {
+
+        if (rowObject && rowObject.billing_class_id) {
+            var billingClassObj = _.find(app.billing_classes, { 'id': parseInt(rowObject.billing_class_id) }) || {};
+            return billingClassObj && billingClassObj.color_code || 'transparent';
+        }
+        return 'transparent';
+    };
+
+    var billingCodesColorCode = function (rowObject) {
+
+        if (rowObject && rowObject.billing_code_id) {
+            var billingCodeObj = _.find(app.billing_codes, { 'id': parseInt(rowObject.billing_code_id) }) || {};
+            return billingCodeObj && billingCodeObj.color_code || 'transparent';
+        }
+        return 'transparent';
+    };
+
     return function ( filterType ) {
         var isNeither = true;
 
@@ -397,8 +415,11 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "stype": "select",
                         "searchoptions": {
                             "value": billingClassesValue,
-                            "tempvalue":billingClassesValue
-                         }
+                            "tempvalue": billingClassesValue
+                        },
+                        "cellattr": function (id, cellvalue, rowObject) {
+                            return 'style="background:' +  billingClassesColorCode(rowObject) + ';"';
+                        }
                     }
                 },
                 "Billing Code": {
@@ -413,7 +434,10 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "stype": "select",
                         "searchoptions": {
                             "value": billingCodeValue,
-                            "tempvalue":billingCodeValue
+                            "tempvalue": billingCodeValue
+                        },
+                        "cellattr": function (id, cellvalue, rowObject) {
+                            return 'style="background:' + billingCodesColorCode(rowObject) + ';"';
                         }
                     }
                 },
@@ -700,6 +724,20 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "defaultValue": ""
                     },
                     "field_code": "icd_description"
+                },
+                "Responsible Party": {
+                    "id": 35,
+                    "field_code": "payer_name",
+                    "field_name": "Responsible Party",
+                    "i18n_name": "setup.userSettings.responsibleParty",
+                    "field_info": {
+                        "custom_name": "Responsible Party",
+                        "name": "payer_name",
+                        "width": 250,
+                        "searchFlag": "=",
+                        "sortable": true,
+                        "defaultValue": ""
+                    }
                 }
             });
         }else{
@@ -1839,8 +1877,11 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "stype": "select",
                     "searchoptions": {
                         "value": billingClassesValue,
-                        "tempvalue":billingClassesValue
-                     }
+                        "tempvalue": billingClassesValue
+                    },
+                    "cellattr": function (id, cellvalue, rowObject) {
+                        return 'style="background:' +  billingClassesColorCode(rowObject) + ';"';
+                    }
                 }
             },
             "Billing Code": {
@@ -1855,7 +1896,10 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "stype": "select",
                     "searchoptions": {
                         "value": billingCodeValue,
-                        "tempvalue":billingCodeValue
+                        "tempvalue": billingCodeValue
+                    },
+                    "cellattr": function (id, cellvalue, rowObject) {
+                        return 'style="background:' + billingCodesColorCode(rowObject) + ';"';
                     }
                 }
             },

@@ -1,25 +1,25 @@
-const _ = require('lodash')
-    , Promise = require('bluebird')
-    , db = require('../db')
-    , dataHelper = require('../dataHelper')
-    , queryBuilder = require('../queryBuilder')
-    , logger = require('../../../../../logger')
-    , moment = require('moment');
+const _ = require('lodash');
+const Promise = require('bluebird');
+const db = require('../db');
+const dataHelper = require('../dataHelper');
+const queryBuilder = require('../queryBuilder');
+const logger = require('../../../../../logger');
+const moment = require('moment');
 
 // generate query template ***only once*** !!!
 
 const claimActivityDataSetQueryTemplate = _.template(`
-with claim_details as (
+WITH claim_details AS (
 SELECT
-    bc.id as claim_id,
-    get_full_name(p.last_name,p.first_name,p.middle_name,p.prefix_name,p.suffix_name) as patient_name,
-    p.account_no as account_no,
-    bc.claim_dt::date as claim_date,
-	get_full_name(ppref.last_name,ppref.first_name,ppref.middle_initial,null,ppref.suffix) as referring_physician,
-	get_full_name(ppren.last_name,ppren.first_name,ppren.middle_initial,null,ppren.suffix) as reading_physician,
-    pg.group_name as ordering_facility,
-    f.time_zone as facility_timezone,
-    f.facility_code as facility_code
+    bc.id AS claim_id,
+    get_full_name(p.last_name,p.first_name,p.middle_name,p.prefix_name,p.suffix_name) AS patient_name,
+    p.account_no AS account_no,
+    timezone(get_facility_tz(bc.facility_id::integer), bc.claim_dt)::DATE AS claim_date,
+    get_full_name(ppref.last_name, ppref.first_name, ppref.middle_initial, null, ppref.suffix) AS referring_physician,
+    get_full_name(ppren.last_name, ppren.first_name, ppren.middle_initial, null, ppren.suffix) AS reading_physician,
+    pg.group_name AS ordering_facility,
+    f.time_zone AS facility_timezone,
+    f.facility_code AS facility_code
 FROM
    billing.claims bc
    INNER JOIN public.patients p on p.id = bc.patient_id

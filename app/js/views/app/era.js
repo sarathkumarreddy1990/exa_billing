@@ -28,6 +28,7 @@ define([
                 'click #btnReloadERALocal': 'reloadERAFilesLocal',
                 'change #myFile': 'processSelectedERAFile'
             },
+            isCleared: false,
 
             initialize: function (options) {
                 this.options = options;
@@ -135,7 +136,7 @@ define([
                             }
                         },
                         {
-                            name: 'updated_date_time', width: 200, searchFlag: 'hstore', searchoptions: { defaultValue: commonjs.filterData['updated_date_time'] }, formatter: function (cellvalue, options, rowObject) {
+                            name: 'updated_date_time', width: 200, searchFlag: 'date', formatter: function (cellvalue, options, rowObject) {
                                 return self.fileUpdatedDateFormatter(cellvalue, options, rowObject);
                             }
                         },
@@ -172,11 +173,17 @@ define([
                     },
                     customargs: {
                         showParentFileOnly: true,
-                        companyID: app.companyID
+                        companyID: app.companyID,
+                        options: {
+                            isCompanyBase: true
+                        },
+                        toDate: !self.isCleared ? moment().format('YYYY-MM-DD') : "",
+                        fromDate: !self.isCleared ? moment().subtract(29, 'days').format('YYYY-MM-DD') : ""
                     },
                     onaftergridbind: function (model, gridObj) {
                         self.afterEraGridBind(model, gridObj, self);
                         self.setPhoneMask();
+                        self.bindDateRangeOnSearchBox(gridObj);
                     },
                     ondblClickRow: function (rowID) {
                         var gridData = $('#tblEOBFileList').jqGrid('getRowData', rowID);
@@ -207,6 +214,65 @@ define([
                 }
             },
 
+            //Bind default date range on updated date time column
+            searchEraFiles: function () {
+                var self = this;
+                self.pager.set({"PageNo": 1});
+                self.eobFilesTable.options.customargs = {
+                    showParentFileOnly: true,
+                    options: {
+                        isCompanyBase: true
+                    },
+                    toDate: !self.isCleared ? moment().format('YYYY-MM-DD') : "",
+                    fromDate: !self.isCleared ? moment().subtract(29, 'days').format('YYYY-MM-DD') : ""
+                };
+                self.eobFilesTable.refresh();
+            },
+
+            //Bind date range filter
+            bindDateRangeOnSearchBox: function (gridObj) {
+                var self = this;
+                var columnsToBind = ['updated_date_time'];
+                var drpOptions = {
+                    locale: {
+                        format: "L"
+                    }
+                };
+                var currentFilter = 1;
+
+                _.each(columnsToBind, function (col) {
+                    var colSelector = '#gs_' + col;
+                    var colElement = $(colSelector);
+
+                    if (!colElement.val() && !self.isCleared) {
+                        var toDate = moment(),
+                            fromDate = moment().subtract(29, 'days');
+                        colElement.val(fromDate.format("L") + " - " + toDate.format("L"));
+                    }
+
+                    var drp = commonjs.bindDateRangePicker(colElement, drpOptions, "past", function (start, end, format) {
+                        if (start && end) {
+                            currentFilter.startDate = start.format('L');
+                            currentFilter.endDate = end.format('L');
+                            $('input[name=daterangepicker_start]').removeAttr("disabled");
+                            $('input[name=daterangepicker_end]').removeAttr("disabled");
+                            $('.ranges ul li').each(function (i) {
+                                if ($(this).hasClass('active')) {
+                                    currentFilter.rangeIndex = i;
+                                }
+                            });
+                        }
+                    });
+                    colElement.on("apply.daterangepicker", function (obj) {
+                        gridObj.refresh();
+                    });
+                    colElement.on("cancel.daterangepicker", function () {
+                        self.isCleared = true;
+                        self.searchEraFiles();
+                    });
+                });
+            },
+
             afterEraGridBind: function (dataset, e, self) {
                 var fileUploadedObj = document && document.getElementById("ifrEobFileUpload") && document.getElementById("ifrEobFileUpload").contentWindow
                     && document.getElementById("ifrEobFileUpload").contentWindow.document && document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileNameUploaded');
@@ -235,7 +301,7 @@ define([
             },
 
             fileUpdatedDateFormatter: function (cellvalue, options, rowObject) {
-                return rowObject.updated_date_time ? moment(rowObject.updated_date_time).format('L, h:mm a') : ''
+                return rowObject.updated_date_time ? moment(rowObject.updated_date_time).format('L h:mm a') : ''
             },
 
             fileSizeTypeFormatter: function (cellvalue, options, rowObject) {
@@ -483,7 +549,7 @@ define([
 
             showPayments: function (fileId, fileName) {
                 var self = this;
-                commonjs.showLoading('Generating preview. please wait');
+                commonjs.showLoading(commonjs.geti18NString('messages.status.generateEraPreview'));
                 if (fileId) {
                     $.ajax({
                         url: '/exa_modules/billing/era/era_details',
@@ -500,43 +566,20 @@ define([
                                 fileName = fileName.substr(0, fileName.lastIndexOf('.'));
 
                                 var ins = model.rows[0];
-                                var claims = [];
+                                ins.payer_details.payment_dt = moment(ins.payer_details.payment_dt).format('L');
 
-                                var claimDetails = ins.claimsDetails;
-                                var chargeDetails = ins.chargeDetails;
-
-                                var totalBillFee = 0.00;
-                                var totalAllowedFee = 0.00;
-                                var totalAdjusmtment = 0.00;
-                                $.each(claimDetails, function (index, row) {
-                                    totalBillFee = 0.00;
-                                    totalAllowedFee = 0.00;
-                                    totalAdjusmtment = 0.00;
-                                    row["charges"] = [];
-                                    for (var j = 0; j < chargeDetails.length; j++) {
-                                        if (row.claim_id === chargeDetails[j].claim_id) {
-                                            if (chargeDetails[j].amount_type == 'payment')
-                                                totalBillFee += parseFloat(chargeDetails[j].bill_fee.substr(1).replace(',', ''));
-                                            else
-                                                totalAdjusmtment += parseFloat(chargeDetails[j].bill_fee.substr(1).replace(',', ''));
-
-                                            totalAllowedFee += parseFloat(chargeDetails[j].allowed_fee.substr(1).replace(',', ''));
-                                            row["charges"].push(chargeDetails[j]);
-                                        }
-                                    }
-                                    claims.push(row);
-                                    row["totalBillFee"] = totalBillFee;
-                                    row["totalAllowedFee"] = totalAllowedFee;
-                                    row["totalAdjusmtment"] = totalAdjusmtment;
-                                });
-
-                                $('#eraResultTitle').html(commonjs.geti18NString("shared.fields.result") + fileName);
+                                $('#eraResultTitle').html(commonjs.geti18NString("shared.fields.result") + ': ' + fileName);
                                 commonjs.showDialog({
-                                    header: commonjs.geti18NString("shared.fields.result") + fileName,
+                                    header: commonjs.geti18NString("shared.fields.result") + ': ' + fileName,
                                     width: '80%',
                                     height: '70%',
                                     padding: '0px',
-                                    html: self.eraResponseTemplate({ claims: claims, ins: ins })
+                                    html: self.eraResponseTemplate({
+                                        claims: ins.processed_eob_payments || [],
+                                        ins: ins,
+                                        moment: moment
+                                    })
+
                                 });
 
                                 try {
@@ -550,7 +593,6 @@ define([
                                 }
 
                                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
-                                $('#divResponseSection').height($(window).height() - 450);
                                 $('#era-processed-preview').height(($(window).height() - 360));
                             }
                             else {

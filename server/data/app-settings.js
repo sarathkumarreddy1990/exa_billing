@@ -31,7 +31,7 @@ module.exports = {
                                             file_store_id
                                     FROM   companies
                                     WHERE  id=${companyID}
-                                    AND    NOT has_deleted )AS company )
+                                    AND    deleted_dt IS NULL )AS company )
                     , cte_modalities AS(
                                   SELECT Json_agg(Row_to_json(modalities)) modalities
                                   FROM   (
@@ -66,6 +66,7 @@ module.exports = {
                                     SELECT id AS user_setting_id,
                                         field_order,
                                         grid_name,
+                                        grid_field_settings,
                                         default_column_order_by,
                                         default_column ,
                                         default_tab
@@ -98,7 +99,8 @@ module.exports = {
                                     FROM  (
                                     SELECT id,
                                         code,
-                                        description
+                                        description,
+                                        color_code
                                     FROM   billing.billing_codes
                                     WHERE  company_id=${companyID} AND inactivated_dt IS NULL
                                     ORDER BY description) AS billing_codes)
@@ -107,7 +109,8 @@ module.exports = {
                                     FROM  (
                                     SELECT id,
                                         code,
-                                        description
+                                        description,
+                                        color_code
                                     FROM   billing.billing_classes
                                     WHERE  company_id=${companyID} AND inactivated_dt IS NULL ) AS billing_classes)
                 , cte_provider_id_code_qualifiers AS(

@@ -1,6 +1,6 @@
 {
     "name": "exa-billing",
-    "version": "1.1.41",
+    "version": "1.2.0",
     "private": true,
     "description": "EXA Billing Module",
     "main": "server/app.js",
@@ -29,6 +29,7 @@
         "express-promise-router": "^3.0.2",
         "express-session": "^1.16.1",
         "http-errors": "~1.6.2",
+        "ioredis": "^4.10.0",
         "jsreport-client": "^1.0.2",
         "less-middleware": "^2.2.1",
         "ln": "^0.4.3",
@@ -84,7 +85,7 @@
     "license": "UNLICENSED",
     "engine-strict": true,
     "engines": {
-        "node": ">=10.15.3",
+        "node": ">=10.16.3",
         "npm": ">=6.9.0"
     }
 }

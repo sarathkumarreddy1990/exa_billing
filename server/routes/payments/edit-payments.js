@@ -34,6 +34,11 @@ router.get('/patient_count', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.get('/payment_count', async function (req, res) {
+    const data = await paymentsController.getPendingPayments(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
 router.get('/fee_details', async function (req, res) {
     const data = await paymentsController.getFeeDetails(req.query);
     httpHandler.sendRows(req, res, data);

@@ -26,9 +26,8 @@ define(['jquery',
     'text!templates/app/ebs-resourceTypes.html',
     'text!templates/app/ebs-hcv-form.html',
     'text!templates/app/ebs-hcv-request.html',
-
-    'shared/ohip'
-
+    'shared/ohip',
+    'views/claims/index'
 ],
     function ($,
               Immutable,
@@ -58,7 +57,8 @@ define(['jquery',
               EBSResourceTypesHTML,
               EbsHcvFormHTML,
               EbsHcvRequestHTML,
-              ohip
+              ohip,
+              claimsView
           ) {
 
         var paperClaim = new PaperClaim();
@@ -389,6 +389,8 @@ define(['jquery',
                         claimsFilters = claimsFilters.concat(response)
                         commonjs.claimsFilters = Immutable.List(claimsFilters);
                         self.setFiltertabs(claimsFilters);
+                        // set default claim format
+                        $("#btnClaimFormat").text(commonjs.geti18NString('billing.payments.electronicClaim'));
                     },
                     error: function (model, response) {
                         commonjs.handleXhrError(model, response);
@@ -490,7 +492,7 @@ define(['jquery',
                 $('#chkStudyHeader_' + filterID).prop('checked', true);
                 commonjs.setFilter(filterID, filter);
             },
-            createClaims: function (e) {
+            createClaims: function (e, isFromReClaim) {
                 var self = this;
                 var billingMethodFormat = '';
                 if (e.target) {
@@ -679,7 +681,7 @@ define(['jquery',
                             self.ohipResponse(data);
                         }
                         else {
-                            self.ediResponse(data);
+                            self.ediResponse(data, isFromReClaim);
                         }
                     },
                     error: function (err) {
@@ -761,7 +763,8 @@ define(['jquery',
             },
 
 
-            ediResponse: function (data) {
+            ediResponse: function (data, isFromReClaim) {
+                var self = this;
                 self.ediResultTemplate = _.template(ediResultHTML);
                 self.ohipResultTemplate = _.template(ohipResultHTML);
 
@@ -769,11 +772,13 @@ define(['jquery',
 
                 commonjs.hideLoading();
                 data.err = data.err || data.message;
+
                 if (data && data.err) {
                     commonjs.showWarning(data.err);
                 }
 
                 if (data && data.ediText && data.ediText.length) {
+                    commonjs.previousValidationResults = { isFromEDI: true, result: $.extend(true, {}, data) };
 
                     var segmentValidations = data.ediTextWithValidations
                         .filter(function (segmentData) {
@@ -787,30 +792,42 @@ define(['jquery',
 
 
                     data.validations = data.validations.concat(segmentValidations);
-
                     var result = [];
+
                     if (data.validations && data.validations.length) {
                         result = _.groupBy(data.validations, "dataID");
                     }
 
-                    commonjs.showDialog({
-                        header: 'EDI Claim',
-                        i18nHeader:'shared.moduleheader.ediClaims',
-                        width: '95%',
-                        height: '75%',
-                        html: self.ediResultTemplate({ result: result, ediText: data.ediTextWithValidations })
-                    });
+                    if (isFromReClaim) {
+                        $('#modal_div_container').html(self.ediResultTemplate({ result: result, ediText: data.ediTextWithValidations }));
+                        commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());
+                        self.initEvent(true);
+                    } else {
+                        commonjs.showDialog({
+                            header: 'EDI Claim',
+                            i18nHeader:'shared.moduleheader.ediClaims',
+                            width: '95%',
+                            height: '75%',
+                            fromValidate: true,
+                            html: self.ediResultTemplate({ result: result, ediText: data.ediTextWithValidations }),
+                            onShown: function () {
+                                self.initEvent(true);
+                            },
+                            onHide: function () {
+                                commonjs.previousValidationResults = null;
+                            }
+                        });    
+                    }
                     $(".popoverWarning").popover();
 
                     if (data.validations && data.validations.length == 0) {
-                        $('#liErrorMessages').css({ 'display': 'none' });
-                        $('#aDownloadEDI').css({ 'display': 'block' });
                         $("#btnClaimsRefresh").click();
-                        $('#liEDI,#aEDIResp').addClass('active');
+                        $('#liEDI, #aEDIResp').addClass('active');
+                        $('#reclaimEDI, #liErrorMessages').hide();
+                        $('#aDownloadEDI').show();
                     } else {
-                        $('#divEDIResult').css({ 'display': 'none' });
-                        $('#divErrorMsgs').css({ 'display': 'block' });
-                        $('#aDownloadEDI').css({ 'display': 'none' });
+                        $('#divEDIResult, #aDownloadEDI').hide();
+                        $('#reclaimEDI, #divErrorMsgs').show();
                     }
 
                     commonjs.initializeScreen({ buttons: [] });
@@ -818,19 +835,16 @@ define(['jquery',
                         if (e.target.id == 'aEDIResp') {
                             $('#liEDI').addClass('active');
                             $('#liErrorMessages').removeClass('active');
-                            $('#divErrorMsgs').css({ 'display': 'none' });
-                            $('#divEDIResult').css({ 'display': 'block' });
+                            $('#divErrorMsgs').hide();
+                            $('#divEDIResult').show();
                             if (data.validations && data.validations.length == 0) {
-                                $('#aDownloadEDI').css({ 'display': 'block' });
+                                $('#aDownloadEDI').show();
                             }
-
-                        }
-                        else {
+                        } else {
                             $('#liEDI,#aEDIResp').removeClass('active');
                             $('#liErrorMessages').addClass('active');
-                            $('#divEDIResult').css({ 'display': 'none' });
-                            $('#divErrorMsgs').css({ 'display': 'block' });
-                            $('#aDownloadEDI').css({ 'display': 'none' });
+                            $('#divErrorMsgs').show();
+                            $('#aDownloadEDI, #divEDIResult').hide();
                         }
                     });
 
@@ -928,12 +942,6 @@ define(['jquery',
             setFiltertabs: function (filters) {
                 var self = this;
                 commonjs.showLoading('Fetching data..');
-
-                // if (commonjs.loadedStudyFilters.size > 0) {
-                //     commonjs.loadedStudyFilters.forEach(function (gridObj) {
-                //         gridObj.customGridTable.jqGrid('GridUnload');
-                //     });
-                // }
                 commonjs.setFilter(null, null);
                 $('#divTabsContainer').show();
 
@@ -2828,7 +2836,7 @@ define(['jquery',
                             }
 
                             if (data.invalidClaim_data.length) {
-                                commonjs.showDialog({ header: 'Validation Results', i18nHeader: 'billing.claims.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });
+                                self.showValidationResult(data.invalidClaim_data);
                             }
                         }
                     },
@@ -2837,6 +2845,91 @@ define(['jquery',
                         commonjs.handleXhrError(err, response);
                     }
                 });
+            },
+
+            showValidationResult: function(data) {
+                var self = this;
+                commonjs.previousValidationResults = { isFromEDI: false, result: data };
+                commonjs.showDialog({ 
+                    header: 'Validation Results',
+                    fromValidate: true,
+                    onShown: function () {
+                        self.initEvent(false);
+                    },
+                    onHide: function () {
+                        commonjs.previousValidationResults = null;
+                    },
+                    i18nHeader: 'billing.claims.validationResults',
+                    width: '70%',
+                    height: '60%',
+                    html: self.claimValidation({ response_data: data }) 
+                });
+            },
+
+            processClaim: function(e) {
+                var claimView = new claimsView({ worklist: this});
+                var studyInfo = {
+                    studyIds: e.target.id,
+                    grid_id: '#tblClaimGridAll_Claims'
+                };
+
+                commonjs.getClaimStudy(studyInfo.studyIds, function (result) {
+                    studyInfo.study_id = result && result.study_id || 0;
+                    studyInfo.order_id = result && result.order_id || 0;
+                    claimView.showEditClaimForm(studyInfo.studyIds, 'reclaim', studyInfo);
+                });
+            },
+
+            revalidateClaim: function() {
+                var self = this;
+                var claimRows = $('#divValidateSchClaim').find('.processClaimEdit');
+                var claimIds = [];
+
+                if (claimRows.length) {
+                    var modalContainer = $('#modal_div_container');
+                    for(var i = claimRows.length - 1; i >= 0; i--) {
+                        claimIds.push(claimRows[i].id);
+                    }
+                    commonjs.showLoading();
+
+                    $.ajax({
+                        url: '/exa_modules/billing/claim_workbench/validate_claims',
+                        type: 'POST',
+                        data: {
+                            claim_ids: claimIds,
+                            country: app.country_alpha_3_code
+                        },
+                        success: function (data, response) {
+
+                            if (data) {
+                                var invalidClaimData = data.invalidClaim_data;
+                                
+                                if (invalidClaimData.length) {
+                                    modalContainer.html(self.claimValidation({ response_data: invalidClaimData }));
+                                } else {
+                                    modalContainer.html('<div style="text-align: center" >' + commonjs.geti18NString('messages.status.noRecordFound') + '</div>');
+                                }
+                                self.initEvent(false);
+                                commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
+                            }
+                            commonjs.hideLoading();
+                        },
+                        error: function (err, response) {
+                            commonjs.hideLoading();
+                        }    
+                    });
+                }
+            },
+
+            initEvent: function(isFromEDI) {
+                var self = this;
+                $('.processClaimEdit').off('click').on('click', function(e) { self.processClaim(e) });
+
+                if (!isFromEDI) {
+                    $('#revalidateClaim').off('click').on('click', function() { self.revalidateClaim() });
+                } else {
+                    $('#reclaimEDI').off('click').on('click', function(e) { self.createClaims(e, true) });
+                }
             }
         });
 

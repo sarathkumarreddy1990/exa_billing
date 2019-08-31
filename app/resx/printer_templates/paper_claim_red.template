@@ -185,6 +185,7 @@ function getTotalBill(claimData, servicelineList) {
                 _totalBill += servicelineList[i].totalBillFee ? +servicelineList[i].totalBillFee : 0.00;
             }
         }
+        _totalBill = _totalBill.toFixed(2);
     }
     return _totalBill;
 }
@@ -529,8 +530,17 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                                 claimData.subscriber[0].claim[0].relatedCauseCode3.toString().toUpperCase() === 'TRUE') ? '√' : '', alignment: 'center', margin: [-22, 0, 0, 0]
                         },
                         {
-                            text: (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].relatedCauseCode3.toString() &&
-                                claimData.subscriber[0].claim[0].relatedCauseCode3.toString().toUpperCase() === 'FALSE') ? '√' : '', margin: [-26, 0, 0, 0]
+                            style: 'Ans',
+                            margin: [-26,-2,0,0],
+                            table: {
+                                widths:[25, 12],
+                                body: [
+                                    [
+                                        {text: (claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].relatedCauseCode3.toString() && claimData.subscriber[0].claim[0].relatedCauseCode3.toString().toUpperCase() === 'FALSE') ? '√' : ' '},
+                                        {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0] && claimData.subscriber[0].claim[0].autoAccidentState||' ', margin:[-3,-3,0,0]}
+                                    ]
+                                ]
+                            },layout: 'noBorders'
                         },
                         { text: "", colSpan: 2 }, {}
                     ],
@@ -897,7 +907,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                         },
                         { text: '' },
                         { text: claimData.billingProvider && claimData.billingProvider.npiNo ? getSubstring(claimData.billingProvider.npiNo, 10) : '' },
-                        { text: claimData.billingProvider && claimData.billingProvider.legacyID ? getSubstring(claimData.billingProvider.legacyID, 14) : '' }
+                        { text: claimData.billingProvider && claimData.billingProvider.payerAssignedProviderID ? getSubstring(claimData.billingProvider.payerAssignedProviderID, 14) : '' }
                     ]
                 ],
             }, layout: 'noBorders', pageBreak: pageBrk,

@@ -15,7 +15,7 @@
     </select>
 
     <input type="text" class="form-control integerbox zip-input col-sm-2 pull-left m-1" id="<%= postalCodeDomId %>"
-        name="zip1" placeholder="Zip" maxlength="5" />
+        name="zip1" maxlength="5" i18np="billing.claims.zipCode" />
     <% if (typeof zipPlusDomId !== 'undefined') { %>
     <input type="text" id="<%= zipPlusDomId %>" placeholder="ZipPlus" i18np="shared.fields.zipPlus" maxlength="4" class="form-control col-sm-2 pull-left m-1">
     <% } %>

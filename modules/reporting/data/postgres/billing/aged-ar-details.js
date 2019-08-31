@@ -44,7 +44,7 @@ get_claim_details AS(
  to_char(<%= cutOffDate %>, 'MM/DD/YYYY') AS "Cut-off Date",
  bpr.name AS "Billing Pro Name",
  get_full_name(pp.last_name,pp.first_name) AS "Patient Name",
- to_char(bc.claim_dt, 'MM/DD/YYYY') AS "Claim Date",
+ timezone(get_facility_tz(bc.facility_id::integer), bc.claim_dt)::DATE  AS "Claim Date",
  pp.account_no as "Account #",
  <% if(incPatDetail == 'true') { %>
      CASE WHEN payer_type = 'primary_insurance' OR
@@ -165,83 +165,83 @@ LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
       GROUP BY "Payer Name","Facility","Claim ID","Cut-off Date","Billing Pro Name","Patient Name","Claim Date","Account #","Responsible Party","Insurance Group","EDI","Provider Type", gcd.age,gcd.balance
 ),
 aged_ar_sum AS ( SELECT
-       null::text as "Facility",
-       null::bigint as "Claim ID",
-       null::text as "Cut-off Date",
-       null::text as "Billing Pro Name",
-       null::text as "Patient Name",
-       null::text as "Claim Date",
-       null::varchar(64) as "Account #",
+       NULL::TEXT AS "Facility",
+       NULL::bigint AS "Claim ID",
+       NULL::TEXT AS "Cut-off Date",
+       NULL::TEXT AS "Billing Pro Name",
+       NULL::TEXT AS "Patient Name",
+       NULL::DATE AS "Claim Date",
+       NULL::varchar(64) AS "Account #",
        "Responsible Party_order_by" ,
-       null::text as "Responsible Party",
-       null::text as "Insurance Group",
+       NULL::TEXT AS "Responsible Party",
+       NULL::TEXT AS "Insurance Group",
        "Payer Name",
-       null::text as "EDI",
-       ('A/R Total')::TEXT as "Provider Type",
-       sum(cast("0-30 Sum" AS NUMERIC))::MONEY as "0-30 Sum",
-       sum(cast("30-60 Sum" AS NUMERIC))::MONEY as "30-60 Sum",
-       sum("60-90 Sum") as "60-90 Sum",sum("90-120 Sum") as "90-120 Sum",
+       NULL::TEXT AS "EDI",
+       ('A/R Total')::TEXT AS "Provider Type",
+       SUM(CAST("0-30 Sum" AS NUMERIC))::MONEY AS "0-30 Sum",
+       SUM(CAST("30-60 Sum" AS NUMERIC))::MONEY AS "30-60 Sum",
+       SUM("60-90 Sum") AS "60-90 Sum", SUM("90-120 Sum") AS "90-120 Sum",
 
        <% if(excelExtented == 'true') { %>
-        sum(cast("120-150 Sum" AS NUMERIC))::MONEY as "120-150 Sum",
-        sum(cast("150-180 Sum" AS NUMERIC))::MONEY as "150-180 Sum",
-        sum(cast("180-210 Sum" AS NUMERIC))::MONEY as "180-210 Sum",
-        sum(cast("210-240 Sum" AS NUMERIC))::MONEY as "210-240 Sum",
-        sum(cast("240-270 Sum" AS NUMERIC))::MONEY as "240-270 Sum",
-        sum(cast("270-300 Sum" AS NUMERIC))::MONEY as "270-300 Sum",
-        sum(cast("300-330 Sum" AS NUMERIC))::MONEY as "300-330 Sum",
-        sum(cast("330-360 Sum" AS NUMERIC))::MONEY as "330-360 Sum",
-        sum(cast("360-450 Sum (Q4)" AS NUMERIC))::MONEY as "360-450 Sum (Q4)",
-        sum(cast("450-540 Sum (Q3)" AS NUMERIC))::MONEY as "450-540 Sum (Q3)",
-        sum(cast("540-630 Sum (Q2)" AS NUMERIC))::MONEY as "540-630 Sum (Q2)",
-        sum(cast("630-730 Sum (Q1)" AS NUMERIC))::MONEY as "630-730 Sum (Q1)",
-	    sum(cast("730+ Sum" AS NUMERIC))::MONEY as "730+ Sum",
+        SUM(CAST("120-150 Sum" AS NUMERIC))::MONEY AS "120-150 Sum",
+        SUM(CAST("150-180 Sum" AS NUMERIC))::MONEY AS "150-180 Sum",
+        SUM(CAST("180-210 Sum" AS NUMERIC))::MONEY AS "180-210 Sum",
+        SUM(CAST("210-240 Sum" AS NUMERIC))::MONEY AS "210-240 Sum",
+        SUM(CAST("240-270 Sum" AS NUMERIC))::MONEY AS "240-270 Sum",
+        SUM(CAST("270-300 Sum" AS NUMERIC))::MONEY AS "270-300 Sum",
+        SUM(CAST("300-330 Sum" AS NUMERIC))::MONEY AS "300-330 Sum",
+        SUM(CAST("330-360 Sum" AS NUMERIC))::MONEY AS "330-360 Sum",
+        SUM(CAST("360-450 Sum (Q4)" AS NUMERIC))::MONEY AS "360-450 Sum (Q4)",
+        SUM(CAST("450-540 Sum (Q3)" AS NUMERIC))::MONEY AS "450-540 Sum (Q3)",
+        SUM(CAST("540-630 Sum (Q2)" AS NUMERIC))::MONEY AS "540-630 Sum (Q2)",
+        SUM(CAST("630-730 Sum (Q1)" AS NUMERIC))::MONEY AS "630-730 Sum (Q1)",
+	    SUM(CAST("730+ Sum" AS NUMERIC))::MONEY AS "730+ Sum",
              <% } else { %>
-                sum(cast("120+ Sum" AS NUMERIC))::MONEY as "120+ Sum",
+                SUM(CAST("120+ Sum" AS NUMERIC))::MONEY AS "120+ Sum",
              <%}%>
 
-       sum("Total") AS "Total"
+       SUM("Total") AS "Total"
    FROM
        aging_details
    GROUP BY
    "Responsible Party_order_by", "Payer Name"
 ),
 aged_ar_total AS ( SELECT
-    null::text as "Facility",
-    null::bigint as "Claim ID",
-    null::text as "Cut-off Date",
-    null::text as "Billing Pro Name",
-    null::text as "Patient Name",
-    null::text as "Claim Date",
-    null::varchar(64) as "Account #",
-    null::bigint "Responsible Party_order_by" ,
-    null::text as "Responsible Party",
-    null::text as "Insurance Group",
-    null::text AS "Payer Name",
-    null::text as "EDI",
-    ('- Total -')::text as "Provider Type",
-    sum(cast("0-30 Sum" AS NUMERIC))::MONEY as "0-30 Sum",
-    sum(cast("30-60 Sum" AS NUMERIC))::MONEY as "30-60 Sum",
-    sum("60-90 Sum") as "60-90 Sum",
-    sum("90-120 Sum") as "90-120 Sum",
+    NULL::TEXT AS "Facility",
+    NULL::bigint AS "Claim ID",
+    NULL::TEXT AS "Cut-off Date",
+    NULL::TEXT AS "Billing Pro Name",
+    NULL::TEXT AS "Patient Name",
+    NULL::DATE AS "Claim Date",
+    NULL::varchar(64) AS "Account #",
+    NULL::bigint "Responsible Party_order_by" ,
+    NULL::TEXT AS "Responsible Party",
+    NULL::TEXT AS "Insurance Group",
+    NULL::TEXT AS "Payer Name",
+    NULL::TEXT AS "EDI",
+    ('- Total -')::TEXT AS "Provider Type",
+    SUM(CAST("0-30 Sum" AS NUMERIC))::MONEY AS "0-30 Sum",
+    SUM(CAST("30-60 Sum" AS NUMERIC))::MONEY AS "30-60 Sum",
+    SUM("60-90 Sum") AS "60-90 Sum",
+    SUM("90-120 Sum") AS "90-120 Sum",
     <% if(excelExtented == 'true') { %>
-        sum(cast("120-150 Sum" AS NUMERIC))::MONEY as "120-150 Sum",
-        sum(cast("150-180 Sum" AS NUMERIC))::MONEY as "150-180 Sum",
-        sum(cast("180-210 Sum" AS NUMERIC))::MONEY as "180-210 Sum",
-        sum(cast("210-240 Sum" AS NUMERIC))::MONEY as "210-240 Sum",
-        sum(cast("240-270 Sum" AS NUMERIC))::MONEY as "240-270 Sum",
-        sum(cast("270-300 Sum" AS NUMERIC))::MONEY as "270-300 Sum",
-        sum(cast("300-330 Sum" AS NUMERIC))::MONEY as "300-330 Sum",
-        sum(cast("330-360 Sum" AS NUMERIC))::MONEY as "330-360 Sum",
-        sum(cast("360-450 Sum (Q4)" AS NUMERIC))::MONEY as "360-450 Sum (Q4)",
-        sum(cast("450-540 Sum (Q3)" AS NUMERIC))::MONEY as "450-540 Sum (Q3)",
-        sum(cast("540-630 Sum (Q2)" AS NUMERIC))::MONEY as "540-630 Sum (Q2)",
-        sum(cast("630-730 Sum (Q1)" AS NUMERIC))::MONEY as "630-730 Sum (Q1)",
-        sum(cast("730+ Sum" AS NUMERIC))::MONEY as "730+ Sum",
+        SUM(CAST("120-150 Sum" AS NUMERIC))::MONEY AS "120-150 Sum",
+        SUM(CAST("150-180 Sum" AS NUMERIC))::MONEY AS "150-180 Sum",
+        SUM(CAST("180-210 Sum" AS NUMERIC))::MONEY AS "180-210 Sum",
+        SUM(CAST("210-240 Sum" AS NUMERIC))::MONEY AS "210-240 Sum",
+        SUM(CAST("240-270 Sum" AS NUMERIC))::MONEY AS "240-270 Sum",
+        SUM(CAST("270-300 Sum" AS NUMERIC))::MONEY AS "270-300 Sum",
+        SUM(CAST("300-330 Sum" AS NUMERIC))::MONEY AS "300-330 Sum",
+        SUM(CAST("330-360 Sum" AS NUMERIC))::MONEY AS "330-360 Sum",
+        SUM(CAST("360-450 Sum (Q4)" AS NUMERIC))::MONEY AS "360-450 Sum (Q4)",
+        SUM(CAST("450-540 Sum (Q3)" AS NUMERIC))::MONEY AS "450-540 Sum (Q3)",
+        SUM(CAST("540-630 Sum (Q2)" AS NUMERIC))::MONEY AS "540-630 Sum (Q2)",
+        SUM(CAST("630-730 Sum (Q1)" AS NUMERIC))::MONEY AS "630-730 Sum (Q1)",
+        SUM(CAST("730+ Sum" AS NUMERIC))::MONEY AS "730+ Sum",
              <% } else { %>
-                sum(cast("120+ Sum" AS NUMERIC))::MONEY as "120+ Sum",
+                SUM(CAST("120+ Sum" AS NUMERIC))::MONEY AS "120+ Sum",
              <%}%>
-    sum("Total") AS "Total"
+    SUM("Total") AS "Total"
 FROM
 aging_details ),
 aging_result as ( SELECT
@@ -262,7 +262,7 @@ SELECT
 	 , "Cut-off Date"
 	 , "Billing Pro Name"
 	 , "Patient Name"
-	 , "Claim Date"
+	 , to_char("Claim Date", 'MM/DD/YYYY') AS "Claim Date"
 	 , "Account #"
      , "Responsible Party"
      , "Insurance Group"

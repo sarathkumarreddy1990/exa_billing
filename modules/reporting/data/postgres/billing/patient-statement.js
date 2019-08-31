@@ -30,7 +30,7 @@ WITH claim_data AS (
     INNER JOIN claim_data cd on cd.claim_id = cc.claim_id
     INNER JOIN users u on u.id = cc.created_by
     WHERE(
-        CASE WHEN cc.type = 'manual' THEN
+        CASE WHEN cc.type in( 'manual', 'auto', 'patient_statement')  THEN
             cc.is_internal
         ELSE
             cc.type in ('co_pay', 'co_insurance', 'deductible')
@@ -218,6 +218,7 @@ WITH claim_data AS (
       dc.pid
     , dc.enc_id
     , bucket_date
+    HAVING <%= encounterTotal %> > '0'
     ),
 
     sum_statement_credit_cte AS (

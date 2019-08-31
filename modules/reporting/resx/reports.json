@@ -270,7 +270,7 @@
         "id": "claim-activity",
         "category": "billing",
         "title": "Claim Activity",
-        "description": "Report shows detailed claims transaction history for selected facilities and given scheduled date range.",
+        "description": "Report shows detailed claim activity history for given claim date range.",
         "vars": {
             "columnHeader": {
                 "cpt": {
@@ -447,7 +447,7 @@
             },
             "pdf": {
                 "template": {
-                    "name": "default-table-pdf"
+                    "name": "default-table-landscape-pdf"
                 }
             },
             "xlsx": {
@@ -636,7 +636,7 @@
         "id": "procedure-analysis-by-insurance",
         "category": "billing",
         "title": "Procedure Analysis By Insurance / Referring Provider",
-        "description": "Report shows order's procedure codes per primary insurances and Referring Provider",
+        "description": "Report shows claim's procedure codes per primary insurances and referring provider.",
         "vars": {
             "columnHeader": {
                 "cpt": {
@@ -681,7 +681,7 @@
         "id": "claim-transaction",
         "category": "billing",
         "title": "Claim Transaction",
-        "description": "Report shows all submitted claims and order payment/balance.",
+        "description": "Report shows all claims and claim payment/balance.",
         "jsreport": {
             "html": {
                 "template": {
@@ -1494,6 +1494,14 @@
         "category": "billing",
         "title": "Payments By Insurance Company",
         "description": "Calculate Insurance Company wise payments",
+        "vars": {
+            "columnHeader": {
+                "card_cheque": {
+                    "usa": "Check/Card #",
+                    "can": "Cheque/Card #"
+                }
+            }
+        },
         "jsreport": {
             "html": {
                 "template": {
@@ -1748,7 +1756,7 @@
         "id": "payments-realization-rate-analysis",
         "category": "billing",
         "title": "Payment Realization Rate Analysis",
-        "description": " This report needs to toggle for filtering zero balance accounts vs. accounts with a balance remaining.",
+        "description": "Report shows accounts with zero balance.",
         "jsreport": {
             "html": {
                 "template": {

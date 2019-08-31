@@ -1,9 +1,10 @@
-const _ = require('lodash')
-    , Promise = require('bluebird')
-    , db = require('../db')
-    , dataHelper = require('../dataHelper')
-    , queryBuilder = require('../queryBuilder')
-    , logger = require('../../../../../logger');
+const _ = require('lodash');
+const Promise = require('bluebird');
+const db = require('../db');
+const dataHelper = require('../dataHelper');
+const queryBuilder = require('../queryBuilder');
+const logger = require('../../../../../logger');
+const commonIndex = require('../../../../../server/shared/index');
 
 // generate query template ***only once*** !!!
 
@@ -53,6 +54,13 @@ WITH claim_data as(
           billing.claim_comments cc
     INNER JOIN claim_data cd on cd.claim_id = cc.claim_id
     INNER JOIN users u  on u.id = cc.created_by
+    WHERE(
+        CASE WHEN cc.type in( 'manual', 'auto', 'patient_statement')  THEN
+            cc.is_internal
+        ELSE
+            cc.type in ('co_pay', 'co_insurance', 'deductible')
+        END
+    )
     UNION
     <% } %>
     SELECT
@@ -841,7 +849,7 @@ const api = {
             filters.billingProviderIds = queryBuilder.whereIn(`bp.id`, [params.length]);
         }
 
-        filters.dateFormat = reportParams.dateFormat;
+        filters.dateFormat = reportParams.dateFormat || commonIndex.getLocaleFormat(reportParams.browserLocale);
         filters.reportBy =  reportParams.reportBy;
         filters.claimId = reportParams.claimId;
         return {

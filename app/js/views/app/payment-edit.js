@@ -1409,7 +1409,9 @@ define(['jquery',
                     onaftergridbind: function (model, gridObj) {
                         self.setMoneyMask();
                         //$("#gs_claim_id").focus()
-                    }
+                    },
+                    delayedPagerUpdate: true,
+                    pagerApiUrl: '/exa_modules/billing/pending_payments/payment_count'
                 });
 
                 setTimeout(function () {
@@ -1746,7 +1748,11 @@ define(['jquery',
                     header: casDialogHeader,
                     width: rowData.isFromClaim ? '75%' : '85%',
                     height: rowData.isFromClaim ? '65%' : '72%',
-                    html: casDialogHtml
+                    html: casDialogHtml,
+                    onShown: function () {
+                        var thisPayment = $($('.payment__this_pay')[0]);
+                        thisPayment.focus().val(thisPayment.val());
+                    }
                 };
 
                 if (rowData.isFromClaim) {
@@ -1798,6 +1804,10 @@ define(['jquery',
                             });
                         }
                     });
+                }
+
+                if (self.screenCode.indexOf('ECST') > -1) { // If the user don't have rights for edit claim status, claim status change action is disabled.
+                    $('#ddlClaimStatus').prop({'disabled': true, 'title': commonjs.geti18NString("messages.errors.accessdenied")});
                 }
             },
 
@@ -2056,7 +2066,7 @@ define(['jquery',
                             self.saveAllPayments(e, claimId, paymentId, paymentStatus, chargeId, paymentApplicationId);
                         });
 
-                        self.reloadPaymentFields(claimId, paymentId, paymentApplicationId);
+                        self.reloadPaymentFields(claimId, paymentId, paymentApplicationId, isInitialBind);
 
                         $('#txtResponsibleNotes').val(payerTypes[0].billing_notes);
 
@@ -2089,6 +2099,9 @@ define(['jquery',
                 $('.checkDebit').prop('checked', false);
                 $('.this_pay').val(pay_val);
                 $('.this_adjustment').val(pay_val);
+                $('.payment__this_allowed').val(pay_val);
+
+                this.updatePaymentAdjustment();
             },
 
             updateRefundRecoupment: function () {
@@ -2135,20 +2148,30 @@ define(['jquery',
             },
 
             calculateAdjustment: function (e) {
-                var row = $(e.target).closest('tr');
+                var $row = $(e.target).closest('tr');
                 var isDebit = $('.checkDebit')[0].checked;
-                var bill_fee = parseFloat($(row).find('.payment__bill_fee').text()).toFixed(2);
-                var otherPayment = $(row).find('.payment__others').text() != '' ? parseFloat($(row).find('.payment__others').text()) : 0.00;
-                var this_pay = $(row).find('.payment__this_pay').val() ? parseFloat($(row).find('.payment__this_pay').val()) : 0.00;
-                var allowed_fee = $(row).find('.payment__this_allowed').val() ? parseFloat($(row).find('.payment__this_allowed').val()) : 0.00;
-                var otherAdj = parseFloat($(row).find('.payment__other_adjustment').text())
-                var adjustment = bill_fee - (allowed_fee)
+                var $billFee = $row.find('.payment__bill_fee');
+                var $thisPay = $row.find('.payment__this_pay');
+                var $thisAdj = $row.find('.payment__this_adjustment');
+                var $otherAdj = $row.find('.payment__other_adjustment');
+                var $allowedFee = $row.find('.payment__this_allowed');
+                var $otherPayment = $row.find('.payment__others');
+                var $paymentBalance = $row.find('.payment__balance');
+                var otherAdj = parseFloat($otherAdj.text());
+                var billFee = parseFloat($billFee.text()).toFixed(2);
+                var allowedFee = $allowedFee.val() ? parseFloat($allowedFee.val()) : 0.00;
+                var otherPayment = $otherPayment.text() != '' ? parseFloat($otherPayment.text()) : 0.00;
+                var adjustment = billFee - allowedFee;
                 adjustment = isDebit ? -Math.abs(adjustment) : Math.abs(adjustment);
-                $(row).find('.payment__this_adjustment').val(parseFloat(adjustment).toFixed(2));
-                var payment_amt = $(row).find('.payment__this_pay').val() ? parseFloat($(row).find('.payment__this_pay').val()) : 0.00;
-                var adj_amt = $(row).find('.payment__this_adjustment').val() ? parseFloat($(row).find('.payment__this_adjustment').val()) : 0.00;
-                var current_balance = parseFloat($(row).find('.payment__bill_fee').text()) - (otherPayment + otherAdj + payment_amt + adj_amt);
-                $(row).find('.payment__balance').text(parseFloat(current_balance).toFixed(2));
+
+                if ($allowedFee.val() != '') {
+                    $thisAdj.val(parseFloat(adjustment).toFixed(2));
+                }
+                var paymentAmt = $thisPay.val() ? parseFloat($thisPay.val()) : 0.00;
+                var adjAmt = $thisAdj.val() ? parseFloat($thisAdj.val()) : 0.00;
+                var currentBalance = parseFloat($billFee.text()) - (otherPayment + otherAdj + paymentAmt + adjAmt);
+
+                $paymentBalance.text(parseFloat(currentBalance).toFixed(2));
             },
 
             updatePaymentAdjustment: function () {
@@ -2510,7 +2533,7 @@ define(['jquery',
                 }
             },
 
-            reloadPaymentFields: function (claimId, paymentId, paymentApplicationId) {
+            reloadPaymentFields: function (claimId, paymentId, paymentApplicationId, isInitialBind) {
                 var self = this;
                 jQuery.ajax({
                     url: "/exa_modules/billing/pending_payments/fee_details",
@@ -2528,18 +2551,19 @@ define(['jquery',
                             self.currentOrderBalance = feeDetails.balance || 0;
                             self.setFeeFields({ billFee: feeDetails.bill_fee, adjustment: feeDetails.adjustment, balance: feeDetails.balance, others_paid: feeDetails.others_paid, patient_paid: feeDetails.patient_paid, payment: feeDetails.payment, total_adjustment: feeDetails.total_adjustment });
                         }
-                        var id = layout.currentModule == 'Claims' ? 'modalBodyNested' : 'modalBody';
-                        $('#' + id).trackFormChanges(function (unsaved) {
-                            if (unsaved) {
-                                var saveConfirm = confirm(commonjs.geti18NString("messages.confirm.unsavedFormConfirm"));
-                                if (saveConfirm) {
-                                    self.isEscKeyPress = true;
-                                    $('#btnSaveAppliedPendingPayments').trigger('click');
+                        if (isInitialBind) {
+                            var id = layout.currentModule == 'Claims' || layout.currentScreen == 'Studies' ? 'modalBodyNested' : 'modalBody';
+                            $('#' + id).trackFormChanges(function (unsaved) {
+                                if (unsaved) {
+                                    if (confirm(commonjs.geti18NString("messages.confirm.unsavedFormConfirm"))) {
+                                        self.isEscKeyPress = true;
+                                        $('#btnSaveAppliedPendingPayments').trigger('click');
+                                    }
+                                } else {
+                                    self.closePayment();
                                 }
-                            } else {
-                                self.closePayment();
-                            }
-                        })
+                            })
+                        }
                         commonjs.hideLoading();
                     },
                     error: function (err) {
@@ -3272,8 +3296,12 @@ define(['jquery',
                     },
                     success: function (data, response) {
                         if (data && data.length) {
+                            var totalPaymentBalance = self.formatMoneyValue(data[0].balance);
+                            var paymentHeader = commonjs.geti18NString("menuTitles.order.totalPaymentRecordBalance") + ' : ' + totalPaymentBalance
                             $('#lblApplied').html(self.formatMoneyValue(data[0].applied));
-                            $('#lblBalance').html(self.formatMoneyValue(data[0].balance));
+                            $('#lblBalance').html(totalPaymentBalance);
+                            $('#totalPaymentBalance').text(paymentHeader);
+
                             if (data[0].applied && parseFloat(data[0].applied.replace('$', '')) > 0) {
                                 $("#selectPayerType").prop("disabled", true);
                             }
@@ -3299,8 +3327,9 @@ define(['jquery',
             },
 
             setMoneyMask: function (obj1, obj2) {
-                $(".ui-jqgrid-htable thead:first tr.ui-search-toolbar input[name=billing_fee],[name=balance],[name=bill_fee],[name=adjustment],[name=this_adjustment],[name=payment]").addClass('floatbox');
-                $(".ui-jqgrid-htable thead:first tr.ui-search-toolbar input[name=claim_id]").addClass('integerbox');
+                var $gridFields = $(".ui-jqgrid-htable thead:first tr.ui-search-toolbar");
+                $gridFields.find("input[name=billing_fee],[name=balance],[name=bill_fee],[name=adjustment],[name=this_adjustment],[name=payment]").addClass('negativeFloatBox');
+                $gridFields.find("input[name=claim_id]").addClass('integerbox');
                 commonjs.validateControls();
             },
 
@@ -3400,7 +3429,7 @@ define(['jquery',
             },
             
             closePayment: function (e) {
-                if (layout.currentModule == 'Claims') {
+                if (layout.currentModule == 'Claims' || layout.currentScreen == 'Studies') {
                     $('#siteModalNested .close').trigger('click');
                 } else {
                     $('#siteModal .close').trigger('click');

@@ -95,6 +95,7 @@ define(['jquery',
                 this.model = new newClaimModel();
                 this.patInsModel = new modelPatientInsurance();
 
+                this.createShortCut();
                 var modelCollection = Backbone.Collection.extend({
                     model: Backbone.Model.extend({})
                 });
@@ -114,6 +115,7 @@ define(['jquery',
                     var rights = (window.appRights).init();
                     this.screenCode = rights.screenCode;
                 }
+                this.claimWorkBench = this.options && this.options.worklist || null;
             },
             urlNavigation: function () { //To restrict the change in URL based on tab selection. Maintain Same URL for every tab in claim creation screen
                 var self = this;
@@ -125,12 +127,24 @@ define(['jquery',
             render: function (isFrom) {
                 var self = this;
                 this.rendered = true;
-
                 commonjs.showDialog({
                     header: 'Claim Creation',
                     i18nHeader: 'shared.fields.claimCreation',
                     width: '95%',
                     height: '75%',
+                    isFromClaim: true,
+                    onHidden: function (options) {
+                        var prevValidationResults = commonjs.previousValidationResults;
+
+                        if (prevValidationResults && !options.fromValidate) {
+                            if (prevValidationResults.isFromEDI) {
+                                self.claimWorkBench.ediResponse(prevValidationResults.result);
+                            } else {
+                                self.claimWorkBench.showValidationResult(prevValidationResults.result);
+                            }
+                        }
+
+                    },
                     html: this.claimCreationTemplate({
                         country_alpha_3_code: app.country_alpha_3_code,
                         patient_name: self.cur_patient_name,
@@ -170,6 +184,8 @@ define(['jquery',
                 $('#siteModal').removeAttr('tabindex'); //removed tabIndex attr for select2 search text can't editable
 
                 if (isFrom != 'patientSearch') {
+                    $('#siteModal .close')[0].title = 'Esc';
+                    $('#siteModal .btn-secondary')[0].title = 'Esc';
                     self.bindDetails();
                     self.bindTabMenuEvents();
                 }
@@ -180,25 +196,17 @@ define(['jquery',
                 if(self.screenCode.indexOf('PATR') > -1)
                     $('#btPatientDocuemnt').attr('disabled', true)
 
+                if (self.screenCode.indexOf('ECST') > -1) { // If the user don't have rights for edit claim status, claim status change action is disabled.
+                    $('#ddlClaimStatus').prop({'disabled': true, 'title': commonjs.geti18NString("messages.errors.accessdenied")});
+                }
+
                 self.initializeDateTimePickers();
                 $('#modal_div_container').animate({ scrollTop: 0 }, 100);
 
                 // Append dynamic address details for canadian config
-                var AddressInfoMap = {
-                    city: {
-                        domId: 'txtPriCity',
-                        infoKey: 'city'
-                    },
-                    state: {
-                        domId: 'ddlPriState',
-                        infoKey: 'state'
-                    },
-                    zipCode: {
-                        domId: 'txtPriZipCode',
-                        infoKey: 'zip'
-                    }
-                }
-                self.bindCityStateZipTemplate({}, AddressInfoMap, 'Pri');
+                self.bindAddressInfo('Pri');
+                self.bindAddressInfo('Sec');
+                self.bindAddressInfo('Ter');
             },
 
             initializeDateTimePickers: function () {
@@ -401,6 +409,10 @@ define(['jquery',
                     eligibilityData.firstName = $('#txtTerSubFirstName').val() ? $('#txtTerSubFirstName').val() : null;
                 }
 
+                if (!eligibilityData.insuranceProviderId) {
+                    return commonjs.showWarning('messages.status.pleaseSelectInsuranceProvider');   
+                }
+
                 $('#btnCheckEligibility' + ins).prop('disabled', true);
                 $('#imgLoading').show();
 
@@ -418,11 +430,34 @@ define(['jquery',
                         data = response.data;
                         $('#btnCheckEligibility' + ins).prop('disabled', false);
                         if (data && data.errors) {
-                            commonjs.showWarning(data.errors.query ? data.errors.query : 'ERR: ' + JSON.stringify(data.errors) + '..');
-                            return;
+                            return commonjs.showNestedDialog({
+                                header: 'Pokitdok Response',
+                                i18nHeader: 'shared.fields.pokitdokresponse',
+                                width: '80%',
+                                height: '70%',
+                                html: $(self.InsurancePokitdokTemplateForm({
+                                    'InsuranceData': '',
+                                    'InsuranceDatavalue': '',
+                                    'errors': data.errors
+                                }))
+                            });
                         }
-                        else if (!data.errors && response.insPokitdok == true) {
-                            commonjs.showNestedDialog({ header: 'Pokitdok Response', width: '80%', height: '70%', html: $(self.InsurancePokitdokTemplateForm({ 'InsuranceData': response.data, 'InsuranceDatavalue': response.meta })) });
+                        else if (data && !data.errors && response.insPokitdok) {
+                            commonjs.showNestedDialog({
+                                header: 'Pokitdok Response',
+                                i18nHeader: 'shared.fields.pokitdokresponse',
+                                width: '80%',
+                                height: '70%',
+                                html: $(self.InsurancePokitdokTemplateForm({
+                                    'InsuranceData': response.data,
+                                    'InsuranceDatavalue': response.meta,
+                                    'errors': ''
+                                }))
+                            });
+                        } else if (!response.insPokitdok) {
+                            return commonjs.showWarning('messages.warning.claims.pleaseConfigurePokitdok');
+                        } else if (response && response.error === 'invalid_client') {
+                            return commonjs.showError("messages.errors.invalidPokitdokIp");
                         }
 
                         $('#divCoPayDetails').height('400px');
@@ -540,6 +575,11 @@ define(['jquery',
                                 return false;
                             }
 
+                            if (isFrom === 'reclaim') {
+                                self.options.patient_name = claimDetails.patient_name;
+                                self.options.patient_id = claimDetails.patient_id;
+                            }
+
                             self.initializeClaimEditForm(isFrom);
                             /* Bind chargeLineItems events - started*/
                             if(self.screenCode.indexOf('DCLM') > -1) {
@@ -585,7 +625,7 @@ define(['jquery',
                                 $('#checkExclude_' + index).prop('checked', data.is_excluded);
                             });
 
-                            if (self.openedFrom && self.openedFrom === 'patientSearch')
+                            if (self.openedFrom === 'patientSearch' || commonjs.previousValidationResults)
                                 $('.claimProcess').hide(); // hide Next/Prev btn if opened from patient search
 
                             // trigger blur event for update Total bill fee, balance etc.
@@ -663,7 +703,6 @@ define(['jquery',
                             if (app.country_alpha_3_code === 'can') {
                                 $('label[for=txtPriPolicyNo] span').remove();
                                 if (claimDetails.existing_insurance && claimDetails.existing_insurance.length && claimDetails.existing_insurance[0].insurance_code && ['HCP', 'WSIB'].indexOf(claimDetails.existing_insurance[0].insurance_code.toUpperCase()) >= 0) {
-                                    self.priInsCode = claimDetails.existing_insurance[0].insurance_code;
                                     $('label[for=txtPriPolicyNo]').append("<span class='Required' style='color: red;padding-left: 5px;'>*</span>");
                                 }
                             }
@@ -741,16 +780,16 @@ define(['jquery',
                 claim_data.unable_to_work_to_date ? self.wct.date(claim_data.unable_to_work_to_date ) :self.wct.clear();
                 document.querySelector('#txtOtherDate').value = claim_data.same_illness_first_date ? moment(claim_data.same_illness_first_date).format('L') : '';
                 document.querySelector('#txtDate').value = claim_data.current_illness_date ? moment(claim_data.current_illness_date).format('L') : '';
-
+                var isCauseCode = (claim_data.is_employed || claim_data.is_auto_accident || claim_data.is_other_accident);
 
                 $('input[name="outSideLab"]').prop('checked', claim_data.service_by_outside_lab);
                 $('input[name="employment"]').prop('checked', claim_data.is_employed);
                 $('input[name="autoAccident"]').prop('checked', claim_data.is_auto_accident);
                 $('input[name="otherAccident"]').prop('checked', claim_data.is_other_accident);
-                $('#txtOriginalRef').val(claim_data.original_reference ? claim_data.original_reference : '');
-                $('#txtAuthorization').val(claim_data.authorization_no ? claim_data.authorization_no : '');
-                $('#frequency').val(claim_data.frequency ? claim_data.frequency : '');
-
+                $('#txtOriginalRef').val(claim_data.original_reference || '');
+                $('#txtAuthorization').val(claim_data.authorization_no || '');
+                $('#frequency').val(claim_data.frequency || '');
+                $('#txtAccidentState').val(claim_data.accident_state).prop('disabled', !isCauseCode);
                 /* Additional info end */
                 /* Billing summary start */
 
@@ -875,22 +914,7 @@ define(['jquery',
                     $('#txtPriSubSecAddr').val(claimData.p_subscriber_address_line2);
 
                     // Append dynamic address details for canadian config
-                    var AddressInfoMap = {
-                        city: {
-                            domId: 'txtPriCity',
-                            infoKey: 'p_subscriber_city'
-                        },
-                        state: {
-                            domId: 'ddlPriState',
-                            infoKey: 'p_subscriber_state'
-                        },
-                        zipCode: {
-                            domId: 'txtPriZipCode',
-                            infoKey: 'p_subscriber_zipcode'
-                        }
-                    }
-                    self.bindCityStateZipTemplate(claimData, AddressInfoMap, 'Pri');
-
+                    self.bindAddressInfo('Pri',claimData,'p');
                     document.querySelector('#txtPriDOB').value = claimData.p_subscriber_dob ? moment(claimData.p_subscriber_dob).format('L') : '';
                     document.querySelector('#txtPriStartDate').value = claimData.p_valid_from_date ? moment(claimData.p_valid_from_date).format('L') : '';
                     document.querySelector('#txtPriExpDate').value = claimData.p_valid_to_date ? moment(claimData.p_valid_to_date).format('L') : '';
@@ -938,6 +962,7 @@ define(['jquery',
                         $('#ddlSecState').val(claimData.s_subscriber_state);
                     }
 
+                    self.bindAddressInfo('Sec',claimData,'s');
                     document.querySelector('#txtSecDOB').value = claimData.s_subscriber_dob ? moment(claimData.s_subscriber_dob).format('L') : '';
                     document.querySelector('#txtSecStartDate').value = claimData.s_valid_from_date ? moment(claimData.s_valid_from_date).format('L') : '';
                     document.querySelector('#txtSecExpDate').value = claimData.s_valid_to_date ? moment(claimData.s_valid_to_date).format('L') : '';
@@ -982,6 +1007,7 @@ define(['jquery',
                         $('#ddlTerState').val(claimData.t_subscriber_state);
                     }
 
+                    self.bindAddressInfo('Ter',claimData,'t');
                     document.querySelector('#txtTerDOB').value = claimData.t_subscriber_dob ? moment(claimData.t_subscriber_dob).format('L') : '';
                     document.querySelector('#txtTerStartDate').value = claimData.t_valid_from_date ? moment(claimData.t_valid_from_date).format('L') : '';
                     document.querySelector('#txtTerExpDate').value = claimData.t_valid_to_date ? moment(claimData.t_valid_to_date).format('L') : '';
@@ -1148,6 +1174,16 @@ define(['jquery',
                 if (isFrom && isFrom != 'reload') {
                     $('#modal_div_container').animate({ scrollTop: 0 }, 100);
                 }
+
+                $('#chkEmployment, #chkAutoAccident, #chkOtherAccident').off().change(function () {
+                    var isCauseCode = $('#chkEmployment').prop('checked') || $('#chkAutoAccident').prop('checked') || $('#chkOtherAccident').prop('checked');
+                    var $accidentState = $("#txtAccidentState");
+                    $accidentState.prop("disabled", !isCauseCode);
+
+                    if (!isCauseCode) {
+                        $accidentState.val('');
+                    }
+                });
             },
             getLineItemsAndBind: function (selectedStudyIds) {
                 var self = this;
@@ -2768,13 +2804,15 @@ define(['jquery',
                 var currentResponsible = _.find(self.responsible_list, function(d) { return d.payer_type == $('#ddlClaimResponsible').val(); });
                 var currentPayer_type = $('#ddlClaimResponsible').val().split('_')[0];
                 var facility_id = $('#ddlFacility option:selected').val() != '' ? parseInt($('#ddlFacility option:selected').val()) : null;
+                var isCauseCode = $('#chkEmployment').prop('checked') || $('#chkAutoAccident').prop('checked') || $('#chkOtherAccident').prop('checked');
+
                 if (currentPayer_type == "PIP") {
                     billingMethod = currentResponsible.billing_method || 'direct_billing';
-                }
-                else if (currentPayer_type == "PPP")
+                } else if (currentPayer_type == "PPP") {
                     billingMethod = 'patient_payment';
-                else
+                } else {
                     billingMethod = 'direct_billing';
+                }
 
                 if (self.priInsID && self.validatePatientAddress("primary") && confirm(commonjs.geti18NString("messages.confirm.updatePatientAddress"))) {
                     isUpdatePatientInfo = true;
@@ -2901,10 +2939,11 @@ define(['jquery',
                     original_reference: $.trim($('#txtOriginalRef').val()),
                     authorization_no: $.trim($('#txtAuthorization').val()),
                     frequency: $('#ddlFrequencyCode option:selected').val() != '' ? $('#ddlFrequencyCode option:selected').val() : null,
-                    is_auto_accident: $('#chkAutoAccident').is(':checked'),
-                    is_other_accident: $('#chkOtherAccident').is(':checked'),
-                    is_employed: $('#chkEmployment').is(':checked'),
-                    service_by_outside_lab: $('#chkOutSideLab').is(':checked'),
+                    is_auto_accident: $('#chkAutoAccident').prop('checked'),
+                    is_other_accident: $('#chkOtherAccident').prop('checked'),
+                    is_employed: $('#chkEmployment').prop('checked'),
+                    accident_state: isCauseCode && $('#txtAccidentState').val() || null,
+                    service_by_outside_lab: $('#chkOutSideLab').prop('checked'),
                     claim_status_id: $('#ddlClaimStatus option:selected').val() != '' ? parseInt($('#ddlClaimStatus option:selected').val()) : null,
                     primary_patient_insurance_id: self.is_primary_available && parseInt(self.primaryPatientInsuranceId) || ( self.is_primary_available && parseInt(self.priClaimInsID) || null ),
                     secondary_patient_insurance_id: self.is_secondary_available && parseInt(self.secondaryPatientInsuranceId) || ( self.is_secondary_available && parseInt(self.secClaimInsID) || null ),
@@ -3152,7 +3191,8 @@ define(['jquery',
                         $('#txtPriSubPriAddr').val().trim(),
                         $('#txtPriCity').val().trim(),
                         $('#ddlPriState option:selected').val() && $('#ddlPriState option:selected').val().trim() || '',
-                        $('#txtPriZipCode').val().trim()
+                        $('#txtPriZipCode').val().trim(),
+                        $('#select2-ddlPriInsurance-container').text().trim() || ''
                     ],
                     primaryfieldObjs: [
                         { obj: $('#ddlPriRelationShip'), msg: 'messages.warning.claims.selectRelationshipPrimaryInsurance' },
@@ -3163,7 +3203,8 @@ define(['jquery',
                         { obj: $('#txtPriSubPriAddr'), msg: 'messages.warning.claims.enterAddressPrimaryInsurance' },
                         { obj: $('#txtPriCity'), msg: 'messages.warning.claims.enterCityPrimaryInsurance' },
                         { obj: $('#ddlPriState'), msg: 'messages.warning.claims.selectStatePrimaryInsurance' },
-                        { obj: $('#txtPriZipCode'), msg: 'messages.warning.claims.enterZipcodePrimaryInsurance' }
+                        { obj: $('#txtPriZipCode'), msg: 'messages.warning.claims.enterZipcodePrimaryInsurance' },
+                        { obj: $('#ddlPriInsurance'), msg: 'messages.warning.claims.selectCarrierPrimaryInsurance' }
                     ]
                 }
 
@@ -3193,7 +3234,8 @@ define(['jquery',
                         $('#txtSecSubPriAddr').val().trim(),
                         $('#txtSecCity').val().trim(),
                         $('#ddlSecState option:selected').val().trim() || '',
-                        $('#txtSecZipCode').val().trim()
+                        $('#txtSecZipCode').val().trim(),
+                        $('#select2-ddlSecInsurance-container').text().trim() || ''
                     ];
                     mandatory_fields.secondaryfieldObjs = [
                         { obj: $('#txtSecPolicyNo'), msg: 'messages.warning.claims.selectPolicySecondaryInsurance' },
@@ -3205,7 +3247,8 @@ define(['jquery',
                         { obj: $('#txtSecSubPriAddr'), msg: 'messages.warning.claims.enterAddressSecondaryInsurance' },
                         { obj: $('#txtSecCity'), msg: 'messages.warning.claims.enterCitySecondaryInsurance' },
                         { obj: $('#ddlSecState'), msg: 'messages.warning.claims.selectStateSecondaryInsurance' },
-                        { obj: $('#txtSecZipCode'), msg: 'messages.warning.claims.enterZipcodeSecondaryInsurance' }
+                        { obj: $('#txtSecZipCode'), msg: 'messages.warning.claims.enterZipcodeSecondaryInsurance' },
+                        { obj: $('#ddlSecInsurance'), msg: 'messages.warning.claims.selectCarrierSecondaryInsurance' }
                     ];
                     mandatory_fields.tertiaryfields = [
                         $('#txtTerPolicyNo').val().trim(),
@@ -3217,7 +3260,8 @@ define(['jquery',
                         $('#txtTerSubPriAddr').val().trim(),
                         $('#txtTerCity').val().trim(),
                         $('#ddlTerState option:selected').val().trim() || '',
-                        $('#txtTerZipCode').val().trim()
+                        $('#txtTerZipCode').val().trim(),
+                        $('#select2-ddlTerInsurance-container').text().trim() || ''
                     ];
                     mandatory_fields.tertiaryfieldObjs = [
                         { obj: $('#txtTerPolicyNo'), msg: 'messages.warning.claims.selectPolicyTertiaryInsurance' },
@@ -3229,7 +3273,8 @@ define(['jquery',
                         { obj: $('#txtTerSubPriAddr'), msg: 'messages.warning.claims.enterAddressTertiaryInsurance' },
                         { obj: $('#txtTerCity'), msg: 'messages.warning.claims.enterCityTertiaryInsurance' },
                         { obj: $('#ddlTerState'), msg: 'messages.warning.claims.selectStateTertiaryInsurance' },
-                        { obj: $('#txtTerZipCode'), msg: 'messages.warning.claims.enterZipcodeTertiaryInsurance' }
+                        { obj: $('#txtTerZipCode'), msg: 'messages.warning.claims.enterZipcodeTertiaryInsurance' },
+                        { obj: $('#ddlTerInsurance'), msg: 'messages.warning.claims.selectCarrierTertiaryInsurance' }
                     ];
 
                 }
@@ -3378,6 +3423,14 @@ define(['jquery',
                 }
 
                 /* Additional Info Section */
+                var accidentState = $('#txtAccidentState');
+
+                if (accidentState.val().length === 1) {
+                    commonjs.showWarning("order.additionalInfo.accidentStateValidation");
+                    accidentState.focus();
+                    return false;
+                }
+
                 if (self.wcf.date() || self.wct.date()) {
                     if (!self.validateFromAndToDate(self.wcf, self.wct))
                         return false;
@@ -3650,7 +3703,17 @@ define(['jquery',
                                 }
                             }
                             else {
-                                commonjs.showNestedDialog({ header: 'Validation Results', i18nHeader: 'billing.claims.validationResults', width: '70%', height: '60%', html: self.claimValidation({ response_data: data.invalidClaim_data }) });
+                                commonjs.showNestedDialog({ 
+                                    header: 'Validation Results', 
+                                    i18nHeader: 'billing.claims.validationResults', 
+                                    width: '70%', 
+                                    height: '60%', 
+                                    html: self.claimValidation({ response_data: data.invalidClaim_data }),
+                                    onShown: function () {
+                                        $('#revalidateClaim').hide();
+                                        $('.processClaimEdit').removeClass('processClaimEdit');
+                                    }
+                                 });
                             }
                         }
                     },
@@ -4241,7 +4304,7 @@ define(['jquery',
                 $('#chkEmployment, #chkAutoAccident, #chkOtherAccident, #chkOutSideLab').prop("checked", false);
                 $('#txtDate, #txtOtherDate, #txtWCF,#txtWCT, #txtHCF,#txtHCT').val('');
                 $('#txtClaimNotes').empty();
-                $('#txtOriginalRef, #txtAuthorization').val('');
+                $('#txtOriginalRef, #txtAuthorization, #txtAccidentState').val('');
                 $('#ddlFrequencyCode option:contains("Select")').prop("selected", true);
 
                 //clear Billing Section
@@ -4309,7 +4372,7 @@ define(['jquery',
                 }, 200);
 
                 self.openedFrom = 'patientSearch';
-
+                commonjs.validateControls();
             },
 
             showSelf: function() {
@@ -4668,10 +4731,13 @@ define(['jquery',
                                                 error: function (model, response) {
                                                     commonjs.handleXhrError(model, response);
                                                     commonjs.hideLoading();
+                                                    self.createShortCut();
                                                 }
                                             }
 
                                             $.ajax(getPaymentDEtails);
+                                        } else {
+                                            self.createShortCut();
                                         }
                                     });
 
@@ -4705,6 +4771,7 @@ define(['jquery',
                     }
                 });
 
+                self.createShortCut();
             },
 
             validatePaymentEdit: function (rowID, paymentRowData) {
@@ -4785,6 +4852,7 @@ define(['jquery',
                         self.dtpAccountingDate[index - 1].isModified = true;
                     }
                 });
+                $('#ddlPayerName_' + index).focus();
                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
 
                 self.bindClaimPaymentEvent();
@@ -4887,8 +4955,83 @@ define(['jquery',
                         commonjs.showWarning('messages.errors.accessdenied');
                     });
                 }
-            }
+            },
+            bindShortCutEvent: function (e) {
+                if (!$('.woClaimRelated').length) {
+                    return;
+                }
 
+                var keyCode = e.keyCode || e.which;
+                var isAltkey = e.altKey && !e.ctrlKey;
+                var altKey = isAltkey && !e.shiftKey;
+                var shiftAlt = e.shiftKey && isAltkey;
+                var activeElement;
+
+                switch (keyCode) {
+                    case 27:
+                        if (!altKey && !shiftAlt) {
+                            $('#siteModal').modal('hide');
+                            $('#siteModalNested').modal('hide');
+                        }
+                        break;
+                    case 65:
+                        activeElement = altKey && 'newClaimNavAddInfo';
+                        break;
+                    case 66:
+                        activeElement = altKey && 'newClaimNavBillSummary';
+                        break;
+                    case 67:
+                        activeElement = shiftAlt ? 'newClaimNavClaims' : altKey && 'newClaimNavCharge';
+                        break;
+                    case 68:
+                        activeElement = altKey && 'btPatientDocuemnt';
+                        break;
+                    case 73:
+                        activeElement = altKey && 'newClaimNavIns';
+                        break;
+                    case 78:
+                        activeElement = shiftAlt ? 'btnNextClaim' : altKey && 'btnPatientNotes';
+                        break;
+                    case 80:
+                        activeElement = shiftAlt ? 'btnPrevClaim' : altKey && 'newClaimNavPayments';
+                        break;
+                    case 83:
+                        activeElement = altKey && 'btnSaveClaim';
+                        break;
+                    case 86:
+                        activeElement = altKey && 'btnValidateClaim';
+                        break;
+                    case 107:
+                        activeElement = altKey && 'btnNewPayment';
+                }
+
+                if (activeElement) {
+                    $('#' + activeElement).trigger('click');
+                }
+            },
+            createShortCut: function () {
+                $document
+                    .off('keydown', this.bindShortCutEvent)
+                    .on('keydown', this.bindShortCutEvent);
+            },
+
+            bindAddressInfo: function (id, data, key) { // Append dynamic address details for canadian config
+                var AddressInfoMap = {
+                    city: {
+                        domId: 'txt' + id + 'City',
+                        infoKey: (key && key + '_subscriber_city') || 'city'
+                    },
+                    state: {
+                        domId: 'ddl' + id + 'State',
+                        infoKey: (key && key + '_subscriber_state') || 'state'
+                    },
+                    zipCode: {
+                        domId: 'txt' + id + 'ZipCode',
+                        infoKey: (key && key + '_subscriber_zipcode') || 'zip'
+                    }
+                }
+                this.bindCityStateZipTemplate(data || {}, AddressInfoMap, id);
+            }
         });
 
         return claimView;

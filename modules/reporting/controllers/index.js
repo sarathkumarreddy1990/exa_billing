@@ -1,11 +1,13 @@
-const logger = require('../../../logger')
-    , responseHandler = require('../../../server/shared/http')
-    , dataHelper = require('../data/postgres/dataHelper')
-    , _ = require('lodash')
-    , moment = require('moment-timezone')
-    , DEBUG_ENABLED = false
-    ;
-    const jsReportClient = require("jsreport-client")('http://localhost:5488/', 'jsradmin', 'JSR1q2w3e4r5t');
+const logger = require('../../../logger');
+const responseHandler = require('../../../server/shared/http');
+const dataHelper = require('../data/postgres/dataHelper');
+const config = require('../../../server/config');
+const _ = require('lodash');
+const moment = require('moment-timezone');
+const DEBUG_ENABLED = false;
+const commonIndex = require('../../../server/shared/index');
+const jsReportConfig = config.get(config.keys.jsreport) || {};
+const jsReportClient = require("jsreport-client")(jsReportConfig.url, jsReportConfig.username, jsReportConfig.password);
 let reqNum = 0;
 
 const lengthExceedsTemplate = `
@@ -124,30 +126,30 @@ const api = {
 
                 api.logJsReportOptions(jsReportOptions);
                 console.time(`${repInfo} s5___jsreport`);
-                jsReportClient.render(jsReportOptions, { timeout: 6000000 /* ms */, time: true }, (err, response) => {
-                    console.timeEnd(`${repInfo} s5___jsreport`);
-                    if (err) {
-                        //return next(err);
-                        //logger.error(`${reqId}EXA Reporting - jsreport client error while rendering report!`, err);
+                jsReportClient.render(jsReportOptions, { timeout: 6000000 /* ms */, time: true })
+                    .then( response => {
+                        console.timeEnd(`${repInfo} s5___jsreport`);
+                        // adjust response header for downloadable content
+                        if (jsReportOptions.template.contentDisposition) {
+                            res.setHeader('Content-Disposition', jsReportOptions.template.contentDisposition);
+                        }
+                        // pipe the js report output directly to Express response
+                        console.time(`${repInfo} response`);
+                        return response
+                            .pipe(res)
+                            .on('finish', () => {
+                                console.timeEnd(`${repInfo} response`);
+                                console.timeEnd(`${repInfo} total`);
+                                const finish = moment();
+                                const duration = finish.diff(start, 'seconds', true);
+                                logger.logInfo(`${repInfo} finished in ${duration} seconds`);
+                                dataHelper.addReportAuditRecord(reportData); // "fire and forget"
+                            });
+                    })
+                    .catch(err => {
+                        logger.logError(`${reqId}EXA Reporting - jsreport client error while rendering report!`, err);
                         return responseHandler.sendError(req, res);
-                    }
-                    // adjust response header for downloadable content
-                    if (jsReportOptions.template.contentDisposition) {
-                        res.setHeader('Content-Disposition', jsReportOptions.template.contentDisposition);
-                    }
-                    // pipe the js report output directly to Express response
-                    console.time(`${repInfo} response`);
-                    return response
-                        .pipe(res)
-                        .on('finish', () => {
-                            console.timeEnd(`${repInfo} response`);
-                            console.timeEnd(`${repInfo} total`);
-                            const finish = moment();
-                            const duration = finish.diff(start, 'seconds', true);
-                            logger.logInfo(`${repInfo} finished in ${duration} seconds`);
-                            dataHelper.addReportAuditRecord(reportData); // "fire and forget"
-                        });
-                });
+                    })
             })
             .catch((err) => {
              //   logger.error(`${reqId}EXA Reporting - error while processing report!`, err);

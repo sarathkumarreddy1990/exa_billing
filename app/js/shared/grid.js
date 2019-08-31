@@ -201,9 +201,13 @@ define('grid', [
 
             var studyIds = studyArray.join();
             if (isClaimGrid) {
-                var liClaimStatus = commonjs.getRightClickMenu('ul_change_claim_status','setup.rightClickMenu.billingStatus',false,'Change Claim Status',true);
-                $divObj.append(liClaimStatus);
-                self.checkSubMenuRights('li_ul_change_claim_status');
+                var liClaimStatus = commonjs.getRightClickMenu('ul_change_claim_status', 'setup.rightClickMenu.claimStatus', false, 'Change Claim Status', true);
+
+                // If the user have rights to change the claim status, then will show the claim status in right click menu
+                if (rightclickMenuRights.indexOf('li_ul_change_claim_status') === -1 ) {
+                    $divObj.append(liClaimStatus);
+                }
+
                 var liArray = [];
                 commonjs.getClaimStudy(selectedStudies[0].study_id, function (result) {
                     if (result) {
@@ -281,6 +285,7 @@ define('grid', [
                         billing_code_id: billing_code ? billing_code.id : null 
                     };
                     var billing = {
+                        color_code: billing_code ? billing_code.color_code : null, 
                         status_message: 'messages.status.billingCodeChanged',
                         column: 'billing_code',
                         description: billing_code ? billing_code.description : null 
@@ -310,6 +315,7 @@ define('grid', [
                         billing_class_id:billing_class ? billing_class.id : null
                     };
                     var billing = {
+                        color_code: billing_class ? billing_class.color_code : null,
                         status_message: 'messages.status.billingClassChanged',
                         column: 'billing_class',
                         description: billing_class ? billing_class.description : null 
@@ -1377,7 +1383,8 @@ define('grid', [
             var gridIDPrefix = '#jqgh_' + gridID.slice(1);
 
             var subGridNeed = ((app.showpriors && true) || true);
-            var studyFieldsCollection = new StudyFields(null, { gridOptions: null, field_order: userSettings.field_order, filterType: userSettings.grid_name });
+            var gridSettings = options.isClaimGrid ? app.claim_user_settings : app.study_user_settings;
+            var studyFieldsCollection = new StudyFields(null, { gridOptions: gridSettings.grid_field_settings || [], field_order: userSettings.field_order, filterType: userSettings.grid_name });
             var studyFields = studyFieldsCollection.reduce(function (fieldSet, field) {
                 fieldSet.colName[fieldSet.colName.length] = field.get('field_name');
                 fieldSet.i18nName[fieldSet.i18nName.length] = field.get('i18n_name') || '';
@@ -1690,11 +1697,12 @@ define('grid', [
                     }
                     studyFieldsCollection.add({
                         'id': col.custom_id,
+                        'field_name': col.custom_name,
                         'field_info': {
                             'width': col.width
                         }
                     }, { 'merge': true });
-                    updateResizeColumn(studyFieldsCollection.toJSON());
+                    updateResizeColumn(studyFieldsCollection.toJSON(), options.isClaimGrid);
                 },
                 afterInsertRow: afterInsertRow,
                 onbeforegridbind: updateCollection,
@@ -1787,7 +1795,7 @@ define('grid', [
                         if (data && data.length) {
                             commonjs.showStatus(billing.status_message);
                             _.each(data, function (obj) {
-                                $target.jqGrid('setCell', obj.id, billing.column, billing.description);
+                                $target.jqGrid('setCell', obj.id, billing.column, billing.description, { background: billing.color_code || 'transparent'});
                             });
                         }
                     },

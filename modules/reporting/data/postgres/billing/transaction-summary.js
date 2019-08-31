@@ -1,112 +1,191 @@
-const _ = require('lodash')
-    , Promise = require('bluebird')
-    , db = require('../db')
-    , dataHelper = require('../dataHelper')
-    , queryBuilder = require('../queryBuilder')
-    , logger = require('../../../../../logger');
+const _ = require('lodash');
+const Promise = require('bluebird');
+const db = require('../db');
+const dataHelper = require('../dataHelper');
+const queryBuilder = require('../queryBuilder');
+const logger = require('../../../../../logger');
 
 // generate query template ***only once*** !!!
 
 const transactionSummaryDataSetQueryTemplate = _.template(`
-WITH transaction_summary_by_month as (
-    SELECT
-        Date_trunc('month', bp.accounting_date) AS txn_month,
-        sum(CASE when amount_type = 'payment' then bpa.amount else 0::money end ) as payment_amount,
-        sum(CASE when amount_type = 'adjustment' and coalesce(accounting_entry_type,'') != 'refund_debit' then bpa.amount else 0::money end ) as adjustment_amount,
-        sum(CASE when amount_type = 'adjustment' and coalesce(accounting_entry_type,'') = 'refund_debit' then bpa.amount else 0::money end ) as refund_amount
-    FROM billing.payments bp
-    INNER JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
-    INNER JOIN billing.charges bc on bc.id = bpa.charge_id
-    INNER JOIN billing.claims bcl on bcl.id = bc.claim_id
-    INNER JOIN facilities f on f.id = bcl.facility_id
-    <% if (billingProID) { %> INNER JOIN billing.providers bbp ON bbp.id = bcl.billing_provider_id <% } %>
-    LEFT JOIN billing.adjustment_codes bac ON bac.id = bpa.adjustment_code_id
-    WHERE 1 = 1
-    AND <%= accounting_date %>
-    <% if (facilityIds) { %>AND <% print(facilityIds); } %>
-    <% if(billingProID) { %> AND <% print(billingProID); } %>
-    GROUP BY  (date_trunc('month', bp.accounting_date))
+    WITH transaction_summary_by_month AS (
+        SELECT
+            Date_trunc('month', bp.accounting_date) AS txn_month,
+            SUM(CASE WHEN amount_type = 'payment' THEN bpa.amount else 0::MONEY end ) AS payment_amount,
+            SUM(CASE WHEN amount_type = 'adjustment' AND COALESCE(accounting_entry_type,'') != 'refund_debit' THEN bpa.amount else 0::MONEY END ) AS adjustment_amount,
+            SUM(CASE WHEN amount_type = 'adjustment' AND COALESCE(accounting_entry_type,'') = 'refund_debit' THEN bpa.amount else 0::MONEY END ) AS refund_amount
+        FROM billing.payments bp
+        INNER JOIN billing.payment_applications bpa ON bpa.payment_id = bp.id
+        INNER JOIN billing.charges bc ON bc.id = bpa.charge_id
+        INNER JOIN billing.claims bcl ON bcl.id = bc.claim_id
+        INNER JOIN facilities f ON f.id = bcl.facility_id
+        <% if (billingProID) { %> INNER JOIN billing.providers bbp ON bbp.id = bcl.billing_provider_id <% } %>
+        LEFT JOIN billing.adjustment_codes bac ON bac.id = bpa.adjustment_code_id
+        WHERE TRUE
+            AND <%= accounting_date %>
+            <% if (facilityIds) { %>AND <% print(facilityIds); } %>
+            <% if(billingProID) { %> AND <% print(billingProID); } %>
+        GROUP BY
+             (date_trunc('month', bp.accounting_date))
     ),
-    charge_summary AS(select
-        Date_trunc('month', bc.claim_dt) AS txn_month,
-        sum(bill_fee*units) as charge
-    FROM billing.charges bch
-    INNER JOIN billing.claims bc on bc.id = bch.claim_id
-    INNER JOIN facilities f on f.id = bc.facility_id
-    <% if (billingProID) { %> INNER JOIN billing.providers bbp ON bbp.id = bc.billing_provider_id <% } %>
-    WHERE 1=1
-    AND<%=claimDate%>
-    <% if (facilityIds) { %>AND <% print(facilityIds); } %>
-    <% if(billingProID) { %> AND <% print(billingProID); } %>
-
-    GROUP BY (date_trunc('month', bc.claim_dt) ))
-    SELECT
-        COALESCE(to_char(ts.txn_month, 'MON-yy'), to_char(cs.txn_month, 'MON-yy') ) AS "Date",
-        coalesce(cs.charge,0::money)  AS "Charge",
-        SUM(coalesce(ts.payment_amount,0::money)) AS "Payments",
-        SUM(coalesce(adjustment_amount,0::money)) AS "Adjustments",
-        SUM(coalesce(refund_amount,0::money)) AS "Refund",
-        (coalesce(cs.charge, 0::money) - SUM ( coalesce(ts.payment_amount,0::money) +  coalesce(ts.adjustment_amount,0::money) + coalesce(ts.refund_amount,0::money))) AS "Net Activity"
-
-    FROM transaction_summary_by_month ts
-    FULL  JOIN charge_summary cs ON ts.txn_month = cs.txn_month
-    GROUP BY
-         COALESCE(to_char(ts.txn_month, 'MON-yy'), to_char(cs.txn_month, 'MON-yy') ) , cs.charge
-    ORDER BY
-          to_date(COALESCE(to_char(ts.txn_month, 'MON-yy'), to_char(cs.txn_month, 'MON-yy') ),'MON-yy')
-
-`);
+    charge_summary AS (
+        SELECT
+            Date_trunc('month', bc.claim_dt) AS txn_month,
+            SUM(bill_fee*units) AS charge
+        FROM
+            billing.charges bch
+        INNER JOIN billing.claims bc ON bc.id = bch.claim_id
+        INNER JOIN facilities f ON f.id = bc.facility_id
+        <% if (billingProID) { %> INNER JOIN billing.providers bbp ON bbp.id = bc.billing_provider_id <% } %>
+        WHERE TRUE
+            AND <%=claimDate%>
+            <% if (facilityIds) { %>AND <% print(facilityIds); } %>
+            <% if(billingProID) { %> AND <% print(billingProID); } %>
+        GROUP BY
+             (date_trunc('month', bc.claim_dt) )
+    ),
+    transction_summary_amount_by_month AS (
+        SELECT
+            COALESCE(to_char(ts.txn_month, 'MON-yy'), to_char(cs.txn_month, 'MON-yy') ) AS "Date",
+            COALESCE(cs.charge,0::MONEY) AS "Charges",
+            SUM(COALESCE(ts.payment_amount,0::MONEY)) AS "Payments",
+            SUM(COALESCE(adjustment_amount,0::MONEY)) AS "Adjustments",
+            SUM(COALESCE(refund_amount,0::MONEY)) AS "Refunds",
+            (COALESCE(cs.charge, 0::MONEY) - SUM (COALESCE(ts.payment_amount,0::MONEY) + COALESCE(ts.adjustment_amount,0::MONEY) + COALESCE(ts.refund_amount,0::MONEY))) AS "Net Activity"
+        FROM
+             transaction_summary_by_month ts
+        FULL JOIN charge_summary cs ON ts.txn_month = cs.txn_month
+        GROUP BY
+            COALESCE(to_char(ts.txn_month, 'MON-yy'), to_char(cs.txn_month, 'MON-yy') ) ,
+            cs.charge
+        ORDER BY
+            to_date(COALESCE(to_char(ts.txn_month, 'MON-yy'), to_char(cs.txn_month, 'MON-yy') ),'MON-yy')
+    ),
+    transction_summary_total_amount_by_month AS (
+        SELECT
+            SUM(by_month."Charges") AS "charge",
+            SUM(by_month."Payments") AS "payments",
+            SUM(by_month."Adjustments") AS "adjustments",
+            SUM(by_month."Refunds") AS "refunds",
+            SUM(by_month."Net Activity") AS "net_activity"
+        FROM
+            transction_summary_amount_by_month AS by_month
+    )
+    (
+        SELECT
+            "Date",
+            "Charges",
+            "Payments",
+            "Adjustments",
+            "Refunds",
+            "Net Activity"
+        FROM
+            transction_summary_amount_by_month
+    )
+    UNION ALL
+    (
+        SELECT
+            NULL,
+            charge,
+            Payments,
+            adjustments,
+            refunds,
+            net_activity
+        FROM
+            transction_summary_total_amount_by_month
+    )
+ `);
 
 // Template by Month wise
 
 const transactionSummaryByDateDataSetQueryTemplate = _.template(`
-WITH transaction_summary_by_day as (
-    SELECT
-        Date_trunc('day', bp.accounting_date) AS txn_month,
-        sum(CASE when amount_type = 'payment' then bpa.amount else 0::money end ) as payment_amount,
-        sum(CASE when amount_type = 'adjustment' and coalesce(accounting_entry_type,'') != 'refund_debit' then bpa.amount else 0::money end ) as adjustment_amount,
-        sum(CASE when amount_type = 'adjustment' and coalesce(accounting_entry_type,'') = 'refund_debit' then bpa.amount else 0::money end ) as refund_amount
-    FROM billing.payments bp
-    INNER JOIN billing.payment_applications bpa on bpa.payment_id = bp.id
-    INNER JOIN billing.charges bc on bc.id = bpa.charge_id
-    INNER JOIN billing.claims bcl on bcl.id = bc.claim_id
-    INNER JOIN facilities f on f.id = bcl.facility_id
-    <% if (billingProID) { %> INNER JOIN billing.providers bbp ON bbp.id = bcl.billing_provider_id <% } %>
-    LEFT JOIN billing.adjustment_codes bac ON bac.id = bpa.adjustment_code_id
-    WHERE 1 = 1
-    AND <%= accounting_date %>
-    <% if (facilityIds) { %>AND <% print(facilityIds); } %>
-    <% if(billingProID) { %> AND <% print(billingProID); } %>
-    GROUP BY  (date_trunc('day', bp.accounting_date))
+    WITH transaction_summary_by_day AS (
+        SELECT
+            Date_trunc('day', bp.accounting_date) AS txn_month,
+            SUM(CASE WHEN amount_type = 'payment' THEN bpa.amount else 0::MONEY end ) AS payment_amount,
+            SUM(CASE WHEN amount_type = 'adjustment' AND COALESCE(accounting_entry_type,'') != 'refund_debit' THEN bpa.amount else 0::MONEY END ) AS adjustment_amount,
+            SUM(CASE WHEN amount_type = 'adjustment' AND COALESCE(accounting_entry_type,'') = 'refund_debit' THEN bpa.amount else 0::MONEY END ) AS refund_amount
+        FROM
+            billing.payments bp
+        INNER JOIN billing.payment_applications bpa ON bpa.payment_id = bp.id
+        INNER JOIN billing.charges bc ON bc.id = bpa.charge_id
+        INNER JOIN billing.claims bcl ON bcl.id = bc.claim_id
+        INNER JOIN facilities f ON f.id = bcl.facility_id
+        <% if (billingProID) { %> INNER JOIN billing.providers bbp ON bbp.id = bcl.billing_provider_id <% } %>
+            LEFT JOIN billing.adjustment_codes bac ON bac.id = bpa.adjustment_code_id
+        WHERE TRUE
+            AND <%= accounting_date %>
+            <% if (facilityIds) { %>AND <% print(facilityIds); } %>
+            <% if(billingProID) { %> AND <% print(billingProID); } %>
+        GROUP BY
+            (date_trunc('day', bp.accounting_date))
     ),
-    charge_summary AS(select
-        Date_trunc('day', bc.claim_dt) AS txn_month,
-        sum(bill_fee*units) as charge
-        FROM billing.charges bch
-        INNER JOIN billing.claims bc on bc.id = bch.claim_id
-        INNER JOIN facilities f on f.id = bc.facility_id
+    charge_summary AS (
+        SELECT
+            Date_trunc('day', bc.claim_dt) AS txn_month,
+            SUM(bill_fee*units) AS charge
+        FROM
+             billing.charges bch
+        INNER JOIN billing.claims bc ON bc.id = bch.claim_id
+        INNER JOIN facilities f ON f.id = bc.facility_id
         <% if (billingProID) { %> INNER JOIN billing.providers bbp ON bbp.id = bc.billing_provider_id <% } %>
-
-    WHERE 1=1
-    AND<%=claimDate%>
-    <% if (facilityIds) { %>AND <% print(facilityIds); } %>
-    <% if(billingProID) { %> AND <% print(billingProID); } %>
-    GROUP BY (date_trunc('day', bc.claim_dt) ))
-    SELECT
-        COALESCE(to_char(ts.txn_month, 'MM/DD/YYYY'), to_char(cs.txn_month, 'MM/DD/YYYY') ) AS "Date",
-        coalesce(cs.charge,0::money)  AS "Charge",
-        SUM(coalesce(ts.payment_amount,0::money)) AS "Payments",
-        SUM(coalesce(adjustment_amount,0::money)) AS "Adjustments",
-        SUM(coalesce(refund_amount,0::money)) AS "Refund",
-        (coalesce(cs.charge, 0::money) - SUM ( coalesce(ts.payment_amount,0::money) +  coalesce(ts.adjustment_amount,0::money) + coalesce(ts.refund_amount,0::money))) AS "Net Activity"
-
-    FROM transaction_summary_by_day ts
-    FULL  JOIN charge_summary cs ON ts.txn_month = cs.txn_month
-    GROUP BY
-         COALESCE(to_char(ts.txn_month, 'MM/DD/YYYY'), to_char(cs.txn_month, 'MM/DD/YYYY') ) , cs.charge
-    ORDER BY
-          to_date(COALESCE(to_char(ts.txn_month, 'MM/DD/YYYY'), to_char(cs.txn_month, 'MM/DD/YYYY') ),'MM/DD/YYYY')
-
+        WHERE TRUE
+            AND<%= claimDate %>
+            <% if (facilityIds) { %>AND <% print(facilityIds); } %>
+            <% if(billingProID) { %> AND <% print(billingProID); } %>
+        GROUP BY
+            (date_trunc('day', bc.claim_dt) )
+    ),
+    transction_summary_amount_by_day AS (
+        SELECT
+            COALESCE(to_char(ts.txn_month, 'MM/DD/YYYY'), to_char(cs.txn_month, 'MM/DD/YYYY') ) AS "Date",
+            COALESCE(cs.charge,0::MONEY)  AS "Charges",
+            SUM(COALESCE(ts.payment_amount,0::MONEY)) AS "Payments",
+            SUM(COALESCE(adjustment_amount,0::MONEY)) AS "Adjustments",
+            SUM(COALESCE(refund_amount,0::MONEY)) AS "Refunds",
+            (COALESCE(cs.charge, 0::MONEY) - SUM ( COALESCE(ts.payment_amount,0::MONEY) +  COALESCE(ts.adjustment_amount,0::MONEY) + COALESCE(ts.refund_amount,0::MONEY))) AS "Net Activity"
+        FROM
+            transaction_summary_by_day ts
+        FULL JOIN charge_summary cs ON ts.txn_month = cs.txn_month
+        GROUP BY
+            COALESCE(to_char(ts.txn_month, 'MM/DD/YYYY'), to_char(cs.txn_month, 'MM/DD/YYYY') ) ,
+            cs.charge
+        ORDER BY
+            to_date(COALESCE(to_char(ts.txn_month, 'MM/DD/YYYY'), to_char(cs.txn_month, 'MM/DD/YYYY') ),'MM/DD/YYYY')
+    ),
+    transction_summary_total_amount_by_day AS (
+        SELECT
+            SUM(by_day."Charges") AS "charge",
+            SUM(by_day."Payments") AS "payments",
+            SUM(by_day."Adjustments") AS "adjustments",
+            SUM(by_day."Refunds") AS "refunds",
+            SUM(by_day."Net Activity") AS "net_activity"
+        FROM
+            transction_summary_amount_by_day AS by_day
+    )
+    (
+        SELECT
+            "Date",
+            "Charges",
+            "Payments",
+            "Adjustments",
+            "Refunds",
+            "Net Activity"
+        FROM
+            transction_summary_amount_by_day
+    )
+    UNION ALL
+    (
+        SELECT
+            NULL,
+            charge,
+            Payments,
+            adjustments,
+            refunds,
+            net_activity
+        FROM
+            transction_summary_total_amount_by_day
+    )
 `);
 
 const api = {
@@ -140,7 +219,26 @@ const api = {
      *  If no transformations are to take place just return resolved promise => return Promise.resolve(rawReportData);
      */
     transformReportData: (rawReportData) => {
-        return Promise.resolve(rawReportData);
+        let rawReportDataSet = rawReportData.dataSets[0];
+        if (rawReportDataSet && rawReportDataSet.rowCount === 0) {
+            return Promise.resolve(rawReportData);
+        }
+        return new Promise((resolve, reject) => {
+            let transactionSummaryColumns = rawReportDataSet.columns;
+            const rowIndexes = {
+                charge_amount: _.findIndex(transactionSummaryColumns, ['name', 'Charges']),
+                payment_amount: _.findIndex(transactionSummaryColumns, ['name', 'Payments']),
+                adjustment_amount: _.findIndex(transactionSummaryColumns, ['name', 'Adjustments']),
+                refund_amount: _.findIndex(transactionSummaryColumns, ['name', 'Refunds']),
+                net_activity_amount: _.findIndex(transactionSummaryColumns, ['name', 'Net Activity'])
+            }
+            transactionSummaryColumns[rowIndexes.charge_amount].cssClass = 'text-right';
+            transactionSummaryColumns[rowIndexes.payment_amount].cssClass = 'text-right';
+            transactionSummaryColumns[rowIndexes.adjustment_amount].cssClass = 'text-right';
+            transactionSummaryColumns[rowIndexes.refund_amount].cssClass = 'text-right';
+            transactionSummaryColumns[rowIndexes.net_activity_amount].cssClass = 'text-right';
+            return resolve(rawReportData);
+        });
     },
 
     /**

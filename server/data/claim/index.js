@@ -100,6 +100,7 @@ module.exports = {
                                         COALESCE(NULLIF(order_info->'oa',''), 'false')::boolean AS is_other_accident,
                                         COALESCE(NULLIF(order_info->'aa',''), 'false')::boolean AS is_auto_accident,
                                         COALESCE(NULLIF(order_info->'emp',''), 'false')::boolean AS is_employed,
+                                        COALESCE(NULLIF(order_info->'accident_state',''), '') AS accident_state,
                                         referring_provider.ref_prov_full_name,
                                         referring_provider.referring_provider_contact_id,
                                         (   SELECT
@@ -464,6 +465,7 @@ module.exports = {
                     , c.is_auto_accident
                     , c.is_other_accident
                     , c.is_employed
+                    , c.accident_state
                     , c.service_by_outside_lab
                     , c.payer_type
                     , c.claim_status_id

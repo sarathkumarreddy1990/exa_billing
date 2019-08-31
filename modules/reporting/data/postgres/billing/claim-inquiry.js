@@ -73,11 +73,11 @@ const claimInquiryDataSetQueryTemplate = _.template(`
                 NULLIF(ip.insurance_info->'ZipPlus','') AS zip_plus,
                 NULLIF(ip.insurance_info->'PhoneNo','') AS phone_no,
                 NULLIF(ip.insurance_info->'FaxNo','') AS fax_no,
-                to_char(bc.claim_dt, 'MM/DD/YYYY'),
+                to_char(timezone(get_facility_tz(bc.facility_id::integer), bc.claim_dt)::DATE, 'MM/DD/YYYY'),
                 CASE
                   WHEN bc.payer_type = 'primary_insurance' OR bc.payer_type = 'secondary_insurance' OR bc.payer_type = 'tertiary_insurance' THEN ip.insurance_name
                   WHEN bc.payer_type = 'patient'  THEN p.full_name
-                  WHEN bc.payer_type = 'ordering_facility' THEN f.facility_name
+                  WHEN bc.payer_type = 'ordering_facility' THEN pg.group_name
                   WHEN bc.payer_type = 'referring_provider' THEN pr.full_name
                   ELSE  NULL
                 END AS carrier,
@@ -188,6 +188,7 @@ const claimInquiryDataSetQueryTemplate = _.template(`
             LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = ip.provider_payer_type_id
             LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
             LEFT JOIN public.providers pr ON  pr.id = ppc.provider_id
+            LEFT JOIN public.provider_groups pg ON pg.id = bc.ordering_facility_id
             WHERE <%= companyId %>
                 <% if(claimDate) { %> AND <%=claimDate%> <%}%>
                 <% if(commentedDt) { %> AND <%=commentedDt%> <%}%>
@@ -209,6 +210,7 @@ const claimInquiryDataSetQueryTemplate1 = _.template(`
                bc.id AS claim_id
               ,p.full_name
               ,p.account_no
+              , bc.facility_id as facility_id
             FROM
                 billing.claims bc
             INNER JOIN public.patients p on p.id = bc.patient_id
@@ -300,7 +302,7 @@ const claimInquiryDataSetQueryTemplate1 = _.template(`
                 cc.claim_id AS id,
                 'claim' AS type,
                 note AS comments,
-                to_char(created_dt::date,'<%= dateFormat %>') AS commented_dt,
+                to_char(timezone(get_facility_tz(cd.facility_id::integer), created_dt)::DATE, '<%= dateFormat %>') AS commented_dt,
                 NULL AS amount,
                 u.username AS commented_by,
                 NULL AS code,
@@ -315,7 +317,7 @@ const claimInquiryDataSetQueryTemplate1 = _.template(`
                 c.claim_id AS id,
                 'charge' AS type,
                 cc.short_description AS comments,
-                to_char(c.charge_dt::date,'<%= dateFormat %>') AS commented_dt,
+                to_char(timezone(get_facility_tz(cd.facility_id::integer), c.charge_dt)::DATE, 'MM/DD/YYYY') AS commented_dt,
                 (c.bill_fee*c.units) AS amount,
                 u.username AS commented_by,
                 cc.display_code AS code,

@@ -13,7 +13,7 @@ WITH claim_details AS(
         obc.id AS claim_id ,
         opp.last_name AS pat_last_name ,
         opp.first_name AS pat_first_name ,
-        to_char(obc.claim_dt,'<%= dateFormat %>') AS claim_date ,
+        to_char(timezone(get_facility_tz(obc.facility_id::integer), obc.claim_dt)::DATE, '<%= dateFormat %>') AS claim_date,
         max(cd.payment_dt) AS paid_date ,
         SUM(obch.bill_fee * obch.units) AS charge_amount ,
         obc.payer_type as payer_type,
@@ -101,8 +101,8 @@ WITH claim_details AS(
                 OR payer_type = 'tertiary_insurance'
         THEN bgct.claim_balance_total
         END AS "Insurance Balance",
-    insurance_code  AS "Insurance (Paid)",
-    insurance_name  AS "Insurance (Cur)",
+    insurance_code  AS "Insurance (Cur)",
+    insurance_name  AS "Insurance (Paid)",
     ref_doctor_name AS "Ref. Doctor",
     insurance_payer_type AS "Insurance Payer Type"
     FROM claim_details

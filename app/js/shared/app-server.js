@@ -10,6 +10,33 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                 default_column_order_by: "Desc",
                 default_tab: 'All_Studies',
                 field_order: [1, 10, 15, 50, 65],
+                grid_field_settings: [
+                    {
+                        "name": "Account#",
+                        "id": 1,
+                        "width": 200
+                    },
+                    {
+                        "name": "Patient",
+                        "id": 10,
+                        "width": 200
+                    },
+                    {
+                        "name": "Study Date",
+                        "id": 15,
+                        "width": 200
+                    },
+                    {
+                        "name": "Status",
+                        "id": 50,
+                        "width": 200
+                    },
+                    {
+                        "name": "Billed Status",
+                        "id": 65,
+                        "width": 200
+                    }
+                ],
                 grid_name: "studies"
             };
             var claimSetting = {
@@ -17,6 +44,48 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                 default_column_order_by: "Desc",
                 default_tab: 'All_Claims',
                 field_order: [1, 19, 2, 12, 22, 27, 11, 17],
+                grid_field_settings: [
+                    {
+                        "name": "Claim Date",
+                        "id": 1,
+                        "width": 200
+                    },
+                    {
+                        "name": "Claim No",
+                        "id": 19,
+                        "width": 200
+                    },
+                    {
+                        "name": "Patient Name",
+                        "id": 2,
+                        "width": 200
+                    },
+                    {
+                        "name": "Clearing House",
+                        "id": 12,
+                        "width": 200
+                    },
+                    {
+                        "name": "Billing Method",
+                        "id": 22,
+                        "width": 200
+                    },
+                    {
+                        "name": "Billing Provider",
+                        "id": 27,
+                        "width": 200
+                    },
+                    {
+                        "name": "Payer Type",
+                        "id": 11,
+                        "width": 200
+                    },
+                    {
+                        "name": "Claim Status",
+                        "id": 17,
+                        "width": 200
+                    }
+                ],
                 grid_name: "claims"
             };
 

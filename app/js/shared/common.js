@@ -40,7 +40,8 @@ var settingsReceived = false
     , arrInterval = []
     , isPatientSearch = true
     , filterQueries = []
-    , prevTime,
+    , prevTime
+    , previousValidationResults,
     setupStatusCodes = function (data) {
         commonjs.statusCodes = data;
         // Below is for my convenience
@@ -684,6 +685,7 @@ var commonjs = {
         var pastRangeSet = {
             "Today": [moment(), moment()],
             "Yesterday": [moment().subtract(1, "days"), moment().subtract(1, "days")],
+            "Last 3 Days": [moment().subtract(2, "days"), moment()],
             "Last 7 Days": [moment().subtract(6, "days"), moment()],
             "Last 30 Days": [moment().subtract(29, "days"), moment()],
             "This Month": [moment().startOf("month"), moment().endOf("month")],
@@ -1073,7 +1075,21 @@ var commonjs = {
             $modalContainer.modal({ show: true, keyboard: boolKeyboard });
         }
 
-        $modalContainer.on('hide', function (event) {
+        if (typeof options.onShown === 'function') {
+            $modalContainer.off('shown.bs.modal').on('shown.bs.modal', function (e) {
+                // callback function when the modal has been made visible to the user
+                options.onShown();
+            });
+        }
+
+        if (typeof options.onHidden === 'function') {
+            $modalContainer.off('hidden.bs.modal').on('hidden.bs.modal', function (event) {
+                // callback function when the modal has finished being hidden from the user
+                options.onHidden(options);
+            });
+        }
+
+        $modalContainer.off('hide.bs.modal').on('hide.bs.modal', function (event) {
             if ($modalContainer.find('iframe')) {
                 var url = $modalContainer.find('iframe').attr('src');
                 if (url) {
@@ -3143,10 +3159,12 @@ var commonjs = {
             else {
                 return true;
             }
-            if ((charCode > 64 && charCode < 91) || (charCode > 96 && charCode < 123))
-                return true;
+            var regex = new RegExp("^[a-zA-Z]+$");
+            var str = String.fromCharCode(charCode);
 
-            return false;
+            if (!regex.test(str)) {
+                e.preventDefault();
+            }
         };
         $(".stringbox").on("keypress keyup blur", function (e, t) {
             try {

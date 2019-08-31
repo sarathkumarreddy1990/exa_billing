@@ -15,6 +15,7 @@ module.exports = {
              (
                  user_id
                  ,field_order
+                 ,grid_field_settings
                  ,grid_name
                  ,default_column_order_by
                  ,default_column
@@ -29,6 +30,7 @@ module.exports = {
             SELECT
                   ${args.userId}
                 , ${args.claimSettingFields}
+                , ${args.billingClaimGridFields}
                 , ${args.flag}
                 , ${args.claim_sort_order}
                 , ${args.claim_col_name}
@@ -49,6 +51,7 @@ module.exports = {
             UPDATE
                 billing.user_settings
             SET field_order = ${args.claimSettingFields}
+                ,grid_field_settings = ${args.billingClaimGridFields}
                 ,grid_name = ${args.flag}
                 ,default_column_order_by = ${args.claim_sort_order}
                 ,default_column = ${args.claim_col_name}
@@ -116,11 +119,12 @@ module.exports = {
             userId
             , clientIp
             , gridName
-            , fieldOrder
-            , companyId
+            , fieldOrder = []
+            , companyId 
             , screenName
             , moduleName
             , entityName
+            , gridOptions = []
         } = params;
         let defaulTab = gridName === "studies" ? "All_Studies" : "All_Claims";
         let sql = SQL`WITH insert_user_settings AS (
@@ -129,6 +133,7 @@ module.exports = {
                               company_id
                             , user_id
                             , field_order
+                            , grid_field_settings
                             , default_tab
                             , grid_name
                             , default_date_range
@@ -137,6 +142,7 @@ module.exports = {
                               ${companyId}
                             , ${userId}
                             , ${fieldOrder}
+                            , ${gridOptions}
                             , ${defaulTab}
                             , ${gridName}
                             , 'this_year'
@@ -152,6 +158,7 @@ module.exports = {
                             billing.user_settings
                         SET 
                             field_order = ${fieldOrder}
+                          , grid_field_settings = ${gridOptions}
                         WHERE grid_name = ${gridName}
                         AND user_id = ${userId}
                         AND NOT EXISTS (SELECT 1 FROM insert_user_settings)

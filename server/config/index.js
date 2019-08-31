@@ -10,6 +10,7 @@ module.exports = {
     keys: {
         dbConnection: 'dbConnection',
         dbConnectionBilling: 'dbConnectionBilling',
+        dbConnectionPoolingEnabled: "dbConnectionPoolingEnabled",
         RedisStore: 'RedisStore',
         dbCacheEnabled: 'dbCacheEnabled',
         dbCacheTtl: 'dbCacheTtl',
@@ -22,6 +23,7 @@ module.exports = {
         ebsPassword: 'ebsPassword',
         edtServiceEndpoint: 'edtServiceEndpoint',
         hcvServiceEndpoint: 'hcvServiceEndpoint',
+        jsreport: 'jsreport'
     },
 
     paths: [
@@ -66,6 +68,11 @@ module.exports = {
         const options = rows[0].web_config;
         this.setKeys(options);
         this.setOptions(options);
+
+        // Display a warning if jsReport section is missing
+        if ( !this.get(this.keys.jsreport) ) {
+            logger.logInfo("WARNING: jsreport section not found in web.json");
+        }
 
         return true;
     },

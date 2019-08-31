@@ -219,6 +219,7 @@ module.exports = {
         'claims_total_balance': 'CLIM',
         'submitClaims': 'BIVA',
         'fileManagement': 'CLFM',
-        'paper_claim_fax': 'CLIM'
+        'paper_claim_fax': 'CLIM',
+        'payment_count': 'PAYM'
     }
 };

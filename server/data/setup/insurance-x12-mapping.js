@@ -124,12 +124,16 @@ module.exports = {
                                 , clearing_house_id
                                 , billing_method
                                 , is_default_payer
+                                , claim_filing_indicator_code
+                                , payer_edi_code
                             )
                             SELECT
                                   ${id}
                                 , ${claimClearingHouse}
                                 , ${billingMethod}
                                 , ${is_default_payer}
+                                , ${indicatorCode}
+                                , ${ediCode}
                             WHERE NOT EXISTS (SELECT 1 FROM billing.insurance_provider_details WHERE insurance_provider_id = ${id})
                             RETURNING *, '{}'::jsonb old_values
                         )
