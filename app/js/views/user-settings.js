@@ -260,14 +260,13 @@ define([
                             var field = self.billingDisplayFields[i];
 
                             if (nonSortColumn.indexOf(field.field_code) === -1) {
-                                var currentDisplayField = self.billingDisplayFields[i];
 
-                                if (result_data.default_column === currentDisplayField.field_code) {
+                                if (result_data.default_column === field.field_code) {
                                     billingDisplayFieldsFlag = true;
                                 }
 
-                                var field_name = commonjs.geti18NString(currentDisplayField.i18n_name);
-                                $('<option/>').val(currentDisplayField.field_code).html(field_name).appendTo('#ddlBillingDefaultColumns');
+                                var field_name = commonjs.geti18NString(field.i18n_name);
+                                $('<option/>').val(field.field_code).html(field_name).appendTo('#ddlBillingDefaultColumns');
                             }
                         }
 
