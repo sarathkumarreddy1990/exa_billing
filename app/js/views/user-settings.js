@@ -250,7 +250,7 @@ define([
                             return (!checkedGridFields.includes(obj.id) || obj.field_code === 'billed_status');
                         });
 
-                        this.defaults = defaultFields().toArray();
+                        this.defaults = defaultFields(self.gridFilterName).toArray();
 
                         var nonSortColumn = $.map(this.defaults, function (data) {
                             return data.field_info && data.field_info.sortable === false ? data.field_code : null
