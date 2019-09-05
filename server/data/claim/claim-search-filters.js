@@ -743,12 +743,12 @@ const api = {
             // Prevents DB function for filtering claim balance & Payment_id -- start
             let paymentIdFilter ='';
             
-            if (args.isClaimBalanceTotal && args.filterCol.indexOf('claim_balance') > 0) {
+            if (args.isClaimBalanceTotal && args.filterCol && args.filterCol.indexOf('claim_balance') > -1) {
                 args.colModel = _.find(colModel, { name: 'claim_balance' });
                 api.removeSearchFilterData(args, 'claim_balance');
             }
 
-            if (args.filterCol.indexOf('payment_id') > 0) {
+            if (args.filterCol && args.filterCol.indexOf('payment_id') > -1) {
                 api.removeSearchFilterData(args, 'payment_id');
             
                 if (args.filterPaymentIds) {
