@@ -1494,7 +1494,7 @@ define('grid', [
                 var searchFilterFlag = grid.getGridParam("postData")._search;
                 var colHeader = studyFields.colName;
                 var current_filter_id = $('#claimsTabs').find('.active a').attr('data-container')
-                var isDatePickerClear = filterCol.indexOf('claim_dt') === -1;
+                var isDatePickerClear = filterCol && filterCol.indexOf('claim_dt') === -1;
 
                 if (options.filterid != 'Follow_up_queue') {
                     commonjs.showLoading();
