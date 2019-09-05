@@ -300,7 +300,16 @@ define(['jquery',
                             self.editPayment(rowID, self.from);
                         },
                         onaftergridbind: function (model, gridObj) {
-                            commonjs.paymentsList = model;
+                            var paymentsList = _.map(model, function (obj) {
+                                return {
+                                    id: btoa(obj.id),
+                                    payer_type: obj.attributes && obj.attributes.payer_type || ''
+                                };
+                            });
+
+                            window.localStorage.setItem('payment_list', null);
+                            window.localStorage.setItem('payment_list', JSON.stringify(paymentsList));
+
                             self.bindDateRangeOnSearchBox(gridObj);
                             if (model && model.length) {
                                 self.setMoneyMask();
