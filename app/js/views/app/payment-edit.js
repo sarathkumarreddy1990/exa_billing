@@ -3343,10 +3343,11 @@ define(['jquery',
                 var data;
                 var paymentsList = JSON.parse(window.localStorage.getItem('payment_list')) || {};
                 var index = _.findIndex(paymentsList, { id: btoa(self.payment_id) });
+                var targetId = $(e.target).attr('id');
 
-                if ($(e.target).attr('id') === 'btnPaymentPrev') {
+                if (targetId === 'btnPaymentPrev') {
                     data = paymentsList[index - 1];
-                } else if ($(e.target).attr('id') === 'btnPaymentNext') {
+                } else if (targetId === 'btnPaymentNext') {
                     data = paymentsList[index + 1];
                 }
                 var rowId = data && atob(data.id) || null;

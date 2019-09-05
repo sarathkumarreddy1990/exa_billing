@@ -308,8 +308,8 @@ define(['jquery',
                             });
 
                             window.localStorage.setItem('payment_list', JSON.stringify(paymentsList));
-
                             self.bindDateRangeOnSearchBox(gridObj);
+
                             if (model && model.length) {
                                 self.setMoneyMask();
                                 self.getTotalAmount(self.from);
