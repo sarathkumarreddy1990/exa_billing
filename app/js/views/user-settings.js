@@ -4,14 +4,16 @@ define([
     'backbone',
     'jquerysortable',
     'text!templates/user-settings.html',
-    'models/user-settings'
+    'models/user-settings',
+    'shared/fields'
 ], function (
     $,
     _,
     Backbone,
     jquerysortable,
     userSettingsTemplate,
-    ModelUserSetting) {
+    ModelUserSetting,
+    defaultFields ) {
         return Backbone.View.extend({
             template: _.template(userSettingsTemplate),
             events: {
@@ -206,19 +208,24 @@ define([
                             field_order = [];
                         var sortColumn, sortOrder;
                         var displayField = [];
+                        var billingDisplayFieldsFlag = false;
 
                         for (var i = 0; i < self.checkedBillingDisplayFields.length; i++) {
                             for (var j = 0; j < self.billingDisplayFields.length; j++) {
-                                if (self.checkedBillingDisplayFields[i] == self.billingDisplayFields[j].id) {
+                                var currentDisplayField = self.billingDisplayFields[j];
+
+                                if (self.checkedBillingDisplayFields[i] == currentDisplayField.id) {
                                     displayFields.push({
-                                        field_name: self.billingDisplayFields[j].field_name,
-                                        i18n_name: self.billingDisplayFields[j].i18n_name,
-                                        width: self.billingDisplayFields[j].field_info.width,
+                                        field_name: currentDisplayField.field_name,
+                                        i18n_name: currentDisplayField.i18n_name,
+                                        width: currentDisplayField.field_info.width,
                                         id: self.checkedBillingDisplayFields[i],
-                                        screen_name: opener
+                                        screen_name: opener,
+                                        field_code: currentDisplayField.field_code
                                     });
                                     continue;
                                 }
+
                             }
                         }
                         var gridNames = displayFields.map(function (field) {
@@ -239,17 +246,33 @@ define([
                         self.ulListBinding(displayFields, 'ulSortList', checkedGridFields);
 
                         // Remove Billed status column in dropdown
-                        self.billingDisplayFields = _.reject(self.billingDisplayFields, function(obj){ return obj.field_code === 'billed_status'; });
+                        self.billingDisplayFields = _.reject(self.billingDisplayFields, function (obj) {
+                            return (!checkedGridFields.includes(obj.id) || obj.field_code === 'billed_status');
+                        });
+
+                        this.defaults = defaultFields(self.gridFilterName).toArray();
+
+                        var nonSortColumn = $.map(this.defaults, function (data) {
+                            return data.field_info && data.field_info.sortable === false ? data.field_code : null
+                        });
 
                         for (var i = 0; i < self.billingDisplayFields.length; i++) {
-                            var code = self.billingDisplayFields[ i ].field_code;
-                            if (code !== 'charge_description' && code !== 'payment_id' && code !== 'notes') {
-                                var field_name = commonjs.geti18NString(self.billingDisplayFields[i].i18n_name);
-                                $('<option/>').val(self.billingDisplayFields[i].field_code).html(field_name).appendTo('#ddlBillingDefaultColumns');
+                            var field = self.billingDisplayFields[i];
+
+                            if (nonSortColumn.indexOf(field.field_code) === -1) {
+
+                                if (result_data.default_column === field.field_code) {
+                                    billingDisplayFieldsFlag = true;
+                                }
+
+                                var field_name = commonjs.geti18NString(field.i18n_name);
+                                $('<option/>').val(field.field_code).html(field_name).appendTo('#ddlBillingDefaultColumns');
                             }
                         }
 
-                        $('#ddlBillingDefaultColumns').val(result_data.default_column);
+                        var defaultDisplayField = displayFields[0];
+                        var defaultColumn = billingDisplayFieldsFlag ? result_data.default_column : defaultDisplayField && defaultDisplayField.field_code;
+                        $('#ddlBillingDefaultColumns').val(defaultColumn);
                         $('#ddlBillingSortOrder').val(result_data.default_column_order_by);
                         self.loadPrinterTemplates('ddlPaperClaimFullForm','paper_claim_full', result_data.paper_claim_full);
                         self.loadPrinterTemplates('ddlPaperClaimOriginalForm','paper_claim_original', result_data.paper_claim_original);

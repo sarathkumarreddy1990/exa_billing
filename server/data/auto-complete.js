@@ -395,8 +395,17 @@ module.exports = {
     },
 
     getProviderGroupDetail: async function (params) {
+        let {
+            q,
+            companyId,
+            sortField,
+            sortOrder,
+            pageSize,
+            page,
+            groupType
+        } = params;
 
-        let provider_group_q = ` AND (group_code ILIKE '%${params.q}%' OR group_name ILIKE '%${params.q}%' ) `;
+        let provider_group_q = ` AND (group_code ILIKE '%${q}%' OR group_name ILIKE '%${q}%' ) `;
 
         const provider_group_sql = SQL`SELECT
                                      id
@@ -408,18 +417,22 @@ module.exports = {
                                      ,company_id
                                      ,COUNT(1) OVER (range unbounded preceding) AS total_records
                                 FROM provider_groups
-                                WHERE
-                                    NOT provider_groups.has_deleted
-                                    AND provider_groups.company_id = ${params.company_id} AND is_active `;
+                                WHERE NOT provider_groups.has_deleted
+                                AND provider_groups.company_id = ${companyId}
+                                AND is_active `;
 
-        if (params.q != '') {
+        if (q != '') {
             provider_group_sql.append(provider_group_q);
         }
 
-        provider_group_sql.append(SQL` ORDER BY  ${params.sortField} `)
-            .append(params.sortOrder)
-            .append(SQL` LIMIT ${params.pageSize}`)
-            .append(SQL` OFFSET ${((params.page - 1) * params.pageSize)}`);
+        if(groupType) {
+            provider_group_sql.append(` AND group_type = '${groupType}' `);
+        }
+
+        provider_group_sql.append(SQL` ORDER BY  ${sortField} `)
+            .append(sortOrder)
+            .append(SQL` LIMIT ${pageSize}`)
+            .append(SQL` OFFSET ${((page - 1) * pageSize)}`);
 
         return await query(provider_group_sql);
     },

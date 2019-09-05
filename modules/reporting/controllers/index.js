@@ -1,11 +1,13 @@
 const logger = require('../../../logger');
 const responseHandler = require('../../../server/shared/http');
 const dataHelper = require('../data/postgres/dataHelper');
+const config = require('../../../server/config');
 const _ = require('lodash');
 const moment = require('moment-timezone');
 const DEBUG_ENABLED = false;
 const commonIndex = require('../../../server/shared/index');
-const jsReportClient = require("jsreport-client")('http://localhost/reporting/', 'jsradmin', 'JSR1q2w3e4r5t');
+const jsReportConfig = config.get(config.keys.jsreport) || {};
+const jsReportClient = require("jsreport-client")(jsReportConfig.url, jsReportConfig.username, jsReportConfig.password);
 let reqNum = 0;
 
 const lengthExceedsTemplate = `
