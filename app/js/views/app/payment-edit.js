@@ -3339,9 +3339,10 @@ define(['jquery',
 
             nextPrevPayment: function (e) {
                 $('.nextPrevPayment').prop('disabled', true);
-                var self = this, index = -1, data;
+                var self = this;
+                var data;
                 var paymentsList = JSON.parse(window.localStorage.getItem('payment_list')) || {};
-                index = _.findIndex(paymentsList, { id: btoa(self.payment_id) });
+                var index = _.findIndex(paymentsList, { id: btoa(self.payment_id) });
 
                 if ($(e.target).attr('id') === 'btnPaymentPrev') {
                     data = paymentsList[index - 1];

@@ -307,7 +307,6 @@ define(['jquery',
                                 };
                             });
 
-                            window.localStorage.setItem('payment_list', null);
                             window.localStorage.setItem('payment_list', JSON.stringify(paymentsList));
 
                             self.bindDateRangeOnSearchBox(gridObj);
