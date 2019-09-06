@@ -4215,7 +4215,7 @@ var commonjs = {
 
     openNotes: function (options) {
        var patient_id = options.patient_id;
-       var url = '/exa#patient/notes/0/0/' + btoa(patient_id) + '/?billing';
+       var url = '/exa#patient/notes/' + options.order_id + '/' + options.study_id + '/' + btoa(patient_id) + '/?billing';
         commonjs.showNestedDialog({ header: 'Notes', i18nHeader: 'billing.claims.notes', width: '90%', height: '60%', onLoad: 'commonjs.removeIframeHeader()', url: url });
     },
 
