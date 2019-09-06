@@ -2032,7 +2032,11 @@ define(['jquery',
                 var btnPaperClaim = $("#btnPaperClaim");
 
                 if (filters.indexOf(filterID) > -1) {
-                    (filterID === "Follow_up_queue") ? btnPaperClaim.hide() : '';
+
+                    if (filterID === "Follow_up_queue") {
+                        btnPaperClaim.hide();
+                    }
+
                     btnInsuranceClaim.hide();
                     btnValidateOrder.hide();
                     btnValidateExport.hide();
