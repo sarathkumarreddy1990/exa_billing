@@ -2,12 +2,14 @@ define([
     'jquery',
     'backbone',
     'backbonesubroute',
+    'shared/routing',
     'views/reports/monthly-recap'
 ],
     function (
         $,
         Backbone,
         SubRoute,
+        RoutingUtils,
         MonthlyRecapView
     ) {
         return Backbone.SubRoute.extend({
@@ -26,11 +28,11 @@ define([
 
             initializeRouter: function () {
                 this.options.screen = facilityModules.reportScreens.monthlyRecap;
-                this.options.currentView = this.monthlyRecapScreen;
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {
-                    this.monthlyRecapScreen = new MonthlyRecapView(this.options);
+                    RoutingUtils.clearView(this.options.currentView);
+                    this.options.currentView = this.monthlyRecapScreen = new MonthlyRecapView(this.options);
                 }
             }
         });
