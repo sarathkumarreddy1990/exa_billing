@@ -2024,17 +2024,28 @@ define(['jquery',
 
             toggleTabContents: function (filterID) {
                 var _self = this;
+                var filters = ["Follow_up_queue", "Files"];
                 commonjs.processPostRender({screen: 'Claim Workbench'});
-                if(filterID=="Follow_up_queue"){
-                    $("#btnInsuranceClaim").hide();
-                    $("#btnValidateOrder").hide();
-                    $("#btnPaperClaim").hide();
-                    $("#btnValidateExport").hide();
-                }else{
-                    $("#btnPaperClaim").show();
-                    $("#btnValidateOrder").show();
-                    $("#btnValidateExport").show();
+                var btnValidateOrder = $("#btnValidateOrder");
+                var btnInsuranceClaim = $("#btnInsuranceClaim");
+                var btnValidateExport = $("#btnValidateExport");
+                var btnPaperClaim = $("#btnPaperClaim");
+
+                if (filters.indexOf(filterID) > -1) {
+
+                    if (filterID === "Follow_up_queue") {
+                        btnPaperClaim.hide();
+                    }
+
+                    btnInsuranceClaim.hide();
+                    btnValidateOrder.hide();
+                    btnValidateExport.hide();
+                } else {
+                    btnPaperClaim.show();
+                    btnValidateOrder.show();
+                    btnValidateExport.show();
                 }
+
                 $('#divPageLoading').hide();
                 $('#diveHomeIndex').show();
                 $('#divStudyFooter').show();
