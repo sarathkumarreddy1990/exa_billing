@@ -80,7 +80,6 @@ var commonjs = {
     currentStudyFilter: '',
     localCacheMaxErrorLimit: 0,
     filterData: {},
-    paymentsList: [],
 
     /**
      * Setting up zip autocomplete:
