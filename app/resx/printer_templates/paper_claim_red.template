@@ -319,9 +319,9 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
     return ([
         {
             style: 'myTable',
-            margin: [-4, 0, 0, 0],
+            margin: [5, 0, 0, 0],
             table: {
-                widths: [44, 44, 58, 45, 52, 36, 41, 250],
+                widths: [40, 48, 58, 41, 50, 34, 45, 250],
                 heights: [20, 0, 0, 21, 0],
                 body: [
                     HeaderDets[0],
