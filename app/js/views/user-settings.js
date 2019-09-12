@@ -4,14 +4,16 @@ define([
     'backbone',
     'jquerysortable',
     'text!templates/user-settings.html',
-    'models/user-settings'
+    'models/user-settings',
+    'shared/fields'
 ], function (
     $,
     _,
     Backbone,
     jquerysortable,
     userSettingsTemplate,
-    ModelUserSetting) {
+    ModelUserSetting,
+    defaultFields ) {
         return Backbone.View.extend({
             template: _.template(userSettingsTemplate),
             events: {
@@ -194,7 +196,7 @@ define([
                         if (self.gridFilterName == 'studies')
                             self.billingDisplayFields = result.study_fields;
                         if (app.country_alpha_3_code === "can") {
-                            self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && (field.field_code == "clearing_house" || 
+                            self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && (field.field_code == "clearing_house" ||
                             field.field_code == "patient_ssn" || field.field_code == "place_of_service" )) }) || [];
                         } else {
                             self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && field.field_code == "payment_id") }) || [];
@@ -248,17 +250,23 @@ define([
                             return (!checkedGridFields.includes(obj.id) || obj.field_code === 'billed_status');
                         });
 
+                        this.defaults = defaultFields(self.gridFilterName).toArray();
+
+                        var nonSortColumn = $.map(this.defaults, function (data) {
+                            return data.field_info && data.field_info.sortable === false ? data.field_code : null
+                        });
+
                         for (var i = 0; i < self.billingDisplayFields.length; i++) {
-                            var currentDisplayField = self.billingDisplayFields[i];
+                            var field = self.billingDisplayFields[i];
 
-                            if (currentDisplayField.field_code !== 'charge_description' && currentDisplayField.field_code !== 'payment_id') {
+                            if (nonSortColumn.indexOf(field.field_code) === -1) {
 
-                                if (result_data.default_column === currentDisplayField.field_code) {
+                                if (result_data.default_column === field.field_code) {
                                     billingDisplayFieldsFlag = true;
                                 }
 
-                                var field_name = commonjs.geti18NString(currentDisplayField.i18n_name);
-                                $('<option/>').val(currentDisplayField.field_code).html(field_name).appendTo('#ddlBillingDefaultColumns');
+                                var field_name = commonjs.geti18NString(field.i18n_name);
+                                $('<option/>').val(field.field_code).html(field_name).appendTo('#ddlBillingDefaultColumns');
                             }
                         }
 

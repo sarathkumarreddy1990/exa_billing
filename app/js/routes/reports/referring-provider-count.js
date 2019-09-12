@@ -2,12 +2,14 @@ define([
     'jquery',
     'backbone',
     'backbonesubroute',
+    'shared/routing',
     'views/reports/referring-provider-count'
 ],
     function (
         $,
         Backbone,
         SubRoute,
+        RoutingUtils,
         ReferringProviderCountView
     ) {
         return Backbone.SubRoute.extend({
@@ -26,11 +28,11 @@ define([
 
             initializeRouter: function () {
                 this.options.screen = facilityModules.reportScreens.referringProviderCount;
-                this.options.currentView = this.referringProviderCountScreen;
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {
-                    this.referringProviderCountScreen = new ReferringProviderCountView(this.options);
+                    RoutingUtils.clearView(this.options.currentView);
+                    this.options.currentView = this.referringProviderCountScreen = new ReferringProviderCountView(this.options);
                 }
             }
         });

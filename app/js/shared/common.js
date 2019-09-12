@@ -80,7 +80,6 @@ var commonjs = {
     currentStudyFilter: '',
     localCacheMaxErrorLimit: 0,
     filterData: {},
-    paymentsList: [],
 
     /**
      * Setting up zip autocomplete:
@@ -1638,11 +1637,7 @@ var commonjs = {
     },
 
     validateFutureDate: function (txtBoxValue, msg) {
-        var dateValue = moment(txtBoxValue, "MM/DD/YYYY");
-        if (moment(commonjs.getCurrentDate()).diff(dateValue) < 0) {
-            return false;
-        }
-        return true;
+        return moment(commonjs.getCurrentDate(), 'L').diff((txtBoxValue).format('L')) >= 0;
     },
 
     dateRangesOverlap: function (startTime1, endTime1, startTime2, endTime2) {
@@ -4215,7 +4210,7 @@ var commonjs = {
 
     openNotes: function (options) {
        var patient_id = options.patient_id;
-       var url = '/exa#patient/notes/0/0/' + btoa(patient_id) + '/?billing';
+       var url = '/exa#patient/notes/' + options.order_id + '/' + options.study_id + '/' + btoa(patient_id) + '/?billing';
         commonjs.showNestedDialog({ header: 'Notes', i18nHeader: 'billing.claims.notes', width: '90%', height: '60%', onLoad: 'commonjs.removeIframeHeader()', url: url });
     },
 

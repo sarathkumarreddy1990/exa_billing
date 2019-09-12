@@ -2,12 +2,14 @@ define([
     'jquery',
     'backbone',
     'backbonesubroute',
+    'shared/routing',
     'views/reports/aged-ar-summary'
 ],
     function (
         $,
         Backbone,
         SubRoute,
+        RoutingUtils,
         AgedARSummaryView
     ) {
         return Backbone.SubRoute.extend({
@@ -26,11 +28,11 @@ define([
 
             initializeRouter: function () {
                 this.options.screen = facilityModules.reportScreens.agedarsummary;
-                this.options.currentView = this.agedARSummaryScreen;
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {
-                    this.agedARSummaryScreen = new AgedARSummaryView(this.options);
+                    RoutingUtils.clearView(this.options.currentView);
+                    this.options.currentView = this.agedARSummaryScreen = new AgedARSummaryView(this.options);
                 }
             }
         });

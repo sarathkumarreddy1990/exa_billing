@@ -2,12 +2,14 @@ define([
     'jquery',
     'backbone',
     'backbonesubroute',
+    'shared/routing',
     'views/reports/procedure-analysis-by-insurance'
 ],
     function (
         $,
         Backbone,
         SubRoute,
+        RoutingUtils,
         ProcedureAnalysisInsuranceView
     ) {
         return Backbone.SubRoute.extend({
@@ -26,11 +28,11 @@ define([
 
             initializeRouter: function () {
                 this.options.screen = facilityModules.reportScreens.procedureanalysisbyinsurance;
-                this.options.currentView = this.procedureAnalysisInsuranceScreen;
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {
-                    this.procedureAnalysisInsuranceScreen = new ProcedureAnalysisInsuranceView(this.options);
+                    RoutingUtils.clearView(this.options.currentView);
+                    this.options.currentView = this.procedureAnalysisInsuranceScreen = new ProcedureAnalysisInsuranceView(this.options);
                 }
             }
         });

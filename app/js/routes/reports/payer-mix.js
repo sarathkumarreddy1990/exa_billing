@@ -2,12 +2,14 @@ define([
     'jquery',
     'backbone',
     'backbonesubroute',
+    'shared/routing',
     'views/reports/payer-mix'
 ],
     function (
         $,
         Backbone,
         SubRoute,
+        RoutingUtils,
         PayerMixView
     ) {
         return Backbone.SubRoute.extend({
@@ -26,11 +28,11 @@ define([
 
             initializeRouter: function () {
                 this.options.screen = facilityModules.reportScreens.payerMix;
-                this.options.currentView = this.payerMixScreen;
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {
-                    this.payerMixScreen = new PayerMixView(this.options);
+                    RoutingUtils.clearView(this.options.currentView);
+                    this.options.currentView = this.payerMixScreen = new PayerMixView(this.options);
                 }
             }
         });

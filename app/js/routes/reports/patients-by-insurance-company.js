@@ -2,12 +2,14 @@ define([
     'jquery',
     'backbone',
     'backbonesubroute',
+    'shared/routing',
     'views/reports/patients-by-insurance-company'
 ],
     function (
         $,
         Backbone,
         SubRoute,
+        RoutingUtils,
         PatientsByInsCompanyView
     ) {
         return Backbone.SubRoute.extend({
@@ -26,11 +28,11 @@ define([
 
             initializeRouter: function () {
                 this.options.screen = facilityModules.reportScreens.patientsByInsurance;
-                this.options.currentView = this.patientsByInsuranceScreen;
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {
-                    this.patientsByInsuranceScreen = new PatientsByInsCompanyView(this.options);
+                    RoutingUtils.clearView(this.options.currentView);
+                    this.options.currentView = this.patientsByInsuranceScreen = new PatientsByInsCompanyView(this.options);
                 }
             }
         });

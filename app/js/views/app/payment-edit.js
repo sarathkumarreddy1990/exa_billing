@@ -1208,13 +1208,17 @@ define(['jquery',
             *  DESC : Check payment & adjustment amount is should be equal with order balance and payer_type === 'patient' for Canadian config.
             */
 
-            overPaymentValidation: function () {
+            overPaymentValidation: function (source) {
                 var self = this;
                 var orderBalance = $('#lblBalanceNew').text() || '0.00';
                 var currentBalance = parseFloat(orderBalance.replace(/[,()$'"]/g, '')) || 0;
 
                 self.payer_type = self.isFromClaim ? self.claimPaymentObj.payer_type : self.payer_type;
-                if (currentBalance !== 0 && app.country_alpha_3_code === 'can' && self.payer_type === 'patient') {
+
+                if (currentBalance !== 0
+                    && app.country_alpha_3_code === 'can'
+                    && self.payer_type === 'patient'
+                    && source !== 'PaidInFull') {
                     commonjs.showWarning('messages.warning.payments.amountValidation');
                     commonjs.hideLoading();
                     return false;
@@ -2063,7 +2067,7 @@ define(['jquery',
                         });
 
                         $('#btnPayfullAppliedPendingPayments').unbind().on('click', function (e) {
-                            self.saveAllPayments(e, claimId, paymentId, paymentStatus, chargeId, paymentApplicationId);
+                            self.saveAllPayments(e, claimId, paymentId, paymentStatus, chargeId, paymentApplicationId, 'PaidInFull');
                         });
 
                         self.reloadPaymentFields(claimId, paymentId, paymentApplicationId, isInitialBind);
@@ -2403,7 +2407,7 @@ define(['jquery',
                 else return true;
             },
 
-            saveAllPayments: function (e, claimId, paymentId, paymentStatus, chargeId, paymentApplicationId) {
+            saveAllPayments: function (e, claimId, paymentId, paymentStatus, chargeId, paymentApplicationId, source) {
                 var targetObj = $(e.target);
                 var objIsPayInFull = targetObj.is('#btnPayfullAppliedPendingPayments');
                 var isClaimDenied = false;
@@ -2444,8 +2448,8 @@ define(['jquery',
                     */
                     var totalPayment = _.reduce(line_items,function(m,x) { return m + x.payment; }, 0);
                     var totalAdjustment = _.reduce(line_items,function(m,x) { return m + x.adjustment; }, 0);
-                     
-                    if (!self.overPaymentValidation()) {
+
+                    if (!self.overPaymentValidation(source)) {
                         return false;
                     } 
 
@@ -3335,15 +3339,21 @@ define(['jquery',
 
             nextPrevPayment: function (e) {
                 $('.nextPrevPayment').prop('disabled', true);
-                var self = this, index = -1, data;
-                index = _.findIndex(commonjs.paymentsList, function (x) { return x.id == self.payment_id; });
-                if ($(e.target).attr('id') === 'btnPaymentPrev') {
-                    data = commonjs.paymentsList[index - 1];
-                } else if ($(e.target).attr('id') === 'btnPaymentNext') {
-                    data = commonjs.paymentsList[index + 1];
+                var self = this;
+                var data;
+                var paymentsList = JSON.parse(window.localStorage.getItem('payment_list')) || {};
+                var index = _.findIndex(paymentsList, { id: btoa(self.payment_id) });
+                var targetId = $(e.target).attr('id');
+
+                if (targetId === 'btnPaymentPrev') {
+                    data = paymentsList[index - 1];
+                } else if (targetId === 'btnPaymentNext') {
+                    data = paymentsList[index + 1];
                 }
-                var rowId = data && data.id;
-                if (rowId != undefined) {
+                var rowId = data && atob(data.id) || null;
+
+                if (rowId) {
+
                     if (self.from === 'ris') {
                         Backbone.history.navigate('#billing/payments/edit/' + self.from + '/' + rowId, true);
                     } else {

@@ -2,12 +2,14 @@ define([
     'jquery',
     'backbone',
     'backbonesubroute',
+    'shared/routing',
     'views/reports/referring-provider-summary'
 ],
     function (
         $,
         Backbone,
         SubRoute,
+        RoutingUtils,
         ReferringProviderSummaryView
     ) {
         return Backbone.SubRoute.extend({
@@ -26,11 +28,12 @@ define([
 
             initializeRouter: function () {
                 this.options.screen = facilityModules.reportScreens.referringprovidersummary;
-                this.options.currentView = this.referringProviderSummaryScreen;
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {
+                    RoutingUtils.clearView(this.options.currentView);
                     this.referringProviderSummaryScreen = new ReferringProviderSummaryView(this.options);
+                    this.options.currentView = this.referringProviderSummaryScreen;
                 }
             }
         });
