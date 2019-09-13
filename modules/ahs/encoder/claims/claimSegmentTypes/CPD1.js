@@ -18,7 +18,7 @@ const getSkillCode = ( context ) => {
     // field length: 4
     // format: alpha
     return constants.encoder.skillCodes[ context.specialtyCode ];
-}
+};
 
 const getFill = ( batchData ) => {
     // field length: <= 244
