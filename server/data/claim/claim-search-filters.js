@@ -331,7 +331,7 @@ const api = {
                                            LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.provider_id`;
         }
 
-        if (filterID == 'Follow_up_queue') {
+        if (filterID == 'Follow_up_queue' && isInnerQuery) {
             r += ' INNER JOIN billing.claim_followups ON  claim_followups.claim_id=claims.id left join users on users.id=assigned_to';
         } else if (tables.claim_followups) {
             r += ` LEFT JOIN billing.claim_followups  ON claim_followups.claim_id=claims.id and assigned_to=${userID}
@@ -545,10 +545,6 @@ const api = {
         let offset = !args.pageNo ? '' :
             ` OFFSET ${((args.pageNo - 1) * args.pageSize) || 0} `
             ;
-
-        //if(args.customArgs.filter_id=='Follow_up_queue'){
-        //args.filterQuery += ` AND claim_followups.assigned_to = ${args.userId} `;
-        //}
         let followupselect = '';
 
         if(args.customArgs.filter_id=='Follow_up_queue'){
@@ -761,6 +757,10 @@ const api = {
             const response = await filterValidator.generateQuery(colModel, args.filterCol, args.filterData, query_options);
             args.filterQuery = response;
             args.filterQuery += paymentIdFilter; // Append payment_id filter WHERE Condition
+
+            if (args.customArgs.filter_id === 'Follow_up_queue' && args.filterCol.indexOf('assigned_to') === -1) {
+                args.filterQuery += ` AND claim_followups.assigned_to = ${args.userId} `;
+            }
 
             if (userSetting.user_details) {
                 if (userSetting.user_details.user_type != 'SU' && userSetting.user_details.all_facilities != true) {

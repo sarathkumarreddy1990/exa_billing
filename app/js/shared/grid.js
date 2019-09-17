@@ -1428,6 +1428,11 @@ define('grid', [
                 }
                 selectedStudyArray = [];
                 $('#btnStudiesRefresh, #btnStudiesRefreshAll, #btnClaimsRefresh, #btnClaimRefreshAll').prop('disabled', false);
+                var userEle = $('#gbox_tblClaimGridFollow_up_queue #gs_assigned_to');
+
+                if (options.filterid === "Follow_up_queue" && !userEle.val()) {
+                    userEle.val(app.userID);
+                }
             };
 
             var rowattr = function (domData, data) {
