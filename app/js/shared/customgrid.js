@@ -715,7 +715,6 @@ function customGrid ( datastore, gridID ) {
             }
 
             if (element && element.id == 'gs_assigned_to' && !$(element).val() && self.options.isClaimGrid) {
-                $("#gs_assigned_to").val(app.userID);
                 if (app.userInfo && app.userInfo.user_settings && (app.userInfo.user_settings.assignClaimsToFollowUpQueue == "true" || app.userInfo.user_type == 'SU')) {
                     $("#gs_assigned_to").removeAttr('disabled');
 
