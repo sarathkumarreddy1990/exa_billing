@@ -30,6 +30,10 @@
     .table__width {
         width: 80% !important;
     }
+    .filter_width {
+        width: 98%;
+        margin: auto;
+    }
 </style>
 <div class="row woClaimRelated" id="headerContainer">
     <nav id="newClaimNav" class="top-nav">
@@ -73,10 +77,29 @@
         </ul>
     </nav>
 </div>
-<div id="divPatient" class="mt-2 ml-3" style="width:98%;">
+<div id="divPatient" class="filter_width">
     <div id="divGrid">
         <div class="row" id="searchForm">
             <div id="divPatientInputs">
+                    <div class="col-xs-12">
+                        <div class="form-group form-inline">
+                            <select id="ddlSearchType" class="form-control">
+                                <option value="start" i18n="billing.payments.startsWith"></option>
+                                <option value="end" i18n="billing.payments.endsWith"></option>
+                                <option value="contain" i18n="billing.payments.contains"></option>
+                            </select>
+                            <select id="ddlFacilitySearch" class="form-control">
+                                <option value="-1">All</option>
+                                <% _.each(facilities, function(facility) { %>
+                                <option value="<%= facility.id %>">
+                                    <%= facility.text %>
+                                </option>
+                                <% }); %>
+                            </select>
+                            <input type="checkbox" class="ml-2" checked="checked" id="chk_isActiveNeeded">
+                            <label for="chk_isActiveNeeded" class="field-chk" i18n="billing.payments.showInactive"></label>
+                        </div>
+                    </div>
                 <div class="col-xs-12 search-field__container">
                     <div class="form-group form-inline">
                         <div class="fc-inline" id="searchPatient" style="width: 100%;">
