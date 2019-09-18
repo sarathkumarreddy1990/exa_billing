@@ -81,9 +81,9 @@ define([
                 $('#spScreenName').html(title);
             },
 
-            clearIframe: function (elId) {
-                var frame = document.getElementById(elId),
-                    frameDoc = frame ? (frame.contentDocument || frame.contentWindow.document) : null;
+            clearIframe: function(elId) {
+                var frame =  document.getElementById (elId);
+                frameDoc = frame ? (frame.contentDocument || frame.contentWindow) : null;
                 if (frameDoc && frameDoc.documentElement) {
                     frameDoc.removeChild(frameDoc.documentElement);
                 }
@@ -101,17 +101,10 @@ define([
 
             showReport: function (id, category, format, params, openInNewTab) {
                 var queryStr = $.param(params);
-
                 var iframeUrl = UI.generateReportUrl(id, category, format, params);
                 if (openInNewTab) {
-                    UI.clearIframe('reportFrame');
                     window.open(iframeUrl, '_blank');
-                    window.onbeforeunload  = function() {
-                        var opener = window.opener ? window.opener : null;
-                        if(opener && opener.$ && opener.$('#divPageLoading')) {
-                            opener.$('#divPageLoading').hide();
-                        }
-                    }
+                    return;
                 }
 
                 UI.clearIframe('reportFrame');
