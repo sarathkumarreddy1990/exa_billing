@@ -182,6 +182,7 @@ const claimInquiryDataSetQueryTemplate = _.template(`
                 LEFT JOIN public.insurance_providers t_ip ON t_ip.id = t_pi.insurance_provider_id
                 WHERE i_bc.id = bc.id
                 <% if(insuranceIds) { %> AND (<% print(p_insuranceIds); %> OR <% print(s_insuranceIds); %> OR <% print(t_insuranceIds); %> ) <%}%>
+                <% if(p_insGroups ||  s_insGroups || t_insGroups) { %> AND (<% print(p_insGroups); %> OR <% print(s_insGroups); %> OR <% print(t_insGroups); %> ) <%}%>
             ) coverage_level ON coverage_level.claim_id = bc.id
              <% if (billingProID) { %> INNER JOIN billing.providers bpp ON bpp.id = bc.billing_provider_id <% } %>
             LEFT JOIN public.insurance_providers ip ON ip.id = pi.insurance_provider_id
@@ -194,7 +195,6 @@ const claimInquiryDataSetQueryTemplate = _.template(`
                 <% if(commentedDt) { %> AND <%=commentedDt%> <%}%>
                 <% if(sumbittedDt) { %> AND <%=sumbittedDt%> <%}%>
                 <% if (facilityIds) { %>AND <% print(facilityIds); } %>
-                <% if(insGroups) { %> AND <%=insGroups%> <%}%>
                 <% if(billingProID) { %> AND <% print(billingProID); } %>
             ORDER BY
                  p.full_name,p.account_no ASC)
@@ -277,6 +277,7 @@ const claimInquiryDataSetQueryTemplate1 = _.template(`
                     LEFT JOIN public.insurance_providers t_ip ON t_ip.id = t_pi.insurance_provider_id
                     WHERE i_bc.id = bc.id
                     <% if(insuranceIds) { %> AND (<% print(p_insuranceIds); %> OR <% print(s_insuranceIds); %> OR <% print(t_insuranceIds); %> ) <%}%>
+                    <% if(p_insGroups ||  s_insGroups || t_insGroups) { %> AND (<% print(p_insGroups); %> OR <% print(s_insGroups); %> OR <% print(t_insGroups); %> ) <%}%>
             ) coverage_level ON coverage_level.claim_id = bc.id
             LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = ip.provider_payer_type_id
             LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
@@ -287,7 +288,6 @@ const claimInquiryDataSetQueryTemplate1 = _.template(`
                   <% if(commentedDt) { %> AND <%=commentedDt%> <%}%>
                   <% if (facilityIds) { %>AND <% print(facilityIds); } %>
                   <% if(billingProID) { %> AND <% print(billingProID); } %>
-                  <% if(insGroups) { %> AND <%=insGroups%> <%}%>
             GROUP BY
                  bc.id
                 ,p.full_name
@@ -699,7 +699,10 @@ const api = {
             paymentUserIds: null,
             patPaidQuery:null,
             insPaidQuery:null,
-            unpaidQuery:null
+            unpaidQuery:null,
+            p_insGroups: null,
+            s_insGroups: null,
+            t_insGroups: null
         };
         // company id
         params.push(reportParams.companyId);
@@ -765,10 +768,14 @@ const api = {
             filters.s_insuranceIds = queryBuilder.whereIn('s_ip.id', [params.length]);
             filters.t_insuranceIds = queryBuilder.whereIn('t_ip.id', [params.length]);
         }
-        if (reportParams.insuranceGroupList && reportParams.insuranceGroupList.length > 0) {
+
+        if (reportParams.insuranceGroupList && reportParams.insuranceGroupList.length) {
             params.push(reportParams.insuranceGroupList);
-            filters.insGroups = queryBuilder.whereIn(`pippt.id`, [params.length]);
+            filters.p_insGroups = queryBuilder.whereIn(`p_ip.provider_payer_type_id`, [params.length]);
+            filters.s_insGroups = queryBuilder.whereIn(`s_ip.provider_payer_type_id`, [params.length]);
+            filters.t_insGroups = queryBuilder.whereIn(`t_ip.provider_payer_type_id`, [params.length]);
         }
+
         if (reportParams.cptCodeLists && reportParams.cptCodeLists.length > 0) {
             params.push(reportParams.cptCodeLists);
             filters.cptCodeLists = queryBuilder.whereIn(`cc.id`, [params.length]);
