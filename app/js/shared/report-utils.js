@@ -82,8 +82,8 @@ define([
             },
 
             clearIframe: function(elId) {
-                var frame =  document.getElementById (elId);
-                frameDoc = frame ? (frame.contentDocument || frame.contentWindow) : null;
+                var frame = document.getElementById(elId);
+                var frameDoc = frame ? (frame.contentDocument || frame.contentWindow) : null;
                 if (frameDoc && frameDoc.documentElement) {
                     frameDoc.removeChild(frameDoc.documentElement);
                 }
