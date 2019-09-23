@@ -109,7 +109,6 @@ function getCPTValues(data, servicelineList) {
     for (let i = 0; i < 6; i++) {
         if (cptvalues && cptvalues[i]) {
             totalBillFee = (parseFloat(totalBillFee) + (cptvalues ? parseFloat(getFeeValue(cptvalues[i], 'totalBillFee')) : 0 )).toFixed(2);
-            authNumber = authNumber || servicelineList[i].authorizationNo;
 
             cpt.push([
                 { text: (cptvalues[i].studyDate?((cptvalues[i].studyDate).toString().substring(4,6)):""), border: [true, false, true, true]},
@@ -1945,6 +1944,8 @@ function claimTable(claims) {
         var isLastClaim = (index == (claims.length-1)) ? true : false;
         var servicelinelist = claim && claim.data[0].subscriber && claim.data[0].subscriber[0].claim && claim.data[0].subscriber[0].claim[0].serviceLine;
         if (servicelinelist) {
+            for (i=0; i<servicelinelist.length; i++) 
+                authNumber = authNumber || servicelinelist[i].authorizationNo;
             var splitedServiceLinelist = split(servicelinelist, 6);
             pageBrk = 'after';
             if (splitedServiceLinelist && splitedServiceLinelist.length) {

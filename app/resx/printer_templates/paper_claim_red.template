@@ -84,7 +84,6 @@ function getTableContents(claimData, servicelineList) {
     for (let i = 0; i < 6; i++) {
         if(servicelineList[i] && servicelineList[i].examCpt) {
             let claimDate = claimData.subscriber[0].claim[0].claimDate ? claimData.subscriber[0].claim[0].claimDate.toString() : '';
-            authNumber = authNumber || servicelineList[i].authorizationNo;
 
             cptRows.push([
                     {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
@@ -976,6 +975,8 @@ function claimTable(claims) {
         var isLastClaim = (index == (claims.length-1)) ? true : false;
         var servicelinelist = claim && claim.data[0].subscriber && claim.data[0].subscriber[0].claim && claim.data[0].subscriber[0].claim[0].serviceLine;
         if (servicelinelist) {
+            for (i=0; i<servicelinelist.length; i++) 
+                authNumber = authNumber || servicelinelist[i].authorizationNo;
             var splitedServiceLinelist = split(servicelinelist, 6);
             pageBrk = 'after';
             if (splitedServiceLinelist && splitedServiceLinelist.length) {
