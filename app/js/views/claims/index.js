@@ -143,7 +143,11 @@ define(['jquery',
                                 self.claimWorkBench.showValidationResult(prevValidationResults.result);
                             }
                         }
+                        commonjs.closePatientChartWindow();
 
+                        if (window.reportWindow) {
+                            window.reportWindow.close();
+                        }
                     },
                     html: this.claimCreationTemplate({
                         country_alpha_3_code: app.country_alpha_3_code,
