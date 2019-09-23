@@ -432,7 +432,7 @@
         {
             "id": 3,
             "field_name": "Study Description",
-            "i18n_name": "setup.userSettings.studyDescription",
+            "i18n_name": "shared.fields.studyDescription",
             "field_info": {
                 "custom_name": "Study Description",
                 "name": "study_description",

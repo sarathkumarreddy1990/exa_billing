@@ -770,7 +770,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Study Description": {
                 "id": 3,
                 "field_name": "Study Description",
-                "i18n_name": "setup.userSettings.studyDescription",
+                "i18n_name": "shared.fields.studyDescription",
                 "field_info": {
                     "custom_name": "Study Description",
                     "name": "study_description",
@@ -1162,7 +1162,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "CPT Codes": {
                 "id": 26,
                 "field_name": "CPT Codes",
-                "i18n_name": "setup.userSettings.cptCodes",
+                "i18n_name": "shared.fields.cptCodes",
                 "field_info": {
                     "custom_name": "CPT Codes",
                     "name": "studies.cpt_codes",
