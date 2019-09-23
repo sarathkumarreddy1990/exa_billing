@@ -1100,8 +1100,6 @@ var commonjs = {
                 options.onHide();
             }
 
-            if (window.reportWindow)
-                window.reportWindow.close();
             if (window.updaterRegisteredPortalInfo == true)
                 window.updaterRegisteredPortalInfoObj.close();
 
@@ -1156,10 +1154,6 @@ var commonjs = {
             //Report window close
             this.closeReportWindow();
         }
-
-        //Patient Chart Window  close
-        if (options.header !== "Patient Alerts")
-            this.closePatientChartWindow();
 
         if (options.onHide && typeof options.onHide === 'function') {
             options.onHide();
