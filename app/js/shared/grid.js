@@ -1087,13 +1087,13 @@ define('grid', [
 
                                     _contentTable.append($('<tr/>')
                                         .addClass('row')
-                                        .append($('<td/>').addClass('col-3').text(commonjs.geti18NString("order.summary.cptCodes")))
+                                        .append($('<td/>').addClass('col-3').text(commonjs.geti18NString("shared.fields.cptCodes")))
                                         .append($('<td/>').addClass('pl-0 pr-2').text(':'))
                                         .append($('<td/>').addClass('col-8 pl-0 text-truncate').text(cptCodes).attr({ title: cptCodes }))
                                     );
                                     _contentTable.append($('<tr/>')
                                         .addClass('row')
-                                        .append($('<td/>').addClass('col-3').text(commonjs.geti18NString("billing.payments.cptDescription")))
+                                        .append($('<td/>').addClass('col-3').text(commonjs.geti18NString("shared.fields.cptDescription")))
                                         .append($('<td/>').addClass('pl-0 pr-2').text(':'))
                                         .append($('<td/>').addClass('col-8 pl-0 text-truncate').text(cptDesc).attr({ title: cptDesc }))
                                     );
