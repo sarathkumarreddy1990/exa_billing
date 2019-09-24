@@ -793,13 +793,24 @@ define(['jquery',
 
                     data.validations = data.validations.concat(segmentValidations);
                     var result = [];
+                    var validations = [];
+                    var commonErrorValidation = [];
 
-                    if (data.validations && data.validations.length) {
-                        result = _.groupBy(data.validations, "dataID");
+                    data.validations.forEach(function (object) {
+
+                        if (_.has(object, "dataID")) {
+                            validations.push(object);
+                        } else {
+                            commonErrorValidation.push(object);
+                        }
+                    });
+
+                    if (data.validations && data.validations.length && validations.length) {
+                        result = _.groupBy(validations, "dataID");
                     }
 
                     if (isFromReClaim) {
-                        $('#modal_div_container').html(self.ediResultTemplate({ result: result, ediText: data.ediTextWithValidations }));
+                        $('#modal_div_container').html(self.ediResultTemplate({ result: result, ediText: data.ediTextWithValidations, commonResult: commonErrorValidation }));
                         commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());
                         self.initEvent(true);
                     } else {
@@ -809,7 +820,7 @@ define(['jquery',
                             width: '95%',
                             height: '75%',
                             fromValidate: true,
-                            html: self.ediResultTemplate({ result: result, ediText: data.ediTextWithValidations }),
+                            html: self.ediResultTemplate({ result: result, ediText: data.ediTextWithValidations, commonResult: commonErrorValidation }),
                             onShown: function () {
                                 self.initEvent(true);
                             },

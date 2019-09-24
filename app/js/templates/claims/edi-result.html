@@ -16,43 +16,67 @@
         <div id="divEDIErrorMsgs">
             <% if(result){ %>
 
-            <div id="divWarningMsg" >
-                <table class="table table-bordered table-hover" style="width:100%;">
+            <div id="divWarningMsg">
+                <table class="table table-bordered table-hover ohip-claim">
                     <tr>
-                        <td style='width: 20px; padding-bottom: 0px;font-weight:bold;' i18n="billing.fileInsurance.SegmentID"></td>
-                        <td style='width: 20px; padding-bottom: 0px;font-weight:bold;' i18n="billing.fileInsurance.SegmentName"></td>
-                        <td style='width: 20px; padding-bottom: 0px;font-weight:bold;' i18n="billing.fileInsurance.Name"></td>
-                        <td colspan='2' style='width: 100%;font-weight:bold;padding-bottom: 0px; border-right: none;' i18n="billing.fileInsurance.Message"></td>
+                        <td class="ediTableRowData pb-0 font-weight-bold" i18n="billing.fileInsurance.SegmentID"></td>
+                        <td class="ediTableRowData pb-0 font-weight-bold" i18n="billing.fileInsurance.SegmentName"></td>
+                        <td class="ediTableRowData pb-0 font-weight-bold" i18n="billing.fileInsurance.Name"></td>
+                        <td colspan='2' class="font-weight-bold ohip-claim border-right-0 pb-0" i18n="billing.fileInsurance.Message"></td>
                     </tr>
-                    <% _.each(result,function(obj,index){ %>
-                        <tr>
-                            <td colspan='5'>
-                                <span style='font-size: 15px;font-weight:bold;margin-left:500px;' i18n="billing.fileInsurance.claimNo">
-
-                                </span>
-                                <label style="margin-left: 10px;font-weight:bold;" class="processClaimEdit" id="<%= index %>">
-                                    <%= index %>
-                                </label>
-                            </td>
-                        </tr>
-                        <% _.each(obj,function(segment){ %>
-                            <tr>
-                                <td style='width: 20px; padding-bottom: 0px;'>
-                                    <%=segment.segmentID || ''%>
-                                </td>
-                                <td style='width: 20px; padding-bottom: 0px;'>
-                                    <%=segment.segmentName || ''%>
-                                </td>
-                                <td style='width: 20px; padding-bottom: 0px;'>
-                                    <%=segment.fieldName || ''%>
-                                </td>
-                                <td colspan='2' style='width: 100%;padding-bottom: 0px; border-right: none;'>
-                                    <%=segment.message || ''%>
-                                </td>
-                            </tr>
-                        <%})%>
+                    <% if(commonResult && commonResult.length){ %>
+                    <tr>
+                        <td colspan='5'>
+                            <span class="font-weight-bold ediErrorText" i18n="billing.fileInsurance.genericError">
+                            </span>
+                        </td>
+                    </tr>
+                    <% _.each(commonResult,function(segment){ %>
+                    <tr>
+                        <td class="ediTableRowData pb-0">
+                            <%=segment.segmentID || ''%>
+                        </td>
+                        <td class="ediTableRowData pb-0">
+                            <%=segment.segmentName || ''%>
+                        </td>
+                        <td class="ediTableRowData pb-0">
+                            <%=segment.fieldName || ''%>
+                        </td>
+                        <td colspan='2' class="ohip-claim border-right-0 pb-0">
+                            <%=segment.message || ''%>
+                        </td>
+                    </tr>
                     <%})%>
-                <%}%>
+                    <% } %>
+                    <% _.each(result,function(obj,index){ %>
+                    <tr>
+                        <td colspan='5'>
+                            <span class="ediErrorText font-weight-bold" i18n="billing.fileInsurance.claimNo">
+            
+                            </span>
+                            <label class="paymentMethod font-weight-bold processClaimEdit" id="<%= index %>">
+                                <%= index %>
+                            </label>
+                        </td>
+                    </tr>
+                    <% _.each(obj,function(segment){ %>
+                    <tr>
+                        <td class="ediTableRowData pb-0">
+                            <%=segment.segmentID || ''%>
+                        </td>
+                        <td class="ediTableRowData pb-0">
+                            <%=segment.segmentName || ''%>
+                        </td>
+                        <td class="ediTableRowData pb-0">
+                            <%=segment.fieldName || ''%>
+                        </td>
+                        <td colspan='2' class="ohip-claim border-right-0 pb-0">
+                            <%=segment.message || ''%>
+                        </td>
+                    </tr>
+                    <%})%>
+                    <%})%>
+                    <%}%>
 
                 </table>
             </div>
