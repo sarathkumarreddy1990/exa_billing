@@ -4,7 +4,7 @@ let HeaderDets = [];
 let ServiceFacDet = [];
 let BillingProDet = [];
 let BillingPh;
-let Auth_Number;
+let authNumber;
 
 function getImage(needCheck) {
     return needCheck ? 'tickImage' : 'clearDot';
@@ -109,7 +109,6 @@ function getCPTValues(data, servicelineList) {
     for (let i = 0; i < 6; i++) {
         if (cptvalues && cptvalues[i]) {
             totalBillFee = (parseFloat(totalBillFee) + (cptvalues ? parseFloat(getFeeValue(cptvalues[i], 'totalBillFee')) : 0 )).toFixed(2);
-            Auth_Number = Auth_Number || servicelineList[i].authorizationNo;
 
             cpt.push([
                 { text: (cptvalues[i].studyDate?((cptvalues[i].studyDate).toString().substring(4,6)):""), border: [true, false, true, true]},
@@ -1736,7 +1735,7 @@ function formatSingleClaim(claimData, servicelineList) {
                                         {
                                             text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0] && claimData.subscriber[0].claim[0].authorizationNo ?
                                                     getKeyTrimValue(claimData.subscriber[0].claim[0], 'authorizationNo', 30)
-                                                        : getSubstring(Auth_Number,30) , alignment:"center", colSpan:2
+                                                        : getSubstring(authNumber,30) , alignment:"center", colSpan:2
                                         },
                                         {}
                                     ]
@@ -1941,9 +1940,15 @@ function claimTable(claims) {
     var blocks = [];
     claims.forEach(function (claim, index) {
         totalBillFee = 0;
+        authNumber = null;
         var isLastClaim = (index == (claims.length-1)) ? true : false;
         var servicelinelist = claim && claim.data[0].subscriber && claim.data[0].subscriber[0].claim && claim.data[0].subscriber[0].claim[0].serviceLine;
         if (servicelinelist) {
+
+            for (i=0; i<servicelinelist.length; i++) {
+                authNumber = authNumber || servicelinelist[i].authorizationNo;
+            }
+            
             var splitedServiceLinelist = split(servicelinelist, 6);
             pageBrk = 'after';
             if (splitedServiceLinelist && splitedServiceLinelist.length) {
