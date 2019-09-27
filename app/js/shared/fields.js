@@ -274,7 +274,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "id": 5,
                     "field_code": "patient_ssn",
                     "field_name": "SSN",
-                    "i18n_name": "billing.refund.ssn",
+                    "i18n_name": "shared.fields.ssn",
                     "field_info": {
                         "custom_name": "SSN",
                         "name": "patient_ssn",
@@ -576,7 +576,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "id": 25,
                     "field_code": "policy_number",
                     "field_name": "Policy Number",
-                    "i18n_name": "setup.userSettings.policyNumber",
+                    "i18n_name": "shared.fields.policyNumber",
                     "field_info": {
                         "custom_name": "Policy Number",
                         "name": "policy_number",
