@@ -264,9 +264,7 @@ define([
             showInsuranceGrid: function (data) {
                 var self = this;
                 var colNames = ['', 'code', 'description', 'Subscriber Name', 'DOB', 'Policy No', 'Group No'];
-                var i18nNames = ['', 'billing.COB.code', 'billing.COB.description', 'billing.claims.subscriberName', 'billing.COB.DOB', 'patient.patientInsurance.policyNo',
-                    'patient.patientInsurance.groupNo'
-                ];
+                var i18nNames = ['', 'billing.COB.code', 'billing.COB.description', 'billing.claims.subscriberName', 'billing.COB.DOB', 'shared.fields.policyNumber', 'patient.patientInsurance.groupNo'];
                 var colModel = [
                     { name: 'id', hidden: true },
                     { name: 'insurance_code', search: false },
