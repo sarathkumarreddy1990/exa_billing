@@ -149,7 +149,8 @@ module.exports = {
                                 SELECT id as siteID,
                                     stat_level_config,
                                     tat_config,
-                                    country_alpha_3_code
+                                    country_alpha_3_code,
+                                    province_alpha_2_code
                                     FROM   sites
                                     WHERE  id=${siteID})
                 , cte_hidden_reports AS (
