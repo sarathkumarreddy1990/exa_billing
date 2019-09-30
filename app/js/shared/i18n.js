@@ -73,18 +73,17 @@ var i18n = {
 
     get: function (key, useDefault) {
         // Assemble country and province specific lists of replacements
-        var provinceAlphaCode = (app && app.default_province_alpha_2_code) || '';
+        var provinceAlphaCode = (app && app.province_alpha_2_code) || '';
         var global = this.rules && this.rules.global || [];
         var province = this.rules && this.rules[provinceAlphaCode] || [];
 
-        // Replace country-wide
-        _.each(global, function(rule) {
+        // Replace province-wide
+        _.each(province, function(rule) {
             key = rule.default === key ? rule.replace : key;
         });
 
-        // Replace province-wide
-        //   These will overwrite the country-wide replacements when defined
-        _.each(province, function(rule) {
+        // Replace country-wide
+        _.each(global, function(rule) {
             key = rule.default === key ? rule.replace : key;
         });
 
