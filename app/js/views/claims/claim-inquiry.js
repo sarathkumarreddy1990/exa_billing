@@ -685,7 +685,7 @@ define([
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['','', 'date', '', 'code', 'payment.id', 'comment', 'Diag Ptr', 'charge', 'payment', 'adjustment', '', '', '', '',''],
                     i18nNames: ['', '', 'billing.claims.date', '', 'billing.COB.code', 'billing.payments.paymentID', 'billing.payments.comment', 'billing.COB.diagptr',
-                        'billing.payments.charge', 'billing.payments.payments', 'billing.fileInsurance.adjustments', '', '', '', '', ''
+                        'billing.payments.charge', 'billing.payments.payments', 'billing.fileInsurance.adjustments', '', '', '', '', 'billing.payments.printOnStatements'
                     ],
                     colModel: [
                         { name: 'id', hidden: true},
@@ -811,7 +811,7 @@ define([
                             }
                         },
                         {
-                            name: 'is_internal', width: 20, sortable: false, search: false, hidden: false,
+                            name: 'is_internal', width: 40, sortable: false, search: false, hidden: false,
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.code && rowObject.code != null && commentType.indexOf(rowObject.code) == -1) {
                                     if (rowObject.is_internal == true)

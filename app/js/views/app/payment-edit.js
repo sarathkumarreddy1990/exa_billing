@@ -1753,10 +1753,6 @@ define(['jquery',
                     width: rowData.isFromClaim ? '75%' : '85%',
                     height: rowData.isFromClaim ? '65%' : '72%',
                     html: casDialogHtml,
-                    onShown: function () {
-                        var thisPayment = $($('.payment__this_pay')[0]);
-                        thisPayment.focus().val(thisPayment.val());
-                    }
                 };
 
                 if (rowData.isFromClaim) {
@@ -2091,6 +2087,9 @@ define(['jquery',
                             self.updateRefundRecoupment();
                         }
 
+                        // To get focus after binding on claim charges
+                        var thisPayment = $($('.payment__this_pay')[0]);
+                        thisPayment.focus();
                     },
                     error: function (err, response) {
                         commonjs.handleXhrError(err, response);
