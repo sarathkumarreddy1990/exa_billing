@@ -73,7 +73,7 @@ module.exports = {
                 fc.code                                                                            AS functional_centre,
                 CASE
                     WHEN f.can_ahs_facility_number :: INT > 0
-                        THEN o.order_info -> 'patientLocation'
+                    THEN o.order_info -> 'patientLocation'
                     ELSE NULL
                 END                                                                                AS location_code,
             
@@ -91,12 +91,12 @@ module.exports = {
                 pc_ref.can_ahs_prid                                                                AS referral_id,
                 CASE
                     WHEN LOWER(pc_ref.contact_info -> 'STATE') NOT IN ( 'ab', 'alberta' )
-                        THEN TRUE
+                    THEN TRUE
                     ELSE NULL
                 END                                                                                AS oop_referral_indicator,
                 CASE
                     WHEN p.can_ahs_uli IS NULL AND p.can_ahs_registration_number_province NOT IN ( 'ab', 'qc' )
-                        THEN p.can_ahs_registration_number_province
+                    THEN p.can_ahs_registration_number_province
                     ELSE ''
                 END                                                                                AS recovery_code,
                 bc.id                                                                              AS chart_number,
