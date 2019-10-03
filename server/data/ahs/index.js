@@ -46,6 +46,8 @@ module.exports = {
                 TO_CHAR(bc.claim_dt, 'YY')                                                         AS current_year,
                 TO_CHAR(bc.claim_dt, 'MM')                                                         AS source_code,
                 ( SELECT sequence_number FROM numbers ) + row_number() OVER (ORDER BY bc.claim_dt) AS sequence_number,
+                -- Calculate check-digit
+                -- @TODO
                 ''                                                                                 AS check_digit,
                 'CIP1'                                                                             AS transaction_type, -- currently hard-coded - AHS does not support another code right now
                 pc_app.can_ahs_prid                                                                AS service_provider_prid,
@@ -71,8 +73,8 @@ module.exports = {
                 fc.code                                                                            AS functional_centre,
                 CASE
                     WHEN f.can_ahs_facility_number :: INT > 0
-                    THEN o.order_info -> 'patientLocation'
-                    ELSE ''
+                        THEN o.order_info -> 'patientLocation'
+                    ELSE NULL
                 END                                                                                AS location_code,
             
                 -- Need Originating Facility stuff here
@@ -89,15 +91,29 @@ module.exports = {
                 pc_ref.can_ahs_prid                                                                AS referral_id,
                 CASE
                     WHEN LOWER(pc_ref.contact_info -> 'STATE') NOT IN ( 'ab', 'alberta' )
-                    THEN 'Y'
-                    ELSE ''
+                        THEN TRUE
+                    ELSE NULL
                 END                                                                                AS oop_referral_indicator,
                 CASE
                     WHEN p.can_ahs_uli IS NULL AND p.can_ahs_registration_number_province NOT IN ( 'ab', 'qc' )
-                    THEN p.can_ahs_registration_number_province
+                        THEN p.can_ahs_registration_number_province
                     ELSE ''
                 END                                                                                AS recovery_code,
-                bc.id                                                                              AS chart_number
+                bc.id                                                                              AS chart_number,
+                billing.get_claim_totals(bc.id).charges_bill_fee_total                             AS claimed_amount,
+                bc.can_ahs_claimed_amount_indicator                                                AS claimed_amount_indicator,
+                bc.can_ahs_confidential                                                            AS confidential_indicator,
+                bc.can_ahs_good_faith                                                              AS good_faith_indicator,
+                bc.can_ahs_newborn_code                                                            AS newborn_code,
+                bc.can_ahs_emsaf_reason                                                            AS emsaf_reason,
+                bc.can_ahs_paper_supporting_docs                                                   AS paper_supporting_documentation_indicator,
+                TO_CHAR(s.hospital_admission_dt, 'YYYYMMDD')                                       AS hospital_admission_date,
+                s.can_ahs_tooth_code                                                               AS tooth_code,
+                s.can_ahs_tooth_surface1                                                           AS tooth_surface1,
+                s.can_ahs_tooth_surface2                                                           AS tooth_surface2,
+                s.can_ahs_tooth_surface3                                                           AS tooth_surface3,
+                s.can_ahs_tooth_surface4                                                           AS tooth_surface4,
+                s.can_ahs_tooth_surface5                                                           AS tooth_surface5
             FROM
                 billing.claims bc
             LEFT JOIN billing.charges bch
@@ -137,7 +153,6 @@ module.exports = {
             LEFT JOIN public.facilities f
                 ON f.id = s.facility_id
 
-            
             WHERE
                 bc.id = ANY(${claimIds})
 
