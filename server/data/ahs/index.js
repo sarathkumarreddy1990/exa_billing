@@ -62,7 +62,42 @@ module.exports = {
                 -- @TODO - put ICD JOIN into lateral and get them in order
                 -- ARRAY_AGG(icd.code) AS diagnosis_codes
             
-                scpt.units                                                                         AS calls
+                scpt.units                                                                         AS calls,
+            
+                -- Modifiers
+                -- @TODO
+            
+                f.can_ahs_facility_number                                                          AS facility_number,
+                fc.code                                                                            AS functional_centre,
+                CASE
+                    WHEN f.can_ahs_facility_number :: INT > 0
+                    THEN o.order_info -> 'patientLocation'
+                    ELSE ''
+                END                                                                                AS location_code,
+            
+                -- Need Originating Facility stuff here
+                -- @TODO
+            
+                bc.can_ahs_business_arrangement                                                    AS business_arrangement,
+                bc.can_ahs_pay_to_code                                                             AS pay_to_code,
+                bc.can_ahs_pay_to_uli                                                              AS pay_to_uli,
+            
+                -- Use this to create person data segment CPD1
+                bc.can_ahs_pay_to_details                                                          AS pay_to_details,
+            
+                bc.can_ahs_locum_arrangement                                                       AS locum_arrangement,
+                pc_ref.can_ahs_prid                                                                AS referral_id,
+                CASE
+                    WHEN LOWER(pc_ref.contact_info -> 'STATE') NOT IN ( 'ab', 'alberta' )
+                    THEN 'Y'
+                    ELSE ''
+                END                                                                                AS oop_referral_indicator,
+                CASE
+                    WHEN p.can_ahs_uli IS NULL AND p.can_ahs_registration_number_province NOT IN ( 'ab', 'qc' )
+                    THEN p.can_ahs_registration_number_province
+                    ELSE ''
+                END                                                                                AS recovery_code,
+                bc.id                                                                              AS chart_number
             FROM
                 billing.claims bc
             LEFT JOIN billing.charges bch
@@ -71,6 +106,8 @@ module.exports = {
                 ON bchs.charge_id = bch.id
             LEFT JOIN public.studies s
                 ON s.id = bchs.study_id
+            LEFT JOIN public.orders o
+                ON o.id = s.order_id
             LEFT JOIN public.study_transcriptions st
                 ON st.study_id = s.id
             LEFT JOIN public.companies comp
@@ -97,6 +134,9 @@ module.exports = {
                 ON icd.id = bcicd.icd_id
             LEFT JOIN public.study_cpt scpt
                 ON scpt.study_id = s.id
+            LEFT JOIN public.facilities f
+                ON f.id = s.facility_id
+
             
             WHERE
                 bc.id = ANY(${claimIds})
