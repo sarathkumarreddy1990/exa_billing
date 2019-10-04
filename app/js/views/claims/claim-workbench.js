@@ -2925,8 +2925,9 @@ define(['jquery',
 
                             if (data) {
                                 var invalidClaimData = data.invalidClaim_data;
-                                
+
                                 if (invalidClaimData.length) {
+                                    commonjs.previousValidationResults.result = invalidClaimData;
                                     modalContainer.html(self.claimValidation({ response_data: invalidClaimData }));
                                 } else {
                                     modalContainer.html('<div style="text-align: center" >' + commonjs.geti18NString('messages.status.noRecordFound') + '</div>');
