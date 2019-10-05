@@ -15,7 +15,7 @@
     "length": 30
   },
   "middle_name": {
-    "format": "A",
+    "format": "a",
     "startPos": 70,
     "length": 12
   },
@@ -25,18 +25,14 @@
     "length": 12
   },
   "birth_date": {
-    "format": "N",
+    "format": "n",
     "startPos": 94,
     "length": 8
   },
   "gender_code": {
-    "format": "A",
+    "format": "a",
     "startPos": 102,
-    "length": 1,
-    "enumerated": [
-      "M",
-      "F"
-    ]
+    "length": 1
   },
   "address1": {
     "format": "A",
@@ -44,12 +40,12 @@
     "length": 25
   },
   "address2": {
-    "format": "A",
+    "format": "a",
     "startPos": 128,
     "length": 25
   },
   "address3": {
-    "format": "A",
+    "format": "a",
     "startPos": 153,
     "length": 25
   },
@@ -74,17 +70,17 @@
     "length": 4
   },
   "parent_uli": {
-    "format": "N",
+    "format": "n",
     "startPos": 220,
     "length": 9
   },
   "parentRegistrationNumber": {
-    "format": "N",
+    "format": "n",
     "startPos": 229,
     "length": 12
   },
   "empty": {
-    "format": "A",
+    "format": "a",
     "startPos": 241,
     "length": 14
   }

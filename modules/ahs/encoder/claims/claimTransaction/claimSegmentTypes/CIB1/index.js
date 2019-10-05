@@ -9,6 +9,7 @@ const processRow = ( row, header, segmentData ) => {
         'emsaf_indicator': row.emsaf_reason
             ? `Y`
             : ``,
+        // 'empty': ``,
     };
 };
 

@@ -13,22 +13,23 @@
     "length": 3
   },
   "year": {
-    "format": "N",
+    "format": "A",
     "startPos": 5,
     "length": 2
   },
   "source_code": {
     "format": "A",
     "startPos": 7,
-    "length": 2
+    "length": 2,
+    "paddingChar": "0"
   },
   "sequence_number": {
-    "format": "N",
+    "format": "n",
     "startPos": 9,
     "length": 7
   },
   "check_digit": {
-    "format": "N",
+    "format": "n",
     "startPos": 16,
     "length": 1
   },
@@ -45,7 +46,8 @@
   "segment_sequence": {
     "format": "N",
     "startPos": 25,
-    "length": 4
+    "length": 4,
+    "paddingChar": "0"
   },
   "action_code": {
     "format": "A",
@@ -53,7 +55,7 @@
     "length": 1
   },
   "empty": {
-    "format": "A",
+    "format": "a",
     "startPos": 30,
     "length": 6
   }

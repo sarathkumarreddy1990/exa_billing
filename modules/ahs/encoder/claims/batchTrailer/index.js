@@ -11,7 +11,7 @@ const processResults = ( results, tracker ) => {
         'batch_number': data.batch_number,
         'total_transactions': tracker.transactions,
         'total_segments': tracker.segments,
-        'empty': ``,
+        // 'empty': ``,
     };
 };
 

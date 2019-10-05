@@ -69,13 +69,13 @@ const encode = ( rows ) => {
         /**
          * TRANSACTIONS / CLAIMS
          */
-        rows.map(processors.claimTransaction(tracker)),
+        ...rows.map(processors.claimTransaction(tracker)),
 
         /**
          * BATCH TRAILER RECORD
          */
         encodeRecord(
-            processors.batchTrailer(tracker)(rows),
+            processors.batchTrailer(rows, tracker),
             descriptors.batchTrailer,
         ),
     ];

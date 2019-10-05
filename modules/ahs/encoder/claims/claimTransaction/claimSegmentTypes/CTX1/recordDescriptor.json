@@ -1,17 +1,12 @@
 {
-  "transactionData": {
-    "format": "A",
-    "startPos": 1,
-    "length": 35
-  },
   "claimNumbers": {
-    "format": "A",
-    "startPos": 36,
+    "format": "a",
+    "startPos": 1,
     "length": 210
   },
   "empty": {
-    "format": "A",
-    "startPos": 246,
+    "format": "a",
+    "startPos": 211,
     "length": 9
   }
 }

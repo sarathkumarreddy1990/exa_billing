@@ -15,4 +15,12 @@ module.exports = {
         'decode': impl.decodeDate,
         'encode': impl.encodeDate,
     },
+    'a': {
+        'decode': impl.decodeAlphanumeric,
+        'encode': impl.encodeAlphanumericLoose,
+    },
+    'n': {
+        'decode': impl.decodeNumeric,
+        'encode': impl.encodeNumericLoose,
+    },
 };
