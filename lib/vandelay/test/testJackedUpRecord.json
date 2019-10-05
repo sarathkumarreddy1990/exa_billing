@@ -1,99 +1,92 @@
 {
-	"invalidFormatField": {
-		"format": "no-go",
-		"startPos": 1,
-		"length": 3
-	},
-
-	"invalidStartPosTypeField": {
-		"format": "A",
-		"startPos": "1",
-		"length": 1
-	},
-
-	"invalidLengthTypeField": {
-		"format": "A",
-		"startPos": 1,
-		"length": "1"
-	},
-
-	"invalidPaddingTypeField": {
-		"format": "A",
-		"startPos": 2,
-		"length": 1,
-		"padding": 5
-	},
-
-	"invalidPaddingValueField": {
-		"format": "A",
-		"startPos": 3,
-		"length": 1,
-		"padding": "~~"
-	},
-
-	"subZeroStartPosField" : {
-		"format": "A",
-		"startPos": -1,
-		"length": 1
-	},
-
-
-	"subZeroLengthField": {
-		"format": "A",
-		"startPos": 0,
-		"length": -1
-	},
-
-	"overlapFieldTwoField": {
-		"format": "A",
-		"startPos": 1,
-		"length": 1
-	},
-	"overlapFieldThreeField": {
-		"format": "A",
-		"startPos": 2,
-		"length": 1
-	},
-	"overlapFieldFourField": {
-		"format": "A",
-		"startPos": 3,
-		"length": 1
-	},
-
-
-	"invalidEnumeratedTypeField": {
-		"format": "A",
-		"startPos": 1,
-		"length": 1,
-		"enumerated": "no-go"
-	},
-	"emptyEnumeratedValuesField": {
-		"format": "A",
-		"startPos": 1,
-		"length": 1,
-		"enumerated": []
-	},
-	"homogenousEnumeratedValuesField": {
-		"format": "A",
-		"startPos": 1,
-		"length": 1,
-		"enumerated": ["X", "7", 5]
-	},
-	"invalidEnumeratedValueTypesField": {
-		"format": "A",
-		"startPos": 1,
-		"length": 1,
-		"enumerated": [{"no":"go"}]
-	},
-
-
-	"invalidIsLeftJustifiedTypeField": {
-		"format": "A",
-		"startPos": 1,
-		"length": 1,
-		"isLeftJustified": "true"
-	}
-
-
-
+  "invalidFormatField": {
+    "format": "no-go",
+    "startPos": 1,
+    "length": 3
+  },
+  "invalidStartPosTypeField": {
+    "format": "A",
+    "startPos": "1",
+    "length": 1
+  },
+  "invalidLengthTypeField": {
+    "format": "A",
+    "startPos": 1,
+    "length": "1"
+  },
+  "invalidPaddingTypeField": {
+    "format": "A",
+    "startPos": 2,
+    "length": 1,
+    "padding": 5
+  },
+  "invalidPaddingValueField": {
+    "format": "A",
+    "startPos": 3,
+    "length": 1,
+    "padding": "~~"
+  },
+  "subZeroStartPosField": {
+    "format": "A",
+    "startPos": -1,
+    "length": 1
+  },
+  "subZeroLengthField": {
+    "format": "A",
+    "startPos": 0,
+    "length": -1
+  },
+  "overlapFieldTwoField": {
+    "format": "A",
+    "startPos": 1,
+    "length": 1
+  },
+  "overlapFieldThreeField": {
+    "format": "A",
+    "startPos": 2,
+    "length": 1
+  },
+  "overlapFieldFourField": {
+    "format": "A",
+    "startPos": 3,
+    "length": 1
+  },
+  "invalidEnumeratedTypeField": {
+    "format": "A",
+    "startPos": 1,
+    "length": 1,
+    "enumerated": "no-go"
+  },
+  "emptyEnumeratedValuesField": {
+    "format": "A",
+    "startPos": 1,
+    "length": 1,
+    "enumerated": [ ]
+  },
+  "homogenousEnumeratedValuesField": {
+    "format": "A",
+    "startPos": 1,
+    "length": 1,
+    "enumerated": [
+      "X",
+      "7",
+      5
+    ]
+  },
+  "invalidEnumeratedValueTypesField": {
+    "format": "A",
+    "startPos": 1,
+    "length": 1,
+    "enumerated": [
+      {
+        "no": "go"
+      }
+    ]
+  },
+  "invalidIsLeftJustifiedTypeField": {
+    "format": "A",
+    "startPos": 1,
+    "length": 1,
+    "isLeftJustified": "true"
+  }
 }
