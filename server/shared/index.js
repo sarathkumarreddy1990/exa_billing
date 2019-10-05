@@ -4,9 +4,102 @@ const {
     screenNames,
     entityNames
 } = require('./constants');
+const config = require('../config');
 const moment = require('moment');
 
+const {
+    networkInterfaces
+} = require('os');
+
+const nics = networkInterfaces();
+const nicNames = Object.keys(nics);
+const loIndex = nicNames.indexOf(`lo`);
+
+nicNames.splice(loIndex, 1);
+
+const macAddr = {
+    'EMPTY_MAC_ADDR': `00:00:00:00:00:00`,
+    'regMac': /(^[^A-Za-z1-9]|[^A-Za-z0-9])/g,
+    'addr': ``,
+    'setAddr': function () {
+        const {
+            EMPTY_MAC_ADDR,
+            regMac
+        } = this;
+
+        const total = nicNames.length;
+        let a = 0;
+        for ( ; a < total; ++a ) {
+            const name = nicNames[ a ];
+            const nicArray = nics[ name ];
+            const total = nicArray.length;
+            let i = 0;
+            for ( ; i < total; ++i ) {
+                const {
+                    mac
+                } = nicArray[ i ];
+
+                if ( mac && mac !== EMPTY_MAC_ADDR ) {
+                    const newMAC = mac
+                        .split(/:|-/)
+                        .map(id => parseInt(id, 16)
+                            .toString()
+                            .replace(regMac, ``))
+                        .join('');
+
+                    if ( newMAC ) {
+                        this.addr = newMAC;
+                        return this;
+                    }
+                }
+            }
+
+        }
+
+        this.addr = `1`;
+        return this;
+    },
+
+    'getAddr': function () {
+        return this.addr || this.setAddr().addr;
+    }
+};
+
+process.nextTick(
+    () => macAddr.setAddr()
+);
+
 module.exports = {
+
+    'uidState': {
+        'systemMac': macAddr.getAddr(),
+        'lastUIDTime': '',
+        'lastClock': 0,
+    },
+
+    'getUID': function () {
+        var currentClock = 0;
+        var datestring = moment().format('YYYYMMDDHHmmss');
+
+        if ( datestring == this.uidState.lastUIDTime ) {
+            currentClock = this.uidState.lastClock + 1;
+        }
+
+        this.uidState.lastUIDTime = datestring;
+        this.uidState.lastClock = currentClock;
+
+        let macNo = this.uidState.systemMac;
+        let hrTime = process.hrtime();
+        let uidFlag = ~~(Math.random() * 10);
+
+        let uid = `${config.get(config.keys.dicomUID)}.${uidFlag}.${macNo}.${datestring}.${hrTime[ 0 ]}.${hrTime[ 1 ]}.${currentClock}`;
+
+        if ( uid.length > 60 ) {
+            uid = `${config.get(config.keys.dicomUID)}.${uidFlag}.${macNo}.${datestring}.${hrTime[ 1 ]}.${currentClock}`;
+        }
+
+        return uid.replace('..', '.');
+    },
 
     base64Encode: function (unencoded) {
         return unencoded ? new Buffer(unencoded).toString('base64') : '';

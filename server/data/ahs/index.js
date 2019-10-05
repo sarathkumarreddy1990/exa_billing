@@ -9,13 +9,16 @@ const {
 const fs = require('fs');
 const readDirAsync = promisify(fs.readdir);
 const writeFileAsync = promisify(fs.writeFile);
+const statAsync = promisify(fs.stat);
 
 const path = require('path');
 const crypto = require('crypto');
 const _ = require('lodash');
 const mkdirp = require('mkdirp');
+const mkdirpAsync = promisify(mkdirp);
 const logger = require('../../../logger');
 const config = require('../../config');
+const shared = require('../../shared');
 
 const toBillingNotes = (obj) => {
     return obj.errorCodes.map((errorCode) => {
@@ -23,14 +26,60 @@ const toBillingNotes = (obj) => {
     });
 };
 
-
 module.exports = {
 
     saveAddedClaims: async (args) => {
 
         const {
+            company_id,
             claimIds,
         } = args;
+
+        let data = ``;
+
+        const fileSql = SQL`
+            SELECT
+                fs.id AS file_store_id,
+                fs.root_directory,
+                c.can_ahs_submitter_prefix AS submitter_prefix
+            FROM
+                file_stores fs
+            JOIN companies c
+                ON c.file_store_id = fs.id 
+            WHERE
+                c.id = ${company_id}
+        `;
+
+        const fileSqlResponse = await query(sql.text, sql.values);
+
+        if ( !fileSqlResponse || fileSqlResponse.rows.length === 0 ) {
+            return null;
+        }
+
+        const {
+            file_store_id,
+            root_directory,
+            submitter_prefix,
+        } = fileSqlResponse.rows.pop();
+
+        const now = moment();
+        const created_dt = now.format();
+        const today = now.format(`YYYY/MM/DD`);
+        const filename = `${submitter_prefix}_${shared.getUID()}`;
+        const file_path = `AHS/${today}`;
+        const dir_path = `${root_directory}/${file_path}`;
+        const fullPath = `${dir_path}/${filename}`;
+
+        await mkdirpAsync(dir_path);
+        await writeFileAsync(fullPath, data, { 'encoding': `utf8` });
+        const {
+            size: file_size,
+        } = await statAsync(fullPath);
+
+        const md5Hash = crypto
+            .createHash('MD5')
+            .update(data, 'utf8')
+            .digest('hex');
 
         const sql = SQL`
             WITH
@@ -41,43 +90,6 @@ module.exports = {
                     FROM
                         billing.edi_file_claims
                 ),
-                inserted_efc AS (
-                    INSERT INTO billing.edi_file_claims (
-                        claim_id,
-                        batch_number,
-                        sequence_number,
-                        can_ahs_action_code
-                    )
-                    SELECT
-                        claims,
-                        numbers.batch_number :: TEXT,
-                        ( numbers.sequence_number + row_number() OVER () ) % 10000000,
-                        'A'
-                    FROM
-                        UNNEST(${claimIds} :: BIGINT[]) claims,
-                        numbers
-                    WHERE
-                        -- Check if claim submission already started and file just hasn't
-                        -- been created or responded to yet
-                        NOT EXISTS (
-                            SELECT
-                                1
-                            FROM
-                                billing.edi_file_claims efc
-                            LEFT JOIN billing.edi_related_files erf
-                                ON erf.submission_file_id = efc.edi_file_id
-                            WHERE
-                                efc.claim_id = claims
-                                AND (
-                                    efc.edi_file_id IS NULL
-                                    OR erf.response_file_id IS NULL
-                                )
-                            LIMIT
-                                1
-                        )
-                    RETURNING
-                        *
-                ),
                 status AS (
                     SELECT
                         id
@@ -87,6 +99,52 @@ module.exports = {
                         code = 'PA'
                     LIMIT
                         1
+                ),
+                inserted_ef AS (
+                    INSERT INTO billing.edi_files (
+                        company_id,
+                        file_store_id,
+                        created_dt,
+                        status,
+                        file_type,
+                        file_path,
+                        file_size,
+                        file_md5,
+                        uploaded_file_name
+                    )
+                    SELECT
+                        ${company_id},
+                        ${file_store_id},
+                        ${created_dt},
+                        'pending',
+                        'can_ahs_a',
+                        ${file_path},
+                        ${file_size},
+                        ${md5Hash},
+                        ${filename}
+                    RETURNING
+                        id
+                ),
+                inserted_efc AS (
+                    INSERT INTO billing.edi_file_claims (
+                        claim_id,
+                        batch_number,
+                        sequence_number,
+                        can_ahs_action_code,
+                        edi_file_id
+                    )
+                    SELECT
+                        claims,
+                        numbers.batch_number :: TEXT,
+                        ( numbers.sequence_number + row_number() OVER () ) % 10000000,
+                        'a',
+                        inserted_ef.id
+                    FROM
+                        UNNEST(${claimIds} :: BIGINT[]) claims,
+                        numbers,
+                        inserted_ef
+                    RETURNING
+                        *
                 ),
                 updated AS (
                     UPDATE
@@ -197,7 +255,8 @@ module.exports = {
                 s.can_ahs_tooth_surface2                     AS tooth_surface2,
                 s.can_ahs_tooth_surface3                     AS tooth_surface3,
                 s.can_ahs_tooth_surface4                     AS tooth_surface4,
-                s.can_ahs_tooth_surface5                     AS tooth_surface5
+                s.can_ahs_tooth_surface5                     AS tooth_surface5,
+                inserted_efc.edi_file_id
             FROM
                 inserted_efc
             LEFT JOIN updated bc
@@ -321,6 +380,7 @@ module.exports = {
             
             ORDER BY
                 sequence_number
+
         `;
 
         return (await query(sql.text, sql.values)).rows;
