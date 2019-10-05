@@ -5,7 +5,6 @@ const {
 } = require('../../constants');
 
 const config = require('../../../../server/config');
-const submitterPrefix = config.get(config.keys.ahsSubmitterPrefix);
 
 const getRecordType = () => {
     // field length: 1
@@ -13,25 +12,25 @@ const getRecordType = () => {
     return `2`;    // always
 };
 
-const getSubmitterPrefix = () => {
+const getSubmitterPrefix = (data) => {
     // field length: 3
     // format: alpha
-    return submitterPrefix;
+    return data.submitter_prefix;
 };
 
-const getBatchNumber = ( batchData ) => {
+const getBatchNumber = ( data ) => {
     // field length: 6
     // format: numeric
-    return String(batchData.batchNumber).padStart(6, `0`);
+    return String(~~data.batch_number).padStart(6, `0`);
 };
 
-const getFill = ( batchData ) => {
+const getFill = () => {
     // field length: 244
     // format: space
     return ``.padEnd(244, ` `);
 };
 
-const encoder = ( batchData, context ) => {
+const encoder = ( data ) => {
     let batchHeaderRecord = ``;
 
     batchHeaderRecord += getRecordType();
