@@ -1,7 +1,6 @@
 'use strict';
 
-const moment = require('moment');
-const constants = require('../../../constants');
+const constants = require('../../../../constants');
 
 const getClaimType = () => {
     // field length: 4

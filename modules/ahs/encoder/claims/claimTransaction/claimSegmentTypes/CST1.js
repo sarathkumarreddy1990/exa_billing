@@ -1,6 +1,6 @@
 'use strict';
 
-const constants = require('../../../constants');
+const constants = require('../../../../constants');
 
 const getClaimType = () => {
     // field length: 4

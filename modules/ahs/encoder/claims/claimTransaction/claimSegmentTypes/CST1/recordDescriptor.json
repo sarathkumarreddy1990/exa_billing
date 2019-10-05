@@ -1,0 +1,22 @@
+{
+  "transactionData": {
+    "format": "A",
+    "startPos": 1,
+    "length": 35
+  },
+  "textLine1": {
+    "format": "A",
+    "startPos": 36,
+    "length": 73
+  },
+  "textLine2": {
+    "format": "A",
+    "startPos": 109,
+    "length": 73
+  },
+  "textLine3": {
+    "format": "A",
+    "startPos": 182,
+    "length": 73
+  }
+}

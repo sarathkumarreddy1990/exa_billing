@@ -1,7 +1,7 @@
 'use strict';
 
 const constants = require('../../constants');
-const segmentTypes = require('./claimSegmentTypes');
+const segmentTypes = require('./claimTransaction/claimSegmentTypes');
 
 const encoder = ( batchData, context ) => {
     const segmentEncoder = segmentTypes[ context.segmentType ];

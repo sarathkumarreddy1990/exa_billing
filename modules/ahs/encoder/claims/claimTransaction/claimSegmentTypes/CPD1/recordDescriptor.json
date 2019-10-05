@@ -1,0 +1,105 @@
+{
+  "transactionData": {
+    "format": "A",
+    "startPos": 1,
+    "length": 35
+  },
+  "personType": {
+    "format": "A",
+    "startPos": 36,
+    "length": 4,
+    "enumerated": [
+      "RECP",
+      "PYST",
+      "RFRC"
+    ]
+  },
+  "lastName": {
+    "format": "A",
+    "startPos": 40,
+    "length": 30
+  },
+  "middleName": {
+    "format": "A",
+    "startPos": 70,
+    "length": 12
+  },
+  "firstName": {
+    "format": "A",
+    "startPos": 82,
+    "length": 12
+  },
+  "birthDate": {
+    "format": "N",
+    "startPos": 94,
+    "length": 8
+  },
+  "genderCode": {
+    "format": "A",
+    "startPos": 102,
+    "length": 1,
+    "enumerated": [
+      "M",
+      "F"
+    ]
+  },
+  "address1": {
+    "format": "A",
+    "startPos": 103,
+    "length": 25,
+    "constraints": [
+      "[^#-]"
+    ]
+  },
+  "address2": {
+    "format": "A",
+    "startPos": 128,
+    "length": 25,
+    "constraints": [
+      "[^#-]"
+    ]
+  },
+  "address3": {
+    "format": "A",
+    "startPos": 153,
+    "length": 25,
+    "constraints": [
+      "[^#-]"
+    ]
+  },
+  "city": {
+    "format": "A",
+    "startPos": 178,
+    "length": 30
+  },
+  "postalCode": {
+    "format": "A",
+    "startPos": 208,
+    "length": 6
+  },
+  "provinceCode": {
+    "format": "A",
+    "startPos": 214,
+    "length": 2
+  },
+  "countryCode": {
+    "format": "A",
+    "startPos": 216,
+    "length": 4
+  },
+  "parentULI": {
+    "format": "N",
+    "startPos": 220,
+    "length": 9
+  },
+  "parentRegistrationNumber": {
+    "format": "N",
+    "startPos": 229,
+    "length": 12
+  },
+  "empty": {
+    "format": "A",
+    "startPos": 241,
+    "length": 14
+  }
+}

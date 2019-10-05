@@ -1,0 +1,17 @@
+{
+  "transactionData": {
+    "format": "A",
+    "startPos": 1,
+    "length": 35
+  },
+  "claimNumbers": {
+    "format": "A",
+    "startPos": 36,
+    "length": 210
+  },
+  "empty": {
+    "format": "A",
+    "startPos": 246,
+    "length": 9
+  }
+}
