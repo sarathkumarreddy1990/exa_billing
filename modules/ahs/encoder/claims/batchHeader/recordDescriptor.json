@@ -1,15 +1,15 @@
 {
-  "recordType": {
+  "record_type": {
     "format": "N",
     "startPos": 1,
     "length": 1
   },
-  "submitterPrefix": {
+  "submitter_prefix": {
     "format": "A",
     "startPos": 2,
     "length": 3
   },
-  "batchNumber": {
+  "batch_number": {
     "format": "N",
     "startPos": 5,
     "length": 6,

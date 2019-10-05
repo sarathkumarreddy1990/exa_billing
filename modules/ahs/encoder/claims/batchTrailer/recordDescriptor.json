@@ -1,27 +1,27 @@
 {
-  "recordType": {
+  "record_type": {
     "format": "N",
     "startPos": 1,
     "length": 1
   },
-  "submitterPrefix": {
+  "submitter_prefix": {
     "format": "A",
     "startPos": 2,
     "length": 3
   },
-  "batchNumber": {
+  "batch_number": {
     "format": "N",
     "startPos": 5,
     "length": 6,
     "paddingChar": "0"
   },
-  "totalTransactions": {
+  "total_transactions": {
     "format": "N",
     "startPos": 11,
     "length": 5,
     "paddingChar": "0"
   },
-  "totalSegments": {
+  "total_segments": {
     "format": "N",
     "startPos": 16,
     "length": 8,

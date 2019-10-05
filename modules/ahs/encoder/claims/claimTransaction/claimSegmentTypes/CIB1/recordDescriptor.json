@@ -28,199 +28,199 @@
   },
   "health_service_code": {
     "format": "A",
-    "startPos": 29,
+    "startPos": 39,
     "length": 7
   },
   "service_start_date": {
     "format": "N",
-    "startPos": 36,
+    "startPos": 46,
     "length": 8
   },
   "encounter_number": {
     "format": "N",
-    "startPos": 44,
+    "startPos": 54,
     "length": 1
   },
   "diagnosis_code_1": {
     "format": "A",
-    "startPos": 45,
+    "startPos": 55,
     "length": 6
   },
   "diagnosis_code_2": {
     "format": "A",
-    "startPos": 51,
+    "startPos": 61,
     "length": 6
   },
   "diagnosis_code_3": {
     "format": "A",
-    "startPos": 57,
+    "startPos": 67,
     "length": 6
   },
   "calls": {
     "format": "N",
-    "startPos": 63,
+    "startPos": 73,
     "length": 3,
     "paddingChar": "0"
   },
   "fee_modifier_1": {
     "format": "A",
-    "startPos": 66,
+    "startPos": 76,
     "length": 6
   },
   "fee_modifier_2": {
     "format": "A",
-    "startPos": 72,
+    "startPos": 82,
     "length": 6
   },
   "fee_modifier_3": {
     "format": "A",
-    "startPos": 78,
+    "startPos": 88,
     "length": 6
   },
   "facility_number": {
     "format": "N",
-    "startPos": 84,
+    "startPos": 94,
     "length": 6,
     "paddingChar": "0"
   },
   "functional_centre": {
     "format": "A",
-    "startPos": 90,
+    "startPos": 100,
     "length": 4
   },
   "location_code": {
     "format": "A",
-    "startPos": 94,
+    "startPos": 104,
     "length": 4
   },
   "originating_facility": {
     "format": "N",
-    "startPos": 98,
+    "startPos": 108,
     "length": 6,
     "paddingChar": "0"
   },
   "originating_location": {
     "format": "A",
-    "startPos": 104,
+    "startPos": 114,
     "length": 4
   },
   "business_arrangement": {
     "format": "N",
-    "startPos": 108,
+    "startPos": 118,
     "length": 7,
     "paddingChar": "0"
   },
   "pay_to_code": {
     "format": "A",
-    "startPos": 115,
+    "startPos": 125,
     "length": 4
   },
   "pay_to_uli": {
     "format": "N",
-    "startPos": 119,
+    "startPos": 129,
     "length": 9,
     "paddingChar": "0"
   },
   "locum_arrangement": {
     "format": "N",
-    "startPos": 128,
+    "startPos": 138,
     "length": 7,
     "paddingChar": "0"
   },
   "referral_id": {
     "format": "N",
-    "startPos": 135,
+    "startPos": 145,
     "length": 9,
     "paddingChar": "0"
   },
   "oop_referral_indicator": {
     "format": "A",
-    "startPos": 144,
+    "startPos": 154,
     "length": 1
   },
   "recovery_code": {
     "format": "A",
-    "startPos": 145,
+    "startPos": 155,
     "length": 4
   },
   "chart_number": {
     "format": "A",
-    "startPos": 149,
+    "startPos": 159,
     "length": 14
   },
   "claimed_amount": {
     "format": "A",
-    "startPos": 163,
+    "startPos": 173,
     "length": 9
   },
   "claimed_amount_indicator": {
     "format": "A",
-    "startPos": 172,
+    "startPos": 182,
     "length": 1
   },
   "confidential_indicator": {
     "format": "A",
-    "startPos": 173,
+    "startPos": 183,
     "length": 1
   },
   "good_faith_indicator": {
     "format": "A",
-    "startPos": 174,
+    "startPos": 184,
     "length": 1
   },
   "newborn_code": {
     "format": "A",
-    "startPos": 175,
+    "startPos": 185,
     "length": 4
   },
   "emsaf_indicator": {
     "format": "A",
-    "startPos": 179,
+    "startPos": 189,
     "length": 1
   },
   "paper_supporting_documentation_indicator": {
     "format": "A",
-    "startPos": 180,
+    "startPos": 190,
     "length": 1
   },
   "hospital_admission_date": {
     "format": "N",
-    "startPos": 181,
+    "startPos": 191,
     "length": 8
   },
   "tooth_code": {
     "format": "A",
-    "startPos": 189,
+    "startPos": 199,
     "length": 2
   },
   "tooth_surface1": {
     "format": "A",
-    "startPos": 191,
+    "startPos": 201,
     "length": 2
   },
   "tooth_surface2": {
     "format": "A",
-    "startPos": 193,
+    "startPos": 203,
     "length": 2
   },
   "tooth_surface3": {
     "format": "A",
-    "startPos": 195,
+    "startPos": 205,
     "length": 2
   },
   "tooth_surface4": {
     "format": "A",
-    "startPos": 197,
+    "startPos": 207,
     "length": 2
   },
   "tooth_surface5": {
     "format": "A",
-    "startPos": 199,
+    "startPos": 209,
     "length": 2
   },
   "empty": {
     "format": "A",
-    "startPos": 201,
+    "startPos": 211,
     "length": 9
   }
 }

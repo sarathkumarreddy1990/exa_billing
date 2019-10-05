@@ -6,11 +6,11 @@ const processResults = ( results, tracker ) => {
     ] = results;
 
     return {
-        'recordType': 4,
-        'submitterPrefix': data.submitter_prefix,
-        'batchNumber': data.batch_number,
-        'totalTransactions': tracker.transactions,
-        'totalSegments': tracker.segments,
+        'record_type': 4,
+        'submitter_prefix': data.submitter_prefix,
+        'batch_number': data.batch_number,
+        'total_transactions': tracker.transactions,
+        'total_segments': tracker.segments,
         'empty': ``,
     };
 };

@@ -10,9 +10,9 @@ const processResults = ( results, tracker ) => {
     ] = results;
 
     return {
-        'recordType': 2,
-        'submitterPrefix': row.submitter_prefix,
-        'batchNumber': row.batch_number,
+        'record_type': 2,
+        'submitter_prefix': row.submitter_prefix,
+        'batch_number': row.batch_number,
         'empty': ``,
     };
 };
