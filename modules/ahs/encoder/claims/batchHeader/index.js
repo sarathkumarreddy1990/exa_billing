@@ -6,13 +6,13 @@ const {
 
 const processResults = ( results, tracker ) => {
     const [
-        data,
+        row,
     ] = results;
 
     return {
         'recordType': 2,
-        'submitterPrefix': data.submitter_prefix,
-        'batchNumber': data.batch_number,
+        'submitterPrefix': row.submitter_prefix,
+        'batchNumber': row.batch_number,
         'empty': ``,
     };
 };

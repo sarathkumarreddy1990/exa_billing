@@ -189,6 +189,32 @@ module.exports = {
                 p.can_ahs_uli                                AS service_recipient_uli,
                 p.can_ahs_registration_number                AS service_recipient_registration_number,
                 p.can_ahs_registration_number_province       AS service_recipient_registration_number_province,
+            
+                CASE
+                    WHEN p.can_ahs_uli IS NULL AND (
+                        p.can_ahs_registration_number IS NULL
+                        OR p.can_ahs_registration_number_province IS NULL
+                    )
+                    THEN JSONB_BUILD_OBJECT(
+                        'person_type', 'RECP',
+                        'first_name', p.first_name,
+                        'middle_name', p.middle_name,
+                        'last_name', p.last_name,
+                        'birth_date', TO_CHAR(p.birth_date, 'YYYYMMDD'),
+                        'gender_code', p.gender,
+                        'address1', regexp_replace(COALESCE(p.patient_info -> 'c1AddressLine1', ''), '[#-]', '', 'g'),
+                        'address2', regexp_replace(COALESCE(p.patient_info -> 'c1AddressLine2', ''), '[#-]', '', 'g'),
+                        'address3', '',
+                        'city', COALESCE(p.patient_info -> 'c1City', ''),
+                        'province_code', COALESCE(p.patient_info -> 'c1State', p.patient_info -> 'c1Province', ''),
+                        'postal_code', COALESCE(p.patient_info -> 'c1Zip', p.patient_info -> 'c1PostalCode', ''),
+                        'country_code', COALESCE(p.patient_info -> 'c1country', ''),
+                        'parent_uli', '',
+                        'parent_registration_number', ''
+                    )
+                    ELSE NULL
+                END                                          AS service_recipient_details,
+            
                 cpt.ref_code                                 AS health_service_code,
                 CASE
                     WHEN s.hospital_admission_dt IS NULL
@@ -205,8 +231,8 @@ module.exports = {
                 -- Documentation is unclear so leaving as-is until testing
                 CASE
                     WHEN s.hospital_admission_dt IS NULL
-                        THEN scpt.units
-                        ELSE EXTRACT(DAYS FROM s.study_dt - s.hospital_admission_dt)
+                    THEN scpt.units
+                    ELSE EXTRACT(DAYS FROM s.study_dt - s.hospital_admission_dt)
                 END                                          AS calls,
                 fee_mod.codes                                AS fee_modifiers,
             
@@ -214,15 +240,15 @@ module.exports = {
                 fc.code                                      AS functional_centre,
                 CASE
                     WHEN f.can_ahs_facility_number :: INT > 0
-                        THEN NULL
-                        ELSE o.order_info -> 'patientLocation'
+                    THEN NULL
+                    ELSE o.order_info -> 'patientLocation'
                 END                                          AS location_code,
             
                 orig_fac.facility_number                     AS originating_facility,
                 CASE
                     WHEN s.can_ahs_originating_facility_id IS NOT NULL
-                        THEN NULL
-                        ELSE s.can_ahs_originating_location
+                    THEN NULL
+                    ELSE s.can_ahs_originating_location
                 END                                          AS originating_location,
             
                 bc.can_ahs_business_arrangement              AS business_arrangement,
@@ -236,9 +262,46 @@ module.exports = {
             
                 CASE
                     WHEN LOWER(pc_ref.contact_info -> 'STATE') NOT IN ( 'ab', 'alberta' )
-                        THEN TRUE
-                        ELSE NULL
+                    THEN TRUE
+                    ELSE NULL
                 END                                          AS oop_referral_indicator,
+            
+                CASE
+                    WHEN pc_ref.can_ahs_prid IS NULL
+                    THEN JSONB_BUILD_OBJECT(
+                        'person_type', 'RFRC',
+                        'first_name', p_ref.first_name,
+                        'middle_name', p_ref.middle_initial,
+                        'last_name', p_ref.last_name,
+                        'birth_date', '',
+                        'gender_code', '',
+                        'address1', COALESCE(
+                            ( SELECT group_name FROM provider_groups WHERE id = pc_ref.provider_group_id ),
+                            TRIM(
+                                regexp_replace(COALESCE(pc_ref.contact_info -> 'ADDR1', ''), '[#-]', '', 'g') || ' ' ||
+                                regexp_replace(COALESCE(pc_ref.contact_info -> 'ADDR2', ''), '[#-]', '', 'g')
+                            ), 
+                            ''
+                        ),
+                        'address2', (
+                            CASE 
+                                WHEN pc_ref.provider_group_id IS NULL
+                                THEN ''
+                                ELSE TRIM(regexp_replace(COALESCE(pc_ref.contact_info -> 'ADDR1', ''), '[#-]', '', 'g') || ' ' ||
+                                         regexp_replace(COALESCE(pc_ref.contact_info -> 'ADDR2', ''), '[#-]', '', 'g'))
+                            END 
+                        ),
+                        'address3', '',
+                        'city', COALESCE(pc_ref.contact_info -> 'CITY', ''),
+                        'province_code', COALESCE(pc_ref.contact_info -> 'STATE', pc_ref.contact_info -> 'STATE_NAME', ''),
+                        'postal_code', COALESCE(pc_ref.contact_info -> 'ZIP', pc_ref.contact_info -> 'POSTALCODE', ''),
+                        'country_code', COALESCE(pc_ref.contact_info -> 'COUNTRY', ''),
+                        'parent_uli', '',
+                        'parent_registration_number', ''
+                    )
+                    ELSE NULL
+                END                                          AS referring_provider_details,
+            
                 CASE
                     WHEN p.can_ahs_uli IS NULL AND p.can_ahs_registration_number_province NOT IN ( 'ab', 'qc' )
                         THEN p.can_ahs_registration_number_province
@@ -383,6 +446,8 @@ module.exports = {
             
             ORDER BY
                 sequence_number
+
+
 
         `;
 
