@@ -1,10 +1,5 @@
 {
-  "transactionData": {
-    "format": "A",
-    "startPos": 1,
-    "length": 35
-  },
-  "personType": {
+  "person_type": {
     "format": "A",
     "startPos": 36,
     "length": 4,
@@ -14,27 +9,27 @@
       "RFRC"
     ]
   },
-  "lastName": {
+  "first_name": {
     "format": "A",
     "startPos": 40,
     "length": 30
   },
-  "middleName": {
+  "middle_name": {
     "format": "A",
     "startPos": 70,
     "length": 12
   },
-  "firstName": {
+  "last_name": {
     "format": "A",
     "startPos": 82,
     "length": 12
   },
-  "birthDate": {
+  "birth_date": {
     "format": "N",
     "startPos": 94,
     "length": 8
   },
-  "genderCode": {
+  "gender_code": {
     "format": "A",
     "startPos": 102,
     "length": 1,
@@ -46,48 +41,39 @@
   "address1": {
     "format": "A",
     "startPos": 103,
-    "length": 25,
-    "constraints": [
-      "[^#-]"
-    ]
+    "length": 25
   },
   "address2": {
     "format": "A",
     "startPos": 128,
-    "length": 25,
-    "constraints": [
-      "[^#-]"
-    ]
+    "length": 25
   },
   "address3": {
     "format": "A",
     "startPos": 153,
-    "length": 25,
-    "constraints": [
-      "[^#-]"
-    ]
+    "length": 25
   },
   "city": {
     "format": "A",
     "startPos": 178,
     "length": 30
   },
-  "postalCode": {
+  "postal_code": {
     "format": "A",
     "startPos": 208,
     "length": 6
   },
-  "provinceCode": {
+  "province_code": {
     "format": "A",
     "startPos": 214,
     "length": 2
   },
-  "countryCode": {
+  "country_code": {
     "format": "A",
     "startPos": 216,
     "length": 4
   },
-  "parentULI": {
+  "parent_uli": {
     "format": "N",
     "startPos": 220,
     "length": 9

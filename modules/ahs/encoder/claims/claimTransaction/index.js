@@ -21,34 +21,57 @@ const segmentProcessors = {
 
 const descriptors = {
     'claimTransactionHeader': require('./claimTransactionHeader/recordDescriptor'),
-    'CIB1': require('./claimSegmentTypes/CIB1'),
-    'CPD1': require('./claimSegmentTypes/CPD1'),
-    'CST1': require('./claimSegmentTypes/CST1'),
-    'CTX1': require('./claimSegmentTypes/CTX1'),
+    'CIB1': require('./claimSegmentTypes/CIB1/recordDescriptor'),
+    'CPD1': require('./claimSegmentTypes/CPD1/recordDescriptor'),
+    'CST1': require('./claimSegmentTypes/CST1/recordDescriptor'),
+    'CTX1': require('./claimSegmentTypes/CTX1/recordDescriptor'),
+};
+
+/**
+ * Validate all descriptors first
+ * - if even one fails we don't want project to run - files are static and should always pass
+ */
+
+for ( const key in descriptors ) {
+    const descriptor = descriptors[ key ];
+    const failures = validateRecordDescriptor(descriptor, formatters);
+
+    if ( failures.length > 0 ) {
+        failures.forEach(console.error);
+        throw new Error(`Failed validation of claim descriptor '${key}'`);
+    }
+
+    hydrateRecordDescriptor(descriptor);
 }
 
 const claimTransactionHeader = ( row ) => {
     const headerContext = {
-        'recordType': 3,
-        'submitterPrefix': row.submitter_prefix,
+        'record_type': 3,
+        'submitter_prefix': row.submitter_prefix,
         'year': row.year,
-        'sourceCode': row.source_code,
-        'sequenceNumber': row.sequence_number,
-        'checkDigit': row.check_digit,
-        'transactionType': row.transaction_type,
-        'actionCode': row.action_code,
+        'source_code': row.source_code,
+        'sequence_number': row.sequence_number,
+        'check_digit': row.check_digit,
+        'transaction_type': row.transaction_type,
+        'action_code': row.action_code,
     };
 
     return ( segmentType, segmentData ) => {
-        const segmentHeader = {
+        const headerRecord = {
             ...headerContext,
-            'segmentSequence': ++headerContext.segment_sequence,
-            segmentType,
+            'segment_sequence': ++headerContext.segment_sequence,
+            'segment_type': segmentType,
             'empty': ``,
         };
 
-        const makeSegmentProcessor = segmentProcessors[ segmentType ];
-        return makeSegmentProcessor(row, segmentHeader, segmentData);
+        const segmentProcessor = segmentProcessors[ segmentType ];
+        const segmentDescriptor = descriptors[ segmentType ];
+        const segmentRecord = segmentProcessor(row, headerRecord, segmentData);
+
+        const encodedHeader = encodeRecord(headerRecord, descriptors.claimTransactionHeader);
+        const encodedSegment = encodeRecord(segmentRecord, segmentDescriptor);
+
+        return `${encodedHeader}${encodedSegment}`;
     };
 };
 

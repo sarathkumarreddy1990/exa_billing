@@ -8,7 +8,6 @@ const processRow = ( row, context, segmentData ) => {
     } = segmentData;
 
     return {
-        ...context,
         supporting_text_1,
         supporting_text_2,
         supporting_text_3,

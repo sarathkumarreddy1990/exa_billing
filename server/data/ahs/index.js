@@ -80,9 +80,9 @@ module.exports = {
         } = await statAsync(fullPath);
 
         let file_md5 = crypto
-            .createHash('MD5')
-            .update(data, 'utf8')
-            .digest('hex');
+            .createHash(`MD5`)
+            .update(data, `utf8`)
+            .digest(`hex`);
 
         const sql = SQL`
             WITH
@@ -218,8 +218,8 @@ module.exports = {
                         'address2', regexp_replace(COALESCE(p.patient_info -> 'c1AddressLine2', ''), '[#-]', '', 'g'),
                         'address3', '',
                         'city', COALESCE(p.patient_info -> 'c1City', ''),
+                        'postal_code', REGEXP_REPLACE(COALESCE(p.patient_info -> 'c1Zip', p.patient_info -> 'c1PostalCode', ''), '\\s', '', 'g'),
                         'province_code', COALESCE(p.patient_info -> 'c1State', p.patient_info -> 'c1Province', ''),
-                        'postal_code', COALESCE(p.patient_info -> 'c1Zip', p.patient_info -> 'c1PostalCode', ''),
                         'country_code', COALESCE(p.patient_info -> 'c1country', ''),
                         'parent_uli', '',
                         'parent_registration_number', ''
@@ -233,9 +233,9 @@ module.exports = {
                         ELSE TO_CHAR(s.hospital_admission_dt, 'YYYYMMDD')
                 END                                          AS service_start_date,
                 row_number() OVER (ENCOUNTER_WINDOW)         AS encounter_number,
-                icd.codes[0]                                 AS diagnosis_code_1,
-                icd.codes[1]                                 AS diagnosis_code_2,
-                icd.codes[2]                                 AS diagnosis_code_3,
+                icd.codes[1]                                 AS diagnosis_code_1,
+                icd.codes[2]                                 AS diagnosis_code_2,
+                icd.codes[3]                                 AS diagnosis_code_3,
             
             
                 -- @TODO - this may need + 1 for the days extract to make same-day considered as "1 consecutive day"
@@ -245,10 +245,12 @@ module.exports = {
                     THEN scpt.units
                     ELSE EXTRACT(DAYS FROM s.study_dt - s.hospital_admission_dt)
                 END                                          AS calls,
-                fee_mod.codes[0]                             AS fee_modifier_1,
-                fee_mod.codes[1]                             AS fee_modifier_2,
-                fee_mod.codes[2]                             AS fee_modifier_3,
-            
+            --     fee_mod.codes[1]                             AS fee_modifier_1,
+            --     fee_mod.codes[2]                             AS fee_modifier_2,
+            --     fee_mod.codes[3]                             AS fee_modifier_3,
+                fee_mod.mod1 AS fee_modifier_1,
+                fee_mod.mod2 AS fee_modifier_2,
+                fee_mod.mod3 AS fee_modifier_3,
                 f.can_ahs_facility_number                    AS facility_number,
                 fc.code                                      AS functional_centre,
                 CASE
@@ -310,8 +312,8 @@ module.exports = {
                         ),
                         'address3', '',
                         'city', COALESCE(pc_ref.contact_info -> 'CITY', ''),
+                        'postal_code', REGEXP_REPLACE(COALESCE(pc_ref.contact_info -> 'ZIP', pc_ref.contact_info -> 'POSTALCODE', ''), '\\s', '', 'g'),
                         'province_code', COALESCE(pc_ref.contact_info -> 'STATE', pc_ref.contact_info -> 'STATE_NAME', ''),
-                        'postal_code', COALESCE(pc_ref.contact_info -> 'ZIP', pc_ref.contact_info -> 'POSTALCODE', ''),
                         'country_code', COALESCE(pc_ref.contact_info -> 'COUNTRY', ''),
                         'parent_uli', '',
                         'parent_registration_number', ''
@@ -321,36 +323,39 @@ module.exports = {
             
                 CASE
                     WHEN p.can_ahs_uli IS NULL AND p.can_ahs_registration_number_province NOT IN ( 'ab', 'qc' )
-                        THEN p.can_ahs_registration_number_province
-                        ELSE ''
+                    THEN p.can_ahs_registration_number_province
+                    ELSE ''
                 END                                          AS recovery_code,
                 bc.id                                        AS chart_number,
             
-                CASE
-                    WHEN bc.can_ahs_claimed_amount_indicator
-                    THEN totals.charges_bill_fee_total :: NUMERIC
-                    ELSE ''
-                END                                          AS claimed_amount,
+                totals.charges_bill_fee_total :: NUMERIC     AS claimed_amount,
             
                 CASE
                     WHEN bc.can_ahs_claimed_amount_indicator
                     THEN 'Y'
                     ELSE ''
-                END          AS claimed_amount_indicator,
+                END                                          AS claimed_amount_indicator,
             
                 CASE
                     WHEN bc.can_ahs_confidential
                     THEN 'Y'
                     ELSE ''
-                END                      AS confidential_indicator,
+                END                                          AS confidential_indicator,
             
                 CASE
                     WHEN bc.can_ahs_good_faith
                     THEN 'Y'
                     ELSE ''
-                END                        AS good_faith_indicator,
+                END                                          AS good_faith_indicator,
             
                 bc.can_ahs_newborn_code                      AS newborn_code,
+            
+                CASE
+                    WHEN bc.can_ahs_emsaf_reason IS NOT NULL
+                    THEN 'Y'
+                    ELSE ''
+                END                                          AS emsaf_indicator,
+            
                 bc.can_ahs_emsaf_reason                      AS emsaf_reason,
             
                 CASE
@@ -418,62 +423,74 @@ module.exports = {
                 ON f.id = s.facility_id
             
             LEFT JOIN LATERAL (
+                WITH bci AS (
+                    SELECT
+                        bci.id,
+                        bci.claim_id,
+                        icd.code
+                    FROM
+                        billing.claim_icds bci
+                    JOIN public.icd_codes icd
+                         ON icd_id = icd.id
+                    WHERE
+                        claim_id = bc.id
+                    ORDER BY
+                        bci.id
+                    LIMIT
+                        3
+                )
                 SELECT
                     ARRAY_AGG(code) AS codes
                 FROM
-                    public.icd_codes
-                WHERE
-                    id IN (
-                        SELECT
-                            icd_id
-                        FROM
-                            billing.claim_icds
-                        WHERE
-                            claim_id = bc.id
-                        ORDER BY
-                            id
-                        LIMIT
-                            3
-                    )
+                    bci
+                GROUP BY
+                    bci.claim_id
             ) icd ON TRUE
             
             LEFT JOIN LATERAL (
                 SELECT
-                    ARRAY_AGG(mods.code) AS codes
-                FROM (
-                    WITH all_mods AS (
-                        SELECT
-                            1 AS sort_order,
-                            code
-                        FROM
-                            public.modifiers
-                        WHERE
-                            id = bch.modifier1_id
-                        UNION
-                        SELECT
-                            2 AS sort_order,
-                            code
-                        FROM
-                            public.modifiers
-                        WHERE
-                            id = bch.modifier2_id
-                        UNION
-                        SELECT
-                            3 AS sort_order,
-                            code
-                        FROM
-                            public.modifiers
-                        WHERE
-                            id = bch.modifier3_id
-                    )
-                    SELECT
-                        code
-                    FROM
-                        all_mods
-                    ORDER BY
-                        sort_order
-                ) mods
+                    ( SELECT code FROM public.modifiers WHERE id = bch.modifier1_id ) AS mod1,
+                    ( SELECT code FROM public.modifiers WHERE id = bch.modifier2_id ) AS mod2,
+                    ( SELECT code FROM public.modifiers WHERE id = bch.modifier3_id ) AS mod3
             ) fee_mod ON TRUE
+            
+            -- LEFT JOIN LATERAL (
+            --     SELECT
+            --         ARRAY_AGG(mods.code) AS codes
+            --     FROM (
+            --         WITH all_mods AS (
+            --             SELECT
+            --                 1 AS sort_order,
+            --                 code
+            --             FROM
+            --                 public.modifiers
+            --             WHERE
+            --                 id = bch.modifier1_id
+            --             UNION
+            --             SELECT
+            --                 2 AS sort_order,
+            --                 code
+            --             FROM
+            --                 public.modifiers
+            --             WHERE
+            --                 id = bch.modifier2_id
+            --             UNION
+            --             SELECT
+            --                 3 AS sort_order,
+            --                 code
+            --             FROM
+            --                 public.modifiers
+            --             WHERE
+            --                 id = bch.modifier3_id
+            --         )
+            --         SELECT
+            --             code
+            --         FROM
+            --             all_mods
+            --         ORDER BY
+            --             sort_order
+            --     ) mods
+            -- ) fee_mod ON TRUE
             
             WINDOW ENCOUNTER_WINDOW AS (
                 PARTITION BY
