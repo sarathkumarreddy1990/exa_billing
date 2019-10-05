@@ -20,6 +20,8 @@ const logger = require('../../../logger');
 const config = require('../../config');
 const shared = require('../../shared');
 
+const claimEncoder = require('../../../modules/ahs/encoder/claims');
+
 const toBillingNotes = (obj) => {
     return obj.errorCodes.map((errorCode) => {
         return `${errorCode} - ${errorDescriptionsByCode[errorCode]}`;
@@ -65,18 +67,19 @@ module.exports = {
         const now = moment();
         const created_dt = now.format();
         const today = now.format(`YYYY/MM/DD`);
-        const filename = `${submitter_prefix}_${shared.getUID()}`;
+        const file_name = `${submitter_prefix}_${shared.getUID()}`;
         const file_path = `AHS/${today}`;
         const dir_path = `${root_directory}/${file_path}`;
-        const fullPath = `${dir_path}/${filename}`;
+        const fullPath = `${dir_path}/${file_name}`;
 
         await mkdirpAsync(dir_path);
         await writeFileAsync(fullPath, data, { 'encoding': `utf8` });
-        const {
+
+        let {
             size: file_size,
         } = await statAsync(fullPath);
 
-        const md5Hash = crypto
+        let file_md5 = crypto
             .createHash('MD5')
             .update(data, 'utf8')
             .digest('hex');
@@ -120,8 +123,8 @@ module.exports = {
                         'can_ahs_a',
                         ${file_path},
                         ${file_size},
-                        ${md5Hash},
-                        ${filename}
+                        ${file_md5},
+                        ${file_name}
                     RETURNING
                         id
                 ),
@@ -383,7 +386,24 @@ module.exports = {
 
         `;
 
-        return (await query(sql.text, sql.values)).rows;
+        const result = await query(sql.text, sql.values);
+
+        if ( !result || result.rows.length === 0 ) {
+            return null;
+        }
+
+        const [{
+            edi_file_id,
+        }] = result.rows;
+
+        const encoded_text = claimEncoder.encode(result.rows);
+
+        return {
+            edi_file_id,
+            dir_path,
+            file_name,
+            encoded_text,
+        };
     },
 
 };
