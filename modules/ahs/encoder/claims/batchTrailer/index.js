@@ -1,9 +1,5 @@
 'use strict';
 
-const {
-    encoder: constants,
-} = require('../../../constants');
-
 const processResults = ( results, tracker ) => {
     const [
         data,

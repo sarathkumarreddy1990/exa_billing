@@ -1,0 +1,60 @@
+{
+  "record_type": {
+    "format": "N",
+    "startPos": 1,
+    "length": 1,
+    "constraints": [
+      "3"
+    ]
+  },
+  "submitter_prefix": {
+    "format": "A",
+    "startPos": 2,
+    "length": 3
+  },
+  "year": {
+    "format": "N",
+    "startPos": 5,
+    "length": 2
+  },
+  "source_code": {
+    "format": "A",
+    "startPos": 7,
+    "length": 2
+  },
+  "sequence_number": {
+    "format": "N",
+    "startPos": 9,
+    "length": 7
+  },
+  "check_digit": {
+    "format": "N",
+    "startPos": 16,
+    "length": 1
+  },
+  "transaction_type": {
+    "format": "A",
+    "startPos": 17,
+    "length": 4
+  },
+  "segment_type": {
+    "format": "A",
+    "startPos": 21,
+    "length": 4
+  },
+  "segment_sequence": {
+    "format": "N",
+    "startPos": 25,
+    "length": 4
+  },
+  "action_code": {
+    "format": "A",
+    "startPos": 29,
+    "length": 1
+  },
+  "empty": {
+    "format": "A",
+    "startPos": 30,
+    "length": 6
+  }
+}

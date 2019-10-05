@@ -1,0 +1,226 @@
+{
+  "claim_type": {
+    "format": "A",
+    "startPos": 1,
+    "length": 4
+  },
+  "service_provider_prid": {
+    "format": "N",
+    "startPos": 5,
+    "length": 9,
+    "paddingChar": "0"
+  },
+  "skill_code": {
+    "format": "A",
+    "startPos": 14,
+    "length": 4
+  },
+  "service_recipient_uli": {
+    "format": "N",
+    "startPos": 18,
+    "length": 9,
+    "paddingChar": "0"
+  },
+  "service_recipient_registration_number": {
+    "format": "A",
+    "startPos": 27,
+    "length": 12
+  },
+  "health_service_code": {
+    "format": "A",
+    "startPos": 29,
+    "length": 7
+  },
+  "service_start_date": {
+    "format": "N",
+    "startPos": 36,
+    "length": 8
+  },
+  "encounter_number": {
+    "format": "N",
+    "startPos": 44,
+    "length": 1
+  },
+  "diagnosis_code_1": {
+    "format": "A",
+    "startPos": 45,
+    "length": 6
+  },
+  "diagnosis_code_2": {
+    "format": "A",
+    "startPos": 51,
+    "length": 6
+  },
+  "diagnosis_code_3": {
+    "format": "A",
+    "startPos": 57,
+    "length": 6
+  },
+  "calls": {
+    "format": "N",
+    "startPos": 63,
+    "length": 3,
+    "paddingChar": "0"
+  },
+  "fee_modifier_1": {
+    "format": "A",
+    "startPos": 66,
+    "length": 6
+  },
+  "fee_modifier_2": {
+    "format": "A",
+    "startPos": 72,
+    "length": 6
+  },
+  "fee_modifier_3": {
+    "format": "A",
+    "startPos": 78,
+    "length": 6
+  },
+  "facility_number": {
+    "format": "N",
+    "startPos": 84,
+    "length": 6,
+    "paddingChar": "0"
+  },
+  "functional_centre": {
+    "format": "A",
+    "startPos": 90,
+    "length": 4
+  },
+  "location_code": {
+    "format": "A",
+    "startPos": 94,
+    "length": 4
+  },
+  "originating_facility": {
+    "format": "N",
+    "startPos": 98,
+    "length": 6,
+    "paddingChar": "0"
+  },
+  "originating_location": {
+    "format": "A",
+    "startPos": 104,
+    "length": 4
+  },
+  "business_arrangement": {
+    "format": "N",
+    "startPos": 108,
+    "length": 7,
+    "paddingChar": "0"
+  },
+  "pay_to_code": {
+    "format": "A",
+    "startPos": 115,
+    "length": 4
+  },
+  "pay_to_uli": {
+    "format": "N",
+    "startPos": 119,
+    "length": 9,
+    "paddingChar": "0"
+  },
+  "locum_arrangement": {
+    "format": "N",
+    "startPos": 128,
+    "length": 7,
+    "paddingChar": "0"
+  },
+  "referral_id": {
+    "format": "N",
+    "startPos": 135,
+    "length": 9,
+    "paddingChar": "0"
+  },
+  "oop_referral_indicator": {
+    "format": "A",
+    "startPos": 144,
+    "length": 1
+  },
+  "recovery_code": {
+    "format": "A",
+    "startPos": 145,
+    "length": 4
+  },
+  "chart_number": {
+    "format": "A",
+    "startPos": 149,
+    "length": 14
+  },
+  "claimed_amount": {
+    "format": "A",
+    "startPos": 163,
+    "length": 9
+  },
+  "claimed_amount_indicator": {
+    "format": "A",
+    "startPos": 172,
+    "length": 1
+  },
+  "confidential_indicator": {
+    "format": "A",
+    "startPos": 173,
+    "length": 1
+  },
+  "good_faith_indicator": {
+    "format": "A",
+    "startPos": 174,
+    "length": 1
+  },
+  "newborn_code": {
+    "format": "A",
+    "startPos": 175,
+    "length": 4
+  },
+  "emsaf_indicator": {
+    "format": "A",
+    "startPos": 179,
+    "length": 1
+  },
+  "paper_supporting_documentation_indicator": {
+    "format": "A",
+    "startPos": 180,
+    "length": 1
+  },
+  "hospital_admission_date": {
+    "format": "N",
+    "startPos": 181,
+    "length": 8
+  },
+  "tooth_code": {
+    "format": "A",
+    "startPos": 189,
+    "length": 2
+  },
+  "tooth_surface1": {
+    "format": "A",
+    "startPos": 191,
+    "length": 2
+  },
+  "tooth_surface2": {
+    "format": "A",
+    "startPos": 193,
+    "length": 2
+  },
+  "tooth_surface3": {
+    "format": "A",
+    "startPos": 195,
+    "length": 2
+  },
+  "tooth_surface4": {
+    "format": "A",
+    "startPos": 197,
+    "length": 2
+  },
+  "tooth_surface5": {
+    "format": "A",
+    "startPos": 199,
+    "length": 2
+  },
+  "empty": {
+    "format": "A",
+    "startPos": 201,
+    "length": 9
+  }
+}

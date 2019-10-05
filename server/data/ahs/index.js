@@ -184,6 +184,12 @@ module.exports = {
                 -- currently hard-coded - AHS does not support another code right now
                 'CIP1'                                       AS transaction_type,
             
+                CASE
+                    WHEN inserted_efc.can_ahs_action_code IN ('a', 'c')
+                    THEN 'RGLR'
+                    ELSE ''
+                END                                          AS claim_type,
+            
                 pc_app.can_ahs_prid                          AS service_provider_prid,
                 sc.code                                      AS skill_code,
                 p.can_ahs_uli                                AS service_recipient_uli,
@@ -191,11 +197,17 @@ module.exports = {
                 p.can_ahs_registration_number_province       AS service_recipient_registration_number_province,
             
                 CASE
-                    WHEN p.can_ahs_uli IS NULL AND (
-                        p.can_ahs_registration_number IS NULL
-                        OR p.can_ahs_registration_number_province IS NULL
+                    WHEN (
+                        p.can_ahs_uli IS NOT NULL
+                        OR (
+                            p.can_ahs_registration_number IS NOT NULL
+                            AND p.can_ahs_registration_number_province IS NOT NULL
+                            AND p.can_ahs_phn IS NOT NULL
+                            AND p.can_ahs_phn_province IS NOT NULL
+                        )
                     )
-                    THEN JSONB_BUILD_OBJECT(
+                    THEN NULL
+                    ELSE JSONB_BUILD_OBJECT(
                         'person_type', 'RECP',
                         'first_name', p.first_name,
                         'middle_name', p.middle_name,
@@ -212,7 +224,6 @@ module.exports = {
                         'parent_uli', '',
                         'parent_registration_number', ''
                     )
-                    ELSE NULL
                 END                                          AS service_recipient_details,
             
                 cpt.ref_code                                 AS health_service_code,
@@ -222,9 +233,9 @@ module.exports = {
                         ELSE TO_CHAR(s.hospital_admission_dt, 'YYYYMMDD')
                 END                                          AS service_start_date,
                 row_number() OVER (ENCOUNTER_WINDOW)         AS encounter_number,
-            
-                -- @TODO - put ICD JOIN into lateral and get them in order
-                icd.codes                                    AS diagnosis_codes,
+                icd.codes[0]                                 AS diagnosis_code_1,
+                icd.codes[1]                                 AS diagnosis_code_2,
+                icd.codes[2]                                 AS diagnosis_code_3,
             
             
                 -- @TODO - this may need + 1 for the days extract to make same-day considered as "1 consecutive day"
@@ -234,20 +245,22 @@ module.exports = {
                     THEN scpt.units
                     ELSE EXTRACT(DAYS FROM s.study_dt - s.hospital_admission_dt)
                 END                                          AS calls,
-                fee_mod.codes                                AS fee_modifiers,
+                fee_mod.codes[0]                             AS fee_modifier_1,
+                fee_mod.codes[1]                             AS fee_modifier_2,
+                fee_mod.codes[2]                             AS fee_modifier_3,
             
                 f.can_ahs_facility_number                    AS facility_number,
                 fc.code                                      AS functional_centre,
                 CASE
                     WHEN f.can_ahs_facility_number :: INT > 0
-                    THEN NULL
-                    ELSE o.order_info -> 'patientLocation'
+                    THEN ''
+                    ELSE COALESCE(o.order_info -> 'patientLocation', 'OTHR')
                 END                                          AS location_code,
             
                 orig_fac.facility_number                     AS originating_facility,
                 CASE
                     WHEN s.can_ahs_originating_facility_id IS NOT NULL
-                    THEN NULL
+                    THEN ''
                     ELSE s.can_ahs_originating_location
                 END                                          AS originating_location,
             
@@ -261,9 +274,13 @@ module.exports = {
                 pc_ref.can_ahs_prid                          AS referral_id,
             
                 CASE
-                    WHEN LOWER(pc_ref.contact_info -> 'STATE') NOT IN ( 'ab', 'alberta' )
-                    THEN TRUE
-                    ELSE NULL
+                    WHEN LOWER(COALESCE(
+                        pc_ref.contact_info -> 'STATE',
+                        pc_ref.contact_info -> 'STATE_NAME',
+                        ''
+                    )) NOT IN ( 'ab', 'alberta' )
+                    THEN 'Y'
+                    ELSE ''
                 END                                          AS oop_referral_indicator,
             
                 CASE
@@ -280,16 +297,16 @@ module.exports = {
                             TRIM(
                                 regexp_replace(COALESCE(pc_ref.contact_info -> 'ADDR1', ''), '[#-]', '', 'g') || ' ' ||
                                 regexp_replace(COALESCE(pc_ref.contact_info -> 'ADDR2', ''), '[#-]', '', 'g')
-                            ), 
+                            ),
                             ''
                         ),
                         'address2', (
-                            CASE 
+                            CASE
                                 WHEN pc_ref.provider_group_id IS NULL
                                 THEN ''
                                 ELSE TRIM(regexp_replace(COALESCE(pc_ref.contact_info -> 'ADDR1', ''), '[#-]', '', 'g') || ' ' ||
                                          regexp_replace(COALESCE(pc_ref.contact_info -> 'ADDR2', ''), '[#-]', '', 'g'))
-                            END 
+                            END
                         ),
                         'address3', '',
                         'city', COALESCE(pc_ref.contact_info -> 'CITY', ''),
@@ -308,13 +325,40 @@ module.exports = {
                         ELSE ''
                 END                                          AS recovery_code,
                 bc.id                                        AS chart_number,
-                totals.charges_bill_fee_total                AS claimed_amount,
-                bc.can_ahs_claimed_amount_indicator          AS claimed_amount_indicator,
-                bc.can_ahs_confidential                      AS confidential_indicator,
-                bc.can_ahs_good_faith                        AS good_faith_indicator,
+            
+                CASE
+                    WHEN bc.can_ahs_claimed_amount_indicator
+                    THEN totals.charges_bill_fee_total :: NUMERIC
+                    ELSE ''
+                END                                          AS claimed_amount,
+            
+                CASE
+                    WHEN bc.can_ahs_claimed_amount_indicator
+                    THEN 'Y'
+                    ELSE ''
+                END          AS claimed_amount_indicator,
+            
+                CASE
+                    WHEN bc.can_ahs_confidential
+                    THEN 'Y'
+                    ELSE ''
+                END                      AS confidential_indicator,
+            
+                CASE
+                    WHEN bc.can_ahs_good_faith
+                    THEN 'Y'
+                    ELSE ''
+                END                        AS good_faith_indicator,
+            
                 bc.can_ahs_newborn_code                      AS newborn_code,
                 bc.can_ahs_emsaf_reason                      AS emsaf_reason,
-                bc.can_ahs_paper_supporting_docs             AS paper_supporting_documentation_indicator,
+            
+                CASE
+                    WHEN bc.can_ahs_paper_supporting_docs
+                    THEN 'Y'
+                    ELSE ''
+                END             AS paper_supporting_documentation_indicator,
+            
                 TO_CHAR(s.hospital_admission_dt, 'YYYYMMDD') AS hospital_admission_date,
                 s.can_ahs_tooth_code                         AS tooth_code,
                 s.can_ahs_tooth_surface1                     AS tooth_surface1,
@@ -322,6 +366,7 @@ module.exports = {
                 s.can_ahs_tooth_surface3                     AS tooth_surface3,
                 s.can_ahs_tooth_surface4                     AS tooth_surface4,
                 s.can_ahs_tooth_surface5                     AS tooth_surface5,
+                bc.can_ahs_supporting_text                   AS supporting_text,
                 inserted_efc.edi_file_id
             FROM
                 inserted_efc
@@ -392,10 +437,6 @@ module.exports = {
                     )
             ) icd ON TRUE
             
-            -- (SELECT code FROM public.modifiers WHERE id = bch.modifier1_id AND modifier1) AS modifier_1,
-            -- (SELECT code FROM public.modifiers WHERE id = bch.modifier2_id AND modifier2) AS modifier_2,
-            -- (SELECT code FROM public.modifiers WHERE id = bch.modifier3_id AND modifier3) AS modifier_3
-            
             LEFT JOIN LATERAL (
                 SELECT
                     ARRAY_AGG(mods.code) AS codes
@@ -446,9 +487,6 @@ module.exports = {
             
             ORDER BY
                 sequence_number
-
-
-
         `;
 
         const result = await query(sql.text, sql.values);

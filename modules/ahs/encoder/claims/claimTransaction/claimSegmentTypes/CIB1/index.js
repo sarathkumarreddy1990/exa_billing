@@ -1,14 +1,12 @@
 'use strict';
 
-const processRow = ( row, context ) => starterData => {
+const processRow = ( row, context, segmentData ) => {
     return {
-        'transactionData': context.header,
-        'claimType': row.action_code === `a` || row.action_code === `c`
-            ? `RGLR`
+        ...row,
+        'emsaf_indicator': row.emsaf_reason
+            ? `Y`
             : ``,
     };
 };
 
-module.exports = {
-    processRow,
-};
+module.exports = processRow;
