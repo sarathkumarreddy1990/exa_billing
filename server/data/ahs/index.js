@@ -33,76 +33,81 @@ module.exports = {
         } = args;
 
         const sql = SQL`
-            WITH numbers AS (
-                SELECT
-                    (COALESCE(MAX(batch_number), '0') :: INT + 1) % 1000000 AS batch_number,
-                    COALESCE(MAX(sequence_number), '0') :: INT  AS sequence_number
-                FROM
-                    billing.edi_file_claims
-            ), inserted_efc AS (
-                INSERT INTO billing.edi_file_claims (
-                    claim_id,
-                    batch_number,
-                    sequence_number,
-                    can_ahs_action_code
+            WITH
+                numbers AS (
+                    SELECT
+                        ( COALESCE(MAX(batch_number), '0') :: INT + 1 ) % 1000000 AS batch_number,
+                        COALESCE(MAX(sequence_number), '0') :: INT                AS sequence_number
+                    FROM
+                        billing.edi_file_claims
+                ),
+                inserted_efc AS (
+                    INSERT INTO billing.edi_file_claims (
+                        claim_id,
+                        batch_number,
+                        sequence_number,
+                        can_ahs_action_code
+                    )
+                    SELECT
+                        claims,
+                        numbers.batch_number :: TEXT,
+                        ( numbers.sequence_number + row_number() OVER () ) % 10000000,
+                        'A'
+                    FROM
+                        UNNEST(${claimIds} :: BIGINT[]) claims,
+                        numbers
+                    WHERE
+                        -- Check if claim submission already started and file just hasn't
+                        -- been created or responded to yet
+                        NOT EXISTS (
+                            SELECT
+                                1
+                            FROM
+                                billing.edi_file_claims efc
+                            LEFT JOIN billing.edi_related_files erf
+                                ON erf.submission_file_id = efc.edi_file_id
+                            WHERE
+                                efc.claim_id = claims
+                                AND (
+                                    efc.edi_file_id IS NULL
+                                    OR erf.response_file_id IS NULL
+                                )
+                            LIMIT
+                                1
+                        )
+                    RETURNING
+                        *
+                ),
+                status AS (
+                    SELECT
+                        id
+                    FROM
+                        billing.claim_status
+                    WHERE
+                        code = 'PA'
+                    LIMIT
+                        1
+                ),
+                updated AS (
+                    UPDATE
+                        billing.claims
+                    SET
+                        claim_status_id = status.id
+                    FROM
+                        status
+                    WHERE
+                        billing.claims.id IN (
+                            SELECT DISTINCT
+                                claim_id
+                            FROM
+                                inserted_efc
+                        )
+                    RETURNING
+                        billing.claims.*
                 )
-                SELECT
-                    claims,
-                    numbers.batch_number :: TEXT,
-                    ( numbers.sequence_number + row_number() OVER () ) % 10000000,
-                    'A'
-                FROM
-                    UNNEST(${claimIds} :: BIGINT[]) claims,
-                    numbers
-                WHERE
-                    -- Check if claim submission already started and file just hasn't
-                    -- been created or responded to yet
-                    NOT EXISTS (
-                        SELECT
-                            1
-                        FROM
-                            billing.edi_file_claims efc
-                        LEFT JOIN billing.edi_related_files erf
-                            ON erf.submission_file_id = efc.edi_file_id
-                        WHERE
-                            efc.claim_id = claims
-                            AND (
-                                efc.edi_file_id IS NULL
-                                OR erf.response_file_id IS NULL
-                            )
-                        LIMIT
-                            1
-                    )
-                RETURNING
-                    *
-            ), status AS (
-                SELECT
-                    id
-                FROM
-                    billing.claim_status
-                WHERE
-                    code = 'PA'
-                LIMIT
-                    1
-            ), updated AS (
-                UPDATE
-                    billing.claims
-                SET
-                    claim_status_id = status.id
-                FROM
-                    status
-                WHERE
-                    billing.claims.id IN (
-                        SELECT DISTINCT
-                            claim_id
-                        FROM
-                            inserted_efc
-                    )
-                RETURNING
-                    *
-            )
             
             SELECT
+                inserted_efc.can_ahs_action_code             AS action_code,
                 comp.can_ahs_submitter_prefix                AS submitter_prefix,
                 inserted_efc.batch_number                    AS batch_number,
                 TO_CHAR(bc.claim_dt, 'YY')                   AS year,
@@ -113,8 +118,7 @@ module.exports = {
                     TO_CHAR(bc.claim_dt, 'MM'),
                     TO_CHAR(bc.claim_dt, 'YY'),
                     LPAD(inserted_efc.sequence_number :: TEXT, 7, '0')
-                    )                                        AS check_digit,
-                -- @TODO Calculate check-digit once data inserted to DB (so we know seq num, batch, etc will be correct)
+                )                                            AS check_digit,
             
                 -- currently hard-coded - AHS does not support another code right now
                 'CIP1'                                       AS transaction_type,
@@ -196,7 +200,7 @@ module.exports = {
                 s.can_ahs_tooth_surface5                     AS tooth_surface5
             FROM
                 inserted_efc
-            LEFT JOIN billing.claims bc
+            LEFT JOIN updated bc
                 ON bc.id = inserted_efc.claim_id
             
             LEFT JOIN LATERAL (
@@ -309,7 +313,7 @@ module.exports = {
                 PARTITION BY
                     pc_app.can_ahs_prid,
                     p.id,
-                    s.study_dt
+                    s.study_dt :: DATE
                 ORDER BY
                     s.study_dt,
                     s.id
@@ -317,7 +321,6 @@ module.exports = {
             
             ORDER BY
                 sequence_number
-
         `;
 
         return (await query(sql.text, sql.values)).rows;

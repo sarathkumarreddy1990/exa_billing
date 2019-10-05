@@ -35,7 +35,7 @@ const encoder = ( data ) => {
 
     batchHeaderRecord += getRecordType();
     batchHeaderRecord += getSubmitterPrefix();
-    batchHeaderRecord += getBatchNumber(batchData);
+    batchHeaderRecord += getBatchNumber(data);
     batchHeaderRecord += getFill();
 
     batchHeaderRecord += constants.endOfRecord;
