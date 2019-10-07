@@ -255,6 +255,7 @@ define('grid', [
                                             var $td = $claimGrid.children('td');
                                             commonjs.setGridCellValue(cells, $td, tblId)
                                         });
+                                        $("#btnClaimsRefresh").click();
                                     }
                                 },
                                 error: function (err, response) {
