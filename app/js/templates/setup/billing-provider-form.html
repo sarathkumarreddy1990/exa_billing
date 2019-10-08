@@ -55,6 +55,14 @@
                             </div>
                         </div>
                     </div>
+                    <% if (app.country_alpha_3_code === 'can' && app.province_alpha_2_code === 'AB') { %>
+                    <div class="form-group row">
+                        <label for="txtBusinessArrangement" class="col-sm-3 col-form-label" i18n="setup.billingProvider.can_ahs_business_arrangement"></label>
+                        <div class="col-sm-5">
+                            <input type="text" maxlength="7" class="form-control" id="txtBusinessArrangement" name="business_arrangement">
+                        </div>
+                    </div>
+                    <% } %>
                 </div>
             </div>
 
@@ -313,10 +321,10 @@
                         <select id="ddlIdCodeQualifier" class="form-control valid" style="width: 70%" name="codeQualifier">
                             <option value="" i18n="shared.buttons.select"></option>
                             <% _.each(qualifierCodes, function(qualifiers) { %>
-                                <option value='<%= qualifiers.id %>'>
-                                    <%=qualifiers.description%>
-                                </option>
-                                <% }); %>
+                            <option value='<%= qualifiers.id %>'>
+                                <%=qualifiers.description%>
+                            </option>
+                            <% }); %>
                         </select>
                     </div>
                 </div>
