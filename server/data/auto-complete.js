@@ -44,7 +44,7 @@ module.exports = {
                                 FROM
                                     cpt_codes
                                 WHERE
-                                    NOT has_deleted AND company_id = ${params.company_id} AND is_active `;
+                                    NOT has_deleted AND company_id = ${params.company_id} AND is_active `; // cpt_codes.has_deleted
 
         if (params.q != '') {
             insur_sql.append(search_query);
@@ -83,7 +83,7 @@ module.exports = {
                 AND p.company_id = ${params.company_id}
                 AND p.provider_type = ${params.provider_type}
                 AND NOT p.sys_provider -- we dont want system providers
-        `;
+        `; // public.providers.has_deleted    provider_contacts.has_deleted
 
         if (params.q != '') {
             sql_provider.append(provider_search);
@@ -108,7 +108,7 @@ module.exports = {
                                      , COUNT(1) OVER (range unbounded preceding) AS total_records
                                 FROM icd_codes AS icd
                                 WHERE
-                                    icd.is_active AND NOT icd.has_deleted AND icd.company_id = ${params.company_id} `;
+                                    icd.is_active AND NOT icd.has_deleted AND icd.company_id = ${params.company_id} `; // icd_codes.has_deleted
 
         if (params.q != '') {
             icd_sql.append(ics_search);
@@ -165,7 +165,7 @@ module.exports = {
                                 insurance_providers
                             LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = insurance_providers.id
                             WHERE
-                                NOT has_deleted AND company_id = ${params.company_id} `;
+                                NOT has_deleted AND company_id = ${params.company_id} `; // insurance_providers.has_deleted
 
         if (params.isInactive == 'false') {
             insurance_sql.append(`AND is_active`);

@@ -17,7 +17,7 @@ module.exports = {
                                         file_store_id
                                     FROM   facilities
                                     WHERE  company_id=${companyID}
-                                    AND    NOT has_deleted
+                                    AND    NOT has_deleted /* facilities.has_deleted */
                                     ORDER BY
                                         facility_name )AS facilities )
                     , cte_company AS(
@@ -40,7 +40,7 @@ module.exports = {
                                                 modality_name
                                             FROM     modalities
                                             WHERE    company_id=${companyID}
-                                            AND      NOT has_deleted
+                                            AND      NOT has_deleted  /* modalities.has_deleted */
                                             AND      is_active
                                             ORDER BY priority ASC ) AS modalities)
                     , cte_user AS(
@@ -57,7 +57,7 @@ module.exports = {
                                             hstore_to_json(user_settings) AS user_settings
                                    FROM   users
                                    WHERE  company_id=${companyID}
-                                   AND    NOT has_deleted
+                                   AND    NOT has_deleted /* users.has_deleted */
                                    AND    is_active
                                    AND    id=${userID} ) AS users)
                 , cte_user_settings AS(
@@ -83,7 +83,7 @@ module.exports = {
                                           waiting_time,
                                           color_code
                                     FROM   study_status
-                                    WHERE  NOT has_deleted ) AS study_status)
+                                    WHERE  NOT has_deleted ) AS study_status) /* study_status.has_deleted */
                 , cte_claim_status AS(
                                     SELECT Json_agg(Row_to_json(claim_status)) claim_status
                                     FROM  (
@@ -128,7 +128,7 @@ module.exports = {
                                         color_code,
                                         description
                                     FROM   study_flags
-                                    WHERE  company_id=${companyID} AND NOT has_deleted) AS studyflag)
+                                    WHERE  company_id=${companyID} AND NOT has_deleted) AS studyflag) /* study_flags.has_deleted */
                 , cte_sites AS(
                                 SELECT id as siteID,
                                     stat_level_config,
@@ -308,11 +308,11 @@ module.exports = {
                 FROM modality_rooms
                 WHERE
                     is_active
-                    AND NOT has_deleted
+                    AND NOT has_deleted /* modality_rooms.has_deleted */
                     AND facility_id IN (
                         SELECT id AS facility_id
                         FROM facilities
-                        WHERE company_id = ${companyID} AND NOT has_deleted
+                        WHERE company_id = ${companyID} AND NOT has_deleted /* facilities.has_deleted */
                     )
                 ORDER BY modality_room_name ) AS modality_room
                 ),
@@ -341,7 +341,7 @@ module.exports = {
                             id
                             , vehicle_name
                         FROM vehicles
-                        WHERE NOT has_deleted ) AS vehicles
+                        WHERE NOT has_deleted ) AS vehicles /* vehicles.has_deleted */
                 ),
                 cte_clearing_house AS(
                     SELECT COALESCE(Json_agg(Row_to_json(clearing_house)),'[]') clearing_house
