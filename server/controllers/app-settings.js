@@ -4,6 +4,39 @@ const fs = require('fs');
 const { promisify } = require('util');
 const path = require('path');
 const readFileAsync = promisify(fs.readFile);
+const config = require('./../config');
+
+const getOHIPConfiguration = () => {
+
+    const relevantParamDescriptors = {
+        'showConformanceTesting': 'boolean',
+    };
+    const relevantParamKeys = Object.keys(relevantParamDescriptors);
+
+    return (config.get('ohipModuleParams') || '').split(';').reduce((ohipConfig, param) => {
+        if (param) {    // could be an empty string
+
+            const paramParts = param.split('=');
+            const paramKey = paramParts[0].trim();
+            const paramValue = paramParts[1].trim();
+
+            if (relevantParamKeys.includes(paramKey)) {
+                if (relevantParamDescriptors[paramKey] === 'boolean') {
+                    ohipConfig[paramKey] = (paramValue === 'true');    // string in, boolean out
+                }
+                else if (relevantParamDescriptors[paramKey] === 'number') {
+                    ohipConfig[paramKey] = ~~paramValue;    // string in, number out
+                }
+                else {
+                    ohipConfig[paramKey] = paramValue;
+                }
+            }
+        }
+        return ohipConfig;
+    }, {
+        isProduction: config.get('ebsProduction'),
+    });
+};
 
 module.exports = {
     getData: async function (params) {
@@ -22,8 +55,20 @@ module.exports = {
             usaInfo.provinces = (response.rows[0].states && response.rows[0].states.length && response.rows[0].states[0].app_states).sort();
         }
 
-        response.rows[0].hotkeys = hotkeys;
-        response.rows[0].countries = countries || [];
+        const app_settings = response.rows[0];
+
+        const {
+            country_alpha_3_code,
+            province_alpha_2_code,
+        } = app_settings;
+
+        if (country_alpha_3_code === 'can' && province_alpha_2_code === 'ON') {
+            app_settings.ohipConfig = getOHIPConfiguration();
+        }
+
+        app_settings.hotkeys = hotkeys;
+        app_settings.countries = countries || [];
+
         return response;
     }
 };
