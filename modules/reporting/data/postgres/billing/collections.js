@@ -83,7 +83,7 @@ AS (
                      patient_guarantors ppg
                 WHERE
                     pp.id = patient_id
-                    AND NOT ppg.has_deleted
+                    AND NOT ppg.has_deleted /* patient_guarantors.has_deleted */
                 ORDER BY id DESC
                 LIMIT 1
             ) patient_guarantor ON TRUE

@@ -21,7 +21,7 @@ WITH study_cte AS (
       INNER JOIN billing.charges bch ON bch.id = bcs.charge_id
       INNER JOIN billing.claims bc ON bc.id = bch.claim_id
       <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
-    WHERE NOT ps.has_deleted
+    WHERE NOT ps.has_deleted /* public.studies.has_deleted */
     AND ps.accession_no NOT ILIKE '%.c'
       AND <%= companyId %>
       AND <%= claimDate %>
