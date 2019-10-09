@@ -80,7 +80,7 @@ module.exports = {
                             INNER JOIN public.cpt_codes on sc.cpt_code_id = cpt_codes.id
                             INNER JOIN public.orders o on o.id = s.order_id
                             WHERE
-                                study_id = ANY(${studyIds}) AND sc.has_deleted = FALSE
+                                study_id = ANY(${studyIds}) AND sc.has_deleted = FALSE /* study_cpt.has_deleted */
                             ORDER BY s.accession_no DESC
 
                         )
@@ -153,8 +153,8 @@ module.exports = {
                                                 providers p
                                             INNER JOIN provider_contacts pc ON pc.provider_id = p.id
                                             WHERE pc.id = COALESCE(NULLIF(orders.referring_provider_ids [ 1 ],'0'),'0')::numeric
-                                            AND NOT p.has_deleted
-                                            AND NOT pc.has_deleted
+                                            AND NOT p.has_deleted /* providers.has_deleted */
+                                            AND NOT pc.has_deleted /* provider_contacts.has_deleted */
                                             AND p.provider_type = 'RF'
                                         ) referring_provider ON true
                                         JOIN LATERAL (
@@ -183,7 +183,7 @@ module.exports = {
                                         INNER JOIN public.orders o on o.id = pi.order_id
                                         INNER JOIN public.studies s ON s.order_id = o.id
                                         WHERE s.id = ANY(${studyIds})
-                                        AND s.has_deleted = FALSE
+                                        AND s.has_deleted = FALSE /* studies.has_deleted */
                                         ORDER BY pi.order_no
                             )
                             SELECT  ( SELECT COALESCE(json_agg(row_to_json(charge)),'[]') charges
@@ -895,7 +895,7 @@ module.exports = {
                             ,is_active
                             ,company_id
                             ,code_type
-                            ,has_deleted
+                            ,has_deleted /* icd_codes.has_deleted */
                             ,created_dt
                 )
                 SELECT
@@ -906,7 +906,7 @@ module.exports = {
                     , ${params.code_type}
                     , false
                     , now()
-                WHERE NOT EXISTS ( SELECT id FROM public.icd_codes  WHERE code ILIKE ${params.code}  AND company_id = ${params.companyId} AND NOT has_deleted)
+                WHERE NOT EXISTS ( SELECT id FROM public.icd_codes  WHERE code ILIKE ${params.code}  AND company_id = ${params.companyId} AND NOT has_deleted) /* icd_codes.has_deleted */ 
                 RETURNING *, '{}'::jsonb old_values
                 `;
 
@@ -921,7 +921,7 @@ module.exports = {
             FROM
                 public.icd_codes
            WHERE code ILIKE ${params.code}  AND company_id = ${params.companyId} AND NOT has_deleted
-        `;
+        `; // icd_codes.has_deleted
 
         return await query(sqlQry);
     },
@@ -937,7 +937,7 @@ module.exports = {
                 AND study_status='APP'
                 AND NOT has_deleted
             ORDER BY study_dt
-        `;
+        `; // studies.has_deleted
 
         return await query(sqlQry);
     },

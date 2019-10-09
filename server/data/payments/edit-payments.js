@@ -712,7 +712,7 @@ module.exports = {
                     dicom_patient_id,
                     first_name,
                     last_name,
-                    has_deleted,
+                    has_deleted, /* patients.has_deleted */
                     is_active,
                     get_full_name(
                         last_name,

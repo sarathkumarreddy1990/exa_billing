@@ -14,7 +14,7 @@ module.exports = {
                                         1 
                                     FROM billing.charges_studies bcs 
                                     WHERE 
-                                    ps.id = bcs.study_id)`;
+                                    ps.id = bcs.study_id)`; // studies.has_deleted
 
         return await query(sql);
 
@@ -27,7 +27,7 @@ module.exports = {
                      FROM public.patients pp
                      INNER JOIN public.patient_insurances ppi on ppi.patient_id = pp.id
                      WHERE 
-                        NOT pp.has_deleted `;
+                        NOT pp.has_deleted `; // patients.has_deleted
 
         return await query(sql);
 
@@ -39,7 +39,7 @@ module.exports = {
                         MAX(id) as id
                      FROM public.insurance_providers 
                      WHERE 
-                        NOT has_deleted `;
+                        NOT has_deleted `; // insurance_providers.has_deleted
 
         return await query(sql);
 
@@ -51,7 +51,7 @@ module.exports = {
                         MAX(id) as id
                      FROM public.provider_groups
                      WHERE 
-                        NOT has_deleted `;
+                        NOT has_deleted `; // provider_groups.has_deleted
 
         return await query(sql);
 
@@ -63,7 +63,7 @@ module.exports = {
                         MAX(id) as id
                      FROM public.provider_contacts
                      WHERE 
-                        NOT has_deleted `;
+                        NOT has_deleted `; // provider_contacts.has_deleted
 
         return await query(sql);
 

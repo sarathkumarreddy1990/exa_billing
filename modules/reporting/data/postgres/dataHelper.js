@@ -201,7 +201,7 @@ const api = {
                         AND id = any ($2)
                         AND NOT has_deleted
                         ORDER BY short_description
-                        `;
+                        `; // cpt_codes.has_deleted
             const params = [
                 companyId,
                 cptCodeIds
@@ -462,7 +462,7 @@ const api = {
                 LEFT JOIN facilities      AS f ON f.id = s.facility_id
                 WHERE
                     ( s.company_id = ${companyId} )
-                AND NOT s.has_deleted
+                AND NOT s.has_deleted /* studies.has_deleted */
                 AND ((timezone(f.time_zone, s.study_dt))::date = current_date)
                 )
 

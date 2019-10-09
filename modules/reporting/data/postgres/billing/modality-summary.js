@@ -32,12 +32,12 @@ AND <%= claimDate %>
 <% if (facilityIds) { %>AND <% print(facilityIds); } %>
 <% if(billingProID) { %> AND <% print(billingProID); } %>
 AND  <%= companyId %>
-    AND NOT o.has_deleted
+    AND NOT o.has_deleted /* public.orders.has_deleted */
     AND NOT o.is_quick_appt
     AND o.order_status NOT IN ('NOS', 'ABRT', 'ORD', 'CAN')
     AND s.study_dt IS NOT NULL
     AND s.study_status NOT IN ('NOS', 'ABRT', 'CAN')
-    AND NOT s.has_deleted
+    AND NOT s.has_deleted /* public.studies.has_deleted */
 GROUP BY
     ROLLUP (m.modality_name)
 )
