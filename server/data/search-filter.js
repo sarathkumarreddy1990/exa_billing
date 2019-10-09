@@ -803,7 +803,7 @@ const api = {
             'orders.order_status AS order_status_code', // TODO: why is this ? suplicated in similar fashion as study_status
             'orders.order_type',
             'orders.ordered_by',                    // TODO: isnt this the same as the results for users ??
-            '(orders.deleted_dt is null) as orders_deleted',  // TODO: why do we need this ? shouldnt we delete ordered completely ?
+            '(orders.deleted_dt is not null) as orders_deleted',  // orders.has_deleted TODO: why do we need this ? shouldnt we delete ordered completely ?
             'orders.icd_codes',
             'orders.modality_room_id', // TODO: this MUST be part of study and not order, order has no ROOM
             'studies.schedule_dt::text as scheduled_dt',
