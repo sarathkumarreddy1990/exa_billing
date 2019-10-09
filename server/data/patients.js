@@ -31,8 +31,8 @@ module.exports = {
                             patients.facility_id,
                             patients.company_id,
                             patients.is_active,
-                            patients.has_deleted,
-                            patients.deleted_dt,
+                            (patients.deleted_dt IS NOT NULL) as has_deleted
+                            patients.deleted_dt, --"READ patients.has_deleted"
                             patients.full_name,
                             patients.patient_uid_system,
                             patients.patient_details,
