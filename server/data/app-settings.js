@@ -41,7 +41,7 @@ module.exports = {
                                             FROM     modalities
                                             WHERE    company_id=${companyID}
                                             AND      NOT has_deleted  /* modalities.has_deleted */
-                                            AND      is_active
+                                            AND      is_active /* modalities.is_active */
                                             ORDER BY priority ASC ) AS modalities)
                     , cte_user AS(
                                    SELECT row_to_json(users) "userInfo"
@@ -58,7 +58,7 @@ module.exports = {
                                    FROM   users
                                    WHERE  company_id=${companyID}
                                    AND    NOT has_deleted /* users.has_deleted */
-                                   AND    is_active
+                                   AND    is_active /* users.is_active */
                                    AND    id=${userID} ) AS users)
                 , cte_user_settings AS(
                                     SELECT Json_agg(row_to_json(userSettings)) userSettings
@@ -185,7 +185,7 @@ module.exports = {
                                     id,
                                     name,
                                     template_type,
-                                    inactivated_dt is null is_active
+                                    inactivated_dt is null is_active /* billing.printer_templates.is_active */
                                     FROM   billing.printer_templates
                                     WHERE  company_id=${companyID} ) AS printer_templates)
                 , cte_billing_providers AS(
@@ -307,7 +307,7 @@ module.exports = {
                     modalities
                 FROM modality_rooms
                 WHERE
-                    is_active
+                    is_active /* modality_rooms.is_active */
                     AND NOT has_deleted /* modality_rooms.has_deleted */
                     AND facility_id IN (
                         SELECT id AS facility_id

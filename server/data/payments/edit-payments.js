@@ -713,7 +713,7 @@ module.exports = {
                     first_name,
                     last_name,
                     has_deleted, /* patients.has_deleted */
-                    is_active,
+                    is_active, /* patients.is_active */
                     get_full_name(
                         last_name,
                         first_name,

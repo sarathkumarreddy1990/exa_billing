@@ -625,7 +625,7 @@ module.exports = {
                                 , icd.code
                                 , icd.description
                                 , icd.code_type
-                                , icd.is_active
+                                , icd.is_active /* icd_codes.is_active  */
                             FROM billing.claim_icds ci
                             INNER JOIN public.icd_codes icd ON ci.icd_id = icd.id
                             WHERE claim_id = c.id
@@ -892,7 +892,7 @@ module.exports = {
                 INSERT INTO public.icd_codes(
                             code
                             ,description
-                            ,is_active
+                            ,is_active  /* icd_codes.is_active */
                             ,company_id
                             ,code_type
                             ,has_deleted /* icd_codes.has_deleted */

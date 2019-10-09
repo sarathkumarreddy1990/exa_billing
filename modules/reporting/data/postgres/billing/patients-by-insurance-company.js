@@ -28,7 +28,7 @@ with patientByInsCompanyDetailQuery as (
     WHERE
           <%= companyId %>
           <% if (insuranceActive == 'false') { %>
-            AND ip.is_active
+            AND ip.is_active /* insurance_providers.is_active */
          <% } %>
          <% if (claimDate) { %>
              AND <%= claimDate %>
