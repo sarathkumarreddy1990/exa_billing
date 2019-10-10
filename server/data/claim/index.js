@@ -183,7 +183,7 @@ module.exports = {
                                         INNER JOIN public.orders o on o.id = pi.order_id
                                         INNER JOIN public.studies s ON s.order_id = o.id
                                         WHERE s.id = ANY(${studyIds})
-                                        AND s.has_deleted = FALSE /* studies.has_deleted */
+                                        AND s.deleted_dt is null /* READ studies.has_deleted */
                                         ORDER BY pi.order_no
                             )
                             SELECT  ( SELECT COALESCE(json_agg(row_to_json(charge)),'[]') charges
@@ -834,7 +834,7 @@ module.exports = {
                                 LEFT JOIN orders ON orders.id=studies.order_id
                                 INNER JOIN facilities ON studies.facility_id=facilities.id
                             WHERE
-                                NOT studies.has_deleted
+                                studies.deleted_dt is null /* READ studies.has_deleted */
                                 AND study_dt IS NOT NULL
                                 AND studies.patient_id = ${id}
                                 AND NOT EXISTS ( SELECT 1 FROM billing.charges_studies WHERE study_id = studies.id )
@@ -906,7 +906,7 @@ module.exports = {
                     , ${params.code_type}
                     , false
                     , now()
-                WHERE NOT EXISTS ( SELECT id FROM public.icd_codes  WHERE code ILIKE ${params.code}  AND company_id = ${params.companyId} AND NOT has_deleted) /* icd_codes.has_deleted */ 
+                WHERE NOT EXISTS ( SELECT id FROM public.icd_codes  WHERE code ILIKE ${params.code}  AND company_id = ${params.companyId} AND NOT has_deleted) /* icd_codes.has_deleted */
                 RETURNING *, '{}'::jsonb old_values
                 `;
 
@@ -935,9 +935,9 @@ module.exports = {
                 WHERE
                 patient_id = ${params.patient_id}
                 AND study_status='APP'
-                AND NOT has_deleted
+                AND deleted_dt is null /* READ studies.has_deleted */
             ORDER BY study_dt
-        `; // studies.has_deleted
+        `; 
 
         return await query(sqlQry);
     },
