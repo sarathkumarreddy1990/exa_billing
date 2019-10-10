@@ -226,7 +226,7 @@ module.exports = {
                 FROM
                     patients
                 WHERE
-                    NOT patients.has_deleted
+                    patients.deleted_dt IS NULL --"READ patients.has_deleted"
                     AND patients.company_id =  ${params.company_id} `;
 
         if (params.q != '') {
