@@ -261,7 +261,7 @@ const colModel = [
     },
     {
         name: 'has_deleted',
-        searchColumns: ['studies.has_deleted'], // TODO studies.has_deleted
+        searchColumns: ['studies.has_deleted'], // ????.has_deleted  studies.has_deleted
         searchFlag: 'bool_null'
     },
     // This takes the hstore key as the "fieldValue" and verifies it isn't 'false' or NULL
@@ -379,7 +379,7 @@ const api = {
                 ])`;
             case 'image_delivery': return 'imagedelivery.image_delivery';
             case 'station': return "study_info->'station'";
-            case 'has_deleted': return 'studies.has_deleted'; // TODO: studies.has_deleted
+            case 'has_deleted': return 'studies.has_deleted'; // ????.has_deleted  studies.has_deleted
             case 'send_status': return "studies.study_info->'send_status'";
             case 'billing_code': return 'billing_codes.description';
             case 'billing_class': return 'billing_classes.description';
