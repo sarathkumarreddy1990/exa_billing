@@ -1172,7 +1172,7 @@ module.exports = {
                                         GROUP BY study_id
                                       ) cc ON cc.study_id = studies.id
                         WHERE o.patient_id = ${payerId}
-                           AND NOT o.has_deleted  /* orders.has_deleted */
+                           AND o.deleted_dt is null  /* READ orders.has_deleted */ 
                            AND o.order_status NOT IN ('CAN','NOS')
                            AND studies.study_status NOT IN ('CAN','NOS')
                         `;
