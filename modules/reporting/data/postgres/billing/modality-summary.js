@@ -32,7 +32,7 @@ AND <%= claimDate %>
 <% if (facilityIds) { %>AND <% print(facilityIds); } %>
 <% if(billingProID) { %> AND <% print(billingProID); } %>
 AND  <%= companyId %>
-    AND o.deleted_dt is null /*  READ orders.has_deleted  public.orders.has_deleted */
+    AND o.deleted_dt is null
     AND NOT o.is_quick_appt
     AND o.order_status NOT IN ('NOS', 'ABRT', 'ORD', 'CAN')
     AND s.study_dt IS NOT NULL
