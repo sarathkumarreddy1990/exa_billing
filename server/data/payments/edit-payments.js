@@ -591,7 +591,6 @@ module.exports = {
 
         if (!filter.fromPTSL) {
             if (filter_from.includes(filter.patientFlag)) {
-                // "READ patients.has_deleted"
                 filter.filterQuery += ` AND patients.deleted_dt IS NULL AND patients.id ${filter.symbol} ${filter.searchId} AND patients.company_id = ${filter.company_id}`;
             } else {
                 filter.filterQuery = ` WHERE patients.deleted_dt IS NULL AND patients.id ${filter.symbol} ${filter.searchId} AND patients.company_id = ${filter.company_id}`;
@@ -693,12 +692,40 @@ module.exports = {
         let sql = '';
 
         if (filter.showOwner == 'true') {
-            // "READ patients.has_deleted"
-            sql = `SELECT alt_account_no,account_no,facility_id,patients.id,rcopia_id,dicom_patient_id,date_part('year',age(birth_date))as age,patients.first_name as first_name,patients.last_name as last_name,
-                (patients.deleted_dt IS NOT NULL) AS has_deleted,gender,patients.is_active as is_active,full_name,patients.owner_id,owner_info,owners.first_name as owner_first_name,owners.last_name as owner_last_name,
-                patient_info,birth_date::text FROM (SELECT patients.id as patients_id FROM patients LEFT JOIN owners ON patients.owner_id = owners.id left join studies on patients.id = studies.patient_id  ${filter.filterQuery}
-                GROUP BY patients.id ORDER BY ${filter.sortField}  ${filter.sortOrder}  LIMIT ${filter.pageSize} ) AS finalPatients INNER JOIN patients ON finalPatients.patients_id = patients.id ' +
-                LEFT JOIN owners ON patients.owner_id = owners.id ORDER BY ${filter.sortField}  ${filter.sortOrder}`;
+            sql = `
+            SELECT
+                alt_account_no,
+                account_no,
+                facility_id,
+                patients.id,
+                rcopia_id,
+                dicom_patient_id,
+                date_part('year',age(birth_date))as age,
+                patients.first_name as first_name,
+                patients.last_name as last_name,
+                (patients.deleted_dt IS NOT NULL) AS has_deleted,
+                gender,patients.is_active as is_active,
+                full_name,patients.owner_id,
+                owner_info,
+                owners.first_name as owner_first_name,
+                owners.last_name as owner_last_name,
+                patient_info,
+                birth_date::text
+            FROM (
+                SELECT
+                    patients.id as patients_id
+                FROM patients
+                LEFT JOIN owners ON patients.owner_id = owners.id
+                LEFT JOIN studies on patients.id = studies.patient_id
+                ${filter.filterQuery}
+                GROUP BY patients.id
+                ORDER BY ${filter.sortField} ${filter.sortOrder}
+                LIMIT ${filter.pageSize}
+            ) AS finalPatients
+            INNER JOIN patients ON finalPatients.patients_id = patients.id ' +
+            LEFT JOIN owners ON patients.owner_id = owners.id
+            ORDER BY ${filter.sortField} ${filter.sortOrder}
+            `;
         }
         else {
             if (filter.fromPTSL) {
@@ -745,7 +772,7 @@ module.exports = {
                     dicom_patient_id,
                     patients.first_name as first_name,
                     patients.last_name as last_name,
-                    (patients.deleted_dt IS NOT NULL) as has_deleted, --"READ patients.has_deleted"
+                    (patients.deleted_dt IS NOT NULL) as has_deleted,
                     patients.is_active as is_active,
                     full_name,patients.owner_id,
                     patient_info as more_info,

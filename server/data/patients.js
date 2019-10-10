@@ -32,7 +32,7 @@ module.exports = {
                             patients.company_id,
                             patients.is_active,
                             (patients.deleted_dt IS NOT NULL) as has_deleted
-                            patients.deleted_dt, --"READ patients.has_deleted"
+                            patients.deleted_dt,
                             patients.full_name,
                             patients.patient_uid_system,
                             patients.patient_details,
