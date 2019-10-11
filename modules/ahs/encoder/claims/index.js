@@ -83,6 +83,6 @@ const encode = ( rows ) => {
     return finalizeText(encodedArray.join(`\n`));
 };
 
-// module.exports = {
-//     encode,
-// };
+ module.exports = {
+     encode,
+ };
