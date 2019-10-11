@@ -1,32 +1,32 @@
-const { query } = require('./index');
+const { query, SQL } = require('./index');
 
 module.exports = {
 
     getStudyIds: async function () {
 
-        const sql = `SELECT 
+        const sql = SQL`SELECT
                         MAX(ps.id) as id
                      FROM public.studies ps
                      WHERE
                         ps.study_status in ('CHI','SCH')
-                    AND ps.deleted_dt is null
-                    AND NOT EXISTS (SELECT
+                        AND ps.deleted_dt is null
+                        AND NOT EXISTS (SELECT
                                         1
-                                    FROM billing.charges_studies bcs
-                                    WHERE
-                                    ps.id = bcs.study_id)`; // READ studies.has_deleted
+                                        FROM billing.charges_studies bcs
+                                        WHERE
+                                        ps.id = bcs.study_id)`;
 
-        return await query(sql);
+        return await query(sql.text);
 
     },
 
     getPatientId: async function () {
 
-        const sql = `SELECT 
+        const sql = `SELECT
                         MAX(pp.id) as id
                      FROM public.patients pp
                      INNER JOIN public.patient_insurances ppi on ppi.patient_id = pp.id
-                     WHERE 
+                     WHERE
                         NOT pp.has_deleted `; // patients.has_deleted
 
         return await query(sql);
@@ -35,10 +35,10 @@ module.exports = {
 
     getinsuranceProviderId: async function () {
 
-        const sql = `SELECT 
+        const sql = `SELECT
                         MAX(id) as id
-                     FROM public.insurance_providers 
-                     WHERE 
+                     FROM public.insurance_providers
+                     WHERE
                         NOT has_deleted `; // insurance_providers.has_deleted
 
         return await query(sql);
@@ -47,10 +47,10 @@ module.exports = {
 
     getProviderGroupId: async function () {
 
-        const sql = `SELECT 
+        const sql = `SELECT
                         MAX(id) as id
                      FROM public.provider_groups
-                     WHERE 
+                     WHERE
                         NOT has_deleted `; // provider_groups.has_deleted
 
         return await query(sql);
@@ -59,10 +59,10 @@ module.exports = {
 
     getProviderContactId: async function () {
 
-        const sql = `SELECT 
+        const sql = `SELECT
                         MAX(id) as id
                      FROM public.provider_contacts
-                     WHERE 
+                     WHERE
                         NOT has_deleted `; // provider_contacts.has_deleted
 
         return await query(sql);
@@ -71,7 +71,7 @@ module.exports = {
 
     getPaymentReasonId: async function () {
 
-        const sql = `SELECT 
+        const sql = `SELECT
                         MAX(id) as id
                      FROM billing.payment_reasons`;
 
@@ -81,7 +81,7 @@ module.exports = {
 
     getCompanyId: async function () {
 
-        const sql = `SELECT 
+        const sql = `SELECT
                         MAX(id) as id
                      FROM public.companies`;
 
@@ -91,7 +91,7 @@ module.exports = {
 
     getFacilityId: async function () {
 
-        const sql = `SELECT 
+        const sql = `SELECT
                         MAX(id) as id
                      FROM public.facilities`;
 
@@ -101,7 +101,7 @@ module.exports = {
 
     getUserId: async function () {
 
-        const sql = `SELECT 
+        const sql = `SELECT
                         MAX(id) as id
                      FROM public.users`;
 
@@ -111,7 +111,7 @@ module.exports = {
 
     getClaimId: async function () {
 
-        const sql = `SELECT 
+        const sql = `SELECT
                         MAX(bc.id) as claim_id
                      FROM billing.claims bc
                      INNER JOIN billing.charges bch on bc.id = bch.claim_id`;
@@ -122,7 +122,7 @@ module.exports = {
 
     getAdjustmentCodeId: async function () {
 
-        const sql = `SELECT 
+        const sql = `SELECT
                         MAX(id) as id
                      FROM billing.adjustment_codes`;
 
