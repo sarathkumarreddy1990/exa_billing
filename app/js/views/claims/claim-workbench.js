@@ -360,7 +360,7 @@ define(['jquery',
                             filter_order: 0,
                             id: "All_Claims"
                         });
-                        
+
                         if (app.country_alpha_3_code === "can") {
                             claimsFilters.push({
                                 assigned_users: null,
@@ -816,7 +816,7 @@ define(['jquery',
                             onHide: function () {
                                 commonjs.previousValidationResults = null;
                             }
-                        });    
+                        });
                     }
                     $(".popoverWarning").popover();
 
@@ -1305,7 +1305,7 @@ define(['jquery',
                 var filterTabInit = function (filters, callback) {
                     var showdeleted = !app.showdeletedstudies ?
                         ' ' :
-                        ' studies.has_deleted = false ';
+                        ' studies.deleted_dt is null '; // READ studies.has_deleted
                     $divFiltersContainer.hide();
 
                     var processOptions = function (info) {
@@ -1410,7 +1410,7 @@ define(['jquery',
                 self.datePickerCleared = false // to bind the date by default(three months) -- EXA-11340
 
                 if (filterID) {
-                    
+
                     if (filterID === "Files") {
                         self.fileManagementPager = new Pager();
                         self.showFileManagementGrid({
@@ -2236,7 +2236,7 @@ define(['jquery',
                     disablepaging: false,
                     disablesort: false,
                     disablesearch: false
-                });             
+                });
 
                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());
             },
@@ -2850,7 +2850,7 @@ define(['jquery',
             showValidationResult: function(data) {
                 var self = this;
                 commonjs.previousValidationResults = { isFromEDI: false, result: data };
-                commonjs.showDialog({ 
+                commonjs.showDialog({
                     header: 'Validation Results',
                     fromValidate: true,
                     onShown: function () {
@@ -2862,7 +2862,7 @@ define(['jquery',
                     i18nHeader: 'billing.claims.validationResults',
                     width: '70%',
                     height: '60%',
-                    html: self.claimValidation({ response_data: data }) 
+                    html: self.claimValidation({ response_data: data })
                 });
             },
 
@@ -2903,7 +2903,7 @@ define(['jquery',
 
                             if (data) {
                                 var invalidClaimData = data.invalidClaim_data;
-                                
+
                                 if (invalidClaimData.length) {
                                     modalContainer.html(self.claimValidation({ response_data: invalidClaimData }));
                                 } else {
@@ -2916,7 +2916,7 @@ define(['jquery',
                         },
                         error: function (err, response) {
                             commonjs.hideLoading();
-                        }    
+                        }
                     });
                 }
             },

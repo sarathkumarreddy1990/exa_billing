@@ -40,7 +40,7 @@ WITH company_details AS (
 	FROM  public.studies s
     INNER JOIN public.facilities AS f  ON f.id = s.facility_id
     WHERE
-        NOT s.has_deleted /*  public.studies.has_deleted */
+        s.deleted_dt is null /* READ studies.has_deleted */
         <% if(study_id) { %>AND <% print(study_id);} %>
 )
 ,payments AS (
