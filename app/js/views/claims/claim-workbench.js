@@ -530,6 +530,11 @@ define(['jquery',
 
                 var isCheckedAll = $('#chkStudyHeader_' + filterID).prop('checked');
                 var data = {};
+                var gridElement = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked');
+
+                if (!gridElement.length) {
+                    return commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfBillingMethod');
+                }
 
                 if (isCheckedAll && billingMethodFormat === 'electronic_billing') {
                     var filterData = JSON.stringify(filter.pager.get('FilterData'));
@@ -554,9 +559,8 @@ define(['jquery',
                         isAllClaims: true
                     }
                 } else {
-                    for (var i = 0; i < $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked').length; i++) {
-                        var rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;
-
+                    for (var i = 0; i < gridElement.length; i++) {
+                        var rowId = gridElement[i].parentNode.parentNode.id;
                         var claimStatus = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'claim_status_code');
 
                         if (claimStatus === "PV") {
@@ -605,12 +609,6 @@ define(['jquery',
                         var invoice_no = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_invoice_no');
                         invoiceNo.push(invoice_no);
                         claimIds.push(rowId);
-                    }
-
-
-                    if (claimIds && !claimIds.length) {
-                        commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfBillingMethod');
-                        return false;
                     }
 
                     data = {
@@ -2925,8 +2923,9 @@ define(['jquery',
 
                             if (data) {
                                 var invalidClaimData = data.invalidClaim_data;
-                                
+
                                 if (invalidClaimData.length) {
+                                    commonjs.previousValidationResults.result = invalidClaimData;
                                     modalContainer.html(self.claimValidation({ response_data: invalidClaimData }));
                                 } else {
                                     modalContainer.html('<div style="text-align: center" >' + commonjs.geti18NString('messages.status.noRecordFound') + '</div>');
