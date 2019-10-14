@@ -152,7 +152,7 @@ const validator = () => {
                 searchQuery += ' AND ';
             }
 
-            searchQuery += `(study_status NOT IN ('NOS', 'ABRT', 'CAN') AND studies.deleted_dt is null)`; // READ studies.has_deleted
+            searchQuery += `(study_status NOT IN ('NOS', 'ABRT', 'CAN') AND studies.deleted_dt is null)`;
         }
 
         if (searchQuery === '()') {

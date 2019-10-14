@@ -1305,7 +1305,7 @@ define(['jquery',
                 var filterTabInit = function (filters, callback) {
                     var showdeleted = !app.showdeletedstudies ?
                         ' ' :
-                        ' studies.deleted_dt is null '; // READ studies.has_deleted
+                        ' studies.deleted_dt is null ';
                     $divFiltersContainer.hide();
 
                     var processOptions = function (info) {

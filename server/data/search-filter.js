@@ -770,7 +770,7 @@ const api = {
             'studies.referring_physician_id', // TODO: Why is this any different from referring_provider and why do i need id if having name already ?
             'studies.cpt_codes',
             'studies.notes as notes', // TODO: this should not be returned as column (maybe has_notes but now whole notes)
-            '(studies.deleted_dt is not null)', // READ studies.has_deleted ? TODO: this column should not be deleted Status should be deleted and if its really purged it shouldnt be there
+            '(studies.deleted_dt is not null)', //  TODO: this column should not be deleted Status should be deleted and if its really purged it shouldnt be there
             'studies.study_description',
             'studies.institution as institution',
             '(SELECT claim_id FROM billing.charges_studies inner JOIN billing.charges ON charges.id= charges_studies.charge_id  WHERE study_id = studies.id LIMIT 1) as claim_id',
@@ -1078,10 +1078,10 @@ const api = {
                 if (includeDeleted_study !== includeDeleted_perms) {
                     switch (includeDeleted_study) {
                         case false:
-                            whereClause.default = AND(whereClause.default, ' studies.deleted_dt is null '); // READ studies.has_deleted
+                            whereClause.default = AND(whereClause.default, ' studies.deleted_dt is null ');
                             break;
                         case true:
-                            whereClause.default = AND(whereClause.default, ' studies.deleted_dt is not null '); // READ studies.has_deleted
+                            whereClause.default = AND(whereClause.default, ' studies.deleted_dt is not null ');
                             break;
                     }
                 }
@@ -1107,10 +1107,10 @@ const api = {
 
                 switch (includeDeleted_perms) {
                     case false:
-                        whereClause.permission_filter = AND(whereClause.permission_filter, ' studies.deleted_dt is null '); // READ studies.has_deleted
+                        whereClause.permission_filter = AND(whereClause.permission_filter, ' studies.deleted_dt is null ');
                         break;
                     case true:
-                        whereClause.permission_filter = AND(whereClause.permission_filter, ' studies.deleted_dt is not null '); // READ studies.has_deleted
+                        whereClause.permission_filter = AND(whereClause.permission_filter, ' studies.deleted_dt is not null ');
                         break;
                 }
 

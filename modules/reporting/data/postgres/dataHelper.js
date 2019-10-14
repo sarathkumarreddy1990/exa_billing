@@ -462,7 +462,7 @@ const api = {
                 LEFT JOIN facilities      AS f ON f.id = s.facility_id
                 WHERE
                     ( s.company_id = ${companyId} )
-                AND s.deleted_dt is null /* READ studies.has_deleted */
+                AND s.deleted_dt is null
                 AND ((timezone(f.time_zone, s.study_dt))::date = current_date)
                 )
 
