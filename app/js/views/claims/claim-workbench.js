@@ -690,7 +690,7 @@ define(['jquery',
                     data: data,
                     success: function (data, textStatus, jqXHR) {
                         commonjs.hideLoading();
-                        
+
                         if (isCanada && app.province_alpha_2_code === 'AB') {
                             self.ahsResponse(data);
                         }
@@ -787,7 +787,7 @@ define(['jquery',
                         commonjs.showWarning(validationMessage);
                     });
                 } else {
-                    commonjs.showStatus('Claims submitted successfully');
+                    commonjs.showStatus(messages.status.ClaimSubmitted);
                 }
 
             },

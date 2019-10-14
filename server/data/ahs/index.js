@@ -546,7 +546,6 @@ module.exports = {
         }] = result.rows;
 
         const encoded_text = claimEncoder.encode(result.rows);
-        console.log(encoded_text);
 
         await writeFileAsync(fullPath, encoded_text, { 'encoding': `utf8` });
 
