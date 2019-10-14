@@ -30,10 +30,12 @@ const toBillingNotes = (obj) => {
 
 module.exports = {
 
-    updateClaims: async (args) => {
+    updateClaimsStatus: async (args) => {
         const {
             claimIds,
-            statusCode
+            statusCode,
+            claimNote,
+            userId
         } = args;
         const sql = SQL` WITH status AS (
                                     SELECT
@@ -42,8 +44,23 @@ module.exports = {
                                         billing.claim_status
                                     WHERE
                                         code = ${statusCode}
-                                    LIMIT
-                                        1
+                                    LIMIT 1
+                                )
+                                , addClaimComment AS (
+                                    INSERT INTO billing.claim_comments (
+                                          note
+                                        , type
+                                        , claim_id
+                                        , created_by
+                                        , created_dt
+                                    )
+                                    VALUES (
+                                          ${claimNote}
+                                        , 'auto'
+                                        , UNNEST(${claimIds}::int[])
+                                        , ${userId}
+                                        , now()
+                                    ) RETURNING *
                                 )
                                 UPDATE
                                     billing.claims
@@ -57,7 +74,6 @@ module.exports = {
                                     billing.claims.*`;
 
         return  await query(sql.text, sql.values);
-
     },
 
     saveAddedClaims: async (args) => {

@@ -564,7 +564,7 @@ define(['jquery',
                             return false;
                         }
 
-                        if (isCanada && app.province_alpha_2_code === 'AB') {
+                        if (app.billingRegionCode === 'can_AB') {
 
                             var excludeClaimStatus = ['PIF', 'PA'];
 
@@ -678,8 +678,8 @@ define(['jquery',
 
                 var url = '/exa_modules/billing/claim_workbench/create_claim';
 
-                if (isCanada && app.province_alpha_2_code === 'AB') {
-                    url = '/exa_modules/billing/ash/submitClaims';
+                if (app.billingRegionCode === 'can_AB') {
+                    url = '/exa_modules/billing/ahs/submitClaims';
                 } else if (isCanada) {
                     url = '/exa_modules/billing/ohip/submitClaims';
                 }
@@ -691,7 +691,7 @@ define(['jquery',
                     success: function (data, textStatus, jqXHR) {
                         commonjs.hideLoading();
 
-                        if (isCanada && app.province_alpha_2_code === 'AB') {
+                        if (app.billingRegionCode === 'can_AB') {
                             self.ahsResponse(data);
                         }
                         else if (isCanada) {
@@ -787,7 +787,7 @@ define(['jquery',
                         commonjs.showWarning(validationMessage);
                     });
                 } else {
-                    commonjs.showStatus(messages.status.ClaimSubmitted);
+                    commonjs.showStatus('messages.status.ClaimSubmitted');
                 }
 
             },
