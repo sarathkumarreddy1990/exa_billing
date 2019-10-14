@@ -37,7 +37,7 @@ AND  <%= companyId %>
     AND o.order_status NOT IN ('NOS', 'ABRT', 'ORD', 'CAN')
     AND s.study_dt IS NOT NULL
     AND s.study_status NOT IN ('NOS', 'ABRT', 'CAN')
-    AND s.deleted_dt is null /* READ public.studies.has_deleted ???? */
+    AND s.deleted_dt is null
 GROUP BY
     ROLLUP (m.modality_name)
 )

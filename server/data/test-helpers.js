@@ -1,22 +1,22 @@
-const { query, SQL } = require('./index');
+const { query } = require('./index');
 
 module.exports = {
 
     getStudyIds: async function () {
 
-        const sql = SQL`SELECT
+        const sql = `SELECT
                         MAX(ps.id) as id
                      FROM public.studies ps
                      WHERE
                         ps.study_status in ('CHI','SCH')
-                        AND ps.deleted_dt is null
-                        AND NOT EXISTS (SELECT
+                    AND ps.deleted_dt is null
+                    AND NOT EXISTS (SELECT
                                         1
-                                        FROM billing.charges_studies bcs
-                                        WHERE
-                                        ps.id = bcs.study_id)`;
+                                    FROM billing.charges_studies bcs
+                                    WHERE
+                                    ps.id = bcs.study_id)`;
 
-        return await query(sql.text);
+        return await query(sql);
 
     },
 
