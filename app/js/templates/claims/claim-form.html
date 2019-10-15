@@ -434,7 +434,7 @@
                 </div>
                 <% } %>
             </div>
-            <% if(country_alpha_3_code !== 'can') { %>
+            <% if (app.country_alpha_3_code !== 'can' || (app.country_alpha_3_code === 'can' && app.province_alpha_2_code === 'AB')) { %>
             <div class="col-lg-6">
                 <div class="form-group row">
                     <label for="ddlMultipleDiagCodes" class="col-form-label" i18n="billing.claims.diagnosticsCodes"></label>

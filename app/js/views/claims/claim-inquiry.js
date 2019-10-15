@@ -97,7 +97,8 @@ define([
                 var isFromClaimScreen = this.options.source && this.options.source === 'claims'
 
                 $(this.el).html(this.inquiryTemplate({
-                    country_alpha_3_code: app.country_alpha_3_code
+                    country_alpha_3_code: app.country_alpha_3_code,
+                    province_alpha_2_code: app.province_alpha_2_code
                 }));
                 if (this.options.source !== 'web')
                     commonjs.showDialog({
@@ -106,7 +107,8 @@ define([
                         width: '90%',
                         height: '85%',
                         html: this.inquiryTemplate({
-                            country_alpha_3_code: app.country_alpha_3_code
+                            country_alpha_3_code: app.country_alpha_3_code,
+                            province_alpha_2_code: app.province_alpha_2_code
                         })
                     });
                 else

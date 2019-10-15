@@ -283,8 +283,11 @@ define(['jquery',
                     .off('keyup', self.finishFilterMerge)
                     .on('keyup', self.finishFilterMerge);
 
-                commonjs.hideItem('diagnosis-count', '#aDiagnosisCountDropDownItem');
-                commonjs.hideItem('insurance-vs-lop', '#aInsuranceLOPDropDownItem');
+                // Don't hide for Alberta
+                if (app.country_alpha_3_code === 'can' && app.province_alpha_2_code !== 'AB') {
+                    commonjs.hideItem('diagnosis-count', '#aDiagnosisCountDropDownItem');
+                    commonjs.hideItem('insurance-vs-lop', '#aInsuranceLOPDropDownItem');
+                }
             },
 
             underConstruction:function(){
@@ -328,6 +331,7 @@ define(['jquery',
                 self.ediWarning = _.template(ediWarning);
                 self.$el.html(self.indexTemplate({
                     country_alpha_3_code: app.country_alpha_3_code,
+                    province_alpha_2_code: app.province_alpha_2_code,
                     showConformanceTesting: app.province_alpha_2_code === 'ON' && app.ohipConfig.showConformanceTesting,
                     gadget: '',
                     customStudyStatus: [],
