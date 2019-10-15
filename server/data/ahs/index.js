@@ -30,11 +30,57 @@ const toBillingNotes = (obj) => {
 
 module.exports = {
 
+    updateClaimsStatus: async (args) => {
+        const {
+            claimIds,
+            statusCode,
+            claimNote,
+            userId
+        } = args;
+        const sql = SQL` WITH status AS (
+                                    SELECT
+                                        id
+                                    FROM
+                                        billing.claim_status
+                                    WHERE
+                                        code = ${statusCode}
+                                    LIMIT 1
+                                )
+                                , addClaimComment AS (
+                                    INSERT INTO billing.claim_comments (
+                                          note
+                                        , type
+                                        , claim_id
+                                        , created_by
+                                        , created_dt
+                                    )
+                                    VALUES (
+                                          ${claimNote}
+                                        , 'auto'
+                                        , UNNEST(${claimIds}::int[])
+                                        , ${userId}
+                                        , now()
+                                    ) RETURNING *
+                                )
+                                UPDATE
+                                    billing.claims
+                                SET
+                                    claim_status_id = status.id
+                                FROM
+                                    status
+                                WHERE
+                                    billing.claims.id = ANY(${claimIds}:: BIGINT[])
+                                RETURNING
+                                    billing.claims.*`;
+
+        return  await query(sql.text, sql.values);
+    },
+
     saveAddedClaims: async (args) => {
 
         const {
             company_id,
-            claimIds,
+            claimIds
         } = args;
 
         let data = ``;
@@ -47,12 +93,12 @@ module.exports = {
             FROM
                 file_stores fs
             JOIN companies c
-                ON c.file_store_id = fs.id 
+                ON c.file_store_id = fs.id
             WHERE
                 c.id = ${company_id}
         `;
 
-        const fileSqlResponse = await query(sql.text, sql.values);
+        const fileSqlResponse = await query(fileSql.text, fileSql.values);
 
         if ( !fileSqlResponse || fileSqlResponse.rows.length === 0 ) {
             return null;
@@ -99,7 +145,7 @@ module.exports = {
                     FROM
                         billing.claim_status
                     WHERE
-                        code = 'PA'
+                        code = 'PS'
                     LIMIT
                         1
                 ),
@@ -166,7 +212,7 @@ module.exports = {
                     RETURNING
                         billing.claims.*
                 )
-            
+
             SELECT
                 inserted_efc.can_ahs_action_code             AS action_code,
                 comp.can_ahs_submitter_prefix                AS submitter_prefix,
@@ -175,27 +221,26 @@ module.exports = {
                 TO_CHAR(bc.claim_dt, 'MM')                   AS source_code,
                 inserted_efc.sequence_number                 AS sequence_number,
                 billing.can_ahs_calculate_check_digit_claim_number(
-                    comp.can_ahs_submitter_prefix,
+                   comp.can_ahs_submitter_prefix,
                     TO_CHAR(bc.claim_dt, 'MM'),
-                    TO_CHAR(bc.claim_dt, 'YY'),
-                    LPAD(inserted_efc.sequence_number :: TEXT, 7, '0')
-                )                                            AS check_digit,
-            
+                   TO_CHAR(bc.claim_dt, 'YY'),
+                  LPAD(inserted_efc.sequence_number :: TEXT, 7, '0')
+                )  AS check_digit,
                 -- currently hard-coded - AHS does not support another code right now
                 'CIP1'                                       AS transaction_type,
-            
+
                 CASE
                     WHEN inserted_efc.can_ahs_action_code IN ('a', 'c')
                     THEN 'RGLR'
                     ELSE ''
                 END                                          AS claim_type,
-            
+
                 pc_app.can_ahs_prid                          AS service_provider_prid,
                 sc.code                                      AS skill_code,
                 p.can_ahs_uli                                AS service_recipient_uli,
                 p.can_ahs_registration_number                AS service_recipient_registration_number,
                 p.can_ahs_registration_number_province       AS service_recipient_registration_number_province,
-            
+
                 CASE
                     WHEN (
                         p.can_ahs_uli IS NOT NULL
@@ -225,19 +270,19 @@ module.exports = {
                         'parent_registration_number', ''
                     )
                 END                                          AS service_recipient_details,
-            
+
                 cpt.ref_code                                 AS health_service_code,
                 CASE
                     WHEN s.hospital_admission_dt IS NULL
                         THEN TO_CHAR(s.study_dt, 'YYYYMMDD')
                         ELSE TO_CHAR(s.hospital_admission_dt, 'YYYYMMDD')
                 END                                          AS service_start_date,
-                row_number() OVER (ENCOUNTER_WINDOW)         AS encounter_number,
+                (row_number() OVER (ENCOUNTER_WINDOW)):: INT           AS encounter_number,
                 icd.codes[1]                                 AS diagnosis_code_1,
                 icd.codes[2]                                 AS diagnosis_code_2,
                 icd.codes[3]                                 AS diagnosis_code_3,
-            
-            
+
+
                 -- @TODO - this may need + 1 for the days extract to make same-day considered as "1 consecutive day"
                 -- Documentation is unclear so leaving as-is until testing
                 CASE
@@ -258,23 +303,23 @@ module.exports = {
                     THEN ''
                     ELSE COALESCE(o.order_info -> 'patientLocation', 'OTHR')
                 END                                          AS location_code,
-            
+
                 orig_fac.facility_number                     AS originating_facility,
                 CASE
                     WHEN s.can_ahs_originating_facility_id IS NOT NULL
                     THEN ''
                     ELSE s.can_ahs_originating_location
                 END                                          AS originating_location,
-            
+
                 bc.can_ahs_business_arrangement              AS business_arrangement,
                 bc.can_ahs_pay_to_code                       AS pay_to_code,
                 bc.can_ahs_pay_to_uli                        AS pay_to_uli,
-            
+
                 -- Use this to create person data segment CPD1
                 bc.can_ahs_pay_to_details                    AS pay_to_details,
                 bc.can_ahs_locum_arrangement                 AS locum_arrangement,
                 pc_ref.can_ahs_prid                          AS referral_id,
-            
+
                 CASE
                     WHEN LOWER(COALESCE(
                         pc_ref.contact_info -> 'STATE',
@@ -284,7 +329,7 @@ module.exports = {
                     THEN 'Y'
                     ELSE ''
                 END                                          AS oop_referral_indicator,
-            
+
                 CASE
                     WHEN pc_ref.can_ahs_prid IS NULL
                     THEN JSONB_BUILD_OBJECT(
@@ -320,50 +365,50 @@ module.exports = {
                     )
                     ELSE NULL
                 END                                          AS referring_provider_details,
-            
+
                 CASE
                     WHEN p.can_ahs_uli IS NULL AND p.can_ahs_registration_number_province NOT IN ( 'ab', 'qc' )
                     THEN p.can_ahs_registration_number_province
                     ELSE ''
                 END                                          AS recovery_code,
                 bc.id                                        AS chart_number,
-            
+
                 totals.charges_bill_fee_total :: NUMERIC     AS claimed_amount,
-            
+
                 CASE
                     WHEN bc.can_ahs_claimed_amount_indicator
                     THEN 'Y'
                     ELSE ''
                 END                                          AS claimed_amount_indicator,
-            
+
                 CASE
                     WHEN bc.can_ahs_confidential
                     THEN 'Y'
                     ELSE ''
                 END                                          AS confidential_indicator,
-            
+
                 CASE
                     WHEN bc.can_ahs_good_faith
                     THEN 'Y'
                     ELSE ''
                 END                                          AS good_faith_indicator,
-            
+
                 bc.can_ahs_newborn_code                      AS newborn_code,
-            
+
                 CASE
                     WHEN bc.can_ahs_emsaf_reason IS NOT NULL
                     THEN 'Y'
                     ELSE ''
                 END                                          AS emsaf_indicator,
-            
+
                 bc.can_ahs_emsaf_reason                      AS emsaf_reason,
-            
+
                 CASE
                     WHEN bc.can_ahs_paper_supporting_docs
                     THEN 'Y'
                     ELSE ''
                 END             AS paper_supporting_documentation_indicator,
-            
+
                 TO_CHAR(s.hospital_admission_dt, 'YYYYMMDD') AS hospital_admission_date,
                 s.can_ahs_tooth_code                         AS tooth_code,
                 s.can_ahs_tooth_surface1                     AS tooth_surface1,
@@ -371,13 +416,13 @@ module.exports = {
                 s.can_ahs_tooth_surface3                     AS tooth_surface3,
                 s.can_ahs_tooth_surface4                     AS tooth_surface4,
                 s.can_ahs_tooth_surface5                     AS tooth_surface5,
-                bc.can_ahs_supporting_text                   AS supporting_text,
+                bc.can_ahs_supporting_text                   AS supporting_text_1,
                 inserted_efc.edi_file_id
             FROM
                 inserted_efc
             LEFT JOIN updated bc
                 ON bc.id = inserted_efc.claim_id
-            
+
             LEFT JOIN LATERAL (
                 SELECT
                     charges_bill_fee_total
@@ -386,7 +431,7 @@ module.exports = {
                 LIMIT
                     1
             ) totals ON TRUE
-            
+
             LEFT JOIN billing.charges bch
                 ON bch.claim_id = bc.id
             LEFT JOIN billing.charges_studies bchs
@@ -421,7 +466,7 @@ module.exports = {
                 ON scpt.study_id = s.id
             LEFT JOIN public.facilities f
                 ON f.id = s.facility_id
-            
+
             LEFT JOIN LATERAL (
                 WITH bci AS (
                     SELECT
@@ -446,14 +491,14 @@ module.exports = {
                 GROUP BY
                     bci.claim_id
             ) icd ON TRUE
-            
+
             LEFT JOIN LATERAL (
                 SELECT
                     ( SELECT code FROM public.modifiers WHERE id = bch.modifier1_id ) AS mod1,
                     ( SELECT code FROM public.modifiers WHERE id = bch.modifier2_id ) AS mod2,
                     ( SELECT code FROM public.modifiers WHERE id = bch.modifier3_id ) AS mod3
             ) fee_mod ON TRUE
-            
+
             -- LEFT JOIN LATERAL (
             --     SELECT
             --         ARRAY_AGG(mods.code) AS codes
@@ -491,7 +536,7 @@ module.exports = {
             --             sort_order
             --     ) mods
             -- ) fee_mod ON TRUE
-            
+
             WINDOW ENCOUNTER_WINDOW AS (
                 PARTITION BY
                     pc_app.can_ahs_prid,
@@ -501,14 +546,14 @@ module.exports = {
                     s.study_dt,
                     s.id
             )
-            
+
             ORDER BY
                 sequence_number
         `;
 
         const result = await query(sql.text, sql.values);
 
-        if ( !result || result.rows.length === 0 ) {
+        if (!result || result.rows && result.rows.length === 0) {
             return null;
         }
 
@@ -518,7 +563,9 @@ module.exports = {
 
         const encoded_text = claimEncoder.encode(result.rows);
 
-        return {
+        await writeFileAsync(fullPath, encoded_text, { 'encoding': `utf8` });
+
+        return  {
             edi_file_id,
             dir_path,
             file_name,

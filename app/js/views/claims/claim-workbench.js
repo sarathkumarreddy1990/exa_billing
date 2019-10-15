@@ -498,6 +498,7 @@ define(['jquery',
             createClaims: function (e, isFromReClaim) {
                 var self = this;
                 var billingMethodFormat = '';
+                var isCanada = app.country_alpha_3_code === 'can';
                 if (e.target) {
                     if ($(e.target).closest('li') && $(e.target).closest('li').hasClass('disabled')) {
                         return false;
@@ -533,6 +534,11 @@ define(['jquery',
 
                 var isCheckedAll = $('#chkStudyHeader_' + filterID).prop('checked');
                 var data = {};
+                var gridElement = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked');
+
+                if (!gridElement.length) {
+                    return commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfBillingMethod');
+                }
 
                 if (isCheckedAll && billingMethodFormat === 'electronic_billing') {
                     var filterData = JSON.stringify(filter.pager.get('FilterData'));
@@ -557,14 +563,23 @@ define(['jquery',
                         isAllClaims: true
                     }
                 } else {
-                    for (var i = 0; i < $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked').length; i++) {
-                        var rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;
-
+                    for (var i = 0; i < gridElement.length; i++) {
+                        var rowId = gridElement[i].parentNode.parentNode.id;
                         var claimStatus = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'claim_status_code');
 
                         if (claimStatus === "PV") {
                             commonjs.showWarning('messages.status.pleaseValidateClaims');
                             return false;
+                        }
+
+                        if (app.billingRegionCode === 'can_AB') {
+
+                            var excludeClaimStatus = ['PIF', 'PA'];
+
+                            if (excludeClaimStatus.indexOf(claimStatus) > -1) {
+                                commonjs.showWarning('messages.status.pleaseSelectValidClaimsStatus');
+                                return false;
+                            }
                         }
 
                         var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_billing_method');
@@ -608,12 +623,6 @@ define(['jquery',
                         var invoice_no = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_invoice_no');
                         invoiceNo.push(invoice_no);
                         claimIds.push(rowId);
-                    }
-
-
-                    if (claimIds && !claimIds.length) {
-                        commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfBillingMethod');
-                        return false;
                     }
 
                     data = {
@@ -668,9 +677,12 @@ define(['jquery',
                 }
 
                 commonjs.showLoading();
-                var isCanada = app.country_alpha_3_code === 'can';
+
                 var url = '/exa_modules/billing/claim_workbench/create_claim';
-                if (isCanada) {
+
+                if (app.billingRegionCode === 'can_AB') {
+                    url = '/exa_modules/billing/ahs/submitClaims';
+                } else if (isCanada) {
                     url = '/exa_modules/billing/ohip/submitClaims';
                 }
 
@@ -680,7 +692,11 @@ define(['jquery',
                     data: data,
                     success: function (data, textStatus, jqXHR) {
                         commonjs.hideLoading();
-                        if (isCanada) {
+
+                        if (app.billingRegionCode === 'can_AB') {
+                            self.ahsResponse(data);
+                        }
+                        else if (isCanada) {
                             self.ohipResponse(data);
                         }
                         else {
@@ -765,6 +781,18 @@ define(['jquery',
                 }
             },
 
+
+            ahsResponse: function (data) {
+
+                if (data.validationMessages && data.validationMessages.length) {
+                    data.validationMessages.forEach(function (validationMessage) {
+                        commonjs.showWarning(validationMessage);
+                    });
+                } else {
+                    commonjs.showStatus('messages.status.ClaimSubmitted');
+                }
+
+            },
 
             ediResponse: function (data, isFromReClaim) {
                 var self = this;
@@ -2462,8 +2490,6 @@ define(['jquery',
 
             },
 
-
-
             uploadResource: function() {
                 var self = this;
                 this.renderEBSNestedDialog('Upload', this.ebsUploadTemplate({
@@ -2930,6 +2956,7 @@ define(['jquery',
                                 var invalidClaimData = data.invalidClaim_data;
 
                                 if (invalidClaimData.length) {
+                                    commonjs.previousValidationResults.result = invalidClaimData;
                                     modalContainer.html(self.claimValidation({ response_data: invalidClaimData }));
                                 } else {
                                     modalContainer.html('<div style="text-align: center" >' + commonjs.geti18NString('messages.status.noRecordFound') + '</div>');
