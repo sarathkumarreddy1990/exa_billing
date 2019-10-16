@@ -414,7 +414,7 @@ define(['jquery',
                 }
 
                 if (!eligibilityData.insuranceProviderId) {
-                    return commonjs.showWarning('messages.status.pleaseSelectInsuranceProvider');   
+                    return commonjs.showWarning('messages.status.pleaseSelectInsuranceProvider');
                 }
 
                 $('#btnCheckEligibility' + ins).prop('disabled', true);
@@ -3677,7 +3677,8 @@ define(['jquery',
                     type: 'POST',
                     data: {
                         claim_ids: claimIds,
-                        country: app.country_alpha_3_code
+                        country: app.country_alpha_3_code,
+                        billingRegionCode: app.billingRegionCode
                     },
                     success: function(data, response){
                         $("#btnValidateClaim").prop("disabled", false);
@@ -3715,18 +3716,6 @@ define(['jquery',
                                 }
                             }
                             else {
-                                var inValidClaimData = data.invalidClaim_data[0] || {};
-
-                                if (isPreviousValidationResultExist) {
-                                    // Assign the re-validated claim result to the invalid bucket list. Modified object reference data, so no variable allocation is required.
-                                    _.map(commonjs.previousValidationResults.result, function (obj) {
-                                        if (obj.id === inValidClaimData.id) {
-                                            Object.assign(obj, inValidClaimData)
-                                        }
-                                        return obj;
-                                    });
-                                }
-
                                 commonjs.showNestedDialog({
                                     header: 'Validation Results',
                                     i18nHeader: 'billing.claims.validationResults',

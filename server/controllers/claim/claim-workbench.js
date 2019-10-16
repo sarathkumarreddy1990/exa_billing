@@ -7,7 +7,7 @@ const readFileAsync = promisify(fs.readFile);
 const data = require('../../data/claim/claim-workbench');
 const ediData = require('../../data/claim/claim-edi');
 const ohipData = require('../../data/ohip');
-
+const ahsData = require('../../data/ahs');
 const claimPrintData = require('../../data/claim/claim-print');
 const ediConnect = require('../../../modules/edi');
 
@@ -220,6 +220,11 @@ module.exports = {
     },
 
     validateClaim: async function (params) {
+
+        if(params.billingRegionCode === 'can_AB') {
+            return this.ahsClaimValidation(params);
+        }
+
         if(params.country === 'can') {
             return this.ohipClaimValidation(params);
         }
@@ -491,6 +496,74 @@ module.exports = {
                         }
                     }
                 });
+            }
+
+            if (!errorMessages.length) {
+                params.success_claimID.push(currentClaim.claim_id);
+            }
+            else {
+                error_data = {
+                    'id': currentClaim.claim_id,
+                    'patient_name': claimData.patientName,
+                    'payer_name': claimData.payerName,
+                    'claim_notes': currentClaim.claimNotes,
+                    'errorMessages': errorMessages
+                };
+
+                validation_result.invalidClaim_data.push(error_data);
+            }
+
+        });
+
+        if (params.success_claimID && params.success_claimID.length > 0) {
+            validation_result.validClaim_data = await data.updateValidateClaimStatus(params);
+        }
+
+        return validation_result;
+    },
+
+    ahsClaimValidation: async function (params) {
+
+        let claimDetails = await ahsData.getClaimsData({ claimIds: params.claim_ids });
+        let file_path = path.join(__dirname, '../../resx/ahs-claim-validation-fields.json');
+        let valdationClaimJson = await readFileAsync(file_path, 'utf8');
+        valdationClaimJson = JSON.parse(valdationClaimJson);
+
+        if (claimDetails[0].billing_method == 'patient_payment' || claimDetails[0].billing_method == 'direct_billing') {
+            valdationClaimJson = valdationClaimJson.patient_payment;
+        } else {
+            valdationClaimJson = valdationClaimJson.default;
+        }
+
+        let validation_result = {
+            invalidClaim_data: [],
+            validClaim_data: []
+        };
+
+        let error_data;
+        params.success_claimID = [];
+
+        _.each(claimDetails, (currentClaim) => {
+            let errorMessages = [];
+            let claimData = currentClaim && currentClaim.claims && currentClaim.claims[0] && currentClaim.claims[0].insuranceDetails;
+
+            if (claimData) {
+                _.each(valdationClaimJson, (fieldValue, field) => {
+                    if (fieldValue) {
+                        if (typeof fieldValue === 'object') {
+                            if (claimData[field]) {
+                                _.each(fieldValue, (data, dataField) => {
+                                    if (data) {
+                                        !claimData[dataField] || !claimData[dataField].length ? errorMessages.push(` Claim - ${dataField} does not exists`) : null;
+                                    }
+                                });
+                            }
+                        } else {
+                            !claimData[field] || !claimData[field].length ? errorMessages.push(` Claim - ${field} does not exists`) : null;
+                        }
+                    }
+                });
+
             }
 
             if (!errorMessages.length) {

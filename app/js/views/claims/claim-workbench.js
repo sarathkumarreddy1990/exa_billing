@@ -556,7 +556,8 @@ define(['jquery',
                             filter_id: filterID,
                             isClaimGrid: true
                         },
-                        isAllClaims: true
+                        isAllClaims: true,
+                        billingRegionCode:app.billingRegionCode
                     }
                 } else {
                     for (var i = 0; i < gridElement.length; i++) {
@@ -2835,7 +2836,8 @@ define(['jquery',
                     type: 'POST',
                     data: {
                         claim_ids: selectedClaimIds,
-                        country: app.country_alpha_3_code
+                        country: app.country_alpha_3_code,
+                        billingRegionCode:app.billingRegionCode
                     },
                     success: function (data, response) {
                         $("#btnValidateOrder").prop("disabled", false);
@@ -2944,7 +2946,8 @@ define(['jquery',
                         type: 'POST',
                         data: {
                             claim_ids: claimIds,
-                            country: app.country_alpha_3_code
+                            country: app.country_alpha_3_code,
+                            billingRegionCode: app.billingRegionCode
                         },
                         success: function (data, response) {
 
