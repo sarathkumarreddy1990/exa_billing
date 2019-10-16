@@ -1745,6 +1745,7 @@ define(['jquery',
                 var casDialogHeader = commonjs.geti18NString('billing.fileInsurance.claim') + ': # <strong>' + rowData.claim_id + ',  ' + rowData.full_name + '  ' + claimDt + '</strong>';
                 var casDialogHtml = self.applyCasTemplate({
                     country_alpha_3_code: app.country_alpha_3_code,
+                    province_alpha_2_code: app.province_alpha_2_code,
                     adjustmentCodes: self.adjustmentCodeList.toJSON(),
                     claimStatusList: this.claimStatusList.toJSON(),
                     cas_group_codes: self.cas_group_codes || rowData.cas_group_codes,
@@ -1882,6 +1883,7 @@ define(['jquery',
 
                             var applyPaymentRow = self.applyPaymentTemplate({
                                 country_alpha_3_code: app.country_alpha_3_code,
+                                province_alpha_2_code: app.province_alpha_2_code,
                                 payment: paymentDet
                             });
 

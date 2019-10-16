@@ -58,9 +58,6 @@ module.exports = {
         return await query(insur_sql);
     },
     getProviders: async function (params) {
-
-        let provider_search = ` AND (p.full_name ILIKE '%${params.q}%' OR p.provider_code ILIKE '%${params.q}%' ) `;
-
         const sql_provider = SQL`
             SELECT
                   pc.id AS id
@@ -85,8 +82,8 @@ module.exports = {
                 AND NOT p.sys_provider -- we dont want system providers
         `;
 
-        if (params.q != '') {
-            sql_provider.append(provider_search);
+        if (params.q) {
+            sql_provider.append(` AND (p.full_name ILIKE '%${params.q}%' OR p.provider_code ILIKE '%${params.q}%' ) `);
         }
 
         sql_provider.append(SQL` ORDER BY  ${params.sortField} `)
@@ -97,27 +94,44 @@ module.exports = {
         return await query(sql_provider);
     },
     getICDcodes: async function (params) {
+        let {
+            company_id,
+            page = 1,
+            pageSize = 10,
+            term = "",
+            sortField = "code",
+            sortOrder = "ASC"
+        } = params;
 
-        let ics_search = ` AND (code ILIKE '%${params.q}%' OR description ILIKE '%${params.q}%' ) `;
-
-        const icd_sql = SQL`SELECT
-                                       id
-                                     , code
-                                     , description
-                                     , code_type
-                                     , COUNT(1) OVER (range unbounded preceding) AS total_records
-                                FROM icd_codes AS icd
-                                WHERE
-                                    icd.is_active AND NOT icd.has_deleted AND icd.company_id = ${params.company_id} `;
-
-        if (params.q != '') {
-            icd_sql.append(ics_search);
+        // If only one character is entered, only search terms that start with that character.
+        if (term.length > 1) {
+            term = `%${term}`;
         }
 
-        icd_sql.append(SQL` ORDER BY  ${params.sortField} `)
-            .append(params.sortOrder)
-            .append(SQL` LIMIT ${params.pageSize}`)
-            .append(SQL` OFFSET ${((params.page - 1) * params.pageSize)}`);
+        const icd_sql = SQL`
+            SELECT
+                id,
+                code,
+                description,
+                code_type,
+                COUNT(1) OVER (range unbounded preceding) AS total_records
+            FROM
+                icd_codes AS icd
+            WHERE
+                    icd.is_active
+                AND NOT icd.has_deleted
+                AND icd.company_id = ${company_id} `;
+
+        if (term) {
+            icd_sql.append(`
+                AND (code ILIKE '${term}%' OR description ILIKE '${term}%' ) `);
+        }
+
+        icd_sql.append(SQL`
+            ORDER BY ${sortField} `).append(sortOrder).append(SQL`
+            LIMIT ${pageSize}
+            OFFSET ${ (page - 1) * pageSize }
+        `);
 
         return await query(icd_sql);
     },

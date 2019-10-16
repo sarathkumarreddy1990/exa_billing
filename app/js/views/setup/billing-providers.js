@@ -183,6 +183,7 @@ define(['jquery',
                 var states = app.states[0].app_states;
                 $('#divBillingProvidersForm').html(this.billingProvidersFormTemplate({
                     country_alpha_3_code: app.country_alpha_3_code,
+                    province_alpha_2_code: app.province_alpha_2_code,
                     qualifierCodes: qualifierCodes,
                     states: states
                 }));

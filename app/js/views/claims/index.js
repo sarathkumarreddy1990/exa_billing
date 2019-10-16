@@ -151,6 +151,7 @@ define(['jquery',
                     },
                     html: this.claimCreationTemplate({
                         country_alpha_3_code: app.country_alpha_3_code,
+                        province_alpha_2_code: app.province_alpha_2_code,
                         patient_name: self.cur_patient_name,
                         account_no: self.cur_patient_acc_no,
                         dob: self.cur_patient_dob,
@@ -1368,6 +1369,7 @@ define(['jquery',
                 self.bindModifiersData(data);
                 var chargeTableRow = self.chargerowtemplate({
                     country_alpha_3_code: app.country_alpha_3_code,
+                    province_alpha_2_code: app.province_alpha_2_code,
                     row: data
                 });
                 $('#tBodyCharge').append(chargeTableRow);
@@ -2050,12 +2052,9 @@ define(['jquery',
                         delay: 250,
                         data: function (params) {
                             return {
-                                page: params.page || 1,
-                                q: params.term || '',
-                                pageSize: 10,
-                                sortField: "code",
-                                sortOrder: "ASC",
-                                company_id: app.companyID
+                                company_id: app.companyID,
+                                page: params.page,
+                                term: params.term
                             };
                         },
                         processResults: function (data, params) {
@@ -2093,17 +2092,20 @@ define(['jquery',
                 }
                 $('#ddlMultipleDiagCodes').off().on('select2:selecting', function (e) {
                     var res = e.params.args.data;
-                    if (res.code_type == 'icd9') {
-                        var msg = commonjs.geti18NString("messages.confirm.billing.icdConvertion9to10")
-                        if (confirm(msg)) {
-                            commonjs.showLoading('')
-                            self.showIcd9t010Popup(res);
-                        }
-                    } else {
-                        self.ICDID = res.id;
-                        self.icd_code = res.code;
-                        self.icd_description = res.description;
+                    var ask_confirm = (
+                        res.code_type === 'icd9' &&
+                        app.icd9_to_icd10 &&
+                        !(app.country_alpha_3_code === 'can' && app.province_alpha_2_code === 'AB')
+                    );
+
+                    if (ask_confirm && confirm(commonjs.geti18NString("messages.confirm.billing.icdConvertion9to10"))) {
+                        commonjs.showLoading('')
+                        return self.showIcd9t010Popup(res);
                     }
+
+                    self.ICDID = res.id;
+                    self.icd_code = res.code;
+                    self.icd_description = res.description;
                     $('#ddlMultipleDiagCodes').find('option').remove();
                     return res.code;
                 });
