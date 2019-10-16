@@ -134,8 +134,8 @@ module.exports = {
             WITH
                 numbers AS (
                     SELECT
-                        ( COALESCE(MAX(batch_number), '0') :: INT + 1 ) % 1000000 AS batch_number,
-                        COALESCE(MAX(sequence_number), '0') :: INT                AS sequence_number
+                        ( COALESCE(MAX(batch_number :: INT), 0) + 1 ) % 1000000     AS batch_number,
+                        COALESCE(MAX(sequence_number), '0') :: INT                  AS sequence_number
                     FROM
                         billing.edi_file_claims
                 ),
