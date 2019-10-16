@@ -26,7 +26,8 @@
   "sequence_number": {
     "format": "n",
     "startPos": 9,
-    "length": 7
+    "length": 7,
+    "paddingChar": "0"
   },
   "check_digit": {
     "format": "n",
@@ -39,7 +40,7 @@
     "length": 4
   },
   "segment_type": {
-    "format": "A",
+    "format": "a",
     "startPos": 21,
     "length": 4
   },
