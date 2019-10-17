@@ -415,7 +415,7 @@ define(['jquery',
                 }
 
                 if (!eligibilityData.insuranceProviderId) {
-                    return commonjs.showWarning('messages.status.pleaseSelectInsuranceProvider');   
+                    return commonjs.showWarning('messages.status.pleaseSelectInsuranceProvider');
                 }
 
                 $('#btnCheckEligibility' + ins).prop('disabled', true);
@@ -3679,7 +3679,8 @@ define(['jquery',
                     type: 'POST',
                     data: {
                         claim_ids: claimIds,
-                        country: app.country_alpha_3_code
+                        country: app.country_alpha_3_code,
+                        billingRegionCode: app.billingRegionCode
                     },
                     success: function(data, response){
                         $("#btnValidateClaim").prop("disabled", false);

@@ -76,6 +76,86 @@ module.exports = {
         return  await query(sql.text, sql.values);
     },
 
+    updateEDIFileStatus: async (args) => {
+        const {
+            status,
+            ediFileId
+        } = args;
+        const sql = SQL` UPDATE
+                            billing.edi_files ef
+                        SET
+                            status=${status}
+                        WHERE
+                            ef.id = ${ediFileId}`;
+
+        return  await query(sql.text, sql.values);
+    },
+
+    getClaimsData: async (args) => {
+
+        const {
+            claimIds,
+        } = args;
+        const sql = SQL`
+            SELECT
+                bc.id AS claim_id,
+                bc.billing_method,
+                bc.can_ahs_pay_to_code                       AS pay_to_code,
+                pc.can_ahs_submitter_prefix                  AS submitter_prefix,
+                bc.can_ahs_business_arrangement              AS business_arrangement,
+                bc.can_ahs_supporting_text                   AS supporting_text_1,
+                f.can_ahs_facility_number                    AS facility_number,
+                icd.codes[1]                                 AS diagnosis_code_1,
+                pip.insurance_name                           AS "payerName",
+                get_full_name(pp.last_name,pp.first_name)    AS "patientName",
+                claim_notes                                  AS "claimNotes",
+                pp.first_name                                AS "patient_first_name",
+                COALESCE(pp.patient_info -> 'c1State', pp.patient_info -> 'c1Province', '') AS province_code,
+                (SELECT
+                    charges_bill_fee_total
+                FROM
+                    billing.get_claim_totals(bc.id)) AS "claim_totalCharge"
+                FROM billing.claims bc
+                LEFT JOIN public.companies pc ON pc.id = bc.company_id
+                LEFT JOIN public.patients pp ON pp.id = bc.patient_id
+                LEFT JOIN billing.charges bch ON bch.claim_id = bc.id
+                LEFT JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
+                LEFT JOIN billing.charges_studies bchs ON bchs.charge_id = bch.id
+                LEFT JOIN public.studies s ON s.id = bchs.study_id
+                LEFT JOIN public.facilities f ON f.id = bc.facility_id
+                LEFT JOIN public.patient_insurances ppi  ON ppi.id = bc.primary_patient_insurance_id
+                LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
+                LEFT JOIN LATERAL (
+                    WITH bci AS (
+                        SELECT
+                            bci.id,
+                            bci.claim_id,
+                            icd.code
+                        FROM
+                            billing.claim_icds bci
+                        JOIN public.icd_codes icd
+                             ON icd_id = icd.id
+                        WHERE
+                            claim_id = bc.id
+                        ORDER BY
+                            bci.id
+                        LIMIT
+                            3
+                    )
+                    SELECT
+                        ARRAY_AGG(code) AS codes
+                    FROM
+                        bci
+                    GROUP BY
+                        bci.claim_id
+                ) icd ON TRUE
+                WHERE bc.id = ANY (${claimIds})
+                ORDER BY bc.id DESC
+            `;
+
+        return (await query(sql.text, sql.values)).rows;
+    },
+
     saveAddedClaims: async (args) => {
 
         const {
@@ -562,7 +642,7 @@ module.exports = {
         }] = result.rows;
 
         const encoded_text = claimEncoder.encode(result.rows);
-
+        
         await writeFileAsync(fullPath, encoded_text, { 'encoding': `utf8` });
 
         return  {
