@@ -521,15 +521,16 @@ module.exports = {
 
         return validation_result;
     },
-
+    
     ahsClaimValidation: async function (params) {
 
         let claimDetails = await ahsData.getClaimsData({ claimIds: params.claim_ids });
+
         let file_path = path.join(__dirname, '../../resx/ahs-claim-validation-fields.json');
         let valdationClaimJson = await readFileAsync(file_path, 'utf8');
         valdationClaimJson = JSON.parse(valdationClaimJson);
 
-        if (claimDetails[0].billing_method == 'patient_payment' || claimDetails[0].billing_method == 'direct_billing') {
+        if (claimDetails && claimDetails[0].billing_method == 'patient_payment' || claimDetails[0].billing_method == 'direct_billing') {
             valdationClaimJson = valdationClaimJson.patient_payment;
         } else {
             valdationClaimJson = valdationClaimJson.default;
@@ -545,7 +546,7 @@ module.exports = {
 
         _.each(claimDetails, (currentClaim) => {
             let errorMessages = [];
-            let claimData = currentClaim && currentClaim.claims && currentClaim.claims[0] && currentClaim.claims[0].insuranceDetails;
+            let claimData = currentClaim;
 
             if (claimData) {
                 _.each(valdationClaimJson, (fieldValue, field) => {

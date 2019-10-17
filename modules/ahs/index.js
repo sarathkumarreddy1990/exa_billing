@@ -51,15 +51,15 @@ module.exports = {
 
         const validationMessages = claimData.reduce((validations, claim) => {
 
-            const claimItems = claim.claims[0].items;
+            const claimItems = claim.claim_totalCharge;
 
-            if (!claimItems || !claimItems.length) {
+            if (!claimItems) {
                 validations.push(`Claim ${claim.claim_id} has no billable charges`);
             }
 
             return validations;
         }, []);
-        
+
         if (validationMessages.length) {
             return callback(null, {validationMessages});
         }
