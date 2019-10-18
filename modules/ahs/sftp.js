@@ -21,7 +21,7 @@ const config = {
         cipher: ['aes128-cbc']
     },
     privateKey: fs.existsSync(privateKeyPath) && fs.readFileSync(privateKeyPath, 'utf8'),
-    passphrase: siteConfig.get('ahsSFTPPublicKeyPassPhrase')
+    passphrase: siteConfig.get('ahsSFTPPublicKeyPassPhrase') // wont be needed in production
 };
 const uploadDirPath = siteConfig.get('ahsSFTPSendFolder'); //'/home/radha/Pictures' - //Using for dev env will remove later;
 const downloadDirPath = siteConfig.get('ahsSFTPDownloadFolder'); // '/home/radha/Pictures //Using for dev env will remove later';
@@ -171,7 +171,7 @@ const sftpService = {
     },
 
     /**
-   * Used to throw custom error 
+   * Used to throw custom error
    * {@param} Error Message
    */
     sendDataError: (messge) => {
