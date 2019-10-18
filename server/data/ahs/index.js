@@ -629,7 +629,7 @@ const ahsData = {
         }] = result.rows;
 
         const encoded_text = claimEncoder.encode(result.rows);
-        
+
         await writeFileAsync(fullPath, encoded_text, { 'encoding': `utf8` });
 
         return  {
@@ -657,7 +657,7 @@ const ahsData = {
 
         return query(fileSql.text, fileSql.values);
 
-    }
+    },
 
 
     /**
