@@ -1,13 +1,11 @@
 'use strict';
 
-const logger = require('../../logger');
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
 
 const ahs = require('./index');
 const httpHandler = require('../../server/shared/http');
-
+const sftp = require('./sftp');
 
 module.exports = function () {
 
@@ -20,6 +18,11 @@ module.exports = function () {
             return httpHandler.send(req, res, submitErr || submitResponse);
         });
 
+    });
+
+    router.get('/files/:action', async (req, res) => {
+        let response = await sftp.events({...req.params, ...req.query});
+        return httpHandler.send(req, res, response);
     });
 
     return router;

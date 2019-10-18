@@ -789,6 +789,8 @@ define(['jquery',
                     data.validationMessages.forEach(function (validationMessage) {
                         commonjs.showWarning(validationMessage);
                     });
+                } else if(data.err) {
+                    commonjs.showError(data.err);
                 } else {
                     commonjs.showStatus('messages.status.ClaimSubmitted');
                 }

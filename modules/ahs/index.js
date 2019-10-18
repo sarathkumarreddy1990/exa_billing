@@ -4,6 +4,7 @@ const _ = require('lodash');
 const ahs = require('../../server/data/ahs/index');
 const claimWorkBenchController = require('../../server/controllers/claim/claim-workbench');
 const validateClaimsData = require('../../server/data/claim/claim-workbench');
+const sftp = require('./sftp');
 const {
     CLAIM_STATUS_PENDING_ACKNOWLEDGMENT_DEFAULT,
 } = require('./constants');
@@ -67,22 +68,34 @@ module.exports = {
 
         let submitResponse = await ahs.saveAddedClaims(args);
 
-        // SFTP  connection
-        // statusCode ='PS';// if STFP is not connected/error
-        //statusCode ='PA'; //if STFP is  connected/Success
-        // await ahs.updateEDIFileStatus({
-        //                     status:suceess,
-        //                     ediFileId: submitResponse.edi_file_id
-        //})
-        //const statusCode = CLAIM_STATUS_PENDING_ACKNOWLEDGMENT_DEFAULT;
-        // await ahs.updateClaimsStatus({
-        //                     claimIds: args.claimIds,
-        //                     statusCode,
-        //                     ediFileId: submitResponse.edi_file_id
-        //                     claimNote: 'Electronically submitted through SFTP',
-        //                     userId: args.userId,
-        //                 }); //update claim status based on SFTP response
+        let sftpdata = {
+            fileName:submitResponse.file_name,
+            folderPath:submitResponse.dir_path
+        };
 
-        return callback(null, submitResponse);
+        let sftpResult = await sftp.upload(sftpdata);
+
+        if(sftpResult && sftpResult && sftpResult.response.status === 'ok') {              
+
+            await ahs.updateClaimsStatus({
+                claimIds: args.claimIds,
+                CLAIM_STATUS_PENDING_ACKNOWLEDGMENT_DEFAULT,
+                claimNote: 'Electronically submitted through SFTP',
+                userId: args.userId,
+            });
+
+            await ahs.updateEDIFileStatus({
+                status:'success',
+                ediFileId: submitResponse.edi_file_id
+            });
+
+        } else {
+            await ahs.updateEDIFileStatus({
+                status:'failure',
+                ediFileId: submitResponse.edi_file_id
+            });
+        }
+
+        return callback(null, sftpResult);
     }
 };
