@@ -28,7 +28,7 @@ const toBillingNotes = (obj) => {
     });
 };
 
-module.exports = {
+const ahsData = {
 
     updateClaimsStatus: async (args) => {
         const {
@@ -165,20 +165,7 @@ module.exports = {
 
         let data = ``;
 
-        const fileSql = SQL`
-            SELECT
-                fs.id AS file_store_id,
-                fs.root_directory,
-                c.can_ahs_submitter_prefix AS submitter_prefix
-            FROM
-                file_stores fs
-            JOIN companies c
-                ON c.file_store_id = fs.id
-            WHERE
-                c.id = ${company_id}
-        `;
-
-        const fileSqlResponse = await query(fileSql.text, fileSql.values);
+        const fileSqlResponse = await ahsData.getCompanyFileStore(company_id);
 
         if ( !fileSqlResponse || fileSqlResponse.rows.length === 0 ) {
             return null;
@@ -214,8 +201,8 @@ module.exports = {
             WITH
                 numbers AS (
                     SELECT
-                        ( COALESCE(MAX(batch_number), '0') :: INT + 1 ) % 1000000 AS batch_number,
-                        COALESCE(MAX(sequence_number), '0') :: INT                AS sequence_number
+                        ( COALESCE(MAX(batch_number :: INT), 0) + 1 ) % 1000000     AS batch_number,
+                        COALESCE(MAX(sequence_number), '0') :: INT                  AS sequence_number
                     FROM
                         billing.edi_file_claims
                 ),
@@ -300,12 +287,9 @@ module.exports = {
                 TO_CHAR(bc.claim_dt, 'YY')                   AS year,
                 TO_CHAR(bc.claim_dt, 'MM')                   AS source_code,
                 inserted_efc.sequence_number                 AS sequence_number,
-                billing.can_ahs_calculate_check_digit_claim_number(
-                   comp.can_ahs_submitter_prefix,
-                    TO_CHAR(bc.claim_dt, 'MM'),
-                   TO_CHAR(bc.claim_dt, 'YY'),
-                  LPAD(inserted_efc.sequence_number :: TEXT, 7, '0')
-                )  AS check_digit,
+                luhn_generate_checkdigit(
+                    inserted_efc.sequence_number
+                )                                            AS check_digit,
                 -- currently hard-coded - AHS does not support another code right now
                 'CIP1'                                       AS transaction_type,
 
@@ -642,7 +626,7 @@ module.exports = {
         }] = result.rows;
 
         const encoded_text = claimEncoder.encode(result.rows);
-        
+
         await writeFileAsync(fullPath, encoded_text, { 'encoding': `utf8` });
 
         return  {
@@ -653,4 +637,49 @@ module.exports = {
         };
     },
 
+     /**
+     * {@param} company_id
+     * {@response} Returns file store for configured company
+     */
+    getCompanyFileStore: (company_id) => {
+        const fileSql = SQL`
+        SELECT
+            fs.id AS file_store_id,
+            fs.root_directory,
+            c.can_ahs_submitter_prefix AS submitter_prefix
+        FROM file_stores fs
+        INNER JOIN companies c ON c.file_store_id = fs.id 
+        WHERE c.id = ${company_id}
+    `;
+
+        return query(fileSql.text, fileSql.values);
+
+    },
+
+
+    /**
+   * Handle incoming Batch Balance report file
+   *
+   * @param  {object} args    {
+   *                              company_id: Number,
+   *                              balance_claim_report: Object,   // Batch balance claims json object
+   *                          }
+   * @returns {object}        {
+   *                              response: boolean
+   *                          }
+   */
+    batchBalanceClaims: async (args) => {
+        const {
+            company_id,
+            balance_claim_report,
+        } = args;
+        const batchBalanceReportJson = JSON.stringify([balance_claim_report]) || JSON.stringify([{}]);
+
+        const sql = SQL` SELECT billing.can_ahs_handle_claim_balance_report(${batchBalanceReportJson}::jsonb, ${company_id})`;
+
+        return await query(sql);
+    }
+
 };
+
+module.exports = ahsData;

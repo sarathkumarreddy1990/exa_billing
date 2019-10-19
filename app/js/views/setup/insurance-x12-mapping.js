@@ -166,7 +166,8 @@ define(['jquery',
                 var self = this;
                 $('#divInsuranceX12MappingForm').html(this.insuranceX12MappingFormTemplate({
                     country_alpha_3_code: app.country_alpha_3_code,
-                    'ediClearingHouseList' : self.ediClearingHouses
+                    province_alpha_2_code: app.province_alpha_2_code,
+                    ediClearingHouseList: self.ediClearingHouses
                 }));
                 if(id > 0) {
                     this.model.set({id: id});

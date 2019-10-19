@@ -113,11 +113,14 @@ var layout = {
         this.lastModule = this.currentModule;
         this.lastScreen = this.currentScreen;
 
-        commonjs.hideItem('diagnosis-count', '#aDiagnosisCountListItem');
         commonjs.hideItem('insurance-vs-lop', '#aInsuranceLOPListItem');
-        commonjs.hideItem('diagnosis-count', '#aDiagnosisCountDropDownItem');
         commonjs.hideItem('insurance-vs-lop', '#aInsuranceLOPDropDownItem');
 
+        // Don't hide for Alberta
+        if (app.country_alpha_3_code === 'can' && app.province_alpha_2_code !== 'AB') {
+            commonjs.hideItem('diagnosis-count', '#aDiagnosisCountListItem');
+            commonjs.hideItem('diagnosis-count', '#aDiagnosisCountDropDownItem');
+        }
     },
 
     killView: function (viewObj) {
