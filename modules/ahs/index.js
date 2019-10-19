@@ -5,9 +5,6 @@ const ahs = require('../../server/data/ahs/index');
 const claimWorkBenchController = require('../../server/controllers/claim/claim-workbench');
 const validateClaimsData = require('../../server/data/claim/claim-workbench');
 const sftp = require('./sftp');
-const {
-    CLAIM_STATUS_PENDING_ACKNOWLEDGMENT_DEFAULT,
-} = require('./constants');
 
 module.exports = {
 
@@ -69,29 +66,30 @@ module.exports = {
         let submitResponse = await ahs.saveAddedClaims(args);
 
         let sftpdata = {
-            fileName:submitResponse.file_name,
-            folderPath:submitResponse.dir_path
+            fileName: submitResponse.file_name,
+            folderPath: submitResponse.dir_path
         };
 
         let sftpResult = await sftp.upload(sftpdata);
 
-        if(sftpResult && sftpResult && sftpResult.response.status === 'ok') {              
+        if ( sftpResult && sftpResult.response && sftpResult.response.status === 'ok' ) {
 
             await ahs.updateClaimsStatus({
                 claimIds: args.claimIds,
-                CLAIM_STATUS_PENDING_ACKNOWLEDGMENT_DEFAULT,
+                statusCode: `PA`,
                 claimNote: 'Electronically submitted through SFTP',
                 userId: args.userId,
             });
 
             await ahs.updateEDIFileStatus({
-                status:'success',
+                status: 'success',
                 ediFileId: submitResponse.edi_file_id
             });
 
-        } else {
+        }
+        else {
             await ahs.updateEDIFileStatus({
-                status:'failure',
+                status: 'failure',
                 ediFileId: submitResponse.edi_file_id
             });
         }

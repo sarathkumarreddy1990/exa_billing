@@ -23,8 +23,8 @@ const config = {
     privateKey: fs.existsSync(privateKeyPath) && fs.readFileSync(privateKeyPath, 'utf8'),
     passphrase: siteConfig.get('ahsSFTPPublicKeyPassPhrase') // wont be needed in production
 };
-const uploadDirPath = siteConfig.get('ahsSFTPSendFolder'); //'/home/radha/Pictures' - //Using for dev env will remove later;
-const downloadDirPath = siteConfig.get('ahsSFTPDownloadFolder'); // '/home/radha/Pictures //Using for dev env will remove later';
+const uploadDirPath = siteConfig.get('ahsSFTPSendFolder') || `UPLOAD`;
+const downloadDirPath = siteConfig.get('ahsSFTPDownloadFolder') || `DOWNLOAD`;
 
 const sftpService = {
 

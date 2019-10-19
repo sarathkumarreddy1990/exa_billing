@@ -287,12 +287,9 @@ const ahsData = {
                 TO_CHAR(bc.claim_dt, 'YY')                   AS year,
                 TO_CHAR(bc.claim_dt, 'MM')                   AS source_code,
                 inserted_efc.sequence_number                 AS sequence_number,
-                billing.can_ahs_calculate_check_digit_claim_number(
-                   comp.can_ahs_submitter_prefix,
-                    TO_CHAR(bc.claim_dt, 'MM'),
-                   TO_CHAR(bc.claim_dt, 'YY'),
-                  LPAD(inserted_efc.sequence_number :: TEXT, 7, '0')
-                )  AS check_digit,
+                luhn_generate_checkdigit(
+                    inserted_efc.sequence_number
+                )                                            AS check_digit,
                 -- currently hard-coded - AHS does not support another code right now
                 'CIP1'                                       AS transaction_type,
 
