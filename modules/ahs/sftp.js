@@ -51,7 +51,7 @@ const sftpService = {
                 sftpService.sendDataError('AHS Remote folder not found for upload');
             }
 
-            await sftp.fastPut(`${folderPath}/${fileName + '12'}`, `${uploadDirPath}/${fileName}`);
+            await sftp.fastPut(`${folderPath}/${fileName}`, `${uploadDirPath}/${fileName}`);
 
             return {
                 err: null,
