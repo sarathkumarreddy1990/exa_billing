@@ -1849,6 +1849,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "name": "billed_status",
                     "width": 100,
                     "cellattr": function ( id, cellvalue, rowObject ) {
+                        rowObject.claim_id = Array.isArray(rowObject.claim_id) ? rowObject.claim_id[0] : rowObject.claim_id;
                         var statusDetail = commonjs.getClaimColorCodeForStatus(rowObject.claim_id > 0 ? 'billed' : 'unbilled', 'study');
                         var statusObj = statusDetail[ 0 ];
                         return 'style="background:' + (statusObj && statusObj.color_code || 'transparent') + ';"';
