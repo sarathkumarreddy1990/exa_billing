@@ -17,7 +17,8 @@ define(['jquery',
 'collections/app/pending-payments',
 'text!templates/claims/payment-row.html',
 'shared/address',
-'text!templates/claims/eligibilityResponseOHIP.html'
+'text!templates/claims/eligibilityResponseOHIP.html',
+'text!templates/claims/ahs_charges_today.html'
 ],
     function ($,
         _,
@@ -38,7 +39,8 @@ define(['jquery',
         pendingPayments,
         paymentRowTemplate,
         address,
-        insuranceOhipForm
+        insuranceOhipForm,
+        patientChargesTemplate
     ) {
         var claimView = Backbone.View.extend({
             el: null,
@@ -50,6 +52,7 @@ define(['jquery',
             patientAlertTemplate: _.template(patientAlertTemplate),
             paymentRowTemplate: _.template(paymentRowTemplate),
             insuranceOhipTemplate: _.template(insuranceOhipForm),
+            patientChargesTemplate: _.template(patientChargesTemplate),
             updateResponsibleList: [],
             chargeModel: [],
             claimICDLists: [],
@@ -165,7 +168,9 @@ define(['jquery',
                         posList: app.places_of_service || [],
                         relationshipList: app.relationship_status || [],
                         chargeList: self.claimChargeList || [],
-                        paymentList: self.paymentList
+                        paymentList: self.paymentList,
+                        billingRegionCode: app.billingRegionCode,
+                        currentDate: moment().format('L')
                     })
                 });
 
@@ -174,6 +179,12 @@ define(['jquery',
                 } else {
                     $('label[for=txtPriPolicyNo]').append("<span class='Required' style='color: red;padding-left: 5px;'>*</span>");
                 }
+                
+                //EXA-18273 - Move diagnostics codes section under claim for alberta billing
+                if(app.billingRegionCode === 'can_AB') {
+                    $('#diagnosticsCodes').detach().appendTo('#claimSection').addClass('col-lg-12');
+                }
+
                 self.clearDependentVariables();
                 // Hide non-edit tabs
                 if (!self.isEdit) {
@@ -571,9 +582,15 @@ define(['jquery',
                                     accession_no: obj.accession_no,
                                     payment_exists: obj.payment_exists,
                                     is_deleted: false,
+                                    cpt_id: obj.cpt_id
                                 });
                             });
                             /* Bind claim charge Details - end */
+                            
+                            //EXA-18273 - Bind Charges created on current date for a patient.
+                            if(app.billingRegionCode === 'can_AB') {
+                                self.getPatientCharges(self.cur_patient_id, self.claimChargeList);
+                            }
 
                             if (commonjs.hasModalClosed() && isFrom === 'reload') {
                                 commonjs.hideLoading();
@@ -1230,6 +1247,11 @@ define(['jquery',
                                 self.studyDate = self.claim_dt_iso ? self.claim_dt_iso.format('L') : self.studyDate;
                                 $('#txtClaimDate').val(self.studyDate || '');
                                 self.claim_dt_iso = self.claim_dt_iso.format('YYYY-MM-DD LT z');
+                                
+                                //EXA-18273 - Bind Charges created on current date for a patient - Alberta billing specification.
+                                if(app.billingRegionCode === 'can_AB'){
+                                    self.getPatientCharges(self.cur_patient_id, modelDetails.charges);
+                                }
 
                                 _.each(modelDetails.charges, function (item) {
                                     var index = $('#tBodyCharge').find('tr').length;
@@ -1242,7 +1264,8 @@ define(['jquery',
                                         ref_charge_id: item.study_cpt_id,
                                         accession_no: item.accession_no,
                                         study_id: item.study_id,
-                                        data_row_id: index
+                                        data_row_id: index,
+                                        cpt_id: item.cpt_id
                                     });
                                 });
 
@@ -1651,6 +1674,11 @@ define(['jquery',
                         commonjs.showWarning("messages.warning.claims.claimChargeRequired");
                         return false;
                     }
+                    //EXA-18273-Remove highlighted color of removed cpt in patient charges section.
+                    if(app.billingRegionCode ==='can_AB') {
+                        $('#patientChargesBody #cpt_' + rowData.cpt_id).css('background', 'none');
+                    }
+
                     if (rowData.id) {
                         $.ajax({
                             url: '/exa_modules/billing/claim_workbench/charge_check_payment_details',
@@ -1896,6 +1924,12 @@ define(['jquery',
                         var duration = (res.duration > 0) ? res.duration : 15;
                         var units = (res.units > 0) ? parseFloat(res.units) : 1.0;
                         var fee = (res.globalfee > 0) ? parseFloat(res.globalfee) : 0.0;
+
+                        //Push cpt_id for newly added CPT into Model
+                         if (app.billingRegionCode === 'can_AB') {
+                             self.chargeModel[rowIndex].cpt_id = res.id;
+                         }
+
                         if(self.isCptAlreadyExists(res.id,rowIndex)) {
                             var msg = commonjs.geti18NString("messages.confirm.billing.duplicateCode")
                             if(confirm(msg)) {
@@ -1959,6 +1993,11 @@ define(['jquery',
                 if(app.country_alpha_3_code !== 'can') {
                     $('#txtAllowedFee_' + rowIndex).val(parseFloat(fee).toFixed(2));
                     $('#txtTotalAllowedFee_' + rowIndex).val(parseFloat(units * fee).toFixed(2));
+                }
+
+                //Highlight selected CPT/charge in patient charges for alberta
+                if (app.billingRegionCode === 'can_AB') {
+                    $('#patientChargesBody #cpt_' + res.id).css('background', 'antiquewhite');
                 }
             },
 
@@ -3751,6 +3790,45 @@ define(['jquery',
                 })
             },
 
+            //EXA-18273 - Getting charges created for a patient on current date will be displayed for alberta billing
+            getPatientCharges: function (id, selectedCharges) {
+                var self = this;
+                var chargeRow;
+                $.ajax({
+                    url: '/exa_modules/billing/claims/claim/get_patient_charges',
+                    type: 'GET',
+                    data: {
+                        patient_id: id,
+                        current_date: moment().format('YYYY-MM-DD') 
+                    },
+                    success: function (data, response) {
+
+                        if (data && data[0].patient_day_charges) {
+                            var chargeDetails = data[0].patient_day_charges;
+                            var cpts_selected = _.map(selectedCharges, 'cpt_id');
+
+                            _.each(chargeDetails, function (obj, index) {
+                                obj.data_row_id = index;
+                                obj.cpt_available = cpts_selected.indexOf(obj.cpt_id) !== -1; 
+                                obj.study_time = obj.study_time && commonjs.convertToFacilityTimeZone(app.default_facility_id, obj.study_time).format('hh:mm A');
+                            });
+                            chargeRow = self.patientChargesTemplate({
+                                row: chargeDetails,
+                                selected_charges: selectedCharges
+                            });
+                            $('#patientChargesBody').empty().append(chargeRow);
+                        } else {
+                            chargeRow = self.patientChargesTemplate({row: []});
+                            $('#patientChargesBody').empty().append(chargeRow);
+                        }
+                        commonjs.updateCulture(app.current_culture, commonjs.beautifyMe);
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
+            },
+             
             processClaim: function (e) {
                 var self = this, currentRowID;
                 var $tblGrid = self.options.grid_id || null;
@@ -4356,6 +4434,11 @@ define(['jquery',
                 //binding claim form events
                 self.bindTabMenuEvents();
                 self.bindclaimFormEvents();
+
+                //EXA-18273 - Bind Charges created on current date for a patient.
+                if (app.billingRegionCode === 'can_AB') {
+                    self.getPatientCharges(patient_details.patient_id);
+                }
 
                 // Set Default details
                 self.updateResponsibleList({
