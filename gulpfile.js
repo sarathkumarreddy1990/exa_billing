@@ -23,7 +23,7 @@ let currentCommit = 'GitInitTaskDidNotRun';
 let requirejsConfig = require('./app/js/main').rjsConfig;
 
 let timezone = 'UTC';
-if (process.env.TZ != null && process.env.TZ != "") {
+if (process.env.TZ) {
     timezone = process.env.TZ;
 }
 
