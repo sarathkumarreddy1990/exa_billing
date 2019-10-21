@@ -12,7 +12,7 @@ const bump = require('gulp-bump');
 const git = require('gulp-git');
 const gutil = require('gulp-util');
 const ftp = require('vinyl-ftp');
-const moment = require('moment');
+const moment = require('moment-timezone');
 const fs = require('fs');
 const path = require('path');
 const childProcess = require('child_process');
@@ -20,8 +20,16 @@ const semver = require('semver');
 
 let currentBranch = 'GitInitTaskDidNotRun';
 let currentCommit = 'GitInitTaskDidNotRun';
-let timestamp = moment().format("YYYYMMDDhhmm");
 let requirejsConfig = require('./app/js/main').rjsConfig;
+
+let timezone = 'UTC';
+if (process.env.TZ) {
+    timezone = process.env.TZ;
+}
+
+// grunt.template equivalent is yyyymmddHHMM
+let timestamp = moment().tz(timezone).format("YYYYMMDDHHmm");
+gutil.log(timestamp);
 
 const getPackageJson = () => {
     const package = JSON.parse(fs.readFileSync('./package.json'));
