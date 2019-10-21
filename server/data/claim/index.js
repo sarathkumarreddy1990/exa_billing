@@ -414,15 +414,20 @@ module.exports = {
             , insurances
             , claim_icds
             , charges
-            , auditDetails } = params;
+            , auditDetails
+            , is_alberta_billing
+        } = params;
+        let sql;
+        let claimCreateFunction = is_alberta_billing ? 'billing.can_ahs_create_claim_per_charge' : 'billing.create_claim_charge';
 
-
-        const sql = SQL`SELECT billing.create_claim_charge (
-                    (${JSON.stringify(claims)})::jsonb,
-                    (${JSON.stringify(insurances)})::jsonb,
-                    (${JSON.stringify(claim_icds)})::jsonb,
-                    (${JSON.stringify(auditDetails)})::jsonb,
-                    (${JSON.stringify(charges)})::jsonb) as result `;
+        sql = SQL`SELECT `
+            .append(claimCreateFunction)
+            .append(`(
+                    ('${JSON.stringify(claims)}')::jsonb,
+                    ('${JSON.stringify(insurances)}')::jsonb,
+                    ('${JSON.stringify(claim_icds)}')::jsonb,
+                    ('${JSON.stringify(auditDetails)}')::jsonb,
+                    ('${JSON.stringify(charges)}')::jsonb) as result `);
 
         return await query(sql);
     },

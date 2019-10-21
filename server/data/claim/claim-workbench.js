@@ -575,8 +575,10 @@ module.exports = {
     createBatchClaims: async function (params) {
         let {
             studyDetails,
-            auditDetails
+            auditDetails,
+            is_alberta_billing
         } = params;
+        let createClaimFunction = is_alberta_billing ? 'billing.can_ahs_create_claim_per_charge' : 'billing.create_claim_charge';
 
         const sql = SQL`
                     WITH batch_claim_details AS (
@@ -595,15 +597,14 @@ module.exports = {
                            batch_claim_details bcd
                         LEFT JOIN LATERAL (select * from billing.get_batch_claim_details(bcd.study_id, ${params.created_by}, bcd.patient_id, bcd.order_id)) d ON true
                       )
-                      SELECT
-                        billing.create_claim_charge(
-                            details.claims,
-                            details.insurances,
-                            details.claim_icds,
-                            (${JSON.stringify(auditDetails)})::jsonb,
-                            details.charges)
-                      FROM details
-                        `;
+                      SELECT `
+            .append(createClaimFunction)
+            .append(`(
+                    details.claims,
+                    details.insurances,
+                    details.claim_icds,
+                    ('${JSON.stringify(auditDetails) }'):: jsonb,
+                    details.charges) FROM details`);
 
         return await query(sql);
     },
