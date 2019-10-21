@@ -77,13 +77,13 @@ module.exports = {
                 INNER JOIN
                     provider_contacts pc ON pc.provider_id = p.id
             WHERE
-                NOT p.has_deleted
+                p.deleted_dt IS NULL -- READ providers.has_deleted
                 AND NOT pc.has_deleted
                 AND p.is_active /* public.providers.is_active */
                 AND p.company_id = ${params.company_id}
                 AND p.provider_type = ${params.provider_type}
                 AND NOT p.sys_provider -- we dont want system providers
-        `; // public.providers.has_deleted    provider_contacts.has_deleted
+        `; // provider_contacts.has_deleted
 
         if (params.q != '') {
             sql_provider.append(provider_search);
