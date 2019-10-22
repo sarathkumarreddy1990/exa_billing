@@ -21,7 +21,7 @@ const config = {
         cipher: ['aes128-cbc']
     },
     privateKey: fs.existsSync(privateKeyPath) && fs.readFileSync(privateKeyPath, 'utf8'),
-    passphrase: siteConfig.get('ahsSFTPPublicKeyPassPhrase') // wont be needed in production
+    passphrase: siteConfig.get('ahsSFTPPublicKeyPassPhrase') || undefined // wont be needed in production
 };
 const uploadDirPath = siteConfig.get('ahsSFTPSendFolder') || `UPLOAD`;
 const downloadDirPath = siteConfig.get('ahsSFTPDownloadFolder') || `DOWNLOAD`;
@@ -127,7 +127,7 @@ const sftpService = {
 
             promises = _.map(fileList, async (file) => {
                 let downloadPath = `${downloadDirPath}/${file.name}`;
-                await sftp.fastGet(downloadPath, `${root_directory}/${file.name}`);
+                await sftp.fastGet(downloadPath, `${filePath}/${file.name}`);
                 return sftp.delete(downloadPath);
             });
 
