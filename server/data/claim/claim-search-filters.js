@@ -93,6 +93,11 @@ const colModel = [
         searchColumns: ['claims.id']
     },
     {
+        name: 'can_ahs_claim_no',
+        searchFlag: 'int',
+        searchColumns: ['billing.can_ahs_get_claim_number(claims.id)']
+    },
+    {
         name: 'policy_number',
         searchFlag: '%',
         searchColumns: ['patient_insurances.policy_number']
@@ -250,6 +255,7 @@ const api = {
             case 'followup_date': return 'claim_followups.followup_date::text';
             case 'current_illness_date': return 'claims.current_illness_date::text';
             case 'claim_no': return 'claims.id';
+            case 'can_ahs_claim_no': return 'billing.can_ahs_get_claim_number(claims.id)';
             case 'policy_number': return 'patient_insurances.policy_number';
             case 'group_number': return 'patient_insurances.group_number';
             case 'payer_type':
@@ -445,6 +451,7 @@ const api = {
             'bgct.charges_bill_fee_total as billing_fee',
             'claims.current_illness_date::text as current_illness_date',
             'claims.id As claim_no',
+            'billing.can_ahs_get_claim_number(claims.id) AS can_ahs_claim_no',
             'patient_insurances.policy_number',
             'patient_insurances.group_number',
             'claims.payer_type',

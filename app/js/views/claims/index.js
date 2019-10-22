@@ -105,6 +105,7 @@ define(['jquery',
                 this.facilities = new modelCollection(commonjs.bindArray(app.facilities, true, true));
                 this.states = new modelCollection(commonjs.bindArray(app.states[0].app_states, true));
                 this.genders = new modelCollection(commonjs.bindArray(app.gender, true));
+                this.countries = new modelCollection(app.countries);
                 this.claimStatusList = new modelCollection(app.claim_status);
                 this.billingCodesList = new modelCollection(app.billing_codes);
                 this.billingClassList = new modelCollection(app.billing_classes);
@@ -161,6 +162,7 @@ define(['jquery',
                         facilities: self.facilities.toJSON(),
                         genders: self.genders.toJSON(),
                         states: self.states.toJSON(),
+                        countries: self.countries.toJSON(),
                         claimStatusList: self.claimStatusList.toJSON(),
                         billingCodesList: self.billingCodesList.toJSON(),
                         billingClassList: self.billingClassList.toJSON(),
@@ -663,7 +665,7 @@ define(['jquery',
                             $(".allowedFee, .billFee").blur();
                             $(".diagCodes").blur();
 
-                            if (app.country_alpha_3_code !== 'can') {
+                            if (app.country_alpha_3_code !== 'can' || (app.country_alpha_3_code === 'can' && app.province_alpha_2_code === 'AB')) {
                                 /*Bind ICD List if not canadian billing*/
                                 claimDetails.claim_icd_data = claimDetails.claim_icd_data || [];
                                 self.claimICDLists = [];
@@ -801,6 +803,66 @@ define(['jquery',
                 $('#select2-ddlRenderingProvider-container').html(renderingProvider);
                 $('#select2-ddlReferringProvider-container').html(referringProvider);
                 $('#select2-ddlOrdFacility-container').html(orderingFacility);
+
+                // Alberta
+                $('#ddlPayToCode').val(claim_data.can_ahs_pay_to_code).change();
+                $('#txtPayToUli').val(claim_data.can_ahs_pay_to_uli);
+                self.blurPayToUli(claim_data.can_ahs_pay_to_uli);
+                $('input[name="BusinessArrangement"]').val([claim_data.can_ahs_business_arrangement]);
+                $('#chkClaimedAmountIndicator').prop('checked', claim_data.can_ahs_claimed_amount_indicator);
+                $('#chkConfidential').prop('checked', claim_data.can_ahs_confidential);
+                $('#ddlNewbornCode').val(claim_data.can_ahs_newborn_code).change();
+                $('#txtReasonAdditionalCompensation').val(claim_data.can_ahs_emsaf_reason);
+                $('#chkSupportingDocumentationSeparate').prop('checked', claim_data.can_ahs_paper_supporting_docs);
+                $('#txtSupportingText').val(claim_data.can_ahs_supporting_text);
+                $('#spChartNumber').text(claim_data.claim_id);
+                
+                var pay_to_details = claim_data.can_ahs_pay_to_details || {};
+                $('#ddlPayToDetailsPersonType').val(pay_to_details.person_type).change();
+                $('#txtPayToDetailsFirstName').val(pay_to_details.first_name);
+                $('#txtPayToDetailsMiddleName').val(pay_to_details.middle_name);
+                $('#txtPayToDetailsLastName').val(pay_to_details.last_name);
+                $('#txtPayToDetailsDOB').val(pay_to_details.birth_date);
+                $('#ddlPayToDetailsGender').val(pay_to_details.gender_code).change();
+                $('#txtPayToDetailsAddr1').val(pay_to_details.address1);
+                $('#txtPayToDetailsAddr2').val(pay_to_details.address2);
+                $('#txtPayToDetailsAddr3').val(pay_to_details.address3);
+                $('#txtPayToDetailsCity').val(pay_to_details.city);
+                $('#ddlPayToDetailsProvince').val(pay_to_details.province_code).change();
+                $('#txtPayToDetailsPostalCode').val(pay_to_details.postal_code);
+                $('#ddlPayToDetailsCountryCode').val(pay_to_details.country_code).change();
+
+                // Good Faith only for Alberta residents without a ULI / PHN
+                if (!claim_data.can_ahs_uli && !claim_data.can_ahs_phn && claim_data.can_ahs_phn_province === 'AB') {
+                    $('#divGoodFaith').show();
+                    $('#chkGoodFaith').prop('checked', claim_data.can_ahs_good_faith);
+                } else {
+                    $('#divGoodFaith').hide();
+                }
+
+                /* Locum Payment Type / Business Arrangement is read-only when claim is...
+                 *   Paid in Full
+                 *   Over Payment
+                 *   Insurance Over Payment
+                 *   Patient Over Payment
+                 *   AHS Over Paid
+                 */ 
+                if (_.includes(['PIF', 'OP', 'InsOP', 'PatOP', 'AOP'], claim_data.claim_status_code)) {
+                    var $businessArrangement = $('input[name="BusinessArrangement"]');
+                    $businessArrangement.each(function (index, el) {
+                        var $radio = $(el);
+                        var $container = $radio.closest('div');
+                        var $label = $container.find("label");
+
+                        $label.removeAttr('for');  // Remove 'for' attribute so that clicking the label won't select the associated radio button
+                        $radio.hide();
+
+                        // If the radio button is selected, show the checkmark
+                        if ($radio.prop('checked')) {
+                            $container.find(".check-mark").show();
+                        }
+                    });
+                }
 
                 /* Claim section end */
                 /* Additional info start*/
@@ -1215,6 +1277,16 @@ define(['jquery',
                         $accidentState.val('');
                     }
                 });
+
+                $('#ddlPayToCode').off().change(function (e) {
+                    var val = e && e.target && e.target.value || "";
+                    self.changePayToCode(val);
+                });
+
+                $('#txtPayToUli').off().blur(function (e) {
+                    var val = e && e.target && e.target.value || "";
+                    self.blurPayToUli(val);
+                });
             },
             getLineItemsAndBind: function (selectedStudyIds) {
                 var self = this;
@@ -1278,7 +1350,7 @@ define(['jquery',
                                     });
                                 });
 
-                                if (app.country_alpha_3_code !== 'can') {
+                                if (app.country_alpha_3_code !== 'can' || (app.country_alpha_3_code === 'can' && app.province_alpha_2_code === 'AB')) {
                                     _.each(_diagnosisProblems, function (item) {
 
                                         if (_.findIndex(diagnosisCodes, { id: item.id }) == -1) {
@@ -1765,7 +1837,6 @@ define(['jquery',
                         screenName: 'claims'
                     },
                     success: function (model, response) {
-                        console.log(model);
                         if(model && model.rowCount){
                             var _status = model.rows && model.rows.length && model.rows[0].purge_claim_or_charge ? model.rows[0].purge_claim_or_charge : false
                             callback({
@@ -2259,6 +2330,10 @@ define(['jquery',
                 var self = this;
                 var curDiagnosis = ($('#hdnDiagCodes').val() !== "") ? $('#hdnDiagCodes').val().split(',') : [];
 
+                if (this.maxDiagCodesReached(isManual)) {
+                    return;
+                }
+
                 if (self.icd_code != '' && self.ICDID != '') {
                     if (curDiagnosis.length < 12) {
                         if (curDiagnosis.indexOf(String(self.ICDID)) > -1) {
@@ -2345,6 +2420,22 @@ define(['jquery',
                         self.icd_description = '';
                     }
                 }
+            },
+
+            // Alberta accepts a maximum of 3 ICDs
+            maxDiagCodesReached: function (isManual) {
+                if (app.country_alpha_3_code === 'can' && app.province_alpha_2_code === 'AB') {
+                    var maxIcds = (isManual) ? 3 : 4;  // Adds on load are pushed to array before tag is added. Manually added happens after.
+                    var activeIcdList = this.claimICDLists.filter(function (icd) {
+                        return !icd.is_deleted;
+                    });
+
+                    if (activeIcdList.length >= maxIcds) {
+                        commonjs.showWarning("messages.status.maxDiagCodesReached");
+                        return true;
+                    }
+                }
+                return false;
             },
 
             // Remove deleted pointer references and decrement all of the higher numbered pointers so that they continue to match up correctly
@@ -2966,6 +3057,9 @@ define(['jquery',
                 if (app.country_alpha_3_code !== 'can' && (self.is_tertiary_available || self.terClaimInsID)) {
                     claim_model.insurances.push(teritiary_insurance_details);
                 }
+
+                var can_ahs_pay_to_code = $.trim($('#ddlPayToCode option:selected').val());
+
                 claim_model.claims = {
                     claim_id: self.claim_Id,
                     company_id: app.companyID,
@@ -3001,9 +3095,54 @@ define(['jquery',
                     claim_status_id: $('#ddlClaimStatus option:selected').val() != '' ? parseInt($('#ddlClaimStatus option:selected').val()) : null,
                     primary_patient_insurance_id: self.is_primary_available && parseInt(self.primaryPatientInsuranceId) || ( self.is_primary_available && parseInt(self.priClaimInsID) || null ),
                     secondary_patient_insurance_id: self.is_secondary_available && parseInt(self.secondaryPatientInsuranceId) || ( self.is_secondary_available && parseInt(self.secClaimInsID) || null ),
-                    tertiary_patient_insurance_id: self.is_tertiary_available && parseInt(self.tertiaryPatientInsuranceId) || ( self.is_tertiary_available && parseInt(self.terClaimInsID) || null )
-
+                    tertiary_patient_insurance_id: self.is_tertiary_available && parseInt(self.tertiaryPatientInsuranceId) || ( self.is_tertiary_available && parseInt(self.terClaimInsID) || null ),
+                    can_ahs_pay_to_code: can_ahs_pay_to_code,
+                    can_ahs_pay_to_uli: "",
+                    can_ahs_pay_to_details: null,
+                    can_ahs_business_arrangement: $.trim($('input[name="BusinessArrangement"]:checked').val()),
+                    can_ahs_claimed_amount_indicator: $('#chkClaimedAmountIndicator').prop('checked'),
+                    can_ahs_confidential: $('#chkConfidential').prop('checked'),
+                    can_ahs_good_faith: $('#chkGoodFaith').prop('checked'),
+                    can_ahs_paper_supporting_docs: $('#chkSupportingDocumentationSeparate').prop('checked'),
+                    can_ahs_newborn_code: $.trim($('#ddlNewbornCode option:selected').val()) || null,
+                    can_ahs_emsaf_reason: $.trim($('#txtReasonAdditionalCompensation').val()) || null,
+                    can_ahs_supporting_text: $.trim($.trim($('#txtSupportingText').val()).replace(/\n/g, ' '))
                 };
+
+                // Pay-to Details are only saved when Pay-to Code is Other
+                if (can_ahs_pay_to_code === "OTHR") {
+                    var can_ahs_pay_to_uli = $.trim($('#txtPayToUli').val());
+                    var can_ahs_pay_to_details = null;
+
+                    if (!can_ahs_pay_to_uli) {
+                        can_ahs_pay_to_details = {
+                            person_type: $.trim($('#ddlPayToDetailsPersonType option:selected').val()),
+                            first_name: $.trim($('#txtPayToDetailsFirstName').val()),
+                            middle_name: $.trim($('#txtPayToDetailsMiddleName').val()),
+                            last_name: $.trim($('#txtPayToDetailsLastName').val()),
+                            birth_date: $.trim($('#txtPayToDetailsDOB').val()),
+                            gender_code: $.trim($('#ddlPayToDetailsGender option:selected').val()),
+                            address1: $.trim($('#txtPayToDetailsAddr1').val()),
+                            address2: $.trim($('#txtPayToDetailsAddr2').val()),
+                            address3: $.trim($('#txtPayToDetailsAddr3').val()),
+                            city: $.trim($('#txtPayToDetailsCity').val()),
+                            province_code: $.trim($('#ddlPayToDetailsProvince option:selected').val()),
+                            postal_code: $.trim($('#txtPayToDetailsPostalCode').val()),
+                            country_code: $.trim($('#ddlPayToDetailsCountryCode option:selected').val())
+                        }
+
+                        // If every property is empty, reset to null
+                        if (Object.values(can_ahs_pay_to_details).every(function (x) { return !x })) {
+                            can_ahs_pay_to_details = null;
+                        }
+                    }
+
+                    // Assign these 
+                    claim_model.claims = Object.assign(claim_model.claims, {
+                        can_ahs_pay_to_uli: can_ahs_pay_to_uli,
+                        can_ahs_pay_to_details: can_ahs_pay_to_details
+                    });
+                }
 
                 /*Setting claim charge details*/
                 claim_model.charges = [];
@@ -3556,6 +3695,21 @@ define(['jquery',
                     self.bindSubscriber(_targetFlag);
                 }
             },
+
+            // Pay-to Code changed
+            changePayToCode: function (val) {
+                (val === 'OTHR')
+                    ? $('#divPayToDetails').show()
+                    : $('#divPayToDetails').hide();
+            },
+
+            // Pay-to ULI lost focus and form load
+            blurPayToUli: function (val) {
+                (val === '')
+                    ? $('#divPayToDetailsNoUli').show()
+                    : $('#divPayToDetailsNoUli').hide();
+            },
+
             bindSubscriber: function (flag) {
                 var self = this;
                 var relationalShip = $.trim($('#ddl' + flag + 'RelationShip option:selected').text());

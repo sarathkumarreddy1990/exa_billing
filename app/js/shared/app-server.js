@@ -56,6 +56,11 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                         "width": 200
                     },
                     {
+                        "name": "AHS Claim Num",
+                        "id": 69,
+                        "width": 200
+                    },
+                    {
                         "name": "Patient Name",
                         "id": 2,
                         "width": 200

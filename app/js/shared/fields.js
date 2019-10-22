@@ -508,7 +508,20 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_info": {
                         "custom_name": "Claim No",
                         "name": "claim_no",
-                        "width": 75
+                        "width": 75,
+                        "hidden": (app.country_alpha_3_code === 'can' && app.province_alpha_2_code === 'AB')
+                    }
+                },
+                "AHS Claim Num": {
+                    "id": 69,
+                    "field_code": "can_ahs_claim_no",
+                    "field_name": "AHS Claim Num",
+                    "i18n_name": "setup.userSettings.claimNo",
+                    "field_info": {
+                        "custom_name": "AHS Claim Num",
+                        "name": "can_ahs_claim_no",
+                        "width": 75,
+                        "hidden": !(app.country_alpha_3_code === 'can' && app.province_alpha_2_code === 'AB')
                     }
                 },
                 "Invoice": {
@@ -1509,6 +1522,20 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "defaultValue": ""
                 },
                 "field_code": "claim_no"
+            },
+            "AHS Claim #": {
+                "id": 69,
+                "field_name": "AHS Claim #",
+                "i18n_name": "setup.userSettings.claimNo",
+                "field_info": {
+                    "custom_name": "AHS Claim #",
+                    "name": "can_ahs_claim_id",
+                    "search": false,
+                    "sortable": false,
+                    "width": 200,
+                    "defaultValue": ""
+                },
+                "field_code": "can_ahs_claim_no"
             },
             // TODO: Add search ability IAW EXA-3299 request
             "Modality Room": {

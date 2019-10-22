@@ -440,7 +440,8 @@ module.exports = {
 
         const get_claim_sql = SQL`
                 SELECT
-                      c.company_id
+                      c.id AS claim_id
+                    , c.company_id
                     , c.facility_id
                     , c.patient_id
                     , c.billing_provider_id
@@ -479,10 +480,25 @@ module.exports = {
                     , c.tertiary_patient_insurance_id
                     , c.ordering_facility_id
                     , c.xmin as claim_row_version
+                    , c.can_ahs_pay_to_code
+                    , c.can_ahs_pay_to_uli
+                    , c.can_ahs_pay_to_details
+                    , c.can_ahs_business_arrangement
+                    , c.can_ahs_claimed_amount_indicator
+                    , c.can_ahs_confidential
+                    , c.can_ahs_good_faith
+                    , c.can_ahs_newborn_code
+                    , c.can_ahs_emsaf_reason
+                    , c.can_ahs_paper_supporting_docs
+                    , c.can_ahs_supporting_text
+                    , cst.code AS claim_status_code
                     , p.account_no AS patient_account_no
                     , p.birth_date::text AS patient_dob
                     , p.full_name AS patient_name
                     , p.gender AS patient_gender
+                    , p.can_ahs_uli
+                    , p.can_ahs_phn
+                    , p.can_ahs_phn_province
                     , p.alerts
                     , p.patient_info
                     , ref_pr.full_name AS ref_prov_full_name
@@ -760,6 +776,7 @@ module.exports = {
                         LEFT JOIN public.providers rend_pr ON rend_pc.provider_id = rend_pr.id
                         LEFT JOIN public.provider_groups pg ON pg.id = c.ordering_facility_id
                         LEFT JOIN public.facilities f ON p.facility_id = f.id
+                        LEFT JOIN billing.claim_status cst ON cst.id = c.claim_status_id
                     WHERE
                         c.id = ${id}`;
 
