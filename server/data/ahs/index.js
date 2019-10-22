@@ -28,7 +28,7 @@ const toBillingNotes = (obj) => {
     });
 };
 
-module.exports = {
+const ahsData = {
 
     updateClaimsStatus: async (args) => {
         const {
@@ -76,6 +76,86 @@ module.exports = {
         return  await query(sql.text, sql.values);
     },
 
+    updateEDIFileStatus: async (args) => {
+        const {
+            status,
+            ediFileId
+        } = args;
+        const sql = SQL` UPDATE
+                            billing.edi_files ef
+                        SET
+                            status=${status}
+                        WHERE
+                            ef.id = ${ediFileId}`;
+
+        return  await query(sql.text, sql.values);
+    },
+
+    getClaimsData: async (args) => {
+
+        const {
+            claimIds,
+        } = args;
+        const sql = SQL`
+            SELECT
+                bc.id AS claim_id,
+                bc.billing_method,
+                bc.can_ahs_pay_to_code                       AS pay_to_code,
+                pc.can_ahs_submitter_prefix                  AS submitter_prefix,
+                bc.can_ahs_business_arrangement              AS business_arrangement,
+                bc.can_ahs_supporting_text                   AS supporting_text_1,
+                f.can_ahs_facility_number                    AS facility_number,
+                icd.codes[1]                                 AS diagnosis_code_1,
+                pip.insurance_name                           AS "payerName",
+                get_full_name(pp.last_name,pp.first_name)    AS "patientName",
+                claim_notes                                  AS "claimNotes",
+                pp.first_name                                AS "patient_first_name",
+                COALESCE(pp.patient_info -> 'c1State', pp.patient_info -> 'c1Province', '') AS province_code,
+                (SELECT
+                    charges_bill_fee_total
+                FROM
+                    billing.get_claim_totals(bc.id)) AS "claim_totalCharge"
+                FROM billing.claims bc
+                LEFT JOIN public.companies pc ON pc.id = bc.company_id
+                LEFT JOIN public.patients pp ON pp.id = bc.patient_id
+                LEFT JOIN billing.charges bch ON bch.claim_id = bc.id
+                LEFT JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
+                LEFT JOIN billing.charges_studies bchs ON bchs.charge_id = bch.id
+                LEFT JOIN public.studies s ON s.id = bchs.study_id
+                LEFT JOIN public.facilities f ON f.id = bc.facility_id
+                LEFT JOIN public.patient_insurances ppi  ON ppi.id = bc.primary_patient_insurance_id
+                LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
+                LEFT JOIN LATERAL (
+                    WITH bci AS (
+                        SELECT
+                            bci.id,
+                            bci.claim_id,
+                            icd.code
+                        FROM
+                            billing.claim_icds bci
+                        JOIN public.icd_codes icd
+                             ON icd_id = icd.id
+                        WHERE
+                            claim_id = bc.id
+                        ORDER BY
+                            bci.id
+                        LIMIT
+                            3
+                    )
+                    SELECT
+                        ARRAY_AGG(code) AS codes
+                    FROM
+                        bci
+                    GROUP BY
+                        bci.claim_id
+                ) icd ON TRUE
+                WHERE bc.id = ANY (${claimIds})
+                ORDER BY bc.id DESC
+            `;
+
+        return (await query(sql.text, sql.values)).rows;
+    },
+
     saveAddedClaims: async (args) => {
 
         const {
@@ -85,20 +165,7 @@ module.exports = {
 
         let data = ``;
 
-        const fileSql = SQL`
-            SELECT
-                fs.id AS file_store_id,
-                fs.root_directory,
-                c.can_ahs_submitter_prefix AS submitter_prefix
-            FROM
-                file_stores fs
-            JOIN companies c
-                ON c.file_store_id = fs.id
-            WHERE
-                c.id = ${company_id}
-        `;
-
-        const fileSqlResponse = await query(fileSql.text, fileSql.values);
+        const fileSqlResponse = await ahsData.getCompanyFileStore(company_id);
 
         if ( !fileSqlResponse || fileSqlResponse.rows.length === 0 ) {
             return null;
@@ -134,8 +201,8 @@ module.exports = {
             WITH
                 numbers AS (
                     SELECT
-                        ( COALESCE(MAX(batch_number), '0') :: INT + 1 ) % 1000000 AS batch_number,
-                        COALESCE(MAX(sequence_number), '0') :: INT                AS sequence_number
+                        ( COALESCE(MAX(batch_number :: INT), 0) + 1 ) % 1000000     AS batch_number,
+                        COALESCE(MAX(sequence_number), '0') :: INT                  AS sequence_number
                     FROM
                         billing.edi_file_claims
                 ),
@@ -220,12 +287,9 @@ module.exports = {
                 TO_CHAR(bc.claim_dt, 'YY')                   AS year,
                 TO_CHAR(bc.claim_dt, 'MM')                   AS source_code,
                 inserted_efc.sequence_number                 AS sequence_number,
-                billing.can_ahs_calculate_check_digit_claim_number(
-                   comp.can_ahs_submitter_prefix,
-                    TO_CHAR(bc.claim_dt, 'MM'),
-                   TO_CHAR(bc.claim_dt, 'YY'),
-                  LPAD(inserted_efc.sequence_number :: TEXT, 7, '0')
-                )  AS check_digit,
+                luhn_generate_checkdigit(
+                    inserted_efc.sequence_number
+                )                                            AS check_digit,
                 -- currently hard-coded - AHS does not support another code right now
                 'CIP1'                                       AS transaction_type,
 
@@ -573,4 +637,49 @@ module.exports = {
         };
     },
 
+     /**
+     * {@param} company_id
+     * {@response} Returns file store for configured company
+     */
+    getCompanyFileStore: (company_id) => {
+        const fileSql = SQL`
+        SELECT
+            fs.id AS file_store_id,
+            fs.root_directory,
+            c.can_ahs_submitter_prefix AS submitter_prefix
+        FROM file_stores fs
+        INNER JOIN companies c ON c.file_store_id = fs.id 
+        WHERE c.id = ${company_id}
+    `;
+
+        return query(fileSql.text, fileSql.values);
+
+    },
+
+
+    /**
+   * Handle incoming Batch Balance report file
+   *
+   * @param  {object} args    {
+   *                              company_id: Number,
+   *                              balance_claim_report: Object,   // Batch balance claims json object
+   *                          }
+   * @returns {object}        {
+   *                              response: boolean
+   *                          }
+   */
+    batchBalanceClaims: async (args) => {
+        const {
+            company_id,
+            balance_claim_report,
+        } = args;
+        const batchBalanceReportJson = JSON.stringify([balance_claim_report]) || JSON.stringify([{}]);
+
+        const sql = SQL` SELECT billing.can_ahs_handle_claim_balance_report(${batchBalanceReportJson}::jsonb, ${company_id})`;
+
+        return await query(sql);
+    }
+
 };
+
+module.exports = ahsData;

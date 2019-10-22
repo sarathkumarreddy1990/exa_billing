@@ -167,7 +167,7 @@ define(['jquery',
                         posList: app.places_of_service || [],
                         relationshipList: app.relationship_status || [],
                         chargeList: self.claimChargeList || [],
-                        paymentList: self.paymentList
+                        paymentList: self.paymentList,
                     })
                 });
 
@@ -417,7 +417,7 @@ define(['jquery',
                 }
 
                 if (!eligibilityData.insuranceProviderId) {
-                    return commonjs.showWarning('messages.status.pleaseSelectInsuranceProvider');   
+                    return commonjs.showWarning('messages.status.pleaseSelectInsuranceProvider');
                 }
 
                 $('#btnCheckEligibility' + ins).prop('disabled', true);
@@ -600,6 +600,15 @@ define(['jquery',
                             commonjs.isMaskValidate();
                             /* Bind chargeLineItems events - Ended */
                             self.addPatientHeaderDetails(claimDetails, 'edit')
+
+                            //EXA-18272 - Restrict to add/remove new charge on edit claim for alberta billing
+                            if (self.isEdit && app.billingRegionCode === 'can_AB') {
+                                $("td span.addChargeLine").parent().remove();
+                                $('td span.removecharge').parent().remove();
+                                $('#tblCharge th.addCharge th.removeCharge').hide();
+                                $('#createNewCharge').prop('disabled', true);
+                                $('.extra-span').hide();
+                            }
 
                             /* Patient Alert data Bind Started */
                             self.patientAlerts = claimDetails.alerts;
@@ -3156,7 +3165,8 @@ define(['jquery',
                     charges: claim_model.charges,
                     claims: claim_model.claims,
                     claim_icds: claim_model.claim_icds,
-                    removed_charges: claim_model.removed_charges
+                    removed_charges: claim_model.removed_charges,
+                    is_alberta_billing: app.billingRegionCode === 'can_AB'
                 });
 
             },
@@ -3833,7 +3843,8 @@ define(['jquery',
                     type: 'POST',
                     data: {
                         claim_ids: claimIds,
-                        country: app.country_alpha_3_code
+                        country: app.country_alpha_3_code,
+                        billingRegionCode: app.billingRegionCode
                     },
                     success: function(data, response){
                         $("#btnValidateClaim").prop("disabled", false);
@@ -3962,6 +3973,13 @@ define(['jquery',
                             // Hide non-edit claim tabs
                             if (!self.isEdit) {
                                 $('.editClaimRelated').hide();
+
+                                //EXA-18272 - AHS - claims to only have one charge / CPT each
+                                if (app.billingRegionCode === 'can_AB') {
+                                    $('#tblCharge th.addCharge th.removeCharge').show();
+                                    $('#createNewCharge').prop('disabled', false);
+                                    $('.extra-span').show();
+                                }
                             }
                             self.updateReportURL(data.hidden_patient_id, data.hidden_order_id, rowId);
                         } else if (self.openedFrom === 'claims' || data.billed_status === 'Billed') {

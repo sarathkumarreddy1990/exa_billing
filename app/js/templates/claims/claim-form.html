@@ -206,8 +206,8 @@
                             <table class="table table-bordered <% if(country_alpha_3_code === 'can') { %> table__width <% } %>" id="tblCharge" >
                                 <thead id="tHeadCharge">
                                     <tr>
-                                        <th></th>
-                                        <th></th>
+                                        <th class="addCharge"></th>
+                                        <th class="removeCharge"></th>
                                         <th i18n="shared.fields.date"></th>
                                         <th i18n="shared.fields.accession"></th>
                                         <th i18n="shared.fields.cptCode"></th>
@@ -336,7 +336,7 @@
                                             <span id="spTotalBillFee" i18n="shared.fields.totalBillFee"></span>:
                                             <span class="font-weight-bold" id="spTotalBillFeeValue"></span>
                                         </td>
-                                        <td style="border: 0"></td>
+                                        <td class="extra-span" style="border: 0"></td>
                                         <% if(country_alpha_3_code !== 'can') { %>
                                         <td style="text-align: right;border: 0">
                                             <span id="spTotalAllowedFee" i18n="shared.fields.totalAllowed"></span>:

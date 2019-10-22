@@ -107,7 +107,7 @@
     "length": 7
   },
   "pay_to_code": {
-    "format": "A",
+    "format": "a",
     "startPos": 125,
     "length": 4
   },

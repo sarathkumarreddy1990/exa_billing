@@ -23,7 +23,16 @@ module.exports = {
         ebsPassword: 'ebsPassword',
         edtServiceEndpoint: 'edtServiceEndpoint',
         hcvServiceEndpoint: 'hcvServiceEndpoint',
-        jsreport: 'jsreport'
+        jsreport: 'jsreport',
+        ahsSFTPAddress: 'ahsSFTPAddress',
+        ahsSFTPPort: 'ahsSFTPPort',
+        ahsSFTPPublicKeyPath: 'ahsSFTPPublicKeyPath',
+        ahsSFTPPrivateKeyPath: 'ahsSFTPPrivateKeyPath',
+        ahsSFTPUser: 'ahsSFTPUser',
+        ahsSFTPPassword: 'ahsSFTPPassword',
+        ahsSFTPSendFolder: 'ahsSFTPSendFolder',
+        ahsSFTPDownloadFolder: 'ahsSFTPDownloadFolder',
+        ahsSFTPPublicKeyPassPhrase: 'ahsSFTPPublicKeyPassPhrase'
     },
 
     paths: [
