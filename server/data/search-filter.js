@@ -774,7 +774,7 @@ const api = {
             'studies.has_deleted', // TODO: this column should not be deleted Status should be deleted and if its really purged it shouldnt be there
             'studies.study_description',
             'studies.institution as institution',
-            '(SELECT claim_id FROM billing.charges_studies inner JOIN billing.charges ON charges.id= charges_studies.charge_id  WHERE study_id = studies.id LIMIT 1) as claim_id',
+            '(SELECT array_agg(claim_id) FROM billing.charges_studies inner JOIN billing.charges ON charges.id= charges_studies.charge_id  WHERE study_id = studies.id) as claim_id',
             'studies.approved_dt as approved_dt',
             'studies.study_received_dt',
             'studies.body_part',
