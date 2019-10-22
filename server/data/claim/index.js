@@ -1133,5 +1133,42 @@ module.exports = {
 
         return await query(sqlQry);
 
-    }
+    },
+
+    getChargesByPatientId : async function (params) {
+        let {
+            patient_id,
+            current_date
+        } = params;
+
+        let sql = SQL`
+                    SELECT
+                         sc.study_id
+                        , s.patient_id
+                        , s.study_dt AS study_time
+                        , s.accession_no
+                        , sc.cpt_code_id AS cpt_id
+                        , sc.cpt_code AS cpt_code
+                        , display_description AS cpt_description
+                        , modifier1.code AS m1
+                        , modifier2.code AS m2
+                        , modifier3.code AS m3
+                        , s.facility_id
+                    FROM public.study_cpt sc
+                    INNER JOIN public.cpt_codes pcc ON sc.cpt_code_id = pcc.id 
+                    INNER JOIN studies s ON s.id = sc.study_id
+                    INNER JOIN orders o ON s.order_id = o.id
+                    LEFT JOIN modifiers AS modifier1 ON modifier1.id = sc.modifier1_id
+                    LEFT JOIN modifiers AS modifier2 ON modifier2.id = sc.modifier2_id
+                    LEFT JOIN modifiers AS modifier3 ON modifier3.id = sc.modifier3_id
+                    WHERE s.patient_id = ${patient_id}
+                    AND to_facility_date(s.facility_id, s.study_dt) = ${current_date}
+                    AND o.order_status NOT IN ('CAN','NOS')
+                    AND s.study_status NOT IN ('CAN','NOS')
+                    AND NOT sc.has_deleted
+                    ORDER BY sc.study_id DESC `;
+
+        return await query(sql); 
+    } 
+    
 };

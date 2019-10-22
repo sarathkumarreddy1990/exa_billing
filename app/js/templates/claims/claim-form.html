@@ -359,13 +359,23 @@
             <div class="col-lg-12">
                 <div class="form-group row">
                     <legend>
+                        <%if (billingRegionCode !== 'can_AB') {%>
                         <h5 class="border-bottom border-primary">
                             <label class="font-weight-bold" i18n="billing.claims.claims"></label>
                         </h5>
+                        <% } else if (billingRegionCode === 'can_AB') { %> 
+                        <h5 class="border-bottom border-primary row">
+                            <label class="font-weight-bold col-lg-6" i18n="billing.claims.claims">claims</label>
+                            <div class="font-weight-bold col-lg-6">
+                                <label i18n="shared.fields.patientChargesOn" class="text-center"></label>
+                                <label><%= currentDate %> </label>
+                            </div>
+                        </h5>
+                        <% } %>
                     </legend>
                 </div>
             </div>
-            <div class="col-lg-6">
+            <div class="col-lg-6" id="claimSection">
                 <div class="form-group row">
                     <label for="txtClaimDate" class="col-sm-3 col-form-label field-required" i18n="billing.claims.claimDate"></label>
                     <div class="col-sm-3">
@@ -439,7 +449,7 @@
                 <% } %>
             </div>
             <% if (country_alpha_3_code !== 'can' || (country_alpha_3_code === 'can' && province_alpha_2_code === 'AB')) { %>
-            <div class="col-lg-6">
+            <div class="col-lg-6" id="diagnosticsCodes">
                 <div class="form-group row">
                     <label for="ddlMultipleDiagCodes" class="col-form-label" i18n="billing.claims.diagnosticsCodes"></label>
                     <div class="col-sm-5">
@@ -459,6 +469,41 @@
                 </div>
             </div>
             <% } %>
+            <%if(billingRegionCode === 'can_AB') {%>
+            <div class="col-lg-6">
+                <div id="patientCharges" class="form-group col-sm-12">
+                    <div id="patientChargeHeader" class="charge_header">
+                        <div class="charge_row font-weight-bold">
+                            <div class="details_div charge_time"> 
+                                <span i18n="shared.fields.studyTime"></span>
+                            </div>
+                            <div class="chargeSeparator"> | </div>
+                            <div class="details_div cpt_code">
+                                <span i18n="shared.fields.cptCode"></span>
+                            </div>
+                            <div class="chargeSeparator "> | </div>
+                            <div class="details_div cpt_desc">
+                                <span i18n="shared.fields.cptDescription"></span>
+                            </div>
+                            <div class="chargeSeparator"> | </div>
+                            <div class="details_div modifier">
+                                <span i18n="shared.fields.m1"></span>
+                            </div>
+                            <div class="chargeSeparator"> | </div>
+                            <div class="details_div modifier" >
+                                <span i18n="shared.fields.m2"></span>
+                            </div>
+                            <div class="chargeSeparator"> | </div>
+                            <div class="details_div modifier" >
+                                <span i18n="shared.fields.m3"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="patientChargesBody" class="charge_header border-top-none">
+                    </div>
+                </div>
+            </div>
+            <%}%>
         </div>
     </section>
     <section id="tab_3">
