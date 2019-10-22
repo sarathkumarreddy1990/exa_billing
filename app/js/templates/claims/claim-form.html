@@ -472,82 +472,82 @@
             <div class="col-lg-6">
                 <div class="form-group row">
                     <!-- Pay-to Code -->
-                    <label for="ddlPayToCode" class="col-sm-3 col-form-label field-required" i18n="billing.claims.can_ahs.payToCode"></label>
+                    <label for="ddlPayToCode" class="col-sm-3 col-form-label field-required" i18n="billing.claims.canAhs.payToCode"></label>
                     <div class="col-sm-5">
                         <select class="form-control select-box" id="ddlPayToCode" style="height:32px;">
                             <option value="BAPY" i18n="setup.billingProvider.can_ahs_business_arrangement"></option>
-                            <option value="CONT" i18n="billing.claims.can_ahs.contractHolder"></option>
-                            <option value="RECP" i18n="billing.claims.can_ahs.serviceRecipient"></option>
-                            <option value="PRVD" i18n="billing.claims.can_ahs.serviceProvider"></option>
+                            <option value="CONT" i18n="billing.claims.canAhs.contractHolder"></option>
+                            <option value="RECP" i18n="billing.claims.canAhs.serviceRecipient"></option>
+                            <option value="PRVD" i18n="billing.claims.canAhs.serviceProvider"></option>
                             <option value="OTHR" i18n="shared.fields.other"></option>
                         </select>
                     </div>
                 </div>
                 <div class="form-group row">
                     <!-- Locum Payment Type -->
-                    <label class="col-sm-3 col-form-label" i18n="billing.claims.can_ahs.locumPaymentType"></label>
+                    <label class="col-sm-3 col-form-label" i18n="billing.claims.canAhs.locumPaymentType"></label>
                     <div class="col-sm-5" style="padding-top: 10px;">
                         <span class="check-mark form-check-input fa fa-check"></span>
                         <input class="form-check-input" type="radio" id="chkPayToPracticePractice" name="BusinessArrangement" value="LOC_PP">
-                        <label class="form-check-label" for="chkPayToPracticePractice" i18n="billing.claims.can_ahs.payToPracticePractice"></label>
+                        <label class="form-check-label" for="chkPayToPracticePractice" i18n="billing.claims.canAhs.payToPracticePractice"></label>
                     </div>
                     <div class="col-sm-5 offset-sm-3">
                         <span class="check-mark form-check-input fa fa-check"></span>
                         <input class="form-check-input" type="radio" id="chkPayToPracticeLocum" name="BusinessArrangement" value="LOC_PL">
-                        <label class="form-check-label" for="chkPayToPracticeLocum" i18n="billing.claims.can_ahs.payToPracticeLocum"></label>
+                        <label class="form-check-label" for="chkPayToPracticeLocum" i18n="billing.claims.canAhs.payToPracticeLocum"></label>
                     </div>
                     <div class="col-sm-5 offset-sm-3">
                         <span class="check-mark form-check-input fa fa-check"></span>
                         <input class="form-check-input" type="radio" id="chkPayToLocumLocum" name="BusinessArrangement" value="LOC_LL">
-                        <label class="form-check-label" for="chkPayToLocumLocum" i18n="billing.claims.can_ahs.payToLocumLocum"></label>
+                        <label class="form-check-label" for="chkPayToLocumLocum" i18n="billing.claims.canAhs.payToLocumLocum"></label>
                     </div>
                     <div class="col-sm-5 offset-sm-3">
                         <span class="check-mark form-check-input fa fa-check"></span>
                         <input class="form-check-input" type="radio" id="chkPayToLocumPractice" name="BusinessArrangement" value="LOC_LP">
-                        <label class="form-check-label" for="chkPayToLocumPractice" i18n="billing.claims.can_ahs.payToLocumPractice"></label>
+                        <label class="form-check-label" for="chkPayToLocumPractice" i18n="billing.claims.canAhs.payToLocumPractice"></label>
                     </div>
                 </div>
                 <div class="form-group row" style="padding-bottom: 10px;">
                     <!-- Claimed Amount Indicator -->
-                    <label class="col-sm-3 col-form-label" i18n="billing.claims.can_ahs.options"></label>
+                    <label class="col-sm-3 col-form-label" i18n="billing.claims.canAhs.options"></label>
                     <div class="col-sm-5" style="padding-top: 10px;">
                         <input class="form-check-input" type="checkbox" id="chkClaimedAmountIndicator" name="ClaimedAmountIndicator">
-                        <label class="form-check-label" for="chkClaimedAmountIndicator" i18n="billing.claims.can_ahs.claimedAmountIndicator" i18nt="billing.claims.can_ahs.claimingLessThanStandard"></label>
+                        <label class="form-check-label" for="chkClaimedAmountIndicator" i18n="billing.claims.canAhs.claimedAmountIndicator" i18nt="billing.claims.canAhs.claimingLessThanStandard"></label>
                     </div>
                     <!-- Confidential -->
                     <div class="col-sm-5 offset-sm-3">
                         <input class="form-check-input" type="checkbox" id="chkConfidential" name="Confidential">
-                        <label class="form-check-label" for="chkConfidential" i18n="billing.claims.can_ahs.confidential"></label>
+                        <label class="form-check-label" for="chkConfidential" i18n="billing.claims.canAhs.confidential"></label>
                     </div>
                     <!-- Good Faith -->
                     <div id="divGoodFaith" class="col-sm-5 offset-sm-3">
                         <input class="form-check-input" type="checkbox" id="chkGoodFaith" name="GoodFaith">
-                        <label class="form-check-label" for="chkGoodFaith" i18n="billing.claims.can_ahs.goodFaith"></label>
+                        <label class="form-check-label" for="chkGoodFaith" i18n="billing.claims.canAhs.goodFaith"></label>
                     </div>
                     <!-- Sending paper supporting documentation separately -->
                     <div class="col-sm-5 offset-sm-3">
                         <input class="form-check-input" type="checkbox" id="chkSupportingDocumentationSeparate" name="SupportingDocumentationSeparate">
-                        <label class="form-check-label" for="chkSupportingDocumentationSeparate" i18n="billing.claims.can_ahs.supportingDocumentationSeparate"></label>
+                        <label class="form-check-label" for="chkSupportingDocumentationSeparate" i18n="billing.claims.canAhs.supportingDocumentationSeparate"></label>
                     </div>
                 </div>
                 <div class="form-group row">
                     <!-- Newborn Code -->
-                    <label for="ddlNewbornCode" class="col-sm-3 col-form-label" i18n="billing.claims.can_ahs.newbornCode"></label>
+                    <label for="ddlNewbornCode" class="col-sm-3 col-form-label" i18n="billing.claims.canAhs.newbornCode"></label>
                     <div class="col-sm-5">
                         <select class="form-control select-box" id="ddlNewbornCode" style="height:32px;">
                             <option value="" i18n="shared.buttons.select"></option>
-                            <option value="ADOP" i18n="billing.claims.can_ahs.adoption"></option>
-                            <option value="LVBR" i18n="billing.claims.can_ahs.liveBirth"></option>
-                            <option value="MULT" i18n="billing.claims.can_ahs.multipleBirth"></option>
-                            <option value="STBN" i18n="billing.claims.can_ahs.stillBorn"></option>
+                            <option value="ADOP" i18n="billing.claims.canAhs.adoption"></option>
+                            <option value="LVBR" i18n="billing.claims.canAhs.liveBirth"></option>
+                            <option value="MULT" i18n="billing.claims.canAhs.multipleBirth"></option>
+                            <option value="STBN" i18n="billing.claims.canAhs.stillBorn"></option>
                         </select>
                     </div>
                 </div>
                 <div class="form-group row">
                     <!-- Reason for Additional Compensation / EMSAF -->
-                    <label for="txtReasonAdditionalCompensation" class="col-sm-3 col-form-label" i18n="billing.claims.can_ahs.reasonAdditionalCompensation"></label>
+                    <label for="txtReasonAdditionalCompensation" class="col-sm-3 col-form-label" i18n="billing.claims.canAhs.reasonAdditionalCompensation"></label>
                     <div class="col-sm-5">
-                        <textarea id="txtReasonAdditionalCompensation" name="ReasonAdditionalCompensation" class="form-control form-control-lg" i18nt="billing.claims.can_ahs.reasonAdditionalCompensationJustify"></textarea>
+                        <textarea id="txtReasonAdditionalCompensation" name="ReasonAdditionalCompensation" class="form-control form-control-lg" i18nt="billing.claims.canAhs.reasonAdditionalCompensationJustify"></textarea>
                     </div>
                 </div>
                 <div class="form-group row">
@@ -570,9 +570,9 @@
             <div id="divPayToDetails" class="col-lg-6" style="display: none;">
                 <div class="form-group row">
                     <!-- Pay-to ULI -->
-                    <label for="txtPayToUli" class="col-sm-3 col-form-label" i18n="billing.claims.can_ahs.payToUli"></label>
+                    <label for="txtPayToUli" class="col-sm-3 col-form-label" i18n="billing.claims.canAhs.payToUli"></label>
                     <div class="col-sm-3">
-                        <input type="text" id="txtPayToUli" class="form-control" name="PayToUli" i18np="billing.claims.can_ahs.payToUli" maxlength="9">
+                        <input type="text" id="txtPayToUli" class="form-control" name="PayToUli" i18np="billing.claims.canAhs.payToUli" maxlength="9">
                     </div>
                 </div>
                 <div class="form-group row">
@@ -584,13 +584,13 @@
                     <!--  Pay-to Details  -->
                     <div class="form-group row">
                         <!-- Person Type -->
-                        <label for="ddlPayToDetailsPersonType" class="col-sm-3 col-form-label" i18n="billing.claims.can_ahs.personType"></label>
+                        <label for="ddlPayToDetailsPersonType" class="col-sm-3 col-form-label" i18n="billing.claims.canAhs.personType"></label>
                         <div class="col-sm-5">
                             <select class="form-control select-box" id="ddlPayToDetailsPersonType" style="height:32px;">
                                 <option value="" i18n="shared.buttons.select"></option>
-                                <option value="RECP" i18n="billing.claims.can_ahs.serviceRecipient"></option>
-                                <option value="PYST" i18n="billing.claims.can_ahs.payee"></option>
-                                <option value="RFRC" i18n="billing.claims.can_ahs.oopReferringProvider"></option>
+                                <option value="RECP" i18n="billing.claims.canAhs.serviceRecipient"></option>
+                                <option value="PYST" i18n="billing.claims.canAhs.payee"></option>
+                                <option value="RFRC" i18n="billing.claims.canAhs.oopReferringProvider"></option>
                             </select>
                         </div>
                     </div>
@@ -672,9 +672,9 @@
                     </div>
                     <div class="form-group row">
                         <!-- Country -->
-                        <label for="ddlPayToDetailsCountryCode" class="col-sm-3 col-form-label" i18n="billing.claims.can_ahs.countryCode"></label>
+                        <label for="ddlPayToDetailsCountryCode" class="col-sm-3 col-form-label" i18n="billing.claims.canAhs.countryCode"></label>
                         <div class="col-sm-3">
-                            <select id="ddlPayToDetailsCountryCode" class="form-control" i18np="billing.claims.can_ahs.countryCode" style="height:32px;">
+                            <select id="ddlPayToDetailsCountryCode" class="form-control" i18np="billing.claims.canAhs.countryCode" style="height:32px;">
                                 <option value="" i18n="shared.buttons.select"></option>
                                 <% _.each(countries, function(obj) { %>
                                 <option value='<%= obj.alpha_3_code %>'>
