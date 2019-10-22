@@ -234,6 +234,16 @@
             "id": 19
         },
         {
+            "field_code": "can_ahs_claim_no",
+            "field_name": "AHS Claim Num",
+            "i18n_name": "setup.userSettings.claimNo",
+            "field_info": {
+                "name": "can_ahs_claim_no",
+                "width": 75
+            },
+            "id": 69
+        },
+        {
             "field_code": "invoice_no",
             "field_name": "Invoice",
             "i18n_name": "setup.userSettings.invoice",
@@ -991,6 +1001,17 @@
                 "defaultValue": ""
             },
             "field_code": "claim_no"
+        },
+        {
+            "id": 69,
+            "field_name": "AHS Claim Num",
+            "i18n_name": "setup.userSettings.claimNo",
+            "field_info": {
+                "name": "can_ahs_claim_no",
+                "width": 200,
+                "defaultValue": ""
+            },
+            "field_code": "can_ahs_claim_no"
         },
         {
             "id": 52,

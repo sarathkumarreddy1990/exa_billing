@@ -218,7 +218,16 @@ define(['jquery',
                 for (var j = 1; j < 13; j++) {
                     expiryMonth.push({ value: self.returnDoubleDigits(j), text: self.returnDoubleDigits(j) });
                 }
-                $(this.el).html(this.paymentsEditTemplate({ expiryYear: expiryYear, expiryMonth: expiryMonth, paidlocation: this.paidlocation.toJSON(), facilityAdd: this.paidlocation.toJSON(), paymentReasons: this.paymentReasons.toJSON(), id: self.payemntId }));
+                $(this.el).html(this.paymentsEditTemplate({
+                    country_alpha_3_code: app.country_alpha_3_code,
+                    province_alpha_2_code: app.province_alpha_2_code,
+                    expiryYear: expiryYear,
+                    expiryMonth: expiryMonth,
+                    paidlocation: this.paidlocation.toJSON(),
+                    facilityAdd: this.paidlocation.toJSON(),
+                    paymentReasons: this.paymentReasons.toJSON(),
+                    id: self.payemntId
+                }));
                 this.rendered = true;
                 this.pendingGridLoaderd = false;
                 self.showBillingForm(paymentId, self.from);
