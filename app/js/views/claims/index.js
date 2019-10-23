@@ -181,7 +181,7 @@ define(['jquery',
                 } else {
                     $('label[for=txtPriPolicyNo]').append("<span class='Required' style='color: red;padding-left: 5px;'>*</span>");
                 }
-                
+
                 //EXA-18273 - Move diagnostics codes section under claim for alberta billing
                 if(app.billingRegionCode === 'can_AB') {
                     $('#diagnosticsCodes').detach().appendTo('#claimSection').addClass('col-lg-12');
@@ -588,7 +588,7 @@ define(['jquery',
                                 });
                             });
                             /* Bind claim charge Details - end */
-                            
+
                             //EXA-18273 - Bind Charges created on current date for a patient.
                             if(app.billingRegionCode === 'can_AB') {
                                 self.getPatientCharges(self.cur_patient_id, self.claimChargeList);
@@ -816,7 +816,7 @@ define(['jquery',
                 $('#chkSupportingDocumentationSeparate').prop('checked', claim_data.can_ahs_paper_supporting_docs);
                 $('#txtSupportingText').val(claim_data.can_ahs_supporting_text);
                 $('#spChartNumber').text(claim_data.claim_id);
-                
+
                 var pay_to_details = claim_data.can_ahs_pay_to_details || {};
                 $('#ddlPayToDetailsPersonType').val(pay_to_details.person_type).change();
                 $('#txtPayToDetailsFirstName').val(pay_to_details.first_name);
@@ -846,7 +846,7 @@ define(['jquery',
                  *   Insurance Over Payment
                  *   Patient Over Payment
                  *   AHS Over Paid
-                 */ 
+                 */
                 if (_.includes(['PIF', 'OP', 'InsOP', 'PatOP', 'AOP'], claim_data.claim_status_code)) {
                     var $businessArrangement = $('input[name="BusinessArrangement"]');
                     $businessArrangement.each(function (index, el) {
@@ -1328,7 +1328,7 @@ define(['jquery',
                                 self.studyDate = self.claim_dt_iso ? self.claim_dt_iso.format('L') : self.studyDate;
                                 $('#txtClaimDate').val(self.studyDate || '');
                                 self.claim_dt_iso = self.claim_dt_iso.format('YYYY-MM-DD LT z');
-                                
+
                                 //EXA-18273 - Bind Charges created on current date for a patient - Alberta billing specification.
                                 if(app.billingRegionCode === 'can_AB'){
                                     self.getPatientCharges(self.cur_patient_id, modelDetails.charges);
@@ -3137,7 +3137,7 @@ define(['jquery',
                         }
                     }
 
-                    // Assign these 
+                    // Assign these
                     claim_model.claims = Object.assign(claim_model.claims, {
                         can_ahs_pay_to_uli: can_ahs_pay_to_uli,
                         can_ahs_pay_to_details: can_ahs_pay_to_details
@@ -3368,7 +3368,7 @@ define(['jquery',
                     return false;
                 }
 
-                if (!self.ACSelect.readPhy.contact_id && app.country_alpha_3_code === 'can') {
+                if ( !self.ACSelect.readPhy.contact_id && app.country_alpha_3_code === 'can' && app.province_alpha_2_code !== 'AB' ) {
                     commonjs.showWarning("messages.warning.shared.selectRenderingProvider");
                     $('#ddlRenderingProvider').focus();
                     return false;
@@ -3963,7 +3963,7 @@ define(['jquery',
                     type: 'GET',
                     data: {
                         patient_id: id,
-                        current_date: moment().format('YYYY-MM-DD') 
+                        current_date: moment().format('YYYY-MM-DD')
                     },
                     success: function (data, response) {
 
@@ -3991,7 +3991,7 @@ define(['jquery',
                     }
                 });
             },
-             
+
             processClaim: function (e) {
                 var self = this, currentRowID;
                 var $tblGrid = self.options.grid_id || null;
