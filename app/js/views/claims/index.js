@@ -2651,6 +2651,14 @@ define(['jquery',
                     if ($select2Container && $select2Container.text())
                         $("#" + element_id).data('select2').dropdown.$search.val($select2Container.text());
                 });
+
+                if (app.billingRegionCode === 'can_AB') {
+                    $('#' + element_id).on('select2:select', function (e) {
+                        var data = e.params && e.params.data;
+                        $('#chkPriSelf').prop('checked', data.insurance_code === 'AHS').trigger('change'); // Bind Patient Details when AHS insurance is set.
+                    });
+                }
+
             },
 
             bindInsurance: function (element_id, res) {
