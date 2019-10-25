@@ -484,6 +484,8 @@ module.exports = {
                     , c.can_ahs_pay_to_uli
                     , c.can_ahs_pay_to_details
                     , c.can_ahs_business_arrangement
+                    , f.can_ahs_business_arrangement AS can_ahs_business_arrangement_facility
+                    , ref_pc.can_ahs_locum_arrangement AS can_ahs_locum_arrangement
                     , c.can_ahs_claimed_amount_indicator
                     , c.can_ahs_confidential
                     , c.can_ahs_good_faith
@@ -775,7 +777,7 @@ module.exports = {
                         LEFT JOIN public.provider_contacts rend_pc ON rend_pc.id = c.rendering_provider_contact_id
                         LEFT JOIN public.providers rend_pr ON rend_pc.provider_id = rend_pr.id
                         LEFT JOIN public.provider_groups pg ON pg.id = c.ordering_facility_id
-                        LEFT JOIN public.facilities f ON p.facility_id = f.id
+                        LEFT JOIN public.facilities f ON c.facility_id = f.id
                         LEFT JOIN billing.claim_status cst ON cst.id = c.claim_status_id
                     WHERE
                         c.id = ${id}`;
@@ -1185,7 +1187,7 @@ module.exports = {
                     AND NOT sc.has_deleted
                     ORDER BY sc.study_id DESC `;
 
-        return await query(sql); 
-    } 
-    
+        return await query(sql);
+    }
+
 };
