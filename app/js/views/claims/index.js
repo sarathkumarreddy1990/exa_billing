@@ -445,7 +445,7 @@ define(['jquery',
                     success: function (response) {
                         commonjs.hideLoading();
 
-                        data = response.data;
+                        var data = response.data;
                         $('#btnCheckEligibility' + ins).prop('disabled', false);
                         if (data && data.errors) {
                             return commonjs.showNestedDialog({
