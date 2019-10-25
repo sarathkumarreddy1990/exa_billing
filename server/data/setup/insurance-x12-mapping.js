@@ -66,7 +66,7 @@ module.exports = {
 
         const sql = SQL`SELECT
                               ip.id
-                            , ip.insurance_name,
+                            , ip.insurance_name
                             , ip.insurance_code
                             , ch.id AS claimclearinghouse
                             , billing_method
