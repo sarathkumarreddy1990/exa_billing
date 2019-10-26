@@ -1,5 +1,5 @@
 {
-  "claimNumbers": {
+  "cross_reference_claim_numbers": {
     "format": "a",
     "startPos": 1,
     "length": 210

@@ -47,7 +47,13 @@ module.exports = {
 
         const sql = SQL` SELECT billing.purge_claim_or_charge(${target_id}, ${type}, ${params.audit_json}::jsonb)`;
 
-        return await query(sql);
+        try {
+            return await query(sql);
+        }
+        catch (e) {
+            console.error(e);
+            return null;
+        }
     },
 
     updateClaimStatus: async (params) => {

@@ -129,27 +129,11 @@ const processRow = tracker => row => {
 
             supporting_text = supporting_text.slice(219);
         }
-    }
 
-    /*if ( !row.service_recipient_uli ) {
-        if (
-            !row.service_recipient_registration_number &&
-            ( row.newborn_code || row.good_faith_indicator)
-        ) {
-            segments.push(makeSegment(`CPD1`, row.service_recipient_details));
+        if ( Array.isArray(row.cross_reference_claim_numbers) && row.cross_reference_claim_numbers.length > 0 ) {
+            segments.push(makeSegment(`CTX1`));
         }
     }
-
-
-
-    if ( !row.referral_id || row.oop_referral_indicator ) {
-        segments.push(makeSegment(`CPD1`, row.referring_provider_details));
-    }
-
-    if ( row.pay_to_code === `OTHR` && !row.pay_to_uli ) {
-        segments.push(makeSegment(`CPD1`, row.pay_to_details));
-    }
-    */
 
     tracker.segments += segments.length;
 
