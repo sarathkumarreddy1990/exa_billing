@@ -293,6 +293,7 @@ const ahsData = {
                 luhn_generate_checkdigit(
                     inserted_efc.sequence_number :: INT8
                 )                                            AS check_digit,
+                
                 -- currently hard-coded - AHS does not support another code right now
                 'CIP1'                                       AS transaction_type,
 
@@ -302,11 +303,14 @@ const ahsData = {
                     ELSE ''
                 END                                          AS claim_type,
 
-                pc_app.can_ahs_prid                          AS service_provider_prid,
-                sc.code                                      AS skill_code,
-                p.can_ahs_uli                                AS service_recipient_uli,
-                p.can_ahs_registration_number                AS service_recipient_registration_number,
-                p.can_ahs_registration_number_province       AS service_recipient_registration_number_province,
+                pc_app.can_ahs_prid                             AS service_provider_prid,
+                sc.code                                         AS skill_code,
+                p.can_ahs_uli                                   AS service_recipient_uli,
+                p.can_ahs_registration_number                   AS service_recipient_registration_number,
+                p.can_ahs_registration_number_province          AS service_recipient_registration_number_province,
+                p.can_ahs_parent_uli                            AS service_recipient_parent_uli,
+                p.can_ahs_parent_registration_number            AS service_recipient_parent_registration_number,
+                p.can_ahs_parent_registration_number_province   AS service_recipient_parent_registration_number_province,
 
                 CASE
                     WHEN (
@@ -344,19 +348,21 @@ const ahsData = {
                         THEN TO_CHAR(s.study_dt, 'YYYYMMDD')
                         ELSE TO_CHAR(s.hospital_admission_dt, 'YYYYMMDD')
                 END                                          AS service_start_date,
-                (row_number() OVER (ENCOUNTER_WINDOW)):: INT           AS encounter_number,
+                (row_number() OVER (ENCOUNTER_WINDOW))::INT  AS encounter_number,
                 icd.codes[1]                                 AS diagnosis_code_1,
                 icd.codes[2]                                 AS diagnosis_code_2,
                 icd.codes[3]                                 AS diagnosis_code_3,
 
-
                 -- @TODO - this may need + 1 for the days extract to make same-day considered as "1 consecutive day"
                 -- Documentation is unclear so leaving as-is until testing
-                CASE
-                    WHEN s.hospital_admission_dt IS NULL
-                    THEN scpt.units
-                    ELSE EXTRACT(DAYS FROM s.study_dt - s.hospital_admission_dt)
-                END                                          AS calls,
+                (
+                    CASE
+                        WHEN s.hospital_admission_dt IS NULL
+                        THEN bch.units
+                        ELSE EXTRACT(DAYS FROM s.study_dt - s.hospital_admission_dt)
+                    END
+                ) :: INT                                        AS calls,
+                
             --     fee_mod.codes[1]                             AS fee_modifier_1,
             --     fee_mod.codes[2]                             AS fee_modifier_2,
             --     fee_mod.codes[3]                             AS fee_modifier_3,
