@@ -135,7 +135,9 @@ module.exports = {
                                         p.birth_date AS patient_dob,
                                         p.gender AS patient_gender,
                                         p.alerts,
-                                        p.patient_info
+                                        p.patient_info,
+                                        facilities.can_ahs_business_arrangement AS can_ahs_business_arrangement_facility,
+                                        studies_details.can_ahs_locum_arrangement_provider
                                     FROM
                                         orders
                                         INNER JOIN facilities ON  facilities.id= orders.facility_id
@@ -160,7 +162,8 @@ module.exports = {
                                         JOIN LATERAL (
                                             SELECT
                                                 p.full_name AS reading_phy_full_name,
-                                                pc.id AS rendering_provider_contact_id
+                                                pc.id AS rendering_provider_contact_id,
+                                                pc.can_ahs_locum_arrangement AS can_ahs_locum_arrangement_provider
                                             FROM
                                                 public.studies s
                                                 LEFT JOIN public.study_transcriptions st ON st.study_id = s.id
@@ -417,17 +420,20 @@ module.exports = {
             , auditDetails
             , is_alberta_billing
         } = params;
-        let sql;
-        let claimCreateFunction = is_alberta_billing ? 'billing.can_ahs_create_claim_per_charge' : 'billing.create_claim_charge';
 
-        sql = SQL`SELECT `
+        const claimCreateFunction = is_alberta_billing
+            ? `billing.can_ahs_create_claim_per_charge`
+            : `billing.create_claim_charge`;
+
+        const sql = SQL`SELECT `
             .append(claimCreateFunction)
             .append(`(
-                    ('${JSON.stringify(claims)}')::jsonb,
-                    ('${JSON.stringify(insurances)}')::jsonb,
-                    ('${JSON.stringify(claim_icds)}')::jsonb,
-                    ('${JSON.stringify(auditDetails)}')::jsonb,
-                    ('${JSON.stringify(charges)}')::jsonb) as result `);
+                ('${JSON.stringify(claims)}')::jsonb,
+                ('${JSON.stringify(insurances)}')::jsonb,
+                ('${JSON.stringify(claim_icds)}')::jsonb,
+                ('${JSON.stringify(auditDetails)}')::jsonb,
+                ('${JSON.stringify(charges)}')::jsonb
+            ) as result`);
 
         return await query(sql);
     },
