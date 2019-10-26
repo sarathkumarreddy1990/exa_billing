@@ -484,8 +484,9 @@ module.exports = {
                     , c.can_ahs_pay_to_uli
                     , c.can_ahs_pay_to_details
                     , c.can_ahs_business_arrangement
+                    , c.can_ahs_locum_arrangement
                     , f.can_ahs_business_arrangement AS can_ahs_business_arrangement_facility
-                    , ref_pc.can_ahs_locum_arrangement AS can_ahs_locum_arrangement
+                    , rend_pc.can_ahs_locum_arrangement AS can_ahs_locum_arrangement_provider
                     , c.can_ahs_claimed_amount_indicator
                     , c.can_ahs_confidential
                     , c.can_ahs_good_faith

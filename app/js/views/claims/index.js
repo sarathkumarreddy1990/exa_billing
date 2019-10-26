@@ -791,7 +791,12 @@ define(['jquery',
                 var referringProvider = claim_data.ref_prov_full_name || self.usermessage.selectStudyRefProvider;
                 var orderingFacility = claim_data.ordering_facility_name || claim_data.service_facility_name || self.usermessage.selectOrdFacility;
 
-                self.ACSelect.readPhy.contact_id = claim_data.fac_rendering_provider_contact_id || claim_data.rendering_provider_contact_id || null;
+                if ( app.country_alpha_3_code === "can" && app.province_alpha_2_code === "AB" ) {
+                    self.ACSelect.readPhy.contact_id = claim_data.rendering_provider_contact_id || null;
+                }
+                else {
+                    self.ACSelect.readPhy.contact_id = claim_data.fac_rendering_provider_contact_id || claim_data.rendering_provider_contact_id || null;
+                }
                 self.ACSelect.refPhy.contact_id = claim_data.referring_provider_contact_id || null;
                 self.ACSelect.refPhy.Code = claim_data.ref_prov_code || null;
                 self.ACSelect.refPhy.Desc = referringProvider;
@@ -808,7 +813,22 @@ define(['jquery',
                 $('#ddlPayToCode').val(claim_data.can_ahs_pay_to_code).change();
                 $('#txtPayToUli').val(claim_data.can_ahs_pay_to_uli);
                 self.blurPayToUli(claim_data.can_ahs_pay_to_uli);
-                $('input[name="BusinessArrangement"]').val([claim_data.can_ahs_business_arrangement]);
+
+                /*if ( claim_data.can_ahs_business_arrangement && claim_data.can_ahs_locum_arrangement ) {
+
+                }
+                else if ( !claim_data.can_ahs_business_arrangement && claim_data.can_ahs_locum_arrangement ) {
+
+                }
+                else if ( claim_data.can_ahs_business_arrangement && claim_data.can_ahs_locum_arrangement ) {
+
+                }
+                else if ( claim_data.can_ahs_business_arrangement && claim_data.can_ahs_locum_arrangement ) {
+
+                }
+
+                $('input[name="BusinessArrangement"]').val([]);*/
+
                 $('#chkClaimedAmountIndicator').prop('checked', claim_data.can_ahs_claimed_amount_indicator);
                 $('#chkConfidential').prop('checked', claim_data.can_ahs_confidential);
                 $('#ddlNewbornCode').val(claim_data.can_ahs_newborn_code).change();
