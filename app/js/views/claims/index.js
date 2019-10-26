@@ -103,7 +103,14 @@ define(['jquery',
                     model: Backbone.Model.extend({})
                 });
                 this.facilities = new modelCollection(commonjs.bindArray(app.facilities, true, true));
-                this.states = new modelCollection(commonjs.bindArray(app.states[0].app_states, true));
+
+                var country = address.getCountryByAlpha3Code(app.country_alpha_3_code);
+
+                var states = country
+                    ? country.provinces
+                    : (app.states[ 0 ].app_states || []);
+
+                this.states = new modelCollection(commonjs.bindArray(states, true));
                 this.genders = new modelCollection(commonjs.bindArray(app.gender, true));
                 this.countries = new modelCollection(app.countries);
                 this.claimStatusList = new modelCollection(app.claim_status);
@@ -814,7 +821,21 @@ define(['jquery',
                 $('#txtPayToUli').val(claim_data.can_ahs_pay_to_uli);
                 self.blurPayToUli(claim_data.can_ahs_pay_to_uli);
 
-                /*if ( claim_data.can_ahs_business_arrangement && claim_data.can_ahs_locum_arrangement ) {
+                var payToValue = '';
+                if ( claim_data.can_ahs_business_arrangement && !claim_data.can_ahs_locum_arrangement ) {
+
+                    if (
+                        ~~claim_data.can_ahs_business_arrangement_facility === ~~claim_data.can_ahs_business_arrangement
+                    ) {
+                        // Pay to practice
+                        payToValue = 'LOC_PP';
+                    }
+                    else if (
+                        ~~claim_data.can_ahs_business_arrangement_provider === ~~claim_data.can_ahs_business_arrangement
+                    ) {
+                        // Pay to locum using practice submitter
+                        payToValue = ''
+                    }
 
                 }
                 else if ( !claim_data.can_ahs_business_arrangement && claim_data.can_ahs_locum_arrangement ) {
@@ -827,7 +848,7 @@ define(['jquery',
 
                 }
 
-                $('input[name="BusinessArrangement"]').val([]);*/
+                $('input[name="BusinessArrangement"]').val([]);
 
                 $('#chkClaimedAmountIndicator').prop('checked', claim_data.can_ahs_claimed_amount_indicator);
                 $('#chkConfidential').prop('checked', claim_data.can_ahs_confidential);
@@ -998,7 +1019,6 @@ define(['jquery',
 
             bindEditClaimInsuranceDetails: function (claimData) {
                 var self = this;
-                var states = app.states && app.states.length && app.states[0].app_states;
 
                 if (claimData.p_insurance_provider_id || null) {
 
@@ -1071,7 +1091,7 @@ define(['jquery',
                     //$('#ddlSecState').val(claimData.s_subscriber_state);
                     $('#txtSecZipCode').val(claimData.s_subscriber_zipcode);
 
-                    if (states && states.indexOf(claimData.s_subscriber_state) > -1) {
+                    if (self.states.indexOf(claimData.s_subscriber_state) > -1) {
                         $('#ddlSecState').val(claimData.s_subscriber_state);
                     }
 
@@ -1116,7 +1136,7 @@ define(['jquery',
                     //$('#ddlTerState').val(claimData.t_subscriber_state);
                     $('#txtTerZipCode').val(claimData.t_subscriber_zipcode);
 
-                    if (states && states.indexOf(claimData.t_subscriber_state) > -1) {
+                    if (self.states.indexOf(claimData.t_subscriber_state) > -1) {
                         $('#ddlTerState').val(claimData.t_subscriber_state);
                     }
 

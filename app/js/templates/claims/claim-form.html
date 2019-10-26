@@ -363,7 +363,7 @@
                         <h5 class="border-bottom border-primary">
                             <label class="font-weight-bold" i18n="billing.claims.claims"></label>
                         </h5>
-                        <% } else if (billingRegionCode === 'can_AB') { %> 
+                        <% } else if (billingRegionCode === 'can_AB') { %>
                         <h5 class="border-bottom border-primary row">
                             <label class="font-weight-bold col-lg-6" i18n="billing.claims.claims">claims</label>
                             <div class="font-weight-bold col-lg-6">
@@ -474,7 +474,7 @@
                 <div id="patientCharges" class="form-group col-sm-12">
                     <div id="patientChargeHeader" class="charge_header">
                         <div class="charge_row font-weight-bold">
-                            <div class="details_div charge_time"> 
+                            <div class="details_div charge_time">
                                 <span i18n="shared.fields.studyTime"></span>
                             </div>
                             <div class="chargeSeparator"> | </div>
@@ -698,7 +698,7 @@
                     </div>
                     <div class="form-group row" id="divPayToDetailsSecAddressInfo">
                         <!-- City / Province / Zip -->
-                        <label for="txtPayToDetailsCity" class="col-sm-3 col-form-label" i18n="setup.billingProvider.cityStateZip"></label>
+                        <label for="txtPayToDetailsCity" class="col-sm-3 col-form-label" i18n="setup.billingprovider.cityStateZip"></label>
                         <div class="col-sm-3">
                             <input type="text" class="form-control" id="txtPayToDetailsCity" i18np="billing.claims.city">
                         </div>
@@ -712,7 +712,7 @@
                             </select>
                         </div>
                         <div class="col-sm-2" style="padding-left:0px;">
-                            <input type="text" class="form-control" id="txtPayToDetailsPostalCode" i18np="billing.claims.zipCode">
+                            <input type="text" class="form-control" id="txtPayToDetailsPostalCode" i18np="shared.fields.zip">
                         </div>
                     </div>
                     <div class="form-group row">
@@ -866,7 +866,7 @@
                     </div>
                 </div>
                 <div class="form-group row" id="divPriAddressInfo">
-                    <label for="txtPriCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingProvider.cityStateZip"></label>
+                    <label for="txtPriCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.cityStateZip"></label>
                     <div class="col-sm-3">
                         <input type="text" class="form-control" id="txtPriCity" name="payCity" i18np="billing.claims.city">
                     </div>
@@ -881,7 +881,7 @@
                         </select>
                     </div>
                     <div class="col-sm-2" style="padding-left:0px;">
-                        <input type="text" class="form-control" id="txtPriZipCode" i18np="billing.claims.zipCode">
+                        <input type="text" class="form-control" id="txtPriZipCode" i18np="shared.fields.zip">
                     </div>
                 </div>
                 <% if(country_alpha_3_code !== 'can') { %>
@@ -1059,7 +1059,7 @@
                     </div>
                 </div>
                 <div class="form-group row" id="divSecAddressInfo">
-                    <label for="txtSecCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingProvider.cityStateZip"></label>
+                    <label for="txtSecCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.cityStateZip"></label>
                     <div class="col-sm-3">
                         <input type="text" class="form-control" id="txtSecCity" name="payCity" i18np="billing.claims.city">
                     </div>
@@ -1074,7 +1074,7 @@
                         </select>
                     </div>
                     <div class="col-sm-2" style="padding-left:0px;">
-                        <input type="text" class="form-control" id="txtSecZipCode" i18np="billing.claims.zipCode">
+                        <input type="text" class="form-control" id="txtSecZipCode" i18np="shared.fields.zip">
                     </div>
                 </div>
                 <% if(country_alpha_3_code !== 'can') { %>
@@ -1367,7 +1367,7 @@
                     </div>
                 </div>
                 <div class="form-group row" id="divTerAddressInfo">
-                    <label for="txtTerCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingProvider.cityStateZip"></label>
+                    <label for="txtTerCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.cityStateZip"></label>
                     <div class="col-sm-3">
                         <input type="text" class="form-control" id="txtTerCity" name="payCity" i18np="billing.claims.city">
                     </div>
@@ -1382,7 +1382,7 @@
                         </select>
                     </div>
                     <div class="col-sm-2" style="padding-left:0px;">
-                        <input type="text" class="form-control" id="txtTerZipCode" i18np="billing.claims.zipCode">
+                        <input type="text" class="form-control" id="txtTerZipCode" i18np="shared.fields.zip">
                     </div>
                 </div>
                 <% if(country_alpha_3_code !== 'can') { %>
