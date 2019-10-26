@@ -326,15 +326,15 @@ const ahsData = {
                         'last_name', p.last_name,
                         'birth_date', TO_CHAR(p.birth_date, 'YYYYMMDD'),
                         'gender_code', p.gender,
-                        'address1', regexp_replace(COALESCE(p.patient_info -> 'c1AddressLine1', ''), '[#-]', '', 'g'),
-                        'address2', regexp_replace(COALESCE(p.patient_info -> 'c1AddressLine2', ''), '[#-]', '', 'g'),
+                        'address1', REGEXP_REPLACE(COALESCE(p.patient_info -> 'c1AddressLine1', ''), '[#-]', '', 'g'),
+                        'address2', REGEXP_REPLACE(COALESCE(p.patient_info -> 'c1AddressLine2', ''), '[#-]', '', 'g'),
                         'address3', '',
                         'city', COALESCE(p.patient_info -> 'c1City', ''),
                         'postal_code', REGEXP_REPLACE(COALESCE(p.patient_info -> 'c1Zip', p.patient_info -> 'c1PostalCode', ''), '\\s', '', 'g'),
                         'province_code', COALESCE(p.patient_info -> 'c1State', p.patient_info -> 'c1Province', ''),
                         'country_code', COALESCE(p.patient_info -> 'c1country', ''),
-                        'parent_uli', '',
-                        'parent_registration_number', ''
+                        'parent_uli', COALESCE(p.can_ahs_parent_uli, ''),
+                        'parent_registration_number', COALESCE(p.can_ahs_parent_registration_number, '')
                     )
                 END                                          AS service_recipient_details,
 
