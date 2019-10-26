@@ -1,14 +1,20 @@
+'use strict';
+
+const fs = require('fs');
 const {
     promisify,
 } = require('util');
 
 const mkdirp = require('mkdirp');
 const mkdirpAsync = promisify(mkdirp);
+const statAsync = promisify(fs.stat);
+const readFileAsync = promisify(fs.readFile);
+const writeFileAsync = promisify(fs.writeFile);
 const moment = require('moment');
-const fs = require('fs');
 const _ = require('lodash');
 const siteConfig = require('../../server/config');
 const logger = require('../../logger');
+const JSZip = require('jszip');
 const sftpClient = require('ssh2-sftp-client');
 const ahsData = require('../../server/data/ahs');
 const privateKeyPath = siteConfig.get('ahsSFTPPrivateKeyPath');
@@ -25,6 +31,54 @@ const config = {
 };
 const uploadDirPath = siteConfig.get('ahsSFTPSendFolder') || `UPLOAD`;
 const downloadDirPath = siteConfig.get('ahsSFTPDownloadFolder') || `DOWNLOAD`;
+
+/**
+ * @param   {string[]}  files
+ * @param   {string}    dirPath
+ * @return {Promise<{filename: string, content: string}[]>}
+ */
+function processFiles ( files, dirPath ) {
+    const jszip = new JSZip();
+    const regBackup = /INPUT\.BACKUP\./;
+
+    /**
+     * @param file
+     * @return {Promise<{filename: string, content: string}[]|Array>}
+     */
+    async function processFile ( file ) {
+        // Only bother with the "DAILY.OUTBB" files (and whatever ARD is called)
+        if ( regBackup.test(file) ) {
+            return [];
+        }
+
+        try {
+            const fileData = await readFileAsync(file, { 'encoding': `binary` });
+            const contents = await jszip.loadAsync(fileData);
+            const filenames = Object.keys(contents.files);
+            const results = filenames.map(async zipFilePath => {
+                const bufferContent = await jszip.file(zipFilePath).async(`nodebuffer`);
+                const content = bufferContent.toString(`utf8`);
+                const filename = zipFilePath.split(/\//g).pop();
+                await writeFileAsync(`${dirPath}/${filename}`, bufferContent);
+                return {
+                    filename,
+                    content,
+                };
+            });
+
+            return await Promise.all(results);
+        }
+        catch ( e ) {
+            logger.error(`Unable to read file at ${file} - `, e);
+            return [];
+        }
+    };
+
+    return files.reduce(async ( files, file ) => [
+        ...files,
+        ...(await processFile(file))
+    ], []);
+}
 
 const sftpService = {
 
@@ -93,51 +147,61 @@ const sftpService = {
                 submitter_prefix
             } = fileStoreDetails.rows.pop();
 
-            //root_directory = '/home/radha/Documents/data'; // to support linux file system in dev env
-
-            if (!root_directory) {
-                sftpService.sendDataError('Company file store missing');
+            if ( !root_directory ) {
+                sftpService.sendDataError(`Company file store missing for companyId ${companyId}`);
             }
 
-            if (!fs.existsSync(root_directory)) {
+            try {
+                await statAsync(root_directory);
+            }
+            catch ( e ) {
                 sftpService.sendDataError('Company file store folder missing in server file system');
             }
 
             await sftp.connect(config);
-            let isExist = await sftp.exists(downloadDirPath);
+            let remotePathExists = await sftp.exists(downloadDirPath);
 
-            if (!isExist) {
-                sftpService.sendDataError('AHS Remote folder not found for download');
+            if ( !remotePathExists ) {
+                sftpService.sendDataError(`AHS Remote folder not found for download at ${downloadDirPath}`);
             }
 
             let fileList = await sftp.list(downloadDirPath);
 
-            if (!fileList.length) {
-                sftpService.sendDataError('Files not found in AHS remote folder for download');
+            if ( !fileList.length ) {
+                return {
+                    err: null,
+                    response: {
+                        status: `ok`,
+                        message: `There are no files to download`
+                    }
+                };
             }
 
             const fileDir = moment().format('YYYY/MM/DD');
-            let filePath = root_directory + '/AHS/' + fileDir;
+            let filePath = `${root_directory}/AHS/${fileDir}`;
 
-            if (!fs.existsSync(filePath)) {
-                await mkdirpAsync(filePath);
-            }
+            await mkdirpAsync(filePath);
 
-            let promises = [];
-
-            promises = _.map(fileList, async (file) => {
-                let downloadPath = `${downloadDirPath}/${file.name}`;
-                await sftp.fastGet(downloadPath, `${filePath}/${file.name}`);
-                return sftp.delete(downloadPath);
+            const promises = _.map(fileList, async (file) => {
+                const downloadPath = `${downloadDirPath}/${file.name}`;
+                const savePath = `${filePath}/${file.name}`;
+                await sftp.fastGet(downloadPath, savePath);
+                await sftp.delete(downloadPath);
+                return file.name;
             });
 
-            await Promise.all(promises);
+            const savedPaths = await Promise.all(promises);
+
+            // Call separate functions to extract data, shred into DB and add row to edi_files and match with
+            // edi_related_files
+            //
+            // const extractedFiles = await processFiles(savedPaths, filePath);
 
             return {
                 err: null,
                 response: {
-                    status: 'ok',
-                    message: 'Files downloaded successfully'
+                    status: `ok`,
+                    message: `${savedPaths.length} files downloaded successfully`
                 }
             };
         }
