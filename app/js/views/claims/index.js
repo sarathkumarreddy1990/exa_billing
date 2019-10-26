@@ -672,7 +672,7 @@ define(['jquery',
                             $(".allowedFee, .billFee").blur();
                             $(".diagCodes").blur();
 
-                            if (app.country_alpha_3_code !== 'can' || (app.country_alpha_3_code === 'can' && app.province_alpha_2_code === 'AB')) {
+                            if (app.country_alpha_3_code !== 'can' || app.province_alpha_2_code === 'AB') {
                                 /*Bind ICD List if not canadian billing*/
                                 claimDetails.claim_icd_data = claimDetails.claim_icd_data || [];
                                 self.claimICDLists = [];
@@ -1027,7 +1027,6 @@ define(['jquery',
                     payer_id: self.cur_patient_id
                 }, null);
 
-                var facility = $('#ddlFacility option:selected').val();
                 if (self.group_id || null) {
                     self.updateResponsibleList({
                         payer_type: 'POF',
@@ -1566,7 +1565,7 @@ define(['jquery',
 
             bindModifiersData: function(rowObj) {
                 var m = 1;
-                var data = function(id) {
+                function data (id) {
                     var modifiers = app.modifiers.filter(function(item){
                         return item['modifier' + id] == "true" || item['modifier' + id] == true;
                     });
@@ -4177,7 +4176,7 @@ define(['jquery',
 
                                 //EXA-18272 - AHS - claims to only have one charge / CPT each
                                 if (app.billingRegionCode === 'can_AB') {
-                                    $('#tblCharge th.addCharge th.removeCharge').show();
+                                    $('#tblCharge').find('th.addCharge, th.removeCharge').show();
                                     $('#createNewCharge').prop('disabled', false);
                                     $('.extra-span').show();
                                 }

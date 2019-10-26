@@ -212,13 +212,11 @@
                                         <th i18n="shared.fields.accession"></th>
                                         <th i18n="shared.fields.cptCode"></th>
                                         <th i18n="shared.fields.cptDescription"></th>
-                                        <% if ( country_alpha_3_code !== 'can' || province_alpha_2_code === 'AB' ) { %>
+                                        <% if ( country_alpha_3_code !== 'can' ) { %>
                                         <th i18n="shared.fields.p1"></th>
                                         <th i18n="shared.fields.p2"></th>
                                         <th i18n="shared.fields.p3"></th>
-                                        <% if(!(country_alpha_3_code === 'can' && province_alpha_2_code === 'AB')) { %>
                                         <th i18n="shared.fields.p4"></th>
-                                        <% } %>
                                         <% } %>
                                         <th i18n="shared.fields.m1"></th>
                                         <th i18n="shared.fields.m2"></th>
@@ -262,7 +260,7 @@
                                                 <td class="charges__cpt-description">
                                                     <div id="divChargeCptDesc_<%= row.data_row_id %>"></div>
                                                 </td>
-                                                <% if ( country_alpha_3_code !== 'can' || province_alpha_2_code === 'AB' ) { %>
+                                                <% if ( country_alpha_3_code !== 'can' ) { %>
                                                 <td>
                                                     <input id="ddlPointer1_<%= row.data_row_id %>" value="<%= row.pointer1 ? row.pointer1 : '' %>" class="form-control inputModifiers typeahead diagCodes" data-type="P1" data-value="<%= row.data_row_id %>" type="text">
                                                 </td>
@@ -272,11 +270,9 @@
                                                 <td>
                                                     <input id="ddlPointer3_<%= row.data_row_id %>" value="<%= row.pointer3 ? row.pointer3 : '' %>" class="form-control inputModifiers typeahead diagCodes" data-type="P3" data-value="<%= row.data_row_id %>" type="text">
                                                 </td>
-                                                <% if(!(country_alpha_3_code === 'can' && province_alpha_2_code === 'AB')) { %>
                                                 <td>
                                                     <input id="ddlPointer4_<%= row.data_row_id %>"  value="<%= row.pointer4 ? row.pointer4 : '' %>" class="form-control inputModifiers typeahead diagCodes" data-type="P4" data-value="<%= row.data_row_id %>" type="text">
                                                 </td>
-                                                <% } %>
                                                 <% } %>
 
                                                 <td>
