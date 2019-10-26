@@ -965,11 +965,18 @@ define(['jquery',
                     $businessArrangement
                         .off('change')
                         .on('change', function () {
-                            var value = $(this).val();
-                            self.setBusinessArrangement(value);
+                            if ( this.checked ) {
+                                var value = $(this).val();
+                                self.setBusinessArrangement(value);
+                            }
                         })
-                        .val([ payToValue ])
-                        .trigger('change');
+                        .val([ payToValue ]);
+
+                    // If this is a new/unsaved claim, do initial trigger to set proper vals.
+                    // Otherwise, the vals are already set and only need changing if input changes.
+                    if ( !self.can_ahs_business_arrangement ) {
+                        $businessArrangement.trigger('change');
+                    }
                 }
 
                 /* Claim section end */
