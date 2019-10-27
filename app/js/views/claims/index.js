@@ -1,4 +1,5 @@
 define(['jquery',
+'moment',
 'underscore',
 'backbone',
 'models/claims',
@@ -21,6 +22,7 @@ define(['jquery',
 'text!templates/claims/ahs_charges_today.html'
 ],
     function ($,
+        moment,
         _,
         Backbone,
         newClaimModel,
@@ -912,7 +914,7 @@ define(['jquery',
                 $('#txtPayToDetailsFirstName').val(pay_to_details.first_name);
                 $('#txtPayToDetailsMiddleName').val(pay_to_details.middle_name);
                 $('#txtPayToDetailsLastName').val(pay_to_details.last_name);
-                $('#txtPayToDetailsDOB').val(pay_to_details.birth_date);
+                $('#txtPayToDetailsDOB').val(pay_to_details.birth_date ? moment(pay_to_details.birth_date, 'YYYYMMDD').format('L') : '');
                 $('#ddlPayToDetailsGender').val(pay_to_details.gender_code).change();
                 $('#txtPayToDetailsAddr1').val(pay_to_details.address1);
                 $('#txtPayToDetailsAddr2').val(pay_to_details.address2);
@@ -3238,12 +3240,13 @@ define(['jquery',
                     var can_ahs_pay_to_details = null;
 
                     if (!can_ahs_pay_to_uli) {
+                        var birth_date = $.trim($('#txtPayToDetailsDOB').val());
                         can_ahs_pay_to_details = {
                             person_type: $.trim($('#ddlPayToDetailsPersonType').val()),
                             first_name: $.trim($('#txtPayToDetailsFirstName').val()),
                             middle_name: $.trim($('#txtPayToDetailsMiddleName').val()),
                             last_name: $.trim($('#txtPayToDetailsLastName').val()),
-                            birth_date: $.trim($('#txtPayToDetailsDOB').val()),
+                            birth_date: birth_date ? moment(birth_date, 'L').format('YYYYMMDD') : '',
                             gender_code: $.trim($('#ddlPayToDetailsGender').val()),
                             address1: $.trim($('#txtPayToDetailsAddr1').val()),
                             address2: $.trim($('#txtPayToDetailsAddr2').val()),
