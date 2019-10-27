@@ -1,3 +1,5 @@
+'use strict';
+
 const { query, SQL, audit } = require('../index');
 const moment = require('moment');
 const sprintf = require('sprintf');
@@ -7,7 +9,6 @@ const {
 } = require('util');
 
 const fs = require('fs');
-const readDirAsync = promisify(fs.readdir);
 const writeFileAsync = promisify(fs.writeFile);
 const statAsync = promisify(fs.stat);
 
@@ -76,17 +77,32 @@ const ahsData = {
         return  await query(sql.text, sql.values);
     },
 
-    updateEDIFileStatus: async (args) => {
+    updateEDIFile: async (args) => {
         const {
             status,
-            ediFileId
+            ediFileId,
+            fileInfo,
         } = args;
-        const sql = SQL` UPDATE
-                            billing.edi_files ef
-                        SET
-                            status=${status}
-                        WHERE
-                            ef.id = ${ediFileId}`;
+
+        const sql = SQL`
+            UPDATE
+                billing.edi_files ef
+            SET`;
+
+        if ( fileInfo ) {
+            sql.append(SQL`
+                file_size = ${fileInfo.file_size},
+                file_md5 = ${fileInfo.file_md5},
+            `);
+        }
+
+        sql.append(SQL`
+                status = ${status}
+            WHERE
+                ef.id = ${ediFileId}
+            RETURNING
+                id;
+        `);
 
         return  await query(sql.text, sql.values);
     },
@@ -159,7 +175,7 @@ const ahsData = {
         return (await query(sql.text, sql.values)).rows;
     },
 
-    saveAddedClaims: async (args) => {
+    saveAddedClaims: async function (args) {
 
         const {
             company_id,
@@ -200,6 +216,17 @@ const ahsData = {
             .update(data, `utf8`)
             .digest(`hex`);
 
+        const edi_file_id = await this.storeFile({
+            file_name,
+            file_md5,
+            file_size,
+            file_type: `can_ahs_a`,
+            file_store_id,
+            company_id,
+            file_path,
+            created_dt,
+        });
+
         const sql = SQL`
             WITH
                 numbers AS (
@@ -219,31 +246,6 @@ const ahsData = {
                     LIMIT
                         1
                 ),
-                inserted_ef AS (
-                    INSERT INTO billing.edi_files (
-                        company_id,
-                        file_store_id,
-                        created_dt,
-                        status,
-                        file_type,
-                        file_path,
-                        file_size,
-                        file_md5,
-                        uploaded_file_name
-                    )
-                    SELECT
-                        ${company_id},
-                        ${file_store_id},
-                        ${created_dt},
-                        'pending',
-                        'can_ahs_a',
-                        ${file_path},
-                        ${file_size},
-                        ${file_md5},
-                        ${file_name}
-                    RETURNING
-                        id
-                ),
                 inserted_efc AS (
                     INSERT INTO billing.edi_file_claims (
                         claim_id,
@@ -257,11 +259,10 @@ const ahsData = {
                         numbers.batch_number :: TEXT,
                         ( numbers.sequence_number + row_number() OVER () ) % 10000000,
                         'a',
-                        inserted_ef.id
+                        ${edi_file_id}
                     FROM
                         UNNEST(${claimIds} :: BIGINT[]) claims,
-                        numbers,
-                        inserted_ef
+                        numbers
                     RETURNING
                         *
                 ),
@@ -676,19 +677,11 @@ const ahsData = {
             return null;
         }
 
-        const [{
-            edi_file_id,
-        }] = result.rows;
-
-        const encoded_text = claimEncoder.encode(result.rows);
-
-        await writeFileAsync(fullPath, encoded_text, { 'encoding': `utf8` });
-
-        return  {
+        return {
             edi_file_id,
             dir_path,
             file_name,
-            encoded_text,
+            rows: result.rows,
         };
     },
 
@@ -709,6 +702,49 @@ const ahsData = {
 
         return query(fileSql.text, fileSql.values);
 
+    },
+
+    storeFile: async info => {
+        const {
+            file_name,
+            file_md5,
+            file_size,
+            file_type,
+            created_dt,
+            file_store_id,
+            company_id,
+            file_path,
+        } = info;
+
+        const sql = SQL`
+            INSERT INTO billing.edi_files (
+                company_id,
+                file_store_id,
+                created_dt,
+                status,
+                file_type,
+                file_path,
+                file_size,
+                file_md5,
+                uploaded_file_name
+            )
+            SELECT
+                ${company_id},
+                ${file_store_id},
+                ${created_dt},
+                'pending',
+                ${file_type},
+                ${file_path},
+                ${file_size},
+                ${file_md5},
+                ${file_name}
+            RETURNING
+                id
+        `;
+
+        const dbResults = (await query(sql.text, sql.values)).rows;
+
+        return dbResults.pop().id;
     },
 
 

@@ -1,5 +1,6 @@
 'use strict';
 
+const crypto = require('crypto');
 const fs = require('fs');
 const {
     promisify,
@@ -37,7 +38,7 @@ const downloadDirPath = siteConfig.get('ahsSFTPDownloadFolder') || `DOWNLOAD`;
  * @param   {string}    dirPath
  * @return {Promise<{filename: string, content: string}[]>}
  */
-function processFiles ( files, dirPath ) {
+function* processFiles ( files, dirPath ) {
     const jszip = new JSZip();
     const regBackup = /INPUT\.BACKUP\./;
 
@@ -58,10 +59,19 @@ function processFiles ( files, dirPath ) {
             const results = filenames.map(async zipFilePath => {
                 const bufferContent = await jszip.file(zipFilePath).async(`nodebuffer`);
                 const content = bufferContent.toString(`utf8`);
-                const filename = zipFilePath.split(/\//g).pop();
-                await writeFileAsync(`${dirPath}/${filename}`, bufferContent);
+                const file_name = zipFilePath.split(/\//g).pop();
+
+                let file_md5 = crypto
+                    .createHash(`MD5`)
+                    .update(bufferContent, `utf8`)
+                    .digest(`hex`);
+
+                await writeFileAsync(`${dirPath}/${file_name}`, bufferContent);
+                const stat = await statAsync(`${dirPath}/${file_name}`);
                 return {
-                    filename,
+                    file_md5,
+                    file_name,
+                    file_size: stat.size,
                     content,
                 };
             });
@@ -74,16 +84,9 @@ function processFiles ( files, dirPath ) {
         }
     };
 
-    const reducer = async ( files, file ) => {
-        const zipData = await processFile(file);
-        return [
-            ...files,
-            ...zipData
-        ];
-    };
-
-    const processedFiles = files.reduce(reducer, []);
-    return processedFiles;
+    for ( let i = 0; i < files.length; ++i ) {
+        yield processFile(files[ i ]);
+    }
 }
 
 const sftpService = {
@@ -149,6 +152,7 @@ const sftpService = {
         try {
             let fileStoreDetails = await ahsData.getCompanyFileStore(companyId);
             let {
+                file_store_id: fileStoreId,
                 root_directory,
                 submitter_prefix
             } = fileStoreDetails.rows.pop();
@@ -183,8 +187,10 @@ const sftpService = {
                 };
             }
 
-            const fileDir = moment().format('YYYY/MM/DD');
-            let filePath = `${root_directory}/AHS/${fileDir}`;
+            const now = moment();
+            const created_dt = now.format();
+            const fileDir = `AHS/${now.format('YYYY/MM/DD')}`;
+            let filePath = `${root_directory}/${fileDir}`;
 
             await mkdirpAsync(filePath);
 
@@ -201,7 +207,43 @@ const sftpService = {
             // Call separate functions to extract data, shred into DB and add row to edi_files and match with
             // edi_related_files
             //
-            const extractedFiles = processFiles(savedPaths, filePath);
+            const extract = processFiles(savedPaths, filePath);
+            let extractedFiles = extract.next();
+            while ( !extractedFiles.done ) {
+                // handle each set of files
+
+                const fileInfoArray = await extractedFiles.value;
+                for ( let i = 0; i < fileInfoArray.length; ++i ) {
+                    const fileInfo = fileInfoArray[ i ];
+
+                    const {
+                        file_name,
+                        file_md5,
+                        file_size,
+                        content,
+                    } = fileInfo;
+
+                    await ahsData.storeFile({
+                        file_name,
+                        file_md5,
+                        file_size,
+                        file_store_id: fileStoreId,
+                        company_id: companyId,
+                        file_path: fileDir,
+                        created_dt,
+                        // @TODO - hard-coding for testing for now, need to have a check of ARD vs BBR, pending EXA-18282
+                        file_type: `can_ahs_bbr`,
+                    });
+
+                    // @TODO - is only raw text still, pending EXA-18282
+                    // @TODO - will also need to update edi_related_files.response_file_id
+                    /*await ahsData.batchBalanceClaims({
+                        company_id: companyId,
+                        balance_claims_report: content,
+                    });*/
+                }
+                extractedFiles = extract.next();
+            }
 
             return {
                 err: null,
