@@ -473,7 +473,7 @@ const ahsData = {
                         CASE
                             WHEN bc.can_ahs_emsaf_reason IS NOT NULL
                             THEN 'Y'
-                            ELSE ''
+                            ELSE 'N'
                         END                                          AS emsaf_indicator,
         
                         bc.can_ahs_emsaf_reason                      AS emsaf_reason,
