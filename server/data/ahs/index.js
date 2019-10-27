@@ -343,7 +343,7 @@ const ahsData = {
                             )
                         END                                          AS service_recipient_details,
         
-                        cpt.ref_code                                 AS health_service_code,
+                        cpt.display_code                             AS health_service_code,
                         CASE
                             WHEN s.hospital_admission_dt IS NULL
                                 THEN TO_CHAR(s.study_dt, 'YYYYMMDD')

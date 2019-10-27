@@ -52,7 +52,7 @@ function processFiles ( files, dirPath ) {
         }
 
         try {
-            const fileData = await readFileAsync(file, { 'encoding': `binary` });
+            const fileData = await readFileAsync(`${dirPath}/${file}`, { 'encoding': `binary` });
             const contents = await jszip.loadAsync(fileData);
             const filenames = Object.keys(contents.files);
             const results = filenames.map(async zipFilePath => {
@@ -74,10 +74,16 @@ function processFiles ( files, dirPath ) {
         }
     };
 
-    return files.reduce(async ( files, file ) => [
-        ...files,
-        ...(await processFile(file))
-    ], []);
+    const reducer = async ( files, file ) => {
+        const zipData = await processFile(file);
+        return [
+            ...files,
+            ...zipData
+        ];
+    };
+
+    const processedFiles = files.reduce(reducer, []);
+    return processedFiles;
 }
 
 const sftpService = {
@@ -195,7 +201,7 @@ const sftpService = {
             // Call separate functions to extract data, shred into DB and add row to edi_files and match with
             // edi_related_files
             //
-            // const extractedFiles = await processFiles(savedPaths, filePath);
+            const extractedFiles = processFiles(savedPaths, filePath);
 
             return {
                 err: null,

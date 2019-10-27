@@ -41,7 +41,9 @@ for ( const key in descriptors ) {
         throw new Error(`Failed validation of claim descriptor '${key}'`);
     }
 
-    hydrateRecordDescriptor(descriptor);
+    hydrateRecordDescriptor(descriptor, fieldDesc => ({
+        'isLeftJustified': fieldDesc.format.toLowerCase() === `a`
+    }));
 };
 
 /**

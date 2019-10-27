@@ -181,7 +181,8 @@
   "hospital_admission_date": {
     "format": "n",
     "startPos": 191,
-    "length": 8
+    "length": 8,
+    "paddingChar": "0"
   },
   "tooth_code": {
     "format": "a",

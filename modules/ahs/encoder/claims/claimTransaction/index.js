@@ -41,7 +41,9 @@ for ( const key in descriptors ) {
         throw new Error(`Failed validation of claim descriptor '${key}'`);
     }
 
-    hydrateRecordDescriptor(descriptor);
+    hydrateRecordDescriptor(descriptor, fieldDesc => ({
+        'isLeftJustified': fieldDesc.format.toLowerCase() === `a`
+    }));
 }
 
 const claimTransactionHeader = ( row ) => {
@@ -54,12 +56,13 @@ const claimTransactionHeader = ( row ) => {
         'check_digit': row.check_digit,
         'transaction_type': row.transaction_type,
         'action_code': row.action_code,
+        'segment_sequence': 1,
     };
 
     return ( segmentType, segmentData ) => {
         const headerRecord = {
             ...headerContext,
-            'segment_sequence': ++headerContext.segment_sequence,
+            'segment_sequence': headerContext.segment_sequence++,
             'segment_type': segmentType,
             'empty': ``,
         };
@@ -74,6 +77,20 @@ const claimTransactionHeader = ( row ) => {
         return `${encodedHeader}${encodedSegment}`;
     };
 };
+
+function* processSupportingText ( text ) {
+    let textSegments = text.length % 73;
+
+    while ( text.length > 0 && textSegments > 0 ) {
+        yield {
+            'supporting_text_1': (textSegments--, text.slice(0, 73)),
+            'supporting_text_2': (textSegments--, text.slice(73, 73)),
+            'supporting_text_3': (textSegments--, text.slice(146, 73)),
+        };
+
+        text = text.slice(219);
+    }
+}
 
 const processRow = tracker => row => {
 
@@ -112,26 +129,24 @@ const processRow = tracker => row => {
     }
 
     if ( row.supporting_text ) {
-        let {
-            supporting_text,
-        } = row;
-
-        let textSegments = supporting_text.length % 73;
-
-        while ( supporting_text.length > 0 && textSegments > 0 ) {
-            const supportingTextMap = {
-                'supporting_text_1': (textSegments--, supporting_text.slice(0, 73)),
-                'supporting_text_2': (textSegments--, supporting_text.slice(73, 73)),
-                'supporting_text_3': (textSegments--, supporting_text.slice(146, 73)),
-            };
-
-            segments.push(makeSegment(`CST1`, supportingTextMap));
-
-            supporting_text = supporting_text.slice(219);
+        const textGen = processSupportingText(row.supporting_text);
+        let textMap = textGen.next();
+        while ( !textMap.done ) {
+            segments.push(makeSegment(`CST1`, textMap.value));
+            textMap = textGen.next();
         }
 
         if ( Array.isArray(row.cross_reference_claim_numbers) && row.cross_reference_claim_numbers.length > 0 ) {
             segments.push(makeSegment(`CTX1`));
+        }
+    }
+
+    if ( row.emsaf_reason ) {
+        const textGen = processSupportingText(row.emsaf_reason);
+        let textMap = textGen.next();
+        while ( !textMap.done ) {
+            segments.push(makeSegment(`CST1`, textMap.value));
+            textMap = textGen.next();
         }
     }
 
