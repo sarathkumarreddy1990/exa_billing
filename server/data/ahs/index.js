@@ -769,7 +769,35 @@ const ahsData = {
         const sql = SQL` SELECT billing.can_ahs_handle_claim_balance_report(${batchBalanceReportJson}::jsonb, ${company_id})`;
 
         return await query(sql);
-    }
+    },
+
+         /**
+    * Handle incoming Batch Balance report file
+    *
+    * @param  {object} args    {
+    *                              fileId: Number,
+    *                              facilityId: Number,
+    *                              fileData: Object,   // ARD paymenrs json object
+    *                              userId: Number
+    *                          }
+    * @returns {object}        {
+    *                              response: boolean
+    *                          }
+    */
+    applyPayments: async args => {
+        let {
+            fileId,
+            fileData,
+            companyId,
+            userId,
+            facilityId
+        } = args;
+        let auditDetails = { }; //TO DO : Integrate with SFTP
+     
+     const sql = SQL` SELECT billing.can_ahs_apply_payments(${fileData}::jsonb, ${facilityId}, ${auditDetails}) `;
+
+     return await query(sql);
+ }
 
 };
 
