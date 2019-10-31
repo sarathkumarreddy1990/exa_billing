@@ -135,6 +135,7 @@ define([
             ulListBinding: function (field_order, listID, checkedGridFields) {
                 var $ol = $('#' + listID),
                     $li, $label, $checkbox;
+                var checkedFieldLength = this.checkedFields.length;
                 $('#' + listID).empty();
                 for (var i = 0; i < field_order.length; i++) {
                     var id = 'sf~' + field_order[i].id;
@@ -143,8 +144,14 @@ define([
                     var newLi = $('<li>');
                     var newCB = CreateCheckBox(value, id, i18nLabel);
                     var defaultOptions = ['Billing Method', 'Patient Name', 'Claim Date', 'Clearing House', 'Billing Provider','Patient','Study Date','Account#','Status','Accession#', 'Billed Status','Payer Type','Claim Status','Claim No', 'AHS Claim Num'];
-                    if (defaultOptions.indexOf(value) != -1)
+                    if (defaultOptions.indexOf(value) != -1) {
                         newCB.find('input[type=checkbox]').attr('data_name', screenName).addClass('chkBillFields').prop("disabled", "true").attr('checked', true);
+
+                        if (!checkedFieldLength) {
+                            this.checkedFields.push(field_order[i].id);
+                        }
+                    }
+
                     if (listID == 'ulSortBillingList') {
                         var screenName = field_order[i].screen_name;
                         newCB.find('input[type=checkbox]').attr('data_name', screenName).addClass('chkBillFields');
@@ -204,7 +211,7 @@ define([
                         }
                         var result_data = data && data.length && data[1] && data[1].rows && data[1].rows.length ? data[1].rows[0] : {};
                         self.checkedBillingDisplayFields = result_data.field_order || [] ;
-                        var checkedGridFields = self.checkedBillingDisplayFields ? self.checkedBillingDisplayFields : [];
+                        self.checkedFields = self.checkedBillingDisplayFields ? self.checkedBillingDisplayFields : [];
                         var gridFieldArray = [],
                             field_order = [];
                         var sortColumn, sortOrder;
@@ -244,11 +251,11 @@ define([
                             }
                         });
 
-                        self.ulListBinding(displayFields, 'ulSortList', checkedGridFields);
+                        self.ulListBinding(displayFields, 'ulSortList', self.checkedFields);
 
                         // Remove Billed status column in dropdown
                         self.billingDisplayFields = _.reject(self.billingDisplayFields, function (obj) {
-                            return (!checkedGridFields.includes(obj.id) || obj.field_code === 'billed_status');
+                            return (!self.checkedFields.includes(obj.id) || obj.field_code === 'billed_status');
                         });
 
                         this.defaults = defaultFields(self.gridFilterName).toArray();

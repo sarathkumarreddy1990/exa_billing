@@ -217,7 +217,7 @@ module.exports = {
                     , ${city}
                     , ${state}
                     , ${zipCode}
-                    , ${zipCodePlus}
+                    , ${zipCodePlus || ''}
                     , ${email}
                     , ${phoneNumber}
                     , ${faxNumber}
