@@ -142,7 +142,7 @@ define(['jquery',
                     datastore: self.billingProvidersList,
                     container: self.el,
                     customizeSort: true,
-                    offsetHeight: 01,
+                    offsetHeight: 1,
                     sortname: "id",
                     sortorder: "desc",
                     sortable: {
@@ -187,7 +187,7 @@ define(['jquery',
                     qualifierCodes: qualifierCodes,
                     states: states
                 }));
-                if(app.country_alpha_3_code === 'can'){
+                if ( app.country_alpha_3_code === 'can' && app.province_alpha_2_code === 'ON' ) {
                     $('#txtNpi').attr('maxlength', 4);
                 }
                 var AddressInfoMap = {
@@ -243,7 +243,6 @@ define(['jquery',
                                     $('#txtFederalTaxID').val(data.federal_tax_id || '');
                                     $('#txtNpi').val(data.npi_no || '');
                                     $('#txtTaxonomy').val(data.taxonomy_code || '');
-                                    $('#txtBusinessArrangement').val(data.can_ahs_business_arrangement || '');
                                     $('#txtContactName').val(data.contact_person_name || '');
                                     $('#txtAddressLine1').val(data.address_line1 || '');
                                     $('#txtAddressLine2').val(data.address_line2 || '');
@@ -274,11 +273,11 @@ define(['jquery',
                                     $('#txtSentFolder').val(communication_info.Ftp_sent_folder || '');
                                     $('#txtReceiveFolder').val(communication_info.Ftp_receive_folder || '');
                                     $('#txtIdentityFilePath').val(communication_info.Ftp_identity_file || '');
-                                    
+
                                     var $txtPayCity = $("[for=txtPayCity]");
                                     $txtPayCity.find("span").remove();
                                     $txtPayCity.removeClass('field-required');
-									
+
                                 }
                                 self.showFTPDetails();
                                 self.bindProviderIDCodes();
@@ -352,13 +351,13 @@ define(['jquery',
                         required: true
                     },
                     federalTaxID: {
-                        required: true
+                        required: app.country_alpha_3_code === 'usa'
                     },
                     npiNo: {
-                        required: true
+                        required: (app.country_alpha_3_code !== 'can' || app.province_alpha_2_code !== 'AB')
                     },
                     taxonomy: {
-                        required: true
+                        required: app.country_alpha_3_code === 'usa'
                     },
                     contactPersonName: {
                         required: true
@@ -488,8 +487,7 @@ define(['jquery',
                     "payToEmail": $('#txtPayEmail').val(),
                     "payToPhoneNumber": $('#txtPayBillProPhoneNo').val(),
                     "payToFaxNumber": $('#txtPayFaxNo').val(),
-                    "communicationInfo": communication_info,
-                    "businessArrangement": $('#txtBusinessArrangement').val()
+                    "communicationInfo": communication_info
                 });
 
                 this.model.save({}, {

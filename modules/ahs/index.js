@@ -1,10 +1,19 @@
 'use strict';
 
+const {
+    promisify,
+} = require('util');
+
+const fs = require('fs');
+const writeFileAsync = promisify(fs.writeFile);
+const statAsync = promisify(fs.stat);
+const crypto = require('crypto');
 const _ = require('lodash');
 const ahs = require('../../server/data/ahs/index');
 const claimWorkBenchController = require('../../server/controllers/claim/claim-workbench');
 const validateClaimsData = require('../../server/data/claim/claim-workbench');
 const sftp = require('./sftp');
+const claimEncoder = require('./encoder/claims');
 
 module.exports = {
 
@@ -65,9 +74,31 @@ module.exports = {
 
         let submitResponse = await ahs.saveAddedClaims(args);
 
+        const {
+            dir_path,
+            file_name,
+            edi_file_id,
+            rows,
+        } = submitResponse;
+
+        const fullPath = `${dir_path}/${file_name}`;
+        const encoded_text = claimEncoder.encode(rows);
+        await writeFileAsync(fullPath, encoded_text, { 'encoding': `utf8` });
+        const statAfter = await statAsync(fullPath);
+        const file_size = statAfter.size;
+        const file_md5 = crypto
+            .createHash(`MD5`)
+            .update(encoded_text, `utf8`)
+            .digest(`hex`);
+
+        const fileInfo = {
+            file_size,
+            file_md5,
+        };
+
         let sftpdata = {
-            fileName: submitResponse.file_name,
-            folderPath: submitResponse.dir_path
+            fileName: file_name,
+            folderPath: dir_path
         };
 
         let sftpResult = await sftp.upload(sftpdata);
@@ -81,16 +112,18 @@ module.exports = {
                 userId: args.userId,
             });
 
-            await ahs.updateEDIFileStatus({
+            await ahs.updateEDIFile({
                 status: 'success',
-                ediFileId: submitResponse.edi_file_id
+                ediFileId: edi_file_id,
+                fileInfo,
             });
 
         }
         else {
-            await ahs.updateEDIFileStatus({
+            await ahs.updateEDIFile({
                 status: 'failure',
-                ediFileId: submitResponse.edi_file_id
+                ediFileId: edi_file_id,
+                fileInfo,
             });
         }
 

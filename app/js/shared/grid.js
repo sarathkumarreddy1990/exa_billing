@@ -1510,8 +1510,9 @@ define('grid', [
                 var searchFilterFlag = grid.getGridParam("postData")._search;
                 var colHeader = studyFields.colName;
                 var current_filter_id = $('#claimsTabs').find('.active a').attr('data-container')
-                var isDatePickerClear = filterCol && filterCol.indexOf('claim_dt') === -1;
-
+                var filterContent = commonjs.loadedStudyFilters.get(filterID);
+                var isDatePickerClear = filterContent.options && filterContent.options.customargs && filterContent.options.customargs.isDatePickerClear;
+                
                 if (options.filterid != 'Follow_up_queue') {
                     commonjs.showLoading();
 

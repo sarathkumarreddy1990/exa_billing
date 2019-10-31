@@ -153,69 +153,75 @@
     "startPos": 182,
     "length": 1
   },
-  "confidential_indicator": {
+  "intercept_reason": {
     "format": "a",
     "startPos": 183,
+    "length": 4
+  },
+  "confidential_indicator": {
+    "format": "a",
+    "startPos": 187,
     "length": 1
   },
   "good_faith_indicator": {
     "format": "a",
-    "startPos": 184,
+    "startPos": 188,
     "length": 1
   },
   "newborn_code": {
     "format": "a",
-    "startPos": 185,
+    "startPos": 189,
     "length": 4
   },
   "emsaf_indicator": {
     "format": "a",
-    "startPos": 189,
+    "startPos": 193,
     "length": 1
   },
   "paper_supporting_documentation_indicator": {
     "format": "a",
-    "startPos": 190,
+    "startPos": 194,
     "length": 1
   },
   "hospital_admission_date": {
     "format": "n",
-    "startPos": 191,
-    "length": 8
+    "startPos": 195,
+    "length": 8,
+    "paddingChar": "0"
   },
   "tooth_code": {
-    "format": "a",
-    "startPos": 199,
-    "length": 2
-  },
-  "tooth_surface1": {
-    "format": "a",
-    "startPos": 201,
-    "length": 2
-  },
-  "tooth_surface2": {
     "format": "a",
     "startPos": 203,
     "length": 2
   },
-  "tooth_surface3": {
+  "tooth_surface1": {
     "format": "a",
     "startPos": 205,
     "length": 2
   },
-  "tooth_surface4": {
+  "tooth_surface2": {
     "format": "a",
     "startPos": 207,
     "length": 2
   },
-  "tooth_surface5": {
+  "tooth_surface3": {
     "format": "a",
     "startPos": 209,
     "length": 2
   },
-  "empty": {
+  "tooth_surface4": {
     "format": "a",
     "startPos": 211,
+    "length": 2
+  },
+  "tooth_surface5": {
+    "format": "a",
+    "startPos": 213,
+    "length": 2
+  },
+  "empty": {
+    "format": "a",
+    "startPos": 215,
     "length": 9
   }
 }

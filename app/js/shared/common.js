@@ -3574,9 +3574,6 @@ var commonjs = {
         commonjs.showLoading('Logging out...');
         commonjs.resetScreenNameCookie();
         commonjs.setCookie('patquery', '', -1);
-        if (prefetch.windowObj && typeof prefetch.windowObj.close !== 'undefined') {
-            prefetch.windowObj.close();
-        }
 
         $.ajax({
             url: "/broadcast",
@@ -3589,9 +3586,7 @@ var commonjs = {
             success: function (data) {
                 setTimeout(function () {
                     commonjs.hideLoading();
-                    if (prefetchViewer)
-                        prefetchViewer.closeAllViewerWindows();
-                    location.href = '/logout?user=1';
+                    location.href = '/logout';
                 }, 1000);
             },
             error: function (request, status, error) {

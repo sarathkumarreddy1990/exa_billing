@@ -135,7 +135,9 @@ module.exports = {
                                         p.birth_date AS patient_dob,
                                         p.gender AS patient_gender,
                                         p.alerts,
-                                        p.patient_info
+                                        p.patient_info,
+                                        facilities.can_ahs_business_arrangement AS can_ahs_business_arrangement_facility,
+                                        studies_details.can_ahs_locum_arrangement_provider
                                     FROM
                                         orders
                                         INNER JOIN facilities ON  facilities.id= orders.facility_id
@@ -160,7 +162,8 @@ module.exports = {
                                         JOIN LATERAL (
                                             SELECT
                                                 p.full_name AS reading_phy_full_name,
-                                                pc.id AS rendering_provider_contact_id
+                                                pc.id AS rendering_provider_contact_id,
+                                                pc.can_ahs_locum_arrangement AS can_ahs_locum_arrangement_provider
                                             FROM
                                                 public.studies s
                                                 LEFT JOIN public.study_transcriptions st ON st.study_id = s.id
@@ -417,17 +420,20 @@ module.exports = {
             , auditDetails
             , is_alberta_billing
         } = params;
-        let sql;
-        let claimCreateFunction = is_alberta_billing ? 'billing.can_ahs_create_claim_per_charge' : 'billing.create_claim_charge';
 
-        sql = SQL`SELECT `
+        const claimCreateFunction = is_alberta_billing
+            ? `billing.can_ahs_create_claim_per_charge`
+            : `billing.create_claim_charge`;
+
+        const sql = SQL`SELECT `
             .append(claimCreateFunction)
             .append(`(
-                    ('${JSON.stringify(claims)}')::jsonb,
-                    ('${JSON.stringify(insurances)}')::jsonb,
-                    ('${JSON.stringify(claim_icds)}')::jsonb,
-                    ('${JSON.stringify(auditDetails)}')::jsonb,
-                    ('${JSON.stringify(charges)}')::jsonb) as result `);
+                ('${JSON.stringify(claims)}')::jsonb,
+                ('${JSON.stringify(insurances)}')::jsonb,
+                ('${JSON.stringify(claim_icds)}')::jsonb,
+                ('${JSON.stringify(auditDetails)}')::jsonb,
+                ('${JSON.stringify(charges)}')::jsonb
+            ) as result`);
 
         return await query(sql);
     },
@@ -484,6 +490,9 @@ module.exports = {
                     , c.can_ahs_pay_to_uli
                     , c.can_ahs_pay_to_details
                     , c.can_ahs_business_arrangement
+                    , c.can_ahs_locum_arrangement
+                    , f.can_ahs_business_arrangement AS can_ahs_business_arrangement_facility
+                    , rend_pc.can_ahs_locum_arrangement AS can_ahs_locum_arrangement_provider
                     , c.can_ahs_claimed_amount_indicator
                     , c.can_ahs_confidential
                     , c.can_ahs_good_faith
@@ -775,7 +784,7 @@ module.exports = {
                         LEFT JOIN public.provider_contacts rend_pc ON rend_pc.id = c.rendering_provider_contact_id
                         LEFT JOIN public.providers rend_pr ON rend_pc.provider_id = rend_pr.id
                         LEFT JOIN public.provider_groups pg ON pg.id = c.ordering_facility_id
-                        LEFT JOIN public.facilities f ON p.facility_id = f.id
+                        LEFT JOIN public.facilities f ON c.facility_id = f.id
                         LEFT JOIN billing.claim_status cst ON cst.id = c.claim_status_id
                     WHERE
                         c.id = ${id}`;
@@ -1185,7 +1194,7 @@ module.exports = {
                     AND NOT sc.has_deleted
                     ORDER BY sc.study_id DESC `;
 
-        return await query(sql); 
-    } 
-    
+        return await query(sql);
+    }
+
 };
