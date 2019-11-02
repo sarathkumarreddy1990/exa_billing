@@ -28,7 +28,7 @@ const config = {
         cipher: ['aes128-cbc']
     },
     privateKey: fs.existsSync(privateKeyPath) && fs.readFileSync(privateKeyPath, 'utf8'),
-    passphrase: siteConfig.get('ahsSFTPPublicKeyPassPhrase') || undefined // wont be needed in production
+    passphrase: siteConfig.get('ahsSFTPPrivateKeyPassPhrase') || undefined // wont be needed in production
 };
 const uploadDirPath = siteConfig.get('ahsSFTPSendFolder') || `UPLOAD`;
 const downloadDirPath = siteConfig.get('ahsSFTPDownloadFolder') || `DOWNLOAD`;
