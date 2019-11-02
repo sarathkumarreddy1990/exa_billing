@@ -88,7 +88,7 @@ module.exports = {
                                         default_tab
                                     FROM   billing.user_settings
                                     WHERE  user_id=${userID}  ) AS userSettings)
-               , cte_study_status AS(
+                , cte_study_status AS(
                                     SELECT Json_agg(Row_to_json(study_status)) study_status
                                     FROM  (
                                     SELECT id,
@@ -374,6 +374,14 @@ module.exports = {
                             , communication_info
                         FROM billing.edi_clearinghouses ) AS clearing_house
                 ),
+                
+                cte_cities AS (
+                    SELECT
+                        JSON_AGG(c) cities
+                    FROM
+                        ( SELECT * FROM cities ) c                
+                ),
+                
                 cte_grid_filter AS(
                     SELECT json_agg(row_to_json(grid_filter))grid_filter
                         FROM
@@ -421,6 +429,7 @@ module.exports = {
                       cte_custom_study_status,
                       cte_clearing_house,
                       cte_vehicle_list,
+                      cte_cities,
                       cte_grid_filter
                `;
 
