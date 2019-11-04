@@ -21,7 +21,8 @@ define([
     // 'text!templates/faxDialog.html',
     'collections/claim-patient-log',
     'views/app/unapplied-payment',
-    'text!templates/claims/claim-inquiry-cas.html'
+    'text!templates/claims/claim-inquiry-cas.html',
+    'shared/report-utils'
 ], function (
     $,
     _,
@@ -45,7 +46,8 @@ define([
     // faxDialogHtml,
     claimPatientLogList,
     unappliedPaymentView,
-    casTemplate
+    casTemplate,
+    UI
 ) {
         var paperClaim = new PaperClaim(true);
 
@@ -478,6 +480,7 @@ define([
 
             showInvoiceGrid: function (claimID, patientId,payer_type) {
                 var self = this;
+                var claim_id = claimID;
                 $('#divInvoiceGrid').show();
                 this.invoiceTable = new customGrid();
                 this.invoiceTable.render({
@@ -581,6 +584,14 @@ define([
                 $('.inquiryReload').click(function(){
                     self.invoicePager.set({ "PageNo": 1 });
                     self.invoiceTable.refreshAll();
+                });
+
+                $('.inquiryActivity').click(function(){
+                  if(self.claimInvoiceList && self.claimInvoiceList.length){
+                    self.invoiceActivityStatement(claimID);
+                  } else {
+                      commonjs.showWarning('messages.status.noRecordFound')
+                  }
                 });
 
             },
@@ -1489,6 +1500,13 @@ define([
                 $('#txtFaxReceiverName').val('');
                 $('#txtFaxReceiverNumber').val('');
                 $('#divFaxReceipientPaperClaim').hide();
+            },
+
+            invoiceActivityStatement: function(claimId){
+                var urlParams = {
+                    claimId : claimId
+                };
+                UI.showReport('invoice-activity-statement', 'billing', 'pdf', urlParams, true);
             }
     });
 });
