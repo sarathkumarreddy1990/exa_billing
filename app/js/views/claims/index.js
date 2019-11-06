@@ -181,7 +181,7 @@ define(['jquery',
                         chargeList: self.claimChargeList || [],
                         paymentList: self.paymentList,
                         billingRegionCode: app.billingRegionCode,
-                        currentDate: moment().format('L')
+                        currentDate: self.studyDate
                     })
                 });
 
@@ -4089,7 +4089,7 @@ define(['jquery',
                     type: 'GET',
                     data: {
                         patient_id: id,
-                        current_date: moment().format('YYYY-MM-DD')
+                        current_date: self.studyDate
                     },
                     success: function (data, response) {
 
