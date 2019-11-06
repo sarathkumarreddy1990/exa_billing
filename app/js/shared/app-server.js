@@ -111,6 +111,8 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
 
                     app.study_user_settings = _.where(app.usersettings, { grid_name: 'studies' })[0];
                     app.claim_user_settings = _.where(app.usersettings, { grid_name: 'claims' })[0];
+                    app.study_user_settings.grid_field_settings = app.study_user_settings.grid_field_settings || studySetting.grid_field_settings;
+                    app.claim_user_settings.grid_field_settings = app.claim_user_settings.grid_field_settings || claimSetting.grid_field_settings;
                     app.default_study_tab = app.study_user_settings.default_tab;
                     app.default_claim_tab = app.claim_user_settings.default_tab;
                     var sys_config = app.company.sys_config;
