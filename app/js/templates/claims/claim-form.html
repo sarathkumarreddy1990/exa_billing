@@ -212,7 +212,6 @@
                                         <th i18n="shared.fields.accession"></th>
                                         <th i18n="shared.fields.cptCode"></th>
                                         <th i18n="shared.fields.cptDescription"></th>
-                                        <% console.log(billingRegionCode); %>
                                         <% if (country_alpha_3_code !== 'can' || billingRegionCode === 'can_AB') { %>
                                         <% if (billingRegionCode !== 'can_AB') { %>
                                         <th i18n="shared.fields.p1"></th>
@@ -367,7 +366,7 @@
                         <h5 class="border-bottom border-primary">
                             <label class="font-weight-bold" i18n="billing.claims.claims"></label>
                         </h5>
-                        <% } else { %> 
+                        <% } else { %>
                         <h5 class="border-bottom border-primary row">
                             <label class="font-weight-bold col-lg-6" i18n="billing.claims.claims">claims</label>
                             <div class="font-weight-bold col-lg-6">
