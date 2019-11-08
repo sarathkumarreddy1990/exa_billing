@@ -527,6 +527,35 @@ define(['jquery',
                 self.bindclaimFormEvents(isFrom);
             },
 
+            "referralCodesMap": {
+                "A": "Referral Req'd by Med, Pod, Midwife, can't be self",
+                "B": "Req'd Med,Pod,Dent,NurPrac,Chiro,Midwife,Opto can't be Self-",
+                "C": "Referral Req'd by Med, Dental, Podiatry, chiro",
+                "D": "RefReqd MEDDS,CHIRDS,DENTDS,PODDS,NRPR,PHTH,SelfRef",
+                "E": "Referral required by Med or Dental",
+                "F": "Ref Req'd by Med, Dent, Pod, Midwife, can be self",
+                "G": "Req'd Med,Midwife,NurPrac,Chiro-can't be Self-Ref",
+                "H": "Req'd Med,Midwife,NurPrac,Chiro-can't be Self-Ref",
+                "I": "Req'd Med,NurPrac,Chiro-can't be Self-Ref",
+                "J": "Req'd by COCTH PSCH SCWK PSNR SLPT can't be self",
+                "K": "Req'd Med,Pod,Dent,NurPrac,Midwife,Chiro-can't be Self-Ref",
+                "L": "Referral Req'd by Med, Optomery, can't be self",
+                "M": "Referral Req'd by Medical, can't be self",
+                "N": "No Referral Required",
+                "O": "Referral Prac must have OTOL, NEUR, or NUSG skill",
+                "P": "Ref Req'd Med,Dent,NursePrac,Pod, HSC is Med can be self-ref",
+                "Q": "Ref Req'd Medical,Nurse Practitioner, Midwife - self ref OK",
+                "R": "Reqd Med,Pod,Dent,NurPrac,Chiro,Midwife,Opto,Phys can't self",
+                "S": "Referral Required - Self Referral is allowed",
+                "T": "Referral Req'd by Podiatry - HSC must be Podiatry",
+                "U": "Referral Req'd by Med, Podiatry, can't be self",
+                "V": "Req'd Med,Pod,Dent,NurPrac,Midwife,Chiro,Phys-can't be self",
+                "W": "Ref Req'd Medds,Dentds,NursePrac,Podds,Chirds -Self ref OK",
+                "X": "Ref Req'd Med,Chiro,NursePrac,Pod-HSC is Med,can be self-ref",
+                "Y": "RefReqd MEDDS,CHIRDS,PODDS HSC-EDDSonly,NRPR,PHTH,SelfRef",
+                "Z": "Referral Required, Nurse Practitioner, can be self-ref"
+            },
+
             /* Get claim edit details function*/
             showEditClaimForm: function (claim_Id, isFrom, options) {
                 var self = this;
@@ -578,6 +607,7 @@ define(['jquery',
                             $('#tBodyCharge').empty();
                             claimDetails.claim_charges = claimDetails.claim_charges || [];
                             self.claimChargeList = [];
+                            self.referralCodesList = [];
                             $.each(claimDetails.claim_charges, function (index, obj) {
                                 obj.charge_dt = commonjs.checkNotEmpty(obj.charge_dt) ? commonjs.convertToFacilityTimeZone(claimDetails.facility_id, obj.charge_dt).format('L') : '';
                                 obj.facility_id = claimDetails.facility_id;
@@ -595,6 +625,14 @@ define(['jquery',
                                     is_deleted: false,
                                     cpt_id: obj.cpt_id
                                 });
+                                if ( app.billingRegionCode === 'can_AB' ) {
+                                    if ( obj.can_ahs_referral_code ) {
+                                        self.referralCodesList.push(self.referralCodesMap[ obj.can_ahs_referral_code ]);
+                                    }
+                                    if ( obj.can_ahs_supporting_text_required ) {
+                                        self.supportingTextRequired = true;
+                                    }
+                                }
                             });
                             /* Bind claim charge Details - end */
 
@@ -746,6 +784,14 @@ define(['jquery',
                                 $('label[for=txtPriPolicyNo] span').remove();
                                 if (claimDetails.existing_insurance && claimDetails.existing_insurance.length && claimDetails.existing_insurance[0].insurance_code && ['HCP', 'WSIB'].indexOf(claimDetails.existing_insurance[0].insurance_code.toUpperCase()) >= 0) {
                                     $('label[for=txtPriPolicyNo]').append("<span class='Required' style='color: red;padding-left: 5px;'>*</span>");
+                                }
+
+                                if ( app.province_alpha_2_code === 'AB' ) {
+                                    $('#referralCodeText').html(self.referralCodesList.join('<br />'));
+                                    if ( self.supportingTextRequired ) {
+                                        $('#lblSupportingText').addClass('field-required');
+                                        $('#txtSupportingText').attr('required', 'required');
+                                    }
                                 }
                             }
 
@@ -3497,6 +3543,12 @@ define(['jquery',
                 if ( !self.ACSelect.readPhy.contact_id && app.country_alpha_3_code === 'can' && app.province_alpha_2_code !== 'AB' ) {
                     commonjs.showWarning("messages.warning.shared.selectRenderingProvider");
                     $('#ddlRenderingProvider').focus();
+                    return false;
+                }
+
+                if ( self.supportingTextRequired && app.country_alpha_3_code === 'can' && app.province_alpha_2_code === 'AB' && !$.trim($.trim($('#txtSupportingText').val()).replace(/\n/g, ' ')) ) {
+                    commonjs.showWarning("messages.warning.shared.supportingTextRequired");
+                    $('#txtSupportingText').focus();
                     return false;
                 }
 

@@ -618,7 +618,7 @@ module.exports = {
                             SELECT
                                   ch.id
                                 , claim_id
-                                , cpt_id
+                                , ch.cpt_id
                                 , modifier1_id
                                 , modifier2_id
                                 , modifier3_id
@@ -639,11 +639,19 @@ module.exports = {
                                 , (ch.units * ch.allowed_amount)::numeric as total_allowed_fee
                                 , chs.study_id
                                 , (SELECT accession_no FROM public.studies WHERE id = chs.study_id )
+                                , pb.referral_code              AS can_ahs_referral_code
+                                , pb.support_documentation      AS can_ahs_supporting_text_required
                                 , (SELECT EXISTS (SELECT * FROM billing.payment_applications WHERE charge_id = ch.id )) as payment_exists
                             FROM billing.charges ch
                                 INNER JOIN public.cpt_codes cpt ON ch.cpt_id = cpt.id
+                                LEFT JOIN public.plan_benefits pb ON pb.cpt_id = cpt.id
                                 LEFT JOIN billing.charges_studies chs ON chs.charge_id = ch.id
-                            WHERE claim_id = c.id
+                            WHERE 
+                                claim_id = c.id
+                                AND (
+                                    pb.id IS NULL 
+                                    OR CURRENT_DATE BETWEEN pb.effective_dt AND pb.end_dt
+                                )
                             ORDER BY ch.id, ch.line_num ASC
                       ) pointer) AS claim_charges
                     , (

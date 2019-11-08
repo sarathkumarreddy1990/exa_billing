@@ -424,6 +424,8 @@
                     <div class="col-sm-5">
                         <select class="form-control select-box" id="ddlReferringProvider">
                         </select>
+                        <br />
+                        <div id="referralCodeText" style="color: red;" />
                     </div>
                 </div>
                 <% if (billingRegionCode !== 'can_AB') { %>
@@ -600,7 +602,7 @@
                 </div>
                 <div class="form-group row">
                     <!-- Supporting Text -->
-                    <label for="txtSupportingText" class="col-sm-3 col-form-label" i18n="billing.claims.supportingText"></label>
+                    <label id="lblSupportingText" for="txtSupportingText" class="col-sm-3 col-form-label" i18n="billing.claims.supportingText"></label>
                     <div class="col-sm-5">
                         <textarea id="txtSupportingText" name="SupportingText" class="form-control form-control-lg" maxlength="36500"></textarea>
                     </div>
