@@ -1124,12 +1124,22 @@ define(['jquery',
                     var lineItemStudyDate = self.studyDate && self.studyDate != '' ?  self.studyDate : '';
                     $('#txtClaimDate').val(self.studyDate ? lineItemStudyDate : defaultStudyDate);
                 }
+                self.disableElementsForProvince(claim_data);
                 /* Common Details end */
 
                 //upate total billfee and balance
                 $(".allowedFee, .billFee").blur();
                 $(".diagCodes").blur();
 
+            },
+
+            disableElementsForProvince: function(data) {
+                var self = this;
+
+                if (app.billingRegionCode === 'can_AB') {
+                    $('#ddlFrequencyCode option[value="corrected"]').prop('disabled', self.isEdit && ['APP', 'PIF', 'AZP'].indexOf(data.claim_status_code) !== -1);
+                    $('#ddlClaimStatus').prop('disabled', self.isEdit && self.priInsCode.toLowerCase() === 'ahs');
+                }
             },
 
             checkRelationshipActive: function (id) {
@@ -2816,7 +2826,9 @@ define(['jquery',
                 if (app.billingRegionCode === 'can_AB') {
                     $('#' + element_id).on('select2:select', function (e) {
                         var data = e.params && e.params.data;
-                        $('#chkPriSelf').prop('checked', data.insurance_code === 'AHS').trigger('change'); // Bind Patient Details when AHS insurance is set.
+                        var enableFlag = data.insurance_code.toLowerCase() === 'ahs';
+                        $('#chkPriSelf').prop('checked', enableFlag).trigger('change'); // Bind Patient Details when AHS insurance is set.
+                        $('#ddlClaimStatus').prop('disabled', enableFlag);
                     });
                 }
 

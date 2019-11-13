@@ -566,7 +566,7 @@ define(['jquery',
                 } else {
                     for (var i = 0; i < gridElement.length; i++) {
                         var rowId = gridElement[i].parentNode.parentNode.id;
-                        var claimStatus = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'claim_status_code');
+                        var claimStatus = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_claim_status_code');
 
                         if (claimStatus === "PV") {
                             commonjs.showWarning('messages.status.pleaseValidateClaims');
@@ -683,6 +683,7 @@ define(['jquery',
 
                 if (app.billingRegionCode === 'can_AB') {
                     url = '/exa_modules/billing/ahs/submitClaims';
+                    data.source = 'submit'
                 } else if (isCanada) {
                     url = '/exa_modules/billing/ohip/submitClaims';
                 }

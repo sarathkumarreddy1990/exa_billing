@@ -2026,7 +2026,7 @@ define(['jquery',
                         });
 
                         self.received_claim_status_id = payerTypes && payerTypes[0].claim_status_id
-                        $('#ddlClaimStatus').val(self.received_claim_status_id);
+                        $('#ddlClaimStatus').val(self.received_claim_status_id).prop('disabled', app.billingRegionCode === 'can_AB' && payerTypes[0].primary_ins_provider_code.toLowerCase() === 'ahs');
 
                         $.each(charges, function (index, charge_details) {
                             if (charge_details.adjustment_code_id) {

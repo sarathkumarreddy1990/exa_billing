@@ -179,10 +179,12 @@ const ahsData = {
 
         const {
             company_id,
-            claimIds
+            claimIds,
+            source
         } = args;
 
         let data = ``;
+        let file_type = '';
 
         const fileSqlResponse = await ahsData.getCompanyFileStore(company_id);
 
@@ -216,11 +218,22 @@ const ahsData = {
             .update(data, `utf8`)
             .digest(`hex`);
 
+        switch (source) {
+            case 'delete':
+                file_type = 'can_ahs_d';
+                break;
+            case 'reassessment':
+                file_type = 'can_ahs_r';
+                break;
+            default:
+                file_type = 'can_ahs_a';
+        }
+ 
         const edi_file_id = await this.storeFile({
             file_name,
             file_md5,
             file_size,
-            file_type: `can_ahs_a`,
+            file_type,
             file_store_id,
             company_id,
             file_path,
@@ -255,14 +268,26 @@ const ahsData = {
                         edi_file_id
                     )
                     SELECT
-                        claims,
-                        numbers.batch_number :: TEXT,
-                        ( numbers.sequence_number + row_number() OVER () ) % 10000000,
-                        'a',
+                        c.id,
+                        n.batch_number::TEXT,
+                        CASE
+                            WHEN ${source} = 'reassessment' OR (${source} = 'submit' AND c.frequency  = 'corrected')
+                                THEN n.sequence_number
+                            ELSE ( n.sequence_number + row_number() OVER () ) % 10000000 
+                        END,
+                        CASE
+                            WHEN ${source} = 'reassessment'
+                            THEN 'r'
+                            WHEN ${source} = 'delete'
+                            THEN 'd'
+                            WHEN ${source} = 'submit' AND c.frequency = 'corrected'
+                            THEN 'c'
+                            ELSE 'a'
+                        END,
                         ${edi_file_id}
-                    FROM
-                        UNNEST(${claimIds} :: BIGINT[]) claims,
-                        numbers
+                    FROM billing.claims c
+                    INNER JOIN numbers n ON TRUE
+                    WHERE c.id = ANY(${claimIds}:: BIGINT[])
                     RETURNING
                         *
                 ),
@@ -297,8 +322,12 @@ const ahsData = {
                         )                                            AS check_digit,
                         
                         -- currently hard-coded - AHS does not support another code right now
-                        'CIP1'                                       AS transaction_type,
-        
+                        CASE
+                            WHEN ${source} = 'reassessment'
+                            THEN 'CST1'
+                            WHEN ${source} = 'submit' OR ${source} = 'delete'
+                            THEN 'CIB1'
+                        END                                     AS transaction_type,
                         CASE
                             WHEN inserted_efc.can_ahs_action_code IN ('a', 'c')
                             THEN 'RGLR'
@@ -797,7 +826,35 @@ const ahsData = {
      const sql = SQL` SELECT billing.can_ahs_apply_payments(${fileData}::jsonb, ${facilityId}, ${auditDetails}) `;
 
      return await query(sql);
- }
+    },
+
+    updateSupportingText: async (args) => {
+        const {
+            claimIds,
+            supportingText
+        } = args;
+        const sql = SQL`
+                     UPDATE 
+                         billing.claims
+                     SET
+                         can_ahs_supporting_text = ${supportingText}
+                     WHERE id = ${claimIds}`;
+        return await query(sql);
+    },
+
+    deleteAhsClaim: async (args) => {
+        const {
+            targetId
+        } = args;
+
+        const sql = SQL` SELECT 
+                             COUNT(1) 
+                         FROM billing.edi_file_claims efc
+                         WHERE efc.claim_id = ${targetId} 
+                         AND did_not_process `;
+
+        return await query(sql);
+    }
 
 };
 

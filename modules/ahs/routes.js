@@ -11,17 +11,22 @@ module.exports = function () {
 
     //TODO needs to be POST
     router.use('/submitClaims', async (req, res) => {
-        let params = req.body;
-        params.company_id = params.companyId;
-
-        ahs.submitClaims(params, (submitErr, submitResponse) => {
-            return httpHandler.send(req, res, submitErr || submitResponse);
-        });
-
+        let response = await ahs.submitClaims(req.body);
+        return httpHandler.send(req, res, response);
     });
 
     router.get('/files/:action', async (req, res) => {
         let response = await sftp.events({...req.params, ...req.query});
+        return httpHandler.send(req, res, response);
+    });
+
+    router.put('/reassess_claim', async (req, res) => {
+        let response = await ahs.reassessClaim(req.body);
+        return httpHandler.send(req, res, response);
+    });
+
+    router.put('/ahs_claim_delete', async (req, res) => {
+        const response = await ahs.deleteAhsClaim(req.body);
         return httpHandler.send(req, res, response);
     });
 

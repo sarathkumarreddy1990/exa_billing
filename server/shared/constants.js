@@ -221,6 +221,8 @@ module.exports = {
         'submitClaims': 'BIVA',
         'fileManagement': 'CLFM',
         'paper_claim_fax': 'CLIM',
-        'payment_count': 'PAYM'
+        'payment_count': 'PAYM',
+        'reassess_claim': 'CLIM',
+        'ahs_claim_delete': 'CLIM'
     }
 };

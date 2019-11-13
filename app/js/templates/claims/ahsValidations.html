@@ -1,0 +1,18 @@
+<head>
+    <title i18n="billing.claims.claimValidationResponse"></title>
+</head>
+
+<body>
+    <table class="table table-bordered w-100 m-auto">
+        <tbody>
+            <% _.each(validationMessages, function (message) { %>
+            <tr>
+                <td class="w-30 font-weight-bold" i18n="billing.fileInsurance.errorMsg"></td>
+                <td class="w-70"><%= message %></td>
+            </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</body>
+
+</html>

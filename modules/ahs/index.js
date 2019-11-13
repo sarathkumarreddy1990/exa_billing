@@ -15,9 +15,9 @@ const validateClaimsData = require('../../server/data/claim/claim-workbench');
 const sftp = require('./sftp');
 const claimEncoder = require('./encoder/claims');
 
-module.exports = {
+const ahsmodule = {
 
-    submitClaims: async (args, callback) => {
+    submitClaims: async (args) => {
 
         if (args.isAllClaims) {
             args.claimIds = await claimWorkBenchController.getClaimsForEDI(args);
@@ -50,7 +50,7 @@ module.exports = {
             }
 
             if (validationResponse.validationMessages.length) {
-                return callback(null, validationResponse);
+                return validationResponse;
             }
         }
 
@@ -68,7 +68,7 @@ module.exports = {
         }, []);
 
         if (validationMessages.length) {
-            return callback(null, {validationMessages});
+            return validationMessages;
         }
 
 
@@ -83,13 +83,13 @@ module.exports = {
 
         const fullPath = `${dir_path}/${file_name}`;
         const encoded_text = claimEncoder.encode(rows);
-        await writeFileAsync(fullPath, encoded_text, { 'encoding': `utf8` });
+        await writeFileAsync(fullPath, encoded_text, { 'encoding': 'utf8' });
         const statAfter = await statAsync(fullPath);
         const file_size = statAfter.size;
         const file_md5 = crypto
-            .createHash(`MD5`)
-            .update(encoded_text, `utf8`)
-            .digest(`hex`);
+            .createHash('MD5')
+            .update(encoded_text, 'utf8')
+            .digest('hex');
 
         const fileInfo = {
             file_size,
@@ -107,7 +107,7 @@ module.exports = {
 
             await ahs.updateClaimsStatus({
                 claimIds: args.claimIds,
-                statusCode: `PA`,
+                statusCode: 'PA',
                 claimNote: 'Electronically submitted through SFTP',
                 userId: args.userId,
             });
@@ -127,6 +127,46 @@ module.exports = {
             });
         }
 
-        return callback(null, sftpResult);
+        return sftpResult;
+    },
+
+    reassessClaim: async (args) => {
+
+        let reAssessResponse = await ahs.updateSupportingText({
+            claimId: args.claimIds,
+            supportingText: args.supportingText
+        });
+
+        if (reAssessResponse instanceof Error) {
+            return reAssessResponse;
+        }
+
+        return await ahsmodule.submitClaims(args);
+    },
+
+    deleteAhsClaim: async (args) => {
+
+        const claimDeleteAccess = await ahs.deleteAhsClaim(args);
+        const deleteData = claimDeleteAccess.rows && claimDeleteAccess.rows[0];
+
+        if (deleteData.pending_transaction_count > 0) {
+            return { message: 'Could not delete claim, Pending Transaction Found in AHS' };
+        }
+
+        args.claimIds = args.targetId || null;
+        args.source = 'delete';
+
+        const deleteClaimAhsResult = await ahsmodule.submitClaims(args);
+
+        ahs.updateClaimsStatus({
+            claimIds: args.claimIds,
+            statusCode: 'ADP',
+            claimNote: 'AHS Delete Pending',
+            userId: args.userId,
+        });
+
+        return deleteClaimAhsResult;
     }
 };
+
+module.exports = ahsmodule;
