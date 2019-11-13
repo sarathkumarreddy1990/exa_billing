@@ -1,10 +1,7 @@
 const chai = require('chai');
-
+const parser = require('../../../../modules/ahs/decoder/index');
 const config = require('../../../../server/config');
 config.initialize();
-
-const parser = require('../../../../modules/ahs/decoder/index');
-
 
 describe('Get claims record from ARD file', () => {
   it('should return array of parsed claim data', async () => {
