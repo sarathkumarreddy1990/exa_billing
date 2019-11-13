@@ -70,7 +70,6 @@ module.exports = {
                     , pay_to_phone_number
                     , pay_to_fax_number
                     , communication_info
-                    , can_ahs_business_arrangement
                     , COUNT(1) OVER (range unbounded preceding) as total_records
                 FROM   billing.providers `;
 
@@ -127,7 +126,6 @@ module.exports = {
                     , pay_to_phone_number
                     , pay_to_fax_number
                     , communication_info
-                    , can_ahs_business_arrangement
                 FROM   billing.providers
                 WHERE
                     id = ${id} `;
@@ -165,7 +163,6 @@ module.exports = {
             payToPhoneNumber,
             payToFaxNumber,
             communicationInfo,
-            businessArrangement,
             companyId,
             isActive
         } = params;
@@ -200,7 +197,6 @@ module.exports = {
                     , pay_to_phone_number
                     , pay_to_fax_number
                     , communication_info
-                    , can_ahs_business_arrangement
                     , company_id
                     , inactivated_dt)
                 values
@@ -232,7 +228,6 @@ module.exports = {
                     , ${payToPhoneNumber}
                     , ${payToFaxNumber}
                     , ${communicationInfo}
-                    , ${businessArrangement}
                     , ${companyId}
                     , ${inactivated_dt})
                 RETURNING *, '{}'::jsonb old_values`;
@@ -274,7 +269,6 @@ module.exports = {
             payToPhoneNumber,
             payToFaxNumber,
             communicationInfo,
-            businessArrangement,
             isActive
         } = params;
         let inactivated_dt = isActive ? null : 'now()';
@@ -310,7 +304,6 @@ module.exports = {
                 , pay_to_phone_number = ${payToPhoneNumber}
                 , pay_to_fax_number = ${payToFaxNumber}
                 , communication_info = ${communicationInfo}
-                , can_ahs_business_arrangement = ${businessArrangement}
                 , inactivated_dt = ${inactivated_dt}
                 WHERE
                     id = ${id}
