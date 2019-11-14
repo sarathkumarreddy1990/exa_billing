@@ -581,18 +581,18 @@ define([
                     }
                 });
 
-                $('.inquiryReload').click(function(){
+                $('.inquiryReload').off().click(_.debounce(function (){
                     self.invoicePager.set({ "PageNo": 1 });
                     self.invoiceTable.refreshAll();
-                });
+                }));
 
-                $('.inquiryActivity').click(function(){
+                $('.inquiryActivity').off().click(_.debounce(function (){
                   if(self.claimInvoiceList && self.claimInvoiceList.length){
                     self.invoiceActivityStatement(claimID);
                   } else {
                       commonjs.showWarning('messages.status.noRecordFound')
                   }
-                });
+                }));
 
             },
 

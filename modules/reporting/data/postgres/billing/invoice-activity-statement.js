@@ -1,9 +1,8 @@
-const _ = require('lodash')
-    , Promise = require('bluebird')
-    , db = require('../db')
-    , queryBuilder = require('../queryBuilder')
-    , dataHelper = require('../dataHelper')
-    , commonIndex = require('../../../../../server/shared/index');
+const _ = require('lodash');
+const db = require('../db');
+const queryBuilder = require('../queryBuilder');
+const dataHelper = require('../dataHelper');
+const commonIndex = require('../../../../../server/shared/index');
 
 // generate query template ***only once*** !!!
 
@@ -18,7 +17,6 @@ WITH get_payer_details AS(
         bc.invoice_no IS NOT NULL
         AND bc.id =  <%= claimId %>
 ),
-
 claim_details AS(
     SELECT
         ppr.full_name AS referring_physician_name,
@@ -112,7 +110,6 @@ claim_details AS(
     WHERE
         bc.id = <%= claimId %>
 ),
-
 charge_details AS(
     SELECT
          bc.invoice_no AS invoice_no,
@@ -149,7 +146,6 @@ invoice_payment_details AS(
         submitted_dt,
         claim_totals.claim_balance_total
 ),
-
 age_calculation AS (
     SELECT
        COALESCE(SUM(balance) FILTER(WHERE ipd.age <= 0 ) , 0::MONEY) AS current_balance,
@@ -194,18 +190,25 @@ SELECT
 
 const api = {
     getReportData: (initialReportData) => {
-        return Promise.join(
-            api.createInvoiceActivityStatementDataSet(initialReportData.report.params),
-            (invoiceActivityDataSet) => {
+        let invoiceActivityData = api.createInvoiceActivityStatementDataSet(initialReportData.report.params);
+        return Promise.all([
+            (invoiceActivityData)]).then
+             (function(invoiceActivityDataSet){
                 initialReportData.filters = api.createReportFilters(initialReportData);
-                initialReportData.dataSets.push(invoiceActivityDataSet);
+                initialReportData.dataSets.push(invoiceActivityDataSet[0]);
                 initialReportData.dataSetCount = initialReportData.dataSets.length;
                 return initialReportData;
             });
     },
 
     transformReportData: (rawReportData) => {
-        return Promise.resolve(rawReportData);
+        return new Promise((resolve, reject) => {
+            if(rawReportData){
+                return resolve(rawReportData);
+            } else {
+                reject();
+            }
+        });
     },
 
     getJsReportOptions: (reportParams, reportDefinition) => {
