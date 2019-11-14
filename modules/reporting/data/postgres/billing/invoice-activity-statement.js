@@ -24,30 +24,87 @@ claim_details AS(
         ppr.full_name AS referring_physician_name,
         CASE
             WHEN payer_type = 'primary_insurance' THEN
-                json_build_object('name',pip.insurance_name,'address',pip.insurance_info->'Address1','address2',pip.insurance_info->'Address2','city',pip.insurance_info->'City','state',pip.insurance_info->'State','zip_code',pip.insurance_info->'ZipCode','phone_no',pip.insurance_info->'PhoneNo')
+                json_build_object(
+                    'name',pip.insurance_name,
+                    'address',pip.insurance_info->'Address1',
+                    'address2',pip.insurance_info->'Address2',
+                    'city',pip.insurance_info->'City',
+                    'state',pip.insurance_info->'State',
+                    'zip_code',pip.insurance_info->'ZipCode',
+                    'phone_no',pip.insurance_info->'PhoneNo')
             WHEN payer_type = 'secondary_insurance' THEN
-                json_build_object('name',pip.insurance_name,'address',pip.insurance_info->'Address1', 'address2',pip.insurance_info->'Address2','city',pip.insurance_info->'City','state',pip.insurance_info->'State','zip_code',pip.insurance_info->'ZipCode','phone_no',pip.insurance_info->'PhoneNo')
+                json_build_object(
+                    'name',pip.insurance_name,
+                    'address',pip.insurance_info->'Address1',
+                    'address2',pip.insurance_info->'Address2',
+                    'city',pip.insurance_info->'City',
+                    'state',pip.insurance_info->'State',
+                    'zip_code',pip.insurance_info->'ZipCode',
+                    'phone_no',pip.insurance_info->'PhoneNo')
             WHEN payer_type = 'tertiary_insurance' THEN
-                json_build_object('name',pip.insurance_name,'address',pip.insurance_info->'Address1','address2',pip.insurance_info->'Address2','city',pip.insurance_info->'City','state',pip.insurance_info->'State','zip_code',pip.insurance_info->'ZipCode','phone_no',pip.insurance_info->'PhoneNo')
+                json_build_object(
+                    'name',pip.insurance_name,
+                    'address',pip.insurance_info->'Address1',
+                    'address2',pip.insurance_info->'Address2',
+                    'city',pip.insurance_info->'City',
+                    'state',pip.insurance_info->'State',
+                    'zip_code',pip.insurance_info->'ZipCode',
+                    'phone_no',pip.insurance_info->'PhoneNo')
             WHEN payer_type = 'referring_provider' THEN
-                json_build_object('name',ppr.full_name,'address',ppc.contact_info->'ADDR1','address2',ppc.contact_info->'ADDR2', 'city',ppc.contact_info->'CITY','state',ppc.contact_info->'c1State','zip_code',ppc.contact_info->'c1Zip','phone_no',ppc.contact_info->'PHNO')
+                json_build_object(
+                    'name',ppr.full_name,
+                    'address',ppc.contact_info->'ADDR1',
+                    'address2',ppc.contact_info->'ADDR2',
+                    'city',ppc.contact_info->'CITY',
+                    'state',ppc.contact_info->'c1State',
+                    'zip_code',ppc.contact_info->'c1Zip',
+                    'phone_no',ppc.contact_info->'PHNO')
             WHEN payer_type = 'patient' THEN
-                json_build_object('name',get_full_name(pp.last_name,pp.first_name),'address',pp.patient_info->'c1AddressLine1','address2',pp.patient_info->'c1AddressLine2','city',pp.patient_info->'c1City','state',pp.patient_info->'STATE','zip_code',pp.patient_info->'ZIP','phone_no',pp.patient_info->'c1HomePhone')
+                json_build_object(
+                    'name',get_full_name(pp.last_name,pp.first_name),
+                    'address',pp.patient_info->'c1AddressLine1',
+                    'address2',pp.patient_info->'c1AddressLine2',
+                    'city',pp.patient_info->'c1City',
+                    'state',pp.patient_info->'STATE',
+                    'zip_code',pp.patient_info->'ZIP',
+                    'phone_no',pp.patient_info->'c1HomePhone')
             WHEN payer_type = 'ordering_facility' THEN
-                json_build_object('name',ppg.group_name,'address',ppg.group_info->'AddressLine1','address2',ppg.group_info->'AddressLine2','city',ppg.group_info->'City','state',ppg.group_info->'State','zip_code',ppg.group_info->'Zip','phone_no',ppg.group_info->'Phone')
+                json_build_object(
+                    'name',ppg.group_name,
+                    'address',ppg.group_info->'AddressLine1',
+                    'address2',ppg.group_info->'AddressLine2',
+                    'city',ppg.group_info->'City',
+                    'state',ppg.group_info->'State',
+                    'zip_code',ppg.group_info->'Zip',
+                    'phone_no',ppg.group_info->'Phone')
         END AS responsible_party_address,
-        json_build_object('name', bp.name, 'address', bp.address_line1, 'address2', bp.address_line2, 'city', bp.city, 'state', bp.state, 'zip_code', bp.zip_code, 'phone_no', bp.phone_number) AS billing_provider_details,
-        json_build_object('name', bp.name, 'address', bp.pay_to_address_line1, 'address2', bp.pay_to_address_line2, 'city', bp.pay_to_city, 'state', bp.pay_to_state, 'zip_code', bp.pay_to_zip_code, 'phone_no', bp.pay_to_phone_number) AS pay_to_provider_address
+        json_build_object(
+            'name', bp.name,
+            'address', bp.address_line1,
+            'address2', bp.address_line2,
+            'city', bp.city,
+            'state', bp.state,
+            'zip_code', bp.zip_code,
+            'phone_no', bp.phone_number) AS billing_provider_details,
+        json_build_object(
+            'name', bp.name,
+            'address', bp.pay_to_address_line1,
+            'address2', bp.pay_to_address_line2,
+            'city', bp.pay_to_city,
+            'state', bp.pay_to_state,
+            'zip_code', bp.pay_to_zip_code,
+            'phone_no', bp.pay_to_phone_number) AS pay_to_provider_address
     FROM
         billing.claims bc
     INNER JOIN public.facilities f ON f.id = bc.facility_id
     INNER JOIN public.patients pp ON pp.id = bc.patient_id
     INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
-    LEFT JOIN public.patient_insurances ppi ON ppi.id = CASE
-                                                            WHEN payer_type = 'primary_insurance' THEN primary_patient_insurance_id
-                                                            WHEN payer_type = 'secondary_insurance' THEN secondary_patient_insurance_id
-                                                            WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id
-                                                        END
+    LEFT JOIN public.patient_insurances ppi ON
+                ppi.id = CASE
+                            WHEN payer_type = 'primary_insurance' THEN primary_patient_insurance_id
+                            WHEN payer_type = 'secondary_insurance' THEN secondary_patient_insurance_id
+                            WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id
+                          END
     LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
     LEFT JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id
     LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
