@@ -72,13 +72,8 @@ define([
                 this.viewModel.openInNewTab = openInNewTab && rFormat === 'pdf';
                 this.viewModel.paymentOptions = $('#ddlPaymentOption').val();
                     var urlParams = this.getReportParams();
-                    UI.showReport('payment-invoice', this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
+                    UI.generateReport('payment-invoice', this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams);
             },
-          
-
-            
-
-           
 
             getSelectedFacility: function (e) {
                 var selected = $("#ddlFacilityFilter option:selected");
