@@ -54,6 +54,41 @@ module.exports = {
         }
     },
 
+    sendJson: function (req, res, err, response, customData) {
+        if (err) {
+            return this.sendError(req, res, err);
+        }
+
+        if (req.query.fromApi) {
+            return res(err, response);
+        }
+
+        if (typeof customData !== 'undefined') {
+            res.send({
+                status: 'ok',
+                result: response,
+                customData1: customData
+            });
+        } else {
+            if (shared.isReadableStream(response)) {
+                response.pipe(res);
+            }
+            else if (response) {
+                res.send({
+                    status: 'ok',
+                    result: response
+                });
+            }
+            else {
+                res.send({
+                    status: 'error',
+                    error: 'no response'
+                });
+            }
+
+        }
+    },
+
     sendPdf: function (req, res, responseData) {
         if (responseData && ['error', 'RequestError'].indexOf(responseData.name) > -1) {
             return this.sendError(req, res, responseData);

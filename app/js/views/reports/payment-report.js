@@ -206,7 +206,7 @@ define([
                 this.viewModel.insGroupOption = $('#insuranceGroupListBoxs').val();
                 if (this.hasValidViewModel()) {
                     var urlParams = this.getReportParams();
-                    UI.showReport(this.viewModel.reportId, this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
+                    UI.generateReport(this.viewModel.reportId, this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams);
                 }
             },
 
@@ -349,7 +349,7 @@ define([
                     adjustmentCodeArray.push($(this).closest('li').find('span').text());
                 });
 
-                return urlParams = {
+                return {
                     'dateFormat': this.viewModel.dateFormat,
                     'country_alpha_3_code': this.viewModel.country_alpha_3_code,
                     'userIds': $('#ddlUsersOption').val() == 'S' ? usersArray : '',

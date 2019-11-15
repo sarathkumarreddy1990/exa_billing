@@ -116,7 +116,7 @@ define(['jquery',
                 this.viewModel.insGroupOption = $('#insuranceGroupListBoxs').val();
                 if (this.hasValidViewModel()) {
                     var urlParams = this.getReportParams();
-                    UI.showReport('aged-ar-details', 'billing', this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
+                    UI.generateReport('aged-ar-details', 'billing', this.viewModel.reportFormat, urlParams);
                 }
             },
 
