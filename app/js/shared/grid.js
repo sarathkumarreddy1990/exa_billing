@@ -209,9 +209,6 @@ define('grid', [
                 if (rightclickMenuRights.indexOf('li_ul_change_claim_status') === -1) {
                     $divObj.append(liClaimStatus);
                 }
-                if (app.billingRegionCode === 'can_AB' && gridData.hidden_billing_method === 'electronic_billing') {
-                    $('#li_ul_change_claim_status').hide();
-                }
 
                 var liArray = [];
                 commonjs.getClaimStudy(selectedStudies[0].study_id, function (result) {
@@ -492,29 +489,6 @@ define('grid', [
                     });
 
                 });
-
-                var liClaimReassess = commonjs.getRightClickMenu('anc_claim_reassess', 'setup.rightClickMenu.claimReassess', false, 'Claim Reassess', false);
-                if (app.billingRegionCode === 'can_AB' && studyArray.length === 1 && selectedStudies && selectedStudies[0].billing_method === "electronic_billing") {
-                    $divObj.append(liClaimReassess);
-                } 
-
-                self.checkRights('anc_claim_reassess');
-                var elReassess = $('#anc_claim_reassess');
-                elReassess.off().click(function () {
-
-                    if (elReassess.hasClass('disabled')) {
-                        return false;
-                    }
-
-                    if(['APP', 'PIF', 'R', 'AZP'].indexOf(gridData.hidden_claim_status_code) !== -1) {
-                        self.claimReassessView = new claimReassessView({el: $('#modal_div_container')});
-                        self.claimReassessView.render({claimId: studyArray, claim_status: gridData.hidden_claim_status_code});
-                    } else {
-                        return commonjs.showWarning('billing.claims.canAhs.couldNotReassessClaim');
-                    }
-                    
-                });
-
 
                 var liPatientClaimInquiry = commonjs.getRightClickMenu('anc_patient_claim_inquiry','setup.rightClickMenu.patientClaims',false,'Patient Claims',false);
                 if(studyArray.length == 1)
