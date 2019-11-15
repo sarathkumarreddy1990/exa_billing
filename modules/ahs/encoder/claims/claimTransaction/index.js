@@ -67,14 +67,18 @@ const claimTransactionHeader = ( row ) => {
             'empty': ``,
         };
 
-        const segmentProcessor = segmentProcessors[ segmentType ];
-        const segmentDescriptor = descriptors[ segmentType ];
-        const segmentRecord = segmentProcessor(row, headerRecord, segmentData);
-
         const encodedHeader = encodeRecord(headerRecord, descriptors.claimTransactionHeader);
-        const encodedSegment = encodeRecord(segmentRecord, segmentDescriptor);
 
-        return `${encodedHeader}${encodedSegment}`;
+        if ( segmentType ) {
+            const segmentProcessor = segmentProcessors[ segmentType ];
+            const segmentDescriptor = descriptors[ segmentType ];
+            const segmentRecord = segmentProcessor(row, headerRecord, segmentData);
+            const encodedSegment = encodeRecord(segmentRecord, segmentDescriptor);
+
+            return `${encodedHeader}${encodedSegment}`;
+        }
+
+        return encodedHeader;
     };
 };
 
@@ -95,6 +99,15 @@ function* processSupportingText ( text ) {
 const processRow = tracker => row => {
 
     const makeSegment = claimTransactionHeader(row);
+
+    if ( row.action_code.toLowerCase() === `d` ) {
+        /*
+         Passing no args here will return just the header info but we still have
+         to count this as a "segment" so increase tracker amount to 1
+         */
+        tracker.segments = 1;
+        return makeSegment();
+    }
 
     const segments = [
         makeSegment(`CIB1`),
