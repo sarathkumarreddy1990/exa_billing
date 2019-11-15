@@ -322,12 +322,8 @@ const ahsData = {
                         )                                            AS check_digit,
                         
                         -- currently hard-coded - AHS does not support another code right now
-                        CASE
-                            WHEN ${source} = 'reassessment'
-                            THEN 'CST1'
-                            WHEN ${source} = 'submit' OR ${source} = 'delete'
-                            THEN 'CIB1'
-                        END                                     AS transaction_type,
+                        'CIP1'                                       AS transaction_type,
+
                         CASE
                             WHEN inserted_efc.can_ahs_action_code IN ('a', 'c')
                             THEN 'RGLR'
@@ -828,6 +824,14 @@ const ahsData = {
      return await query(sql);
     },
 
+    /**
+     * Update supporting text on claim reassessment
+     * @param  {object} args    {
+     *                             claimIds: Number,
+     *                             SupportingText: Text,
+     *                          }
+     * @returns updated records
+     */
     updateSupportingText: async (args) => {
         const {
             claimIds,
@@ -842,13 +846,18 @@ const ahsData = {
         return await query(sql);
     },
 
-    deleteAhsClaim: async (args) => {
+    /**
+     * Get pending transaction count for deleting the claim
+     * @param {number} targetId
+     * @returns count of transactions pending from AHS
+     */
+    getPendingTransactionCount: async (args) => {
         const {
             targetId
         } = args;
 
         const sql = SQL` SELECT 
-                             COUNT(1) 
+                             COUNT(1) AS pending_transaction_count
                          FROM billing.edi_file_claims efc
                          WHERE efc.claim_id = ${targetId} 
                          AND did_not_process `;

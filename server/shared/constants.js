@@ -222,7 +222,7 @@ module.exports = {
         'fileManagement': 'CLFM',
         'paper_claim_fax': 'CLIM',
         'payment_count': 'PAYM',
-        'reassess_claim': 'CLIM',
-        'ahs_claim_delete': 'CLIM'
+        'can_ahs_reassess_claim': 'CLIM',
+        'can_ahs_delete_claim': 'CLIM'
     }
 };

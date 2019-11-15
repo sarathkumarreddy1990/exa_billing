@@ -42,7 +42,7 @@ define(['jquery',
 
                 commonjs.showLoading();
                 $.ajax({
-                    url: '/exa_modules/billing/ahs/reassess_claim',
+                    url: '/exa_modules/billing/ahs/can_ahs_reassess_claim',
                     type: 'PUT',
                     data: {
                         'claimIds': data.claimId.toString(),

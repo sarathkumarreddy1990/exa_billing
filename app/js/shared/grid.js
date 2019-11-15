@@ -445,98 +445,32 @@ define('grid', [
 
                     if (confirm(commonjs.geti18NString("messages.status.areYouSureWantToDeleteClaims"))) {
 
-                        if (app.billingRegionCode === 'can_AB' && gridData.hidden_billing_method === 'electronic_billing') {
-                            var excludeClaimStatus = ['APP', 'PIF', 'AZP'];
-
-                            if (['ADP', 'R'].indexOf(gridData.hidden_claim_status_code) !== -1) {
-                                return commonjs.showWarning('billing.claims.canAhs.couldNotDeleteClaimAhsPending');
+                        if (app.country_alpha_3_code !== 'usa') {
+                            var msg = self.provinceBasedValidationResults(app.billingRegionCode, gridData);
+                            
+                            if (msg) {
+                                return commonjs.showWarning(msg);
                             }
-
-                            if (excludeClaimStatus.indexOf(gridData.hidden_claim_status_code) > -1) {
-                                return commonjs.showWarning('billing.claims.canAhs.claimCannotBeDeleted');
-                            }
-                            commonjs.showLoading();
-                            $.ajax({
-                                url: '/exa_modules/billing/ahs/ahs_claim_delete',
-                                type: 'PUT',
-                                data: {
-                                    targetId: studyIds,
-                                    type: 'claim',
-                                    source: 'delete'
-                                },
-                                success: function (data, response) {
-                                    commonjs.hideLoading();
-
-                                    if (data && data.validationMessages && data.validationMessages.length) {
-                                        var responseTemplate = _.template(ahsValidationResponse);
-
-                                        commonjs.showNestedDialog({
-                                            header: 'Claim Validation Result',
-                                            i18nHeader: 'billing.claims.claimValidationResponse',
-                                            height: '50%',
-                                            width: '60%',
-                                            html: responseTemplate({
-                                                'validationMessages': data.validationMessages
-                                            })
-                                        });
-                                    } else if (data && data.message) {
-                                        commonjs.showWarning(data.message);
-                                    } else if (data.err) {
-                                        commonjs.showWarning(data.err);
-                                    } else {
-                                        commonjs.showStatus('messages.status.claimHasBeenDeleted');
-                                        $("#btnClaimsRefresh").click();
-                                    }
-                                },
-                                error: function (err, response) {
-                                    commonjs.handleXhrError(err, response);
-                                }
-                            });
-
-                        } else {
-                            $.ajax({
-                                url: '/exa_modules/billing/claim_workbench/claim_check_payment_details',
-                                type: 'GET',
-                                data: {
-                                    target_id: studyIds,
-                                    type: 'claim'
-                                },
-                                success: function (data, response) {
-                                    var deleteResponse = data && data.rows && data.rows[0];
-
-                                    if(deleteResponse) {
-                                        var claim_adjustment = deleteResponse.claim_adjustment || 0;
-                                        var claim_applied = deleteResponse.claim_applied || 0;
-                                        var claim_refund = deleteResponse.claim_refund || 0;
-                                    }
-
-                                    if (parseInt(claim_applied) === 0 && parseInt(claim_adjustment) === 0 && parseInt(claim_refund) === 0) {
-                                        $.ajax({
-                                            url: '/exa_modules/billing/claim_workbench/claim_charge/delete',
-                                            type: 'PUT',
-                                            data: {
-                                                target_id: studyIds,
-                                                type: 'claim'
-                                            },
-                                            success: function (data, response) {
-                                                commonjs.showStatus('messages.status.claimHasBeenDeleted');
-                                                $("#btnClaimsRefresh").click();
-                                            },
-                                            error: function (err, response) {
-                                                commonjs.handleXhrError(err, response);
-                                            }
-                                        });
-                                    }
-                                    else {
-                                        alert(commonjs.geti18NString('messages.claims.claimHasPaymentPleaseUnapply'));
-                                    }
-
-                                },
-                                error: function (err, response) {
-                                    commonjs.handleXhrError(err, response);
-                                }
-                            });
                         }
+                        var params = self.getProvinceBasedParams(app.billingRegionCode, 'delete', studyIds);
+
+                        commonjs.showLoading();
+                        $.ajax({
+                            url: params.url,
+                            type: params.type,
+                            data: params.data,
+                            success: function (data, response) {
+                                commonjs.hideLoading();
+                                if (app.billingRegionCode === 'can_AB') {
+                                    self.ahsDeleteResponse(data);
+                                } else {
+                                    self.claimDeleteResponse(data, studyIds);
+                                }
+                            },
+                            error: function (err, response) {
+                                commonjs.handleXhrError(err, response);
+                            }
+                        });
                     }
                 });
 
@@ -737,6 +671,7 @@ define('grid', [
                         self.resetInvoiceNumber(selectedStudies[0].invoice_no);
                     });
                 }
+                self.bindProvinceBasedMenus($divObj, studyArray, gridData, isClaimGrid, selectedStudies);
 
             } else {
                 if (!isbilled_status) {
@@ -1902,6 +1837,144 @@ define('grid', [
                     }
                 });
             })
+        },
+
+        //To bind province based right click menus in claim grid
+        self.bindProvinceBasedMenus = function ($divObj, studyArray, gridData, isClaimGrid, selectedStudies) {
+            if(app.billingRegionCode === 'can_AB') {
+                var liClaimReassess = commonjs.getRightClickMenu('anc_claim_reassess', 'setup.rightClickMenu.claimReassess', false, 'Claim Reassess', false);
+
+                if (studyArray.length === 1 && gridData.hidden_billing_method === 'electronic_billing') {
+                    $divObj.append(liClaimReassess);
+                }
+
+                self.checkRights('anc_claim_reassess');
+                var elReassess = $('#anc_claim_reassess');
+                elReassess.off().click(function () {
+                    if (elReassess.hasClass('disabled')) {
+                        return false;
+                    }
+                    
+                    if (!commonjs.isValidClaimStatusToSubmit('reassessment', gridData.hidden_claim_status_code)) {
+                        return commonjs.showWarning('billing.claims.canAhs.couldNotReassessClaim');
+                    }
+
+                    self.claimReassessView = new claimReassessView({el: $('#modal_div_container')});
+                    self.claimReassessView.render({claimId: studyArray, claim_status: gridData.hidden_claim_status_code});
+
+                });
+
+                if (gridData.hidden_billing_method === 'electronic_billing') {
+                    $('#li_ul_change_claim_status').hide();
+                }
+
+            }
+        },
+
+        //To handle claim delete response for alberta 
+        self.ahsDeleteResponse = function(data) {
+
+            if (data && data.validationMessages && data.validationMessages.length) {
+                var responseTemplate = _.template(ahsValidationResponse);
+
+                commonjs.showNestedDialog({
+                    header: 'Claim Validation Result',
+                    i18nHeader: 'billing.claims.claimValidationResponse',
+                    height: '50%',
+                    width: '60%',
+                    html: responseTemplate({
+                        'validationMessages': data.validationMessages
+                    })
+                });
+            } else if (data && data.message) {
+                commonjs.showWarning(data.message);
+            } else if (data.err) {
+                commonjs.showWarning(data.err);
+            } else {
+                commonjs.showStatus('messages.status.claimHasBeenDeleted');
+                $("#btnClaimsRefresh").click();
+            }
+        },
+
+        // Delete claim function for handing delete response when country is usa
+        self.claimDeleteResponse = function(data, studyIds) {
+            var deleteResponse = data && data.rows && data.rows[0];
+
+            if (deleteResponse) {
+                var claim_adjustment = deleteResponse.claim_adjustment || 0;
+                var claim_applied = deleteResponse.claim_applied || 0;
+                var claim_refund = deleteResponse.claim_refund || 0;
+            }
+
+            if (parseInt(claim_applied) === 0 && parseInt(claim_adjustment) === 0 && parseInt(claim_refund) === 0) {
+                $.ajax({
+                    url: '/exa_modules/billing/claim_workbench/claim_charge/delete',
+                    type: 'PUT',
+                    data: {
+                        target_id: studyIds,
+                        type: 'claim'
+                    },
+                    success: function (data, response) {
+                        commonjs.showStatus('messages.status.claimHasBeenDeleted');
+                        $("#btnClaimsRefresh").click();
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
+            }
+            else {
+                alert(commonjs.geti18NString('messages.claims.claimHasPaymentPleaseUnapply'));
+            }
+        },
+
+        // Bind url parameters to ajax calls based on province
+        self.getProvinceBasedParams = function (billingRegion, from, studyIds) {
+
+            switch (billingRegion) {
+                case 'can_AB':
+                    if(from === 'delete'){
+                        return {
+                            url: '/exa_modules/billing/ahs/can_ahs_delete_claim',
+                            type: 'PUT',
+                            data: {
+                                targetId: studyIds,
+                                type: 'claim',
+                                source: 'delete'
+                            }
+                        };
+                    }
+                    break;
+                default:
+                    if (from == 'delete') {
+                        return {
+                            url: '/exa_modules/billing/claim_workbench/claim_check_payment_details',
+                            type: 'GET',
+                            data: {
+                                target_id: studyIds,
+                                type: 'claim'
+                            }
+                        };
+                    }
+                    break;    
+            }
+
+        },
+
+        // Province based validations are handled in this block and returns validation results.
+        self.provinceBasedValidationResults = function (billingRegion, gridData) {
+            var msg = '';
+            if (billingRegion === 'can_AB') {
+                if (gridData.hidden_billing_method === 'electronic_billing') {
+
+                    if (gridData.hidden_claim_status_code === 'ADP') {
+                        msg = 'billing.claims.canAhs.couldNotDeleteClaimAhsPending';
+                    } else if (!commonjs.isValidClaimStatusToSubmit('delete', gridData.hidden_claim_status_code)) {
+                        msg = 'billing.claims.canAhs.claimCannotBeDeleted';
+                    }
+                }
+            }
+            return msg;
         }
     };
 });

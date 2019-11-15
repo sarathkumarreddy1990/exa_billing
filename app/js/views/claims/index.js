@@ -664,15 +664,7 @@ define(['jquery',
                             commonjs.isMaskValidate();
                             /* Bind chargeLineItems events - Ended */
                             self.addPatientHeaderDetails(claimDetails, 'edit')
-
-                            //EXA-18272 - Restrict to add/remove new charge on edit claim for alberta billing
-                            if (self.isEdit && app.billingRegionCode === 'can_AB') {
-                                $("td span.addChargeLine").parent().remove();
-                                $('td span.removecharge').parent().remove();
-                                $('#tblCharge').find('th.addCharge, th.removeCharge').hide();
-                                $('#createNewCharge').prop('disabled', true);
-                                $('.extra-span').hide();
-                            }
+                            self.disableElementsForProvince(claimDetails);
 
                             /* Patient Alert data Bind Started */
                             self.patientAlerts = claimDetails.alerts;
@@ -1133,12 +1125,30 @@ define(['jquery',
 
             },
 
-            disableElementsForProvince: function(data) {
+            // enable/disable elements Based on billing province.
+            disableElementsForProvince: function (data) {
                 var self = this;
 
                 if (app.billingRegionCode === 'can_AB') {
-                    $('#ddlFrequencyCode option[value="corrected"]').prop('disabled', self.isEdit && ['APP', 'PIF', 'AZP'].indexOf(data.claim_status_code) !== -1);
-                    $('#ddlClaimStatus').prop('disabled', self.isEdit && self.priInsCode.toLowerCase() === 'ahs');
+                    var removeChargeIcons = $('#tblCharge').find('th.addCharge, th.removeCharge');
+                    var btnCreateCharge = $('#createNewCharge');
+                    if (self.isEdit) {
+                        $('#ddlFrequencyCode option[value="corrected"]').prop('disabled', !commonjs.isValidClaimStatusToSubmit('change', data.claim_status_code));
+                        $('#ddlClaimStatus').prop('disabled', self.priInsCode.toLowerCase() === 'ahs');
+
+                        //EXA-18272 - Restrict to add/remove new charge on edit claim for alberta billing
+                        $("td span.addChargeLine").parent().remove();
+                        $('td span.removecharge').parent().remove();
+                        removeChargeIcons.hide();
+                        btnCreateCharge.prop('disabled', true);
+                        $('.extra-span').hide();
+                    } else {
+                        //EXA-18272 - AHS - claims to only have one charge / CPT each
+                        removeChargeIcons.show();
+                        btnCreateCharge.prop('disabled', false);
+                        $('.extra-span').show();
+                    }
+
                 }
             },
 
@@ -4240,15 +4250,9 @@ define(['jquery',
                             // Hide non-edit claim tabs
                             if (!self.isEdit) {
                                 $('.editClaimRelated').hide();
-
-                                //EXA-18272 - AHS - claims to only have one charge / CPT each
-                                if (app.billingRegionCode === 'can_AB') {
-                                    $('#tblCharge').find('th.addCharge, th.removeCharge').show();
-                                    $('#createNewCharge').prop('disabled', false);
-                                    $('.extra-span').show();
-                                }
                             }
                             self.updateReportURL(data.hidden_patient_id, data.hidden_order_id, rowId);
+                            self.disableElementsForProvince(data);
                         } else if (self.openedFrom === 'claims' || data.billed_status === 'Billed') {
                             rowId = self.openedFrom === 'studies' ? data.hidden_claim_id : rowId;
                             commonjs.getClaimStudy(rowId, function (result) {

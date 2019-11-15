@@ -130,6 +130,7 @@ const ahsmodule = {
         return sftpResult;
     },
 
+    //Submitting the claim again to AHS using the supporting text
     reassessClaim: async (args) => {
 
         let reAssessResponse = await ahs.updateSupportingText({
@@ -144,9 +145,9 @@ const ahsmodule = {
         return await ahsmodule.submitClaims(args);
     },
 
+    // Submitting the claim delete request to AHS for already Paid Claim
     deleteAhsClaim: async (args) => {
-
-        const claimDeleteAccess = await ahs.deleteAhsClaim(args);
+        const claimDeleteAccess = await ahs.getPendingTransactionCount(args);
         const deleteData = claimDeleteAccess.rows && claimDeleteAccess.rows[0];
 
         if (deleteData.pending_transaction_count > 0) {
