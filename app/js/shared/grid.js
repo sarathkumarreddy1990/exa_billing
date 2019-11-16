@@ -449,7 +449,8 @@ define('grid', [
                                 return commonjs.showWarning(msg);
                             }
                         }
-                        var params = self.getProvinceBasedParams(app.billingRegionCode, 'delete', studyIds);
+                        
+                        var params = self.getProvinceBasedParams(app.billingRegionCode, 'delete', studyIds, gridData);
 
                         commonjs.showLoading();
                         $.ajax({
@@ -1903,11 +1904,19 @@ define('grid', [
         },
 
         // Bind url parameters to ajax calls based on province
-        self.getProvinceBasedParams = function (billingRegion, from, studyIds) {
+        self.getProvinceBasedParams = function (billingRegion, from, studyIds, gridData) {
+            var defaultParamsForDelete = {
+                url: '/exa_modules/billing/claim_workbench/claim_check_payment_details',
+                type: 'GET',
+                data: {
+                    target_id: studyIds,
+                    type: 'claim'
+                }
+            };
 
             switch (billingRegion) {
                 case 'can_AB':
-                    if(from === 'delete'){
+                    if (from === 'delete' && gridData.hidden_billing_method === 'electronic_billing'){
                         return {
                             url: '/exa_modules/billing/ahs/can_ahs_delete_claim',
                             type: 'PUT',
@@ -1917,22 +1926,14 @@ define('grid', [
                                 source: 'delete'
                             }
                         };
+                    } else {
+                        return defaultParamsForDelete;
                     }
-                    break;
                 default:
                     if (from == 'delete') {
-                        return {
-                            url: '/exa_modules/billing/claim_workbench/claim_check_payment_details',
-                            type: 'GET',
-                            data: {
-                                target_id: studyIds,
-                                type: 'claim'
-                            }
-                        };
+                        return defaultParamsForDelete;
                     }
-                    break;    
             }
-
         },
 
         // Province based validations are handled in this block and returns validation results.
