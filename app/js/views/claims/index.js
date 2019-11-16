@@ -3582,7 +3582,7 @@ define(['jquery',
 
                 var txtPriPolicyNo = ($('#txtPriPolicyNo').val() && $('#txtPriPolicyNo').val().trim()) || '';
 
-                if (app.country_alpha_3_code === 'can') {
+                if (app.country_alpha_3_code === 'can' && app.province_alpha_2_code === 'ON') {
                     if (self.priInsCode && ['HCP', 'WSIB'].indexOf(self.priInsCode.toUpperCase()) >= 0) {
                         if (!txtPriPolicyNo) {
                             commonjs.showWarning('messages.warning.shared.invalidHealthNumber');
