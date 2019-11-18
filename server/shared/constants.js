@@ -58,7 +58,7 @@ module.exports = {
         'monthly-recap': 'Monthly Recap Report',
         'patient-statement': 'Patient Statment Report',
         'payer-mix': 'Payer Mix Report',
-        // 'payment': 'Payments Report' Need to change the name,
+        'payment-report': 'Payments Report',
         'claim-inquiry': 'Claim Inquiry Report',
         'insurance-vs-lop': 'Insurance Vs LOP Report',
         'patients-by-insurance-company': 'Patients by Insurance Company',
