@@ -25,17 +25,22 @@ const ahsmodule = {
 
         args.claimIds = args.claimIds && args.claimIds.split(',');
 
+        const validationResponse = {
+            validationMessages: [],
+        };
         let validationData = await validateClaimsData.validateEDIClaimCreation(args.claimIds);
         validationData = validationData && validationData.rows && validationData.rows.length && validationData.rows[0] || [];
+
+        let ahsClaimResults = await ahs.validateAhsClaim(args.claimIds);
+        ahsClaimResults = ahsClaimResults && ahsClaimResults.rows && ahsClaimResults.rows.length && ahsClaimResults.rows[0] || [];
+
+        const invalid_claims = ahsClaimResults && ahsClaimResults.incorrect_claims || [];
+        const unique_frequency = ahsClaimResults && ahsClaimResults.unique_frequency_count || [];
 
         let claimStatus = _.without(_.uniq(validationData.claim_status), 'PS'); // (Pending Submission - PS) removed to check for other claim status availability
         // Claim validation
 
         if (validationData) {
-
-            const validationResponse = {
-                validationMessages: [],
-            };
 
             if (claimStatus.length) {
                 validationResponse.validationMessages.push('All claims must be validated before submission');
@@ -49,12 +54,24 @@ const ahsmodule = {
                 validationResponse.validationMessages.push('Claim date should not be greater than the current date');
             }
 
-            if (validationResponse.validationMessages.length) {
-                return validationResponse;
+        }
+
+        if (ahsClaimResults) {
+            if (invalid_claims.length > 0) {
+                const invalidClaimIds = _.map(invalid_claims, 'id').join(',');
+                validationResponse.validationMessages.push(`${invalidClaimIds} are not processed by AHS, Please correct the frequency of claims`);
+            }
+
+            if (unique_frequency.length > 1) {
+                validationResponse.validationMessages.push('Please select claims of similar claim type');
             }
         }
 
-        const claimData = await ahs.getClaimsData({claimIds:args.claimIds});
+        if (validationResponse.validationMessages.length) {
+            return validationResponse;
+        }
+
+        const claimData = await ahs.getClaimsData({claimIds: args.claimIds});
 
         const validationMessages = claimData.reduce((validations, claim) => {
 
@@ -71,6 +88,15 @@ const ahsmodule = {
             return validationMessages;
         }
 
+        if (args.source === 'submit') {
+            if (ahsClaimResults && !invalid_claims.length && unique_frequency.length === 1) {
+                if (unique_frequency[0].frequency === 'corrected') {
+                    args.source = 'change';
+                } else {
+                    args.source = 'submit';
+                }
+            }
+        }
 
         let submitResponse = await ahs.saveAddedClaims(args);
 
