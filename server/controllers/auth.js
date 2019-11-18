@@ -5,26 +5,19 @@ const cacheDuration = 1;    ///minutes
 
 module.exports = {
 
-    checkSession: async function (sessionID) {
+    checkSession: async function (args) {
 
-        if (cache.get(sessionID)) {
+        if (cache.get(args.session_id)) {
             return true;
         }
 
-        const response = await data.getExpiredTimeout(sessionID);
+        const response = await data.updateLastAccessed(args);
 
-        if (response.length <= 0) {
+        if (!response) {
             return false;
         }
 
-        const { expired_timeout, session_timeout } = response[0];
-
-        if (expired_timeout > session_timeout) {
-            return false;
-        }
-
-        await data.updateLastAccessed(sessionID);
-        cache.put(sessionID, true, 1000 * 60 * cacheDuration);
+        cache.put(args.session_id, true, 1000 * 60 * cacheDuration);
 
         return true;
     }
