@@ -225,8 +225,8 @@ const api = {
      */
     getReportParams: (req) => {
         const initialReportParams = {
-            companyId: req.body.company_id || 1 ,    //req.query.company_id,      // there is also req.query.companyid ??? both are injected automatically into req...
-            userId: req.body.user_id || 1 ,//req.query.user_id,            // there is also req.query.userid ??? both are injected automatically into req...
+            companyId: req.body.company_id,
+            userId: req.body.user_id,
             userIpAddress: req.query.user_ip,     // injected automatically into req...
             valid: true                           // flag to toggle if any of minimum required params are not valid
         };
