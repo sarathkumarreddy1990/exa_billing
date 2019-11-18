@@ -2,8 +2,9 @@ define([
     'jquery'
     , 'underscore'
     , 'backbone'
+    , 'sweetalert2'
 ],
-    function ($, _, Backbone) {
+    function ($, _, Backbone, swal2) {
         var reportId = "";
         var UI = {
             getReportSetting: function (viewModel, report_id, code) {
@@ -89,20 +90,66 @@ define([
                 }
             },
 
+            generateReport: function(id, category, format, params) {
+                var isHtml = format === 'html';
+
+                swal2.fire({
+                    type: 'success',
+                    title: i18n.get("report.home.reportCreated"),
+                    html:  isHtml ? i18n.get("report.home.displayAutomatically") : i18n.get("report.home.reportProcess")
+                });
+
+                // fire request for report
+                return $.ajax({
+                    url: this.generateReportUrl(id, category, format),
+                    type: "POST",
+                    data: params
+                })
+                    .done(function(data) {
+                        // TODO: MAke sure if on the same page, we do the UI.showReport call for html, else just show a toast notification
+                        if (format === 'html') {
+                            var options = {
+                                'id': data.result.id,
+                                'fileExtension': 'html'
+                            };
+
+                            swal2.fire({
+                                type: 'success',
+                                title: i18n.get("report.home.reportIsReady"),
+                                showConfirmButton: false,
+                                timer: 2000
+                            }).then(function() { UI.showReport(options); });
+                        }
+                    })
+                    .fail(function(err) {
+                        commonjs.handleXhrError(err);
+                    })
+            },
+
             generateReportUrl: function (id, category, format, params) {
                 if (!(id || category || format)) {
                     return null;
                 }
-                var reportUrlBase = '../exa_modules/billing/reports/render/' + category + '/' + id + '.' + format;
-                var reportUrlQueryString = $.param(params);
-                var reportUrl = reportUrlBase + '?' + reportUrlQueryString;
+
+                var reportUrl = '../exa_modules/billing/reports/render/' + category + '/' + id + '.' + format;
+
+                if (params) {
+                    reportUrl += '?' + $.param(params);
+                }
+
                 return reportUrl;
             },
 
-            showReport: function (id, category, format, params, openInNewTab) {
-                var queryStr = $.param(params);
-                var iframeUrl = UI.generateReportUrl(id, category, format, params);
-                if (openInNewTab) {
+            showReport: function (options) {
+                var iframeUrl = '';
+
+                if (options.generateUrl) {
+                    iframeUrl = UI.generateReportUrl(options.id, options.category, options.format, options.params);
+                } else {
+                    iframeUrl = '/report?' + $.param(options);
+                }
+
+                if (options.openInNewTab) {
                     window.open(iframeUrl, '_blank');
                     return;
                 }
@@ -116,25 +163,12 @@ define([
 
                 $('#divPageLoading').show();
                 // workaround to hide loading indicator when file is downloaded instead of being show in inframe
-                if (format === 'xlsx' || format === 'csv' || format === 'xml') {
-                    setTimeout(function () {
-                        $('#divPageLoading').hide();
-                    }, 2000);
-                }
-
-                $('#reportFrame').on("load", function () {
+                setTimeout(function () {
                     $('#divPageLoading').hide();
-                    iFrame.css({ border: '1px solid #3c91f0' });
-                });
-
-                // iFrame.load(function () {
-                //     //console.log('iframe loaded');
-                //     $('#divPageLoading').hide();
-                //     iFrame.css({ border: '1px solid #3c91f0' });
-                // });
+                }, 2000);
 
                 // resize iframe when window resizes
-                $(window).on('resize', function () {
+                $(window).resize(function () {
                     iFrame.height($(window).height() - iFrame.offset().top - 10);
                 });
             },

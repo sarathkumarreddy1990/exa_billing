@@ -140,7 +140,16 @@ define([
                 }
 
                 urlParams.dateFormat = this.viewModel.dateFormat;
-                UI.showReport(reportArgsFlag, this.viewModel.reportCategory, 'pdf', urlParams, true);
+                var options = {
+                    'id': reportArgsFlag,
+                    'category': this.viewModel.reportCategory,
+                    'format': 'pdf',
+                    'params': urlParams,
+                    'openInNewTab': true,
+                    'generateUrl': true
+                };
+
+                UI.showReport(options);
             },
 
             getSelectedFacility: function (e) {

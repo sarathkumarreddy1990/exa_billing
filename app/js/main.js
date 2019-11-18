@@ -2,6 +2,7 @@ var rjsConfig = {
     waitSeconds: 0,
     paths: {
         'fastdom': '../node_modules/fastdom/fastdom.min',
+        'sweetalert2': '../node_modules/sweetalert2/dist/sweetalert2.all.min',
         'jquery': '../node_modules/jquery/dist/jquery',
         'jquery.validate': '../node_modules/jquery-validation/dist/jquery.validate',
         'jqueryvalidateadditional': '../node_modules/jquery-validation/dist/additional-methods',
