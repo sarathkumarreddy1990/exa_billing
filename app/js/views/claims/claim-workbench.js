@@ -28,7 +28,7 @@ define(['jquery',
     'text!templates/app/ebs-hcv-request.html',
     'shared/ohip',
     'views/claims/index',
-    'text!templates/claims/ahsValidations.html'
+    'text!templates/claims/validations.html'
 ],
     function ($,
               Immutable,
@@ -60,7 +60,7 @@ define(['jquery',
               EbsHcvRequestHTML,
               ohip,
               claimsView,
-              ahsValidationResponse
+              validationTemplate
           ) {
 
         var paperClaim = new PaperClaim();
@@ -788,9 +788,12 @@ define(['jquery',
 
             ahsResponse: function (data) {
 
-                if (data.validationMessages && data.validationMessages.length) {
-                    var responseTemplate = _.template(ahsValidationResponse);
+                data.err = data && data.err || data[0];
 
+                if (data.validationMessages && data.validationMessages.length) {
+                    var responseTemplate = _.template(validationTemplate);
+                    
+                    // To show array of validation messages
                     commonjs.showNestedDialog({
                         header: 'Claim Validation Result',
                         i18nHeader: 'billing.claims.claimValidationResponse',
@@ -800,8 +803,8 @@ define(['jquery',
                             'validationMessages': data.validationMessages
                         })
                     });
-                } else if(data.err) {
-                    commonjs.showError(data.err);
+                } else if (data.err) {
+                    commonjs.showWarning(data.err);
                 } else {
                     commonjs.showStatus('messages.status.ClaimSubmitted');
                 }

@@ -15,8 +15,8 @@ define('grid', [
     'views/claims/split-claim',
     'views/claims/followup',
     'views/claims/reassessClaim',
-    'text!templates/claims/ahsValidations.html',
-], function (jQuery, _, initChangeGrid, utils, Pager, StudyFields, Studies, claimWorkbench, claimsView, UserSettingsView, StudyFilterView, studyFilterGrid, claimInquiryView, splitClaimView, followUpView, claimReassessView, ahsValidationResponse) {
+    'text!templates/claims/validations.html',
+], function (jQuery, _, initChangeGrid, utils, Pager, StudyFields, Studies, claimWorkbench, claimsView, UserSettingsView, StudyFilterView, studyFilterGrid, claimInquiryView, splitClaimView, followUpView, claimReassessView, validationTemplate) {
     var $ = jQuery;
     var isTrue = utils.isTrue;
     var isFalse = utils.isFalse;
@@ -459,7 +459,8 @@ define('grid', [
                             data: params.data,
                             success: function (data, response) {
                                 commonjs.hideLoading();
-                                if (app.billingRegionCode === 'can_AB') {
+
+                                if (app.billingRegionCode === 'can_AB' && gridData.hidden_billing_method === 'electronic_billing') {
                                     self.ahsDeleteResponse(data);
                                 } else {
                                     self.claimDeleteResponse(data, studyIds);
@@ -1848,10 +1849,11 @@ define('grid', [
 
         //To handle claim delete response for alberta 
         self.ahsDeleteResponse = function(data) {
+            data.err = data && data.err || data.message || data[0];
 
             if (data && data.validationMessages && data.validationMessages.length) {
-                var responseTemplate = _.template(ahsValidationResponse);
-
+                var responseTemplate = _.template(validationTemplate);
+                // To show array of validation messages
                 commonjs.showNestedDialog({
                     header: 'Claim Validation Result',
                     i18nHeader: 'billing.claims.claimValidationResponse',
@@ -1861,8 +1863,6 @@ define('grid', [
                         'validationMessages': data.validationMessages
                     })
                 });
-            } else if (data && data.message) {
-                commonjs.showWarning(data.message);
             } else if (data.err) {
                 commonjs.showWarning(data.err);
             } else {
@@ -1916,7 +1916,7 @@ define('grid', [
 
             switch (billingRegion) {
                 case 'can_AB':
-                    if (from === 'delete' && gridData.hidden_billing_method === 'electronic_billing'){
+                    if (from === 'delete' && gridData.hidden_billing_method === 'electronic_billing') {
                         return {
                             url: '/exa_modules/billing/ahs/can_ahs_delete_claim',
                             type: 'PUT',

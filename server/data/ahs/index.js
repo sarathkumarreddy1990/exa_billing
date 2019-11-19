@@ -885,10 +885,10 @@ const ahsData = {
                             check_frequency AS (
                                 SELECT
                                       COUNT(1) AS claim_frequency_count
-                                    , COALESCE((NULLIF(bc.frequency, 'void'), 'original') AS frequency
+                                    , COALESCE(NULLIF(bc.frequency, 'void'), 'original') AS frequency
                                 FROM  billing.claims bc
                                 WHERE id = ANY(${claimIds})
-                                GROUP BY COALESCE((NULLIF(bc.frequency, 'void'), 'original')
+                                GROUP BY COALESCE(NULLIF(bc.frequency, 'void'), 'original')
                             )
                             SELECT 
                                   (SELECT 
@@ -900,7 +900,6 @@ const ahsData = {
                                        FROM (SELECT * FROM check_frequency) AS check_frequency_agg 
                                   ) AS unique_frequency_count`;
 
-        console.log(sql.text, sql.values);
         return await query(sql);
     },
 

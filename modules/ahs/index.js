@@ -32,10 +32,10 @@ const ahsmodule = {
         validationData = validationData && validationData.rows && validationData.rows.length && validationData.rows[0] || [];
 
         let ahsClaimResults = await ahs.validateAhsClaim(args.claimIds);
-        ahsClaimResults = ahsClaimResults && ahsClaimResults.rows && ahsClaimResults.rows.length && ahsClaimResults.rows[0] || [];
+        ahsClaimResults = ahsClaimResults && ahsClaimResults.rows && ahsClaimResults.rows.length && ahsClaimResults.rows[0] || {};
 
-        const invalid_claims = ahsClaimResults && ahsClaimResults.incorrect_claims || [];
-        const unique_frequency = ahsClaimResults && ahsClaimResults.unique_frequency_count || [];
+        const invalid_claims = ahsClaimResults.incorrect_claims || {};
+        const unique_frequency = ahsClaimResults.unique_frequency_count || {};
 
         let claimStatus = _.without(_.uniq(validationData.claim_status), 'PS'); // (Pending Submission - PS) removed to check for other claim status availability
         // Claim validation
@@ -56,15 +56,13 @@ const ahsmodule = {
 
         }
 
-        if (ahsClaimResults) {
-            if (invalid_claims.length > 0) {
-                const invalidClaimIds = _.map(invalid_claims, 'id').join(',');
-                validationResponse.validationMessages.push(`${invalidClaimIds} are not processed by AHS, Please correct the frequency of claims`);
-            }
+        if (invalid_claims.length > 0) {
+            const invalidClaimIds = _.map(invalid_claims, 'id').join(',');
+            validationResponse.validationMessages.push(`${invalidClaimIds} are not processed by AHS, Please correct the frequency of claims`);
+        }
 
-            if (unique_frequency.length > 1) {
-                validationResponse.validationMessages.push('Please select claims of similar claim type');
-            }
+        if (unique_frequency.length > 1) {
+            validationResponse.validationMessages.push('Please select claims of similar claim action');
         }
 
         if (validationResponse.validationMessages.length) {
@@ -93,7 +91,7 @@ const ahsmodule = {
                 if (unique_frequency[0].frequency === 'corrected') {
                     args.source = 'change';
                 } else {
-                    args.source = 'submit';
+                    args.source = 'add';
                 }
             }
         }

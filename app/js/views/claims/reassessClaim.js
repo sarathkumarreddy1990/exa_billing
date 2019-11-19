@@ -2,18 +2,18 @@ define(['jquery',
     'underscore',
     'backbone',
     'text!templates/claims/claimReassess.html',
-    'text!templates/claims/ahsValidations.html'
+    'text!templates/claims/validations.html'
 ], function (
     $,
     _,
     Backbone,
     claimReassessTemplate,
-    ahsValidationsTemplate
+    validationTemplate
 ) {
     return Backbone.View.extend({
         el: null,
         claimReassessTemplate: _.template(claimReassessTemplate),
-        ahsValidationsTemplate: _.template(ahsValidationsTemplate),
+        validationTemplate: _.template(validationTemplate),
 
         initialize: function (options) {
             this.options = options;
@@ -50,19 +50,21 @@ define(['jquery',
                         'source': data.claim_status !== 'R' ? 'reassessment' : 'submit'
                     },
                     success: function (data) {
+                        data.err = data && data.err || data[0];
 
                         if (data.validationMessages && data.validationMessages.length) {
+                            // To show array of validation messages
                             commonjs.showNestedDialog({
                                 header: 'Claim Validation Result',
                                 i18nHeader: 'billing.claims.claimValidationResponse',
                                 height: '50%',
                                 width: '60%',
-                                html: self.ahsValidationsTemplate({
+                                html: self.validationTemplate({
                                     'validationMessages': data.validationMessages
                                 })
                             });
                         } else if (data.err) {
-                            commonjs.showError(data.err);
+                            commonjs.showWarning(data.err);
                         } else {
                             commonjs.showStatus('messages.status.ClaimSubmitted');
                         }
