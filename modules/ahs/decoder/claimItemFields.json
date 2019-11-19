@@ -49,11 +49,13 @@
   },
   "finalAssessedAmount": {
     "startPos": 87,
-    "fieldLength": 9
+    "fieldLength": 9,
+    "format": "M"
   },
   "claimedAmount": {
     "startPos": 96,
-    "fieldLength": 9
+    "fieldLength": 9,
+    "format": "M"
   },
   "claimAmountIndicator": {
     "startPos": 105,
