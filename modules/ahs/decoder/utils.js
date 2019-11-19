@@ -2,8 +2,18 @@ const getText = (alphanumericStr) => {
     return `${alphanumericStr}`.trim();
 };
 
+const getNumeric = (numericStr) => {
+    return parseInt(numericStr);
+};
+
+const getMoney = (moneyStr) => {
+    return getNumeric(moneyStr) / 100;
+};
+
 const fieldParsers = {
-    'generic': getText
+    'generic': getText,
+    'M': getMoney,
+    'N': getNumeric
 };
 
 const util = {
@@ -24,7 +34,7 @@ const util = {
      */
     getValue: (field, recordStr) => {
         let fieldStr = field.constant || recordStr.substr(field.startPos - 1, field.fieldLength);
-        return fieldParsers['generic'](fieldStr);
+        return fieldParsers[field.format || 'generic'](fieldStr);
     },
 
     /**
