@@ -2027,6 +2027,7 @@ define(['jquery',
 
                         self.received_claim_status_id = payerTypes && payerTypes[0].claim_status_id
                         $('#ddlClaimStatus').val(self.received_claim_status_id);
+                        self.disableElementsForProvince(payerTypes);
 
                         $.each(charges, function (index, charge_details) {
                             if (charge_details.adjustment_code_id) {
@@ -3459,6 +3460,13 @@ define(['jquery',
                 } else {
                     $('#siteModal .close').trigger('click');
                 }
+            },
+
+            // enable/disable elements Based on billing province.
+            disableElementsForProvince: function(data) {
+                if(app.billingRegionCode === 'can_AB') {
+                    $('#ddlClaimStatus').prop('disabled', data && data[0].primary_ins_provider_code.toLowerCase() === 'ahs');
+                }                
             }
 
         });

@@ -178,13 +178,15 @@ const ahsData = {
     saveAddedClaims: async function (args) {
 
         const {
-            company_id,
-            claimIds
+            companyId,
+            claimIds,
+            source
         } = args;
 
         let data = ``;
+        let file_type = '';
 
-        const fileSqlResponse = await ahsData.getCompanyFileStore(company_id);
+        const fileSqlResponse = await ahsData.getCompanyFileStore(companyId);
 
         if ( !fileSqlResponse || fileSqlResponse.rows.length === 0 ) {
             return null;
@@ -216,13 +218,27 @@ const ahsData = {
             .update(data, `utf8`)
             .digest(`hex`);
 
+        switch (source) {
+            case 'delete':
+                file_type = 'can_ahs_d';
+                break;
+            case 'reassessment':
+                file_type = 'can_ahs_r';
+                break;
+            case 'change':
+                file_type = 'can_ahs_c';
+                break;
+            default:
+                file_type = 'can_ahs_a';
+        }
+ 
         const edi_file_id = await this.storeFile({
             file_name,
             file_md5,
             file_size,
-            file_type: `can_ahs_a`,
+            file_type,
             file_store_id,
-            company_id,
+            companyId,
             file_path,
             created_dt,
         });
@@ -255,14 +271,26 @@ const ahsData = {
                         edi_file_id
                     )
                     SELECT
-                        claims,
-                        numbers.batch_number :: TEXT,
-                        ( numbers.sequence_number + row_number() OVER () ) % 10000000,
-                        'a',
+                        c.id,
+                        n.batch_number::TEXT,
+                        CASE
+                            WHEN ${source} = 'reassessment' OR ${source} = 'change'
+                                THEN n.sequence_number
+                            ELSE ( n.sequence_number + row_number() OVER () ) % 10000000 
+                        END,
+                        CASE
+                            WHEN ${source} = 'reassessment'
+                            THEN 'r'
+                            WHEN ${source} = 'delete'
+                            THEN 'd'
+                            WHEN ${source} = 'change'
+                            THEN 'c'
+                            ELSE 'a'
+                        END,
                         ${edi_file_id}
-                    FROM
-                        UNNEST(${claimIds} :: BIGINT[]) claims,
-                        numbers
+                    FROM billing.claims c
+                    INNER JOIN numbers n ON TRUE
+                    WHERE c.id = ANY(${claimIds})
                     RETURNING
                         *
                 ),
@@ -298,7 +326,7 @@ const ahsData = {
                         
                         -- currently hard-coded - AHS does not support another code right now
                         'CIP1'                                       AS transaction_type,
-        
+
                         CASE
                             WHEN inserted_efc.can_ahs_action_code IN ('a', 'c')
                             THEN 'RGLR'
@@ -712,7 +740,7 @@ const ahsData = {
             file_type,
             created_dt,
             file_store_id,
-            company_id,
+            companyId,
             file_path,
         } = info;
 
@@ -729,7 +757,7 @@ const ahsData = {
                 uploaded_file_name
             )
             SELECT
-                ${company_id},
+                ${companyId},
                 ${file_store_id},
                 ${created_dt},
                 'pending',
@@ -797,7 +825,88 @@ const ahsData = {
      const sql = SQL` SELECT billing.can_ahs_apply_payments(${fileData}::jsonb, ${facilityId}, ${auditDetails}) `;
 
      return await query(sql);
- }
+    },
+
+    /**
+     * Update supporting text on claim reassessment
+     * @param  {object} args    {
+     *                             claimIds: Number,
+     *                             SupportingText: Text,
+     *                          }
+     * @returns updated records
+     */
+    updateSupportingText: async (args) => {
+        const {
+            claimIds,
+            supportingText
+        } = args;
+        const sql = SQL`
+                     UPDATE 
+                         billing.claims
+                     SET
+                         can_ahs_supporting_text = ${supportingText}
+                     WHERE id = ${claimIds}`;
+        return await query(sql);
+    },
+
+    /**
+     * Get pending transaction count for deleting the claim
+     * @param {number} targetId
+     * @returns count of transactions pending from AHS
+     */
+    getPendingTransactionCount: async (args) => {
+        const {
+            targetId
+        } = args;
+
+        const sql = SQL` SELECT 
+                             COUNT(1) AS pending_transaction_count
+                         FROM billing.edi_file_claims efc
+                         WHERE efc.claim_id = ${targetId} 
+                         AND NOT did_not_process `;
+
+        return await query(sql);
+    },
+
+    /**
+     * To validate the frequency of claim for submission
+     * @param {array} claimIds
+     * @returns incorrect_claims and unique_frequency_count
+     */
+    validateAhsClaim: async (claimIds) => {
+
+        const sql = SQL`WITH 
+                            submitted_claim AS (
+                                SELECT
+                                      bc.id
+                                    , COUNT(efc.claim_id) AS submitted_claim_count
+                                FROM billing.claims bc  
+                                LEFT JOIN  billing.edi_file_claims efc ON bc.id = efc.claim_id
+                                WHERE bc.id = ANY(${claimIds})
+                                AND (bc.frequency = 'corrected')
+                                GROUP BY bc.id
+                                HAVING COUNT(efc.claim_id) = 0
+                            ),
+                            check_frequency AS (
+                                SELECT
+                                      COUNT(1) AS claim_frequency_count
+                                    , COALESCE(NULLIF(bc.frequency, 'void'), 'original') AS frequency
+                                FROM  billing.claims bc
+                                WHERE id = ANY(${claimIds})
+                                GROUP BY COALESCE(NULLIF(bc.frequency, 'void'), 'original')
+                            )
+                            SELECT 
+                                  (SELECT 
+                                       json_agg(row_to_json(incorrect_claims_agg))
+                                   FROM (SELECT * FROM submitted_claim) AS incorrect_claims_agg
+                                  ) AS incorrect_claims
+                                , (SELECT 
+                                       json_agg(row_to_json(check_frequency_agg)) 
+                                   FROM (SELECT * FROM check_frequency) AS check_frequency_agg 
+                                  ) AS unique_frequency_count`;
+
+        return await query(sql);
+    },
 
 };
 

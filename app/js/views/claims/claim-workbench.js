@@ -27,7 +27,8 @@ define(['jquery',
     'text!templates/app/ebs-hcv-form.html',
     'text!templates/app/ebs-hcv-request.html',
     'shared/ohip',
-    'views/claims/index'
+    'views/claims/index',
+    'text!templates/claims/validations.html'
 ],
     function ($,
               Immutable,
@@ -58,7 +59,8 @@ define(['jquery',
               EbsHcvFormHTML,
               EbsHcvRequestHTML,
               ohip,
-              claimsView
+              claimsView,
+              validationTemplate
           ) {
 
         var paperClaim = new PaperClaim();
@@ -566,7 +568,7 @@ define(['jquery',
                 } else {
                     for (var i = 0; i < gridElement.length; i++) {
                         var rowId = gridElement[i].parentNode.parentNode.id;
-                        var claimStatus = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'claim_status_code');
+                        var claimStatus = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_claim_status_code');
 
                         if (claimStatus === "PV") {
                             commonjs.showWarning('messages.status.pleaseValidateClaims');
@@ -683,6 +685,7 @@ define(['jquery',
 
                 if (app.billingRegionCode === 'can_AB') {
                     url = '/exa_modules/billing/ahs/submitClaims';
+                    data.source = 'submit'
                 } else if (isCanada) {
                     url = '/exa_modules/billing/ohip/submitClaims';
                 }
@@ -785,12 +788,23 @@ define(['jquery',
 
             ahsResponse: function (data) {
 
+                data.err = data && (data.err || data[0]);
+
                 if (data.validationMessages && data.validationMessages.length) {
-                    data.validationMessages.forEach(function (validationMessage) {
-                        commonjs.showWarning(validationMessage);
+                    var responseTemplate = _.template(validationTemplate);
+                    
+                    // To show array of validation messages
+                    commonjs.showNestedDialog({
+                        header: 'Claim Validation Result',
+                        i18nHeader: 'billing.claims.claimValidationResponse',
+                        height: '50%',
+                        width: '60%',
+                        html: responseTemplate({
+                            'validationMessages': data.validationMessages
+                        })
                     });
-                } else if(data.err) {
-                    commonjs.showError(data.err);
+                } else if (data.err) {
+                    commonjs.showWarning(data.err);
                 } else {
                     commonjs.showStatus('messages.status.ClaimSubmitted');
                 }

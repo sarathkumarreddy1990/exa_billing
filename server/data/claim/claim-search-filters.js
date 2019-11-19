@@ -649,7 +649,7 @@ const api = {
             query: '',
             studyFilter: '',
             userFilter: '',
-            permission_filter: ` claims.company_id = ${args.company_id} `
+            permission_filter: ` claims.company_id = ${args.company_id || args.companyId} `
         };
 
 
