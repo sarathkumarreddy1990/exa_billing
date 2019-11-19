@@ -449,7 +449,7 @@ define('grid', [
                                 return commonjs.showWarning(msg);
                             }
                         }
-                        
+
                         var params = self.getProvinceBasedParams(app.billingRegionCode, 'delete', studyIds, gridData);
 
                         commonjs.showLoading();
@@ -1849,7 +1849,7 @@ define('grid', [
 
         //To handle claim delete response for alberta 
         self.ahsDeleteResponse = function(data) {
-            data.err = data && data.err || data.message || data[0];
+            data.err = data && (data.err || data.message || data[0]);
 
             if (data && data.validationMessages && data.validationMessages.length) {
                 var responseTemplate = _.template(validationTemplate);

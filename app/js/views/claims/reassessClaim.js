@@ -50,7 +50,7 @@ define(['jquery',
                         'source': data.claim_status !== 'R' ? 'reassessment' : 'submit'
                     },
                     success: function (data) {
-                        data.err = data && data.err || data[0];
+                        data.err = data && (data.err || data[0]);
 
                         if (data.validationMessages && data.validationMessages.length) {
                             // To show array of validation messages

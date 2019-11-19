@@ -788,7 +788,7 @@ define(['jquery',
 
             ahsResponse: function (data) {
 
-                data.err = data && data.err || data[0];
+                data.err = data && (data.err || data[0]);
 
                 if (data.validationMessages && data.validationMessages.length) {
                     var responseTemplate = _.template(validationTemplate);

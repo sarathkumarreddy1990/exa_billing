@@ -868,6 +868,11 @@ const ahsData = {
         return await query(sql);
     },
 
+    /**
+     * To validate the frequency of claim for submission
+     * @param {array} claimIds
+     * @returns incorrect_claims and unique_frequency_count
+     */
     validateAhsClaim: async (claimIds) => {
 
         const sql = SQL`WITH 
@@ -878,7 +883,7 @@ const ahsData = {
                                 FROM billing.claims bc  
                                 LEFT JOIN  billing.edi_file_claims efc ON bc.id = efc.claim_id
                                 WHERE bc.id = ANY(${claimIds})
-							    AND (bc.frequency = 'corrected')
+                                AND (bc.frequency = 'corrected')
                                 GROUP BY bc.id
                                 HAVING COUNT(efc.claim_id) = 0
                             ),
@@ -892,12 +897,12 @@ const ahsData = {
                             )
                             SELECT 
                                   (SELECT 
-                                        json_agg(row_to_json(incorrect_claims_agg))
+                                       json_agg(row_to_json(incorrect_claims_agg))
                                    FROM (SELECT * FROM submitted_claim) AS incorrect_claims_agg
                                   ) AS incorrect_claims
                                 , (SELECT 
-                                        json_agg(row_to_json(check_frequency_agg)) 
-                                       FROM (SELECT * FROM check_frequency) AS check_frequency_agg 
+                                       json_agg(row_to_json(check_frequency_agg)) 
+                                   FROM (SELECT * FROM check_frequency) AS check_frequency_agg 
                                   ) AS unique_frequency_count`;
 
         return await query(sql);
