@@ -724,7 +724,7 @@
         {
             "id": 26,
             "field_name": "CPT Codes",
-            "i18n_name": "setup.userSettings.cptCodes",
+            "i18n_name": "shared.fields.cptCodes",
             "field_info": {
                 "custom_name": "CPT Codes",
                 "name": "studies.cpt_codes",
