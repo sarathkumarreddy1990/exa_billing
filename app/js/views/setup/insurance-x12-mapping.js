@@ -165,6 +165,7 @@ define(['jquery',
             renderForm: function(id) {
                 var self = this;
                 $('#divInsuranceX12MappingForm').html(this.insuranceX12MappingFormTemplate({
+                    billingRegionCode: app.billingRegionCode,
                     country_alpha_3_code: app.country_alpha_3_code,
                     province_alpha_2_code: app.province_alpha_2_code,
                     ediClearingHouseList: self.ediClearingHouses
