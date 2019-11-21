@@ -72,6 +72,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         var studyFlagArray = app.studyflag;
         var clearingHouse = commonjs.makeValue(app.clearing_house, ":All;", "id", "name");
         var billingProviders = commonjs.makeValue(app.billing_providers, ":All;", "id", "full_name");
+        var casReasonCodes = commonjs.makeValue(app.cas_reason_codes, ":All;", "code", "code");
         var placeOfService = commonjs.makeValue(app.places_of_service, ":All;", "id", "description");
         var vehicles = commonjs.makeValue(app.vehicles, ":All;", "id", "vehicle_name");
         var gender = commonjs.makeValue(commonjs.bindArray(app.gender, false), ":All;");
@@ -1914,6 +1915,22 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "defaultValue": ""
                 },
                 "field_code": "icd_description"
+            },
+            "Reason Code": {
+                "id": 69,
+                "field_code": "reason_code",
+                "field_name": "Reason Code",
+                "i18n_name": "setup.userSettings.reasonCode",
+                "field_info": {
+                    "custom_name": "Reason Code",
+                    "name": "reason_code",
+                    "width": 150,
+                    "stype": "select",
+                    "searchoptions": {
+                        "value": casReasonCodes,
+                        "tempvalue": casReasonCodes
+                    }
+                }
             }
         });
 

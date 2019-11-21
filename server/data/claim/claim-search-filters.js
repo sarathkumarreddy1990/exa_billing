@@ -28,6 +28,11 @@ const colModel = [
         searchFlag: '%'
     },
     {
+        name: 'reason_code',
+        searchColumns: ['cas_reason_codes.code'],
+        searchFlag: '%'
+    },
+    {
         name: 'birth_date',
         searchColumns: ['patients.birth_date'],
         searchFlag: 'date'
@@ -235,6 +240,7 @@ const api = {
             case 'claim_id':
             case 'id': return 'claims.id';
             case 'patient_name': return 'patients.full_name';
+            case 'reason_code': return 'cas_reason_codes.code';
             case 'birth_date': return 'patients.birth_date::text';
             case 'account_no': return 'patients.account_no';
             case 'patient_ssn': return `patients.patient_info->'ssn'`;
@@ -338,6 +344,13 @@ const api = {
                    left join users on users.id=assigned_to `;
         }
 
+        if (tables.cas_reason_codes) {
+            r += `  INNER JOIN billing.charges on billing.claims.id = billing.charges.claim_id
+                    LEFT JOIN billing.payment_applications on billing.charges.id = billing.payment_applications.charge_id
+                    LEFT JOIN billing.cas_payment_application_details on billing.payment_applications.id = billing.cas_payment_application_details.payment_application_id
+                    LEFT JOIN billing.cas_reason_codes on billing.cas_payment_application_details.cas_reason_code_id = billing.cas_reason_codes.id`
+        }
+
         if (tables.patient_insurances || tables.insurance_providers || tables.edi_clearinghouses) {
             r += `
                 LEFT JOIN patient_insurances ON patient_insurances.id =
@@ -431,6 +444,7 @@ const api = {
             'claim_status.description as claim_status',
             'claim_status.code as claim_status_code',
             'patients.full_name as patient_name',
+            'cas_reason_codes.code as reason_code',
             'patients.account_no',
             'patients.birth_date::text as birth_date',
             'claims.submitted_dt',

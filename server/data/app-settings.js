@@ -373,6 +373,17 @@ module.exports = {
                             , communication_info
                         FROM billing.edi_clearinghouses ) AS clearing_house
                 ),
+                cte_cas_reason_codes AS(
+                    SELECT COALESCE(Json_agg(Row_to_json(cas_reason_codes)),'[]') cas_reason_codes
+                    FROM  (
+                        SELECT
+                            id
+                            , company_id
+                            , inactivated_dt
+                            , code
+                            , description
+                        FROM billing.cas_reason_codes ) AS cas_reason_codes
+                ),
                 cte_grid_filter AS(
                     SELECT json_agg(row_to_json(grid_filter))grid_filter
                         FROM
@@ -420,6 +431,7 @@ module.exports = {
                       cte_custom_study_status,
                       cte_clearing_house,
                       cte_vehicle_list,
+                      cte_cas_reason_codes,
                       cte_grid_filter
                `;
 
