@@ -48,9 +48,11 @@
                 <li class="nav-item">
                     <a class="nav-link" id="aBillingValidations" href="#setup/validations/all" i18n="shared.screens.setup.billingValidations"></a>
                 </li>
+                <% if (app.billingRegionCode !== 'can_AB') { %>
                 <li class="nav-item">
                     <a class="nav-link" id="aEDITemplate" href="#setup/edi_templates/all" i18n="shared.screens.setup.ediTemplates"></a>
                 </li>
+                <% } %>
                 <li class="nav-item">
                     <a class="nav-link" id="aEDIClearingHouses" href="#setup/edi_clearinghouses/list" i18n="shared.screens.setup.ediClearingHouses"></a>
                 </li>
