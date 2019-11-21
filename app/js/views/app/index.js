@@ -28,7 +28,6 @@ define([
             regionalLayoutChanges: function () {
                 if (app.billingRegionCode === 'can_AB') {
                     $(".aEDITemplate").remove();
-                    $(".aEDIClearingHouses").remove();
                 }
             }
         });
