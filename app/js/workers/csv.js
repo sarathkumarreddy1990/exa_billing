@@ -35,7 +35,8 @@ const claimColumns = {
     "Ins Provider Type": "ins_provider_type",
     "Ordering Facility": "ordering_facility_name",
     "Facility": "facility_name",
-    "First Statement Date": "first_statement_dt"
+    "First Statement Date": "first_statement_dt",
+    "Claim Action": "claim_action"
 };
 
 const paymentsColumns = {

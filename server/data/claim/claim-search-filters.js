@@ -193,6 +193,15 @@ const colModel = [
         name: 'icd_description',
         searchColumns: ['claim_icds.description'],
         searchFlag: 'arrayString'
+    },
+    {
+        name: 'claim_action',
+        searchColumns: [`(CASE 
+                WHEN claims.frequency = 'corrected' 
+                THEN 'corrected_claim'
+                WHEN (claims.frequency != 'corrected' OR claims.frequency IS NULL) 
+                THEN 'new_claim' END)`],
+        searchFlag: '='
     }
 ];
 
@@ -282,6 +291,7 @@ const api = {
             case 'charge_description': return `nullif(charge_details.charge_description,'')`;
             case 'ins_provider_type': return 'insurance_provider_payer_types.description';
             case 'icd_description': return 'claim_icds.description';
+            case 'claim_action': return 'claims.frequency';
         }
 
         return args;
@@ -494,7 +504,13 @@ const api = {
                 ELSE
                     null
             END AS as_eligibility_status`,
-            `claim_icds.description AS icd_description`
+            `claim_icds.description AS icd_description`,
+            `(CASE 
+                 WHEN claims.frequency = 'corrected' 
+                 THEN 'corrected_claim'
+                 WHEN (claims.frequency != 'corrected' OR claims.frequency IS NULL) 
+                 THEN 'new_claim'
+              END) AS claim_action`
         ];
 
         if(args.customArgs.filter_id=='Follow_up_queue'){

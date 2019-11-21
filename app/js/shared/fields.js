@@ -76,6 +76,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         var vehicles = commonjs.makeValue(app.vehicles, ":All;", "id", "vehicle_name");
         var gender = commonjs.makeValue(commonjs.bindArray(app.gender, false), ":All;");
         var isNoneExist = false;
+        var claimAction = ':All;corrected_claim:Corrected claim;new_claim:New claim';
 
         for ( var i = 0; i < studyFlagArray.length; i++ ) {
             if ( studyFlagArray[ i ].description.toUpperCase() == 'NONE' ) {
@@ -750,6 +751,29 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "searchFlag": "=",
                         "sortable": true,
                         "defaultValue": ""
+                    }
+                },
+                "Claim Action": {
+                    "id": 43,
+                    "field_code": "claim_action",
+                    "field_name": "Claim Action",
+                    "i18n_name": "billing.claims.canAhs.claimAction",
+                    "field_info": {
+                        "custom_name": "Claim Action",
+                        "name": "claim_action",
+                        "width": 250,
+                        "searchFlag": "=",
+                        "sortable": false,
+                        "defaultValue": "",
+                        "stype": "select",
+                        formatter: function (cellvalue) {
+                            return cellvalue === 'corrected_claim' ? 'Corrected claim' : 'New claim';
+                        },
+                        "searchoptions": {
+                            "value": claimAction,
+                            "tempvalue": claimAction
+                        },
+                        "hidden": !app.billingRegionCode === 'can_AB'
                     }
                 }
             });
