@@ -36,8 +36,9 @@ const ahsmodule = {
 
         const invalid_claims = ahsClaimResults.incorrect_claims || {};
         const unique_frequency = ahsClaimResults.unique_frequency_count || {};
+        const excludeClaimStatus = ['PS', 'APP', 'AZP', 'PIF', 'R'];
 
-        let claimStatus = _.without(_.uniq(validationData.claim_status), 'PS'); // (Pending Submission - PS) removed to check for other claim status availability
+        let claimStatus = _.difference(_.uniq(validationData.claim_status), excludeClaimStatus); // removed excludedStatus to check other status availability
         // Claim validation
 
         if (validationData) {

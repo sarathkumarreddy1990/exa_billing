@@ -576,8 +576,8 @@ define(['jquery',
                         }
 
                         if (app.billingRegionCode === 'can_AB') {
-
-                            var excludeClaimStatus = ['PIF', 'PA'];
+                            //allowed to submit claim when claim is in paid in full/partial/at 0 statuses.
+                            var excludeClaimStatus = ['PA', 'ADP', 'AD', 'R'];
 
                             if (excludeClaimStatus.indexOf(claimStatus) > -1) {
                                 commonjs.showWarning('messages.status.pleaseSelectValidClaimsStatus');
