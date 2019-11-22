@@ -19,7 +19,7 @@
                     </select>
                 </div>
             </div>
-            <% if (billingRegionCode !== 'can_AB') { %>
+            <% if (country_alpha_3_code !== 'can') { %>
             <div class="form-group row" id="clearingHouse" style="display:none">
                 <label for="ddlClaimClearingHouse" class="col-sm-2 col-form-label field-required" i18n="setup.insuranceX12Mapping.claimClearingHouse"></label>
 
@@ -34,8 +34,6 @@
                     </select>
                 </div>
             </div>
-            <% } %>
-            <% if (country_alpha_3_code !== "can") { %>
             <div class="form-group row">
                 <label for="selectPayerEDICode" class="col-sm-2 col-form-label" i18n="billing.fileInsurance.ediCode"></label>
                 <div class="col-sm-5">
