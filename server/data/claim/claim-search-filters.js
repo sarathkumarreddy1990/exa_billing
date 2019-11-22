@@ -98,6 +98,11 @@ const colModel = [
         searchColumns: ['claims.id']
     },
     {
+        name: 'can_ahs_claim_no',
+        searchFlag: 'int',
+        searchColumns: ['billing.can_ahs_get_claim_number(claims.id)']
+    },
+    {
         name: 'policy_number',
         searchFlag: '%',
         searchColumns: ['patient_insurances.policy_number']
@@ -193,6 +198,15 @@ const colModel = [
         name: 'icd_description',
         searchColumns: ['claim_icds.description'],
         searchFlag: 'arrayString'
+    },
+    {
+        name: 'claim_action',
+        searchColumns: [`(CASE 
+                WHEN claims.frequency = 'corrected' 
+                THEN 'corrected_claim'
+                WHEN (claims.frequency != 'corrected' OR claims.frequency IS NULL) 
+                THEN 'new_claim' END)`],
+        searchFlag: '='
     }
 ];
 
@@ -256,6 +270,7 @@ const api = {
             case 'followup_date': return 'claim_followups.followup_date::text';
             case 'current_illness_date': return 'claims.current_illness_date::text';
             case 'claim_no': return 'claims.id';
+            case 'can_ahs_claim_no': return 'billing.can_ahs_get_claim_number(claims.id)';
             case 'policy_number': return 'patient_insurances.policy_number';
             case 'group_number': return 'patient_insurances.group_number';
             case 'payer_type':
@@ -282,6 +297,7 @@ const api = {
             case 'charge_description': return `nullif(charge_details.charge_description,'')`;
             case 'ins_provider_type': return 'insurance_provider_payer_types.description';
             case 'icd_description': return 'claim_icds.description';
+            case 'claim_action': return 'claims.frequency';
         }
 
         return args;
@@ -459,6 +475,7 @@ const api = {
             'bgct.charges_bill_fee_total as billing_fee',
             'claims.current_illness_date::text as current_illness_date',
             'claims.id As claim_no',
+            'billing.can_ahs_get_claim_number(claims.id) AS can_ahs_claim_no',
             'patient_insurances.policy_number',
             'patient_insurances.group_number',
             'claims.payer_type',
@@ -501,7 +518,13 @@ const api = {
                 ELSE
                     null
             END AS as_eligibility_status`,
-            `claim_icds.description AS icd_description`
+            `claim_icds.description AS icd_description`,
+            `(CASE 
+                 WHEN claims.frequency = 'corrected' 
+                 THEN 'corrected_claim'
+                 WHEN (claims.frequency != 'corrected' OR claims.frequency IS NULL) 
+                 THEN 'new_claim'
+              END) AS claim_action`
         ];
 
         if(args.customArgs.filter_id=='Follow_up_queue'){
@@ -656,7 +679,7 @@ const api = {
             query: '',
             studyFilter: '',
             userFilter: '',
-            permission_filter: ` claims.company_id = ${args.company_id} `
+            permission_filter: ` claims.company_id = ${args.company_id || args.companyId} `
         };
 
 

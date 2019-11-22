@@ -215,11 +215,14 @@ module.exports = {
         'patient_claim_list': 'PAYM',
         'process_write_off_payments': 'PAYM',
         'get_claim_payments': 'CLIM',
+        'get_patient_charges': 'CLIM',
         'can_delete_payment': 'PAYM',
         'claims_total_balance': 'CLIM',
         'submitClaims': 'BIVA',
         'fileManagement': 'CLFM',
         'paper_claim_fax': 'CLIM',
-        'payment_count': 'PAYM'
+        'payment_count': 'PAYM',
+        'can_ahs_reassess_claim': 'CLIM',
+        'can_ahs_delete_claim': 'CLIM'
     }
 };

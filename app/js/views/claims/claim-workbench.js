@@ -27,7 +27,8 @@ define(['jquery',
     'text!templates/app/ebs-hcv-form.html',
     'text!templates/app/ebs-hcv-request.html',
     'shared/ohip',
-    'views/claims/index'
+    'views/claims/index',
+    'text!templates/claims/validations.html'
 ],
     function ($,
               Immutable,
@@ -58,7 +59,8 @@ define(['jquery',
               EbsHcvFormHTML,
               EbsHcvRequestHTML,
               ohip,
-              claimsView
+              claimsView,
+              validationTemplate
           ) {
 
         var paperClaim = new PaperClaim();
@@ -283,8 +285,11 @@ define(['jquery',
                     .off('keyup', self.finishFilterMerge)
                     .on('keyup', self.finishFilterMerge);
 
-                commonjs.hideItem('diagnosis-count', '#aDiagnosisCountDropDownItem');
-                commonjs.hideItem('insurance-vs-lop', '#aInsuranceLOPDropDownItem');
+                // Don't hide for Alberta
+                if (app.country_alpha_3_code === 'can' && app.province_alpha_2_code !== 'AB') {
+                    commonjs.hideItem('diagnosis-count', '#aDiagnosisCountDropDownItem');
+                    commonjs.hideItem('insurance-vs-lop', '#aInsuranceLOPDropDownItem');
+                }
             },
 
             underConstruction:function(){
@@ -321,7 +326,6 @@ define(['jquery',
                 self.ebsFixturesTemplate = _.template(EBSFixturesHTML);
                 self.ebsResourceTypesTemplate = _.template(EBSResourceTypesHTML);
 
-
                 self.template = _.template(ClaimHTML);
                 self.indexTemplate = _.template(IndexHTML);
                 self.claimValidation = _.template(claimValidation);
@@ -329,7 +333,8 @@ define(['jquery',
                 self.ediWarning = _.template(ediWarning);
                 self.$el.html(self.indexTemplate({
                     country_alpha_3_code: app.country_alpha_3_code,
-                    showConformanceTesting: true,
+                    province_alpha_2_code: app.province_alpha_2_code,
+                    showConformanceTesting: app.province_alpha_2_code === 'ON' && app.ohipConfig.showConformanceTesting,
                     gadget: '',
                     customStudyStatus: [],
                     customOrderStatus: []
@@ -360,7 +365,7 @@ define(['jquery',
                             filter_order: 0,
                             id: "All_Claims"
                         });
-                        
+
                         if (app.country_alpha_3_code === "can") {
                             claimsFilters.push({
                                 assigned_users: null,
@@ -495,6 +500,7 @@ define(['jquery',
             createClaims: function (e, isFromReClaim) {
                 var self = this;
                 var billingMethodFormat = '';
+                var isCanada = app.country_alpha_3_code === 'can';
                 if (e.target) {
                     if ($(e.target).closest('li') && $(e.target).closest('li').hasClass('disabled')) {
                         return false;
@@ -556,16 +562,33 @@ define(['jquery',
                             filter_id: filterID,
                             isClaimGrid: true
                         },
-                        isAllClaims: true
+                        isAllClaims: true,
+                        billingRegionCode:app.billingRegionCode
                     }
                 } else {
                     for (var i = 0; i < gridElement.length; i++) {
                         var rowId = gridElement[i].parentNode.parentNode.id;
-                        var claimStatus = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'claim_status_code');
+                        var claimStatus = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_claim_status_code');
 
                         if (claimStatus === "PV") {
                             commonjs.showWarning('messages.status.pleaseValidateClaims');
                             return false;
+                        }
+
+                        if (app.billingRegionCode === 'can_AB') {
+                            /* Allowed to submit electronic claim when claim is in paid in full/partial/at 0 statuses.
+                               claim was restricted to submit when status of claim is in any of the below:
+                               ADP - AHS Delete Pending
+                               AD  - AHS Deleted
+                               PA  - Pending Acknowledgement
+                               R   - Rejected */
+
+                            var excludeClaimStatus = ['PA', 'ADP', 'AD', 'R'];
+
+                            if (excludeClaimStatus.indexOf(claimStatus) > -1) {
+                                commonjs.showWarning('messages.status.pleaseSelectValidClaimsStatus');
+                                return false;
+                            }
                         }
 
                         var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_billing_method');
@@ -663,9 +686,13 @@ define(['jquery',
                 }
 
                 commonjs.showLoading();
-                var isCanada = app.country_alpha_3_code === 'can';
+
                 var url = '/exa_modules/billing/claim_workbench/create_claim';
-                if (isCanada) {
+
+                if (app.billingRegionCode === 'can_AB') {
+                    url = '/exa_modules/billing/ahs/submitClaims';
+                    data.source = 'submit'
+                } else if (isCanada) {
                     url = '/exa_modules/billing/ohip/submitClaims';
                 }
 
@@ -675,7 +702,11 @@ define(['jquery',
                     data: data,
                     success: function (data, textStatus, jqXHR) {
                         commonjs.hideLoading();
-                        if (isCanada) {
+
+                        if (app.billingRegionCode === 'can_AB') {
+                            self.ahsResponse(data);
+                        }
+                        else if (isCanada) {
                             self.ohipResponse(data);
                         }
                         else {
@@ -761,6 +792,31 @@ define(['jquery',
             },
 
 
+            ahsResponse: function (data) {
+
+                data.err = data && (data.err || data[0]);
+
+                if (data.validationMessages && data.validationMessages.length) {
+                    var responseTemplate = _.template(validationTemplate);
+                    
+                    // To show array of validation messages
+                    commonjs.showNestedDialog({
+                        header: 'Claim Validation Result',
+                        i18nHeader: 'billing.claims.claimValidationResponse',
+                        height: '50%',
+                        width: '60%',
+                        html: responseTemplate({
+                            'validationMessages': data.validationMessages
+                        })
+                    });
+                } else if (data.err) {
+                    commonjs.showWarning(data.err);
+                } else {
+                    commonjs.showStatus('messages.status.claimSubmitted');
+                }
+
+            },
+
             ediResponse: function (data, isFromReClaim) {
                 var self = this;
                 self.ediResultTemplate = _.template(ediResultHTML);
@@ -825,7 +881,7 @@ define(['jquery',
                             onHide: function () {
                                 commonjs.previousValidationResults = null;
                             }
-                        });    
+                        });
                     }
                     $(".popoverWarning").popover();
 
@@ -1419,7 +1475,7 @@ define(['jquery',
                 self.datePickerCleared = false // to bind the date by default(three months) -- EXA-11340
 
                 if (filterID) {
-                    
+
                     if (filterID === "Files") {
                         self.fileManagementPager = new Pager();
                         self.showFileManagementGrid({
@@ -2256,7 +2312,7 @@ define(['jquery',
                     disablepaging: false,
                     disablesort: false,
                     disablesearch: false
-                });             
+                });
 
                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());
             },
@@ -2456,8 +2512,6 @@ define(['jquery',
                 }));
 
             },
-
-
 
             uploadResource: function() {
                 var self = this;
@@ -2808,7 +2862,8 @@ define(['jquery',
                     type: 'POST',
                     data: {
                         claim_ids: selectedClaimIds,
-                        country: app.country_alpha_3_code
+                        country: app.country_alpha_3_code,
+                        billingRegionCode:app.billingRegionCode
                     },
                     success: function (data, response) {
                         $("#btnValidateOrder").prop("disabled", false);
@@ -2870,7 +2925,7 @@ define(['jquery',
             showValidationResult: function(data) {
                 var self = this;
                 commonjs.previousValidationResults = { isFromEDI: false, result: data };
-                commonjs.showDialog({ 
+                commonjs.showDialog({
                     header: 'Validation Results',
                     fromValidate: true,
                     onShown: function () {
@@ -2882,7 +2937,7 @@ define(['jquery',
                     i18nHeader: 'billing.claims.validationResults',
                     width: '70%',
                     height: '60%',
-                    html: self.claimValidation({ response_data: data }) 
+                    html: self.claimValidation({ response_data: data })
                 });
             },
 
@@ -2917,7 +2972,8 @@ define(['jquery',
                         type: 'POST',
                         data: {
                             claim_ids: claimIds,
-                            country: app.country_alpha_3_code
+                            country: app.country_alpha_3_code,
+                            billingRegionCode: app.billingRegionCode
                         },
                         success: function (data, response) {
 
@@ -2937,7 +2993,7 @@ define(['jquery',
                         },
                         error: function (err, response) {
                             commonjs.hideLoading();
-                        }    
+                        }
                     });
                 }
             },

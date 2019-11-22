@@ -88,7 +88,7 @@ module.exports = {
                                         default_tab
                                     FROM   billing.user_settings
                                     WHERE  user_id=${userID}  ) AS userSettings)
-               , cte_study_status AS(
+                , cte_study_status AS(
                                     SELECT Json_agg(Row_to_json(study_status)) study_status
                                     FROM  (
                                     SELECT id,
@@ -149,7 +149,8 @@ module.exports = {
                                 SELECT id as siteID,
                                     stat_level_config,
                                     tat_config,
-                                    country_alpha_3_code
+                                    country_alpha_3_code,
+                                    province_alpha_2_code
                                     FROM   sites
                                     WHERE  id=${siteID})
                 , cte_hidden_reports AS (
@@ -384,6 +385,14 @@ module.exports = {
                             , description
                         FROM billing.cas_reason_codes ) AS cas_reason_codes
                 ),
+                
+                cte_cities AS (
+                    SELECT
+                        JSON_AGG(c) cities
+                    FROM
+                        ( SELECT * FROM cities ) c                
+                ),
+                
                 cte_grid_filter AS(
                     SELECT json_agg(row_to_json(grid_filter))grid_filter
                         FROM
@@ -432,6 +441,7 @@ module.exports = {
                       cte_clearing_house,
                       cte_vehicle_list,
                       cte_cas_reason_codes,
+                      cte_cities,
                       cte_grid_filter
                `;
 

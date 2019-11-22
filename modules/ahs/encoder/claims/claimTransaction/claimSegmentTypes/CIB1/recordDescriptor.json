@@ -1,0 +1,227 @@
+{
+  "claim_type": {
+    "format": "A",
+    "startPos": 1,
+    "length": 4
+  },
+  "service_provider_prid": {
+    "format": "n",
+    "startPos": 5,
+    "length": 9,
+    "paddingChar": "0"
+  },
+  "skill_code": {
+    "format": "a",
+    "startPos": 14,
+    "length": 4
+  },
+  "service_recipient_uli": {
+    "format": "n",
+    "startPos": 18,
+    "length": 9
+  },
+  "service_recipient_registration_number": {
+    "format": "a",
+    "startPos": 27,
+    "length": 12
+  },
+  "health_service_code": {
+    "format": "A",
+    "startPos": 39,
+    "length": 7
+  },
+  "service_start_date": {
+    "format": "n",
+    "startPos": 46,
+    "length": 8
+  },
+  "encounter_number": {
+    "format": "N",
+    "startPos": 54,
+    "length": 1
+  },
+  "diagnosis_code_1": {
+    "format": "A",
+    "startPos": 55,
+    "length": 6
+  },
+  "diagnosis_code_2": {
+    "format": "a",
+    "startPos": 61,
+    "length": 6
+  },
+  "diagnosis_code_3": {
+    "format": "a",
+    "startPos": 67,
+    "length": 6
+  },
+  "calls": {
+    "format": "N",
+    "startPos": 73,
+    "length": 3,
+    "paddingChar": "0"
+  },
+  "fee_modifier_1": {
+    "format": "a",
+    "startPos": 76,
+    "length": 6
+  },
+  "fee_modifier_2": {
+    "format": "a",
+    "startPos": 82,
+    "length": 6
+  },
+  "fee_modifier_3": {
+    "format": "a",
+    "startPos": 88,
+    "length": 6
+  },
+  "facility_number": {
+    "format": "n",
+    "startPos": 94,
+    "length": 6
+  },
+  "functional_centre": {
+    "format": "a",
+    "startPos": 100,
+    "length": 4
+  },
+  "location_code": {
+    "format": "a",
+    "startPos": 104,
+    "length": 4
+  },
+  "originating_facility": {
+    "format": "n",
+    "startPos": 108,
+    "length": 6
+  },
+  "originating_location": {
+    "format": "a",
+    "startPos": 114,
+    "length": 4
+  },
+  "business_arrangement": {
+    "format": "n",
+    "startPos": 118,
+    "length": 7
+  },
+  "pay_to_code": {
+    "format": "a",
+    "startPos": 125,
+    "length": 4
+  },
+  "pay_to_uli": {
+    "format": "n",
+    "startPos": 129,
+    "length": 9,
+    "paddingChar": "0"
+  },
+  "locum_arrangement": {
+    "format": "n",
+    "startPos": 138,
+    "length": 7,
+    "paddingChar": "0"
+  },
+  "referral_id": {
+    "format": "n",
+    "startPos": 145,
+    "length": 9
+  },
+  "oop_referral_indicator": {
+    "format": "a",
+    "startPos": 154,
+    "length": 1
+  },
+  "recovery_code": {
+    "format": "a",
+    "startPos": 155,
+    "length": 4
+  },
+  "chart_number": {
+    "format": "a",
+    "startPos": 159,
+    "length": 14
+  },
+  "claimed_amount": {
+    "format": "a",
+    "startPos": 173,
+    "length": 9
+  },
+  "claimed_amount_indicator": {
+    "format": "a",
+    "startPos": 182,
+    "length": 1
+  },
+  "intercept_reason": {
+    "format": "a",
+    "startPos": 183,
+    "length": 4
+  },
+  "confidential_indicator": {
+    "format": "a",
+    "startPos": 187,
+    "length": 1
+  },
+  "good_faith_indicator": {
+    "format": "a",
+    "startPos": 188,
+    "length": 1
+  },
+  "newborn_code": {
+    "format": "a",
+    "startPos": 189,
+    "length": 4
+  },
+  "emsaf_indicator": {
+    "format": "a",
+    "startPos": 193,
+    "length": 1
+  },
+  "paper_supporting_documentation_indicator": {
+    "format": "a",
+    "startPos": 194,
+    "length": 1
+  },
+  "hospital_admission_date": {
+    "format": "n",
+    "startPos": 195,
+    "length": 8,
+    "paddingChar": "0"
+  },
+  "tooth_code": {
+    "format": "a",
+    "startPos": 203,
+    "length": 2
+  },
+  "tooth_surface1": {
+    "format": "a",
+    "startPos": 205,
+    "length": 2
+  },
+  "tooth_surface2": {
+    "format": "a",
+    "startPos": 207,
+    "length": 2
+  },
+  "tooth_surface3": {
+    "format": "a",
+    "startPos": 209,
+    "length": 2
+  },
+  "tooth_surface4": {
+    "format": "a",
+    "startPos": 211,
+    "length": 2
+  },
+  "tooth_surface5": {
+    "format": "a",
+    "startPos": 213,
+    "length": 2
+  },
+  "empty": {
+    "format": "a",
+    "startPos": 215,
+    "length": 9
+  }
+}

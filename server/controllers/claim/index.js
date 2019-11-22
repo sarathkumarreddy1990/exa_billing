@@ -187,6 +187,8 @@ module.exports = {
 
     getClaimAppliedPayments: async (params) => {
         return await data.getClaimAppliedPayments(params);
-    }
+    },
+
+    getChargesByPatientId: data.getChargesByPatientId
 
 };

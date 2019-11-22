@@ -5,6 +5,8 @@ const router = express.Router();
 const logger = require('../../logger');
 
 const ohip = require('../../modules/ohip');
+const ahs = require('../../modules/ahs/sftp');
+const httpHandler = require('../shared/http');
 
 const restrictAccess = ( req, res, next ) => {
     const ipList = [
@@ -17,6 +19,7 @@ const restrictAccess = ( req, res, next ) => {
         return res.status(401)
             .end();
     }
+    
     return next();
 
 };
@@ -61,6 +64,18 @@ const runJob = ( req, res ) => {
     });
 };
 
-router.get(`/ohip/:endpoint`, restrictAccess, checkProgress, runJob);
+router.get('/ohip/:endpoint', restrictAccess, checkProgress, runJob);
+
+const handleEvents = async (req, res) => {
+    let { ip } = req;
+    let response = await ahs.events({
+        ...req.params,
+        ...req.query,
+        ip
+    });
+    return httpHandler.send(req, res, response);
+};
+
+router.get('/ahs/files/:action', restrictAccess, handleEvents);
 
 module.exports = router;

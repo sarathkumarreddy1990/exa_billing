@@ -56,6 +56,11 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                         "width": 200
                     },
                     {
+                        "name": "AHS Claim Num",
+                        "id": 69,
+                        "width": 200
+                    },
+                    {
                         "name": "Patient Name",
                         "id": 2,
                         "width": 200
@@ -126,6 +131,7 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                     app.fileStoreId = app.company.file_store_id;
                     app.facilityID = app.userInfo.default_facility_id;
                     app.default_facility_id = app.userInfo.default_facility_id;
+                    app.billingRegionCode = app.country_alpha_3_code + '_' + app.province_alpha_2_code;
 
                     if (app.userInfo.user_settings) {
                         app.sessionTimeout = app.userInfo.user_settings.sessionInterval || app.sessionTimeout;

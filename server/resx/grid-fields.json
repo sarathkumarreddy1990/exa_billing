@@ -49,7 +49,7 @@
         {
             "field_code": "patient_ssn",
             "field_name": "SSN",
-            "i18n_name": "setup.userSettings.ssn",
+            "i18n_name": "shared.fields.ssn",
             "field_info": {
                 "name": "patient_ssn",
                 "width": 100,
@@ -234,6 +234,16 @@
             "id": 19
         },
         {
+            "field_code": "can_ahs_claim_no",
+            "field_name": "AHS Claim Num",
+            "i18n_name": "setup.userSettings.claimNo",
+            "field_info": {
+                "name": "can_ahs_claim_no",
+                "width": 75
+            },
+            "id": 69
+        },
+        {
             "field_code": "invoice_no",
             "field_name": "Invoice",
             "i18n_name": "setup.userSettings.invoice",
@@ -284,7 +294,7 @@
         {
             "field_code": "policy_number",
             "field_name": "Policy Number",
-            "i18n_name": "patient.patientInsurance.policyNo",
+            "i18n_name": "shared.fields.policyNumber",
             "field_info": {
                 "name": "policy_number",
                 "searchFlag": "hstore",
@@ -415,6 +425,17 @@
                 "defaultValue": ""
             },
             "field_code": "icd_description"
+        },
+        {
+            "id": 43,
+            "field_name": "Claim Action",
+            "i18n_name": "billing.claims.canAhs.claimAction",
+            "field_info": {
+                "custom_name": "Claim Action",
+                "name": "claim_action",
+                "width": 250,
+                "defaultValue": ""
+            }
         }
     ],
     "study_fields": [
@@ -432,7 +453,7 @@
         {
             "id": 3,
             "field_name": "Study Description",
-            "i18n_name": "setup.userSettings.studyDescription",
+            "i18n_name": "shared.fields.studyDescription",
             "field_info": {
                 "custom_name": "Study Description",
                 "name": "study_description",
@@ -714,7 +735,7 @@
         {
             "id": 26,
             "field_name": "CPT Codes",
-            "i18n_name": "setup.userSettings.cptCodes",
+            "i18n_name": "shared.fields.cptCodes",
             "field_info": {
                 "custom_name": "CPT Codes",
                 "name": "studies.cpt_codes",
@@ -991,6 +1012,17 @@
                 "defaultValue": ""
             },
             "field_code": "claim_no"
+        },
+        {
+            "id": 69,
+            "field_name": "AHS Claim Num",
+            "i18n_name": "setup.userSettings.claimNo",
+            "field_info": {
+                "name": "can_ahs_claim_no",
+                "width": 200,
+                "defaultValue": ""
+            },
+            "field_code": "can_ahs_claim_no"
         },
         {
             "id": 52,
