@@ -576,8 +576,14 @@ define(['jquery',
                         }
 
                         if (app.billingRegionCode === 'can_AB') {
+                            /* Allowed to submit electronic claim when claim is in paid in full/partial/at 0 statuses.
+                               claim was restricted to submit when status of claim is in any of the below:
+                               ADP - AHS Delete Pending
+                               AD  - AHS Deleted
+                               PA  - Pending Acknowledgement
+                               R   - Rejected */
 
-                            var excludeClaimStatus = ['PIF', 'PA'];
+                            var excludeClaimStatus = ['PA', 'ADP', 'AD', 'R'];
 
                             if (excludeClaimStatus.indexOf(claimStatus) > -1) {
                                 commonjs.showWarning('messages.status.pleaseSelectValidClaimsStatus');
@@ -806,7 +812,7 @@ define(['jquery',
                 } else if (data.err) {
                     commonjs.showWarning(data.err);
                 } else {
-                    commonjs.showStatus('messages.status.ClaimSubmitted');
+                    commonjs.showStatus('messages.status.claimSubmitted');
                 }
 
             },

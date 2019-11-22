@@ -830,14 +830,14 @@ const ahsData = {
     /**
      * Update supporting text on claim reassessment
      * @param  {object} args    {
-     *                             claimIds: Number,
-     *                             SupportingText: Text,
+     *                             claimId: Number,
+     *                             supportingText: Text,
      *                          }
      * @returns updated records
      */
     updateSupportingText: async (args) => {
         const {
-            claimIds,
+            claimId,
             supportingText
         } = args;
         const sql = SQL`
@@ -845,7 +845,7 @@ const ahsData = {
                          billing.claims
                      SET
                          can_ahs_supporting_text = ${supportingText}
-                     WHERE id = ${claimIds}`;
+                     WHERE id = ${claimId}`;
         return await query(sql);
     },
 

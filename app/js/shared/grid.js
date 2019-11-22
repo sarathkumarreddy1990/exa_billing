@@ -1866,8 +1866,7 @@ define('grid', [
             } else if (data.err) {
                 commonjs.showWarning(data.err);
             } else {
-                commonjs.showStatus('messages.status.claimHasBeenDeleted');
-                $("#btnClaimsRefresh").click();
+                commonjs.showStatus('messages.status.claimSubmitted');
             }
         },
 

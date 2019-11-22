@@ -37,7 +37,15 @@ const ahsmodule = {
         const invalid_claims = ahsClaimResults.incorrect_claims || {};
         const unique_frequency = ahsClaimResults.unique_frequency_count || {};
 
-        let claimStatus = _.without(_.uniq(validationData.claim_status), 'PS'); // (Pending Submission - PS) removed to check for other claim status availability
+        /* allowed to submit claim when claim is in any one of the following status:
+            PS  - Pending Submission
+            APP - AHS Partially Paid
+            AZP - AHS Zero Paid
+            PIF - Paid In Full
+            R   - Rejected */
+        const excludeClaimStatus = ['PS', 'APP', 'AZP', 'PIF', 'R'];
+
+        let claimStatus = _.difference(_.uniq(validationData.claim_status), excludeClaimStatus); // removed excluded claim status to check other status availability
         // Claim validation
 
         if (validationData) {
