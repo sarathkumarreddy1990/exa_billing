@@ -18,6 +18,7 @@ const logger = require('../../logger');
 const JSZip = require('jszip');
 const sftpClient = require('ssh2-sftp-client');
 const ahsData = require('../../server/data/ahs');
+const ahsController = require('../../server/controllers/ahs');
 const privateKeyPath = siteConfig.get('ahsSFTPPrivateKeyPath');
 const config = {
     host: siteConfig.get('ahsSFTPAddress'),
@@ -67,12 +68,16 @@ function* processFiles ( files, dirPath ) {
                     .digest(`hex`);
 
                 await writeFileAsync(`${dirPath}/${file_name}`, bufferContent);
-                const stat = await statAsync(`${dirPath}/${file_name}`);
+                const stat = await statAsync(`${dirPath}/${file_name}`);                
+                let file_type = file_name.indexOf('OUTBB') > -1 ? 'can_ahs_bbr' :
+                    file_name.indexOf('ASSMT') > -1 ?  'can_ahs_ard' : '';
+
                 return {
                     file_md5,
                     file_name,
                     file_size: stat.size,
                     content,
+                    file_type,
                 };
             });
 
@@ -81,8 +86,8 @@ function* processFiles ( files, dirPath ) {
         catch ( e ) {
             logger.error(`Unable to read file at ${file} - `, e);
             return [];
-        }
-    };
+        };
+    }
 
     for ( let i = 0; i < files.length; ++i ) {
         yield processFile(files[ i ]);
@@ -209,10 +214,12 @@ const sftpService = {
             //
             const extract = processFiles(savedPaths, filePath);
             let extractedFiles = extract.next();
+
             while ( !extractedFiles.done ) {
                 // handle each set of files
 
                 const fileInfoArray = await extractedFiles.value;
+
                 for ( let i = 0; i < fileInfoArray.length; ++i ) {
                     const fileInfo = fileInfoArray[ i ];
 
@@ -221,6 +228,7 @@ const sftpService = {
                         file_md5,
                         file_size,
                         content,
+                        file_type
                     } = fileInfo;
 
                     await ahsData.storeFile({
@@ -231,8 +239,7 @@ const sftpService = {
                         company_id: companyId,
                         file_path: fileDir,
                         created_dt,
-                        // @TODO - hard-coding for testing for now, need to have a check of ARD vs BBR, pending EXA-18282
-                        file_type: `can_ahs_bbr`,
+                        file_type,
                     });
 
                     // @TODO - is only raw text still, pending EXA-18282
@@ -242,6 +249,7 @@ const sftpService = {
                         balance_claims_report: content,
                     });*/
                 }
+
                 extractedFiles = extract.next();
             }
 
@@ -275,11 +283,14 @@ const sftpService = {
             action
         } = data;
 
-        if (action === 'upload') {
-            return sftpService.upload(data);
-        } else if (action === 'download') {
-            return sftpService.download(data);
-        }
+        switch(action){
+            case 'updload':
+                return sftpService.upload(data);
+            case 'download':
+                return  sftpService.download(data);
+            case 'process':
+                return ahsController.processFile(data);
+        }      
     },
 
     /**

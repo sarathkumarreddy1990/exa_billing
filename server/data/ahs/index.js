@@ -790,9 +790,9 @@ const ahsData = {
     batchBalanceClaims: async (args) => {
         const {
             company_id,
-            balance_claim_report,
+            fileData,
         } = args;
-        const batchBalanceReportJson = JSON.stringify([balance_claim_report]) || JSON.stringify([{}]);
+        const batchBalanceReportJson = JSON.stringify([fileData]) || JSON.stringify([{}]);
 
         const sql = SQL` SELECT billing.can_ahs_handle_claim_balance_report(${batchBalanceReportJson}::jsonb, ${company_id})`;
 
@@ -814,17 +814,28 @@ const ahsData = {
     */
     applyPayments: async args => {
         let {
-            fileId,
+            file_id,
             fileData,
-            companyId,
-            userId,
-            facilityId
+            ip
         } = args;
-        let auditDetails = { }; //TO DO : Integrate with SFTP
-     
-     const sql = SQL` SELECT billing.can_ahs_apply_payments(${fileData}::jsonb, ${facilityId}, ${auditDetails}) `;
 
-     return await query(sql);
+        let {
+            company_id,
+            user_id,
+            default_facility_id
+        } = args.log_details
+
+        let auditDetails = {
+            'company_id': company_id,
+            'screen_name': 'payments',
+            'module_name': 'payments',
+            'client_ip': ip,
+            'user_id': user_id
+        };
+     
+        const sql = SQL` SELECT billing.can_ahs_apply_payments(${default_facility_id}, ${file_id}::BIGINT, ${JSON.stringify(fileData.batches)}::JSONB, ${JSON.stringify(auditDetails)}::JSONB) `;
+
+        return await query(sql);
     },
 
     /**
@@ -907,6 +918,60 @@ const ahsData = {
 
         return await query(sql);
     },
+     /**
+     * Get Files list from edi_files table based on status
+     * @param {args} JSON 
+     */
+    getFilesList: async(args) => {
+        const {
+            status,
+            fileTypes
+        } = args;
+
+        const sql = SQL` WITH user_data AS (
+                            SELECT 
+                                company_id,
+                                default_facility_id,
+                                id AS user_id
+                            FROM users
+                            WHERE username ILIKE 'radmin'
+                            LIMIT 1
+                        )    
+                        SELECT 
+                            file_store_id,
+                            file_type,
+                            file_path,
+                            file_size,
+                            status,
+                            fs.root_directory,
+                            uploaded_file_name,
+                            ef.id file_id,
+                            (SELECT row_to_json(_) FROM (SELECT * FROM user_data) AS _) AS log_details
+                         FROM billing.edi_files ef
+                         INNER JOIN file_stores fs ON fs.id = ef.file_store_id
+                         WHERE ef.status = ${status}                                   
+                               AND ef.file_type = ANY(${fileTypes}) LIMIT 10`;
+
+        return await query(sql);
+    },
+    /**
+     * Update File status 
+     * @param  {object} args    {
+     *                             FileId: Number
+     *                          }
+     */
+    updateFileStatus: async(args) => {
+        let {
+            fileId,
+            status
+        } = args;
+
+        const sql = SQL` UPDATE billing.edi_files 
+                      SET status = ${status}
+                      WHERE id = ${fileId}`;
+                      
+        return await query(sql);
+    }
 
 };
 
