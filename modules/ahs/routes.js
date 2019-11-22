@@ -15,11 +15,6 @@ module.exports = function () {
         return httpHandler.send(req, res, response);
     });
 
-    router.get('/files/:action', async (req, res) => {
-        let response = await sftp.events({...req.params, ...req.query});
-        return httpHandler.send(req, res, response);
-    });
-
     router.put('/reassess_claim', async (req, res) => {
         let response = await ahs.reassessClaim(req.body);
         return httpHandler.send(req, res, response);
