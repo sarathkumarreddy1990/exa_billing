@@ -480,7 +480,6 @@ define([
 
             showInvoiceGrid: function (claimID, patientId,payer_type) {
                 var self = this;
-                var claim_id = claimID;
                 $('#divInvoiceGrid').show();
                 this.invoiceTable = new customGrid();
                 this.invoiceTable.render({
@@ -1506,7 +1505,15 @@ define([
                 var urlParams = {
                     claimId : claimId
                 };
-                UI.showReport('invoice-activity-statement', 'billing', 'pdf', urlParams, true);
+                var options = {
+                    'id': 'invoice-activity-statement',
+                    'category': 'billing',
+                    'format': 'pdf',
+                    'params': urlParams,
+                    'openInNewTab': true,
+                    'generateUrl': true
+                };
+                UI.showReport(options);
             }
     });
 });
