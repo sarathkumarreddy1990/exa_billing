@@ -1230,10 +1230,15 @@
                     <label for="ddlFrequencyCode" class="col-sm-3 col-form-label" i18n="billing.claims.frequencyCode"></label>
                     <div class="col-sm-5">
                         <select class="form-control select-box" id="ddlFrequencyCode" style="height:32px;">
+                            <% if (billingRegionCode !== 'can_AB') { %>
                             <option value="" i18n="shared.buttons.select">Select</option>
                             <option value="original" i18n="billing.claims.original"></option>
                             <option value="corrected" i18n="billing.claims.corrected"></option>
                             <option value="void" i18n="billing.claims.void"></option>
+                            <% } else { %>
+                            <option value="" i18n="billing.claims.actionCodeAuto"></option>
+                            <option value="corrected" i18n="billing.claims.actionCodeChange"></option>
+                            <% } %>
                         </select>
                     </div>
                 </div>

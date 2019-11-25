@@ -3126,11 +3126,16 @@ define(['jquery',
 
                 if ($(_ele).val().length > 0 && app.country_alpha_3_code === 'can' && self.patientAddress.c1country === 'can') {
                     var state = self.isUpdatePatientInfo ? $.trim($('#ddlPriState option:selected').val()) : self.patientAddress.c1State;
-                    var _obj = _.find(commonjs.healthNumberValidation, { province: state || '' });
-                    var pattern = new RegExp(_obj.regexp);
-                    return !pattern.test($(_ele).val());
-                } else
-                    return false;
+                    var _obj = _.find(commonjs.healthNumberValidation, { province_code: state || '' });
+
+                    if (_obj) {
+                        var pattern = new RegExp(_obj.regexp);
+                        return !pattern.test($(_ele).val());
+                    }
+                    return true;
+                }
+
+                return false;
             },
             setClaimDetails: function () {
                 var self = this;
