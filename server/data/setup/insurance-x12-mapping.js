@@ -72,6 +72,10 @@ module.exports = {
                             , claim_filing_indicator_code AS indicator_code
                             , payer_edi_code AS edi_code
                             , bip.is_default_payer
+                            , bip.insurance_provider_id IS NULL AS is_new
+                            , is_name_required 
+                            , is_signature_required
+                            , is_print_billing_provider_address
                         FROM
                             public.insurance_providers ip
                         LEFT JOIN billing.insurance_provider_details bip ON bip.insurance_provider_id  = ip.id
@@ -95,7 +99,11 @@ module.exports = {
             billingMethod,
             indicatorCode,
             ediCode,
-            is_default_payer
+            is_default_payer,           
+            is_name_required, 
+            is_signature_required,
+            is_print_billing_provider_address
+
         } = params;
 
         const sql = SQL` WITH
@@ -126,6 +134,9 @@ module.exports = {
                                 , is_default_payer
                                 , claim_filing_indicator_code
                                 , payer_edi_code
+                                , is_name_required 
+                                , is_signature_required
+                                , is_print_billing_provider_address
                             )
                             SELECT
                                   ${id}
@@ -134,6 +145,9 @@ module.exports = {
                                 , ${is_default_payer}
                                 , ${indicatorCode}
                                 , ${ediCode}
+                                , ${is_name_required}
+                                , ${is_signature_required}
+                                , ${is_print_billing_provider_address}
                             WHERE NOT EXISTS (SELECT 1 FROM billing.insurance_provider_details WHERE insurance_provider_id = ${id})
                             RETURNING *, '{}'::jsonb old_values
                         )
@@ -146,6 +160,9 @@ module.exports = {
                                     , claim_filing_indicator_code = ${indicatorCode}
                                     , payer_edi_code = ${ediCode}
                                     , is_default_payer = ${is_default_payer}
+                                    , is_name_required = ${is_name_required} 
+                                    , is_signature_required = ${is_signature_required}
+                                    , is_print_billing_provider_address = ${is_print_billing_provider_address}
                                 WHERE
                                     insurance_provider_id = ${id}
                                     AND NOT EXISTS (SELECT 1 FROM insert_house)
