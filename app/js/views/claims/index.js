@@ -143,7 +143,11 @@ define(['jquery',
                                 self.claimWorkBench.showValidationResult(prevValidationResults.result);
                             }
                         }
+                        commonjs.closePatientChartWindow();
 
+                        if (window.reportWindow) {
+                            window.reportWindow.close();
+                        }
                     },
                     html: this.claimCreationTemplate({
                         country_alpha_3_code: app.country_alpha_3_code,
@@ -3191,7 +3195,8 @@ define(['jquery',
                         $('#txtPriSubPriAddr').val().trim(),
                         $('#txtPriCity').val().trim(),
                         $('#ddlPriState option:selected').val() && $('#ddlPriState option:selected').val().trim() || '',
-                        $('#txtPriZipCode').val().trim()
+                        $('#txtPriZipCode').val().trim(),
+                        $('#select2-ddlPriInsurance-container').text().trim() || ''
                     ],
                     primaryfieldObjs: [
                         { obj: $('#ddlPriRelationShip'), msg: 'messages.warning.claims.selectRelationshipPrimaryInsurance' },
@@ -3202,7 +3207,8 @@ define(['jquery',
                         { obj: $('#txtPriSubPriAddr'), msg: 'messages.warning.claims.enterAddressPrimaryInsurance' },
                         { obj: $('#txtPriCity'), msg: 'messages.warning.claims.enterCityPrimaryInsurance' },
                         { obj: $('#ddlPriState'), msg: 'messages.warning.claims.selectStatePrimaryInsurance' },
-                        { obj: $('#txtPriZipCode'), msg: 'messages.warning.claims.enterZipcodePrimaryInsurance' }
+                        { obj: $('#txtPriZipCode'), msg: 'messages.warning.claims.enterZipcodePrimaryInsurance' },
+                        { obj: $('#ddlPriInsurance'), msg: 'messages.warning.claims.selectCarrierPrimaryInsurance' }
                     ]
                 }
 
@@ -3232,7 +3238,8 @@ define(['jquery',
                         $('#txtSecSubPriAddr').val().trim(),
                         $('#txtSecCity').val().trim(),
                         $('#ddlSecState option:selected').val().trim() || '',
-                        $('#txtSecZipCode').val().trim()
+                        $('#txtSecZipCode').val().trim(),
+                        $('#select2-ddlSecInsurance-container').text().trim() || ''
                     ];
                     mandatory_fields.secondaryfieldObjs = [
                         { obj: $('#txtSecPolicyNo'), msg: 'messages.warning.claims.selectPolicySecondaryInsurance' },
@@ -3244,7 +3251,8 @@ define(['jquery',
                         { obj: $('#txtSecSubPriAddr'), msg: 'messages.warning.claims.enterAddressSecondaryInsurance' },
                         { obj: $('#txtSecCity'), msg: 'messages.warning.claims.enterCitySecondaryInsurance' },
                         { obj: $('#ddlSecState'), msg: 'messages.warning.claims.selectStateSecondaryInsurance' },
-                        { obj: $('#txtSecZipCode'), msg: 'messages.warning.claims.enterZipcodeSecondaryInsurance' }
+                        { obj: $('#txtSecZipCode'), msg: 'messages.warning.claims.enterZipcodeSecondaryInsurance' },
+                        { obj: $('#ddlSecInsurance'), msg: 'messages.warning.claims.selectCarrierSecondaryInsurance' }
                     ];
                     mandatory_fields.tertiaryfields = [
                         $('#txtTerPolicyNo').val().trim(),
@@ -3256,7 +3264,8 @@ define(['jquery',
                         $('#txtTerSubPriAddr').val().trim(),
                         $('#txtTerCity').val().trim(),
                         $('#ddlTerState option:selected').val().trim() || '',
-                        $('#txtTerZipCode').val().trim()
+                        $('#txtTerZipCode').val().trim(),
+                        $('#select2-ddlTerInsurance-container').text().trim() || ''
                     ];
                     mandatory_fields.tertiaryfieldObjs = [
                         { obj: $('#txtTerPolicyNo'), msg: 'messages.warning.claims.selectPolicyTertiaryInsurance' },
@@ -3268,7 +3277,8 @@ define(['jquery',
                         { obj: $('#txtTerSubPriAddr'), msg: 'messages.warning.claims.enterAddressTertiaryInsurance' },
                         { obj: $('#txtTerCity'), msg: 'messages.warning.claims.enterCityTertiaryInsurance' },
                         { obj: $('#ddlTerState'), msg: 'messages.warning.claims.selectStateTertiaryInsurance' },
-                        { obj: $('#txtTerZipCode'), msg: 'messages.warning.claims.enterZipcodeTertiaryInsurance' }
+                        { obj: $('#txtTerZipCode'), msg: 'messages.warning.claims.enterZipcodeTertiaryInsurance' },
+                        { obj: $('#ddlTerInsurance'), msg: 'messages.warning.claims.selectCarrierTertiaryInsurance' }
                     ];
 
                 }
@@ -3673,15 +3683,18 @@ define(['jquery',
                         $("#btnValidateClaim").prop("disabled", false);
                         if (data) {
                             commonjs.hideLoading();
+                            var isPreviousValidationResultExist = commonjs.previousValidationResults && commonjs.previousValidationResults.result && commonjs.previousValidationResults.result.length || 0;
 
                             if (!data.invalidClaim_data.length) {
                                 commonjs.showStatus("messages.status.validatedSuccessfully");
 
                                 if (data.validClaim_data && data.validClaim_data.rows && data.validClaim_data.rows.length) {
-                                    self.claim_row_version = data.validClaim_data.rows[0].claim_row_version || self.claim_row_version;
-                                    $('#ddlClaimStatus').val(data.validClaim_data.rows[0].claim_status_id);
+                                    var validClaimData = data.validClaim_data.rows[0] || {};
+
+                                    self.claim_row_version = validClaimData.claim_row_version || self.claim_row_version;
+                                    $('#ddlClaimStatus').val(validClaimData.claim_status_id);
                                     var pending_submission_status = app.claim_status.filter(function (obj) {
-                                        return obj.id === parseInt(data.validClaim_data.rows[0].claim_status_id)
+                                        return obj.id === parseInt(validClaimData.claim_status_id)
                                     });
                                     var statusDetail = commonjs.getClaimColorCodeForStatus(pending_submission_status[0].code, 'claim');
                                     var color_code = statusDetail && statusDetail[0] && statusDetail[0].color_code || 'transparent';
@@ -3694,14 +3707,31 @@ define(['jquery',
                                     } else if (pageSource !== 'patientSearch' && $gridId == '') {
                                         commonjs.showWarning(commonjs.geti18NString("messages.errors.gridIdNotExists"));
                                     }
+
+                                    // Removed Validated claim data from Invalid validation bucket list
+                                    if (isPreviousValidationResultExist) {
+                                        commonjs.previousValidationResults.result = _.reject(commonjs.previousValidationResults.result, { id: validClaimData.id });
+                                    }
                                 }
                             }
                             else {
-                                commonjs.showNestedDialog({ 
-                                    header: 'Validation Results', 
-                                    i18nHeader: 'billing.claims.validationResults', 
-                                    width: '70%', 
-                                    height: '60%', 
+                                var inValidClaimData = data.invalidClaim_data[0] || {};
+
+                                if (isPreviousValidationResultExist) {
+                                    // Assign the re-validated claim result to the invalid bucket list. Modified object reference data, so no variable allocation is required.
+                                    _.map(commonjs.previousValidationResults.result, function (obj) {
+                                        if (obj.id === inValidClaimData.id) {
+                                            Object.assign(obj, inValidClaimData)
+                                        }
+                                        return obj;
+                                    });
+                                }
+
+                                commonjs.showNestedDialog({
+                                    header: 'Validation Results',
+                                    i18nHeader: 'billing.claims.validationResults',
+                                    width: '70%',
+                                    height: '60%',
                                     html: self.claimValidation({ response_data: data.invalidClaim_data }),
                                     onShown: function () {
                                         $('#revalidateClaim').hide();

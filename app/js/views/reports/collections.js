@@ -153,7 +153,7 @@ define
                 }
                 if (self.hasValidViewModel()) {
                     var urlParams = self.getReportParams();
-                    UI.showReport(self.viewModel.reportId, self.viewModel.reportCategory, self.viewModel.reportFormat, urlParams, self.viewModel.openInNewTab);
+                    UI.generateReport(self.viewModel.reportId, self.viewModel.reportCategory, self.viewModel.reportFormat, urlParams);
                 }
             },
 

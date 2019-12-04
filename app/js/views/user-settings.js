@@ -4,14 +4,16 @@ define([
     'backbone',
     'jquerysortable',
     'text!templates/user-settings.html',
-    'models/user-settings'
+    'models/user-settings',
+    'shared/fields'
 ], function (
     $,
     _,
     Backbone,
     jquerysortable,
     userSettingsTemplate,
-    ModelUserSetting) {
+    ModelUserSetting,
+    defaultFields ) {
         return Backbone.View.extend({
             template: _.template(userSettingsTemplate),
             events: {
@@ -132,6 +134,7 @@ define([
             ulListBinding: function (field_order, listID, checkedGridFields) {
                 var $ol = $('#' + listID),
                     $li, $label, $checkbox;
+                var checkedFieldLength = this.checkedFields.length;
                 $('#' + listID).empty();
                 for (var i = 0; i < field_order.length; i++) {
                     var id = 'sf~' + field_order[i].id;
@@ -140,8 +143,15 @@ define([
                     var newLi = $('<li>');
                     var newCB = CreateCheckBox(value, id, i18nLabel);
                     var defaultOptions = ['Billing Method', 'Patient Name', 'Claim Date', 'Clearing House', 'Billing Provider','Patient','Study Date','Account#','Status','Accession#', 'Billed Status','Payer Type','Claim Status','Claim No'];
-                    if (defaultOptions.indexOf(value) != -1)
+
+                    if (defaultOptions.indexOf(value) > -1) {
                         newCB.find('input[type=checkbox]').attr('data_name', screenName).addClass('chkBillFields').prop("disabled", "true").attr('checked', true);
+
+                        if (!checkedFieldLength) {
+                            this.checkedFields.push(field_order[i].id);
+                        }
+                    }
+
                     if (listID == 'ulSortBillingList') {
                         var screenName = field_order[i].screen_name;
                         newCB.find('input[type=checkbox]').attr('data_name', screenName).addClass('chkBillFields');
@@ -194,31 +204,36 @@ define([
                         if (self.gridFilterName == 'studies')
                             self.billingDisplayFields = result.study_fields;
                         if (app.country_alpha_3_code === "can") {
-                            self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && (field.field_code == "clearing_house" || 
+                            self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && (field.field_code == "clearing_house" ||
                             field.field_code == "patient_ssn" || field.field_code == "place_of_service" )) }) || [];
                         } else {
                             self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && field.field_code == "payment_id") }) || [];
                         }
                         var result_data = data && data.length && data[1] && data[1].rows && data[1].rows.length ? data[1].rows[0] : {};
                         self.checkedBillingDisplayFields = result_data.field_order || [] ;
-                        var checkedGridFields = self.checkedBillingDisplayFields ? self.checkedBillingDisplayFields : [];
+                        self.checkedFields = self.checkedBillingDisplayFields ? self.checkedBillingDisplayFields : [];
                         var gridFieldArray = [],
                             field_order = [];
                         var sortColumn, sortOrder;
                         var displayField = [];
+                        var billingDisplayFieldsFlag = false;
 
                         for (var i = 0; i < self.checkedBillingDisplayFields.length; i++) {
                             for (var j = 0; j < self.billingDisplayFields.length; j++) {
-                                if (self.checkedBillingDisplayFields[i] == self.billingDisplayFields[j].id) {
+                                var currentDisplayField = self.billingDisplayFields[j];
+
+                                if (self.checkedBillingDisplayFields[i] == currentDisplayField.id) {
                                     displayFields.push({
-                                        field_name: self.billingDisplayFields[j].field_name,
-                                        i18n_name: self.billingDisplayFields[j].i18n_name,
-                                        width: self.billingDisplayFields[j].field_info.width,
+                                        field_name: currentDisplayField.field_name,
+                                        i18n_name: currentDisplayField.i18n_name,
+                                        width: currentDisplayField.field_info.width,
                                         id: self.checkedBillingDisplayFields[i],
-                                        screen_name: opener
+                                        screen_name: opener,
+                                        field_code: currentDisplayField.field_code
                                     });
                                     continue;
                                 }
+
                             }
                         }
                         var gridNames = displayFields.map(function (field) {
@@ -236,19 +251,36 @@ define([
                             }
                         });
 
-                        self.ulListBinding(displayFields, 'ulSortList', checkedGridFields);
+                        self.ulListBinding(displayFields, 'ulSortList', self.checkedFields);
 
                         // Remove Billed status column in dropdown
-                        self.billingDisplayFields = _.reject(self.billingDisplayFields, function(obj){ return obj.field_code === 'billed_status'; });
+                        self.billingDisplayFields = _.reject(self.billingDisplayFields, function (obj) {
+                            return (!self.checkedFields.includes(obj.id) || obj.field_code === 'billed_status');
+                        });
+
+                        this.defaults = defaultFields(self.gridFilterName).toArray();
+
+                        var nonSortColumn = $.map(this.defaults, function (data) {
+                            return data.field_info && data.field_info.sortable === false ? data.field_code : null
+                        });
 
                         for (var i = 0; i < self.billingDisplayFields.length; i++) {
-                            if (self.billingDisplayFields[i].field_code !== 'charge_description' && self.billingDisplayFields[i].field_code !== 'payment_id') {
-                                var field_name = commonjs.geti18NString(self.billingDisplayFields[i].i18n_name);
-                                $('<option/>').val(self.billingDisplayFields[i].field_code).html(field_name).appendTo('#ddlBillingDefaultColumns');
+                            var field = self.billingDisplayFields[i];
+
+                            if (nonSortColumn.indexOf(field.field_code) === -1) {
+
+                                if (result_data.default_column === field.field_code) {
+                                    billingDisplayFieldsFlag = true;
+                                }
+
+                                var field_name = commonjs.geti18NString(field.i18n_name);
+                                $('<option/>').val(field.field_code).html(field_name).appendTo('#ddlBillingDefaultColumns');
                             }
                         }
 
-                        $('#ddlBillingDefaultColumns').val(result_data.default_column);
+                        var defaultDisplayField = displayFields[0];
+                        var defaultColumn = billingDisplayFieldsFlag ? result_data.default_column : defaultDisplayField && defaultDisplayField.field_code;
+                        $('#ddlBillingDefaultColumns').val(defaultColumn);
                         $('#ddlBillingSortOrder').val(result_data.default_column_order_by);
                         self.loadPrinterTemplates('ddlPaperClaimFullForm','paper_claim_full', result_data.paper_claim_full);
                         self.loadPrinterTemplates('ddlPaperClaimOriginalForm','paper_claim_original', result_data.paper_claim_original);

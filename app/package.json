@@ -32,7 +32,8 @@
         "popper.js": "^1.14.3",
         "requirejs": "^2.3.5",
         "requirejs-text": "^2.0.15",
-        "select2": "^4.0.5"
+        "select2": "^4.0.5",
+        "sweetalert2": "^8.13.0"
     },
     "engine-strict": true,
     "engines": {

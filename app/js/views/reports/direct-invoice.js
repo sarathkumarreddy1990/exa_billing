@@ -75,7 +75,16 @@ define([
                     claimId: reportArgs.claimIDs
                 }
 
-                UI.showReport('direct-invoice', this.viewModel.reportCategory, 'pdf', urlParams, true);
+                var options = {
+                    'id': 'direct-invoice',
+                    'category': this.viewModel.reportCategory,
+                    'format': 'pdf',
+                    'params': urlParams,
+                    'openInNewTab': true,
+                    'generateUrl': true
+                };
+
+                UI.showReport(options);
             },
 
             getSelectedFacility: function (e) {

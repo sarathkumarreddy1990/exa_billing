@@ -32,8 +32,7 @@ define([
 
                 if (!layout.initialized) {
                     RoutingUtils.clearView(this.options.currentView);
-                    this.paymentByInsCompanyScreen = new PaymentsByInsCompanyView(this.options);
-                    this.options.currentView = this.paymentByInsCompanyScreen;
+                    this.options.currentView = this.paymentByInsCompanyScreen = new PaymentsByInsCompanyView(this.options);
                 }
             }
         });

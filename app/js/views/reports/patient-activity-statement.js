@@ -103,7 +103,16 @@ define([
                 }
 
                 urlParams.dateFormat = this.viewModel.dateFormat;
-                UI.showReport(reportName, this.viewModel.reportCategory, 'pdf', urlParams, true);
+                var options = {
+                    'id': reportName,
+                    'category': this.viewModel.reportCategory,
+                    'format': 'pdf',
+                    'params': urlParams,
+                    'openInNewTab': true,
+                    'generateUrl': true
+                };
+
+                UI.showReport(options);
                 $('#divPageLoading').hide();
             },
 

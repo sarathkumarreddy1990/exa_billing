@@ -80,7 +80,6 @@ var commonjs = {
     currentStudyFilter: '',
     localCacheMaxErrorLimit: 0,
     filterData: {},
-    paymentsList: [],
 
     /**
      * Setting up zip autocomplete:
@@ -1101,8 +1100,6 @@ var commonjs = {
                 options.onHide();
             }
 
-            if (window.reportWindow)
-                window.reportWindow.close();
             if (window.updaterRegisteredPortalInfo == true)
                 window.updaterRegisteredPortalInfoObj.close();
 
@@ -1157,10 +1154,6 @@ var commonjs = {
             //Report window close
             this.closeReportWindow();
         }
-
-        //Patient Chart Window  close
-        if (options.header !== "Patient Alerts")
-            this.closePatientChartWindow();
 
         if (options.onHide && typeof options.onHide === 'function') {
             options.onHide();
@@ -1638,11 +1631,7 @@ var commonjs = {
     },
 
     validateFutureDate: function (txtBoxValue, msg) {
-        var dateValue = moment(txtBoxValue, "MM/DD/YYYY");
-        if (moment(commonjs.getCurrentDate()).diff(dateValue) < 0) {
-            return false;
-        }
-        return true;
+        return moment(commonjs.getCurrentDate(), 'L').diff((txtBoxValue).format('L')) >= 0;
     },
 
     dateRangesOverlap: function (startTime1, endTime1, startTime2, endTime2) {
@@ -3585,9 +3574,6 @@ var commonjs = {
         commonjs.showLoading('Logging out...');
         commonjs.resetScreenNameCookie();
         commonjs.setCookie('patquery', '', -1);
-        if (prefetch.windowObj && typeof prefetch.windowObj.close !== 'undefined') {
-            prefetch.windowObj.close();
-        }
 
         $.ajax({
             url: "/broadcast",
@@ -3600,9 +3586,7 @@ var commonjs = {
             success: function (data) {
                 setTimeout(function () {
                     commonjs.hideLoading();
-                    if (prefetchViewer)
-                        prefetchViewer.closeAllViewerWindows();
-                    location.href = '/logout?user=1';
+                    location.href = '/logout';
                 }, 1000);
             },
             error: function (request, status, error) {
@@ -4215,7 +4199,7 @@ var commonjs = {
 
     openNotes: function (options) {
        var patient_id = options.patient_id;
-       var url = '/exa#patient/notes/0/0/' + btoa(patient_id) + '/?billing';
+       var url = '/exa#patient/notes/' + options.order_id + '/' + options.study_id + '/' + btoa(patient_id) + '/?billing';
         commonjs.showNestedDialog({ header: 'Notes', i18nHeader: 'billing.claims.notes', width: '90%', height: '60%', onLoad: 'commonjs.removeIframeHeader()', url: url });
     },
 

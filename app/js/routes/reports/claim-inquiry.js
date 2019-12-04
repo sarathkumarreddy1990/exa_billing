@@ -2,12 +2,14 @@ define([
     'jquery',
     'backbone',
     'backbonesubroute',
+    'shared/routing',
     'views/reports/claim-inquiry'
 ],
     function (
         $,
         Backbone,
         SubRoute,
+        RoutingUtils,
         ClaimInquiryView
     ) {
         return Backbone.SubRoute.extend({
@@ -26,11 +28,11 @@ define([
 
             initializeRouter: function () {
                 this.options.screen = facilityModules.reportScreens.claimInquiry;
-                this.options.currentView = this.claimInquiryScreen;
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {
-                    this.claimInquiryScreen = new ClaimInquiryView(this.options);
+                    RoutingUtils.clearView(this.options.currentView);
+                    this.options.currentView = this.claimInquiryScreen = new ClaimInquiryView(this.options);
                 }
             }
         });

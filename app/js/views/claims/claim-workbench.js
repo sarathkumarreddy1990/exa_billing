@@ -530,6 +530,11 @@ define(['jquery',
 
                 var isCheckedAll = $('#chkStudyHeader_' + filterID).prop('checked');
                 var data = {};
+                var gridElement = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked');
+
+                if (!gridElement.length) {
+                    return commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfBillingMethod');
+                }
 
                 if (isCheckedAll && billingMethodFormat === 'electronic_billing') {
                     var filterData = JSON.stringify(filter.pager.get('FilterData'));
@@ -554,9 +559,8 @@ define(['jquery',
                         isAllClaims: true
                     }
                 } else {
-                    for (var i = 0; i < $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked').length; i++) {
-                        var rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;
-
+                    for (var i = 0; i < gridElement.length; i++) {
+                        var rowId = gridElement[i].parentNode.parentNode.id;
                         var claimStatus = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'claim_status_code');
 
                         if (claimStatus === "PV") {
@@ -605,12 +609,6 @@ define(['jquery',
                         var invoice_no = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_invoice_no');
                         invoiceNo.push(invoice_no);
                         claimIds.push(rowId);
-                    }
-
-
-                    if (claimIds && !claimIds.length) {
-                        commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfBillingMethod');
-                        return false;
                     }
 
                     data = {
@@ -793,13 +791,24 @@ define(['jquery',
 
                     data.validations = data.validations.concat(segmentValidations);
                     var result = [];
+                    var validations = [];
+                    var commonErrorValidation = [];
 
-                    if (data.validations && data.validations.length) {
-                        result = _.groupBy(data.validations, "dataID");
+                    data.validations.forEach(function (object) {
+
+                        if (_.has(object, "dataID")) {
+                            validations.push(object);
+                        } else {
+                            commonErrorValidation.push(object);
+                        }
+                    });
+
+                    if (data.validations && data.validations.length && validations.length) {
+                        result = _.groupBy(validations, "dataID");
                     }
 
                     if (isFromReClaim) {
-                        $('#modal_div_container').html(self.ediResultTemplate({ result: result, ediText: data.ediTextWithValidations }));
+                        $('#modal_div_container').html(self.ediResultTemplate({ result: result, ediText: data.ediTextWithValidations, commonResult: commonErrorValidation }));
                         commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());
                         self.initEvent(true);
                     } else {
@@ -809,7 +818,7 @@ define(['jquery',
                             width: '95%',
                             height: '75%',
                             fromValidate: true,
-                            html: self.ediResultTemplate({ result: result, ediText: data.ediTextWithValidations }),
+                            html: self.ediResultTemplate({ result: result, ediText: data.ediTextWithValidations, commonResult: commonErrorValidation }),
                             onShown: function () {
                                 self.initEvent(true);
                             },
@@ -1484,7 +1493,7 @@ define(['jquery',
                                 $('#btnValidateExport').css('display', 'none');
                                 var filter_current_id = $('#claimsTabs').find('.active a').attr('data-container')
                                 var filter = commonjs.loadedStudyFilters.get(filter_current_id);
-                                if (filter.pager.get('FilterData') == "") {
+                                if (filter && filter.pager && filter.pager.get('FilterData') === "") {
                                     var toDate = moment();
                                     var fromDate = moment().subtract(89, 'days');
                                     filterData = "[\""+ fromDate.format("YYYY-MM-DD") + " - " + toDate.format("YYYY-MM-DD") +"\"]"
@@ -2024,17 +2033,28 @@ define(['jquery',
 
             toggleTabContents: function (filterID) {
                 var _self = this;
+                var filters = ["Follow_up_queue", "Files"];
                 commonjs.processPostRender({screen: 'Claim Workbench'});
-                if(filterID=="Follow_up_queue"){
-                    $("#btnInsuranceClaim").hide();
-                    $("#btnValidateOrder").hide();
-                    $("#btnPaperClaim").hide();
-                    $("#btnValidateExport").hide();
-                }else{
-                    $("#btnPaperClaim").show();
-                    $("#btnValidateOrder").show();
-                    $("#btnValidateExport").show();
+                var btnValidateOrder = $("#btnValidateOrder");
+                var btnInsuranceClaim = $("#btnInsuranceClaim");
+                var btnValidateExport = $("#btnValidateExport");
+                var btnPaperClaim = $("#btnPaperClaim");
+
+                if (filters.indexOf(filterID) > -1) {
+
+                    if (filterID === "Follow_up_queue") {
+                        btnPaperClaim.hide();
+                    }
+
+                    btnInsuranceClaim.hide();
+                    btnValidateOrder.hide();
+                    btnValidateExport.hide();
+                } else {
+                    btnPaperClaim.show();
+                    btnValidateOrder.show();
+                    btnValidateExport.show();
                 }
+
                 $('#divPageLoading').hide();
                 $('#diveHomeIndex').show();
                 $('#divStudyFooter').show();
@@ -2905,6 +2925,7 @@ define(['jquery',
                                 var invalidClaimData = data.invalidClaim_data;
 
                                 if (invalidClaimData.length) {
+                                    commonjs.previousValidationResults.result = invalidClaimData;
                                     modalContainer.html(self.claimValidation({ response_data: invalidClaimData }));
                                 } else {
                                     modalContainer.html('<div style="text-align: center" >' + commonjs.geti18NString('messages.status.noRecordFound') + '</div>');

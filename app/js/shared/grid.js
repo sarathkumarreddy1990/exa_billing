@@ -255,6 +255,7 @@ define('grid', [
                                             var $td = $claimGrid.children('td');
                                             commonjs.setGridCellValue(cells, $td, tblId)
                                         });
+                                        $("#btnClaimsRefresh").click();
                                     }
                                 },
                                 error: function (err, response) {
@@ -1428,6 +1429,11 @@ define('grid', [
                 }
                 selectedStudyArray = [];
                 $('#btnStudiesRefresh, #btnStudiesRefreshAll, #btnClaimsRefresh, #btnClaimRefreshAll').prop('disabled', false);
+                var userEle = $('#gbox_tblClaimGridFollow_up_queue #gs_assigned_to');
+
+                if (options.filterid === "Follow_up_queue" && !userEle.val()) {
+                    userEle.val(app.userID);
+                }
             };
 
             var rowattr = function (domData, data) {
@@ -1494,8 +1500,9 @@ define('grid', [
                 var searchFilterFlag = grid.getGridParam("postData")._search;
                 var colHeader = studyFields.colName;
                 var current_filter_id = $('#claimsTabs').find('.active a').attr('data-container')
-                var isDatePickerClear = filterCol.indexOf('claim_dt') === -1;
-
+                var filterContent = commonjs.loadedStudyFilters.get(filterID);
+                var isDatePickerClear = filterContent.options && filterContent.options.customargs && filterContent.options.customargs.isDatePickerClear;
+                
                 if (options.filterid != 'Follow_up_queue') {
                     commonjs.showLoading();
 

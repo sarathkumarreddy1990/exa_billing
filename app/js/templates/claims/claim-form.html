@@ -30,53 +30,76 @@
     .table__width {
         width: 80% !important;
     }
+    .filter_width {
+        width: 98%;
+        margin: auto;
+    }
 </style>
 <div class="row woClaimRelated" id="headerContainer">
     <nav id="newClaimNav" class="top-nav">
         <ul id="tab_menu" class="tn-menu">
             <li class="active">
-                <a id="newClaimNavCharge" title="Alt+c" href="#tab_1" i18n="shared.screens.setup.charges" ></a>
+                <a id="newClaimNavCharge" title="Alt+C" href="#tab_1" i18n="shared.screens.setup.charges" ></a>
             </li>
             <li>
-                <a id="newClaimNavClaims" title="Alt+Shift+c" href="#tab_2" i18n="shared.screens.setup.claims" ></a>
+                <a id="newClaimNavClaims" title="Alt+Shift+C" href="#tab_2" i18n="shared.screens.setup.claims" ></a>
             </li>
             <li>
-                <a id="newClaimNavIns" title="Alt+i" href="#tab_3" i18n="shared.screens.setup.insurance"></a>
+                <a id="newClaimNavIns" title="Alt+I" href="#tab_3" i18n="shared.screens.setup.insurance"></a>
             </li>
             <li>
-                <a id="newClaimNavAddInfo" title="Alt+a" href="#tab_4" i18n="shared.screens.setup.additionalInfo"></a>
+                <a id="newClaimNavAddInfo" title="Alt+A" href="#tab_4" i18n="shared.screens.setup.additionalInfo"></a>
             </li>
             <li>
-                <a id="newClaimNavBillSummary" title="Alt+b" href="#tab_5" i18n="shared.screens.setup.billingSummary"></a>
+                <a id="newClaimNavBillSummary" title="Alt+B" href="#tab_5" i18n="shared.screens.setup.billingSummary"></a>
             </li>
             <li class="editClaimRelated">
-                <a id="newClaimNavPayments" title="Alt+p" href="#tab_6" i18n="billing.payments.payments"></a>
+                <a id="newClaimNavPayments" title="Alt+P" href="#tab_6" i18n="billing.payments.payments"></a>
             </li>
         </ul>
         <ul class="new-menu-right">
             <li>
-                <button type="button" class="btn top-buffer claimProcess" id="btnPrevClaim" title="Alt+Shift+p" i18n="shared.buttons.prev"></button>
-                <button type="button" class="btn top-buffer claimProcess" id="btnNextClaim" title="Alt+Shift+n" i18n="shared.buttons.next"></button>
+                <button type="button" class="btn top-buffer claimProcess" id="btnPrevClaim" title="Alt+Shift+P" i18n="shared.buttons.prev"></button>
+                <button type="button" class="btn top-buffer claimProcess" id="btnNextClaim" title="Alt+Shift+N" i18n="shared.buttons.next"></button>
             </li>
             <li>
-                <button type="button" class="btn top-buffer" id="btnPatientNotes" title="Alt+n" i18n="shared.buttons.notes"></button>
+                <button type="button" class="btn top-buffer" id="btnPatientNotes" title="Alt+N" i18n="shared.buttons.notes"></button>
             </li>
             <li>
-                <button type="button" class="btn top-buffer" id="btPatientDocuemnt" title="Alt+d" i18n="shared.buttons.documentReports"></button>
+                <button type="button" class="btn top-buffer" id="btPatientDocuemnt" title="Alt+D" i18n="shared.buttons.documentReports"></button>
             </li>
             <li class="editClaimRelated" >
-                <button type="button" class="btn top-buffer " id="btnValidateClaim" title="Alt+v" i18n="shared.buttons.validate"></button>
+                <button type="button" class="btn top-buffer " id="btnValidateClaim" title="Alt+V" i18n="shared.buttons.validate"></button>
             </li>
             <li class="saveAll">
-                <button type="button" class="btn top-buffer" id="btnSaveClaim" title="Alt+s" i18n="shared.buttons.saveAll"></button>
+                <button type="button" class="btn top-buffer" id="btnSaveClaim" title="Alt+S" i18n="shared.buttons.saveAll"></button>
             </li>
         </ul>
     </nav>
 </div>
-<div id="divPatient" class="mt-2 ml-3" style="width:98%;">
+<div id="divPatient" class="filter_width">
     <div id="divGrid">
         <div class="row" id="searchForm">
             <div id="divPatientInputs">
+                    <div class="col-xs-12">
+                        <div class="form-group form-inline">
+                            <select id="ddlSearchType" class="form-control">
+                                <option value="start" i18n="billing.payments.startsWith"></option>
+                                <option value="end" i18n="billing.payments.endsWith"></option>
+                                <option value="contain" i18n="billing.payments.contains"></option>
+                            </select>
+                            <select id="ddlFacilitySearch" class="form-control">
+                                <option value="-1">All</option>
+                                <% _.each(facilities, function(facility) { %>
+                                <option value="<%= facility.id %>">
+                                    <%= facility.text %>
+                                </option>
+                                <% }); %>
+                            </select>
+                            <input type="checkbox" class="ml-2" checked="checked" id="chk_isActiveNeeded">
+                            <label for="chk_isActiveNeeded" class="field-chk" i18n="billing.payments.showInactive"></label>
+                        </div>
+                    </div>
                 <div class="col-xs-12 search-field__container">
                     <div class="form-group form-inline">
                         <div class="fc-inline" id="searchPatient" style="width: 100%;">

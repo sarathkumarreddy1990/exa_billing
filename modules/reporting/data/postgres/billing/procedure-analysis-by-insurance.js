@@ -113,8 +113,8 @@ WITH claim_details AS (
                , "Account #"
                , "Facility"
                , "Encounter ID"
-               , "CPT Date"
-               , "CPT Code"
+               , "<%= dateHeader %>"
+               , "<%= codeHeader %>"
                , "Study Description"
                , "Modality"
                <% if ( refProviderFlagValue === 'true' ) { %>

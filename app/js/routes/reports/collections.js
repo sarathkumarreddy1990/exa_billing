@@ -3,12 +3,14 @@ define
     'jquery',
     'backbone',
     'backbonesubroute',
+    'shared/routing',
     'views/reports/collections'
 ],
   function(
       $,
       Backbone,
       SubRoute,
+      RoutingUtils,
       CollectionsView
   ) {
       return Backbone.SubRoute.extend({
@@ -28,11 +30,12 @@ define
           initializeRouter: function(){
               var self = this;
               self.options.screen = facilityModules.reportScreens.collections;
-              self.options.currentView = self.collectionScreen;
               layout.initializeLayout(this);
 
               if(!layout.initialized){
+                  RoutingUtils.clearView(this.options.currentView);
                   self.collectionScreen = new CollectionsView(self.options);
+                  self.options.currentView = self.collectionScreen;
               }
           }
       });

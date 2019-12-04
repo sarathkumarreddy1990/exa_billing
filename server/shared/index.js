@@ -103,5 +103,17 @@ module.exports = {
             .replace(/12/, 'MM')
             .replace(/31/, 'DD')
             .replace(/2017/, 'YYYY');
+    },
+
+    getCookieOption: function (cookieObj, index) {
+        const {
+            user_options = ''
+        } = cookieObj;
+
+        if (typeof cookieObj == 'undefined' || typeof user_options == 'undefined') {
+            return '';
+        }
+
+        return user_options.split('~')[index] ||  '';
     }
 };

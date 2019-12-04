@@ -132,7 +132,7 @@ define([
                 this.viewModel.insuranceOption = $('#ddlInsuranceOption').val();
                 if (this.hasValidViewModel()) {
                     var urlParams = this.getReportParams();
-                    UI.showReport(this.viewModel.reportId, this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
+                    UI.generateReport(this.viewModel.reportId, this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams);
                 }
             },
 

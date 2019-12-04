@@ -4,4 +4,5 @@ const reportingController = require('../controllers/')
     ;
 
 router.get('/render/:reportCategory/:reportId.:reportFormat', reportingController.process);
+router.post('/render/:reportCategory/:reportId.:reportFormat', reportingController.process);
 module.exports = router;
