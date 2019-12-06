@@ -186,6 +186,9 @@ define(['jquery',
                                     $('#selectPayerEDICode').val(data.edi_code ? data.edi_code : '');
                                     self.isdefaultPayer = data.is_default_payer;
                                     $('input:checkbox[name=defaultPayer]').prop('checked', self.isdefaultPayer );
+                                    $('#chkNameInClaimForm').prop('checked', data.is_new || data.is_name_required);
+                                    $('#chkPrintSignature').prop('checked', data.is_new || data.is_signature_required);
+                                    $('#chkPrintBillingProviderAddress').prop('checked', data.is_new || data.is_print_billing_provider_address);
                                     if (data.billing_method == 'electronic_billing') {
                                         $('#clearingHouse').show();
                                         $('#defaultPayerDiv').show();
@@ -279,7 +282,10 @@ define(['jquery',
                     "billingMethod": billingMethod,
                     "indicatorCode": $('#txtClaimFileIndicatorCode').val(),
                     "ediCode": $("#selectPayerEDICode").val(),
-                    "is_default_payer": (app.country_alpha_3_code === "can" && isElectronicBilling) ? $('input:checkbox[name=defaultPayer]').prop('checked') : false
+                    "is_default_payer": (app.country_alpha_3_code === "can" && isElectronicBilling) ? $('input:checkbox[name=defaultPayer]').prop('checked') : false,
+                    "is_name_required": $('#chkNameInClaimForm').prop('checked'),
+                    "is_signature_required": $('#chkPrintSignature').prop('checked'),
+                    "is_print_billing_provider_address": $('#chkPrintBillingProviderAddress').is(':checked')
                 });
                 this.model.save({
                 }, {

@@ -32,7 +32,7 @@ module.exports = {
                                         file_store_id
                                     FROM   facilities
                                     WHERE  company_id=${companyID}
-                                    AND    NOT has_deleted
+                                    AND    deleted_dt IS NULL
                                     ORDER BY
                                         facility_name )AS facilities )
                     , cte_company AS(
@@ -55,7 +55,7 @@ module.exports = {
                                                 modality_name
                                             FROM     modalities
                                             WHERE    company_id=${companyID}
-                                            AND      NOT has_deleted
+                                            AND      deleted_dt IS NULL
                                             AND      is_active
                                             ORDER BY priority ASC ) AS modalities)
                     , cte_user AS(
@@ -73,7 +73,7 @@ module.exports = {
                                             get_full_name(last_name, first_name, middle_initial, NULL, suffix) AS "userFullName"
                                    FROM   users
                                    WHERE  company_id=${companyID}
-                                   AND    NOT has_deleted
+                                   AND    deleted_dt IS NULL
                                    AND    is_active
                                    AND    id=${userID} ) AS users)
                 , cte_user_settings AS(
@@ -99,7 +99,7 @@ module.exports = {
                                           waiting_time,
                                           color_code
                                     FROM   study_status
-                                    WHERE  NOT has_deleted ) AS study_status)
+                                    WHERE deleted_dt IS NULL) AS study_status)
                 , cte_claim_status AS(
                                     SELECT Json_agg(Row_to_json(claim_status)) claim_status
                                     FROM  (
@@ -144,7 +144,7 @@ module.exports = {
                                         color_code,
                                         description
                                     FROM   study_flags
-                                    WHERE  company_id=${companyID} AND NOT has_deleted) AS studyflag)
+                                    WHERE  company_id=${companyID} AND deleted_dt IS NULL) AS studyflag)
                 , cte_sites AS(
                                 SELECT id as siteID,
                                     stat_level_config,
@@ -250,9 +250,8 @@ module.exports = {
                                      OR LOWER(ur.role_name) = 'billing1.5'
                                      OR (group_info->'user_nav')::jsonb ? 'billing'
                                     ) AND
-                                     users.has_deleted=FALSE AND
+                                     users.deleted_dt IS NULL AND
                                      users.is_active AND
-                                     users.has_deleted = false AND
                                      users.company_id = ${companyID} ) AS billing_user_list)
                 , cte_payment_reasons_list AS(
                                     SELECT Json_agg(Row_to_json(payment_reasons)) payment_reasons
@@ -293,7 +292,7 @@ module.exports = {
                                             FROM   facilities
                                             INNER JOIN users ON users.id=${userID}
                                             WHERE  facilities.company_id=${companyID}
-                                            AND    NOT facilities.has_deleted
+                                            AND    facilities.deleted_dt IS NULL
                                             AND    facilities.is_active
                                             AND (facilities.id) = ANY(users.facilities )
                                             ORDER BY
@@ -325,11 +324,11 @@ module.exports = {
                 FROM modality_rooms
                 WHERE
                     is_active
-                    AND NOT has_deleted
+                    AND deleted_dt IS NULL
                     AND facility_id IN (
                         SELECT id AS facility_id
                         FROM facilities
-                        WHERE company_id = ${companyID} AND NOT has_deleted
+                        WHERE company_id = ${companyID} AND deleted_dt IS NULL
                     )
                 ORDER BY modality_room_name ) AS modality_room
                 ),
@@ -343,11 +342,11 @@ module.exports = {
                         FROM study_status
                         INNER JOIN facilities ON (
                             facilities.id = study_status.facility_id
-                            AND NOT facilities.has_deleted
+                            AND facilities.deleted_dt IS NULL
                         )
                         WHERE
                             can_edit
-                            AND NOT study_status.has_deleted
+                            AND study_status.deleted_dt IS NULL
                             AND company_id = ${companyID}
                         ORDER BY status_code ASC ) AS custom_study_status
                     ),
@@ -358,7 +357,7 @@ module.exports = {
                             id
                             , vehicle_name
                         FROM vehicles
-                        WHERE NOT has_deleted ) AS vehicles
+                        WHERE deleted_dt IS NULL ) AS vehicles
                 ),
                 cte_clearing_house AS(
                     SELECT COALESCE(Json_agg(Row_to_json(clearing_house)),'[]') clearing_house
