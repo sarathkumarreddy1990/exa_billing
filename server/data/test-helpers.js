@@ -27,7 +27,7 @@ module.exports = {
                      FROM public.patients pp
                      INNER JOIN public.patient_insurances ppi on ppi.patient_id = pp.id
                      WHERE
-                        NOT pp.has_deleted `; // patients.has_deleted
+                         pp.deleted_dt IS NULL `;
 
         return await query(sql);
 

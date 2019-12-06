@@ -741,7 +741,7 @@ module.exports = {
                     dicom_patient_id,
                     first_name,
                     last_name,
-                    has_deleted, /* patients.has_deleted */
+                    (deleted_dt IS NOT NULL) as has_deleted,
                     is_active, /* patients.is_active */
                     get_full_name(
                         last_name,
