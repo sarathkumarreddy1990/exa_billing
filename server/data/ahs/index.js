@@ -231,7 +231,7 @@ const ahsData = {
             default:
                 file_type = 'can_ahs_a';
         }
- 
+
         const edi_file_id = await this.storeFile({
             file_name,
             file_md5,
@@ -311,6 +311,54 @@ const ahsData = {
                     RETURNING
                         billing.claims.*
                 ),
+                patient_id_nums AS (
+                    SELECT DISTINCT
+                        u.patient_id,
+                        alt.is_primary,
+                        i.province_alpha_2_code,
+                        i.issuer_type,
+                        alt.alt_account_no
+                    FROM
+                        updated u
+                    LEFT JOIN public.patient_alt_accounts alt
+                        ON alt.patient_id = u.patient_id
+                    LEFT JOIN public.issuers i
+                        ON i.id = alt.issuer_id
+                    WHERE
+                        i.id IS NOT NULL
+                        AND LOWER(TRIM(i.country_alpha_3_code)) = 'can'
+                        AND i.inactivated_dt IS NULL
+                    GROUP BY
+                        u.patient_id,
+                        alt.is_primary,
+                        i.issuer_type,
+                        i.province_alpha_2_code,
+                        alt.alt_account_no
+                    ORDER BY
+                        alt.is_primary,
+                        i.issuer_type,
+                        i.province_alpha_2_code
+                ),
+                nums AS (
+                    SELECT DISTINCT
+                        pin.patient_id,
+                        (SELECT alt_account_no FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'uli' AND province_alpha_2_code = 'ab' LIMIT 1) AS service_recipient_uli,
+                        (SELECT alt_account_no FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'uli_parent' AND province_alpha_2_code = 'ab' LIMIT 1)                            AS service_recipient_parent_uli,
+                        
+                        (SELECT alt_account_no FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'phn' AND is_primary LIMIT 1) AS service_recipient_phn,
+                        (SELECT province_alpha_2_code FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'phn' AND is_primary LIMIT 1) AS service_recipient_phn_province,
+                        
+                        (SELECT alt_account_no FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'phn_parent' LIMIT 1)                            AS service_recipient_parent_phn,
+                        (SELECT province_alpha_2_code FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'phn_parent' LIMIT 1)                            AS service_recipient_parent_phn_province,
+                        
+                        (SELECT alt_account_no FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'registration_number' LIMIT 1)                   AS service_recipient_registration_number,
+                        (SELECT province_alpha_2_code FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'registration_number' LIMIT 1)                   AS service_recipient_registration_number_province,
+                        
+                        (SELECT alt_account_no FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'registration_number_parent' LIMIT 1)            AS service_recipient_parent_registration_number,
+                        (SELECT province_alpha_2_code FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'registration_number_parent' LIMIT 1)            AS service_recipient_parent_registration_number_province
+                    FROM
+                        patient_id_nums pin
+                ),
                 claim_info AS (
                     SELECT
                         bc.id                                        AS claim_id,
@@ -335,21 +383,25 @@ const ahsData = {
         
                         pc_app.can_ahs_prid                             AS service_provider_prid,
                         sc.code                                         AS skill_code,
-                        p.can_ahs_uli                                   AS service_recipient_uli,
-                        p.can_ahs_registration_number                   AS service_recipient_registration_number,
-                        p.can_ahs_registration_number_province          AS service_recipient_registration_number_province,
-                        p.can_ahs_parent_uli                            AS service_recipient_parent_uli,
-                        p.can_ahs_parent_registration_number            AS service_recipient_parent_registration_number,
-                        p.can_ahs_parent_registration_number_province   AS service_recipient_parent_registration_number_province,
-        
+                        
+                        nums.service_recipient_uli,
+                        nums.service_recipient_parent_uli,
+                        nums.service_recipient_phn,
+                        nums.service_recipient_phn_province,
+                        nums.service_recipient_parent_phn,
+                        nums.service_recipient_parent_phn_province,
+                        nums.service_recipient_registration_number,
+                        nums.service_recipient_registration_number_province,
+                        nums.service_recipient_parent_registration_number,
+                        nums.service_recipient_parent_registration_number_province,
                         CASE
                             WHEN (
-                                p.can_ahs_uli IS NOT NULL
+                                nums.service_recipient_uli IS NOT NULL
                                 OR (
-                                    p.can_ahs_registration_number IS NOT NULL
-                                    AND p.can_ahs_registration_number_province IS NOT NULL
-                                    AND p.can_ahs_phn IS NOT NULL
-                                    AND p.can_ahs_phn_province IS NOT NULL
+                                    nums.service_recipient_registration_number IS NOT NULL
+                                    AND nums.service_recipient_registration_number_province IS NOT NULL
+                                    AND nums.service_recipient_phn IS NOT NULL
+                                    AND nums.service_recipient_phn_province IS NOT NULL
                                 )
                             )
                             THEN NULL
@@ -367,8 +419,8 @@ const ahsData = {
                                 'postal_code', REGEXP_REPLACE(COALESCE(p.patient_info -> 'c1Zip', p.patient_info -> 'c1PostalCode', ''), '\\s', '', 'g'),
                                 'province_code', COALESCE(p.patient_info -> 'c1State', p.patient_info -> 'c1Province', ''),
                                 'country_code', COALESCE(p.patient_info -> 'c1country', ''),
-                                'parent_uli', COALESCE(p.can_ahs_parent_uli, ''),
-                                'parent_registration_number', COALESCE(p.can_ahs_parent_registration_number, '')
+                                'parent_uli', COALESCE(nums.service_recipient_parent_uli, ''),
+                                'parent_registration_number', COALESCE(nums.service_recipient_parent_registration_number, '')
                             )
                         END                                          AS service_recipient_details,
         
@@ -470,8 +522,8 @@ const ahsData = {
                         END                                          AS referring_provider_details,
         
                         CASE
-                            WHEN p.can_ahs_uli IS NULL AND p.can_ahs_registration_number_province NOT IN ( 'ab', 'qc' )
-                            THEN p.can_ahs_registration_number_province
+                            WHEN nums.service_recipient_uli IS NULL AND nums.service_recipient_registration_number_province NOT IN ( 'ab', 'qc' )
+                            THEN nums.service_recipient_registration_number_province
                             ELSE ''
                         END                                          AS recovery_code,
                         bc.id                                        AS chart_number,
@@ -562,7 +614,9 @@ const ahsData = {
                     LEFT JOIN public.originating_facilities orig_fac
                         ON orig_fac.id = s.can_ahs_originating_facility_id
                     LEFT JOIN public.patients p
-                        ON p.id = s.patient_id
+                        ON p.id = bc.patient_id
+                    LEFT JOIN nums
+                        ON nums.patient_id = p.id
                     LEFT JOIN public.cpt_codes cpt
                         ON cpt.id = bch.cpt_id
                     LEFT JOIN public.study_cpt scpt
@@ -832,7 +886,7 @@ const ahsData = {
             'client_ip': ip,
             'user_id': user_id
         };
-     
+
         const sql = SQL` SELECT billing.can_ahs_apply_payments(${default_facility_id}, ${file_id}::BIGINT, ${JSON.stringify(fileData.batches)}::JSONB, ${JSON.stringify(auditDetails)}::JSONB) `;
 
         return await query(sql);
@@ -920,7 +974,7 @@ const ahsData = {
     },
      /**
      * Get Files list from edi_files table based on status
-     * @param {args} JSON 
+     * @param {args} JSON
      */
     getFilesList: async(args) => {
         const {
@@ -955,7 +1009,7 @@ const ahsData = {
         return await query(sql);
     },
     /**
-     * Update File status 
+     * Update File status
      * @param  {object} args    {
      *                             FileId: Number
      *                          }
@@ -969,7 +1023,7 @@ const ahsData = {
         const sql = SQL` UPDATE billing.edi_files 
                       SET status = ${status}
                       WHERE id = ${fileId}`;
-                      
+
         return await query(sql);
     }
 
