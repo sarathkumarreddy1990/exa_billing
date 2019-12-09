@@ -21,7 +21,8 @@ define([
     // 'text!templates/faxDialog.html',
     'collections/claim-patient-log',
     'views/app/unapplied-payment',
-    'text!templates/claims/claim-inquiry-cas.html'
+    'text!templates/claims/claim-inquiry-cas.html',
+    'shared/report-utils'
 ], function (
     $,
     _,
@@ -45,7 +46,8 @@ define([
     // faxDialogHtml,
     claimPatientLogList,
     unappliedPaymentView,
-    casTemplate
+    casTemplate,
+    UI
 ) {
         var paperClaim = new PaperClaim(true);
 
@@ -578,10 +580,18 @@ define([
                     }
                 });
 
-                $('.inquiryReload').click(function(){
+                $('.inquiryReload').off().click(_.debounce(function (){
                     self.invoicePager.set({ "PageNo": 1 });
                     self.invoiceTable.refreshAll();
-                });
+                }));
+
+                $('.inquiryActivity').off().click(_.debounce(function (){
+                  if(self.claimInvoiceList && self.claimInvoiceList.length){
+                    self.invoiceActivityStatement(claimID);
+                  } else {
+                      commonjs.showWarning('messages.status.noRecordFound')
+                  }
+                }));
 
             },
 
@@ -1489,6 +1499,21 @@ define([
                 $('#txtFaxReceiverName').val('');
                 $('#txtFaxReceiverNumber').val('');
                 $('#divFaxReceipientPaperClaim').hide();
+            },
+
+            invoiceActivityStatement: function(claimId){
+                var urlParams = {
+                    claimId : claimId
+                };
+                var options = {
+                    'id': 'invoice-activity-statement',
+                    'category': 'billing',
+                    'format': 'pdf',
+                    'params': urlParams,
+                    'openInNewTab': true,
+                    'generateUrl': true
+                };
+                UI.showReport(options);
             }
     });
 });

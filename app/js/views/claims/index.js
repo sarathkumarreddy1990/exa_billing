@@ -414,7 +414,7 @@ define(['jquery',
                 }
 
                 if (!eligibilityData.insuranceProviderId) {
-                    return commonjs.showWarning('messages.status.pleaseSelectInsuranceProvider');   
+                    return commonjs.showWarning('messages.status.pleaseSelectInsuranceProvider');
                 }
 
                 $('#btnCheckEligibility' + ins).prop('disabled', true);
