@@ -19,9 +19,9 @@ module.exports = {
 
         let sql = SQL`WITH
                         get_study_date AS(
-                            SELECT 
+                            SELECT
                                study_dt
-                            FROM public.studies 
+                            FROM public.studies
                             WHERE id = ${firstStudyId}
                         ),
                         beneficiary_details as (
@@ -80,7 +80,7 @@ module.exports = {
                             INNER JOIN public.cpt_codes on sc.cpt_code_id = cpt_codes.id
                             INNER JOIN public.orders o on o.id = s.order_id
                             WHERE
-                                study_id = ANY(${studyIds}) AND sc.has_deleted = FALSE
+                                study_id = ANY(${studyIds}) AND sc.has_deleted = FALSE /* study_cpt.has_deleted */
                             ORDER BY s.accession_no DESC
 
                         )
@@ -153,8 +153,8 @@ module.exports = {
                                                 providers p
                                             INNER JOIN provider_contacts pc ON pc.provider_id = p.id
                                             WHERE pc.id = COALESCE(NULLIF(orders.referring_provider_ids [ 1 ],'0'),'0')::numeric
-                                            AND NOT p.has_deleted
-                                            AND NOT pc.has_deleted
+                                            AND p.deleted_dt IS NULL
+                                            AND NOT pc.has_deleted /* provider_contacts.has_deleted */
                                             AND p.provider_type = 'RF'
                                         ) referring_provider ON true
                                         JOIN LATERAL (
@@ -183,7 +183,7 @@ module.exports = {
                                         INNER JOIN public.orders o on o.id = pi.order_id
                                         INNER JOIN public.studies s ON s.order_id = o.id
                                         WHERE s.id = ANY(${studyIds})
-                                        AND s.has_deleted = FALSE
+                                        AND s.deleted_dt is null
                                         ORDER BY pi.order_no
                             )
                             SELECT  ( SELECT COALESCE(json_agg(row_to_json(charge)),'[]') charges
@@ -348,9 +348,9 @@ module.exports = {
 
                           ) AS existing_insurance
                   ) AS existing_insurance,
-                  ( SELECT 
+                  ( SELECT
                         patient_info::jsonb
-                    FROM 
+                    FROM
                         patients
                     WHERE
                         id = ${params.patient_id}
@@ -625,7 +625,7 @@ module.exports = {
                                 , icd.code
                                 , icd.description
                                 , icd.code_type
-                                , icd.is_active
+                                , icd.is_active /* icd_codes.is_active  */
                             FROM billing.claim_icds ci
                             INNER JOIN public.icd_codes icd ON ci.icd_id = icd.id
                             WHERE claim_id = c.id
@@ -834,7 +834,7 @@ module.exports = {
                                 LEFT JOIN orders ON orders.id=studies.order_id
                                 INNER JOIN facilities ON studies.facility_id=facilities.id
                             WHERE
-                                NOT studies.has_deleted
+                                studies.deleted_dt is null
                                 AND study_dt IS NOT NULL
                                 AND studies.patient_id = ${id}
                                 AND NOT EXISTS ( SELECT 1 FROM billing.charges_studies WHERE study_id = studies.id )
@@ -892,10 +892,10 @@ module.exports = {
                 INSERT INTO public.icd_codes(
                             code
                             ,description
-                            ,is_active
+                            ,is_active  /* icd_codes.is_active */
                             ,company_id
                             ,code_type
-                            ,has_deleted
+                            ,has_deleted /* icd_codes.has_deleted */
                             ,created_dt
                 )
                 SELECT
@@ -906,7 +906,7 @@ module.exports = {
                     , ${params.code_type}
                     , false
                     , now()
-                WHERE NOT EXISTS ( SELECT id FROM public.icd_codes  WHERE code ILIKE ${params.code}  AND company_id = ${params.companyId} AND NOT has_deleted)
+                WHERE NOT EXISTS ( SELECT id FROM public.icd_codes  WHERE code ILIKE ${params.code}  AND company_id = ${params.companyId} AND NOT has_deleted) /* icd_codes.has_deleted */
                 RETURNING *, '{}'::jsonb old_values
                 `;
 
@@ -921,7 +921,7 @@ module.exports = {
             FROM
                 public.icd_codes
            WHERE code ILIKE ${params.code}  AND company_id = ${params.companyId} AND NOT has_deleted
-        `;
+        `; // icd_codes.has_deleted
 
         return await query(sqlQry);
     },
@@ -935,7 +935,7 @@ module.exports = {
                 WHERE
                 patient_id = ${params.patient_id}
                 AND study_status='APP'
-                AND NOT has_deleted
+                AND deleted_dt is null
             ORDER BY study_dt
         `;
 

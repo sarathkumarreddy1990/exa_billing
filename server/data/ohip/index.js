@@ -119,7 +119,7 @@ const getFileStore = async (args) => {
     if (description) {
         sql = sql.append(SQL`
             OR (file_store_name = ${description} AND NOT has_deleted)
-        `);
+        `); //file_stores.has_deleted
     }
 
     const dbResults = (await query(sql.text, sql.values)).rows;

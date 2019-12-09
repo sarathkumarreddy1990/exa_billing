@@ -261,7 +261,7 @@ const colModel = [
     },
     {
         name: 'has_deleted',
-        searchColumns: ['studies.has_deleted'],
+        searchColumns: ['studies.deleted_dt'],
         searchFlag: 'bool_null'
     },
     // This takes the hstore key as the "fieldValue" and verifies it isn't 'false' or NULL
@@ -379,7 +379,7 @@ const api = {
                 ])`;
             case 'image_delivery': return 'imagedelivery.image_delivery';
             case 'station': return "study_info->'station'";
-            case 'has_deleted': return 'studies.has_deleted';
+            case 'has_deleted': return 'studies.deleted_dt';
             case 'send_status': return "studies.study_info->'send_status'";
             case 'billing_code': return 'billing_codes.description';
             case 'billing_class': return 'billing_classes.description';
@@ -564,10 +564,10 @@ const api = {
 
         if (tables.billing_codes || tables.billing_classes) {
             r += ` LEFT JOIN (
-                        SELECT 
-                            study_id, 
+                        SELECT
+                            study_id,
                             MAX(charge_id) AS charge_id
-                        FROM 
+                        FROM
                             billing.charges_studies
                             GROUP BY study_id
                     ) cs ON cs.study_id = studies.id
@@ -704,7 +704,7 @@ const api = {
         if (tables.icd_codes){
             r += `
                 LEFT JOIN LATERAL (
-                    SELECT 
+                    SELECT
                         ARRAY_AGG(icd_codes.description) AS description
                     FROM icd_codes
                     WHERE icd_codes.code = ANY(orders.icd_codes)
@@ -771,7 +771,7 @@ const api = {
             'studies.referring_physician_id', // TODO: Why is this any different from referring_provider and why do i need id if having name already ?
             'studies.cpt_codes',
             'study_notes_to_json(studies.id) as notes', // TODO: this should not be returned as column (maybe has_notes but now whole notes)
-            'studies.has_deleted', // TODO: this column should not be deleted Status should be deleted and if its really purged it shouldnt be there
+            '(studies.deleted_dt is not null)', //  TODO: this column should not be deleted Status should be deleted and if its really purged it shouldnt be there
             'studies.study_description',
             'studies.institution as institution',
             '(SELECT claim_id FROM billing.charges_studies inner JOIN billing.charges ON charges.id= charges_studies.charge_id  WHERE study_id = studies.id LIMIT 1) as claim_id',
@@ -804,7 +804,7 @@ const api = {
             'orders.order_status AS order_status_code', // TODO: why is this ? suplicated in similar fashion as study_status
             'orders.order_type',
             'orders.ordered_by',                    // TODO: isnt this the same as the results for users ??
-            'orders.has_deleted as orders_deleted', // TODO: why do we need this ? shouldnt we delete ordered completely ?
+            '(orders.deleted_dt is not null) as orders_deleted',  //  TODO: why do we need this ? shouldnt we delete ordered completely ?
             'orders.icd_codes',
             'orders.modality_room_id', // TODO: this MUST be part of study and not order, order has no ROOM
             'studies.schedule_dt::text as scheduled_dt',
@@ -1079,10 +1079,10 @@ const api = {
                 if (includeDeleted_study !== includeDeleted_perms) {
                     switch (includeDeleted_study) {
                         case false:
-                            whereClause.default = AND(whereClause.default, ' NOT studies.has_deleted ');
+                            whereClause.default = AND(whereClause.default, ' studies.deleted_dt is null ');
                             break;
                         case true:
-                            whereClause.default = AND(whereClause.default, ' studies.has_deleted ');
+                            whereClause.default = AND(whereClause.default, ' studies.deleted_dt is not null ');
                             break;
                     }
                 }
@@ -1108,10 +1108,10 @@ const api = {
 
                 switch (includeDeleted_perms) {
                     case false:
-                        whereClause.permission_filter = AND(whereClause.permission_filter, ' NOT studies.has_deleted ');
+                        whereClause.permission_filter = AND(whereClause.permission_filter, ' studies.deleted_dt is null ');
                         break;
                     case true:
-                        whereClause.permission_filter = AND(whereClause.permission_filter, ' studies.has_deleted ');
+                        whereClause.permission_filter = AND(whereClause.permission_filter, ' studies.deleted_dt is not null ');
                         break;
                 }
 
