@@ -315,7 +315,7 @@ const ahsData = {
                     SELECT DISTINCT
                         u.patient_id,
                         alt.is_primary,
-                        i.province_alpha_2_code,
+                        province_alpha_2_code,
                         i.issuer_type,
                         alt.alt_account_no
                     FROM
@@ -326,18 +326,18 @@ const ahsData = {
                         ON i.id = alt.issuer_id
                     WHERE
                         i.id IS NOT NULL
-                        AND LOWER(TRIM(i.country_alpha_3_code)) = 'can'
+                        AND LOWER(TRIM(country_alpha_3_code)) = 'can'
                         AND i.inactivated_dt IS NULL
                     GROUP BY
                         u.patient_id,
                         alt.is_primary,
                         i.issuer_type,
-                        i.province_alpha_2_code,
+                        province_alpha_2_code,
                         alt.alt_account_no
                     ORDER BY
                         alt.is_primary,
                         i.issuer_type,
-                        i.province_alpha_2_code
+                        province_alpha_2_code
                 ),
                 nums AS (
                     SELECT DISTINCT
