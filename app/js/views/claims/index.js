@@ -963,11 +963,9 @@ define(['jquery',
                 $('#ddlPayToDetailsCountryCode').val(pay_to_details.country_code).change();
 
                 // Good Faith only for Alberta residents without a ULI / PHN
-                if (!claim_data.can_ahs_uli && !claim_data.can_ahs_phn && claim_data.can_ahs_phn_province === 'AB') {
+                if ( claim_data.can_ahs_good_faith || (!claim_data.can_ahs_uli && !claim_data.can_ahs_phn) ) {
                     $('#divGoodFaith').show();
                     $('#chkGoodFaith').prop('checked', claim_data.can_ahs_good_faith);
-                } else {
-                    $('#divGoodFaith').hide();
                 }
 
                 var $businessArrangement = $('input[name="BusinessArrangement"]');

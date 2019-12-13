@@ -155,8 +155,8 @@ module.exports = {
                                                 providers p
                                             INNER JOIN provider_contacts pc ON pc.provider_id = p.id
                                             WHERE pc.id = COALESCE(NULLIF(orders.referring_provider_ids [ 1 ],'0'),'0')::numeric
-                                            AND NOT p.has_deleted
-                                            AND NOT pc.has_deleted
+                                            AND p.deleted_dt IS NULL
+                                            AND pc.deleted_dt IS NULL
                                             AND p.provider_type = 'RF'
                                         ) referring_provider ON true
                                         JOIN LATERAL (
@@ -186,7 +186,7 @@ module.exports = {
                                         INNER JOIN public.orders o on o.id = pi.order_id
                                         INNER JOIN public.studies s ON s.order_id = o.id
                                         WHERE s.id = ANY(${studyIds})
-                                        AND s.has_deleted = FALSE
+                                        AND s.deleted_dt IS NULL
                                         ORDER BY pi.order_no
                             )
                             SELECT  ( SELECT COALESCE(json_agg(row_to_json(charge)),'[]') charges
@@ -505,9 +505,9 @@ module.exports = {
                     , p.birth_date::text AS patient_dob
                     , p.full_name AS patient_name
                     , p.gender AS patient_gender
-                    , p.can_ahs_uli
-                    , p.can_ahs_phn
-                    , p.can_ahs_phn_province
+                    , (SELECT alt_account_no FROM patient_alt_accounts LEFT JOIN issuers i ON i.id = issuer_id WHERE patient_id = p.id AND i.issuer_type = 'uli' AND province_alpha_2_code = 'ab' LIMIT 1) AS can_ahs_uli
+                    , (SELECT alt_account_no FROM patient_alt_accounts LEFT JOIN issuers i ON i.id = issuer_id WHERE patient_id = p.id AND i.issuer_type = 'phn' AND is_primary LIMIT 1) AS can_ahs_phn
+                    , (SELECT province_alpha_2_code FROM patient_alt_accounts LEFT JOIN issuers i ON i.id = issuer_id WHERE patient_id = p.id AND i.issuer_type = 'phn' AND is_primary LIMIT 1) AS can_ahs_phn_province
                     , p.alerts
                     , p.patient_info
                     , ref_pr.full_name AS ref_prov_full_name
@@ -873,7 +873,7 @@ module.exports = {
                                 LEFT JOIN orders ON orders.id=studies.order_id
                                 INNER JOIN facilities ON studies.facility_id=facilities.id
                             WHERE
-                                NOT studies.has_deleted
+                                studies.deleted_dt IS NULL
                                 AND study_dt IS NOT NULL
                                 AND studies.patient_id = ${id}
                                 AND NOT EXISTS ( SELECT 1 FROM billing.charges_studies WHERE study_id = studies.id )
@@ -934,7 +934,7 @@ module.exports = {
                             ,is_active
                             ,company_id
                             ,code_type
-                            ,has_deleted
+                            ,deleted_dt
                             ,created_dt
                 )
                 SELECT
@@ -943,7 +943,7 @@ module.exports = {
                     , true
                     , ${params.companyId}
                     , ${params.code_type}
-                    , false
+                    , NULL
                     , now()
                 WHERE NOT EXISTS ( SELECT id FROM public.icd_codes  WHERE code ILIKE ${params.code}  AND company_id = ${params.companyId} AND NOT has_deleted)
                 RETURNING *, '{}'::jsonb old_values
@@ -959,7 +959,7 @@ module.exports = {
                 *
             FROM
                 public.icd_codes
-           WHERE code ILIKE ${params.code}  AND company_id = ${params.companyId} AND NOT has_deleted
+           WHERE code ILIKE ${params.code}  AND company_id = ${params.companyId} AND deleted_dt IS NULL
         `;
 
         return await query(sqlQry);
@@ -974,7 +974,7 @@ module.exports = {
                 WHERE
                 patient_id = ${params.patient_id}
                 AND study_status='APP'
-                AND NOT has_deleted
+                AND deleted_dt IS NULL
             ORDER BY study_dt
         `;
 
