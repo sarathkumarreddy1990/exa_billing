@@ -119,7 +119,7 @@ module.exports = {
                 icd_codes AS icd
             WHERE
                     icd.is_active
-                AND NOT icd.has_deleted
+                AND icd.deleted_dt IS NULL
                 AND icd.company_id = ${company_id} `;
 
         if (term) {
