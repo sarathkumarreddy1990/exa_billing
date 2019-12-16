@@ -549,7 +549,15 @@ function getPageBreak() {
 
 function getHeaderDetails(claimData) {
     let details = [];
-    if (claimData.subscriber[0].claimFilingCode === null || claimData.subscriber[0].claimFilingCode === "" || (claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode.toString().toUpperCase() !== 'AT')) {
+    let { 
+        subscriber:[{ 
+                claimFilingCode = null,
+                isNameRequired = null,               
+            }] = [{}]
+        } = claimData && claimData[0] || {};    
+
+    if ( ( ([null, ""].indexOf(claimFilingCode) > -1 || (claimFilingCode && claimFilingCode.toString().toUpperCase() !== 'AT') ) && isNameRequired )        
+    ) {
         if (claimData && claimData.subscriber[0] && claimData.subscriber[0].payer && claimData.subscriber[0].payer.insuranceprovideraddressline2) {
             details.push(
                 [//Ans
@@ -710,7 +718,7 @@ function getAddress2Details(claimData) {
 function formatSingleClaim(claimData, servicelineList) {
     HeaderDets = getHeaderDetails(claimData);
     ServiceFacDet = getAddressDetails(claimData.subscriber[0].claim[0].servicefacility[0]);
-    if(claimData.subscriber[0].claimFilingCode && typeof(claimData.subscriber[0].claimFilingCode) === 'string' && claimData.subscriber[0].claimFilingCode.toUpperCase() == 'YFAC') {
+    if(!claimData.subscriber[0].isPrintBillingProviderAddress) {
 	    BillingProDet = getAddressDetails(claimData.payToProvider);
 	    BillingPh = claimData.payToProvider ? getTrimmedPhoneNo(getKeyTrimValue(claimData.payToProvider, 'phoneNo', 13)): ' ';
 	} else {
@@ -1605,9 +1613,9 @@ function formatSingleClaim(claimData, servicelineList) {
                         }, {},{}
                     ],
                     [
-                        {text:"SIGNATURE ON FILE", colSpan:3, margin:[10, 0, 0, 0]},{},{},
+                        {text: claimData.subscriber && claimData.subscriber.length && claimData.subscriber[0].isSignatureRequired ? "SIGNATURE ON FILE" : "", colSpan:3, margin:[10, 0, 0, 0]},{},{},
                         {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].claimDate ? (((claimData.subscriber[0].claim[0].claimDate).toString().substring(4,6)) + "\t" + ((claimData.subscriber[0].claim[0].claimDate).toString().substring(6,8)) + "\t" + ((claimData.subscriber[0].claim[0].claimDate).toString().substring(0,4)) ) : '', margin:[20, 0, 0, 0]},
-                        {text:"SIGNATURE ON FILE", colSpan:3, margin:[20, 0, 0, 0]}, {},{}
+                        {text: claimData.subscriber && claimData.subscriber.length && claimData.subscriber[0].isSignatureRequired ? "SIGNATURE ON FILE" : "", colSpan:3, margin:[20, 0, 0, 0]}, {},{}
                     ],
                     [//REF
                         {
