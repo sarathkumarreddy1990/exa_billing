@@ -795,7 +795,7 @@ define('grid', [
                                     var $row = $tblGrid.find('#' + rowId);
 
                                     //Upon POST of new batch claim, place claim ID inside hidden cell specificed below
-                                    $row.find("[aria-describedby='tblGridAll_Studies_hidden_claim_id']").html(claim_id);
+                                    $row.find("[aria-describedby='tblGridAll_Studies_hidden_claim_id']").text(claim_id);
 
                                     var setCell = changeGrid.setCell($row);
 
