@@ -271,7 +271,7 @@ define('grid', [
                 var liBillingCode = commonjs.getRightClickMenu('ul_change_billing_code','setup.rightClickMenu.billingCode',false,'Change Billing Code',true);
                 $divObj.append(liBillingCode);
                 self.checkSubMenuRights('li_ul_change_billing_code');
-                var liArrayBillingCode = [];              
+                var liArrayBillingCode = [];
                 var billingCodeList = [
                     {
                         id: null,
@@ -283,13 +283,13 @@ define('grid', [
                         billing_option: 'BILLINGCODE',
                         claimIds: studyArray,
                         process: "Billing Code",
-                        billing_code_id: billing_code ? billing_code.id : null 
+                        billing_code_id: billing_code ? billing_code.id : null
                     };
                     var billing = {
-                        color_code: billing_code ? billing_code.color_code : null, 
+                        color_code: billing_code ? billing_code.color_code : null,
                         status_message: 'messages.status.billingCodeChanged',
                         column: 'billing_code',
-                        description: billing_code ? billing_code.description : null 
+                        description: billing_code ? billing_code.description : null
                     }
                     var $billingCodeLink = $(commonjs.getRightClickMenu('ancBillingCode_' + (data.billing_code_id || 'none'), 'setup.rightClickMenu.billingCode', true, (index == 0 ? commonjs.geti18NString('setup.rightClickMenu.none') : billing.description), false));
                     self.billingLinkEvent($billingCodeLink, data, billing, $target);
@@ -301,7 +301,7 @@ define('grid', [
                 var liBillingClass = commonjs.getRightClickMenu('ul_change_billing_class','setup.rightClickMenu.billingClass',false,'Change Billing Class',true);
                 $divObj.append(liBillingClass);
                 self.checkSubMenuRights('li_ul_change_billing_class');
-                var liArrayBillingClass = [];               
+                var liArrayBillingClass = [];
                 var billingClassList = [
                     {
                         id: null,
@@ -319,7 +319,7 @@ define('grid', [
                         color_code: billing_class ? billing_class.color_code : null,
                         status_message: 'messages.status.billingClassChanged',
                         column: 'billing_class',
-                        description: billing_class ? billing_class.description : null 
+                        description: billing_class ? billing_class.description : null
                     };
                     var $BillingClassLink = $(commonjs.getRightClickMenu('ancBillingClass_' + (data.billing_class_id || 'none'), 'setup.rightClickMenu.billingClass', true, (index == 0 ? commonjs.geti18NString('setup.rightClickMenu.none') : billing.description), false));
                     self.billingLinkEvent($BillingClassLink, data, billing, $target);
@@ -793,6 +793,10 @@ define('grid', [
                                 for (var r = 0; r < batchClaimArray.length; r++) {
                                     var rowId = batchClaimArray[r].study_id;
                                     var $row = $tblGrid.find('#' + rowId);
+
+                                    //Upon POST of new batch claim, place claim ID inside hidden cell specificed below
+                                    $row.find("[aria-describedby='tblGridAll_Studies_hidden_claim_id']").text(claim_id);
+
                                     var setCell = changeGrid.setCell($row);
 
                                     setCell(cells);
@@ -1502,7 +1506,7 @@ define('grid', [
                 var current_filter_id = $('#claimsTabs').find('.active a').attr('data-container')
                 var filterContent = commonjs.loadedStudyFilters.get(filterID);
                 var isDatePickerClear = filterContent.options && filterContent.options.customargs && filterContent.options.customargs.isDatePickerClear;
-                
+
                 if (options.filterid != 'Follow_up_queue') {
                     commonjs.showLoading();
 
