@@ -773,7 +773,7 @@ define(['jquery',
                 var filterTabInit = function (filters, callback) {
                     var showdeleted = !app.showdeletedstudies ?
                         ' ' :
-                        ' studies.has_deleted = false ';
+                        ' studies.deleted_dt is null ';
                     $divFiltersContainer.hide();
                     $lblShowPrior.hide();
 

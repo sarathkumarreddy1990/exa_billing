@@ -261,7 +261,7 @@ const colModel = [
     },
     {
         name: 'has_deleted',
-        searchColumns: ['studies.has_deleted'],
+        searchColumns: ['(studies.deleted_dt IS NOT NULL)'],
         searchFlag: 'bool_null'
     },
     // This takes the hstore key as the "fieldValue" and verifies it isn't 'false' or NULL
@@ -564,10 +564,10 @@ const api = {
 
         if (tables.billing_codes || tables.billing_classes) {
             r += ` LEFT JOIN (
-                        SELECT 
-                            study_id, 
+                        SELECT
+                            study_id,
                             MAX(charge_id) AS charge_id
-                        FROM 
+                        FROM
                             billing.charges_studies
                             GROUP BY study_id
                     ) cs ON cs.study_id = studies.id
@@ -704,7 +704,7 @@ const api = {
         if (tables.icd_codes){
             r += `
                 LEFT JOIN LATERAL (
-                    SELECT 
+                    SELECT
                         ARRAY_AGG(icd_codes.description) AS description
                     FROM icd_codes
                     WHERE icd_codes.code = ANY(orders.icd_codes)
@@ -774,7 +774,7 @@ const api = {
             '(studies.deleted_dt IS NOT NULL)', // TODO: this column should not be deleted Status should be deleted and if its really purged it shouldnt be there
             'studies.study_description',
             'studies.institution as institution',
-            '(SELECT array_agg(claim_id) FROM billing.charges_studies inner JOIN billing.charges ON charges.id= charges_studies.charge_id  WHERE study_id = studies.id) as claim_id',
+            '(SELECT claim_id FROM billing.charges_studies inner JOIN billing.charges ON charges.id= charges_studies.charge_id  WHERE study_id = studies.id LIMIT 1) as claim_id',
             'studies.approved_dt as approved_dt',
             'studies.study_received_dt',
             'studies.body_part',
@@ -1079,10 +1079,10 @@ const api = {
                 if (includeDeleted_study !== includeDeleted_perms) {
                     switch (includeDeleted_study) {
                         case false:
-                            whereClause.default = AND(whereClause.default, ' NOT studies.has_deleted ');
+                            whereClause.default = AND(whereClause.default, ' studies.deleted_dt is null ');
                             break;
                         case true:
-                            whereClause.default = AND(whereClause.default, ' studies.has_deleted ');
+                            whereClause.default = AND(whereClause.default, ' studies.deleted_dt is not null ');
                             break;
                     }
                 }
@@ -1108,10 +1108,10 @@ const api = {
 
                 switch (includeDeleted_perms) {
                     case false:
-                        whereClause.permission_filter = AND(whereClause.permission_filter, ' NOT studies.has_deleted ');
+                        whereClause.permission_filter = AND(whereClause.permission_filter, ' studies.deleted_dt is null ');
                         break;
                     case true:
-                        whereClause.permission_filter = AND(whereClause.permission_filter, ' studies.has_deleted ');
+                        whereClause.permission_filter = AND(whereClause.permission_filter, ' studies.deleted_dt is not null ');
                         break;
                 }
 
@@ -1195,4 +1195,3 @@ const api = {
 };
 
 module.exports = api;
-

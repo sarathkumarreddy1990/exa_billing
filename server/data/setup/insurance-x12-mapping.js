@@ -34,7 +34,7 @@ module.exports = {
                             , ip.insurance_name
                             , ch.id AS claimclearinghouse
                             , billing_method
-                            , ip.is_active
+                            , ip.is_active /* public.insurance_providers.is_active */
                             , COUNT(1) OVER (range unbounded preceding) AS total_records
                         FROM
                             public.insurance_providers ip
@@ -42,7 +42,7 @@ module.exports = {
                         LEFT JOIN billing.edi_clearinghouses ch ON ch.id = bip.clearing_house_id `;
 
         whereQuery.push('ip.deleted_dt IS NULL');
-        whereQuery.push('ip.is_active IS true');
+        whereQuery.push('ip.is_active IS true'); // public.insurance_providers.is_active
 
         if (whereQuery.length) {
             sql.append(SQL` WHERE `)

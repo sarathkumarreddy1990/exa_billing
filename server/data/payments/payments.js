@@ -1184,11 +1184,11 @@ module.exports = {
                                              study_id
                                             , array_agg(scp.cpt_code) AS cpt_code
                                         FROM study_cpt scp
-                                        WHERE NOT scp.has_deleted
+                                        WHERE NOT scp.has_deleted /* study_cpt.has_deleted */
                                         GROUP BY study_id
                                       ) cc ON cc.study_id = studies.id
                         WHERE o.patient_id = ${payerId}
-                           AND NOT o.has_deleted
+                           AND o.deleted_dt is null 
                            AND o.order_status NOT IN ('CAN','NOS')
                            AND studies.study_status NOT IN ('CAN','NOS')
                         `;

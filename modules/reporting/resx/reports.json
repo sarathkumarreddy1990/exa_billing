@@ -1784,5 +1784,18 @@
                 }
             }
         }
+    },
+    {
+        "id": "invoice-activity-statement",
+        "category": "billing",
+        "title": "Invoice Activity Statement",
+        "description": "Report shows all of the invoices the claim was printed on and allows the user to reprint each invoice..",
+        "jsreport": {
+            "pdf": {
+                "template": {
+                    "name": "billing-invoice-activity-statement-pdf"
+                }
+            }
+        }
     }
 ]

@@ -19,9 +19,9 @@ module.exports = {
 
         let sql = SQL`WITH
                         get_study_date AS(
-                            SELECT 
+                            SELECT
                                study_dt
-                            FROM public.studies 
+                            FROM public.studies
                             WHERE id = ${firstStudyId}
                         ),
                         beneficiary_details as (
@@ -80,7 +80,7 @@ module.exports = {
                             INNER JOIN public.cpt_codes on sc.cpt_code_id = cpt_codes.id
                             INNER JOIN public.orders o on o.id = s.order_id
                             WHERE
-                                study_id = ANY(${studyIds}) AND sc.has_deleted = FALSE
+                                study_id = ANY(${studyIds}) AND sc.has_deleted = FALSE /* study_cpt.has_deleted */
                             ORDER BY s.accession_no DESC
 
                         )
@@ -156,7 +156,7 @@ module.exports = {
                                             INNER JOIN provider_contacts pc ON pc.provider_id = p.id
                                             WHERE pc.id = COALESCE(NULLIF(orders.referring_provider_ids [ 1 ],'0'),'0')::numeric
                                             AND p.deleted_dt IS NULL
-                                            AND pc.deleted_dt IS NULL
+                                            AND NOT pc.has_deleted /* provider_contacts.has_deleted */
                                             AND p.provider_type = 'RF'
                                         ) referring_provider ON true
                                         JOIN LATERAL (
@@ -351,9 +351,9 @@ module.exports = {
 
                           ) AS existing_insurance
                   ) AS existing_insurance,
-                  ( SELECT 
+                  ( SELECT
                         patient_info::jsonb
-                    FROM 
+                    FROM
                         patients
                     WHERE
                         id = ${params.patient_id}
@@ -663,7 +663,7 @@ module.exports = {
                                 , icd.code
                                 , icd.description
                                 , icd.code_type
-                                , icd.is_active
+                                , icd.is_active /* icd_codes.is_active  */
                             FROM billing.claim_icds ci
                             INNER JOIN public.icd_codes icd ON ci.icd_id = icd.id
                             WHERE claim_id = c.id
@@ -931,7 +931,7 @@ module.exports = {
                 INSERT INTO public.icd_codes(
                             code
                             ,description
-                            ,is_active
+                            ,is_active  /* icd_codes.is_active */
                             ,company_id
                             ,code_type
                             ,deleted_dt
@@ -945,7 +945,7 @@ module.exports = {
                     , ${params.code_type}
                     , NULL
                     , now()
-                WHERE NOT EXISTS ( SELECT id FROM public.icd_codes  WHERE code ILIKE ${params.code}  AND company_id = ${params.companyId} AND NOT has_deleted)
+                WHERE NOT EXISTS ( SELECT id FROM public.icd_codes  WHERE code ILIKE ${params.code}  AND company_id = ${params.companyId} AND NOT has_deleted) /* icd_codes.has_deleted */
                 RETURNING *, '{}'::jsonb old_values
                 `;
 
@@ -959,8 +959,8 @@ module.exports = {
                 *
             FROM
                 public.icd_codes
-           WHERE code ILIKE ${params.code}  AND company_id = ${params.companyId} AND deleted_dt IS NULL
-        `;
+           WHERE code ILIKE ${params.code}  AND company_id = ${params.companyId} AND NOT has_deleted
+        `; // icd_codes.has_deleted
 
         return await query(sqlQry);
     },
@@ -1189,7 +1189,7 @@ module.exports = {
                         , modifier3.code AS m3
                         , s.facility_id
                     FROM public.study_cpt sc
-                    INNER JOIN public.cpt_codes pcc ON sc.cpt_code_id = pcc.id 
+                    INNER JOIN public.cpt_codes pcc ON sc.cpt_code_id = pcc.id
                     INNER JOIN studies s ON s.id = sc.study_id
                     INNER JOIN orders o ON s.order_id = o.id
                     LEFT JOIN modifiers AS modifier1 ON modifier1.id = sc.modifier1_id

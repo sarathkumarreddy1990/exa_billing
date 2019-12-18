@@ -202,7 +202,7 @@ module.exports = {
                                     id,
                                     name,
                                     template_type,
-                                    inactivated_dt is null is_active
+                                    inactivated_dt is null is_active /* billing.printer_templates.is_active */
                                     FROM   billing.printer_templates
                                     WHERE  company_id=${companyID} ) AS printer_templates)
                 , cte_billing_providers AS(
