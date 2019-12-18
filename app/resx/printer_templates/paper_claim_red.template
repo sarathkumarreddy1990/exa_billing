@@ -201,7 +201,15 @@ function checkAndReturn(data, key) {
 
 function getHeaderDetails(claimData) {
     let details = [];
-    if (claimData.subscriber[0].claimFilingCode === null || claimData.subscriber[0].claimFilingCode === "" || (claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode.toString().toUpperCase() !== 'AT')) {
+   let { 
+        subscriber:[{ 
+                claimFilingCode = null,
+                isNameRequired = null,
+            }] = [{}]
+        } = claimData && claimData[0] || {};
+
+    if ( ( ([null, ""].indexOf(claimFilingCode) > -1 || (claimFilingCode && claimFilingCode.toString().toUpperCase() !== 'AT') )  && isNameRequired )
+    ) {
         if (claimData && claimData.subscriber[0] && claimData.subscriber[0].payer && claimData.subscriber[0].payer.insuranceprovideraddressline2) {
             details.push(
                 [
@@ -308,7 +316,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
     cpt = getTableContents(claimData, servicelineList);
     HeaderDets = getHeaderDetails(claimData);
     totalBill = getTotalBill(claimData, servicelineList);
-    if(claimData.subscriber[0].claimFilingCode && typeof(claimData.subscriber[0].claimFilingCode) === 'string' && claimData.subscriber[0].claimFilingCode.toUpperCase() == 'YFAC') {
+    if(!claimData.subscriber[0].isPrintBillingProviderAddress) {
 	    BillingProDet = getAddressDetails(claimData.payToProvider);
 	    BillingPh = claimData.payToProvider && claimData.payToProvider.phoneNo ? (getph(getSubstring(claimData.payToProvider.phoneNo, 13))) : '';
 	} else {
@@ -586,7 +594,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                         ], {}
                     ],
                     [//ANS
-                        { text: "SIGNATURE ON FILE", colSpan: 2, margin: [38, 0, 0, 0] }, {},
+                        { text: claimData.subscriber && claimData.subscriber.length && claimData.subscriber[0].isSignatureRequired ? "SIGNATURE ON FILE" : "", colSpan: 2, margin: [38, 0, 0, 0] }, {},
                         [
                             {
                                 style: 'myTable',
@@ -608,7 +616,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                                     ],
                                 }, layout: 'noBorders',
                             }
-                        ], {}, { text: "SIGNATURE ON FILE", colSpan: 2, margin: [35, 0, 0, 0] },
+                        ], {}, { text: claimData.subscriber && claimData.subscriber.length && claimData.subscriber[0].isSignatureRequired ? "SIGNATURE ON FILE" : "", colSpan: 2, margin: [35, 0, 0, 0] },
                         {},
                     ],
                 ],
