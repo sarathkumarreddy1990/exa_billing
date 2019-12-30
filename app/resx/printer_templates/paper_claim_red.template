@@ -206,7 +206,7 @@ function getHeaderDetails(claimData) {
                 claimFilingCode = null,
                 isNameRequired = null,
             }] = [{}]
-        } = claimData && claimData[0] || {};
+        } = claimData || {};
 
     if ( ( ([null, ""].indexOf(claimFilingCode) > -1 || (claimFilingCode && claimFilingCode.toString().toUpperCase() !== 'AT') )  && isNameRequired )
     ) {
