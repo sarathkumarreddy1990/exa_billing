@@ -220,6 +220,7 @@ module.exports = {
         'submitClaims': 'BIVA',
         'fileManagement': 'CLFM',
         'paper_claim_fax': 'CLIM',
-        'payment_count': 'PAYM'
+        'payment_count': 'PAYM',
+        'invoice-activity-statement': 'IAST'
     }
 };
