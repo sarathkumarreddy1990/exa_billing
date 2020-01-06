@@ -940,7 +940,8 @@ define(['jquery',
                 self.blurPayToUli(claim_data.can_ahs_pay_to_uli);
 
                 $('#chkClaimedAmountIndicator').prop('checked', claim_data.can_ahs_claimed_amount_indicator);
-                $('#chkConfidential').prop('checked', claim_data.can_ahs_confidential);
+                $('#chkConfidential').prop('checked', claim_data.can_confidential);
+                $('#chkwcbRejected').prop('checked', claim_data.can_wcb_rejected);
                 $('#ddlNewbornCode').val(claim_data.can_ahs_newborn_code).change();
                 $('#txtReasonAdditionalCompensation').val(claim_data.can_ahs_emsaf_reason);
                 $('#chkSupportingDocumentationSeparate').prop('checked', claim_data.can_ahs_paper_supporting_docs);
@@ -3296,15 +3297,16 @@ define(['jquery',
                     can_ahs_pay_to_details: null,
                     can_ahs_business_arrangement: self.can_ahs_business_arrangement || null,
                     can_ahs_locum_arrangement: self.can_ahs_locum_arrangement || null,
-                    can_ahs_claimed_amount_indicator: $('#chkClaimedAmountIndicator').prop('checked'),
-                    can_ahs_confidential: $('#chkConfidential').prop('checked'),
-                    can_ahs_good_faith: $('#chkGoodFaith').prop('checked'),
-                    can_ahs_paper_supporting_docs: $('#chkSupportingDocumentationSeparate').prop('checked'),
+                    can_ahs_claimed_amount_indicator: $('#chkClaimedAmountIndicator').prop('checked') || false,
+                    can_confidential: $('#chkConfidential').prop('checked') || false,
+                    can_ahs_good_faith: $('#chkGoodFaith').prop('checked') || false,
+                    can_ahs_paper_supporting_docs: $('#chkSupportingDocumentationSeparate').prop('checked') || false,
                     can_ahs_newborn_code: $.trim($('#ddlNewbornCode option:selected').val()) || null,
                     can_ahs_emsaf_reason: $.trim($('#txtReasonAdditionalCompensation').val()) || null,
-                    can_ahs_supporting_text: $.trim($.trim($('#txtSupportingText').val()).replace(/\n/g, ' '))
+                    can_ahs_supporting_text: $.trim($.trim($('#txtSupportingText').val()).replace(/\n/g, ' ')),
+                    can_wcb_rejected: $("#chkwcbRejected").prop('checked') || false
                 };
-
+                
                 // Pay-to Details are only saved when Pay-to Code is Other
                 if (can_ahs_pay_to_code === "OTHR") {
                     var can_ahs_pay_to_uli = $.trim($('#txtPayToUli').val());

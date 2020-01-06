@@ -494,7 +494,7 @@ module.exports = {
                     , f.can_ahs_business_arrangement AS can_ahs_business_arrangement_facility
                     , rend_pc.can_ahs_locum_arrangement AS can_ahs_locum_arrangement_provider
                     , c.can_ahs_claimed_amount_indicator
-                    , c.can_ahs_confidential
+                    , c.can_confidential
                     , c.can_ahs_good_faith
                     , c.can_ahs_newborn_code
                     , c.can_ahs_emsaf_reason
@@ -612,6 +612,7 @@ module.exports = {
                     , f.facility_info -> 'npino' as npi_no
                     , f.facility_info -> 'federal_tax_id' as federal_tax_id
                     , f.facility_info -> 'enable_insurance_eligibility' as enable_insurance_eligibility
+                    , c.can_wcb_rejected
                     , (
                         SELECT array_agg(row_to_json(pointer)) AS claim_charges
                         FROM (
