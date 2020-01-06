@@ -1,77 +1,216 @@
 <div class="form-group row">
-    <div class="col-lg-10">
-        <form id="formAutoBilling" class="form-horizontal">
-            <!-- <div id="divTemplateFields">
-                <div class="form-group row">
-                    <label for="txtTemplateName" class="col-sm-2 col-form-label field-required" i18n="setup.common.name"></label>
-                    <div class="col-sm-4">
-                        <input type="text" class="form-control" id="txtTemplateName" name="templateName">
+    <div class="col-lg-12">
+        <form id="formAutoBilling" class="form-horizontals">
+            <div class="row" id="autoBillingInfo">
+                <div class="col-sm-5">
+                    <div class="form-group row">
+
+                        <div class="col-sm-3">
+                            <label for="autoBillingDescription" class="col-form-label field-required" i18n="setup.common.description"></label>
+                        </div>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" id="autoBillingDescription" name="autoBillingDescription">
+                        </div>
+
                     </div>
+
+                </div>
+                <div class="col-sm-5">
+                    <div class="form-group row">
+                        <div class="col-sm-5">
+                            <label for="autoBillingDescription" class="col-form-label field-required" i18n="setup.autoBilling.claimStatus"></label>
+                        </div>
+                        <div class="col-sm-7">
+                            <select id="listClaimStatus" name="listAutoBillingClaimStatus" size="1">
+                                <% _.each(app.claim_status, function(claimStatus) { %>
+                                    <option value="<%= claimStatus.code %>"><%= claimStatus.description %></option>
+                                <%})%>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-2">
                     <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="checkbox" id="chkActive">
-                        <label class="form-check-label" for="chkActive" i18n="shared.fields.inactive"></label>
+                        <input class="form-check-input" type="checkbox" id="chkIsActive">
+                        <label class="form-check-label" for="chkIsActive" i18n="shared.fields.inactive"></label>
                     </div>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="checkbox" id="chkDefault">
-                        <label class="form-check-label" for="chkDefault" i18n="shared.fields.default"></label>
-                    </div>
+
                 </div>
-                <div class="form-group row">
-                    <label for="txtLeftMargin" class="col-sm-2 col-form-label field-required" i18n="setup.paperClaimTemplates.leftMargin"></label>
-                    <div class="col-sm-2">
-                        <input type="number" class="form-control" id="txtLeftMargin" name="leftMargin" step="0.100" min="-3.000" max="100.00" value="0.0">
+
+            </div>
+
+            <div class="row" style="margin-top:10px;">
+
+                <!-- begin hierarchical section -->
+                <div class="col-lg-6">
+
+                    <!-- begin facilities fields -->
+                    <div class="form-group row">
+                        <legend style="width:98%;">
+                            <h5 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
+                                <label i18n="setup.autoBilling.facilities"></label>
+                            </h5>
+                        </legend>
                     </div>
-                    <label for="txtTopMargin" class="col-sm-2 col-form-label field-required" i18n="setup.paperClaimTemplates.topMargin"></label>
-                    <div class="col-sm-2">
-                        <input type="number" class="form-control" id="txtTopMargin" name="topMargin" step="0.100" min="-3.000" max="100.00" value="0.0">
+                    <div class="form-group row">
+                        <div class="col-sm-2">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" id="chkAutoBillingFacilityIs" name="chkAutoBillingFacilityIs" value="is">
+                                <label class="form-check-label" for="chkAutoBillingFacilityIs" i18n="setup.common.is"></label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" id="chkAutoBillingFacilityIsNot" name="chkAutoBillingFacilityIsNot" value="isNOT">
+                                <label class="form-check-label" for="chkAutoBillingFacilityIsNot" i18n="setup.common.isNot"></label>
+                            </div>
+                        </div>
+                        <div class="col-sm-10">
+                            <select id="listAutoBillingFacilities" style="width: 250px; height: 80px;" name="listAutoBillingFacilities" size="6" multiple>
+                            <% _.each(facilities, function(value, key) { %>
+                                <option value="<%= key %>"><%= value %></option>
+                            <%})%>
+                            </select>
+                        </div>
                     </div>
-                    <label for="ddlTemplateType" class="col-sm-2 col-form-label field-required" i18n="setup.paperClaimTemplates.templateType"></label>
-                    <div class="col-sm-2">
-                        <select id="ddlTemplateType" class="form-control" name="templateType" style="width: 250px">
-                            <option value i18n="shared.button.select"></option>
-                            <option value="direct_invoice" i18n="setup.paperClaimTemplates.directingInvoice"></option>
-                            <option value="patient_invoice" i18n="setup.paperClaimTemplates.patientInvoice"></option>
-                            <% if(country_alpha_3_code !== 'can') {%>
-                            <option value="paper_claim_full" i18n="setup.paperClaimTemplates.paperClaimFull" selected="selected"></option>
-                            <option value="paper_claim_original" i18n="setup.paperClaimTemplates.paperClaimOrg"></option>
-                            <% }%>
-                        </select>
+                    <!-- end facilities fields -->
+
+                    <!-- begin modalities fields  -->
+                    <div class="form-group row">
+                        <legend style="width:98%;">
+                            <h5 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
+                                <label i18n="setup.autoBilling.modalities"></label>
+                            </h5>
+                        </legend>
                     </div>
+                    <div class="form-group row">
+                        <div class="col-sm-2">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" id="chkAutoBillingModalityIs" name="chkAutoBillingModalityIs" value="is">
+                                <label class="form-check-label" for="chkAutoBillingModalityIs" i18n="setup.common.is"></label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" id="chkAutoBillingModalityIsNot" name="chkAutoBillingModalityIsNot" value="isNOT">
+                                <label class="form-check-label" for="chkAutoBillingModalityIsNot" i18n="setup.common.isNot"></label>
+                            </div>
+                        </div>
+                        <div class="col-sm-10">
+                            <select id="listAutoBillingModalities" style="width: 250px; height: 80px;" name="listAutoBillingModalities" size="6" multiple>
+                            <% _.each(modalities, function(value, key) { %>
+                                <option value="<%= key %>"><%= value %></option>
+                            <%})%>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- end modalities fields  -->
+
+                    <!-- begin CPT Codes fields -->
+                    <div class="row">
+                        <legend>
+                            <h5 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
+                                <label i18n="setup.autoBilling.cptCode"></label>
+                            </h5>
+                        </legend>
+                    </div>
+                    <div class="row form-group">
+                        <div class="col-sm-2">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="chkCptCodes" value="is">
+                                <label class="form-check-label" for="chkCptCodes" i18n="setup.common.is"></label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="chkCptCodes" value="isNOT">
+                                <label class="form-check-label" for="chkCptCodes" i18n="setup.common.isNot"></label>
+                            </div>
+                        </div>
+
+
+                        <div class="col-sm-10">
+                            <div class="form-group row">
+                                <input type="text" name="txtCptCode" value="Search" class="col-sm-10">
+                                <button type="button" class="btn btn-primary" name="button" class="col-sm-2">
+                                    <i class="icon-ic-plus"></i>
+                                </button>
+                            </div>
+                            <div class="form-group row">
+                                <ul id="ulCptCpdes" class="tagList col-sm-11" style="height:80px;min-width:200px;border:1px dashed #00FF00;">
+
+                                </ul>
+                                <input type="hidden" id="hdnCptCodes" value="">
+                            </div>
+                        </div>
+                    </div>
+                    <!-- end CPT Codes -->
+
                 </div>
-                <div class="form-group row">
-                    <label for="txtRightMargin" class="col-sm-2 col-form-label field-required" i18n="setup.paperClaimTemplates.rightMargin"></label>
-                    <div class="col-sm-2">
-                        <input type="number" class="form-control" id="txtRightMargin" name="rightMargin" step="0.100" min="-3.000" max="100.00" value="0.0">
+
+                <!-- hierarchical section -->
+
+                <!-- begin Insurance Providers section -->
+                <div class="col-lg-6">
+                    <div class="row">
+                        <legend style="width:98%;">
+                            <h5 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
+                                <label i18n="setup.autoBilling.providers"></label>
+                            </h5>
+                        </legend>
                     </div>
-                    <label for="txtBottomMargin" class="col-sm-2 col-form-label field-required" i18n="setup.paperClaimTemplates.bottomMargin"></label>
-                    <div class="col-sm-2">
-                        <input type="number" class="form-control" id="txtBottomMargin" name="bottomMargin" step="0.100" min="-3.000" max="100.00" value="0.0">
+
+                    <!-- begin Insurance Provider Payer Types -->
+                    <div class="form-group row">
+                        <div class="col-sm-2">
+
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="chkAutoBillingInsuranceProviderPayerTypeIs" value="is">
+                                <label class="form-check-label" for="chkAutoBillingInsuranceProviderPayerTypeIs" i18n="setup.common.is"></label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="chkAutoBillingInsuranceProviderPayerTypeIsNot" value="isNOT">
+                                <label class="form-check-label" for="chkAutoBillingInsuranceProviderPayerTypeIsNot" i18n="setup.common.isNot"></label>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-10">
+                            <label for="listAutoBillingInsuranceProviderPayerTypes" i18n="setup.autoBilling.insuranceProviderPayerTypes" class="col-form-label"></label>
+                            <select id="listAutoBillingInsuranceProviderPayerTypes" style="width: 250px; height: 80px;" name="listAutoBillingInsuranceProviderPayerTypes" size="6" multiple>
+                                <% _.each(insuranceProviderPayerTypes, function(value, key) { %>
+                                    <option value="<%= key %>"><%= value %></option>
+                                <%})%>
+                            </select>
+                        </div>
                     </div>
+                    <!-- end Insurance Provider Payer Types -->
+
+                    <!-- begin Providers -->
+                    <div class="form-group row">
+
+                        <div class="col-sm-2">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" id="chkAutoBillingInsuranceProviderIs" name="chkAutoBillingInsuranceProviders" value="is">
+                                <label class="form-check-label" for="chkAutoBillingInsuranceProviderIs" i18n="setup.common.is"></label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" id="chkAutoBillingInsuranceProviderIsNot" name="chkAutoBillingInsuranceProviders" value="isNOT">
+                                <label class="form-check-label" for="chkAutoBillingInsuranceProviderIsNot" i18n="setup.common.isNot"></label>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-10">
+                            <label for="listAutoBillingInsuranceProviders" i18n="setup.autoBilling.insuranceProviders" class="col-form-label"></label>
+                            <select id="listAutoBillingInsuranceProviders" style="width: 250px; height: 80px;" name="listAutoBillingInsuranceProviders" size="6" multiple></select>
+                        </div>
+
+                    </div>
+                    <!-- end Insurance Providers -->
+
                 </div>
-                <div class="form-group row">
-                    <label for="txtPageHeight" class="col-sm-2 col-form-label field-required" i18n="setup.paperClaimTemplates.pageHeight"></label>
-                    <div class="col-sm-2">
-                        <input type="number" class="form-control" id="txtPageHeight" name="pageHeight" value="792">
-                    </div>
-                    <label for="txtPageWidth" class="col-sm-2 col-form-label field-required" i18n="setup.paperClaimTemplates.pageWidth"></label>
-                    <div class="col-sm-2">
-                        <input type="number" class="form-control" id="txtPageWidth" name="pageWidth" value="612">
-                    </div>
-                </div>
-                <div class="form-group row">
-                    <div class="col-sm-3">
-                        <label i18n="setup.paperClaimTemplates.definition" style="font-weight:bold;"></label>
-                    </div>
-                </div>
-            </div> -->
+                <!-- end Insurance Providers section -->
+
+            </div>
+            <!-- end filter criteria section -->
+
+
+
+
         </form>
     </div>
+
 </div>
-<!-- <div id="divPaperClaimEditor" class="col-lg-12 form-group row">
-    <div id="paperClaimEditor" class="col-lg-6" style="min-height:200px;">
-    </div>
-    <div id="paperClaimPreview" class="col-lg-6" style="min-height:200px;">
-        <div id="divPreviewLabel" style="position: relative; top: 45%; left: 30%; font-size: 1.2em; width: 200px; height: 50px;">PREVIEW</div>
-        <iframe id="ifrTemplatePreview" style="min-height:200px; width: 100%; height: 100%; padding: 0; margin: 0; border: 1px solid #ced7db; display: none;"></iframe>
-    </div>
-</div> -->

@@ -24,6 +24,106 @@ define(['jquery',
         Pager,
         ace
     ) {
+        // var providerTypes = {
+        //     "AT": "Attorney",
+        //     "LB": "Laboratory",
+        //     "NU": "Nurse",
+        //     "PR": "Provider-Radiology",
+        //     "RF": "Referring Provider",
+        //     "TG": "Technologist"
+        // };
+
+        var formatOptionText = function(descriptionText, codeText) {
+            return descriptionText + (codeText ? ' (' + codeText + ')' : '');
+        };
+
+        /**
+         * var getOptions - converts an array of objects to an object for the
+         * purpose of rendering selection options.
+         *
+         * @param  {Array} facilitiesArray an array of objects that correspond to
+         *                                options within a selection paradigm
+         *                                example:
+         *                                  [
+         *                                      {
+         *                                          ...
+         *                                          valueField: 'valueField1',
+         *                                          textField: 'textField1',
+         *                                          ...
+         *                                      },
+         *                                      {
+         *                                          ...
+         *                                          valueField: 'valueField2',
+         *                                          textField: 'textField2',
+         *                                          ...
+         *                                      },
+         *
+         *                                  ]
+         * @param  {String} valueField      property name within any object (in
+         *                                the array) to be used for the field
+         *                                value within an HTML Option tag
+         *                                example:
+         *                                    <option value="valueField1"></option>
+         * @param  {String} textField       property name within any object (in
+         *                                the array) to be used for the field
+         *                                text within an HTML Option tag
+         *                                example:
+         *                                    <option>textField1</option>
+         * @return {Object}                 an object with field values for keys
+         *                                and field texts for values
+         *                                example:
+         *                                    {
+         *                                      valueField1: textField1,
+         *                                      valueField2: textField2,
+         *                                      valueField3: textField3,
+         *                                      ...
+         *                                    }
+         */
+        var getOptions = function(facilitiesArray, valueField, descriptionField, codeField) {
+            return _.reduce(facilitiesArray, function(facilityOptions, facility) {
+                facilityOptions[facility[valueField]] = formatOptionText(facility[descriptionField], facility[codeField]);
+                return facilityOptions;
+            }, {});
+        };
+
+
+
+        var populateBillingProviderPayerTypes = function() {
+            $.ajax({
+                url: "/insuranceProviderPayerTypes",
+                type: "GET",
+                async: false,
+                data: {
+                    company_id: app.companyID
+                },
+                success: function (model, response) {
+                    if (model && model.result && model.result.length > 0) {
+
+                        var $listAutoBillingProviderPayerTypes = $('#listAutoBillingProviderPayerTypes');
+                    }
+                },
+                error: function (err, response) {
+                    commonjs.handleXhrError(err, response);
+                }
+            });
+        };
+
+        var populateProvidersFromSelectedProviderTypes = function() {
+
+            console.log($('#listAutoBillingProviderTypes option:selected'));
+            // var selectedProviderTypes = _.reduce($('#listAutoBillingProviderTypes option:selected'), function(results, selectedOption) {
+            //
+            //     console.log('selected provider types:', selectedOption);
+            // }, {});
+
+            // .each(function (i, selected) {
+            //     var jsonModality = {};
+            //     jsonModality.id = $(selected).val();
+            //     jsonModality.text = $(selected).text();
+            //     arrModality.push(jsonModality);
+            // });
+        };
+
         var AutoBillingView = Backbone.View.extend({
             AutoBillingGridTemplate: _.template(AutoBillingGrid),
             AutoBillingFormTemplate: _.template(AutoBillingForm),
@@ -208,9 +308,14 @@ define(['jquery',
                 var self = this;
                 this.templateToogleMode = true;
                 $('#divAutoBillingForm').html(this.AutoBillingFormTemplate({
+                    insuranceProviderPayerTypes: getOptions(app.insurance_provider_payer_types, 'id', 'description', 'code'),
+                    modalities: getOptions(app.modalities, 'modality_code', 'modality_name'),
+                    facilities: getOptions(app.facilities, 'facility_code', 'facility_name'),
                     country_alpha_3_code: app.country_alpha_3_code,
                     province_alpha_2_code: app.province_alpha_2_code
                 }));
+                $('#listAutoBillingProviderTypes').change( populateProvidersFromSelectedProviderTypes);
+
                 $('#divAutoBillingGrid').hide();
                 $('#divAutoBillingForm').show();
                 self.currentPageHeight = self.defaultPageHeight;
@@ -248,11 +353,6 @@ define(['jquery',
 
                 commonjs.initializeScreen({
                     header: { screen: 'AutoBilling', ext: 'autoBilling' }, buttons: [
-                        {
-                            value: 'LoaadDefaultTemplate', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.reloaddefault', clickEvent: function () {
-                                // self.reloadDefaultTemplate($("#ddlTemplateType").val());
-                            }
-                        },
                         {
                             value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
                                 // self.confirmPaperClaimAlignment(false);
