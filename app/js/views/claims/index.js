@@ -3306,7 +3306,7 @@ define(['jquery',
                     can_ahs_supporting_text: $.trim($.trim($('#txtSupportingText').val()).replace(/\n/g, ' ')),
                     can_wcb_rejected: $("#chkwcbRejected").prop('checked') || false
                 };
-                console.log(claim_model.claims);
+                
                 // Pay-to Details are only saved when Pay-to Code is Other
                 if (can_ahs_pay_to_code === "OTHR") {
                     var can_ahs_pay_to_uli = $.trim($('#txtPayToUli').val());
