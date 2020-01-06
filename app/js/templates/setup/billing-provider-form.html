@@ -33,7 +33,7 @@
                     </div>
                 </div>
                 <div class="col">
-                    <% if (country_alpha_3_code !== "can" || province_alpha_2_code !== "AB") { %>
+                    <% if (["can_AB","can_MB"].indexOf(app.billingRegionCode) === -1) { %>
                     <div class="form-group row">
                         <label for="txtNpi" class="col-sm-3 col-form-label field-required" i18n="shared.fields.npi"></label>
                         <div class="col-sm-5">
