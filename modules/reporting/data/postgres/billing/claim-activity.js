@@ -76,21 +76,21 @@ from
     pm4.code,get_full_name(u.last_name,u.first_name,u.middle_initial,null,u.suffix)
 ),
 
-payment_details as(
+payment_details AS(
 SELECT
-    cd.claim_id as claim_id,
-    cd.patient_name as patient_name,
-    cd.account_no as account_no,
-    (cd.claim_date)::date as claim_date,
-    cd.referring_physician as referring_physician,
-    cd.reading_physician as reading_physician,
-    cd.ordering_facility as ordering_facility,
-    cd.facility_code as facility_code,
-    pa.amount_type as type,
-    bp.id as payment_id,
-    bp.payment_dt::date as payment_date,
-    bp.accounting_date as accounting_date,
-    null::text as code,
+    cd.claim_id AS claim_id,
+    cd.patient_name AS patient_name,
+    cd.account_no AS account_no,
+    (cd.claim_date)::DATE AS claim_date,
+    cd.referring_physician AS referring_physician,
+    cd.reading_physician AS reading_physician,
+    cd.ordering_facility AS ordering_facility,
+    cd.facility_code AS facility_code,
+    pa.amount_type AS type,
+    bp.id AS payment_id,
+    TIMEZONE(get_facility_tz(bp.facility_id::INTEGER), bp.payment_dt)::DATE AS payment_date,
+    bp.accounting_date AS accounting_date,
+    NULL::TEXT AS code,
     CASE WHEN bp.payer_type = 'patient' THEN
            pp.full_name
      WHEN bp.payer_type = 'insurance' THEN
@@ -99,12 +99,12 @@ SELECT
            pg.group_name
      WHEN bp.payer_type = 'ordering_provider' THEN
            p.full_name
-    END as description, --Payment description is payer
-    array['']::text[] as modifiers,
-    sum(pa.amount) as amount,
-    bp.payment_dt::date as created_on,
-    get_full_name(u.last_name,u.first_name,u.middle_initial,null,u.suffix) as created_by,
-    null as accession_no
+    END AS description, --Payment description is payer
+    ARRAY['']::TEXT[] AS modifiers,
+    SUM(pa.amount) AS amount,
+    TIMEZONE(get_facility_tz(bp.facility_id::integer), bp.payment_dt)::DATE AS created_on,
+    get_full_name(u.last_name,u.first_name,u.middle_initial,null,u.suffix) AS created_by,
+    NULL AS accession_no
 FROM claim_details cd
      INNER JOIN billing.charges bch on bch.claim_id = cd.claim_id
      INNER JOIN billing.payment_applications pa on pa.charge_id= bch.id
@@ -120,29 +120,29 @@ FROM claim_details cd
      modifiers,created_on,get_full_name(u.last_name,u.first_name,u.middle_initial,null,u.suffix)
 )
 SELECT
-    accession_no as "Accession No",
-    claim_id as "Claim#",
-    patient_name as "Patient Name",
-    account_no as "Account#",
+    accession_no AS "Accession No",
+    claim_id AS "Claim#",
+    patient_name AS "Patient Name",
+    account_no AS "Account#",
     to_char(claim_date,'<%= dateFormat %>') AS "Claim Date",
-    referring_physician as "Referring Physician",
-    reading_physician as "Reading Physician",
-    ordering_facility as "Ordering Facility",
-    facility_code as "Facility Code" ,
-    TYPE as "Type",
-    payment_id as "Payment ID",
-    to_char(payment_date,'<%= dateFormat %>') AS "Payment Date",
-    to_char(accounting_date,'<%= dateFormat %>') AS "Accounting Date",
-    code as "<%= codeHeader %>",
-    description as "Description",
+    referring_physician AS "Referring Physician",
+    reading_physician AS "Reading Physician",
+    ordering_facility AS "Ordering Facility",
+    facility_code AS "Facility Code" ,
+    TYPE AS "Type",
+    payment_id AS "Payment ID",
+    TO_CHAR(payment_date,'<%= dateFormat %>') AS "Payment Date",
+    TO_CHAR(accounting_date,'<%= dateFormat %>') AS "Accounting Date",
+    code AS "<%= codeHeader %>",
+    description AS "Description",
 
     <% if (!hideModifiers) { %>
-    modifiers as "Modifiers",
+    modifiers AS "Modifiers",
     <% } %>
 
-    amount as "Amount",
-    to_char(created_on,'<%= dateFormat %>') AS "Created On",
-    created_by as "Created By"
+    amount AS "Amount",
+    TO_CHAR(created_on,'<%= dateFormat %>') AS "Created On",
+    created_by AS "Created By"
 FROM
     charge_details
 UNION ALL
@@ -158,8 +158,8 @@ SELECT
     facility_code,
     TYPE,
     payment_id,
-    to_char(payment_date,'<%= dateFormat %>') AS payment_date,
-    to_char(accounting_date,'<%= dateFormat %>') AS accounting_date,
+    TO_CHAR(payment_date,'<%= dateFormat %>') AS payment_date,
+    TO_CHAR(accounting_date,'<%= dateFormat %>') AS accounting_date,
     code,
     description,
 
@@ -168,15 +168,15 @@ SELECT
     <% } %>
 
     amount,
-    to_char(created_on,'<%= dateFormat %>') AS created_on,
+    TO_CHAR(created_on,'<%= dateFormat %>') AS created_on,
     created_by
 FROM
     payment_details
 ORDER BY
-"Claim#",
-"Accession No",
-"Payment ID",
-"Type"
+    "Claim#",
+    "Accession No",
+    "Payment ID",
+    "Type"
 DESC
 `);
 
