@@ -556,7 +556,9 @@ define([
                 commonjs.initializeScreen({ header: { screen: 'Claim Invoice', ext: 'Claim Invoice' } });
                 $('#divIvoiceAgeSummary').html(self.invoiceAgingSummaryTemplate());
 
-
+                if(this.screenCode.indexOf('IAST') > -1) {
+                    $('#btnPrint').attr('disabled', true);
+                }
 
                 $.ajax({
                     url: "/exa_modules/billing/claims/claim_inquiry/claim_invoice/age",
