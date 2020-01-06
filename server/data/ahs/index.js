@@ -537,7 +537,7 @@ const ahsData = {
                         END                                          AS claimed_amount_indicator,
         
                         CASE
-                            WHEN bc.can_ahs_confidential
+                            WHEN bc.can_confidential
                             THEN 'Y'
                             ELSE ''
                         END                                          AS confidential_indicator,
