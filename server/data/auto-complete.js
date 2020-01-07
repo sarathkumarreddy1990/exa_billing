@@ -348,7 +348,7 @@ module.exports = {
             user_role_sql.append(users_role_q);
         }
 
-        user_role_sql.append(SQL`ORDER BY  ${params.sortField}`)
+        user_role_sql.append(SQL`ORDER BY ${params.sortField}`)
             .append(SQL` `)
             .append(params.sortOrder)
             .append(SQL` LIMIT ${params.pageSize}`)
@@ -358,9 +358,15 @@ module.exports = {
     },
 
     insurance_payer_types: async function (params) {
+        let {
+            q,
+            sortField,
+            sortOrder,
+            pageSize,
+            page            
+        } = params;
 
-        let payer_q = ` AND (description ILIKE '%${params.q}%' OR code ILIKE '%${params.q}%' ) `;
-
+        let payer_q = ` AND (description ILIKE '%${q}%' OR code ILIKE '%${q}%' ) `;
         const sqlInsurancePayerType = SQL`
             SELECT
                 id
@@ -372,13 +378,15 @@ module.exports = {
             WHERE
             inactivated_dt IS  NULL `;
 
-        if (params.q != '') {
+        if (q != '') {
             sqlInsurancePayerType.append(payer_q);
         }
 
-        sqlInsurancePayerType.append(SQL`ORDER BY  ${params.sortField}`)
+        sqlInsurancePayerType.append(SQL`ORDER BY  ${sortField}`)
             .append(SQL` `)
-            .append(params.sortOrder);
+            .append(sortOrder)
+            .append(SQL` LIMIT ${pageSize}`)
+            .append(SQL` OFFSET ${((page * pageSize) - pageSize)}`);
 
         return await query(sqlInsurancePayerType);
     },

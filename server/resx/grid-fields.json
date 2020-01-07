@@ -415,6 +415,21 @@
                 "defaultValue": ""
             },
             "field_code": "icd_description"
+        },
+    {
+        "id": 43,
+        "field_name": "Insurance Providers",
+        "i18n_name": "setup.userSettings.insuranceProviders",
+        "field_info": {
+            "custom_name": "Insurance Providers",
+            "name": "insurance_providers",
+            "width": 200,
+            "searchFlag": "%",
+            "stype": "select",
+            "sortable": false,
+            "search": true
+        },
+        "field_code": "insurance_providers"
         }
     ],
     "study_fields": [

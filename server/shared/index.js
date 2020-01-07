@@ -89,6 +89,42 @@ module.exports = {
     isReadableStream: function (obj) {
         return this.isStream(obj) && typeof obj._read === 'function' && typeof obj._readableState === 'object';
     },
+    /* Query for Insurance Provider in Study Filter */
+    insuranceStudyProviderName: () => {
+        return ` array_remove((
+            SELECT
+               array_agg(insp.insurance_name) AS insurance_name 
+            FROM
+               patient_insurances AS pat_ins 
+               LEFT JOIN
+                  insurance_providers AS insp 
+                  ON pat_ins.insurance_provider_id = insp.id 
+            WHERE
+               pat_ins.id = orders.primary_patient_insurance_id 
+               OR pat_ins.id = orders.secondary_patient_insurance_id 
+               OR pat_ins.id = orders.tertiary_patient_insurance_id
+               AND insp.insurance_name IS NOT NULL LIMIT 1 ), null) `;
+    },
+    /* Query For Insurance Provider In Claim Filter */
+    insuranceClaimProviderName: () => {
+        return ` array_remove((
+            SELECT
+               array_agg(insp.insurance_name) AS insurance_name 
+            FROM
+               patient_insurances AS pat_ins 
+               LEFT JOIN
+                  insurance_providers AS insp 
+                  ON pat_ins.insurance_provider_id = insp.id 
+            WHERE
+               pat_ins.id = primary_patient_insurance_id 
+               OR pat_ins.id = secondary_patient_insurance_id 
+               OR pat_ins.id = tertiary_patient_insurance_id
+               AND insp.insurance_name IS NOT NULL LIMIT 1 ), null) `;
+    },
+    /* Query For Insurance Group Drop Down in Claim Filter */
+    insuranceProviderClaimGroup: () => {
+        return `ARRAY[insurance_provider_payer_types.description]`;
+    },
 
     getLocaleDate: function (date, locale) {
         if (!date)
