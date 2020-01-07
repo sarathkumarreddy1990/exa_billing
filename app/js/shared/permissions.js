@@ -6,7 +6,7 @@ var permissions = {
         var accessDeniedRightClickIDs = [];
         var billingScreenCodes = ['ADJC', 'BICO', 'BICL', 'CLST', 'BIPR', 'PRCQ', 'BILM', 'PARE', 'CASG', 'CASR', 'STCC', 'BIVA', 'PCA', 'EDRT', 'INSM', 'CLHO', 'BULG', 'BALG',
             'AGAR', 'AARD', 'CHRG', 'CLAY', 'CLIN', 'CLTR', 'COLR', 'CRBE', 'DICN', 'IVSL', 'MOSU', 'MNRC', 'PATS', 'PYMX', 'PAYT', 'PAIC', 'PBIC', 'PABI', 'PRCN', 'RPFR', 'REPC', 'REPS', 'TSUM', 'PACT',
-            'CLIM', 'HSTY', 'ECLM', 'CLMI', 'MASO', 'CLVA', 'ERAI', 'PAYM', 'APAY', 'DPAY', 'DCLM', 'PCLM', 'PATR', 'TOSP', 'PRRA', 'CLFM', 'ECST', 'RCLM'];
+            'CLIM', 'HSTY', 'ECLM', 'CLMI', 'MASO', 'CLVA', 'ERAI', 'PAYM', 'APAY', 'DPAY', 'DCLM', 'PCLM', 'PATR', 'TOSP', 'PRRA', 'CLFM', 'ECST', 'RCLM', 'IAST'];
 
         mappingObject = {
             'ADJC': 'aAdjustmentCodes',
@@ -68,7 +68,8 @@ var permissions = {
             'PCLM': 'anc_patient_claim_inquiry',
             'PRRA': 'aPaymentsRealizationRateAnalysis',
             'ECST': 'li_ul_change_claim_status',
-            'RCLM': 'anc_claim_reassess'
+            'RCLM': 'anc_claim_reassess',
+            'IAST': 'btnPrint'
         };
 
         var tosPayments = (app.screens).indexOf('TOSP') > -1 && (app.screens).indexOf('PAYM') === -1 ? true : false ;
