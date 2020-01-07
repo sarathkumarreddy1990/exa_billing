@@ -86,42 +86,47 @@ define(['jquery',
             }, {});
         };
 
+        // TODO figure out how to filter out providers based on selected provider types
 
 
-        var populateBillingProviderPayerTypes = function() {
+
+        var populateProvidersFromSelectedProviderTypes = function() {
+
+            // console.log('listAutoBillingInsuranceProviderPayerTypes: ', );
+            var $listAutoBillingInsuranceProviderPayerTypes = $('#listAutoBillingInsuranceProviderPayerTypes');
+
+            var payloadData = {};
+            var selectedInsuranceProviderPayerTypes = $listAutoBillingInsuranceProviderPayerTypes.val();
+
+            if ($listAutoBillingInsuranceProviderPayerTypes.find('option').length !== selectedInsuranceProviderPayerTypes.length) {
+                payloadData.payerTypeIds = selectedInsuranceProviderPayerTypes;
+            }
+            $('#listAutoBillingInsuranceProviders').empty();
+            // var res = ['1', '2', '3'].map(function(v){return +v})
+            // console.log('number of elements', $listAutoBillingProviderPayerTypes);
             $.ajax({
-                url: "/insuranceProviderPayerTypes",
+                url: "/insuranceProvidersByPayerType",
                 type: "GET",
                 async: false,
-                data: {
-                    company_id: app.companyID
-                },
+                data: payloadData,
                 success: function (model, response) {
                     if (model && model.result && model.result.length > 0) {
+                        var options = getOptions(model.result, 'id', 'insurance_name', 'insurance_code');
+                        // console.log('OPTIONS: ', options)
+                        var optionsHTML = _.map(options, function(value, key) {
+                            return "<option value=" + key  + ">" + value + "</option>";
+                        });
 
-                        var $listAutoBillingProviderPayerTypes = $('#listAutoBillingProviderPayerTypes');
+                        $('#listAutoBillingInsuranceProviders').append(optionsHTML);
                     }
+                    // else {
+                    //
+                    // }
                 },
                 error: function (err, response) {
                     commonjs.handleXhrError(err, response);
                 }
             });
-        };
-
-        var populateProvidersFromSelectedProviderTypes = function() {
-
-            console.log($('#listAutoBillingProviderTypes option:selected'));
-            // var selectedProviderTypes = _.reduce($('#listAutoBillingProviderTypes option:selected'), function(results, selectedOption) {
-            //
-            //     console.log('selected provider types:', selectedOption);
-            // }, {});
-
-            // .each(function (i, selected) {
-            //     var jsonModality = {};
-            //     jsonModality.id = $(selected).val();
-            //     jsonModality.text = $(selected).text();
-            //     arrModality.push(jsonModality);
-            // });
         };
 
         var AutoBillingView = Backbone.View.extend({
@@ -314,7 +319,7 @@ define(['jquery',
                     country_alpha_3_code: app.country_alpha_3_code,
                     province_alpha_2_code: app.province_alpha_2_code
                 }));
-                $('#listAutoBillingProviderTypes').change( populateProvidersFromSelectedProviderTypes);
+                $('#listAutoBillingInsuranceProviderPayerTypes').change( populateProvidersFromSelectedProviderTypes);
 
                 $('#divAutoBillingGrid').hide();
                 $('#divAutoBillingForm').show();
