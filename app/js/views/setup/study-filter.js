@@ -1840,7 +1840,7 @@ define([
                     if ($listClaimInsp.length > 0) {
                         $listClaimInsp.remove();
                     } else {
-                        commonjs.showWarning('messages.warning.setup.selectitemstodelete');    
+                        commonjs.showWarning('messages.warning.setup.selectitemstodelete');
                     }
 
                     e.stopImmediatePropagation();
