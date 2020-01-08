@@ -660,7 +660,7 @@ define([
                      /* Bind add button for Study Insurance Group - SMH */
                      var $btnStudyIns =   $('#btnAddStudyInsuranceProvider');          
                      $btnStudyIns.off('click').on('click', function (e) {
-                      var opt = document.createElement('Option');
+                      var opt = document.createElement('option');
                       var $studyContainerId = $('#txtStudyInsuranceProviderName');
                       var studyInsuranceProviderValue = $.trim($('#select2-txtStudyInsuranceProviderName-container').text());
 
