@@ -2093,7 +2093,7 @@ define([
                 $radioButtons.filter('.clearField').prop('checked', false);
                 $radioButtons.filter('#rbtStudyDate').prop('checked', true);
                 $radioButtons.filter('#rbtPreformatted').prop('checked', true);
-                 $radioButtons.filter('#rbtIsClaimInsuranceGroup').prop('checked', false);
+                $radioButtons.filter('#rbtIsClaimInsuranceGroup').prop('checked', false);
                 $radioButtons.filter('#rbtIsNotClaimInsuranceGroup').prop('checked', false);
                 $inputs.filter('[name=LastChangedByMe]').prop('checked', false);
             },
