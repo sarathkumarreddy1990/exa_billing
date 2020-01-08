@@ -300,7 +300,7 @@ const util = {
 
                 }
 
-                let insFilterClaim = filterObj.ClaimInformation.insurance_provider || {};
+                let insFilterClaim = filterObj.ClaimInformation.insurance_provider;
 
                 if (insFilterClaim) {
                     query = util.getinsuranceFilterQuery(insFilterClaim.insProvClaim, shared.insuranceClaimProviderName(), 'insProvClaim', query);
