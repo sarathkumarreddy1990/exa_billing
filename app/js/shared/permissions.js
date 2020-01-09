@@ -6,7 +6,7 @@ var permissions = {
         var accessDeniedRightClickIDs = [];
         var billingScreenCodes = ['ADJC', 'BICO', 'BICL', 'CLST', 'BIPR', 'PRCQ', 'BILM', 'PARE', 'CASG', 'CASR', 'STCC', 'BIVA', 'PCA', 'EDRT', 'INSM', 'CLHO', 'BULG', 'BALG',
             'AGAR', 'AARD', 'CHRG', 'CLAY', 'CLIN', 'CLTR', 'COLR', 'CRBE', 'DICN', 'IVSL', 'MOSU', 'MNRC', 'PATS', 'PYMX', 'PAYT', 'PAIC', 'PBIC', 'PABI', 'PRCN', 'RPFR', 'REPC', 'REPS', 'TSUM', 'PACT',
-            'CLIM', 'HSTY', 'ECLM', 'CLMI', 'MASO', 'CLVA', 'ERAI', 'PAYM', 'APAY', 'DPAY', 'DCLM', 'PCLM', 'PATR', 'TOSP', 'PRRA', 'CLFM', 'ECST'];
+            'CLIM', 'HSTY', 'ECLM', 'CLMI', 'MASO', 'CLVA', 'ERAI', 'PAYM', 'APAY', 'DPAY', 'DCLM', 'PCLM', 'PATR', 'TOSP', 'PRRA', 'CLFM', 'ECST', 'IAST'];
 
         mappingObject = {
             'ADJC': 'aAdjustmentCodes',
@@ -67,7 +67,8 @@ var permissions = {
             'DCLM': 'anc_delete_claim', // This rights used for Delete Charge also
             'PCLM': 'anc_patient_claim_inquiry',
             'PRRA': 'aPaymentsRealizationRateAnalysis',
-            'ECST': 'li_ul_change_claim_status'
+            'ECST': 'li_ul_change_claim_status',
+            'IAST': 'btnPrint'
         };
 
         var tosPayments = (app.screens).indexOf('TOSP') > -1 && (app.screens).indexOf('PAYM') === -1 ? true : false ;

@@ -416,20 +416,31 @@
             },
             "field_code": "icd_description"
         },
-    {
-        "id": 43,
-        "field_name": "Insurance Providers",
-        "i18n_name": "setup.userSettings.insuranceProviders",
-        "field_info": {
-            "custom_name": "Insurance Providers",
-            "name": "insurance_providers",
-            "width": 200,
-            "searchFlag": "%",
-            "stype": "select",
-            "sortable": false,
-            "search": true
+        {
+            "id": 43,
+            "field_name": "Insurance Providers",
+            "i18n_name": "setup.userSettings.insuranceProviders",
+            "field_info": {
+                "custom_name": "Insurance Providers",
+                "name": "insurance_providers",
+                "width": 200,
+                "searchFlag": "%",
+                "stype": "select",
+                "sortable": false,
+                "search": true
+            },
+            "field_code": "insurance_providers"
         },
-        "field_code": "insurance_providers"
+        {
+            "field_code": "reason_code",
+            "field_name": "Reason Code",
+            "i18n_name": "setup.userSettings.reasonCode",
+            "field_info": {
+                "name": "reason_code",
+                "width": 170,
+                "searchFlag": "%"
+            },
+            "id": 69
         }
     ],
     "study_fields": [
@@ -1219,17 +1230,6 @@
                 "defaultValue": ""
             },
             "field_code": "icd_description"
-        },
-        {
-            "field_code": "reason_code",
-            "field_name": "Reason Code",
-            "i18n_name": "setup.userSettings.reasonCode",
-            "field_info": {
-                "name": "reason_code",
-                "width": 170,
-                "searchFlag": "%"
-            },
-            "id": 69
         }
     ]
 }

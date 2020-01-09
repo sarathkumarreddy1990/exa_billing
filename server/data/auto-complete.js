@@ -426,8 +426,8 @@ module.exports = {
                                      ,COUNT(1) OVER (range unbounded preceding) AS total_records
                                 FROM provider_groups
                                 WHERE
-                                    NOT provider_groups.deleted_dt IS NULL
-                                    AND provider_groups.company_id = ${params.company_id} 
+                                    provider_groups.deleted_dt IS NULL
+                                    AND provider_groups.company_id = ${params.companyId}
                                     AND is_active `;
 
         if (q != '') {
