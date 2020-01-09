@@ -660,7 +660,7 @@ define([
                      /* Bind add button for Study Insurance Group - SMH */
                      var $btnStudyIns =   $('#btnAddStudyInsuranceProvider');          
                      $btnStudyIns.off('click').on('click', function (e) {
-                      var opt = document.createElement('Option');
+                      var opt = document.createElement('option');
                       var $studyContainerId = $('#txtStudyInsuranceProviderName');
                       var studyInsuranceProviderValue = $.trim($('#select2-txtStudyInsuranceProviderName-container').text());
 
@@ -1840,7 +1840,7 @@ define([
                     if ($listClaimInsp.length > 0) {
                         $listClaimInsp.remove();
                     } else {
-                        commonjs.showWarning('messages.warning.setup.selectitemstodelete');    
+                        commonjs.showWarning('messages.warning.setup.selectitemstodelete');
                     }
 
                     e.stopImmediatePropagation();
@@ -2093,7 +2093,7 @@ define([
                 $radioButtons.filter('.clearField').prop('checked', false);
                 $radioButtons.filter('#rbtStudyDate').prop('checked', true);
                 $radioButtons.filter('#rbtPreformatted').prop('checked', true);
-                 $radioButtons.filter('#rbtIsClaimInsuranceGroup').prop('checked', false);
+                $radioButtons.filter('#rbtIsClaimInsuranceGroup').prop('checked', false);
                 $radioButtons.filter('#rbtIsNotClaimInsuranceGroup').prop('checked', false);
                 $inputs.filter('[name=LastChangedByMe]').prop('checked', false);
             },
