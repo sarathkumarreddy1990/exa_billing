@@ -913,9 +913,9 @@ define(['jquery',
 
                 if (response.edi_file_id) {
                     self.ediFileId = response.edi_file_id;
-                    
+                    self.eobFileId = response.eob_file_id || null;
+
                     if (response.eob_file_id) {
-                        self.eobFileId = response.eob_file_id;
                         $('#eobPreviewPayment').removeClass('hidden');
                     } else {
                         $('#eobPaymentUpload').removeClass('hidden');
