@@ -72,7 +72,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         var studyFlagArray = app.studyflag;
         var clearingHouse = commonjs.makeValue(app.clearing_house, ":All;", "id", "name");
         var billingProviders = commonjs.makeValue(app.billing_providers, ":All;", "id", "full_name");
-        var casReasonCodes = commonjs.makeValue(app.cas_reason_codes, ":All;", "code", "code");
+        var casReasonCodes = commonjs.makeValue(_.sortBy(app.cas_reason_codes, 'code'), ":All;", "code", "code");
         var placeOfService = commonjs.makeValue(app.places_of_service, ":All;", "id", "description");
         var vehicles = commonjs.makeValue(app.vehicles, ":All;", "id", "vehicle_name");
         var gender = commonjs.makeValue(commonjs.bindArray(app.gender, false), ":All;");
@@ -491,10 +491,10 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                                     var code = errors[i].split(' - ');
                                     codes.push(code[0]);
                                 }
-                                
+
                                 return codes.join();
                             }
-                            
+
                             cellvalue = cellvalue.replace(/(?:\n)/g, '<br />');
                             var regex = /<br\s*[\/]?>/gi;
                             return cellvalue.replace(regex, "\n");
@@ -631,7 +631,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_name": "Submitted Date",
                     "i18n_name": "setup.userSettings.submittedDate",
                     "field_info": {
-                      "custom_name": "Submitted Date",  
+                      "custom_name": "Submitted Date",
                       "name": "submitted_dt",
                       "searchFlag": "datetime",
                       "formatter": claimDateFormatter,
@@ -767,7 +767,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "sortable": false,
                         "defaultValue": "",
                         "stype": "select",
-                        formatter: function (cellvalue) {
+                        formatter: function ( cellvalue ) {
                             return cellvalue === 'corrected_claim' ? 'Corrected claim' : 'New claim';
                         },
                         "searchoptions": {
@@ -775,6 +775,23 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                             "tempvalue": claimAction
                         },
                         "hidden": !app.billingRegionCode === 'can_AB'
+                    }
+                },
+                "Reason Code": {
+                    "id": 69,
+                    "field_code": "reason_code",
+                    "field_name": "Reason Code",
+                    "i18n_name": "setup.userSettings.reasonCode",
+                    "field_info": {
+                        "custom_name": "Reason Code",
+                        "name": "reason_code",
+                        "width": 150,
+                        "searchFlag": "%",
+                        "stype": "select",
+                        "sortable": true,
+                        "searchoptions": {
+                            "value": casReasonCodes
+                        }
                     }
                 }
             });
@@ -1967,22 +1984,6 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "defaultValue": ""
                 },
                 "field_code": "icd_description"
-            },
-            "Reason Code": {
-                "id": 69,
-                "field_code": "reason_code",
-                "field_name": "Reason Code",
-                "i18n_name": "setup.userSettings.reasonCode",
-                "field_info": {
-                    "custom_name": "Reason Code",
-                    "name": "reason_code",
-                    "width": 150,
-                    "stype": "select",
-                    "searchoptions": {
-                        "value": casReasonCodes,
-                        "tempvalue": casReasonCodes
-                    }
-                }
             }
         });
 

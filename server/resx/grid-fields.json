@@ -241,7 +241,7 @@
                 "name": "can_ahs_claim_no",
                 "width": 75
             },
-            "id": 69
+            "id": 70
         },
         {
             "field_code": "invoice_no",
@@ -436,6 +436,17 @@
                 "width": 250,
                 "defaultValue": ""
             }
+        },
+        {
+            "field_code": "reason_code",
+            "field_name": "Reason Code",
+            "i18n_name": "setup.userSettings.reasonCode",
+            "field_info": {
+                "name": "reason_code",
+                "width": 170,
+                "searchFlag": "%"
+            },
+            "id": 69
         }
     ],
     "study_fields": [
@@ -1014,7 +1025,7 @@
             "field_code": "claim_no"
         },
         {
-            "id": 69,
+            "id": 70,
             "field_name": "AHS Claim Num",
             "i18n_name": "setup.userSettings.claimNo",
             "field_info": {
@@ -1236,17 +1247,6 @@
                 "defaultValue": ""
             },
             "field_code": "icd_description"
-        },
-        {
-            "field_code": "reason_code",
-            "field_name": "Reason Code",
-            "i18n_name": "setup.userSettings.reasonCode",
-            "field_info": {
-                "name": "reason_code",
-                "width": 170,
-                "searchFlag": "%"
-            },
-            "id": 69
         }
     ]
 }
