@@ -650,7 +650,7 @@ module.exports = {
                                 claim_id = c.id
                                 AND (
                                     pb.id IS NULL 
-                                    OR CURRENT_DATE BETWEEN pb.effective_dt AND pb.end_dt
+                                    OR CURRENT_DATE BETWEEN pb.effective_date AND pb.end_date
                                 )
                             ORDER BY ch.id, ch.line_num ASC
                       ) pointer) AS claim_charges
