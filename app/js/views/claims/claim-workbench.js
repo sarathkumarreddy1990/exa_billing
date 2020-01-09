@@ -1420,6 +1420,9 @@ define(['jquery',
 
                 if (filterID) {
 
+                    var filter = commonjs.loadedStudyFilters.get(filterID);
+                    commonjs.currentStudyFilter = filterID;
+
                     if (filterID === "Files") {
                         self.fileManagementPager = new Pager();
                         self.showFileManagementGrid({
@@ -1434,10 +1437,7 @@ define(['jquery',
                         });
 
                         return;
-                    }
-
-                    var filter = commonjs.loadedStudyFilters.get(filterID);
-                    commonjs.currentStudyFilter = filterID;
+                    }                    
 
                     if (!filter) {
 
@@ -1928,15 +1928,15 @@ define(['jquery',
             },
 
             refreshAllClaims: function () {
-                $('#btnClaimsRefresh, #btnClaimRefreshAll').prop('disabled', true);
                 var self = this;
-                // commonjs.isHomePageVisited = false;
-                var filter = commonjs.loadedStudyFilters.get(commonjs.currentStudyFilter);
-                // if (!filter) {
-                //     self.loadTabContents();
-                //     return;
-                // }
 
+                if (commonjs.currentStudyFilter === 'Files') {
+                    self.setTabContents("Files", false, false, false, false);
+                    return;
+                }
+
+                $('#btnClaimsRefresh, #btnClaimRefreshAll').prop('disabled', true);
+                var filter = commonjs.loadedStudyFilters.get(commonjs.currentStudyFilter);
                 var $loading = $(document.getElementById('divPageLoading'));
                 $loading.show();
                 commonjs.showLoading();
@@ -2039,12 +2039,16 @@ define(['jquery',
                 var btnInsuranceClaim = $("#btnInsuranceClaim");
                 var btnValidateExport = $("#btnValidateExport");
                 var btnPaperClaim = $("#btnPaperClaim");
+                var btnRefresh = $('#btnClaimsRefresh');
 
                 if (filters.indexOf(filterID) > -1) {
 
                     if (filterID === "Follow_up_queue") {
                         btnPaperClaim.hide();
-                    }
+                        btnRefresh.show();
+                    } else if (filterID === "Files") {
+                        btnRefresh.hide();
+                    }                    
 
                     btnInsuranceClaim.hide();
                     btnValidateOrder.hide();
@@ -2053,6 +2057,7 @@ define(['jquery',
                     btnPaperClaim.show();
                     btnValidateOrder.show();
                     btnValidateExport.show();
+                    btnRefresh.show();
                 }
 
                 $('#divPageLoading').hide();
