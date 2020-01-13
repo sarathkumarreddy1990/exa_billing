@@ -39,12 +39,10 @@
 
             </div>
 
+            <!-- NEW LAYOUT -->
             <div class="row" style="margin-top:10px;">
+                <div class="col-sm-6">
 
-                <!-- begin hierarchical section -->
-                <div class="col-lg-6">
-
-                    <!-- begin facilities fields -->
                     <div class="form-group row">
                         <legend style="width:98%;">
                             <h5 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
@@ -52,6 +50,7 @@
                             </h5>
                         </legend>
                     </div>
+
                     <div class="form-group row">
                         <div class="col-sm-2">
                             <div class="form-check form-check-inline">
@@ -71,9 +70,10 @@
                             </select>
                         </div>
                     </div>
-                    <!-- end facilities fields -->
+                </div>
 
-                    <!-- begin modalities fields  -->
+
+                <div class="col-sm-6">
                     <div class="form-group row">
                         <legend style="width:98%;">
                             <h5 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
@@ -100,114 +100,161 @@
                             </select>
                         </div>
                     </div>
-                    <!-- end modalities fields  -->
+                </div>
+            </div>
 
-                    <!-- begin CPT Codes fields -->
+            <!-- BEGIN CPT Codes SECTION -->
+            <div class="row" style="margin-top:10px;">
+
+                <div class="col-lg-12">
                     <div class="row">
-                        <legend>
+                        <legend style="width:98%;">
                             <h5 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
                                 <label i18n="setup.autoBilling.cptCode"></label>
                             </h5>
                         </legend>
                     </div>
-                    <div class="row form-group">
-                        <div class="col-sm-2">
+
+                    <!-- BEGIN CPT Codes FIELDS -->
+                    <div class="form-group row">
+                        <div class="col-lg-3">
+
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="chkCptCodes" value="is">
-                                <label class="form-check-label" for="chkCptCodes" i18n="setup.common.is"></label>
+                                <input class="form-check-input" type="radio" name="chkAutoBillingInsuranceProvider" value="is">
+                                <label i18n="setup.common.is"></label>
                             </div>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="chkCptCodes" value="isNOT">
-                                <label class="form-check-label" for="chkCptCodes" i18n="setup.common.isNot"></label>
+                                <input class="form-check-input" type="radio" name="chkAutoBillingInsuranceProvider" value="isNOT">
+                                <label i18n="setup.common.isNot"></label>
                             </div>
                         </div>
 
-
-                        <div class="col-sm-10">
-                            <div class="form-group row">
+                        <div class="col-lg-4">
+                            <div class="row">
                                 <input type="text" name="txtCptCode" value="Search" class="col-sm-10">
-                                <button type="button" class="btn btn-primary" name="button" class="col-sm-2">
+                                <button type="button" id="btnAddAutoBillingCptCode" class="btn btn-primary col-sm-2" name="button">
                                     <i class="icon-ic-plus"></i>
                                 </button>
                             </div>
-                            <div class="form-group row">
-                                <ul id="ulCptCpdes" class="tagList col-sm-11" style="height:80px;min-width:200px;border:1px dashed #00FF00;">
 
-                                </ul>
-                                <input type="hidden" id="hdnCptCodes" value="">
-                            </div>
                         </div>
+                        <div class="col-lg-3">
+                            <select id="listAutoBillingCptCodes" muliple="multiple" size="5" style="height: 80px;"></select>
+                        </div>
+                        <div class="col-lg-1">
+                            <button id="btnRemoveAutoBillingCptCode" class="btn btn-primary"><i class="icon-ic-delete"></i></button>
+                        </div>
+
+
                     </div>
-                    <!-- end CPT Codes -->
+                    <!-- END CPT Codes FIELDS -->
 
                 </div>
+            </div>
+            <!-- END CPT Codes SECTION -->
 
-                <!-- hierarchical section -->
 
-                <!-- begin Insurance Providers section -->
-                <div class="col-lg-6">
+
+            <!-- BEGIN Insurance Provider Payer Types SECTION -->
+            <div class="row" style="margin-top:10px;">
+
+                <div class="col-lg-12">
                     <div class="row">
                         <legend style="width:98%;">
                             <h5 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
-                                <label i18n="setup.autoBilling.providers"></label>
+                                <label i18n="setup.autoBilling.insuranceProviderPayerTypes"></label>
                             </h5>
                         </legend>
                     </div>
 
-                    <!-- begin Insurance Provider Payer Types -->
+                    <!-- BEGIN Insurance Provider Payer Types FIELDS -->
                     <div class="form-group row">
-                        <div class="col-sm-2">
+                        <div class="col-lg-3">
 
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="chkAutoBillingInsuranceProviderPayerTypeIs" value="is">
-                                <label class="form-check-label" for="chkAutoBillingInsuranceProviderPayerTypeIs" i18n="setup.common.is"></label>
+                                <input class="form-check-input" type="radio" name="chkAutoBillingInsuranceProviderPayerType" value="is">
+                                <label i18n="setup.common.is"></label>
                             </div>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="chkAutoBillingInsuranceProviderPayerTypeIsNot" value="isNOT">
-                                <label class="form-check-label" for="chkAutoBillingInsuranceProviderPayerTypeIsNot" i18n="setup.common.isNot"></label>
-                            </div>
-                        </div>
-
-                        <div class="col-sm-10">
-                            <label for="listAutoBillingInsuranceProviderPayerTypes" i18n="setup.autoBilling.insuranceProviderPayerTypes" class="col-form-label"></label>
-                            <select id="listAutoBillingInsuranceProviderPayerTypes" style="width: 250px; height: 80px;" name="listAutoBillingInsuranceProviderPayerTypes" size="6" multiple>
-                                <% _.each(insuranceProviderPayerTypes, function(value, key) { %>
-                                    <option value="<%= key %>"><%= value %></option>
-                                <%})%>
-                            </select>
-                        </div>
-                    </div>
-                    <!-- end Insurance Provider Payer Types -->
-
-                    <!-- begin Providers -->
-                    <div class="form-group row">
-
-                        <div class="col-sm-2">
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" id="chkAutoBillingInsuranceProviderIs" name="chkAutoBillingInsuranceProviders" value="is">
-                                <label class="form-check-label" for="chkAutoBillingInsuranceProviderIs" i18n="setup.common.is"></label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" id="chkAutoBillingInsuranceProviderIsNot" name="chkAutoBillingInsuranceProviders" value="isNOT">
-                                <label class="form-check-label" for="chkAutoBillingInsuranceProviderIsNot" i18n="setup.common.isNot"></label>
+                                <input class="form-check-input" type="radio" name="chkAutoBillingInsuranceProviderPayerType" value="isNOT">
+                                <label i18n="setup.common.isNot"></label>
                             </div>
                         </div>
 
-                        <div class="col-sm-10">
-                            <label for="listAutoBillingInsuranceProviders" i18n="setup.autoBilling.insuranceProviders" class="col-form-label"></label>
-                            <select id="listAutoBillingInsuranceProviders" style="width: 250px; height: 80px;" name="listAutoBillingInsuranceProviders" size="6" multiple></select>
+                        <div class="col-lg-4">
+                            <div class="row">
+                                <input type="text" name="txtAutoBillingInsuranceProviderPayerType" value="Search" class="col-sm-10">
+                                <button type="button" id="addRemoveAutoBillingInsuranceProviderPayerType" class="btn btn-primary col-sm-2" name="button">
+                                    <i class="icon-ic-plus"></i>
+                                </button>
+                            </div>
+
                         </div>
+                        <div class="col-lg-3">
+                            <select id="listAutoBillingInsuranceProviderPayerTypes" muliple="multiple" size="5" style="height: 80px;"></select>
+                        </div>
+                        <div class="col-lg-1">
+                            <button id="btnRemoveAutoBillingInsuranceProviderPayerType" class="btn btn-primary"><i class="icon-ic-delete"></i></button>
+                        </div>
+
 
                     </div>
-                    <!-- end Insurance Providers -->
+                    <!-- END Insurance Provider Payer Types FIELDS -->
 
                 </div>
-                <!-- end Insurance Providers section -->
-
             </div>
-            <!-- end filter criteria section -->
+            <!-- END Insurance Provider Payer Types SECTION -->
 
 
+            <!-- BEGIN Insurance Providers SECTION -->
+            <div class="row" style="margin-top:10px;">
+
+                <div class="col-lg-12">
+                    <div class="row">
+                        <legend style="width:98%;">
+                            <h5 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
+                                <label i18n="setup.autoBilling.insuranceProviders"></label>
+                            </h5>
+                        </legend>
+                    </div>
+
+                    <!-- BEGIN Insurance Providers FIELDS -->
+                    <div class="form-group row">
+                        <div class="col-lg-3">
+
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="chkAutoBillingInsuranceProvider" value="is">
+                                <label i18n="setup.common.is"></label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="chkAutoBillingInsuranceProvider" value="isNOT">
+                                <label i18n="setup.common.isNot"></label>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <div class="row">
+                                <input type="text" name="txtAutoBillingInsuranceProvider" value="Search" class="col-sm-10">
+                                <button type="button" id="addRemoveAutoBillingInsuranceProvider" class="btn btn-primary col-sm-2" name="button">
+                                    <i class="icon-ic-plus"></i>
+                                </button>
+                            </div>
+
+                        </div>
+                        <div class="col-lg-3">
+                            <select id="listAutoBillingInsuranceProviders" muliple="multiple" size="5" style="height: 80px;"></select>
+                        </div>
+                        <div class="col-lg-1">
+                            <button id="btnRemoveAutoBillingInsuranceProvider" class="btn btn-primary"><i class="icon-ic-delete"></i></button>
+                        </div>
+
+
+                    </div>
+                    <!-- END Insurance Providers FIELDS -->
+
+                </div>
+            </div>
+            <!-- END Insurance Providers SECTION -->
 
 
         </form>
