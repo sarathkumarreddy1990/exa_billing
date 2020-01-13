@@ -11,7 +11,8 @@ const commonIndex = require('../../../../../server/shared/index');
 const patientStatementDataSetQueryTemplate = _.template(`
 WITH claim_data as(
     SELECT
-       bc.id as claim_id
+       bc.id AS claim_id,
+       facility_id AS fac_id
     FROM billing.claims bc
     <% if (billingProviderIds) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
     WHERE 1=1
@@ -64,14 +65,14 @@ WITH claim_data as(
     UNION
     <% } %>
     SELECT
-        c.claim_id as id,
-        'charge' as type,
-        cc.short_description as comments,
-        c.charge_dt  AS commented_dt,
-        (c.bill_fee*c.units) as amount,
-        u.username as commented_by,
-        cc.display_code as code,
-        c.id as charge_id
+        c.claim_id AS id,
+        'charge' AS type,
+        cc.short_description AS comments,
+        to_facility_date(cd.fac_id, c.charge_dt) AS commented_dt,
+        (c.bill_fee*c.units) AS amount,
+        u.username AS commented_by,
+        cc.display_code AS code,
+        c.id AS charge_id
     FROM billing.charges c
     INNER JOIN claim_data cd ON cd.claim_id = c.claim_id
     INNER JOIN cpt_codes cc ON cc.id = c.cpt_id
