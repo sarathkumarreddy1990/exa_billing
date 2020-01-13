@@ -2811,7 +2811,7 @@ define(['jquery',
                 var isCauseCode = $('#chkEmployment').prop('checked') || $('#chkAutoAccident').prop('checked') || $('#chkOtherAccident').prop('checked');
 
                 if (currentPayer_type == "PIP") {
-                    billingMethod = currentResponsible.billing_method || 'direct_billing';
+                    billingMethod = currentResponsible.billing_method || null;
                 } else if (currentPayer_type == "PPP") {
                     billingMethod = 'patient_payment';
                 } else {
