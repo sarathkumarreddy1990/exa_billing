@@ -88,7 +88,7 @@ SELECT
     cd.facility_code AS facility_code,
     pa.amount_type AS type,
     bp.id AS payment_id,
-    TIMEZONE(get_facility_tz(bp.facility_id::INTEGER), bp.payment_dt)::DATE AS payment_date,
+    to_facility_date(bp.facility_id, bp.payment_dt) AS payment_date,
     bp.accounting_date AS accounting_date,
     NULL::TEXT AS code,
     CASE WHEN bp.payer_type = 'patient' THEN
@@ -102,7 +102,7 @@ SELECT
     END AS description, --Payment description is payer
     ARRAY['']::TEXT[] AS modifiers,
     SUM(pa.amount) AS amount,
-    TIMEZONE(get_facility_tz(bp.facility_id::integer), bp.payment_dt)::DATE AS created_on,
+    to_facility_date(bp.facility_id, bp.payment_dt) AS created_on,
     get_full_name(u.last_name,u.first_name,u.middle_initial,null,u.suffix) AS created_by,
     NULL AS accession_no
 FROM claim_details cd
