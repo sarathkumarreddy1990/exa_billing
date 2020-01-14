@@ -32,6 +32,8 @@ const getPackageJson = () => {
     return package;
 };
 
+const fixFilename = (filename) => filename.replace('/', '__');
+
 gulp.task('check-build-environment', () => {
     const pkg = getPackageJson();
     const engines = pkg.engines;
@@ -165,7 +167,7 @@ gulp.task('compress2', (done) => {
 gulp.task('bump', ['git-init', 'compress'], () => {
     const bumpType = getBumpType({branch: currentBranch});
     const dirtyPreID = currentBranch + ( currentBranch === 'release' ? '' : '-' + currentCommit );
-    const preID = dirtyPreID.replace(/_/g, '-');
+    const preID = fixFilename(dirtyPreID).replace(/_/g, '-');
     return gulp.src('./package.json')
         .pipe(bump({ type: bumpType, preid: preID }))
         .pipe(gulp.dest('./'));
@@ -198,7 +200,7 @@ gulp.task('replace', ['copy-package-json'], () => {
 
 gulp.task('zip', ['git-init', 'replace'], () => {
     const pkg = getPackageJson();
-    const buildFileName = `${pkg.name}_${pkg.version}_${currentBranch}_node-${process.version}_${timestamp}.zip`;
+    const buildFileName = `${pkg.name}_${pkg.version}_${fixFilename(currentBranch)}_node-${process.version}_${timestamp}.zip`;
 
     gutil.log(`Compressing to "dist\\${buildFileName}" ...`);
     return gulp.src('./build/**')
