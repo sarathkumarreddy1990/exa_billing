@@ -5,6 +5,13 @@ let HeaderDets = [];
 let BillingProDet = [];
 let BillingPh;
 let Auth_Number;
+let pos;
+let claimDet;
+let subscriberDet;
+let serviceFacDet = [];
+let serviceFac;
+let patientDet;
+
 function getTick(data, code, fromOthers) {
     if (fromOthers && data && data.subscriber && data.subscriber[0].claimFilingCode !== 'MB' && data.subscriber[0].claimFilingCode !== 'MC' &&
         data.subscriber[0].claimFilingCode !== 'CH' && data.subscriber[0].claimFilingCode !== "") {
@@ -266,16 +273,17 @@ function getHeaderDetails(claimData) {
 function getAddressDetails(claimData) {
     let details = [];
     if(claimData){
+        claimData.fullName = claimData.fullName || claimData.lastName;
         if (claimData.addressLine2) {
             details.push(
-                (claimData && claimData.lastName ? getSubstring(claimData.lastName, 30) : '') + '\n' +
+                (getSubstring(claimData.fullName, 30)) + '\n' +
                 (
                     ( claimData.addressLine2 ? (getSubstring(((claimData.addressLine1?(claimData.addressLine1+ ', '):'')  + claimData.addressLine2),30))  : '') + '\n' + (getSubstring((claimData.city ? ( (claimData.city) +  ( claimData.state ? (' ' + claimData.state) : ' ') + ( claimData.zipCode ? ' ' +claimData.zipCode: (claimData.zip?' ' + claimData.zip : ' ' ) ) ): ' '), 30))
                 )
             );
         } else {
             details.push(
-                (claimData && claimData.lastName ? getSubstring(claimData.lastName, 30) : '') + '\n' +
+                (getSubstring(claimData.fullName, 30)) + '\n' +
                 (
                     (claimData.addressLine1 ? getSubstring(claimData.addressLine1, 30) : '') + '\n' + getSubstring(((claimData.city ? ( (claimData.city.toString().toUpperCase()) +  ( claimData.state ? (' ' + claimData.state.toString().toUpperCase()) : ' ') + ( claimData.zipCode ? ' ' +claimData.zipCode: (claimData.zip?' ' + claimData.zip : ' ' ) ) ): ' ')), 30)
                 )
@@ -308,6 +316,19 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
     cpt = getTableContents(claimData, servicelineList);
     HeaderDets = getHeaderDetails(claimData);
     totalBill = getTotalBill(claimData, servicelineList);
+    subscriberDet = claimData && claimData.subscriber && claimData.subscriber[0] || "";
+    patientDet = subscriberDet && subscriberDet.patient && subscriberDet.patient[0] || "";
+    claimDet = subscriberDet && subscriberDet.claim && subscriberDet.claim[0] || ""; 
+    serviceFac =  claimDet && claimDet.servicefacility && claimDet.servicefacility[0] || "";
+    pos = claimDet && claimDet.POS || "";
+    
+    if (pos === "12") {
+        patientDet.fullName = "PRIVATE HOME" ;
+        serviceFacDet = getAddressDetails(patientDet);
+    } else {
+        serviceFacDet = getAddressDetails(serviceFac);
+    }
+
     if(claimData.subscriber[0].claimFilingCode && typeof(claimData.subscriber[0].claimFilingCode) === 'string' && claimData.subscriber[0].claimFilingCode.toUpperCase() == 'YFAC') {
 	    BillingProDet = getAddressDetails(claimData.payToProvider);
 	    BillingPh = claimData.payToProvider && claimData.payToProvider.phoneNo ? (getph(getSubstring(claimData.payToProvider.phoneNo, 13))) : '';
@@ -867,7 +888,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                     [
                         { text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].renderingProvider ? getSubstring(getName(claimData.subscriber[0].claim[0].renderingProvider[0]), 17) : '', colSpan: 2, margin: [0, 17, 0, 0] },
                         {}, {},
-                        { text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].servicefacility ? ( getAddressDetails(claimData.subscriber[0].claim[0].servicefacility[0])) : '', colSpan: 4 },
+                        { text: serviceFacDet, colSpan: 4 },
                         {}, {}, {},
                         {
                             text: BillingProDet, colSpan: 5
