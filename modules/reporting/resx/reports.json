@@ -921,8 +921,8 @@
     {
         "id": "patient-activity-statement",
         "category": "billing",
-        "title": "Patient Statement",
-        "description": "Report shows Patient Statement.",
+        "title": "Patient Activity Statement",
+        "description": "Report shows Patient Activity Statement.",
         "jsreport": {
             "html": {
                 "template": {
