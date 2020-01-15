@@ -120,7 +120,7 @@ module.exports = {
                             , cpt_ids
                             , modifier_ids
                         FROM
-                            supporting_text_templates`;
+                            billing.supporting_text_templates`;
 
         sql.append(SQL` WHERE '0' = ANY (cpt_ids) `)
 
@@ -147,9 +147,9 @@ module.exports = {
                             , COALESCE(cpt_ids, ARRAY[]::integer[]) as cpt_ids
                             , COALESCE(modifier_ids, ARRAY[]::integer[]) as modifier_ids
                         FROM
-                            supporting_text_templates
+                            billing.supporting_text_templates
                         WHERE
-                            supporting_text_templates.id = ${id}`;
+                            billing.supporting_text_templates.id = ${id}`;
 
         return await query(sql);
     },
@@ -179,7 +179,7 @@ module.exports = {
                             , supporting_text
                             , COUNT(1) OVER (range unbounded preceding) AS total_records
                         FROM
-                            supporting_text_templates`;
+                            billing.supporting_text_templates`;
 
         if (whereQuery.length) {
             sql.append(SQL` WHERE `)
@@ -200,21 +200,27 @@ module.exports = {
         let {
             templateName,
             supportingText,
+            associatedCptsIds,
+            associatedModifiersIds,
             companyId
         } = params;
 
         const sql = SQL`
-                    INSERT INTO supporting_text_templates
+                    INSERT INTO billing.supporting_text_templates
                     (
                           company_id
                         , template_name
                         , supporting_text
+                        , cpt_ids
+                        , modifier_ids
                     )
                     VALUES
                     (
                         ${companyId}
                         , ${templateName}
                         , ${supportingText}
+                        , ${associatedCptsIds}
+                        , ${associatedModifiersIds}
                     )
                     RETURNING *, '{}'::jsonb old_values
         `;
@@ -237,7 +243,7 @@ module.exports = {
 
         const sql = SQL`
                     UPDATE
-                        supporting_text_templates
+                        billing.supporting_text_templates
                     SET
                         template_name = ${templateName}
                         , supporting_text = ${supportingText}
@@ -246,11 +252,18 @@ module.exports = {
                     WHERE
                         id = ${id}
                         AND company_id = ${companyId}
+                    RETURNING *,
+                        (
+                            SELECT row_to_json(old_row)
+                            FROM   (SELECT *
+                                    FROM   billing.supporting_text_templates
+                                    WHERE  id = ${id}) old_row
+                        ) old_values
                     `;
 
-        return await query(sql, {
+        return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Update: Supporting text tempate (${templateName}) updated with text: ${supportingText}`
+            logDescription: `Updated supporting text template: ${templateName}.`
         });
 
     },
@@ -262,7 +275,7 @@ module.exports = {
         } = params;
 
         const sql = SQL`DELETE FROM
-                            supporting_text_templates
+                            billing.supporting_text_templates
                         WHERE
                             id = ${id}
                         RETURNING *, '{}'::jsonb old_values
@@ -270,7 +283,7 @@ module.exports = {
 
         return await queryWithAudit(sql, {
             ...params,
-            logDescription: `Deleted ${templateName}.`
+            logDescription: `Deleted supporting text template: ${templateName}.`
         });
     },
 };

@@ -152,15 +152,17 @@ define(['jquery',
 
             renderForm: function(id) {
                 var self = this;
+                self.templateAssociatedCptIds = [];
+                self.templateAssociatedModifierIds = [];
                 $('#divSupportingTextForm').html(this.supportingTextTemplate());
                 if(id > 0) {
                     this.model.set({id: id});
                     this.model.fetch({
                         success: function (model, response) {
-                            $('#ddlTemplateName').val(response[0].template_name || '')
-                            $('#ddlSupportingText').val(response[0].supporting_text || '')
-                            self.templateAssociatedCptIds = response[0].cpt_ids || [],
-                            self.templateAssociatedModifierIds = response[0].modifier_ids || [],
+                            $('#textTemplateName').val(response && response[0] ? response[0].template_name : '')
+                            $('#textSupportingText').val(response && response[0] ? response[0].supporting_text : '')
+                            self.templateAssociatedCptIds = response && response[0] ? response[0].cpt_ids : [],
+                            self.templateAssociatedModifierIds = response && response[0] ? response[0].modifier_ids : [],
                             self.refreshTags();
                         }
                     });
@@ -396,8 +398,8 @@ define(['jquery',
             save: function () {
                 var self = this;
                 this.model.set({
-                    "templateName": $.trim($('#ddlTemplateName').val()),
-                    "supportingText": $.trim($('#ddlSupportingText').val()),
+                    "templateName": $.trim($('#textTemplateName').val()),
+                    "supportingText": $.trim($('#textSupportingText').val()),
                     "associatedCptsIds": self.templateAssociatedCptIds,
                     "associatedModifiersIds": self.templateAssociatedModifierIds,
                     "companyId" : app.companyID

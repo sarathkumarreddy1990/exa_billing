@@ -1471,7 +1471,7 @@ define(['jquery',
                     self.blurPayToUli(val);
                 });
 
-                $(document).on('click', '#btnAddSupportingText', function() {
+                $("#btnAddSupportingText").off().click(function (e) {
                     self.insertSupportingText();
                 })
 
@@ -5543,6 +5543,7 @@ define(['jquery',
             },
 
             insertSupportingText: function() {
+                console.log('inserting supporting text')
                 var existingSupportingText = $('#txtSupportingText').val() + ' ';
                 var updatedSupportingText = existingSupportingText + $('#ddlSupportingTextOptions').val();
                 $('#txtSupportingText').val(updatedSupportingText);
