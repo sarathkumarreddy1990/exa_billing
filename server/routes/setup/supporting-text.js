@@ -4,7 +4,6 @@ const router = new Router();
 const supportingTextController = require('../../controllers/setup/supporting-text');
 const httpHandler = require('../../shared/http');
 
-
 router.post('/labelCpts', async function (req, res) {
     const data = await supportingTextController.labelCpts(req.body);
     httpHandler.sendRows(req, res, data);
@@ -61,4 +60,5 @@ router.delete('/:id', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 
 });
+
 module.exports = router;
