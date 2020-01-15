@@ -32,6 +32,15 @@ define(['jquery',
         //     "RF": "Referring Provider",
         //     "TG": "Technologist"
         // };
+        //
+        var getActiveIds = function(arr) {
+            return _.reduce(arr, function(activeResults, current) {
+                if (current.is_active && !current.has_deleted) {
+                    activeResults.push(current.id);
+                }
+                return activeResults;
+            }, []);
+        };
 
         var formatOptionText = function(descriptionText, codeText) {
             return descriptionText + (codeText ? ' (' + codeText + ')' : '');
@@ -92,7 +101,6 @@ define(['jquery',
 
         var populateProvidersFromSelectedProviderTypes = function() {
 
-            // console.log('listAutoBillingInsuranceProviderPayerTypes: ', );
             var $listAutoBillingInsuranceProviderPayerTypes = $('#listAutoBillingInsuranceProviderPayerTypes');
 
             var payloadData = {};
@@ -102,8 +110,7 @@ define(['jquery',
                 payloadData.payerTypeIds = selectedInsuranceProviderPayerTypes;
             }
             $('#listAutoBillingInsuranceProviders').empty();
-            // var res = ['1', '2', '3'].map(function(v){return +v})
-            // console.log('number of elements', $listAutoBillingProviderPayerTypes);
+
             $.ajax({
                 url: "/insuranceProvidersByPayerType",
                 type: "GET",
@@ -112,16 +119,11 @@ define(['jquery',
                 success: function (model, response) {
                     if (model && model.result && model.result.length > 0) {
                         var options = getOptions(model.result, 'id', 'insurance_name', 'insurance_code');
-                        // console.log('OPTIONS: ', options)
                         var optionsHTML = _.map(options, function(value, key) {
                             return "<option value=" + key  + ">" + value + "</option>";
                         });
-
                         $('#listAutoBillingInsuranceProviders').append(optionsHTML);
                     }
-                    // else {
-                    //
-                    // }
                 },
                 error: function (err, response) {
                     commonjs.handleXhrError(err, response);
@@ -309,6 +311,7 @@ define(['jquery',
                 this.renderForm(id);
             },
 
+
             renderForm: function (id) {
                 var self = this;
                 this.templateToogleMode = true;
@@ -319,7 +322,101 @@ define(['jquery',
                     country_alpha_3_code: app.country_alpha_3_code,
                     province_alpha_2_code: app.province_alpha_2_code
                 }));
-                $('#listAutoBillingInsuranceProviderPayerTypes').change( populateProvidersFromSelectedProviderTypes);
+
+                var facilities = _.map(app.facilities, function(fac) {return fac.id;});
+                var modalities = _.map(app.modalities, function(mod) {return mod.id;});
+
+                var $ddlAutoBillingCptCode = $('#ddlAutoBillingCptCode');
+                $ddlAutoBillingCptCode.select2({
+                    ajax: {
+                        type: 'POST',
+                        url: "/cptsAutoComplete",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                pageNo: params.page || 1,
+                                q: params.term || '',
+                                pageSize: 10,
+                                sortField: 'trim(display_description)',
+                                sortOrder: "ASC",
+                                modalities: modalities,
+                                facilities: facilities,
+                                from: 'new_order'
+                            };
+                        },
+                        processResults: function (data, params) {
+                            return commonjs.getTotalRecords(data.result, params);
+                        },
+                        cache: true
+                    },
+                    placeholder: 'CPT Code',
+                    escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                    minimumInputLength: 0,
+
+                    templateResult: function(res) {
+                        return formatOptionText(res.display_description, res.display_code);
+                    },
+                    templateSelection: function(res) {
+                        $('#s2id_ddlAutoBillingCptCode a span').html(res.text);
+                        $('#ddlAutoBillingCptCode').val(res.display_code);
+                        return res.text;
+                    }
+                })
+
+                //     results: function (data, page) {
+                //         var more = data.result.length > 0 ? (page * 10) < data.result[0].total_records : false;
+                //         return {results: data.result, more: more};
+                //     },
+                //
+                //     formatID: function (obj) {
+                //         return obj.description;
+                //     },
+                //
+                //     formatResult: function (res) {
+                //         var markup = "<table style='width: 100%'><tr>";
+                //         markup += "<td><div><b>" + res.description + "</b></div>";
+                //         markup += "</td></tr></table>";
+                //         return markup;
+                //     },
+                //
+                //     formatSelection: function (res) {
+                //         $('#btnAddInsuranceProviderType')
+                //             .attr('data-id', res.id)
+                //             .attr('data-name', res.description);
+                //         return res.description;
+                //     }
+                // });
+
+                // var $divAutoBillingInsuranceProviders = $('#divAutoBillingInsuranceProviders');
+                // $divAutoBillingInsuranceProviders.hide();
+                //
+                // var $labelAutoBillingInsuranceProviderIs = $('#labelAutoBillingInsuranceProviderIs');
+                // $labelAutoBillingInsuranceProviderIs.hide();
+                //
+                // var $labelAutoBillingInsuranceProviderIsNot = $('#labelAutoBillingInsuranceProviderIsNot');
+                // $labelAutoBillingInsuranceProviderIsNot.hide();
+                //
+                // var $listAutoBillingInsuranceProviderPayerTypes = $('#listAutoBillingInsuranceProviderPayerTypes');
+                // $listAutoBillingInsuranceProviderPayerTypes.prop('disabled', true);
+                //
+                // $('input[type=radio][name=chkAutoBillingInsuranceProviderPayerTypeIs]').change(function() {
+                //     $listAutoBillingInsuranceProviderPayerTypes.prop('disabled', false);
+                //     if (this.value === 'isNOT') {
+                //         $labelAutoBillingInsuranceProviderIsNot.hide();
+                //         $labelAutoBillingInsuranceProviderIs.show();
+                //     }
+                //     else {
+                //         $labelAutoBillingInsuranceProviderIs.hide();
+                //         $labelAutoBillingInsuranceProviderIsNot.show();
+                //     }
+                //     console.log('current value: ', this.value);
+                // });
+                // $('#listAutoBillingInsuranceProviderPayerTypes').change(function() {
+                //     $divAutoBillingInsuranceProviders.show();
+                //     populateProvidersFromSelectedProviderTypes();
+                // });
+
 
                 $('#divAutoBillingGrid').hide();
                 $('#divAutoBillingForm').show();
