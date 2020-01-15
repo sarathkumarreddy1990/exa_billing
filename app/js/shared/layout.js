@@ -43,6 +43,7 @@ var layout = {
         'Provider Level Codes': '#aProviderLevelCodes',
         'Billing Validations': '#aBillingValidations',
         'Status Color Codes': '#aStatusColorCodes',
+        'Supporting Text': '#aSupportingText',
         'EDI ClearingHouses': '#aEDIClearingHouses',
         'Insurance Mapping': '#aInsuranceX12Mapping',
         'Billing Messages': '#aBillingMessages',

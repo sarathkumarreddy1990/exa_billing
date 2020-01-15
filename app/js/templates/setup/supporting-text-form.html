@@ -1,0 +1,56 @@
+<style>
+    .select2-container--open {
+        max-width: 600px;
+    }
+</style>
+
+<div class="form-group row">
+    <div class="col-lg-12">
+        <div class="col-lg-6">
+            <form id="formSupportingText" class="form-horizontal">
+                <div class="form-group row mb-3">
+                    <label for="ddlTemplateName" class="col-12 col-form-label field-required" i18n="setup.supportingText.templateName"></label>
+                    <div class="col-12">
+                        <input type='text' id="ddlTemplateName" class="form-control" style="height:32px;" name="templateName"></input>
+                    </div>
+                </div>
+                <div class="form-group row mb-3">
+                    <label for="ddlSupportingText" class="col-12 col-form-label field-required" i18n="setup.supportingText.supportingText"></label>
+                    <div class="col-12">
+                        <textarea rows='4' cols='30' id="ddlSupportingText" class="form-control" name="supportingText"></textarea>
+                    </div>
+                </div>
+                <div class="form-group row mb-3">
+                    <label for="ddlAssociatedCpts" class="col-12 col-form-label" i18n="setup.supportingText.addNewCpt"></label>
+                    <div class="col-10">
+                        <select id="ddlAssociatedCpts" class="form-control select-box"></select>
+                    </div>
+                    <div class="col-2">
+                        <div id='btnAddNewCpt' class='btn btn-primary' i18n="setup.supportingText.add"></div>
+                    </div>
+                </div>
+                <div class="form-group row mb-3">
+                    <label for="containerAssociatedCptCodes" class="col-12 col-form-label" i18n="setup.supportingText.associatedCpts"></label>
+                    <div class="col-12">
+                        <ul rows='4' cols='30' id="containerAssociatedCptCodes" class="tagList" style="min-width:200px; height:120px; border: solid 1px #bebebe" name="associatedCptCodes"></ul>
+                    </div>
+                </div>
+                <div class="form-group row mb-3">
+                    <label for="ddlAssociatedModifiers" class="col-12 col-form-label" i18n="setup.supportingText.addNewModifier"></label>
+                    <div class="col-10">
+                        <select id="ddlAssociatedModifiers" class="form-control select-box"></select>
+                    </div>
+                    <div class="col-2">
+                        <div id='btnAddNewModifier' class='btn btn-primary' i18n="setup.supportingText.add"></div>
+                    </div>
+                </div>
+                <div class="form-group row mb-3">
+                    <label for="containerAssociatedModifiers" class="col-12 col-form-label" i18n="setup.supportingText.associatedModifiers"></label>
+                    <div class="col-12">
+                        <ul id="containerAssociatedModifiers" class="tagList" style="min-width:200px; height:120px; border: solid 1px #bebebe" name="associatedModifiers"></ul>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

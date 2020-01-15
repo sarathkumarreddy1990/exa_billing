@@ -1,4 +1,4 @@
-const express = require('express');
+const express = require('express');//
 const casGroupRouter = require('./cas-group-codes');
 const adjustmentRouter = require('./adjustment-codes');
 const casReasonRouter = require('./cas-reason-codes');
@@ -15,6 +15,7 @@ const paymentReasonRouter = require('./payment-reasons');
 const validationsRouter = require('./validations');
 const ediClearinghouseRouter = require('./edi-clearinghouses');
 const colorCode = require('./status-color-codes');
+const supportingText = require('./supporting-text');
 const userLog = require('./user-log');
 const auditLog = require('./audit-log');
 const ediTemplate = require('./edi-templates');
@@ -38,6 +39,7 @@ app.use('/payment_reasons', paymentReasonRouter);
 app.use('/validations', validationsRouter);
 app.use('/edi_clearinghouses', ediClearinghouseRouter);
 app.use('/status_color_codes', colorCode);
+app.use('/supporting_text', supportingText);
 app.use('/user_log', userLog);
 app.use('/audit_log', auditLog);
 app.use('/x12', ediTemplate);

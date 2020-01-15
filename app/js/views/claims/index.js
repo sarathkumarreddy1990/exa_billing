@@ -129,6 +129,8 @@ define(['jquery',
                     this.screenCode = rights.screenCode;
                 }
                 this.claimWorkBench = this.options && this.options.worklist || null;
+                this.associatedCpts = [];
+                this.associatedModifiers = [];
             },
             urlNavigation: function () { //To restrict the change in URL based on tab selection. Maintain Same URL for every tab in claim creation screen
                 var self = this;
@@ -634,6 +636,8 @@ define(['jquery',
                                     }
                                 }
                             });
+                            self.identifyAssociatedCptsAndModifiers(self);
+
                             /* Bind claim charge Details - end */
 
                             //EXA-18273 - Bind Charges created on current date for a patient.
@@ -1466,6 +1470,11 @@ define(['jquery',
                     var val = e && e.target && e.target.value || "";
                     self.blurPayToUli(val);
                 });
+
+                $(document).on('click', '#btnAddSupportingText', function() {
+                    self.insertSupportingText();
+                })
+
             },
             getLineItemsAndBind: function (selectedStudyIds) {
                 var self = this;
@@ -5508,7 +5517,60 @@ define(['jquery',
                     }
                 }
                 this.bindCityStateZipTemplate(data || {}, AddressInfoMap, id);
+            },
+
+            findRelevantTemplates: function() {
+                var self = this;
+
+                $.ajax({
+                    url: '/exa_modules/billing/setup/supporting_text/findRelevantTemplates',
+                    method: 'POST',
+                    data: {
+                        cpts: self.associatedCpts,
+                        modifiers: self.associatedModifiers
+                    }
+                }).then(function(response) {
+                    $('#ddlSupportingTextOptions').empty();
+                    $('#ddlSupportingTextOptions').append('<option value="" i18n="shared.buttons.select">Select</option>');
+                    if (response.length > 0) {
+                        for (var i = 0; i < response.length; i++) {
+                            $('#ddlSupportingTextOptions').append('<option value="' + response[i].supporting_text + '">' + response[i].template_name + '</option');
+                        }
+                    } else {
+                        $('#ddlSupportingTextOptions').append('<option disabled value="">' + '(No applicable templates)' + '</option');
+                    }
+                })
+            },
+
+            insertSupportingText: function() {
+                var existingSupportingText = $('#txtSupportingText').val() + ' ';
+                var updatedSupportingText = existingSupportingText + $('#ddlSupportingTextOptions').val();
+                $('#txtSupportingText').val(updatedSupportingText);
+            },
+
+            identifyAssociatedCptsAndModifiers: function(obj) {
+                var self = this;
+                for (var i = 0; i < obj.claimChargeList.length; i++) {
+                    var index = obj.claimChargeList[i];
+                    if (index.cpt_id) {
+                        obj.associatedCpts.push(index.cpt_id);
+                    }
+                    if (index.modifier1_id) {
+                        obj.associatedModifiers.push(index.modifier1_id);
+                    }
+                    if (index.modifier2_id) {
+                        obj.associatedModifiers.push(index.modifier2_id);
+                    }
+                    if (index.modifier3_id) {
+                        obj.associatedModifiers.push(index.modifier3_id);
+                    }
+                    if (index.modifier4_id) {
+                        obj.associatedModifiers.push(index.modifier4_id);
+                    }
+                }
+                self.findRelevantTemplates();
             }
+
         });
 
         return claimView;
