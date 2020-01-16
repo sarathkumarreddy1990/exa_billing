@@ -45,6 +45,42 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         return 'transparent';
     };
 
+
+    var sortCasCodes = function() {
+        var integers = [];
+        var characters = [];
+
+        //Determine which CAS Codes are integers and which are strings
+        for (var i = 0; i < app.cas_reason_codes.length; i++) {
+            var indCode = app.cas_reason_codes[i].code;
+            if (isNaN(parseInt(indCode))) {
+                characters.push(indCode);
+            } else {
+                integers.push(parseInt(indCode));
+            }
+        }
+
+        //Sort by respective type, then combine
+        var x = integers.sort(function(a, b){return a-b});
+        var y = characters.sort();
+        var combinedArr = x.concat(y);
+
+        //Assemble array to be returned
+        var sortedCasCodes = [];
+        for (var i = 0; i < combinedArr.length; i++) {
+            var combInd = combinedArr[i];
+            for (var j = 0; j < app.cas_reason_codes.length; j++) {
+                var casIndCode = app.cas_reason_codes[j].code;
+                var casIndObj = app.cas_reason_codes[j];
+                if (combInd == casIndCode) {
+                    sortedCasCodes.push(casIndObj);
+                }
+            }
+        }
+
+        return sortedCasCodes;
+    }
+
     return function ( filterType ) {
         var isNeither = true;
 
@@ -72,7 +108,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         var studyFlagArray = app.studyflag;
         var clearingHouse = commonjs.makeValue(app.clearing_house, ":All;", "id", "name");
         var billingProviders = commonjs.makeValue(app.billing_providers, ":All;", "id", "full_name");
-        var casReasonCodes = commonjs.makeValue(_.sortBy(app.cas_reason_codes, 'code'), ":All;", "code", "code");
+        var casReasonCodes = commonjs.makeValue(sortCasCodes(), ":All;", "code", "code");
         var placeOfService = commonjs.makeValue(app.places_of_service, ":All;", "id", "description");
         var vehicles = commonjs.makeValue(app.vehicles, ":All;", "id", "vehicle_name");
         var gender = commonjs.makeValue(commonjs.bindArray(app.gender, false), ":All;");
