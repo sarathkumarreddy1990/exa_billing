@@ -329,6 +329,8 @@ define(['jquery',
                     province_alpha_2_code: app.province_alpha_2_code
                 }));
 
+                // *************** BEGIN CPT Codes SECTION *********************
+
                 var facilities = _.map(app.facilities, function(fac) {return fac.id;});
                 var modalities = _.map(app.modalities, function(mod) {return mod.id;});
 
@@ -385,7 +387,121 @@ define(['jquery',
                 $('#btnRemoveAutoBillingCptCode').off().click(function() {
                     $listAutoBillingCptCodes.find('option:selected').remove();
                 });
+                // ***************** END CPT Codes SECTION *********************
 
+
+                // ****** BEGIN Insurance Provider Payer Types SECTION *********
+                var $ddlAutoBillingInsuranceProviderPayerTypes = $('#ddlAutoBillingInsuranceProviderPayerTypes');
+                $ddlAutoBillingInsuranceProviderPayerTypes.select2({
+                    ajax: {
+                        type: 'GET',
+                        url: "/insuranceProviderPayerTypes",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                pageNo: params.page || 1,
+                                q: params.term || '',
+                                pageSize: 10,
+                                sortField: 'trim(description)',
+                                sortOrder: "ASC",
+                                modalities: modalities,
+                                facilities: facilities,
+                                from: 'new_order'
+                            };
+                        },
+                        processResults: function (data, params) {
+                            return commonjs.getTotalRecords(data.result, params);
+                        },
+                        cache: true
+                    },
+                    placeholder: 'Insurance Provider Payer Type',
+                    escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                    minimumInputLength: 0,
+
+                    templateResult: function(res) {
+                        return formatOptionText(res.description, res.code);
+                    },
+                    templateSelection: function(res) {
+                        if (res && res.id) {
+                            self.pendingAutoBillingInsuranceProviderPayerType = res;
+                            // $('#ddlAutoBillingCptCode').val(res.display_code);
+                            return formatOptionText(res.description, res.code);
+                        }
+                    }
+                });
+
+                var $listAutoBillingInsuranceProviderPayerTypes = $('#listAutoBillingInsuranceProviderPayerTypes');
+                $('#btnAddAutoBillingInsuranceProviderPayerType').off().click(function() {
+                    $listAutoBillingInsuranceProviderPayerTypes.append(createOptionElement(
+                        self.pendingAutoBillingInsuranceProviderPayerType.id,
+                        self.pendingAutoBillingInsuranceProviderPayerType.description,
+                        self.pendingAutoBillingInsuranceProviderPayerType.code
+                    ));
+                    $ddlAutoBillingInsuranceProviderPayerTypes.empty();
+                    self.pendingAutoBillingInsuranceProviderPayerType = null;
+                });
+                $('#btnRemoveAutoBillingInsuranceProviderPayerType').off().click(function() {
+                    $listAutoBillingInsuranceProviderPayerTypes.find('option:selected').remove();
+                });
+                // ******** END Insurance Provider Payer Types SECTION *********
+
+
+                // ************ BEGIN Insurance Providers SECTION **************
+                var $ddlAutoBillingInsuranceProviders = $('#ddlAutoBillingInsuranceProviders');
+                $ddlAutoBillingInsuranceProviders.select2({
+                    ajax: {
+                        type: 'GET',
+                        url: "/insuranceProviders",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                pageNo: params.page || 1,
+                                q: params.term || '',
+                                pageSize: 10,
+                                sortField: 'trim(insurance_name)',
+                                sortOrder: "ASC",
+                                modalities: modalities,
+                                facilities: facilities,
+                                from: 'new_order'
+                            };
+                        },
+                        processResults: function (data, params) {
+                            return commonjs.getTotalRecords(data.result, params);
+                        },
+                        cache: true
+                    },
+                    placeholder: 'Insurance Providers',
+                    escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                    minimumInputLength: 0,
+
+                    templateResult: function(res) {
+                        return formatOptionText(res.insurance_name, res.insurance_code);
+                    },
+                    templateSelection: function(res) {
+                        if (res && res.id) {
+                            self.pendingAutoBillingInsuranceProvider = res;
+                            // $('#ddlAutoBillingCptCode').val(res.display_code);
+                            return formatOptionText(res.insurance_name, res.insurance_code);
+                        }
+                    }
+                });
+
+                var $listAutoBillingInsuranceProviders = $('#listAutoBillingInsuranceProviders');
+                $('#btnAddAutoBillingInsuranceProvider').off().click(function() {
+                    $listAutoBillingInsuranceProviders.append(createOptionElement(
+                        self.pendingAutoBillingInsuranceProvider.id,
+                        self.pendingAutoBillingInsuranceProvider.insurance_name,
+                        self.pendingAutoBillingInsuranceProvider.insurance_code
+                    ));
+                    $ddlAutoBillingInsuranceProviders.empty();
+                    self.pendingAutoBillingInsuranceProvider = null;
+                });
+                $('#btnRemoveAutoBillingInsuranceProvider').off().click(function() {
+                    $listAutoBillingInsuranceProviders.find('option:selected').remove();
+                });
+                // ************* END Insurance Providers SECTION ***************
 
 
                 $('#divAutoBillingGrid').hide();
