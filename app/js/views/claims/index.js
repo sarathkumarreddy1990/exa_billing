@@ -1863,7 +1863,7 @@ define(['jquery',
                             return (value.code.toLowerCase().indexOf(dataContent.toLowerCase()) > -1 && (value[modifierLevel] == true || value[modifierLevel] == 'true'));
                         });
 
-                        if (existData.length > 0 && dataContent && dataContent.length == 2) {
+                        if (existData.length > 0 && (app.billingRegionCode === 'can_AB' || dataContent && dataContent.length == 2)) {
                             $(e.target).css('border-color', '')
                             $(e.target).removeClass('invalidModifier')
                         }
@@ -3146,7 +3146,7 @@ define(['jquery',
                 var isCauseCode = $('#chkEmployment').prop('checked') || $('#chkAutoAccident').prop('checked') || $('#chkOtherAccident').prop('checked');
 
                 if (currentPayer_type == "PIP") {
-                    billingMethod = currentResponsible.billing_method || 'direct_billing';
+                    billingMethod = currentResponsible.billing_method || null;
                 } else if (currentPayer_type == "PPP") {
                     billingMethod = 'patient_payment';
                 } else {

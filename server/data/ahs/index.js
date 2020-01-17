@@ -619,8 +619,6 @@ const ahsData = {
                         ON nums.patient_id = p.id
                     LEFT JOIN public.cpt_codes cpt
                         ON cpt.id = bch.cpt_id
-                    LEFT JOIN public.study_cpt scpt
-                        ON scpt.study_id = s.id
                     LEFT JOIN public.facilities f
                         ON f.id = s.facility_id
         

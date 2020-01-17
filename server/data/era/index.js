@@ -148,7 +148,7 @@ module.exports = {
                          FROM
                              insurance_providers
                          WHERE
-                             has_deleted = false AND
+                             has_deleted = false AND /* insurance_providers.has_deleted */
                              company_id = ${params.company_id} AND
                              insurance_info->'PayerID' = ${params.payer_id}::text
                     )

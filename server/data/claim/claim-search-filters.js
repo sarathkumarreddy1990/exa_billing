@@ -361,10 +361,31 @@ const api = {
         }
 
         if (tables.cas_reason_codes) {
-            r += `  INNER JOIN billing.charges on billing.claims.id = billing.charges.claim_id
-                    LEFT JOIN billing.payment_applications on billing.charges.id = billing.payment_applications.charge_id
-                    LEFT JOIN billing.cas_payment_application_details on billing.payment_applications.id = billing.cas_payment_application_details.payment_application_id
-                    LEFT JOIN billing.cas_reason_codes on billing.cas_payment_application_details.cas_reason_code_id = billing.cas_reason_codes.id`
+            r += ` LEFT JOIN LATERAL (
+                        SELECT
+                            claims.id,
+                            TRIM ( LEADING '{' FROM
+                                TRIM ( TRAILING '}' FROM
+                                        ARRAY_AGG (
+                                            cas_reason_codes.code
+                                            ORDER BY
+                                                cas_reason_codes.code
+                                            )
+                                            FILTER (WHERE cas_reason_codes.code IS NOT NULL)::text
+                                        )
+                                )
+                            code
+                        FROM
+                            billing.claims
+                        LEFT JOIN billing.charges on billing.claims.id = billing.charges.claim_id
+                        LEFT JOIN billing.payment_applications on billing.charges.id = billing.payment_applications.charge_id
+                        LEFT JOIN billing.cas_payment_application_details on billing.payment_applications.id = billing.cas_payment_application_details.payment_application_id
+                        LEFT JOIN billing.cas_reason_codes on billing.cas_payment_application_details.cas_reason_code_id = billing.cas_reason_codes.id
+                        GROUP BY
+                            claims.id
+                        )
+                        AS cas_reason_codes
+                    ON billing.claims.id = cas_reason_codes.id`;
         }
 
         if (tables.patient_insurances || tables.insurance_providers || tables.edi_clearinghouses) {
@@ -436,11 +457,11 @@ const api = {
         }
 
         if(tables.claim_icds) {
-            r += ` 
+            r += `
                 LEFT JOIN LATERAL (
-                    SELECT 
+                    SELECT
                         ARRAY_AGG(description) AS description
-                    FROM icd_codes 
+                    FROM icd_codes
                     INNER JOIN billing.claim_icds ON claim_icds.icd_id = icd_codes.id
                     WHERE claim_id = claims.id
                 ) AS claim_icds ON TRUE `;
@@ -775,7 +796,7 @@ const api = {
             }
             // Prevents DB function for filtering claim balance & Payment_id -- start
             let paymentIdFilter ='';
-            
+
             if (args.isClaimBalanceTotal && args.filterCol && args.filterCol.indexOf('claim_balance') > -1) {
                 args.colModel = _.find(colModel, { name: 'claim_balance' });
                 api.removeSearchFilterData(args, 'claim_balance');
@@ -783,7 +804,7 @@ const api = {
 
             if (args.filterCol && args.filterCol.indexOf('payment_id') > -1) {
                 api.removeSearchFilterData(args, 'payment_id');
-            
+
                 if (args.filterPaymentIds) {
                     args.filterPaymentIds = args.filterPaymentIds.split(',');
                     args.filterPaymentIds = _.filter(args.filterPaymentIds, _.size);

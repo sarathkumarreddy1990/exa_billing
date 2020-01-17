@@ -223,6 +223,7 @@ module.exports = {
         'paper_claim_fax': 'CLIM',
         'payment_count': 'PAYM',
         'can_ahs_reassess_claim': 'CLIM',
-        'can_ahs_delete_claim': 'CLIM'
+        'can_ahs_delete_claim': 'CLIM',
+        'invoice-activity-statement': 'IAST'
     }
 };

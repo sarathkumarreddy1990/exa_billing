@@ -32,7 +32,7 @@ module.exports = {
                                  , linked_cpt_ids
                                  , linked_cpt_codes
                                  , units
-                                 , is_active
+                                 , is_active /* cpt_codes.is_active */
                                  , duration
                                  , additional_info
                                  , ref_code
@@ -44,7 +44,7 @@ module.exports = {
                                 FROM
                                     cpt_codes
                                 WHERE
-                                    NOT has_deleted AND company_id = ${params.company_id} AND is_active `;
+                                    NOT has_deleted AND company_id = ${params.company_id} AND is_active `; // cpt_codes.has_deleted
 
         if (params.q != '') {
             insur_sql.append(search_query);
@@ -58,12 +58,15 @@ module.exports = {
         return await query(insur_sql);
     },
     getProviders: async function (params) {
+
+        let provider_search = ` AND (p.full_name ILIKE '%${params.q}%' OR p.provider_code ILIKE '%${params.q}%' ) `;
+
         const sql_provider = SQL`
             SELECT
                   pc.id AS id
                 , p.first_name
                 , p.id AS provider_id
-                , p.is_active AS is_active
+                , p.is_active AS is_active /* public.providers.is_active */
                 , pc.id AS provider_contact_id
                 , p.last_name
                 , p.full_name
@@ -74,16 +77,16 @@ module.exports = {
                 INNER JOIN
                     provider_contacts pc ON pc.provider_id = p.id
             WHERE
-                NOT p.has_deleted
+                p.deleted_dt IS NULL
                 AND NOT pc.has_deleted
-                AND p.is_active
+                AND p.is_active /* public.providers.is_active */
                 AND p.company_id = ${params.company_id}
                 AND p.provider_type = ${params.provider_type}
                 AND NOT p.sys_provider -- we dont want system providers
-        `;
+        `; // provider_contacts.has_deleted
 
-        if (params.q) {
-            sql_provider.append(` AND (p.full_name ILIKE '%${params.q}%' OR p.provider_code ILIKE '%${params.q}%' ) `);
+        if (params.q != '') {
+            sql_provider.append(provider_search);
         }
 
         sql_provider.append(SQL` ORDER BY  ${params.sortField} `)
@@ -119,8 +122,8 @@ module.exports = {
                 icd_codes AS icd
             WHERE
                     icd.is_active
-                AND NOT icd.has_deleted
-                AND icd.company_id = ${company_id} `;
+                AND icd.deleted_dt IS NULL
+                AND icd.company_id = ${company_id} `; // icd_codes.has_deleted icd_codes.is_active
 
         if (term) {
             icd_sql.append(`
@@ -145,13 +148,13 @@ module.exports = {
                                      ,group_code
                                      ,group_name
                                      ,group_info
-                                     ,is_active
+                                     ,is_active /* provider_groups.is_active */
                                      ,company_id
                                      ,COUNT(1) OVER (range unbounded preceding) AS total_records
                                 FROM provider_groups
                                 WHERE
                                     NOT provider_groups.has_deleted AND (provider_groups.group_type = ${params.groupType}  OR provider_groups.group_type IS NULL)
-                                    AND provider_groups.company_id = ${params.company_id} AND is_active `;
+                                    AND provider_groups.company_id = ${params.company_id} AND is_active `; // provider_groups.is_active
 
         if (params.q != '') {
             provider_group_sql.append(provider_group_q);
@@ -179,10 +182,10 @@ module.exports = {
                                 insurance_providers
                             LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = insurance_providers.id
                             WHERE
-                                NOT has_deleted AND company_id = ${params.company_id} `;
+                                NOT has_deleted AND company_id = ${params.company_id} `; // insurance_providers.has_deleted
 
         if (params.isInactive == 'false') {
-            insurance_sql.append(`AND is_active`);
+            insurance_sql.append(`AND is_active`); // insurance_providers.is_active
         }
 
         if (params.q != '') {
@@ -240,14 +243,14 @@ module.exports = {
                 FROM
                     patients
                 WHERE
-                    NOT patients.has_deleted
+                    patients.deleted_dt IS NULL
                     AND patients.company_id =  ${params.company_id} `;
 
         if (params.q != '') {
             sql_patient.append(patient_q);
         }
 
-        sql_patient.append(SQL` AND is_active
+        sql_patient.append(SQL` AND is_active /* patients.is_active */
                 ORDER BY patients.id ASC
                 )
             AS finalPatients INNER JOIN patients ON finalPatients.patients_id = patients.id `)
@@ -270,20 +273,20 @@ module.exports = {
                 ,group_code
                 ,group_name
                 ,group_info
-                ,is_active
+                ,is_active /*provider_groups.is_active  */
                 ,company_id
                 ,(SELECT COUNT(1) FROM provider_groups
                 WHERE
                     provider_groups.has_deleted = false
                     AND (provider_groups.group_type = 'OF'  OR provider_groups.group_type IS NULL)
-                    AND provider_groups.company_id = 1 AND is_active = TRUE
+                    AND provider_groups.company_id = 1 AND is_active = TRUE /* provider_groups.is_active */
                 ) AS total_records
 
             FROM provider_groups
             WHERE
                 provider_groups.has_deleted = false
                 AND (provider_groups.group_type = 'OF'  OR provider_groups.group_type IS NULL)
-                AND provider_groups.company_id = 1 AND is_active = TRUE `;
+                AND provider_groups.company_id = 1 AND is_active = TRUE `; // provider_groups.is_active
 
         if (params.q != '') {
             sqlOrderingFacility.append(facility_q);
@@ -427,13 +430,14 @@ module.exports = {
                                      ,group_code
                                      ,group_name
                                      ,group_info
-                                     ,is_active
+                                     ,is_active /* provider_groups.is_active */
                                      ,company_id
                                      ,COUNT(1) OVER (range unbounded preceding) AS total_records
                                 FROM provider_groups
-                                WHERE NOT provider_groups.has_deleted
-                                AND provider_groups.company_id = ${companyId}
-                                AND is_active `;
+                                WHERE
+                                    provider_groups.deleted_dt IS NULL
+                                    AND provider_groups.company_id = ${companyId}
+                                    AND is_active `;
 
         if (q != '') {
             provider_group_sql.append(provider_group_q);
