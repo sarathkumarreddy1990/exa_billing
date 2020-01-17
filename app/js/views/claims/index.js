@@ -636,7 +636,7 @@ define(['jquery',
                                     }
                                 }
                             });
-                            self.identifyAssociatedCptsAndModifiers(self);
+                            self.identifyAssociatedCptsAndModifiers();
 
                             /* Bind claim charge Details - end */
 
@@ -5530,43 +5530,43 @@ define(['jquery',
                         modifiers: self.associatedModifiers
                     }
                 }).then(function(response) {
-                    $('#ddlSupportingTextOptions').empty();
-                    $('#ddlSupportingTextOptions').append('<option value="" i18n="shared.buttons.select">Select</option>');
+                    var $templateDropdown = $('#ddlSupportingTextOptions');
+                    $templateDropdown.empty();
+                    $templateDropdown.append('<option value="" i18n="shared.buttons.select">Select</option>');
                     if (response.length > 0) {
                         for (var i = 0; i < response.length; i++) {
-                            $('#ddlSupportingTextOptions').append('<option value="' + response[i].supporting_text + '">' + response[i].template_name + '</option');
+                            $templateDropdown.append('<option value="' + response[i].supporting_text + '">' + response[i].template_name + '</option');
                         }
                     } else {
-                        $('#ddlSupportingTextOptions').append('<option disabled value="">' + '(No applicable templates)' + '</option');
+                        $templateDropdown.append('<option disabled value="">' + '(No applicable templates)' + '</option');
                     }
                 })
             },
 
             insertSupportingText: function() {
-                console.log('inserting supporting text')
                 var existingSupportingText = $('#txtSupportingText').val() + ' ';
                 var updatedSupportingText = existingSupportingText + $('#ddlSupportingTextOptions').val();
                 $('#txtSupportingText').val(updatedSupportingText);
             },
 
-            identifyAssociatedCptsAndModifiers: function(obj) {
+            identifyAssociatedCptsAndModifiers: function() {
                 var self = this;
-                for (var i = 0; i < obj.claimChargeList.length; i++) {
-                    var index = obj.claimChargeList[i];
+                for (var i = 0; i < self.claimChargeList.length; i++) {
+                    var index = self.claimChargeList[i];
                     if (index.cpt_id) {
-                        obj.associatedCpts.push(index.cpt_id);
+                        self.associatedCpts.push(index.cpt_id);
                     }
                     if (index.modifier1_id) {
-                        obj.associatedModifiers.push(index.modifier1_id);
+                        self.associatedModifiers.push(index.modifier1_id);
                     }
                     if (index.modifier2_id) {
-                        obj.associatedModifiers.push(index.modifier2_id);
+                        self.associatedModifiers.push(index.modifier2_id);
                     }
                     if (index.modifier3_id) {
-                        obj.associatedModifiers.push(index.modifier3_id);
+                        self.associatedModifiers.push(index.modifier3_id);
                     }
                     if (index.modifier4_id) {
-                        obj.associatedModifiers.push(index.modifier4_id);
+                        self.associatedModifiers.push(index.modifier4_id);
                     }
                 }
                 self.findRelevantTemplates();

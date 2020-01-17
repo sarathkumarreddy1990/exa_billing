@@ -2,29 +2,17 @@ const data = require('../../data/setup/supporting-text');
 
 module.exports = {
 
-    labelCpts: (params) => {
-        return data.labelCpts(params);
-    },
+    labelCpts: data.labelCpts,
 
-    labelModifiers: (params) => {
-        return data.labelModifiers(params);
-    },
+    labelModifiers: data.labelModifiers,
 
-    autocompleteCpts: (params) => {
-        return data.autocompleteCpts(params);
-    },
+    autocompleteCpts: data.autocompleteCpts,
 
-    autocompleteModifiers: (params) => {
-        return data.autocompleteModifiers(params);
-    },
+    autocompleteModifiers: data.autocompleteModifiers,
 
-    findRelevantTemplates: (params) => {
-        return data.findRelevantTemplates(params);
-    },
+    findRelevantTemplates: data.findRelevantTemplates,
 
-    getDataById: (params) => {
-        return data.getDataById(params);
-    },
+    getDataById: data.getDataById,
 
     getData: (params) => {
         if (params.id) {
@@ -34,16 +22,10 @@ module.exports = {
         return data.getData(params);
     },
 
-    create: (params) => {
-        return data.create(params);
-    },
+    create: data.create,
 
-    update: (params) => {
-        return data.update(params);
-    },
+    update: data.update,
 
-    delete: (params) => {
-        return data.delete(params);
-    }
+    delete: data.delete
 
 };
