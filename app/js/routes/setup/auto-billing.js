@@ -37,7 +37,7 @@ define([
             },
 
             initializeRouter: function () {
-                this.options.screen = "Auto Billing";//facilityModules.setupScreens.icd;
+                this.options.screen = "Auto Billing";
                 this.options.currentView = this.autoBillingScreen;
                 layout.initializeLayout(this);
 

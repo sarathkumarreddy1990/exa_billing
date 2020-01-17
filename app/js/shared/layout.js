@@ -31,6 +31,7 @@ var layout = {
     },
 
     screenLinkIds: {
+        // NOTE to add these, use the screen name set as "options.screen" in route::initializeRouter 
         'Adjustment Codes': '#aAdjustmentCodes',
         'Billing Codes': '#aBillingCodes',
         'Billing Classes': '#aBillingClasses',

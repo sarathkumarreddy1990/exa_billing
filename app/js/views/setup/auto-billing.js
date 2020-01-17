@@ -46,6 +46,10 @@ define(['jquery',
             return descriptionText + (codeText ? ' (' + codeText + ')' : '');
         };
 
+        var createOptionElement = function(id, descriptionText, codeText) {
+            return '<option value=' + id + '>' + formatOptionText(descriptionText, codeText) + '</option>';
+        };
+
         /**
          * var getOptions - converts an array of objects to an object for the
          * purpose of rendering selection options.
@@ -94,6 +98,8 @@ define(['jquery',
                 return facilityOptions;
             }, {});
         };
+
+
 
         // TODO figure out how to filter out providers based on selected provider types
 
@@ -200,7 +206,7 @@ define(['jquery',
                     custompager: new Pager(),
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['', '', '', '', '', ''],
-                    i18nNames: ['', '', '', 'setup.paperClaimTemplates.templateName', 'setup.paperClaimTemplates.templateType', 'is_active'],
+                    i18nNames: ['', '', '', 'setup.common.description', 'setup.autoBilling.claimStatus', 'is_active'],
                     colModel: [
                         {
                             name: 'id',
@@ -244,11 +250,11 @@ define(['jquery',
                             }
                         },
                         {
-                            name: 'name',
+                            name: 'display_description',
                             searchFlag: '%'
                         },
                         {
-                            name: 'template_type',
+                            name: 'display_code',
                             search: true,
                             stype: 'select',
                             searchoptions: { value: templateType },
@@ -294,7 +300,7 @@ define(['jquery',
                         {
                             value: 'Reload', class: 'btn', i18n: 'shared.buttons.reload', clickEvent: function () {
                                 self.pager.set({ "PageNo": 1 });
-                                self.autoBillingTable.refreshAll();
+                                //self.autoBillingTable.refreshAll();
                                 commonjs.showStatus("messages.status.reloadedSuccessfully");
                             }
                         }
@@ -358,64 +364,28 @@ define(['jquery',
                         return formatOptionText(res.display_description, res.display_code);
                     },
                     templateSelection: function(res) {
-                        $('#s2id_ddlAutoBillingCptCode a span').html(res.text);
-                        $('#ddlAutoBillingCptCode').val(res.display_code);
-                        return res.text;
+                        if (res && res.id) {
+                            self.pendingAutoBillingCptCode = res;
+                            // $('#ddlAutoBillingCptCode').val(res.display_code);
+                            return formatOptionText(res.display_description, res.display_code);
+                        }
                     }
-                })
+                });
 
-                //     results: function (data, page) {
-                //         var more = data.result.length > 0 ? (page * 10) < data.result[0].total_records : false;
-                //         return {results: data.result, more: more};
-                //     },
-                //
-                //     formatID: function (obj) {
-                //         return obj.description;
-                //     },
-                //
-                //     formatResult: function (res) {
-                //         var markup = "<table style='width: 100%'><tr>";
-                //         markup += "<td><div><b>" + res.description + "</b></div>";
-                //         markup += "</td></tr></table>";
-                //         return markup;
-                //     },
-                //
-                //     formatSelection: function (res) {
-                //         $('#btnAddInsuranceProviderType')
-                //             .attr('data-id', res.id)
-                //             .attr('data-name', res.description);
-                //         return res.description;
-                //     }
-                // });
+                var $listAutoBillingCptCodes = $('#listAutoBillingCptCodes');
+                $('#btnAddAutoBillingCptCode').off().click(function() {
+                    $listAutoBillingCptCodes.append(createOptionElement(
+                        self.pendingAutoBillingCptCode.id,
+                        self.pendingAutoBillingCptCode.display_description,
+                        self.pendingAutoBillingCptCode.display_code
+                    ));
+                    $ddlAutoBillingCptCode.empty();
+                    self.pendingAutoBillingCptCode = null;
+                });
+                $('#btnRemoveAutoBillingCptCode').off().click(function() {
+                    $listAutoBillingCptCodes.find('option:selected').remove();
+                });
 
-                // var $divAutoBillingInsuranceProviders = $('#divAutoBillingInsuranceProviders');
-                // $divAutoBillingInsuranceProviders.hide();
-                //
-                // var $labelAutoBillingInsuranceProviderIs = $('#labelAutoBillingInsuranceProviderIs');
-                // $labelAutoBillingInsuranceProviderIs.hide();
-                //
-                // var $labelAutoBillingInsuranceProviderIsNot = $('#labelAutoBillingInsuranceProviderIsNot');
-                // $labelAutoBillingInsuranceProviderIsNot.hide();
-                //
-                // var $listAutoBillingInsuranceProviderPayerTypes = $('#listAutoBillingInsuranceProviderPayerTypes');
-                // $listAutoBillingInsuranceProviderPayerTypes.prop('disabled', true);
-                //
-                // $('input[type=radio][name=chkAutoBillingInsuranceProviderPayerTypeIs]').change(function() {
-                //     $listAutoBillingInsuranceProviderPayerTypes.prop('disabled', false);
-                //     if (this.value === 'isNOT') {
-                //         $labelAutoBillingInsuranceProviderIsNot.hide();
-                //         $labelAutoBillingInsuranceProviderIs.show();
-                //     }
-                //     else {
-                //         $labelAutoBillingInsuranceProviderIs.hide();
-                //         $labelAutoBillingInsuranceProviderIsNot.show();
-                //     }
-                //     console.log('current value: ', this.value);
-                // });
-                // $('#listAutoBillingInsuranceProviderPayerTypes').change(function() {
-                //     $divAutoBillingInsuranceProviders.show();
-                //     populateProvidersFromSelectedProviderTypes();
-                // });
 
 
                 $('#divAutoBillingGrid').hide();
