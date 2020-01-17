@@ -76,7 +76,8 @@ var layout = {
         'EDI Templates': '#aEDITemplate',
         'Paper Claim Templates': '#aPaperClaimTemplate',
         'Printer Templates': '#aPrinterTemplate',
-        'Payments Realization Rate Analysis': '#aPaymentsRealizationRateAnalysis'
+        'Payments Realization Rate Analysis': '#aPaymentsRealizationRateAnalysis',
+        'Auto Billing': '#aAutoBilling'
         /// To be added
     },
 
