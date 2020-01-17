@@ -68,7 +68,7 @@ function* processFiles ( files, dirPath ) {
                     .digest(`hex`);
 
                 await writeFileAsync(`${dirPath}/${file_name}`, bufferContent);
-                const stat = await statAsync(`${dirPath}/${file_name}`);                
+                const stat = await statAsync(`${dirPath}/${file_name}`);
                 let file_type = file_name.indexOf('OUTBB') > -1 ? 'can_ahs_bbr' :
                     file_name.indexOf('ASSMT') > -1 ?  'can_ahs_ard' : '';
 
@@ -236,6 +236,7 @@ const sftpService = {
                         file_md5,
                         file_size,
                         file_store_id: fileStoreId,
+                        companyId,
                         company_id: companyId,
                         file_path: fileDir,
                         created_dt,
@@ -290,7 +291,7 @@ const sftpService = {
                 return  sftpService.download(data);
             case 'process':
                 return ahsController.processFile(data);
-        }      
+        }
     },
 
     /**
