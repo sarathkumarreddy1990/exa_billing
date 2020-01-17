@@ -134,7 +134,7 @@ module.exports = {
                                         p.account_no AS patient_account_no,
                                         p.birth_date AS patient_dob,
                                         p.gender AS patient_gender,
-                                        p.alerts,
+                                        get_patient_alerts_to_jsonb(p.id, TRUE) AS alerts,
                                         p.patient_info
                                     FROM
                                         orders
@@ -478,7 +478,7 @@ module.exports = {
                     , p.birth_date::text AS patient_dob
                     , p.full_name AS patient_name
                     , p.gender AS patient_gender
-                    , p.alerts
+                    , get_patient_alerts_to_jsonb(p.id, TRUE) AS alerts
                     , p.patient_info
                     , ref_pr.full_name AS ref_prov_full_name
                     , ref_pr.provider_code AS ref_prov_code
@@ -851,7 +851,7 @@ module.exports = {
 				            ,p.birth_date AS patient_dob
 				            ,p.gender AS patient_gender
                             ,p.account_no AS patient_account_no
-                            ,p.alerts
+                            ,get_patient_alerts_to_jsonb(p.id, TRUE) AS alerts
                             ,f.id AS facility_id
                             ,fs.default_provider_id AS billing_provider_id
                             ,COALESCE(NULLIF(f.facility_info->'service_facility_id',''),'0')::numeric AS service_facility_id
