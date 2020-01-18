@@ -69,8 +69,8 @@ function* processFiles ( files, dirPath ) {
 
                 await writeFileAsync(`${dirPath}/${file_name}`, bufferContent);
                 const stat = await statAsync(`${dirPath}/${file_name}`);
-                let file_type = file_name.indexOf('OUTBB') > -1 ? 'can_ahs_bbr' :
-                    file_name.indexOf('ASSMT') > -1 ?  'can_ahs_ard' : '';
+                let file_type = file.indexOf('OUTBB') > -1 ? 'can_ahs_bbr' :
+                    file.indexOf('ASSMT') > -1 ?  'can_ahs_ard' : '';
 
                 return {
                     file_md5,
