@@ -5,7 +5,7 @@
   },
   "txnTagNumber": {
     "startPos": 16,
-    "fieldLength": 19
+    "fieldLength": 4
   },
   "actionCode": {
     "startPos": 20,
