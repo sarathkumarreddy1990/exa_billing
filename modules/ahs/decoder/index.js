@@ -13,7 +13,17 @@ const Parser = {
     parseARDFile: (dataStr) => {
 
         let claims = [];
-        const records = dataStr.split('\n');
+        const records = dataStr
+            .split(/\n/gm)
+            .filter(row => {
+                /**
+                 * Don't include the header, trailer or empty rows
+                 */
+                let value = row.trim();
+                if ( value && !/(HEADER|TRAILER)\s*$/i.test(value) && value.length === 234 ) {
+                    return true;
+                }
+            });
 
         records.forEach((recordStr) => {
 
@@ -31,7 +41,7 @@ const Parser = {
     },
 
     /***
-     * Below function used to parse segments and pushing segments into batches based on 
+     * Below function used to parse segments and pushing segments into batches based on
      * Customer submitter Prefix, Current year, Submitter Sequence #, start Seq #, End Seq #
      * {param} string - Segment string from batch balance File
      * {param} ARRAY - Parsed Batch Information
@@ -68,14 +78,14 @@ const Parser = {
     /***
      * Below function used to parse Batch Balance File
      * Identify batch row based on Submitter Prefix (i.e first 3 charecter should match with configured customer Prefix)
-     * {param} File data 
+     * {param} File data
      */
     parseBatchBalanceFile: (dataStr) => {
         let result = { batches: [] };
         let records = dataStr.split('\n');
         let segmentIndex;
         let isSegmentPresent;
-        let customerPrefix = 'HYO' //To Do: Get submitter Prefix from Company settings 
+        let customerPrefix = 'HYO' //To Do: Get submitter Prefix from Company settings
 
         /**
          * Parse Batch Informations based on First 3 character should match with customer prefix (eg: 'HYO')

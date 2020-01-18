@@ -885,7 +885,7 @@ const ahsData = {
             'user_id': user_id
         };
 
-        const sql = SQL` SELECT billing.can_ahs_apply_payments(${default_facility_id}, ${file_id}::BIGINT, ${JSON.stringify(fileData.batches)}::JSONB, ${JSON.stringify(auditDetails)}::JSONB) `;
+        const sql = SQL` SELECT billing.can_ahs_apply_payments(${default_facility_id}, ${file_id}::BIGINT, ${JSON.stringify(fileData)}::JSONB, ${JSON.stringify(auditDetails)}::JSONB) `;
 
         return await query(sql);
     },
