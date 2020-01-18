@@ -24,6 +24,28 @@ const Parser = {
                 let value = recordStr.trim();
                 if ( value && !/(HEADER|TRAILER)\s*$/i.test(value) && value.length === 234 ) {
                     const ardRecord = RemittanceAdviceParser.parseRecord(recordStr, RemittanceAdviceFields);
+                    if ( ardRecord.explanationCodes ) {
+                        const codes = [];
+                        for ( let i = 0; i < ardRecord.explanationCodes.length; i += 5 ) {
+                            const code = ardRecord.explanationCodes.slice(i, i + 5);
+                            if ( code ) {
+                                codes.push(code);
+                            }
+                        }
+                        ardRecord.explanationCodes = codes.join();
+                    }
+
+                    if ( ardRecord.feeModifiers ) {
+                        const mods = [];
+                        for ( let i = 0; i < ardRecord.feeModifiers.length; i += 6 ) {
+                            const mod = ardRecord.feeModifiers.slice(i, i + 6);
+                            if ( mod ) {
+                                mods.push(mod);
+                            }
+                        }
+                        ardRecord.feeModifiers = mods.join();
+                    }
+
                     claims.push(ardRecord);
                 }
             }
