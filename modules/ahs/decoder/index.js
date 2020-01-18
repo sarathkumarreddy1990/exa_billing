@@ -13,27 +13,22 @@ const Parser = {
     parseARDFile: (dataStr) => {
 
         let claims = [];
-        const records = dataStr
-            .split(/\n/gm)
-            .filter(row => {
-                /**
-                 * Don't include the header, trailer or empty rows
-                 */
-                let value = row.trim();
-                if ( value && !/(HEADER|TRAILER)\s*$/i.test(value) && value.length === 234 ) {
-                    return true;
-                }
-            });
+        const records = dataStr.split(/\n/gm);
 
         records.forEach((recordStr) => {
 
             try {
-                if (recordStr.trim().length) {
-                    claims.push(RemittanceAdviceParser.parseRecord(recordStr, RemittanceAdviceFields));
+                /**
+                 * Don't include the header, trailer or empty rows
+                 */
+                let value = recordStr.trim();
+                if ( value && !/(HEADER|TRAILER)\s*$/i.test(value) && value.length === 234 ) {
+                    const ardRecord = RemittanceAdviceParser.parseRecord(recordStr, RemittanceAdviceFields);
+                    claims.push(ardRecord);
                 }
             }
             catch (err) {
-                logger.error(` Error occured in file parsing '${err}'`);
+                logger.error(` Error occurred in file parsing '${err}'`);
             }
         });
 
