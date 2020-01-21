@@ -1495,10 +1495,10 @@ function formatSingleClaim(claimData, servicelineList) {
                                                 widths: [33, 26, 26, 0],
                                                 body: [
                                                     [
-                                                        {image: getImage(claimData.subscriber && claimData.subscriber[0].relationship === "18"), fit: [8, 8]},
-                                                        {image: getImage(claimData.subscriber && claimData.subscriber[0].relationship === "21"), fit: [8, 8]},
-                                                        {image: getImage(claimData.subscriber && claimData.subscriber[0].relationship === "19"), fit: [8, 8]},
-                                                        {image: getImage(claimData.subscriber && (claimData.subscriber[0].relationship !== "18" && claimData.subscriber[0].relationship !== "21" && claimData.subscriber[0].relationship !== "19")), fit: [8, 8]},
+                                                        {image: getImage(subscriberDet && subscriberDet.relationship === "18"), fit: [8, 8]},
+                                                        {image: getImage(subscriberDet && subscriberDet.relationship === "01"), fit: [8, 8]},
+                                                        {image: getImage(subscriberDet && subscriberDet.relationship === "19"), fit: [8, 8]},
+                                                        {image: getImage(subscriberDet && (subscriberDet.relationship !== "18" && subscriberDet.relationship !== "01" && subscriberDet.relationship !== "19")), fit: [8, 8]},
                                                     ],
                                                 ],
                                             },layout: 'noBorders'

@@ -431,13 +431,10 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                                     heights: [10],
                                     body: [
                                         [
-                                            { text: claimData.subscriber && claimData.subscriber[0].relationship === "18" ? '√' : '' },
-                                            { text: claimData.subscriber && claimData.subscriber[0].relationship === "21" ? '√' : '' },
-                                            { text: claimData.subscriber && claimData.subscriber[0].relationship === "19" ? '√' : '' },
-                                            {
-                                                text: (claimData.subscriber && (claimData.subscriber[0].relationship !== "18" && claimData.subscriber[0].relationship !== "21"
-                                                    && claimData.subscriber[0].relationship !== "19")) ? '√' : ''
-                                            },
+                                            { text: subscriberDet && subscriberDet.relationship === "18" ? '√' : '' },
+                                            { text: subscriberDet && subscriberDet.relationship === "01" ? '√' : '' },
+                                            { text: subscriberDet && subscriberDet.relationship === "19" ? '√' : '' },
+                                            { text: (subscriberDet && (subscriberDet.relationship !== "18" && subscriberDet.relationship !== "01" subscriberDet.relationship !== "19")) ? '√' : '' },
                                         ],
                                     ],
                                 }, layout: 'noBorders',
