@@ -434,7 +434,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                                             { text: subscriberDet && subscriberDet.relationship === "18" ? '√' : '' },
                                             { text: subscriberDet && subscriberDet.relationship === "01" ? '√' : '' },
                                             { text: subscriberDet && subscriberDet.relationship === "19" ? '√' : '' },
-                                            { text: (subscriberDet && (subscriberDet.relationship !== "18" && subscriberDet.relationship !== "01" subscriberDet.relationship !== "19")) ? '√' : '' },
+                                            { text: (subscriberDet && (subscriberDet.relationship !== "18" && subscriberDet.relationship !== "01" && subscriberDet.relationship !== "19")) ? '√' : '' },
                                         ],
                                     ],
                                 }, layout: 'noBorders',
