@@ -100,6 +100,13 @@ define(['jquery',
         };
 
 
+        var loadAutobillingRule = function(response) {
+            var data = response[0];
+            $("#txtAutoBillingDescription").val(data.description);
+            // $("#ddlAutoBillingStudyStatus").val(data.study_status_id);   // TODO
+            $("#ddlAutoBillingClaimStatus").val(data.claim_status_id);
+            // TODO the rest of the fields
+        };
 
         // TODO figure out how to filter out providers based on selected provider types
 
@@ -140,9 +147,7 @@ define(['jquery',
         var AutoBillingView = Backbone.View.extend({
             AutoBillingGridTemplate: _.template(AutoBillingGrid),
             AutoBillingFormTemplate: _.template(AutoBillingForm),
-            autoBillingList: [],
-            model: null,
-            // paperClaimTemplatesTable: null,
+
             defaultPageHeight: 792,
             defaultPageWidth: 612,
             pager: null,
@@ -161,20 +166,9 @@ define(['jquery',
             initialize: function (options) {
                 var self = this;
                 this.options = options;
-                this.model = new AutoBillingModel();
+                this.autoBillingModel = new AutoBillingModel();
                 this.pager = new Pager();
-                this.templateType = [
-                    { 'value': "direct_invoice", 'text': "Direct Invoice" },
-                    { 'value': "patient_invoice", 'text': "Patient Invoice" },
-                    { 'value': "paper_claim_full", 'text': "Paper Claim (B & W)" },
-                    { 'value': "paper_claim_original", 'text': "Paper Claim (RED)" }
 
-                ];
-                if (app.country_alpha_3_code === 'can') {
-                    this.templateType = _.reject(this.templateType, function (item) {
-                        return item.value == 'paper_claim_full' || item.value == 'paper_claim_original';
-                    })
-                }
                 this.autoBillingList = new AutoBillingCollections();
                 $(this.el).html(this.AutoBillingGridTemplate());
                 self.currentPageHeight = self.defaultPageHeight;
@@ -193,20 +187,13 @@ define(['jquery',
                 $('#divAutoBillingGrid').show();
                 $('#divAutoBillingForm').hide();
 
-                var templateType = commonjs.buildGridSelectFilter({
-                    arrayOfObjects: this.templateType,
-                    searchKey: "value",
-                    textDescription: "text",
-                    sort: true
-                });
-
-                this.paperClaimTemplatesTable = new customGrid();
-                this.paperClaimTemplatesTable.render({
+                this.autobillingRulesTable = new customGrid();
+                this.autobillingRulesTable.render({
                     gridelementid: '#tblAutoBillingGrid',
                     custompager: new Pager(),
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['', '', '', '', '', ''],
-                    i18nNames: ['', '', '', 'setup.common.description', 'setup.autoBilling.claimStatus', 'is_active'],
+                    colNames: ['', '', '', '', '', '', ''],
+                    i18nNames: ['', '', '', 'setup.common.description', 'setup.autoBilling.studyStatus', 'setup.autoBilling.claimStatus', 'is_active'],
                     colModel: [
                         {
                             name: 'id',
@@ -232,17 +219,17 @@ define(['jquery',
                             customAction: function (rowID) {
                                 if (confirm(confirmDelete)) {
                                     var gridData = $('#tblAutoBillingGrid').jqGrid('getRowData', rowID);
-                                    self.model.set({ "id": rowID });
-                                    // self.model.destroy({
-                                    //     data: $.param({name: gridData.name, templateType:gridData.template_type}),
-                                    //     success: function (model, response) {
-                                    //         commonjs.showStatus("messages.status.deletedSuccessfully");
-                                    //         self.paperClaimTemplatesTable.refresh();
-                                    //     },
-                                    //     error: function (model, response) {
-                                    //         commonjs.handleXhrError(model, response);
-                                    //     }
-                                    // });
+                                    self.autoBillingModel.set({ "id": rowID });
+                                    self.autoBillingModel.destroy({
+
+                                        success: function (model, response) {
+                                            commonjs.showStatus("messages.status.deletedSuccessfully");
+                                            self.autobillingRulesTable.refresh();
+                                        },
+                                        error: function (model, response) {
+                                            commonjs.handleXhrError(model, response);
+                                        }
+                                    });
                                 }
                             },
                             formatter: function (e, model, data) {
@@ -250,23 +237,61 @@ define(['jquery',
                             }
                         },
                         {
-                            name: 'display_description',
+                            name: 'autobilling_rule_description',
                             searchFlag: '%'
                         },
                         {
-                            name: 'display_code',
+                            name: 'study_status_id',
                             search: true,
                             stype: 'select',
-                            searchoptions: { value: templateType },
-                            formatter: self.templateTypeFormatter
+                            searchoptions: {
+                                defaultValue: "",
+                                value: _.reduce(app.study_status, function(searchValues, studyStatus) {
+                                    searchValues[studyStatus.id] = studyStatus.status_desc;
+                                    return searchValues;
+                                }, {"": "All"})
+                            },
+                            formatter: function(cellvalue, model, data) {
+                                return data.study_status_description;
+                            }
                         },
                         {
-                            name: 'inactivated_dt',
+                            name: 'claim_status_id',
+                            search: true,
+                            stype: 'select',
+                            searchoptions: {
+                                defaultValue: "",
+                                value: _.reduce(app.claim_status, function(searchValues, claimStatus) {
+                                    searchValues[claimStatus.id] = claimStatus.description;
+                                    return searchValues;
+                                }, {"": "All"})
+                            },
+                            formatter: function(cellvalue, model, data) {
+                                return data.claim_status_description;
+                            }
+                        },
+                        {
+                            name: 'is_active',
+                            // stype: 'select',
+                            // searchoptions: {
+                            //     value: {
+                            //         "true": "Yes",
+                            //         "": "All",
+                            //         "false": "No"
+                            //     }
+                            // },
+                            // formatter: function(cellvalue, model, data) {
+                            //     var r = "<div style='text-align: center; color: red;'><span class='fa fa-times'></span></div>"
+                            //     if (cellvalue === true) {
+                            //         r = "<div style='text-align: center;'><span class='fa fa-check'></span></div>"
+                            //     }
+                            //     return r;
+                            // }
                             hidden: true
                         }
                     ],
                     afterInsertRow: function (rowid, rowdata) {
-                        if (rowdata.inactivated_dt) {
+                        if (!rowdata.is_active) {
                             var $row = $('#tblAutoBillingGrid').find('#' + rowid);
                             $row.css('text-decoration', 'line-through');
                         }
@@ -320,7 +345,7 @@ define(['jquery',
 
             renderForm: function (id) {
                 var self = this;
-                this.templateToogleMode = true;
+
                 $('#divAutoBillingForm').html(this.AutoBillingFormTemplate({
                     insuranceProviderPayerTypes: getOptions(app.insurance_provider_payer_types, 'id', 'description', 'code'),
                     modalities: getOptions(app.modalities, 'modality_code', 'modality_name'),
@@ -509,33 +534,17 @@ define(['jquery',
                 self.currentPageHeight = self.defaultPageHeight;
                 self.currentPageWidth = self.defaultPageWidth;
                 if (id > 0) {
-                    this.model.set({ id: id });
-                    this.model.fetch({
+                    this.autoBillingModel.set({ id: id });
+                    this.autoBillingModel.fetch({
                         success: function (model, response) {
-                            // if (response && response.length > 0) {
-                            //     var data = self.modelData = response[0];
-                            //     if (data) {
-                            //         $('#txtTemplateName').val(data.name ? data.name : '');
-                            //         $('#chkActive').prop('checked', data.inactivated_dt ? true : false);
-                            //         $('#chkDefault').prop('checked', data.is_default ? true : false);
-                            //         $('#txtRightMargin').val(data.right_margin ? data.right_margin : 0);
-                            //         $('#txtLeftMargin').val(data.left_margin ? data.left_margin : 0),
-                            //             $('#txtTopMargin').val(data.top_margin ? data.top_margin : 0),
-                            //             $('#txtBottomMargin').val(data.bottom_margin ? data.bottom_margin : 0),
-                            //             self.templateData = data.template_content ? data.template_content : "{}";
-                            //         self.setEditorContents(self.templateData);
-                            //         $('#txtPageHeight').val(data.page_height ? data.page_height : 0);
-                            //         $('#txtPageWidth').val(data.page_width ? data.page_width : 0);
-                            //         $('#ddlTemplateType').val(data.template_type ? data.template_type : '');
-                            //         self.currentPageHeight = $('#txtPageHeight').val();
-                            //         self.currentPageWidth = $('#txtPageWidth').val();
-                            //     }
-                            // }
+                            console.log(response);
+                            if (response && response.length > 0) {
+                                loadAutobillingRule(response);
+                            }
                         }
                     });
                 } else {
-                    this.model = new AutoBillingModel();
-                    this.setEditorContents("var dd = { content: 'Test Data' }");
+                    this.autoBillingModel = new AutoBillingModel();
                 }
                 // $('#aShowOriginalForm').parent('li:first').css(this.highlighClass);
 
@@ -543,12 +552,14 @@ define(['jquery',
                     header: { screen: 'AutoBilling', ext: 'autoBilling' }, buttons: [
                         {
                             value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
-                                // self.confirmPaperClaimAlignment(false);
+                                self.saveAutoBillingRule();
                             }
                         },
                         {
                             value: 'Save and Close', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.saveAndClose', clickEvent: function () {
-                                // self.confirmPaperClaimAlignment(true);
+                                self.saveAutoBillingRule({
+                                    closeOnSuccess: true
+                                });
                             }
                         },
                         {
@@ -562,216 +573,38 @@ define(['jquery',
                 commonjs.processPostRender();
             },
 
-            // confirmPaperClaimAlignment: function (doGoBack) {
-            //     var self = this;
-            //     var txtPageHeight = $('#txtPageHeight');
-            //     var txtPageWidth = $('#txtPageWidth');
-            //     var txtTemplateName = $('#txtTemplateName');
-            //     txtTemplateName.val($.trim(txtTemplateName.val()) || null);
-            //     if (txtPageHeight.val() != self.currentPageHeight || txtPageWidth.val() != self.currentPageWidth) {
-            //         var confirmMsg = commonjs.geti18NString("messages.confirm.alignmentConfirm");
-            //         if (confirm(confirmMsg)) {
-            //             self.currentPageHeight = txtPageHeight.val();
-            //             self.currentPageWidth = txtPageWidth.val();
-            //             self.saveAutoBilling(doGoBack);
-            //         } else {
-            //             txtPageHeight.val(self.currentPageHeight);
-            //             txtPageWidth.val(self.currentPageWidth);
-            //         }
-            //     } else {
-            //         self.saveAutoBilling(doGoBack);
-            //     }
-            // },
 
-            saveAutoBilling: function (doGoBack) {
+            saveAutoBillingRule: function (options) {
+
                 var self = this;
-                self.doGoback = doGoBack;
-                // commonjs.validateForm({
-                //     rules: {
-                //         templateName: {
-                //             required: true
-                //         },
-                //         templateType: {
-                //             required: true
-                //         }
-                //     },
-                //     messages: {
-                //         templateName: commonjs.getMessage("e", "Template Name"),
-                //         templateType: commonjs.getMessage("e", "Template type")
-                //     },
-                //     submitHandler: function () {
-                //         self.save(self.doGoback);
-                //     },
-                //     formID: '#formAutoBilling'
-                // });
-                $('#formAutoBilling').submit();
-            },
 
-            setEditorContents: function (content) {
-                var timer;
-                var lastGen, lastChanged;
-                var self = this;
-                // var editor = ace.edit('paperClaimEditor');
-
-                // editor.setTheme();
-                // editor.setTheme("ace/theme/monokai");
-                // editor.getSession().setMode("ace/mode/javascript");
-                // $('#paperClaimEditor').height($('#data_container').outerHeight() - $('#formAutoBilling').outerHeight());
-                // editor.setValue(content);
-
-                // var pdfWorker = null;
-                //
-                // try {
-                //     pdfWorker = new Worker('/exa_modules/billing/static/js/workers/pdf.js');
-                // } catch (e) {
-                //     console.error(e);
-                // }
-
-                // generatePreview();
-
-                // editor.getSession().on('change', function (e) {
-                //     if (timer) {
-                //         clearTimeout(timer);
-                //     }
-                //
-                //     lastChanged = new Date();
-                //
-                //     timer = setTimeout(function () {
-                //         if (!lastGen || lastGen < lastChanged) {
-                //             generatePreview();
-                //         };
-                //     }, 300);
-                // });
-
-                // function showStatus(msg) {
-                //     $('#divPreviewLabel').html(msg);
-                //     $('#divPreviewLabel').show();
-                //     $('#ifrTemplatePreview').hide();
-                // }
-
-                // function generatePreview() {
-                //     lastGen = new Date();
-                //
-                //     try {
-                //         eval(editor.getSession().getValue());
-                //
-                //         $('#divPreviewLabel').hide();
-                //         $('#ifrTemplatePreview').show();
-                //
-                //         if (typeof dd === 'undefined') {
-                //             return showStatus('Invalid template');
-                //         }
-                //
-                //         if (!pdfWorker) {
-                //             return showStatus('Unable to render PDF');
-                //         }
-                //
-                //         pdfWorker.onmessage = function (res) {
-                //             document.getElementById('ifrTemplatePreview').src = res.data.pdfBlob;
-                //         };
-                //
-                //         pdfWorker.postMessage(dd);
-                //         return;
-                //
-                //         // pdfMake.createPdf(dd).getDataUrl(function (outDoc) {
-                //         //     document.getElementById('ifrTemplatePreview').src = outDoc;
-                //         // });
-                //     } catch (err) {
-                //         showStatus(err);
-                //         return;
-                //     }
-                // }
-            },
-
-            // reloadDefaultTemplate: function (templateType) {
-            //     var self = this;
-            //     var templateNames = {
-            //         'direct_invoice': 'direct_invoice.template',
-            //         'patient_invoice': 'patient_Invoice.template',
-            //         'paper_claim_full': 'paper_claim_BW.template',
-            //         'paper_claim_original': 'paper_claim_red.template'
-            //     };
-            //
-            //     if (templateType) {
-            //         commonjs.showLoading();
-            //         $.ajax({
-            //             url: '/exa_modules/billing/static/resx/printer_templates/' + templateNames[templateType],
-            //             success: function (model, response) {
-            //                 self.setEditorContents(model);
-            //                 commonjs.hideLoading();
-            //             },
-            //             error: function (err, response) {
-            //                 commonjs.handleXhrError(err, response);
-            //             }
-            //         });
-            //     }
-            //     else {
-            //         commonjs.showWarning('Select Template type');
-            //     }
-            // },
-
-            save: function (doGoBack) {
-                var self = this;
-                this.templateData = ace.edit('paperClaimEditor').getValue();
-                if(this.templateData === ""){
-                    commonjs.showError("Invalid Template");
-                    return false;
-                }
-                this.model.set({
-                    "name": $('#txtTemplateName').val(),
-                    "isActive": !$('#chkActive').prop('checked'),
-                    "isDefault": $('#chkDefault').prop('checked'),
-                    "marginRight": $('#txtRightMargin').val() ? $('#txtRightMargin').val() : 0,
-                    "marginLeft": $('#txtLeftMargin').val() ? $('#txtLeftMargin').val() : 0,
-                    "marginTop": $('#txtTopMargin').val() ? $('#txtTopMargin').val() : 0,
-                    "marginBottom": $('#txtBottomMargin').val() ? $('#txtBottomMargin').val() : 0,
-                    "templateContent": this.templateData,
-                    "companyId": app.companyID,
-                    "height": $('#txtPageHeight').val() ? $('#txtPageHeight').val() : 0,
-                    "width": $('#txtPageWidth').val() ? $('#txtPageWidth').val() : 0,
-                    "type": $('#ddlTemplateType').val()
+                this.autoBillingModel.set({
+                    "description": $('#txtAutoBillingDescription').val(),
+                    "claim_status_id": $('#ddlAutoBillingClaimStatus').val(),
+                    "study_status_id": 17  // approved
                 });
 
-                this.model.save({
+                this.autoBillingModel.save({
                 }, {
-                        success: function (model, response) {
-                            if (response) {
-                                commonjs.showStatus('messages.status.savedSuccessfully');
-                                var id = response[0] && response[0].id;
-                                if (doGoBack) {
-                                    location.href = "#setup/printer_templates/list";
-                                } else {
-                                    self.model.set({
-                                        id: id
-                                    });
-                                }
+                    success: function (model, response) {
+                        if (response) {
+                            commonjs.showStatus('messages.status.savedSuccessfully');
+                            if (options.closeOnSuccess) {
+                                Backbone.history.navigate('#setup/auto_billing/list', true);
                             }
-                        },
-                        error: function (model, response) {
-                            commonjs.handleXhrError(model, response);
+                            else {
+                                var id = response[0] && response[0].id;
+                                self.autoBillingModel.set({
+                                    id: id
+                                });
+                            }
                         }
-                    });
-            },
-
-            templateTypeFormatter: function (cellvalue, options, rowObject) {
-                var colvalue = '';
-                switch (rowObject.template_type) {
-                    case "paper_claim_original":
-                        colvalue = 'Paper Claim (RED)';
-                        break;
-                    case "paper_claim_full":
-                        colvalue = 'Paper Claim (B & W)';
-                        break;
-                    case "direct_invoice":
-                        colvalue = 'Direct Invoice';
-                        break;
-                    case "patient_invoice":
-                        colvalue = 'Patient Invoice';
-                        break;
-                }
-                return colvalue;
-            },
-
+                    },
+                    error: function (model, response) {
+                        commonjs.handleXhrError(model, response);
+                    }
+                });
+            }
         });
         return AutoBillingView;
     });

@@ -6,10 +6,10 @@
                     <div class="form-group row">
 
                         <div class="col-sm-3">
-                            <label for="autoBillingDescription" class="col-form-label field-required" i18n="setup.common.description"></label>
+                            <label for="txtAutoBillingDescription" class="col-form-label field-required" i18n="setup.common.description"></label>
                         </div>
                         <div class="col-sm-9">
-                            <input type="text" class="form-control" id="autoBillingDescription" name="autoBillingDescription">
+                            <input type="text" class="form-control" id="txtAutoBillingDescription" name="autoBillingDescription">
                         </div>
 
                     </div>
@@ -18,12 +18,12 @@
                 <div class="col-sm-5">
                     <div class="form-group row">
                         <div class="col-sm-5">
-                            <label for="autoBillingDescription" class="col-form-label field-required" i18n="setup.autoBilling.claimStatus"></label>
+                            <label for="ddlAutoBillingClaimStatus" class="col-form-label field-required" i18n="setup.autoBilling.claimStatus"></label>
                         </div>
                         <div class="col-sm-7">
-                            <select id="listClaimStatus" name="listAutoBillingClaimStatus" size="1">
+                            <select id="ddlAutoBillingClaimStatus" name="listAutoBillingClaimStatus" size="1">
                                 <% _.each(app.claim_status, function(claimStatus) { %>
-                                    <option value="<%= claimStatus.code %>"><%= claimStatus.description %></option>
+                                    <option value="<%= claimStatus.id %>"><%= claimStatus.description %></option>
                                 <%})%>
                             </select>
                         </div>

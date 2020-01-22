@@ -4,7 +4,6 @@ define(['backbone'], function (Backbone) {
         urlRoot: "/exa_modules/billing/setup/auto_billing",
 
         defaults: {
-            templateName : ""
         },
 
         initialize: function (models) {
