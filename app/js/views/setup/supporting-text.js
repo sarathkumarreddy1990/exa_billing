@@ -49,7 +49,9 @@ define(['jquery',
                 var confirmDelete = commonjs.geti18NString("messages.status.areYouSureWantToDelete");
                 $('#divSupportingTextGrid').show();
                 $('#divSupportingTextForm').hide();
-                $(this.el).html(this.supportingTextGridTemplate());
+                $(this.el).html(this.supportingTextGridTemplate({
+                    billingRegionCode: app.billingRegionCode
+                }));
 
                 this.supportingTextTable = new customGrid();
                 this.supportingTextTable.render({
