@@ -21,7 +21,9 @@ define([
 
             render: function () {
                 var self = this;
-                $(this.el).html(this.template());
+                $(this.el).html(this.template({
+                    billingRegionCode: app.billingRegionCode
+                }));
             }
         });
     });
