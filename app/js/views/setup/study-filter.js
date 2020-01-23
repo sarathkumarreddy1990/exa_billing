@@ -281,9 +281,13 @@ define([
                 "click #btnAddReadPhy": "addItemToList",
                 "click #btnAddRefPhy": "addItemToList",
                 "click #btnAddInsurance": "addItemToList",
+                "click #btnAddClaimInsurance": "addItemToClaimInsurance",
                 "click #btnRemoveReadPhy": "removeItemFromList",
                 "click #btnRemoveRefPhy": "removeItemFromList",
                 "click #btnRemoveInsurance": "removeItemFromList",
+                "click #btnRemoveClaimInsurance": "removeItemFromClaimInsurance",
+                "click .removeStudyInsuranceProvider": "removeItemFromStudyList",
+                "click .removeClaimInsuranceProvider": "removeItemFromClaimList",
                 "click #btnInsurance": "removeItemFromList",
                 "click #rbtPreformatted": "changeDateTimeStdFilter",
                 "click #rbtLast": "changeDateTimeStdFilter",
@@ -355,6 +359,58 @@ define([
 
             enableDateFrom: function () {
                 $('#txtDateFrom, #txtFromTimeDate, #txtDateTo, #txtToTimeDate').prop('disabled', false);
+            },
+
+            bindInsuranceGroupAutocomplete: function (containerId, options) {
+                var container = $(containerId);
+                var ddlElement = $(options.ddlElement);
+                var btnAddElement = $(options.btnAddElement);
+
+                ddlElement.select2({
+                    ajax: {
+                        url: "/exa_modules/billing/autoCompleteRouter/insurance_payer_types",
+                        dataType: 'json',
+                        data: function (params) {
+                            return {
+                                q: params.term || '',
+                                page: params.page || 1,
+                                pageSize: 10,
+                                sortField: "description",
+                                sortOrder: "ASC",
+                                company_id: app.companyID
+                            };
+                        },
+
+                        processResults: function (data, params) {
+                            return commonjs.getTotalRecords(data, params);
+                        },
+                        cache: true
+                    },
+                    placeholder: 'Select Insurance Group',
+                    escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                    minimumInputLength: 0,
+                    templateResult: formatRepo,
+                    templateSelection: formatRepoSelection
+                });
+                function formatRepo(repo) {
+                    if (repo.loading) {
+                        return repo.text;
+                    }
+                    var markup = "<table class='ref-result' style='width: 100%'><tr>";
+                    markup += "<td data-id=" + repo.id + "class='movie-info'><div class='movie-title'><b>" + repo.description + "</b> </div>";
+                    markup += "</td></tr></table>";
+                    return markup;
+
+                }
+                function formatRepoSelection(res) {
+                    self.groupdescription_name = res.description;
+                    self.code = res.code;
+
+                    if (res && res.id) {
+                        btnAddElement.attr("data-id", res.description);
+                        return res.description;
+                    }
+                }
             },
 
             showGrid: function () {
@@ -488,12 +544,20 @@ define([
                 if (this.opener == "studies"){
                     $('#ddlDatePreformatted option:contains("last 30 days")').prop("selected",true);
                     $('#divTab').show();
+                    self.bindInsuranceGroupAutocomplete('#listStudyInsuranceProvider', {
+                        ddlElement: '#txtStudyInsuranceProviderName',
+                        btnAddElement: '#btnAddStudyInsuranceProvider'
+                    });  
                 }
                 else {
                     $('#ddlDatePreformatted option:contains("last 90 days")').prop("selected",true);
                     $("#claimFilter").show();
                     $("#divDateTime>table").appendTo("#divClaimDateTime");
                     $("#divClaimDateTime>table").css({'height':'125px','margin-left': '3%'});
+                    self.bindInsuranceGroupAutocomplete('#listClaimInsuranceProvider', {
+                        ddlElement: '#txtClaimInsuranceProviderName',
+                        btnAddElement: '#btnAddClaimInsuranceProvider'
+                    });
                 }
                 var dtpDateOptions = { format: "L", useCurrent: false };
                 self.dtpFromDate = commonjs.bindDateTimePicker("divDateFrom", dtpDateOptions);
@@ -593,6 +657,31 @@ define([
                         $('#txtAttorney').focus();
 
                     });
+                     /* Bind add button for Study Insurance Group - SMH */
+                     var $btnStudyIns =   $('#btnAddStudyInsuranceProvider');          
+                     $btnStudyIns.off('click').on('click', function (e) {
+                      var opt = document.createElement('option');
+                      var $studyContainerId = $('#txtStudyInsuranceProviderName');
+                      var studyInsuranceProviderValue = $.trim($('#select2-txtStudyInsuranceProviderName-container').text());
+
+                      if (commonjs.checkNotEmpty($studyContainerId.val()) && self.validateRadioButton('InsProvGroup', 'InsProvGroup')) {
+                          var radValue = $('input[name=InsProvGroup]:checked').val();
+                          opt.text = studyInsuranceProviderValue;
+                          opt.value = studyInsuranceProviderValue;
+                          var new_Element = $btnStudyIns.attr('data-id');
+
+                          if ($('#listStudyInsuranceProvider option[value="' + new_Element + '"]').length) {
+                              return commonjs.showError("billing.payments.alreadySelectedIG");
+                          }
+                          $('#listStudyInsuranceProvider').append(opt);
+                          $studyContainerId.val('');
+                          $studyContainerId.text('');
+                      } else if (!commonjs.checkNotEmpty($studyContainerId.val())) {
+                          return commonjs.showWarning("messages.warning.setup.entertextandselect");
+                      }
+                      e.stopImmediatePropagation();
+                      return false;
+                  });
                 } else {
                     $('#ulListClaimOrdFacility').delegate('a.remove', 'click', function () {
                         var data_id = $(this).attr('data-id');
@@ -625,6 +714,31 @@ define([
                             $('#select2-ddlClaimOrdFacility-container').text('');
                             $(this).removeAttr('data-id');
                         }
+                    });
+                    /* Bind add button for Claim Insurance Group - SMH*/
+                    var $btnClaimInsp = $('#btnAddClaimInsuranceProvider');
+                    $btnClaimInsp.off('click').on('click', function (e) {
+                        var opt = document.createElement('Option');
+                        var $claimContainerId = $('#txtClaimInsuranceProviderName');
+                        var claimInsuranceProviderValue = $.trim($('#select2-txtClaimInsuranceProviderName-container').text());
+
+                        if (commonjs.checkNotEmpty($claimContainerId.val()) && self.validateRadioButton('insProvClaimGroup', 'insProvClaimGroup')) {
+                            var radValue = $('input[name=insProvClaimGroup]:checked').val();
+                            opt.text = claimInsuranceProviderValue;
+                            opt.value = claimInsuranceProviderValue;
+                            var new_value = $btnClaimInsp.attr('data-id');
+
+                            if ($('#listClaimInsuranceProvider option[value="' + new_value + '"]').length) {
+                                return commonjs.showError("billing.payments.alreadySelectedIG");                                
+                            }
+                            $('#listClaimInsuranceProvider').append(opt);
+                            $claimContainerId.val('');
+                            $claimContainerId.text('');
+                        } else if (!commonjs.checkNotEmpty($claimContainerId.val())) {
+                            return commonjs.showWarning("messages.warning.setup.entertextandselect");
+                        }
+                        e.stopImmediatePropagation();
+                        return false;
                     });
                 }
 
@@ -745,6 +859,15 @@ define([
                                         $("input:radio[name=InsProv][value=" + insProv[i].condition + "]").prop('checked', true);
                                         document.getElementById('listInsurance').options.add(opt);
                                     }
+                                    var insProvGroup = response.filter_info.insurance && Array.isArray(response.filter_info.insurance.insProvGroup)
+                                    ? response.filter_info.insurance.insProvGroup : [];
+                                for (var i = 0; i < insProvGroup.length; i++) {
+                                    var opt = document.createElement('option');
+                                    opt.text = insProvGroup[i].value;
+                                    opt.value = insProvGroup[i].value;
+                                    $("input:radio[name=InsProvGroup][value=" + insProvGroup[i].condition + "]").prop('checked', true);
+                                    $('#listStudyInsuranceProvider').append(opt);
+                                }
 
                                     var studyInfoJson = response.filter_info.studyInformation;
                                     $("input:radio[name=StudyID][value=" + studyInfoJson.studyID.condition + "]").prop('checked', true);
@@ -917,6 +1040,26 @@ define([
                                                 $('#ulListClaimOrdFacility').append('<li id="' + claimOrderingFacilityJson.list[j].id + '"><span>' + claimOrderingFacilityJson.list[j].text + '</span><a class="remove" data-id="' + claimOrderingFacilityJson.list[j].id + '"><span class="icon-ic-close"></span></a></li>')
                                             }
                                         }
+                                    }
+
+                                    var insProvClaim = response.filter_info.ClaimInformation.insurance_provider && Array.isArray(response.filter_info.ClaimInformation.insurance_provider.insProvClaim)
+                                        ? response.filter_info.ClaimInformation.insurance_provider.insProvClaim : [];
+                                    for (var i = 0; i < insProvClaim.length; i++) {
+                                        var opt = document.createElement('option');
+                                        opt.text = 'InsProvClaim' + " " + insProvClaim[i].condition + " " + insProvClaim[i].value;
+                                        opt.value = insProvClaim[i].condition + '~' + insProvClaim[i].value;
+                                        $("input:radio[name=insProvClaim][value=" + insProvClaim[i].condition + "]").prop('checked', true);
+                                        $('#listClaimInsurance').append(opt);
+                                    }
+
+                                    var insProvClaimGroup = response.filter_info.ClaimInformation.insurance_group && Array.isArray(response.filter_info.ClaimInformation.insurance_group.insProvClaimGroup)
+                                        ? response.filter_info.ClaimInformation.insurance_group.insProvClaimGroup : [];
+                                    for (var i = 0; i < insProvClaimGroup.length; i++) {
+                                        var opt = document.createElement('option');
+                                        opt.text = insProvClaimGroup[i].value;
+                                        opt.value = insProvClaimGroup[i].value;
+                                        $("input:radio[name=insProvClaimGroup][value=" + insProvClaimGroup[i].condition + "]").prop('checked', true);
+                                        $('#listClaimInsuranceProvider').append(opt);
                                     }
                                 }
                             }
@@ -1097,6 +1240,27 @@ define([
                     jsonInsProv.condition = condition;
                     jsonInsProv.value = InsProv;
                     insProv.push(jsonInsProv);
+                });
+                var insProvClaim = [];
+                $('#listClaimInsurance option').each(function (i, selected) {
+                    var jsonInsProvclaim = {};
+                    var condition = $(selected).val().split("~")[0];
+                    var InsProvClaim = $(selected).val().split("~")[1];
+                    jsonInsProvclaim.condition = condition;
+                    jsonInsProvclaim.value = InsProvClaim;
+                    insProvClaim.push(jsonInsProvclaim);
+                });
+                var insProvGroup = [];
+                $('#listStudyInsuranceProvider option').each(function (i, selected) {
+                    var condition = $('input[name=InsProvGroup]:checked').val();
+                    var insProvGroupValue = $(selected).text();
+                    insProvGroup.push({ condition: condition, value: insProvGroupValue });
+                });
+                var insProvClaimGroup = [];
+                $('#listClaimInsuranceProvider option').each(function (i, selected) {
+                    var condition = $('input[name=insProvClaimGroup]:checked').val();
+                    var insProvClaimGroupValue = $(selected).text();
+                    insProvClaimGroup.push({ condition: condition, value: insProvClaimGroupValue });
                 });
                 var arrInstitution = [];
                 $('#listInstitution option').each(function (i, selected) {
@@ -1366,7 +1530,8 @@ define([
                             }
                         },
                         insurance: {
-                            insProv: insProv
+                            insProv: insProv,
+                            insProvGroup: insProvGroup
                         }
                     }
                 } else {
@@ -1409,10 +1574,16 @@ define([
                             ordering_facility: {
                                 condition: $('input[name=claimOrdFacility]:checked').val(),
                                 list: arrClaimOrdFacility
-                            }
+                            },
+                            insurance_provider: {
+                                insProvClaim: insProvClaim
+                            },
+                            insurance_group: {
+                                insProvClaimGroup: insProvClaimGroup
                         }
                     }
                 }
+            }
 
                 this.model.set({
                     userId: app.userID,
@@ -1577,7 +1748,25 @@ define([
                         }
                         break;
                 }
-                e.stopPropagation();
+                e.stopImmediatePropagation();
+                return false;
+            },
+
+            addItemToClaimInsurance: function (e) {
+                var self = this;
+                var opt = document.createElement('Option');
+                var $claimIns = $('#txtClaimInsurance');
+
+                if (commonjs.checkNotEmpty($claimIns.val()) && self.validateRadioButton('InsProvClaim', 'InsProvClaim')) {
+                    var radValue = $('input[name=InsProvClaim]:checked').val();
+                    opt.text = "InsProvClaim" + " " + radValue + " " + $.trim($claimIns.val());
+                    opt.value = radValue + '~' + $.trim($claimIns.val());
+                    document.getElementById('listClaimInsurance').options.add(opt);
+                    $claimIns.val('');
+                } else if (!commonjs.checkNotEmpty($claimIns.val())) {
+                    return commonjs.showWarning("setup.studyFilters.entertextandselect");
+                }
+                e.stopImmediatePropagation();
                 return false;
             },
 
@@ -1623,8 +1812,50 @@ define([
                             commonjs.showWarning('messages.warning.setup.selectitemstodelete');
                         }
                         break;
-                }
-                e.stopPropagation();
+                    }
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    return false;
+                },
+
+                removeItemFromStudyList: function (e) {
+                    var IdName = e.target.nodeName == 'I' ? $(e.target).closest('button') : $(e.target);
+                    var $listStudyIns = $('#listStudyInsuranceProvider option:selected')
+    
+                    if ($listStudyIns.length > 0) {
+                        $listStudyIns.remove();
+                    } else {
+                        commonjs.showWarning('messages.warning.setup.selectitemstodelete');
+                    }
+    
+                    e.stopImmediatePropagation();
+                    return false;
+                },
+    
+                removeItemFromClaimList: function (e) {
+                    var IdName = e.target.nodeName == 'I' ? $(e.target).closest('button') : $(e.target);
+                    
+                    var $listClaimInsp = $('#listClaimInsuranceProvider option:selected')
+
+                    if ($listClaimInsp.length > 0) {
+                        $listClaimInsp.remove();
+                    } else {
+                        commonjs.showWarning('messages.warning.setup.selectitemstodelete');
+                    }
+
+                    e.stopImmediatePropagation();
+                    return false;
+                },
+    
+                removeItemFromClaimInsurance: function (e) {
+                    var $listClaimIns = $('#listClaimInsurance option:selected');
+                    
+                    if ($listClaimIns.length > 0) {
+                        $listClaimIns.remove();
+                    } else {
+                        commonjs.showWarning('messages.warning.setup.selectitemstodelete');
+                    }
+                e.stopImmediatePropagation(); 
                 return false;
             },
 
@@ -1770,6 +2001,9 @@ define([
 
                 $('#txtLastTime').val('');
                 $('#txtPatientName').val('');
+                $('#txtClaimInsurance').val('');
+                $('#txtStudyInsuranceProviderName').text('');
+                $('#txtClaimInsuranceProviderName').text('');
                 $('#txtPatientID').val('');
                 $('#listPatientName option').remove();
                 $('#listPatientID option').remove();
@@ -1800,6 +2034,9 @@ define([
                 $('#listReadPhy option').remove();
                 $('#listRefPhy option').remove();
                 $('#listInsurance option').remove();
+                $('#listClaimInsurance option').remove();
+                $('#listStudyInsuranceProvider option').remove();
+                $('#listClaimInsuranceProvider option').remove();
                $('#lblSummaryDate').text('');
                $('#lblSummaryPName').text('');
                $('#lblSummaryPID').text('');
@@ -1856,6 +2093,8 @@ define([
                 $radioButtons.filter('.clearField').prop('checked', false);
                 $radioButtons.filter('#rbtStudyDate').prop('checked', true);
                 $radioButtons.filter('#rbtPreformatted').prop('checked', true);
+                $radioButtons.filter('#rbtIsClaimInsuranceGroup').prop('checked', false);
+                $radioButtons.filter('#rbtIsNotClaimInsuranceGroup').prop('checked', false);
                 $inputs.filter('[name=LastChangedByMe]').prop('checked', false);
             },
 
@@ -1897,6 +2136,10 @@ define([
                     $('#lblSummaryInstitution').text('Institution :' + $('input[name=Institution]:checked').val() + ' ' + this.listBoxAllArray('listInstitution'));
                 }
                 $('#lblFacility').text('Facility :' + this.listBoxSelectedArray('listFacility', 'studyFacility'));
+
+                if (this.listBoxAllArray('listStudyInsuranceProvider').length) {
+                    $('#lblSummaryInsuranceGroup').text('Insurance Group: ' + $('input[name=InsProvGroup]:checked').val() + ' ' + this.listBoxAllArray('listStudyInsuranceProvider'));
+                }
 
                 var ordFacList  = [];
                 if(self.ordering_facility && self.ordering_facility.list) {

@@ -193,7 +193,12 @@ const colModel = [
         name: 'icd_description',
         searchColumns: ['claim_icds.description'],
         searchFlag: 'arrayString'
-    }
+    },
+    {
+        name: 'insurance_providers'
+        , searchColumns: [`insurance_providers.insurance_name`]
+        , searchFlag: '%'
+    },
 ];
 
 const api = {
@@ -282,6 +287,7 @@ const api = {
             case 'charge_description': return `nullif(charge_details.charge_description,'')`;
             case 'ins_provider_type': return 'insurance_provider_payer_types.description';
             case 'icd_description': return 'claim_icds.description';
+            case 'insurance_providers': return `insurance_providers.insurance_name`;
         }
 
         return args;
@@ -522,7 +528,25 @@ const api = {
                 ELSE
                     null
             END AS as_eligibility_status`,
-            `claim_icds.description AS icd_description`
+            `claim_icds.description AS icd_description`,
+            `(
+                SELECT
+                   array_agg(insurance_name) 
+                FROM
+                   insurance_providers 
+                WHERE
+                   EXISTS
+                   (
+                      SELECT
+                         insurance_provider_id 
+                      FROM
+                         patient_insurances 
+                      WHERE
+                         id = primary_patient_insurance_id 
+                         OR id = secondary_patient_insurance_id 
+                         OR id = tertiary_patient_insurance_id 
+                   )
+                ) AS insurance_providers`,
         ];
 
         if(args.customArgs.filter_id=='Follow_up_queue'){
