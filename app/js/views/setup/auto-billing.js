@@ -102,9 +102,12 @@ define(['jquery',
 
         var loadAutobillingRule = function(response) {
             var data = response[0];
+            console.log('sumbitch')
+            $("#chkAutobillingRuleIsActive").prop('checked', !!data.inactivated_dt);
             $("#txtAutoBillingDescription").val(data.description);
             // $("#ddlAutoBillingStudyStatus").val(data.study_status_id);   // TODO
             $("#ddlAutoBillingClaimStatus").val(data.claim_status_id);
+
             // TODO the rest of the fields
         };
 
@@ -581,7 +584,9 @@ define(['jquery',
                 this.autoBillingModel.set({
                     "description": $('#txtAutoBillingDescription').val(),
                     "claim_status_id": $('#ddlAutoBillingClaimStatus').val(),
-                    "study_status_id": 17  // approved
+                    "study_status_id": 17,  // approved
+                    "inactive": $("#chkAutobillingRuleIsActive").prop('checked')
+
                 });
 
                 this.autoBillingModel.save({

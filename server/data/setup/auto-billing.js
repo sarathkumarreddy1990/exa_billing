@@ -4,9 +4,17 @@ const {
     queryWithAudit
 } = require('../index');
 
-// const logger = require('../../../logger');
+const logger = require('../../../logger');
 
-const WILDCARD_ID = 0;
+
+const debugCallAndQuery = (params, sql) => {
+    logger.info('USING PARAMS: ', params);
+    logger.info('QUERY TEXT: ', sql.text)
+    logger.info('QUERY VALUES: ', sql.values)
+    logger.info('QUERY SQL: ', sql.sql)
+};
+
+const WILDCARD_ID = "0";
 
 module.exports = {
 
@@ -79,7 +87,7 @@ module.exports = {
                 , description
                 , study_status_id
                 , claim_status_id
-
+                , inactivated_dt
             FROM
                 billing.autobilling_rules
             WHERE
@@ -94,6 +102,8 @@ module.exports = {
             description,
             claim_status_id,
             study_status_id,
+            is_active,
+            userId,
         } = params;
 
         const sql = SQL`
@@ -101,11 +111,15 @@ module.exports = {
                 description
                 , claim_status_id
                 , study_status_id
+                , inactivated_dt
+                , created_by
             )
             VALUES (
                 ${description}
                 , ${claim_status_id}
                 , ${study_status_id}
+                , ${is_active ? null : 'now()' }
+                , ${userId}
             )
             RETURNING id
         `;
@@ -115,22 +129,24 @@ module.exports = {
     updateAutobillingRule: async (params) => {
         const {
             id,
+            description,
             claim_status_id,
             study_status_id,
+            inactive,
         } = params;
-
-
-        logger.info('UPDATING: ', params);
 
         const sql = SQL`
             UPDATE billing.autobilling_rules
             SET
-                study_status_id = ${study_status_id}
+                description = ${description}
+                , study_status_id = ${study_status_id}
                 , claim_status_id = ${claim_status_id}
+                , inactivated_dt = ${inactive ? "now()": null}
             WHERE
                 id = ${id}
             RETURNING ${id}
         `;
+
         return await query(sql);
 
     },
