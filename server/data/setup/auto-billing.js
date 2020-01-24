@@ -6,6 +6,8 @@ const {
 
 // const logger = require('../../../logger');
 
+const WILDCARD_ID = 0;
+
 module.exports = {
 
     getAutobillingRules: async (params) => {
@@ -32,13 +34,13 @@ module.exports = {
             `);
         }
 
-        if (study_status_id) {
+        if (study_status_id && study_status_id !== WILDCARD_ID) {
             filterQuery.append(SQL`
                 AND abr.study_status_id = ${study_status_id}
             `);
         }
 
-        if (claim_status_id) {
+        if (claim_status_id && claim_status_id !== WILDCARD_ID) {
             filterQuery.append(SQL`
                 AND abr.claim_status_id = ${claim_status_id}
             `);

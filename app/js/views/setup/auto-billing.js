@@ -245,11 +245,11 @@ define(['jquery',
                             search: true,
                             stype: 'select',
                             searchoptions: {
-                                defaultValue: "",
+                                defaultValue: "0",
                                 value: _.reduce(app.study_status, function(searchValues, studyStatus) {
                                     searchValues[studyStatus.id] = studyStatus.status_desc;
                                     return searchValues;
-                                }, {"": "All"})
+                                }, {"0": "All"})
                             },
                             formatter: function(cellvalue, model, data) {
                                 return data.study_status_description;
@@ -260,11 +260,11 @@ define(['jquery',
                             search: true,
                             stype: 'select',
                             searchoptions: {
-                                defaultValue: "",
+                                defaultValue: "0",
                                 value: _.reduce(app.claim_status, function(searchValues, claimStatus) {
                                     searchValues[claimStatus.id] = claimStatus.description;
                                     return searchValues;
-                                }, {"": "All"})
+                                }, {"0": "All"})
                             },
                             formatter: function(cellvalue, model, data) {
                                 return data.claim_status_description;
