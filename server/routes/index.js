@@ -4,6 +4,7 @@ const router = express.Router();
 const httpHandler = require('../shared/http');
 const pkg = require('../../package.json');
 const { staticAssetsRoot } = require('../shared/constants');
+const logger = require('../../logger');
 
 router.get('/', function (req, res) {
     let currentTheme = 'default';
@@ -27,6 +28,11 @@ router.get('/about', function (req, res) {
     httpHandler.send(req, res, {
         version: pkg.version
     });
+});
+
+router.post('/studyStatusChanged', (req, res) => {
+    logger.info('STUDY STATUS CHANGED', req.body);
+    res.send('okay');
 });
 
 module.exports = router;

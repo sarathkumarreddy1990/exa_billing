@@ -582,11 +582,17 @@ define(['jquery',
                 var self = this;
 
                 this.autoBillingModel.set({
+                    // base information
                     "description": $('#txtAutoBillingDescription').val(),
                     "claim_status_id": $('#ddlAutoBillingClaimStatus').val(),
                     "study_status_id": 17,  // approved
-                    "inactive": $("#chkAutobillingRuleIsActive").prop('checked')
+                    "inactive": $("#chkAutobillingRuleIsActive").prop('checked'),
 
+                    // facilities
+                    "facilities": _.map($("#listAutoBillingFacilities option"), function(option) {
+                        return option.value;
+                    }),
+                    "facilitiesExclude": $("input[name=chkAutoBillingFacility]:checked").val() === "isNOT",
                 });
 
                 this.autoBillingModel.save({

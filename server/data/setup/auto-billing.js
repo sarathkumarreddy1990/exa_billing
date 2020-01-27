@@ -135,7 +135,25 @@ module.exports = {
             inactive,
         } = params;
 
+
         const sql = SQL`
+            WITH
+                facilities_clean_slate AS (
+                    DELETE FROM billing.autobilling_facility_rules WHERE autobilling_rule_id = ${id}
+                )
+                , insert_autobilling_facilities AS (
+                    INSERT INTO billing.autobilling_facility_rules(
+                        autobilling_rule_id
+                        , facility_id
+                        , excludes
+                    )
+                    VALUES(
+                        ${id}
+                        , UNNEST()
+                    )
+                    WHERE autobilling_rule_id = ${id}
+                )
+
             UPDATE billing.autobilling_rules
             SET
                 description = ${description}
@@ -146,6 +164,8 @@ module.exports = {
                 id = ${id}
             RETURNING ${id}
         `;
+
+        debugCallAndQuery(params, sql);
 
         return await query(sql);
 
