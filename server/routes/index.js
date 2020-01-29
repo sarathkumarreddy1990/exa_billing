@@ -5,6 +5,7 @@ const httpHandler = require('../shared/http');
 const pkg = require('../../package.json');
 const { staticAssetsRoot } = require('../shared/constants');
 const logger = require('../../logger');
+const autobillingController = require('../controllers/setup/auto-billing');
 
 router.get('/', function (req, res) {
     let currentTheme = 'default';
@@ -30,9 +31,10 @@ router.get('/about', function (req, res) {
     });
 });
 
-router.post('/studyStatusChanged', (req, res) => {
-    logger.info('STUDY STATUS CHANGED', req.body);
-    res.send('okay');
+router.post('/studyStatusChanged', async (req, res) => {
+    // TODO now actually implement rule execution
+    const abrResults = await autobillingController.executeAutobillingRules(req.body);
+    httpHandler.send(req, res, abrResults);
 });
 
 module.exports = router;

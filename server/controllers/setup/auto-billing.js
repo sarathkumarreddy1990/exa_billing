@@ -21,4 +21,7 @@ module.exports = {
     deleteAutobillingRule: (params) => {
         return data.deleteAutobillingRule(params);
     },
+
+    executeAutobillingRules: data.executeAutobillingRules,
+
 };

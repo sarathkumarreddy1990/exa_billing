@@ -108,6 +108,32 @@ define(['jquery',
             // $("#ddlAutoBillingStudyStatus").val(data.study_status_id);   // TODO
             $("#ddlAutoBillingClaimStatus").val(data.claim_status_id);
 
+            var ruleStudyStatuses = _.map(data.study_status_codes, function(study_status_code) {
+                var study_status = _.find(app.study_status, function(study_status) {
+                    return study_status.status_code === study_status_code;
+                });
+                return $('<option>', {
+                    value: study_status.status_code,
+                    text: formatOptionText(study_status.status_desc, study_status.status_code)
+                });
+            });
+            $("#listAutoBillingStudyStatuses").append(ruleStudyStatuses);
+
+            var ruleFacilities = _.map(data.facility_ids, function(facility_id) {
+                var ruleFacility = _.find(app.facilities, function(facility) {
+                    return facility.id === facility_id;
+                });
+                return $('<option>', {
+                    value: ruleFacility.id,
+                    text: formatOptionText(ruleFacility.facility_name, ruleFacility.facility_code)
+                });
+            });
+            $("#listAutoBillingFacilities").append(ruleFacilities);
+
+
+
+
+
             // TODO the rest of the fields
         };
 
@@ -244,15 +270,15 @@ define(['jquery',
                             searchFlag: '%'
                         },
                         {
-                            name: 'study_status_id',
+                            name: 'study_status',
                             search: true,
                             stype: 'select',
                             searchoptions: {
                                 defaultValue: "0",
                                 value: _.reduce(app.study_status, function(searchValues, studyStatus) {
-                                    searchValues[studyStatus.id] = studyStatus.status_desc;
+                                    searchValues[studyStatus.status_code] = studyStatus.status_desc;
                                     return searchValues;
-                                }, {"0": "All"})
+                                }, {"": "All"})
                             },
                             formatter: function(cellvalue, model, data) {
                                 return data.study_status_description;
@@ -350,18 +376,115 @@ define(['jquery',
                 var self = this;
 
                 $('#divAutoBillingForm').html(this.AutoBillingFormTemplate({
-                    insuranceProviderPayerTypes: getOptions(app.insurance_provider_payer_types, 'id', 'description', 'code'),
-                    modalities: getOptions(app.modalities, 'modality_code', 'modality_name'),
-                    facilities: getOptions(app.facilities, 'facility_code', 'facility_name'),
-                    country_alpha_3_code: app.country_alpha_3_code,
-                    province_alpha_2_code: app.province_alpha_2_code
+                    // insuranceProviderPayerTypes: getOptions(app.insurance_provider_payer_types, 'id', 'description', 'code'),
+                    // modalities: getOptions(app.modalities, 'modality_code', 'modality_name'),
+                    // facilities: getOptions(app.facilities, 'id', 'facility_name'),
+                    // country_alpha_3_code: app.country_alpha_3_code,
+                    // province_alpha_2_code: app.province_alpha_2_code
                 }));
 
-                // *************** BEGIN CPT Codes SECTION *********************
+                // ***************** BEGIN Studies SECTION *********************
+                $('#ddlAutoBillingStudyStatuses').select2({
+                    data: _.map(app.study_status, function(study_status) {
+                        return {
+                            id: study_status.status_code,
+                            text: formatOptionText(study_status.status_desc, study_status.status_code)
+                        };
+                    }),
+                    placeholder: 'Study Status',
+                    minimumInputLength: 0,
 
+                    templateSelection: function(res) {
+                        if (res && res.id) {
+                            self.pendingAutoBillingStudyStatus = res;
+                            return res.text;
+                        }
+                    }
+                });
+                var $listAutoBillingStudyStatuses = $('#listAutoBillingStudyStatuses');
+                $('#btnAddAutoBillingStudyStatus').off().click(function() {
+                    $listAutoBillingStudyStatuses.append(createOptionElement(
+                        self.pendingAutoBillingStudyStatus.id,
+                        self.pendingAutoBillingStudyStatus.text
+                    ));
+                    self.pendingAutoBillingStudyStatus = null;
+                });
+                $('#btnRemoveAutoBillingStudyStatus').off().click(function() {
+                    $listAutoBillingStudyStatuses.find('option:selected').remove();
+                });
+                // ******************* END Studies SECTION *********************
+
+                // *************** BEGIN Facilities SECTION *********************
+                var $ddlAutoBillingFacility = $('#ddlAutoBillingFacility');
+                $ddlAutoBillingFacility.select2({
+                    data: _.map(app.facilities, function(facility) {
+                        return {
+                            id: facility.id,
+                            text: formatOptionText(facility.facility_name, facility.facility_code)
+                        };
+                    }),
+                    placeholder: 'Facility',
+                    minimumInputLength: 0,
+
+                    templateSelection: function(res) {
+                        if (res && res.id) {
+                            self.pendingAutoBillingFacility = res;
+                            return res.text;
+                        }
+                    }
+                });
+                var $listAutoBillingFacilities = $('#listAutoBillingFacilities');
+                $('#btnAddAutoBillingFacility').off().click(function() {
+                    $listAutoBillingFacilities.append(createOptionElement(
+                        self.pendingAutoBillingFacility.id,
+                        self.pendingAutoBillingFacility.text
+                    ));
+                    self.pendingAutoBillingFacility = null;
+                });
+                $('#btnRemoveAutoBillingFacility').off().click(function() {
+                    $listAutoBillingFacilities.find('option:selected').remove();
+                });
+                // **************** END Facilities SECTION *********************
+
+
+                // ************** BEGIN Modalities SECTION *********************
+                var $ddlAutoBillingModality = $('#ddlAutoBillingModality');
+                $ddlAutoBillingModality.select2({
+                    data: _.map(app.modalities, function(modality) {
+                        return {
+                            id: modality.id,
+                            text: formatOptionText(modality.modality_name, modality.modality_code)
+                        };
+                    }),
+                    placeholder: 'Facility',
+                    minimumInputLength: 0,
+
+                    templateSelection: function(res) {
+                        if (res && res.id) {
+                            self.pendingAutoBillingFacility = res;
+                            return res.text;
+                        }
+                    }
+                });
+                var $listAutoBillingModalities = $('#listAutoBillingModalities');
+                $('#btnAddAutoBillingModality').off().click(function() {
+                    $listAutoBillingModalities.append(createOptionElement(
+                        self.pendingAutoBillingFacility.id,
+                        self.pendingAutoBillingFacility.text
+                    ));
+                    self.pendingAutoBillingFacility = null;
+                });
+                $('#btnRemoveAutoBillingModality').off().click(function() {
+                    $listAutoBillingModalities.find('option:selected').remove();
+                });
+                // *************** END Modalities SECTION *********************
+
+
+
+                // *************** BEGIN CPT Codes SECTION *********************
+                //
                 var facilities = _.map(app.facilities, function(fac) {return fac.id;});
                 var modalities = _.map(app.modalities, function(mod) {return mod.id;});
-
                 var $ddlAutoBillingCptCode = $('#ddlAutoBillingCptCode');
                 $ddlAutoBillingCptCode.select2({
                     ajax: {
@@ -555,7 +678,7 @@ define(['jquery',
                     header: { screen: 'AutoBilling', ext: 'autoBilling' }, buttons: [
                         {
                             value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
-                                self.saveAutoBillingRule();
+                                self.saveAutoBillingRule({});
                             }
                         },
                         {
@@ -581,19 +704,30 @@ define(['jquery',
 
                 var self = this;
 
-                this.autoBillingModel.set({
-                    // base information
+                var autoBillingModelData = {
                     "description": $('#txtAutoBillingDescription').val(),
                     "claim_status_id": $('#ddlAutoBillingClaimStatus').val(),
-                    "study_status_id": 17,  // approved
-                    "inactive": $("#chkAutobillingRuleIsActive").prop('checked'),
+                    "inactive": $("#chkAutobillingRuleIsActive").prop('checked')
+                };
 
-                    // facilities
-                    "facilities": _.map($("#listAutoBillingFacilities option"), function(option) {
-                        return option.value;
-                    }),
-                    "facilitiesExclude": $("input[name=chkAutoBillingFacility]:checked").val() === "isNOT",
+                var facility_ids = _.map($("#listAutoBillingFacilities option"), function(option) {
+                    return option.value;
                 });
+                // if (facility_ids.length) {
+                    autoBillingModelData.facility_ids = facility_ids;
+                    autoBillingModelData.exclude_facilities = $("input[name=chkAutoBillingFacility]:checked").val() === "isNOT";
+                // }
+
+                var study_status_codes = _.map($("#listAutoBillingStudyStatuses option"), function(option) {
+                    return option.value;
+                });
+                // if (study_status_codes.length) {
+                    autoBillingModelData.study_status_codes = study_status_codes;
+                    autoBillingModelData.exclude_study_statuses = $("input[name=chkAutoBillingStudyStatus]:checked").val() === "isNOT";
+                // }
+
+
+                this.autoBillingModel.set(autoBillingModelData);
 
                 this.autoBillingModel.save({
                 }, {
@@ -615,7 +749,9 @@ define(['jquery',
                         commonjs.handleXhrError(model, response);
                     }
                 });
-            }
+            },
+
+
         });
         return AutoBillingView;
     });

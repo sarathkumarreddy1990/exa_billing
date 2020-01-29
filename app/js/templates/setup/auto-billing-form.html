@@ -39,11 +39,60 @@
 
             </div>
 
-            <!-- NEW LAYOUT -->
+            <!-- BEGIN Study Status SECTION -->
             <div class="row" style="margin-top:10px;">
-                <div class="col-sm-6">
 
+                <div class="col-lg-12">
+                    <div class="row">
+                        <legend style="width:98%;">
+                            <h5 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
+                                <label i18n="setup.autoBilling.studyStatus"></label>
+                            </h5>
+                        </legend>
+                    </div>
+
+                    <!-- BEGIN Facilities FIELDS -->
                     <div class="form-group row">
+                        <div class="col-lg-2">
+
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="chkAutoBillingStudyStatus" value="is">
+                                <label i18n="setup.common.is"></label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="chkAutoBillingStudyStatus" value="isNOT">
+                                <label i18n="setup.common.isNot"></label>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <div class="form-group row">
+                                <div class="col-sm-10">
+                                    <select id="ddlAutoBillingStudyStatuses" class="form-control select-box"></select>
+                                </div>
+                                <button type="button" id="btnAddAutoBillingStudyStatus" class="btn btn-primary col-sm-2" name="button">
+                                    <i class="icon-ic-plus"></i>
+                                </button>
+                            </div>
+
+                        </div>
+                        <div class="col-lg-5">
+                            <select id="listAutoBillingStudyStatuses" multiple="multiple" size="5" style="height: 80px;"></select>
+                        </div>
+                        <div class="col-lg-1">
+                            <button id="btnRemoveAutoBillingStudyStatus" class="btn btn-primary"><i class="icon-ic-delete"></i></button>
+                        </div>
+                    </div>
+                    <!-- END Facilities FIELDS -->
+                </div>
+            </div>
+
+
+            <!-- BEGIN Facilities SECTION -->
+            <div class="row" style="margin-top:10px;" id="divAutoBillingFacilities">
+
+                <div class="col-lg-12">
+                    <div class="row">
                         <legend style="width:98%;">
                             <h5 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
                                 <label i18n="setup.autoBilling.facilities"></label>
@@ -51,57 +100,96 @@
                         </legend>
                     </div>
 
+                    <!-- BEGIN Facilities FIELDS -->
                     <div class="form-group row">
-                        <div class="col-sm-2">
+                        <div class="col-lg-2">
+
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" id="chkAutoBillingFacilityIs" name="chkAutoBillingFacility" value="is">
-                                <label class="form-check-label" for="chkAutoBillingFacilityIs" i18n="setup.common.is"></label>
+                                <input class="form-check-input" type="radio" name="chkAutoBillingFacility" value="is">
+                                <label i18n="setup.common.is"></label>
                             </div>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" id="chkAutoBillingFacilityIsNot" name="chkAutoBillingFacility" value="isNOT">
-                                <label class="form-check-label" for="chkAutoBillingFacilityIsNot" i18n="setup.common.isNot"></label>
+                                <input class="form-check-input" type="radio" name="chkAutoBillingFacility" value="isNOT">
+                                <label i18n="setup.common.isNot"></label>
                             </div>
                         </div>
-                        <div class="col-sm-10">
-                            <select id="listAutoBillingFacilities" style="width: 250px; height: 80px;" name="listAutoBillingFacilities" size="6" multiple>
-                            <% _.each(facilities, function(value, key) { %>
-                                <option value="<%= key %>"><%= value %></option>
-                            <%})%>
-                            </select>
+
+                        <div class="col-lg-4">
+                            <div class="form-group row">
+                                <div class="col-sm-10">
+                                    <select id="ddlAutoBillingFacility" class="form-control select-box"></select>
+                                </div>
+                                <button type="button" id="btnAddAutoBillingFacility" class="btn btn-primary col-sm-2" name="button">
+                                    <i class="icon-ic-plus"></i>
+                                </button>
+                            </div>
+
+                        </div>
+                        <div class="col-lg-5">
+                            <select id="listAutoBillingFacilities" multiple="multiple" size="5" style="height: 80px;"></select>
+                        </div>
+                        <div class="col-lg-1">
+                            <button id="btnRemoveAutoBillingFacility" class="btn btn-primary"><i class="icon-ic-delete"></i></button>
                         </div>
                     </div>
+                    <!-- END Facilities FIELDS -->
+
                 </div>
+            </div>
+            <!-- END Facilities SECTION -->
 
+            <!-- BEGIN Modalities SECTION -->
+            <div class="row" style="margin-top:10px;" id="divAutoBillingModalities">
 
-                <div class="col-sm-6">
-                    <div class="form-group row">
+                <div class="col-lg-12">
+                    <div class="row">
                         <legend style="width:98%;">
                             <h5 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
                                 <label i18n="setup.autoBilling.modalities"></label>
                             </h5>
                         </legend>
                     </div>
+
+                    <!-- BEGIN Modalities FIELDS -->
                     <div class="form-group row">
-                        <div class="col-sm-2">
+                        <div class="col-lg-2">
+
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" id="chkAutoBillingModalityIs" name="chkAutoBillingModality" value="is">
-                                <label class="form-check-label" for="chkAutoBillingModalityIs" i18n="setup.common.is"></label>
+                                <input class="form-check-input" type="radio" name="chkAutoBillingModality" value="is">
+                                <label i18n="setup.common.is"></label>
                             </div>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" id="chkAutoBillingModalityIsNot" name="chkAutoBillingModality" value="isNOT">
-                                <label class="form-check-label" for="chkAutoBillingModalityIsNot" i18n="setup.common.isNot"></label>
+                                <input class="form-check-input" type="radio" name="chkAutoBillingModality" value="isNOT">
+                                <label i18n="setup.common.isNot"></label>
                             </div>
                         </div>
-                        <div class="col-sm-10">
-                            <select id="listAutoBillingModalities" style="width: 250px; height: 80px;" name="listAutoBillingModalities" size="6" multiple>
-                            <% _.each(modalities, function(value, key) { %>
-                                <option value="<%= key %>"><%= value %></option>
-                            <%})%>
-                            </select>
+
+                        <div class="col-lg-4">
+                            <div class="form-group row">
+                                <div class="col-sm-10">
+                                    <select id="ddlAutoBillingModality" class="form-control select-box"></select>
+                                </div>
+                                <button type="button" id="btnAddAutoBillingModality" class="btn btn-primary col-sm-2" name="button">
+                                    <i class="icon-ic-plus"></i>
+                                </button>
+                            </div>
+
+                        </div>
+                        <div class="col-lg-5">
+                            <select id="listAutoBillingModalities" multiple="multiple" size="5" style="height: 80px;"></select>
+                        </div>
+                        <div class="col-lg-1">
+                            <button id="btnRemoveAutoBillingModality" class="btn btn-primary"><i class="icon-ic-delete"></i></button>
                         </div>
                     </div>
+                    <!-- END Modalities FIELDS -->
+
                 </div>
             </div>
+            <!-- END Modalities SECTION -->
+
+
+
 
             <!-- BEGIN CPT Codes SECTION -->
             <div class="row" style="margin-top:10px;">

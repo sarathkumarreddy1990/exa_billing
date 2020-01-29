@@ -9,12 +9,13 @@ const logger = require('../../../logger');
 
 const debugCallAndQuery = (params, sql) => {
     logger.info('USING PARAMS: ', params);
-    logger.info('QUERY TEXT: ', sql.text)
-    logger.info('QUERY VALUES: ', sql.values)
-    logger.info('QUERY SQL: ', sql.sql)
+    // logger.info('QUERY TEXT: ', sql.text)
+    // logger.info('QUERY VALUES: ', sql.values)
+    // logger.info('QUERY SQL: ', sql.sql)
 };
 
 const WILDCARD_ID = "0";
+
 
 module.exports = {
 
@@ -22,7 +23,7 @@ module.exports = {
 
         const {
             autobilling_rule_description,
-            study_status_id,
+            study_status,
             claim_status_id,
         } = params;
 
@@ -42,9 +43,9 @@ module.exports = {
             `);
         }
 
-        if (study_status_id && study_status_id !== WILDCARD_ID) {
+        if (study_status) { //} && study_status !== WILDCARD_ID) {
             filterQuery.append(SQL`
-                AND abr.study_status_id = ${study_status_id}
+                AND abr.study_status = ${study_status}
             `);
         }
 
@@ -58,8 +59,6 @@ module.exports = {
             SELECT
                 abr.id
                 , abr.description       AS autobilling_rule_description
-                , abr.study_status_id   AS study_status_id
-                , ss.status_desc        AS study_status_description
                 , abr.claim_status_id   AS claim_status_id
                 , cs.description        AS claim_status_description
                 , abr.inactivated_dt    AS inactivated_dt
@@ -69,7 +68,6 @@ module.exports = {
                     END is_active
             FROM
                 billing.autobilling_rules abr
-                LEFT JOIN public.study_status ss ON ss.id = abr.study_status_id
                 LEFT JOIN billing.claim_status cs ON cs.id = abr.claim_status_id
         `;
 
@@ -82,16 +80,26 @@ module.exports = {
         } = params;
 
         const sql = SQL`
-            SELECT
-                id
-                , description
-                , study_status_id
-                , claim_status_id
-                , inactivated_dt
-            FROM
-                billing.autobilling_rules
-            WHERE
-                id = ${id}
+
+        SELECT
+            abr.id
+            , description
+            , claim_status_id
+            , inactivated_dt
+            , array_agg(study_status_code) as study_status_codes
+            , abr_study_status.excludes as exclude_study_statuses
+            , array_agg(DISTINCT facility_id) as facility_ids
+            , abr_facilities.excludes as exclude_facilities
+        FROM
+            billing.autobilling_rules abr
+            LEFT JOIN billing.autobilling_study_status_rules abr_study_status ON abr_study_status.autobilling_rule_id = abr.id
+            LEFT JOIN billing.autobilling_facility_rules abr_facilities ON abr_facilities.autobilling_rule_id = abr.id
+        WHERE
+            abr.id = ${id}
+        GROUP BY
+            abr.id
+            , abr_study_status.excludes
+            , abr_facilities.excludes
         `;
         return await query(sql);
     },
@@ -101,28 +109,60 @@ module.exports = {
         const {
             description,
             claim_status_id,
-            study_status_id,
-            is_active,
+            inactive,
             userId,
+
+            study_status_codes,
+            exclude_study_statuses,
+
+            facility_ids,
+            exclude_facilities,
+
         } = params;
 
         const sql = SQL`
-            INSERT INTO billing.autobilling_rules (
-                description
-                , claim_status_id
-                , study_status_id
-                , inactivated_dt
-                , created_by
+            WITH abrInsert AS (
+                INSERT INTO billing.autobilling_rules (
+                    description
+                    , claim_status_id
+                    , inactivated_dt
+                    , created_by
+                )
+                VALUES (
+                    ${description}
+                    , ${claim_status_id}
+                    , ${inactive ? 'now()' : null }
+                    , ${userId}
+                )
+                RETURNING id
             )
-            VALUES (
-                ${description}
-                , ${claim_status_id}
-                , ${study_status_id}
-                , ${is_active ? null : 'now()' }
-                , ${userId}
+            , studyStatusesInsert AS (
+                INSERT INTO billing.autobilling_study_status_rules (
+                    autobilling_rule_id
+                    , study_status_code
+                    , excludes
+                )
+                VALUES (
+                    (SELECT id FROM abrInsert)
+                    , UNNEST(${study_status_codes}::text[])
+                    , ${exclude_study_statuses}
+                )
             )
-            RETURNING id
+            , facilitiesInsert AS (
+                INSERT INTO billing.autobilling_facility_rules (
+                    autobilling_rule_id
+                    , facility_id
+                    , excludes
+                )
+                VALUES(
+                    (SELECT id FROM abrInsert)
+                    , UNNEST(${facility_ids}::int[])
+                    , ${exclude_facilities}
+                )
+            )
+            SELECT id FROM abrInsert
         `;
+        debugCallAndQuery(params, sql);
         return await query(sql);
     },
 
@@ -131,33 +171,54 @@ module.exports = {
             id,
             description,
             claim_status_id,
-            study_status_id,
+            study_status,
             inactive,
+
+            study_status_codes,
+            exclude_study_statuses,
+
+            facility_ids,
+            exclude_facilities,
+
         } = params;
 
 
         const sql = SQL`
             WITH
-                facilities_clean_slate AS (
+                facilitiesCleanSlate AS (
                     DELETE FROM billing.autobilling_facility_rules WHERE autobilling_rule_id = ${id}
                 )
-                , insert_autobilling_facilities AS (
-                    INSERT INTO billing.autobilling_facility_rules(
+                , studyStatusesCleanSlate AS (
+                    DELETE FROM billing.autobilling_study_status_rules WHERE autobilling_rule_id = ${id}
+                )
+                , studyStatusesInsert AS (
+                    INSERT INTO billing.autobilling_study_status_rules (
+                        autobilling_rule_id
+                        , study_status_code
+                        , excludes
+                    )
+                    VALUES (
+                        ${id}
+                        , UNNEST(${study_status_codes}::text[])
+                        , ${exclude_study_statuses}
+                    )
+                )
+                , facilitiesInsert AS (
+                    INSERT INTO billing.autobilling_facility_rules (
                         autobilling_rule_id
                         , facility_id
                         , excludes
                     )
                     VALUES(
                         ${id}
-                        , UNNEST()
+                        , UNNEST(${facility_ids}::int[])
+                        , ${exclude_facilities}
                     )
-                    WHERE autobilling_rule_id = ${id}
                 )
 
             UPDATE billing.autobilling_rules
             SET
                 description = ${description}
-                , study_status_id = ${study_status_id}
                 , claim_status_id = ${claim_status_id}
                 , inactivated_dt = ${inactive ? "now()": null}
             WHERE
@@ -186,4 +247,48 @@ module.exports = {
         `;
         return await query(sql);
     },
+
+    executeAutobillingRules: async (params) => {
+        const {
+            studyId,
+            studyStatus,
+        } = params;
+
+
+        const sql = SQL`
+            WITH study_info AS (
+                SELECT
+                    facility_id
+                FROM
+                    studies
+                WHERE
+                    id = ${studyId}
+            )
+            , abr AS (
+                SELECT
+                    id
+                    , claim_status_id
+
+                FROM
+                    billing.autobilling_rules
+                WHERE
+                    study_status = ${studyStatus}
+             )
+             , abr_facilities AS (
+                SELECT
+                    excludes
+                    , facility_id
+                FROM
+                    billing.autobilling_facility_rules
+                    RIGHT JOIN abr ON abr.id = autobilling_rule_id
+             )
+             SELECT * FROM abr_facilities;
+
+        `;
+        debugCallAndQuery(params, sql);
+
+        return await query(sql);
+    },
+
+
 };
