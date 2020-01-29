@@ -619,8 +619,6 @@ const ahsData = {
                         ON nums.patient_id = p.id
                     LEFT JOIN public.cpt_codes cpt
                         ON cpt.id = bch.cpt_id
-                    LEFT JOIN public.study_cpt scpt
-                        ON scpt.study_id = s.id
                     LEFT JOIN public.facilities f
                         ON f.id = s.facility_id
         
@@ -887,7 +885,7 @@ const ahsData = {
             'user_id': user_id
         };
 
-        const sql = SQL` SELECT billing.can_ahs_apply_payments(${default_facility_id}, ${file_id}::BIGINT, ${JSON.stringify(fileData.batches)}::JSONB, ${JSON.stringify(auditDetails)}::JSONB) `;
+        const sql = SQL` SELECT billing.can_ahs_apply_payments(${default_facility_id}, ${file_id}::BIGINT, ${JSON.stringify(fileData)}::JSONB, ${JSON.stringify(auditDetails)}::JSONB) `;
 
         return await query(sql);
     },

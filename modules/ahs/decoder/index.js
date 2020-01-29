@@ -13,17 +13,44 @@ const Parser = {
     parseARDFile: (dataStr) => {
 
         let claims = [];
-        const records = dataStr.split('\n');
+        const records = dataStr.split(/\n/gm);
 
         records.forEach((recordStr) => {
 
             try {
-                if (recordStr.trim().length) {
-                    claims.push(RemittanceAdviceParser.parseRecord(recordStr, RemittanceAdviceFields));
+                /**
+                 * Don't include the header, trailer or empty rows
+                 */
+                let value = recordStr.trim();
+                if ( value && !/(HEADER|TRAILER)\s*$/i.test(value) && value.length === 234 ) {
+                    const ardRecord = RemittanceAdviceParser.parseRecord(recordStr, RemittanceAdviceFields);
+                    if ( ardRecord.explanationCodes ) {
+                        const codes = [];
+                        for ( let i = 0; i < ardRecord.explanationCodes.length; i += 5 ) {
+                            const code = ardRecord.explanationCodes.slice(i, i + 5);
+                            if ( code ) {
+                                codes.push(code);
+                            }
+                        }
+                        ardRecord.explanationCodes = codes.join();
+                    }
+
+                    if ( ardRecord.feeModifiers ) {
+                        const mods = [];
+                        for ( let i = 0; i < ardRecord.feeModifiers.length; i += 6 ) {
+                            const mod = ardRecord.feeModifiers.slice(i, i + 6);
+                            if ( mod ) {
+                                mods.push(mod);
+                            }
+                        }
+                        ardRecord.feeModifiers = mods.join();
+                    }
+
+                    claims.push(ardRecord);
                 }
             }
             catch (err) {
-                logger.error(` Error occured in file parsing '${err}'`);
+                logger.error(` Error occurred in file parsing '${err}'`);
             }
         });
 
@@ -31,7 +58,7 @@ const Parser = {
     },
 
     /***
-     * Below function used to parse segments and pushing segments into batches based on 
+     * Below function used to parse segments and pushing segments into batches based on
      * Customer submitter Prefix, Current year, Submitter Sequence #, start Seq #, End Seq #
      * {param} string - Segment string from batch balance File
      * {param} ARRAY - Parsed Batch Information
@@ -68,14 +95,14 @@ const Parser = {
     /***
      * Below function used to parse Batch Balance File
      * Identify batch row based on Submitter Prefix (i.e first 3 charecter should match with configured customer Prefix)
-     * {param} File data 
+     * {param} File data
      */
     parseBatchBalanceFile: (dataStr) => {
         let result = { batches: [] };
         let records = dataStr.split('\n');
         let segmentIndex;
         let isSegmentPresent;
-        let customerPrefix = 'HYO' //To Do: Get submitter Prefix from Company settings 
+        let customerPrefix = 'HYO' //To Do: Get submitter Prefix from Company settings
 
         /**
          * Parse Batch Informations based on First 3 character should match with customer prefix (eg: 'HYO')

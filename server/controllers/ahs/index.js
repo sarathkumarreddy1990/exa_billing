@@ -6,6 +6,12 @@ const logger = require('../../../logger');
 const fs = require('fs');
 const _ = require('lodash');
 
+const {
+    promisify,
+} = require('util');
+
+const readFileAsync = promisify(fs.readFile);
+
 const ahsController = {
 
      /***
@@ -13,7 +19,7 @@ const ahsController = {
      * @param {data} Object {
      *                      ip
      *                      }
-     *              
+     *
      */
     processFile: async (args) => {
         const data = {
@@ -26,7 +32,7 @@ const ahsController = {
         let filesList = await ahsData.getFilesList(data);
 
         if (!filesList.rows || (filesList.rows && !filesList.rows.length) ) {
-            logger.logInfo('Pending files not available to process');
+            logger.info('Pending files not available to process');
             return {err: 'No pending records found'};
         }
 
@@ -36,7 +42,7 @@ const ahsController = {
                 file_path,
                 uploaded_file_name,
                 file_type,
-                file_id, 
+                file_id,
                 log_details
             } = file;
 
@@ -44,13 +50,13 @@ const ahsController = {
             let fileContent;
 
             try {
-                fileContent = fs.readFileSync(filePath, 'utf8');
+                fileContent = await readFileAsync(filePath, 'utf8');
             }
             catch (e) {
-                logger.logError('Error in file read', e);
+                logger.error(`Error in file read - ${filePath}`, e);
             }
 
-            let fileData = await ahsController.decode(file_type, fileContent);
+            let fileData = ahsController.decode(file_type, fileContent);
 
             await ahsData.updateFileStatus({
                 status: 'in_progress',
@@ -58,6 +64,8 @@ const ahsController = {
             });
 
             let result = await ahsController.process({
+                company_id: args.company_id,
+                companyId: args.companyId,
                 fileData,
                 file_type,
                 file_id,
@@ -76,14 +84,14 @@ const ahsController = {
     },
 
      /***
-     * Function used to parce the Batch balance and ARD file to JSON format
+     * Function used to parse the Batch balance and ARD file to JSON format
      * @param {data} Object {
      *                      file_type,
      *                      fileData
      *                      }
-     *              
+     *
      */
-    decode: async(fileType, fileData) => {
+    decode: (fileType, fileData) => {
 
         if(fileType === 'can_ahs_bbr') {
             return parser.parseBatchBalanceFile(fileData);
@@ -100,11 +108,11 @@ const ahsController = {
      *                      fileData
      *                      log_details
      *                      }
-     *              
+     *
      */
     process: async (data) => {
         let {
-            file_type,            
+            file_type,
         } = data;
 
         if (file_type === 'can_ahs_bbr') {

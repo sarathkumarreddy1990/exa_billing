@@ -78,7 +78,7 @@ module.exports = {
                     provider_contacts pc ON pc.provider_id = p.id
             WHERE
                 p.deleted_dt IS NULL
-                AND NOT pc.has_deleted
+                AND pc.deleted_dt IS NULL
                 AND p.is_active /* public.providers.is_active */
                 AND p.company_id = ${params.company_id}
                 AND p.provider_type = ${params.provider_type}
@@ -435,8 +435,8 @@ module.exports = {
                                      ,COUNT(1) OVER (range unbounded preceding) AS total_records
                                 FROM provider_groups
                                 WHERE
-                                    NOT provider_groups.deleted_dt IS NULL
-                                    AND provider_groups.company_id = ${params.company_id} 
+                                    provider_groups.deleted_dt IS NULL
+                                    AND provider_groups.company_id = ${companyId}
                                     AND is_active `;
 
         if (q != '') {
