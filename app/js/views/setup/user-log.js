@@ -218,7 +218,7 @@ define([
                         var clientInfo = commonjs.hstoreParse(response.detailed_info);
                         $("#userName").html(response.username);
                         $("#logInDt").html(self.dateFormatter(response.logged_dt));
-                        $("#screenName").html(response.username);
+                        $("#screenName").html(response.screen_name);
                         $("#browser").html(clientInfo.browser);
                         $("#browserVersion").html(clientInfo.browserversion);
                         $("#operatingSystem").html(clientInfo.os);

@@ -84,6 +84,7 @@ module.exports = {
                                 ELSE TRIM(u.first_name)
                             END  as username
                             , al.logged_dt
+                            , al.screen_name
                         FROM
                             users u
                         INNER JOIN audit_log al ON al.user_id = u.id
