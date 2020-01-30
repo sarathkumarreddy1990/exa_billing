@@ -29,7 +29,7 @@ module.exports = {
 
         let filterQuery = SQL`
             WHERE
-                abr.deleted_dt is null
+                cabr.deleted_dt is null
         `;
 
         if (autobilling_rule_description) {
@@ -39,39 +39,56 @@ module.exports = {
             }
             term += '%';
             filterQuery.append(SQL`
-                AND abr.description ILIKE ${term}
+                AND cabr.description ILIKE ${term}
             `);
         }
 
         if (study_status) { //} && study_status !== WILDCARD_ID) {
             filterQuery.append(SQL`
-                AND abr.study_status = ${study_status}
+                AND ${study_status} = ANY(cabr.study_status_codes)
             `);
         }
 
         if (claim_status_id && claim_status_id !== WILDCARD_ID) {
             filterQuery.append(SQL`
-                AND abr.claim_status_id = ${claim_status_id}
+                AND cabr.claim_status_id = ${claim_status_id}
             `);
         }
 
         const selectionQuery = SQL`
+            WITH cteAutobillingRule AS (
+                SELECT
+                    abr.id
+                    , abr.description               AS autobilling_rule_description
+                    , abr.claim_status_id           AS claim_status_id
+                    , array_agg(study_status_code)  AS study_status_codes
+                    , CASE
+                        WHEN abr.inactivated_dt is null THEN true
+                        ELSE false
+                        END is_active
+                    , deleted_dt
+                FROM
+                    billing.autobilling_rules abr
+                    LEFT JOIN billing.autobilling_study_status_rules abssr ON abssr.autobilling_rule_id = abr.id
+                GROUP BY abr.id, abr.description
+            )
             SELECT
-                abr.id
-                , abr.description       AS autobilling_rule_description
-                , abr.claim_status_id   AS claim_status_id
-                , cs.description        AS claim_status_description
-                , abr.inactivated_dt    AS inactivated_dt
-                , CASE
-                    WHEN abr.inactivated_dt is null THEN true
-                    ELSE false
-                    END is_active
+                cabr.id
+                , cabr.autobilling_rule_description
+                , cabr.claim_status_id
+                , cabr.study_status_codes
+                , cs.description                AS claim_status_description
+                , cabr.is_active
             FROM
-                billing.autobilling_rules abr
-                LEFT JOIN billing.claim_status cs ON cs.id = abr.claim_status_id
+                cteAutobillingRule cabr
+                LEFT JOIN billing.claim_status cs ON cs.id = cabr.claim_status_id
+
+
         `;
 
-        return await query(selectionQuery.append(filterQuery));
+        return await query(selectionQuery.append(filterQuery).append(SQL`
+            ORDER BY cabr.id
+        `));
     },
 
     getAutobillingRule: async (params) => {
@@ -162,7 +179,6 @@ module.exports = {
             )
             SELECT id FROM abrInsert
         `;
-        debugCallAndQuery(params, sql);
         return await query(sql);
     },
 
@@ -226,8 +242,6 @@ module.exports = {
             RETURNING ${id}
         `;
 
-        debugCallAndQuery(params, sql);
-
         return await query(sql);
 
     },
@@ -256,33 +270,7 @@ module.exports = {
 
 
         const sql = SQL`
-            WITH study_info AS (
-                SELECT
-                    facility_id
-                FROM
-                    studies
-                WHERE
-                    id = ${studyId}
-            )
-            , abr AS (
-                SELECT
-                    id
-                    , claim_status_id
 
-                FROM
-                    billing.autobilling_rules
-                WHERE
-                    study_status = ${studyStatus}
-             )
-             , abr_facilities AS (
-                SELECT
-                    excludes
-                    , facility_id
-                FROM
-                    billing.autobilling_facility_rules
-                    RIGHT JOIN abr ON abr.id = autobilling_rule_id
-             )
-             SELECT * FROM abr_facilities;
 
         `;
         debugCallAndQuery(params, sql);

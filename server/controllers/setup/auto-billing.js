@@ -2,25 +2,15 @@ const data = require('../../data/setup/auto-billing');
 
 module.exports = {
 
-    getAutobillingRules: (params) => {
-        return data.getAutobillingRules(params);
-    },
+    getAutobillingRules: data.getAutobillingRules,
 
-    getAutobillingRule: (params) => {
-        return data.getAutobillingRule(params);
-    },
+    getAutobillingRule: data.getAutobillingRule,
 
-    createAutobillingRule: (params) => {
-        return data.createAutobillingRule(params);
-    },
+    createAutobillingRule: data.createAutobillingRule,
 
-    updateAutobillingRule: (params) => {
-        return data.updateAutobillingRule(params);
-    },
+    updateAutobillingRule: data.updateAutobillingRule,
 
-    deleteAutobillingRule: (params) => {
-        return data.deleteAutobillingRule(params);
-    },
+    deleteAutobillingRule: data.deleteAutobillingRule,
 
     executeAutobillingRules: data.executeAutobillingRules,
 

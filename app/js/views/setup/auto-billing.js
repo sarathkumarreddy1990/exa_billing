@@ -103,11 +103,12 @@ define(['jquery',
         var loadAutobillingRule = function(response) {
             var data = response[0];
             console.log('sumbitch')
-            $("#chkAutobillingRuleIsActive").prop('checked', !!data.inactivated_dt);
+            $("#chkAutobillingRuleIsActive").prop('checked', data.is_active);
             $("#txtAutoBillingDescription").val(data.description);
             // $("#ddlAutoBillingStudyStatus").val(data.study_status_id);   // TODO
             $("#ddlAutoBillingClaimStatus").val(data.claim_status_id);
 
+            $("input[name=chkAutoBillingStudyStatus][value='"+ (data.exclude_study_statuses ? 'isNOT' : 'is') +"']").prop('checked', true);
             var ruleStudyStatuses = _.map(data.study_status_codes, function(study_status_code) {
                 var study_status = _.find(app.study_status, function(study_status) {
                     return study_status.status_code === study_status_code;
@@ -119,6 +120,7 @@ define(['jquery',
             });
             $("#listAutoBillingStudyStatuses").append(ruleStudyStatuses);
 
+            $("input[name=chkAutoBillingFacility][value='"+ (data.exclude_facilities ? 'isNOT' : 'is') +"']").prop('checked', true);
             var ruleFacilities = _.map(data.facility_ids, function(facility_id) {
                 var ruleFacility = _.find(app.facilities, function(facility) {
                     return facility.id === facility_id;
@@ -274,14 +276,14 @@ define(['jquery',
                             search: true,
                             stype: 'select',
                             searchoptions: {
-                                defaultValue: "0",
+                                defaultValue: "",
                                 value: _.reduce(app.study_status, function(searchValues, studyStatus) {
-                                    searchValues[studyStatus.status_code] = studyStatus.status_desc;
+                                    searchValues[studyStatus.status_code] = formatOptionText(studyStatus.status_desc, studyStatus.status_code);
                                     return searchValues;
                                 }, {"": "All"})
                             },
                             formatter: function(cellvalue, model, data) {
-                                return data.study_status_description;
+                                return data.study_status_codes.join(', ');
                             }
                         },
                         {
@@ -713,18 +715,14 @@ define(['jquery',
                 var facility_ids = _.map($("#listAutoBillingFacilities option"), function(option) {
                     return option.value;
                 });
-                // if (facility_ids.length) {
-                    autoBillingModelData.facility_ids = facility_ids;
-                    autoBillingModelData.exclude_facilities = $("input[name=chkAutoBillingFacility]:checked").val() === "isNOT";
-                // }
+                autoBillingModelData.facility_ids = facility_ids;
+                autoBillingModelData.exclude_facilities = $("input[name=chkAutoBillingFacility]:checked").val() === "isNOT";
 
                 var study_status_codes = _.map($("#listAutoBillingStudyStatuses option"), function(option) {
                     return option.value;
                 });
-                // if (study_status_codes.length) {
-                    autoBillingModelData.study_status_codes = study_status_codes;
-                    autoBillingModelData.exclude_study_statuses = $("input[name=chkAutoBillingStudyStatus]:checked").val() === "isNOT";
-                // }
+                autoBillingModelData.study_status_codes = study_status_codes;
+                autoBillingModelData.exclude_study_statuses = $("input[name=chkAutoBillingStudyStatus]:checked").val() === "isNOT";
 
 
                 this.autoBillingModel.set(autoBillingModelData);
