@@ -134,7 +134,7 @@ module.exports = {
                                         p.account_no AS patient_account_no,
                                         p.birth_date AS patient_dob,
                                         p.gender AS patient_gender,
-                                        p.alerts,
+                                        get_patient_alerts_to_jsonb(p.id, TRUE) AS alerts,
                                         p.patient_info,
                                         facilities.can_ahs_business_arrangement AS can_ahs_business_arrangement_facility,
                                         studies_details.can_ahs_locum_arrangement_provider
@@ -508,7 +508,7 @@ module.exports = {
                     , (SELECT alt_account_no FROM patient_alt_accounts LEFT JOIN issuers i ON i.id = issuer_id WHERE patient_id = p.id AND i.issuer_type = 'uli' AND province_alpha_2_code = 'ab' LIMIT 1) AS can_ahs_uli
                     , (SELECT alt_account_no FROM patient_alt_accounts LEFT JOIN issuers i ON i.id = issuer_id WHERE patient_id = p.id AND i.issuer_type = 'phn' AND is_primary LIMIT 1) AS can_ahs_phn
                     , (SELECT province_alpha_2_code FROM patient_alt_accounts LEFT JOIN issuers i ON i.id = issuer_id WHERE patient_id = p.id AND i.issuer_type = 'phn' AND is_primary LIMIT 1) AS can_ahs_phn_province
-                    , p.alerts
+                    , get_patient_alerts_to_jsonb(p.id, TRUE) AS alerts
                     , p.patient_info
                     , ref_pr.full_name AS ref_prov_full_name
                     , ref_pr.provider_code AS ref_prov_code
@@ -890,7 +890,7 @@ module.exports = {
 				            ,p.birth_date AS patient_dob
 				            ,p.gender AS patient_gender
                             ,p.account_no AS patient_account_no
-                            ,p.alerts
+                            ,get_patient_alerts_to_jsonb(p.id, TRUE) AS alerts
                             ,f.id AS facility_id
                             ,fs.default_provider_id AS billing_provider_id
                             ,COALESCE(NULLIF(f.facility_info->'service_facility_id',''),'0')::numeric AS service_facility_id

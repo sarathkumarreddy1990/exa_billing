@@ -27,7 +27,7 @@ module.exports = {
                             patients.last_edit_by,
                             patients.patient_info,
                             patient_notes_to_json(patients.id),
-                            patients.alerts,
+                            get_patient_alerts_to_jsonb(patients.id, TRUE) AS alerts,
                             patients.facility_id,
                             patients.company_id,
                             patients.is_active,

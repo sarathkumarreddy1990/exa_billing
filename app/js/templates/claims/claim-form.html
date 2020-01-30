@@ -607,6 +607,20 @@
                         <textarea id="txtSupportingText" name="SupportingText" class="form-control form-control-lg" maxlength="36500"></textarea>
                     </div>
                 </div>
+                <% if (billingRegionCode === 'can_AB') { %>
+                <div class="form-group row">
+                    <!-- Supporting Text -->
+                    <label class="col-sm-3 col-form-label"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlSupportingTextOptions" style="height:32px;">
+                            <option value="" i18n="shared.buttons.select"></option>
+                        </select>
+                    </div>
+                    <div class="col-sm-2">
+                        <div id='btnAddSupportingText' class='btn btn-primary' i18n="shared.screens.setup.insertSupportingText"></div>
+                    </div>
+                </div>
+                <% } %>
                 <div class="form-group row">
                     <!-- Chart Number -->
                     <label for="spChartNumber" class="col-sm-3 col-form-label" i18n="billing.payments.chartNumber"></label>
@@ -1552,10 +1566,15 @@
                     <label for="ddlFrequencyCode" class="col-sm-3 col-form-label" i18n="billing.claims.frequencyCode"></label>
                     <div class="col-sm-5">
                         <select class="form-control select-box" id="ddlFrequencyCode" style="height:32px;">
+                            <% if (billingRegionCode !== 'can_AB') { %>
                             <option value="" i18n="shared.buttons.select">Select</option>
                             <option value="original" i18n="billing.claims.original"></option>
                             <option value="corrected" i18n="billing.claims.corrected"></option>
                             <option value="void" i18n="billing.claims.void"></option>
+                            <% } else { %>
+                            <option value="" i18n="billing.claims.actionCodeAuto"></option>
+                            <option value="corrected" i18n="billing.claims.actionCodeChange"></option>
+                            <% } %>
                         </select>
                     </div>
                 </div>

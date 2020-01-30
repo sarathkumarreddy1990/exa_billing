@@ -78,7 +78,7 @@ module.exports = {
                     provider_contacts pc ON pc.provider_id = p.id
             WHERE
                 p.deleted_dt IS NULL
-                AND NOT pc.has_deleted
+                AND pc.deleted_dt IS NULL
                 AND p.is_active /* public.providers.is_active */
                 AND p.company_id = ${params.company_id}
                 AND p.provider_type = ${params.provider_type}

@@ -32,7 +32,7 @@ const ahsController = {
         let filesList = await ahsData.getFilesList(data);
 
         if (!filesList.rows || (filesList.rows && !filesList.rows.length) ) {
-            logger.logInfo('Pending files not available to process');
+            logger.info('Pending files not available to process');
             return {err: 'No pending records found'};
         }
 
@@ -53,7 +53,7 @@ const ahsController = {
                 fileContent = await readFileAsync(filePath, 'utf8');
             }
             catch (e) {
-                logger.logError(`Error in file read - ${filePath}`, e);
+                logger.error(`Error in file read - ${filePath}`, e);
             }
 
             let fileData = ahsController.decode(file_type, fileContent);
@@ -64,6 +64,8 @@ const ahsController = {
             });
 
             let result = await ahsController.process({
+                company_id: args.company_id,
+                companyId: args.companyId,
                 fileData,
                 file_type,
                 file_id,

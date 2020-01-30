@@ -16,6 +16,7 @@ define([
     'routes/setup/edi-clearinghouses',
     'routes/setup/validations',
     'routes/setup/status-color-codes',
+    'routes/setup/supporting-text',
     'routes/setup/audit-log',
     'routes/setup/user-log',
     'routes/setup/edi-templates',
@@ -42,6 +43,7 @@ define([
     EdiClearingHousesRoute,
     ValidationsRoute,
     StatusColorCodesRoute,
+    SupportingTextRoute,
     AuditLogRoute,
     UserLogRoute,
     EDITemplatesRoute,
@@ -65,6 +67,7 @@ define([
                 "edi_clearinghouses/*subroute" : "startEDIClearingHouses",
                 "validations/*subroute" : "startValidations",
                 "status_color_codes/*subroute" : "startStatusColorCodes",
+                "supporting_text/*subroute" : "startSupportingText",
                 "audit_log/*subroute" : "startAuditLog",
                 "user_log/*subroute" : "startUserLog",
                 "edi_templates/*subroute" : "startEDITemplates",
@@ -217,6 +220,16 @@ define([
                 if (this.checkLicense('StatusColorCodes') && !this.statusColorCodesRouter) {
                     this.defaultArgs.routePrefix = 'setup/status_color_codes/';
                     this.statusColorCodesRouter = new StatusColorCodesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startSupportingText: function () {
+
+                if (this.checkLicense('SupportingText') && !this.supportingTextRouter) {
+                    this.defaultArgs.routePrefix = 'setup/supporting_text/';
+                    this.supportingTextRouter = new SupportingTextRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();
                 }

@@ -5,7 +5,7 @@
   },
   "txnTagNumber": {
     "startPos": 16,
-    "fieldLength": 19
+    "fieldLength": 4
   },
   "actionCode": {
     "startPos": 20,
@@ -71,7 +71,7 @@
   },
   "feeModifiers": {
     "startPos": 140,
-    "fieldLength": 60
+    "fieldLength": 48
   },
   "FRReferenceNumber": {
     "startPos": 188,
