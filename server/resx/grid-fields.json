@@ -428,6 +428,21 @@
         },
         {
             "id": 43,
+            "field_name": "Insurance Providers",
+            "i18n_name": "setup.userSettings.insuranceProviders",
+            "field_info": {
+                "custom_name": "Insurance Providers",
+                "name": "insurance_providers",
+                "width": 200,
+                "searchFlag": "%",
+                "stype": "select",
+                "sortable": false,
+                "search": true
+            },
+            "field_code": "insurance_providers"
+        },
+        {
+            "id": 44,
             "field_name": "Claim Action",
             "i18n_name": "billing.claims.canAhs.claimAction",
             "field_info": {

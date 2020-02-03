@@ -749,6 +749,20 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     },
                     "field_code": "ins_provider_type"
                 },
+                "Insurance Providers": {
+                    "id": 43,
+                    "field_name": "Insurance Providers",
+                    "i18n_name": "setup.userSettings.insuranceProviders",
+                    "field_info": {
+                        "custom_name": "Insurance Providers",
+                        "name": "insurance_providers",
+                        "width": 200,
+                        "search": true,
+                        "sortable": true,
+                        "defaultValue": ""
+                    },
+                    "field_code": "insurance_providers"
+                },
                 "Payment ID": {
                     "id": 33,
                     "field_name": "Payment ID",
