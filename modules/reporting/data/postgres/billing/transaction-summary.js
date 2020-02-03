@@ -122,7 +122,7 @@ const transactionSummaryByDateDataSetQueryTemplate = _.template(`
     ),
     charge_summary AS (
         SELECT
-            Date_trunc('day', bc.claim_dt) AS txn_month,
+            DATE_TRUNC('day', to_facility_date(bc.facility_id, bc.claim_dt)) AS txn_month,
             SUM(bill_fee*units) AS charge
         FROM
              billing.charges bch
@@ -134,7 +134,7 @@ const transactionSummaryByDateDataSetQueryTemplate = _.template(`
             <% if (facilityIds) { %>AND <% print(facilityIds); } %>
             <% if(billingProID) { %> AND <% print(billingProID); } %>
         GROUP BY
-            (date_trunc('day', bc.claim_dt) )
+            (DATE_TRUNC('day', to_facility_date(bc.facility_id, bc.claim_dt)))
     ),
     transction_summary_amount_by_day AS (
         SELECT

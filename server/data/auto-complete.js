@@ -106,35 +106,26 @@ module.exports = {
             sortOrder = "ASC"
         } = params;
 
-        // If only one character is entered, only search terms that start with that character.
-        if (term.length > 1) {
-            term = `%${term}`;
+        let ics_search = ` AND (code ILIKE '%${params.q}%' OR description ILIKE '%${params.q}%' ) `;
+
+        const icd_sql = SQL`SELECT
+                                       id
+                                     , code
+                                     , description
+                                     , code_type
+                                     , COUNT(1) OVER (range unbounded preceding) AS total_records
+                                FROM icd_codes AS icd
+                                WHERE
+                                    icd.is_active AND NOT icd.has_deleted AND icd.company_id = ${params.company_id} `; // icd_codes.has_deleted icd_codes.is_active
+
+        if (params.q != '') {
+            icd_sql.append(ics_search);
         }
 
-        const icd_sql = SQL`
-            SELECT
-                id,
-                code,
-                description,
-                code_type,
-                COUNT(1) OVER (range unbounded preceding) AS total_records
-            FROM
-                icd_codes AS icd
-            WHERE
-                    icd.is_active
-                AND icd.deleted_dt IS NULL
-                AND icd.company_id = ${company_id} `; // icd_codes.has_deleted icd_codes.is_active
-
-        if (term) {
-            icd_sql.append(`
-                AND (code ILIKE '${term}%' OR description ILIKE '${term}%' ) `);
-        }
-
-        icd_sql.append(SQL`
-            ORDER BY ${sortField} `).append(sortOrder).append(SQL`
-            LIMIT ${pageSize}
-            OFFSET ${ (page - 1) * pageSize }
-        `);
+        icd_sql.append(SQL` ORDER BY  ${params.sortField} `)
+            .append(params.sortOrder)
+            .append(SQL` LIMIT ${params.pageSize}`)
+            .append(SQL` OFFSET ${((params.page - 1) * params.pageSize)}`);
 
         return await query(icd_sql);
     },
@@ -365,7 +356,7 @@ module.exports = {
             user_role_sql.append(users_role_q);
         }
 
-        user_role_sql.append(SQL`ORDER BY  ${params.sortField}`)
+        user_role_sql.append(SQL`ORDER BY ${params.sortField}`)
             .append(SQL` `)
             .append(params.sortOrder)
             .append(SQL` LIMIT ${params.pageSize}`)
@@ -375,9 +366,15 @@ module.exports = {
     },
 
     insurance_payer_types: async function (params) {
+        let {
+            q,
+            sortField,
+            sortOrder,
+            pageSize,
+            page
+        } = params;
 
-        let payer_q = ` AND (description ILIKE '%${params.q}%' OR code ILIKE '%${params.q}%' ) `;
-
+        let payer_q = ` AND (description ILIKE '%${q}%' OR code ILIKE '%${q}%' ) `;
         const sqlInsurancePayerType = SQL`
             SELECT
                 id
@@ -389,13 +386,15 @@ module.exports = {
             WHERE
             inactivated_dt IS  NULL `;
 
-        if (params.q != '') {
+        if (q != '') {
             sqlInsurancePayerType.append(payer_q);
         }
 
-        sqlInsurancePayerType.append(SQL`ORDER BY  ${params.sortField}`)
+        sqlInsurancePayerType.append(SQL`ORDER BY  ${sortField}`)
             .append(SQL` `)
-            .append(params.sortOrder);
+            .append(sortOrder)
+            .append(SQL` LIMIT ${pageSize}`)
+            .append(SQL` OFFSET ${((page * pageSize) - pageSize)}`);
 
         return await query(sqlInsurancePayerType);
     },
@@ -436,7 +435,7 @@ module.exports = {
                                 FROM provider_groups
                                 WHERE
                                     provider_groups.deleted_dt IS NULL
-                                    AND provider_groups.company_id = ${companyId}
+                                    AND provider_groups.company_id = ${params.companyId}
                                     AND is_active `;
 
         if (q != '') {
