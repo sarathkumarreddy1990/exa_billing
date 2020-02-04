@@ -207,7 +207,12 @@ const colModel = [
                 WHEN (claims.frequency != 'corrected' OR claims.frequency IS NULL) 
                 THEN 'new_claim' END)`],
         searchFlag: '='
-    }
+    },
+    {
+        name: 'insurance_providers'
+        , searchColumns: [`insurance_providers.insurance_name`]
+        , searchFlag: '%'
+    },
 ];
 
 const api = {
@@ -298,6 +303,7 @@ const api = {
             case 'ins_provider_type': return 'insurance_provider_payer_types.description';
             case 'icd_description': return 'claim_icds.description';
             case 'claim_action': return 'claims.frequency';
+            case 'insurance_providers': return `insurance_providers.insurance_name`;
         }
 
         return args;
@@ -545,7 +551,25 @@ const api = {
                  THEN 'corrected_claim'
                  WHEN (claims.frequency != 'corrected' OR claims.frequency IS NULL) 
                  THEN 'new_claim'
-              END) AS claim_action`
+              END) AS claim_action`,
+            `(
+                SELECT
+                   array_agg(insurance_name) 
+                FROM
+                   insurance_providers 
+                WHERE
+                   EXISTS
+                   (
+                      SELECT
+                         insurance_provider_id 
+                      FROM
+                         patient_insurances 
+                      WHERE
+                         id = primary_patient_insurance_id 
+                         OR id = secondary_patient_insurance_id 
+                         OR id = tertiary_patient_insurance_id 
+                   )
+                ) AS insurance_providers`,
         ];
 
         if(args.customArgs.filter_id=='Follow_up_queue'){
