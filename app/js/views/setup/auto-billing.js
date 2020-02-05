@@ -34,12 +34,50 @@ define(['jquery',
             return '<option value=' + id + '>' + formatOptionText(descriptionText, codeText) + '</option>';
         };
 
+        var getSelectedModalities = function() {
+            return _.map($("#listAutoBillingModalities option"), function(option) {
+                return option.value;
+            });
+        };
+
+        var getSelectedCptCodes = function() {
+            return _.map($("#listAutoBillingCptCodes option"), function(option) {
+                return option.value;
+            });
+        };
+
+        var enableCptCodes = function(enabled) {
+            $('#divAutoBillingCptCodes .autobilling-input').prop('disabled', !enabled);
+        };
+        var enableModalities = function(enabled) {
+            $('#divAutoBillingModalities .autobilling-input').prop('disabled', !enabled);
+        };
+
+        var modalitiesChanged = function() {
+            if (getSelectedModalities().length) {
+                enableCptCodes(false);
+            }
+            else {
+                enableCptCodes(true);
+            }
+        };
+
+        var cptCodesChanged = function() {
+            if (getSelectedCptCodes().length) {
+                enableModalities(false);
+            }
+            else {
+                enableModalities(true);
+            }
+        };
+
+
+
         var loadAutobillingRule = function(response) {
             var data = response[0];
 
             $("#chkAutobillingRuleIsActive").prop('checked', !data.is_active);
             $("#txtAutoBillingDescription").val(data.autobilling_rule_description);
-            // $("#ddlAutoBillingStudyStatus").val(data.study_status_id);   // TODO
             $("#ddlAutoBillingClaimStatus").val(data.claim_status_id);
 
             $("input[name=chkAutoBillingStudyStatus][value='"+ (data.exclude_study_statuses ? 'isNOT' : 'is') +"']").prop('checked', true);
@@ -71,6 +109,7 @@ define(['jquery',
                     });
                 });
                 $("#listAutoBillingModalities").append(ruleModalities);
+                modalitiesChanged();
             }
 
             if (data.exclude_cpt_codes !== null) {
@@ -82,6 +121,7 @@ define(['jquery',
                     });
                 });
                 $("#listAutoBillingCptCodes").append(ruleCptCodes);
+                cptCodesChanged();
             }
 
             if (data.exclude_insurance_provider_payer_types !== null) {
@@ -377,9 +417,11 @@ define(['jquery',
                         self.pendingAutoBillingModality.text
                     ));
                     self.pendingAutoBillingModality = null;
+                    modalitiesChanged();
                 });
                 $('#btnRemoveAutoBillingModality').off().click(function() {
                     $listAutoBillingModalities.find('option:selected').remove();
+                    modalitiesChanged();
                 });
                 // *************** END Modalities SECTION *********************
 
@@ -438,9 +480,12 @@ define(['jquery',
                     ));
                     $ddlAutoBillingCptCode.empty();
                     self.pendingAutoBillingCptCode = null;
+                    cptCodesChanged();
+
                 });
                 $('#btnRemoveAutoBillingCptCode').off().click(function() {
                     $listAutoBillingCptCodes.find('option:selected').remove();
+                    cptCodesChanged();
                 });
                 // ***************** END CPT Codes SECTION *********************
 
@@ -567,7 +612,6 @@ define(['jquery',
                     this.autoBillingModel.set({ id: id });
                     this.autoBillingModel.fetch({
                         success: function (model, response) {
-                            console.log(response);
                             if (response && response.length > 0) {
                                 loadAutobillingRule(response);
                             }
@@ -612,12 +656,26 @@ define(['jquery',
                     "inactive": $("#chkAutobillingRuleIsActive").prop('checked')
                 };
 
+                if (!autoBillingModelData.description) {
+                    commonjs.showWarning('setup.autoBilling.providerDescription');
+                    return;
+                }
+
                 var study_status_codes = _.map($("#listAutoBillingStudyStatuses option"), function(option) {
                     return option.value;
                 });
-                autoBillingModelData.study_status_codes = study_status_codes;
-                autoBillingModelData.exclude_study_statuses = $("input[name=chkAutoBillingStudyStatus]:checked").val() === "isNOT";
 
+                var exclude_study_statuses = $("input[name=chkAutoBillingStudyStatus]:checked").val();
+                if (!study_status_codes.length) {
+                    commonjs.showWarning('setup.autoBilling.selectStudyStatus');
+                    return;
+                }
+                if (!exclude_study_statuses){
+                    commonjs.showWarning('setup.autoBilling.selectStudyStatusCondition');
+                    return;
+                }
+                autoBillingModelData.study_status_codes = study_status_codes;
+                autoBillingModelData.exclude_study_statuses = exclude_study_statuses === "isNOT";
 
                 var facility_ids = _.map($("#listAutoBillingFacilities option"), function(option) {
                     return option.value;
@@ -625,15 +683,11 @@ define(['jquery',
                 autoBillingModelData.facility_ids = facility_ids;
                 autoBillingModelData.exclude_facilities = $("input[name=chkAutoBillingFacility]:checked").val() === "isNOT";
 
-                var modality_ids = _.map($("#listAutoBillingModalities option"), function(option) {
-                    return option.value;
-                });
+                var modality_ids = getSelectedModalities();
                 autoBillingModelData.modality_ids = modality_ids;
                 autoBillingModelData.exclude_modalities = $("input[name=chkAutoBillingModality]:checked").val() === "isNOT";
 
-                var cpt_code_ids = _.map($("#listAutoBillingCptCodes option"), function(option) {
-                    return option.value;
-                });
+                var cpt_code_ids = getSelectedCptCodes();
                 autoBillingModelData.cpt_code_ids = cpt_code_ids;
                 autoBillingModelData.exclude_cpt_codes = $("input[name=chkAutoBillingCptCode]:checked").val() === "isNOT";
 

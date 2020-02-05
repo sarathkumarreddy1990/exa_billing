@@ -46,7 +46,7 @@
                     <div class="row">
                         <legend style="width:98%;">
                             <h5 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
-                                <label i18n="setup.autoBilling.studyStatus"></label>
+                                <label i18n="setup.autoBilling.studyStatus" class=" field-required"></label>
                             </h5>
                         </legend>
                     </div>
@@ -155,11 +155,11 @@
                         <div class="col-lg-2">
 
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="chkAutoBillingModality" value="is">
+                                <input class="form-check-input autobilling-input" type="radio" name="chkAutoBillingModality" value="is">
                                 <label i18n="setup.common.is"></label>
                             </div>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="chkAutoBillingModality" value="isNOT">
+                                <input class="form-check-input autobilling-input" type="radio" name="chkAutoBillingModality" value="isNOT">
                                 <label i18n="setup.common.isNot"></label>
                             </div>
                         </div>
@@ -167,19 +167,19 @@
                         <div class="col-lg-4">
                             <div class="form-group row">
                                 <div class="col-sm-10">
-                                    <select id="ddlAutoBillingModality" class="form-control select-box"></select>
+                                    <select id="ddlAutoBillingModality" class="form-control select-box autobilling-input"></select>
                                 </div>
-                                <button type="button" id="btnAddAutoBillingModality" class="btn btn-primary col-sm-2" name="button">
+                                <button type="button" id="btnAddAutoBillingModality" class="btn btn-primary col-sm-2 autobilling-input" name="button">
                                     <i class="icon-ic-plus"></i>
                                 </button>
                             </div>
 
                         </div>
                         <div class="col-lg-5">
-                            <select id="listAutoBillingModalities" multiple="multiple" size="5" style="height: 80px;"></select>
+                            <select id="listAutoBillingModalities" multiple="multiple" size="5" style="height: 80px;" class="autobilling-input"></select>
                         </div>
                         <div class="col-lg-1">
-                            <button id="btnRemoveAutoBillingModality" class="btn btn-primary"><i class="icon-ic-delete"></i></button>
+                            <button id="btnRemoveAutoBillingModality" class="btn btn-primary autobilling-input"><i class="icon-ic-delete"></i></button>
                         </div>
                     </div>
                     <!-- END Modalities FIELDS -->
@@ -192,7 +192,7 @@
 
 
             <!-- BEGIN CPT Codes SECTION -->
-            <div class="row" style="margin-top:10px;">
+            <div class="row" style="margin-top:10px;" id="divAutoBillingCptCodes">
 
                 <div class="col-lg-12">
                     <div class="row">
@@ -208,11 +208,11 @@
                         <div class="col-lg-2">
 
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="chkAutoBillingCptCode" value="is">
+                                <input class="form-check-input autobilling-input" type="radio" name="chkAutoBillingCptCode" value="is">
                                 <label i18n="setup.common.is"></label>
                             </div>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="chkAutoBillingCptCode" value="isNOT">
+                                <input class="form-check-input autobilling-input" type="radio" name="chkAutoBillingCptCode" value="isNOT">
                                 <label i18n="setup.common.isNot"></label>
                             </div>
                         </div>
@@ -220,19 +220,19 @@
                         <div class="col-lg-4">
                             <div class="form-group row">
                                 <div class="col-sm-10">
-                                    <select id="ddlAutoBillingCptCode" class="form-control select-box"></select>
+                                    <select id="ddlAutoBillingCptCode" class="form-control select-box autobilling-input"></select>
                                 </div>
-                                <button type="button" id="btnAddAutoBillingCptCode" class="btn btn-primary col-sm-2" name="button">
+                                <button type="button" id="btnAddAutoBillingCptCode" class="btn btn-primary col-sm-2 autobilling-input" name="button">
                                     <i class="icon-ic-plus"></i>
                                 </button>
                             </div>
 
                         </div>
                         <div class="col-lg-5">
-                            <select id="listAutoBillingCptCodes" multiple="multiple" size="5" style="height: 80px;"></select>
+                            <select id="listAutoBillingCptCodes" multiple="multiple" size="5" style="height: 80px;" class="autobilling-input"></select>
                         </div>
                         <div class="col-lg-1">
-                            <button id="btnRemoveAutoBillingCptCode" class="btn btn-primary"><i class="icon-ic-delete"></i></button>
+                            <button id="btnRemoveAutoBillingCptCode" class="btn btn-primary  autobilling-input"><i class="icon-ic-delete"></i></button>
                         </div>
 
 
