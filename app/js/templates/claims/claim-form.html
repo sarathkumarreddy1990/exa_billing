@@ -212,24 +212,30 @@
                                         <th i18n="shared.fields.accession"></th>
                                         <th i18n="shared.fields.cptCode"></th>
                                         <th i18n="shared.fields.cptDescription"></th>
-                                        <% if (country_alpha_3_code !== 'can' || billingRegionCode === 'can_AB') { %>
-                                        <% if (billingRegionCode !== 'can_AB') { %>
-                                        <th i18n="shared.fields.p1"></th>
-                                        <th i18n="shared.fields.p2"></th>
-                                        <th i18n="shared.fields.p3"></th>
-                                        <th i18n="shared.fields.p4"></th>
-                                        <% } %>
-                                        <th i18n="shared.fields.m1"></th>
-                                        <th i18n="shared.fields.m2"></th>
-                                        <th i18n="shared.fields.m3"></th>
-                                        <% if (billingRegionCode !== 'can_AB') { %>
-                                        <th i18n="shared.fields.m4"></th>
-                                        <% } %>
+                                        <% if (billingRegionCode === 'can_AB') { %>
+                                            <th i18n="shared.fields.m1"></th>
+                                            <th i18n="shared.fields.m2"></th>
+                                            <th i18n="shared.fields.m3"></th>
+                                        <%} else if (billingRegionCode === 'can_MB') { %>
+                                            <th i18n="shared.fields.p1"></th> 
+                                            <th i18n="shared.fields.m1"></th>
+                                            <th i18n="shared.fields.m2"></th>
+                                            <th i18n="shared.fields.m3"></th>
+                                            <th i18n="shared.fields.m4"></th>
+                                        <%} else if(billingRegionCode !== 'can_ON'){ %>
+                                            <th i18n="shared.fields.p1"></th>
+                                            <th i18n="shared.fields.p2"></th>
+                                            <th i18n="shared.fields.p3"></th>
+                                            <th i18n="shared.fields.p4"></th>
+                                            <th i18n="shared.fields.m1"></th>
+                                            <th i18n="shared.fields.m2"></th>
+                                            <th i18n="shared.fields.m3"></th>
+                                            <th i18n="shared.fields.m4"></th>
                                         <% } %>
                                         <th i18n="shared.fields.units"></th>
                                         <th i18n="shared.fields.billFee"></th>
                                         <th i18n="shared.fields.totalBillFee"></th>
-                                        <% if (country_alpha_3_code !== 'can') { %>
+                                        <% if (billingRegionCode !== 'can_ON') { %>
                                         <th i18n="shared.fields.allowed"></th>
                                         <th i18n="shared.fields.totalAllowed"></th>
                                         <th i18n="shared.fields.authNo"></th>
@@ -262,52 +268,104 @@
                                                 <td class="charges__cpt-description">
                                                     <div id="divChargeCptDesc_<%= row.data_row_id %>"></div>
                                                 </td>
-                                                <% if (country_alpha_3_code !== 'can' || billingRegionCode === 'can_AB') { %>
-                                                <% if (billingRegionCode !== 'can_AB') { %>
+                                                <% if (billingRegionCode === 'can_AB') { %>
                                                 <td>
-                                                    <input id="ddlPointer1_<%= row.data_row_id %>" value="<%= row.pointer1 ? row.pointer1 : '' %>" class="form-control inputModifiers typeahead diagCodes" data-type="P1" data-value="<%= row.data_row_id %>" type="text">
+                                                    <input type="text" id="txtModifier1_<%= row.data_row_id %>" class="form-control inputModifiers modifiers"
+                                                        data-type="M1" data-value="<%= row.data_row_id %>">
                                                 </td>
                                                 <td>
-                                                    <input id="ddlPointer2_<%= row.data_row_id %>" value="<%= row.pointer2 ? row.pointer2 : '' %>" class="form-control inputModifiers typeahead diagCodes" data-type="P2" data-value="<%= row.data_row_id %>" type="text">
+                                                    <input type="text" id="txtModifier2_<%= row.data_row_id %>" class="form-control inputModifiers modifiers"
+                                                        data-type="M2" data-value="<%= row.data_row_id %>">
                                                 </td>
                                                 <td>
-                                                    <input id="ddlPointer3_<%= row.data_row_id %>" value="<%= row.pointer3 ? row.pointer3 : '' %>" class="form-control inputModifiers typeahead diagCodes" data-type="P3" data-value="<%= row.data_row_id %>" type="text">
+                                                    <input type="text" id="txtModifier3_<%= row.data_row_id %>" class="form-control inputModifiers modifiers"
+                                                        data-type="M3" data-value="<%= row.data_row_id %>">
                                                 </td>
                                                 <td>
-                                                    <input id="ddlPointer4_<%= row.data_row_id %>"  value="<%= row.pointer4 ? row.pointer4 : '' %>" class="form-control inputModifiers typeahead diagCodes" data-type="P4" data-value="<%= row.data_row_id %>" type="text">
+                                                    <input value="<%= row.units ? row.units : 1 %>" id="txtUnits_<%= row.data_row_id %>" type="text"
+                                                        class="form-control integerbox units width-75 text-right" maxlength="2">
                                                 </td>
-                                                <% } %>
-
+                                                <%} else if (billingRegionCode === 'can_MB') { %>
                                                 <td>
-                                                    <input type="text" id="txtModifier1_<%= row.data_row_id %>" class="form-control inputModifiers modifiers" data-type="M1" data-value="<%= row.data_row_id %>">
+                                                    <input id="ddlPointer1_<%= row.data_row_id %>" value="<%= row.pointer1 ? row.pointer1 : '' %>"
+                                                        class="form-control inputModifiers typeahead diagCodes" data-type="P1" data-value="<%= row.data_row_id %>"
+                                                        type="text">
                                                 </td>
                                                 <td>
-                                                    <input type="text" id="txtModifier2_<%= row.data_row_id %>" class="form-control inputModifiers modifiers" data-type="M2" data-value="<%= row.data_row_id %>">
+                                                    <input type="text" id="txtModifier1_<%= row.data_row_id %>" class="form-control inputModifiers modifiers"
+                                                        data-type="M1" data-value="<%= row.data_row_id %>">
                                                 </td>
                                                 <td>
-                                                    <input type="text" id="txtModifier3_<%= row.data_row_id %>" class="form-control inputModifiers modifiers" data-type="M3" data-value="<%= row.data_row_id %>">
+                                                    <input type="text" id="txtModifier2_<%= row.data_row_id %>" class="form-control inputModifiers modifiers"
+                                                        data-type="M2" data-value="<%= row.data_row_id %>">
                                                 </td>
-                                                <% if (billingRegionCode !== 'can_AB') { %>
                                                 <td>
-                                                    <input type="text" id="txtModifier4_<%= row.data_row_id %>" class="form-control inputModifiers modifiers" data-type="M4" data-value="<%= row.data_row_id %>">
+                                                    <input type="text" id="txtModifier3_<%= row.data_row_id %>" class="form-control inputModifiers modifiers"
+                                                        data-type="M3" data-value="<%= row.data_row_id %>">
                                                 </td>
-                                                <% } %>
                                                 <td>
-                                                    <input value="<%= row.units ? row.units : 1.000 %>"  id="txtUnits_<%= row.data_row_id %>" type="text" class="form-control maskUnits units floatbox" style="width: 75px" maxlength="7">
+                                                    <input type="text" id="txtModifier4_<%= row.data_row_id %>" class="form-control inputModifiers modifiers"
+                                                        data-type="M4" data-value="<%= row.data_row_id %>">
+                                                </td>
+                                                <td>
+                                                    <input value="<%= row.units ? row.units : 1.000 %>" id="txtUnits_<%= row.data_row_id %>" type="text"
+                                                        class="form-control maskUnits units floatbox width-75" maxlength="7">
+                                                </td>
+                                                <%} else if (billingRegionCode !== 'can_ON') { %>
+                                                <td>
+                                                    <input id="ddlPointer1_<%= row.data_row_id %>" value="<%= row.pointer1 ? row.pointer1 : '' %>"
+                                                        class="form-control inputModifiers typeahead diagCodes" data-type="P1" data-value="<%= row.data_row_id %>"
+                                                        type="text">
+                                                </td>
+                                                <td>
+                                                    <input id="ddlPointer2_<%= row.data_row_id %>" value="<%= row.pointer2 ? row.pointer2 : '' %>"
+                                                        class="form-control inputModifiers typeahead diagCodes" data-type="P2" data-value="<%= row.data_row_id %>"
+                                                        type="text">
+                                                </td>
+                                                <td>
+                                                    <input id="ddlPointer3_<%= row.data_row_id %>" value="<%= row.pointer3 ? row.pointer3 : '' %>"
+                                                        class="form-control inputModifiers typeahead diagCodes" data-type="P3" data-value="<%= row.data_row_id %>"
+                                                        type="text">
+                                                </td>
+                                                <td>
+                                                    <input id="ddlPointer4_<%= row.data_row_id %>" value="<%= row.pointer4 ? row.pointer4 : '' %>"
+                                                        class="form-control inputModifiers typeahead diagCodes" data-type="P4" data-value="<%= row.data_row_id %>"
+                                                        type="text">
+                                                </td>
+                                                <td>
+                                                    <input type="text" id="txtModifier1_<%= row.data_row_id %>" class="form-control inputModifiers modifiers"
+                                                        data-type="M1" data-value="<%= row.data_row_id %>">
+                                                </td>
+                                                <td>
+                                                    <input type="text" id="txtModifier2_<%= row.data_row_id %>" class="form-control inputModifiers modifiers"
+                                                        data-type="M2" data-value="<%= row.data_row_id %>">
+                                                </td>
+                                                <td>
+                                                    <input type="text" id="txtModifier3_<%= row.data_row_id %>" class="form-control inputModifiers modifiers"
+                                                        data-type="M3" data-value="<%= row.data_row_id %>">
+                                                </td>
+                                                <td>
+                                                    <input type="text" id="txtModifier4_<%= row.data_row_id %>" class="form-control inputModifiers modifiers"
+                                                        data-type="M4" data-value="<%= row.data_row_id %>">
+                                                </td>
+                                                <td>
+                                                    <input value="<%= row.units ? row.units : 1.000 %>" id="txtUnits_<%= row.data_row_id %>" type="text"
+                                                        class="form-control maskUnits units floatbox width-75" maxlength="7">
                                                 </td>
                                                 <% } else { %>
                                                 <td>
-                                                    <input value="<%= row.units ? row.units : 1 %>"  id="txtUnits_<%= row.data_row_id %>" type="text" class="form-control integerbox units" style="width: 75px; text-align: right" maxlength="2">
+                                                    <input value="<%= row.units ? row.units : 1.000 %>" id="txtUnits_<%= row.data_row_id %>" type="text"
+                                                        class="form-control maskUnits units floatbox width-75" maxlength="7">
                                                 </td>
                                                 <% } %>
                                                 <td>
-                                                    <input disabled value="<%= row.bill_fee ? row.bill_fee : 0.00 %>" id="txtBillFee_<%= row.data_row_id %>" type="text" class="billFee form-control-med form-control maskFee floatbox"  style="display:inline-block;width:auto;" edit="false">
+                                                    <input disabled value="<%= row.bill_fee ? row.bill_fee : 0.00 %>" id="txtBillFee_<%= row.data_row_id %>" type="text" class="billFee form-control-med form-control maskFee floatbox d-inline-block w-auto" edit="false">
                                                     <span id="editBillFee_<%= row.data_row_id %>" class="editBillFee icon-ic-edit" style="margin-left: 4px;cursor:pointer;" i18nt="shared.buttons.edit"></span>
                                                 </td>
                                                 <td>
                                                     <input disabled value="<%= row.total_bill_fee ? row.total_bill_fee : 0.00 %>" id="txtTotalBillFee_<%= row.data_row_id %>" type="text" class="totalbill form-control floatbox text-right">
                                                 </td>
-                                                <% if (country_alpha_3_code !== 'can') { %>
+                                                <% if (billingRegionCode != 'can_ON') { %>
                                                 <td>
                                                     <input disabled value="<%= row.allowed_fee ? row.allowed_fee : 0.00 %>" id="txtAllowedFee_<%= row.data_row_id %>" type="text" class="maskFee allowedFee form-control floatbox">
                                                 </td>
@@ -326,7 +384,7 @@
                                 </tbody>
                                 <tfoot>
                                     <tr style="border: none">
-                                        <td colspan="<% if(country_alpha_3_code === 'can') { %> 5 <% } else { %> 12 <% } %>" style="border: 0">
+                                        <td colspan="<% if(billingRegionCode == 'can_ON') { %> 5 <% } else if(billingRegionCode == 'can_AB') {%> 10 <% } else if(billingRegionCode == 'can_MB'){ %> 13 <% } else { %> 12 <% } %>" style="border: 0">
                                             <button type="button" class="btn pull-left" id="createNewCharge" i18n="shared.buttons.newCharge"></button>
                                             <span id="divPatientBalance" class="patientPaid" style="text-decoration: blink; margin-right: 60px; display: none;">
                                                 <span> Patient Balance </span> :
@@ -467,7 +525,7 @@
                 </div>
                 <% } %>
             </div>
-            <% if (country_alpha_3_code !== 'can' || billingRegionCode === 'can_AB') { %>
+            <% if (billingRegionCode !== 'can_ON') { %>
             <div class="col-lg-6" id="diagnosticsCodes">
                 <div class="form-group row">
                     <label for="ddlMultipleDiagCodes" class="col-form-label" i18n="billing.claims.diagnosticsCodes"></label>
