@@ -102,17 +102,14 @@ define(['jquery',
 
         var loadAutobillingRule = function(response) {
             var data = response[0];
-            console.log('sumbitch')
-            $("#chkAutobillingRuleIsActive").prop('checked', data.is_active);
-            $("#txtAutoBillingDescription").val(data.description);
+
+            $("#chkAutobillingRuleIsActive").prop('checked', !data.is_active);
+            $("#txtAutoBillingDescription").val(data.autobilling_rule_description);
             // $("#ddlAutoBillingStudyStatus").val(data.study_status_id);   // TODO
             $("#ddlAutoBillingClaimStatus").val(data.claim_status_id);
 
             $("input[name=chkAutoBillingStudyStatus][value='"+ (data.exclude_study_statuses ? 'isNOT' : 'is') +"']").prop('checked', true);
-            var ruleStudyStatuses = _.map(data.study_status_codes, function(study_status_code) {
-                var study_status = _.find(app.study_status, function(study_status) {
-                    return study_status.status_code === study_status_code;
-                });
+            var ruleStudyStatuses = _.map(data.study_statuses, function(study_status) {
                 return $('<option>', {
                     value: study_status.status_code,
                     text: formatOptionText(study_status.status_desc, study_status.status_code)
@@ -120,23 +117,60 @@ define(['jquery',
             });
             $("#listAutoBillingStudyStatuses").append(ruleStudyStatuses);
 
-            $("input[name=chkAutoBillingFacility][value='"+ (data.exclude_facilities ? 'isNOT' : 'is') +"']").prop('checked', true);
-            var ruleFacilities = _.map(data.facility_ids, function(facility_id) {
-                var ruleFacility = _.find(app.facilities, function(facility) {
-                    return facility.id === facility_id;
+            if (data.exclude_facilities !== null) {
+                $("input[name=chkAutoBillingFacility][value='"+ (data.exclude_facilities ? 'isNOT' : 'is') +"']").prop('checked', true);
+                var ruleFacilities = _.map(data.facilities, function(facility) {
+                    return $('<option>', {
+                        value: facility.id,
+                        text: formatOptionText(facility.facility_name, facility.facility_code)
+                    });
                 });
-                return $('<option>', {
-                    value: ruleFacility.id,
-                    text: formatOptionText(ruleFacility.facility_name, ruleFacility.facility_code)
+                $("#listAutoBillingFacilities").append(ruleFacilities);
+            }
+
+            if (data.exclude_modalities !== null) {
+                $("input[name=chkAutoBillingModality][value='"+ (data.exclude_modalities ? 'isNOT' : 'is') +"']").prop('checked', true);
+                var ruleModalities = _.map(data.modalities, function(modality) {
+                    return $('<option>', {
+                        value: modality.id,
+                        text: formatOptionText(modality.modality_name, modality.modality_code)
+                    });
                 });
-            });
-            $("#listAutoBillingFacilities").append(ruleFacilities);
+                $("#listAutoBillingModalities").append(ruleModalities);
+            }
 
+            if (data.exclude_cpt_codes !== null) {
+                $("input[name=chkAutoBillingCptCode][value='"+ (data.exclude_cpt_codes ? 'isNOT' : 'is') +"']").prop('checked', true);
+                var ruleCptCodes = _.map(data.cpt_codes, function(cpt_code) {
+                    return $('<option>', {
+                        value: cpt_code.id,
+                        text: formatOptionText(cpt_code.display_description, cpt_code.display_code)
+                    });
+                });
+                $("#listAutoBillingCptCodes").append(ruleCptCodes);
+            }
 
+            if (data.exclude_insurance_provider_payer_types !== null) {
+                $("input[name=chkAutoBillingInsuranceProviderPayerType][value='"+ (data.exclude_insurance_provider_payer_types ? 'isNOT' : 'is') +"']").prop('checked', true);
+                var ruleInsuranceProviderPayerTypes = _.map(data.insurance_provider_payer_types, function(insurance_provider_payer_type) {
+                    return $('<option>', {
+                        value: insurance_provider_payer_type.id,
+                        text: formatOptionText(insurance_provider_payer_type.description, insurance_provider_payer_type.code)
+                    });
+                });
+                $("#listAutoBillingInsuranceProviderPayerTypes").append(ruleInsuranceProviderPayerTypes);
+            }
 
-
-
-            // TODO the rest of the fields
+            if (data.exclude_insurance_providers !== null) {
+                $("input[name=chkAutoBillingInsuranceProvider][value='"+ (data.exclude_insurance_providers ? 'isNOT' : 'is') +"']").prop('checked', true);
+                var ruleInsuranceProviders = _.map(data.insurance_providers, function(insurance_provider) {
+                    return $('<option>', {
+                        value: insurance_provider.id,
+                        text: formatOptionText(insurance_provider.insurance_name, insurance_provider.insurance_code)
+                    });
+                });
+                $("#listAutoBillingInsuranceProviders").append(ruleInsuranceProviders);
+            }
         };
 
         // TODO figure out how to filter out providers based on selected provider types
@@ -426,7 +460,6 @@ define(['jquery',
                         };
                     }),
                     placeholder: 'Facility',
-                    minimumInputLength: 0,
 
                     templateSelection: function(res) {
                         if (res && res.id) {
@@ -458,12 +491,12 @@ define(['jquery',
                             text: formatOptionText(modality.modality_name, modality.modality_code)
                         };
                     }),
-                    placeholder: 'Facility',
+                    placeholder: 'Modality',
                     minimumInputLength: 0,
 
                     templateSelection: function(res) {
                         if (res && res.id) {
-                            self.pendingAutoBillingFacility = res;
+                            self.pendingAutoBillingModality = res;
                             return res.text;
                         }
                     }
@@ -471,10 +504,10 @@ define(['jquery',
                 var $listAutoBillingModalities = $('#listAutoBillingModalities');
                 $('#btnAddAutoBillingModality').off().click(function() {
                     $listAutoBillingModalities.append(createOptionElement(
-                        self.pendingAutoBillingFacility.id,
-                        self.pendingAutoBillingFacility.text
+                        self.pendingAutoBillingModality.id,
+                        self.pendingAutoBillingModality.text
                     ));
-                    self.pendingAutoBillingFacility = null;
+                    self.pendingAutoBillingModality = null;
                 });
                 $('#btnRemoveAutoBillingModality').off().click(function() {
                     $listAutoBillingModalities.find('option:selected').remove();
@@ -712,17 +745,46 @@ define(['jquery',
                     "inactive": $("#chkAutobillingRuleIsActive").prop('checked')
                 };
 
+                var study_status_codes = _.map($("#listAutoBillingStudyStatuses option"), function(option) {
+                    return option.value;
+                });
+                autoBillingModelData.study_status_codes = study_status_codes;
+                autoBillingModelData.exclude_study_statuses = $("input[name=chkAutoBillingStudyStatus]:checked").val() === "isNOT";
+
+
                 var facility_ids = _.map($("#listAutoBillingFacilities option"), function(option) {
                     return option.value;
                 });
                 autoBillingModelData.facility_ids = facility_ids;
                 autoBillingModelData.exclude_facilities = $("input[name=chkAutoBillingFacility]:checked").val() === "isNOT";
 
-                var study_status_codes = _.map($("#listAutoBillingStudyStatuses option"), function(option) {
+                var modality_ids = _.map($("#listAutoBillingModalities option"), function(option) {
                     return option.value;
                 });
-                autoBillingModelData.study_status_codes = study_status_codes;
-                autoBillingModelData.exclude_study_statuses = $("input[name=chkAutoBillingStudyStatus]:checked").val() === "isNOT";
+                autoBillingModelData.modality_ids = modality_ids;
+                autoBillingModelData.exclude_modalities = $("input[name=chkAutoBillingModality]:checked").val() === "isNOT";
+
+                var cpt_code_ids = _.map($("#listAutoBillingCptCodes option"), function(option) {
+                    return option.value;
+                });
+                autoBillingModelData.cpt_code_ids = cpt_code_ids;
+                autoBillingModelData.exclude_cpt_codes = $("input[name=chkAutoBillingCptCode]:checked").val() === "isNOT";
+
+
+                var insurance_provider_payer_type_ids = _.map($("#listAutoBillingInsuranceProviderPayerTypes option"), function(option) {
+                    return option.value;
+                });
+                autoBillingModelData.insurance_provider_payer_type_ids = insurance_provider_payer_type_ids;
+                autoBillingModelData.exclude_insurance_provider_payer_types = $("input[name=chkAutoBillingInsuranceProviderPayerType]:checked").val() === "isNOT";
+
+                var insurance_provider_ids = _.map($("#listAutoBillingInsuranceProviders option"), function(option) {
+                    return option.value;
+                });
+                autoBillingModelData.insurance_provider_ids = insurance_provider_ids;
+                autoBillingModelData.exclude_insurance_providers = $("input[name=chkAutoBillingInsuranceProvider]:checked").val() === "isNOT";
+
+
+
 
 
                 this.autoBillingModel.set(autoBillingModelData);

@@ -96,6 +96,9 @@ const getSaveClaimParams = async (params) => {
 
             ...claim_details,
             accident_state: claim_details.accident_state || null,
+            service_facility_id: parseInt(claim_details.service_facility_id) || null,
+            ordering_facility_id: parseInt(claim_details.ordering_facility_id) || null,
+
         },
 
         insurances: patientInsurances[0].existing_insurance.map((insurance) => {
@@ -106,6 +109,7 @@ const getSaveClaimParams = async (params) => {
         }),
 
         charges: lineItems[0].charges.map((charge) => {
+            charge.allowed_amount = charge.allowed_fee;
             charge.modifier1_id = charge.m1;
             charge.modifier2_id = charge.m2;
             charge.modifier3_id = charge.m3;
@@ -138,66 +142,6 @@ const getSaveClaimParams = async (params) => {
             user_id: userId
         },
     };
-    //
-    // , allowed_amount money
-    // , authorization_no text
-    // , bill_fee money
-    // , cpt_id bigint
-    // , created_by bigint             // ?
-    // , charge_dt timestamptz         // use study_dt
-    // , is_excluded boolean           // ?
-    // , is_canada_billing boolean     // ?
-    // , modifier1_id bigint           // use m1
-    // , modifier2_id bigint           // use m2
-    // , modifier3_id bigint           // use m3
-    // , modifier4_id bigint           // use m4
-    // , pointer1 text                 // ?
-    // , pointer2 text                 // ?
-    // , pointer3 text                 // ?
-    // , pointer4 text                 // ?
-    // , study_id bigint
-    // , units numeric
-};
-
-const getClaimDetails = async () => {
-
-    return {
-        company_id: COMPANY_ID,
-
-
-    }
-    // accident_state
-    // authorization_no
-    // current_illness_date
-    // facility_id,
-    // frequency
-    // hospitalization_from_date
-    // hospitalization_to_date
-    // is_auto_accident
-    // is_employed
-    // is_other_accident
-    // original_reference
-    // service_by_outside_lab
-    // rendering_provider_contact_id
-    // referring_provider_contact_id`
-    // same_illness_first_date
-    // unable_to_work_from_date
-    // unable_to_work_to_date
-    //
-    // billing_class_id         // DEFAULT_BILLING_CLASS_ID
-    // billing_code_id          // DEFAULT_BILLING_CODE_ID
-    // billing_notes            // DEFAULT_BILLING_NOTES
-    // claim_notes              // DEFAULT_CLAIM_NOTES
-    // created_by               // RADMIN_USER_ID
-    // payer_type               // ???  "primary_insurance"
-    // billing_provider_id,     // settings.default_provider_id
-    // claim_status_id          // ???  GET THIS FROM THE RULE
-    // claim_dt                 // ???
-    // patient_id,              // ???
-    // ordering_facility_id     // get this from line items
-
-    // billing_method           // ???
-    // place_of_service_id      // ??? okay to be null (fac_place_of_service_id)
 };
 
 
@@ -281,27 +225,87 @@ module.exports = {
         } = params;
 
         const sql = SQL`
+            WITH base AS (
+            	SELECT
+            		abr.id											as autobilling_rule_id
+                    , abr.description                               AS autobilling_rule_description
+                    , abr.claim_status_id                           AS claim_status_id
+                    , CASE
+                        WHEN abr.inactivated_dt is null THEN true
+                        ELSE false
+                        END                                         is_active
+            		, array_agg(DISTINCT study_status_code)					as study_status_codes
+            		, abssr.excludes 								as exclude_study_status
+            		, array_agg(facility_id) 						as facility_ids
+            		, abfr.excludes 								as exclude_facilities
+            		, array_agg(modality_id) 						as modality_ids
+            		, abmr.excludes 								as exclude_modalities
+            		, array_agg(cpt_code_id) 						as cpt_code_ids
+            		, abcptr.excludes 								as exclude_cpt_codes
+            		, array_agg(insurance_provider_payer_type_id) 	as insurance_provider_payer_type_ids
+            		, abipptr.excludes 								as exclude_insurance_provider_payer_types
+            		, array_agg(insurance_provider_id) 				as insurance_provider_ids
+            		, abipr.excludes 								as exclude_insurance_providers
 
-        SELECT
-            abr.id
-            , description
-            , claim_status_id
-            , inactivated_dt
-            , array_agg(study_status_code) as study_status_codes
-            , abr_study_status.excludes as exclude_study_statuses
-            , array_agg(DISTINCT facility_id) as facility_ids
-            , abr_facilities.excludes as exclude_facilities
-        FROM
-            billing.autobilling_rules abr
-            LEFT JOIN billing.autobilling_study_status_rules abr_study_status ON abr_study_status.autobilling_rule_id = abr.id
-            LEFT JOIN billing.autobilling_facility_rules abr_facilities ON abr_facilities.autobilling_rule_id = abr.id
-        WHERE
-            abr.id = ${id}
-        GROUP BY
-            abr.id
-            , abr_study_status.excludes
-            , abr_facilities.excludes
+            	FROM
+            		billing.autobilling_rules abr
+            		LEFT JOIN billing.autobilling_study_status_rules abssr 						ON abr.id = abssr.autobilling_rule_id
+            		LEFT JOIN billing.autobilling_facility_rules abfr 							ON abr.id = abfr.autobilling_rule_id
+            		LEFT JOIN billing.autobilling_modality_rules abmr 							ON abr.id = abmr.autobilling_rule_id
+            		LEFT JOIN billing.autobilling_cpt_code_rules abcptr							ON abr.id = abcptr.autobilling_rule_id
+            		LEFT JOIN billing.autobilling_insurance_provider_payer_type_rules abipptr	ON abr.id = abipptr.autobilling_rule_id
+            		LEFT JOIN billing.autobilling_insurance_provider_rules abipr 				ON abr.id = abipr.autobilling_rule_id
+             	WHERE
+             		abr.id = ${id}
+            	GROUP BY
+            		abr.id
+            		, abssr.excludes
+            		, abfr.excludes
+            		, abmr.excludes
+            		, abcptr.excludes
+            		, abipptr.excludes
+            		, abipr.excludes
+            )
+            SELECT
+                autobilling_rule_id
+                , autobilling_rule_description
+                , base.claim_status_id
+                , is_active
+            	, (SELECT array_to_json(array_agg(tmp)) FROM (
+            		SELECT DISTINCT ON (status_code) id, status_desc, status_code
+            		FROM study_status INNER JOIN base ON study_status.status_code = ANY(base.study_status_codes)
+            	) tmp) as study_statuses
+            	, exclude_study_status
+            	, (SELECT array_to_json(array_agg(tmp)) FROM (
+            		SELECT id, facility_name, facility_code
+            		FROM facilities INNER JOIN base ON facilities.id = ANY(base.facility_ids)
+            	) tmp) as facilities
+            	, exclude_facilities
+            	, (SELECT array_to_json(array_agg(tmp)) FROM (
+            		SELECT id, display_description, display_code
+            		FROM cpt_codes INNER JOIN base ON cpt_codes.id = ANY(base.cpt_code_ids)
+            	) tmp) as cpt_codes
+            	, exclude_cpt_codes
+            	, (SELECT array_to_json(array_agg(tmp)) FROM (
+            		SELECT id, modality_name, modality_code
+            		FROM modalities INNER JOIN base ON modalities.id = ANY(base.modality_ids)
+            	) tmp) as modalities
+            	, exclude_modalities
+            	, (SELECT array_to_json(array_agg(tmp)) FROM (
+            		SELECT id, description, code
+            		FROM insurance_provider_payer_types INNER JOIN base ON insurance_provider_payer_types.id = ANY(base.insurance_provider_payer_type_ids)
+            	) tmp) as insurance_provider_payer_types
+            	, exclude_insurance_provider_payer_types
+            	, (SELECT array_to_json(array_agg(tmp)) FROM (
+            		SELECT id, insurance_name, insurance_code
+            		FROM insurance_providers INNER JOIN base ON insurance_providers.id = ANY(base.insurance_provider_ids)
+            	) tmp) as insurance_providers
+            	, exclude_insurance_providers
+            FROM base
         `;
+        console.log('QUERY TEXT: ', sql.text);
+        console.log('QUERY VALUES: ', sql.values);
+
         return await query(sql);
     },
 
@@ -318,6 +322,20 @@ module.exports = {
 
             facility_ids,
             exclude_facilities,
+
+            modality_ids,
+            exclude_modalities,
+
+            cpt_code_ids,
+            exclude_cpt_codes,
+
+            insurance_provider_payer_type_ids,
+            exclude_insurance_provider_payer_types,
+
+            insurance_provider_ids,
+            exclude_insurance_providers,
+
+
 
         } = params;
 
@@ -361,6 +379,55 @@ module.exports = {
                     , ${exclude_facilities}
                 )
             )
+            , modalitiesInsert AS (
+                INSERT INTO billing.autobilling_modality_rules (
+                    autobilling_rule_id
+                    , modality_id
+                    , excludes
+                )
+                VALUES(
+                    (SELECT id FROM abrInsert)
+                    , UNNEST(${modality_ids}::int[])
+                    , ${exclude_modalities}
+                )
+            )
+            , cptCodesInsert AS (
+                INSERT INTO billing.autobilling_cpt_code_rules (
+                    autobilling_rule_id
+                    , cpt_code_id
+                    , excludes
+                )
+                VALUES(
+                    (SELECT id FROM abrInsert)
+                    , UNNEST(${cpt_code_ids}::int[])
+                    , ${exclude_cpt_codes}
+                )
+            )
+            , insuranceProviderPayerTypesInsert AS (
+                INSERT INTO billing.autobilling_insurance_provider_payer_type_rules (
+                    autobilling_rule_id
+                    , insurance_provider_payer_type_id
+                    , excludes
+                )
+                VALUES(
+                    (SELECT id FROM abrInsert)
+                    , UNNEST(${insurance_provider_payer_type_ids}::int[])
+                    , ${exclude_insurance_provider_payer_types}
+                )
+            )
+            , insuranceProvidersInsert AS (
+                INSERT INTO billing.autobilling_insurance_provider_rules (
+                    autobilling_rule_id
+                    , insurance_provider_id
+                    , excludes
+                )
+                VALUES(
+                    (SELECT id FROM abrInsert)
+                    , UNNEST(${insurance_provider_ids}::int[])
+                    , ${exclude_insurance_providers}
+                )
+            )
+
             SELECT id FROM abrInsert
         `;
         return await query(sql);
@@ -380,6 +447,18 @@ module.exports = {
             facility_ids,
             exclude_facilities,
 
+
+            modality_ids,
+            exclude_modalities,
+
+            cpt_code_ids,
+            exclude_cpt_codes,
+
+            insurance_provider_payer_type_ids,
+            exclude_insurance_provider_payer_types,
+
+            insurance_provider_ids,
+            exclude_insurance_providers,
         } = params;
 
 
@@ -391,6 +470,19 @@ module.exports = {
                 , studyStatusesCleanSlate AS (
                     DELETE FROM billing.autobilling_study_status_rules WHERE autobilling_rule_id = ${id}
                 )
+                , modalitiesCleanSlate AS (
+                    DELETE FROM billing.autobilling_modality_rules WHERE autobilling_rule_id = ${id}
+                )
+                , cptCodesCleanSlate AS (
+                    DELETE FROM billing.autobilling_cpt_code_rules WHERE autobilling_rule_id = ${id}
+                )
+                , insuranceProviderPayerTypesCleanSlate AS (
+                    DELETE FROM billing.autobilling_insurance_provider_payer_type_rules WHERE autobilling_rule_id = ${id}
+                )
+                , insuranceProvidersCleanSlate AS (
+                    DELETE FROM billing.autobilling_insurance_provider_rules WHERE autobilling_rule_id = ${id}
+                )
+
                 , studyStatusesInsert AS (
                     INSERT INTO billing.autobilling_study_status_rules (
                         autobilling_rule_id
@@ -415,7 +507,54 @@ module.exports = {
                         , ${exclude_facilities}
                     )
                 )
-
+                , modalitiesInsert AS (
+                    INSERT INTO billing.autobilling_modality_rules (
+                        autobilling_rule_id
+                        , modality_id
+                        , excludes
+                    )
+                    VALUES(
+                        ${id}
+                        , UNNEST(${modality_ids}::int[])
+                        , ${exclude_modalities}
+                    )
+                )
+                , cptCodesInsert AS (
+                    INSERT INTO billing.autobilling_cpt_code_rules (
+                        autobilling_rule_id
+                        , cpt_code_id
+                        , excludes
+                    )
+                    VALUES(
+                        ${id}
+                        , UNNEST(${cpt_code_ids}::int[])
+                        , ${exclude_cpt_codes}
+                    )
+                )
+                , insuranceProviderPayerTypesInsert AS (
+                    INSERT INTO billing.autobilling_insurance_provider_payer_type_rules (
+                        autobilling_rule_id
+                        , insurance_provider_payer_type_id
+                        , excludes
+                    )
+                    VALUES(
+                        ${id}
+                        , UNNEST(${insurance_provider_payer_type_ids}::int[])
+                        , ${exclude_insurance_provider_payer_types}
+                    )
+                )
+                , insuranceProvidersInsert AS (
+                    INSERT INTO billing.autobilling_insurance_provider_rules (
+                        autobilling_rule_id
+                        , insurance_provider_id
+                        , excludes
+                    )
+                    VALUES(
+                        ${id}
+                        , UNNEST(${insurance_provider_ids}::int[])
+                        , ${exclude_insurance_providers}
+                    )
+                )
             UPDATE billing.autobilling_rules
             SET
                 description = ${description}
@@ -452,45 +591,99 @@ module.exports = {
             studyStatus,
             patientId,
             orderId,
-            // params.session.country_alpha_3_code
         } = params;
-        console.log(params);
+
+        console.log('STUDY ID: ', studyId);
 
         const sql = SQL`
-        WITH cteAutoBillingRules AS (
+            WITH cteAutoBillingRules AS (
+                SELECT
+                    abr.id
+                    , claim_status_id
+                    , abssr.excludes 								as exclude_study_status
+                    , array_agg(facility_id) 						as facility_ids
+                    , abfr.excludes 								as exclude_facilities
+                    , array_agg(modality_id) 						as modality_ids
+                    , abmr.excludes 								as exclude_modalities
+                    , array_agg(cpt_code_id) 						as cpt_code_ids
+                    , abcptr.excludes 								as exclude_cpt_codes
+                    , array_agg(insurance_provider_payer_type_id) 	as insurance_provider_payer_type_ids
+                    , abipptr.excludes 								as exclude_insurance_provider_payer_types
+                    , array_agg(insurance_provider_id) 				as insurance_provider_ids
+                    , abipr.excludes 								as exclude_insurance_providers
+
+                FROM
+                    billing.autobilling_rules abr
+                    LEFT JOIN billing.autobilling_study_status_rules abssr 						ON abr.id = abssr.autobilling_rule_id
+                    LEFT JOIN billing.autobilling_facility_rules abfr 							ON abr.id = abfr.autobilling_rule_id
+                    LEFT JOIN billing.autobilling_modality_rules abmr 							ON abr.id = abmr.autobilling_rule_id
+                    LEFT JOIN billing.autobilling_cpt_code_rules abcptr							ON abr.id = abcptr.autobilling_rule_id
+                    LEFT JOIN billing.autobilling_insurance_provider_payer_type_rules abipptr	ON abr.id = abipptr.autobilling_rule_id
+                    LEFT JOIN billing.autobilling_insurance_provider_rules abipr 				ON abr.id = abipr.autobilling_rule_id
+                WHERE
+                    study_status_code = ${studyStatus}
+                    AND inactivated_dt IS null
+                GROUP BY
+                    abr.id
+                    , abssr.excludes
+                    , abfr.excludes
+                    , abmr.excludes
+                    , abcptr.excludes
+                    , abipptr.excludes
+                    , abipr.excludes
+            )
+            , context AS (
+                SELECT
+                    studies.facility_id
+                    , studies.modality_id
+                    , array_agg(study_cpt.cpt_code_id)				AS cpt_code_ids
+                    , insurance_providers.provider_payer_type_id	AS insurance_provider_payer_type_id
+                    , insurance_providers.id						AS insurance_provider_id
+                FROM
+                    studies
+                    LEFT JOIN study_cpt				ON study_cpt.study_id = studies.id
+                    LEFT JOIN patient_insurances 	ON patient_insurances.patient_id = studies.patient_id
+                    LEFT JOIN insurance_providers	ON insurance_providers.id = patient_insurances.insurance_provider_id
+
+                WHERE
+                    studies.id = ${studyId}
+                    AND patient_insurances.coverage_level = 'primary'
+
+                GROUP BY
+                    studies.facility_id
+                    , studies.modality_id
+                    , insurance_providers.provider_payer_type_id
+                    , insurance_providers.id
+            )
             SELECT
-                abr.id
-                , claim_status_id
-                , abssr.excludes as exclude_study_status
-                , array_agg(facility_id) as facility_ids
-                , abfr.excludes as exclude_facilities
-            FROM
-                billing.autobilling_rules abr
-                LEFT JOIN billing.autobilling_study_status_rules abssr ON abssr.autobilling_rule_id = abr.id
-                LEFT JOIN billing.autobilling_facility_rules abfr ON abfr.autobilling_rule_id = abr.id
-
-            WHERE
-                study_status_code = ${studyStatus}
-            GROUP BY
-                abr.id
-                , abssr.excludes
-                , abfr.excludes
-        )
-        SELECT
             *
-        FROM
+            FROM
             cteAutoBillingRules
-        WHERE
-            (exclude_facilities IS null OR NOT exclude_facilities = (1 = ANY(facility_ids)))
-        ORDER BY
-            id
-        LIMIT 1
+            INNER JOIN context ON
+                (exclude_facilities IS null OR NOT exclude_facilities = (context.facility_id = ANY(facility_ids)))
+                AND
+                (exclude_modalities IS null OR NOT exclude_modalities = (context.modality_id = ANY(modality_ids)))
+                AND
+                (exclude_cpt_codes IS null OR NOT exclude_cpt_codes = (context.cpt_code_ids && cteAutoBillingRules.cpt_code_ids))
+                AND
+                (exclude_insurance_provider_payer_types IS null OR NOT exclude_insurance_provider_payer_types = (context.insurance_provider_payer_type_id = ANY(insurance_provider_payer_type_ids)))
+                AND
+                (exclude_insurance_providers IS null OR NOT exclude_insurance_providers =(context.insurance_provider_id = ANY(insurance_provider_ids)))
 
+            ORDER BY
+            id
+            LIMIT 1
         `;
+
+        // console.log('SQL text', sql.text);
+        // console.log('SQL values', sql.values);
+
 
         const {
             rows,
         } = await query(sql);
+
+        // console.log('rows: ', rows);
 
         if (rows.length) {
             const baseParams = {
@@ -502,13 +695,12 @@ module.exports = {
                 from: 'claimCreation',
                 study_ids: studyId,
                 claim_status_id: rows[0].claim_status_id,
-            }
+            };
 
 
             const saveClaimParams = await getSaveClaimParams(baseParams);
-            // console.log('SAVE CLAIM PARAMS: ', saveClaimParams);
+            console.log('\n\n\n\nPARAMS: ', saveClaimParams)
             const results = await claimsData.save(saveClaimParams);
-            // console.log('SAVE CLAIM RESULTS: ', results);
         }
 
         return rows;
