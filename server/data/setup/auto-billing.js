@@ -6,16 +6,7 @@ const {
 const moment = require('moment');
 
 const claimsData = require('../../data/claim/index');
-
 const logger = require('../../../logger');
-
-
-const debugCallAndQuery = (params, sql) => {
-    logger.info('USING PARAMS: ', params);
-    // logger.info('QUERY TEXT: ', sql.text)
-    // logger.info('QUERY VALUES: ', sql.values)
-    // logger.info('QUERY SQL: ', sql.sql)
-};
 
 const COMPANY_ID = 1;
 const WILDCARD_ID = "0";
@@ -89,16 +80,14 @@ const getSaveClaimParams = async (params) => {
             claim_notes: DEFAULT_CLAIM_NOTES,
             claim_status_id: params.claim_status_id,
             created_by: userId,
-            // ordering_facility_id: lineItems[0].claim_details[0].
-            patient_id,
             payer_type: DEFAILT_PAYER_TYPE,
+            patient_id,
             place_of_service_id: isCanadaBilling ? null : claim_details.fac_place_of_service_id,
 
             ...claim_details,
             accident_state: claim_details.accident_state || null,
             service_facility_id: parseInt(claim_details.service_facility_id) || null,
             ordering_facility_id: parseInt(claim_details.ordering_facility_id) || null,
-
         },
 
         insurances: patientInsurances[0].existing_insurance.map((insurance) => {
@@ -171,7 +160,7 @@ module.exports = {
             `);
         }
 
-        if (study_status) { //} && study_status !== WILDCARD_ID) {
+        if (study_status) {
             filterQuery.append(SQL`
                 AND ${study_status} = ANY(cabr.study_status_codes)
             `);
@@ -210,8 +199,6 @@ module.exports = {
             FROM
                 cteAutobillingRule cabr
                 LEFT JOIN billing.claim_status cs ON cs.id = cabr.claim_status_id
-
-
         `;
 
         return await query(selectionQuery.append(filterQuery).append(SQL`
@@ -303,8 +290,6 @@ module.exports = {
             	, exclude_insurance_providers
             FROM base
         `;
-        console.log('QUERY TEXT: ', sql.text);
-        console.log('QUERY VALUES: ', sql.values);
 
         return await query(sql);
     },
@@ -334,9 +319,6 @@ module.exports = {
 
             insurance_provider_ids,
             exclude_insurance_providers,
-
-
-
         } = params;
 
         const sql = SQL`
@@ -566,7 +548,6 @@ module.exports = {
         `;
 
         return await query(sql);
-
     },
 
     deleteAutobillingRule: async (params) => {
@@ -675,15 +656,9 @@ module.exports = {
             LIMIT 1
         `;
 
-        // console.log('SQL text', sql.text);
-        // console.log('SQL values', sql.values);
-
-
         const {
             rows,
         } = await query(sql);
-
-        // console.log('rows: ', rows);
 
         if (rows.length) {
             const baseParams = {
@@ -697,14 +672,10 @@ module.exports = {
                 claim_status_id: rows[0].claim_status_id,
             };
 
-
             const saveClaimParams = await getSaveClaimParams(baseParams);
-            console.log('\n\n\n\nPARAMS: ', saveClaimParams)
             const results = await claimsData.save(saveClaimParams);
         }
 
         return rows;
     },
-
-
 };
