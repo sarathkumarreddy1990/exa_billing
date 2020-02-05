@@ -1,0 +1,76 @@
+{
+    "record_type": {
+        "format": "N",
+        "startPos": 1,
+        "length": 1
+    },
+    "practitioner_number": {
+        "format": "A",
+        "startPos": 2,
+        "length": 5
+    },
+    "mhsal_registration_number": {
+        "format": "A",
+        "startPos": 7,
+        "length": 6
+    },
+    "sur_name": {
+        "format": "A",
+        "startPos": 13,
+        "length": 20
+    },
+    "given_name": {
+        "format": "A",
+        "startPos": 33,
+        "length": 15
+    },
+    "birth_date": {
+        "format": "A",
+        "startPos": 48,
+        "length": 4
+    },
+    "gender": {
+        "format": "A",
+        "startPos": 52,
+        "length": 1
+    },
+    "mrn": {
+        "format": "A",
+        "startPos": 53,
+        "length": 7
+    },
+    "total_amount_bill": {
+        "format": "A",
+        "startPos": 60,
+        "length": 6,
+        "paddingChar": "0",
+        "isLeftJustified": false
+    },
+    "pre_auth_indicator": {
+        "format": "A",
+        "startPos": 66,
+        "length": 1
+    },
+    "on_call_indicator": {
+        "format": "A",
+        "startPos": 67,
+        "length": 1
+    },
+    "wcb_indicator": {
+        "format": "A",
+        "startPos": 68,
+        "length": 1
+    },
+    "empty": {
+        "format": "A",
+        "startPos": 69,
+        "length": 3
+    },
+    "claim_number": {
+        "format": "A",
+        "startPos": 72,
+        "length": 9,
+        "paddingChar": "0",
+        "isLeftJustified": false
+    }
+}
