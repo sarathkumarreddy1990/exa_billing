@@ -4,7 +4,7 @@ const router = express.Router();
 const httpHandler = require('../shared/http');
 const pkg = require('../../package.json');
 const { staticAssetsRoot } = require('../shared/constants');
-const autobillingController = require('../controllers/setup/auto-billing');
+const autobillingData = require('../data/setup/auto-billing');
 
 router.get('/', function (req, res) {
     let currentTheme = 'default';
@@ -31,7 +31,7 @@ router.get('/about', function (req, res) {
 });
 
 router.post('/studyStatusChanged', async (req, res) => {
-    const abrResults = await autobillingController.executeAutobillingRules(req.body);
+    const abrResults = await autobillingData.executeAutobillingRules(req.body);
     httpHandler.send(req, res, abrResults);
 });
 
