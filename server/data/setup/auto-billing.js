@@ -574,8 +574,6 @@ module.exports = {
             orderId,
         } = params;
 
-        console.log('STUDY ID: ', studyId);
-
         const sql = SQL`
             WITH cteAutoBillingRules AS (
                 SELECT
