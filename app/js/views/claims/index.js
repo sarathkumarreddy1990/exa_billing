@@ -1663,6 +1663,7 @@ define(['jquery',
                 var chargeTableRow = self.chargerowtemplate({
                     country_alpha_3_code: app.country_alpha_3_code,
                     province_alpha_2_code: app.province_alpha_2_code,
+                    billing_region_code: app.billingRegionCode,
                     row: data
                 });
                 $('#tBodyCharge').append(chargeTableRow);

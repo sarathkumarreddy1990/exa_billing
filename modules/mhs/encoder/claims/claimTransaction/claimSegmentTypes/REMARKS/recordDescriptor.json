@@ -1,0 +1,33 @@
+{
+    "record_type": {
+        "format": "N",
+        "startPos": 1,
+        "length": 1
+    },
+    "practitioner_number": {
+        "format": "A",
+        "startPos": 2,
+        "length": 5,
+        "paddingChar": "0",
+        "isLeftJustified": false
+    },
+    "remarks": {
+        "format": "A",
+        "startPos": 7,
+        "length": 63
+    },
+    "remarks_sequence_number": {
+        "format": "A",
+        "startPos": 70,
+        "length": 2,
+        "isLeftJustified": false,
+        "paddingChar": "0"
+    },
+    "claim_number": {
+        "format": "A",
+        "startPos": 72,
+        "length": 9,
+        "isLeftJustified": false,
+        "paddingChar": "0"
+    }
+}

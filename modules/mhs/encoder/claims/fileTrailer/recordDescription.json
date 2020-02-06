@@ -1,0 +1,60 @@
+{
+    "record_type": {
+      "format": "N",
+      "startPos": 1,
+      "length": 1
+    },
+    "user_site_number": {
+      "format": "A",
+      "startPos": 2,
+      "length": 5
+    },
+    "number_of_sociological": {
+      "format": "n",
+      "startPos": 7,
+      "length": 10,
+      "paddingChar": "0"
+    },
+    "number_of_address": {
+      "format": "N",
+      "startPos": 17,
+      "length": 10,
+      "paddingChar": "0"
+    },
+    "number_of_remarks": {
+      "format": "N",
+      "startPos": 27,
+      "length": 10,
+      "paddingChar": "0"
+    },
+    "number_of_service": {
+      "format": "n",
+      "startPos": 37,
+      "length": 10,
+      "paddingChar": "0"
+    },
+    "total_fee": {
+      "format": "N",
+      "startPos": 47,
+      "length": 10,
+      "paddingChar": "0"
+    },
+    "number_of_non_residence": {
+      "format": "N",
+      "startPos": 57,
+      "length": 10,
+      "paddingChar": "0"
+    },
+    "empty": {
+      "format": "A",
+      "startPos": 67,
+      "length": 5
+    },
+    "last_claim_number": {
+      "format": "N",
+      "startPos": 72,
+      "length": 9,
+      "paddingChar": "0"
+    }
+  }
+  

@@ -1,0 +1,46 @@
+{
+    "record_type": {
+        "format": "N",
+        "startPos": 1,
+        "length": 1
+    },
+    "practitioner_number": {
+        "format": "A",
+        "startPos": 2,
+        "length": 5,
+        "paddingChar": "0",
+        "isLeftJustified": false
+    },
+    "health_identification_number": {
+        "format": "A",
+        "startPos": 7,
+        "length": 12
+    },
+    "provice_code": {
+        "format": "A",
+        "startPos": 19,
+        "length": 2
+    },
+    "empty": {
+        "format": "A",
+        "startPos": 21,
+        "length": 6
+    },
+    "patient_birth_date": {
+        "format": "A",
+        "startPos": 27,
+        "length": 8
+    },
+    "filler": {
+        "format": "A",
+        "startPos": 35,
+        "length": 37
+    },
+    "claim_number": {
+        "format": "A",
+        "startPos": 72,
+        "length": 9,
+        "paddingChar": "0",
+        "isLeftJustified": false
+    }
+}
