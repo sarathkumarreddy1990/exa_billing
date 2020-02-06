@@ -1,35 +1,35 @@
 const Router = require('express-promise-router');
 const router = new Router();
 
-const controller = require('../../controllers/setup/auto-billing');
+const autobillingData = require('../../data/setup/auto-billing');
 const httpHandler = require('../../shared/http');
 
 const logger = require('../../../logger');
 
 router.get('/', async (req, res) => {
-    const data = await controller.getAutobillingRules(req.query);
+    const data = await autobillingData.getAutobillingRules(req.query);
 
     httpHandler.sendRows(req, res, data);
 });
 
 router.get('/:id', async (req, res) => {
-    const data = await controller.getAutobillingRule(req.params);
+    const data = await autobillingData.getAutobillingRule(req.params);
     httpHandler.sendRows(req, res, data);
 });
 
 
 router.post('/', async (req, res) => {
-    const data = await controller.createAutobillingRule(req.body);
+    const data = await autobillingData.createAutobillingRule(req.body);
     httpHandler.sendRows(req, res, data);
 });
 
 router.put('/:id', async (req, res) => {
-    const data = await controller.updateAutobillingRule(req.body);
+    const data = await autobillingData.updateAutobillingRule(req.body);
     httpHandler.sendRows(req, res, data);
 });
 
 router.delete('/:id', async (req, res) => {
-    const data = await controller.deleteAutobillingRule(req.params);
+    const data = await autobillingData.deleteAutobillingRule(req.params);
     httpHandler.sendRows(req, res, data);
 });
 

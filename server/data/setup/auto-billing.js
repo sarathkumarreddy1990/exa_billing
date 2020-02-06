@@ -194,7 +194,7 @@ module.exports = {
                 , cabr.autobilling_rule_description
                 , cabr.claim_status_id
                 , cabr.study_status_codes
-                , cs.description                AS claim_status_description
+                , cs.description                        AS claim_status_description
                 , cabr.is_active
             FROM
                 cteAutobillingRule cabr
@@ -213,81 +213,81 @@ module.exports = {
 
         const sql = SQL`
             WITH base AS (
-            	SELECT
-            		abr.id											as autobilling_rule_id
+                SELECT
+                    abr.id                                          AS autobilling_rule_id
                     , abr.description                               AS autobilling_rule_description
                     , abr.claim_status_id                           AS claim_status_id
                     , CASE
                         WHEN abr.inactivated_dt is null THEN true
                         ELSE false
                         END                                         is_active
-            		, array_agg(DISTINCT study_status_code)					as study_status_codes
-            		, abssr.excludes 								as exclude_study_status
-            		, array_agg(facility_id) 						as facility_ids
-            		, abfr.excludes 								as exclude_facilities
-            		, array_agg(modality_id) 						as modality_ids
-            		, abmr.excludes 								as exclude_modalities
-            		, array_agg(cpt_code_id) 						as cpt_code_ids
-            		, abcptr.excludes 								as exclude_cpt_codes
-            		, array_agg(insurance_provider_payer_type_id) 	as insurance_provider_payer_type_ids
-            		, abipptr.excludes 								as exclude_insurance_provider_payer_types
-            		, array_agg(insurance_provider_id) 				as insurance_provider_ids
-            		, abipr.excludes 								as exclude_insurance_providers
+                    , array_agg(DISTINCT study_status_code)       AS study_status_codes
+                    , abssr.excludes                              AS exclude_study_status
+                    , array_agg(facility_id)                      AS facility_ids
+                    , abfr.excludes                               AS exclude_facilities
+                    , array_agg(modality_id)                      AS modality_ids
+                    , abmr.excludes                               AS exclude_modalities
+                    , array_agg(cpt_code_id)                      AS cpt_code_ids
+                    , abcptr.excludes                             AS exclude_cpt_codes
+                    , array_agg(insurance_provider_payer_type_id) AS insurance_provider_payer_type_ids
+                    , abipptr.excludes                            AS exclude_insurance_provider_payer_types
+                    , array_agg(insurance_provider_id)            AS insurance_provider_ids
+                    , abipr.excludes                              AS exclude_insurance_providers
 
-            	FROM
-            		billing.autobilling_rules abr
-            		LEFT JOIN billing.autobilling_study_status_rules abssr 						ON abr.id = abssr.autobilling_rule_id
-            		LEFT JOIN billing.autobilling_facility_rules abfr 							ON abr.id = abfr.autobilling_rule_id
-            		LEFT JOIN billing.autobilling_modality_rules abmr 							ON abr.id = abmr.autobilling_rule_id
-            		LEFT JOIN billing.autobilling_cpt_code_rules abcptr							ON abr.id = abcptr.autobilling_rule_id
-            		LEFT JOIN billing.autobilling_insurance_provider_payer_type_rules abipptr	ON abr.id = abipptr.autobilling_rule_id
-            		LEFT JOIN billing.autobilling_insurance_provider_rules abipr 				ON abr.id = abipr.autobilling_rule_id
-             	WHERE
-             		abr.id = ${id}
-            	GROUP BY
-            		abr.id
-            		, abssr.excludes
-            		, abfr.excludes
-            		, abmr.excludes
-            		, abcptr.excludes
-            		, abipptr.excludes
-            		, abipr.excludes
+                 FROM
+                      billing.autobilling_rules abr
+                      LEFT JOIN billing.autobilling_study_status_rules abssr                        ON abr.id = abssr.autobilling_rule_id
+                      LEFT JOIN billing.autobilling_facility_rules abfr                             ON abr.id = abfr.autobilling_rule_id
+                      LEFT JOIN billing.autobilling_modality_rules abmr                             ON abr.id = abmr.autobilling_rule_id
+                      LEFT JOIN billing.autobilling_cpt_code_rules abcptr                           ON abr.id = abcptr.autobilling_rule_id
+                      LEFT JOIN billing.autobilling_insurance_provider_payer_type_rules abipptr     ON abr.id = abipptr.autobilling_rule_id
+                      LEFT JOIN billing.autobilling_insurance_provider_rules abipr                  ON abr.id = abipr.autobilling_rule_id
+                  WHERE
+                       abr.id = ${id}
+                 GROUP BY
+                      abr.id
+                      , abssr.excludes
+                      , abfr.excludes
+                      , abmr.excludes
+                      , abcptr.excludes
+                      , abipptr.excludes
+                      , abipr.excludes
             )
             SELECT
                 autobilling_rule_id
                 , autobilling_rule_description
                 , base.claim_status_id
                 , is_active
-            	, (SELECT array_to_json(array_agg(tmp)) FROM (
-            		SELECT DISTINCT ON (status_code) id, status_desc, status_code
-            		FROM study_status INNER JOIN base ON study_status.status_code = ANY(base.study_status_codes)
-            	) tmp) as study_statuses
-            	, exclude_study_status
-            	, (SELECT array_to_json(array_agg(tmp)) FROM (
-            		SELECT id, facility_name, facility_code
-            		FROM facilities INNER JOIN base ON facilities.id = ANY(base.facility_ids)
-            	) tmp) as facilities
-            	, exclude_facilities
-            	, (SELECT array_to_json(array_agg(tmp)) FROM (
-            		SELECT id, display_description, display_code
-            		FROM cpt_codes INNER JOIN base ON cpt_codes.id = ANY(base.cpt_code_ids)
-            	) tmp) as cpt_codes
-            	, exclude_cpt_codes
-            	, (SELECT array_to_json(array_agg(tmp)) FROM (
-            		SELECT id, modality_name, modality_code
-            		FROM modalities INNER JOIN base ON modalities.id = ANY(base.modality_ids)
-            	) tmp) as modalities
-            	, exclude_modalities
-            	, (SELECT array_to_json(array_agg(tmp)) FROM (
-            		SELECT id, description, code
-            		FROM insurance_provider_payer_types INNER JOIN base ON insurance_provider_payer_types.id = ANY(base.insurance_provider_payer_type_ids)
-            	) tmp) as insurance_provider_payer_types
-            	, exclude_insurance_provider_payer_types
-            	, (SELECT array_to_json(array_agg(tmp)) FROM (
-            		SELECT id, insurance_name, insurance_code
-            		FROM insurance_providers INNER JOIN base ON insurance_providers.id = ANY(base.insurance_provider_ids)
-            	) tmp) as insurance_providers
-            	, exclude_insurance_providers
+                 , (SELECT array_to_json(array_agg(tmp)) FROM (
+                      SELECT DISTINCT ON (status_code) id, status_desc, status_code
+                      FROM study_status INNER JOIN base ON study_status.status_code = ANY(base.study_status_codes)
+                 ) tmp) as study_statuses
+                 , exclude_study_status
+                 , (SELECT array_to_json(array_agg(tmp)) FROM (
+                      SELECT id, facility_name, facility_code
+                      FROM facilities INNER JOIN base ON facilities.id = ANY(base.facility_ids)
+                 ) tmp) as facilities
+                 , exclude_facilities
+                 , (SELECT array_to_json(array_agg(tmp)) FROM (
+                      SELECT id, display_description, display_code
+                      FROM cpt_codes INNER JOIN base ON cpt_codes.id = ANY(base.cpt_code_ids)
+                 ) tmp) as cpt_codes
+                 , exclude_cpt_codes
+                 , (SELECT array_to_json(array_agg(tmp)) FROM (
+                      SELECT id, modality_name, modality_code
+                      FROM modalities INNER JOIN base ON modalities.id = ANY(base.modality_ids)
+                 ) tmp) as modalities
+                 , exclude_modalities
+                 , (SELECT array_to_json(array_agg(tmp)) FROM (
+                      SELECT id, description, code
+                      FROM insurance_provider_payer_types INNER JOIN base ON insurance_provider_payer_types.id = ANY(base.insurance_provider_payer_type_ids)
+                 ) tmp) as insurance_provider_payer_types
+                 , exclude_insurance_provider_payer_types
+                 , (SELECT array_to_json(array_agg(tmp)) FROM (
+                      SELECT id, insurance_name, insurance_code
+                      FROM insurance_providers INNER JOIN base ON insurance_providers.id = ANY(base.insurance_provider_ids)
+                 ) tmp) as insurance_providers
+                 , exclude_insurance_providers
             FROM base
         `;
 
@@ -581,26 +581,26 @@ module.exports = {
                 SELECT
                     abr.id
                     , claim_status_id
-                    , abssr.excludes 								as exclude_study_status
-                    , array_agg(facility_id) 						as facility_ids
-                    , abfr.excludes 								as exclude_facilities
-                    , array_agg(modality_id) 						as modality_ids
-                    , abmr.excludes 								as exclude_modalities
-                    , array_agg(cpt_code_id) 						as cpt_code_ids
-                    , abcptr.excludes 								as exclude_cpt_codes
-                    , array_agg(insurance_provider_payer_type_id) 	as insurance_provider_payer_type_ids
-                    , abipptr.excludes 								as exclude_insurance_provider_payer_types
-                    , array_agg(insurance_provider_id) 				as insurance_provider_ids
-                    , abipr.excludes 								as exclude_insurance_providers
+                    , abssr.excludes                                AS exclude_study_status
+                    , array_agg(facility_id)                        AS facility_ids
+                    , abfr.excludes                                 AS exclude_facilities
+                    , array_agg(modality_id)                        AS modality_ids
+                    , abmr.excludes                                 AS exclude_modalities
+                    , array_agg(cpt_code_id)                        AS cpt_code_ids
+                    , abcptr.excludes                               AS exclude_cpt_codes
+                    , array_agg(insurance_provider_payer_type_id)   AS insurance_provider_payer_type_ids
+                    , abipptr.excludes                              AS exclude_insurance_provider_payer_types
+                    , array_agg(insurance_provider_id)              AS insurance_provider_ids
+                    , abipr.excludes                                AS exclude_insurance_providers
 
                 FROM
                     billing.autobilling_rules abr
-                    LEFT JOIN billing.autobilling_study_status_rules abssr 						ON abr.id = abssr.autobilling_rule_id
-                    LEFT JOIN billing.autobilling_facility_rules abfr 							ON abr.id = abfr.autobilling_rule_id
-                    LEFT JOIN billing.autobilling_modality_rules abmr 							ON abr.id = abmr.autobilling_rule_id
-                    LEFT JOIN billing.autobilling_cpt_code_rules abcptr							ON abr.id = abcptr.autobilling_rule_id
-                    LEFT JOIN billing.autobilling_insurance_provider_payer_type_rules abipptr	ON abr.id = abipptr.autobilling_rule_id
-                    LEFT JOIN billing.autobilling_insurance_provider_rules abipr 				ON abr.id = abipr.autobilling_rule_id
+                    LEFT JOIN billing.autobilling_study_status_rules abssr                      ON abr.id = abssr.autobilling_rule_id
+                    LEFT JOIN billing.autobilling_facility_rules abfr                           ON abr.id = abfr.autobilling_rule_id
+                    LEFT JOIN billing.autobilling_modality_rules abmr                           ON abr.id = abmr.autobilling_rule_id
+                    LEFT JOIN billing.autobilling_cpt_code_rules abcptr                         ON abr.id = abcptr.autobilling_rule_id
+                    LEFT JOIN billing.autobilling_insurance_provider_payer_type_rules abipptr   ON abr.id = abipptr.autobilling_rule_id
+                    LEFT JOIN billing.autobilling_insurance_provider_rules abipr                ON abr.id = abipr.autobilling_rule_id
                 WHERE
                     study_status_code = ${studyStatus}
                     AND inactivated_dt IS null
@@ -617,14 +617,14 @@ module.exports = {
                 SELECT
                     studies.facility_id
                     , studies.modality_id
-                    , array_agg(study_cpt.cpt_code_id)				AS cpt_code_ids
-                    , insurance_providers.provider_payer_type_id	AS insurance_provider_payer_type_id
-                    , insurance_providers.id						AS insurance_provider_id
+                    , array_agg(study_cpt.cpt_code_id)              AS cpt_code_ids
+                    , insurance_providers.provider_payer_type_id    AS insurance_provider_payer_type_id
+                    , insurance_providers.id                        AS insurance_provider_id
                 FROM
                     studies
-                    LEFT JOIN study_cpt				ON study_cpt.study_id = studies.id
-                    LEFT JOIN patient_insurances 	ON patient_insurances.patient_id = studies.patient_id
-                    LEFT JOIN insurance_providers	ON insurance_providers.id = patient_insurances.insurance_provider_id
+                    LEFT JOIN study_cpt             ON study_cpt.study_id = studies.id
+                    LEFT JOIN patient_insurances    ON patient_insurances.patient_id = studies.patient_id
+                    LEFT JOIN insurance_providers   ON insurance_providers.id = patient_insurances.insurance_provider_id
 
                 WHERE
                     studies.id = ${studyId}

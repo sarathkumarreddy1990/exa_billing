@@ -46,28 +46,28 @@ define(['jquery',
             });
         };
 
-        var enableCptCodes = function(enabled) {
+        var toggleCptCodes = function(enabled) {
             $('#divAutoBillingCptCodes .autobilling-input').prop('disabled', !enabled);
         };
-        var enableModalities = function(enabled) {
+        var toggleModalities = function(enabled) {
             $('#divAutoBillingModalities .autobilling-input').prop('disabled', !enabled);
         };
 
         var modalitiesChanged = function() {
             if (getSelectedModalities().length) {
-                enableCptCodes(false);
+                toggleCptCodes(false);
             }
             else {
-                enableCptCodes(true);
+                toggleCptCodes(true);
             }
         };
 
         var cptCodesChanged = function() {
             if (getSelectedCptCodes().length) {
-                enableModalities(false);
+                toggleModalities(false);
             }
             else {
-                enableModalities(true);
+                toggleModalities(true);
             }
         };
 
@@ -146,6 +146,8 @@ define(['jquery',
                 $("#listAutoBillingInsuranceProviders").append(ruleInsuranceProviders);
             }
         };
+
+
 
         var AutoBillingView = Backbone.View.extend({
             AutoBillingGridTemplate: _.template(AutoBillingGrid),
@@ -328,30 +330,20 @@ define(['jquery',
 
                 $('#divAutoBillingForm').html(this.AutoBillingFormTemplate());
 
-                // ***************** BEGIN Studies SECTION *********************
-                $('#ddlAutoBillingStudyStatuses').select2({
-                    data: _.map(app.study_status, function(study_status) {
-                        return {
-                            id: study_status.status_code,
-                            text: formatOptionText(study_status.status_desc, study_status.status_code)
-                        };
-                    }),
-                    placeholder: 'Study Status',
-                    minimumInputLength: 0,
-
-                    templateSelection: function(res) {
-                        if (res && res.id) {
-                            self.pendingAutoBillingStudyStatus = res;
-                            return res.text;
-                        }
-                    }
+                self.initDropdowns({
+                    facilities: _.map(app.facilities, function(fac) {return fac.id;}),
+                    modalities: _.map(app.modalities, function(mod) {return mod.id;})
                 });
+
+                // ***************** BEGIN Studies SECTION *********************
+                var $ddlAutoBillingStudyStatuses = $('#ddlAutoBillingStudyStatuses');
                 var $listAutoBillingStudyStatuses = $('#listAutoBillingStudyStatuses');
                 $('#btnAddAutoBillingStudyStatus').off().click(function() {
                     $listAutoBillingStudyStatuses.append(createOptionElement(
                         self.pendingAutoBillingStudyStatus.id,
                         self.pendingAutoBillingStudyStatus.text
                     ));
+                    $ddlAutoBillingStudyStatuses.empty();
                     self.pendingAutoBillingStudyStatus = null;
                 });
                 $('#btnRemoveAutoBillingStudyStatus').off().click(function() {
@@ -361,28 +353,13 @@ define(['jquery',
 
                 // *************** BEGIN Facilities SECTION *********************
                 var $ddlAutoBillingFacility = $('#ddlAutoBillingFacility');
-                $ddlAutoBillingFacility.select2({
-                    data: _.map(app.facilities, function(facility) {
-                        return {
-                            id: facility.id,
-                            text: formatOptionText(facility.facility_name, facility.facility_code)
-                        };
-                    }),
-                    placeholder: 'Facility',
-
-                    templateSelection: function(res) {
-                        if (res && res.id) {
-                            self.pendingAutoBillingFacility = res;
-                            return res.text;
-                        }
-                    }
-                });
                 var $listAutoBillingFacilities = $('#listAutoBillingFacilities');
                 $('#btnAddAutoBillingFacility').off().click(function() {
                     $listAutoBillingFacilities.append(createOptionElement(
                         self.pendingAutoBillingFacility.id,
                         self.pendingAutoBillingFacility.text
                     ));
+                    $ddlAutoBillingFacility.empty();
                     self.pendingAutoBillingFacility = null;
                 });
                 $('#btnRemoveAutoBillingFacility').off().click(function() {
@@ -393,23 +370,6 @@ define(['jquery',
 
                 // ************** BEGIN Modalities SECTION *********************
                 var $ddlAutoBillingModality = $('#ddlAutoBillingModality');
-                $ddlAutoBillingModality.select2({
-                    data: _.map(app.modalities, function(modality) {
-                        return {
-                            id: modality.id,
-                            text: formatOptionText(modality.modality_name, modality.modality_code)
-                        };
-                    }),
-                    placeholder: 'Modality',
-                    minimumInputLength: 0,
-
-                    templateSelection: function(res) {
-                        if (res && res.id) {
-                            self.pendingAutoBillingModality = res;
-                            return res.text;
-                        }
-                    }
-                });
                 var $listAutoBillingModalities = $('#listAutoBillingModalities');
                 $('#btnAddAutoBillingModality').off().click(function() {
                     $listAutoBillingModalities.append(createOptionElement(
@@ -417,6 +377,7 @@ define(['jquery',
                         self.pendingAutoBillingModality.text
                     ));
                     self.pendingAutoBillingModality = null;
+                    $ddlAutoBillingModality.empty();
                     modalitiesChanged();
                 });
                 $('#btnRemoveAutoBillingModality').off().click(function() {
@@ -428,49 +389,7 @@ define(['jquery',
 
 
                 // *************** BEGIN CPT Codes SECTION *********************
-                //
-                var facilities = _.map(app.facilities, function(fac) {return fac.id;});
-                var modalities = _.map(app.modalities, function(mod) {return mod.id;});
                 var $ddlAutoBillingCptCode = $('#ddlAutoBillingCptCode');
-                $ddlAutoBillingCptCode.select2({
-                    ajax: {
-                        type: 'POST',
-                        url: "/cptsAutoComplete",
-                        dataType: 'json',
-                        delay: 250,
-                        data: function (params) {
-                            return {
-                                pageNo: params.page || 1,
-                                q: params.term || '',
-                                pageSize: 10,
-                                sortField: 'trim(display_description)',
-                                sortOrder: "ASC",
-                                modalities: modalities,
-                                facilities: facilities,
-                                from: 'new_order'
-                            };
-                        },
-                        processResults: function (data, params) {
-                            return commonjs.getTotalRecords(data.result, params);
-                        },
-                        cache: true
-                    },
-                    placeholder: 'CPT Code',
-                    escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
-                    minimumInputLength: 0,
-
-                    templateResult: function(res) {
-                        return formatOptionText(res.display_description, res.display_code);
-                    },
-                    templateSelection: function(res) {
-                        if (res && res.id) {
-                            self.pendingAutoBillingCptCode = res;
-                            // $('#ddlAutoBillingCptCode').val(res.display_code);
-                            return formatOptionText(res.display_description, res.display_code);
-                        }
-                    }
-                });
-
                 var $listAutoBillingCptCodes = $('#listAutoBillingCptCodes');
                 $('#btnAddAutoBillingCptCode').off().click(function() {
                     $listAutoBillingCptCodes.append(createOptionElement(
@@ -492,45 +411,6 @@ define(['jquery',
 
                 // ****** BEGIN Insurance Provider Payer Types SECTION *********
                 var $ddlAutoBillingInsuranceProviderPayerTypes = $('#ddlAutoBillingInsuranceProviderPayerTypes');
-                $ddlAutoBillingInsuranceProviderPayerTypes.select2({
-                    ajax: {
-                        type: 'GET',
-                        url: "/insuranceProviderPayerTypes",
-                        dataType: 'json',
-                        delay: 250,
-                        data: function (params) {
-                            return {
-                                pageNo: params.page || 1,
-                                q: params.term || '',
-                                pageSize: 10,
-                                sortField: 'trim(description)',
-                                sortOrder: "ASC",
-                                modalities: modalities,
-                                facilities: facilities,
-                                from: 'new_order'
-                            };
-                        },
-                        processResults: function (data, params) {
-                            return commonjs.getTotalRecords(data.result, params);
-                        },
-                        cache: true
-                    },
-                    placeholder: 'Insurance Provider Payer Type',
-                    escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
-                    minimumInputLength: 0,
-
-                    templateResult: function(res) {
-                        return formatOptionText(res.description, res.code);
-                    },
-                    templateSelection: function(res) {
-                        if (res && res.id) {
-                            self.pendingAutoBillingInsuranceProviderPayerType = res;
-                            // $('#ddlAutoBillingCptCode').val(res.display_code);
-                            return formatOptionText(res.description, res.code);
-                        }
-                    }
-                });
-
                 var $listAutoBillingInsuranceProviderPayerTypes = $('#listAutoBillingInsuranceProviderPayerTypes');
                 $('#btnAddAutoBillingInsuranceProviderPayerType').off().click(function() {
                     $listAutoBillingInsuranceProviderPayerTypes.append(createOptionElement(
@@ -549,45 +429,6 @@ define(['jquery',
 
                 // ************ BEGIN Insurance Providers SECTION **************
                 var $ddlAutoBillingInsuranceProviders = $('#ddlAutoBillingInsuranceProviders');
-                $ddlAutoBillingInsuranceProviders.select2({
-                    ajax: {
-                        type: 'GET',
-                        url: "/insuranceProviders",
-                        dataType: 'json',
-                        delay: 250,
-                        data: function (params) {
-                            return {
-                                pageNo: params.page || 1,
-                                q: params.term || '',
-                                pageSize: 10,
-                                sortField: 'trim(insurance_name)',
-                                sortOrder: "ASC",
-                                modalities: modalities,
-                                facilities: facilities,
-                                from: 'new_order'
-                            };
-                        },
-                        processResults: function (data, params) {
-                            return commonjs.getTotalRecords(data.result, params);
-                        },
-                        cache: true
-                    },
-                    placeholder: 'Insurance Providers',
-                    escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
-                    minimumInputLength: 0,
-
-                    templateResult: function(res) {
-                        return formatOptionText(res.insurance_name, res.insurance_code);
-                    },
-                    templateSelection: function(res) {
-                        if (res && res.id) {
-                            self.pendingAutoBillingInsuranceProvider = res;
-                            // $('#ddlAutoBillingCptCode').val(res.display_code);
-                            return formatOptionText(res.insurance_name, res.insurance_code);
-                        }
-                    }
-                });
-
                 var $listAutoBillingInsuranceProviders = $('#listAutoBillingInsuranceProviders');
                 $('#btnAddAutoBillingInsuranceProvider').off().click(function() {
                     $listAutoBillingInsuranceProviders.append(createOptionElement(
@@ -643,6 +484,180 @@ define(['jquery',
                     ]
                 });
                 commonjs.processPostRender();
+            },
+
+            initDropdowns: function(options) {
+
+                var self = this;
+                var facilities = options.facilities;
+                var modalities = options.modalities;
+
+                $('#ddlAutoBillingStudyStatuses').select2({
+                    data: _.map(app.study_status, function(study_status) {
+                        return {
+                            id: study_status.status_code,
+                            text: formatOptionText(study_status.status_desc, study_status.status_code)
+                        };
+                    }),
+                    placeholder: 'Study Status',
+                    minimumInputLength: 0,
+
+                    templateSelection: function(res) {
+                        if (res && res.id) {
+                            self.pendingAutoBillingStudyStatus = res;
+                            return res.text;
+                        }
+                    }
+                });
+
+                $('#ddlAutoBillingFacility').select2({
+                    data: _.map(app.facilities, function(facility) {
+                        return {
+                            id: facility.id,
+                            text: formatOptionText(facility.facility_name, facility.facility_code)
+                        };
+                    }),
+                    placeholder: 'Facility',
+
+                    templateSelection: function(res) {
+                        if (res && res.id) {
+                            self.pendingAutoBillingFacility = res;
+                            return res.text;
+                        }
+                    }
+                });
+
+                $('#ddlAutoBillingModality').select2({
+                    data: _.map(app.modalities, function(modality) {
+                        return {
+                            id: modality.id,
+                            text: formatOptionText(modality.modality_name, modality.modality_code)
+                        };
+                    }),
+                    placeholder: 'Modality',
+                    minimumInputLength: 0,
+
+                    templateSelection: function(res) {
+                        if (res && res.id) {
+                            self.pendingAutoBillingModality = res;
+                            return res.text;
+                        }
+                    }
+                });
+
+                $('#ddlAutoBillingCptCode').select2({
+                    ajax: {
+                        type: 'POST',
+                        url: "/cptsAutoComplete",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                pageNo: params.page || 1,
+                                q: params.term || '',
+                                pageSize: 10,
+                                sortField: 'trim(display_description)',
+                                sortOrder: "ASC",
+                                modalities: modalities,
+                                facilities: facilities,
+                                from: 'new_order'
+                            };
+                        },
+                        processResults: function (data, params) {
+                            return commonjs.getTotalRecords(data.result, params);
+                        },
+                        cache: true
+                    },
+                    placeholder: 'CPT Code',
+                    escapeMarkup: function (markup) { return markup; },
+                    minimumInputLength: 0,
+
+                    templateResult: function(res) {
+                        return formatOptionText(res.display_description, res.display_code);
+                    },
+                    templateSelection: function(res) {
+                        if (res && res.id) {
+                            self.pendingAutoBillingCptCode = res;
+                            return formatOptionText(res.display_description, res.display_code);
+                        }
+                    }
+                });
+
+                $('#ddlAutoBillingInsuranceProviderPayerTypes').select2({
+                    ajax: {
+                        type: 'GET',
+                        url: "/insuranceProviderPayerTypes",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                pageNo: params.page || 1,
+                                q: params.term || '',
+                                pageSize: 10,
+                                sortField: 'trim(description)',
+                                sortOrder: "ASC",
+                                modalities: modalities,
+                                facilities: facilities,
+                                from: 'new_order'
+                            };
+                        },
+                        processResults: function (data, params) {
+                            return commonjs.getTotalRecords(data.result, params);
+                        },
+                        cache: true
+                    },
+                    placeholder: 'Insurance Provider Payer Type',
+                    escapeMarkup: function (markup) { return markup; },
+                    minimumInputLength: 0,
+
+                    templateResult: function(res) {
+                        return formatOptionText(res.description, res.code);
+                    },
+                    templateSelection: function(res) {
+                        if (res && res.id) {
+                            self.pendingAutoBillingInsuranceProviderPayerType = res;
+                            return formatOptionText(res.description, res.code);
+                        }
+                    }
+                });
+
+                $('#ddlAutoBillingInsuranceProviders').select2({
+                    ajax: {
+                        type: 'GET',
+                        url: "/insuranceProviders",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                pageNo: params.page || 1,
+                                q: params.term || '',
+                                pageSize: 10,
+                                sortField: 'trim(insurance_name)',
+                                sortOrder: "ASC",
+                                modalities: modalities,
+                                facilities: facilities,
+                                from: 'new_order'
+                            };
+                        },
+                        processResults: function (data, params) {
+                            return commonjs.getTotalRecords(data.result, params);
+                        },
+                        cache: true
+                    },
+                    placeholder: 'Insurance Providers',
+                    escapeMarkup: function (markup) { return markup; },
+                    minimumInputLength: 0,
+
+                    templateResult: function(res) {
+                        return formatOptionText(res.insurance_name, res.insurance_code);
+                    },
+                    templateSelection: function(res) {
+                        if (res && res.id) {
+                            self.pendingAutoBillingInsuranceProvider = res;
+                            return formatOptionText(res.insurance_name, res.insurance_code);
+                        }
+                    }
+                });
             },
 
 
