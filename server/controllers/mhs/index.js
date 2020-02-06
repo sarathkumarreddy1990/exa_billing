@@ -4,9 +4,7 @@ const mhsData = require('../../data/mhs');
 const claimdata = require('../../data/claim/claim-workbench');
 
 const mhsController = {
-    getFilePath: async (args) => {
-        return await mhsData.getFilePath(args.fileStoreId);
-    },
+    getFilePath: async (args) => await mhsData.getFilePath(args.fileStoreId),
 
     getClaimsForEDI: async (params) => {
         params.isCount = false;

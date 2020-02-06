@@ -160,7 +160,7 @@ const mhsData = {
                             INNER JOIN companies c ON c.file_store_id = fs.id 
                             WHERE c.id = ${company_id}`;
 
-        return queryRows(fileSql);
+        return await queryRows(fileSql);
 
     },
 
@@ -243,7 +243,7 @@ const mhsData = {
                     ${ediFileId},
                     UNNEST(${claimIds}::INT[])`;
                         
-        return query(sql.text, sql.values);
+        return await query(sql.text, sql.values);
     },
 
     /**
@@ -296,7 +296,7 @@ const mhsData = {
                 RETURNING
                     billing.claims.*
             `;
-        return query(sql.text, sql.values);
+        return await query(sql.text, sql.values);
     }
 };
 
