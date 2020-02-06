@@ -32,7 +32,7 @@ const mhsData = {
                             LEFT JOIN LATERAL  (
                                 SELECT ARRAY(SELECT code FROM modifiers WHERE id IN (bc.modifier1_id, bc.modifier2_id, bc.modifier3_id, bc.modifier4_id)) AS modifier_ids
                             ) modifiers  ON TRUE
-                            WHERE cc.display_code != 'I0001' AND bc.claim_id = ANY(${claimIds}) 
+                            WHERE cc.display_code != 'I001' AND bc.claim_id = ANY(${claimIds}) 
                             GROUP BY c.id	
                         ),
                         claim_icds AS (

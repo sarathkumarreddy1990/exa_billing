@@ -133,7 +133,7 @@ const processRow = (tracker, batch_tracker) => row => {
                 }
 
                 health_services.forEach(service => {
-                    if (service.code !== 'I0001') {
+                    if (service.code !== 'I001') {
                         segments.push(
                             encodeRecord(
                                 segmentProcessors[key](row, service),
