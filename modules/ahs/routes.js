@@ -15,16 +15,6 @@ module.exports = function () {
         return httpHandler.send(req, res, response);
     });
 
-    router.put('/reassess_claim', async (req, res) => {
-        let response = await ahs.reassessClaim(req.body);
-        return httpHandler.send(req, res, response);
-    });
-
-    router.put('/ahs_claim_delete', async (req, res) => {
-        const response = await ahs.deleteAhsClaim(req.body);
-        return httpHandler.send(req, res, response);
-    });
-
     router.put('/can_ahs_reassess_claim', async (req, res) => {
         let response = await ahs.reassessClaim(req.body);
         return httpHandler.send(req, res, response);
