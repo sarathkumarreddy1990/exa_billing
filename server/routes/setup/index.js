@@ -21,6 +21,8 @@ const auditLog = require('./audit-log');
 const ediTemplate = require('./edi-templates');
 const insuranceX12Mapping = require('./insurance-x12-mapping');
 const paperClaimTemplates = require('./printer-templates');
+const autoBilling = require('./auto-billing');
+
 
 const app = module.exports = express();
 app.use('/cas_group_codes', casGroupRouter);
@@ -45,3 +47,4 @@ app.use('/audit_log', auditLog);
 app.use('/x12', ediTemplate);
 app.use('/insurance_x12_mapping', insuranceX12Mapping);
 app.use('/printer_templates', paperClaimTemplates);
+app.use('/auto_billing', autoBilling);

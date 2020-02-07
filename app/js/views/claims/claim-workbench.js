@@ -2271,7 +2271,7 @@ define(['jquery',
                             width: 150,
                             formatter: function (value, model, data) {
                                 var disableStatus = data.current_status === 'success' ? "disabled" : "";
-                                return data.file_type === 'can_ohip_p' ? '<button i18n="shared.buttons.apply" id="file' + data.id + '" class="btn btn-primary btn-block" ' + disableStatus + '/>' : '';
+                                return data.file_type === 'can_ohip_p' && (data.totalAmountPayable || data.accountingTransactions.length) ? '<button i18n="shared.buttons.apply" id="file' + data.id + '" class="btn btn-primary btn-block" ' + disableStatus + '/>' : '';
                             },
                             customAction: function (rowID, e, data) {
                                 var rowData = data.getData(rowID);
@@ -2296,15 +2296,23 @@ define(['jquery',
                                 };
 
                                 var trColor = '';
-                                var retVal = '<table class="table table-bordered"><tbody><tr><td>';
-                                retVal += commonjs.geti18NString("billing.claims.totalAmountPayable");
-                                retVal +=  '</td><td>$' + data.totalAmountPayable.toFixed(2) + '</td></tr>';
-                                for (var i = 0; i < data.accountingTransactions.length; i++) {
-                                    trColor = getRowColor(data.accountingTransactions[i].transactionCode);
-                                    retVal += '<tr class="' + trColor + '"><td>' + data.accountingTransactions[i].transactionMessage + '}</td>';
-                                    retVal += '<td>$' + data.accountingTransactions[i].transactionAmount.toFixed(2) + '</td></tr>';
+                                var amountPayable = data.totalAmountPayable && data.totalAmountPayable.toFixed(2) || null
+                                var accountTransaction = data.accountingTransactions || [];
+                                var retVal = '';
+
+                                if(amountPayable) {
+                                    retVal += '<tr><td>' + commonjs.geti18NString("billing.claims.totalAmountPayable") + '</td><td>' + amountPayable + '</td></tr>';
                                 }
-                                retVal += '</tbody></table>';
+
+                                if(accountTransaction.length) {
+                                    for (var i = 0; i < accountTransaction.length; i++) {
+                                        trColor = getRowColor(accountTransaction[i].transactionCode);
+                                        retVal += '<tr class="' + trColor + '"><td>' + accountTransaction[i].transactionMessage + '}</td>';
+                                        retVal += '<td>$' + accountTransaction[i].transactionAmount.toFixed(2) + '</td></tr>';
+                                    }
+                                }
+                                
+                                retVal = retVal.length ? '<table class="table table-bordered"><tbody>' + retVal + '</tbody></table>' : '';
                                 return retVal;
 
                               } else {
@@ -2320,7 +2328,16 @@ define(['jquery',
                     sortorder: 'DESC',
                     disablepaging: false,
                     disablesort: false,
-                    disablesearch: false
+                    disablesearch: false,
+                    onaftergridbind: function(model, gridObj){
+                        options.pager.set({
+                            "TotalRecords": model.length ? model[0].get('total_records') : 0
+                        }); 
+                        self.setFooter({
+                            pager:  options.pager,
+                            options: { filterid: options.filterID }
+                        });                                           
+                    }
                 });
 
                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());

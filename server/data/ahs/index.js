@@ -792,7 +792,7 @@ const ahsData = {
             file_type,
             created_dt,
             file_store_id,
-            companyId,
+            company_id,
             file_path,
         } = info;
 
@@ -809,7 +809,7 @@ const ahsData = {
                 uploaded_file_name
             )
             SELECT
-                ${companyId},
+                ${company_id},
                 ${file_store_id},
                 ${created_dt},
                 'pending',
@@ -841,9 +841,12 @@ const ahsData = {
    */
     batchBalanceClaims: async (args) => {
         const {
-            company_id,
             fileData,
         } = args;
+
+        const {
+            company_id
+        } = args.log_details;
         const batchBalanceReportJson = JSON.stringify([fileData]) || JSON.stringify([{}]);
 
         const sql = SQL` SELECT billing.can_ahs_handle_claim_balance_report(${batchBalanceReportJson}::jsonb, ${company_id})`;

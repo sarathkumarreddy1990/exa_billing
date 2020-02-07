@@ -22,7 +22,9 @@ define([
     'routes/setup/edi-templates',
     'routes/setup/billing-messages',
     'routes/setup/insurance-x12-mapping',
-	'routes/setup/printer-templates'
+    'routes/setup/printer-templates',
+    'routes/setup/auto-billing'
+
 ], function (
     Backbone,
     BackboneSubroute,
@@ -47,7 +49,8 @@ define([
     EDITemplatesRoute,
     BillingMessagesRoute,
     InsuranceX12MappingRoute,
-	PaperClaimTemplatesRoute
+	PaperClaimTemplatesRoute,
+    AutoBillingRoute
     ) {
         return Backbone.SubRoute.extend({
             routes: {
@@ -70,7 +73,9 @@ define([
                 "edi_templates/*subroute" : "startEDITemplates",
                 "billing_messages/*subroute" : "startBillingMessages",
                 "insurance_x12_mapping/*subroute" : "startInsuranceX12Mapping",
-				"printer_templates/*subroute" : "startPaperClaimTemplates"
+                "printer_templates/*subroute" : "startPaperClaimTemplates",
+                "auto_billing/*subroute" : "startAutoBilling"
+
             },
 
             accessDeniedTemplate: _.template(AccessDeniedTemplate),
@@ -257,10 +262,19 @@ define([
                 }
             },
 
-			 startPaperClaimTemplates: function () {
+            startPaperClaimTemplates: function () {
                 if (this.checkLicense('PrinterTemplates') && !this.paperClaimTemplatesRouter) {
                     this.defaultArgs.routePrefix = 'setup/printer_templates/';
                     this.paperClaimTemplatesRouter = new PaperClaimTemplatesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startAutoBilling: function () {
+                if (this.checkLicense('AutoBilling') && !this.autoBillingRouter) {
+                    this.defaultArgs.routePrefix = 'setup/auto_billing/';
+                    this.autoBillingRouter = new AutoBillingRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();
                 }

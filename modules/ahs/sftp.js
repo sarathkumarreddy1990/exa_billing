@@ -149,21 +149,21 @@ const sftpService = {
    */
     download: async (data) => {
         let {
-            companyId
+            company_id
         } = data;
 
         let sftp = new sftpClient;
 
         try {
-            let fileStoreDetails = await ahsData.getCompanyFileStore(companyId);
+            let fileStoreDetails = await ahsData.getCompanyFileStore(company_id);
             let {
-                file_store_id: fileStoreId,
+                file_store_id,
                 root_directory,
                 submitter_prefix
             } = fileStoreDetails.rows.pop();
 
             if ( !root_directory ) {
-                sftpService.sendDataError(`Company file store missing for companyId ${companyId}`);
+                sftpService.sendDataError(`Company file store missing for companyId ${company_id}`);
             }
 
             try {
@@ -235,9 +235,8 @@ const sftpService = {
                         file_name,
                         file_md5,
                         file_size,
-                        file_store_id: fileStoreId,
-                        companyId,
-                        company_id: companyId,
+                        file_store_id,
+                        company_id,
                         file_path: fileDir,
                         created_dt,
                         file_type,
@@ -285,7 +284,7 @@ const sftpService = {
         } = data;
 
         switch(action){
-            case 'updload':
+            case 'upload':
                 return sftpService.upload(data);
             case 'download':
                 return  sftpService.download(data);

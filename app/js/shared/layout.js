@@ -31,6 +31,7 @@ var layout = {
     },
 
     screenLinkIds: {
+        // NOTE to add these, use the screen name set as "options.screen" in route::initializeRouter 
         'Adjustment Codes': '#aAdjustmentCodes',
         'Billing Codes': '#aBillingCodes',
         'Billing Classes': '#aBillingClasses',
@@ -77,7 +78,8 @@ var layout = {
         'EDI Templates': '#aEDITemplate',
         'Paper Claim Templates': '#aPaperClaimTemplate',
         'Printer Templates': '#aPrinterTemplate',
-        'Payments Realization Rate Analysis': '#aPaymentsRealizationRateAnalysis'
+        'Payments Realization Rate Analysis': '#aPaymentsRealizationRateAnalysis',
+        'Auto Billing': '#aAutoBilling'
         /// To be added
     },
 
