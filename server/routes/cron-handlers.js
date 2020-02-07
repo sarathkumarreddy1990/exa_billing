@@ -67,10 +67,17 @@ const runJob = ( req, res ) => {
 router.get('/ohip/:endpoint', restrictAccess, checkProgress, runJob);
 
 const handleEvents = async (req, res) => {
-    let { ip } = req;
+    let {
+        ip,
+        session: {
+            company_id
+        }
+    } = req;
+    
     let response = await ahs.events({
         ...req.params,
         ...req.query,
+        company_id,
         ip
     });
     return httpHandler.send(req, res, response);
