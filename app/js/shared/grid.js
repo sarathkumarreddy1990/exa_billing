@@ -177,7 +177,8 @@ define('grid', [
                     claim_id: gridData.hidden_claim_id,
                     invoice_no: _storeEle.invoice_no,
                     payer_type: _storeEle.payer_type,
-                    billing_method: _storeEle.billing_method
+                    billing_method: _storeEle.billing_method,
+                    claim_status_code: _storeEle.claim_status_code
                 };
                 if (gridData.billed_status && gridData.billed_status.toLocaleLowerCase() == 'billed') {
                     isbilled_status = true;
@@ -1821,6 +1822,7 @@ define('grid', [
 
         //To bind province based right click menus in claim grid
         self.bindProvinceBasedMenus = function ($divObj, studyArray, gridData, isClaimGrid, selectedStudies, $target) {
+
             if(app.billingRegionCode === 'can_AB') {
                 var liClaimReassess = commonjs.getRightClickMenu('anc_claim_reassess', 'setup.rightClickMenu.claimReassess', false, 'Claim Reassess', false);
 
@@ -1848,14 +1850,22 @@ define('grid', [
                     $('#li_ul_change_claim_status').hide();
                 }
 
-            }
+            } else if (app.billingRegionCode === 'can_MB') {
+                var queryClaimStatus = app.claim_status.find(function (e) {
+                    return e.code === 'QR';
+                });
+                var isValidQueryClaim = selectedStudies.length === selectedStudies.filter(function (e) {
+                    return ['MPP', 'OP'].includes(e.claim_status_code);
+                }).length;
 
-            if (app.billingRegionCode === 'can_MB') {
-                var liClaimQuery = commonjs.getRightClickMenu('anc_query_claim', 'setup.rightClickMenu.claimQuery', false, 'Query Claim', false);
-                
-                if (['MPP', 'OP'].indexOf(gridData.hidden_claim_status_code) > -1) {
+                var liClaimQuery = commonjs.getRightClickMenu('anc_query_claim', 'setup.rightClickMenu.queryClaim', false, 'Query Claim', false);
+
+                if (isValidQueryClaim) {
                     $divObj.append(liClaimQuery);
+                } else {
+                    $('#ancclaimStatus_' + queryClaimStatus.id).parent().hide();
                 }
+
                 self.checkRights('anc_claim_query');
                 var elQueryClaim = $('#anc_query_claim');
 
@@ -1864,10 +1874,9 @@ define('grid', [
                         return false;
                     }
 
-                    var claimQueryStatus = _.find(app.claim_status, function (cs) {return cs.code === 'QR' && cs});
                     var dataObj = {
                         claimIds: studyArray,
-                        claim_status_id: claimQueryStatus.id,
+                        claim_status_id: queryClaimStatus.id,
                         process: "Query Claim"
                     };
 
@@ -1877,15 +1886,14 @@ define('grid', [
                             type: 'PUT',
                             data: dataObj,
                             success: function (data, response) {
-
                                 if (data && data.length) {
                                     commonjs.showStatus('messages.status.claimStatusChanged');
-                                    var colorCodeDetails = commonjs.getClaimColorCodeForStatus(claimQueryStatus.code, 'claim');
+                                    var colorCodeDetails = commonjs.getClaimColorCodeForStatus(queryClaimStatus.code, 'claim');
                                     var colorCode = colorCodeDetails && colorCodeDetails.length && colorCodeDetails[0].color_code || 'transparent';
                                     var tblId = gridID.replace(/#/, '');
                                     var cells = [{
                                         'field': 'claim_status',
-                                        'data': claimQueryStatus.description,
+                                        'data': queryClaimStatus.description,
                                         'css': {
                                             "backgroundColor": colorCode
                                         }
