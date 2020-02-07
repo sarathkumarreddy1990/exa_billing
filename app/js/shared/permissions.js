@@ -69,8 +69,8 @@ var permissions = {
             'PRRA': 'aPaymentsRealizationRateAnalysis',
             'ECST': 'li_ul_change_claim_status',
             'RCLM': 'anc_claim_reassess',
-            'IAST': 'btnPrint',
-            'QCLM': 'anc_query_claim'
+            'QCLM': 'anc_query_claim',
+            'IAST': 'btnPrint'
         };
 
         var tosPayments = (app.screens).indexOf('TOSP') > -1 && (app.screens).indexOf('PAYM') === -1 ? true : false ;

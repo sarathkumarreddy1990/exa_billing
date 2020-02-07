@@ -177,8 +177,8 @@ define('grid', [
                     claim_id: gridData.hidden_claim_id,
                     invoice_no: _storeEle.invoice_no,
                     payer_type: _storeEle.payer_type,
-                    billing_method: _storeEle.billing_method,
-                    claim_status_code: _storeEle.claim_status_code
+                    claim_status_code: _storeEle.claim_status_code,
+                    billing_method: _storeEle.billing_method
                 };
                 if (gridData.billed_status && gridData.billed_status.toLocaleLowerCase() == 'billed') {
                     isbilled_status = true;
