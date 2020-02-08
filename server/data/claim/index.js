@@ -1213,16 +1213,12 @@ module.exports = {
             claimNotes
         } = params;
 
-        console.log('billingNotes--->' + billingNotes);
-        console.log('claimNotes--->' + claimNotes);
-
         let sqlQry = SQL`
                         UPDATE BILLING.CLAIMS
                         SET claim_notes = ${claimNotes}
                             , billing_notes = ${billingNotes}
                         WHERE id = ${claimId}
                         RETURNING *`;
-        console.log(sqlQry);
 
         return await query(sqlQry);
     }
