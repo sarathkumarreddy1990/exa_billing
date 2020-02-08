@@ -1204,6 +1204,27 @@ module.exports = {
                     ORDER BY sc.study_id DESC `;
 
         return await query(sql);
+    },
+
+    updateNotes: async (params) => {
+        const {
+            billingNotes,
+            claimId,
+            claimNotes
+        } = params;
+
+        console.log('billingNotes--->' + billingNotes);
+        console.log('claimNotes--->' + claimNotes);
+
+        let sqlQry = SQL`
+                        UPDATE BILLING.CLAIMS
+                        SET claim_notes = ${claimNotes}
+                            , billing_notes = ${billingNotes}
+                        WHERE id = ${claimId}
+                        RETURNING *`;
+        console.log(sqlQry);
+
+        return await query(sqlQry);
     }
 
 };

@@ -189,6 +189,8 @@ module.exports = {
         return await data.getClaimAppliedPayments(params);
     },
 
+    updateNotes: data.updateNotes,
+
     getChargesByPatientId: data.getChargesByPatientId
 
 };

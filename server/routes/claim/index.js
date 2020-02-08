@@ -102,4 +102,10 @@ router.get('/get_patient_charges', async (req, res) => {
     httpHandler.sendRows(req, res, data);
 });
 
+router.put('/notes/:id', async (req, res) => {
+    req.body.claimId = req.params.id;
+    const data = await claimsController.updateNotes(req.body);
+    httpHandler.sendRows(req, res, data);
+});
+
 module.exports = router;

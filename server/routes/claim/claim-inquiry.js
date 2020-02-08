@@ -69,4 +69,10 @@ router.get('/claim_patient_log', async (req, res) => {
     httpHandler.sendRows(req, res, data);
 });
 
+router.put('/notes/:id', async (req, res) => {
+    req.body.claimId = req.params.id;
+    const data = await inquiryController.updateNotes(req.body);
+    httpHandler.sendRows(req, res, data);
+});
+
 module.exports = router;
