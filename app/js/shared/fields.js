@@ -589,8 +589,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "width": 150,
                         "stype": "select",
                         "searchoptions": {
-                            "value": app.country_alpha_3_code !== 'can' ? billingMethodValue : billingMethodValueCan,
-                            "tempvalue": app.country_alpha_3_code !== 'can' ? billingMethodValue : billingMethodValueCan
+                            "value": app.billingRegionCode !== 'can_ON' ? billingMethodValue : billingMethodValueCan,
+                            "tempvalue": app.billingRegionCode !== 'can_ON' ? billingMethodValue : billingMethodValueCan
                         }
                     },
                 },

@@ -279,7 +279,7 @@ define([
                     { name: 'group_number', search: false }
                 ];
 
-                if (app.country_alpha_3_code != "can") {
+                if (app.billingRegionCode !== "can_ON") {
                     colNames.push('Paper Claim Original', 'Paper Claim Full');
                     i18nNames.push('billing.COB.paperClaimOriginal', 'billing.COB.paperClaimFull');
                     colModel.push({

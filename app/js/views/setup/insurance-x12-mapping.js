@@ -55,7 +55,7 @@ define(['jquery',
                 if (this.ediClearingHouses && !this.ediClearingHouses.length)
                     this.getEDIClearingHousesList();
 
-                if (app.country_alpha_3_code === "can") {
+                if (app.billingRegionCode === "can_ON") {
                     self.billing_method = _.reject(self.billing_method, function (field) {
                         return (field && (field.value == "paper_claim" || field.value == "patient_payment"))
                     }) || [];
@@ -168,6 +168,7 @@ define(['jquery',
                     billingRegionCode: app.billingRegionCode,
                     country_alpha_3_code: app.country_alpha_3_code,
                     province_alpha_2_code: app.province_alpha_2_code,
+                    billing_region_code: app.billingRegionCode,
                     ediClearingHouseList: self.ediClearingHouses
                 }));
                 if(id > 0) {
