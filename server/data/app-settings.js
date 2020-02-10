@@ -43,6 +43,7 @@ module.exports = {
                                             company_name,
                                             time_zone,
                                             hstore_to_json(sys_config) as sys_config,
+                                            scan_document_types,
                                             file_store_id
                                     FROM   companies
                                     WHERE  id=${companyID}
@@ -60,7 +61,7 @@ module.exports = {
                                             ORDER BY priority ASC ) AS modalities)
                     , cte_user AS(
                                    SELECT row_to_json(users) "userInfo"
-                                   FROM  ( SELECT id AS "userID",
+                                   FROM  ( SELECT users.id AS "userID",
                                             username,
                                             first_name,
                                             last_name,
@@ -68,14 +69,16 @@ module.exports = {
                                             suffix,
                                             facilities as user_facilities,
                                             user_type,
+                                            document_types,
                                             default_facility_id,
                                             hstore_to_json(user_settings) AS user_settings,
                                             get_full_name(last_name, first_name, middle_initial, NULL, suffix) AS "userFullName"
                                    FROM   users
-                                   WHERE  company_id=${companyID}
-                                   AND    deleted_dt IS NULL
-                                   AND    is_active
-                                   AND    id=${userID} ) AS users)
+                                   INNER JOIN user_groups ON user_groups.id = users.user_group_id
+                                   WHERE  users.company_id = ${companyID}
+                                   AND    users.deleted_dt IS NULL
+                                   AND    users.is_active
+                                   AND    users.id = ${userID} ) AS users)
                 , cte_user_settings AS(
                                     SELECT Json_agg(row_to_json(userSettings)) userSettings
                                     FROM  (
@@ -239,6 +242,7 @@ module.exports = {
                                     username,
                                     first_name,
                                     last_name,
+                                    user_groups.document_types,
                                     user_type
                                     FROM
                                         public.users
