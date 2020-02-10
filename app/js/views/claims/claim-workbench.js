@@ -334,6 +334,7 @@ define(['jquery',
                 self.$el.html(self.indexTemplate({
                     country_alpha_3_code: app.country_alpha_3_code,
                     province_alpha_2_code: app.province_alpha_2_code,
+                    billing_region_code: app.billingRegionCode,
                     showConformanceTesting: app.province_alpha_2_code === 'ON' && app.ohipConfig.showConformanceTesting,
                     gadget: '',
                     customStudyStatus: [],

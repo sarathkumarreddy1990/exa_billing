@@ -33,6 +33,7 @@ define([
                 this.$el.html(template({
                     country_alpha_3_code: app.country_alpha_3_code,
                     province_alpha_2_code: app.province_alpha_2_code,
+                    billing_region_code: app.billingRegionCode
                 }));
                 if (window.location && window.location.hash.split('/')[1] == 'studies') {
                     self.gridFilterName = 'studies';
