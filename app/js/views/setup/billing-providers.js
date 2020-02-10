@@ -7,6 +7,7 @@ define(['jquery',
     'text!templates/setup/billing-provider-grid.html',
     'text!templates/setup/billing-provider-form.html',
     'collections/setup/billing-providers',
+    'collections/setup/provider-id-codes',
     'models/setup/billing-providers',
     'models/pager',
     'shared/address'
@@ -20,6 +21,7 @@ define(['jquery',
         BillingProvidersGrid,
         BillingProvidersForm,
         BillingProvidersCollections,
+        ProviderIdCodesCollection,
         BillingProvidersModel,
         Pager,
         Address
@@ -45,6 +47,7 @@ define(['jquery',
                 this.options = options;
                 this.model = new BillingProvidersModel();
                 this.billingProvidersList = new BillingProvidersCollections();
+                this.providerIdCodesList = new ProviderIdCodesCollection();
                 this.pager = new Pager();
                 $(this.el).html(this.billingProvidersGridTemplate());
             },
@@ -274,7 +277,7 @@ define(['jquery',
                                     var $txtPayCity = $("[for=txtPayCity]");
                                     $txtPayCity.find("span").remove();
                                     $txtPayCity.removeClass('field-required');
-									
+
                                 }
                                 self.showFTPDetails();
                                 self.bindProviderIDCodes();
@@ -550,10 +553,16 @@ define(['jquery',
             bindProviderIDCodes: function () {
                 var self = this;
                 var confirmDelete = commonjs.geti18NString("message.status.areYouSureWantToDelete");
-                $('#divIDCodesGrid').show();
-                var billing_provider_id = this.model.id;
                 var width = $('#divBillingProvidersForm').width() - 50;
-                $('#tblProviderIDCodesGrid').jqGrid({
+                $('#divIDCodesGrid').show();
+                self.providerIdCodesTable = new customGrid();
+                self.providerIdCodesTable.render({
+                    gridelementid: '#tblProviderIDCodesGrid',
+                    custompager: new Pager(),   // make sure you provide this or it won't work because customgrid *needs* to override whatever is specified in here anyway
+                    customargs: {
+                        provider_id: self.model.id
+                    },
+                    emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['', '', '', '', '', 'Insurance Name', 'Payer Assigned Provider ID', 'Legacy ID Qualifier', 'in_active'],
                     i18nNames:['', '', '', '', '',  'setup.insuranceX12Mapping.insuranceName', 'setup.billingprovider.payerassignedproviderid' ,'setup.billingprovider.legacyidqualifier','shared.fields.inactive'],
                     colModel: [
@@ -580,6 +589,7 @@ define(['jquery',
                             hidden: true
                         }
                     ],
+
                     afterInsertRow: function (rowid, rowdata) {
                         if (rowdata.isActive) {
                             var $row = $('#tblProviderIDCodesGrid').find('#' + rowid);
@@ -600,28 +610,23 @@ define(['jquery',
                                 self.editingProviderIDCodes(rowID);
                         }
                     },
-                    width: width
+                    datastore: self.providerIdCodesList,
+                    container: self.el,
+
+                    sortable: {
+                        exclude: '#jqgh_tblBillingProvidersGrid,#jqgh_tblBillingProvidersGrid_edit,#jqgh_tblBillingProvidersGrid_del'
+                    },
+
+                    disablepaging: false,
+                    disableadd: true,
+                    disablereload: true,
+                    pager: '#gridPager_BillingProviderIdCodes'
                 });
+
                 $('#tblProviderIDCodesGrid').jqGrid('setGridHeight', 200);
                 $('#divCodesGrid').css({'width':width});
                 $('#tblProviderIDCodesGrid').jqGrid('clearGridData');
-                var url = '/exa_modules/billing/setup/provider_id_codes?provider_id=' + billing_provider_id;
-                $.ajax({
-                    url: url,
-                    type: 'GET',
-                    success: function (response) {
-                        self.clearIDCodesForm();
-                        if (response && response.length > 0) {
-                            for (var i = 0; i < response.length; i++) {
-                                var data = response[i];
-                                $("#tblProviderIDCodesGrid").jqGrid('addRowData', data.id, { "id": data.id, "insurance_provider_id": data.insurance_provider_id, "insurance_name": data.insurance_name, "payer_assigned_provider_id": data.payer_assigned_provider_id, "qualifier_desc": data.qualifier_desc, "qualifier_id": data.qualifier_id });
-                            }
-                        }
-                    },
-                    error: function (model, response) {
-                        commonjs.handleXhrError(model, response);
-                    }
-                });
+
             },
 
             editingProviderIDCodes: function (rowID) {
