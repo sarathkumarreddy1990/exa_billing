@@ -1152,6 +1152,18 @@ define(['jquery',
                         $('.extra-span').show();
                     }
 
+                } else if (app.billingRegionCode === 'can_MB') {
+                    var queryClaimStuatusId =  app.claim_status.find(function(e) {
+                        return e.code === 'QR';
+                    }).id;
+                    
+                    var QueryStatusEle = $('#ddlClaimStatus option[value="' + queryClaimStuatusId + '"]');
+
+                    if (!['MPP', 'OP'].includes(data.claim_status_code)) {
+                        QueryStatusEle.hide();
+                    } else {
+                        QueryStatusEle.show();
+                    }
                 }
             },
 
