@@ -278,7 +278,7 @@ define([
                     && document.getElementById("ifrEobFileUpload").contentWindow.document && document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileNameUploaded');
 
                 if (fileUploadedObj && fileUploadedObj.innerHTML && this.uploadMode !== 'PDF') {
-                    $('#tblEOBFileList #' + fileUploadedObj.innerHTML).dblclick();
+                    $('#tblEOBFileList tr#' + fileUploadedObj.innerHTML).off().dblclick();
                     fileUploadedObj.innerHTML = '';
                 }
                 this.uploadMode = null;
@@ -322,6 +322,11 @@ define([
                     created_by: app.userID,
                     company_id: app.companyID
                 });
+
+                if (app.billingRegionCode === 'can_MB') {
+                    return self.processMhsFile(file_id, gridData, currentStatus);
+                }
+
                 $('#btnProcessPayment').prop('disabled', true);
                 commonjs.showLoading();
                 $.ajax({
@@ -371,6 +376,42 @@ define([
                             commonjs.hideLoading();
                         }
 
+                    },
+                    error: function (err, response) {
+                        commonjs.hideLoading();
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
+            },
+
+            processMhsFile: function (file_id, gridData, currentStatus) {
+                var self = this;
+                var processPaymentBtn = $('#btnProcessPayment');
+                processPaymentBtn.prop('disabled', true);
+                commonjs.showLoading();
+
+                $.ajax({
+                    url: '/exa_modules/billing/mhs/process-file',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        status: currentStatus || gridData.current_status,
+                        file_id: file_id || null,
+                        company_id: app.companyID,
+                        facility_id: app.facilityID
+                    },
+                    success: function(model, response) {
+                        if (model && model.status == 100) {
+                            return commonjs.showWarning(model.message);
+                        } 
+
+                        if (model && model.rows && model.rows.length) {
+                            commonjs.hideDialog();
+                            self.reloadERAFilesLocal();
+                            $('.modal-dialog .btn-secondary, .modal-dialog .close').removeClass('eraClose');
+                        }
+                        processPaymentBtn.prop('disabled', false);
+                        commonjs.hideLoading();
                     },
                     error: function (err, response) {
                         commonjs.hideLoading();
