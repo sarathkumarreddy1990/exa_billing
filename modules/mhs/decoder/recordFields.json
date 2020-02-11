@@ -1,0 +1,312 @@
+{
+    "fileExchangeHeader": {
+        "recordCode": {
+            "startPos": 1,
+            "fieldLength": 1
+        },
+        "userSiteNumber": {
+            "startPos": 2,
+            "fieldLength": 5
+        },
+        "userSiteName": {
+            "startPos": 7,
+            "fieldLength": 40
+        },
+        "creationDate": {
+            "startPos": 47,
+            "fieldLength": 5,
+            "format": "julian"
+        },
+        "filler": {
+            "startPos": 52,
+            "fieldLength": 19
+        }
+    },
+    "fileExchangeTrailer": {
+        "recordCode": {
+            "startPos": 1,
+            "fieldLength": 1
+        },
+        "userSiteNumber": {
+            "startPos": 2,
+            "fieldLength": 5
+        },
+        "totalFeeAssessed": {
+            "startPos": 7,
+            "fieldLength": 10,
+            "format": "money"
+        },
+        "noCode2Records": {
+            "startPos": 24,
+            "fieldLength": 7,
+            "format": "numeric"
+        },
+        "noCode3Records": {
+            "startPos": 31,
+            "fieldLength": 7,
+            "format": "numeric"
+        },
+        "noCode5Records": {
+            "startPos": 45,
+            "fieldLength": 7,
+            "format": "numeric"
+        },
+        "noCode6Records": {
+            "startPos": 52,
+            "fieldLength": 7,
+            "format": "numeric"
+        },
+        "filler": {
+            "startPos": 73,
+            "fieldLength": 8
+        }
+    },
+    "processedSociologicalRecord": {
+        "practitionerNumber": {
+            "startPos": 2,
+            "fieldLength": 5
+        },
+        "MHSALRegistrationNumber": {
+            "startPos": 7,
+            "fieldLength": 6
+        },
+        "surName": {
+            "startPos": 13,
+            "fieldLength": 20
+        },
+        "givenName": {
+            "startPos": 33,
+            "fieldLength": 15
+        },
+        "yearOfBirth": {
+            "startPos": 48,
+            "fieldLength": 2
+        },
+        "gender": {
+            "startPos": 50,
+            "fieldLength": 1
+        },
+        "MRN": {
+            "startPos": 51,
+            "fieldLength": 7
+        },
+        "MHSALReceiptDate": {
+            "startPos": 58,
+            "fieldLength": 6,
+            "format": "YYMMDD"
+        },
+        "MHSALMicrofilmNo": {
+            "startPos": 64,
+            "fieldLength": 8
+        },
+        "claimNumber": {
+            "startPos": 72,
+            "fieldLength": 9
+        }
+    },
+    "processedServiceRecord": {
+        "incorporatedIndicator": {
+            "startPos": 2,
+            "fieldLength": 1
+        },
+        "practitionerNumber": {
+            "startPos": 3,
+            "fieldLength": 4
+        },
+        "referringPractitionerNumber": {
+            "startPos": 7,
+            "fieldLength": 5
+        },
+        "interestAmount": {
+            "startPos": 12,
+            "fieldLength": 5,
+            "format": "money"
+        },
+        "hospitalCode": {
+            "startPos": 17,
+            "fieldLength": 3
+        },
+        "serviceDate": {
+            "startPos": 20,
+            "fieldLength": 6,
+            "format": "YYMMDD"
+        },
+        "prefix": {
+            "startPos": 26,
+            "fieldLength": 1,
+            "format": "prefix"
+        },
+        "tariff": {
+            "startPos": 27,
+            "fieldLength": 4
+        },
+        "services": {
+            "startPos": 31,
+            "fieldLength": 2
+        },
+        "provinceCode": {
+            "startPos": 33,
+            "fieldLength": 2,
+            "format": "province"
+        },
+        "feeSubmitted": {
+            "startPos": 35,
+            "fieldLength": 6,
+            "format": "money"
+        },
+        "feeAssessed": {
+            "startPos": 41,
+            "fieldLength": 6,
+            "format": "feeAssessed"
+        },
+        "manualCode": {
+            "startPos": 47,
+            "fieldLength": 1
+        },
+        "healthIdentificationNumber": {
+            "startPos": 48,
+            "fieldLength": 12
+        },
+        "nonResidentDOB": {
+            "startPos": 60,
+            "fieldLength": 4
+        },
+        "practitionerOption": {
+            "startPos": 64,
+            "fieldLength": 1
+        },
+        "locationOfService": {
+            "startPos": 65,
+            "fieldLength": 1,
+            "format": "los"
+        },
+        "EOB": {
+            "startPos": 66,
+            "fieldLength": 6,
+            "format": "EOB"
+        },
+        "claimNumber": {
+            "startPos": 72,
+            "fieldLength": 9
+        }
+    },
+    "pendingSociologicalRecord": {
+        "practitionerNumber": {
+            "startPos": 2,
+            "fieldLength": 5
+        },
+        "MHSALRegistrationNumber": {
+            "startPos": 7,
+            "fieldLength": 6
+        },
+        "surName": {
+            "startPos": 13,
+            "fieldLength": 20
+        },
+        "givenName": {
+            "startPos": 33,
+            "fieldLength": 15
+        },
+        "yearOfBirth": {
+            "startPos": 48,
+            "fieldLength": 2
+        },
+        "gender": {
+            "startPos": 50,
+            "fieldLength": 1
+        },
+        "MRN": {
+            "startPos": 51,
+            "fieldLength": 7
+        },
+        "MHSALReceiptDate": {
+            "startPos": 58,
+            "fieldLength": 6,
+            "format": "YYMMDD"
+        },
+        "MHSALMicrofilmNo": {
+            "startPos": 64,
+            "fieldLength": 8
+        },
+        "claimNumber": {
+            "startPos": 72,
+            "fieldLength": 9
+        }
+    },
+    "pendingServiceRecord": {
+        "incorporatedIndicator": {
+            "startPos": 2,
+            "fieldLength": 1
+        },
+        "practitionerNumber": {
+            "startPos": 2,
+            "fieldLength": 5
+        },
+        "referringPractitionerNumber": {
+            "startPos": 7,
+            "fieldLength": 5
+        },
+        "filler": {
+            "startPos": 12,
+            "fieldLength": 5
+        },
+        "hospitalCode": {
+            "startPos": 17,
+            "fieldLength": 3
+        },
+        "serviceDate": {
+            "startPos": 20,
+            "fieldLength": 6,
+            "format": "YYMMDD"
+        },
+        "prefix": {
+            "startPos": 26,
+            "fieldLength": 1,
+            "format": "prefix"
+        },
+        "tariff": {
+            "startPos": 27,
+            "fieldLength": 4
+        },
+        "services": {
+            "startPos": 31,
+            "fieldLength": 2
+        },
+        "provinceCode": {
+            "startPos": 33,
+            "fieldLength": 2,
+            "format": "province"
+        },
+        "feeSubmitted": {
+            "startPos": 35,
+            "fieldLength": 6,
+            "format": "money"
+        },
+        "healthIdentificationumber": {
+            "startPos": 41,
+            "fieldLength": 12
+        },
+        "nonResidentDOB": {
+            "startPos": 53,
+            "fieldLength": 4
+        },
+        "practitionerOption": {
+            "startPos": 64,
+            "fieldLength": 1
+        },
+        "locationOfService": {
+            "startPos": 65,
+            "fieldLength": 1,
+            "format": "los"
+        },
+        "EOB": {
+            "startPos": 66,
+            "fieldLength": 2,
+            "format": "EOB"
+        },
+        "claimNumber": {
+            "startPos": 72,
+            "fieldLength": 9
+        }
+    }
+}
