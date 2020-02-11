@@ -61,6 +61,9 @@ const processRow = (tracker, batch_tracker) => row => {
     tracker.total_fee += parseFloat(claim_total_bill_fee); 
     batch_tracker.total_fee += parseFloat(claim_total_bill_fee);
     let segmentKeys =  Object.keys(segmentProcessors);
+    if (service_reception_details.phn_details && service_reception_details.phn_details.province_alpha_2_code !== 'MB') {
+        service_reception_details.registration_number_details = {};
+    }
 
     segmentKeys.forEach(key => {
         

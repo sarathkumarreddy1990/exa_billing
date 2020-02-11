@@ -25,7 +25,7 @@ const processResults = ( row ) => {
     return {
         'record_type': 3,
         'practitioner_number': practitioner.prid ? practitioner.prid.padStart(5, '0') : '',
-        'mhsal_registration_number': (registration_number_details && registration_number_details.alt_account_no.padStart(6, '0')) || '',
+        'mhsal_registration_number': (registration_number_details && registration_number_details.alt_account_no && registration_number_details.alt_account_no.padStart(6, '0')) || '',
         'sur_name': last_name,
         'given_name': first_name,
         'birth_date': birth_date && birth_date.slice(2, 6),

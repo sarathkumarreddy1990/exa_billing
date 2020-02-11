@@ -3073,7 +3073,7 @@ define(['jquery',
                 } else if (data.error) {
                     commonjs.showError('billing.claims.claimError');
                 } else {
-                    window.open(`${window.location.origin}/exa_modules/billing/mhs/downloadFile?fileStoreId=${data.id}`, "_self");
+                    window.open(window.location.origin + '/exa_modules/billing/mhs/downloadFile?fileStoreId=' + data.id, "_self");
                     $("#btnClaimsRefresh").click();
                 }
             }
