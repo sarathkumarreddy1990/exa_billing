@@ -15,6 +15,12 @@ const processResults = ( row ) => {
     } = row.service_reception_details;
   
     let registration_number = (registration_number_details && registration_number_details.alt_account_no && registration_number_details.alt_account_no.padStart(6, '0')) || '';
+    let phin;
+
+    if(phn_details && phn_details.length){
+        phin = (phn_details.province_alpha_2_code === 'MB') ? phn_details.alt_account_no : '';
+    }
+
     return {
         'record_type': 4,
         'practitioner_number': row.practitioner.prid,
@@ -22,7 +28,7 @@ const processResults = ( row ) => {
         'registrant_address_one': address1,
         'registrant_address_two': address2,
         'postal_code': postal_code.replace(/\s/g, ''),
-        'phin': phn_details && phn_details.alt_account_no,
+        'phin': phin,
         'claim_number': row.claim_number,
     };
 };
