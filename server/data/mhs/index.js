@@ -247,6 +247,192 @@ const mhsData = {
     },
 
     /**
+     * Payment applying for the the details from payment file
+     * @param {object} args    {
+     *                             file_id: Number,
+     *                             facility_id: Number,
+     *                             fileData: Object, // MHSAL payments json object
+     *                             userId: Number
+     *                         }
+     * @returns {object}       {
+     *                             response: boolean
+     *                         }
+     */
+    applyPayments: async (fileData, args) => {
+        let {
+            file_id,
+            company_id,
+            userId,
+            facility_id,
+            clientIp
+        } = args;
+        let auditDetails = {
+            'company_id': company_id,
+            'screen_name': 'payments',
+            'module_name': 'payments',
+            'client_ip': clientIp,
+            'user_id': userId
+        };
+
+        const sql = SQL`SELECT billing.can_mhs_apply_payments(
+                            ${facility_id}
+                          , ${file_id}::BIGINT
+                          , ${JSON.stringify(fileData)}::JSONB
+                          , ${JSON.stringify(auditDetails)}::JSONB
+                        )`;
+
+        return await query(sql);
+    },
+
+    /**
+     *  Get Files list from edi_files table based on status
+     * @param {args} JSON 
+     */
+    getERAFilePathById: async function (params) {
+        let {
+            file_id,
+            company_id
+        } = params;
+
+        const sql = `SELECT
+                         ef.id
+                       , ef.status
+                       , ef.file_type
+                       , ef.file_path
+                       , fs.root_directory
+                       , ef.uploaded_file_name
+                     FROM billing.edi_files ef
+                     INNER JOIN file_stores fs on fs.id = ef.file_store_id
+                     WHERE ef.id = ${file_id} AND ef.company_id = ${company_id}`;
+
+        return await query(sql);
+    },
+
+    /**
+     * Update File status 
+     * @param  {object} args    {
+     *                             FileId: Number
+     *                          }
+     */
+    updateFileStatus: async (args) => {
+        let {
+            fileId,
+            status
+        } = args;
+
+        const sql = SQL`UPDATE 
+                            billing.edi_files 
+                        SET status = ${status}
+                        WHERE id = ${fileId}`;
+
+        return await query(sql);
+    },
+
+    /**
+     * Create Chargess For Interest payments
+     * @param {Object} args {
+     *                      file_id: Number,
+     *                      facility_id: Number,
+     *                      InterestData: Object, // MHSAL processed payments json object
+     *                      userId: Number
+     *                      }
+     * @returns {object}    {
+     *                          response: Json
+     *                      }
+     */
+    createInterestCharges: async (interestData, args) => {
+        const {
+            company_id,
+            userId,
+            facility_id,
+            clientIp
+        } = args;
+        const auditDetails = {
+            'company_id': company_id,
+            'screen_name': 'claims',
+            'module_name': 'claims',
+            'client_ip': clientIp,
+            'user_id': userId
+        };
+        const {
+            services
+        } = interestData;
+
+        const sql = SQL`SELECT billing.can_mhs_create_interest_charge(
+                            ${facility_id}
+                          , ${JSON.stringify(services)}::JSONB
+                          , ${JSON.stringify(auditDetails)}::JSONB
+                        )`;
+
+        return await query(sql);
+    },
+
+    unappliedChargePayments: async (params) => {
+        let {
+            file_id,
+            company_id,
+            clientIp,
+            userId
+        } = params;
+        const audit_details = {
+            'company_id': company_id,
+            'screen_name': 'payments',
+            'module_name': 'payments',
+            'client_ip': clientIp,
+            'user_id': userId
+        };
+
+        const sql = SQL`
+                    WITH claim_payment AS (
+                        SELECT
+                              ch.claim_id
+                            , efp.payment_id
+                            , pa.applied_dt
+                        FROM billing.charges AS ch
+                        INNER JOIN billing.payment_applications AS pa ON pa.charge_id = ch.id
+                        INNER JOIN billing.payments AS p ON pa.payment_id  = p.id
+                        INNER JOIN billing.edi_file_payments AS efp ON pa.payment_id = efp.payment_id
+                        WHERE efp.edi_file_id = ${file_id }  AND mode = 'eft'
+                        GROUP BY ch.claim_id, efp.payment_id, pa.applied_dt
+                        ORDER BY pa.applied_dt DESC
+                    )
+                    , unapplied_charges AS (
+                        SELECT 
+                              cp.payment_id
+                            , json_build_object(
+                                  'charge_id', ch.id
+                                , 'payment', 0
+                                , 'adjustment', 0
+                                , 'cas_details', '[]'::jsonb
+                                , 'applied_dt', cp.applied_dt
+                            )
+                        FROM billing.charges ch
+                        INNER JOIN billing.claims AS c ON ch.claim_id = c.id
+                        INNER JOIN claim_payment AS cp ON cp.claim_id = c.id
+                        WHERE ch.id NOT IN ( SELECT charge_id 
+                                             FROM  billing.payment_applications pa 
+                                             WHERE pa.charge_id = ch.id
+                                             AND pa.payment_id = cp.payment_id
+                                             AND pa.applied_dt = cp.applied_dt
+                                           )
+                    )
+                    , insert_payment_adjustment AS (
+                        SELECT
+                            billing.create_payment_applications(
+                                  uc.payment_id
+                                , null
+                                , ${userId }
+                                , json_build_array(uc.json_build_object)::jsonb
+                                , (${audit_details })::jsonb
+                            )
+                        FROM unapplied_charges uc
+                    )
+                    SELECT * FROM insert_payment_adjustment `;
+
+        return await query(sql);
+    },
+
+    /**
     * updateClaimsStatus - updating claim status
     * @param {Object} args
     * @returns {Object}

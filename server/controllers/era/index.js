@@ -107,12 +107,12 @@ module.exports = {
         const fileName = params.file.originalname;
 
         let tempString = buffer.toString();
-        let bufferString = tempString.replace(/(?:\r\n|\r|\n)/g, '');
+        let bufferString = (params.billingRegionCode === 'can_MB' && tempString) || tempString.replace(/(?:\r\n|\r|\n)/g, '');
 
         bufferString = bufferString.trim() || '';
-        let isValidFileContent = params.countryCode === 'can' ? (bufferString.indexOf('HR1') == -1 || bufferString.indexOf('HR4') == -1 || bufferString.indexOf('HR7') == -1) : (bufferString.indexOf('ISA') == -1 || bufferString.indexOf('CLP') == -1);
-
-        if (!isEob && isValidFileContent) {
+        let isInValidFileContent = params.billingRegionCode === 'can_MB' ? false : (params.billingRegionCode === 'can_ON' ? (bufferString.indexOf('HR1') == -1 || bufferString.indexOf('HR4') == -1 || bufferString.indexOf('HR7') == -1) : (bufferString.indexOf('ISA') == -1 || bufferString.indexOf('CLP') == -1));
+        
+        if (!isEob && isInValidFileContent) {
             return {
                 status: 'INVALID_FILE',
             };
@@ -440,7 +440,7 @@ module.exports = {
         let eraResponse = await data.getProcessedFileData(params);
         let eraResponseValues = eraResponse.rows && eraResponse.rows[0].payer_details;
 
-        if (eraResponseValues && eraResponseValues.file_name) {
+        if (eraResponseValues && eraResponseValues.file_name && params.billingRegionCode !== 'can_MB') {
             const filePath = path.join(eraResponseValues.root_directory, eraResponseValues.file_path, eraResponseValues.file_name);
 
             try {

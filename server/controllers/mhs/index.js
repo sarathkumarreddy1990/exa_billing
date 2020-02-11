@@ -2,6 +2,12 @@
 
 const mhsData = require('../../data/mhs');
 const claimdata = require('../../data/claim/claim-workbench');
+const {promisify} = require('util');
+const parser = require('../../../modules/mhs/decoder/index');
+const logger = require('../../../logger');
+const fs = require('fs');
+const readFile = promisify(fs.readFile);
+const path = require('path');
 
 const mhsController = {
     getFilePath: async (args) => await mhsData.getFilePath(args.fileStoreId),
@@ -41,6 +47,90 @@ const mhsController = {
     getCompanyFileStore: async (args) => {
         return await mhsData.getCompanyFileStore(args);
     },
+    
+    /**
+     * Tor reading the contents of the file
+    */
+    getFile: async (filePath, params) => {
+        let contents;
+
+        try {
+            contents = await readFile(filePath, 'utf8');
+            return parser.processFile(contents, params);
+        }
+        catch (e) {
+            logger.error('Error in file Processing', e);
+        }
+    },
+
+    /***
+    * Function used to process the ERA file
+    * @param {data} Object {
+    *                      ip
+    *                      } 
+    */
+    processEraFile: async (params) => {
+        let processDetails,
+            eraPath,
+            rootDir,
+            message = [];
+        const eraFileDir = await mhsData.getERAFilePathById(params);
+
+        if (eraFileDir && eraFileDir.rows && eraFileDir.rows.length) {
+            rootDir = eraFileDir.rows[0].root_directory || '';
+            eraPath = eraFileDir.rows[0].file_path || '';
+            params.uploaded_file_name = eraFileDir.rows[0].uploaded_file_name || '';
+        }
+
+        eraPath = path.join(rootDir, eraPath);
+
+        try {
+            let dirExists = fs.existsSync(eraPath);
+
+            if (!dirExists) {
+                message.push({
+                    status: 100,
+                    message: 'Directory not found in file store'
+                });
+
+                return message;
+            }
+
+            eraPath = path.join(eraPath, params.file_id);
+            let eraResponseJson = await mhsController.getFile(eraPath, params);
+
+            logger.logInfo('File processing finished...');
+
+            //Create New charges for interest payments
+            await mhsData.createInterestCharges(eraResponseJson.processedServiceRecord, params);
+
+            await mhsData.updateFileStatus({
+                status: 'in_progress',
+                fileId: params.file_id
+            });
+
+            logger.logInfo('Applying payments started...');
+
+            //Applying payments from the payment file
+            processDetails = await mhsData.applyPayments(eraResponseJson, params);
+
+            //Again we call to create payment application for unapplied charges from ERA claims
+            await mhsData.unappliedChargePayments(params);
+
+            await mhsData.updateFileStatus({
+                status: processDetails.rows && processDetails.rows.length ? 'success' : 'failure',
+                fileId: params.file_id
+            });
+
+            logger.logInfo('Applying payments finished...');
+
+            return processDetails;
+        }
+        catch (err) {
+            logger.error(err);
+            return err;
+        }
+    }
 };
 
 module.exports = mhsController;

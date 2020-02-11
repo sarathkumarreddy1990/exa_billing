@@ -11,6 +11,7 @@ router.get('/', function (req, res) {
     const countryCode = req.session && req.session.country_alpha_3_code
         ? req.session.country_alpha_3_code
         : 'usa';
+    const provinceCode = req.session && req.session.province_alpha_2_Code || '';
 
     if (req.session && req.session.currentTheme && ['default', 'dark'].indexOf(req.session.currentTheme) > -1) {
         currentTheme = req.session.currentTheme;
@@ -20,6 +21,7 @@ router.get('/', function (req, res) {
         title: 'EXA-Billing',
         cssPath: staticAssetsRoot + '/skins/' + currentTheme,
         countryCode: countryCode,
+        provinceCode: provinceCode,
         staticAssetsRoot
     });
 });
