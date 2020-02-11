@@ -61,7 +61,10 @@ const processRow = (tracker, batch_tracker) => row => {
     tracker.total_fee += parseFloat(claim_total_bill_fee); 
     batch_tracker.total_fee += parseFloat(claim_total_bill_fee);
     let segmentKeys =  Object.keys(segmentProcessors);
+    let isOutOfProvince = false;
+
     if (service_reception_details.phn_details && service_reception_details.phn_details.province_alpha_2_code !== 'MB') {
+        isOutOfProvince = true;
         service_reception_details.registration_number_details = {};
     }
 
@@ -108,6 +111,7 @@ const processRow = (tracker, batch_tracker) => row => {
                                 )
                             );
 
+                            row.sequence_number++;
                             tracker[key]++;
                             batch_tracker[key]++;
                         }
@@ -153,7 +157,7 @@ const processRow = (tracker, batch_tracker) => row => {
             }
 
             case 'NONRESIDENCE': {
-                if (service_reception_details.alt_provice_code !== 'MB') {
+                if (isOutOfProvince) {
                     segments.push(
                         encodeRecord(
                             segmentProcessors[key](row),
