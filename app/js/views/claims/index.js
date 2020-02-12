@@ -183,7 +183,7 @@ define(['jquery',
                         chargeList: self.claimChargeList || [],
                         paymentList: self.paymentList,
                         billingRegionCode: app.billingRegionCode,
-                        currentDate: self.studyDate
+                        currentDate: self.studyDate === undefined && self.cur_study_date || self.studyDate
                     })
                 });
 
@@ -1327,6 +1327,7 @@ define(['jquery',
                 self.cur_patient_id = primaryStudyDetails.patient_id ? parseInt(primaryStudyDetails.patient_id) : null;
                 self.cur_patient_name = primaryStudyDetails.patient_name;
                 self.cur_patient_acc_no = primaryStudyDetails.account_no;
+                self.cur_study_date =  primaryStudyDetails.study_date ? moment.utc(primaryStudyDetails.study_date).format('L') : '';
                 self.cur_patient_dob = primaryStudyDetails.patient_dob ? moment.utc(primaryStudyDetails.patient_dob).format('L') : null;
                 self.pri_accession_no = primaryStudyDetails.accession_no || null;
                 self.cur_study_id = primaryStudyDetails.study_id || null;
@@ -1346,6 +1347,7 @@ define(['jquery',
                     if (self.isInitialLoaded) {
                         $('#tab_menu').find('li').removeClass('active');
                         $('#newClaimNavCharge').closest('li').addClass('active');
+                        $('#patientStudyDate').text(self.cur_study_date || self.studyDate);
                         self.bindTabMenuEvents();
                     } else {
                         self.render('studies');
