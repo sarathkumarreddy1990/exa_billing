@@ -209,7 +209,8 @@ define(['jquery',
                 this.templateToogleMode = true;
                 $('#divPaperClaimTemplatesForm').html(this.paperClaimTemplatesFormTemplate({
                     country_alpha_3_code: app.country_alpha_3_code,
-                    province_alpha_2_code: app.province_alpha_2_code
+                    province_alpha_2_code: app.province_alpha_2_code,
+                    billing_region_code: app.billingRegionCode
                 }));
                 $('#divPaperClaimTemplatesGrid').hide();
                 $('#divPaperClaimTemplatesForm').show();

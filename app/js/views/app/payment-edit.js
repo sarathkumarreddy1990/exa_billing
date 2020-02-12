@@ -3497,12 +3497,23 @@ define(['jquery',
             disableElementsForProvince: function(data) {
                 var details = data && data[0] || {};
 
-                if(app.billingRegionCode === 'can_AB') {
+                if (app.billingRegionCode === 'can_AB') {
                     $('#ddlClaimStatus').prop('disabled', details && details.primary_ins_provider_code.toLowerCase() === 'ahs');
                 } else if (app.billingRegionCode === 'can_MB') {
-                    var validStatus = app.claim_status.find(function(obj) {
-                        return obj.id === details.claim_status_id;
-                    });
+                    var queryClaimStatusId = app.claim_status.find(function (e) {
+                        return e.code === 'QR';
+                    }).id; //returns an id of query claim
+
+                    var QueryStatusEle = $('#ddlClaimStatus option[value="' + queryClaimStatusId + '"]');
+                    var validStatus = app.claim_status.find(function(e) {
+                        return e.id === details.claim_status_id;
+                    }); //returns an id of partially paid or over paid.
+
+                    if (['MPP', 'OP'].includes(validStatus.code)) {
+                        QueryStatusEle.show();
+                    } else {
+                        QueryStatusEle.hide();
+                    }
 
                     if (validStatus.code !== 'P77') {
                         $("#btnSaveAppliedPendingPaymentsNotes").hide();

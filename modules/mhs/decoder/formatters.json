@@ -1,0 +1,38 @@
+{
+    "locationOfService": {
+        "B": "Brandon",
+        "O": "Other or blank",
+        "W": "Winnipeg",
+        "N": "Northern",
+        "R": "Rural"
+    },
+    "prefix": {
+        "0": "Surgical assistant",
+        "1": "Post-operative fee",
+        "2": "Surgery",
+        "3": "Maternity",
+        "4": "Anasthesia",
+        "5": "Radiology",
+        "6": "Second Anasthetist",
+        "7": "Calls - special tests",
+        "8": "Pathology"
+    },
+    "province": {
+        "": "Manitoba",
+        "AB": "Alberta",
+        "BC": "BritishColumbia",
+        "NB": "New Brunswick",
+        "NL": "Newfoundland",
+        "NT": "Northwest Territories",
+        "NS": "Nova Scotia",
+        "NU": "Nunavut",
+        "ON": "Ontario",
+        "PE": "Prince Edward Island",
+        "QC": "Quebec",
+        "SK": "Saskatchewan",
+        "YT": "Yukon"
+    },
+    "positiveValues": ["{", "A", "B", "C", "D", "E", "F", "G", "H", "I"],
+    "negativeValues": ["}", "J", "K", "L", "M", "N", "O", "P", "Q", "R"],
+    "daysOfMonth": ["31", "28", "31", "30", "31", "30", "31", "31", "30", "31", "30", "31"]
+}

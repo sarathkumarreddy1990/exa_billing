@@ -16,5 +16,10 @@ router.use('/downloadFile', async (req, res) => {
     httpHandler.download(req, res, fileResponse);
 });
 
+router.post('/process-file', async function (req, res) {
+    const data = await mhsController.processEraFile(req.body);
+    httpHandler.send(req, res, data);
+});
+
 module.exports = router;
 

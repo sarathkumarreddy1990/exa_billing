@@ -31,6 +31,8 @@ const upload = multer({
 });
 
 router.post('/upload', upload.single('displayImage'), async function (req, res) {
+    req.billingRegionCode = req.session && req.session.billingRegionCode || '';
+
     try {
         logger.info('Initiating ERA upload..');
         let response = await eraController.uploadFile(req);
@@ -55,6 +57,7 @@ router.post('/process-file', async function (req, res) {
 });
 
 router.get('/era_details', async function (req, res) {
+    req.query.billingRegionCode = req.session && req.session.billingRegionCode || '';
     const data = await eraController.getProcessedEraFileDetails(req.query);
     httpHandler.send(req, res, data);
 });

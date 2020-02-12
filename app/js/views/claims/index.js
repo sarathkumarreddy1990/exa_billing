@@ -1152,6 +1152,18 @@ define(['jquery',
                     }
 
                 } else if (app.billingRegionCode === 'can_MB') {
+                    var queryClaimStuatusId =  app.claim_status.find(function(e) {
+                        return e.code === 'QR';
+                    }).id;
+
+                    var QueryStatusEle = $('#ddlClaimStatus option[value="' + queryClaimStuatusId + '"]');
+
+                    if (!['MPP', 'OP'].includes(data.claim_status_code)) {
+                        QueryStatusEle.hide();
+                    } else {
+                        QueryStatusEle.show();
+                    }
+
                     if (data.claim_status_code === 'P77') {
                         $('#btnNewPayment, .paymentApply').prop('disabled', true);
                         $('#btnSaveClaim').hide();

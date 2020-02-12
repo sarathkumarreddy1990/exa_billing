@@ -120,7 +120,7 @@ const ahsData = {
                 pc.can_ahs_submitter_prefix                  AS submitter_prefix,
                 bc.can_ahs_business_arrangement              AS business_arrangement,
                 bc.can_ahs_supporting_text                   AS supporting_text_1,
-                f.can_ahs_facility_number                    AS facility_number,
+                f.can_facility_number                        AS facility_number,
                 icd.codes[1]                                 AS diagnosis_code_1,
                 pip.insurance_name                           AS "payerName",
                 get_full_name(pp.last_name,pp.first_name)    AS "patientName",
@@ -451,10 +451,10 @@ const ahsData = {
                         fee_mod.mod1 AS fee_modifier_1,
                         fee_mod.mod2 AS fee_modifier_2,
                         fee_mod.mod3 AS fee_modifier_3,
-                        f.can_ahs_facility_number                    AS facility_number,
+                        f.can_facility_number                        AS facility_number,
                         fc.code                                      AS functional_centre,
                         CASE
-                            WHEN f.can_ahs_facility_number :: INT > 0
+                            WHEN f.can_facility_number :: INT > 0
                             THEN ''
                             ELSE COALESCE(o.order_info -> 'patientLocation', 'OTHR')
                         END                                          AS location_code,

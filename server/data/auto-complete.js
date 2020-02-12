@@ -101,12 +101,12 @@ module.exports = {
             company_id,
             page = 1,
             pageSize = 10,
-            term = "",
+            term,
             sortField = "code",
             sortOrder = "ASC"
         } = params;
 
-        let ics_search = ` AND (code ILIKE '%${params.q}%' OR description ILIKE '%${params.q}%' ) `;
+        let ics_search = ` AND (code ILIKE '%${term}%' OR description ILIKE '%${term}%' ) `;
 
         const icd_sql = SQL`SELECT
                                        id
@@ -116,16 +116,16 @@ module.exports = {
                                      , COUNT(1) OVER (range unbounded preceding) AS total_records
                                 FROM icd_codes AS icd
                                 WHERE
-                                    icd.is_active AND NOT icd.has_deleted AND icd.company_id = ${params.company_id} `; // icd_codes.has_deleted icd_codes.is_active
+                                    icd.is_active AND NOT icd.has_deleted AND icd.company_id = ${company_id} `; // icd_codes.has_deleted icd_codes.is_active
 
-        if (params.q != '') {
+        if (term) {
             icd_sql.append(ics_search);
         }
 
-        icd_sql.append(SQL` ORDER BY  ${params.sortField} `)
-            .append(params.sortOrder)
-            .append(SQL` LIMIT ${params.pageSize}`)
-            .append(SQL` OFFSET ${((params.page - 1) * params.pageSize)}`);
+        icd_sql.append(SQL` ORDER BY  ${sortField} `)
+            .append(sortOrder)
+            .append(SQL` LIMIT ${pageSize}`)
+            .append(SQL` OFFSET ${((page - 1) * pageSize)}`);
 
         return await query(icd_sql);
     },
