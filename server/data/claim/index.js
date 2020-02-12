@@ -613,6 +613,8 @@ module.exports = {
                     , f.facility_info -> 'federal_tax_id' as federal_tax_id
                     , f.facility_info -> 'enable_insurance_eligibility' as enable_insurance_eligibility
                     , c.can_wcb_rejected
+                    , c.can_mhs_receipt_date::text AS can_mhs_receipt_date
+                    , c.can_mhs_microfilm_no
                     , (
                         SELECT array_agg(row_to_json(pointer)) AS claim_charges
                         FROM (
