@@ -88,7 +88,7 @@ const mhsmodules = {
 
             const randomFileName = alphabet[Math.floor(Math.random() * alphabet.length)] + alphabet[Math.floor(Math.random() * alphabet.length)];
             const file_name = `${randomFileName}${now.format('hhmmss')}.txt`;
-            const file_path = `MHS/${today}`;
+            const file_path = `MHSAL/Claims/${today}`;
             const fullPath = `${root_directory}/${file_path}/${file_name}`;
 
             let isDirectoryExists = fse.ensureDir(root_directory);

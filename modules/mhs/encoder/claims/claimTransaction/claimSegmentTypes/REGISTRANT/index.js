@@ -11,6 +11,8 @@ const processResults = ( row ) => {
         address2,
         postal_code,
         phn_details,
+        province_code,
+        city,
         registration_number_details
     } = row.service_reception_details;
   
@@ -21,12 +23,18 @@ const processResults = ( row ) => {
         phin = (phn_details.province_alpha_2_code === 'MB') ? phn_details.alt_account_no : '';
     }
 
+    let addressLine2;
+
+    if (!postal_code) {
+        addressLine2 = `${address2} ${city} ${province_code}`;
+    }
+
     return {
         'record_type': 4,
         'practitioner_number': row.practitioner.prid,
         'mhsal_registration_number': registration_number,
         'registrant_address_one': address1,
-        'registrant_address_two': address2,
+        'registrant_address_two': addressLine2,
         'postal_code': postal_code.replace(/\s/g, ''),
         'phin': phin,
         'claim_number': row.claim_number,
