@@ -951,6 +951,8 @@ define(['jquery',
                 $('#chkSupportingDocumentationSeparate').prop('checked', claim_data.can_ahs_paper_supporting_docs);
                 $('#txtSupportingText').val(claim_data.can_ahs_supporting_text);
                 $('#spChartNumber').text(claim_data.claim_id);
+                $('#microFilmNumber').val(claim_data.can_mhs_microfilm_no || '');
+                $('#receiptDate').val(claim_data.can_mhs_receipt_date ? moment(claim_data.can_mhs_receipt_date).format('L') : '');
 
                 var pay_to_details = claim_data.can_ahs_pay_to_details || {};
                 $('#ddlPayToDetailsPersonType').val(pay_to_details.person_type).change();
