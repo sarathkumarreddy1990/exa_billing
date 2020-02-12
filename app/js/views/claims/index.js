@@ -790,7 +790,6 @@ define(['jquery',
                                     }
                                 }
                             }
-
                         } else {
                             commonjs.showWarning('billing.era.claimNotExists');
                         }
@@ -1156,13 +1155,20 @@ define(['jquery',
                     var queryClaimStuatusId =  app.claim_status.find(function(e) {
                         return e.code === 'QR';
                     }).id;
-                    
+
                     var QueryStatusEle = $('#ddlClaimStatus option[value="' + queryClaimStuatusId + '"]');
 
                     if (!['MPP', 'OP'].includes(data.claim_status_code)) {
                         QueryStatusEle.hide();
                     } else {
                         QueryStatusEle.show();
+                    }
+
+                    if (data.claim_status_code === 'P77') {
+                        $('#btnNewPayment, .paymentApply').prop('disabled', true);
+                        $('#btnSaveClaim').hide();
+                    } else {
+                        $('#btnSaveClaimNotes').hide();
                     }
                 }
             },
@@ -1384,6 +1390,10 @@ define(['jquery',
                 $('.search-field').off().keyup(function (e) {
                     self.applySearch(e);
                 });
+
+                if (app.billingRegionCode === 'can_MB') {
+                    $('#btnSaveClaimNotes').hide();
+                }
             },
 
             bindclaimFormEvents: function (isFrom) {
@@ -1399,6 +1409,10 @@ define(['jquery',
 
                 $("#btnSaveClaim").off().click(function (e) {
                     self.saveClaimDetails(e);
+                });
+
+                $('#btnSaveClaimNotes').off().click(function (e) {
+                    self.updateNotes(e);
                 });
 
                 $("#ddlExistTerIns, #ddlExistSecIns, #ddlExistPriIns").off().change(function (e) {
@@ -1607,6 +1621,31 @@ define(['jquery',
 
                 }
 
+            },
+
+            updateNotes: function (e) {
+                $('#btnSaveClaimNotes').prop('disabled', true);
+                $('.claimProcess').prop('disabled', true);
+                $.ajax({
+                    url: '/exa_modules/billing/claims/claim/notes/' + this.claim_Id,
+                    type: 'PUT',
+                    data: {
+                        claimNotes: $.trim($('#txtClaimNotes').val()) || '',
+                        billingNotes: $.trim($('#txtClaimResponsibleNotes').val()) || ''
+                    },
+                    success: function (response) {
+                        if (response && response.length) {
+                            commonjs.showStatus("messages.status.successfullyCompleted");
+                            $('#btnSaveClaimNotes').prop('disabled', false);
+                            $('.claimProcess').prop('disabled', false);
+                        }
+                    },
+                    error: function (err, response) {
+                        $('#btnSaveClaimNotes').prop('disabled', false);
+                        $('.claimProcess').prop('disabled', false);
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
             },
 
             addChargeLine: function (e) {
@@ -3330,7 +3369,7 @@ define(['jquery',
                     can_ahs_supporting_text: $.trim($.trim($('#txtSupportingText').val()).replace(/\n/g, ' ')),
                     can_wcb_rejected: $("#chkwcbRejected").prop('checked') || false
                 };
-                
+
                 // Pay-to Details are only saved when Pay-to Code is Other
                 if (can_ahs_pay_to_code === "OTHR") {
                     var can_ahs_pay_to_uli = $.trim($('#txtPayToUli').val());

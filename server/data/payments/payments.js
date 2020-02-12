@@ -1707,5 +1707,19 @@ module.exports = {
                        FROM billing.get_payment_totals(${paymentId})
                        `;
         return await query(sql);
+    },
+
+    updateNotes: async (params) => {
+        const {
+            claimId,
+            billingNotes
+        } = params;
+
+        let sql = SQL`UPDATE billing.claims
+                        SET billing_notes = ${billingNotes}
+                        WHERE id = ${claimId}
+                        RETURNING *`;
+
+        return await query(sql);
     }
 };

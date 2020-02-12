@@ -100,7 +100,8 @@ define([
 
                 $(this.el).html(this.inquiryTemplate({
                     country_alpha_3_code: app.country_alpha_3_code,
-                    province_alpha_2_code: app.province_alpha_2_code
+                    province_alpha_2_code: app.province_alpha_2_code,
+                    billingRegionCode: app.billingRegionCode
                 }));
                 if (this.options.source !== 'web')
                     commonjs.showDialog({
@@ -110,7 +111,8 @@ define([
                         height: '85%',
                         html: this.inquiryTemplate({
                             country_alpha_3_code: app.country_alpha_3_code,
-                            province_alpha_2_code: app.province_alpha_2_code
+                            province_alpha_2_code: app.province_alpha_2_code,
+                            billingRegionCode: app.billingRegionCode
                         })
                     });
                 else
@@ -141,6 +143,10 @@ define([
 
                 $('#btnCISaveIsInternal').off().click(function () {
                     self.saveIsInternalComment();
+                });
+
+                $('#btnCISaveNotes').off().click(function () {
+                    self.updateNotes();
                 });
 
                 $('btnCIPrintInvoice').off().click(function (e) {
@@ -247,6 +253,7 @@ define([
                                 $('#divClaimInquiry').height(isFromClaimScreen ? $(window).height() - 220 : $(window).height() - 260);
                             }
                             self.clearFaxInfo();
+                            self.disableElementsForProvince(claim_data);
                         }
                     },
                     error: function (err) {
@@ -257,6 +264,21 @@ define([
                 $('#btnCIPrintInvoice').off().click(function () {
                     self.generatePrintInvoice(self.claim_id);
                 });
+            },
+
+            disableElementsForProvince: function(data) {
+                if (app.billingRegionCode === 'can_MB') {
+                    var saveBtn = $('#btnCISaveNotes');
+                    var saveNotesBtn = $('#btnCISaveIsInternal');
+
+                    if (data.claim_status_code === 'P77') {
+                        saveBtn.show();
+                        saveNotesBtn.hide();
+                    } else {
+                        saveNotesBtn.show();
+                        saveBtn.hide();
+                    }
+                }
             },
 
             getSubscriberDOBFormat: function ( cellvalue, options, rowObject ) {
@@ -476,6 +498,26 @@ define([
                     $("#tblPatientClaimsGrid").setGridHeight($(window).height() - 600);
                 }, 200);
                 $('#divAgeSummary').html(self.agingSummaryTemplate());
+            },
+
+            updateNotes: function () {
+                $.ajax({
+                    url: '/exa_modules/billing/claims/claim_inquiry/notes/' + this.claim_id,
+                    type: 'PUT',
+                    data: {
+                        billingNotes: $.trim($('#txtCIBillingComment').val()) || ''
+                    },
+                    success: function (response) {
+                        if (response && response.length) {
+                            commonjs.showStatus("messages.status.successfullyCompleted");
+                            $('#btnSaveClaimNotes').prop('disabled', false);
+                            $('.claimProcess').prop('disabled', false);
+                        }
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
             },
 
             showInvoiceGrid: function (claimID, patientId,payer_type) {

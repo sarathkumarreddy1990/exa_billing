@@ -107,6 +107,10 @@
                 i18n="billing.payments.payInFull">
             <input type="button" id="btnSaveAppliedPendingPayments" class="btn btn-default btn-primary" i18n="shared.buttons.saveAll"
                 value="Save All">
+            <% if (billingRegionCode === 'can_MB') { %>
+            <input type="button" id="btnSaveAppliedPendingPaymentsNotes" class="btn btn-default btn-primary" i18n="shared.buttons.saveNotes"
+                value="Save Notes">
+            <% } %>
             <input type="button" id="btnClearAppliedPendingPayments" class="btn btn-default" value="Clear" i18n="shared.buttons.clear">
             <span id="spPaymentID"></span>
         </div>
