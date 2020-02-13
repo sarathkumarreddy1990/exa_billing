@@ -126,6 +126,7 @@ define(['jquery',
             },
             render: function (isFrom) {
                 var self = this;
+                self.claimICDLists = [];
                 this.rendered = true;
                 commonjs.showDialog({
                     header: 'Claim Creation',
