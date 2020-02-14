@@ -187,11 +187,13 @@ define(['jquery',
                     })
                 });
 
-                if (app.country_alpha_3_code === 'can') {
-                    $('#txtPriGroupNo').attr('maxlength', 2);
-                } else {
+                if (app.billingRegionCode === 'can_ON' || app.country_alpha_3_code === 'usa') {
                     $('label[for=txtPriPolicyNo]').append("<span class='Required' style='color: red;padding-left: 5px;'>*</span>");
                 }
+
+                if (app.billingRegionCode === 'can_ON') {
+                    $('#txtPriGroupNo').attr('maxlength', 2);
+                } 
 
                 //EXA-18273 - Move diagnostics codes section under claim for alberta billing
                 if(app.billingRegionCode === 'can_AB') {
