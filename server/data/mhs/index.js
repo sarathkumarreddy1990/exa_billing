@@ -483,6 +483,59 @@ const mhsData = {
                     billing.claims.*
             `;
         return await query(sql.text, sql.values);
+    },
+
+    getClaimsData: async (args) => {
+        const {
+            claimIds
+        } = args;
+
+        const sql = SQL`
+            SELECT
+                bc.id AS claim_id
+                , bc.billing_method
+                , phn.*
+                , register_number.*
+                , ppcrd.can_prid as rendering_provider_number
+                , ppcrf.can_prid as referring_provider_number
+                , patient_name
+                , pp.first_name as patient_first_name
+                , pp.last_name as patient_last_name
+                , pp.gender as patient_gender
+                , pp.patient_info -> 'c1AddressLine1' AS patient_address_line_1
+                , COALESCE(NULLIF(pp.patient_info -> 'c1AddressLine2', ''), NULLIF(pp.patient_info -> 'c1Zip', '')) AS patient_postal_code
+                , pp.patient_info -> 'c1City' AS patient_city
+                , pp.patient_info -> 'c1State' AS patient_province
+                , pp.patient_info -> 'c1country' AS patient_country
+                , NULLIF(bgct.charges_bill_fee_total , 0::money) AS claim_total_charge
+                , ppc.can_prid AS practioner_number
+                , COALESCE(bch.icds, true) AS icds
+                , pip.insurance_name AS payer_name
+                , bc.claim_notes AS claim_notes
+                , pf.can_facility_number AS facility_number
+            FROM billing.claims bc
+            LEFT JOIN public.provider_contacts ppcrd ON ppcrd.id = bc.rendering_provider_contact_id
+            LEFT JOIN public.provider_contacts ppcrf ON ppcrf.id = bc.referring_provider_contact_id
+            INNER JOIN public.patients pp ON pp.id = bc.patient_id
+            INNER JOIN get_full_name(pp.last_name, pp.first_name) patient_name ON TRUE
+            INNER JOIN public.get_issuer_details(pp.id, 'phn') phn ON TRUE
+            INNER JOIN public.get_issuer_details(pp.id, 'registration_number') register_number ON TRUE
+            INNER JOIN billing.get_claim_totals(bc.id) bgct ON TRUE
+            LEFT JOIN (SELECT
+                            COUNT(claim_id) = COUNT(claim_id) FILTER (WHERE pointer1 IS NOT NULL) AS icds
+                            , claim_id
+                       FROM billing.charges bic
+                       INNER JOIN public.cpt_codes pcc ON bic.cpt_id = pcc.id
+                       WHERE bic.is_excluded = false and pcc.display_code != 'I001'
+                       GROUP BY claim_id
+                      ) bch ON bch.claim_id = bc.id
+            INNER JOIN public.facilities pf ON bc.facility_id = pf.id
+            LEFT JOIN public.provider_contacts ppc ON ppc.id = pf.can_mb_medical_director_provider_id
+            LEFT JOIN public.patient_insurances ppi ON ppi.id = bc.primary_patient_insurance_id
+            LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
+            WHERE bc.id = ANY(${claimIds})`;
+
+        return await queryRows(sql);
     }
 };
 
