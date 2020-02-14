@@ -188,7 +188,7 @@ const processRow = (tracker, batch_tracker) => row => {
         }
     });
 
-    return segments.join('\n');
+    return segments.join('\r\n');
 };
 
 module.exports = processRow;

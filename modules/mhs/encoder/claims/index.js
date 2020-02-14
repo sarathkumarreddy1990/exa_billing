@@ -96,7 +96,7 @@ const encoder = (rows) => {
         /**
          * TRANSACTIONS / CLAIMS
          */
-        encoderArray.push(row.map(processors.claimTransaction(tracker, batch_tracker)).join('\n'));
+        encoderArray.push(row.map(processors.claimTransaction(tracker, batch_tracker)).join('\r\n'));
 
         /**
          * BATCH TRAILER RECORD
@@ -113,13 +113,13 @@ const encoder = (rows) => {
     /** 
      * File Trailer
      */
-    encoderArray.push(encodeRecord(
+    encoderArray.push((encodeRecord(
         processors.fileTrailer(lastBach[lastBach.length - 1], tracker, companyInfo),
         descriptors.fileTrailer,
-    ));
+    )) + '\r\n');
     
     return {
-        encodedText: finalizeText(encoderArray.join('\n'))
+        encodedText: finalizeText(encoderArray.join('\r\n'))
     };
 
 };
