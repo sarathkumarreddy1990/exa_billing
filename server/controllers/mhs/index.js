@@ -2,6 +2,7 @@
 
 const mhsData = require('../../data/mhs');
 const claimdata = require('../../data/claim/claim-workbench');
+const eraData = require('../../data/era/index');
 const {promisify} = require('util');
 const parser = require('../../../modules/mhs/decoder/index');
 const logger = require('../../../logger');
@@ -117,10 +118,7 @@ const mhsController = {
             //Again we call to create payment application for unapplied charges from ERA claims
             await mhsData.unappliedChargePayments(params);
 
-            await mhsData.updateFileStatus({
-                status: processDetails.rows && processDetails.rows.length ? 'success' : 'failure',
-                fileId: params.file_id
-            });
+            await eraData.updateERAFileStatus(params);
 
             logger.logInfo('Applying payments finished...');
 
