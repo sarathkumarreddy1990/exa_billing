@@ -500,8 +500,9 @@ define(['jquery',
 
             initializeClaimEditForm: function (isFrom) {
                 var self = this;
-                if (!this.rendered)
+                if (!this.rendered) {
                     this.render('claim');
+                }
                 self.bindclaimFormEvents(isFrom);
             },
 
@@ -585,6 +586,7 @@ define(['jquery',
                                 self.options.patient_id = claimDetails.patient_id;
                             }
 
+                            self.rendered = false;
                             self.initializeClaimEditForm(isFrom);
                             /* Bind chargeLineItems events - started*/
                             if(self.screenCode.indexOf('DCLM') > -1) {
