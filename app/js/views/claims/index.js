@@ -747,7 +747,9 @@ define(['jquery',
                             $.each(existing_insurance, function (index, value) {
                                 switch (value.coverage_level) {
                                     case 'primary':
-                                        existingPrimaryInsurance.push(value);
+                                        if (moment().isBefore(value.valid_to_date)) {
+                                            self.existingPrimaryInsurance.push(value);
+                                        }
                                         break;
                                     case 'secondary':
                                         existingSecondaryInsurance.push(value);
@@ -2678,7 +2680,9 @@ define(['jquery',
                             $.each(existing_insurance, function (index, value) {
                                 switch (value.coverage_level) {
                                     case 'primary':
-                                        self.existingPrimaryInsurance.push(value);
+                                        if (moment().isBefore(value.valid_to_date)) {
+                                            self.existingPrimaryInsurance.push(value);
+                                        }
                                         break;
                                     case 'secondary':
                                         self.existingSecondaryInsurance.push(value);
