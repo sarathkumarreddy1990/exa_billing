@@ -1865,7 +1865,7 @@ define('grid', [
                     return e.code === 'QR';
                 });
                 var isValidQueryClaim = selectedStudies.length === selectedStudies.filter(function (e) {
-                    return ['MPP', 'OP'].includes(e.claim_status_code);
+                    return ['MPP', 'OP', 'R'].includes(e.claim_status_code);
                 }).length;
 
                 var liClaimQuery = commonjs.getRightClickMenu('anc_query_claim', 'setup.rightClickMenu.queryClaim', false, 'Query Claim', false);

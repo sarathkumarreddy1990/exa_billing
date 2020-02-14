@@ -3509,7 +3509,7 @@ define(['jquery',
                         return e.id === details.claim_status_id;
                     }); //returns an id of partially paid or over paid.
 
-                    if (['MPP', 'OP'].includes(validStatus.code)) {
+                    if (['MPP', 'OP', 'R'].includes(validStatus.code)) {
                         QueryStatusEle.show();
                     } else {
                         QueryStatusEle.hide();
