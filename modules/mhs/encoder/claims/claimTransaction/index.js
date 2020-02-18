@@ -135,8 +135,8 @@ const processRow = (tracker, batch_tracker) => row => {
 
             case 'SERVICE': {
 
-                if (referring_provider_remarks) {
-                    row.referring_provider.prid = referring_provider_remarks.prid || '';
+                if (referring_provider_remarks && referring_provider_remarks.prid) {
+                    row.referring_provider.prid = referring_provider_remarks.prid;
                 }
 
                 health_services.forEach(service => {

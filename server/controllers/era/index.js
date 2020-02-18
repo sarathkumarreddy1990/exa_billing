@@ -133,9 +133,9 @@ module.exports = {
         const fileExist = dataRes.rows[0].file_exists[0];
 
         const currentTime = new Date();
-        const fileDirectory = uploadingMode.toLowerCase();
+        const fileDirectory = params.billingRegionCode === 'can_MB' ? 'MHSAL\\Returns' : uploadingMode.toLowerCase();
 
-        let fileRootPath = `${fileDirectory}\\${currentTime.getFullYear()}\\${currentTime.getMonth()}\\${currentTime.getDate()}`;
+        let fileRootPath = `${fileDirectory}\\${currentTime.getFullYear()}\\${currentTime.getMonth() + 1}\\${currentTime.getDate()}`;
 
         if (isPreviewMode) {
             logger.info('ERA Preview MODE');
