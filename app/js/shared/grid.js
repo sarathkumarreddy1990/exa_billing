@@ -206,8 +206,19 @@ define('grid', [
 
             if (isClaimGrid) {
                 var statusIndex = _.findIndex(selectedStudies, function (item) {
-                    return item.claim_status_code === 'P77';
-                } );
+                    return item.claim_status_code === 'P77' && app.billingRegionCode === 'can_MB';
+                });
+
+                commonjs.getClaimStudy(selectedStudies[0].study_id, function (result) {
+                    if (result) {
+                        study_id = result.study_id;
+                        order_id = result.order_id;
+                        if (rightclickMenuRights.indexOf('anc_view_documents') == -1) {
+                            $('#anc_view_documents').removeClass('disabled')
+                            $('#anc_view_reports').removeClass('disabled')
+                        }
+                    }
+                });
 
                 if (statusIndex < 0) {
                     var liClaimStatus = commonjs.getRightClickMenu('ul_change_claim_status', 'setup.rightClickMenu.claimStatus', false, 'Change Claim Status', true);
@@ -218,16 +229,6 @@ define('grid', [
                     }
 
                     var liArray = [];
-                    commonjs.getClaimStudy(selectedStudies[0].study_id, function (result) {
-                        if (result) {
-                            study_id = result.study_id;
-                            order_id = result.order_id;
-                            if (rightclickMenuRights.indexOf('anc_view_documents') == -1) {
-                                $('#anc_view_documents').removeClass('disabled')
-                                $('#anc_view_reports').removeClass('disabled')
-                            }
-                        }
-                    });
 
                     // Claim status updation
                     $.each(app.claim_status, function (index, claimStatus) {
@@ -337,86 +338,83 @@ define('grid', [
                 });
                 $('#ul_change_billing_class').append(liArrayBillingClass);
 
-                if (studyArray.length == 1) {
-
-                    if (statusIndex < 0) {
-                        var liPayerType = commonjs.getRightClickMenu('ul_change_payer_type', 'setup.rightClickMenu.billingPayerType', false, 'Change Billing PayerType', true);
-                        $divObj.append(liPayerType);
-                        self.checkSubMenuRights('li_ul_change_payer_type');
-                        var liPayerTypeArray = [];
-                        $.ajax({
-                            url: '/exa_modules/billing/claim_workbench/billing_payers?id=' + rowID,
-                            type: 'GET',
-                            success: function (data, response) {
-                                if (data && data.length > 0) {
-                                    var billingPayers = data[0];
-                                    if (billingPayers.patient_id) {
-                                        liPayerTypeArray.push($(commonjs.getRightClickMenu('ancPatient_' + billingPayers.patient_id, '', true, billingPayers.patient_full_name + '( Patient )', false)));
-                                    }
-                                    if (billingPayers.primary_patient_insurance_id) {
-                                        liPayerTypeArray.push($(commonjs.getRightClickMenu('ancPrimaryIns_' + billingPayers.primary_patient_insurance_id, '', true, billingPayers.p_insurance_name + '( Primary Insurance )', false)));
-                                    }
-                                    if (billingPayers.secondary_patient_insurance_id) {
-                                        liPayerTypeArray.push($(commonjs.getRightClickMenu('ancSecondaryIns_' + billingPayers.secondary_patient_insurance_id, '', true, billingPayers.s_insurance_name + '( Secondary Insurance )', false)));
-                                    }
-                                    if (billingPayers.tertiary_patient_insurance_id) {
-                                        liPayerTypeArray.push($(commonjs.getRightClickMenu('ancTertiaryIns_' + billingPayers.tertiary_patient_insurance_id, '', true, billingPayers.t_insurance_name + '( Tertiary Insurance )', false)));
-                                    }
-                                    if (billingPayers.ordering_facility_id) {
-                                        liPayerTypeArray.push($(commonjs.getRightClickMenu('ancOrderingFacility_' + billingPayers.ordering_facility_id, '', true, billingPayers.ordering_facility_name + '( Service Facility )', false)));
-                                    }
-                                    if (billingPayers.referring_provider_contact_id) {
-                                        liPayerTypeArray.push($(commonjs.getRightClickMenu('ancRenderingProvider_' + billingPayers.referring_provider_contact_id, '', true, billingPayers.ref_prov_full_name + '( Referring Provider )', false)));
-                                    }
-                                    $('#ul_change_payer_type').append(liPayerTypeArray);
-                                    $('#ul_change_payer_type li').click(function (e) {
-                                        var payer_type = null;
-                                        var ids = e && e.target && e.target.id && e.target.id.split('_');
-                                        switch (ids[0]) {
-                                            case 'ancPatient':
-                                                payer_type = 'patient';
-                                                break;
-                                            case 'ancPrimaryIns':
-                                                payer_type = 'primary_insurance';
-                                                break;
-                                            case 'ancSecondaryIns':
-                                                payer_type = 'secondary_insurance';
-                                                break;
-                                            case 'ancTertiaryIns':
-                                                payer_type = 'tertiary_insurance';
-                                                break;
-                                            case 'ancOrderingFacility':
-                                                payer_type = 'ordering_facility';
-                                                break;
-                                            case 'ancRenderingProvider':
-                                                payer_type = 'referring_provider';
-                                                break;
-                                        }
-                                        $.ajax({
-                                            url: '/exa_modules/billing/claim_workbench/billing_payers',
-                                            type: 'PUT',
-                                            data: {
-                                                id: rowID,
-                                                payer_type: payer_type
-                                            },
-                                            success: function (data, response) {
-                                                if (data) {
-                                                    commonjs.showStatus('messages.status.claimPayerCompleted');
-                                                    $target.jqGrid('setCell', rowID, 'payer_type', payer_type);
-                                                }
-                                            },
-                                            error: function (err, response) {
-                                                commonjs.handleXhrError(err, response);
-                                            }
-                                        });
-                                    });
+                if (studyArray.length === 1 && statusIndex < 0) {
+                    var liPayerType = commonjs.getRightClickMenu('ul_change_payer_type', 'setup.rightClickMenu.billingPayerType', false, 'Change Billing PayerType', true);
+                    $divObj.append(liPayerType);
+                    self.checkSubMenuRights('li_ul_change_payer_type');
+                    var liPayerTypeArray = [];
+                    $.ajax({
+                        url: '/exa_modules/billing/claim_workbench/billing_payers?id=' + rowID,
+                        type: 'GET',
+                        success: function (data, response) {
+                            if (data && data.length > 0) {
+                                var billingPayers = data[0];
+                                if (billingPayers.patient_id) {
+                                    liPayerTypeArray.push($(commonjs.getRightClickMenu('ancPatient_' + billingPayers.patient_id, '', true, billingPayers.patient_full_name + '( Patient )', false)));
                                 }
-                            },
-                            error: function (err, response) {
-                                commonjs.handleXhrError(err, response);
+                                if (billingPayers.primary_patient_insurance_id) {
+                                    liPayerTypeArray.push($(commonjs.getRightClickMenu('ancPrimaryIns_' + billingPayers.primary_patient_insurance_id, '', true, billingPayers.p_insurance_name + '( Primary Insurance )', false)));
+                                }
+                                if (billingPayers.secondary_patient_insurance_id) {
+                                    liPayerTypeArray.push($(commonjs.getRightClickMenu('ancSecondaryIns_' + billingPayers.secondary_patient_insurance_id, '', true, billingPayers.s_insurance_name + '( Secondary Insurance )', false)));
+                                }
+                                if (billingPayers.tertiary_patient_insurance_id) {
+                                    liPayerTypeArray.push($(commonjs.getRightClickMenu('ancTertiaryIns_' + billingPayers.tertiary_patient_insurance_id, '', true, billingPayers.t_insurance_name + '( Tertiary Insurance )', false)));
+                                }
+                                if (billingPayers.ordering_facility_id) {
+                                    liPayerTypeArray.push($(commonjs.getRightClickMenu('ancOrderingFacility_' + billingPayers.ordering_facility_id, '', true, billingPayers.ordering_facility_name + '( Service Facility )', false)));
+                                }
+                                if (billingPayers.referring_provider_contact_id) {
+                                    liPayerTypeArray.push($(commonjs.getRightClickMenu('ancRenderingProvider_' + billingPayers.referring_provider_contact_id, '', true, billingPayers.ref_prov_full_name + '( Referring Provider )', false)));
+                                }
+                                $('#ul_change_payer_type').append(liPayerTypeArray);
+                                $('#ul_change_payer_type li').click(function (e) {
+                                    var payer_type = null;
+                                    var ids = e && e.target && e.target.id && e.target.id.split('_');
+                                    switch (ids[0]) {
+                                        case 'ancPatient':
+                                            payer_type = 'patient';
+                                            break;
+                                        case 'ancPrimaryIns':
+                                            payer_type = 'primary_insurance';
+                                            break;
+                                        case 'ancSecondaryIns':
+                                            payer_type = 'secondary_insurance';
+                                            break;
+                                        case 'ancTertiaryIns':
+                                            payer_type = 'tertiary_insurance';
+                                            break;
+                                        case 'ancOrderingFacility':
+                                            payer_type = 'ordering_facility';
+                                            break;
+                                        case 'ancRenderingProvider':
+                                            payer_type = 'referring_provider';
+                                            break;
+                                    }
+                                    $.ajax({
+                                        url: '/exa_modules/billing/claim_workbench/billing_payers',
+                                        type: 'PUT',
+                                        data: {
+                                            id: rowID,
+                                            payer_type: payer_type
+                                        },
+                                        success: function (data, response) {
+                                            if (data) {
+                                                commonjs.showStatus('messages.status.claimPayerCompleted');
+                                                $target.jqGrid('setCell', rowID, 'payer_type', payer_type);
+                                            }
+                                        },
+                                        error: function (err, response) {
+                                            commonjs.handleXhrError(err, response);
+                                        }
+                                    });
+                                });
                             }
-                        });
-                    }
+                        },
+                        error: function (err, response) {
+                            commonjs.handleXhrError(err, response);
+                        }
+                    });
                 }
 
                 var liEditClaim = commonjs.getRightClickMenu('anc_edit_claim','setup.rightClickMenu.editClaim',false,'Edit Claim',false);
@@ -439,50 +437,50 @@ define('grid', [
                     });
                 });
 
-                var liDeleteClaim = commonjs.getRightClickMenu('anc_delete_claim','setup.rightClickMenu.deleteClaim',false,'Delete Claim',false);
+                if (studyArray.length === 1 && statusIndex < 0) {
+                    var liDeleteClaim = commonjs.getRightClickMenu('anc_delete_claim', 'setup.rightClickMenu.deleteClaim', false, 'Delete Claim', false);
 
-                if(studyArray.length == 1)
                     $divObj.append(liDeleteClaim);
+                    self.checkRights('anc_delete_claim');
 
-                self.checkRights('anc_delete_claim');
-
-                $('#anc_delete_claim').off().click(function () {
-                    if ($('#anc_delete_claim').hasClass('disabled')) {
-                        return false;
-                    }
-
-                    if (confirm(commonjs.geti18NString("messages.status.areYouSureWantToDeleteClaims"))) {
-
-                        if (app.country_alpha_3_code !== 'usa') {
-                            var msg = self.provinceBasedValidationResults(app.billingRegionCode, gridData);
-                            
-                            if (msg) {
-                                return commonjs.showWarning(msg);
-                            }
+                    $('#anc_delete_claim').off().click(function () {
+                        if ($('#anc_delete_claim').hasClass('disabled')) {
+                            return false;
                         }
 
-                        var params = self.getProvinceBasedParams(app.billingRegionCode, 'delete', studyIds, gridData);
+                        if (confirm(commonjs.geti18NString("messages.status.areYouSureWantToDeleteClaims"))) {
 
-                        commonjs.showLoading();
-                        $.ajax({
-                            url: params.url,
-                            type: params.type,
-                            data: params.data,
-                            success: function (data, response) {
-                                commonjs.hideLoading();
+                            if (app.country_alpha_3_code !== 'usa') {
+                                var msg = self.provinceBasedValidationResults(app.billingRegionCode, gridData);
 
-                                if (app.billingRegionCode === 'can_AB' && gridData.hidden_billing_method === 'electronic_billing') {
-                                    self.ahsDeleteResponse(data);
-                                } else {
-                                    self.claimDeleteResponse(data, studyIds);
+                                if (msg) {
+                                    return commonjs.showWarning(msg);
                                 }
-                            },
-                            error: function (err, response) {
-                                commonjs.handleXhrError(err, response);
                             }
-                        });
-                    }
-                });
+
+                            var params = self.getProvinceBasedParams(app.billingRegionCode, 'delete', studyIds, gridData);
+
+                            commonjs.showLoading();
+                            $.ajax({
+                                url: params.url,
+                                type: params.type,
+                                data: params.data,
+                                success: function (data, response) {
+                                    commonjs.hideLoading();
+
+                                    if (app.billingRegionCode === 'can_AB' && gridData.hidden_billing_method === 'electronic_billing') {
+                                        self.ahsDeleteResponse(data);
+                                    } else {
+                                        self.claimDeleteResponse(data, studyIds);
+                                    }
+                                },
+                                error: function (err, response) {
+                                    commonjs.handleXhrError(err, response);
+                                }
+                            });
+                        }
+                    });
+                }
 
                 var liClaimInquiry = commonjs.getRightClickMenu('anc_claim_inquiry','setup.rightClickMenu.claimInquiry',false,'Claim Inquiry',false);
                 if(studyArray.length == 1)
@@ -556,17 +554,19 @@ define('grid', [
                 self.claimInquiryView.patientInquiryLog(studyIds, selectedStudies[0].patient_id, selectedStudies[0].patient_name);
                 });
 
-                var liSplitOrders = commonjs.getRightClickMenu('anc_split_claim','setup.rightClickMenu.splitClaim',false,'Split Claim',false);
-                if(studyArray.length == 1)
+                if (studyArray.length === 1 && statusIndex < 0) {
+                    var liSplitOrders = commonjs.getRightClickMenu('anc_split_claim', 'setup.rightClickMenu.splitClaim', false, 'Split Claim', false);
+
                     $divObj.append(liSplitOrders);
-                self.checkRights('anc_split_claim');
-                $('#anc_split_claim').click(function () {
-                    if ($('#anc_split_claim').hasClass('disabled')) {
-                        return false;
-                    }
-                    self.splitClaimView = new splitClaimView();
-                    self.splitClaimView.validateSplitClaim(studyIds);
-                });
+                    self.checkRights('anc_split_claim');
+                    $('#anc_split_claim').click(function () {
+                        if ($('#anc_split_claim').hasClass('disabled')) {
+                            return false;
+                        }
+                        self.splitClaimView = new splitClaimView();
+                        self.splitClaimView.validateSplitClaim(studyIds);
+                    });
+                }
 
                 if (selectedStudies.length == 1) {
                     var liViewDocumetns = commonjs.getRightClickMenu('anc_view_documents', 'setup.rightClickMenu.viewDocuments', false, 'View Documents', false);
