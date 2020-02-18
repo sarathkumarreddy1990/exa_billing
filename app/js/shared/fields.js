@@ -804,6 +804,21 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "defaultValue": ""
                     }
                 },
+                "Microfilm Number": {
+                    "id": 71,
+                    "field_code": "can_mhs_microfilm_no",
+                    "field_name": "Microfilm Number",
+                    "i18n_name": "setup.userSettings.microfilmNumber",
+                    "field_info": {
+                        "custom_name": "Microfilm Number",
+                        "name": "can_mhs_microfilm_no",
+                        "width": 250,
+                        "searchFlag": "%",
+                        "sortable": true,
+                        "defaultValue": "",
+                        "hidden": !(app.billingRegionCode === 'can_MB')
+                    }
+                },
                 "Claim Action": {
                     "id": 43,
                     "field_code": "claim_action",

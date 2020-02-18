@@ -210,6 +210,9 @@ define([
                         } else {
                             self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && field.field_code == "payment_id") }) || [];
                         }
+                        if (app.billingRegionCode !== "can_MB") {
+                            self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && field.field_code == "can_mhs_microfilm_no") }) || [];
+                        }
                         var result_data = data && data.length && data[1] && data[1].rows && data[1].rows.length ? data[1].rows[0] : {};
                         self.checkedBillingDisplayFields = result_data.field_order || [] ;
                         self.checkedFields = self.checkedBillingDisplayFields ? self.checkedBillingDisplayFields : [];
