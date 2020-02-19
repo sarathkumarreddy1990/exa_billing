@@ -208,8 +208,8 @@ function checkAndReturn(data, key) {
 
 function getHeaderDetails(claimData) {
     let details = [];
-   let { 
-        subscriber:[{ 
+   let {
+        subscriber:[{
                 claimFilingCode = null,
                 isNameRequired = null,
             }] = [{}]
@@ -326,10 +326,10 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
     totalBill = getTotalBill(claimData, servicelineList);
     subscriberDet = claimData && claimData.subscriber && claimData.subscriber[0] || "";
     patientDet = subscriberDet && subscriberDet.patient && subscriberDet.patient[0] || "";
-    claimDet = subscriberDet && subscriberDet.claim && subscriberDet.claim[0] || ""; 
+    claimDet = subscriberDet && subscriberDet.claim && subscriberDet.claim[0] || "";
     serviceFac =  claimDet && claimDet.servicefacility && claimDet.servicefacility[0] || "";
     pos = claimDet && claimDet.POS || "";
-    
+
     if (pos === "12") {
         patientDet.fullName = "PRIVATE HOME" ;
         serviceFacDet = getAddressDetails(patientDet);
@@ -1005,7 +1005,7 @@ function claimTable(claims) {
             for (i=0; i<servicelinelist.length; i++) {
                 authNumber = authNumber || servicelinelist[i].authorizationNo;
             }
-            
+
             var splitedServiceLinelist = split(servicelinelist, 6);
             pageBrk = 'after';
             if (splitedServiceLinelist && splitedServiceLinelist.length) {
