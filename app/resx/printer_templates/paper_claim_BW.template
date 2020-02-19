@@ -554,8 +554,8 @@ function getPageBreak() {
 
 function getHeaderDetails(claimData) {
     let details = [];
-    let { 
-        subscriber:[{ 
+    let {
+        subscriber:[{
                 claimFilingCode = null,
                 isNameRequired = null,
             }] = [{}]
@@ -725,10 +725,10 @@ function formatSingleClaim(claimData, servicelineList) {
     HeaderDets = getHeaderDetails(claimData);
     subscriberDet = claimData && claimData.subscriber && claimData.subscriber[0] || "";
     patientDet = subscriberDet && subscriberDet.patient && subscriberDet.patient[0] || "";
-    claimDet = subscriberDet && subscriberDet.claim && subscriberDet.claim[0] || ""; 
-    serviceFac =  claimDet && claimDet.servicefacility && claimDet.servicefacility[0] || ""; 
+    claimDet = subscriberDet && subscriberDet.claim && subscriberDet.claim[0] || "";
+    serviceFac =  claimDet && claimDet.servicefacility && claimDet.servicefacility[0] || "";
     pos = claimDet && claimDet.POS || "";
-    
+
     if (pos === "12") {
         patientDet.fullName = "PRIVATE HOME" ;
         ServiceFacDet = getAddressDetails(patientDet);
@@ -1410,7 +1410,7 @@ function formatSingleClaim(claimData, servicelineList) {
                                         {text:"|_______|", margin:[-5,1,0,0]}
                                     ]
                                 ]
-                                
+
                             },layout: 'noBorders'
                         }
                     ],
@@ -1974,7 +1974,7 @@ function claimTable(claims) {
             for (i=0; i<servicelinelist.length; i++) {
                 authNumber = authNumber || servicelinelist[i].authorizationNo;
             }
-            
+
             var splitedServiceLinelist = split(servicelinelist, 6);
             pageBrk = 'after';
             if (splitedServiceLinelist && splitedServiceLinelist.length) {
