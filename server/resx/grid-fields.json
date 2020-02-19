@@ -224,6 +224,20 @@
             "id": 35
         },
         {
+            "field_code": "can_mhs_microfilm_no",
+            "field_name": "Microfilm Number",
+            "i18n_name": "setup.userSettings.microfilmNumber",
+            "field_info": {
+                "custom_name": "microfilm_no",
+                "name": "can_mhs_microfilm_no",
+                "width": 150,
+                "searchFlag": "%",
+                "defaultValue": "",
+                "sortable": true
+            },
+            "id": 71
+        },
+        {
             "field_code": "claim_no",
             "field_name": "Claim No",
             "i18n_name": "setup.userSettings.claimNo",

@@ -213,6 +213,11 @@ const colModel = [
         , searchColumns: [`insurance_providers.insurance_name`]
         , searchFlag: '%'
     },
+    {
+        name: 'can_mhs_microfilm_no'
+        , searchColumns:[`claims.can_mhs_microfilm_no`]
+        , searchFlag: '%'
+    }
 ];
 
 const api = {
@@ -304,6 +309,7 @@ const api = {
             case 'icd_description': return 'claim_icds.description';
             case 'claim_action': return 'claims.frequency';
             case 'insurance_providers': return `insurance_providers.insurance_name`;
+            case 'can_mhs_microfilm_no': return `claims.can_mhs_microfilm_no`;
         }
 
         return args;
@@ -570,6 +576,7 @@ const api = {
                          OR id = tertiary_patient_insurance_id 
                    )
                 ) AS insurance_providers`,
+                `claims.can_mhs_microfilm_no`,
         ];
 
         if(args.customArgs.filter_id=='Follow_up_queue'){
