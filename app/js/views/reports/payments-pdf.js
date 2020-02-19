@@ -140,6 +140,8 @@ define([
                 }
 
                 urlParams.dateFormat = this.viewModel.dateFormat;
+                urlParams.async = false;
+                urlParams.save = true;
                 var options = {
                     'id': reportArgsFlag,
                     'category': this.viewModel.reportCategory,
