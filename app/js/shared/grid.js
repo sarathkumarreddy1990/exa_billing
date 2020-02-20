@@ -232,6 +232,10 @@ define('grid', [
 
                     // Claim status updation
                     $.each(app.claim_status, function (index, claimStatus) {
+                        if (claimStatus.code === 'P77') {
+                            return;
+                        }
+
                         var $claimStatusLink = $(commonjs.getRightClickMenu('ancclaimStatus_' + claimStatus.id, 'setup.rightClickMenu.billingCode', true, claimStatus.description, false));
                         $claimStatusLink.click(function () {
 
