@@ -1,6 +1,7 @@
 const xml = require('./xml');
 
 const logger = require('../../../../logger');
+const moment = require('moment');
 
 const {
     services: {
@@ -26,6 +27,93 @@ const {
         CLAIMS,
     }
 } = require('./../constants');
+
+const MILLISECONDS_SINCE_EPOCH = 0;
+const DATE_TIME_FORMAT = 'YYYY-MM-DDThh:mm:ss';
+
+const hcvResponseTemplatesByCode = {
+    '05': {
+        responseIDs: ['NOT_10_DIGITS'],
+        responseDescription: 'The Health Number submitted is not 10 numeric digits',
+        responseAction: 'No payment for services, bill the cardholder directly.',
+    },
+    '10': {
+        responseIDs: ['FAILED_MOD10'],
+        responseDescription: 'The Health Number submitted does not exist on the ministry’s system',
+        responseAction: 'No payment for services, bill the cardholder directly. ',
+    },
+    '15': {
+        responseIDs: ['IS_IN_DISTRIBUTED_STATUS'],
+        responseDescription: 'Pre-assigned newborn Health Number',
+        responseAction: 'No payment will be made for services until registration is completed.',
+    },
+    '20': {
+        responseIDs: ['IS_NOT_ELIGIBLE',],
+        responseDescription: 'Eligibility does not exist for this Health Number',
+        responseAction: 'No payment for services, bill the cardholder directly.',
+    },
+    '50': {
+        responseIDs: ['NOT_ON_ACTIVE_ROSTER',],
+        responseDescription: 'Health card passed validation',
+        responseAction: 'You will receive payment for billable services rendered on this day subject to adjudication by the ministry.',
+    },
+    '51': {
+        responseIDs: ['IS_ON_ACTIVE_ROSTER',],
+        responseDescription: 'Health card passed validation',
+        responseAction: 'You will receive payment for billable services rendered on this day subject to adjudication by the ministry',
+    },
+    '52': {
+        responseIDs: ['HAS_NOTICE',],
+        responseDescription: 'Health card passed validation; Cardholder did not respond to notice to register',
+        responseAction: 'You will receive payment for billable services rendered on this day subject to adjudication by the ministry.',
+    },
+    '53': {
+        responseIDs: ['IS_RQ_HAS_EXPIRED', 'IS_THC',],
+        responseDescription: 'Health card passed validation; card is expired',
+        responseAction: 'You will receive payment for billable services rendered on this day subject to adjudication by the ministry.',
+    },
+    '54': {
+        responseIDs: ['IS_RQ_FUTURE_ISSUE',],
+        responseDescription: 'Health card passed validation; card is future dated',
+        responseAction: 'You will receive payment for billable services rendered on this day subject to adjudication by the ministry.',
+    },
+    '55': {
+        responseIDs: ['RETURNED_MAIL',],
+        responseDescription: 'Health card passed validation; cardholder required to update address with ministry',
+        responseAction: 'You will receive payment for billable services rendered on this day subject to adjudication by the ministry.',
+    },
+    '65': {
+        responseIDs: ['INVALID_VERSION_CODE',],
+        responseDescription: 'Invalid version code',
+        responseAction: 'No payment for services on this Health Number and Version Code combination.',
+    },
+    '70': {
+        responseIDs: ['IS_STOLEN',],
+        responseDescription: 'Health card reported stolen',
+        responseAction: 'No payment for services on this Health Number and Version Code combination.',
+    },
+    '75': {
+        responseIDs: ['IS_CANCELLED_OR_VOIDED', 'IS_VOID_NEVER_ISS',],
+        responseDescription: 'Health card cancelled or voided',
+        responseAction: 'No payment for services on this Health Number and Version Code combination.',
+    },
+    '80': {
+        responseIDs: ['DAMAGED_STATE',],
+        responseDescription: 'Health card reported damaged',
+        responseAction: 'No payment for services on this Health Number and Version Code combination.',
+    },
+    '83': {
+        responseIDs: ['LOST_STATE',],
+        responseDescription: 'Health card reported lost ',
+        responseAction: 'No payment for services on this Health Number and Version Code combination.',
+    },
+    '90': {
+        responseIDs: ['INFO_NOT_AVAIL'],
+        responseDescription: 'Information is not available',
+        responseAction: 'Try the scan again',
+    },
+};
+
 
 const {
     formatDate,
@@ -255,6 +343,123 @@ const getResourcesByID = (resourceIDs) => {
     });
 };
 
+
+const getRandomElement = (arr) => {
+    return arr[Math.floor(Math.random() * arr.length)];
+};
+
+const getResponseCode = (hcvRequest) => {
+
+    const {
+        healthNumber,
+    } = hcvRequest;
+
+    return healthNumber.substr(8, 2);
+};
+
+
+
+/**
+ * const isNoData - determines if any "Personal Characteristics" should be
+ * returned with a validation result. According to the "Technical Specifications
+ * for Health Card Validation (HCV) Service via Electronic Business Services
+ * (EBS)", appendix A, response codes 05, 10, & 15 never return "Personal
+ * Characteristics."
+ *
+ * For testing purposes, if the user specifies that the "Version Code" is "ND",
+ * then
+ *
+ * @param  {object}  hcvRequest the HCV request parameters
+ * @return {boolean}            true if the version code is "ND" OR one of the
+ *                              response code (determined from the HCV
+     *                          parameters) is '05', '10', or '15'
+ */
+const isNoData = (hcvRequest) => {
+
+    const {
+        versionCode,
+    } = hcvRequest;
+
+    return versionCode === 'ND' || ['05', '10', '15'].includes(getResponseCode(hcvRequest));
+};
+
+/**
+ * const hasNDResponseID - determines if there are any response IDs with "_ND" at the
+ * end associated with the response code produced from the specified HCV request
+ * parameters. According to the "Technical Specifications for Health Card
+ * Validation (HCV) Service via Electronic Business Services (EBS)", appendix A,
+ * the only response codes that don't have a response ID with "_ND" at the end
+ * are '05', '10', '15', and '90'
+ *
+ * @param  {object} hcvRequest the HCV request parameters
+ * @return {boolean}           if the response code produced from the specified
+ *                             HCV parameters is not '05', '10', '15', or '90'
+ */
+const hasNDResponseID = (hcvRequest) => {
+    return !['05', '10', '15', '90'].includes(getResponseCode(hcvRequest));
+};
+
+const generateCategory1HCVResult = (hcvRequest) => {
+
+    const {
+        healthNumber,
+        versionCode,
+    } = hcvRequest;
+
+    const responseCode = getResponseCode(hcvRequest);
+    const hcvResponseTemplate = hcvResponseTemplatesByCode[responseCode]
+                             || hcvResponseTemplatesByCode[getRandomElement(Object.keys(hcvResponseTemplatesByCode))];
+    const responseIDs = hcvResponseTemplate.responseIDs;
+
+    let responseID = getRandomElement(responseIDs);
+    if (versionCode === 'ND' && hasNDResponseID(hcvRequest)) {
+        // only return an ND responseID if the tester requested this with
+        // an ND version code and there's an ND response ID associated with
+        // the response code
+        responseID += '_ND';
+    }
+
+    return {
+        responseCode,
+        responseID,
+        responseAction: hcvResponseTemplate.responseAction,
+        responseDescription: hcvResponseTemplate.responseDescription,
+    };
+};
+
+
+const generateCategory2HCVResult = (hcvRequest) => {
+
+    const {
+        healthNumber,
+        versionCode,
+    } = hcvRequest;
+
+
+    return {
+        ...generateCategory1HCVResult(hcvRequest),
+        healthNumber,
+        versionCode,
+        firstName: 'Nerfy',
+        secondName: 'Nerf',
+        lastName: 'McNerferson',
+        gender: 'M',
+        dateOfBirth: moment(MILLISECONDS_SINCE_EPOCH).format(DATE_TIME_FORMAT),
+        expiryDate: moment().add(1, 'days').format(DATE_TIME_FORMAT),
+    };
+};
+
+const generateHCVResults = (hcvRequests) => {
+    return hcvRequests.map((hcvRequest) => {
+
+        const {
+            versionCode,
+        } = hcvRequest;
+
+        return isNoData(hcvRequest) ? generateCategory1HCVResult(hcvRequest) : generateCategory2HCVResult(hcvRequest);
+    });
+};
+
 module.exports = {
 
     [EDT_UPLOAD]: (ctx) => {
@@ -395,8 +600,9 @@ module.exports = {
 
     [HCV_REAL_TIME]: (ctx) => {
         logger.debug('OHIP EBS Nerf validate', ctx.eventDetail);
-        const hcvRequests = ctx.eventDetail.hcvRequests;
+        const hcvResults = generateHCVResults(ctx.eventDetail[HCV_REAL_TIME].hcvRequests);
 
-        return xml[HCV_REAL_TIME]([]);
+        const foo = xml[HCV_REAL_TIME](hcvResults);
+        return foo;
     },
 };
