@@ -276,7 +276,7 @@ const ahsData = {
                         CASE
                             WHEN ${source} = 'reassessment' OR ${source} = 'change'
                                 THEN n.sequence_number
-                            ELSE ( n.sequence_number + row_number() OVER () ) % 10000000 
+                            ELSE ( n.sequence_number + row_number() OVER () ) % 10000000
                         END,
                         CASE
                             WHEN ${source} = 'reassessment'
@@ -344,16 +344,16 @@ const ahsData = {
                         pin.patient_id,
                         (SELECT alt_account_no FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'uli' AND province_alpha_2_code = 'ab' LIMIT 1) AS service_recipient_uli,
                         (SELECT alt_account_no FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'uli_parent' AND province_alpha_2_code = 'ab' LIMIT 1)                            AS service_recipient_parent_uli,
-                        
+
                         (SELECT alt_account_no FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'phn' AND is_primary LIMIT 1) AS service_recipient_phn,
                         (SELECT province_alpha_2_code FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'phn' AND is_primary LIMIT 1) AS service_recipient_phn_province,
-                        
+
                         (SELECT alt_account_no FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'phn_parent' LIMIT 1)                            AS service_recipient_parent_phn,
                         (SELECT province_alpha_2_code FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'phn_parent' LIMIT 1)                            AS service_recipient_parent_phn_province,
-                        
+
                         (SELECT alt_account_no FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'registration_number' LIMIT 1)                   AS service_recipient_registration_number,
                         (SELECT province_alpha_2_code FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'registration_number' LIMIT 1)                   AS service_recipient_registration_number_province,
-                        
+
                         (SELECT alt_account_no FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'registration_number_parent' LIMIT 1)            AS service_recipient_parent_registration_number,
                         (SELECT province_alpha_2_code FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'registration_number_parent' LIMIT 1)            AS service_recipient_parent_registration_number_province
                     FROM
@@ -371,7 +371,7 @@ const ahsData = {
                         luhn_generate_checkdigit(
                             inserted_efc.sequence_number :: INT8
                         )                                            AS check_digit,
-                        
+
                         -- currently hard-coded - AHS does not support another code right now
                         'CIP1'                                       AS transaction_type,
 
@@ -380,10 +380,10 @@ const ahsData = {
                             THEN 'RGLR'
                             ELSE ''
                         END                                          AS claim_type,
-        
+
                         pc_app.can_ahs_prid                             AS service_provider_prid,
                         sc.code                                         AS skill_code,
-                        
+
                         nums.service_recipient_uli,
                         nums.service_recipient_parent_uli,
                         nums.service_recipient_phn,
@@ -423,7 +423,7 @@ const ahsData = {
                                 'parent_registration_number', COALESCE(nums.service_recipient_parent_registration_number, '')
                             )
                         END                                          AS service_recipient_details,
-        
+
                         cpt.display_code                             AS health_service_code,
                         CASE
                             WHEN s.hospital_admission_dt IS NULL
@@ -434,7 +434,7 @@ const ahsData = {
                         icd.codes[1]                                 AS diagnosis_code_1,
                         icd.codes[2]                                 AS diagnosis_code_2,
                         icd.codes[3]                                 AS diagnosis_code_3,
-        
+
                         -- @TODO - this may need + 1 for the days extract to make same-day considered as "1 consecutive day"
                         -- Documentation is unclear so leaving as-is until testing
                         (
@@ -444,7 +444,7 @@ const ahsData = {
                                 ELSE EXTRACT(DAYS FROM s.study_dt - s.hospital_admission_dt)
                             END
                         ) :: INT                                        AS calls,
-                        
+
                     --     fee_mod.codes[1]                             AS fee_modifier_1,
                     --     fee_mod.codes[2]                             AS fee_modifier_2,
                     --     fee_mod.codes[3]                             AS fee_modifier_3,
@@ -458,23 +458,23 @@ const ahsData = {
                             THEN ''
                             ELSE COALESCE(o.order_info -> 'patientLocation', 'OTHR')
                         END                                          AS location_code,
-        
+
                         orig_fac.facility_number                     AS originating_facility,
                         CASE
                             WHEN s.can_ahs_originating_facility_id IS NOT NULL
                             THEN ''
                             ELSE s.can_ahs_originating_location
                         END                                          AS originating_location,
-        
+
                         bc.can_ahs_business_arrangement              AS business_arrangement,
                         bc.can_ahs_pay_to_code                       AS pay_to_code,
                         bc.can_ahs_pay_to_uli                        AS pay_to_uli,
-        
+
                         -- Use this to create person data segment CPD1
                         bc.can_ahs_pay_to_details                    AS pay_to_details,
                         bc.can_ahs_locum_arrangement                 AS locum_arrangement,
                         pc_ref.can_ahs_prid                          AS referral_id,
-        
+
                         CASE
                             WHEN LOWER(COALESCE(
                                 pc_ref.contact_info -> 'STATE',
@@ -484,7 +484,7 @@ const ahsData = {
                             THEN 'Y'
                             ELSE ''
                         END                                          AS oop_referral_indicator,
-        
+
                         CASE
                             WHEN pc_ref.can_ahs_prid IS NULL
                             THEN JSONB_BUILD_OBJECT(
@@ -520,50 +520,50 @@ const ahsData = {
                             )
                             ELSE NULL
                         END                                          AS referring_provider_details,
-        
+
                         CASE
                             WHEN nums.service_recipient_uli IS NULL AND nums.service_recipient_registration_number_province NOT IN ( 'ab', 'qc' )
                             THEN nums.service_recipient_registration_number_province
                             ELSE ''
                         END                                          AS recovery_code,
                         bc.id                                        AS chart_number,
-        
+
                         totals.charges_bill_fee_total :: NUMERIC     AS claimed_amount,
-        
+
                         CASE
                             WHEN bc.can_ahs_claimed_amount_indicator
                             THEN 'Y'
                             ELSE ''
                         END                                          AS claimed_amount_indicator,
-        
+
                         CASE
                             WHEN bc.can_ahs_confidential
                             THEN 'Y'
                             ELSE ''
                         END                                          AS confidential_indicator,
-        
+
                         CASE
                             WHEN bc.can_ahs_good_faith
                             THEN 'Y'
                             ELSE ''
                         END                                          AS good_faith_indicator,
-        
+
                         bc.can_ahs_newborn_code                      AS newborn_code,
-        
+
                         CASE
                             WHEN bc.can_ahs_emsaf_reason IS NOT NULL
                             THEN 'Y'
                             ELSE 'N'
                         END                                          AS emsaf_indicator,
-        
+
                         bc.can_ahs_emsaf_reason                      AS emsaf_reason,
-        
+
                         CASE
                             WHEN bc.can_ahs_paper_supporting_docs
                             THEN 'Y'
                             ELSE ''
                         END             AS paper_supporting_documentation_indicator,
-        
+
                         TO_CHAR(s.hospital_admission_dt, 'YYYYMMDD') AS hospital_admission_date,
                         s.can_ahs_tooth_code                         AS tooth_code,
                         s.can_ahs_tooth_surface1                     AS tooth_surface1,
@@ -577,7 +577,7 @@ const ahsData = {
                         inserted_efc
                     LEFT JOIN updated bc
                         ON bc.id = inserted_efc.claim_id
-        
+
                     LEFT JOIN LATERAL (
                         SELECT
                             charges_bill_fee_total
@@ -586,7 +586,7 @@ const ahsData = {
                         LIMIT
                             1
                     ) totals ON TRUE
-        
+
                     LEFT JOIN billing.charges bch
                         ON bch.claim_id = bc.id
                     LEFT JOIN billing.charges_studies bchs
@@ -621,7 +621,7 @@ const ahsData = {
                         ON cpt.id = bch.cpt_id
                     LEFT JOIN public.facilities f
                         ON f.id = s.facility_id
-        
+
                     LEFT JOIN LATERAL (
                         WITH bci AS (
                             SELECT
@@ -646,14 +646,14 @@ const ahsData = {
                         GROUP BY
                             bci.claim_id
                     ) icd ON TRUE
-        
+
                     LEFT JOIN LATERAL (
                         SELECT
                             ( SELECT code FROM public.modifiers WHERE id = bch.modifier1_id ) AS mod1,
                             ( SELECT code FROM public.modifiers WHERE id = bch.modifier2_id ) AS mod2,
                             ( SELECT code FROM public.modifiers WHERE id = bch.modifier3_id ) AS mod3
                     ) fee_mod ON TRUE
-        
+
                     -- LEFT JOIN LATERAL (
                     --     SELECT
                     --         ARRAY_AGG(mods.code) AS codes
@@ -691,7 +691,7 @@ const ahsData = {
                     --             sort_order
                     --     ) mods
                     -- ) fee_mod ON TRUE
-        
+
                     WINDOW ENCOUNTER_WINDOW AS (
                         PARTITION BY
                             pc_app.can_ahs_prid,
@@ -733,11 +733,11 @@ const ahsData = {
                     -- END AS supporting_text,
                     CASE
                         WHEN (
-                            ARRAY_LENGTH(supporting_texts.claim_ids, 1) > 1 
+                            ARRAY_LENGTH(supporting_texts.claim_ids, 1) > 1
                             -- AND claim_info.claim_id = supporting_texts.claim_ids[1]
                         )
                         THEN ARRAY_REMOVE(
-                            supporting_texts.claim_numbers, 
+                            supporting_texts.claim_numbers,
                             supporting_texts.claim_numbers[1]
                         )
                         ELSE NULL
@@ -776,7 +776,7 @@ const ahsData = {
             fs.root_directory,
             c.can_ahs_submitter_prefix AS submitter_prefix
         FROM file_stores fs
-        INNER JOIN companies c ON c.file_store_id = fs.id 
+        INNER JOIN companies c ON c.file_store_id = fs.id
         WHERE c.id = ${company_id}
     `;
 
@@ -792,7 +792,7 @@ const ahsData = {
             file_type,
             created_dt,
             file_store_id,
-            company_id,
+            companyId,
             file_path,
         } = info;
 
@@ -809,7 +809,7 @@ const ahsData = {
                 uploaded_file_name
             )
             SELECT
-                ${company_id},
+                ${companyId},
                 ${file_store_id},
                 ${created_dt},
                 'pending',
@@ -907,7 +907,7 @@ const ahsData = {
             supportingText
         } = args;
         const sql = SQL`
-                     UPDATE 
+                     UPDATE
                          billing.claims
                      SET
                          can_ahs_supporting_text = ${supportingText}
@@ -925,10 +925,10 @@ const ahsData = {
             targetId
         } = args;
 
-        const sql = SQL` SELECT 
+        const sql = SQL` SELECT
                              COUNT(1) AS pending_transaction_count
                          FROM billing.edi_file_claims efc
-                         WHERE efc.claim_id = ${targetId} 
+                         WHERE efc.claim_id = ${targetId}
                          AND NOT did_not_process `;
 
         return await query(sql);
@@ -941,12 +941,12 @@ const ahsData = {
      */
     validateAhsClaim: async (claimIds) => {
 
-        const sql = SQL`WITH 
+        const sql = SQL`WITH
                             submitted_claim AS (
                                 SELECT
                                       bc.id
                                     , COUNT(efc.claim_id) AS submitted_claim_count
-                                FROM billing.claims bc  
+                                FROM billing.claims bc
                                 LEFT JOIN  billing.edi_file_claims efc ON bc.id = efc.claim_id
                                 WHERE bc.id = ANY(${claimIds})
                                 AND (bc.frequency = 'corrected')
@@ -961,14 +961,14 @@ const ahsData = {
                                 WHERE id = ANY(${claimIds})
                                 GROUP BY COALESCE(NULLIF(bc.frequency, 'void'), 'original')
                             )
-                            SELECT 
-                                  (SELECT 
+                            SELECT
+                                  (SELECT
                                        json_agg(row_to_json(incorrect_claims_agg))
                                    FROM (SELECT * FROM submitted_claim) AS incorrect_claims_agg
                                   ) AS incorrect_claims
-                                , (SELECT 
-                                       json_agg(row_to_json(check_frequency_agg)) 
-                                   FROM (SELECT * FROM check_frequency) AS check_frequency_agg 
+                                , (SELECT
+                                       json_agg(row_to_json(check_frequency_agg))
+                                   FROM (SELECT * FROM check_frequency) AS check_frequency_agg
                                   ) AS unique_frequency_count`;
 
         return await query(sql);
@@ -984,15 +984,15 @@ const ahsData = {
         } = args;
 
         const sql = SQL` WITH user_data AS (
-                            SELECT 
+                            SELECT
                                 company_id,
                                 default_facility_id,
                                 id AS user_id
                             FROM users
                             WHERE username ILIKE 'radmin'
                             LIMIT 1
-                        )    
-                        SELECT 
+                        )
+                        SELECT
                             file_store_id,
                             file_type,
                             file_path,
@@ -1004,7 +1004,7 @@ const ahsData = {
                             (SELECT row_to_json(_) FROM (SELECT * FROM user_data) AS _) AS log_details
                          FROM billing.edi_files ef
                          INNER JOIN file_stores fs ON fs.id = ef.file_store_id
-                         WHERE ef.status = ${status}                                   
+                         WHERE ef.status = ${status}
                                AND ef.file_type = ANY(${fileTypes}) LIMIT 10`;
 
         return await query(sql);
@@ -1021,7 +1021,7 @@ const ahsData = {
             status
         } = args;
 
-        const sql = SQL` UPDATE billing.edi_files 
+        const sql = SQL` UPDATE billing.edi_files
                       SET status = ${status}
                       WHERE id = ${fileId}`;
 
