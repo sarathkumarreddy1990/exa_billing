@@ -263,11 +263,12 @@ module.exports = {
             const feeServiceDetailsNode = select("*[local-name(.)='feeServiceDetails']", result)[0];
 
             return {
-                healthNumber: select("*[local-name(.)='healthNumber']/text()", result)[0].nodeValue,
-                responseAction: select("*[local-name(.)='responseAction']/text()", result)[0].nodeValue,
                 responseCode: select("*[local-name(.)='responseCode']/text()", result)[0].nodeValue,
-                responseDescription: select("*[local-name(.)='responseDescription']/text()", result)[0].nodeValue,
                 responseID: select("*[local-name(.)='responseID']/text()", result)[0].nodeValue,
+                responseAction: select("*[local-name(.)='responseAction']/text()", result)[0].nodeValue,
+                responseDescription: select("*[local-name(.)='responseDescription']/text()", result)[0].nodeValue,
+
+                healthNumber: parseOptionalValue(result, 'healthNumber'),
                 versionCode: parseOptionalValue(result, 'versionCode'),
 
                 dateOfBirth: parseOptionalValue(result, 'dateOfBirth'),

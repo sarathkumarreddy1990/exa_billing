@@ -134,23 +134,54 @@ const generateDetailResultsXML = (results, pageNo) => {
 
     return `
         <return>
-            <auditID>${uuid()}</auditID>
+            <auditUID>${uuid()}</auditUID>
             ${innerDetailXML}
             <resultSize>${pages.length}</resultSize>
         </return>
     `;
 };
 
+const getHCVCategory1Fields = (result) => {
+    return `
+        <responseAction>${result.responseAction}</responseAction>
+        <responseCode>${result.responseCode}</responseCode>
+        <responseDescription>${result.responseDescription}</responseDescription>
+        <responseID>${result.responseID}</responseID>
+    `;
+};
+const getHCVCategory2Fields = (result) => {
+    return `
+        ${getHCVCategory1Fields(result)}
+        <healthNumber>${result.healthNumber}</healthNumber>
+        <versionCode>${result.versionCode}</versionCode>
+        <firstName>${result.firstName}</firstName>
+        <secondName>${result.secondName}</secondName>
+        <lastName>${result.lastName}</lastName>
+        <gender>${result.gender}</gender>
+        <dateOfBirth>${result.dateOfBirth}</dateOfBirth>
+        <expiryDate>${result.expiryDate}</expiryDate>
+    `;
+};
+
 const generateValidationResultsXML = (results) => {
+
+    const innerResultsXML = results.map((result) => {
+        let resultFieldsXML = getHCVCategory1Fields(result);
+        if (result.healthNumber) {
+            resultFieldsXML = getHCVCategory2Fields(result);
+        }
+
+        return `
+            <results>
+                ${resultFieldsXML}
+            </results>
+        `;
+    }).join('\n');
+
     return `
         <results>
-            <auditID>${uuid()}</auditID>
-            <results>
-                ...
-            </results>
-            <results>
-                ...
-            </results>
+            <auditUID>${uuid()}</auditUID>
+            ${innerResultsXML}
         </results>
     `;
 };
@@ -217,13 +248,13 @@ module.exports = {
         return `
             <getTypeListResponse>
                 ${generateTypeListResultsXML(results)}
-            <getTypeListResponse>`;
+            </getTypeListResponse>`;
     },
 
     [HCV_REAL_TIME]: (results) => {
         return `
             <validateResponse>
                 ${generateValidationResultsXML(results)}
-            <validateResponse>`;
+            </validateResponse>`;
     },
 };
