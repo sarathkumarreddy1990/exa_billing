@@ -1407,11 +1407,14 @@ define(['jquery',
                 });
 
                 if (app.billingRegionCode === 'can_MB') {
-                    var p77ClaimStatusId = _.find(app.claim_status, function(item) {
+                    var p77ClaimStatus = _.find(app.claim_status, function(item) {
                         return item.code === 'P77'
-                    }).id;
+                    });
 
-                    $('#ddlClaimStatus option[value="' + p77ClaimStatusId + '"]').hide();
+                    if (p77ClaimStatus) {
+                        $('#ddlClaimStatus option[value="' + p77ClaimStatus.id + '"]').hide();
+                    }
+
                     $('#btnSaveClaimNotes').hide();
                 }
             },
