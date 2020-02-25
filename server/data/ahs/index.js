@@ -117,7 +117,7 @@ const ahsData = {
                 bc.id AS claim_id,
                 bc.billing_method,
                 bc.can_ahs_pay_to_code                       AS pay_to_code,
-                pc.can_ahs_submitter_prefix                  AS submitter_prefix,
+                pc.can_submitter_prefix                  AS submitter_prefix,
                 bc.can_ahs_business_arrangement              AS business_arrangement,
                 bc.can_ahs_supporting_text                   AS supporting_text_1,
                 f.can_facility_number                        AS facility_number,
@@ -363,7 +363,7 @@ const ahsData = {
                     SELECT
                         bc.id                                        AS claim_id,
                         inserted_efc.can_ahs_action_code             AS action_code,
-                        comp.can_ahs_submitter_prefix                AS submitter_prefix,
+                        comp.can_submitter_prefix                AS submitter_prefix,
                         inserted_efc.batch_number                    AS batch_number,
                         TO_CHAR(bc.claim_dt, 'YY')                   AS year,
                         TO_CHAR(bc.claim_dt, 'MM')                   AS source_code,
@@ -774,7 +774,7 @@ const ahsData = {
         SELECT
             fs.id AS file_store_id,
             fs.root_directory,
-            c.can_ahs_submitter_prefix AS submitter_prefix
+            c.can_submitter_prefix AS submitter_prefix
         FROM file_stores fs
         INNER JOIN companies c ON c.file_store_id = fs.id 
         WHERE c.id = ${company_id}
