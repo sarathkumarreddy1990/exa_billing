@@ -91,8 +91,19 @@ const utils = {
             case 'numeric':
                 return parseInt(fieldStr);
 
-            case 'EOB':
-                return fieldStr.trim().match(/.{2}/g);
+            case 'eobObj':
+                let eobArr = fieldStr.trim().match(/.{2}/g) || [];
+                let eobCodes = [];
+
+                eobArr.forEach((value) => {
+                    eobCodes.push({'code': value,
+                        'amount': 0});
+                }); 
+
+                return eobCodes || []; 
+            
+            case 'eobArr':
+                return fieldStr.trim().match(/.{2}/g) || []; // Returning EOB codes as array. eg:["C2", "77", "DR"]
 
             case 'province':
                 return province[fieldStr.trim()];
