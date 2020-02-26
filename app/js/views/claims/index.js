@@ -1156,22 +1156,33 @@ define(['jquery',
                     }
 
                 } else if (app.billingRegionCode === 'can_MB') {
-                    var queryClaimStuatusId =  app.claim_status.find(function(e) {
-                        return e.code === 'QR';
-                    }).id;
+                    var queryClaimStatusId, p77ClaimStatusId;
 
-                    var QueryStatusEle = $('#ddlClaimStatus option[value="' + queryClaimStuatusId + '"]');
+                    _.each(app.claim_status, function (obj) {
+                        switch (obj.code) {
+                            case 'QR':
+                                queryClaimStatusId = obj.id;
+                                break;
+                            case 'P77':
+                                p77ClaimStatusId = obj.id;
+                                break;
+                        }
+                    });
+
+                    var queryStatusEle = $('#ddlClaimStatus option[value="' + queryClaimStatusId + '"]');
+                    var p77StatusEle = $('#ddlClaimStatus option[value="' + p77ClaimStatusId + '"]');
 
                     if (!['MPP', 'OP'].includes(data.claim_status_code)) {
-                        QueryStatusEle.hide();
+                        queryStatusEle.hide();
                     } else {
-                        QueryStatusEle.show();
+                        queryStatusEle.show();
                     }
 
                     if (data.claim_status_code === 'P77') {
                         $('#btnNewPayment, .paymentApply').prop('disabled', true);
                         $('#btnSaveClaim').hide();
                     } else {
+                        p77StatusEle.hide();
                         $('#btnSaveClaimNotes').hide();
                     }
                 }
@@ -1396,6 +1407,14 @@ define(['jquery',
                 });
 
                 if (app.billingRegionCode === 'can_MB') {
+                    var p77ClaimStatus = _.find(app.claim_status, function(item) {
+                        return item.code === 'P77'
+                    });
+
+                    if (p77ClaimStatus) {
+                        $('#ddlClaimStatus option[value="' + p77ClaimStatus.id + '"]').hide();
+                    }
+
                     $('#btnSaveClaimNotes').hide();
                 }
             },

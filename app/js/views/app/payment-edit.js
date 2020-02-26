@@ -3500,22 +3500,34 @@ define(['jquery',
                 if (app.billingRegionCode === 'can_AB') {
                     $('#ddlClaimStatus').prop('disabled', details && details.primary_ins_provider_code.toLowerCase() === 'ahs');
                 } else if (app.billingRegionCode === 'can_MB') {
-                    var queryClaimStatusId = app.claim_status.find(function (e) {
-                        return e.code === 'QR';
-                    }).id; //returns an id of query claim
+                    var queryClaimStatusId, p77ClaimStatusId;
 
-                    var QueryStatusEle = $('#ddlClaimStatus option[value="' + queryClaimStatusId + '"]');
-                    var validStatus = app.claim_status.find(function(e) {
-                        return e.id === details.claim_status_id;
+                    _.each(app.claim_status, function (obj) {
+                        switch (obj.code) {
+                            case 'QR':
+                                queryClaimStatusId = obj.id;
+                                break;
+                            case 'P77':
+                                p77ClaimStatusId = obj.id;
+                                break;
+                        }
+                    });
+
+                    var queryStatusEle = $('#ddlClaimStatus option[value="' + queryClaimStatusId + '"]');
+                    var p77StatusEle = $('#ddlClaimStatus option[value="' + p77ClaimStatusId + '"]');
+
+                    var validStatus = app.claim_status.find(function(obj) {
+                        return obj.id === details.claim_status_id;
                     }); //returns an id of partially paid or over paid.
 
                     if (['MPP', 'OP', 'R'].includes(validStatus.code)) {
-                        QueryStatusEle.show();
+                        queryStatusEle.show();
                     } else {
-                        QueryStatusEle.hide();
+                        queryStatusEle.hide();
                     }
 
                     if (validStatus.code !== 'P77') {
+                        p77StatusEle.hide();
                         $("#btnSaveAppliedPendingPaymentsNotes").hide();
                     } else {
                         $("#btnSaveAppliedPendingPayments").hide();
