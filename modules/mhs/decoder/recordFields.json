@@ -180,10 +180,15 @@
             "fieldLength": 1,
             "format": "los"
         },
-        "EOB": {
+        "eobData": {
             "startPos": 66,
             "fieldLength": 6,
-            "format": "EOB"
+            "format": "eobObj"
+        },
+        "eobArr":{
+            "startPos": 66,
+            "fieldLength": 6,
+            "format": "eobArr"
         },
         "claimNumber": {
             "startPos": 72,
@@ -299,10 +304,15 @@
             "fieldLength": 1,
             "format": "los"
         },
-        "EOB": {
+        "eobData": {
             "startPos": 66,
             "fieldLength": 2,
-            "format": "EOB"
+            "format": "eobObj"
+        },
+        "eobArr": {
+            "startPos": 66,
+            "fieldLength": 2,
+            "format": "eobArr"
         },
         "claimNumber": {
             "startPos": 72,
