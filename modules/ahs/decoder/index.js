@@ -29,10 +29,10 @@ const Parser = {
                         for ( let i = 0; i < ardRecord.explanationCodes.length; i += 5 ) {
                             const code = ardRecord.explanationCodes.slice(i, i + 5);
                             if ( code ) {
-                                codes.push(code);
+                                codes.push({"code": code, "amount": 0});
                             }
                         }
-                        ardRecord.explanationCodes = codes.join();
+                        ardRecord.explanationCodes = codes || [];
                     }
 
                     if ( ardRecord.feeModifiers ) {
