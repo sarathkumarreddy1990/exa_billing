@@ -486,7 +486,7 @@ const ahsData = {
                         END                                          AS oop_referral_indicator,
 
                         CASE
-                            WHEN pc_ref.can_ahs_prid IS NULL
+                            WHEN pc_ref.can_ahs_prid IS NULL AND p_ref.id IS NOT NULL
                             THEN JSONB_BUILD_OBJECT(
                                 'person_type', 'RFRC',
                                 'first_name', p_ref.first_name,
