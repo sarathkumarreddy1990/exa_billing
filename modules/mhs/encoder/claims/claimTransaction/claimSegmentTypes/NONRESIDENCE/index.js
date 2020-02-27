@@ -8,7 +8,6 @@
 const processResults = (row) => {
 
     let {
-        province_code,
         phn_details,
         birth_date,
         century
@@ -18,7 +17,7 @@ const processResults = (row) => {
         'record_type': 7,
         'practitioner_number': row.practitioner.prid,
         'health_identification_number': phn_details && phn_details.alt_account_no,
-        'provice_code': province_code,
+        'province_code': phn_details && phn_details.province_alpha_2_code,
         'patient_birth_date': century + birth_date.slice(2),
         'claim_number': row.claim_number
     };

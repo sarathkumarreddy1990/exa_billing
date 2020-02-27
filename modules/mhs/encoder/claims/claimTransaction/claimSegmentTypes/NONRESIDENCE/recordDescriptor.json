@@ -16,7 +16,7 @@
         "startPos": 7,
         "length": 12
     },
-    "provice_code": {
+    "province_code": {
         "format": "A",
         "startPos": 19,
         "length": 2
