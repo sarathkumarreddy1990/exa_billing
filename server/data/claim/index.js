@@ -427,12 +427,12 @@ module.exports = {
 
         const sql = SQL`SELECT `
             .append(claimCreateFunction)
-            .append(`(
-                ('${JSON.stringify(claims)}')::jsonb,
-                ('${JSON.stringify(insurances)}')::jsonb,
-                ('${JSON.stringify(claim_icds)}')::jsonb,
-                ('${JSON.stringify(auditDetails)}')::jsonb,
-                ('${JSON.stringify(charges)}')::jsonb
+            .append(SQL`(
+                (${JSON.stringify(claims)})::jsonb,
+                (${JSON.stringify(insurances)})::jsonb,
+                (${JSON.stringify(claim_icds)})::jsonb,
+                (${JSON.stringify(auditDetails)})::jsonb,
+                (${JSON.stringify(charges)})::jsonb
             ) as result`);
 
         return await query(sql);
