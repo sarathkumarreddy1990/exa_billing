@@ -4872,7 +4872,7 @@ define(['jquery',
                 $('#ddlClaimStatus option:contains("Select")').prop("selected", true);
                 $('#txtClaimResponsibleNotes').val('');
                 $('#ddlClaimResponsible').empty();
-                $('#txtClaimResponsibleNotes').prop('disabled', !(app.billingRegionCode === 'can_MB' || country_alpha_3_code === 'usa'));
+                $('#txtClaimResponsibleNotes').prop('disabled', !(app.billingRegionCode === 'can_MB' || app.country_alpha_3_code === 'usa'));
             },
 
             claimWOStudy:function(patient_details){
