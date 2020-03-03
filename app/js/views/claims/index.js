@@ -184,14 +184,16 @@ define(['jquery',
                         chargeList: self.claimChargeList || [],
                         paymentList: self.paymentList,
                         billingRegionCode: app.billingRegionCode,
-                        currentDate: self.studyDate
+                        currentDate: self.studyDate === undefined && self.cur_study_date || self.studyDate
                     })
                 });
 
-                if (app.country_alpha_3_code === 'can') {
-                    $('#txtPriGroupNo').attr('maxlength', 2);
-                } else {
+                if (app.billingRegionCode === 'can_ON' || app.country_alpha_3_code === 'usa') {
                     $('label[for=txtPriPolicyNo]').append("<span class='Required' style='color: red;padding-left: 5px;'>*</span>");
+                }
+
+                if (app.billingRegionCode === 'can_ON') {
+                    $('#txtPriGroupNo').attr('maxlength', 2);
                 }
 
                 //EXA-18273 - Move diagnostics codes section under claim for alberta billing
@@ -711,7 +713,7 @@ define(['jquery',
                             $(".allowedFee, .billFee").blur();
                             $(".diagCodes").blur();
 
-                            if (app.country_alpha_3_code !== 'can' || app.province_alpha_2_code === 'AB') {
+                            if (app.billingRegionCode !== 'can_ON') {
                                 /*Bind ICD List if not canadian billing*/
                                 claimDetails.claim_icd_data = claimDetails.claim_icd_data || [];
                                 self.claimICDLists = [];
@@ -949,12 +951,15 @@ define(['jquery',
                 self.blurPayToUli(claim_data.can_ahs_pay_to_uli);
 
                 $('#chkClaimedAmountIndicator').prop('checked', claim_data.can_ahs_claimed_amount_indicator);
-                $('#chkConfidential').prop('checked', claim_data.can_ahs_confidential);
+                $('#chkConfidential').prop('checked', claim_data.can_confidential);
+                $('#chkwcbRejected').prop('checked', claim_data.can_wcb_rejected);
                 $('#ddlNewbornCode').val(claim_data.can_ahs_newborn_code).change();
                 $('#txtReasonAdditionalCompensation').val(claim_data.can_ahs_emsaf_reason);
                 $('#chkSupportingDocumentationSeparate').prop('checked', claim_data.can_ahs_paper_supporting_docs);
                 $('#txtSupportingText').val(claim_data.can_ahs_supporting_text);
                 $('#spChartNumber').text(claim_data.claim_id);
+                $('#microFilmNumber').val(claim_data.can_mhs_microfilm_no || '');
+                $('#receiptDate').val(claim_data.can_mhs_receipt_date ? moment(claim_data.can_mhs_receipt_date).format('L') : '');
 
                 var pay_to_details = claim_data.can_ahs_pay_to_details || {};
                 $('#ddlPayToDetailsPersonType').val(pay_to_details.person_type).change();
@@ -1156,6 +1161,36 @@ define(['jquery',
                         $('.extra-span').show();
                     }
 
+                } else if (app.billingRegionCode === 'can_MB') {
+                    var queryClaimStatusId, p77ClaimStatusId;
+
+                    _.each(app.claim_status, function (obj) {
+                        switch (obj.code) {
+                            case 'QR':
+                                queryClaimStatusId = obj.id;
+                                break;
+                            case 'P77':
+                                p77ClaimStatusId = obj.id;
+                                break;
+                        }
+                    });
+
+                    var queryStatusEle = $('#ddlClaimStatus option[value="' + queryClaimStatusId + '"]');
+                    var p77StatusEle = $('#ddlClaimStatus option[value="' + p77ClaimStatusId + '"]');
+
+                    if (!['MPP', 'OP'].includes(data.claim_status_code)) {
+                        queryStatusEle.hide();
+                    } else {
+                        queryStatusEle.show();
+                    }
+
+                    if (data.claim_status_code === 'P77') {
+                        $('#btnNewPayment, .paymentApply').prop('disabled', true);
+                        $('#btnSaveClaim').hide();
+                    } else {
+                        p77StatusEle.hide();
+                        $('#btnSaveClaimNotes').hide();
+                    }
                 }
             },
 
@@ -1319,6 +1354,7 @@ define(['jquery',
                 self.cur_patient_id = primaryStudyDetails.patient_id ? parseInt(primaryStudyDetails.patient_id) : null;
                 self.cur_patient_name = primaryStudyDetails.patient_name;
                 self.cur_patient_acc_no = primaryStudyDetails.account_no;
+                self.cur_study_date =  primaryStudyDetails.study_date ? moment.utc(primaryStudyDetails.study_date).format('L') : '';
                 self.cur_patient_dob = primaryStudyDetails.patient_dob ? moment.utc(primaryStudyDetails.patient_dob).format('L') : null;
                 self.pri_accession_no = primaryStudyDetails.accession_no || null;
                 self.cur_study_id = primaryStudyDetails.study_id || null;
@@ -1338,6 +1374,7 @@ define(['jquery',
                     if (self.isInitialLoaded) {
                         $('#tab_menu').find('li').removeClass('active');
                         $('#newClaimNavCharge').closest('li').addClass('active');
+                        $('#patientStudyDate').text(self.cur_study_date || self.studyDate);
                         self.bindTabMenuEvents();
                     } else {
                         self.render('studies');
@@ -1374,6 +1411,18 @@ define(['jquery',
                 $('.search-field').off().keyup(function (e) {
                     self.applySearch(e);
                 });
+
+                if (app.billingRegionCode === 'can_MB') {
+                    var p77ClaimStatus = _.find(app.claim_status, function(item) {
+                        return item.code === 'P77'
+                    });
+
+                    if (p77ClaimStatus) {
+                        $('#ddlClaimStatus option[value="' + p77ClaimStatus.id + '"]').hide();
+                    }
+
+                    $('#btnSaveClaimNotes').hide();
+                }
             },
 
             bindclaimFormEvents: function (isFrom) {
@@ -1389,6 +1438,10 @@ define(['jquery',
 
                 $("#btnSaveClaim").off().click(function (e) {
                     self.saveClaimDetails(e);
+                });
+
+                $('#btnSaveClaimNotes').off().click(function (e) {
+                    self.updateNotes(e);
                 });
 
                 $("#ddlExistTerIns, #ddlExistSecIns, #ddlExistPriIns").off().change(function (e) {
@@ -1599,6 +1652,31 @@ define(['jquery',
 
             },
 
+            updateNotes: function (e) {
+                $('#btnSaveClaimNotes').prop('disabled', true);
+                $('.claimProcess').prop('disabled', true);
+                $.ajax({
+                    url: '/exa_modules/billing/claims/claim/notes/' + this.claim_Id,
+                    type: 'PUT',
+                    data: {
+                        claimNotes: $.trim($('#txtClaimNotes').val()) || '',
+                        billingNotes: $.trim($('#txtClaimResponsibleNotes').val()) || ''
+                    },
+                    success: function (response) {
+                        if (response && response.length) {
+                            commonjs.showStatus("messages.status.successfullyCompleted");
+                            $('#btnSaveClaimNotes').prop('disabled', false);
+                            $('.claimProcess').prop('disabled', false);
+                        }
+                    },
+                    error: function (err, response) {
+                        $('#btnSaveClaimNotes').prop('disabled', false);
+                        $('.claimProcess').prop('disabled', false);
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
+            },
+
             addChargeLine: function (e) {
                 e.stopImmediatePropagation();
                 var self = this;
@@ -1667,6 +1745,7 @@ define(['jquery',
                 var chargeTableRow = self.chargerowtemplate({
                     country_alpha_3_code: app.country_alpha_3_code,
                     province_alpha_2_code: app.province_alpha_2_code,
+                    billing_region_code: app.billingRegionCode,
                     row: data
                 });
                 $('#tBodyCharge').append(chargeTableRow);
@@ -3312,13 +3391,14 @@ define(['jquery',
                     can_ahs_pay_to_details: null,
                     can_ahs_business_arrangement: self.can_ahs_business_arrangement || null,
                     can_ahs_locum_arrangement: self.can_ahs_locum_arrangement || null,
-                    can_ahs_claimed_amount_indicator: $('#chkClaimedAmountIndicator').prop('checked'),
-                    can_ahs_confidential: $('#chkConfidential').prop('checked'),
-                    can_ahs_good_faith: $('#chkGoodFaith').prop('checked'),
-                    can_ahs_paper_supporting_docs: $('#chkSupportingDocumentationSeparate').prop('checked'),
+                    can_ahs_claimed_amount_indicator: $('#chkClaimedAmountIndicator').prop('checked') || false,
+                    can_confidential: $('#chkConfidential').prop('checked') || false,
+                    can_ahs_good_faith: $('#chkGoodFaith').prop('checked') || false,
+                    can_ahs_paper_supporting_docs: $('#chkSupportingDocumentationSeparate').prop('checked') || false,
                     can_ahs_newborn_code: $.trim($('#ddlNewbornCode option:selected').val()) || null,
                     can_ahs_emsaf_reason: $.trim($('#txtReasonAdditionalCompensation').val()) || null,
-                    can_ahs_supporting_text: $.trim($.trim($('#txtSupportingText').val()).replace(/\n/g, ' '))
+                    can_ahs_supporting_text: $.trim($.trim($('#txtSupportingText').val()).replace(/\n/g, ' ')),
+                    can_wcb_rejected: $("#chkwcbRejected").prop('checked') || false
                 };
 
                 // Pay-to Details are only saved when Pay-to Code is Other
@@ -4800,6 +4880,7 @@ define(['jquery',
                 $('#ddlClaimStatus option:contains("Select")').prop("selected", true);
                 $('#txtClaimResponsibleNotes').val('');
                 $('#ddlClaimResponsible').empty();
+                $('#txtClaimResponsibleNotes').prop('disabled', !(app.billingRegionCode === 'can_MB' || app.country_alpha_3_code === 'usa'));
             },
 
             claimWOStudy:function(patient_details){

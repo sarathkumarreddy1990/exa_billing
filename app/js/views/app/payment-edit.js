@@ -1761,7 +1761,8 @@ define(['jquery',
                     cas_reason_codes: self.cas_reason_codes || rowData.cas_reason_codes,
                     patient_paid: patient_paid,
                     others_paid: others_paid,
-                    claim_statuses: self.claimStatuses.toJSON()
+                    claim_statuses: self.claimStatuses.toJSON(),
+                    billingRegionCode: app.billingRegionCode
                 });
                 var _showDialogObj = {
                     header: casDialogHeader,
@@ -2074,6 +2075,10 @@ define(['jquery',
                                 self.saveAllPayments(e, claimId, paymentId, paymentStatus, chargeId, paymentApplicationId);
                             }
                         }, 250));
+
+                        $('#applyPaymentContent').find('#btnSaveAppliedPendingPaymentsNotes').unbind().on('click', function (e) {
+                            self.updateNotes(e, claimId);
+                        });
 
                         $('#btnClearAppliedPendingPayments').unbind().on('click', function (e) {
                             self.clearPayments(e, paymentId, claimId);
@@ -2551,6 +2556,32 @@ define(['jquery',
                         }
                     });
                 }
+            },
+
+            updateNotes: function (e, claimId) {
+                var targetObj = $(e.target);
+
+                commonjs.showLoading();
+                targetObj.attr('disabled', true);
+                $.ajax({
+                    url: '/exa_modules/billing/payments/notes/' + claimId,
+                    type: 'PUT',
+                    data: {
+                        billingNotes: $('#txtResponsibleNotes').val() || ''
+                    },
+                    success: function (response) {
+                        if (response && response.length) {
+                            commonjs.showStatus("messages.status.successfullyCompleted");
+                            commonjs.hideLoading();
+                            targetObj.removeAttr('disabled');
+                        }
+                    },
+                    error: function (err) {
+                        commonjs.handleXhrError(err);
+                        commonjs.hideLoading();
+                        targetObj.removeAttr('disabled');
+                    }
+                });
             },
 
             reloadPaymentFields: function (claimId, paymentId, paymentApplicationId, isInitialBind) {
@@ -3464,9 +3495,44 @@ define(['jquery',
 
             // enable/disable elements Based on billing province.
             disableElementsForProvince: function(data) {
-                if(app.billingRegionCode === 'can_AB') {
-                    $('#ddlClaimStatus').prop('disabled', data && data[0].primary_ins_provider_code.toLowerCase() === 'ahs');
-                }                
+                var details = data && data[0] || {};
+
+                if (app.billingRegionCode === 'can_AB') {
+                    $('#ddlClaimStatus').prop('disabled', details && details.primary_ins_provider_code.toLowerCase() === 'ahs');
+                } else if (app.billingRegionCode === 'can_MB') {
+                    var queryClaimStatusId, p77ClaimStatusId;
+
+                    _.each(app.claim_status, function (obj) {
+                        switch (obj.code) {
+                            case 'QR':
+                                queryClaimStatusId = obj.id;
+                                break;
+                            case 'P77':
+                                p77ClaimStatusId = obj.id;
+                                break;
+                        }
+                    });
+
+                    var queryStatusEle = $('#ddlClaimStatus option[value="' + queryClaimStatusId + '"]');
+                    var p77StatusEle = $('#ddlClaimStatus option[value="' + p77ClaimStatusId + '"]');
+
+                    var validStatus = app.claim_status.find(function(obj) {
+                        return obj.id === details.claim_status_id;
+                    }); //returns an id of partially paid or over paid.
+
+                    if (['MPP', 'OP', 'R'].includes(validStatus.code)) {
+                        queryStatusEle.show();
+                    } else {
+                        queryStatusEle.hide();
+                    }
+
+                    if (validStatus.code !== 'P77') {
+                        p77StatusEle.hide();
+                        $("#btnSaveAppliedPendingPaymentsNotes").hide();
+                    } else {
+                        $("#btnSaveAppliedPendingPayments").hide();
+                    }
+                }
             }
 
         });

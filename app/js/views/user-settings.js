@@ -33,6 +33,7 @@ define([
                 this.$el.html(template({
                     country_alpha_3_code: app.country_alpha_3_code,
                     province_alpha_2_code: app.province_alpha_2_code,
+                    billing_region_code: app.billingRegionCode
                 }));
                 if (window.location && window.location.hash.split('/')[1] == 'studies') {
                     self.gridFilterName = 'studies';
@@ -208,6 +209,9 @@ define([
                             field.field_code == "patient_ssn" || field.field_code == "place_of_service" )) }) || [];
                         } else {
                             self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && field.field_code == "payment_id") }) || [];
+                        }
+                        if (app.billingRegionCode !== "can_MB") {
+                            self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && field.field_code == "can_mhs_microfilm_no") }) || [];
                         }
                         var result_data = data && data.length && data[1] && data[1].rows && data[1].rows.length ? data[1].rows[0] : {};
                         self.checkedBillingDisplayFields = result_data.field_order || [] ;

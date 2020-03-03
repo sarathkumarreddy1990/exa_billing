@@ -589,8 +589,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "width": 150,
                         "stype": "select",
                         "searchoptions": {
-                            "value": app.country_alpha_3_code !== 'can' ? billingMethodValue : billingMethodValueCan,
-                            "tempvalue": app.country_alpha_3_code !== 'can' ? billingMethodValue : billingMethodValueCan
+                            "value": app.billingRegionCode !== 'can_ON' ? billingMethodValue : billingMethodValueCan,
+                            "tempvalue": app.billingRegionCode !== 'can_ON' ? billingMethodValue : billingMethodValueCan
                         }
                     },
                 },
@@ -802,6 +802,21 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "searchFlag": "=",
                         "sortable": true,
                         "defaultValue": ""
+                    }
+                },
+                "Microfilm Number": {
+                    "id": 71,
+                    "field_code": "can_mhs_microfilm_no",
+                    "field_name": "Microfilm Number",
+                    "i18n_name": "setup.userSettings.microfilmNumber",
+                    "field_info": {
+                        "custom_name": "Microfilm Number",
+                        "name": "can_mhs_microfilm_no",
+                        "width": 250,
+                        "searchFlag": "%",
+                        "sortable": true,
+                        "defaultValue": "",
+                        "hidden": !(app.billingRegionCode === 'can_MB')
                     }
                 },
                 "Claim Action": {

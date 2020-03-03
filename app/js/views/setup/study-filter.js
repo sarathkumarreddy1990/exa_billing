@@ -535,6 +535,10 @@ define([
                 });
             },
 
+            bindList: function (value, scope) {
+                return '<li id="' + $(scope).attr('data-id') + '"><span>' + value.text() + '</span><a class="remove" data-id="' + $(scope).attr('data-id') + '"><span class="icon-ic-close"></span></a></li>';
+            },
+
             showForm: function (id) {
                 var self = this;
                 userID = app.userID;
@@ -715,6 +719,80 @@ define([
                             $(this).removeAttr('data-id');
                         }
                     });
+
+                    var referringProviderSelector = $('#ulListClaimReferringProvider');
+                    var readingProviderSelector = $('#ulListClaimReadingProvider');
+
+                    /**Remove RF list when clicking close icon */
+                    referringProviderSelector.delegate('a.remove', 'click', function () {
+                        var data_id = $(this).attr('data-id');
+                        var selectClaimReferringProvider = $('#ddlClaimReferringProvider');
+
+                        $('#listClaimReferringProvider option[value="' + data_id + '"]').prop('selected', false);
+                        selectClaimReferringProvider.find('option[value="' + data_id + '"]').remove();
+                        selectClaimReferringProvider.val('');
+                        $(this).closest('li').remove();
+                    });
+
+                    /**Remove RF list when clicking close icon */
+                    readingProviderSelector.delegate('a.remove', 'click', function () {
+                        var data_id = $(this).attr('data-id');
+                        var selectClaimReadingProvider = $('#ddlClaimReadingProvider');
+
+                        $('#listClaimReadingProvider option[value="' + data_id + '"]').prop('selected', false);
+                        selectClaimReadingProvider.find('option[value="' + data_id + '"]').remove();
+                        selectClaimReadingProvider.val('');
+                        $(this).closest('li').remove();
+                    });
+
+                    /* Bind add button for referring provider - SMH */
+                    $('#btnAddClaimReferringProvider').off('click').on('click', function (e) {
+                        var select2_claimReferringProvider = $('#select2-ddlClaimReferringProvider-container');
+
+                        if (select2_claimReferringProvider.text() === '') {
+                            return false;
+                        };
+
+                        $('.claimDate').show();
+
+                        if ($(this).attr('data-id')) {
+                            if (Array.from($('#ulListClaimReferringProvider li a')).some(function (prevResult) {
+                                return $(prevResult).attr('data-id') === $('#btnAddClaimReferringProvider').attr('data-id');
+                            }, false)) {
+                                commonjs.showError("billing.payments.alreadySelectedOF");
+                                return false;
+                            }
+
+                            referringProviderSelector.append(self.bindList(select2_claimReferringProvider, this));
+                            select2_claimReferringProvider.text('');
+                            $(this).removeAttr('data-id');
+                        }
+                    });
+
+                    /* Bind add button for referring provider - SMH */
+                    $('#btnAddClaimReadingProvider').off('click').on('click', function (e) {
+                        var select2_claimReadingProvider = $('#select2-ddlClaimReadingProvider-container');
+                        
+                        if (select2_claimReadingProvider.text() === '') {
+                            return false;
+                        };
+
+                        $('.claimDate').show();
+
+                        if ($(this).attr('data-id')) {
+                            if (Array.from($('#ulListClaimReadingProvider li a')).some(function (prevResult) {
+                                return $(prevResult).attr('data-id') === $('#btnAddClaimReadingProvider').attr('data-id');
+                            }, false)) {
+                                commonjs.showError("billing.payments.alreadySelectedOF");
+                                return false;
+                            }
+
+                            readingProviderSelector.append(self.bindList(select2_claimReadingProvider, this));
+                            select2_claimReadingProvider.text('');
+                            $(this).removeAttr('data-id');
+                        }
+                    });
+
                     /* Bind add button for Claim Insurance Group - SMH*/
                     var $btnClaimInsp = $('#btnAddClaimInsuranceProvider');
                     $btnClaimInsp.off('click').on('click', function (e) {
@@ -1038,6 +1116,30 @@ define([
                                         for (var j = 0; j < claimOrderingFacilityJson.list.length; j++) {
                                             if ($('#ulListClaimOrdFacility li a[data-id="' + claimOrderingFacilityJson.list[j].id + '"]').length === 0) {
                                                 $('#ulListClaimOrdFacility').append('<li id="' + claimOrderingFacilityJson.list[j].id + '"><span>' + claimOrderingFacilityJson.list[j].text + '</span><a class="remove" data-id="' + claimOrderingFacilityJson.list[j].id + '"><span class="icon-ic-close"></span></a></li>')
+                                            }
+                                        }
+                                    }
+
+                                    referringProviderSelector.empty();
+                                    var claimReferringProviderJson = response.filter_info.ClaimInformation.referring_provider || [];
+
+                                    if (claimReferringProviderJson && claimReferringProviderJson.condition) {
+                                        $("input:radio[name=claimReferringProvider][value=" + claimReferringProviderJson.condition + "]").prop('checked', true);
+                                        for (var j = 0; j < claimReferringProviderJson.list.length; j++) {
+                                            if ($('#ulListClaimReferringProvider li a[data-id="' + claimReferringProviderJson.list[j].id + '"]').length === 0) {
+                                                referringProviderSelector.append('<li id="' + claimReferringProviderJson.list[j].id + '"><span>' + claimReferringProviderJson.list[j].text + '</span><a class="remove" data-id="' + claimReferringProviderJson.list[j].id + '"><span class="icon-ic-close"></span></a></li>')
+                                            }
+                                        }
+                                    }
+
+                                    readingProviderSelector.empty();
+                                    var claimReadingProviderJson = response.filter_info.ClaimInformation.reading_provider || [];
+
+                                    if (claimReadingProviderJson && claimReadingProviderJson.condition) {
+                                        $("input:radio[name=claimReadingProvider][value=" + claimReadingProviderJson.condition + "]").prop('checked', true);
+                                        for (var j = 0; j < claimReadingProviderJson.list.length; j++) {
+                                            if ($('#ulListClaimReadingProvider li a[data-id="' + claimReadingProviderJson.list[j].id + '"]').length === 0) {
+                                                readingProviderSelector.append('<li id="' + claimReadingProviderJson.list[j].id + '"><span>' + claimReadingProviderJson.list[j].text + '</span><a class="remove" data-id="' + claimReadingProviderJson.list[j].id + '"><span class="icon-ic-close"></span></a></li>')
                                             }
                                         }
                                     }
@@ -1375,7 +1477,31 @@ define([
                     };
                     arrClaimOrdFacility.push(jsonFlag);
                 });
+                var arrClaimReferringProvider = [];
+
+                $('#ulListClaimReferringProvider li').each(function (i, selected) {
+                    var jsonFlag = {
+                        id: selected.id,
+                        text: $(selected).text()
+                    };
+                    arrClaimReferringProvider.push(jsonFlag);
+                });
+                var arrClaimReadingProvider = [];
+                
+                $('#ulListClaimReadingProvider li').each(function (i, selected) {
+                    var jsonFlag = {
+                        id: selected.id,
+                        text: $(selected).text()
+                    };
+                    arrClaimReadingProvider.push(jsonFlag);
+                });
                 if (arrClaimOrdFacility.length > 0 && !self.validateRadioButton('claimOrdFacility', 'ordFacility')) {
+                    return;
+                }
+                if (arrClaimReferringProvider.length > 0 && !self.validateRadioButton('claimReferringProvider', 'referringProvider')) {
+                    return;
+                }
+                if (arrClaimReadingProvider.length > 0 && !self.validateRadioButton('claimReadingProvider', 'readingProvider')) {
                     return;
                 }
                 if ($.trim($('#txtAccession').val()) && !self.validateRadioButton('Accession', 'Accession')) {
@@ -1577,6 +1703,14 @@ define([
                             },
                             insurance_provider: {
                                 insProvClaim: insProvClaim
+                            },
+                            referring_provider: {
+                                condition: $('input[name=claimReferringProvider]:checked').val(),
+                                list: arrClaimReferringProvider
+                            },
+                            reading_provider: {
+                                condition: $('input[name=claimReadingProvider]:checked').val(),
+                                list: arrClaimReadingProvider
                             },
                             insurance_group: {
                                 insProvClaimGroup: insProvClaimGroup
@@ -1929,6 +2063,8 @@ define([
                     setupList('listClaimFacility', facilities, 'facility_name');
                 }
                 this.setOrderingFacilityAutoComplete();
+                this.setProviderAutoComplete("RF");
+                this.setProviderAutoComplete("PR");
             },
 
             setOrderingFacilityAutoComplete: function () {
@@ -1982,6 +2118,77 @@ define([
                 }
             },
 
+            /** Method for providers autocomplete */
+            setProviderAutoComplete: function(provider_type) {
+                var self = this, _id;
+
+                if (provider_type == 'RF') {
+                    _id = 'ddlClaimReferringProvider';
+                } else if (provider_type == 'PR') {
+                    _id = 'ddlClaimReadingProvider';
+                }
+
+                if (self.opener != "studies") {
+                    $("#" + _id).select2({
+                        ajax: {
+                            url: "/exa_modules/billing/autoCompleteRouter/providers",
+                            dataType: 'json',
+                            delay: 250,
+                            data: function (params) {
+                                return {
+                                    page: params.page || 1,
+                                    q: params.term || '',
+                                    pageSize: 10,
+                                    provider_type: provider_type,
+                                    sortField: "p.last_name",
+                                    sortOrder: "ASC",
+                                    company_id: app.companyID
+                                };
+                            },
+                            processResults: function (data, params) {
+                                return commonjs.getTotalRecords(data, params);
+                            },
+                            cache: true
+                        },
+                        placeholder: 'Referring Provider',
+                        escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
+                        minimumInputLength: 0,
+                        templateResult: formatRepo,
+                        templateSelection: formatRepoSelection
+                    });
+                    function formatRepo(repo) {
+                        if (repo.loading) {
+                            return repo.text;
+                        }
+
+                        var markup = "<table class='ref-result' style='width: 100%'><tr>";
+                        markup += "<td data-id='" + repo.id + "' title='" + repo.full_name + "class='movie-info'><div class='movie-title'><b>" + repo.full_name + "</b></div>";
+                        markup += "</td></tr></table>";
+                        return markup;
+                    }
+                    function formatRepoSelection(res) {
+                        if (provider_type == "RF") {
+                            self.refProviderId = res.id;
+                            self.refProviderName = res.full_name;
+                            if (res && res.id) {
+                                if (self.opener != "studies") {
+                                    $('#btnAddClaimReferringProvider').attr("data-id", res.id);
+                                }
+                            }
+                        } else if (provider_type == "PR") {
+                            self.readProviderId = res.id;
+                            self.readProviderName = res.full_name;
+                            if (res && res.id) {
+                                if (self.opener != "studies") {
+                                    $('#btnAddClaimReadingProvider').attr("data-id", res.id);
+                                }
+                            }
+                        }
+                        return res.full_name;
+                    }
+                }
+            },
+
             studyFilterSideMenuResize: function () {
                 var ul = $('#ulStudyFilterSideMenu');
                 var h = ul.outerHeight(true) - ul.height();
@@ -2018,6 +2225,8 @@ define([
                 $('#listOrdFacility option').remove();
 
                 $('#ulListClaimOrdFacility').empty();
+                $('#ulListClaimReferringProvider').empty();
+                $('#ulListClaimReadingProvider').empty();
 
                 $('#listClaimFacility option').remove();
                 $('#listFacility option').remove();

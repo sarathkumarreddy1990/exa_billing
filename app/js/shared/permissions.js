@@ -69,6 +69,7 @@ var permissions = {
             'PRRA': 'aPaymentsRealizationRateAnalysis',
             'ECST': 'li_ul_change_claim_status',
             'RCLM': 'anc_claim_reassess',
+            'QCLM': 'anc_query_claim',
             'IAST': 'btnPrint'
         };
 

@@ -101,7 +101,7 @@
                 <div class="row">
                     <div class="col-md-3"><label i18n="billing.fileInsurance.billingComments"></label></div>
                     <div class="col-md-9 form-inline" style="padding-top:5px">
-                        <textarea id="txtCIBillingComment" class="form-control" style="height:50px;width:90%" readonly></textarea>
+                        <textarea id="txtCIBillingComment" class="form-control w-90 h-50" readonly></textarea>
                         <span class="input-group-addon add-on" style="padding-right: 0px; border: 1px solid #ced7db; width: 30px; text-align: center; line-height: 30px; height:50px; padding-top: 8px;">
                             <i class='icon-ic-raw-transctipt' title='Edit Note' id="btnCIAddBillingComments"></i>
                         </span>
@@ -115,11 +115,14 @@
                             <label style="font-weight: bold" i18n="billing.fileInsurance.icd"></label>
                         <% } %>
                     </div>
-                    <div class="col-md-4">
-                        <input type="button" id="btnPatientClaims" class="btn btn-primary" style="float:right; line-height: 1;" i18n="setup.rightClickMenu.patientClaims">
+                    <div class="col-md-3">
+                        <input type="button" id="btnPatientClaims" class="btn btn-primary ci-header-btn" i18n="setup.rightClickMenu.patientClaims">
                     </div>
-                    <div class="col-md-2">
-                        <input type="button" id="btnCISaveIsInternal" class=" btn btn-primary" style="float:right; line-height: 1;" value="Save" i18n="shared.buttons.save">
+                    <div class="col-md-3">
+                        <input type="button" id="btnCISaveIsInternal" class=" btn btn-primary ci-header-btn" value="Save" i18n="shared.buttons.save">
+                        <% if (billingRegionCode === 'can_MB') { %>
+                        <input type="button" id="btnCISaveNotes" class=" btn btn-primary ci-header-btn" value="SaveNotes" i18n="shared.buttons.saveNotes">
+                        <% } %>
                     </div>
                     <div class="col-md-3">
                         <button type="button" class="btn btn-primary" id="btnCIPrintInvoice" style="line-height: 1;" data-rformat="pdf"><span i18n="shared.buttons.printInvoice"></span><i class="fa fa-external-link"></i></button>

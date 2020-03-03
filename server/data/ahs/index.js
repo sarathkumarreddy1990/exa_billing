@@ -117,10 +117,10 @@ const ahsData = {
                 bc.id AS claim_id,
                 bc.billing_method,
                 bc.can_ahs_pay_to_code                       AS pay_to_code,
-                pc.can_ahs_submitter_prefix                  AS submitter_prefix,
+                pc.can_submitter_prefix                  AS submitter_prefix,
                 bc.can_ahs_business_arrangement              AS business_arrangement,
                 bc.can_ahs_supporting_text                   AS supporting_text_1,
-                f.can_ahs_facility_number                    AS facility_number,
+                f.can_facility_number                        AS facility_number,
                 icd.codes[1]                                 AS diagnosis_code_1,
                 pip.insurance_name                           AS "payerName",
                 get_full_name(pp.last_name,pp.first_name)    AS "patientName",
@@ -363,7 +363,7 @@ const ahsData = {
                     SELECT
                         bc.id                                        AS claim_id,
                         inserted_efc.can_ahs_action_code             AS action_code,
-                        comp.can_ahs_submitter_prefix                AS submitter_prefix,
+                        comp.can_submitter_prefix                AS submitter_prefix,
                         inserted_efc.batch_number                    AS batch_number,
                         TO_CHAR(bc.claim_dt, 'YY')                   AS year,
                         TO_CHAR(bc.claim_dt, 'MM')                   AS source_code,
@@ -451,10 +451,10 @@ const ahsData = {
                         fee_mod.mod1 AS fee_modifier_1,
                         fee_mod.mod2 AS fee_modifier_2,
                         fee_mod.mod3 AS fee_modifier_3,
-                        f.can_ahs_facility_number                    AS facility_number,
+                        f.can_facility_number                        AS facility_number,
                         fc.code                                      AS functional_centre,
                         CASE
-                            WHEN f.can_ahs_facility_number :: INT > 0
+                            WHEN f.can_facility_number :: INT > 0
                             THEN ''
                             ELSE COALESCE(o.order_info -> 'patientLocation', 'OTHR')
                         END                                          AS location_code,
@@ -537,7 +537,7 @@ const ahsData = {
                         END                                          AS claimed_amount_indicator,
 
                         CASE
-                            WHEN bc.can_ahs_confidential
+                            WHEN bc.can_confidential
                             THEN 'Y'
                             ELSE ''
                         END                                          AS confidential_indicator,
@@ -774,7 +774,7 @@ const ahsData = {
         SELECT
             fs.id AS file_store_id,
             fs.root_directory,
-            c.can_ahs_submitter_prefix AS submitter_prefix
+            c.can_submitter_prefix AS submitter_prefix
         FROM file_stores fs
         INNER JOIN companies c ON c.file_store_id = fs.id
         WHERE c.id = ${company_id}
