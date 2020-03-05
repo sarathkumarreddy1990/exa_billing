@@ -11,8 +11,8 @@ const zip = require('gulp-zip');
 const bump = require('gulp-bump');
 const git = require('gulp-git');
 const gutil = require('gulp-util');
-const ftp = require('vinyl-ftp');
-const moment = require('moment');
+// const ftp = require('vinyl-ftp');
+const moment = require('moment-timezone');
 const fs = require('fs');
 const path = require('path');
 const childProcess = require('child_process');
@@ -20,8 +20,16 @@ const semver = require('semver');
 
 let currentBranch = 'GitInitTaskDidNotRun';
 let currentCommit = 'GitInitTaskDidNotRun';
-let timestamp = moment().format("YYYYMMDDhhmm");
 let requirejsConfig = require('./app/js/main').rjsConfig;
+
+let timezone = 'UTC';
+if (process.env.TZ) {
+    timezone = process.env.TZ;
+}
+
+// grunt.template equivalent is yyyymmddHHMM
+let timestamp = moment().tz(timezone).format("YYYYMMDDHHmm");
+gutil.log(timestamp);
 
 const getPackageJson = () => {
     const package = JSON.parse(fs.readFileSync('./package.json'));
@@ -208,19 +216,19 @@ gulp.task('zip', ['git-init', 'replace'], () => {
         .pipe(gulp.dest('./dist'));
 });
 
-gulp.task('ftp-upload', ['git-init'], () => {
-    const conn = ftp.create({
-        host: '12.70.252.178',
-        user: 'development',
-        password: '1q2w3e4r5t',
-        log: gutil.log
-    });
-    const destinationDirectory= (currentBranch === 'release') ? '/EXA' : '/EXATesting';
+// gulp.task('ftp-upload', ['git-init'], () => {
+//     const conn = ftp.create({
+//         host: '12.70.252.178',
+//         user: 'development',
+//         password: '1q2w3e4r5t',
+//         log: gutil.log
+//     });
+//     const destinationDirectory= (currentBranch === 'release') ? '/EXA' : '/EXATesting';
 
-    return gulp.src(['./dist/**'], { base: './dist', buffer: false })
-    //.pipe(conn.newer('/EXA/billing'))
-        .pipe(conn.dest('/EXA'));
-});
+//     return gulp.src(['./dist/**'], { base: './dist', buffer: false })
+//     //.pipe(conn.newer('/EXA/billing'))
+//         .pipe(conn.dest('/EXA'));
+// });
 
 gulp.task('clean-all', ['zip'], () => {
     return gulp.src('./build')
@@ -285,7 +293,12 @@ gulp.task('build', [
 ]);
 
 gulp.task('deploy', (done) => {
-    runSequence('git-pull', 'build', 'git-commit', 'git-push', 'ftp-upload', done);
+    runSequence('git-pull',
+		'build',
+		'git-commit',
+		'git-push',
+		// 'ftp-upload',
+		done);
 });
 
 gulp.task('build-from-repo', (done) => {
