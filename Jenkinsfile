@@ -144,9 +144,9 @@ Changelog for {{ownerName}} {{repoName}}.
     post {
 	always {
 	    archiveArtifacts allowEmptyArchive: true, artifacts: 'dist/*', fingerprint: true
-	    withFolderProperties{
-	    	ftpPublisher alwaysPublishFromMaster: false, continueOnError: false, failOnError: false, masterNodeName: 'vm-ubuntu-jenkins', paramPublish: [parameterName:''], publishers: [[configName: 'exa', transfers: [[asciiMode: false, cleanRemote: false, excludes: '', flatten: true, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: env.FTP_FOLDER, remoteDirectorySDF: false, removePrefix: '', sourceFiles: 'dist/*.zip']], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false]]
-	    }
+	    // withFolderProperties{
+	    // 	ftpPublisher alwaysPublishFromMaster: false, continueOnError: false, failOnError: false, masterNodeName: 'vm-ubuntu-jenkins', paramPublish: [parameterName:''], publishers: [[configName: 'exa', transfers: [[asciiMode: false, cleanRemote: false, excludes: '', flatten: true, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: env.FTP_FOLDER, remoteDirectorySDF: false, removePrefix: '', sourceFiles: 'dist/*.zip']], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false]]
+	    // }
 	}
     }
 }
