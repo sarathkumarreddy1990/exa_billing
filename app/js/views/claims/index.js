@@ -196,6 +196,8 @@ define(['jquery',
                     $('#txtPriGroupNo').attr('maxlength', 2);
                 }
 
+                $('#txtClaimResponsibleNotes').prop('disabled', !(app.billingRegionCode === 'can_MB' || app.country_alpha_3_code === 'usa'));
+                
                 //EXA-18273 - Move diagnostics codes section under claim for alberta billing
                 if(app.billingRegionCode === 'can_AB') {
                     $('#diagnosticsCodes').detach().appendTo('#claimSection').addClass('col-lg-12');
@@ -4880,7 +4882,6 @@ define(['jquery',
                 $('#ddlClaimStatus option:contains("Select")').prop("selected", true);
                 $('#txtClaimResponsibleNotes').val('');
                 $('#ddlClaimResponsible').empty();
-                $('#txtClaimResponsibleNotes').prop('disabled', !(app.billingRegionCode === 'can_MB' || app.country_alpha_3_code === 'usa'));
             },
 
             claimWOStudy:function(patient_details){
