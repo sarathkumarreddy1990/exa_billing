@@ -28,7 +28,7 @@ module.exports = {
             customArgs
         } = params;
 
-        whereQuery.push(` ef.file_type != 'EOB' `);
+        whereQuery.push(` NOT (ef.file_type = ANY (ARRAY['EOB', '837'])) `);  // removing claim submission records shown in EOB screen
 
         if (id) {
             whereQuery.push(` ef.id = ${id} `);
