@@ -1919,11 +1919,12 @@ define(['jquery',
                             count = count ? count : self.icdCodeListLength;
                             var val = $(value).val() ? $(value).val() : 0;
                             var _id = $(value).attr('id');
+                            var maxIterator = app.billingRegionCode == 'can_MB' ? 1 : 4;
                             if (val != '') {
                                 if (val <= count && val != 0) {
                                     $('#' + _id).css('border-color', '')
                                     $('#' + _id).removeClass('invalidCpt')
-                                    if (_pointers.indexOf(val) != -1 && iterator <= 4)
+                                    if (_pointers.indexOf(val) != -1 && iterator <= maxIterator)
                                         $('#' + _id).css('border-color', 'red').addClass('invalidCpt');
                                     else
                                         _pointers.push(val);
@@ -1936,7 +1937,7 @@ define(['jquery',
                                 $('#' + _id).css('border-color', '')
                                 $('#' + _id).removeClass('invalidCpt')
                             }
-                            if (iterator >= 4) {
+                            if (iterator >= maxIterator) {
                                 iterator = 1;
                                 _pointers = [];
                             }
