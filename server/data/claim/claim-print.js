@@ -32,8 +32,8 @@ module.exports = {
                     'patient_address2', pp.patient_info->'c1AddressLine2',
                     'patient_city',  pp.patient_info->'c1City',
                     'patient_state' ,pp.patient_info->'c1State',
-                    'patient_zip',pp.patient_info->'c1Zip',
-                    'patient_phone',pp.patient_info->'c1HomePhone'
+                    'patient_zip',pp.patient_info->'c1Zip', 
+                    'patient_phone',pp.patient_info->'c1HomePhone' 
                     ) as patient_adrress_details,
                     (SELECT claim_balance_total FROM billing.get_claim_totals(bc.id)) as claim_balance,
                     bc.claim_dt,
@@ -87,8 +87,8 @@ module.exports = {
 					modifier3.code as "modifier3",
 					modifier4.code as "modifier4",
                     bch.units,
-                    (bch.units * bch.bill_fee) As bill_fee,
-                    (bch.units * bch.allowed_amount) As allowed_fee
+                    (bch.units * bch.bill_fee) As bill_fee, 
+                    (bch.units * bch.allowed_amount) AS allowed_fee
                 FROM  billing.charges bch
                 INNER JOIN  public.cpt_codes pcc ON pcc.id = bch.cpt_id
                 LEFT join modifiers as modifier1 on modifier1.id=modifier1_id
@@ -115,7 +115,7 @@ module.exports = {
                     ,ch.claim_id
                     ,bp.id payment_id
                     ,bp.accounting_date as payment_dt
-                    ,adj.accounting_entry_type as adjustment_type
+                    ,adj.accounting_entry_type AS adjustment_type
                     ,SUM(CASE WHEN bpa.amount_type = 'payment' THEN
                                     bpa.amount
                               ELSE
@@ -148,15 +148,15 @@ module.exports = {
                     ,ch.claim_id
                     ,adj.accounting_entry_type
             ),
-            icd_details as(
+            icd_details AS(
                 SELECT 
-                    ci.claim_id as claim_no,
+                    ci.claim_id AS claim_no,
                     icd_id,
-                    code as icd_code, 
-                    description as icd_description
+                    code AS icd_code, 
+                    description AS icd_description
                 FROM billing.claim_icds ci 
                 INNER JOIN icd_codes ON icd_codes.id=ci.icd_id  
-                where ci.claim_id = ANY(${params.claimIds})
+                WHERE ci.claim_id = ANY(${params.claimIds})
             )
 			SELECT (SELECT json_agg(row_to_json(claim_details)) AS claim_details FROM (SELECT * FROM claim_details) AS claim_details),
                     (SELECT json_agg(row_to_json(charge_details)) AS charge_details FROM (SELECT * FROM charge_details) AS charge_details),
