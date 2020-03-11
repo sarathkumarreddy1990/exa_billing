@@ -126,7 +126,7 @@ const ahsData = {
                 get_full_name(pp.last_name,pp.first_name)    AS "patientName",
                 claim_notes                                  AS "claimNotes",
                 pp.first_name                                AS "patient_first_name",
-                pc_app.can_ahs_prid                          AS "service_provider_prid",
+                pc_app.can_prid                          AS "service_provider_prid",
                 COALESCE(pp.patient_info -> 'c1State', pp.patient_info -> 'c1Province', '') AS province_code,
                 (SELECT
                     charges_bill_fee_total
@@ -381,7 +381,7 @@ const ahsData = {
                             ELSE ''
                         END                                          AS claim_type,
 
-                        pc_app.can_ahs_prid                             AS service_provider_prid,
+                        pc_app.can_prid                             AS service_provider_prid,
                         sc.code                                         AS skill_code,
 
                         nums.service_recipient_uli,
@@ -473,7 +473,7 @@ const ahsData = {
                         -- Use this to create person data segment CPD1
                         bc.can_ahs_pay_to_details                    AS pay_to_details,
                         bc.can_ahs_locum_arrangement                 AS locum_arrangement,
-                        pc_ref.can_ahs_prid                          AS referral_id,
+                        pc_ref.can_prid                          AS referral_id,
 
                         CASE
                             WHEN LOWER(COALESCE(
@@ -486,7 +486,7 @@ const ahsData = {
                         END                                          AS oop_referral_indicator,
 
                         CASE
-                            WHEN pc_ref.can_ahs_prid IS NULL AND p_ref.id IS NOT NULL
+                            WHEN pc_ref.can_prid IS NULL AND p_ref.id IS NOT NULL
                             THEN JSONB_BUILD_OBJECT(
                                 'person_type', 'RFRC',
                                 'first_name', p_ref.first_name,
@@ -694,7 +694,7 @@ const ahsData = {
 
                     WINDOW ENCOUNTER_WINDOW AS (
                         PARTITION BY
-                            pc_app.can_ahs_prid,
+                            pc_app.can_prid,
                             p.id,
                             s.study_dt :: DATE
                         ORDER BY
