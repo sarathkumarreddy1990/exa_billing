@@ -19,7 +19,7 @@ const processResults = ( row ) => {
     let registration_number = (registration_number_details && registration_number_details.alt_account_no && registration_number_details.alt_account_no.padStart(6, '0')) || '';
     let phin;
 
-    if(phn_details && phn_details.length){
+    if (phn_details) {
         phin = (phn_details.province_alpha_2_code === 'MB') ? phn_details.alt_account_no : '';
     }
 

@@ -108,7 +108,7 @@ const mhsmodules = {
 
             let ediFileId = await mhsController.storeFile({
                 file_store_id,
-                file_path: `${root_directory}/${file_path}`,
+                file_path,
                 file_name,
                 file_md5,
                 file_size,
