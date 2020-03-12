@@ -224,6 +224,7 @@ module.exports = {
         'payment_count': 'PAYM',
         'can_ahs_reassess_claim': 'CLIM',
         'can_ahs_delete_claim': 'CLIM',
-        'invoice-activity-statement': 'IAST'
+        'invoice-activity-statement': 'IAST',
+        'auto_billing': 'AUTO',
     }
 };
