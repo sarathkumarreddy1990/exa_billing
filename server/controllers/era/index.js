@@ -4,6 +4,8 @@ const paymentController = require('../payments/payments');
 const eraParser = require('./era-parser');
 const logger = require('../../../logger');
 const shared = require('../../shared');
+const mhsData = require('../../data/mhs');
+const mhsController = require('../mhs/index');
 
 const mkdirp = require('mkdirp');
 const fs = require('fs');
@@ -527,5 +529,39 @@ module.exports = {
         return paymentResult;
     },
 
+    getEraFileJson: async (params) => {
+        let
+            eraPath,
+            rootDir,
+            message = [];
+        const eraFileDir = await mhsData.getERAFilePathById(params);
+
+        if (eraFileDir && eraFileDir.rows && eraFileDir.rows.length) {
+            rootDir = eraFileDir.rows[0].root_directory || '';
+            eraPath = eraFileDir.rows[0].file_path || '';
+            params.uploaded_file_name = eraFileDir.rows[0].uploaded_file_name || '';
+        }
+
+        eraPath = path.join(rootDir, eraPath);
+
+        try {
+            let dirExists = fs.existsSync(eraPath);
+
+            if (!dirExists) {
+                message.push({
+                    status: 100,
+                    message: 'Directory not found in file store'
+                });
+            }
+
+            eraPath = path.join(eraPath, params.file_id);
+            let eraResponseJson = await mhsController.getFile(eraPath, params);
+            eraResponseJson.errno ? logger.info('Failed to Download the Json OutPut...') : logger.info('Json Downloaded Successfully...');
+            return eraResponseJson;
+        } catch (err) {
+            logger.error('Failed to Download the Json OutPut...', err);
+        }
+    },
+    
     getEOBFileId: data.getEOBFileId
 };
