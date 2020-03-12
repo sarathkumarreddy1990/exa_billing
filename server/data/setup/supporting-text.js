@@ -251,7 +251,7 @@ module.exports = {
 
         const sql = SQL`
             UPDATE
-                billing.supporting_text_templates,
+                billing.supporting_text_templates
             SET
                 template_name = ${templateName},
                 supporting_text = ${supportingText},
