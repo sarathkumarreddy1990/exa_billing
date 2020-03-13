@@ -335,15 +335,16 @@ module.exports = {
         };
 
         /**
-        *  Condition : ERA- Payment=0, adjustment == bill fee
+        *  Condition : ERA- Payment=0, adjustment == bill fee OR Payment=0 && Adjustment=0
         *  DESC : Check adjustment amount is zero, Set claim status & Claim comments Denied
         */
         let lineItemsByGroup = _.groupBy(lineItems, 'claim_index');
         let groupedLineItems = [];
 
         _.map(lineItemsByGroup, items => {
+            const totalAdjustment = _.sumBy(items, 'cas_total_amt');
 
-            if (_.sumBy(items, 'payment') == 0 && _.sumBy(items, 'cas_total_amt') == _.sumBy(items, 'bill_fee')) {
+            if (_.sumBy(items, 'payment') == 0 && (totalAdjustment == _.sumBy(items, 'bill_fee') || totalAdjustment == 0)) {
                 items = items.map(item => {
                     item.claim_status_code = 4;
                     return item;

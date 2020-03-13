@@ -111,6 +111,8 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
 
                     app.study_user_settings = _.where(app.usersettings, { grid_name: 'studies' })[0];
                     app.claim_user_settings = _.where(app.usersettings, { grid_name: 'claims' })[0];
+                    app.study_user_settings.grid_field_settings = app.study_user_settings.grid_field_settings || studySetting.grid_field_settings;
+                    app.claim_user_settings.grid_field_settings = app.claim_user_settings.grid_field_settings || claimSetting.grid_field_settings;
                     app.default_study_tab = app.study_user_settings.default_tab;
                     app.default_claim_tab = app.claim_user_settings.default_tab;
                     var sys_config = app.company.sys_config;
@@ -120,10 +122,13 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                     app.stat_level = app.stat_level_config.stat_level;
                     app.tat_config = app.tat_config.tat_config;
                     app.userID = app.userInfo.userID;
+                    app.userdocumenttypes = app.userInfo && app.userInfo.document_types || [];
                     app.companyID = app.company.id;
                     app.fileStoreId = app.company.file_store_id;
                     app.facilityID = app.userInfo.default_facility_id;
                     app.default_facility_id = app.userInfo.default_facility_id;
+                    var scan_document__types = app.company.scan_document_types ? app.company.scan_document_types.scan_document_type : [];
+                    app.scanDocumentTypes = scan_document__types;
 
                     if (app.userInfo.user_settings) {
                         app.sessionTimeout = app.userInfo.user_settings.sessionInterval || app.sessionTimeout;
@@ -132,6 +137,26 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
 
                     app.customStudyStatus = [];
                     app.customOrderStatus = [];
+                    
+                    var docTypes = [];
+                    $.each(app.userdocumenttypes, function (index, val) {
+                        $.each(app.scanDocumentTypes, function (ind, value) {
+
+                            if (app.scanDocumentTypes[ind].description === val) {
+                                docTypes.push({
+                                    description: app.scanDocumentTypes[ind].description,
+                                    id: val,
+                                    needReview: app.scanDocumentTypes[ind].needReview
+                                });
+                            }
+                        });
+                    });
+
+                    app.userInfo.documentType = docTypes;
+
+                    if (app.userInfo.user_type === 'SU') {
+                        app.userInfo.documentType = scan_document__types;
+                    }
 
                     if (Array.isArray(app.custom_study_status)) {
                         app.custom_study_status.forEach(function (status) {

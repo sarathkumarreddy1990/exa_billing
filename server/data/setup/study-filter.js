@@ -136,7 +136,7 @@ module.exports = {
         ,is_global_filter
         ,display_in_ddl
         ,user_id
-        ,inactivated_dt IS NULL AS is_active
+        ,inactivated_dt IS NULL AS is_active /* billing.grid_filters.is_active */
         ,COUNT(1) OVER (range unbounded preceding) AS total_records
         FROM  billing.grid_filters`;
 
@@ -164,7 +164,7 @@ module.exports = {
                 ,display_as_tab
                 ,is_global_filter
                 ,display_in_ddl
-                ,inactivated_dt IS NULL AS is_active
+                ,inactivated_dt IS NULL AS is_active /*  billing.grid_filters.is_active */
             FROM billing.grid_filters WHERE id =${params.id} `;
 
         return await query(get_data);

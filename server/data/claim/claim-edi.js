@@ -279,7 +279,7 @@ module.exports = {
                                                                 LEFT JOIN billing.provider_id_codes  ON provider_id_code_qualifiers.id=provider_id_codes.qualifier_id
                                                                 WHERE provider_id_codes.billing_provider_id = billing_providers.id
                                                                 AND provider_id_codes.insurance_provider_id = insurance_providers.id
-                                                        ) AS bp_id_codes ON TRUE
+                                                                ) AS bp_id_codes ON TRUE
                                                         WHERE  billing_providers.id=billing_provider_id
                                                         )AS billingProvider1
 
@@ -339,6 +339,9 @@ module.exports = {
 										pi.group_name as "planName",
 										group_number as "groupNumber",
 										insurance_provider_details.claim_filing_indicator_code as "claimFilingCode",
+										insurance_provider_details.is_name_required as "isNameRequired",
+										insurance_provider_details.is_signature_required as "isSignatureRequired",
+										insurance_provider_details.is_print_billing_provider_address as "isPrintBillingProviderAddress",
 										subscriber_firstname as "firstName",
 										subscriber_lastname as "lastName",
 										subscriber_middlename as "middleName",
@@ -766,20 +769,20 @@ module.exports = {
                                             LEFT JOIN relationship_status ON  subscriber_relationship_id =relationship_status.id
                                             LEFT JOIN public.insurance_provider_payer_types  ON insurance_provider_payer_types.id = insurance_providers.provider_payer_type_id
                                             LEFT JOIN provider_groups  ON  claims.ordering_facility_id = provider_groups.id
-                                            LEFT JOIN LATERAL ( 
-                                                SELECT 
+                                            LEFT JOIN LATERAL (
+                                                SELECT
                                                     bch.authorization_no AS service_line_auth_no
-                                                FROM 
+                                                FROM
                                                     billing.charges bch
                                                 INNER JOIN cpt_codes
                                                     ON cpt_codes.id = bch.cpt_id
-                                                WHERE 
+                                                WHERE
                                                     bch.claim_id = claims.id
                                                     AND NOT bch.is_excluded
                                                     AND bch.authorization_no IS NOT NULL
-                                                ORDER BY  
-                                                    bch.id ASC 
-                                                LIMIT 1 
+                                                ORDER BY
+                                                    bch.id ASC
+                                                LIMIT 1
                                                 ) AS auth_no ON TRUE
                                             LEFT JOIN LATERAL (
 					                            SELECT

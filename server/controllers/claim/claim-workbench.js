@@ -473,7 +473,7 @@ module.exports = {
 
         _.each(claimDetails, (currentClaim) => {
             let errorMessages = [];
-            let claimData = currentClaim && currentClaim.claims && currentClaim.claims[0] && currentClaim.claims[0].insuranceDetails;
+            let claimData = {...currentClaim, ...currentClaim.insurance_details };
 
             if (claimData) {
                 _.each(valdationClaimJson, (fieldValue, field) => {

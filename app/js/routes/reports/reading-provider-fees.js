@@ -2,12 +2,14 @@ define([
     'jquery',
     'backbone',
     'backbonesubroute',
+    'shared/routing',
     'views/reports/reading-provider-fees'
 ],
     function (
         $,
         Backbone,
         SubRoute,
+        RoutingUtils,
         ReadingProviderFeesView
     ) {
         return Backbone.SubRoute.extend({
@@ -26,11 +28,11 @@ define([
 
             initializeRouter: function () {
                 this.options.screen = facilityModules.reportScreens.readingProviderFees;
-                this.options.currentView = this.readingProviderFeesScreen;
                 layout.initializeLayout(this);
 
                 if (!layout.initialized) {
-                    this.readingProviderFeesScreen = new ReadingProviderFeesView(this.options);
+                    RoutingUtils.clearView(this.options.currentView);
+                    this.options.currentView = this.readingProviderFeesScreen = new ReadingProviderFeesView(this.options);
                 }
             }
         });

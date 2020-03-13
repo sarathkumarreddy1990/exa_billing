@@ -135,16 +135,24 @@ define([
 
                 if (this.hasValidViewModel()) {
                     var urlParams = this.getReportParams();
-                    UI.showReport(this.viewModel.reportId, this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams, this.viewModel.openInNewTab);
+                    UI.generateReport(this.viewModel.reportId, this.viewModel.reportCategory, this.viewModel.reportFormat, urlParams);
                 }
             },
 
             hasValidViewModel: function () {
+                var fromDateValue = this.viewModel.fromDate.date();
+                
                 if (this.viewModel.reportId == null || this.viewModel.reportCategory == null || this.viewModel.reportFormat == null) {
-                    commonjs.showWarning('messages.status.pleaseCheckReportIdCategoryandorFormat');
-                    return;
+                    return commonjs.showWarning('messages.status.pleaseCheckReportIdCategoryandorFormat');
                 }
 
+                if (!(this.viewModel.fromDate && fromDateValue)) {
+                    return commonjs.showWarning('messages.status.pleaseSelectDate');
+                }
+
+                if (fromDateValue && !commonjs.validateFutureDate(fromDateValue)) {
+                    return commonjs.showWarning('messages.status.pleaseDoNotSelectFutureDate');
+                }
                 return true;
             },
 

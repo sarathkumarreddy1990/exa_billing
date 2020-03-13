@@ -255,6 +255,7 @@ define('grid', [
                                             var $td = $claimGrid.children('td');
                                             commonjs.setGridCellValue(cells, $td, tblId)
                                         });
+                                        $("#btnClaimsRefresh").click();
                                     }
                                 },
                                 error: function (err, response) {
@@ -270,7 +271,7 @@ define('grid', [
                 var liBillingCode = commonjs.getRightClickMenu('ul_change_billing_code','setup.rightClickMenu.billingCode',false,'Change Billing Code',true);
                 $divObj.append(liBillingCode);
                 self.checkSubMenuRights('li_ul_change_billing_code');
-                var liArrayBillingCode = [];              
+                var liArrayBillingCode = [];
                 var billingCodeList = [
                     {
                         id: null,
@@ -282,13 +283,13 @@ define('grid', [
                         billing_option: 'BILLINGCODE',
                         claimIds: studyArray,
                         process: "Billing Code",
-                        billing_code_id: billing_code ? billing_code.id : null 
+                        billing_code_id: billing_code ? billing_code.id : null
                     };
                     var billing = {
-                        color_code: billing_code ? billing_code.color_code : null, 
+                        color_code: billing_code ? billing_code.color_code : null,
                         status_message: 'messages.status.billingCodeChanged',
                         column: 'billing_code',
-                        description: billing_code ? billing_code.description : null 
+                        description: billing_code ? billing_code.description : null
                     }
                     var $billingCodeLink = $(commonjs.getRightClickMenu('ancBillingCode_' + (data.billing_code_id || 'none'), 'setup.rightClickMenu.billingCode', true, (index == 0 ? commonjs.geti18NString('setup.rightClickMenu.none') : billing.description), false));
                     self.billingLinkEvent($billingCodeLink, data, billing, $target);
@@ -300,7 +301,7 @@ define('grid', [
                 var liBillingClass = commonjs.getRightClickMenu('ul_change_billing_class','setup.rightClickMenu.billingClass',false,'Change Billing Class',true);
                 $divObj.append(liBillingClass);
                 self.checkSubMenuRights('li_ul_change_billing_class');
-                var liArrayBillingClass = [];               
+                var liArrayBillingClass = [];
                 var billingClassList = [
                     {
                         id: null,
@@ -318,7 +319,7 @@ define('grid', [
                         color_code: billing_class ? billing_class.color_code : null,
                         status_message: 'messages.status.billingClassChanged',
                         column: 'billing_class',
-                        description: billing_class ? billing_class.description : null 
+                        description: billing_class ? billing_class.description : null
                     };
                     var $BillingClassLink = $(commonjs.getRightClickMenu('ancBillingClass_' + (data.billing_class_id || 'none'), 'setup.rightClickMenu.billingClass', true, (index == 0 ? commonjs.geti18NString('setup.rightClickMenu.none') : billing.description), false));
                     self.billingLinkEvent($BillingClassLink, data, billing, $target);
@@ -792,6 +793,10 @@ define('grid', [
                                 for (var r = 0; r < batchClaimArray.length; r++) {
                                     var rowId = batchClaimArray[r].study_id;
                                     var $row = $tblGrid.find('#' + rowId);
+
+                                    //Upon POST of new batch claim, place claim ID inside hidden cell specificed below
+                                    $row.find("[aria-describedby='tblGridAll_Studies_hidden_claim_id']").text(claim_id);
+
                                     var setCell = changeGrid.setCell($row);
 
                                     setCell(cells);
@@ -1428,6 +1433,11 @@ define('grid', [
                 }
                 selectedStudyArray = [];
                 $('#btnStudiesRefresh, #btnStudiesRefreshAll, #btnClaimsRefresh, #btnClaimRefreshAll').prop('disabled', false);
+                var userEle = $('#gbox_tblClaimGridFollow_up_queue #gs_assigned_to');
+
+                if (options.filterid === "Follow_up_queue" && !userEle.val()) {
+                    userEle.val(app.userID);
+                }
             };
 
             var rowattr = function (domData, data) {
@@ -1494,7 +1504,8 @@ define('grid', [
                 var searchFilterFlag = grid.getGridParam("postData")._search;
                 var colHeader = studyFields.colName;
                 var current_filter_id = $('#claimsTabs').find('.active a').attr('data-container')
-                var isDatePickerClear = filterCol.indexOf('claim_dt') === -1;
+                var filterContent = commonjs.loadedStudyFilters.get(filterID);
+                var isDatePickerClear = filterContent.options && filterContent.options.customargs && filterContent.options.customargs.isDatePickerClear;
 
                 if (options.filterid != 'Follow_up_queue') {
                     commonjs.showLoading();

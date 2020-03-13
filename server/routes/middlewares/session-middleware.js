@@ -30,15 +30,18 @@ app.use(async function (req, res, next) {
 
     let sessionID = passed_session || req.session.id;
 
-    // if (!req.isAuthenticated()) {
-    //     return sendInvalidSession(req, res);
-    // }
+    // if the session is currently valid, update the session information and allow the user to continue
+    let args = {
+        'user_id': req.session.user_id,
+        'session_id': sessionID,
+        'screen_name': shared.getCookieOption(req.cookies, 5),
+        'user_name': req.session.user_name,
+        'sessionStore': req.sessionStore
+    };
 
-    // if (!req.session.id) {
-    //     return sendInvalidSession(req, res);
-    // }
+    args.screen_name = args.screen_name.split('__')[0] || args.screen_name;
 
-    const isValidSession = await checkSession(sessionID);
+    const isValidSession = await checkSession(args);
 
     if (isValidSession) {
         return next();

@@ -360,7 +360,7 @@ define(['jquery',
                             filter_order: 0,
                             id: "All_Claims"
                         });
-                        
+
                         if (app.country_alpha_3_code === "can") {
                             claimsFilters.push({
                                 assigned_users: null,
@@ -530,6 +530,11 @@ define(['jquery',
 
                 var isCheckedAll = $('#chkStudyHeader_' + filterID).prop('checked');
                 var data = {};
+                var gridElement = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked');
+
+                if (!gridElement.length) {
+                    return commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfBillingMethod');
+                }
 
                 if (isCheckedAll && billingMethodFormat === 'electronic_billing') {
                     var filterData = JSON.stringify(filter.pager.get('FilterData'));
@@ -554,9 +559,8 @@ define(['jquery',
                         isAllClaims: true
                     }
                 } else {
-                    for (var i = 0; i < $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked').length; i++) {
-                        var rowId = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked')[i].parentNode.parentNode.id;
-
+                    for (var i = 0; i < gridElement.length; i++) {
+                        var rowId = gridElement[i].parentNode.parentNode.id;
                         var claimStatus = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'claim_status_code');
 
                         if (claimStatus === "PV") {
@@ -605,12 +609,6 @@ define(['jquery',
                         var invoice_no = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_invoice_no');
                         invoiceNo.push(invoice_no);
                         claimIds.push(rowId);
-                    }
-
-
-                    if (claimIds && !claimIds.length) {
-                        commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfBillingMethod');
-                        return false;
                     }
 
                     data = {
@@ -793,13 +791,24 @@ define(['jquery',
 
                     data.validations = data.validations.concat(segmentValidations);
                     var result = [];
+                    var validations = [];
+                    var commonErrorValidation = [];
 
-                    if (data.validations && data.validations.length) {
-                        result = _.groupBy(data.validations, "dataID");
+                    data.validations.forEach(function (object) {
+
+                        if (_.has(object, "dataID")) {
+                            validations.push(object);
+                        } else {
+                            commonErrorValidation.push(object);
+                        }
+                    });
+
+                    if (data.validations && data.validations.length && validations.length) {
+                        result = _.groupBy(validations, "dataID");
                     }
 
                     if (isFromReClaim) {
-                        $('#modal_div_container').html(self.ediResultTemplate({ result: result, ediText: data.ediTextWithValidations }));
+                        $('#modal_div_container').html(self.ediResultTemplate({ result: result, ediText: data.ediTextWithValidations, commonResult: commonErrorValidation }));
                         commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());
                         self.initEvent(true);
                     } else {
@@ -809,14 +818,14 @@ define(['jquery',
                             width: '95%',
                             height: '75%',
                             fromValidate: true,
-                            html: self.ediResultTemplate({ result: result, ediText: data.ediTextWithValidations }),
+                            html: self.ediResultTemplate({ result: result, ediText: data.ediTextWithValidations, commonResult: commonErrorValidation }),
                             onShown: function () {
                                 self.initEvent(true);
                             },
                             onHide: function () {
                                 commonjs.previousValidationResults = null;
                             }
-                        });    
+                        });
                     }
                     $(".popoverWarning").popover();
 
@@ -1305,7 +1314,7 @@ define(['jquery',
                 var filterTabInit = function (filters, callback) {
                     var showdeleted = !app.showdeletedstudies ?
                         ' ' :
-                        ' studies.has_deleted = false ';
+                        ' studies.deleted_dt is null ';
                     $divFiltersContainer.hide();
 
                     var processOptions = function (info) {
@@ -1410,7 +1419,10 @@ define(['jquery',
                 self.datePickerCleared = false // to bind the date by default(three months) -- EXA-11340
 
                 if (filterID) {
-                    
+
+                    var filter = commonjs.loadedStudyFilters.get(filterID);
+                    commonjs.currentStudyFilter = filterID;
+
                     if (filterID === "Files") {
                         self.fileManagementPager = new Pager();
                         self.showFileManagementGrid({
@@ -1425,10 +1437,7 @@ define(['jquery',
                         });
 
                         return;
-                    }
-
-                    var filter = commonjs.loadedStudyFilters.get(filterID);
-                    commonjs.currentStudyFilter = filterID;
+                    }                    
 
                     if (!filter) {
 
@@ -1484,7 +1493,7 @@ define(['jquery',
                                 $('#btnValidateExport').css('display', 'none');
                                 var filter_current_id = $('#claimsTabs').find('.active a').attr('data-container')
                                 var filter = commonjs.loadedStudyFilters.get(filter_current_id);
-                                if (filter.pager.get('FilterData') == "") {
+                                if (filter && filter.pager && filter.pager.get('FilterData') === "") {
                                     var toDate = moment();
                                     var fromDate = moment().subtract(89, 'days');
                                     filterData = "[\""+ fromDate.format("YYYY-MM-DD") + " - " + toDate.format("YYYY-MM-DD") +"\"]"
@@ -1919,15 +1928,15 @@ define(['jquery',
             },
 
             refreshAllClaims: function () {
-                $('#btnClaimsRefresh, #btnClaimRefreshAll').prop('disabled', true);
                 var self = this;
-                // commonjs.isHomePageVisited = false;
-                var filter = commonjs.loadedStudyFilters.get(commonjs.currentStudyFilter);
-                // if (!filter) {
-                //     self.loadTabContents();
-                //     return;
-                // }
 
+                if (commonjs.currentStudyFilter === 'Files') {
+                    self.setTabContents("Files", false, false, false, false);
+                    return;
+                }
+
+                $('#btnClaimsRefresh, #btnClaimRefreshAll').prop('disabled', true);
+                var filter = commonjs.loadedStudyFilters.get(commonjs.currentStudyFilter);
                 var $loading = $(document.getElementById('divPageLoading'));
                 $loading.show();
                 commonjs.showLoading();
@@ -2024,17 +2033,33 @@ define(['jquery',
 
             toggleTabContents: function (filterID) {
                 var _self = this;
+                var filters = ["Follow_up_queue", "Files"];
                 commonjs.processPostRender({screen: 'Claim Workbench'});
-                if(filterID=="Follow_up_queue"){
-                    $("#btnInsuranceClaim").hide();
-                    $("#btnValidateOrder").hide();
-                    $("#btnPaperClaim").hide();
-                    $("#btnValidateExport").hide();
-                }else{
-                    $("#btnPaperClaim").show();
-                    $("#btnValidateOrder").show();
-                    $("#btnValidateExport").show();
+                var btnValidateOrder = $("#btnValidateOrder");
+                var btnInsuranceClaim = $("#btnInsuranceClaim");
+                var btnValidateExport = $("#btnValidateExport");
+                var btnPaperClaim = $("#btnPaperClaim");
+                var btnRefresh = $('#btnClaimsRefresh');
+
+                if (filters.indexOf(filterID) > -1) {
+
+                    if (filterID === "Follow_up_queue") {
+                        btnPaperClaim.hide();
+                        btnRefresh.show();
+                    } else if (filterID === "Files") {
+                        btnRefresh.hide();
+                    }                    
+
+                    btnInsuranceClaim.hide();
+                    btnValidateOrder.hide();
+                    btnValidateExport.hide();
+                } else {
+                    btnPaperClaim.show();
+                    btnValidateOrder.show();
+                    btnValidateExport.show();
+                    btnRefresh.show();
                 }
+
                 $('#divPageLoading').hide();
                 $('#diveHomeIndex').show();
                 $('#divStudyFooter').show();
@@ -2186,7 +2211,7 @@ define(['jquery',
                             width: 150,
                             formatter: function (value, model, data) {
                                 var disableStatus = data.current_status === 'success' ? "disabled" : "";
-                                return data.file_type === 'can_ohip_p' ? '<button i18n="shared.buttons.apply" id="file' + data.id + '" class="btn btn-primary btn-block" ' + disableStatus + '/>' : '';
+                                return data.file_type === 'can_ohip_p' && (data.totalAmountPayable || data.accountingTransactions.length) ? '<button i18n="shared.buttons.apply" id="file' + data.id + '" class="btn btn-primary btn-block" ' + disableStatus + '/>' : '';
                             },
                             customAction: function (rowID, e, data) {
                                 var rowData = data.getData(rowID);
@@ -2211,15 +2236,23 @@ define(['jquery',
                                 };
 
                                 var trColor = '';
-                                var retVal = '<table class="table table-bordered"><tbody><tr><td>';
-                                retVal += commonjs.geti18NString("billing.claims.totalAmountPayable");
-                                retVal +=  '</td><td>$' + data.totalAmountPayable.toFixed(2) + '</td></tr>';
-                                for (var i = 0; i < data.accountingTransactions.length; i++) {
-                                    trColor = getRowColor(data.accountingTransactions[i].transactionCode);
-                                    retVal += '<tr class="' + trColor + '"><td>' + data.accountingTransactions[i].transactionMessage + '}</td>';
-                                    retVal += '<td>$' + data.accountingTransactions[i].transactionAmount.toFixed(2) + '</td></tr>';
+                                var amountPayable = data.totalAmountPayable && data.totalAmountPayable.toFixed(2) || null
+                                var accountTransaction = data.accountingTransactions || [];
+                                var retVal = '';
+
+                                if(amountPayable) {
+                                    retVal += '<tr><td>' + commonjs.geti18NString("billing.claims.totalAmountPayable") + '</td><td>' + amountPayable + '</td></tr>';
                                 }
-                                retVal += '</tbody></table>';
+
+                                if(accountTransaction.length) {
+                                    for (var i = 0; i < accountTransaction.length; i++) {
+                                        trColor = getRowColor(accountTransaction[i].transactionCode);
+                                        retVal += '<tr class="' + trColor + '"><td>' + accountTransaction[i].transactionMessage + '}</td>';
+                                        retVal += '<td>$' + accountTransaction[i].transactionAmount.toFixed(2) + '</td></tr>';
+                                    }
+                                }
+                                
+                                retVal = retVal.length ? '<table class="table table-bordered"><tbody>' + retVal + '</tbody></table>' : '';
                                 return retVal;
 
                               } else {
@@ -2235,8 +2268,17 @@ define(['jquery',
                     sortorder: 'DESC',
                     disablepaging: false,
                     disablesort: false,
-                    disablesearch: false
-                });             
+                    disablesearch: false,
+                    onaftergridbind: function(model, gridObj){
+                        options.pager.set({
+                            "TotalRecords": model.length ? model[0].get('total_records') : 0
+                        }); 
+                        self.setFooter({
+                            pager:  options.pager,
+                            options: { filterid: options.filterID }
+                        });                                           
+                    }
+                });
 
                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());
             },
@@ -2850,7 +2892,7 @@ define(['jquery',
             showValidationResult: function(data) {
                 var self = this;
                 commonjs.previousValidationResults = { isFromEDI: false, result: data };
-                commonjs.showDialog({ 
+                commonjs.showDialog({
                     header: 'Validation Results',
                     fromValidate: true,
                     onShown: function () {
@@ -2862,7 +2904,7 @@ define(['jquery',
                     i18nHeader: 'billing.claims.validationResults',
                     width: '70%',
                     height: '60%',
-                    html: self.claimValidation({ response_data: data }) 
+                    html: self.claimValidation({ response_data: data })
                 });
             },
 
@@ -2903,8 +2945,9 @@ define(['jquery',
 
                             if (data) {
                                 var invalidClaimData = data.invalidClaim_data;
-                                
+
                                 if (invalidClaimData.length) {
+                                    commonjs.previousValidationResults.result = invalidClaimData;
                                     modalContainer.html(self.claimValidation({ response_data: invalidClaimData }));
                                 } else {
                                     modalContainer.html('<div style="text-align: center" >' + commonjs.geti18NString('messages.status.noRecordFound') + '</div>');
@@ -2916,7 +2959,7 @@ define(['jquery',
                         },
                         error: function (err, response) {
                             commonjs.hideLoading();
-                        }    
+                        }
                     });
                 }
             },

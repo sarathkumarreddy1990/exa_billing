@@ -21,7 +21,8 @@ define([
     // 'text!templates/faxDialog.html',
     'collections/claim-patient-log',
     'views/app/unapplied-payment',
-    'text!templates/claims/claim-inquiry-cas.html'
+    'text!templates/claims/claim-inquiry-cas.html',
+    'shared/report-utils'
 ], function (
     $,
     _,
@@ -45,7 +46,8 @@ define([
     // faxDialogHtml,
     claimPatientLogList,
     unappliedPaymentView,
-    casTemplate
+    casTemplate,
+    UI
 ) {
         var paperClaim = new PaperClaim(true);
 
@@ -554,7 +556,9 @@ define([
                 commonjs.initializeScreen({ header: { screen: 'Claim Invoice', ext: 'Claim Invoice' } });
                 $('#divIvoiceAgeSummary').html(self.invoiceAgingSummaryTemplate());
 
-
+                if(this.screenCode.indexOf('IAST') > -1) {
+                    $('#btnPrint').attr('disabled', true);
+                }
 
                 $.ajax({
                     url: "/exa_modules/billing/claims/claim_inquiry/claim_invoice/age",
@@ -578,10 +582,18 @@ define([
                     }
                 });
 
-                $('.inquiryReload').click(function(){
+                $('.inquiryReload').off().click(_.debounce(function (){
                     self.invoicePager.set({ "PageNo": 1 });
                     self.invoiceTable.refreshAll();
-                });
+                }));
+
+                $('.inquiryActivity').off().click(_.debounce(function (){
+                  if(self.claimInvoiceList && self.claimInvoiceList.length){
+                    self.invoiceActivityStatement(claimID);
+                  } else {
+                      commonjs.showWarning('messages.status.noRecordFound')
+                  }
+                }));
 
             },
 
@@ -687,7 +699,7 @@ define([
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['','', 'date', '', 'code', 'payment.id', 'comment', 'Diag Ptr', 'charge', 'payment', 'adjustment', '', '', '', '',''],
                     i18nNames: ['', '', 'billing.claims.date', '', 'billing.COB.code', 'billing.payments.paymentID', 'billing.payments.comment', 'billing.COB.diagptr',
-                        'billing.payments.charge', 'billing.payments.payments', 'billing.fileInsurance.adjustments', '', '', '', '', ''
+                        'billing.payments.charge', 'billing.payments.payments', 'billing.fileInsurance.adjustments', '', '', '', '', 'billing.payments.printOnStatements'
                     ],
                     colModel: [
                         { name: 'id', hidden: true},
@@ -813,7 +825,7 @@ define([
                             }
                         },
                         {
-                            name: 'is_internal', width: 20, sortable: false, search: false, hidden: false,
+                            name: 'is_internal', width: 40, sortable: false, search: false, hidden: false,
                             formatter: function (cellvalue, options, rowObject) {
                                 if (rowObject.code && rowObject.code != null && commentType.indexOf(rowObject.code) == -1) {
                                     if (rowObject.is_internal == true)
@@ -1489,6 +1501,21 @@ define([
                 $('#txtFaxReceiverName').val('');
                 $('#txtFaxReceiverNumber').val('');
                 $('#divFaxReceipientPaperClaim').hide();
+            },
+
+            invoiceActivityStatement: function(claimId){
+                var urlParams = {
+                    claimId : claimId
+                };
+                var options = {
+                    'id': 'invoice-activity-statement',
+                    'category': 'billing',
+                    'format': 'pdf',
+                    'params': urlParams,
+                    'openInNewTab': true,
+                    'generateUrl': true
+                };
+                UI.showReport(options);
             }
     });
 });

@@ -39,8 +39,8 @@ define([
                     gridelementid: '#tblUserLogGrid',
                     custompager: new Pager(),
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['', '', '', '', '', '', ''],
-                    i18nNames: ['', '', 'setup.common.user', 'setup.log.logInDt' , 'setup.log.logOutDt', 'setup.log.lastAccessed', 'setup.log.logSource'],
+                    colNames: ['', '', '', '', '', '',''],
+                    i18nNames: ['', '', 'setup.common.user', 'setup.log.loggedDate_Grid' ,'setup.userLog.screenName','setup.userLog.clientIP', 'setup.log.logSource'],
                     colModel: [
                         {
                             name: 'id',
@@ -77,21 +77,16 @@ define([
                             }
                         },
                         {
-                            name: 'logged_out_dt',
-                            width: 180,
-                            formatter: function(e,model,rowObject) {
-                                return self.dateFormatter(rowObject.logged_out_dt);
-                            }
+                            name: 'screen_name',
+                            search: false,
+                            width: 180
                         },
                         {
-                            name: 'last_access_dt',
-                            width: 180,
-                            formatter: function(e,model,rowObject) {
-                                return self.dateFormatter(rowObject.last_access_dt);
-                            }
+                            name: 'client_ip',
+                            width: 180
                         },
                         {
-                            name: 'login_source',
+                            name: 'module_name',
                             width: 180
                         }
                     ],
@@ -220,11 +215,10 @@ define([
                             'needShrink': true ,
                             'html':self.userLogDetailsTemplate
                         });
-                        var clientInfo = commonjs.hstoreParse(response.client_info);
+                        var clientInfo = commonjs.hstoreParse(response.detailed_info);
                         $("#userName").html(response.username);
-                        $("#logInDt").html(self.dateFormatter(response.logged_in_dt));
-                        $("#logOutDt").html(self.dateFormatter(response.logged_out_dt));
-                        $("#lastAccessedDt").html(self.dateFormatter(response.last_access_dt));
+                        $("#logInDt").html(self.dateFormatter(response.logged_dt));
+                        $("#screenName").html(response.screen_name);
                         $("#browser").html(clientInfo.browser);
                         $("#browserVersion").html(clientInfo.browserversion);
                         $("#operatingSystem").html(clientInfo.os);

@@ -28,6 +28,11 @@ const colModel = [
         searchFlag: '%'
     },
     {
+        name: 'reason_code',
+        searchColumns: ['cas_reason_codes.code'],
+        searchFlag: '%'
+    },
+    {
         name: 'birth_date',
         searchColumns: ['patients.birth_date'],
         searchFlag: 'date'
@@ -188,7 +193,12 @@ const colModel = [
         name: 'icd_description',
         searchColumns: ['claim_icds.description'],
         searchFlag: 'arrayString'
-    }
+    },
+    {
+        name: 'insurance_providers'
+        , searchColumns: [`insurance_providers.insurance_name`]
+        , searchFlag: '%'
+    },
 ];
 
 const api = {
@@ -235,6 +245,7 @@ const api = {
             case 'claim_id':
             case 'id': return 'claims.id';
             case 'patient_name': return 'patients.full_name';
+            case 'reason_code': return 'cas_reason_codes.code';
             case 'birth_date': return 'patients.birth_date::text';
             case 'account_no': return 'patients.account_no';
             case 'patient_ssn': return `patients.patient_info->'ssn'`;
@@ -276,6 +287,7 @@ const api = {
             case 'charge_description': return `nullif(charge_details.charge_description,'')`;
             case 'ins_provider_type': return 'insurance_provider_payer_types.description';
             case 'icd_description': return 'claim_icds.description';
+            case 'insurance_providers': return `insurance_providers.insurance_name`;
         }
 
         return args;
@@ -331,11 +343,39 @@ const api = {
                                            LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.provider_id`;
         }
 
-        if (filterID == 'Follow_up_queue') {
+        if (filterID == 'Follow_up_queue' && isInnerQuery) {
             r += ' INNER JOIN billing.claim_followups ON  claim_followups.claim_id=claims.id left join users on users.id=assigned_to';
         } else if (tables.claim_followups) {
             r += ` LEFT JOIN billing.claim_followups  ON claim_followups.claim_id=claims.id and assigned_to=${userID}
                    left join users on users.id=assigned_to `;
+        }
+
+        if (tables.cas_reason_codes) {
+            r += ` LEFT JOIN LATERAL (
+                        SELECT
+                            claims.id,
+                            TRIM ( LEADING '{' FROM
+                                TRIM ( TRAILING '}' FROM
+                                        ARRAY_AGG (
+                                            cas_reason_codes.code
+                                            ORDER BY
+                                                cas_reason_codes.code
+                                            )
+                                            FILTER (WHERE cas_reason_codes.code IS NOT NULL)::text
+                                        )
+                                )
+                            code
+                        FROM
+                            billing.claims
+                        LEFT JOIN billing.charges on billing.claims.id = billing.charges.claim_id
+                        LEFT JOIN billing.payment_applications on billing.charges.id = billing.payment_applications.charge_id
+                        LEFT JOIN billing.cas_payment_application_details on billing.payment_applications.id = billing.cas_payment_application_details.payment_application_id
+                        LEFT JOIN billing.cas_reason_codes on billing.cas_payment_application_details.cas_reason_code_id = billing.cas_reason_codes.id
+                        GROUP BY
+                            claims.id
+                        )
+                        AS cas_reason_codes
+                    ON billing.claims.id = cas_reason_codes.id`;
         }
 
         if (tables.patient_insurances || tables.insurance_providers || tables.edi_clearinghouses) {
@@ -407,11 +447,11 @@ const api = {
         }
 
         if(tables.claim_icds) {
-            r += ` 
+            r += `
                 LEFT JOIN LATERAL (
-                    SELECT 
+                    SELECT
                         ARRAY_AGG(description) AS description
-                    FROM icd_codes 
+                    FROM icd_codes
                     INNER JOIN billing.claim_icds ON claim_icds.icd_id = icd_codes.id
                     WHERE claim_id = claims.id
                 ) AS claim_icds ON TRUE `;
@@ -431,6 +471,7 @@ const api = {
             'claim_status.description as claim_status',
             'claim_status.code as claim_status_code',
             'patients.full_name as patient_name',
+            'cas_reason_codes.code as reason_code',
             'patients.account_no',
             'patients.birth_date::text as birth_date',
             'claims.submitted_dt',
@@ -487,7 +528,25 @@ const api = {
                 ELSE
                     null
             END AS as_eligibility_status`,
-            `claim_icds.description AS icd_description`
+            `claim_icds.description AS icd_description`,
+            `(
+                SELECT
+                   array_agg(insurance_name) 
+                FROM
+                   insurance_providers 
+                WHERE
+                   EXISTS
+                   (
+                      SELECT
+                         insurance_provider_id 
+                      FROM
+                         patient_insurances 
+                      WHERE
+                         id = primary_patient_insurance_id 
+                         OR id = secondary_patient_insurance_id 
+                         OR id = tertiary_patient_insurance_id 
+                   )
+                ) AS insurance_providers`,
         ];
 
         if(args.customArgs.filter_id=='Follow_up_queue'){
@@ -545,10 +604,6 @@ const api = {
         let offset = !args.pageNo ? '' :
             ` OFFSET ${((args.pageNo - 1) * args.pageSize) || 0} `
             ;
-
-        //if(args.customArgs.filter_id=='Follow_up_queue'){
-        //args.filterQuery += ` AND claim_followups.assigned_to = ${args.userId} `;
-        //}
         let followupselect = '';
 
         if(args.customArgs.filter_id=='Follow_up_queue'){
@@ -742,15 +797,15 @@ const api = {
             }
             // Prevents DB function for filtering claim balance & Payment_id -- start
             let paymentIdFilter ='';
-            
-            if (args.isClaimBalanceTotal && args.filterCol.indexOf('claim_balance') > 0) {
+
+            if (args.isClaimBalanceTotal && args.filterCol && args.filterCol.indexOf('claim_balance') > -1) {
                 args.colModel = _.find(colModel, { name: 'claim_balance' });
                 api.removeSearchFilterData(args, 'claim_balance');
             }
 
-            if (args.filterCol.indexOf('payment_id') > 0) {
+            if (args.filterCol && args.filterCol.indexOf('payment_id') > -1) {
                 api.removeSearchFilterData(args, 'payment_id');
-            
+
                 if (args.filterPaymentIds) {
                     args.filterPaymentIds = args.filterPaymentIds.split(',');
                     args.filterPaymentIds = _.filter(args.filterPaymentIds, _.size);
@@ -761,6 +816,10 @@ const api = {
             const response = await filterValidator.generateQuery(colModel, args.filterCol, args.filterData, query_options);
             args.filterQuery = response;
             args.filterQuery += paymentIdFilter; // Append payment_id filter WHERE Condition
+
+            if (args.customArgs.filter_id === 'Follow_up_queue' && args.filterCol.indexOf('assigned_to') === -1) {
+                args.filterQuery += ` AND claim_followups.assigned_to = ${args.userId} `;
+            }
 
             if (userSetting.user_details) {
                 if (userSetting.user_details.user_type != 'SU' && userSetting.user_details.all_facilities != true) {

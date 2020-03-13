@@ -4,7 +4,12 @@ let HeaderDets = [];
 let ServiceFacDet = [];
 let BillingProDet = [];
 let BillingPh;
-let Auth_Number;
+let authNumber;
+let pos;
+let claimDet;
+let subscriberDet;
+let serviceFac;
+let patientDet;
 
 function getImage(needCheck) {
     return needCheck ? 'tickImage' : 'clearDot';
@@ -109,7 +114,6 @@ function getCPTValues(data, servicelineList) {
     for (let i = 0; i < 6; i++) {
         if (cptvalues && cptvalues[i]) {
             totalBillFee = (parseFloat(totalBillFee) + (cptvalues ? parseFloat(getFeeValue(cptvalues[i], 'totalBillFee')) : 0 )).toFixed(2);
-            Auth_Number = Auth_Number || servicelineList[i].authorizationNo;
 
             cpt.push([
                 { text: (cptvalues[i].studyDate?((cptvalues[i].studyDate).toString().substring(4,6)):""), border: [true, false, true, true]},
@@ -550,7 +554,15 @@ function getPageBreak() {
 
 function getHeaderDetails(claimData) {
     let details = [];
-    if (claimData.subscriber[0].claimFilingCode === null || claimData.subscriber[0].claimFilingCode === "" || (claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode.toString().toUpperCase() !== 'AT')) {
+    let {
+        subscriber:[{
+                claimFilingCode = null,
+                isNameRequired = null,
+            }] = [{}]
+        } = claimData || {};
+
+    if ( ( ([null, ""].indexOf(claimFilingCode) > -1 || (claimFilingCode && claimFilingCode.toString().toUpperCase() !== 'AT') ) && isNameRequired )
+    ) {
         if (claimData && claimData.subscriber[0] && claimData.subscriber[0].payer && claimData.subscriber[0].payer.insuranceprovideraddressline2) {
             details.push(
                 [//Ans
@@ -643,10 +655,11 @@ function getHeaderDetails(claimData) {
 function getAddressDetails(claimData) {
     let details = [];
     if(claimData){
+        claimData.fullName = claimData.fullName || claimData.lastName;
         if (claimData.addressLine2) {
             details.push(
                 [
-                    {text: (claimData ? getKeyTrimValue(claimData, 'lastName', 30)  : ' ')}
+                    {text: (claimData ? getKeyTrimValue(claimData, 'fullName', 30)  : ' ')}
                 ],
                 [
                     {text: ( claimData.addressLine2 ? (((claimData.addressLine1?(claimData.addressLine1+ ', '):'')  + claimData.addressLine2).toString().toUpperCase().substring(0, 30))  : ''), margin: [0,-5, 0, 0]}
@@ -661,7 +674,7 @@ function getAddressDetails(claimData) {
         } else {
             details.push(
                 [
-                    {text: (claimData ? getKeyTrimValue(claimData, 'lastName', 30)  : ' ')}
+                    {text: (claimData ? getKeyTrimValue(claimData, 'fullName', 30)  : ' ')}
                 ],
                 [
                     {text: (claimData ? getKeyTrimValue(claimData, 'addressLine1', 30) : ' '), margin: [0,-5, 0, 0]}
@@ -710,8 +723,20 @@ function getAddress2Details(claimData) {
 
 function formatSingleClaim(claimData, servicelineList) {
     HeaderDets = getHeaderDetails(claimData);
-    ServiceFacDet = getAddressDetails(claimData.subscriber[0].claim[0].servicefacility[0]);
-    if(claimData.subscriber[0].claimFilingCode && typeof(claimData.subscriber[0].claimFilingCode) === 'string' && claimData.subscriber[0].claimFilingCode.toUpperCase() == 'YFAC') {
+    subscriberDet = claimData && claimData.subscriber && claimData.subscriber[0] || "";
+    patientDet = subscriberDet && subscriberDet.patient && subscriberDet.patient[0] || "";
+    claimDet = subscriberDet && subscriberDet.claim && subscriberDet.claim[0] || "";
+    serviceFac =  claimDet && claimDet.servicefacility && claimDet.servicefacility[0] || "";
+    pos = claimDet && claimDet.POS || "";
+
+    if (pos === "12") {
+        patientDet.fullName = "PRIVATE HOME" ;
+        ServiceFacDet = getAddressDetails(patientDet);
+    } else {
+        ServiceFacDet = getAddressDetails(serviceFac);
+    }
+
+    if(!claimData.subscriber[0].isPrintBillingProviderAddress) {
 	    BillingProDet = getAddressDetails(claimData.payToProvider);
 	    BillingPh = claimData.payToProvider ? getTrimmedPhoneNo(getKeyTrimValue(claimData.payToProvider, 'phoneNo', 13)): ' ';
 	} else {
@@ -1385,7 +1410,7 @@ function formatSingleClaim(claimData, servicelineList) {
                                         {text:"|_______|", margin:[-5,1,0,0]}
                                     ]
                                 ]
-                                
+
                             },layout: 'noBorders'
                         }
                     ],
@@ -1478,10 +1503,10 @@ function formatSingleClaim(claimData, servicelineList) {
                                                 widths: [33, 26, 26, 0],
                                                 body: [
                                                     [
-                                                        {image: getImage(claimData.subscriber && claimData.subscriber[0].relationship === "18"), fit: [8, 8]},
-                                                        {image: getImage(claimData.subscriber && claimData.subscriber[0].relationship === "21"), fit: [8, 8]},
-                                                        {image: getImage(claimData.subscriber && claimData.subscriber[0].relationship === "19"), fit: [8, 8]},
-                                                        {image: getImage(claimData.subscriber && (claimData.subscriber[0].relationship !== "18" && claimData.subscriber[0].relationship !== "21" && claimData.subscriber[0].relationship !== "19")), fit: [8, 8]},
+                                                        {image: getImage(subscriberDet && subscriberDet.relationship === "18"), fit: [8, 8]},
+                                                        {image: getImage(subscriberDet && subscriberDet.relationship === "01"), fit: [8, 8]},
+                                                        {image: getImage(subscriberDet && subscriberDet.relationship === "19"), fit: [8, 8]},
+                                                        {image: getImage(subscriberDet && (subscriberDet.relationship !== "18" && subscriberDet.relationship !== "01" && subscriberDet.relationship !== "19")), fit: [8, 8]},
                                                     ],
                                                 ],
                                             },layout: 'noBorders'
@@ -1606,9 +1631,9 @@ function formatSingleClaim(claimData, servicelineList) {
                         }, {},{}
                     ],
                     [
-                        {text:"SIGNATURE ON FILE", colSpan:3, margin:[10, 0, 0, 0]},{},{},
+                        {text: claimData.subscriber && claimData.subscriber.length && claimData.subscriber[0].isSignatureRequired ? "SIGNATURE ON FILE" : "", colSpan:3, margin:[10, 0, 0, 0]},{},{},
                         {text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].claimDate ? (((claimData.subscriber[0].claim[0].claimDate).toString().substring(4,6)) + "\t" + ((claimData.subscriber[0].claim[0].claimDate).toString().substring(6,8)) + "\t" + ((claimData.subscriber[0].claim[0].claimDate).toString().substring(0,4)) ) : '', margin:[20, 0, 0, 0]},
-                        {text:"SIGNATURE ON FILE", colSpan:3, margin:[20, 0, 0, 0]}, {},{}
+                        {text: claimData.subscriber && claimData.subscriber.length && claimData.subscriber[0].isSignatureRequired ? "SIGNATURE ON FILE" : "", colSpan:3, margin:[20, 0, 0, 0]}, {},{}
                     ],
                     [//REF
                         {
@@ -1736,7 +1761,7 @@ function formatSingleClaim(claimData, servicelineList) {
                                         {
                                             text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0] && claimData.subscriber[0].claim[0].authorizationNo ?
                                                     getKeyTrimValue(claimData.subscriber[0].claim[0], 'authorizationNo', 30)
-                                                        : getSubstring(Auth_Number,30) , alignment:"center", colSpan:2
+                                                        : getSubstring(authNumber,30) , alignment:"center", colSpan:2
                                         },
                                         {}
                                     ]
@@ -1941,9 +1966,15 @@ function claimTable(claims) {
     var blocks = [];
     claims.forEach(function (claim, index) {
         totalBillFee = 0;
+        authNumber = null;
         var isLastClaim = (index == (claims.length-1)) ? true : false;
         var servicelinelist = claim && claim.data[0].subscriber && claim.data[0].subscriber[0].claim && claim.data[0].subscriber[0].claim[0].serviceLine;
         if (servicelinelist) {
+
+            for (i=0; i<servicelinelist.length; i++) {
+                authNumber = authNumber || servicelinelist[i].authorizationNo;
+            }
+
             var splitedServiceLinelist = split(servicelinelist, 6);
             pageBrk = 'after';
             if (splitedServiceLinelist && splitedServiceLinelist.length) {

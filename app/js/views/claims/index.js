@@ -126,6 +126,7 @@ define(['jquery',
             },
             render: function (isFrom) {
                 var self = this;
+                self.claimICDLists = [];
                 this.rendered = true;
                 commonjs.showDialog({
                     header: 'Claim Creation',
@@ -143,7 +144,11 @@ define(['jquery',
                                 self.claimWorkBench.showValidationResult(prevValidationResults.result);
                             }
                         }
+                        commonjs.closePatientChartWindow();
 
+                        if (window.reportWindow) {
+                            window.reportWindow.close();
+                        }
                     },
                     html: this.claimCreationTemplate({
                         country_alpha_3_code: app.country_alpha_3_code,
@@ -410,7 +415,7 @@ define(['jquery',
                 }
 
                 if (!eligibilityData.insuranceProviderId) {
-                    return commonjs.showWarning('messages.status.pleaseSelectInsuranceProvider');   
+                    return commonjs.showWarning('messages.status.pleaseSelectInsuranceProvider');
                 }
 
                 $('#btnCheckEligibility' + ins).prop('disabled', true);
@@ -495,8 +500,9 @@ define(['jquery',
 
             initializeClaimEditForm: function (isFrom) {
                 var self = this;
-                if (!this.rendered)
+                if (!this.rendered) {
                     this.render('claim');
+                }
                 self.bindclaimFormEvents(isFrom);
             },
 
@@ -580,6 +586,7 @@ define(['jquery',
                                 self.options.patient_id = claimDetails.patient_id;
                             }
 
+                            self.rendered = false;
                             self.initializeClaimEditForm(isFrom);
                             /* Bind chargeLineItems events - started*/
                             if(self.screenCode.indexOf('DCLM') > -1) {
@@ -2807,7 +2814,7 @@ define(['jquery',
                 var isCauseCode = $('#chkEmployment').prop('checked') || $('#chkAutoAccident').prop('checked') || $('#chkOtherAccident').prop('checked');
 
                 if (currentPayer_type == "PIP") {
-                    billingMethod = currentResponsible.billing_method || 'direct_billing';
+                    billingMethod = currentResponsible.billing_method || null;
                 } else if (currentPayer_type == "PPP") {
                     billingMethod = 'patient_payment';
                 } else {
@@ -3679,15 +3686,18 @@ define(['jquery',
                         $("#btnValidateClaim").prop("disabled", false);
                         if (data) {
                             commonjs.hideLoading();
+                            var isPreviousValidationResultExist = commonjs.previousValidationResults && commonjs.previousValidationResults.result && commonjs.previousValidationResults.result.length || 0;
 
                             if (!data.invalidClaim_data.length) {
                                 commonjs.showStatus("messages.status.validatedSuccessfully");
 
                                 if (data.validClaim_data && data.validClaim_data.rows && data.validClaim_data.rows.length) {
-                                    self.claim_row_version = data.validClaim_data.rows[0].claim_row_version || self.claim_row_version;
-                                    $('#ddlClaimStatus').val(data.validClaim_data.rows[0].claim_status_id);
+                                    var validClaimData = data.validClaim_data.rows[0] || {};
+
+                                    self.claim_row_version = validClaimData.claim_row_version || self.claim_row_version;
+                                    $('#ddlClaimStatus').val(validClaimData.claim_status_id);
                                     var pending_submission_status = app.claim_status.filter(function (obj) {
-                                        return obj.id === parseInt(data.validClaim_data.rows[0].claim_status_id)
+                                        return obj.id === parseInt(validClaimData.claim_status_id)
                                     });
                                     var statusDetail = commonjs.getClaimColorCodeForStatus(pending_submission_status[0].code, 'claim');
                                     var color_code = statusDetail && statusDetail[0] && statusDetail[0].color_code || 'transparent';
@@ -3700,14 +3710,31 @@ define(['jquery',
                                     } else if (pageSource !== 'patientSearch' && $gridId == '') {
                                         commonjs.showWarning(commonjs.geti18NString("messages.errors.gridIdNotExists"));
                                     }
+
+                                    // Removed Validated claim data from Invalid validation bucket list
+                                    if (isPreviousValidationResultExist) {
+                                        commonjs.previousValidationResults.result = _.reject(commonjs.previousValidationResults.result, { id: validClaimData.id });
+                                    }
                                 }
                             }
                             else {
-                                commonjs.showNestedDialog({ 
-                                    header: 'Validation Results', 
-                                    i18nHeader: 'billing.claims.validationResults', 
-                                    width: '70%', 
-                                    height: '60%', 
+                                var inValidClaimData = data.invalidClaim_data[0] || {};
+
+                                if (isPreviousValidationResultExist) {
+                                    // Assign the re-validated claim result to the invalid bucket list. Modified object reference data, so no variable allocation is required.
+                                    _.map(commonjs.previousValidationResults.result, function (obj) {
+                                        if (obj.id === inValidClaimData.id) {
+                                            Object.assign(obj, inValidClaimData)
+                                        }
+                                        return obj;
+                                    });
+                                }
+
+                                commonjs.showNestedDialog({
+                                    header: 'Validation Results',
+                                    i18nHeader: 'billing.claims.validationResults',
+                                    width: '70%',
+                                    height: '60%',
                                     html: self.claimValidation({ response_data: data.invalidClaim_data }),
                                     onShown: function () {
                                         $('#revalidateClaim').hide();

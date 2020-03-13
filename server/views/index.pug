@@ -28,6 +28,7 @@ block content
                 li.nav-item.dropdown
                     a#aReports.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false', i18n='shared.moduleheader.report')
                     .dropdown-menu
+                        a.dropdown-item(href='/exa#report/myReports/all', i18n='report.reportFilter.myReports' target="_blank")
                         a.dropdown-item(href='#reports/r/aged-ar-summary', class='aAgedARSummary', i18n='report.home.agedARSummary')
                         a.dropdown-item(href='#reports/r/aged-ar-details', class='aAgedARDetails', i18n='shared.screens.setup.agedARDetails')
                         .dropdown-divider
@@ -91,7 +92,7 @@ block content
                         a.dropdown-item(href='#setup/user_log/list' class='aUserLog', i18n='shared.screens.setup.userLog')
 
                 li.nav-item
-                    a.nav-link(href='/logout', i18n='shared.moduleheader.logout')
+                    a.nav-link(href='#' onclick='commonjs.logOut()', i18n='shared.moduleheader.logout')
 
     #root
 

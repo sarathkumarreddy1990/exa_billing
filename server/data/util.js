@@ -1,4 +1,5 @@
 const moment = require('moment');
+const shared = require('../../server/shared');
 const _ = require('lodash');
 
 const util = {
@@ -20,6 +21,13 @@ const util = {
                 case 'IsNot':
                     return `( '${value}' != ALL (${column}) )`;
             }
+        }
+    },
+
+    /* Bind Function for radio button to be merged with insurance Filter query */
+    getArrayBindOperator: (arrayvalue, column, Filter) => {
+        if (['insProv', 'insProvClaim', 'insProvGroup', 'insProvClaimGroup'].indexOf(Filter) != -1) {
+            return `(${column}::character varying[] && ARRAY[${arrayvalue}]::character varying[])`;
         }
     },
 
@@ -292,6 +300,17 @@ const util = {
 
                 }
 
+                let insFilterClaim = filterObj.ClaimInformation.insurance_provider;
+
+                if (insFilterClaim) {
+                    query = util.getinsuranceFilterQuery(insFilterClaim.insProvClaim, shared.insuranceClaimProviderName(), 'insProvClaim', query);
+                }
+
+                let insFilterClaimGroup = filterObj.ClaimInformation.insurance_group;
+
+                if (insFilterClaimGroup) {
+                    query = util.getinsuranceFilterQuery(insFilterClaimGroup.insProvClaimGroup, shared.insuranceProviderClaimGroup(), 'insProvClaimGroup', query);
+                }
 
                 if (filterObj.ClaimInformation.facility) {
                     let obj = filterObj.ClaimInformation.facility;
@@ -519,24 +538,11 @@ const util = {
                 }
             }
 
-            if (filterObj.insurance) {
-                if (filterObj.insurance.insProv) {
-                    let obj = filterObj.insurance.insProv;
-                    let l = obj.length;
-                    let insProvQuery = '';
+            let insuranceFilter = filterObj.insurance;
 
-                    if (l > 0) {
-                        for (let i = 0; i < l; i++) {
-                            if (i == 0) {
-                                insProvQuery += ' ' + util.getArrayOperator(obj[i].condition, obj[i].value, util.insuranceProviderName(), 'insProv');
-                            } else {
-                                insProvQuery += util.getConditionalRelationOperator(obj[i].condition) + ' ' + util.getArrayOperator(obj[i].condition, obj[i].value, util.insuranceProviderName(), 'insProv');
-                            }
-                        }
-
-                        query += util.getRelationOperator(query) + '(' + insProvQuery + ')';
-                    }
-                }
+            if (insuranceFilter) {
+                query = util.getinsuranceFilterQuery(insuranceFilter.insProv, shared.insuranceStudyProviderName(), 'insProv', query);
+                query = util.getinsuranceFilterQuery(insuranceFilter.insProvGroup, 'insurance_providers.provider_types', 'insProvGroup', query);
             }
 
             if (filterObj.studyInformation) {
@@ -945,6 +951,30 @@ const util = {
 
         return '';
     },
+
+    /**
+         * Query for insurance filter
+         * insFilterData -- value of dropdown and radio button
+         * insuranceFilterColumn -- value of data column insurance_providers
+         * insFilterType -- insurance filter type
+         */
+    getinsuranceFilterQuery: (insFilterData, insuranceFilterColumn, insFilterType, query) => {
+        if (insFilterData && insFilterData.length) {
+            let insFilterArray = [];
+            let insFilterQuery = ``;
+            let conditionIsNot = insFilterData[0].condition == "IsNot";
+
+            insFilterArray = _.map(insFilterData, 'value');
+
+            insFilterQuery +=
+                `${util.getArrayBindOperator(JSON.stringify(insFilterArray).replace(/]|[[]/g, '').replace(/"/g, "'"), insuranceFilterColumn.replace(/null/g, "''"), insFilterType)} `;
+
+            query += ` ${util.getRelationOperator(query)} ${conditionIsNot ? "NOT" : ""} (${insFilterQuery}) `;
+        }
+
+        return query;
+    },
+
 
     getPreformattedDateRange: function (option) {
         let dateRange;
