@@ -395,6 +395,12 @@ module.exports = {
 															patient_info->'c1HomePhone' as "homePhone",
 															patient_info->'c1WorkPhone' as "workPhone",
 															patient_info->'licenseNo' as "licenseNo",
+															patient_info->'employerFax' AS "employer_fax",
+															patient_info->'employerName' AS "employer_name",
+															patient_info->'employerPhone' AS "employer_phone",
+															patient_info->'employerAddress' AS "employer_address",
+															concat( patient_info->'employerCity',' ', patient_info->'employerState',' ', patient_info->'employerZip' ) AS "employerAddressDet",
+															get_issuer_details(patients.id, 'phn') AS phn_details,
 															birth_date::text as dob,
 															to_char(birth_date, 'YYYYMMDD')  as "dobFormat",
 											(  CASE gender
@@ -431,6 +437,9 @@ module.exports = {
                                 SELECT claims.id as "claimNumber",
                                 order_details.order_id as "orderId",
 										frequency as "claimFrequencyCode",
+										facilities.facility_name,
+										facilities.can_mb_wcb_number,
+										facilities.facility_info,
 										bgcp.charges_bill_fee_total::numeric::text AS "claimTotalCharge",
 										bgcp.payment_insurance_total::numeric::text AS "claimPaymentInsurance",
 										bgcp.payment_ordering_facility_total::NUMERIC::TEXT AS "claimPaymentOrderingFacility",
@@ -663,6 +672,7 @@ module.exports = {
 					pointer4 as "pointer4",
 					group_info->'cliaNumber' as "cliaNumber",
 					study_details.accession_no as "accessionNumber",
+					study_details.body_part,
 					(SELECT Json_agg(Row_to_json(lineAdjudication)) "lineAdjudication"
 									FROM
                  (SELECT
@@ -733,7 +743,8 @@ module.exports = {
 					LEFT JOIN modifiers AS modifier4 ON modifier4.id=modifier4_id
 					LEFT JOIN LATERAL (
                                         SELECT
-                                            s.accession_no
+											s.accession_no,
+											s.body_part
                                         FROM
                                             public.studies s
                                         INNER JOIN billing.charges_studies AS cs ON cs.study_id = s.id
