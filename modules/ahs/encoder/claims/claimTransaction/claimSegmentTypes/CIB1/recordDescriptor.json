@@ -41,7 +41,7 @@
     "length": 1
   },
   "diagnosis_code_1": {
-    "format": "A",
+    "format": "a",
     "startPos": 55,
     "length": 6
   },
