@@ -15,6 +15,7 @@ const crypto = require('crypto');
 const { promisify } = require('util');
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
+const statAsync = promisify(fs.stat);
 
 const createDir = function (fileStorePath, filePath) {
     return new Promise(function(resolve, reject) {
@@ -545,7 +546,7 @@ module.exports = {
         eraPath = path.join(rootDir, eraPath);
 
         try {
-            let dirExists = fs.existsSync(eraPath);
+            let dirExists = await statAsync(eraPath);
 
             if (!dirExists) {
                 message.push({
