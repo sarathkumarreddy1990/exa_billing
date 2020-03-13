@@ -50,7 +50,8 @@ define(['jquery',
                 $('#divSupportingTextGrid').show();
                 $('#divSupportingTextForm').hide();
                 $(this.el).html(this.supportingTextGridTemplate({
-                    billingRegionCode: app.billingRegionCode
+                    billingRegionCode: app.billingRegionCode,
+                    countryCode: app.country_alpha_3_code
                 }));
 
                 this.supportingTextTable = new customGrid();
@@ -156,7 +157,10 @@ define(['jquery',
                 var self = this;
                 self.templateAssociatedCptIds = [];
                 self.templateAssociatedModifierIds = [];
-                $('#divSupportingTextForm').html(this.supportingTextTemplate());
+                $('#divSupportingTextForm').html(this.supportingTextTemplate({
+                    billingRegionCode: app.billingRegionCode,
+                    countryCode: app.country_alpha_3_code
+                }));
                 if(id > 0) {
                     this.model.set({id: id});
                     this.model.fetch({
