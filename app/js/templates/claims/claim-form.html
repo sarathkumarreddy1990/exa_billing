@@ -222,7 +222,7 @@
                                             <th i18n="shared.fields.m2"></th>
                                             <th i18n="shared.fields.m3"></th>
                                         <%} else if (billingRegionCode === 'can_MB') { %>
-                                            <th i18n="shared.fields.p1"></th> 
+                                            <th i18n="shared.fields.p1"></th>
                                             <th i18n="shared.fields.m1"></th>
                                             <th i18n="shared.fields.m2"></th>
                                             <th i18n="shared.fields.m3"></th>
@@ -521,7 +521,7 @@
                     </div>
                     <div class="form-group row">
                             <label class="col-sm-3 col-form-label" for="chkConfidential" i18n="billing.claims.canAhs.confidential"></label>
-                        <div class = "form-check form-check-inline ml-3">  
+                        <div class = "form-check form-check-inline ml-3">
                             <input class="form-check-input" type="checkbox" id="chkConfidential" name="Confidential">
                         </div>
                     </div>
@@ -696,7 +696,6 @@
                         <textarea id="txtSupportingText" name="SupportingText" class="form-control form-control-lg" maxlength="36500"></textarea>
                     </div>
                 </div>
-                <% if (billingRegionCode === 'can_AB') { %>
                 <div class="form-group row">
                     <!-- Supporting Text -->
                     <label class="col-sm-3 col-form-label"></label>
@@ -709,7 +708,6 @@
                         <div id='btnAddSupportingText' class='btn btn-primary' i18n="shared.screens.setup.insertSupportingText"></div>
                     </div>
                 </div>
-                <% } %>
                 <div class="form-group row">
                     <!-- Chart Number -->
                     <label for="spChartNumber" class="col-sm-3 col-form-label" i18n="billing.payments.chartNumber"></label>
