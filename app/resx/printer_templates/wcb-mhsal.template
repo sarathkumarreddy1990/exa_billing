@@ -166,7 +166,7 @@ function bindPatientInfo(patient, claim, serviceLine) {
                   heights: 25,
                   body: [
                             [`Claim Number\n ${claim && claim.claimNumber || ''}`, `Date Of Birth\n ${pateintDob || ''}`],
-                            [`Name\n ${name || ''}`, `PHIN\n ${patient && patient.get_issuer_details && patient.get_issuer_details.alt_account_no || ''}`],
+                            [`Name\n ${name || ''}`, `PHIN\n ${patient && patient.phn_details && patient.phn_details.alt_account_no || ''}`],
                             [`Address\n ${address}\n ${cityDet}`, `Date of Incident\n ${illnessDate || ''}`],
                             [`Telephone\n ${patient && patient.homePhone || ''}`, `Area of Injuiry (specify right or left if applicable)\n ${bp.join() || ''}`]
                     ]
