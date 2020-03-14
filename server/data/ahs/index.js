@@ -342,8 +342,8 @@ const ahsData = {
                 nums AS (
                     SELECT DISTINCT
                         pin.patient_id,
-                        (SELECT alt_account_no FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'uli' AND province_alpha_2_code = 'ab' LIMIT 1) AS service_recipient_uli,
-                        (SELECT alt_account_no FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'uli_parent' AND province_alpha_2_code = 'ab' LIMIT 1)                            AS service_recipient_parent_uli,
+                        (SELECT alt_account_no FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'uli' AND LOWER(province_alpha_2_code) = 'ab' LIMIT 1) AS service_recipient_uli,
+                        (SELECT alt_account_no FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'uli_parent' AND LOWER(province_alpha_2_code) = 'ab' LIMIT 1)                            AS service_recipient_parent_uli,
 
                         (SELECT alt_account_no FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'phn' AND is_primary LIMIT 1) AS service_recipient_phn,
                         (SELECT province_alpha_2_code FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'phn' AND is_primary LIMIT 1) AS service_recipient_phn_province,
