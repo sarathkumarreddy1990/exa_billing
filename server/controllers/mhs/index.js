@@ -61,6 +61,7 @@ const mhsController = {
         }
         catch (e) {
             logger.error('Error in file Processing', e);
+            return e;
         }
     },
 

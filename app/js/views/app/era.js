@@ -78,8 +78,8 @@ define([
                     gridelementid: '#tblEOBFileList',
                     custompager: this.pager,
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['', '', '', 'Id', 'Payment Id','File Name', 'Size', 'File Updated Date/Time', 'Status'],
-                    i18nNames: ['', '', '', 'shared.fields.id', 'shared.fields.paymentId','shared.fields.fileName', 'shared.fields.size', 'shared.fields.fileUpdatedDateTime', 'shared.fields.status'],
+                    colNames: ['', '', '', '', 'Id', 'Payment Id','File Name', 'Size', 'File Updated Date/Time', 'Status'],
+                    i18nNames: ['', '', '', '', 'shared.fields.id', 'shared.fields.paymentId','shared.fields.fileName', 'shared.fields.size', 'shared.fields.fileUpdatedDateTime', 'shared.fields.status'],
                     colModel: [
                         { name: 'file_store_id', hidden: true, searchFlag: '%', search: false },
                         {
@@ -127,9 +127,23 @@ define([
                                 }
                             }
                         },
+                        {
+                            name: 'decode_file',
+                            width: 180,
+                            sortable: false,
+                            search: false,
+                            hidden: app.billingRegionCode !== 'can_MB',
+                            formatter: function (cellvalue, options, rowObject) {
+                                return rowObject.file_path.indexOf('Returns') > -1 ? "<a name='decode' href='javascript: void(0)'  style='text-align: center;text-decoration: underline;' data-path= "+ rowObject.uploaded_file_name +" i18n='shared.buttons.decodeOutput'></a>" : '';
+                            },
+                            customAction: function(rowID, event, gridObj) {
+                                var fileName = event.target.dataset.path;
+                                self.downloadEobJson(fileName, rowID, gridObj);
+                            }
+                        },
                         { name: 'id', index: 'id',  width: 50, searchFlag: 'int', searchFlag: '%' },
                         { name: 'payment_id', width: 100, searchFlag: '%', paymentIDFormatter: true },
-                        { name: 'uploaded_file_name', width: 400, searchFlag: 'hstore', searchoptions: { defaultValue: commonjs.filterData['uploaded_file_name'] } },
+                        { name: 'uploaded_file_name', width: 300, searchFlag: 'hstore', searchoptions: { defaultValue: commonjs.filterData['uploaded_file_name'] } },
                         {
                             name: 'size', width: 100, search: false, searchoptions: { defaultValue: commonjs.filterData['size'] }, formatter: function (cellvalue, options, rowObject) {
                                 return self.fileSizeTypeFormatter(cellvalue, options, rowObject);
@@ -658,6 +672,29 @@ define([
 
                 $('.btnCloseEraResultDiv').off().click(function (e) {
                     $("#divEraResult").hide();
+                });
+            },
+
+            downloadEobJson: function(fileName, rowID, gridObj) {
+                $.ajax({
+                    url: '/exa_modules/billing/era/get_json_file',
+                    type: "GET",
+                    data: {
+                        company_id: app.companyID,
+                        file_id: rowID
+                    },
+                    success: function (model, response) {
+                        var decodeEle = document.createElement('a');
+                        decodeEle.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(model)));
+                        decodeEle.setAttribute('download', fileName + '.txt');
+                        decodeEle.style.display = 'none';
+
+                        decodeEle.click();
+                        commonjs.showWarning('messages.status.downloadSuccess');
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
                 });
             }
         });
