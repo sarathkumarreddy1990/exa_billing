@@ -860,9 +860,13 @@
                     </div>
                 </div>
                 <div class="form-group row mt-2">
-                    <label for="txtAccidentState" class="col-sm-3 col-form-label" i18n="order.additionalInfo.accidentState"></label>
+                    <label for="selAccidentState" class="col-sm-3 col-form-label" i18n="order.additionalInfo.accidentState"></label>
                     <div class="col-sm-2 col-md-2">
-                        <input class="form-control form-control-mini stringbox" maxlength='2' type="text" id="txtAccidentState" disabled>
+                        <select name="states" id="selAccidentState" class="form-control" disabled>
+                            <% _.each(states, function(state) { %>
+                            <option value="<%= state.id %>"><%= state.text %></option>
+                            <% }); %>
+                        </select>
                     </div>
                 </div>
                 <div class="form-group row" style="padding-left: 3px;">
@@ -1167,9 +1171,13 @@
                     </div>
                 </div>
                 <div class="form-group row mt-2">
-                    <label for="txtAccidentState" class="col-sm-3 col-form-label" i18n="order.additionalInfo.accidentState"></label>
+                    <label for="selAccidentState" class="col-sm-3 col-form-label" i18n="order.additionalInfo.accidentState"></label>
                     <div class="col-sm-2 col-md-2">
-                        <input class="form-control form-control-mini stringbox" maxlength='2' type="text" id="txtAccidentState" disabled>
+                        <select name="states" id="selAccidentState" class="form-control" disabled>
+                            <% _.each(states, function(state) { %>
+                            <option value="<%= state.id %>"><%= state.text %></option>
+                            <% }); %>
+                        </select>
                     </div>
                 </div>
                 <div class="form-group row pl-1">
