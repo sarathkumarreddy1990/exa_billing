@@ -20,7 +20,7 @@ const processResults = ( row ) => {
     let phin;
 
     if (phn_details) {
-        phin = (phn_details.province_alpha_2_code === 'MB') ? phn_details.alt_account_no : '';
+        phin = (phn_details.country_alpha_3_code === 'can' && phn_details.province_alpha_2_code === 'MB') ? phn_details.alt_account_no : '';
     }
 
     let addressLine2;
