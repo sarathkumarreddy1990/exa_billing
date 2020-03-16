@@ -216,9 +216,10 @@ const mhsData = {
     getFilePath: async (fileStoreId) => {
         const sql = SQL`
                         SELECT
-                            CONCAT(file_path, '/', uploaded_file_name) AS file_path
-                        FROM billing.edi_files 
-                        WHERE id = ${fileStoreId}`;
+                            (f.root_directory || '/' || ef.file_path || '/' || ef.uploaded_file_name) AS file_path
+                        FROM billing.edi_files ef
+                        INNER JOIN public.file_stores f ON f.id = ef.file_store_id
+                        WHERE ef.id = ${fileStoreId}`;
 
         return (await queryRows(sql)).pop();
     },
