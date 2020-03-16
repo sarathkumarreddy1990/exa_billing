@@ -138,28 +138,7 @@ define([
                             },
                             customAction: function(rowID, event, gridObj) {
                                 var fileName = event.target.dataset.path;
-                                $.ajax({
-                                    url: '/exa_modules/billing/era/get_json_file',
-                                    type: "GET",
-                                    data: {
-                                        company_id: app.companyID,
-                                        file_id: rowID
-                                    },
-                                    success: function (model, response) {
-                                        var decodeEle = document.createElement('a');
-                                        decodeEle.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(model)));
-                                        decodeEle.setAttribute('download', fileName + '.txt');
-                                        decodeEle.style.display = 'none';
-                                        document.body.appendChild(decodeEle);
-
-                                        decodeEle.click();
-                                        document.body.removeChild(decodeEle);
-                                        commonjs.showWarning('messages.status.downloadSuccess');
-                                    },
-                                    error: function (err, response) {
-                                        commonjs.handleXhrError(err, response);
-                                    }
-                                });
+                                self.downloadEobJson(fileName, rowID, gridObj);
                             }
                         },
                         { name: 'id', index: 'id',  width: 50, searchFlag: 'int', searchFlag: '%' },
@@ -693,6 +672,29 @@ define([
 
                 $('.btnCloseEraResultDiv').off().click(function (e) {
                     $("#divEraResult").hide();
+                });
+            },
+
+            downloadEobJson: function(fileName, rowID, gridObj) {
+                $.ajax({
+                    url: '/exa_modules/billing/era/get_json_file',
+                    type: "GET",
+                    data: {
+                        company_id: app.companyID,
+                        file_id: rowID
+                    },
+                    success: function (model, response) {
+                        var decodeEle = document.createElement('a');
+                        decodeEle.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(model)));
+                        decodeEle.setAttribute('download', fileName + '.txt');
+                        decodeEle.style.display = 'none';
+
+                        decodeEle.click();
+                        commonjs.showWarning('messages.status.downloadSuccess');
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
                 });
             }
         });
