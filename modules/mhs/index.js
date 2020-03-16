@@ -42,7 +42,7 @@ const mhsmodules = {
             const companyFileStoreDetails = await mhsController.getCompanyFileStore(args.companyId);
 
             if (!companyFileStoreDetails || companyFileStoreDetails.length === 0) {
-                return null;
+                return  { isFileStoreError: true };
             }
 
             // Grouping claims based on practitioner and calculating total bill fee
@@ -91,7 +91,7 @@ const mhsmodules = {
             const file_path = `MHSAL/Claims/${today}`;
             const fullPath = `${root_directory}/${file_path}/${file_name}`;
 
-            let isDirectoryExists = fse.ensureDir(root_directory);
+            let isDirectoryExists = fs.existsSync(root_directory);
 
             if (!isDirectoryExists) {
                 return { unableToWriteFile: true };

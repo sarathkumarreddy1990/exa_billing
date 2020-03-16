@@ -3064,10 +3064,12 @@ define(['jquery',
 
                 if (data.isNotpendingSubmission) {
                     commonjs.showWarning('messages.status.pleaseSelectValidClaimsStatus');
+                } else if (data.isFileStoreError) {
+                    commonjs.showWarning('messages.warning.era.fileStoreNotconfigured');
                 } else if (data.isClaimBillFeeError) {
-                    commonjs.showWarning('billing.claims.claimFeeValidation');
+                    commonjs.showWarning('billing.claims.isClaimBillFeeError');
                 } else if (data.isTotalBillFeeError) {
-                    commonjs.showWarning('billing.claims.billFeeValidation');
+                    commonjs.showWarning('billing.claims.isTotalBillFeeError');
                 } else if (data.unableToWriteFile) {
                     commonjs.showError('messages.errors.rootdirectorynotexists');
                 } else if (data.error) {
