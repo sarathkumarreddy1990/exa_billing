@@ -154,7 +154,7 @@ module.exports = {
                                             INNER JOIN provider_contacts pc ON pc.provider_id = p.id
                                             WHERE pc.id = COALESCE(NULLIF(orders.referring_provider_ids [ 1 ],'0'),'0')::numeric
                                             AND p.deleted_dt IS NULL
-                                            AND NOT pc.has_deleted /* provider_contacts.has_deleted */
+                                            AND pc.deleted_dt IS NULL
                                             AND p.provider_type = 'RF'
                                         ) referring_provider ON true
                                         JOIN LATERAL (
