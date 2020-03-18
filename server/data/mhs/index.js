@@ -134,7 +134,7 @@ const mhsData = {
                         LEFT JOIN public.providers refp_pro ON refp_pro.id = refp.provider_id
                         INNER JOIN public.patients p  ON  p.id = c.patient_id
                         LEFT JOIN public.get_issuer_details(p.id, 'registration_number') res ON TRUE 
-                        LEFT JOIN public.get_issuer_details(p.id, 'phn') phn ON true
+                        LEFT JOIN public.get_issuer_details(p.id, 'uli_phn') phn ON true
                         LEFT JOIN claim_icds ci on ci.id = c.id
                         LEFT JOIN charges ch ON ch.id = c.id
                         LEFT JOIN public.provider_groups pg ON pg.id = c.ordering_facility_id
@@ -519,7 +519,7 @@ const mhsData = {
             LEFT JOIN public.provider_contacts ppcrf ON ppcrf.id = bc.referring_provider_contact_id
             INNER JOIN public.patients pp ON pp.id = bc.patient_id
             INNER JOIN get_full_name(pp.last_name, pp.first_name) patient_name ON TRUE
-            INNER JOIN public.get_issuer_details(pp.id, 'phn') phn ON TRUE
+            INNER JOIN public.get_issuer_details(pp.id, 'uli_phn') phn ON TRUE
             INNER JOIN public.get_issuer_details(pp.id, 'registration_number') register_number ON TRUE
             INNER JOIN billing.get_claim_totals(bc.id) bgct ON TRUE
             LEFT JOIN (SELECT
