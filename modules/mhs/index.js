@@ -91,9 +91,10 @@ const mhsmodules = {
             const file_path = `MHSAL/Claims/${today}`;
             const fullPath = `${root_directory}/${file_path}/${file_name}`;
 
-            let isDirectoryExists = fs.existsSync(root_directory);
-
-            if (!isDirectoryExists) {
+            try {
+                await statAsync(root_directory);
+            } catch (e) {
+                logger.error('Unable to find file store- ', e);
                 return { unableToWriteFile: true };
             }
 
