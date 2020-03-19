@@ -402,6 +402,19 @@ define(['jquery',
             // BEGIN SAVE FUNCTION
 
             save: function () {
+                var $textTemplateName = $('#textTemplateName');
+                var $textSupportingText = $('#textSupportingText');
+
+                if (!commonjs.checkNotEmpty($textTemplateName.val())) {
+                    $textTemplateName.focus();
+                    return commonjs.showWarning('setup.supportingText.enterTemplateName');
+                }
+
+                if (!commonjs.checkNotEmpty($textSupportingText.val())) {
+                    $textSupportingText.focus();
+                    return commonjs.showWarning('setup.supportingText.enterSupportingText');
+                }
+
                 var self = this;
                 this.model.set({
                     "templateName": $.trim($('#textTemplateName').val()),
