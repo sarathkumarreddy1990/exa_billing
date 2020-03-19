@@ -8,10 +8,7 @@ const autobillingData = require('../data/setup/auto-billing');
 
 router.get('/', function (req, res) {
     let currentTheme = 'default';
-    const countryCode = req.session && req.session.country_alpha_3_code
-        ? req.session.country_alpha_3_code
-        : 'usa';
-    const provinceCode = req.session && req.session.province_alpha_2_Code || '';
+    let billingRegionCode= (req.session && req.session.billingRegionCode) || '';
 
     if (req.session && req.session.currentTheme && ['default', 'dark'].indexOf(req.session.currentTheme) > -1) {
         currentTheme = req.session.currentTheme;
@@ -20,8 +17,7 @@ router.get('/', function (req, res) {
     res.render('index', {
         title: 'EXA-Billing',
         cssPath: staticAssetsRoot + '/skins/' + currentTheme,
-        countryCode: countryCode,
-        provinceCode: provinceCode,
+        billingRegionCode: billingRegionCode,
         staticAssetsRoot
     });
 });
