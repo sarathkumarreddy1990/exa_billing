@@ -1051,7 +1051,7 @@ define(['jquery',
                 $('#txtOriginalRef').val(claim_data.original_reference || '');
                 $('#txtAuthorization').val(claim_data.authorization_no || '');
                 $('#frequency').val(claim_data.frequency || '');
-                $('#txtAccidentState').val(claim_data.accident_state).prop('disabled', !isCauseCode);
+                $('#selAccidentState').val(claim_data.accident_state).prop('disabled', !isCauseCode);
                 /* Additional info end */
                 /* Billing summary start */
 
@@ -1513,7 +1513,7 @@ define(['jquery',
 
                 $('#chkEmployment, #chkAutoAccident, #chkOtherAccident').off().change(function () {
                     var isCauseCode = $('#chkEmployment').prop('checked') || $('#chkAutoAccident').prop('checked') || $('#chkOtherAccident').prop('checked');
-                    var $accidentState = $("#txtAccidentState");
+                    var $accidentState = $("#selAccidentState");
                     $accidentState.prop("disabled", !isCauseCode);
 
                     if (!isCauseCode) {
@@ -3383,7 +3383,7 @@ define(['jquery',
                     is_auto_accident: $('#chkAutoAccident').prop('checked'),
                     is_other_accident: $('#chkOtherAccident').prop('checked'),
                     is_employed: $('#chkEmployment').prop('checked'),
-                    accident_state: isCauseCode && $('#txtAccidentState').val() || null,
+                    accident_state: isCauseCode && $('#selAccidentState').val() || null,
                     service_by_outside_lab: $('#chkOutSideLab').prop('checked'),
                     claim_status_id: claim_status_id,
                     primary_patient_insurance_id: self.is_primary_available && parseInt(self.primaryPatientInsuranceId) || ( self.is_primary_available && parseInt(self.priClaimInsID) || null ),
@@ -3919,7 +3919,7 @@ define(['jquery',
                 }
 
                 /* Additional Info Section */
-                var accidentState = $('#txtAccidentState');
+                var accidentState = $('#selAccidentState');
 
                 if (accidentState.val().length === 1) {
                     commonjs.showWarning("order.additionalInfo.accidentStateValidation");
@@ -4875,7 +4875,7 @@ define(['jquery',
                 $('#chkEmployment, #chkAutoAccident, #chkOtherAccident, #chkOutSideLab').prop("checked", false);
                 $('#txtDate, #txtOtherDate, #txtWCF,#txtWCT, #txtHCF,#txtHCT').val('');
                 $('#txtClaimNotes').empty();
-                $('#txtOriginalRef, #txtAuthorization, #txtAccidentState').val('');
+                $('#txtOriginalRef, #txtAuthorization, #selAccidentState').val('');
                 $('#ddlFrequencyCode option:contains("Select")').prop("selected", true);
 
                 //clear Billing Section
