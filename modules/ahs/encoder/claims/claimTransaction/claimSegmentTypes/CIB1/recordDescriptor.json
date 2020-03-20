@@ -15,7 +15,7 @@
     "startPos": 14,
     "length": 4
   },
-  "service_recipient_uli": {
+  "service_recipient_phn": {
     "format": "n",
     "startPos": 18,
     "length": 9
