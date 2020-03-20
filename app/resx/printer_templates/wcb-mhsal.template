@@ -297,7 +297,6 @@ function bindFooterTemplate() {
     
     body.push(
         [{text: 'Fax this form - in Winnipeg: 204-954-4999 | toll free: 1-877-872-3804', fontSize: 17.5, margin: [2, 8, 0, 0], style: 'headerFont'}],
-        [{text: 'WCB 2019', fontSize: 7, margin: [3, 8, 0, 0]}],
         [{text: pageNo !== 0 && pageNo || '', fontSize: 7, margin: [0, -8, 0, 0], alignment: 'center'}]
         
     );
@@ -321,7 +320,6 @@ function invoice(claimData, serviceLine, pgBreak) {
     let registrationNumber = bindRegistartionNumber();
     let claimInfo = bindClaimInfo(serviceLine);
     let submittedDetails = bindSubmittedDetails(claim);
-    let footerTemplate = bindFooterTemplate();
 
     body.push(
         [
@@ -335,8 +333,7 @@ function invoice(claimData, serviceLine, pgBreak) {
                         [empInfo],
                         [registrationNumber],
                         [claimInfo],
-                        [submittedDetails],
-                        [footerTemplate]
+                        [submittedDetails]
                     ]
                 },
                 layout: 'noBorders',
@@ -405,6 +402,10 @@ if(typeof claimData !== 'undefined'){
 }
 
 var dd = {
+    footer: [ 
+        {text:bindFooterTemplate(), margin:[40,0,0,0]}, 
+        {text: 'WCB 2019', fontSize: 7, margin: [40, 5, 0, 0]}
+    ],
     content: allBlocks,
     styles: {
         headerFont: {
@@ -425,5 +426,5 @@ var dd = {
         height: 792
     },
     pageOrientation: 'portrait',
-    pageMargins: [40, 20, 0, 0]
+    pageMargins: [40, 20, 0, 40]
 }
