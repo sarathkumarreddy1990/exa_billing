@@ -46,6 +46,7 @@ module.exports = {
                     'facility_state' ,facility_info->'facility_state',
                     'facility_zip',facility_info->'facility_zip'
                     ) as facility_adrress_details,
+                    com.billing_info->'tax_id' AS company_tax_id, 
                     bc.id as claim_no,
                     get_full_name(pp.last_name, pp.first_name) as patient_name,
                     bc.facility_id as facility_id,
@@ -62,6 +63,7 @@ module.exports = {
                 INNER JOIN public.facilities f ON f.id = bc.facility_id
                 INNER JOIN public.patients pp ON pp.id = bc.patient_id
                 INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
+                INNER JOIN public.companies com ON com.id = bc.company_id 
                 LEFT JOIN public.patient_insurances ppi ON ppi.id = CASE WHEN payer_type = 'primary_insurance' THEN primary_patient_insurance_id
                                                                 WHEN payer_type = 'secondary_insurance' THEN secondary_patient_insurance_id
                                                                 WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id
