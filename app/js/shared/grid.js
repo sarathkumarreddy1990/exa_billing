@@ -1874,7 +1874,7 @@ define('grid', [
 
                 var liClaimQuery = commonjs.getRightClickMenu('anc_query_claim', 'setup.rightClickMenu.queryClaim', false, 'Query Claim', false);
 
-                if (isValidQueryClaim) {
+                if (isValidQueryClaim && rightclickMenuRights.indexOf('anc_query_claim') === -1) {
                     $divObj.append(liClaimQuery);
                 } else {
                     $('#ancclaimStatus_' + queryClaimStatus.id).parent().hide();
