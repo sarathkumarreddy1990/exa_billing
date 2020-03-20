@@ -342,11 +342,8 @@ const ahsData = {
                 nums AS (
                     SELECT DISTINCT
                         pin.patient_id,
-                        (SELECT alt_account_no FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'uli' AND LOWER(province_alpha_2_code) = 'ab' LIMIT 1) AS service_recipient_uli,
+                        (SELECT alt_account_no FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'uli_phn' AND LOWER(province_alpha_2_code) = 'ab' LIMIT 1) AS service_recipient_uli,
                         (SELECT alt_account_no FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'uli_parent' AND LOWER(province_alpha_2_code) = 'ab' LIMIT 1)                            AS service_recipient_parent_uli,
-
-                        (SELECT alt_account_no FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'phn' AND is_primary LIMIT 1) AS service_recipient_phn,
-                        (SELECT province_alpha_2_code FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'phn' AND is_primary LIMIT 1) AS service_recipient_phn_province,
 
                         (SELECT alt_account_no FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'phn_parent' LIMIT 1)                            AS service_recipient_parent_phn,
                         (SELECT province_alpha_2_code FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'phn_parent' LIMIT 1)                            AS service_recipient_parent_phn_province,
@@ -386,8 +383,6 @@ const ahsData = {
 
                         nums.service_recipient_uli,
                         nums.service_recipient_parent_uli,
-                        nums.service_recipient_phn,
-                        nums.service_recipient_phn_province,
                         nums.service_recipient_parent_phn,
                         nums.service_recipient_parent_phn_province,
                         nums.service_recipient_registration_number,
@@ -400,8 +395,6 @@ const ahsData = {
                                 OR (
                                     nums.service_recipient_registration_number IS NOT NULL
                                     AND nums.service_recipient_registration_number_province IS NOT NULL
-                                    AND nums.service_recipient_phn IS NOT NULL
-                                    AND nums.service_recipient_phn_province IS NOT NULL
                                 )
                             )
                             THEN NULL

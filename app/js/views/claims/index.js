@@ -979,7 +979,7 @@ define(['jquery',
                 $('#ddlPayToDetailsCountryCode').val(pay_to_details.country_code).change();
 
                 // Good Faith only for Alberta residents without a ULI / PHN
-                if ( claim_data.can_ahs_good_faith || (!claim_data.can_ahs_uli && !claim_data.can_ahs_phn) ) {
+                if ( claim_data.can_ahs_good_faith || (!claim_data.can_ahs_uli_phn) ) {
                     $('#divGoodFaith').show();
                     $('#chkGoodFaith').prop('checked', claim_data.can_ahs_good_faith);
                 }
