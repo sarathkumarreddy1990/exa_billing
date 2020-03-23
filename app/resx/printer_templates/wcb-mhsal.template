@@ -255,7 +255,7 @@ function bindClaimInfo(claim) {
             {
                 style: 'labelFont',
                 table: {
-                    widths: [100, 84, 140, 90, 70],
+                    widths: [90, 45, 200, 70, 70],
                     heights: 20,
                     body: serviceData,
                 }
