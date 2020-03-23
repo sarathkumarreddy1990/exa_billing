@@ -638,14 +638,15 @@ define([
                                     html: self.eraResponseTemplate({
                                         claims: ins.processed_eob_payments || [],
                                         ins: ins,
-                                        moment: moment
+                                        moment: moment,
+                                        billingRegionCode: app.billingRegionCode
                                     })
 
                                 });
 
                                 try {
                                     var eraPreview = _.template(EraPreview);
-                                    ins.rawResponse = ins.rawResponse.err ? [] : ins.rawResponse;
+                                    ins.rawResponse = ins.rawResponse && ins.rawResponse.err ? [] : ins.rawResponse || [];
                                     var previewHtml = eraPreview({ data: ins.rawResponse });
                                     $('#era-processed-preview').html(previewHtml);
                                 }
