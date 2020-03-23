@@ -19,7 +19,7 @@ const restrictAccess = ( req, res, next ) => {
         return res.status(401)
             .end();
     }
-    
+
     return next();
 
 };
@@ -69,16 +69,24 @@ router.get('/ohip/:endpoint', restrictAccess, checkProgress, runJob);
 const handleEvents = async (req, res) => {
     let {
         ip,
-        session: {
-            company_id
-        }
+        session,
+        params,
+        query,
     } = req;
-    
+
+    let company_id = 0;
+    if ( session && session.company_id > 0 ) {
+        company_id = session.company_id;
+    }
+    else if ( query && query.company_id > 0 ) {
+        company_id = query.company_id;
+    }
+
     let response = await ahs.events({
-        ...req.params,
-        ...req.query,
+        ...params,
+        ...query,
         company_id,
-        ip
+        ip,
     });
     return httpHandler.send(req, res, response);
 };

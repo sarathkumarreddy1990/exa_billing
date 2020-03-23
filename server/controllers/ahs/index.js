@@ -31,9 +31,15 @@ const ahsController = {
 
         let filesList = await ahsData.getFilesList(data);
 
-        if (!filesList.rows || (filesList.rows && !filesList.rows.length) ) {
+        if ( !filesList.rows || !filesList.rows.length ) {
             logger.info('Pending files not available to process');
-            return {err: 'No pending records found'};
+            return {
+                err: null,
+                response: {
+                    status: `ok`,
+                    message: `No pending records found`
+                },
+            };
         }
 
         const promises = _.map(filesList.rows, async (file) => {
