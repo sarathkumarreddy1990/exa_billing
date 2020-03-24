@@ -89,7 +89,7 @@ var claimDetails = invoiceData[0].claim_details;
 var chargeDetails = invoiceData[0].charge_details;
 var paymentDetails = invoiceData[0].payment_details;
 var icdDetails = invoiceData[0].icd_details;
-let pageBrk = 'none', group;
+var pageBrk = 'none', group;
 
 function Dateformat(data) {
     data = data.substr(5, 2) + '/' + data.substr(8, 2) + '/' + data.substr(0, 4);
@@ -100,8 +100,8 @@ function bindHead(claimNo, data, value) {
     var body = [];
     var dataRow = [];
     for (var key in data[value]) {
-        let objVal = data[value];
-        let keyVal = objVal[key] || " ";
+        var objVal = data[value];
+        var keyVal = objVal[key] || " ";
         if (key === 'facility_address1') {
             dataRow.push(
                 keyVal + (
@@ -128,8 +128,8 @@ function bindHead(claimNo, data, value) {
 }
 
 function getBalanceAmount(claims) {
-    let total = 0;
-    let payment = 0;
+    var total = 0;
+    var payment = 0;
     if (!claims) {
         return '';
     }
@@ -149,9 +149,9 @@ function getBalanceAmount(claims) {
 }
 
 function getAppliedAmount(claims, paymentData, payer) {
-    let total = 0;
-    let primary = 0;
-    let secondary = 0;
+    var total = 0;
+    var primary = 0;
+    var secondary = 0;
     if (!paymentData) {
         return 0.00;
     }
@@ -175,9 +175,9 @@ function getAppliedAmount(claims, paymentData, payer) {
 }
 
 function getPaymentTotal(paymentData) {
-    let total = 0;
-    let payment = 0;
-    let adjustment = 0;
+    var total = 0;
+    var payment = 0;
+    var adjustment = 0;
 
     if (!paymentData) {
         return 0.00;
@@ -200,7 +200,7 @@ function bindCharge(claims, data, values) {
 
         if (row && row['claim_no'] && _isContains(claims, row['claim_no'])) {
             values.forEach(function (column) {
-                let res = row[column] || '';
+                var res = row[column] || '';
 
                 if (column === 'service_date') {
                     dataRow.push(Dateformat(res));
@@ -276,12 +276,13 @@ function getTotal(claims, data, fee) {
     data.forEach( function (row) {
         var dataRow = [];
         if (row && (_isContains(claims, row.claim_id) || (_isContains(claims, row.claim_no)))) {
-            amount = row && row[fee] || 0;
-            amount = amount.toString().replace(/\$|,/g, "");
-            amount = amount.replace(/\(|,/g, "");
-            amount = amount.replace(/\)|,/g, "");
-            total = (parseFloat(total)) + (parseFloat(amount));
-            total = parseFloat(total).toFixed('2');
+             amount = (row && row[fee] || 0)
+                  .toString()
+                  .replace(/\$|,/g, "")
+                  .replace(/\(|,/g, "")
+                  .replace(/\)|,/g, "");
+            total = (parseFloat(total)) + (parseFloat(amount)).toFixed('2');
+             
         }
     });
 
@@ -321,12 +322,13 @@ function getRefund(claims, paymentData) {
     paymentData.forEach(function (row) {
 
         if (row.claim_id === claims && row.adjustment_type === "refund_debit") {
-            refund = row && row.ajdustments_applied_total || 0;
-            refund = refund.toString().replace(/\$|,/g, "");
-            refund = refund.replace(/\(|,/g, "");
-            refund = refund.replace(/\)|,/g, "");
-            total = (parseFloat(total)) + (parseFloat(refund));
-            total = parseFloat(total).toFixed('2');
+             refund = (row && row.ajdustments_applied_total || 0)
+            .toString()
+            .replace(/\$|,/g, "")
+            .replace(/\(|,/g, "")
+            .replace(/\)|,/g, "");
+        total = (parseFloat(total) + parseFloat(refund)).toFixed(2);
+		
             total = '-' + total;
         }
     });
