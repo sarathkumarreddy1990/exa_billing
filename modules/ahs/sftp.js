@@ -235,7 +235,7 @@ const sftpService = {
                         file_md5,
                         file_size,
                         file_store_id,
-                        company_id,
+                        companyId: company_id,
                         file_path: fileDir,
                         created_dt,
                         file_type,
