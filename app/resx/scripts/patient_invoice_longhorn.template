@@ -133,7 +133,7 @@ function getBalanceAmount(claims) {
     if (!claims) {
         return '';
     }
-    claims.forEach((row) => {
+    claims.forEach(function (row) {
         balanceAmt = (row.claim_balance).toString().replace(/\$|,/g, "");
         if (balanceAmt.includes('(')) {
             balanceAmt = balanceAmt.toString().replace(/\(|,/g, "");
@@ -155,7 +155,7 @@ function getAppliedAmount(claims, paymentData, payer) {
     if (!paymentData) {
         return 0.00;
     }
-    paymentData.forEach((row) => {
+    paymentData.forEach( function (row) {
 
         if (_isContains(claims, row['claim_id'])) {
             if (payer != null && row.payer_type && row.payer_type === payer) {
@@ -195,11 +195,11 @@ function bindCharge(claims, data, values) {
     if (!data && !columns) {
         return ';'
     }
-    data.forEach((row) => {
+    data.forEach(function (row) {
         var dataRow = [];
 
         if (row && row['claim_no'] && _isContains(claims, row['claim_no'])) {
-            values.forEach((column) => {
+            values.forEach(function (column) {
                 let res = row[column] || '';
 
                 if (column === 'service_date') {
@@ -225,7 +225,7 @@ function filter(claims, data, values) {
     if (!data) {
         return '';
     }
-    data.forEach((row) => {
+    data.forEach(function (row) {
         var dataRow = [];
 
         if (row && row['claim_no'] && _isContains(claims, row['claim_no'])) {
@@ -260,7 +260,7 @@ function bindIcd(claims, data, values) {
 }
 
 function _isContains(data, value) {
-    data.some((row) => {
+    data.some(function (row) {
         return (row['claim_no'] == value)
 
     })
@@ -273,7 +273,7 @@ function getTotal(claims, data, fee) {
     if (!data) {
         return '';
     }
-    data.forEach((row) => {
+    data.forEach( function (row) {
         var dataRow = [];
         if (row && (_isContains(claims, row.claim_id) || (_isContains(claims, row.claim_no)))) {
             amount = row && row[fee] || 0;
@@ -294,7 +294,7 @@ function getAdjustment(claims, data, fee) {
     if (!data) {
         return 0.00;
     }
-    data.forEach((row) => {
+    data.forEach(function (row) {
         var dataRow = [];
 
         if (row && fee && (_isContains(claims, row.claim_id) || (_isContains(claims, row.claim_no)) && row.adjustment_type !== "refund_debit")) {
@@ -318,7 +318,7 @@ function getRefund(claims, paymentData) {
         return 0.00;
     }
 
-    paymentData.forEach((row) => {
+    paymentData.forEach(function (row) {
 
         if (row.claim_id === claims && row.adjustment_type === "refund_debit") {
             refund = row && row.ajdustments_applied_total || 0;
@@ -340,7 +340,7 @@ function bindInvoice(data, columns, pageBrk, group) {
         return '';
     }
     var dataRow = [];
-    columns.forEach((column) => {
+    columns.forEach(function (column) {
 
         if (column !== 'Temp') {
             return '';
@@ -491,7 +491,7 @@ function mergeData(claim, pageBrk, group) {
 }
 
 function groupClaimByPatient(claimDet) {
-    result = claimDet.reduce((r, a) => {
+    result = claimDet.reduce(function (r, a) {
         r[a.account_no] = r[a.account_no] || [];
         r[a.account_no].push(a);
         return r;
@@ -500,8 +500,8 @@ function groupClaimByPatient(claimDet) {
 }
 
 function filterUniquePatient(patientDetails) {
-    var _filterPatient = patientDetails.reduceRight((r, a) => {
-        r.some((b) => {
+    var _filterPatient = patientDetails.reduceRight(function (r, a) {
+        r.some(function (b) {
             return a.account_no === b.account_no;
         }) || r.push(a);
         return r;
