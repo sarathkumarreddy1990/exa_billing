@@ -400,7 +400,7 @@ module.exports = {
 															patient_info->'employerPhone' AS "employer_phone",
 															patient_info->'employerAddress' AS "employer_address",
 															concat( patient_info->'employerCity',' ', patient_info->'employerState',' ', patient_info->'employerZip' ) AS "employerAddressDet",
-															get_issuer_details(patients.id, 'phn') AS phn_details,
+															get_issuer_details(patients.id, 'uli_phn') AS phn_details,
 															birth_date::text as dob,
 															to_char(birth_date, 'YYYYMMDD')  as "dobFormat",
 											(  CASE gender
