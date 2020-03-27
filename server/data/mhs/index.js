@@ -514,14 +514,16 @@ const mhsData = {
                 , pip.insurance_name AS payer_name
                 , bc.claim_notes AS claim_notes
                 , pf.can_facility_number AS facility_number
+                , bcs.code AS claim_status_code
             FROM billing.claims bc
-            LEFT JOIN public.provider_contacts ppcrd ON ppcrd.id = bc.rendering_provider_contact_id
-            LEFT JOIN public.provider_contacts ppcrf ON ppcrf.id = bc.referring_provider_contact_id
+            INNER JOIN billing.claim_status bcs ON bcs.id = bc.claim_status_id
             INNER JOIN public.patients pp ON pp.id = bc.patient_id
             INNER JOIN get_full_name(pp.last_name, pp.first_name) patient_name ON TRUE
             INNER JOIN public.get_issuer_details(pp.id, 'uli_phn') phn ON TRUE
             INNER JOIN public.get_issuer_details(pp.id, 'registration_number') register_number ON TRUE
             INNER JOIN billing.get_claim_totals(bc.id) bgct ON TRUE
+            LEFT JOIN public.provider_contacts ppcrd ON ppcrd.id = bc.rendering_provider_contact_id
+            LEFT JOIN public.provider_contacts ppcrf ON ppcrf.id = bc.referring_provider_contact_id
             LEFT JOIN (SELECT
                             COUNT(claim_id) = COUNT(claim_id) FILTER (WHERE pointer1 IS NOT NULL) AS icds
                             , claim_id

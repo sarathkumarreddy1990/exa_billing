@@ -2897,9 +2897,13 @@ define(['jquery',
                         if (data) {
                             commonjs.hideLoading();
 
-                            if (data.validClaim_data && data.validClaim_data.rows && data.validClaim_data.rows.length) {
-                                commonjs.showStatus("messages.status.validatedSuccessfully");
+                            var isValidClaimData = data.validClaim_data && data.validClaim_data.rows && data.validClaim_data.rows.length;
 
+                            if ((app.billingRegionCode === 'can_MB' && data.validP77Claim_data.length) || isValidClaimAvailable) {
+                                commonjs.showStatus("messages.status.validatedSuccessfully");
+                            }
+
+                            if (isValidClaimData) {
                                 var pending_submission_status = app.claim_status.filter(function (obj) {
                                     return obj.id === parseInt(data.validClaim_data.rows[0].claim_status_id)
                                 });

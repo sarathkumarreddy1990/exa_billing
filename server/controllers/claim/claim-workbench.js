@@ -228,7 +228,8 @@ module.exports = {
         let validationClaimJson = JSON.parse(await readFileAsync(file_path, 'utf8'));
         let validation_result = {
             invalidClaim_data: [],
-            validClaim_data: []
+            validClaim_data: [],
+            validP77Claim_data: [],
         };
         let error_data;
 
@@ -264,7 +265,7 @@ module.exports = {
             }
 
             if (!errorMessages.length) {
-                params.success_claimID.push(currentClaim.claim_id);
+                currentClaim.claim_status_code !== 'P77' && params.success_claimID.push(currentClaim.claim_id) || validation_result.validP77Claim_data.push(currentClaim.claim_id)
             } else {
                 error_data = {
                     'id': currentClaim.claim_id,
