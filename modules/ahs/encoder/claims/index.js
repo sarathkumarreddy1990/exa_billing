@@ -82,7 +82,7 @@ const encode = ( rows ) => {
         ),
     ];
 
-    return finalizeText(encodedArray.join(`\n`));
+    return finalizeText(encodedArray.join(`\r\n`));
 };
 
 module.exports = {
