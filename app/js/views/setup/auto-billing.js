@@ -46,12 +46,33 @@ define(['jquery',
             });
         };
 
+        var getSelectedPayerTypes = function() {
+            return _.map($("#listAutoBillingInsuranceProviderPayerTypes option"), function(option) {
+                return option.value;
+            });
+        };
+        var getSelectedPayers = function() {
+            return _.map($("#listAutoBillingInsuranceProviders option"), function(option) {
+                return option.value;
+            });
+        };
+
+
         var toggleCptCodes = function(enabled) {
             $('#divAutoBillingCptCodes .autobilling-input').prop('disabled', !enabled);
         };
         var toggleModalities = function(enabled) {
             $('#divAutoBillingModalities .autobilling-input').prop('disabled', !enabled);
         };
+
+        var togglePayerTypes = function(enabled) {
+            $('#divAutoBillingInsuranceProviderPayerTypes .autobilling-input').prop('disabled', !enabled);
+        };
+        var togglePayers = function(enabled) {
+            $('#divAutoBillingInsuranceProviders .autobilling-input').prop('disabled', !enabled);
+        };
+
+
 
         var modalitiesChanged = function() {
             if (getSelectedModalities().length) {
@@ -70,6 +91,28 @@ define(['jquery',
                 toggleModalities(true);
             }
         };
+
+        var insuranceProviderPayerTypesChanged = function() {
+            console.log('insurance provider payer types changed');
+            if (getSelectedPayerTypes().length) {
+                togglePayers(false);
+            }
+            else {
+                togglePayers(true);
+            }
+        };
+
+        var insuranceProvidersChanged = function() {
+            console.log('insurance provider changed');
+            if (getSelectedPayers().length) {
+                togglePayerTypes(false);
+            }
+            else {
+                togglePayerTypes(true);
+            }
+        };
+
+
 
 
 
@@ -133,6 +176,7 @@ define(['jquery',
                     });
                 });
                 $("#listAutoBillingInsuranceProviderPayerTypes").append(ruleInsuranceProviderPayerTypes);
+                insuranceProviderPayerTypesChanged();
             }
 
             if (data.exclude_insurance_providers !== null) {
@@ -144,6 +188,7 @@ define(['jquery',
                     });
                 });
                 $("#listAutoBillingInsuranceProviders").append(ruleInsuranceProviders);
+                insuranceProvidersChanged();
             }
         };
 
@@ -343,7 +388,7 @@ define(['jquery',
                         self.pendingAutoBillingStudyStatus.id,
                         self.pendingAutoBillingStudyStatus.text
                     ));
-                    $ddlAutoBillingStudyStatuses.empty();
+                    // $ddlAutoBillingStudyStatuses.empty();
                     self.pendingAutoBillingStudyStatus = null;
                 });
                 $('#btnRemoveAutoBillingStudyStatus').off().click(function() {
@@ -359,7 +404,7 @@ define(['jquery',
                         self.pendingAutoBillingFacility.id,
                         self.pendingAutoBillingFacility.text
                     ));
-                    $ddlAutoBillingFacility.empty();
+                    // $ddlAutoBillingFacility.empty();
                     self.pendingAutoBillingFacility = null;
                 });
                 $('#btnRemoveAutoBillingFacility').off().click(function() {
@@ -377,7 +422,7 @@ define(['jquery',
                         self.pendingAutoBillingModality.text
                     ));
                     self.pendingAutoBillingModality = null;
-                    $ddlAutoBillingModality.empty();
+                    // $ddlAutoBillingModality.empty();
                     modalitiesChanged();
                 });
                 $('#btnRemoveAutoBillingModality').off().click(function() {
@@ -420,9 +465,11 @@ define(['jquery',
                     ));
                     $ddlAutoBillingInsuranceProviderPayerTypes.empty();
                     self.pendingAutoBillingInsuranceProviderPayerType = null;
+                    insuranceProviderPayerTypesChanged();
                 });
                 $('#btnRemoveAutoBillingInsuranceProviderPayerType').off().click(function() {
                     $listAutoBillingInsuranceProviderPayerTypes.find('option:selected').remove();
+                    insuranceProviderPayerTypesChanged();
                 });
                 // ******** END Insurance Provider Payer Types SECTION *********
 
@@ -438,9 +485,11 @@ define(['jquery',
                     ));
                     $ddlAutoBillingInsuranceProviders.empty();
                     self.pendingAutoBillingInsuranceProvider = null;
+                    insuranceProvidersChanged();
                 });
                 $('#btnRemoveAutoBillingInsuranceProvider').off().click(function() {
                     $listAutoBillingInsuranceProviders.find('option:selected').remove();
+                    insuranceProvidersChanged();
                 });
                 // ************* END Insurance Providers SECTION ***************
 

@@ -245,7 +245,7 @@
 
 
             <!-- BEGIN Insurance Provider Payer Types SECTION -->
-            <div class="row" style="margin-top:10px;">
+            <div class="row" style="margin-top:10px;" id="divAutoBillingInsuranceProviderPayerTypes">
 
                 <div class="col-lg-12">
                     <div class="row">
@@ -261,11 +261,11 @@
                         <div class="col-lg-2">
 
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="chkAutoBillingInsuranceProviderPayerType" value="is">
+                                <input class="form-check-input autobilling-input" type="radio" name="chkAutoBillingInsuranceProviderPayerType" value="is">
                                 <label i18n="setup.common.is"></label>
                             </div>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="chkAutoBillingInsuranceProviderPayerType" value="isNOT">
+                                <input class="form-check-input autobilling-input" type="radio" name="chkAutoBillingInsuranceProviderPayerType" value="isNOT">
                                 <label i18n="setup.common.isNot"></label>
                             </div>
                         </div>
@@ -273,19 +273,19 @@
                         <div class="col-lg-4">
                             <div class="form-group row">
                                 <div class="col-sm-10">
-                                    <select id="ddlAutoBillingInsuranceProviderPayerTypes" class="form-control select-box"></select>
+                                    <select id="ddlAutoBillingInsuranceProviderPayerTypes" class="form-control select-box autobilling-input"></select>
                                 </div>
-                                <button type="button" id="btnAddAutoBillingInsuranceProviderPayerType" class="btn btn-primary col-sm-2" name="button">
+                                <button type="button" id="btnAddAutoBillingInsuranceProviderPayerType" class="btn btn-primary col-sm-2 autobilling-input" name="button">
                                     <i class="icon-ic-plus"></i>
                                 </button>
                             </div>
 
                         </div>
                         <div class="col-lg-5">
-                            <select id="listAutoBillingInsuranceProviderPayerTypes" multiple="multiple" size="5" style="height: 80px;"></select>
+                            <select id="listAutoBillingInsuranceProviderPayerTypes" multiple="multiple" size="5" class="autobilling-input" style="height: 80px;"></select>
                         </div>
                         <div class="col-lg-1">
-                            <button type="button" id="btnRemoveAutoBillingInsuranceProviderPayerType" class="btn btn-primary"><i class="icon-ic-delete"></i></button>
+                            <button type="button" id="btnRemoveAutoBillingInsuranceProviderPayerType" class="btn btn-primary autobilling-input"><i class="icon-ic-delete"></i></button>
                         </div>
                     </div>
                     <!-- END Insurance Provider Payer Types FIELDS -->
@@ -298,7 +298,7 @@
 
 
             <!-- BEGIN Insurance Providers SECTION -->
-            <div class="row" style="margin-top:10px;">
+            <div class="row" style="margin-top:10px;" id="divAutoBillingInsuranceProviders">
 
                 <div class="col-lg-12">
                     <div class="row">
@@ -314,11 +314,11 @@
                         <div class="col-lg-2">
 
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="chkAutoBillingInsuranceProvider" value="is">
+                                <input class="form-check-input autobilling-input" type="radio" name="chkAutoBillingInsuranceProvider" value="is">
                                 <label i18n="setup.common.is"></label>
                             </div>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="chkAutoBillingInsuranceProvider" value="isNOT">
+                                <input class="form-check-input autobilling-input" type="radio" name="chkAutoBillingInsuranceProvider" value="isNOT">
                                 <label i18n="setup.common.isNot"></label>
                             </div>
                         </div>
@@ -326,19 +326,19 @@
                         <div class="col-lg-4">
                             <div class="form-group row">
                                 <div class="col-sm-10">
-                                    <select id="ddlAutoBillingInsuranceProviders" class="form-control select-box"></select>
+                                    <select id="ddlAutoBillingInsuranceProviders" class="form-control select-box autobilling-input"></select>
                                 </div>
-                                <button type="button" id="btnAddAutoBillingInsuranceProvider" class="btn btn-primary col-sm-2" name="button">
+                                <button type="button" id="btnAddAutoBillingInsuranceProvider" class="btn btn-primary col-sm-2  autobilling-input" name="button">
                                     <i class="icon-ic-plus"></i>
                                 </button>
                             </div>
 
                         </div>
                         <div class="col-lg-5">
-                            <select id="listAutoBillingInsuranceProviders" multiple="multiple" size="5" style="height: 80px;"></select>
+                            <select id="listAutoBillingInsuranceProviders" multiple="multiple" size="5" style="height: 80px;" class="autobilling-input"></select>
                         </div>
                         <div class="col-lg-1">
-                            <button type="button" id="btnRemoveAutoBillingInsuranceProvider" class="btn btn-primary"><i class="icon-ic-delete"></i></button>
+                            <button type="button" id="btnRemoveAutoBillingInsuranceProvider" class="btn btn-primary autobilling-input"><i class="icon-ic-delete"></i></button>
                         </div>
                     </div>
                     <!-- END Insurance Providers FIELDS -->
