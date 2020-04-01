@@ -42,7 +42,7 @@ const mhsmodules = {
             const companyFileStoreDetails = await mhsController.getCompanyFileStore(args.companyId);
 
             if (!companyFileStoreDetails || companyFileStoreDetails.length === 0) {
-                return null;
+                return  { isFileStoreError: true };
             }
 
             // Grouping claims based on practitioner and calculating total bill fee
@@ -91,9 +91,10 @@ const mhsmodules = {
             const file_path = `MHSAL/Claims/${today}`;
             const fullPath = `${root_directory}/${file_path}/${file_name}`;
 
-            let isDirectoryExists = fse.ensureDir(root_directory);
-
-            if (!isDirectoryExists) {
+            try {
+                await statAsync(root_directory);
+            } catch (e) {
+                logger.error('Unable to find file store- ', e);
                 return { unableToWriteFile: true };
             }
 
@@ -108,7 +109,7 @@ const mhsmodules = {
 
             let ediFileId = await mhsController.storeFile({
                 file_store_id,
-                file_path: `${root_directory}/${file_path}`,
+                file_path,
                 file_name,
                 file_md5,
                 file_size,

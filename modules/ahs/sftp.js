@@ -159,7 +159,6 @@ const sftpService = {
             let {
                 file_store_id,
                 root_directory,
-                submitter_prefix
             } = fileStoreDetails.rows.pop();
 
             if ( !root_directory ) {
@@ -236,7 +235,7 @@ const sftpService = {
                         file_md5,
                         file_size,
                         file_store_id,
-                        company_id,
+                        companyId: company_id,
                         file_path: fileDir,
                         created_dt,
                         file_type,

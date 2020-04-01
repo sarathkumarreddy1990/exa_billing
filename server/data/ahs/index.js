@@ -126,7 +126,7 @@ const ahsData = {
                 get_full_name(pp.last_name,pp.first_name)    AS "patientName",
                 claim_notes                                  AS "claimNotes",
                 pp.first_name                                AS "patient_first_name",
-                pc_app.can_ahs_prid                          AS "service_provider_prid",
+                pc_app.can_prid                          AS "service_provider_prid",
                 COALESCE(pp.patient_info -> 'c1State', pp.patient_info -> 'c1Province', '') AS province_code,
                 (SELECT
                     charges_bill_fee_total
@@ -342,14 +342,12 @@ const ahsData = {
                 nums AS (
                     SELECT DISTINCT
                         pin.patient_id,
-                        (SELECT alt_account_no FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'uli' AND province_alpha_2_code = 'ab' LIMIT 1) AS service_recipient_uli,
-                        (SELECT alt_account_no FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'uli_parent' AND province_alpha_2_code = 'ab' LIMIT 1)                            AS service_recipient_parent_uli,
 
-                        (SELECT alt_account_no FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'phn' AND is_primary LIMIT 1) AS service_recipient_phn,
-                        (SELECT province_alpha_2_code FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'phn' AND is_primary LIMIT 1) AS service_recipient_phn_province,
+                        (SELECT alt_account_no FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'uli_phn' AND is_primary LIMIT 1)                            AS service_recipient_phn,
+                        (SELECT province_alpha_2_code FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'uli_phn' AND is_primary LIMIT 1)                            AS service_recipient_phn_province,
 
-                        (SELECT alt_account_no FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'phn_parent' LIMIT 1)                            AS service_recipient_parent_phn,
-                        (SELECT province_alpha_2_code FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'phn_parent' LIMIT 1)                            AS service_recipient_parent_phn_province,
+                        (SELECT alt_account_no FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'uli_phn_parent' LIMIT 1)                            AS service_recipient_parent_phn,
+                        (SELECT province_alpha_2_code FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'uli_phn_parent' LIMIT 1)                            AS service_recipient_parent_phn_province,
 
                         (SELECT alt_account_no FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'registration_number' LIMIT 1)                   AS service_recipient_registration_number,
                         (SELECT province_alpha_2_code FROM patient_id_nums WHERE patient_id = pin.patient_id AND issuer_type = 'registration_number' LIMIT 1)                   AS service_recipient_registration_number_province,
@@ -381,11 +379,9 @@ const ahsData = {
                             ELSE ''
                         END                                          AS claim_type,
 
-                        pc_app.can_ahs_prid                             AS service_provider_prid,
+                        pc_app.can_prid                             AS service_provider_prid,
                         sc.code                                         AS skill_code,
 
-                        nums.service_recipient_uli,
-                        nums.service_recipient_parent_uli,
                         nums.service_recipient_phn,
                         nums.service_recipient_phn_province,
                         nums.service_recipient_parent_phn,
@@ -396,12 +392,10 @@ const ahsData = {
                         nums.service_recipient_parent_registration_number_province,
                         CASE
                             WHEN (
-                                nums.service_recipient_uli IS NOT NULL
+                                nums.service_recipient_phn IS NOT NULL
                                 OR (
                                     nums.service_recipient_registration_number IS NOT NULL
                                     AND nums.service_recipient_registration_number_province IS NOT NULL
-                                    AND nums.service_recipient_phn IS NOT NULL
-                                    AND nums.service_recipient_phn_province IS NOT NULL
                                 )
                             )
                             THEN NULL
@@ -419,7 +413,7 @@ const ahsData = {
                                 'postal_code', REGEXP_REPLACE(COALESCE(p.patient_info -> 'c1Zip', p.patient_info -> 'c1PostalCode', ''), '\\s', '', 'g'),
                                 'province_code', COALESCE(p.patient_info -> 'c1State', p.patient_info -> 'c1Province', ''),
                                 'country_code', COALESCE(p.patient_info -> 'c1country', ''),
-                                'parent_uli', COALESCE(nums.service_recipient_parent_uli, ''),
+                                'parent_phn', COALESCE(nums.service_recipient_parent_phn, ''),
                                 'parent_registration_number', COALESCE(nums.service_recipient_parent_registration_number, '')
                             )
                         END                                          AS service_recipient_details,
@@ -473,7 +467,7 @@ const ahsData = {
                         -- Use this to create person data segment CPD1
                         bc.can_ahs_pay_to_details                    AS pay_to_details,
                         bc.can_ahs_locum_arrangement                 AS locum_arrangement,
-                        pc_ref.can_ahs_prid                          AS referral_id,
+                        pc_ref.can_prid                          AS referral_id,
 
                         CASE
                             WHEN LOWER(COALESCE(
@@ -486,7 +480,7 @@ const ahsData = {
                         END                                          AS oop_referral_indicator,
 
                         CASE
-                            WHEN pc_ref.can_ahs_prid IS NULL AND p_ref.id IS NOT NULL
+                            WHEN pc_ref.can_prid IS NULL AND p_ref.id IS NOT NULL
                             THEN JSONB_BUILD_OBJECT(
                                 'person_type', 'RFRC',
                                 'first_name', p_ref.first_name,
@@ -515,14 +509,17 @@ const ahsData = {
                                 'postal_code', REGEXP_REPLACE(COALESCE(pc_ref.contact_info -> 'ZIP', pc_ref.contact_info -> 'POSTALCODE', ''), '\\s', '', 'g'),
                                 'province_code', COALESCE(pc_ref.contact_info -> 'STATE', pc_ref.contact_info -> 'STATE_NAME', ''),
                                 'country_code', COALESCE(pc_ref.contact_info -> 'COUNTRY', ''),
-                                'parent_uli', '',
+                                'parent_phn', '',
                                 'parent_registration_number', ''
                             )
                             ELSE NULL
                         END                                          AS referring_provider_details,
 
                         CASE
-                            WHEN nums.service_recipient_uli IS NULL AND nums.service_recipient_registration_number_province NOT IN ( 'ab', 'qc' )
+                            WHEN (
+                                ( nums.service_recipient_phn IS NULL OR LOWER(nums.service_recipient_phn_province) != 'ab' ) 
+                                AND nums.service_recipient_registration_number_province NOT IN ( 'ab', 'qc' )
+                            )
                             THEN nums.service_recipient_registration_number_province
                             ELSE ''
                         END                                          AS recovery_code,
@@ -694,7 +691,7 @@ const ahsData = {
 
                     WINDOW ENCOUNTER_WINDOW AS (
                         PARTITION BY
-                            pc_app.can_ahs_prid,
+                            pc_app.can_prid,
                             p.id,
                             s.study_dt :: DATE
                         ORDER BY

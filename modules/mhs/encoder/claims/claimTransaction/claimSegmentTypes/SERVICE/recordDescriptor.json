@@ -81,9 +81,7 @@
     "icd_9_cm": {
         "format": "A",
         "startPos": 42,
-        "length": 5,
-        "paddingChar": "0",
-        "isLeftJustified": false
+        "length": 5
     },
     "optometric_reason_code": {
         "format": "A",

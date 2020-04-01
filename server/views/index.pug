@@ -21,7 +21,7 @@ block content
                     a#aClaims.nav-link(href='#billing/claim_workbench/list', i18n='shared.moduleheader.claims')
                 li.nav-item
                     a#aPayments.nav-link(href='#billing/payments/list', i18n='shared.moduleheader.payments')
-                unless countryCode === 'can' && provinceCode === 'MB'
+                unless billingRegionCode === 'can_AB'
                     li.nav-item
                         a#aEob.nav-link(href='#billing/era/list', i18n='shared.moduleheader.eob')
 

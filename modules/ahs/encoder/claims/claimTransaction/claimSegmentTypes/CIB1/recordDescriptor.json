@@ -15,7 +15,7 @@
     "startPos": 14,
     "length": 4
   },
-  "service_recipient_uli": {
+  "service_recipient_phn": {
     "format": "n",
     "startPos": 18,
     "length": 9
@@ -41,7 +41,7 @@
     "length": 1
   },
   "diagnosis_code_1": {
-    "format": "A",
+    "format": "a",
     "startPos": 55,
     "length": 6
   },

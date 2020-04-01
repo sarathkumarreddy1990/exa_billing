@@ -2897,9 +2897,13 @@ define(['jquery',
                         if (data) {
                             commonjs.hideLoading();
 
-                            if (data.validClaim_data && data.validClaim_data.rows && data.validClaim_data.rows.length) {
-                                commonjs.showStatus("messages.status.validatedSuccessfully");
+                            var isValidClaimData = data.validClaim_data && data.validClaim_data.rows && data.validClaim_data.rows.length;
 
+                            if ((app.billingRegionCode === 'can_MB' && data.validP77Claim_data.length) || isValidClaimAvailable) {
+                                commonjs.showStatus("messages.status.validatedSuccessfully");
+                            }
+
+                            if (isValidClaimData) {
                                 var pending_submission_status = app.claim_status.filter(function (obj) {
                                     return obj.id === parseInt(data.validClaim_data.rows[0].claim_status_id)
                                 });
@@ -3064,10 +3068,12 @@ define(['jquery',
 
                 if (data.isNotpendingSubmission) {
                     commonjs.showWarning('messages.status.pleaseSelectValidClaimsStatus');
+                } else if (data.isFileStoreError) {
+                    commonjs.showWarning('messages.warning.era.fileStoreNotconfigured');
                 } else if (data.isClaimBillFeeError) {
-                    commonjs.showWarning('billing.claims.claimFeeValidation');
+                    commonjs.showWarning('billing.claims.isClaimBillFeeError');
                 } else if (data.isTotalBillFeeError) {
-                    commonjs.showWarning('billing.claims.billFeeValidation');
+                    commonjs.showWarning('billing.claims.isTotalBillFeeError');
                 } else if (data.unableToWriteFile) {
                     commonjs.showError('messages.errors.rootdirectorynotexists');
                 } else if (data.error) {

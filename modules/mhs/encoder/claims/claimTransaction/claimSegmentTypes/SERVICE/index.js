@@ -36,7 +36,7 @@ const processResults = (row, service) => {
         'anesthesia_units': '00',
         'fee_submitted':  bill_fee && bill_fee.replace(/[, .]/g, ''), // By default last 2 digit is piase or cent hence removing decimal 
         'confidentail_code': can_confidential ? 'C' : '',
-        'icd_9_cm': icds && service.pointer1 && icds[service.pointer1 - 1] && icds[service.pointer1 - 1].replace(/[.]/g, ''),
+        'icd_9_cm': icds && service.pointer1 && icds[service.pointer1 - 1] && (icds[service.pointer1 - 1].replace(/[.]/g, '')).padStart(5, '0'),
         'optometric_reason_code': '00',
         'special_circumstance_indicator': ' ',
         'interpreting_radiologist_number': interpreting_provider.prid,

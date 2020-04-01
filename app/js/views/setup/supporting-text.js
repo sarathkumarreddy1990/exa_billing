@@ -50,7 +50,8 @@ define(['jquery',
                 $('#divSupportingTextGrid').show();
                 $('#divSupportingTextForm').hide();
                 $(this.el).html(this.supportingTextGridTemplate({
-                    billingRegionCode: app.billingRegionCode
+                    billingRegionCode: app.billingRegionCode,
+                    countryCode: app.country_alpha_3_code
                 }));
 
                 this.supportingTextTable = new customGrid();
@@ -156,7 +157,10 @@ define(['jquery',
                 var self = this;
                 self.templateAssociatedCptIds = [];
                 self.templateAssociatedModifierIds = [];
-                $('#divSupportingTextForm').html(this.supportingTextTemplate());
+                $('#divSupportingTextForm').html(this.supportingTextTemplate({
+                    billingRegionCode: app.billingRegionCode,
+                    countryCode: app.country_alpha_3_code
+                }));
                 if(id > 0) {
                     this.model.set({id: id});
                     this.model.fetch({
@@ -398,6 +402,19 @@ define(['jquery',
             // BEGIN SAVE FUNCTION
 
             save: function () {
+                var $textTemplateName = $('#textTemplateName');
+                var $textSupportingText = $('#textSupportingText');
+
+                if (!commonjs.checkNotEmpty($textTemplateName.val())) {
+                    $textTemplateName.focus();
+                    return commonjs.showWarning('setup.supportingText.enterTemplateName');
+                }
+
+                if (!commonjs.checkNotEmpty($textSupportingText.val())) {
+                    $textSupportingText.focus();
+                    return commonjs.showWarning('setup.supportingText.enterSupportingText');
+                }
+
                 var self = this;
                 this.model.set({
                     "templateName": $.trim($('#textTemplateName').val()),

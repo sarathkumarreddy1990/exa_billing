@@ -25,6 +25,11 @@ router.get('/upload', function (req, res) {
     });
 });
 
+router.get('/get_json_file', async function (req, res) {
+    const data = await eraController.getEraFileJson(req.query);
+    httpHandler.send(req, res, data);
+});
+
 const storage = multer.memoryStorage();
 const upload = multer({
     storage: storage

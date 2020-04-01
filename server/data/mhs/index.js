@@ -134,7 +134,7 @@ const mhsData = {
                         LEFT JOIN public.providers refp_pro ON refp_pro.id = refp.provider_id
                         INNER JOIN public.patients p  ON  p.id = c.patient_id
                         LEFT JOIN public.get_issuer_details(p.id, 'registration_number') res ON TRUE 
-                        LEFT JOIN public.get_issuer_details(p.id, 'phn') phn ON true
+                        LEFT JOIN public.get_issuer_details(p.id, 'uli_phn') phn ON true
                         LEFT JOIN claim_icds ci on ci.id = c.id
                         LEFT JOIN charges ch ON ch.id = c.id
                         LEFT JOIN public.provider_groups pg ON pg.id = c.ordering_facility_id
@@ -216,9 +216,10 @@ const mhsData = {
     getFilePath: async (fileStoreId) => {
         const sql = SQL`
                         SELECT
-                            CONCAT(file_path, '/', uploaded_file_name) AS file_path
-                        FROM billing.edi_files 
-                        WHERE id = ${fileStoreId}`;
+                            (f.root_directory || '/' || ef.file_path || '/' || ef.uploaded_file_name) AS file_path
+                        FROM billing.edi_files ef
+                        INNER JOIN public.file_stores f ON f.id = ef.file_store_id
+                        WHERE ef.id = ${fileStoreId}`;
 
         return (await queryRows(sql)).pop();
     },
@@ -513,14 +514,16 @@ const mhsData = {
                 , pip.insurance_name AS payer_name
                 , bc.claim_notes AS claim_notes
                 , pf.can_facility_number AS facility_number
+                , bcs.code AS claim_status_code
             FROM billing.claims bc
-            LEFT JOIN public.provider_contacts ppcrd ON ppcrd.id = bc.rendering_provider_contact_id
-            LEFT JOIN public.provider_contacts ppcrf ON ppcrf.id = bc.referring_provider_contact_id
+            INNER JOIN billing.claim_status bcs ON bcs.id = bc.claim_status_id
             INNER JOIN public.patients pp ON pp.id = bc.patient_id
             INNER JOIN get_full_name(pp.last_name, pp.first_name) patient_name ON TRUE
-            INNER JOIN public.get_issuer_details(pp.id, 'phn') phn ON TRUE
+            INNER JOIN public.get_issuer_details(pp.id, 'uli_phn') phn ON TRUE
             INNER JOIN public.get_issuer_details(pp.id, 'registration_number') register_number ON TRUE
             INNER JOIN billing.get_claim_totals(bc.id) bgct ON TRUE
+            LEFT JOIN public.provider_contacts ppcrd ON ppcrd.id = bc.rendering_provider_contact_id
+            LEFT JOIN public.provider_contacts ppcrf ON ppcrf.id = bc.referring_provider_contact_id
             LEFT JOIN (SELECT
                             COUNT(claim_id) = COUNT(claim_id) FILTER (WHERE pointer1 IS NOT NULL) AS icds
                             , claim_id

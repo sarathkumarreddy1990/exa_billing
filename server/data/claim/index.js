@@ -156,7 +156,7 @@ module.exports = {
                                             INNER JOIN provider_contacts pc ON pc.provider_id = p.id
                                             WHERE pc.id = COALESCE(NULLIF(orders.referring_provider_ids [ 1 ],'0'),'0')::numeric
                                             AND p.deleted_dt IS NULL
-                                            AND NOT pc.has_deleted /* provider_contacts.has_deleted */
+                                            AND pc.deleted_dt IS NULL
                                             AND p.provider_type = 'RF'
                                         ) referring_provider ON true
                                         JOIN LATERAL (
@@ -505,9 +505,7 @@ module.exports = {
                     , p.birth_date::text AS patient_dob
                     , p.full_name AS patient_name
                     , p.gender AS patient_gender
-                    , (SELECT alt_account_no FROM patient_alt_accounts LEFT JOIN issuers i ON i.id = issuer_id WHERE patient_id = p.id AND i.issuer_type = 'uli' AND province_alpha_2_code = 'ab' LIMIT 1) AS can_ahs_uli
-                    , (SELECT alt_account_no FROM patient_alt_accounts LEFT JOIN issuers i ON i.id = issuer_id WHERE patient_id = p.id AND i.issuer_type = 'phn' AND is_primary LIMIT 1) AS can_ahs_phn
-                    , (SELECT province_alpha_2_code FROM patient_alt_accounts LEFT JOIN issuers i ON i.id = issuer_id WHERE patient_id = p.id AND i.issuer_type = 'phn' AND is_primary LIMIT 1) AS can_ahs_phn_province
+                    , (SELECT alt_account_no FROM patient_alt_accounts LEFT JOIN issuers i ON i.id = issuer_id WHERE patient_id = p.id AND i.issuer_type = 'uli_phn' AND province_alpha_2_code = 'ab' LIMIT 1) AS can_ahs_uli_phn
                     , get_patient_alerts_to_jsonb(p.id, TRUE) AS alerts
                     , p.patient_info
                     , ref_pr.full_name AS ref_prov_full_name

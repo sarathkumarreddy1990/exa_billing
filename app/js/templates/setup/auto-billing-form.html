@@ -22,7 +22,7 @@
                         </div>
                         <div class="col-sm-7">
                             <select id="ddlAutoBillingClaimStatus" name="listAutoBillingClaimStatus" size="1">
-                                <% _.each(app.claim_status, function(claimStatus) { %>
+                                <% _.each(claim_status, function(claimStatus) { %>
                                     <option value="<%= claimStatus.id %>"><%= claimStatus.description %></option>
                                 <%})%>
                             </select>

@@ -373,7 +373,7 @@ define(['jquery',
             renderForm: function (id) {
                 var self = this;
 
-                $('#divAutoBillingForm').html(this.AutoBillingFormTemplate());
+                $('#divAutoBillingForm').html(this.AutoBillingFormTemplate({ claim_status: app.claim_status }));
 
                 self.initDropdowns({
                     facilities: _.map(app.facilities, function(fac) {return fac.id;}),

@@ -196,6 +196,8 @@ define(['jquery',
                     $('#txtPriGroupNo').attr('maxlength', 2);
                 }
 
+                $('#txtClaimResponsibleNotes').prop('disabled', !(app.billingRegionCode === 'can_MB' || app.country_alpha_3_code === 'usa'));
+                
                 //EXA-18273 - Move diagnostics codes section under claim for alberta billing
                 if(app.billingRegionCode === 'can_AB') {
                     $('#diagnosticsCodes').detach().appendTo('#claimSection').addClass('col-lg-12');
@@ -977,7 +979,7 @@ define(['jquery',
                 $('#ddlPayToDetailsCountryCode').val(pay_to_details.country_code).change();
 
                 // Good Faith only for Alberta residents without a ULI / PHN
-                if ( claim_data.can_ahs_good_faith || (!claim_data.can_ahs_uli && !claim_data.can_ahs_phn) ) {
+                if ( claim_data.can_ahs_good_faith || (!claim_data.can_ahs_uli_phn) ) {
                     $('#divGoodFaith').show();
                     $('#chkGoodFaith').prop('checked', claim_data.can_ahs_good_faith);
                 }
@@ -1049,7 +1051,7 @@ define(['jquery',
                 $('#txtOriginalRef').val(claim_data.original_reference || '');
                 $('#txtAuthorization').val(claim_data.authorization_no || '');
                 $('#frequency').val(claim_data.frequency || '');
-                $('#txtAccidentState').val(claim_data.accident_state).prop('disabled', !isCauseCode);
+                $('#selAccidentState').val(claim_data.accident_state).prop('disabled', !isCauseCode);
                 /* Additional info end */
                 /* Billing summary start */
 
@@ -1511,7 +1513,7 @@ define(['jquery',
 
                 $('#chkEmployment, #chkAutoAccident, #chkOtherAccident').off().change(function () {
                     var isCauseCode = $('#chkEmployment').prop('checked') || $('#chkAutoAccident').prop('checked') || $('#chkOtherAccident').prop('checked');
-                    var $accidentState = $("#txtAccidentState");
+                    var $accidentState = $("#selAccidentState");
                     $accidentState.prop("disabled", !isCauseCode);
 
                     if (!isCauseCode) {
@@ -1917,11 +1919,12 @@ define(['jquery',
                             count = count ? count : self.icdCodeListLength;
                             var val = $(value).val() ? $(value).val() : 0;
                             var _id = $(value).attr('id');
+                            var maxIterator = app.billingRegionCode == 'can_MB' ? 1 : 4;
                             if (val != '') {
                                 if (val <= count && val != 0) {
                                     $('#' + _id).css('border-color', '')
                                     $('#' + _id).removeClass('invalidCpt')
-                                    if (_pointers.indexOf(val) != -1 && iterator <= 4)
+                                    if (_pointers.indexOf(val) != -1 && iterator <= maxIterator)
                                         $('#' + _id).css('border-color', 'red').addClass('invalidCpt');
                                     else
                                         _pointers.push(val);
@@ -1934,7 +1937,7 @@ define(['jquery',
                                 $('#' + _id).css('border-color', '')
                                 $('#' + _id).removeClass('invalidCpt')
                             }
-                            if (iterator >= 4) {
+                            if (iterator >= maxIterator) {
                                 iterator = 1;
                                 _pointers = [];
                             }
@@ -3380,7 +3383,7 @@ define(['jquery',
                     is_auto_accident: $('#chkAutoAccident').prop('checked'),
                     is_other_accident: $('#chkOtherAccident').prop('checked'),
                     is_employed: $('#chkEmployment').prop('checked'),
-                    accident_state: isCauseCode && $('#txtAccidentState').val() || null,
+                    accident_state: isCauseCode && $('#selAccidentState').val() || null,
                     service_by_outside_lab: $('#chkOutSideLab').prop('checked'),
                     claim_status_id: claim_status_id,
                     primary_patient_insurance_id: self.is_primary_available && parseInt(self.primaryPatientInsuranceId) || ( self.is_primary_available && parseInt(self.priClaimInsID) || null ),
@@ -3916,7 +3919,7 @@ define(['jquery',
                 }
 
                 /* Additional Info Section */
-                var accidentState = $('#txtAccidentState');
+                var accidentState = $('#selAccidentState');
 
                 if (accidentState.val().length === 1) {
                     commonjs.showWarning("order.additionalInfo.accidentStateValidation");
@@ -4872,7 +4875,7 @@ define(['jquery',
                 $('#chkEmployment, #chkAutoAccident, #chkOtherAccident, #chkOutSideLab').prop("checked", false);
                 $('#txtDate, #txtOtherDate, #txtWCF,#txtWCT, #txtHCF,#txtHCT').val('');
                 $('#txtClaimNotes').empty();
-                $('#txtOriginalRef, #txtAuthorization, #txtAccidentState').val('');
+                $('#txtOriginalRef, #txtAuthorization, #selAccidentState').val('');
                 $('#ddlFrequencyCode option:contains("Select")').prop("selected", true);
 
                 //clear Billing Section
@@ -4880,7 +4883,6 @@ define(['jquery',
                 $('#ddlClaimStatus option:contains("Select")').prop("selected", true);
                 $('#txtClaimResponsibleNotes').val('');
                 $('#ddlClaimResponsible').empty();
-                $('#txtClaimResponsibleNotes').prop('disabled', !(app.billingRegionCode === 'can_MB' || app.country_alpha_3_code === 'usa'));
             },
 
             claimWOStudy:function(patient_details){
