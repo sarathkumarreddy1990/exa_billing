@@ -75,41 +75,19 @@ define(['jquery',
 
 
         var modalitiesChanged = function() {
-            if (getSelectedModalities().length) {
-                toggleCptCodes(false);
-            }
-            else {
-                toggleCptCodes(true);
-            }
+            toggleCptCodes(!getSelectedModalities().length);
         };
 
         var cptCodesChanged = function() {
-            if (getSelectedCptCodes().length) {
-                toggleModalities(false);
-            }
-            else {
-                toggleModalities(true);
-            }
+            toggleModalities(!getSelectedCptCodes().length);
         };
 
         var insuranceProviderPayerTypesChanged = function() {
-            console.log('insurance provider payer types changed');
-            if (getSelectedPayerTypes().length) {
-                togglePayers(false);
-            }
-            else {
-                togglePayers(true);
-            }
+            togglePayers(!getSelectedPayerTypes().length);
         };
 
         var insuranceProvidersChanged = function() {
-            console.log('insurance provider changed');
-            if (getSelectedPayers().length) {
-                togglePayerTypes(false);
-            }
-            else {
-                togglePayerTypes(true);
-            }
+            togglePayerTypes(!getSelectedPayers().length);
         };
 
 
