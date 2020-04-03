@@ -2,6 +2,7 @@ const { query, SQL } = require('./../index');
 const config = require('./../../config');
 const queryMakers = require('./../query-maker-map');
 const generator = queryMakers.get('date');
+const studyDtGenerator = queryMakers.get('datetime');
 
 module.exports = {
 
@@ -1170,6 +1171,7 @@ module.exports = {
 
         params.sortOrder = params.sortOrder || ' ASC';
 
+        let dateArgs = { options: { isCompanyBase: false} };
         let sql = SQL` SELECT
                                studies.id
                              , studies.accession_no
@@ -1195,11 +1197,11 @@ module.exports = {
 
         if(study_dt){
             sql.append(` AND `)
-                .append(generator('study_dt', study_dt));
+                .append(studyDtGenerator('studies.study_dt', study_dt, dateArgs));
         }
         else if(customDt){
             sql.append(` AND `)
-                .append(generator('study_dt', customDt));
+                .append(studyDtGenerator('studies.study_dt', customDt, dateArgs));
         }
 
         if (accession_no){
