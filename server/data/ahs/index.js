@@ -421,7 +421,7 @@ const ahsData = {
                         cpt.display_code                             AS health_service_code,
                         CASE
                             WHEN s.hospital_admission_dt IS NULL
-                                THEN TO_CHAR(s.study_dt, 'YYYYMMDD')
+                                THEN TO_CHAR(timezone(f.time_zone, s.study_dt)::date, 'YYYYMMDD')
                                 ELSE TO_CHAR(s.hospital_admission_dt, 'YYYYMMDD')
                         END                                          AS service_start_date,
                         (row_number() OVER (ENCOUNTER_WINDOW))::INT  AS encounter_number,
