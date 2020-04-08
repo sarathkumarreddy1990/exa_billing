@@ -524,8 +524,7 @@ define('grid', [
                         return false;
                     }
                     commonjs.showDialog({
-                        'header': 'Invoices',
-                        'i18nHeader': 'shared.fields.invoices',
+                        'header': commonjs.geti18NString('shared.fields.invoices') + ' ' +  commonjs.geti18NString('shared.fields.payerName') + ': ' + gridData.payer_name ,
                         'width': '95%',
                         'height': '80%',
                         'needShrink': true
