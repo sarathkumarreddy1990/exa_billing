@@ -1,6 +1,7 @@
 'use strict';
 
 const ahsData = require('../../data/ahs');
+const eraData = require('../../data/era/index');
 const parser = require('../../../modules/ahs/decoder/index');
 const logger = require('../../../logger');
 const fs = require('fs');
@@ -69,7 +70,7 @@ const ahsController = {
                 fileId: file_id
             });
 
-            let result = await ahsController.process({
+            await ahsController.process({
                 company_id: args.company_id,
                 companyId: args.companyId,
                 fileData,
@@ -79,10 +80,7 @@ const ahsController = {
                 ip
             });
 
-            return await ahsData.updateFileStatus({
-                status: result.rows && result.rows.length ? 'success' : 'failure',
-                fileId: file_id
-            });
+            return await eraData.updateERAFileStatus({file_id});
         });
 
         return await Promise.all(promises);
