@@ -2183,8 +2183,10 @@ define(['jquery',
                             formatter: function (value, model, data) {
                                 switch (data.file_type) {
                                     case 'can_ohip_p':
+                                    case 'can_ahs_ard':
                                         return i18n.get('billing.payments.payment');
                                     case 'can_ohip_b':
+                                    case 'can_ahs_bbr':
                                         return i18n.get('billing.claims.acknowledgement');
                                     case 'can_ohip_x':
                                         return i18n.get('billing.claims.rejection');

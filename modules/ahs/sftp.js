@@ -40,7 +40,6 @@ const downloadDirPath = siteConfig.get('ahsSFTPDownloadFolder') || `DOWNLOAD`;
  * @return {Promise<{filename: string, content: string}[]>}
  */
 function* processFiles ( files, dirPath ) {
-    const jszip = new JSZip();
     const regBackup = /INPUT\.BACKUP\./;
 
     /**
@@ -54,6 +53,7 @@ function* processFiles ( files, dirPath ) {
         }
 
         try {
+            const jszip = new JSZip();
             const fileData = await readFileAsync(`${dirPath}/${file}`, { 'encoding': `binary` });
             const contents = await jszip.loadAsync(fileData);
             const filenames = Object.keys(contents.files);
