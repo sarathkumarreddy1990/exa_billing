@@ -60,14 +60,16 @@ const getSaveClaimParams = async (params) => {
     const settings = await getSettings();
 
     const isCanadaBilling = settings.country_alpha_3_code === 'can';
+    const isAlbertaBilling = isCanadaBilling && settings.province_alpha_2_code === 'AB';
 
     const problems = lineItems[0].problems;
     const claim_details = lineItems[0].claim_details[0];
 
-    return {
+
+    const saveClaimParams = {
         removed_charges: [],
 
-        is_alberta_billing: isCanadaBilling && settings.province_alpha_2_code === 'AB',
+        is_alberta_billing: isAlbertaBilling,
 
         claims: {
             company_id: companyId,
@@ -131,6 +133,16 @@ const getSaveClaimParams = async (params) => {
             user_id: userId
         },
     };
+
+    // special snowflake cases go here
+    if (isAlbertaBilling) {
+        saveClaimParams.claims.can_ahs_claimed_amount_indicator = false;
+        saveClaimParams.claims.can_confidential = false;
+        saveClaimParams.claims.can_ahs_good_faith = false;
+        saveClaimParams.claims.can_ahs_paper_supporting_docs = false;
+    }
+
+    return saveClaimParams;
 };
 
 
