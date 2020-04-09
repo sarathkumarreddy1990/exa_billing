@@ -3,6 +3,8 @@ const {
     query,
     queryWithAudit
 } = require('../index');
+const queryMakers = require('./../query-maker-map');
+const generator = queryMakers.get('date');
 
 module.exports = {
     getData: async (params) => {
@@ -776,32 +778,40 @@ module.exports = {
 
         }
 
-        if (params.invoice_adjustment || params.invoice_bill_fee || params.invoice_balance || params.invoice_payment || params.invoice_date) {
+        if (params.invoice_adjustment || params.invoice_bill_fee || params.invoice_balance || params.invoice_payment) {
             havingQuery += ' HAVING true ';
         }
 
         if (params.invoice_no) {
-            whereQuery += ` AND bc.invoice_no::text = '${params.invoice_no}'::text`;
+            whereQuery += ` AND bc.invoice_no::TEXT = '${params.invoice_no}'::TEXT`;
         }
 
         if (params.invoice_date) {
-            havingQuery += ` AND max(date) = '${params.invoice_date}'`;
+            whereQuery += ` AND ${generator('submitted_dt', params.invoice_date)}`;
         }
 
         if (params.invoice_adjustment) {
-            havingQuery += ` AND  sum(adjustment) = (${params.invoice_adjustment})::money`;
+            havingQuery += ` AND  SUM(adjustment) = (${params.invoice_adjustment})::MONEY`;
         }
 
         if (params.invoice_bill_fee) {
-            havingQuery += ` AND  sum(bill_fee) = (${params.invoice_bill_fee})::money`;
+            havingQuery += ` AND  SUM(bill_fee) = (${params.invoice_bill_fee})::MONEY`;
         }
 
         if (params.invoice_balance) {
-            havingQuery += ` AND  sum(balance) = (${params.invoice_balance})::money`;
+            if(params.invoice_balance == '=0'){
+                havingQuery += ' AND  SUM(balance) = (0)::MONEY';
+            } else if(params.invoice_balance == '<0'){
+                havingQuery += ' AND  SUM(balance) < (0)::MONEY';
+            } else if(params.invoice_balance == '>0'){
+                havingQuery += ' AND  SUM(balance) > (0)::MONEY';
+            } else if(params.invoice_balance == '!=0'){
+                havingQuery += ' AND  SUM(balance) <> (0)::MONEY';
+            }
         }
-
+        
         if (params.invoice_payment) {
-            havingQuery += ` AND sum(payment) = (${params.invoice_payment})::money`;
+            havingQuery += ` AND SUM(payment) = (${params.invoice_payment})::MONEY`;
         }
 
 
@@ -834,49 +844,48 @@ module.exports = {
             havingQuery
         } = await this.getInvoiceDetails(payerType, params);
 
-
-
-        return await query(`WITH  get_payer_details AS(
-                                SELECT
-                                    ${selectDetails}
-                                FROM billing.claims bc
-                                ${joinCondition}
-                                WHERE bc.invoice_no is not null
-                                AND bc.payer_type = '${payerType}'
-                                AND bc.id = ${claimID}
-                            ),
-                            invoice_payment_details AS(
-                            SELECT
-                                  bc.invoice_no
-                                , bc.submitted_dt::date AS date
-                                , claim_totals.charges_bill_fee_total AS bill_fee
-                                , claim_totals.payments_applied_total AS payment
-                                , claim_totals.adjustments_applied_total AS adjustment
-                                , claim_totals.claim_balance_total AS balance
-                                , bc.id AS claim_id
-                                , bc.facility_id
-                            FROM billing.claims bc
-                            ${joinQuery}
-                            INNER JOIN LATERAL (SELECT * FROM billing.get_claim_totals(bc.id)) claim_totals ON true
-                            WHERE 	bc.invoice_no is not null
-                            ${whereQuery})
-                            SELECT
-                                  ROW_NUMBER () OVER (ORDER BY invoice_no) AS id
-                                , invoice_no As invoice_no
-                                --, max(date) AS invoice_date
-                                , timezone(public.get_facility_tz(facility_id::INT), max(date)::TIMESTAMP) AS invoice_date
-                                , sum(bill_fee) AS invoice_bill_fee
-                                , sum(payment) AS invoice_payment
-                                , sum(adjustment) AS invoice_adjustment
-                                , sum(balance) AS invoice_balance
-                                , COUNT(1) OVER (range unbounded preceding) AS total_records
-                                , array_agg(claim_id) AS claim_ids
-                                , facility_id
-                            FROM invoice_payment_details
-                            GROUP BY invoice_no,facility_id
-                            ${havingQuery}
-                            ORDER BY ${sortField}  ${sortOrder}   LIMIT ${pageSize}
-                            OFFSET ${((pageNo * pageSize) - pageSize)}`);
+        const sql = `WITH  get_payer_details AS(
+                    SELECT
+                        ${selectDetails}
+                    FROM billing.claims bc
+                    ${joinCondition}
+                    WHERE bc.invoice_no IS NOT NULL
+                    AND bc.payer_type = '${payerType}'
+                    AND bc.id = ${claimID}
+                ),
+                invoice_payment_details AS(
+                SELECT
+                    bc.invoice_no
+                    , bc.submitted_dt::DATE AS date
+                    , claim_totals.charges_bill_fee_total AS bill_fee
+                    , claim_totals.payments_applied_total AS payment
+                    , claim_totals.adjustments_applied_total AS adjustment
+                    , claim_totals.claim_balance_total AS balance
+                    , bc.id AS claim_id
+                    , bc.facility_id
+                FROM billing.claims bc
+                ${joinQuery}
+                INNER JOIN LATERAL (SELECT * FROM billing.get_claim_totals(bc.id)) claim_totals ON true
+                WHERE 	bc.invoice_no IS NOT NULL
+                ${whereQuery})
+                SELECT
+                    ROW_NUMBER () OVER (ORDER BY invoice_no) AS id
+                    , invoice_no AS invoice_no
+                    , timezone(public.get_facility_tz(facility_id::INT), MAX(date)::TIMESTAMP) AS invoice_date
+                    , SUM(bill_fee) AS invoice_bill_fee
+                    , SUM(payment) AS invoice_payment
+                    , SUM(adjustment) AS invoice_adjustment
+                    , SUM(balance) AS invoice_balance
+                    , COUNT(1) OVER (range unbounded preceding) AS total_records
+                    , ARRAY_AGG(claim_id) AS claim_ids
+                    , facility_id
+                FROM invoice_payment_details
+                GROUP BY invoice_no,facility_id
+                ${havingQuery}
+                ORDER BY ${sortField}  ${sortOrder}   LIMIT ${pageSize}
+                OFFSET ${((pageNo * pageSize) - pageSize)}`;
+                
+        return await query(sql);
 
     },
 

@@ -70,7 +70,7 @@ define([
             },
             events: {
             },
-
+            isCleared: false,
             initialize: function (options) {
                 this.options = options;
                 this.invoicePager = new Pager();
@@ -478,9 +478,55 @@ define([
                 $('#divAgeSummary').html(self.agingSummaryTemplate());
             },
 
+            //Bind date range filter
+            bindDateRangeOnSearchBox: function (gridObj) {
+                var self = this;
+                var columnsToBind = ['invoice_date'];
+                var drpOptions = {
+                    locale: {
+                        format: "L"
+                    }
+                };
+                var currentFilter = 1;
+
+                _.each(columnsToBind, function (col) {
+                    var colSelector = '#gs_' + col;
+                    var colElement = $(colSelector);
+
+                    if (!colElement.val() && !self.isCleared) {
+                        var toDate = moment(),
+                            fromDate = moment().subtract(29, 'days');
+                        colElement.val(fromDate.format("L") + " - " + toDate.format("L"));
+                    }
+
+                    var drp = commonjs.bindDateRangePicker(colElement, drpOptions, "past", function (start, end, format) {
+                        if (start && end) {
+                            currentFilter.startDate = start.format('L');
+                            currentFilter.endDate = end.format('L');
+                            $('input[name=daterangepicker_start]').removeAttr("disabled");
+                            $('input[name=daterangepicker_end]').removeAttr("disabled");
+                            $('.ranges ul li').each(function (i) {
+                                if ($(this).hasClass('active')) {
+                                    currentFilter.rangeIndex = i;
+                                }
+                            });
+                        }
+                    });
+                    colElement.on("apply.daterangepicker", function (obj) {
+                        gridObj.refresh();
+                    });
+                    colElement.on("cancel.daterangepicker", function () {
+                        self.isCleared = true;
+                        gridObj.refresh();
+                    });
+                });
+            },
+
             showInvoiceGrid: function (claimID, patientId,payer_type) {
                 var self = this;
                 $('#divInvoiceGrid').show();
+                var balanceSearchList = ':All; =0:= 0; >0:> 0; <0:< 0; !=0:!= 0';
+                $('#divInvoiceGrid').show()
                 this.invoiceTable = new customGrid();
                 this.invoiceTable.render({
                     gridelementid: '#tblInvoiceGrid',
@@ -492,7 +538,9 @@ define([
                         { name: '', index: 'id', key: true, hidden: true, search: false },
                         { name: 'claim_ids', hidden: true} ,
                         {
-                            name: 'invoice_no', search: true, width: 100
+                            name: 'invoice_date', width: 200, searchFlag: 'date', formatter: function (cellvalue, options, rowObject) {
+                                return (commonjs.checkNotEmpty(rowObject.invoice_date) ? moment(rowObject.invoice_date).format('L') : '');
+                            }
                         },
                         {
                             name: 'invoice_date', search: true, formatter: self.dateFormatter, width: 150
@@ -507,7 +555,14 @@ define([
                             name: 'invoice_adjustment', search: true, width: 150
                         },
                         {
-                            name: 'invoice_balance', search: true, width: 150
+                            name: 'invoice_balance'
+                            , sortable: false
+                            , width: 150
+                            , stype: "select"
+                            , searchoptions: {
+                                "value": balanceSearchList,
+                                "tempvalue": balanceSearchList
+                            }
                         },
                         {
                             name: 'edit', width: 50, sortable: false, search: false,
@@ -539,11 +594,14 @@ define([
                     disablereload: true,
                     customargs: {
                         claimID: claimID,
-                        payerType: payer_type
+                        payerType: payer_type,
+                        toDate: !self.isCleared ? moment().format('YYYY-MM-DD') : "",
+                        fromDate: !self.isCleared ? moment().subtract(29, 'days').format('YYYY-MM-DD') : ""
                     },
                     pager: '#gridPager_invoiceClaim',
                     onaftergridbind: function (model, gridObj) {
                         self.setMoneyMask();
+                        self.bindDateRangeOnSearchBox(gridObj);
                     }
                 });
 

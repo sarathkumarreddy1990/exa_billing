@@ -293,12 +293,7 @@ gulp.task('build', [
 ]);
 
 gulp.task('deploy', (done) => {
-    runSequence('git-pull',
-		'build',
-		'git-commit',
-		'git-push',
-		// 'ftp-upload',
-		done);
+    runSequence('git-pull', 'build', 'git-commit', 'git-push',  done);
 });
 
 gulp.task('build-from-repo', (done) => {
