@@ -1,0 +1,87 @@
+{
+  "person_type": {
+    "format": "A",
+    "startPos": 36,
+    "length": 4,
+    "enumerated": [
+      "RECP",
+      "PYST",
+      "RFRC"
+    ]
+  },
+  "first_name": {
+    "format": "A",
+    "startPos": 40,
+    "length": 30
+  },
+  "middle_name": {
+    "format": "a",
+    "startPos": 70,
+    "length": 12
+  },
+  "last_name": {
+    "format": "A",
+    "startPos": 82,
+    "length": 12
+  },
+  "birth_date": {
+    "format": "n",
+    "startPos": 94,
+    "length": 8
+  },
+  "gender_code": {
+    "format": "a",
+    "startPos": 102,
+    "length": 1
+  },
+  "address1": {
+    "format": "A",
+    "startPos": 103,
+    "length": 25
+  },
+  "address2": {
+    "format": "a",
+    "startPos": 128,
+    "length": 25
+  },
+  "address3": {
+    "format": "a",
+    "startPos": 153,
+    "length": 25
+  },
+  "city": {
+    "format": "A",
+    "startPos": 178,
+    "length": 30
+  },
+  "postal_code": {
+    "format": "A",
+    "startPos": 208,
+    "length": 6
+  },
+  "province_code": {
+    "format": "A",
+    "startPos": 214,
+    "length": 2
+  },
+  "country_code": {
+    "format": "A",
+    "startPos": 216,
+    "length": 4
+  },
+  "parent_phn": {
+    "format": "n",
+    "startPos": 220,
+    "length": 9
+  },
+  "parentRegistrationNumber": {
+    "format": "n",
+    "startPos": 229,
+    "length": 12
+  },
+  "empty": {
+    "format": "a",
+    "startPos": 241,
+    "length": 14
+  }
+}

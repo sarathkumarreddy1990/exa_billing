@@ -85,4 +85,10 @@ router.get('/can_delete_payment', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.put('/notes/:id', async (req, res) => {
+    req.body.claimId = req.params.id;
+    const data = await paymentsController.updateNotes(req.body);
+    httpHandler.sendRows(req, res, data);
+});
+
 module.exports = router;

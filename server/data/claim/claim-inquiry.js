@@ -20,6 +20,7 @@ module.exports = {
                 , rend_pr.full_name AS rend_provider_name
                 , f.facility_name
                 , st.description AS claim_status
+                , st.code AS claim_status_code
                 , SUM(ch.bill_fee * ch.units) AS bill_fee
                 , pg.group_name
                 , SUM(ch.allowed_amount * ch.units) AS allowed_fee
@@ -46,6 +47,7 @@ module.exports = {
                 , ref_pr.full_name
                 , rend_pr.full_name
                 , f.facility_name
+                , st.code
                 , st.description
                 , pg.group_name
                 , pos.description
@@ -1004,6 +1006,21 @@ module.exports = {
             .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
 
         return await query(sql);
+    },
+
+    updateNotes: async (params) => {
+        const {
+            billingNotes,
+            claimId
+        } = params;
+
+        let sqlQry = SQL`
+                        UPDATE BILLING.CLAIMS
+                        SET billing_notes = ${billingNotes}
+                        WHERE id = ${claimId}
+                        RETURNING *`;
+
+        return await query(sqlQry);
     }
 
 };

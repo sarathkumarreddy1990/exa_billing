@@ -33,6 +33,7 @@ module.exports = {
         'validations': 'Validations',
         'edi_clearinghouses': 'EDI Clearinghouses',
         'status_color_codes': 'Status Color Codes',
+        'supporting_text': 'Supporting Text Templates',
         'x12': 'EDI Templates',
         'insurance_x12_mapping': 'Insurance X12 Mapping',
         'user_log': 'User Log',
@@ -122,6 +123,7 @@ module.exports = {
         'cas_group_codes': 'CASG',
         'cas_reason_codes': 'CASR',
         'status_color_codes': 'STCC',
+        'supporting_text': 'STTE',
         'validations': 'BIVA',
         'printer_templates': 'PCA',
         'x12': 'EDRT',
@@ -215,12 +217,16 @@ module.exports = {
         'patient_claim_list': 'PAYM',
         'process_write_off_payments': 'PAYM',
         'get_claim_payments': 'CLIM',
+        'get_patient_charges': 'CLIM',
         'can_delete_payment': 'PAYM',
         'claims_total_balance': 'CLIM',
         'submitClaims': 'BIVA',
         'fileManagement': 'CLFM',
         'paper_claim_fax': 'CLIM',
         'payment_count': 'PAYM',
-        'invoice-activity-statement': 'IAST'
+        'can_ahs_reassess_claim': 'CLIM',
+        'can_ahs_delete_claim': 'CLIM',
+        'invoice-activity-statement': 'IAST',
+        'auto_billing': 'AUTO',
     }
 };

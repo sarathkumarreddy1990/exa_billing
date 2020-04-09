@@ -1,0 +1,17 @@
+{
+  "supporting_text_1": {
+    "format": "A",
+    "startPos": 1,
+    "length": 73
+  },
+  "supporting_text_2": {
+    "format": "a",
+    "startPos": 74,
+    "length": 73
+  },
+  "supporting_text_3": {
+    "format": "a",
+    "startPos": 147,
+    "length": 73
+  }
+}

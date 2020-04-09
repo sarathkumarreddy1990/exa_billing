@@ -1,0 +1,12 @@
+{
+  "cross_reference_claim_numbers": {
+    "format": "a",
+    "startPos": 1,
+    "length": 210
+  },
+  "empty": {
+    "format": "a",
+    "startPos": 211,
+    "length": 9
+  }
+}

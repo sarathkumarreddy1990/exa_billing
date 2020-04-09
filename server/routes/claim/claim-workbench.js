@@ -123,7 +123,8 @@ router.put('/follow_ups', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
-router.post('/claims/batch', async function (req, res) {
+router.post('/claims/batch', async (req, res) => {
+    req.body.is_alberta_billing = req.session.billingRegionCode === 'can_AB';
     const data = await claimWorkbenchController.createBatchClaims(req.body);
     httpHandler.sendRows(req, res, data);
 });

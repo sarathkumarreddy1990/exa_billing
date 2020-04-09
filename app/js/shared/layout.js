@@ -31,6 +31,7 @@ var layout = {
     },
 
     screenLinkIds: {
+        // NOTE to add these, use the screen name set as "options.screen" in route::initializeRouter 
         'Adjustment Codes': '#aAdjustmentCodes',
         'Billing Codes': '#aBillingCodes',
         'Billing Classes': '#aBillingClasses',
@@ -43,6 +44,7 @@ var layout = {
         'Provider Level Codes': '#aProviderLevelCodes',
         'Billing Validations': '#aBillingValidations',
         'Status Color Codes': '#aStatusColorCodes',
+        'Supporting Text': '#aSupportingText',
         'EDI ClearingHouses': '#aEDIClearingHouses',
         'Insurance Mapping': '#aInsuranceX12Mapping',
         'Billing Messages': '#aBillingMessages',
@@ -76,7 +78,8 @@ var layout = {
         'EDI Templates': '#aEDITemplate',
         'Paper Claim Templates': '#aPaperClaimTemplate',
         'Printer Templates': '#aPrinterTemplate',
-        'Payments Realization Rate Analysis': '#aPaymentsRealizationRateAnalysis'
+        'Payments Realization Rate Analysis': '#aPaymentsRealizationRateAnalysis',
+        'Auto Billing': '#aAutoBilling'
         /// To be added
     },
 
@@ -113,11 +116,14 @@ var layout = {
         this.lastModule = this.currentModule;
         this.lastScreen = this.currentScreen;
 
-        commonjs.hideItem('diagnosis-count', '#aDiagnosisCountListItem');
         commonjs.hideItem('insurance-vs-lop', '#aInsuranceLOPListItem');
-        commonjs.hideItem('diagnosis-count', '#aDiagnosisCountDropDownItem');
         commonjs.hideItem('insurance-vs-lop', '#aInsuranceLOPDropDownItem');
 
+        // Don't hide for Alberta
+        if (app.country_alpha_3_code === 'can' && app.province_alpha_2_code !== 'AB') {
+            commonjs.hideItem('diagnosis-count', '#aDiagnosisCountListItem');
+            commonjs.hideItem('diagnosis-count', '#aDiagnosisCountDropDownItem');
+        }
     },
 
     killView: function (viewObj) {
