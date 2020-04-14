@@ -201,10 +201,10 @@ const colModel = [
     },
     {
         name: 'claim_action',
-        searchColumns: [`(CASE 
-                WHEN claims.frequency = 'corrected' 
+        searchColumns: [`(CASE
+                WHEN claims.frequency = 'corrected'
                 THEN 'corrected_claim'
-                WHEN (claims.frequency != 'corrected' OR claims.frequency IS NULL) 
+                WHEN (claims.frequency != 'corrected' OR claims.frequency IS NULL)
                 THEN 'new_claim' END)`],
         searchFlag: '='
     },
@@ -552,10 +552,10 @@ const api = {
                     null
             END AS as_eligibility_status`,
             `claim_icds.description AS icd_description`,
-            `(CASE 
-                 WHEN claims.frequency = 'corrected' 
+            `(CASE
+                 WHEN claims.frequency = 'corrected'
                  THEN 'corrected_claim'
-                 WHEN (claims.frequency != 'corrected' OR claims.frequency IS NULL) 
+                 WHEN (claims.frequency != 'corrected' OR claims.frequency IS NULL)
                  THEN 'new_claim'
               END) AS claim_action`,
             `(
