@@ -42,7 +42,8 @@ var rjsConfig = {
         'jquerysortable': '../node_modules/jquery-sortable/source/js/jquery-sortable',
         'ace': '../node_modules/ace-code-editor/lib/ace',
         'beautify': '../node_modules/js-beautify/js/lib/beautify',
-        'jquery-ui-sortable': "../node_modules/jquery-ui-sortable/jquery-ui.min"
+        'jquery-ui-sortable': "../node_modules/jquery-ui-sortable/jquery-ui.min",
+        'socket.io-client': '../node_modules/socket.io-client/dist/socket.io'
     },
     shim: {
         'jquery.validate': {
@@ -130,6 +131,9 @@ var rjsConfig = {
         },
         'jquery-ui-sortable': {
             deps: ['jquery']
+        },
+        'socket.io-client': {
+            exports: 'io'
         }
     },
 };

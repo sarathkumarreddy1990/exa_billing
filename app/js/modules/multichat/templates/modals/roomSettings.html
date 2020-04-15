@@ -1,0 +1,108 @@
+<script type="text/html" id="header">
+    <p class="chat-modal__title" i18n="chat.labels.manage">Manage</p>
+</script>
+<script type="text/html" id="body">
+    <div class="chat-modal-body-top">
+        <% if (model.get('possessive').can_add_users == true) {
+            var buttonTitle = '';
+            var buttonAttr = '';
+            if (model.get('roomType') == 'adhoc') {
+                buttonTitle = "chat.labels.addUsersGroups";
+            } else {
+                buttonTitle = "chat.labels.addUsers";
+            }
+            buttonAttr = 'i18n="' + buttonTitle + '"';
+        %>
+        <div class="chat-modal-user-add">
+            <button class="js_chat-modal-user__link glyphicon glyphicon-plus"></button>
+            <span class="chat-modal-user__link js_chat-modal-user__link" <%= buttonAttr %>></span>
+        </div>
+        <% } %>
+        <% var attr = '';
+           var curTitle = ' ';
+           var formAttr = '';
+
+        if (model.get('possessive').can_edit_room == false) {
+            attr = "disabled";
+            curTitle = "chat.labels.noChangeToRoomTitle";
+            formAttr = 'i18nt="' + curTitle + '"';
+        } %>
+        <form class="chat-modal-form" id="chatEdit" <%= formAttr %>>
+            <input type="text"
+                   class="chat-modal-form__input js_chat-modal-form__input"
+                   value="<%= model.get('title') %>"
+                   i18np="chat.labels.roomTitlePlaceholder"
+                   <%= attr %>
+            >
+            <button type="submit"
+                    class="btn chat-modal-form__btn js_chat-modal-form__btn"
+                    i18n="chat.labels.renameTheChat"
+                    <%= attr %>
+            >
+            </button>
+        </form>
+    </div>
+    <div class="chat-modal-users" id="js_chat-participants-holder">
+    </div>
+</script>
+<script type="text/html" id="footer">
+    <% if (model.get('possessive').can_leave_room == true) { %>
+        <p class="chat-modal-btn chat-modal-btn-leave js_chat-modal-btn-leave" i18n="chat.labels.leaveTheChat">Leave the chat</p>
+    <% };
+    if (model.get('possessive').can_delete_room == true) { %>
+        <p class="chat-modal-btn chat-modal-btn-archive js_chat-modal-btn-archive" i18n="chat.labels.archiveTheChat">Archive the chat</p>
+    <% }; %>
+    <p class="chat-modal-btn chat-modal-btn-ok js_chat-modal__close" i18n="shared.buttons.ok"></p>
+</script>
+
+<script type="text/html" id="participants">
+    <%
+    var can_remove_users = room.get('possessive').can_remove_users;
+    _.each(members, function(member) {
+        var userStatus = 'chat-user-avatar-wrap-status chat-user-avatar-wrap-status--' + member.get('chat_status');
+        var initials = member.getInitials();
+        var userId = member.get('id');
+    %>
+        <div class="chat-modal-user">
+            <div class="chat-user-avatar-wrap js_userAvatarStatus <%= userStatus %>" data-user-id="<%= userId %>">
+                <%= itemTemplate({
+                    userId: userId,
+                    initials: initials,
+                    chatUserAvatarType: null
+                }) %>
+            </div>
+            <p class="chat-modal-user__name">
+                <%= member.get('user_full_name')%>
+            </p>
+            <% if ((userId != app.userID) && (can_remove_users === true)) { %>
+                <span class="chat-modal-user__remove js_chat-modal-user__remove" i18n="chat.labels.exclude" data-user="<%= userId %>">exclude</span>
+            <% }; %>
+        </div>
+    <% }); %>
+
+    <%
+    var groups = room.get('groups');
+    
+    if (groups.length) { %>
+        <div class="chat-modal-groups" i18n="chat.labels.groups">Groups</div>
+    <%
+    }
+    _.each(groups, function(group) {
+        var groupStatus = '';
+        var initials = 'G';
+        var groupId = group.id;
+    %>
+        <div class="chat-modal-user">
+            <div class="chat-user-avatar-wrap js_userAvatarStatus <%= groupStatus %>" data-group-id="<%= groupId %>">
+                <%= itemTemplate({
+                userId: groupId,
+                initials: initials,
+                chatUserAvatarType: null
+                }) %>
+            </div>
+            <p class="chat-modal-user__name" data-group-title="<%= group.title %>">
+                <%= group.title %>
+            </p>
+        </div>
+    <% }); %>
+</script>

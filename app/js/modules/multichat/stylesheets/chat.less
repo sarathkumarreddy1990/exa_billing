@@ -1,0 +1,222 @@
+@import "../../../../stylesheets/skins/default/variables";
+@import "./contactList";
+@import "./roomList";
+@import "./room";
+@import "./modals";
+@import "./avatars";
+
+
+.chat {
+    position: fixed;
+    bottom: 2px;
+    right: 2px;
+    border-radius: 5px 5px 0 0;
+    z-index: 2000;
+
+    &--minimized {
+        height: 17px;
+        width: 3em;
+        bottom: 2px;
+        text-align: center;
+        background: @gray-200;
+        border: none;
+
+        &:hover {
+            cursor: pointer;
+        }
+    }
+
+    &-content{
+        max-height: ~"calc(100vh - 15px)";
+    }
+
+    &-panel {
+        font-family: 'Roboto', sans-serif;
+        color: @MsgFontcolor;
+
+        &-physicianportal {
+            .chat-column {
+                height: ~"calc(100% - 3em - 55px)";
+            }
+
+            .chat-column__sb-bot {
+                bottom: 55px;
+            }
+        }
+    }
+
+    &-column {
+        overflow: hidden;
+        overflow-y: scroll;
+        width: 100%;
+        padding: 10px 0 5px 0;
+        height: 90%;
+        height: ~"calc(100% - 3em - 32px)";
+        background: @gray-100;
+
+        &-wrap {
+            box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 6px;
+            height: 500px;
+            max-height: ~"calc(100vh - 15px)";
+            width: 250px;
+            overflow: hidden;
+            position: relative;
+            z-index: 2001;
+        }
+
+        &-header {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            padding: 5px 2px;
+            background-color: @blue-800;
+            color: @listColor;
+            height: 3em;
+            border-radius: 4px 4px 0 0;
+        }
+
+        &__sb-bot {
+            position: absolute;
+            bottom: 32px;
+            left: 0;
+            width: 100%;
+            height: 1em;
+            background-color: rgba(255, 255, 255, 0);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0), @gray-100 80%);
+            z-index: 3;
+        }
+    }
+
+    .btn {
+        &__plus,
+        &__resize {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background: none;
+            border: none;
+            font-size: 20px;
+            width: 30px;
+            padding: 5px;
+            transition: opacity .4s ease;
+
+            &:hover {
+                opacity: .5;
+            }
+        }
+
+        &__plus {
+            top: -1px !important;
+        }
+    }
+}
+
+
+.user-status {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    margin-left: auto;
+    padding: 0;
+    text-align-last: center;
+    color: @listColor;
+    font-family: inherit;
+    width: 50px;
+    height: 30px;
+    border: none;
+    box-shadow: none!important;
+
+
+    &:hover {
+        cursor: pointer;
+    }
+
+    &::-ms-expand {
+        display: none;
+    }
+
+    option {
+        border: 0;
+        outline: 0;
+    }
+
+    &--online,
+    &__option--online {
+        background-color: @green-a700;
+    }
+
+    &--busy,
+    &__option--busy {
+        background-color: @stat-orange-2;
+    }
+
+    &--dnd,
+    &__option--dnd {
+        background-color: @red-a700;
+    }
+}
+
+
+// in default theme there are no styles
+.theme-default {}
+
+.theme-dark {
+    .chat {
+        &--minimized {
+            background: @green-900;
+            color: @listColor;
+        }
+
+        &-column {
+            background: @green-600;
+
+            &-header {
+                background-color: @green-800;
+                color: @listColor;
+            }
+
+            &__sb-bot {
+                background: linear-gradient(180deg, rgba(255, 255, 255, 0), @green-600 80%);
+            }
+        }
+    }
+}
+
+.chat-group-rooms {
+    padding: 30px;
+
+    .field-inactive-chk {
+        min-width: 100px;
+    }
+
+    .add-table-members {
+        padding-top: 40px;
+    }
+
+    .form-list {
+        .form-group {
+            .col-form-label {
+                width: auto;
+            }
+            .col-form-content {
+                margin-left: 230px;
+            }
+        }
+    }
+
+    // from chatRoomForm template
+    table {
+        margin-top: 30px;
+    }
+
+    #content {
+        overflow-x:auto;
+    }
+    .form-group .col-form-label {
+        width: 153px;
+    }
+    .col-form-content .fc-short {
+        max-width: 288px;
+    }
+    .colorpicker.dropdown-menu {
+        min-width: 125px;
+    }
+}

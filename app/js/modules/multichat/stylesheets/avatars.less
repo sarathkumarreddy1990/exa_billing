@@ -1,0 +1,229 @@
+.chat-user-avatar {
+    width: 40px;
+    height: 100%;
+    border-radius: 50%;
+    position: relative;
+    overflow: hidden;
+
+    &-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        width: 50px;
+        height: 40px;
+
+        &-status {
+            &::after {
+                content: "";
+                position: absolute;
+                bottom: 0;
+                right: 5px;
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                border: 1px solid @gray-100;
+                z-index: 1;
+            }
+
+            &--online::after {
+                background-color: @green-a700;
+            }
+
+            &--busy::after {
+                background-color: @stat-orange-2;
+            }
+
+            &--dnd::after {
+                background-color: @red-a700;
+            }
+
+            &--offline::after {
+                background-color: @gray-900;
+            }
+        }
+    }
+
+    &--multiple {
+        width: 21px;
+        height: 21px;
+        position: relative;
+
+        &:nth-of-type(1) {
+            left: 3px;
+            top: 2px;
+            z-index: 3;
+        }
+
+        &:nth-of-type(2) {
+            top: 2px;
+            z-index: 2;
+        }
+
+        &:nth-of-type(3) {
+            left: 3px;
+            z-index: 1;
+        }
+
+        .chat-user-avatar-initials__text {
+            font-size: 11px;
+        }
+    }
+
+    &__img {
+        width: 100%;
+        height: 100%;
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 1;
+    }
+
+    &-initials {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+        background: @green-900;
+        display: flex;
+
+        &__text {
+            font-size: 14px;
+            color: @listColor;
+            margin: auto;
+        }
+    }
+}
+
+.chat-group-avatar {
+    width: 40px;
+    height: 100%;
+    border-radius: 20%;
+    position: relative;
+    overflow: hidden;
+
+    &-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        width: 50px;
+        height: 40px;
+
+        &-status {
+            &::after {
+                content: "";
+                position: absolute;
+                bottom: 0;
+                right: 5px;
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                border: 1px solid @gray-100;
+                z-index: 1;
+            }
+
+            &--online::after {
+                background-color: @green-a700;
+            }
+
+            &--busy::after {
+                background-color: @stat-orange-2;
+            }
+
+            &--dnd::after {
+                background-color: @red-a700;
+            }
+
+            &--offline::after {
+                background-color: @gray-900;
+            }
+        }
+    }
+
+    &--multiple {
+        width: 21px;
+        height: 21px;
+        position: relative;
+
+        &:nth-of-type(1) {
+            left: 3px;
+            top: 2px;
+            z-index: 3;
+        }
+
+        &:nth-of-type(2) {
+            top: 2px;
+            z-index: 2;
+        }
+
+        &:nth-of-type(3) {
+            left: 3px;
+            z-index: 1;
+        }
+
+        .chat-group-avatar-initials__text {
+            font-size: 11px;
+        }
+    }
+
+    &__img {
+        width: 100%;
+        height: 100%;
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 1;
+    }
+
+    &-initials {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+        background: @green-900;
+        display: flex;
+
+        &__text {
+            font-size: 20px;
+            color: @listColor;
+            margin: auto;
+        }
+    }
+}
+
+// in default theme there are no styles
+.theme-default {}
+
+//=========== DARK THEME =============
+
+.theme-dark {
+    .chat-user-avatar {
+        &-wrap {
+            &-status {
+                &::after {
+                    border-color: @green-600;
+                }
+            }
+        }
+    }
+
+    .chat-group-avatar {
+        &-wrap {
+            &-status {
+                &::after {
+                    border-color: @green-600;
+                }
+            }
+        }
+    }
+}
+
