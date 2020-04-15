@@ -250,7 +250,7 @@
         {
             "field_code": "can_ahs_claim_no",
             "field_name": "AHS Claim Num",
-            "i18n_name": "setup.userSettings.claimNo",
+            "i18n_name": "setup.can_ahs.ahsclaimno",
             "field_info": {
                 "name": "can_ahs_claim_no",
                 "width": 75
@@ -1056,7 +1056,7 @@
         {
             "id": 70,
             "field_name": "AHS Claim Num",
-            "i18n_name": "setup.userSettings.claimNo",
+            "i18n_name": "setup.can_ahs.ahsclaimno",
             "field_info": {
                 "name": "can_ahs_claim_no",
                 "width": 200,
