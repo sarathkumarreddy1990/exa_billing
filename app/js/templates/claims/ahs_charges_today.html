@@ -1,0 +1,51 @@
+<% if (row.length) { %>
+<% _.each(row, function(ch) { %>
+<div class="charge_row" id="cpt_<%= ch.cpt_id%>" style="<%= ch.cpt_available ? 'background-color:antiquewhite' : '' %>">
+    <div class="details_div charge_time text-center">
+        <span id="studyTime_<%= ch.data_row_id %>">
+            <%= ch.study_time %>
+        </span>
+    </div>
+    <div class="chargeSeparator"> | </div>
+    <div class="details_div cpt_code text-center">
+        <span class="charge_content" title="<%= ch.cpt_code %>" id="cptCode_<%= ch.data_row_id %>">
+            <%= ch.cpt_code %>
+        </span>
+    </div>
+    <div class="chargeSeparator"> | </div>
+    <div class="details_div cpt_desc text-center">
+        <span class="charge_content" title="<%= ch.cpt_description %>"id="cptDescription_<%= ch.data_row_id %>">
+            <%= ch.cpt_description %>
+        </span>
+    </div>
+    <% if (ch.cpt_description) {%>
+    <div class="chargeSeparator"> | </div>
+    <% }%>
+    <div class="details_div modifier text-center">
+        <span class="charge_content" title="<%= ch.m1 %>" id="modifier1_<%= ch.data_row_id %>">
+            <%= ch.m1 %>
+        </span>
+    </div>
+    <% if (ch.m1) {%>
+    <div class="chargeSeparator"> | </div>
+    <% }%>
+    <div class="details_div modifier text-center">
+        <span class="charge_content" title="<%= ch.m2 %>" id="modifier2_<%= ch.data_row_id %>">
+            <%= ch.m2 %>
+        </span>
+    </div>
+    <% if (row.m2) {%>
+    <div class="chargeSeparator"> | </div>
+    <% }%>
+    <div class="details_div modifier text-center">
+        <span class="charge_content" title="<%= ch.m3 %>" id="modifier3_<%= ch.data_row_id %>">
+            <%= ch.m3 %>
+        </span>
+    </div>
+</div>
+
+<%})%>
+
+<% } else { %>
+<div class="charge_row w-100 text-center" i18n="shared.fields.noChargesToday"></div>
+<% }%>

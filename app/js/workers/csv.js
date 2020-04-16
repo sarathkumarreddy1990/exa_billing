@@ -5,6 +5,7 @@ importScripts('/exa_modules/billing/static/node_modules/moment-timezone/builds/m
 const claimColumns = {
 
     "Claim No": "claim_id",
+    "AHS Claim Num": "billing.can_ahs_get_claim_number(claims.id)",
     "Claim Date": "claim_dt",
     "Patient Name": "patient_name",
     "Clearing House": "clearing_house",
@@ -34,7 +35,8 @@ const claimColumns = {
     "Ins Provider Type": "ins_provider_type",
     "Ordering Facility": "ordering_facility_name",
     "Facility": "facility_name",
-    "First Statement Date": "first_statement_dt"
+    "First Statement Date": "first_statement_dt",
+    "Claim Action": "claim_action"
 };
 
 const paymentsColumns = {

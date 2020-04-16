@@ -1,0 +1,51 @@
+{
+    "record_type": {
+        "format": "N",
+        "startPos": 1,
+        "length": 1
+    },
+    "practitioner_number": {
+        "format": "A",
+        "startPos": 2,
+        "length": 5,
+        "paddingChar": "0",
+        "isLeftJustified": false
+    },
+    "mhsal_registration_number": {
+        "format": "A",
+        "startPos": 7,
+        "length": 6
+    },
+    "registrant_address_one": {
+        "format": "A",
+        "startPos": 13,
+        "length": 20
+    },
+    "registrant_address_two": {
+        "format": "A",
+        "startPos": 33,
+        "length": 20
+    },
+    "postal_code": {
+        "format": "A",
+        "startPos": 53,
+        "length": 6
+    },
+    "phin": {
+        "format": "A",
+        "startPos": 59,
+        "length": 9
+    },
+    "empty": {
+        "format": "A",
+        "startPos": 68,
+        "length": 4
+    },
+    "claim_number": {
+        "format": "A",
+        "startPos": 72,
+        "length": 9,
+        "paddingChar": "0",
+        "isLeftJustified": false
+    }
+}

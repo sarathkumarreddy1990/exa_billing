@@ -113,6 +113,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         var vehicles = commonjs.makeValue(app.vehicles, ":All;", "id", "vehicle_name");
         var gender = commonjs.makeValue(commonjs.bindArray(app.gender, false), ":All;");
         var isNoneExist = false;
+        var claimAction = ':All;corrected_claim:Corrected claim;new_claim:New claim';
 
         for ( var i = 0; i < studyFlagArray.length; i++ ) {
             if ( studyFlagArray[ i ].description.toUpperCase() == 'NONE' ) {
@@ -311,7 +312,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "id": 5,
                     "field_code": "patient_ssn",
                     "field_name": "SSN",
-                    "i18n_name": "billing.refund.ssn",
+                    "i18n_name": "shared.fields.ssn",
                     "field_info": {
                         "custom_name": "SSN",
                         "name": "patient_ssn",
@@ -545,7 +546,20 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_info": {
                         "custom_name": "Claim No",
                         "name": "claim_no",
-                        "width": 75
+                        "width": 75,
+                        "hidden": (app.country_alpha_3_code === 'can' && app.province_alpha_2_code === 'AB')
+                    }
+                },
+                "AHS Claim Num": {
+                    "id": 69,
+                    "field_code": "can_ahs_claim_no",
+                    "field_name": "AHS Claim Num",
+                    "i18n_name": "setup.userSettings.claimNo",
+                    "field_info": {
+                        "custom_name": "AHS Claim Num",
+                        "name": "can_ahs_claim_no",
+                        "width": 75,
+                        "hidden": !(app.country_alpha_3_code === 'can' && app.province_alpha_2_code === 'AB')
                     }
                 },
                 "Invoice": {
@@ -575,8 +589,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "width": 150,
                         "stype": "select",
                         "searchoptions": {
-                            "value": app.country_alpha_3_code !== 'can' ? billingMethodValue : billingMethodValueCan,
-                            "tempvalue": app.country_alpha_3_code !== 'can' ? billingMethodValue : billingMethodValueCan
+                            "value": app.billingRegionCode !== 'can_ON' ? billingMethodValue : billingMethodValueCan,
+                            "tempvalue": app.billingRegionCode !== 'can_ON' ? billingMethodValue : billingMethodValueCan
                         }
                     },
                 },
@@ -613,7 +627,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "id": 25,
                     "field_code": "policy_number",
                     "field_name": "Policy Number",
-                    "i18n_name": "setup.userSettings.policyNumber",
+                    "i18n_name": "shared.fields.policyNumber",
                     "field_info": {
                         "custom_name": "Policy Number",
                         "name": "policy_number",
@@ -790,6 +804,44 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "defaultValue": ""
                     }
                 },
+                "Microfilm Number": {
+                    "id": 71,
+                    "field_code": "can_mhs_microfilm_no",
+                    "field_name": "Microfilm Number",
+                    "i18n_name": "setup.userSettings.microfilmNumber",
+                    "field_info": {
+                        "custom_name": "Microfilm Number",
+                        "name": "can_mhs_microfilm_no",
+                        "width": 250,
+                        "searchFlag": "%",
+                        "sortable": true,
+                        "defaultValue": "",
+                        "hidden": !(app.billingRegionCode === 'can_MB')
+                    }
+                },
+                "Claim Action": {
+                    "id": 43,
+                    "field_code": "claim_action",
+                    "field_name": "Claim Action",
+                    "i18n_name": "billing.claims.canAhs.claimAction",
+                    "field_info": {
+                        "custom_name": "Claim Action",
+                        "name": "claim_action",
+                        "width": 250,
+                        "searchFlag": "=",
+                        "sortable": false,
+                        "defaultValue": "",
+                        "stype": "select",
+                        formatter: function ( cellvalue ) {
+                            return cellvalue === 'corrected_claim' ? 'Corrected claim' : 'New claim';
+                        },
+                        "searchoptions": {
+                            "value": claimAction,
+                            "tempvalue": claimAction
+                        },
+                        "hidden": !app.billingRegionCode === 'can_AB'
+                    }
+                },
                 "Reason Code": {
                     "id": 69,
                     "field_code": "reason_code",
@@ -838,7 +890,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "Study Description": {
                 "id": 3,
                 "field_name": "Study Description",
-                "i18n_name": "setup.userSettings.studyDescription",
+                "i18n_name": "shared.fields.studyDescription",
                 "field_info": {
                     "custom_name": "Study Description",
                     "name": "study_description",
@@ -1230,7 +1282,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "CPT Codes": {
                 "id": 26,
                 "field_name": "CPT Codes",
-                "i18n_name": "setup.userSettings.cptCodes",
+                "i18n_name": "shared.fields.cptCodes",
                 "field_info": {
                     "custom_name": "CPT Codes",
                     "name": "studies.cpt_codes",
@@ -1578,6 +1630,20 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 },
                 "field_code": "claim_no"
             },
+            "AHS Claim #": {
+                "id": 69,
+                "field_name": "AHS Claim #",
+                "i18n_name": "setup.userSettings.claimNo",
+                "field_info": {
+                    "custom_name": "AHS Claim #",
+                    "name": "can_ahs_claim_id",
+                    "search": false,
+                    "sortable": false,
+                    "width": 200,
+                    "defaultValue": ""
+                },
+                "field_code": "can_ahs_claim_no"
+            },
             // TODO: Add search ability IAW EXA-3299 request
             "Modality Room": {
                 "id": 52,
@@ -1917,6 +1983,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "name": "billed_status",
                     "width": 100,
                     "cellattr": function ( id, cellvalue, rowObject ) {
+                        rowObject.claim_id = Array.isArray(rowObject.claim_id) ? rowObject.claim_id[0] : rowObject.claim_id;
                         var statusDetail = commonjs.getClaimColorCodeForStatus(rowObject.claim_id > 0 ? 'billed' : 'unbilled', 'study');
                         var statusObj = statusDetail[ 0 ];
                         return 'style="background:' + (statusObj && statusObj.color_code || 'transparent') + ';"';

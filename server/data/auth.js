@@ -31,7 +31,8 @@ module.exports = {
 
         const combinedOptions = {
             ...options,
-            'keyPrefix': `${currentKeyPrefix}`
+            'keyPrefix': `${currentKeyPrefix}`,
+            'connectionName': `billing-session`,
         };
         const user_session_client = new Redis(combinedOptions);
 
@@ -46,6 +47,7 @@ module.exports = {
          */
 
         if ( !currentSession || Object.keys(currentSession).length === 0 ) {
+            user_session_client.quit();
             return false;
         }
 
@@ -87,8 +89,10 @@ module.exports = {
 
         try {
             results = await multi.exec();
+            user_session_client.quit();
         }
         catch ( e ) {
+            user_session_client.quit();
             logger.logError(`User access/session read failure - could not read from redis`, e);
             error = e;
             return false;
@@ -103,6 +107,6 @@ module.exports = {
         ] = results;
 
         return !sessionSet[0] && !sessionExpire[0] && sessionSet[1] === `OK`;
-        
+
     }
 };

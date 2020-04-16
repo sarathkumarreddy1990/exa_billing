@@ -56,6 +56,11 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                         "width": 200
                     },
                     {
+                        "name": "AHS Claim Num",
+                        "id": 69,
+                        "width": 200
+                    },
+                    {
                         "name": "Patient Name",
                         "id": 2,
                         "width": 200
@@ -127,6 +132,7 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                     app.fileStoreId = app.company.file_store_id;
                     app.facilityID = app.userInfo.default_facility_id;
                     app.default_facility_id = app.userInfo.default_facility_id;
+                    app.billingRegionCode = app.country_alpha_3_code + '_' + app.province_alpha_2_code;
                     var scan_document__types = app.company.scan_document_types ? app.company.scan_document_types.scan_document_type : [];
                     app.scanDocumentTypes = scan_document__types;
 
@@ -137,7 +143,7 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
 
                     app.customStudyStatus = [];
                     app.customOrderStatus = [];
-                    
+
                     var docTypes = [];
                     $.each(app.userdocumenttypes, function (index, val) {
                         $.each(app.scanDocumentTypes, function (ind, value) {

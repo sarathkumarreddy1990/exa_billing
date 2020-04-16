@@ -887,7 +887,7 @@ const OHIPDataAPI = {
                     THEN (SELECT charges_bill_fee_total FROM billing.get_claim_totals(bc.id)) ELSE null END AS "claim_totalCharge",
                 pp.patient_info->'c1AddressLine1' AS "patient_address1",
                 pp.patient_info->'c1City' AS "patient_city",
-                pp.birth_date AS "patient_dob",
+                pp.birth_date::text AS "patient_dob",
                 COALESCE (NULLIF(pp.first_name, ''), '') AS "patient_firstName",
                 COALESCE (NULLIF(pp.last_name, ''), '') AS "patient_lastName",
                 COALESCE (NULLIF(pp.gender, ''), '') AS "patient_gender",

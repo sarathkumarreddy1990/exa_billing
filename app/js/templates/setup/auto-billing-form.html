@@ -1,0 +1,354 @@
+<div class="form-group row">
+    <div class="col-lg-12">
+        <form id="formAutoBilling" class="form-horizontals">
+            <div class="row" id="autoBillingInfo">
+                <div class="col-sm-5">
+                    <div class="form-group row">
+
+                        <div class="col-sm-3">
+                            <label for="txtAutoBillingDescription" class="col-form-label field-required" i18n="setup.common.description"></label>
+                        </div>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control" id="txtAutoBillingDescription" name="autoBillingDescription">
+                        </div>
+
+                    </div>
+
+                </div>
+                <div class="col-sm-5">
+                    <div class="form-group row">
+                        <div class="col-sm-5">
+                            <label for="ddlAutoBillingClaimStatus" class="col-form-label field-required" i18n="setup.autoBilling.claimStatus"></label>
+                        </div>
+                        <div class="col-sm-7">
+                            <select id="ddlAutoBillingClaimStatus" name="listAutoBillingClaimStatus" size="1">
+                                <% _.each(claim_status, function(claimStatus) { %>
+                                    <option value="<%= claimStatus.id %>"><%= claimStatus.description %></option>
+                                <%})%>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-2">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="chkAutobillingRuleIsActive">
+                        <label class="form-check-label" for="chkAutobillingRuleIsActive" i18n="shared.fields.inactive"></label>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- BEGIN Study Status SECTION -->
+            <div class="row" style="margin-top:10px;">
+
+                <div class="col-lg-12">
+                    <div class="row">
+                        <legend style="width:98%;">
+                            <h5 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
+                                <label i18n="setup.autoBilling.studyStatus" class=" field-required"></label>
+                            </h5>
+                        </legend>
+                    </div>
+
+                    <!-- BEGIN Study Status FIELDS -->
+                    <div class="form-group row">
+                        <div class="col-lg-2">
+
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="chkAutoBillingStudyStatus" value="is">
+                                <label i18n="setup.common.is"></label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="chkAutoBillingStudyStatus" value="isNOT">
+                                <label i18n="setup.common.isNot"></label>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <div class="form-group row">
+                                <div class="col-sm-10">
+                                    <select id="ddlAutoBillingStudyStatuses" class="form-control select-box"></select>
+                                </div>
+                                <button type="button" id="btnAddAutoBillingStudyStatus" class="btn btn-primary col-sm-2" name="button">
+                                    <i class="icon-ic-plus"></i>
+                                </button>
+                            </div>
+
+                        </div>
+                        <div class="col-lg-5">
+                            <select id="listAutoBillingStudyStatuses" multiple="multiple" size="5" style="height: 80px;"></select>
+                        </div>
+                        <div class="col-lg-1">
+                            <button type="button" id="btnRemoveAutoBillingStudyStatus" class="btn btn-primary"><i class="icon-ic-delete"></i></button>
+                        </div>
+                    </div>
+                    <!-- END Study Status FIELDS -->
+                </div>
+            </div>
+            <!-- END Study Status SECTION -->
+
+            <!-- BEGIN Facilities SECTION -->
+            <div class="row" style="margin-top:10px;" id="divAutoBillingFacilities">
+
+                <div class="col-lg-12">
+                    <div class="row">
+                        <legend style="width:98%;">
+                            <h5 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
+                                <label i18n="setup.autoBilling.facilities"></label>
+                            </h5>
+                        </legend>
+                    </div>
+
+                    <!-- BEGIN Facilities FIELDS -->
+                    <div class="form-group row">
+                        <div class="col-lg-2">
+
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="chkAutoBillingFacility" value="is">
+                                <label i18n="setup.common.is"></label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="chkAutoBillingFacility" value="isNOT">
+                                <label i18n="setup.common.isNot"></label>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <div class="form-group row">
+                                <div class="col-sm-10">
+                                    <select id="ddlAutoBillingFacility" class="form-control select-box"></select>
+                                </div>
+                                <button type="button" id="btnAddAutoBillingFacility" class="btn btn-primary col-sm-2" name="button">
+                                    <i class="icon-ic-plus"></i>
+                                </button>
+                            </div>
+
+                        </div>
+                        <div class="col-lg-5">
+                            <select id="listAutoBillingFacilities" multiple="multiple" size="5" style="height: 80px;"></select>
+                        </div>
+                        <div class="col-lg-1">
+                            <button type="button" id="btnRemoveAutoBillingFacility" class="btn btn-primary"><i class="icon-ic-delete"></i></button>
+                        </div>
+                    </div>
+                    <!-- END Facilities FIELDS -->
+
+                </div>
+            </div>
+            <!-- END Facilities SECTION -->
+
+            <!-- BEGIN Modalities SECTION -->
+            <div class="row" style="margin-top:10px;" id="divAutoBillingModalities">
+
+                <div class="col-lg-12">
+                    <div class="row">
+                        <legend style="width:98%;">
+                            <h5 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
+                                <label i18n="setup.autoBilling.modalities"></label>
+                            </h5>
+                        </legend>
+                    </div>
+
+                    <!-- BEGIN Modalities FIELDS -->
+                    <div class="form-group row">
+                        <div class="col-lg-2">
+
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input autobilling-input" type="radio" name="chkAutoBillingModality" value="is">
+                                <label i18n="setup.common.is"></label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input autobilling-input" type="radio" name="chkAutoBillingModality" value="isNOT">
+                                <label i18n="setup.common.isNot"></label>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <div class="form-group row">
+                                <div class="col-sm-10">
+                                    <select id="ddlAutoBillingModality" class="form-control select-box autobilling-input"></select>
+                                </div>
+                                <button type="button" id="btnAddAutoBillingModality" class="btn btn-primary col-sm-2 autobilling-input" name="button">
+                                    <i class="icon-ic-plus"></i>
+                                </button>
+                            </div>
+
+                        </div>
+                        <div class="col-lg-5">
+                            <select id="listAutoBillingModalities" multiple="multiple" size="5" style="height: 80px;" class="autobilling-input"></select>
+                        </div>
+                        <div class="col-lg-1">
+                            <button type="button" id="btnRemoveAutoBillingModality" class="btn btn-primary autobilling-input"><i class="icon-ic-delete"></i></button>
+                        </div>
+                    </div>
+                    <!-- END Modalities FIELDS -->
+
+                </div>
+            </div>
+            <!-- END Modalities SECTION -->
+
+
+
+
+            <!-- BEGIN CPT Codes SECTION -->
+            <div class="row" style="margin-top:10px;" id="divAutoBillingCptCodes">
+
+                <div class="col-lg-12">
+                    <div class="row">
+                        <legend style="width:98%;">
+                            <h5 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
+                                <label i18n="shared.fields.cptCodes"></label>
+                            </h5>
+                        </legend>
+                    </div>
+
+                    <!-- BEGIN CPT Codes FIELDS -->
+                    <div class="form-group row">
+                        <div class="col-lg-2">
+
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input autobilling-input" type="radio" name="chkAutoBillingCptCode" value="is">
+                                <label i18n="setup.common.is"></label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input autobilling-input" type="radio" name="chkAutoBillingCptCode" value="isNOT">
+                                <label i18n="setup.common.isNot"></label>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <div class="form-group row">
+                                <div class="col-sm-10">
+                                    <select id="ddlAutoBillingCptCode" class="form-control select-box autobilling-input"></select>
+                                </div>
+                                <button type="button" id="btnAddAutoBillingCptCode" class="btn btn-primary col-sm-2 autobilling-input" name="button">
+                                    <i class="icon-ic-plus"></i>
+                                </button>
+                            </div>
+
+                        </div>
+                        <div class="col-lg-5">
+                            <select id="listAutoBillingCptCodes" multiple="multiple" size="5" style="height: 80px;" class="autobilling-input"></select>
+                        </div>
+                        <div class="col-lg-1">
+                            <button type="button" id="btnRemoveAutoBillingCptCode" class="btn btn-primary  autobilling-input"><i class="icon-ic-delete"></i></button>
+                        </div>
+
+
+                    </div>
+                    <!-- END CPT Codes FIELDS -->
+
+                </div>
+            </div>
+            <!-- END CPT Codes SECTION -->
+
+
+            <!-- BEGIN Insurance Provider Payer Types SECTION -->
+            <div class="row" style="margin-top:10px;" id="divAutoBillingInsuranceProviderPayerTypes">
+
+                <div class="col-lg-12">
+                    <div class="row">
+                        <legend style="width:98%;">
+                            <h5 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
+                                <label i18n="setup.autoBilling.insuranceProviderPayerTypes"></label>
+                            </h5>
+                        </legend>
+                    </div>
+
+                    <!-- BEGIN Insurance Provider Payer Types FIELDS -->
+                    <div class="form-group row">
+                        <div class="col-lg-2">
+
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input autobilling-input" type="radio" name="chkAutoBillingInsuranceProviderPayerType" value="is">
+                                <label i18n="setup.common.is"></label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input autobilling-input" type="radio" name="chkAutoBillingInsuranceProviderPayerType" value="isNOT">
+                                <label i18n="setup.common.isNot"></label>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <div class="form-group row">
+                                <div class="col-sm-10">
+                                    <select id="ddlAutoBillingInsuranceProviderPayerTypes" class="form-control select-box autobilling-input"></select>
+                                </div>
+                                <button type="button" id="btnAddAutoBillingInsuranceProviderPayerType" class="btn btn-primary col-sm-2 autobilling-input" name="button">
+                                    <i class="icon-ic-plus"></i>
+                                </button>
+                            </div>
+
+                        </div>
+                        <div class="col-lg-5">
+                            <select id="listAutoBillingInsuranceProviderPayerTypes" multiple="multiple" size="5" class="autobilling-input" style="height: 80px;"></select>
+                        </div>
+                        <div class="col-lg-1">
+                            <button type="button" id="btnRemoveAutoBillingInsuranceProviderPayerType" class="btn btn-primary autobilling-input"><i class="icon-ic-delete"></i></button>
+                        </div>
+                    </div>
+                    <!-- END Insurance Provider Payer Types FIELDS -->
+
+                </div>
+            </div>
+            <!-- END Insurance Provider Payer Types SECTION -->
+
+
+
+
+            <!-- BEGIN Insurance Providers SECTION -->
+            <div class="row" style="margin-top:10px;" id="divAutoBillingInsuranceProviders">
+
+                <div class="col-lg-12">
+                    <div class="row">
+                        <legend style="width:98%;">
+                            <h5 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
+                                <label i18n="setup.autoBilling.insuranceProviders"></label>
+                            </h5>
+                        </legend>
+                    </div>
+
+                    <!-- BEGIN Insurance Providers FIELDS -->
+                    <div class="form-group row">
+                        <div class="col-lg-2">
+
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input autobilling-input" type="radio" name="chkAutoBillingInsuranceProvider" value="is">
+                                <label i18n="setup.common.is"></label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input autobilling-input" type="radio" name="chkAutoBillingInsuranceProvider" value="isNOT">
+                                <label i18n="setup.common.isNot"></label>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <div class="form-group row">
+                                <div class="col-sm-10">
+                                    <select id="ddlAutoBillingInsuranceProviders" class="form-control select-box autobilling-input"></select>
+                                </div>
+                                <button type="button" id="btnAddAutoBillingInsuranceProvider" class="btn btn-primary col-sm-2  autobilling-input" name="button">
+                                    <i class="icon-ic-plus"></i>
+                                </button>
+                            </div>
+
+                        </div>
+                        <div class="col-lg-5">
+                            <select id="listAutoBillingInsuranceProviders" multiple="multiple" size="5" style="height: 80px;" class="autobilling-input"></select>
+                        </div>
+                        <div class="col-lg-1">
+                            <button type="button" id="btnRemoveAutoBillingInsuranceProvider" class="btn btn-primary autobilling-input"><i class="icon-ic-delete"></i></button>
+                        </div>
+                    </div>
+                    <!-- END Insurance Providers FIELDS -->
+
+                </div>
+            </div>
+            <!-- END Insurance Providers SECTION -->
+
+
+        </form>
+    </div>
+
+</div>

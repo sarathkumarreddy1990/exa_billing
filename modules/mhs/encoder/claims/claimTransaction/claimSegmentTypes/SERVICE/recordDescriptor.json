@@ -1,0 +1,152 @@
+{
+    "record_type": {
+        "format": "N",
+        "startPos": 1,
+        "length": 1
+    },
+    "incorporated_indicator": {
+        "format": "N",
+        "startPos": 2,
+        "length": 1
+    },
+    "practitioner_number": {
+        "format": "A",
+        "startPos": 3,
+        "length": 4,
+        "paddingChar": "0",
+        "isLeftJustified": false
+    },
+    "referring_practitioner_number": {
+        "format": "A",
+        "startPos": 7,
+        "length": 5,
+        "paddingChar": "0",
+        "isLeftJustified": false
+    },
+    "facility_number": {
+        "format": "A",
+        "startPos": 12,
+        "length": 5,
+        "paddingChar": "0",
+        "isLeftJustified": false
+    },
+    "hospital_code": {
+        "format": "A",
+        "startPos": 17,
+        "length": 3,
+        "paddingChar": "0",
+        "isLeftJustified": false
+    },
+    "service_date": {
+        "format": "A",
+        "startPos": 20,
+        "length": 6
+    },
+    "prefix": {
+        "format": "A",
+        "startPos": 26,
+        "length": 1
+    },
+    "tariff": {
+        "format": "A",
+        "startPos": 27,
+        "length": 4,
+        "paddingChar": "0",
+        "isLeftJustified": false
+    },
+    "services": {
+        "format": "A",
+        "startPos": 31,
+        "length": 2,
+        "paddingChar": "0",
+        "isLeftJustified": false
+    },
+    "anesthesia_units": {
+        "format": "A",
+        "startPos": 33,
+        "length": 2
+    },
+    "fee_submitted": {
+        "format": "A",
+        "startPos": 35,
+        "length": 6,
+        "paddingChar": "0",
+        "isLeftJustified": false
+    },
+    "confidentail_code": {
+        "format": "A",
+        "startPos": 41,
+        "length": 1
+    },
+    "icd_9_cm": {
+        "format": "A",
+        "startPos": 42,
+        "length": 5
+    },
+    "optometric_reason_code": {
+        "format": "A",
+        "startPos": 47,
+        "length": 2
+    },
+    "chiropractic_service_code": {
+        "format": "A",
+        "startPos": 49,
+        "length": 3
+    },
+    "service_location_indicator": {
+        "format": "A",
+        "startPos": 52,
+        "length": 1
+    },
+    "third_part_liability": {
+        "format": "A",
+        "startPos": 53,
+        "length": 1
+    },
+    "special_circumstance_indicator": {
+        "format": "A",
+        "startPos": 54,
+        "length": 1
+    },
+    "interpreting_radiologist_number": {
+        "format": "A",
+        "startPos": 55,
+        "length": 5,
+        "paddingChar": "0",
+        "isLeftJustified": false
+    },
+    "location_of_service": {
+        "format": "A",
+        "startPos": 60,
+        "length": 1
+    },
+    "number_of_patients": {
+        "format": "A",
+        "startPos": 61,
+        "length": 2,
+        "paddingChar": "0",
+        "isLeftJustified": false
+    },
+    "start_time": {
+        "format": "A",
+        "startPos": 63,
+        "length": 4
+    },
+    "end_time": {
+        "format": "A",
+        "startPos": 67,
+        "length": 4
+    },
+    "bilateral": {
+        "format": "A",
+        "startPos": 71,
+        "length": 1
+    },
+      "claim_number": {
+        "format": "A",
+        "startPos": 72,
+        "length": 9,
+        "paddingChar": "0",
+        "isLeftJustified": false
+    }
+}

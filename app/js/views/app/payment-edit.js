@@ -218,7 +218,16 @@ define(['jquery',
                 for (var j = 1; j < 13; j++) {
                     expiryMonth.push({ value: self.returnDoubleDigits(j), text: self.returnDoubleDigits(j) });
                 }
-                $(this.el).html(this.paymentsEditTemplate({ expiryYear: expiryYear, expiryMonth: expiryMonth, paidlocation: this.paidlocation.toJSON(), facilityAdd: this.paidlocation.toJSON(), paymentReasons: this.paymentReasons.toJSON(), id: self.payemntId }));
+                $(this.el).html(this.paymentsEditTemplate({
+                    country_alpha_3_code: app.country_alpha_3_code,
+                    province_alpha_2_code: app.province_alpha_2_code,
+                    expiryYear: expiryYear,
+                    expiryMonth: expiryMonth,
+                    paidlocation: this.paidlocation.toJSON(),
+                    facilityAdd: this.paidlocation.toJSON(),
+                    paymentReasons: this.paymentReasons.toJSON(),
+                    id: self.payemntId
+                }));
                 this.rendered = true;
                 this.pendingGridLoaderd = false;
                 self.showBillingForm(paymentId, self.from);
@@ -866,6 +875,11 @@ define(['jquery',
                     this.showPendingPaymentsGrid(this.payment_id, response.payer_type, response.patient_id, response.patient_id);
                 }
 
+                // Alberta Fields
+                $('#lblClaimNumber').text(response.can_ahs_claim_number);
+                $('#lblChartNumber').text(response.claim_id);
+                $('#lblFinancialRequestNumber').text(response.can_ahs_financial_request_number);
+
                 if (response.payer_type === "patient") {
                     self.payer_id = response.patient_id;
                 } else {
@@ -932,7 +946,7 @@ define(['jquery',
                     custompager: this.studyCptPager,
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['', '', '', '', '', '', ''],
-                    i18nNames: ['', '', '', 'billing.COB.studyDate', 'billing.payments.accessionNo', 'billing.payments.studyDescription', 'billing.payments.cptCodes'],
+                    i18nNames: ['', '', '', 'billing.COB.studyDate', 'billing.payments.accessionNo', 'shared.fields.studyDescription', 'shared.fields.cptCodes'],
                     colModel: [
                         {
                             name: 'as_chkStudyCpt',
@@ -1343,7 +1357,7 @@ define(['jquery',
                     custompager: this.pendPaymtInvoicePager,
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                    i18nNames: ['', '', '', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.fileInsurance.claimDt', 'billing.payments.billFee', 'billing.payments.balance', 'setup.userSettings.cptCodes', 'setup.userSettings.accountNo', '', ''],
+                    i18nNames: ['', '', '', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.fileInsurance.claimDt', 'billing.payments.billFee', 'billing.payments.balance', 'shared.fields.cptCodes', 'setup.userSettings.accountNo', '', ''],
                     colModel: [
                         {
                             name: 'edit', width: 20, sortable: false, search: false,
@@ -1449,7 +1463,7 @@ define(['jquery',
                         custompager: this.pendPaymtPager,
                         emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                         colNames: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                        i18nNames: ['', '', '', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.fileInsurance.claimDt', 'billing.payments.billFee', 'billing.payments.balance', 'setup.userSettings.cptCodes', 'setup.userSettings.accountNo', '', ''],
+                        i18nNames: ['', '', '', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.fileInsurance.claimDt', 'billing.payments.billFee', 'billing.payments.balance', 'shared.fields.cptCodes', 'setup.userSettings.accountNo', '', ''],
                         colModel: [
                             {
                                 name: 'edit', width: 20, sortable: false, search: false,
@@ -1609,7 +1623,7 @@ define(['jquery',
                     custompager: this.appliedPager,
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                    i18nNames: ['', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.fileInsurance.claimDt', 'billing.payments.billFee', 'billing.payments.patientPaid', 'billing.payments.payerPaid', 'billing.payments.adjustment', 'billing.payments.thisAdj', 'billing.payments.thisPayment', 'billing.payments.balance', 'billing.payments.cptCodes', 'patient_id', 'facility_id', ''],
+                    i18nNames: ['', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.fileInsurance.claimDt', 'billing.payments.billFee', 'billing.payments.patientPaid', 'billing.payments.payerPaid', 'billing.payments.adjustment', 'billing.payments.thisAdj', 'billing.payments.thisPayment', 'billing.payments.balance', 'shared.fields.cptCodes', 'patient_id', 'facility_id', ''],
                     colModel: [
                         {
                             name: 'edit', width: 20, sortable: false, search: false,
@@ -1740,13 +1754,15 @@ define(['jquery',
                 var casDialogHeader = commonjs.geti18NString('billing.fileInsurance.claim') + ': # <strong>' + rowData.claim_id + ',  ' + rowData.full_name + '  ' + claimDt + '</strong>';
                 var casDialogHtml = self.applyCasTemplate({
                     country_alpha_3_code: app.country_alpha_3_code,
+                    province_alpha_2_code: app.province_alpha_2_code,
                     adjustmentCodes: self.adjustmentCodeList.toJSON(),
                     claimStatusList: this.claimStatusList.toJSON(),
                     cas_group_codes: self.cas_group_codes || rowData.cas_group_codes,
                     cas_reason_codes: self.cas_reason_codes || rowData.cas_reason_codes,
                     patient_paid: patient_paid,
                     others_paid: others_paid,
-                    claim_statuses: self.claimStatuses.toJSON()
+                    claim_statuses: self.claimStatuses.toJSON(),
+                    billingRegionCode: app.billingRegionCode
                 });
                 var _showDialogObj = {
                     header: casDialogHeader,
@@ -1877,6 +1893,7 @@ define(['jquery',
 
                             var applyPaymentRow = self.applyPaymentTemplate({
                                 country_alpha_3_code: app.country_alpha_3_code,
+                                province_alpha_2_code: app.province_alpha_2_code,
                                 payment: paymentDet
                             });
 
@@ -2011,6 +2028,7 @@ define(['jquery',
 
                         self.received_claim_status_id = payerTypes && payerTypes[0].claim_status_id
                         $('#ddlClaimStatus').val(self.received_claim_status_id);
+                        self.disableElementsForProvince(payerTypes);
 
                         $.each(charges, function (index, charge_details) {
                             if (charge_details.adjustment_code_id) {
@@ -2057,6 +2075,10 @@ define(['jquery',
                                 self.saveAllPayments(e, claimId, paymentId, paymentStatus, chargeId, paymentApplicationId);
                             }
                         }, 250));
+
+                        $('#applyPaymentContent').find('#btnSaveAppliedPendingPaymentsNotes').unbind().on('click', function (e) {
+                            self.updateNotes(e, claimId);
+                        });
 
                         $('#btnClearAppliedPendingPayments').unbind().on('click', function (e) {
                             self.clearPayments(e, paymentId, claimId);
@@ -2534,6 +2556,32 @@ define(['jquery',
                         }
                     });
                 }
+            },
+
+            updateNotes: function (e, claimId) {
+                var targetObj = $(e.target);
+
+                commonjs.showLoading();
+                targetObj.attr('disabled', true);
+                $.ajax({
+                    url: '/exa_modules/billing/payments/notes/' + claimId,
+                    type: 'PUT',
+                    data: {
+                        billingNotes: $('#txtResponsibleNotes').val() || ''
+                    },
+                    success: function (response) {
+                        if (response && response.length) {
+                            commonjs.showStatus("messages.status.successfullyCompleted");
+                            commonjs.hideLoading();
+                            targetObj.removeAttr('disabled');
+                        }
+                    },
+                    error: function (err) {
+                        commonjs.handleXhrError(err);
+                        commonjs.hideLoading();
+                        targetObj.removeAttr('disabled');
+                    }
+                });
             },
 
             reloadPaymentFields: function (claimId, paymentId, paymentApplicationId, isInitialBind) {
@@ -3442,6 +3490,48 @@ define(['jquery',
                     $('#siteModalNested .close').trigger('click');
                 } else {
                     $('#siteModal .close').trigger('click');
+                }
+            },
+
+            // enable/disable elements Based on billing province.
+            disableElementsForProvince: function(data) {
+                var details = data && data[0] || {};
+
+                if (app.billingRegionCode === 'can_AB') {
+                    $('#ddlClaimStatus').prop('disabled', details && details.primary_ins_provider_code.toLowerCase() === 'ahs');
+                } else if (app.billingRegionCode === 'can_MB') {
+                    var queryClaimStatusId, p77ClaimStatusId;
+
+                    _.each(app.claim_status, function (obj) {
+                        switch (obj.code) {
+                            case 'QR':
+                                queryClaimStatusId = obj.id;
+                                break;
+                            case 'P77':
+                                p77ClaimStatusId = obj.id;
+                                break;
+                        }
+                    });
+
+                    var queryStatusEle = $('#ddlClaimStatus option[value="' + queryClaimStatusId + '"]');
+                    var p77StatusEle = $('#ddlClaimStatus option[value="' + p77ClaimStatusId + '"]');
+
+                    var validStatus = app.claim_status.find(function(obj) {
+                        return obj.id === details.claim_status_id;
+                    }); //returns an id of partially paid or over paid.
+
+                    if (['MPP', 'OP', 'R'].includes(validStatus.code)) {
+                        queryStatusEle.show();
+                    } else {
+                        queryStatusEle.hide();
+                    }
+
+                    if (validStatus.code !== 'P77') {
+                        p77StatusEle.hide();
+                        $("#btnSaveAppliedPendingPaymentsNotes").hide();
+                    } else {
+                        $("#btnSaveAppliedPendingPayments").hide();
+                    }
                 }
             }
 
