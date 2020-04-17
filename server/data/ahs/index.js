@@ -131,8 +131,10 @@ const ahsData = {
                 (SELECT
                     charges_bill_fee_total
                 FROM
-                    billing.get_claim_totals(bc.id)) AS "claim_totalCharge"
+                    billing.get_claim_totals(bc.id)) AS "claim_totalCharge",
+                bcs.code AS claim_status_code
                 FROM billing.claims bc
+                INNER JOIN billing.claim_status bcs ON bcs.id = bc.claim_status_id
                 LEFT JOIN public.companies pc ON pc.id = bc.company_id
                 LEFT JOIN public.patients pp ON pp.id = bc.patient_id
                 LEFT JOIN billing.charges bch ON bch.claim_id = bc.id
@@ -245,6 +247,16 @@ const ahsData = {
 
         const sql = SQL`
             WITH
+                resubmission_claims AS(
+                    SELECT
+                        claim_id
+	                  , MAX(batch_number) AS batch_number
+	                  , MAX(sequence_number) AS sequence_number
+	                FROM billing.edi_file_claims
+	                WHERE claim_id = ANY(${claimIds}) AND can_ahs_action_code = 'a'
+	                GROUP BY can_ahs_action_code, claim_id
+	                ORDER BY sequence_number DESC
+                ),
                 numbers AS (
                     SELECT
                         ( COALESCE(MAX(batch_number :: INT), 0) + 1 ) % 1000000     AS batch_number,
@@ -275,7 +287,7 @@ const ahsData = {
                         n.batch_number::TEXT,
                         CASE
                             WHEN ${source} = 'reassessment' OR ${source} = 'change'
-                                THEN n.sequence_number
+                                THEN rsc.sequence_number
                             ELSE ( n.sequence_number + row_number() OVER () ) % 10000000
                         END,
                         CASE
@@ -290,6 +302,7 @@ const ahsData = {
                         ${edi_file_id}
                     FROM billing.claims c
                     INNER JOIN numbers n ON TRUE
+                    LEFT JOIN resubmission_claims rsc ON rsc.claim_id = c.id
                     WHERE c.id = ANY(${claimIds})
                     RETURNING
                         *
