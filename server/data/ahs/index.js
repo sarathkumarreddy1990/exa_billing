@@ -66,7 +66,8 @@ const ahsData = {
                                 UPDATE
                                     billing.claims
                                 SET
-                                    claim_status_id = status.id
+                                    claim_status_id = status.id,
+                                    submitted_dt = timezone(get_facility_tz(facility_id::int), now()::timestamp)
                                 FROM
                                     status
                                 WHERE
