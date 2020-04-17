@@ -99,7 +99,7 @@ const colModel = [
     },
     {
         name: 'can_ahs_claim_no',
-        searchFlag: 'int',
+        searchFlag: '%',
         searchColumns: ['billing.can_ahs_get_claim_number(claims.id)']
     },
     {
