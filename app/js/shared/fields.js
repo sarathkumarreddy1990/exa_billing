@@ -53,7 +53,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         //Determine which CAS Codes are integers and which are strings
         for (var i = 0; i < app.cas_reason_codes.length; i++) {
             var indCode = app.cas_reason_codes[i].code;
-            if (isNaN(parseInt(indCode))) {
+            if (isNaN(indCode)) {
                 characters.push(indCode);
             } else {
                 integers.push(parseInt(indCode));
