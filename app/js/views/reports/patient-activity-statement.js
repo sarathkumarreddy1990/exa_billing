@@ -104,6 +104,7 @@ define([
 
                 urlParams.dateFormat = this.viewModel.dateFormat;
                 urlParams.async = false;
+                urlParams.save = false;
                 var options = {
                     'id': reportName,
                     'category': this.viewModel.reportCategory,
