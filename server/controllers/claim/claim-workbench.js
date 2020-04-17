@@ -610,7 +610,7 @@ module.exports = {
         let validation_result = {
             invalidClaim_data: [],
             validClaim_data: [],
-            invalidStatus_claims: [],
+            invalidStatus_claims: []
         };
 
         let error_data;
