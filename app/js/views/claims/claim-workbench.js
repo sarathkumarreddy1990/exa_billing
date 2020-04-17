@@ -2900,8 +2900,10 @@ define(['jquery',
                             commonjs.hideLoading();
 
                             var isValidClaimData = data.validClaim_data && data.validClaim_data.rows && data.validClaim_data.rows.length;
+                            var updateAhsClaimStatusFlag = app.billingRegionCode === 'can_AB' && data.invalidStatus_claims.length;
+                            var pending77ClaimStatusFlag = app.billingRegionCode === 'can_MB' && data.validP77Claim_data.length;
 
-                            if ((app.billingRegionCode === 'can_MB' && data.validP77Claim_data.length) || isValidClaimData) {
+                            if (pending77ClaimStatusFlag || updateAhsClaimStatusFlag || isValidClaimData) {
                                 commonjs.showStatus("messages.status.validatedSuccessfully");
                             }
 
