@@ -2901,7 +2901,7 @@ define(['jquery',
 
                             var isValidClaimData = data.validClaim_data && data.validClaim_data.rows && data.validClaim_data.rows.length;
 
-                            if ((app.billingRegionCode === 'can_MB' && data.validP77Claim_data.length) || isValidClaimAvailable) {
+                            if ((app.billingRegionCode === 'can_MB' && data.validP77Claim_data.length) || isValidClaimData) {
                                 commonjs.showStatus("messages.status.validatedSuccessfully");
                             }
 
