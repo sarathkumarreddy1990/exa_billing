@@ -99,7 +99,9 @@ define([
                 var isFromClaimScreen = this.options.source && this.options.source === 'claims'
 
                 $(this.el).html(this.inquiryTemplate({
-                    country_alpha_3_code: app.country_alpha_3_code
+                    country_alpha_3_code: app.country_alpha_3_code,
+                    province_alpha_2_code: app.province_alpha_2_code,
+                    billingRegionCode: app.billingRegionCode
                 }));
                 if (this.options.source !== 'web')
                     commonjs.showDialog({
@@ -108,7 +110,9 @@ define([
                         width: '90%',
                         height: '85%',
                         html: this.inquiryTemplate({
-                            country_alpha_3_code: app.country_alpha_3_code
+                            country_alpha_3_code: app.country_alpha_3_code,
+                            province_alpha_2_code: app.province_alpha_2_code,
+                            billingRegionCode: app.billingRegionCode
                         })
                     });
                 else
@@ -139,6 +143,10 @@ define([
 
                 $('#btnCISaveIsInternal').off().click(function () {
                     self.saveIsInternalComment();
+                });
+
+                $('#btnCISaveNotes').off().click(function () {
+                    self.updateNotes();
                 });
 
                 $('btnCIPrintInvoice').off().click(function (e) {
@@ -245,6 +253,7 @@ define([
                                 $('#divClaimInquiry').height(isFromClaimScreen ? $(window).height() - 220 : $(window).height() - 260);
                             }
                             self.clearFaxInfo();
+                            self.disableElementsForProvince(claim_data);
                         }
                     },
                     error: function (err) {
@@ -257,6 +266,21 @@ define([
                 });
             },
 
+            disableElementsForProvince: function(data) {
+                if (app.billingRegionCode === 'can_MB') {
+                    var saveBtn = $('#btnCISaveNotes');
+                    var saveNotesBtn = $('#btnCISaveIsInternal');
+
+                    if (data.claim_status_code === 'P77') {
+                        saveBtn.show();
+                        saveNotesBtn.hide();
+                    } else {
+                        saveNotesBtn.show();
+                        saveBtn.hide();
+                    }
+                }
+            },
+
             getSubscriberDOBFormat: function ( cellvalue, options, rowObject ) {
                 return commonjs.checkNotEmpty(rowObject.subscriber_dob)
                     ? moment(rowObject.subscriber_dob).format('L')
@@ -266,9 +290,7 @@ define([
             showInsuranceGrid: function (data) {
                 var self = this;
                 var colNames = ['', 'code', 'description', 'Subscriber Name', 'DOB', 'Policy No', 'Group No'];
-                var i18nNames = ['', 'billing.COB.code', 'billing.COB.description', 'billing.claims.subscriberName', 'billing.COB.DOB', 'patient.patientInsurance.policyNo',
-                    'patient.patientInsurance.groupNo'
-                ];
+                var i18nNames = ['', 'billing.COB.code', 'billing.COB.description', 'billing.claims.subscriberName', 'billing.COB.DOB', 'shared.fields.policyNumber', 'patient.patientInsurance.groupNo'];
                 var colModel = [
                     { name: 'id', hidden: true },
                     { name: 'insurance_code', search: false },
@@ -279,7 +301,7 @@ define([
                     { name: 'group_number', search: false }
                 ];
 
-                if (app.country_alpha_3_code != "can") {
+                if (app.billingRegionCode !== "can_ON") {
                     colNames.push('Paper Claim Original', 'Paper Claim Full');
                     i18nNames.push('billing.COB.paperClaimOriginal', 'billing.COB.paperClaimFull');
                     colModel.push({
@@ -519,6 +541,26 @@ define([
                         self.isCleared = true;
                         gridObj.refresh();
                     });
+                });
+            },
+
+            updateNotes: function () {
+                $.ajax({
+                    url: '/exa_modules/billing/claims/claim_inquiry/notes/' + this.claim_id,
+                    type: 'PUT',
+                    data: {
+                        billingNotes: $.trim($('#txtCIBillingComment').val()) || ''
+                    },
+                    success: function (response) {
+                        if (response && response.length) {
+                            commonjs.showStatus("messages.status.successfullyCompleted");
+                            $('#btnSaveClaimNotes').prop('disabled', false);
+                            $('.claimProcess').prop('disabled', false);
+                        }
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
                 });
             },
 

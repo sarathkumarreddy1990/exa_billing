@@ -31,7 +31,9 @@ define([
                 var self = this;
                 userID = app.userID;
                 this.$el.html(template({
-                    country_alpha_3_code: app.country_alpha_3_code
+                    country_alpha_3_code: app.country_alpha_3_code,
+                    province_alpha_2_code: app.province_alpha_2_code,
+                    billing_region_code: app.billingRegionCode
                 }));
                 if (window.location && window.location.hash.split('/')[1] == 'studies') {
                     self.gridFilterName = 'studies';
@@ -142,9 +144,8 @@ define([
                     var i18nLabel = field_order[i].i18n_name;
                     var newLi = $('<li>');
                     var newCB = CreateCheckBox(value, id, i18nLabel);
-                    var defaultOptions = ['Billing Method', 'Patient Name', 'Claim Date', 'Clearing House', 'Billing Provider','Patient','Study Date','Account#','Status','Accession#', 'Billed Status','Payer Type','Claim Status','Claim No'];
-
-                    if (defaultOptions.indexOf(value) > -1) {
+                    var defaultOptions = ['Billing Method', 'Patient Name', 'Claim Date', 'Clearing House', 'Billing Provider','Patient','Study Date','Account#','Status','Accession#', 'Billed Status','Payer Type','Claim Status','Claim No', 'AHS Claim Num'];
+                    if (defaultOptions.indexOf(value) != -1) {
                         newCB.find('input[type=checkbox]').attr('data_name', screenName).addClass('chkBillFields').prop("disabled", "true").attr('checked', true);
 
                         if (!checkedFieldLength) {
@@ -208,6 +209,9 @@ define([
                             field.field_code == "patient_ssn" || field.field_code == "place_of_service" )) }) || [];
                         } else {
                             self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && field.field_code == "payment_id") }) || [];
+                        }
+                        if (app.billingRegionCode !== "can_MB") {
+                            self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && field.field_code == "can_mhs_microfilm_no") }) || [];
                         }
                         var result_data = data && data.length && data[1] && data[1].rows && data[1].rows.length ? data[1].rows[0] : {};
                         self.checkedBillingDisplayFields = result_data.field_order || [] ;

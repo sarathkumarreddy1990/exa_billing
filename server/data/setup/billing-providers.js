@@ -205,7 +205,7 @@ module.exports = {
                     , ${code}
                     , ${shortDescription}
                     , ${federalTaxId}
-                    , ${npiNo}
+                    , ${npiNo || ''}
                     , ${taxonomyCode}
                     , ${contactPersonName}
                     , ${addressLine1}
@@ -281,7 +281,7 @@ module.exports = {
                 , code = ${code}
                 , short_description = ${shortDescription}
                 , federal_tax_id = ${federalTaxId}
-                , npi_no = ${npiNo}
+                , npi_no = ${npiNo || ''}
                 , taxonomy_code = ${taxonomyCode}
                 , contact_person_name = ${contactPersonName}
                 , address_line1 = ${addressLine1}
@@ -289,7 +289,7 @@ module.exports = {
                 , city = ${city}
                 , state = ${state}
                 , zip_code = ${zipCode}
-                , zip_code_plus = ${zipCodePlus}
+                , zip_code_plus = ${zipCodePlus || ''}
                 , email = ${email}
                 , phone_number = ${phoneNumber}
                 , fax_number = ${faxNumber}

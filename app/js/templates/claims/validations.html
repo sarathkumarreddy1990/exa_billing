@@ -1,0 +1,27 @@
+<html>
+
+    <head>
+        <title i18n="billing.claims.claimValidationResponse"></title>
+    </head>
+
+    <body>
+        <table class="table table-bordered w-100 m-auto">
+            <tbody>
+                <tr>
+                    <td class="moreLightbgColor summmaryBorder w-20">
+                        <label class="logFields" i18n="billing.fileInsurance.errorMessage"></label>
+                    </td>
+                    <td class="summmaryBorder">
+                        <div class="__right-labels" style="overflow: auto;">
+                            <% _.each(validationMessages, function(message){%>
+                            <label><%= message %></label>
+                            <br/>
+                            <%});%>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </body>
+
+</html>
