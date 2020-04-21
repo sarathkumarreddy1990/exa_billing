@@ -139,6 +139,40 @@ define(['jquery',
                     return false
                 }
             },
+            getClaimChargeFieldDetails: function (billingRegionCode) {
+                switch (billingRegionCode) {
+                    case 'can_AB':
+                        return {
+                            pointers: [false, false, false, false],
+                            modifiers: [true, true, true, false]
+                        }
+                        break;
+                    case 'can_BC':
+                        return {
+                            pointers: [true, true, true, false],
+                            modifiers: [true, true, true, true]
+                        }
+                        break;
+                    case 'can_MB':
+                        return {
+                            pointers: [true, false, false, false],
+                            modifiers: [true, true, true, true]
+                        }
+                        break;
+                    case 'can_ON':
+                        return {
+                            pointers: [true, true, true, true],
+                            modifiers: [true, true, true, true]
+                        }
+                        break;
+                    default:
+                        return {
+                            pointers: [true, true, true, true],
+                            modifiers: [true, true, true, true]
+                        }
+                        break;
+                }
+            },
             render: function (isFrom) {
                 var self = this;
                 self.claimICDLists = [];
@@ -184,7 +218,8 @@ define(['jquery',
                         chargeList: self.claimChargeList || [],
                         paymentList: self.paymentList,
                         billingRegionCode: app.billingRegionCode,
-                        currentDate: self.studyDate === undefined && self.cur_study_date || self.studyDate
+                        currentDate: self.studyDate === undefined && self.cur_study_date || self.studyDate,
+                        chargeField : self.getClaimChargeFieldDetails(app.billingRegionCode || '')
                     })
                 });
 
@@ -1105,7 +1140,7 @@ define(['jquery',
                     $('#ddlClaimResponsible').data('current-payer',claim_data.payer_type);
                     $('#ddlClaimStatus').val(claim_data.claim_status_id || '');
                     $('#ddlFrequencyCode').val(claim_data.frequency || '')
-                    $('#ddlPOSType').val(app.country_alpha_3_code !== 'can' && claim_data.place_of_service_id || '');
+                    $('#ddlPOSType').val(["can_AB", "can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && claim_data.place_of_service_id || '');
                     document.querySelector('#txtClaimDate').value = claim_data.claim_dt ? self.convertToTimeZone(claim_data.facility_id, claim_data.claim_dt).format('L') : '';
                 } else {
                     var responsibleIndex = _.find(self.responsible_list, function (item) { return item.payer_type == 'PIP_P'; });
@@ -1120,7 +1155,7 @@ define(['jquery',
                         var code = _.find(frequency, function (item) { return item.code == parseInt(claim_data.frequency); });
                         $('#ddlFrequencyCode').val(code.desc || '');
                     }
-                    if (app.country_alpha_3_code !== 'can' && claim_data.pos_type_code && claim_data.pos_type_code != '') {
+                    if (["can_AB", "can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && claim_data.pos_type_code && claim_data.pos_type_code != '') {
                         $('#ddlPOSType').val($('option[data-code = ' + claim_data.pos_type_code.trim() + ']').val());
                     } else if (app.country_alpha_3_code !== 'can') {
                         $('#ddlPOSType').val(claim_data.fac_place_of_service_id || '');
@@ -3362,7 +3397,7 @@ define(['jquery',
                     rendering_provider_contact_id: self.ACSelect && self.ACSelect.readPhy ? self.ACSelect.readPhy.contact_id : null,
                     referring_provider_contact_id: self.ACSelect && self.ACSelect.refPhy ? self.ACSelect.refPhy.contact_id : null,
                     ordering_facility_id: self.group_id ? parseInt(self.group_id) : null,
-                    place_of_service_id: app.country_alpha_3_code !== 'can' && $('#ddlPOSType option:selected').val() != '' ? parseInt($('#ddlPOSType option:selected').val()) : null,
+                    place_of_service_id: ["can_AB", "can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && $('#ddlPOSType option:selected').val() != '' ? parseInt($('#ddlPOSType option:selected').val()) : null,
                     billing_code_id: $('#ddlBillingCode option:selected').val() != '' ? parseInt($('#ddlBillingCode option:selected').val()) : null,
                     billing_class_id: $('#ddlBillingClass option:selected').val() != '' ? parseInt($('#ddlBillingClass option:selected').val()) : null,
                     created_by: app.userID,
@@ -4928,7 +4963,7 @@ define(['jquery',
                 self.group_id = patient_details.service_facility_id ? parseInt(patient_details.service_facility_id) : null;
                 self.group_name = service_facility_name;
 
-                $('#ddlPOSType').val(app.country_alpha_3_code !== 'can' && patient_details.fac_place_of_service_id || '');
+                $('#ddlPOSType').val(["can_AB", "can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && patient_details.fac_place_of_service_id || '');
                 $('#ddlBillingProvider').val(patient_details.billing_provider_id || '');
                 $('#ddlFacility').val(patient_details.facility_id || '');
                 $('#select2-ddlRenderingProvider-container').html(renderingProvider);
@@ -5187,7 +5222,9 @@ define(['jquery',
                                 window.patientChartWindow = window.open("about:blank");
                                 window.patientChartWindow.location.href = url;
                             }
-                        }));
+                        }))
+                        .append($('<span>').attr({'i18n': 'patient.advancedSearch.phn', class: 'pl-3'}))
+                        .append(':' +  (patient_details && patient_details.phn_acc_no && patient_details.phn_acc_no.alt_account_no || ''));
             },
 
             bindClaimPaymentEvent: function () {

@@ -613,6 +613,7 @@ module.exports = {
                     , c.can_wcb_rejected
                     , c.can_mhs_receipt_date::text AS can_mhs_receipt_date
                     , c.can_mhs_microfilm_no
+                    , public.get_issuer_details(c.patient_id , 'uli_phn') AS phn_acc_no    
                     , (
                         SELECT array_agg(row_to_json(pointer)) AS claim_charges
                         FROM (
