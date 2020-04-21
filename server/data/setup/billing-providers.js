@@ -70,6 +70,7 @@ module.exports = {
                     , pay_to_phone_number
                     , pay_to_fax_number
                     , communication_info
+                    , can_is_alternate_payment_program
                     , COUNT(1) OVER (range unbounded preceding) as total_records
                 FROM   billing.providers `;
 
@@ -126,6 +127,7 @@ module.exports = {
                     , pay_to_phone_number
                     , pay_to_fax_number
                     , communication_info
+                    , can_is_alternate_payment_program
                 FROM   billing.providers
                 WHERE
                     id = ${id} `;
@@ -164,7 +166,8 @@ module.exports = {
             payToFaxNumber,
             communicationInfo,
             companyId,
-            isActive
+            isActive,
+            canIsAlternatePaymentProgram,
         } = params;
         let inactivated_dt = isActive ? null : 'now()';
 
@@ -198,6 +201,7 @@ module.exports = {
                     , pay_to_fax_number
                     , communication_info
                     , company_id
+                    , can_is_alternate_payment_program
                     , inactivated_dt)
                 values
                     (
@@ -229,6 +233,7 @@ module.exports = {
                     , ${payToFaxNumber}
                     , ${communicationInfo}
                     , ${companyId}
+                    , ${canIsAlternatePaymentProgram}
                     , ${inactivated_dt})
                 RETURNING *, '{}'::jsonb old_values`;
 
@@ -269,7 +274,8 @@ module.exports = {
             payToPhoneNumber,
             payToFaxNumber,
             communicationInfo,
-            isActive
+            isActive,
+            canIsAlternatePaymentProgram,
         } = params;
         let inactivated_dt = isActive ? null : 'now()';
 
@@ -305,6 +311,7 @@ module.exports = {
                 , pay_to_fax_number = ${payToFaxNumber}
                 , communication_info = ${communicationInfo}
                 , inactivated_dt = ${inactivated_dt}
+                , can_is_alternate_payment_program = ${canIsAlternatePaymentProgram}
                 WHERE
                     id = ${id}
                     RETURNING *,

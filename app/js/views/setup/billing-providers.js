@@ -242,6 +242,7 @@ define(['jquery',
                                     Address.loadCityStateZipTemplate('#divPayToAddress', data, payToAddressMap);
                                     $('#txtName').val(data.name || '');
                                     $('#chkIsActive').prop('checked', !!data.inactivated_dt);
+                                    $('#chkAltPay').prop('checked', data.can_is_alternate_payment_program);
                                     $('#txtCode').val(data.code || '');
                                     $('#txtShortDesc').val(data.short_description || '');
                                     $('#txtFederalTaxID').val(data.federal_tax_id || '');
@@ -491,7 +492,8 @@ define(['jquery',
                     "payToEmail": $('#txtPayEmail').val(),
                     "payToPhoneNumber": $('#txtPayBillProPhoneNo').val(),
                     "payToFaxNumber": $('#txtPayFaxNo').val(),
-                    "communicationInfo": communication_info
+                    "communicationInfo": communication_info,
+                    "canIsAlternatePaymentProgram" : $('#chkAltPay').prop('checked'), 
                 });
 
                 this.model.save({}, {
