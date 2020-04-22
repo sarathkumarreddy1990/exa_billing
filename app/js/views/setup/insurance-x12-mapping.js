@@ -45,6 +45,19 @@ define(['jquery',
                     { 'value': 'patient_payment', 'text': 'Patient Payment' },
                     { 'value': 'paper_claim', 'text': 'Paper Claim' }
                 ];
+                this.payer_edi_code = [
+                    { 'value': 'A', 'text': '<option i18n="setup.insurance.attorney"></option>' },
+                    { 'value': 'C', 'text': '<option i18n="setup.insurance.medicareEdi"></option>' },
+                    { 'value': 'D', 'text': '<option i18n="setup.insurance.medicaidEdi"></option>' },
+                    { 'value': 'F', 'text': '<option i18n="setup.insurance.commercial"></option>' },
+                    { 'value': 'G', 'text': '<option i18n="setup.insurance.blueCross"></option>' },
+                    { 'value': 'R', 'text': '<option i18n="setup.insurance.railroadMC"></option>' },
+                    { 'value': 'W', 'text': '<option i18n="setup.insurance.workersCompensation"></option>' },
+                    { 'value': 'X', 'text': '<option i18n="setup.insurance.xChampus"></option>' },
+                    { 'value': 'Y', 'text': '<option i18n="setup.insurance.yFacility"></option>' },
+                    { 'value': 'M', 'text': '<option i18n="setup.insurance.mDMERC"></option>' },
+                    { 'value': 'AM', 'text': '<option i18n="setup.insurance.autoMobile"></option>' }
+                ];
             },
 
             render: function() {
@@ -66,14 +79,20 @@ define(['jquery',
                     textDescription: 'text',
                     sort: true
                 })
+                var payerEDICode = commonjs.buildGridSelectFilter({
+                    arrayOfObjects: this.payer_edi_code,
+                    searchKey: 'value',
+                    textDescription: 'text',
+                    sort: true
+                })
 
                 this.insuranceX12MappingTable = new customGrid();
                 this.insuranceX12MappingTable.render({
                     gridelementid: '#tblInsuranceX12MappingGrid',
                     custompager: new Pager(),
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['','','','',''],
-                    i18nNames: ['', '', 'setup.insuranceX12Mapping.insuranceName', 'billing.fileInsurance.billingmethod', 'setup.insuranceX12Mapping.claimClearingHouse'],
+                    colNames: ['','','','','',''],
+                    i18nNames: ['', '', 'setup.insuranceX12Mapping.insuranceName', 'billing.fileInsurance.billingmethod', 'setup.insuranceX12Mapping.claimClearingHouse', 'billing.fileInsurance.ediCode'],
                     colModel: [
                         {
                             name: 'id',
@@ -118,6 +137,12 @@ define(['jquery',
                                 }
                                 return name;
                             }
+                        },
+                        {
+                            name: 'payer_edi_code',
+                            "stype": "select",
+                            searchoptions: { value: payerEDICode },
+                            formatter: self.changePayerEDICode
                         }
                     ],
                     afterInsertRow: function (rowid, rowdata) {
@@ -333,6 +358,46 @@ define(['jquery',
                 }
             },
 
+            changePayerEDICode: function (cellvalue, options, rowObject) {
+                var ediVal = '';
+                switch (rowObject.payer_edi_code) {
+                    case 'A':
+                        ediVal = '<option i18n="setup.insurance.attorney"></option>'
+                        break;
+                    case 'C':
+                        ediVal = '<option i18n="setup.insurance.medicareEdi"></option>'
+                        break;
+                    case 'D':
+                        ediVal = '<option i18n="setup.insurance.medicaidEdi"></option>'
+                        break;
+                    case 'F':
+                        ediVal = '<option i18n="setup.insurance.commercial"></option>'
+                        break;
+                    case 'G':
+                        ediVal = '<option i18n="setup.insurance.blueCross"></option>'
+                        break;
+                    case 'R':
+                        ediVal = '<option i18n="setup.insurance.railroadMC"></option>'
+                        break;
+                    case 'W':
+                        ediVal = '<option i18n="setup.insurance.workersCompensation"></option>'
+                        break;
+                    case 'X':
+                        ediVal = '<option i18n="setup.insurance.xChampus"></option>'
+                        break;
+                    case 'Y':
+                        ediVal = '<option i18n="setup.insurance.yFacility"></option>'
+                        break;
+                    case 'M':
+                        ediVal = '<option i18n="setup.insurance.mDMERC"></option>'
+                        break;
+                    case 'AM':
+                        ediVal = '<option i18n="setup.insurance.autoMobile"></option>'
+                        break;
+                }
+                return ediVal;
+            },
+
             changeEDICode: function () {
                 var ediCode = $('#selectPayerEDICode').val();
                 var ediVal = '';
@@ -363,6 +428,9 @@ define(['jquery',
                         break;
                     case 'Y':
                         ediVal = 'YFAC'
+                        break;
+                    case 'M':
+                        ediVal = 'DMERC'
                         break;
                     case 'AM':
                         ediVal = 'AM'
