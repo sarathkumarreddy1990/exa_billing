@@ -53,7 +53,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         //Determine which CAS Codes are integers and which are strings
         for (var i = 0; i < app.cas_reason_codes.length; i++) {
             var indCode = app.cas_reason_codes[i].code;
-            if (isNaN(parseInt(indCode))) {
+            if (isNaN(indCode)) {
                 characters.push(indCode);
             } else {
                 integers.push(parseInt(indCode));
@@ -551,10 +551,10 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     }
                 },
                 "AHS Claim Num": {
-                    "id": 69,
+                    "id": 70,
                     "field_code": "can_ahs_claim_no",
                     "field_name": "AHS Claim Num",
-                    "i18n_name": "setup.userSettings.claimNo",
+                    "i18n_name": "setup.can_ahs.ahsclaimno",
                     "field_info": {
                         "custom_name": "AHS Claim Num",
                         "name": "can_ahs_claim_no",
@@ -1631,9 +1631,9 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 "field_code": "claim_no"
             },
             "AHS Claim #": {
-                "id": 69,
+                "id": 70,
                 "field_name": "AHS Claim #",
-                "i18n_name": "setup.userSettings.claimNo",
+                "i18n_name": "setup.can_ahs.ahsclaimno",
                 "field_info": {
                     "custom_name": "AHS Claim #",
                     "name": "can_ahs_claim_id",
