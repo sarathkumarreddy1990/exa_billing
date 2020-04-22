@@ -11,13 +11,15 @@ pipeline {
 	    steps {
 		sh '''\
 set -e
+mkdir -p logs
+[ -d logs ]
 (
     echo environment:
     printenv | sort
     echo node npm:
     node --version
     npm --version
-) | tee build.environment
+) | tee logs/build.environment
 '''
 		// TODO: Should we allow an 'npm install' fallback on a branch with corresponding error file?
 		sh 'npm ci'
@@ -25,13 +27,17 @@ set -e
 	}
 	stage ('Build') {
 	    steps{
-		sh 'npm run build'
+		sh '''\
+set -e
+set -o pipefail
+npm run build 2>&1 | tee logs/build.log
+'''
 	    }
 	}
     }
     post {
 	always {
-	    archiveArtifacts allowEmptyArchive: true, artifacts: 'dist/*', fingerprint: true
+	    archiveArtifacts allowEmptyArchive: true, artifacts: 'dist/*,logs/*', fingerprint: true
 	}
     }
 }
