@@ -34,6 +34,7 @@ npm run build 2>&1 | tee logs/build.log
 '''
 		dir('logs') {
 		    sh '''\
+rm -vf *.part.log *.error || :
 awk -v single="'" '$2=="Starting"{split($3, parts, single);f=parts[2]".part.log"}f!=""{print > f}' build.log
 for f in requirejs*.part.log; do
     if ! grep --after-context=2 ^Error: "$f" > "$f.error"; then
@@ -48,7 +49,7 @@ for f in *.part.log; do
         let 'rc=rc||'$?
         set -e
     done
-    if [ "$rc" -eq 0 ]; then
+    if [ "$rc" -eq 1 ]; then
         rm -vf "$f"
     fi
 done
