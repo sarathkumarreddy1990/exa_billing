@@ -43,13 +43,23 @@ done
 for f in *.part.log; do
     rc=0
     for t in warn error; do
-        let 'rc=rc||$?'
+        set +e
+        [ -r "$f.$t" ]
+        let 'rc=rc||'$?
+        set -e
     done
     if [ "$rc" -eq 0 ]; then
         rm -vf "$f"
     fi
 done
+touch force.error
 '''
+		    script {
+			if(findFiles(glob: '*.error')) {
+			    // TODO: Should be fail when building from a tag
+			    currentBuild.result = 'UNSTABLE'
+			}
+		    }
 		}
 	    }
 	}
