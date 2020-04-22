@@ -52,7 +52,6 @@ for f in *.part.log; do
         rm -vf "$f"
     fi
 done
-touch force.error
 '''
 		    script {
 			if(findFiles(glob: '*.error')) {
