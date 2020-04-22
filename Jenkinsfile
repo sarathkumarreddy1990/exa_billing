@@ -25,13 +25,32 @@ mkdir -p logs
 		sh 'npm ci'
 	    }
 	}
-	stage ('Build') {
+	stage ('build') {
 	    steps{
 		sh '''\
 set -e
 set -o pipefail
 npm run build 2>&1 | tee logs/build.log
 '''
+		dir('logs') {
+		    sh '''\
+awk -v single="'" '$2=="Starting"{split($3, parts, single);f=parts[2]".part.log"}f!=""{print > f}' build.log
+for f in requirejs*.part.log; do
+    if ! grep --after-context=2 ^Error: "$f" > "$f.error"; then
+        rm -vf "$f.error"
+    fi
+done
+for f in *.part.log; do
+    rc=0
+    for t in warn error; do
+        let 'rc=rc||$?'
+    done
+    if [ "$rc" -eq 0 ]; then
+        rm -vf "$f"
+    fi
+done
+'''
+		}
 	    }
 	}
     }
