@@ -5,6 +5,8 @@ const moment = require('moment');
 const { query, SQL } = require('./index');
 const util = require('./util');
 
+const SHOW_DELETED_STUDIES_DEFAULT = false;
+
 const colModel = [
     {
         name: 'insurance_providers'
@@ -1001,9 +1003,9 @@ const api = {
 
         let statOverride = args.customArgs && args.customArgs.statOverride === 'true';
 
-        let includeDeleted_study = false;
+        let includeDeleted_study = SHOW_DELETED_STUDIES_DEFAULT;
 
-        let includeDeleted_perms = null;
+        let includeDeleted_perms = SHOW_DELETED_STUDIES_DEFAULT;
 
         args.report_queue_status_query = await api.getReportQueueStatusQuery();
 
@@ -1033,7 +1035,6 @@ const api = {
         const newFilter = Object.assign(filter, { filter_query });
 
         newFilter.perms_filter = util.getStudyFilterQuery(filter.perm_filter, args.user_id, args.statOverride);
-
         let responseUserSetting=[newFilter];
 
         let permission_query = SQL`
@@ -1046,7 +1047,7 @@ const api = {
             const perms_filter = userSetting.perms_filter;
 
             if (perms_filter && perms_filter.options) {
-                includeDeleted_perms = perms_filter.options.includeDeleted;
+                includeDeleted_perms = perms_filter.options.includeDeleted || SHOW_DELETED_STUDIES_DEFAULT;
             }
 
 
@@ -1060,7 +1061,7 @@ const api = {
                             'showDicomStudies': false,
                             'showRisOrders': false,
                             'showAssignedStudies': false,
-                            'includeDeleted': false
+                            'includeDeleted': SHOW_DELETED_STUDIES_DEFAULT
                         }
                     } = studyFilter.filter_info;
 
