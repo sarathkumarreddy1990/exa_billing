@@ -440,7 +440,7 @@ define([
                             search: false,
                             isIconCol: true,
                             formatter: function (cellvalue, option, rowObject) {
-                                return '<input type="checkbox" name="chkClaims" id="chkClaims' + '_' + rowObject.claim_id + '" />';
+                                return '<input type="checkbox" name="chkClaim" id="chkClaims' + '_' + rowObject.claim_id + '" />';
                             }
                         },
                         {
@@ -1331,12 +1331,18 @@ define([
                 this.patientActivityStatement = new patientActivityStatement({
                     el: $('#reportFrame')
                 });
-                var claimIds = [];
-                var selectedClaims = $('#tblPatientClaimsGrid .customRowSelect');
 
-                for (var i = 0; i < selectedClaims.length; i++) {
-                    claimIds.push($((selectedClaims)[i]).attr("id"));
+                var claimIds = [];
+                var selectedClaims = $('#tblPatientClaimsGrid tr');
+
+                if (selectedClaims) {
+                    selectedClaims.each(function (i, value) {
+                        if ($(value).find(':input').prop('checked')) {
+                            claimIds.push($(value).find('td:eq(2)').text());
+                        }
+                    });
                 }
+
                 return {
                     'claimID': claimId,
                     'flag': "patient-activity-statement",
