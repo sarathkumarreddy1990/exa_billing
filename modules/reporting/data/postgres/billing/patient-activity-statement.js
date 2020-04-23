@@ -814,57 +814,64 @@ const api = {
             commentDate: null,
             chargeDate: null,
             accountDate: null,
-            patientInsIds: null,
             billingComments: null,
             claimId: null,
             selectedClaimIds: null
         };
+        let {
+            companyId,
+            patientIID,
+            reportBy,
+            claimId,
+            sDate,
+            fromDate,
+            toDate,
+            billingComments,
+            billingProviderIds,
+            dateFormat,
+            browserLocale,
+            claimIds
+        } = reportParams;
 
         // company id
-        params.push(reportParams.companyId);
+        params.push(companyId);
         filters.companyId = queryBuilder.where('company_id', '=', [params.length]);
 
-        params.push(reportParams.patientIID);
+        params.push(patientIID);
         filters.patientIds = queryBuilder.where('bc.patient_id', '=', [params.length]);
-        filters.patientInsIds = queryBuilder.where('pis.patient_id', '=', [params.length]);
-
-
-        // params.push(reportParams.sDate);
-        // filters.sDate = `$${params.length}::date`;
 
         //  claim date
-        if (reportParams.reportBy == "true") {
-            params.push(reportParams.sDate);
+        if (reportBy == "true") {
+            params.push(sDate);
             filters.sDate = `$${params.length}::date`;
         }
         else {
-            params.push(reportParams.sDate);
+            params.push(sDate);
             filters.sDate = `$${params.length}::date`;
-            params.push(reportParams.fromDate);
-            params.push(reportParams.toDate);
+            params.push(fromDate);
+            params.push(toDate);
             filters.claimDate = queryBuilder.whereDateBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
             filters.commentDate = queryBuilder.whereDateBetween('cc.created_dt', [params.length - 1, params.length], 'f.time_zone');
             filters.chargeDate = queryBuilder.whereDateBetween('c.charge_dt', [params.length - 1, params.length], 'f.time_zone');
             filters.accountDate = queryBuilder.whereDateBetween('bp.accounting_date', [params.length - 1, params.length]);
         }
 
-        filters.billingComments = reportParams.billingComments;
+        filters.billingComments = billingComments;
 
         // billingProvider single or multiple
-        if (reportParams.billingProviderIds && reportParams.billingProviderIds.length > 0 && reportParams.billingProviderIds[0] != "0") {
-            params.push(reportParams.billingProviderIds);
+        if (billingProviderIds.length && billingProviderIds[0] != "0") {
+            params.push(billingProviderIds);
             filters.billingProviderIds = queryBuilder.whereIn(`bp.id`, [params.length]);
         }
 
-        filters.dateFormat = reportParams.dateFormat || commonIndex.getLocaleFormat(reportParams.browserLocale);
-        filters.reportBy =  reportParams.reportBy;
-        filters.claimId = reportParams.claimId;
+        filters.dateFormat = dateFormat || commonIndex.getLocaleFormat(browserLocale);
+        filters.reportBy =  reportBy;
+        filters.claimId = claimId;
 
-        if (reportParams.claimIds && reportParams.claimIds.length) {
-            params.push(reportParams.claimIds);
+        if (claimIds) {
+            params.push(claimIds);
             filters.selectedClaimIds = queryBuilder.whereIn('bc.id', [params.length]);
         }
-
 
         return {
             queryParams: params,

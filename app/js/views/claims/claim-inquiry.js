@@ -440,7 +440,7 @@ define([
                             search: false,
                             isIconCol: true,
                             formatter: function (cellvalue, option, rowObject) {
-                                return '<input type="checkbox" name="chkClaim" id="chkClaims' + '_' + rowObject.claim_id + '" />';
+                                return '<input type="checkbox" name="chkClaims" id="chkClaims_' + rowObject.claim_id + '" />';
                             }
                         },
                         {
@@ -1333,15 +1333,10 @@ define([
                 });
 
                 var claimIds = [];
-                var selectedClaims = $('#tblPatientClaimsGrid tr');
 
-                if (selectedClaims) {
-                    selectedClaims.each(function (i, value) {
-                        if ($(value).find(':input').prop('checked')) {
-                            claimIds.push($(value).find('td:eq(2)').text());
-                        }
-                    });
-                }
+                $('#tblPatientClaimsGrid').find('input[name=chkClaims]:checked').each(function () {
+                    claimIds.push($(this).closest('tr').attr('id'));
+                });
 
                 return {
                     'claimID': claimId,
