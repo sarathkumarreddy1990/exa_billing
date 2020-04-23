@@ -1,0 +1,104 @@
+{
+  "claimNumber": {
+    "startPos": 1,
+    "fieldLength": 15
+  },
+  "txnTagNumber": {
+    "startPos": 16,
+    "fieldLength": 4
+  },
+  "actionCode": {
+    "startPos": 20,
+    "fieldLength": 1
+  },
+  "reassesReason": {
+    "startPos": 21,
+    "fieldLength": 4
+  },
+  "assessmentResult": {
+    "startPos": 25,
+    "fieldLength": 1
+  },
+  "reversalAssessmentResult": {
+    "startPos": 26,
+    "fieldLength": 1
+  },
+  "chartNumber": {
+    "startPos": 27,
+    "fieldLength": 14
+  },
+  "serviceULIRecipient": {
+    "startPos": 41,
+    "fieldLength": 9
+  },
+  "serviceRecipientRegnNum": {
+    "startPos": 50,
+    "fieldLength": 12
+  },
+  "stateAssessReferenceNum": {
+    "startPos": 62,
+    "fieldLength": 9
+  },
+  "expectedPayDate": {
+    "startPos": 71,
+    "fieldLength": 8
+  },
+  "assessmentDate": {
+    "startPos": 79,
+    "fieldLength": 8
+  },
+  "finalAssessedAmount": {
+    "startPos": 87,
+    "fieldLength": 9,
+    "format": "M"
+  },
+  "claimedAmount": {
+    "startPos": 96,
+    "fieldLength": 9,
+    "format": "M"
+  },
+  "claimAmountIndicator": {
+    "startPos": 105,
+    "fieldLength": 1
+  },
+  "explanationCodes": {
+    "startPos": 106,
+    "fieldLength": 30
+  },
+  "EMSAFStatus": {
+    "startPos": 136,
+    "fieldLength": 4
+  },
+  "feeModifiers": {
+    "startPos": 140,
+    "fieldLength": 48
+  },
+  "FRReferenceNumber": {
+    "startPos": 188,
+    "fieldLength": 9
+  },
+  "unUsed": {
+    "startPos": 197,
+    "fieldLength": 3
+  },
+  "businessArrangementNumber": {
+    "startPos": 200,
+    "fieldLength": 7
+  },
+  "serviceProviderULI": {
+    "startPos": 207,
+    "fieldLength": 9
+  },
+  "serviceDate": {
+    "startPos": 216,
+    "fieldLength": 8
+  },
+  "serviceCode": {
+    "startPos": 224,
+    "fieldLength": 7
+  },
+  "payToCode": {
+    "startPos": 231,
+    "fieldLength": 4
+  }
+}

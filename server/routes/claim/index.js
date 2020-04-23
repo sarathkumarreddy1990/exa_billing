@@ -97,5 +97,15 @@ router.get('/get_claim_payments', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.get('/get_patient_charges', async (req, res) => {
+    const data = await claimsController.getChargesByPatientId(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
+router.put('/notes/:id', async (req, res) => {
+    req.body.claimId = req.params.id;
+    const data = await claimsController.updateNotes(req.body);
+    httpHandler.sendRows(req, res, data);
+});
 
 module.exports = router;

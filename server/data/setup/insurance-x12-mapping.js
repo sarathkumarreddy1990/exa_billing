@@ -8,6 +8,7 @@ module.exports = {
         let {
             insurance_name,
             claimclearinghouse,
+            payer_edi_code,
             sortOrder,
             sortField,
             pageNo,
@@ -25,6 +26,10 @@ module.exports = {
             whereQuery.push(` ch.name ILIKE '%${claimclearinghouse}%'`);
         }
 
+        if (payer_edi_code) {
+            whereQuery.push(` bip.payer_edi_code ILIKE '%${payer_edi_code}%'`);
+        }
+
         if (billing_method) {
             whereQuery.push(` bip.billing_method ILIKE '%${billing_method}%'`);
         }
@@ -33,6 +38,7 @@ module.exports = {
                               ip.id
                             , ip.insurance_name
                             , ch.id AS claimclearinghouse
+                            , bip.payer_edi_code
                             , billing_method
                             , ip.is_active /* public.insurance_providers.is_active */
                             , COUNT(1) OVER (range unbounded preceding) AS total_records
@@ -67,6 +73,7 @@ module.exports = {
         const sql = SQL`SELECT
                               ip.id
                             , ip.insurance_name
+                            , ip.insurance_code
                             , ch.id AS claimclearinghouse
                             , billing_method
                             , claim_filing_indicator_code AS indicator_code

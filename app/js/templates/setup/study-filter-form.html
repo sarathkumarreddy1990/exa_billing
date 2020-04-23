@@ -667,8 +667,7 @@
                             </li>
                             <li>
                                 <div>
-                                    <div><b><label for="txtStudyDescription"
-                                                    i18n="setup.studyFilters.studyDescription"></label></b></div>
+                                    <div><b><label for="txtStudyDescription" i18n="shared.fields.studyDescription"></label></b></div>
                                     <table style="width:100%;">
                                         <tr>
                                             <td>
@@ -699,7 +698,7 @@
                                                         <ul id="ulListStudyDescriptions" class="tagList tagListMedium taglist-bg"></ul>
                                                     </div>
                                                     <div class="form-list col-md-12">
-                                                        <input type="text" id="txtStudyDescription" i18np="billing.payments.studyDescription"
+                                                        <input type="text" id="txtStudyDescription" i18np="shared.fields.studyDescription"
                                                                 class="form-control">
                                                             <a class="btn btn-primary" id="btnAddStudyDescription"
                                                                 title="Add Study Description"
@@ -1457,6 +1456,8 @@
                             </div>
                         </div>
                     </div>
+                </li>
+                <li>
                     <div class="row form-inline">
                         <div class="form-list col-md-2 col-sm-2">
                             <b><label for="txtInsurance" i18n="setup.studyFilters.insuranceProvider"></label></b>
@@ -1468,44 +1469,88 @@
                                                 <input type="radio" id="rbtIsClaimInsurance" name="InsProvClaim" value="Is" class="form-check-input clearField">
                                                 <label for="rbtIsClaimInsurance" class="form-check-label" i18n="setup.studyFilters.is"></label>
                                             </div>
+                                            <div class="form-list col-md-3 col-sm-3 pb-2">
+                                                <input type="radio" id="rbtIsNotClaimInsurance" name="InsProvClaim" value="IsNot" class="form-check-input clearField">
+                                                <label for="rbtIsNotClaimInsurance" class="form-check-label" i18n="setup.studyFilters.isNot"></label>
+                                            </div>
+                                            <div class="form-list col-md-3 col-sm-3">
+                                                <input type="radio" id="rbtContainsClaimInsurance" name="InsProvClaim" value="Contains">
+                                                <label for="rbtContainsClaimInsurance" class="form-check-label" i18n="setup.studyFilters.contains"></label>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="row">
+                                                <div class="col-form-label col-md-8 col-sm-8 mr-5">
+                                                    <select multiple="multiple" id="listClaimInsurance" class="form-control listInsAlign"></select>
+                                                </div>
+                                                <div class="col-form-label col-md-2 col-sm-2 form-inline">
+                                                    <a id="btnRemoveClaimInsurance" class="btn btn-primary">
+                                                        <i class="icon-ic-delete"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            <div class="row form-inline">
+                                                <div class="col-form-label col-md-8 col-sm-8">
+                                                    <input type="text" id="txtClaimInsurance" i18np="setup.studyFilters.insuranceProvider" class="form-control fc-short">
+                                                </div>
+                                                <div class="col-form-label col-md-3 col-sm-3">
+                                                    <a class="btn btn-primary ml-5" id="btnAddClaimInsurance">
+                                                        <i class="icon-ic-plus"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
                             </div>
-                            <div class="form-list col-md-3 col-sm-3 pb-2">
-                                <input type="radio" id="rbtIsNotClaimInsurance" name="InsProvClaim" value="IsNot" class="form-check-input clearField">
-                                <label for="rbtIsNotClaimInsurance" class="form-check-label" i18n="setup.studyFilters.isNot"></label>
-                            </div>
-                            <div class="form-list col-md-3 col-sm-3">
-                                <input type="radio" id="rbtContainsClaimInsurance" name="InsProvClaim" value="Contains">
-                                <label for="rbtContainsClaimInsurance" class="form-check-label" i18n="setup.studyFilters.contains"></label>
-                            </div>
-                            </td>
                         </div>
-                        <td>
-                            <div class="row">
-                                <div class="col-form-label col-md-8 col-sm-8 mr-5">
-                                    <select multiple="multiple" id="listClaimInsurance" class="form-control listInsAlign"></select>
-                                </div>
-                                <div class="col-form-label col-md-2 col-sm-2 form-inline">
-                                    <a id="btnRemoveClaimInsurance" class="btn btn-primary">
-                                        <i class="icon-ic-delete"></i>
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="row form-inline">
-                                <div class="col-form-label col-md-8 col-sm-8">
-                                    <input type="text" id="txtClaimInsurance" i18np="setup.studyFilters.insuranceProvider" class="form-control fc-short">
-                                </div>
-                                <div class="col-form-label col-md-3 col-sm-3">
-                                    <a class="btn btn-primary ml-5" id="btnAddClaimInsurance">
-                                        <i class="icon-ic-plus"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-        </li>
-    </ul>
+                    </div>
+                </li>
+                <li>
+                    <div>
+                        <div><b><label for="ddlClaimReadingProvider" i18n="setup.studyFilters.readingProvider"></label></b></div>
+                        <table class="w-100">
+                            <tbody>
+                                <tr>
+                                    <td class="width-100">
+                                        <div class="col-md-2 col-sm-2 col-form-label">
+                                            <input type="radio" id="rbtIsClaimReadingProvider" name="claimReadingProvider" class="form-check-input clearField"
+                                                value="Is">
+                                            <label for="rbtIsClaimReadingProvider" class="field-chk studyfilterLabel" i18n="setup.studyFilters.is"></label>
+                                        </div>
+                                        <div class="col-md-2 col-sm-2 col-form-label">
+                                            <input type="radio" id="rbtIsNotClaimReadingProvider" name="claimReadingProvider" class="form-check-input clearField"
+                                                value="IsNot">
+                                            <label for="rbtIsNotClaimReadingProvider" class="field-chk studyfilterLabel" i18n="setup.studyFilters.isNot"></label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <ul id="ulListClaimReadingProvider" class="tagList taglist-bg auto-complete-box"></ul>
+                                            <div class="form-group row">
+                                                <div class="col-md-10 col-sm-10">
+                                                    <select id="ddlClaimReadingProvider" class="form-control select-box"></select></div>
+                                                <a class="btn btn-primary pl-3 pr-3" id="btnAddClaimReadingProvider" title="Add Referring Provider">
+                                                    <i class="icon-ic-plus"></i></a>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        &nbsp;
+                                    </td>
+                                    <td>
+                                    </td>
+                                    <td>
+
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </li>
+            </ul>
             <ul class="form-list col-md-5 col-sm-5 mt-3">
                 <li>
                     <div>
@@ -1603,7 +1648,7 @@
                             </div>
                             <table>
                                 <tr>
-                                    <td>
+                                    <td class="w-75">
                                         <div class="pb-2">
                                             <input type="radio" id="rbtIsClaimInsuranceGroup" name="insProvClaimGroup" value="Is">
                                             <label for="rbtIsClaimInsuranceGroup" class="field-chk" i18n="report.reportFilter.is"></label>
@@ -1613,13 +1658,13 @@
                                             <label for="rbtIsNotClaimInsuranceGroup" class="field-chk" i18n="report.reportFilter.isNot"></label>
                                         </div>
                                     </td>
-                                    <td >
+                                    <td>
                                         <select multiple="multiple" id="listClaimInsuranceProvider" class="form-control listInsAlign ml-4"></select>
                                         <a id="btnRemoveClaimInsuranceProvider" class="removeClaimInsuranceProvider btn btn-primary ml-4">
                                             <i class="removeClaimInsuranceProvider icon-ic-delete"></i>
                                         </a>
                                         <div class="bindInsurance mt-3 col-md-3">
-                                            <div class="float-left divUList insAlign">
+                                            <div class="float-left divUList insAlign pl-4">
                                                 <select id="txtClaimInsuranceProviderName"></select>
                                             </div>
                                             <a class="btn btn-primary ml-3" id="btnAddClaimInsuranceProvider">
@@ -1630,6 +1675,49 @@
                                 </tr>
                             </table>
                         </div>
+                    </div>
+                </li>
+                <li>
+                    <div>
+                        <div><b><label for="ddlClaimReferringProvider" i18n="setup.ediRule.referringProvider"></label></b></div>
+                        <table class="w-100">
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="col-md-2 col-sm-2 col-form-label">
+                                            <input type="radio" id="rbtIsClaimReferringProvider" name="claimReferringProvider" class="form-check-input clearField"
+                                                value="Is">
+                                            <label for="rbtIsClaimReferringProvider" class="field-chk studyfilterLabel" i18n="setup.studyFilters.is"></label>
+                                        </div>
+                                        <div class="col-md-2 col-sm-2 col-form-label">
+                                            <input type="radio" id="rbtIsNotClaimReferringProvider" name="claimReferringProvider" class="form-check-input clearField"
+                                                value="IsNot">
+                                            <label for="rbtIsNotClaimReferringProvider" class="field-chk studyfilterLabel" i18n="setup.studyFilters.isNot"></label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <ul id="ulListClaimReferringProvider" class="tagList taglist-bg auto-complete-box"></ul>
+                                            <div class="form-group row">
+                                                <div class="col-md-10 col-sm-10">
+                                                    <select id="ddlClaimReferringProvider" class="form-control select-box"></select></div>
+                                                <a class="btn btn-primary pl-3 pr-3" id="btnAddClaimReferringProvider" title="Add Referring Provider">
+                                                    <i class="icon-ic-plus"></i></a>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        &nbsp;
+                                    </td>
+                                    <td>
+                                    </td>
+                                    <td>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </li>
             </ul>

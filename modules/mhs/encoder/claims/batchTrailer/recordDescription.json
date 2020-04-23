@@ -1,0 +1,51 @@
+{
+    "record_type": {
+      "format": "N",
+      "startPos": 1,
+      "length": 1
+    },
+    "practitioner_number": {
+      "format": "A",
+      "startPos": 2,
+      "length": 5,
+      "paddingChar": "0",
+      "isLeftJustified": false
+    },
+    "total_sociological": {
+      "format": "n",
+      "startPos": 7,
+      "length": 10,
+      "paddingChar": "0"
+    },
+    "total_address": {
+      "format": "N",
+      "startPos": 17,
+      "length": 10,
+      "paddingChar": "0"
+    },
+    "total_remarks": {
+      "format": "N",
+      "startPos": 27,
+      "length": 10,
+      "paddingChar": "0"
+    },
+    "total_services":{
+        "format": "N",
+        "startPos": 37,
+        "length": 10,
+        "paddingChar": "0"
+    },
+    "total_fee":{
+        "format": "N",
+        "startPos": 47,
+        "length": 10,
+        "paddingChar":"0"
+    },
+    "total_non_residence": {
+        "format": "N",
+        "startPos": 57,
+        "length": 10,
+        "paddingChar":"0"
+    }
+  }
+  

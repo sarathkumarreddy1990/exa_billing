@@ -1,0 +1,215 @@
+{
+  "alphanumericField": {
+    "format": "A",
+    "startPos": 1,
+    "length": 1
+  },
+  "constrainedAlphanumericField": {
+    "format": "A",
+    "startPos": 2,
+    "length": 5,
+    "constraints": [
+      "^[A-Z]+$"
+    ]
+  },
+  "constantAlphanumericField": {
+    "format": "A",
+    "startPos": 7,
+    "length": 5,
+    "enumerated": [
+      "WORLD"
+    ]
+  },
+  "enumeratedAlphanumericField": {
+    "format": "A",
+    "startPos": 12,
+    "length": 2,
+    "enumerated": [
+      "AA",
+      "BB",
+      "CC",
+      "DD"
+    ]
+  },
+  "paddedAlphanumericField": {
+    "format": "A",
+    "startPos": 14,
+    "length": 2,
+    "paddingChar": "~"
+  },
+  "leftJustifiedAlphanumericField": {
+    "format": "A",
+    "startPos": 16,
+    "length": 3,
+    "isLeftJustified": true
+  },
+  "explicitRightJustifiedAlphanumericField": {
+    "format": "A",
+    "startPos": 19,
+    "length": 3,
+    "isLeftJustified": false
+  },
+  "paddedLeftJustifiedAlphanumericField": {
+    "format": "A",
+    "startPos": 22,
+    "length": 3,
+    "paddingChar": "~",
+    "isLeftJustified": true
+  },
+  "paddedEnumeratedAlphanumericField": {
+    "format": "A",
+    "startPos": 25,
+    "length": 3,
+    "paddingChar": "~",
+    "enumerated": [
+      "AA",
+      "BB",
+      "CC",
+      "DD"
+    ]
+  },
+  "paddedEnumeratedLeftJustifiedAlphanumericField": {
+    "format": "A",
+    "startPos": 28,
+    "length": 3,
+    "paddingChar": "~",
+    "isLeftJustified": true,
+    "enumerated": [
+      "AA",
+      "BB",
+      "CC",
+      "DD"
+    ]
+  },
+  "numericField": {
+    "format": "N",
+    "startPos": 31,
+    "length": 1
+  },
+  "constrainedNumericField": {
+    "format": "N",
+    "startPos": 32,
+    "length": 5,
+    "constraints": [
+      "^[0-9]{1,5}$"
+    ]
+  },
+  "constantNumericField": {
+    "format": "N",
+    "startPos": 37,
+    "length": 5,
+    "enumerated": [
+      "12321"
+    ]
+  },
+  "enumeratedNumericField": {
+    "format": "N",
+    "startPos": 42,
+    "length": 2,
+    "enumerated": [
+      66,
+      77,
+      88,
+      99
+    ]
+  },
+  "paddedNumericField": {
+    "format": "N",
+    "startPos": 44,
+    "length": 2,
+    "paddingChar": "~"
+  },
+  "leftJustifiedNumericField": {
+    "format": "N",
+    "startPos": 46,
+    "length": 3,
+    "isLeftJustified": true
+  },
+  "explicitRightJustifiedNumericField": {
+    "format": "N",
+    "startPos": 49,
+    "length": 3,
+    "isLeftJustified": false
+  },
+  "paddedLeftJustifiedNumericField": {
+    "format": "N",
+    "startPos": 52,
+    "length": 3,
+    "paddingChar": "~",
+    "isLeftJustified": true
+  },
+  "paddedEnumeratedNumericField": {
+    "format": "N",
+    "startPos": 55,
+    "length": 3,
+    "paddingChar": "~",
+    "enumerated": [
+      66,
+      77,
+      88,
+      99
+    ]
+  },
+  "paddedEnumeratedLeftJustifiedNumericField": {
+    "format": "N",
+    "startPos": 58,
+    "length": 3,
+    "paddingChar": "~",
+    "isLeftJustified": true,
+    "enumerated": [
+      66,
+      77,
+      88,
+      99
+    ]
+  },
+  "dateField": {
+    "format": "D",
+    "startPos": 61,
+    "length": 8,
+    "dateFormat": "YYYYMMDD"
+  },
+  "constantDateField": {
+    "format": "D",
+    "startPos": 69,
+    "length": 8,
+    "enumerated": [
+      "20191004"
+    ],
+    "dateFormat": "YYYYMMDD"
+  },
+  "paddedDateField": {
+    "format": "D",
+    "startPos": 77,
+    "length": 9,
+    "paddingChar": "~",
+    "dateFormat": "YYYYMMDD"
+  },
+  "leftJustifiedDateField": {
+    "format": "D",
+    "startPos": 86,
+    "length": 9,
+    "isLeftJustified": true,
+    "dateFormat": "YYYYMMDD"
+  },
+  "explicitRightJustifiedDateField": {
+    "format": "D",
+    "startPos": 95,
+    "length": 9,
+    "isLeftJustified": false,
+    "dateFormat": "YYYYMMDD"
+  },
+  "paddedLeftJustifiedDateField": {
+    "format": "D",
+    "startPos": 104,
+    "length": 9,
+    "paddingChar": "~",
+    "isLeftJustified": true,
+    "dateFormat": "YYYYMMDD"
+  },
+  "extendedFormatField": {
+    "format": "Z",
+    "startPos": 113,
+    "length": 1
+  }
+}

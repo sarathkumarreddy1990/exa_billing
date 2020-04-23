@@ -260,6 +260,8 @@ define(['jquery',
                 self.indexTemplate = _.template(IndexHTML);
                 self.$el.html(self.indexTemplate({
                     country_alpha_3_code: app.country_alpha_3_code,
+                    province_alpha_2_code: app.province_alpha_2_code,
+                    billing_region_code: app.billingRegionCode,
                     gadget: '',
                     customOrderStatus: app.customOrderStatus,
                     customStudyStatus: app.customStudyStatus
