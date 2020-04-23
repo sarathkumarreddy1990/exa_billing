@@ -2,6 +2,7 @@ define(['jquery'
         , 'underscore'
         , 'backbone'
         , 'moment-timezone'
+        , 'quill'
         , 'text!modules/multichat/templates/dateSeparator.html'
         , 'modules/multichat/views/modals/roomSettings'
         , 'text!modules/multichat/templates/room.html'
@@ -16,6 +17,7 @@ define(['jquery'
         , _
         , Backbone
         , MomentTimezone
+        , Quill
         , templateDateSeparator
         , RoomSettings
         , templateRoom

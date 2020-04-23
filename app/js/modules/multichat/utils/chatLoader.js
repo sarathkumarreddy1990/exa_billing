@@ -36,6 +36,9 @@ define([
                     || app.chat) {
                     return;
                 }*/
+                if (app.chat) {
+                    return;
+                }
 
                 if (( window.frameElement != null && window.frameElement.nodeName == 'IFRAME')
                     || window != window.top
