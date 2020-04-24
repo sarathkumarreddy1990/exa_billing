@@ -78,7 +78,7 @@ module.exports = {
                     provider_contacts pc ON pc.provider_id = p.id
             WHERE
                 p.deleted_dt IS NULL
-                AND NOT pc.has_deleted
+                AND pc.deleted_dt IS NULL
                 AND p.is_active /* public.providers.is_active */
                 AND p.company_id = ${params.company_id}
                 AND p.provider_type = ${params.provider_type}
@@ -97,8 +97,16 @@ module.exports = {
         return await query(sql_provider);
     },
     getICDcodes: async function (params) {
+        let {
+            company_id,
+            page = 1,
+            pageSize = 10,
+            term,
+            sortField = "code",
+            sortOrder = "ASC"
+        } = params;
 
-        let ics_search = ` AND (code ILIKE '%${params.q}%' OR description ILIKE '%${params.q}%' ) `;
+        let ics_search = ` AND (code ILIKE '%${term}%' OR description ILIKE '%${term}%' ) `;
 
         const icd_sql = SQL`SELECT
                                        id
@@ -108,16 +116,16 @@ module.exports = {
                                      , COUNT(1) OVER (range unbounded preceding) AS total_records
                                 FROM icd_codes AS icd
                                 WHERE
-                                    icd.is_active AND NOT icd.has_deleted AND icd.company_id = ${params.company_id} `; // icd_codes.has_deleted icd_codes.is_active
+                                    icd.is_active AND NOT icd.has_deleted AND icd.company_id = ${company_id} `; // icd_codes.has_deleted icd_codes.is_active
 
-        if (params.q != '') {
+        if (term) {
             icd_sql.append(ics_search);
         }
 
-        icd_sql.append(SQL` ORDER BY  ${params.sortField} `)
-            .append(params.sortOrder)
-            .append(SQL` LIMIT ${params.pageSize}`)
-            .append(SQL` OFFSET ${((params.page - 1) * params.pageSize)}`);
+        icd_sql.append(SQL` ORDER BY  ${sortField} `)
+            .append(sortOrder)
+            .append(SQL` LIMIT ${pageSize}`)
+            .append(SQL` OFFSET ${((page - 1) * pageSize)}`);
 
         return await query(icd_sql);
     },
@@ -363,7 +371,7 @@ module.exports = {
             sortField,
             sortOrder,
             pageSize,
-            page            
+            page
         } = params;
 
         let payer_q = ` AND (description ILIKE '%${q}%' OR code ILIKE '%${q}%' ) `;

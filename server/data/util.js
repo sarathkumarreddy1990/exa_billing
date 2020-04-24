@@ -345,6 +345,37 @@ const util = {
                     }
                 }
 
+                if (filterObj.ClaimInformation.referring_provider) {
+                    let obj = filterObj.ClaimInformation.referring_provider;
+                    let referringProviderQuery = '';
+
+                    if (obj && obj.list && obj.list.length) {
+                        let referringProviderArray = _.map(obj.list, (x) => x.id);
+                        referringProviderQuery = util.getConditionalOperator(obj.condition, `ANY(ARRAY[` + referringProviderArray + `])`, true, 'array', ` claims.referring_provider_contact_id `);
+
+                        if (obj.condition == 'IsNot') {
+                            referringProviderQuery += ' OR claims.referring_provider_contact_id IS NULL';
+                        }
+
+                        query += `${util.getRelationOperator(query)}(${referringProviderQuery})`;
+                    }
+                }
+
+                if (filterObj.ClaimInformation.reading_provider) {
+                    let obj = filterObj.ClaimInformation.reading_provider;
+                    let readingProviderQuery = '';
+
+                    if (obj && obj.list && obj.list.length) {
+                        let readingProviderArray = _.map(obj.list, (x) => x.id);
+                        readingProviderQuery = util.getConditionalOperator(obj.condition, `ANY(ARRAY[` + readingProviderArray + `])`, true, 'array', ` claims.rendering_provider_contact_id `);
+
+                        if (obj.condition == 'IsNot') {
+                            readingProviderQuery += ' OR claims.rendering_provider_contact_id IS NULL';
+                        }
+
+                        query += `${util.getRelationOperator(query)}(${readingProviderQuery})`;
+                    }
+                }
             }
         }
 

@@ -43,7 +43,7 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                 default_column: 'claim_id',
                 default_column_order_by: "Desc",
                 default_tab: 'All_Claims',
-                field_order: [1, 19, 2, 12, 22, 27, 11, 17],
+                field_order: [1, 19, 70, 2, 12, 22, 27, 11, 17],
                 grid_field_settings: [
                     {
                         "name": "Claim Date",
@@ -53,6 +53,11 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                     {
                         "name": "Claim No",
                         "id": 19,
+                        "width": 200
+                    },
+                    {
+                        "name": "AHS Claim Num",
+                        "id": 70,
                         "width": 200
                     },
                     {
@@ -127,6 +132,7 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                     app.fileStoreId = app.company.file_store_id;
                     app.facilityID = app.userInfo.default_facility_id;
                     app.default_facility_id = app.userInfo.default_facility_id;
+                    app.billingRegionCode = app.country_alpha_3_code + '_' + app.province_alpha_2_code;
                     var scan_document__types = app.company.scan_document_types ? app.company.scan_document_types.scan_document_type : [];
                     app.scanDocumentTypes = scan_document__types;
 
@@ -137,7 +143,7 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
 
                     app.customStudyStatus = [];
                     app.customOrderStatus = [];
-                    
+
                     var docTypes = [];
                     $.each(app.userdocumenttypes, function (index, val) {
                         $.each(app.scanDocumentTypes, function (ind, value) {

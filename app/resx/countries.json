@@ -65,19 +65,19 @@
         "display_name": "Canada",
         "address_style": "style2",
         "provinces": [
-            "Ontario",
-            "Quebec",
-            "British Columbia",
-            "Alberta",
-            "Manitoba",
-            "Saskatchewan",
-            "Nova Scotia",
-            "New Brunswick",
-            "Newfoundland and Labrador",
-            "Prince Edward Island",
-            "Northwest Territories",
-            "Nunavut",
-            "Yukon"
+            "AB",
+            "BC",
+            "MB",
+            "NB",
+            "NL",
+            "NS",
+            "ON",
+            "PE",
+            "QC",
+            "SK",
+            "NT",
+            "NU",
+            "YT"
         ]
     }
 ]

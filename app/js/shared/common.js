@@ -4193,7 +4193,7 @@ var commonjs = {
             order_id = options.order_id,
             patient_id = options.patient_id;
 
-        var url = '/vieworder#patient/patientReport/all/' + btoa(patient_id) + '/' + btoa(order_id) + '/' + btoa(study_id);
+        var url = '/exa#multipanel-billing-docs/' + btoa(study_id)  + '/' + btoa(patient_id) + '/' + btoa(order_id);
         this.openWindow(url);
     },
 
@@ -5295,6 +5295,20 @@ var commonjs = {
         $select2Container1 = $('.select2-container--open');
         var $searchfield = $select2Container1.children().find('.select2-search__field');
         $searchfield.prop('placeholder', 'Type to search');
+    },
+
+    //claim status validation for submitting claim to AHS
+    isValidClaimStatusToSubmit: function (source, claimStatus) {
+        var defaultStatusCheck = ['AZP', 'APP', 'PIF'];
+
+        switch (source) {
+            case 'reassessment':
+                defaultStatusCheck.push('R');
+                return defaultStatusCheck.indexOf(claimStatus) !== -1;
+            case 'delete':
+            case 'change':
+                return defaultStatusCheck.indexOf(claimStatus) !== -1;
+        }
     }
 
 };

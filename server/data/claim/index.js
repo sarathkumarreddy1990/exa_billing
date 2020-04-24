@@ -135,7 +135,9 @@ module.exports = {
                                         p.birth_date AS patient_dob,
                                         p.gender AS patient_gender,
                                         get_patient_alerts_to_jsonb(p.id, TRUE) AS alerts,
-                                        p.patient_info
+                                        p.patient_info,
+                                        facilities.can_ahs_business_arrangement AS can_ahs_business_arrangement_facility,
+                                        studies_details.can_ahs_locum_arrangement_provider
                                     FROM
                                         orders
                                         INNER JOIN facilities ON  facilities.id= orders.facility_id
@@ -160,7 +162,8 @@ module.exports = {
                                         JOIN LATERAL (
                                             SELECT
                                                 p.full_name AS reading_phy_full_name,
-                                                pc.id AS rendering_provider_contact_id
+                                                pc.id AS rendering_provider_contact_id,
+                                                pc.can_ahs_locum_arrangement AS can_ahs_locum_arrangement_provider
                                             FROM
                                                 public.studies s
                                                 LEFT JOIN public.study_transcriptions st ON st.study_id = s.id
@@ -183,7 +186,7 @@ module.exports = {
                                         INNER JOIN public.orders o on o.id = pi.order_id
                                         INNER JOIN public.studies s ON s.order_id = o.id
                                         WHERE s.id = ANY(${studyIds})
-                                        AND s.deleted_dt is null
+                                        AND s.deleted_dt IS NULL
                                         ORDER BY pi.order_no
                             )
                             SELECT  ( SELECT COALESCE(json_agg(row_to_json(charge)),'[]') charges
@@ -414,15 +417,23 @@ module.exports = {
             , insurances
             , claim_icds
             , charges
-            , auditDetails } = params;
+            , auditDetails
+            , is_alberta_billing
+        } = params;
 
+        const claimCreateFunction = is_alberta_billing
+            ? `billing.can_ahs_create_claim_per_charge`
+            : `billing.create_claim_charge`;
 
-        const sql = SQL`SELECT billing.create_claim_charge (
-                    (${JSON.stringify(claims)})::jsonb,
-                    (${JSON.stringify(insurances)})::jsonb,
-                    (${JSON.stringify(claim_icds)})::jsonb,
-                    (${JSON.stringify(auditDetails)})::jsonb,
-                    (${JSON.stringify(charges)})::jsonb) as result `;
+        const sql = SQL`SELECT `
+            .append(claimCreateFunction)
+            .append(SQL`(
+                (${JSON.stringify(claims)})::jsonb,
+                (${JSON.stringify(insurances)})::jsonb,
+                (${JSON.stringify(claim_icds)})::jsonb,
+                (${JSON.stringify(auditDetails)})::jsonb,
+                (${JSON.stringify(charges)})::jsonb
+            ) as result`);
 
         return await query(sql);
     },
@@ -435,7 +446,8 @@ module.exports = {
 
         const get_claim_sql = SQL`
                 SELECT
-                      c.company_id
+                      c.id AS claim_id
+                    , c.company_id
                     , c.facility_id
                     , c.patient_id
                     , c.billing_provider_id
@@ -474,10 +486,26 @@ module.exports = {
                     , c.tertiary_patient_insurance_id
                     , c.ordering_facility_id
                     , c.xmin as claim_row_version
+                    , c.can_ahs_pay_to_code
+                    , c.can_ahs_pay_to_uli
+                    , c.can_ahs_pay_to_details
+                    , c.can_ahs_business_arrangement
+                    , c.can_ahs_locum_arrangement
+                    , f.can_ahs_business_arrangement AS can_ahs_business_arrangement_facility
+                    , rend_pc.can_ahs_locum_arrangement AS can_ahs_locum_arrangement_provider
+                    , c.can_ahs_claimed_amount_indicator
+                    , c.can_confidential
+                    , c.can_ahs_good_faith
+                    , c.can_ahs_newborn_code
+                    , c.can_ahs_emsaf_reason
+                    , c.can_ahs_paper_supporting_docs
+                    , c.can_ahs_supporting_text
+                    , cst.code AS claim_status_code
                     , p.account_no AS patient_account_no
                     , p.birth_date::text AS patient_dob
                     , p.full_name AS patient_name
                     , p.gender AS patient_gender
+                    , (SELECT alt_account_no FROM patient_alt_accounts LEFT JOIN issuers i ON i.id = issuer_id WHERE patient_id = p.id AND i.issuer_type = 'uli_phn' AND province_alpha_2_code = 'ab' LIMIT 1) AS can_ahs_uli_phn
                     , get_patient_alerts_to_jsonb(p.id, TRUE) AS alerts
                     , p.patient_info
                     , ref_pr.full_name AS ref_prov_full_name
@@ -582,13 +610,16 @@ module.exports = {
                     , f.facility_info -> 'npino' as npi_no
                     , f.facility_info -> 'federal_tax_id' as federal_tax_id
                     , f.facility_info -> 'enable_insurance_eligibility' as enable_insurance_eligibility
+                    , c.can_wcb_rejected
+                    , c.can_mhs_receipt_date::text AS can_mhs_receipt_date
+                    , c.can_mhs_microfilm_no
                     , (
                         SELECT array_agg(row_to_json(pointer)) AS claim_charges
                         FROM (
                             SELECT
                                   ch.id
                                 , claim_id
-                                , cpt_id
+                                , ch.cpt_id
                                 , modifier1_id
                                 , modifier2_id
                                 , modifier3_id
@@ -609,11 +640,19 @@ module.exports = {
                                 , (ch.units * ch.allowed_amount)::numeric as total_allowed_fee
                                 , chs.study_id
                                 , (SELECT accession_no FROM public.studies WHERE id = chs.study_id )
+                                , pb.referral_code              AS can_ahs_referral_code
+                                , pb.support_documentation      AS can_ahs_supporting_text_required
                                 , (SELECT EXISTS (SELECT * FROM billing.payment_applications WHERE charge_id = ch.id )) as payment_exists
                             FROM billing.charges ch
                                 INNER JOIN public.cpt_codes cpt ON ch.cpt_id = cpt.id
+                                LEFT JOIN public.plan_benefits pb ON pb.cpt_id = cpt.id
                                 LEFT JOIN billing.charges_studies chs ON chs.charge_id = ch.id
-                            WHERE claim_id = c.id
+                            WHERE 
+                                claim_id = c.id
+                                AND (
+                                    pb.id IS NULL 
+                                    OR CURRENT_DATE BETWEEN pb.effective_date AND pb.end_date
+                                )
                             ORDER BY ch.id, ch.line_num ASC
                       ) pointer) AS claim_charges
                     , (
@@ -754,7 +793,8 @@ module.exports = {
                         LEFT JOIN public.provider_contacts rend_pc ON rend_pc.id = c.rendering_provider_contact_id
                         LEFT JOIN public.providers rend_pr ON rend_pc.provider_id = rend_pr.id
                         LEFT JOIN public.provider_groups pg ON pg.id = c.ordering_facility_id
-                        LEFT JOIN public.facilities f ON p.facility_id = f.id
+                        LEFT JOIN public.facilities f ON c.facility_id = f.id
+                        LEFT JOIN billing.claim_status cst ON cst.id = c.claim_status_id
                     WHERE
                         c.id = ${id}`;
 
@@ -834,7 +874,7 @@ module.exports = {
                                 LEFT JOIN orders ON orders.id=studies.order_id
                                 INNER JOIN facilities ON studies.facility_id=facilities.id
                             WHERE
-                                studies.deleted_dt is null
+                                studies.deleted_dt IS NULL
                                 AND study_dt IS NOT NULL
                                 AND studies.patient_id = ${id}
                                 AND NOT EXISTS ( SELECT 1 FROM billing.charges_studies WHERE study_id = studies.id )
@@ -895,7 +935,7 @@ module.exports = {
                             ,is_active  /* icd_codes.is_active */
                             ,company_id
                             ,code_type
-                            ,has_deleted /* icd_codes.has_deleted */
+                            ,deleted_dt
                             ,created_dt
                 )
                 SELECT
@@ -904,7 +944,7 @@ module.exports = {
                     , true
                     , ${params.companyId}
                     , ${params.code_type}
-                    , false
+                    , NULL
                     , now()
                 WHERE NOT EXISTS ( SELECT id FROM public.icd_codes  WHERE code ILIKE ${params.code}  AND company_id = ${params.companyId} AND NOT has_deleted) /* icd_codes.has_deleted */
                 RETURNING *, '{}'::jsonb old_values
@@ -935,7 +975,7 @@ module.exports = {
                 WHERE
                 patient_id = ${params.patient_id}
                 AND study_status='APP'
-                AND deleted_dt is null
+                AND deleted_dt IS NULL
             ORDER BY study_dt
         `;
 
@@ -1128,5 +1168,59 @@ module.exports = {
 
         return await query(sqlQry);
 
+    },
+
+    getChargesByPatientId : async function (params) {
+        let {
+            patient_id,
+            current_date
+        } = params;
+
+        let sql = SQL`
+                    SELECT
+                         sc.study_id
+                        , s.patient_id
+                        , s.study_dt AS study_time
+                        , s.accession_no
+                        , sc.cpt_code_id AS cpt_id
+                        , sc.cpt_code AS cpt_code
+                        , display_description AS cpt_description
+                        , modifier1.code AS m1
+                        , modifier2.code AS m2
+                        , modifier3.code AS m3
+                        , s.facility_id
+                    FROM public.study_cpt sc
+                    INNER JOIN public.cpt_codes pcc ON sc.cpt_code_id = pcc.id
+                    INNER JOIN studies s ON s.id = sc.study_id
+                    INNER JOIN orders o ON s.order_id = o.id
+                    LEFT JOIN modifiers AS modifier1 ON modifier1.id = sc.modifier1_id
+                    LEFT JOIN modifiers AS modifier2 ON modifier2.id = sc.modifier2_id
+                    LEFT JOIN modifiers AS modifier3 ON modifier3.id = sc.modifier3_id
+                    WHERE s.patient_id = ${patient_id}
+                    AND to_facility_date(s.facility_id, s.study_dt) = ${current_date}
+                    AND o.order_status NOT IN ('CAN','NOS')
+                    AND s.study_status NOT IN ('CAN','NOS')
+                    AND NOT sc.has_deleted
+                    ORDER BY sc.study_id DESC `;
+
+        return await query(sql);
+    },
+
+    updateNotes: async (params) => {
+        const {
+            billingNotes,
+            claimId,
+            claimNotes
+        } = params;
+
+        let sqlQry = SQL`
+                        UPDATE BILLING.CLAIMS
+                        SET claim_notes = ${claimNotes}
+                            , billing_notes = ${billingNotes}
+                        WHERE id = ${claimId}
+                        RETURNING *`;
+
+        return await query(sqlQry);
     }
+
 };

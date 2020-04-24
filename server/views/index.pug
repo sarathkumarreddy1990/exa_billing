@@ -21,7 +21,7 @@ block content
                     a#aClaims.nav-link(href='#billing/claim_workbench/list', i18n='shared.moduleheader.claims')
                 li.nav-item
                     a#aPayments.nav-link(href='#billing/payments/list', i18n='shared.moduleheader.payments')
-                unless countryCode === 'can'
+                unless billingRegionCode === 'can_AB'
                     li.nav-item
                         a#aEob.nav-link(href='#billing/era/list', i18n='shared.moduleheader.eob')
 
@@ -78,12 +78,15 @@ block content
                         a.dropdown-item(href='#setup/cas_reason_codes/list' class='aCasReasonCodes', i18n='shared.screens.setup.casReasonCodes')
                         //a.dropdown-item(href='#setup/provider_level_codes/list') Provider Level Codes
                         a.dropdown-item(href='#setup/status_color_codes/list' class='aStatusColorCodes', i18n='shared.screens.setup.statusColorCodes')
+                        a.dropdown-item(href='#setup/supporting_text/list' class='aSupportingText', i18n='shared.screens.setup.supportingText')
                         .dropdown-divider
                         a.dropdown-item(href='#setup/validations/all' class='aBillingValidations', i18n='shared.screens.setup.billingValidations')
                         a.dropdown-item(href='#setup/edi_templates/all' class='aEDITemplate', i18n='shared.screens.setup.ediTemplates')
                         a.dropdown-item(href='#setup/edi_clearinghouses/list' class='aEDIClearingHouses', i18n='shared.screens.setup.ediClearingHouses')
                         a.dropdown-item(href='#setup/insurance_x12_mapping/list' class='aInsuranceX12Mapping', i18n='shared.screens.setup.insuranceMapping')
                         a.dropdown-item(href='#setup/printer_templates/list' class='aPrinterTemplate', i18n='shared.screens.setup.printerTemplates')
+                        a.dropdown-item(href='#setup/auto_billing/list' class='aAutoBilling', i18n='shared.screens.setup.autoBilling')
+
 
                 li.nav-item.dropdown
                     a#aLog.nav-link.dropdown-toggle(data-toggle='dropdown', href='#', role='button', aria-haspopup='true', aria-expanded='false', i18n='shared.moduleheader.log')

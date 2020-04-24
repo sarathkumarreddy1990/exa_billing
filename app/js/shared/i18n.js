@@ -72,13 +72,24 @@ var i18n = {
     },
 
     get: function (key, useDefault) {
-        _.each(this.rules, function(rule) {
+        // Assemble country and province specific lists of replacements
+        var provinceAlphaCode = (app && app.province_alpha_2_code) || '';
+        var global = this.rules && this.rules.global || [];
+        var province = this.rules && this.rules[provinceAlphaCode] || [];
+
+        // Replace province-wide
+        _.each(province, function(rule) {
             key = rule.default === key ? rule.replace : key;
         });
 
-        var keys = key ? key.split('.') : '',
-            lang = this.getLang(),
-            obj = this.text[lang];
+        // Replace country-wide
+        _.each(global, function(rule) {
+            key = rule.default === key ? rule.replace : key;
+        });
+
+        var keys = key ? key.split('.') : '';
+        var lang = this.getLang();
+        var obj = this.text[lang];
 
         if (useDefault) {
             obj = this.text[this.defaultLang];
@@ -91,15 +102,13 @@ var i18n = {
         var keysSplitted = key.split('.');
         var originalKey = keysSplitted.length > 0 ? keysSplitted[keysSplitted.length-1] : key;
 
-        while (typeof obj !== 'undefined' && keys.length > 0)
+        while (typeof obj !== 'undefined' && keys.length > 0) {
             obj = obj[keys.shift()];
-        //return typeof obj === 'undefined' ? lang + '.' + key : obj;
-
-        if (typeof obj === 'undefined') {
-            return useDefault ? originalKey : this.get(key, true);
-        } else {
-            return obj;
         }
+
+        return (typeof obj === 'undefined')
+            ? useDefault ? originalKey : this.get(key, true)
+            : obj;
     },
 
     t1: function (item) {
