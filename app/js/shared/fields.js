@@ -554,12 +554,12 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "id": 70,
                     "field_code": "can_ahs_claim_no",
                     "field_name": "AHS Claim Num",
-                    "i18n_name": "setup.can_ahs.ahsclaimno",
+                    "i18n_name": "setup.cptCodes.can_ahs.ahsclaimno",
                     "field_info": {
                         "custom_name": "AHS Claim Num",
                         "name": "can_ahs_claim_no",
                         "width": 75,
-                        "hidden": !(app.country_alpha_3_code === 'can' && app.province_alpha_2_code === 'AB')
+                        "hidden": app.billingRegionCode !== "can_AB"
                     }
                 },
                 "Invoice": {
@@ -839,7 +839,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                             "value": claimAction,
                             "tempvalue": claimAction
                         },
-                        "hidden": !app.billingRegionCode === 'can_AB'
+                        "hidden": app.billingRegionCode !== 'can_AB'
                     }
                 },
                 "Reason Code": {
@@ -1630,17 +1630,18 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 },
                 "field_code": "claim_no"
             },
-            "AHS Claim #": {
+            "AHS Claim Num": {
                 "id": 70,
-                "field_name": "AHS Claim #",
-                "i18n_name": "setup.can_ahs.ahsclaimno",
+                "field_name": "AHS Claim Num",
+                "i18n_name": "setup.cptCodes.can_ahs.ahsclaimno",
                 "field_info": {
-                    "custom_name": "AHS Claim #",
-                    "name": "can_ahs_claim_id",
+                    "custom_name": "AHS Claim Num",
+                    "name": "can_ahs_claim_no",
                     "search": false,
                     "sortable": false,
                     "width": 200,
-                    "defaultValue": ""
+                    "defaultValue": "",
+                    "hidden": app.billingRegionCode !== "can_AB"
                 },
                 "field_code": "can_ahs_claim_no"
             },
