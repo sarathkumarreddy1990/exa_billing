@@ -45,6 +45,19 @@ define(['jquery',
                     { 'value': 'patient_payment', 'text': 'Patient Payment' },
                     { 'value': 'paper_claim', 'text': 'Paper Claim' }
                 ];
+                this.payer_edi_code = [
+                    { 'value': 'A', 'text': '<option i18n="setup.insurance.attorney"></option>' },
+                    { 'value': 'C', 'text': '<option i18n="setup.insurance.medicareEdi"></option>' },
+                    { 'value': 'D', 'text': '<option i18n="setup.insurance.medicaidEdi"></option>' },
+                    { 'value': 'F', 'text': '<option i18n="setup.insurance.commercial"></option>' },
+                    { 'value': 'G', 'text': '<option i18n="setup.insurance.blueCross"></option>' },
+                    { 'value': 'R', 'text': '<option i18n="setup.insurance.railroadMC"></option>' },
+                    { 'value': 'W', 'text': '<option i18n="setup.insurance.workersCompensation"></option>' },
+                    { 'value': 'X', 'text': '<option i18n="setup.insurance.xChampus"></option>' },
+                    { 'value': 'Y', 'text': '<option i18n="setup.insurance.yFacility"></option>' },
+                    { 'value': 'M', 'text': '<option i18n="setup.insurance.mDMERC"></option>' },
+                    { 'value': 'AM', 'text': '<option i18n="setup.insurance.autoMobile"></option>' }
+                ];
             },
 
             render: function() {
@@ -55,7 +68,7 @@ define(['jquery',
                 if (this.ediClearingHouses && !this.ediClearingHouses.length)
                     this.getEDIClearingHousesList();
 
-                if (app.country_alpha_3_code === "can") {
+                if (app.billingRegionCode === "can_ON") {
                     self.billing_method = _.reject(self.billing_method, function (field) {
                         return (field && (field.value == "paper_claim" || field.value == "patient_payment"))
                     }) || [];
@@ -66,14 +79,20 @@ define(['jquery',
                     textDescription: 'text',
                     sort: true
                 })
+                var payerEDICode = commonjs.buildGridSelectFilter({
+                    arrayOfObjects: this.payer_edi_code,
+                    searchKey: 'value',
+                    textDescription: 'text',
+                    sort: true
+                })
 
                 this.insuranceX12MappingTable = new customGrid();
                 this.insuranceX12MappingTable.render({
                     gridelementid: '#tblInsuranceX12MappingGrid',
                     custompager: new Pager(),
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['','','','',''],
-                    i18nNames: ['', '', 'setup.insuranceX12Mapping.insuranceName', 'billing.fileInsurance.billingmethod', 'setup.insuranceX12Mapping.claimClearingHouse'],
+                    colNames: ['','','','','',''],
+                    i18nNames: ['', '', 'setup.insuranceX12Mapping.insuranceName', 'billing.fileInsurance.billingmethod', 'setup.insuranceX12Mapping.claimClearingHouse', 'billing.fileInsurance.ediCode'],
                     colModel: [
                         {
                             name: 'id',
@@ -118,6 +137,12 @@ define(['jquery',
                                 }
                                 return name;
                             }
+                        },
+                        {
+                            name: 'payer_edi_code',
+                            "stype": "select",
+                            searchoptions: { value: payerEDICode },
+                            formatter: self.changePayerEDICode
                         }
                     ],
                     afterInsertRow: function (rowid, rowdata) {
@@ -165,8 +190,11 @@ define(['jquery',
             renderForm: function(id) {
                 var self = this;
                 $('#divInsuranceX12MappingForm').html(this.insuranceX12MappingFormTemplate({
+                    billingRegionCode: app.billingRegionCode,
                     country_alpha_3_code: app.country_alpha_3_code,
-                    'ediClearingHouseList' : self.ediClearingHouses
+                    province_alpha_2_code: app.province_alpha_2_code,
+                    billing_region_code: app.billingRegionCode,
+                    ediClearingHouseList: self.ediClearingHouses
                 }));
                 if(id > 0) {
                     this.model.set({id: id});
@@ -176,6 +204,7 @@ define(['jquery',
                                 var data = response[0];
 
                                 if (data) {
+                                    model.set({insurance_code: data.insurance_code});
                                     $('#lblInsuranceName ').html(data.insurance_name ? data.insurance_name : '');
                                     $('#ddlClaimClearingHouse').val(data.claimclearinghouse ? data.claimclearinghouse : '');
                                     $('#ddlClaimBillingMethod').val(data.billing_method ? data.billing_method : '');
@@ -267,15 +296,22 @@ define(['jquery',
             },
 
             save: function () {
+                var billingMethod = $('#ddlClaimBillingMethod').val();
+                var isElectronicBilling = billingMethod === 'electronic_billing';
+
+                if (app.billingRegionCode === 'can_AB' && this.model.get('insurance_code') !== 'AHS' && isElectronicBilling) {
+                    return commonjs.showWarning('messages.warning.claims.electronicBillingOnlyAHS');
+                }
+
                 this.model.set({
-                    "claimClearingHouse": ($('#ddlClaimClearingHouse').val() && $('#ddlClaimBillingMethod').val()=='electronic_billing' ) ? $('#ddlClaimClearingHouse').val() : null,
-                    "billingMethod": $('#ddlClaimBillingMethod').val(),
+                    "claimClearingHouse": ($('#ddlClaimClearingHouse').val() && isElectronicBilling) ? $('#ddlClaimClearingHouse').val() : null,
+                    "billingMethod": billingMethod,
                     "indicatorCode": $('#txtClaimFileIndicatorCode').val(),
                     "ediCode": $("#selectPayerEDICode").val(),
-                    "is_default_payer": (app.country_alpha_3_code === "can" && $('#ddlClaimBillingMethod').val() == 'electronic_billing') ? $('input:checkbox[name=defaultPayer]').prop('checked') : false,
+                    "is_default_payer": (app.country_alpha_3_code === "can" && isElectronicBilling) ? $('input:checkbox[name=defaultPayer]').prop('checked') : false,
                     "is_name_required": $('#chkNameInClaimForm').prop('checked'),
                     "is_signature_required": $('#chkPrintSignature').prop('checked'),
-                    "is_print_billing_provider_address": $('#chkPrintBillingProviderAddress').is(':checked'),
+                    "is_print_billing_provider_address": $('#chkPrintBillingProviderAddress').is(':checked')
                 });
                 this.model.save({
                 }, {
@@ -322,6 +358,46 @@ define(['jquery',
                 }
             },
 
+            changePayerEDICode: function (cellvalue, options, rowObject) {
+                var ediVal = '';
+                switch (rowObject.payer_edi_code) {
+                    case 'A':
+                        ediVal = '<option i18n="setup.insurance.attorney"></option>'
+                        break;
+                    case 'C':
+                        ediVal = '<option i18n="setup.insurance.medicareEdi"></option>'
+                        break;
+                    case 'D':
+                        ediVal = '<option i18n="setup.insurance.medicaidEdi"></option>'
+                        break;
+                    case 'F':
+                        ediVal = '<option i18n="setup.insurance.commercial"></option>'
+                        break;
+                    case 'G':
+                        ediVal = '<option i18n="setup.insurance.blueCross"></option>'
+                        break;
+                    case 'R':
+                        ediVal = '<option i18n="setup.insurance.railroadMC"></option>'
+                        break;
+                    case 'W':
+                        ediVal = '<option i18n="setup.insurance.workersCompensation"></option>'
+                        break;
+                    case 'X':
+                        ediVal = '<option i18n="setup.insurance.xChampus"></option>'
+                        break;
+                    case 'Y':
+                        ediVal = '<option i18n="setup.insurance.yFacility"></option>'
+                        break;
+                    case 'M':
+                        ediVal = '<option i18n="setup.insurance.mDMERC"></option>'
+                        break;
+                    case 'AM':
+                        ediVal = '<option i18n="setup.insurance.autoMobile"></option>'
+                        break;
+                }
+                return ediVal;
+            },
+
             changeEDICode: function () {
                 var ediCode = $('#selectPayerEDICode').val();
                 var ediVal = '';
@@ -352,6 +428,9 @@ define(['jquery',
                         break;
                     case 'Y':
                         ediVal = 'YFAC'
+                        break;
+                    case 'M':
+                        ediVal = 'DMERC'
                         break;
                     case 'AM':
                         ediVal = 'AM'

@@ -70,7 +70,7 @@ define([
             },
             events: {
             },
-
+            isCleared: false,
             initialize: function (options) {
                 this.options = options;
                 this.invoicePager = new Pager();
@@ -99,7 +99,9 @@ define([
                 var isFromClaimScreen = this.options.source && this.options.source === 'claims'
 
                 $(this.el).html(this.inquiryTemplate({
-                    country_alpha_3_code: app.country_alpha_3_code
+                    country_alpha_3_code: app.country_alpha_3_code,
+                    province_alpha_2_code: app.province_alpha_2_code,
+                    billingRegionCode: app.billingRegionCode
                 }));
                 if (this.options.source !== 'web')
                     commonjs.showDialog({
@@ -108,7 +110,9 @@ define([
                         width: '90%',
                         height: '85%',
                         html: this.inquiryTemplate({
-                            country_alpha_3_code: app.country_alpha_3_code
+                            country_alpha_3_code: app.country_alpha_3_code,
+                            province_alpha_2_code: app.province_alpha_2_code,
+                            billingRegionCode: app.billingRegionCode
                         })
                     });
                 else
@@ -139,6 +143,10 @@ define([
 
                 $('#btnCISaveIsInternal').off().click(function () {
                     self.saveIsInternalComment();
+                });
+
+                $('#btnCISaveNotes').off().click(function () {
+                    self.updateNotes();
                 });
 
                 $('btnCIPrintInvoice').off().click(function (e) {
@@ -245,6 +253,7 @@ define([
                                 $('#divClaimInquiry').height(isFromClaimScreen ? $(window).height() - 220 : $(window).height() - 260);
                             }
                             self.clearFaxInfo();
+                            self.disableElementsForProvince(claim_data);
                         }
                     },
                     error: function (err) {
@@ -257,6 +266,21 @@ define([
                 });
             },
 
+            disableElementsForProvince: function(data) {
+                if (app.billingRegionCode === 'can_MB') {
+                    var saveBtn = $('#btnCISaveNotes');
+                    var saveNotesBtn = $('#btnCISaveIsInternal');
+
+                    if (data.claim_status_code === 'P77') {
+                        saveBtn.show();
+                        saveNotesBtn.hide();
+                    } else {
+                        saveNotesBtn.show();
+                        saveBtn.hide();
+                    }
+                }
+            },
+
             getSubscriberDOBFormat: function ( cellvalue, options, rowObject ) {
                 return commonjs.checkNotEmpty(rowObject.subscriber_dob)
                     ? moment(rowObject.subscriber_dob).format('L')
@@ -266,9 +290,7 @@ define([
             showInsuranceGrid: function (data) {
                 var self = this;
                 var colNames = ['', 'code', 'description', 'Subscriber Name', 'DOB', 'Policy No', 'Group No'];
-                var i18nNames = ['', 'billing.COB.code', 'billing.COB.description', 'billing.claims.subscriberName', 'billing.COB.DOB', 'patient.patientInsurance.policyNo',
-                    'patient.patientInsurance.groupNo'
-                ];
+                var i18nNames = ['', 'billing.COB.code', 'billing.COB.description', 'billing.claims.subscriberName', 'billing.COB.DOB', 'shared.fields.policyNumber', 'patient.patientInsurance.groupNo'];
                 var colModel = [
                     { name: 'id', hidden: true },
                     { name: 'insurance_code', search: false },
@@ -279,7 +301,7 @@ define([
                     { name: 'group_number', search: false }
                 ];
 
-                if (app.country_alpha_3_code != "can") {
+                if (app.billingRegionCode !== "can_ON") {
                     colNames.push('Paper Claim Original', 'Paper Claim Full');
                     i18nNames.push('billing.COB.paperClaimOriginal', 'billing.COB.paperClaimFull');
                     colModel.push({
@@ -478,9 +500,75 @@ define([
                 $('#divAgeSummary').html(self.agingSummaryTemplate());
             },
 
+            //Bind date range filter
+            bindDateRangeOnSearchBox: function (gridObj) {
+                var self = this;
+                var columnsToBind = ['invoice_date'];
+                var drpOptions = {
+                    locale: {
+                        format: "L"
+                    }
+                };
+                var currentFilter = 1;
+
+                _.each(columnsToBind, function (col) {
+                    var colSelector = '#gs_' + col;
+                    var colElement = $(colSelector);
+
+                    if (!colElement.val() && !self.isCleared) {
+                        var toDate = moment(),
+                            fromDate = moment().subtract(29, 'days');
+                        colElement.val(fromDate.format("L") + " - " + toDate.format("L"));
+                    }
+
+                    var drp = commonjs.bindDateRangePicker(colElement, drpOptions, "past", function (start, end, format) {
+                        if (start && end) {
+                            currentFilter.startDate = start.format('L');
+                            currentFilter.endDate = end.format('L');
+                            $('input[name=daterangepicker_start]').removeAttr("disabled");
+                            $('input[name=daterangepicker_end]').removeAttr("disabled");
+                            $('.ranges ul li').each(function (i) {
+                                if ($(this).hasClass('active')) {
+                                    currentFilter.rangeIndex = i;
+                                }
+                            });
+                        }
+                    });
+                    colElement.on("apply.daterangepicker", function (obj) {
+                        gridObj.refresh();
+                    });
+                    colElement.on("cancel.daterangepicker", function () {
+                        self.isCleared = true;
+                        gridObj.refresh();
+                    });
+                });
+            },
+
+            updateNotes: function () {
+                $.ajax({
+                    url: '/exa_modules/billing/claims/claim_inquiry/notes/' + this.claim_id,
+                    type: 'PUT',
+                    data: {
+                        billingNotes: $.trim($('#txtCIBillingComment').val()) || ''
+                    },
+                    success: function (response) {
+                        if (response && response.length) {
+                            commonjs.showStatus("messages.status.successfullyCompleted");
+                            $('#btnSaveClaimNotes').prop('disabled', false);
+                            $('.claimProcess').prop('disabled', false);
+                        }
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
+            },
+
             showInvoiceGrid: function (claimID, patientId,payer_type) {
                 var self = this;
                 $('#divInvoiceGrid').show();
+                var balanceSearchList = ':All; =0:= 0; >0:> 0; <0:< 0; !=0:!= 0';
+                $('#divInvoiceGrid').show()
                 this.invoiceTable = new customGrid();
                 this.invoiceTable.render({
                     gridelementid: '#tblInvoiceGrid',
@@ -492,7 +580,9 @@ define([
                         { name: '', index: 'id', key: true, hidden: true, search: false },
                         { name: 'claim_ids', hidden: true} ,
                         {
-                            name: 'invoice_no', search: true, width: 100
+                            name: 'invoice_date', width: 200, searchFlag: 'date', formatter: function (cellvalue, options, rowObject) {
+                                return (commonjs.checkNotEmpty(rowObject.invoice_date) ? moment(rowObject.invoice_date).format('L') : '');
+                            }
                         },
                         {
                             name: 'invoice_date', search: true, formatter: self.dateFormatter, width: 150
@@ -507,7 +597,14 @@ define([
                             name: 'invoice_adjustment', search: true, width: 150
                         },
                         {
-                            name: 'invoice_balance', search: true, width: 150
+                            name: 'invoice_balance'
+                            , sortable: false
+                            , width: 150
+                            , stype: "select"
+                            , searchoptions: {
+                                "value": balanceSearchList,
+                                "tempvalue": balanceSearchList
+                            }
                         },
                         {
                             name: 'edit', width: 50, sortable: false, search: false,
@@ -539,11 +636,14 @@ define([
                     disablereload: true,
                     customargs: {
                         claimID: claimID,
-                        payerType: payer_type
+                        payerType: payer_type,
+                        toDate: !self.isCleared ? moment().format('YYYY-MM-DD') : "",
+                        fromDate: !self.isCleared ? moment().subtract(29, 'days').format('YYYY-MM-DD') : ""
                     },
                     pager: '#gridPager_invoiceClaim',
                     onaftergridbind: function (model, gridObj) {
                         self.setMoneyMask();
+                        self.bindDateRangeOnSearchBox(gridObj);
                     }
                 });
 

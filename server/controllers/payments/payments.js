@@ -385,7 +385,8 @@ module.exports = {
 
     processWriteOffPayment: data.createWriteOffPayment,
 
-    canDeletePayment: data.canDeletePayment
+    canDeletePayment: data.canDeletePayment,
 
+    updateNotes: data.updateNotes
 };
 

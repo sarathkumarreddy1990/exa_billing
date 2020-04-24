@@ -36,6 +36,7 @@ module.exports = function (app, companyId) {
             ...redisOptions,
             host: redisInfo.host,
             port: redisInfo.port,
+            connectionName: `billing-session-store`,
         });
     }
 

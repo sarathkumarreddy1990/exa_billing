@@ -145,7 +145,7 @@ define(['jquery',
                     datastore: self.billingProvidersList,
                     container: self.el,
                     customizeSort: true,
-                    offsetHeight: 01,
+                    offsetHeight: 1,
                     sortname: "id",
                     sortorder: "desc",
                     sortable: {
@@ -186,10 +186,12 @@ define(['jquery',
                 var states = app.states[0].app_states;
                 $('#divBillingProvidersForm').html(this.billingProvidersFormTemplate({
                     country_alpha_3_code: app.country_alpha_3_code,
+                    province_alpha_2_code: app.province_alpha_2_code,
+                    billingRegionCode: app.billingRegionCode,
                     qualifierCodes: qualifierCodes,
                     states: states
                 }));
-                if(app.country_alpha_3_code === 'can'){
+                if ( app.country_alpha_3_code === 'can' && app.province_alpha_2_code === 'ON' ) {
                     $('#txtNpi').attr('maxlength', 4);
                 }
                 var AddressInfoMap = {
@@ -238,42 +240,44 @@ define(['jquery',
                                 if (data) {
                                     Address.loadCityStateZipTemplate('#divAddressInfo', data, AddressInfoMap);
                                     Address.loadCityStateZipTemplate('#divPayToAddress', data, payToAddressMap);
-                                    $('#txtName').val(data.name ? data.name : '');
-                                    $('#chkIsActive').prop('checked', data.inactivated_dt ? true : false);
-                                    $('#txtCode').val(data.code ? data.code : '');
-                                    $('#txtShortDesc').val(data.short_description ? data.short_description : '');
-                                    $('#txtFederalTaxID').val(data.federal_tax_id ? data.federal_tax_id : '');
-                                    $('#txtNpi').val(data.npi_no ? data.npi_no : '');
-                                    $('#txtTaxonomy').val(data.taxonomy_code ? data.taxonomy_code : '');
-                                    $('#txtContactName').val(data.contact_person_name ? data.contact_person_name : '');
-                                    $('#txtAddressLine1').val(data.address_line1 ? data.address_line1 : '');
-                                    $('#txtAddressLine2').val(data.address_line2 ? data.address_line2 : '');
-                                    $('#txtCity').val(data.city ? data.city : '');
-                                    $('#ddlState').val(data.state ? data.state : '');
-                                    $('#txtZip').val(data.zip_code ? data.zip_code : '');
-                                    $('#txtZipPlus').val(data.zip_code_plus ? data.zip_code_plus : '');
-                                    $('#txtEmail').val(data.email ? data.email : '');
-                                    $('#txtBillProPhoneNo').val(data.phone_number ? data.phone_number : '');
-                                    $('#txtFaxNo').val(data.fax_number ? data.fax_number : '');
-                                    $('#txtWebURL').val(data.web_url ? data.web_url : '');
-                                    $('#txtPayAddressLine1').val(data.pay_to_address_line1 ? data.pay_to_address_line1 : '');
-                                    $('#txtPayAddressLine2').val(data.pay_to_address_line2 ? data.pay_to_address_line2 : '');
-                                    $('#txtPayCity').val(data.pay_to_city ? data.pay_to_city : '');
-                                    $('#ddlPayState').val(data.pay_to_state ? data.pay_to_state : '');
-                                    $('#txtPayZip').val(data.pay_to_zip_code ? data.pay_to_zip_code : '');
-                                    $('#txtPayZipPlus').val(data.pay_to_zip_code_plus ? data.pay_to_zip_code_plus : '');
-                                    $('#txtPayEmail').val(data.pay_to_email ? data.pay_to_email : '');
-                                    $('#txtPayBillProPhoneNo').val(data.pay_to_phone_number ? data.pay_to_phone_number : '');
-                                    $('#txtPayFaxNo').val(data.pay_to_fax_number ? data.pay_to_fax_number : '');
-                                    $('#chkEnableFTP').prop('checked', communication_info.enable_ftp ? communication_info.enable_ftp : false);
-                                    $('#txtHostName').val(communication_info.Ftp_host ? communication_info.Ftp_host : '');
-                                    $('#txtPort').val(communication_info.Ftp_port ? communication_info.Ftp_port : '');
-                                    $('#txtUserName').val(communication_info.Ftp_user_name ? communication_info.Ftp_user_name : '');
-                                    $('#txtPassword').val(communication_info.Ftp_password ? communication_info.Ftp_password : '');
-                                    $('#ddlFtpType').val(communication_info.Ftp_type ? communication_info.Ftp_type : '');
-                                    $('#txtSentFolder').val(communication_info.Ftp_sent_folder ? communication_info.Ftp_sent_folder : '');
-                                    $('#txtReceiveFolder').val(communication_info.Ftp_receive_folder ? communication_info.Ftp_receive_folder : '');
-                                    $('#txtIdentityFilePath').val(communication_info.Ftp_identity_file ? communication_info.Ftp_identity_file : '');
+                                    $('#txtName').val(data.name || '');
+                                    $('#chkIsActive').prop('checked', !!data.inactivated_dt);
+                                    $('#txtCode').val(data.code || '');
+                                    $('#txtShortDesc').val(data.short_description || '');
+                                    $('#txtFederalTaxID').val(data.federal_tax_id || '');
+                                    $('#txtNpi').val(data.npi_no || '');
+                                    $('#txtTaxonomy').val(data.taxonomy_code || '');
+                                    $('#txtContactName').val(data.contact_person_name || '');
+                                    $('#txtAddressLine1').val(data.address_line1 || '');
+                                    $('#txtAddressLine2').val(data.address_line2 || '');
+                                    $('#txtCity').val(data.city || '');
+                                    $('#ddlState').val(data.state || '');
+                                    $('#txtZip').val(data.zip_code || '');
+                                    $('#txtZipPlus').val(data.zip_code_plus || '');
+                                    $('#txtEmail').val(data.email || '');
+                                    $('#txtBillProPhoneNo').val(data.phone_number || '');
+                                    $('#txtFaxNo').val(data.fax_number || '');
+                                    $('#txtWebURL').val(data.web_url || '');
+                                    $('#txtPayAddressLine1').val(data.pay_to_address_line1 || '');
+                                    $('#txtPayAddressLine2').val(data.pay_to_address_line2 || '');
+                                    $('#txtPayCity').val(data.pay_to_city || '');
+                                    $('#ddlPayState').val(data.pay_to_state || '');
+                                    $('#txtPayZip').val(data.pay_to_zip_code || '');
+                                    $('#txtPayZipPlus').val(data.pay_to_zip_code_plus || '');
+                                    $('#txtPayEmail').val(data.pay_to_email || '');
+                                    $('#txtPayBillProPhoneNo').val(data.pay_to_phone_number || '');
+                                    $('#txtPayFaxNo').val(data.pay_to_fax_number || '');
+
+                                    $('#chkEnableFTP').prop('checked', !!communication_info.enable_ftp);
+                                    $('#txtHostName').val(communication_info.Ftp_host || '');
+                                    $('#txtPort').val(communication_info.Ftp_port || '');
+                                    $('#txtUserName').val(communication_info.Ftp_user_name || '');
+                                    $('#txtPassword').val(communication_info.Ftp_password || '');
+                                    $('#ddlFtpType').val(communication_info.Ftp_type || '');
+                                    $('#txtSentFolder').val(communication_info.Ftp_sent_folder || '');
+                                    $('#txtReceiveFolder').val(communication_info.Ftp_receive_folder || '');
+                                    $('#txtIdentityFilePath').val(communication_info.Ftp_identity_file || '');
+
                                     var $txtPayCity = $("[for=txtPayCity]");
                                     $txtPayCity.find("span").remove();
                                     $txtPayCity.removeClass('field-required');
@@ -290,29 +294,6 @@ define(['jquery',
                 }
                 commonjs.initializeScreen({header: {screen: 'BillingProviders', ext: 'billingProvider'}, buttons: [
                     {value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
-                        $("#txtName").val($.trim($('#txtName').val()) || null);
-                        $("#txtCode").val($.trim($('#txtCode').val()) || null);
-                        $("#txtShortDesc").val($.trim($('#txtShortDesc').val()) || null);
-                        $("#txtFederalTaxID").val($.trim($('#txtFederalTaxID').val()) || null);
-                        $("#txtNpi").val($.trim($('#txtNpi').val()) || null);
-                        $("#txtContactName").val($.trim($('#txtContactName').val()) || null);
-                        $("#txtAddressLine1").val($.trim($('#txtAddressLine1').val()) || null);
-                        $("#txtCity").val($.trim($('#txtCity').val()) || null);
-                        $("#ddlState").val($.trim($('#ddlState').val()) && $.trim($('#ddlState').val()) != 'Select' ? $.trim($('#ddlState').val()) : null);
-                        $("#txtZip").val($.trim($('#txtZip').val()) || null);
-                        $("#txtBillProPhoneNo").val($.trim($('#txtBillProPhoneNo').val()) || null);
-                        $("#txtFaxNo").val($.trim($('#txtFaxNo').val()) || null);
-                        $("#txtHostName").val($.trim($('#txtHostName').val()) || null);
-                        $("#txtPort").val($.trim($('#txtPort').val()) || null);
-                        $("#txtUserName").val($.trim($('#txtUserName').val()) || null);
-                        $("#txtPassword").val($.trim($('#txtPassword').val()) || null);
-                        $("#txtSentFolder").val($.trim($('#txtSentFolder').val()) || null);
-                        $("#txtReceiveFolder").val($.trim($('#txtReceiveFolder').val()) || null);
-
-                        if (app.country_alpha_3_code === "usa") {
-                            $("#txtTaxonomy").val($.trim($('#txtTaxonomy').val().toUpperCase()) || null);
-                        }
-
                         self.saveBillingProviders();
                     }},
                     {value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
@@ -330,6 +311,23 @@ define(['jquery',
                 commonjs.processPostRender();
             },
 
+            trimFieldsForSave: function () {
+                $('#formBillingProviders input[type=text]').each(function (index, el) {
+                    var $el = $(el);
+                    if ($el.hasClass('text-uppercase')) {
+                        $el.val($.trim($el.val().toUpperCase()) || null);
+                    } else {
+                        $el.val($.trim($el.val()) || null);
+                    }
+                });
+
+                $('#formBillingProviders select').each(function (index, el) {
+                    var $el = $(el);
+                    var val = $.trim($el.val());
+                    $el.val(val && val !== 'Select' ? val : null);
+                });
+            },
+
             addNewBillingProviders: function () {
                 location.href = "#setup/billing_providers/new";
             },
@@ -344,7 +342,8 @@ define(['jquery',
             },
 
             saveBillingProviders : function() {
-                var self = this;
+                this.trimFieldsForSave();
+
                 var rules = {
                     providerName: {
                         required: true
@@ -356,13 +355,13 @@ define(['jquery',
                         required: true
                     },
                     federalTaxID: {
-                        required: true
+                        required: app.country_alpha_3_code === 'usa'
                     },
                     npiNo: {
-                        required: true
+                        required: (app.country_alpha_3_code !== 'can' || app.province_alpha_2_code !== 'AB')
                     },
                     taxonomy: {
-                        required: true
+                        required: app.country_alpha_3_code === 'usa'
                     },
                     contactPersonName: {
                         required: true
@@ -389,6 +388,7 @@ define(['jquery',
                         email: true
                     }
                 }
+
                 var messages = {
                     providerName: commonjs.getMessage("e", "Billing Provider Name"),
                     providerCode: commonjs.getMessage("e", "Billing Provider Code"),
@@ -405,7 +405,8 @@ define(['jquery',
                     faxNo: commonjs.getMessage("e", "Fax Number"),
                     email: commonjs.getMessage("e", "Email")
                 }
-                if($('#chkEnableFTP').prop('checked')) {
+
+                if ($('#chkEnableFTP').prop('checked')) {
                     rules.hostname = { required: true }
                     rules.username = { required: true }
                     rules.password = { required: true }
@@ -419,15 +420,17 @@ define(['jquery',
                     messages.sentFolder = commonjs.getMessage("e", "FTP Sent Folder");
                     messages.ReceiveFolder = commonjs.getMessage("e", "FTP Receive Folder");
                 }
+
                 commonjs.validateForm({
                     rules: rules,
                     messages : messages,
                     submitHandler: function () {
-                        self.save();
-                    },
+                        this.save();
+                    }.bind(this),
                     formID: '#formBillingProviders',
                     onkeyup: function(element) { $(element).valid(); },
                 });
+
                 $('#formBillingProviders').submit();
             },
 
@@ -445,18 +448,20 @@ define(['jquery',
                     commonjs.showWarning('messages.warning.shared.invalidPostal');
                     return false;
                 }
+
                 var isFtpEnabled = $('#chkEnableFTP').prop('checked');
                 var communication_info = {
                     "enable_ftp": isFtpEnabled,
-                    "Ftp_host": isFtpEnabled ? $('#txtHostName').val(): "",
-                    "Ftp_port": isFtpEnabled ? $('#txtPort').val(): "",
-                    "Ftp_user_name": isFtpEnabled ? $('#txtUserName').val(): "",
-                    "Ftp_password": isFtpEnabled ? $('#txtPassword').val(): "",
-                    "Ftp_type": isFtpEnabled ? $.trim($('#ddlFtpType').val()): "",
-                    "Ftp_sent_folder": isFtpEnabled ? $('#txtSentFolder').val(): "",
-                    "Ftp_receive_folder": isFtpEnabled ? $('#txtReceiveFolder').val(): "",
-                    "Ftp_identity_file": isFtpEnabled ? $.trim($('#txtIdentityFilePath').val()): ""
+                    "Ftp_host": isFtpEnabled ? $('#txtHostName').val() : "",
+                    "Ftp_port": isFtpEnabled ? $('#txtPort').val() : "",
+                    "Ftp_user_name": isFtpEnabled ? $('#txtUserName').val() : "",
+                    "Ftp_password": isFtpEnabled ? $('#txtPassword').val() : "",
+                    "Ftp_type": isFtpEnabled ? $('#ddlFtpType').val() : "",
+                    "Ftp_sent_folder": isFtpEnabled ? $('#txtSentFolder').val() : "",
+                    "Ftp_receive_folder": isFtpEnabled ? $('#txtReceiveFolder').val() : "",
+                    "Ftp_identity_file": isFtpEnabled ? $('#txtIdentityFilePath').val() : ""
                 }
+
                 this.model.set({
                     "name": $('#txtName').val(),
                     "isActive": !$('#chkIsActive').prop('checked'),
@@ -468,38 +473,38 @@ define(['jquery',
                     "taxonomyCode": (app.country_alpha_3_code === "can") ? "1234567890" : $('#txtTaxonomy').val().toUpperCase(),
                     "contactPersonName": $('#txtContactName').val(),
                     "addressLine1": $('#txtAddressLine1').val(),
-                    "addressLine2": $.trim($('#txtAddressLine2').val()),
+                    "addressLine2": $('#txtAddressLine2').val(),
                     "city": $('#txtCity').val(),
                     "state": $('#ddlState').val(),
                     "zipCode": $('#txtZip').val(),
-                    "zipCodePlus": $.trim($('#txtZipPlus').val()),
-                    "email": $.trim($('#txtEmail').val()),
+                    "zipCodePlus": $('#txtZipPlus').val(),
+                    "email": $('#txtEmail').val(),
                     "phoneNumber": $('#txtBillProPhoneNo').val(),
                     "faxNumber": $('#txtFaxNo').val(),
-                    "webUrl": $.trim($('#txtWebURL').val()),
-                    "payToAddressLine1": $.trim($('#txtPayAddressLine1').val()),
-                    "payToAddressLine2": $.trim($('#txtPayAddressLine2').val()),
-                    "payToCity": $.trim($('#txtPayCity').val()),
+                    "webUrl": $('#txtWebURL').val(),
+                    "payToAddressLine1": $('#txtPayAddressLine1').val(),
+                    "payToAddressLine2": $('#txtPayAddressLine2').val(),
+                    "payToCity": $('#txtPayCity').val(),
                     "payToState": $('#ddlPayState').val(),
-                    "payToZipCode": $.trim($('#txtPayZip').val()),
-                    "payToZipCodePlus": $.trim($('#txtPayZipPlus').val()),
-                    "payToEmail": $.trim($('#txtPayEmail').val()),
-                    "payToPhoneNumber": $.trim($('#txtPayBillProPhoneNo').val()),
-                    "payToFaxNumber": $.trim($('#txtPayFaxNo').val()),
+                    "payToZipCode": $('#txtPayZip').val(),
+                    "payToZipCodePlus": $('#txtPayZipPlus').val(),
+                    "payToEmail": $('#txtPayEmail').val(),
+                    "payToPhoneNumber": $('#txtPayBillProPhoneNo').val(),
+                    "payToFaxNumber": $('#txtPayFaxNo').val(),
                     "communicationInfo": communication_info
                 });
-                this.model.save({
-                }, {
-                        success: function (model, response) {
-                            commonjs.showStatus('messages.status.savedSuccessfully');
-                            if (response) {
-                                location.href = "#setup/billing_providers/list";
-                            }
-                        },
-                        error: function (model, response) {
-                            commonjs.handleXhrError(model, response);
+
+                this.model.save({}, {
+                    success: function (model, response) {
+                        commonjs.showStatus('messages.status.savedSuccessfully');
+                        if (response) {
+                            location.href = "#setup/billing_providers/list";
                         }
-                    });
+                    },
+                    error: function (model, response) {
+                        commonjs.handleXhrError(model, response);
+                    }
+                });
             },
 
             bindInsuranceAutocomplete: function (element_id) {

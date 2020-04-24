@@ -208,7 +208,9 @@ define(['jquery',
                 var self = this;
                 this.templateToogleMode = true;
                 $('#divPaperClaimTemplatesForm').html(this.paperClaimTemplatesFormTemplate({
-                    country_alpha_3_code: app.country_alpha_3_code
+                    country_alpha_3_code: app.country_alpha_3_code,
+                    province_alpha_2_code: app.province_alpha_2_code,
+                    billing_region_code: app.billingRegionCode
                 }));
                 $('#divPaperClaimTemplatesGrid').hide();
                 $('#divPaperClaimTemplatesForm').show();
@@ -399,7 +401,7 @@ define(['jquery',
                 var templateNames = {
                     'direct_invoice': 'direct_invoice.template',
                     'patient_invoice': 'patient_Invoice.template',
-                    'paper_claim_full': 'paper_claim_BW.template',
+                    'paper_claim_full': app.billingRegionCode === 'can_MB' ? 'wcb-mhsal.template' : 'paper_claim_BW.template',
                     'paper_claim_original': 'paper_claim_red.template'
                 };
 

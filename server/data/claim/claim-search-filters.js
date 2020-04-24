@@ -98,6 +98,11 @@ const colModel = [
         searchColumns: ['claims.id']
     },
     {
+        name: 'can_ahs_claim_no',
+        searchFlag: '%',
+        searchColumns: ['billing.can_ahs_get_claim_number(claims.id)']
+    },
+    {
         name: 'policy_number',
         searchFlag: '%',
         searchColumns: ['patient_insurances.policy_number']
@@ -195,10 +200,24 @@ const colModel = [
         searchFlag: 'arrayString'
     },
     {
+        name: 'claim_action',
+        searchColumns: [`(CASE
+                WHEN claims.frequency = 'corrected'
+                THEN 'corrected_claim'
+                WHEN (claims.frequency != 'corrected' OR claims.frequency IS NULL)
+                THEN 'new_claim' END)`],
+        searchFlag: '='
+    },
+    {
         name: 'insurance_providers'
         , searchColumns: [`insurance_providers.insurance_name`]
         , searchFlag: '%'
     },
+    {
+        name: 'can_mhs_microfilm_no'
+        , searchColumns:[`claims.can_mhs_microfilm_no`]
+        , searchFlag: '%'
+    }
 ];
 
 const api = {
@@ -261,6 +280,7 @@ const api = {
             case 'followup_date': return 'claim_followups.followup_date::text';
             case 'current_illness_date': return 'claims.current_illness_date::text';
             case 'claim_no': return 'claims.id';
+            case 'can_ahs_claim_no': return 'billing.can_ahs_get_claim_number(claims.id)';
             case 'policy_number': return 'patient_insurances.policy_number';
             case 'group_number': return 'patient_insurances.group_number';
             case 'payer_type':
@@ -287,7 +307,9 @@ const api = {
             case 'charge_description': return `nullif(charge_details.charge_description,'')`;
             case 'ins_provider_type': return 'insurance_provider_payer_types.description';
             case 'icd_description': return 'claim_icds.description';
+            case 'claim_action': return 'claims.frequency';
             case 'insurance_providers': return `insurance_providers.insurance_name`;
+            case 'can_mhs_microfilm_no': return `claims.can_mhs_microfilm_no`;
         }
 
         return args;
@@ -486,6 +508,7 @@ const api = {
             'bgct.charges_bill_fee_total as billing_fee',
             'claims.current_illness_date::text as current_illness_date',
             'claims.id As claim_no',
+            'billing.can_ahs_get_claim_number(claims.id) AS can_ahs_claim_no',
             'patient_insurances.policy_number',
             'patient_insurances.group_number',
             'claims.payer_type',
@@ -529,24 +552,25 @@ const api = {
                     null
             END AS as_eligibility_status`,
             `claim_icds.description AS icd_description`,
+            `(CASE
+                 WHEN claims.frequency = 'corrected'
+                 THEN 'corrected_claim'
+                 WHEN (claims.frequency != 'corrected' OR claims.frequency IS NULL)
+                 THEN 'new_claim'
+              END) AS claim_action`,
             `(
                 SELECT
-                   array_agg(insurance_name) 
+                    array_agg(insurance_name)
                 FROM
-                   insurance_providers 
+                    insurance_providers ip
+                LEFT JOIN patient_insurances pi
+                    ON pi.insurance_provider_id = ip.id
                 WHERE
-                   EXISTS
-                   (
-                      SELECT
-                         insurance_provider_id 
-                      FROM
-                         patient_insurances 
-                      WHERE
-                         id = primary_patient_insurance_id 
-                         OR id = secondary_patient_insurance_id 
-                         OR id = tertiary_patient_insurance_id 
-                   )
-                ) AS insurance_providers`,
+                    pi.id = primary_patient_insurance_id
+                    OR pi.id = secondary_patient_insurance_id
+                    OR pi.id = tertiary_patient_insurance_id
+            ) AS insurance_providers`,
+            `claims.can_mhs_microfilm_no`,
         ];
 
         if(args.customArgs.filter_id=='Follow_up_queue'){
@@ -701,7 +725,7 @@ const api = {
             query: '',
             studyFilter: '',
             userFilter: '',
-            permission_filter: ` claims.company_id = ${args.company_id} `
+            permission_filter: ` claims.company_id = ${args.company_id || args.companyId} `
         };
 
 
