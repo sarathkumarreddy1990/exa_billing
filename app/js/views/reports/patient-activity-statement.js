@@ -98,7 +98,8 @@ define([
                         billingProviderIds: claimInfo.billingProId,
                         sDate: moment().format('MM/DD/YYYY'),
                         billingComments: claimInfo.billingComments,
-                        claimId : claimInfo.claimID
+                        claimId : claimInfo.claimID,
+                        claimIds: claimInfo.selectedClaimIds || []
                     }
                 }
 
@@ -154,7 +155,8 @@ define([
                                 toDate: claimInfo.toDate,
                                 billingProviderIds: claimInfo.billingProId,
                                 sDate: moment().format('MM/DD/YYYY'),
-                                billingComments: claimInfo.billingComments
+                                billingComments: claimInfo.billingComments,
+                                claimIds: claimInfo.selectedClaimIds || []
                         }
                     }
                 $('#divPageLoading').hide();
