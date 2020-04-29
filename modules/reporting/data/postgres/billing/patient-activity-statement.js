@@ -245,7 +245,7 @@ WITH claim_data AS(
           billing_provider_cte AS (
             SELECT
                 bp.name AS billing_provider_name
-                <% if (billingaddressTaxNpi === "true")  { %>
+                <% if (billingAddressTaxNpi === "true")  { %>
                     , bp.federal_tax_id AS billing_tax_id,
                     bp.npi_no AS billing_npi_no,
                     bp.address_line1 AS billing_proaddress1,
@@ -677,7 +677,7 @@ WITH claim_data AS(
 
         UNION
         -- Billing Provider Information based on claim Id
-        <% if (billingaddressTaxNpi === "true")  { %>
+        <% if (billingAddressTaxNpi === "true")  { %>
             SELECT
             null
             , null
@@ -727,7 +727,7 @@ WITH claim_data AS(
             , billing_prozip
             FROM
             billing_provider_cte
-        <% } else if (billingaddressTaxNpi === "false") { %>
+        <% } else if (billingAddressTaxNpi === "false") { %>
             SELECT
             null
             , null
@@ -945,7 +945,7 @@ const api = {
             chargeDate: null,
             accountDate: null,
             billingComments: null,
-            billingaddressTaxNpi:null,
+            billingAddressTaxNpi:null,
             claimId: null,
             selectedClaimIds: null
         };
@@ -958,7 +958,7 @@ const api = {
             fromDate,
             toDate,
             billingComments,
-            billingaddressTaxNpi,
+            billingAddressTaxNpi,
             billingProviderIds,
             dateFormat,
             browserLocale,
@@ -989,7 +989,7 @@ const api = {
         }
 
         filters.billingComments = billingComments;
-        filters.billingaddressTaxNpi = billingaddressTaxNpi;
+        filters.billingAddressTaxNpi = billingAddressTaxNpi;
 
         // billingProvider single or multiple
         if (billingProviderIds.length && billingProviderIds[0] != "0") {
