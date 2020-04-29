@@ -245,6 +245,15 @@ WITH claim_data AS(
           billing_provider_cte AS (
             SELECT
                 bp.name AS billing_provider_name
+                <% if (billingaddressTaxNpi === "true")  { %>
+                    , bp.federal_tax_id AS billing_tax_id,
+                    bp.npi_no AS billing_npi_no,
+                    bp.address_line1 AS billing_proaddress1,
+                    bp.address_line2 AS billing_proaddress2,
+                    bp.city AS billing_procity,
+                    bp.state AS billing_prostate,
+                    bp.zip_code AS billing_prozip
+                <% } %>
             FROM
                 billing.providers bp
             INNER JOIN billing.claims bc on bc.billing_provider_id = bp.id
@@ -298,6 +307,13 @@ WITH claim_data AS(
           , -1                   AS statement_flag
           , ''                   AS charge_id
           , null                 AS c32
+          , null                 AS c33
+          , null                 AS c34
+          , null                 AS c35
+          , null                 AS c36
+          , null                 AS c37
+          , null                 AS c38
+          , null                 AS c39
           UNION
           -- Coverage Info
 
@@ -342,6 +358,13 @@ WITH claim_data AS(
       , 0
       , null
       , null
+      , null
+      , null
+      , null
+      , null
+      , null
+      , null
+      , null
       FROM patient_insurance
 
       UNION
@@ -384,6 +407,13 @@ WITH claim_data AS(
               , 0
               , 0                              AS sort_order
               , 1
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
               , null
               , null
               FROM sum_statement_credit_cte
@@ -431,6 +461,13 @@ WITH claim_data AS(
               , 2
               , null
               , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
               FROM detail_cte
               UNION
 
@@ -476,6 +513,13 @@ WITH claim_data AS(
           , null
           , charge_id::text
           , null
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
           FROM detail_cte
           UNION
 
@@ -517,6 +561,13 @@ WITH claim_data AS(
           , null
           , 5
           , 98   AS sort_order
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
           , null
           , null
           , null
@@ -564,6 +615,13 @@ WITH claim_data AS(
           , 0
           , null
           , null
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
           FROM statement_cte
 
           UNION
@@ -608,53 +666,118 @@ WITH claim_data AS(
               , 2
               , null
               , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
               FROM statement_cte
 
         UNION
         -- Billing Provider Information based on claim Id
-
-              SELECT
-                null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , 0
-              , null
-              , 6
-              , 99   AS sort_order
-              , 2
-              , null
-              , billing_provider_name
-              FROM
-                billing_provider_cte
+        <% if (billingaddressTaxNpi === "true")  { %>
+            SELECT
+            null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , 0
+            , null
+            , 6
+            , 99  AS sort_order
+            , 2
+            , null
+            , billing_provider_name
+            , billing_tax_id
+            , billing_npi_no
+            , billing_proaddress1
+            , billing_proaddress2
+            , billing_procity
+            , billing_prostate
+            , billing_prozip
+            FROM
+            billing_provider_cte
+        <% } else if (billingaddressTaxNpi === "false") { %>
+            SELECT
+            null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , 0
+            , null
+            , 6
+            , 99  AS sort_order
+            , 2
+            , null
+            , billing_provider_name
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            FROM
+            billing_provider_cte
+        <% } %>
           )
 
           -- Main Query, added rowFlag and encounterAmount for HTML and PDF
@@ -697,6 +820,13 @@ WITH claim_data AS(
           , CASE row_flag WHEN 1 THEN c15 WHEN 2 THEN c16 WHEN 3 THEN c17 ELSE '' END AS enc_amount
           ,  CASE  WHEN c28 IS NOT NULL then 12 else statement_flag end as statement_flag
           , c32
+          , c33
+          , c34
+          , c35
+          , c36
+          , c37
+          , c38
+          , c39
           FROM all_cte
           ORDER BY
             pid
@@ -815,6 +945,7 @@ const api = {
             chargeDate: null,
             accountDate: null,
             billingComments: null,
+            billingaddressTaxNpi:null,
             claimId: null,
             selectedClaimIds: null
         };
@@ -827,6 +958,7 @@ const api = {
             fromDate,
             toDate,
             billingComments,
+            billingaddressTaxNpi,
             billingProviderIds,
             dateFormat,
             browserLocale,
@@ -857,6 +989,7 @@ const api = {
         }
 
         filters.billingComments = billingComments;
+        filters.billingaddressTaxNpi = billingaddressTaxNpi;
 
         // billingProvider single or multiple
         if (billingProviderIds.length && billingProviderIds[0] != "0") {

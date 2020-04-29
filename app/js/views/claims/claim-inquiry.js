@@ -1347,6 +1347,7 @@ define([
                     'toDate': reportBy ? '': toDate,
                     'billingProId': selectedBillingProList || [],
                     'billingComments': $('#bindComments').prop('checked'),
+                    'billingaddressTaxNpi': $('#bindaddressTaxNpi').prop('checked'),
                     'selectedClaimIds': claimIds
                 }
             },
