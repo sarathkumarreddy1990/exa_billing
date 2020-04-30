@@ -476,6 +476,32 @@
                 "searchFlag": "%"
             },
             "id": 69
+        },
+        {
+            "id": 72,
+            "field_name": "Alt Account No",
+            "i18n_name": "patient.advancedSearch.altAccountNo",
+            "field_info": {
+                "custom_name": "Alt Account No",
+                "name": "pid_alt_account",
+                "width": 250,
+                "searchFlag": "%",
+                "defaultValue": ""
+            },
+            "field_code": "pid_alt_account"
+        },
+         {
+            "id": 73,
+            "field_name": "PHN",
+            "i18n_name": "patient.advancedSearch.phn",
+            "field_info": {
+                "custom_name": "PHN",
+                "name": "phn_alt_account",
+                "width": 250,
+                "searchFlag": "%",
+                "defaultValue": ""
+            },
+            "field_code": "phn_alt_account"
         }
     ],
     "study_fields": [
@@ -1276,6 +1302,32 @@
                 "defaultValue": ""
             },
             "field_code": "icd_description"
+        },
+        {
+            "id": 72,
+            "field_name": "Alt Account No",
+            "i18n_name": "patient.advancedSearch.altAccountNo",
+            "field_info": {
+                "custom_name": "Alt Account No",
+                "name": "pid_alt_account",
+                "width": 250,
+                "searchFlag": "%",
+                "defaultValue": ""
+            },
+            "field_code": "pid_alt_account"
+        },
+        {
+            "id": 73,
+            "field_name": "PHN",
+            "i18n_name": "patient.advancedSearch.phn",
+            "field_info": {
+                "custom_name": "PHN",
+                "name": "phn_alt_account",
+                "width": 250,
+                "searchFlag": "%",
+                "defaultValue": ""
+            },
+            "field_code": "phn_alt_account"
         }
     ]
 }
