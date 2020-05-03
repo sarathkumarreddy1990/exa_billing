@@ -553,11 +553,7 @@ const ahsData = {
                             ELSE ''
                         END                                          AS confidential_indicator,
 
-                        CASE
-                            WHEN bc.can_ahs_good_faith
-                            THEN 'Y'
-                            ELSE ''
-                        END                                          AS good_faith_indicator,
+                        ''                                           AS good_faith_indicator,
 
                         bc.can_ahs_newborn_code                      AS newborn_code,
 
