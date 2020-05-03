@@ -554,12 +554,12 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "id": 70,
                     "field_code": "can_ahs_claim_no",
                     "field_name": "AHS Claim Num",
-                    "i18n_name": "setup.can_ahs.ahsclaimno",
+                    "i18n_name": "setup.cptCodes.can_ahs.ahsclaimno",
                     "field_info": {
                         "custom_name": "AHS Claim Num",
                         "name": "can_ahs_claim_no",
                         "width": 75,
-                        "hidden": !(app.country_alpha_3_code === 'can' && app.province_alpha_2_code === 'AB')
+                        "hidden": app.billingRegionCode !== "can_AB"
                     }
                 },
                 "Invoice": {
@@ -839,7 +839,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                             "value": claimAction,
                             "tempvalue": claimAction
                         },
-                        "hidden": !app.billingRegionCode === 'can_AB'
+                        "hidden": app.billingRegionCode !== 'can_AB'
                     }
                 },
                 "Reason Code": {
@@ -858,6 +858,34 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                             "value": casReasonCodes
                         }
                     }
+                },
+                "Alt Account No": {
+                    "id": 72,
+                    "field_name": "Alt Account No",
+                    "i18n_name": "patient.advancedSearch.altAccountNo",
+                    "field_info": {
+                        "custom_name": "Alt Account No",
+                        "name": "pid_alt_account",
+                        "width": 150,
+                        "searchFlag": "%",
+                        "sortable": true,
+                        "defaultValue": ""
+                    },
+                    "field_code": "pid_alt_account"
+                },
+                "PHN": {
+                    "id": 73,
+                    "field_name": "PHN",
+                    "i18n_name": "setup.userSettings.phn",
+                    "field_info": {
+                        "custom_name": "PHN",
+                        "name": "phn_alt_account",
+                        "width": 150,
+                        "searchFlag": "%",
+                        "sortable": true,
+                        "defaultValue": ""
+                    },
+                    "field_code": "phn_alt_account"
                 }
             });
         }else{
@@ -1134,6 +1162,35 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     }
                 },
                 "field_code": "facility_name"
+            },
+            "Alt Account No": {
+                "id": 72,
+                "field_name": "Alt Account No",
+                "i18n_name": "patient.advancedSearch.altAccountNo",
+                "field_info": {
+                    "custom_name": "Alt Account No",
+                    "name": "pid_alt_account",
+                    "width": 150,
+                    "searchFlag": "%",
+                    "sortable": true,
+                    "defaultValue": ""
+                },
+                "field_code": "pid_alt_account"
+            },
+            "PHN": {
+                "id": 73,
+                "field_name": "PHN",
+                "i18n_name": "setup.userSettings.phn",
+                "field_info": {
+                    "custom_name": "PHN",
+                    "name": "phn_alt_account",
+                    "width": 150,
+                    "searchFlag": "%",
+                    "sortable": true,
+                    "defaultValue": ""
+                },
+
+                "field_code": "phn_alt_account"
             },
             "Reading Physician": {
                 "id": 18,
@@ -1630,17 +1687,18 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 },
                 "field_code": "claim_no"
             },
-            "AHS Claim #": {
+            "AHS Claim Num": {
                 "id": 70,
-                "field_name": "AHS Claim #",
-                "i18n_name": "setup.can_ahs.ahsclaimno",
+                "field_name": "AHS Claim Num",
+                "i18n_name": "setup.cptCodes.can_ahs.ahsclaimno",
                 "field_info": {
-                    "custom_name": "AHS Claim #",
-                    "name": "can_ahs_claim_id",
+                    "custom_name": "AHS Claim Num",
+                    "name": "can_ahs_claim_no",
                     "search": false,
                     "sortable": false,
                     "width": 200,
-                    "defaultValue": ""
+                    "defaultValue": "",
+                    "hidden": app.billingRegionCode !== "can_AB"
                 },
                 "field_code": "can_ahs_claim_no"
             },
