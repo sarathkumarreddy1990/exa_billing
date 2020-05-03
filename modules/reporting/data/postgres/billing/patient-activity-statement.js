@@ -9,37 +9,42 @@ const commonIndex = require('../../../../../server/shared/index');
 // generate query template ***only once*** !!!
 
 const patientStatementDataSetQueryTemplate = _.template(`
-WITH claim_data as(
-    SELECT
-       bc.id AS claim_id,
-       facility_id AS fac_id
-    FROM billing.claims bc
-    <% if (billingProviderIds) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
-    WHERE 1=1
-    AND <%= patientIds %>
-    <% if(billingProviderIds) { %> AND <% print(billingProviderIds); } %>
-    <% if(reportBy == 'false') { %> AND <% print(claimDate); } %>
+WITH claim_data AS(
+        SELECT
+            bc.id AS claim_id,
+            facility_id AS fac_id
+        FROM
+            billing.claims bc
+        <% if (billingProviderIds) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
+        WHERE TRUE
+        AND <%= patientIds %>
+        <% if(billingProviderIds) { %> AND <% print(billingProviderIds); } %>
+        <% if(reportBy == 'false') { %> AND <% print(claimDate); } %>
+        <% if(selectedClaimIds) { %> AND <% print(selectedClaimIds); } %>
     ),
     patient_insurance AS (
-        select
-        CASE coverage_level
+        SELECT
+            CASE coverage_level
 						WHEN 'primary' THEN 'P'
 						WHEN 'secondary' THEN 'S'
                         WHEN 'tertiary' THEN 'T' END AS cov_level,
-        to_char(valid_from_date, '<%= dateFormat %>') as valid_from_date,
-        to_char(valid_to_date, '<%= dateFormat %>') AS valid_to_date,
-        policy_number AS policy_no,
-        group_number AS group_no,
-        ip.insurance_name    AS company_name
-  from
-     patient_insurances pis
-     INNER JOIN insurance_providers AS ip ON ip.id = pis.insurance_provider_id
-     INNER JOIN billing.claims bc ON bc.patient_id = pis.patient_id
-     INNER JOIN claim_data cd ON cd.claim_id = bc.id
-     INNER JOIN facilities f on f.id = bc.facility_id
-     ORDER BY cov_level
-      ),
-    billing_comments as
+            TO_CHAR(valid_from_date, '<%= dateFormat %>') AS valid_from_date,
+            TO_CHAR(valid_to_date, '<%= dateFormat %>') AS valid_to_date,
+            policy_number AS policy_no,
+            group_number AS group_no,
+            ip.insurance_name  AS company_name
+        FROM
+            patient_insurances pis
+        INNER JOIN insurance_providers AS ip ON ip.id = pis.insurance_provider_id
+        INNER JOIN billing.claims bc ON bc.patient_id = pis.patient_id
+        INNER JOIN claim_data cd ON cd.claim_id = bc.id
+        INNER JOIN facilities f ON f.id = bc.facility_id
+        WHERE TRUE
+        <% if(selectedClaimIds) { %> AND <% print(selectedClaimIds); } %>
+        AND (bc.primary_patient_insurance_id = pis.id OR bc.secondary_patient_insurance_id = pis.id OR bc.tertiary_patient_insurance_id = pis.id)
+        ORDER BY cov_level
+    ),
+    billing_comments AS
     (
     <% if (billingComments == "true")  { %>
     SELECT
@@ -240,6 +245,15 @@ WITH claim_data as(
           billing_provider_cte AS (
             SELECT
                 bp.name AS billing_provider_name
+                <% if (billingAddressTaxNpi === "true")  { %>
+                    , bp.federal_tax_id AS billing_tax_id,
+                    bp.npi_no AS billing_npi_no,
+                    bp.address_line1 AS billing_proaddress1,
+                    bp.address_line2 AS billing_proaddress2,
+                    bp.city AS billing_procity,
+                    bp.state AS billing_prostate,
+                    bp.zip_code AS billing_prozip
+                <% } %>
             FROM
                 billing.providers bp
             INNER JOIN billing.claims bc on bc.billing_provider_id = bp.id
@@ -293,6 +307,13 @@ WITH claim_data as(
           , -1                   AS statement_flag
           , ''                   AS charge_id
           , null                 AS c32
+          , null                 AS c33
+          , null                 AS c34
+          , null                 AS c35
+          , null                 AS c36
+          , null                 AS c37
+          , null                 AS c38
+          , null                 AS c39
           UNION
           -- Coverage Info
 
@@ -337,6 +358,13 @@ WITH claim_data as(
       , 0
       , null
       , null
+      , null
+      , null
+      , null
+      , null
+      , null
+      , null
+      , null
       FROM patient_insurance
 
       UNION
@@ -379,6 +407,13 @@ WITH claim_data as(
               , 0
               , 0                              AS sort_order
               , 1
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
               , null
               , null
               FROM sum_statement_credit_cte
@@ -426,6 +461,13 @@ WITH claim_data as(
               , 2
               , null
               , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
               FROM detail_cte
               UNION
 
@@ -471,6 +513,13 @@ WITH claim_data as(
           , null
           , charge_id::text
           , null
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
           FROM detail_cte
           UNION
 
@@ -512,6 +561,13 @@ WITH claim_data as(
           , null
           , 5
           , 98   AS sort_order
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
           , null
           , null
           , null
@@ -559,6 +615,13 @@ WITH claim_data as(
           , 0
           , null
           , null
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
+          , null
           FROM statement_cte
 
           UNION
@@ -603,53 +666,118 @@ WITH claim_data as(
               , 2
               , null
               , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
+              , null
               FROM statement_cte
 
         UNION
         -- Billing Provider Information based on claim Id
-
-              SELECT
-                null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , null
-              , 0
-              , null
-              , 6
-              , 99   AS sort_order
-              , 2
-              , null
-              , billing_provider_name
-              FROM
-                billing_provider_cte
+        <% if (billingAddressTaxNpi === "true")  { %>
+            SELECT
+            null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , 0
+            , null
+            , 6
+            , 99  AS sort_order
+            , 2
+            , null
+            , billing_provider_name
+            , billing_tax_id
+            , billing_npi_no
+            , billing_proaddress1
+            , billing_proaddress2
+            , billing_procity
+            , billing_prostate
+            , billing_prozip
+            FROM
+            billing_provider_cte
+        <% } else if (billingAddressTaxNpi === "false") { %>
+            SELECT
+            null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , 0
+            , null
+            , 6
+            , 99  AS sort_order
+            , 2
+            , null
+            , billing_provider_name
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            , null
+            FROM
+            billing_provider_cte
+        <% } %>
           )
 
           -- Main Query, added rowFlag and encounterAmount for HTML and PDF
@@ -692,6 +820,13 @@ WITH claim_data as(
           , CASE row_flag WHEN 1 THEN c15 WHEN 2 THEN c16 WHEN 3 THEN c17 ELSE '' END AS enc_amount
           ,  CASE  WHEN c28 IS NOT NULL then 12 else statement_flag end as statement_flag
           , c32
+          , c33
+          , c34
+          , c35
+          , c36
+          , c37
+          , c38
+          , c39
           FROM all_cte
           ORDER BY
             pid
@@ -799,8 +934,8 @@ const api = {
     // query context is all about query building: 1 - query parameters and 2 - query template data
     // every report and/or query may have a different logic to build a query context...
     getpatientStatementDataSetQueryContext: (reportParams) => {
-        const params = [];
-        const filters = {
+        let params = [];
+        let filters = {
             companyId: null,
             patientIds: null,
             billingProviderIds: null,
@@ -809,50 +944,68 @@ const api = {
             commentDate: null,
             chargeDate: null,
             accountDate: null,
-            patientInsIds: null,
             billingComments: null,
-            claimId: null
+            billingAddressTaxNpi:null,
+            claimId: null,
+            selectedClaimIds: null
         };
+        let {
+            companyId,
+            patientIID,
+            reportBy,
+            claimId,
+            sDate,
+            fromDate,
+            toDate,
+            billingComments,
+            billingAddressTaxNpi,
+            billingProviderIds,
+            dateFormat,
+            browserLocale,
+            claimIds
+        } = reportParams;
 
         // company id
-        params.push(reportParams.companyId);
+        params.push(companyId);
         filters.companyId = queryBuilder.where('company_id', '=', [params.length]);
 
-        params.push(reportParams.patientIID);
+        params.push(patientIID);
         filters.patientIds = queryBuilder.where('bc.patient_id', '=', [params.length]);
-        filters.patientInsIds = queryBuilder.where('pis.patient_id', '=', [params.length]);
-
-
-        // params.push(reportParams.sDate);
-        // filters.sDate = `$${params.length}::date`;
 
         //  claim date
-        if (reportParams.reportBy == "true") {
-            params.push(reportParams.sDate);
+        if (reportBy == "true") {
+            params.push(sDate);
             filters.sDate = `$${params.length}::date`;
         }
         else {
-            params.push(reportParams.sDate);
+            params.push(sDate);
             filters.sDate = `$${params.length}::date`;
-            params.push(reportParams.fromDate);
-            params.push(reportParams.toDate);
+            params.push(fromDate);
+            params.push(toDate);
             filters.claimDate = queryBuilder.whereDateBetween('bc.claim_dt', [params.length - 1, params.length], 'f.time_zone');
             filters.commentDate = queryBuilder.whereDateBetween('cc.created_dt', [params.length - 1, params.length], 'f.time_zone');
             filters.chargeDate = queryBuilder.whereDateBetween('c.charge_dt', [params.length - 1, params.length], 'f.time_zone');
             filters.accountDate = queryBuilder.whereDateBetween('bp.accounting_date', [params.length - 1, params.length]);
         }
 
-        filters.billingComments = reportParams.billingComments;
+        filters.billingComments = billingComments;
+        filters.billingAddressTaxNpi = billingAddressTaxNpi;
 
         // billingProvider single or multiple
-        if (reportParams.billingProviderIds && reportParams.billingProviderIds.length > 0 && reportParams.billingProviderIds[0] != "0") {
-            params.push(reportParams.billingProviderIds);
+        if (billingProviderIds.length && billingProviderIds[0] != "0") {
+            params.push(billingProviderIds);
             filters.billingProviderIds = queryBuilder.whereIn(`bp.id`, [params.length]);
         }
 
-        filters.dateFormat = reportParams.dateFormat || commonIndex.getLocaleFormat(reportParams.browserLocale);
-        filters.reportBy =  reportParams.reportBy;
-        filters.claimId = reportParams.claimId;
+        filters.dateFormat = dateFormat || commonIndex.getLocaleFormat(browserLocale);
+        filters.reportBy =  reportBy;
+        filters.claimId = claimId;
+
+        if (claimIds) {
+            params.push(claimIds);
+            filters.selectedClaimIds = queryBuilder.whereIn('bc.id', [params.length]);
+        }
+
         return {
             queryParams: params,
             templateData: filters

@@ -43,7 +43,7 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                 default_column: 'claim_id',
                 default_column_order_by: "Desc",
                 default_tab: 'All_Claims',
-                field_order: [1, 19, 2, 12, 22, 27, 11, 17],
+                field_order: [1, 19, 70, 2, 12, 22, 27, 11, 17],
                 grid_field_settings: [
                     {
                         "name": "Claim Date",
@@ -57,7 +57,7 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                     },
                     {
                         "name": "AHS Claim Num",
-                        "id": 69,
+                        "id": 70,
                         "width": 200
                     },
                     {
