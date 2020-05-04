@@ -217,6 +217,16 @@ const colModel = [
         name: 'can_mhs_microfilm_no'
         , searchColumns:[`claims.can_mhs_microfilm_no`]
         , searchFlag: '%'
+    },
+    {
+        name: 'pid_alt_account',
+        searchColumns: ['patient_alt_accounts.pid_alt_account'],
+        searchFlag: 'arrayString'
+    },
+    {
+        name: 'phn_alt_account',
+        searchColumns: ['patient_alt_accounts.phn_alt_account'],
+        searchFlag: 'arrayString'
     }
 ];
 
@@ -310,6 +320,8 @@ const api = {
             case 'claim_action': return 'claims.frequency';
             case 'insurance_providers': return `insurance_providers.insurance_name`;
             case 'can_mhs_microfilm_no': return `claims.can_mhs_microfilm_no`;
+            case 'pid_alt_account': return 'patient_alt_accounts.pid_alt_account';
+            case 'phn_alt_account': return 'patient_alt_accounts.phn_alt_account';
         }
 
         return args;
@@ -363,6 +375,18 @@ const api = {
         if (tables.render_provider) {
             r += ` LEFT JOIN provider_contacts as rendering_pro_contact ON rendering_pro_contact.id=claims.rendering_provider_contact_id
                                            LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.provider_id`;
+        }
+
+        if (tables.patient_alt_accounts) {
+            r += `
+                INNER JOIN LATERAL (
+                    SELECT
+                        ARRAY_AGG(pa.alt_account_no) FILTER (WHERE i.issuer_type = 'pid') AS pid_alt_account,
+                        ARRAY_AGG(pa.alt_account_no) FILTER (WHERE i.issuer_type = 'uli_phn' AND pa.is_primary) AS phn_alt_account
+                     FROM patient_alt_accounts pa
+                     INNER JOIN issuers i ON pa.issuer_id = i.id
+                     WHERE pa.patient_id = claims.patient_id
+                ) patient_alt_accounts ON TRUE `;
         }
 
         if (filterID == 'Follow_up_queue' && isInnerQuery) {
@@ -571,6 +595,8 @@ const api = {
                     OR pi.id = tertiary_patient_insurance_id
             ) AS insurance_providers`,
             `claims.can_mhs_microfilm_no`,
+            `patient_alt_accounts.pid_alt_account`,
+            `patient_alt_accounts.phn_alt_account`
         ];
 
         if(args.customArgs.filter_id=='Follow_up_queue'){
