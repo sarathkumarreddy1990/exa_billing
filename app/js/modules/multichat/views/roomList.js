@@ -94,7 +94,7 @@ define(['jquery'
             },
 
             getOpenedRoomView: function(id){
-                return _.find(this.openedRoomViews, ['id', id]);
+                return _.find(this.openedRoomViews, {'id': id});
             },
 
             fitScreen: function() {
