@@ -27,7 +27,8 @@ module.exports = {
             pageSize,
             isFromClaim,
             paymentID,
-            countFlag
+            countFlag,
+            ordering_facility_name
         } = params;
 
 
@@ -51,6 +52,10 @@ module.exports = {
             whereQuery.push(` pp.account_no ='${account_no}'`);
         }
 
+        if (ordering_facility_name) {
+            whereQuery.push(`pg.group_name ILIKE '%${ordering_facility_name}%' `);
+        }
+
         if ((params.customArgs && params.customArgs.patientId && params.customArgs.patientId > 0) || params.customArgs && (params.customArgs.claimIdToSearch || params.customArgs.invoiceNoToSearch)) {
             if (display_description) {
                 whereQuery.push(` display_code  ILIKE '%${display_description}%' `);
@@ -66,7 +71,6 @@ module.exports = {
         }
 
         if (params.customArgs && params.customArgs.patientId && params.customArgs.patientId > 0) {
-
             const sql = SQL`
                     SELECT
                     bc.id AS claim_id,
@@ -109,7 +113,6 @@ module.exports = {
                 .append(sortOrder)
                 .append(SQL` LIMIT ${pageSize}`)
                 .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
-
             return await query(sql);
         }
         else if ((params.customArgs && (params.customArgs.claimIdToSearch || params.customArgs.invoiceNoToSearch)) || isFromClaim && paymentID == 0) {
@@ -206,7 +209,8 @@ module.exports = {
                                 COUNT(1) AS total_records
                             FROM billing.claims bc
                             INNER JOIN billing.get_claim_totals(bc.id) AS claim_totals ON true
-                            INNER JOIN public.patients pp on pp.id = bc.patient_id `;
+                            INNER JOIN public.patients pp on pp.id = bc.patient_id 
+                            INNER JOIN public.provider_groups pg on pg.id = bc.ordering_facility_id`;
 
             sql.append(joinQuery)
                 .append(paymentWhereQuery);
@@ -232,11 +236,13 @@ module.exports = {
 
                     claim_totals.claim_cpt_description AS display_description,
                     claim_totals.charges_bill_fee_total as billing_fee,
-                    claim_totals.charges_bill_fee_total - (claim_totals.payments_applied_total + claim_totals.adjustments_applied_total + refund_amount) AS balance
+                    claim_totals.charges_bill_fee_total - (claim_totals.payments_applied_total + claim_totals.adjustments_applied_total + refund_amount) AS balance,
+                    pg.group_name AS ordering_facility_name
 
                 FROM billing.claims bc
                 INNER JOIN billing.get_claim_totals(bc.id) AS claim_totals ON true
-                INNER JOIN public.patients pp on pp.id = bc.patient_id `;
+                INNER JOIN public.patients pp on pp.id = bc.patient_id
+                INNER JOIN public.provider_groups pg on pg.id = bc.ordering_facility_id`;
 
         sql.append(joinQuery);
         sql.append(paymentWhereQuery);
