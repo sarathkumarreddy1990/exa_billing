@@ -197,7 +197,7 @@ define(['jquery',
                 }
 
                 $('#txtClaimResponsibleNotes').prop('disabled', !(app.billingRegionCode === 'can_MB' || app.country_alpha_3_code === 'usa'));
-                
+
                 //EXA-18273 - Move diagnostics codes section under claim for alberta billing
                 if(app.billingRegionCode === 'can_AB') {
                     $('#diagnosticsCodes').detach().appendTo('#claimSection').addClass('col-lg-12');
@@ -4390,7 +4390,7 @@ define(['jquery',
             updateReportURL: function (patient_id, order_id, study_id) {
                 if (window.reportWindow && window.reportWindow.location.hash) {
                     var queryParams = window.reportWindow.location.hash.split("?")[1];
-                    window.reportWindow.location.hash = '#patient/patientReport/all/' + btoa(patient_id) + '/' + btoa(order_id) + '/' + btoa(study_id) + '?' + queryParams;
+                    window.reportWindow.location.hash = '#multipanel-billing-docs/'  + btoa(study_id)  + '/' + btoa(patient_id) + '/' + btoa(order_id)  + '?' + queryParams;
                 }
             },
 
