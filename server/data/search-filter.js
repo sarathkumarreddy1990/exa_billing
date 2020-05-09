@@ -5,6 +5,8 @@ const moment = require('moment');
 const { query, SQL } = require('./index');
 const util = require('./util');
 
+const SHOW_DELETED_STUDIES_DEFAULT = false;
+
 const colModel = [
     {
         name: 'insurance_providers'
@@ -313,6 +315,16 @@ const colModel = [
         name: 'icd_description',
         searchColumns: ['icd_codes.description'],
         searchFlag: 'arrayString'
+    },
+    {
+        name: 'pid_alt_account',
+        searchColumns: ['patient_alt_accounts.pid_alt_account'],
+        searchFlag: 'arrayString'
+    },
+    {
+        name: 'phn_alt_account',
+        searchColumns: ['patient_alt_accounts.phn_alt_account'],
+        searchFlag: 'arrayString'
     }
 ];
 
@@ -495,6 +507,8 @@ const api = {
             case 'icd_description': return `icd_codes.description`;
             // Adding `notes` just in case user saved previously as default
             case `notes`: return `study_notes_to_json(studies.id)`;
+            case 'pid_alt_account': return 'patient_alt_accounts.pid_alt_account';
+            case 'phn_alt_account': return 'patient_alt_accounts.phn_alt_account';
         }
 
         return args;
@@ -711,6 +725,18 @@ const api = {
                 ) AS icd_codes ON TRUE `;
         }
 
+        if (tables.patient_alt_accounts) {
+            r += `
+                 INNER JOIN LATERAL (
+                    SELECT
+                        ARRAY_AGG(pa.alt_account_no) FILTER (WHERE i.issuer_type = 'pid') AS pid_alt_account,
+                        ARRAY_AGG(pa.alt_account_no) FILTER (WHERE i.issuer_type = 'uli_phn' AND pa.is_primary) AS phn_alt_account
+                    FROM patient_alt_accounts pa
+                    INNER JOIN issuers i ON pa.issuer_id = i.id
+                    WHERE pa.patient_id = studies.patient_id
+            ) patient_alt_accounts ON TRUE `;
+        }
+
         return r;
     },
 
@@ -866,7 +892,9 @@ const api = {
             `(SELECT array_agg(insurance_name) FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = orders.primary_patient_insurance_id OR id = orders.secondary_patient_insurance_id OR id = orders.tertiary_patient_insurance_id )) AS insurance_providers`,
             `(COALESCE(eligibility.verified, false) OR COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)   AS eligibility_verified`,
             `eligibility.dt AS eligibility_dt`,
-            `icd_codes.description AS icd_description`
+            `icd_codes.description AS icd_description`,
+            `patient_alt_accounts.pid_alt_account`,
+            `patient_alt_accounts.phn_alt_account`
         ];
 
         return stdcolumns.concat(
@@ -1001,9 +1029,9 @@ const api = {
 
         let statOverride = args.customArgs && args.customArgs.statOverride === 'true';
 
-        let includeDeleted_study = false;
+        let includeDeleted_study = SHOW_DELETED_STUDIES_DEFAULT;
 
-        let includeDeleted_perms = null;
+        let includeDeleted_perms = SHOW_DELETED_STUDIES_DEFAULT;
 
         args.report_queue_status_query = await api.getReportQueueStatusQuery();
 
@@ -1033,7 +1061,6 @@ const api = {
         const newFilter = Object.assign(filter, { filter_query });
 
         newFilter.perms_filter = util.getStudyFilterQuery(filter.perm_filter, args.user_id, args.statOverride);
-
         let responseUserSetting=[newFilter];
 
         let permission_query = SQL`
@@ -1046,7 +1073,7 @@ const api = {
             const perms_filter = userSetting.perms_filter;
 
             if (perms_filter && perms_filter.options) {
-                includeDeleted_perms = perms_filter.options.includeDeleted;
+                includeDeleted_perms = perms_filter.options.includeDeleted || SHOW_DELETED_STUDIES_DEFAULT;
             }
 
 
@@ -1060,7 +1087,7 @@ const api = {
                             'showDicomStudies': false,
                             'showRisOrders': false,
                             'showAssignedStudies': false,
-                            'includeDeleted': false
+                            'includeDeleted': SHOW_DELETED_STUDIES_DEFAULT
                         }
                     } = studyFilter.filter_info;
 

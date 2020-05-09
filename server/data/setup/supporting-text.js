@@ -58,9 +58,11 @@ module.exports = {
                 cpt_codes`;
 
         if (term) {
-            sql.append(SQL` WHERE (short_description ILIKE '%`)
-                .append(term)
-                .append(SQL`%')`);
+            sql.append(` WHERE short_description ILIKE '%`)
+            sql.append(term)
+            sql.append(`%' OR display_code ILIKE '%`)
+            sql.append(term)
+            sql.append(`%'`);
         }
 
         sql.append(SQL` ORDER BY  `)
