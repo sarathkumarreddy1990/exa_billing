@@ -98,6 +98,7 @@ define([
                         billingProviderIds: claimInfo.billingProId,
                         sDate: moment().format('MM/DD/YYYY'),
                         billingComments: claimInfo.billingComments,
+                        billingAddressTaxNpi: claimInfo.billingAddressTaxNpi,
                         claimId : claimInfo.claimID,
                         claimIds: claimInfo.selectedClaimIds || []
                     }
