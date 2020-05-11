@@ -138,7 +138,6 @@ const getSaveClaimParams = async (params) => {
     if (isAlbertaBilling) {
         saveClaimParams.claims.can_ahs_claimed_amount_indicator = false;
         saveClaimParams.claims.can_confidential = false;
-        saveClaimParams.claims.can_ahs_good_faith = false;
         saveClaimParams.claims.can_ahs_paper_supporting_docs = false;
     }
 

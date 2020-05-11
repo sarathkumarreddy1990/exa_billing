@@ -204,7 +204,7 @@ const ahsData = {
         const now = moment();
         const created_dt = now.format();
         const today = now.format(`YYYY/MM/DD`);
-        const file_name = `${submitter_prefix}_${shared.getUID()}`;
+        const file_name = `${submitter_prefix}_${shared.getUID().replace(/\./g, '')}`;
         const file_path = `AHS/${today}`;
         const dir_path = `${root_directory}/${file_path}`;
         const fullPath = `${dir_path}/${file_name}`;
@@ -553,11 +553,7 @@ const ahsData = {
                             ELSE ''
                         END                                          AS confidential_indicator,
 
-                        CASE
-                            WHEN bc.can_ahs_good_faith
-                            THEN 'Y'
-                            ELSE ''
-                        END                                          AS good_faith_indicator,
+                        ''                                           AS good_faith_indicator,
 
                         bc.can_ahs_newborn_code                      AS newborn_code,
 
