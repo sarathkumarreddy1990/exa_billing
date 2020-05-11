@@ -88,8 +88,10 @@ WITH claim_data AS(
       amount_type as type,
       CASE WHEN bp.payer_type = 'patient' THEN
                pp.full_name
-         WHEN bp.payer_type = 'insurance' THEN
-               pip.insurance_name
+         WHEN bp.payer_type = 'insurance' THEN (CASE amount_type
+                                                WHEN 'adjustment' THEN 'DISCOUNT'
+                                                ELSE pip.insurance_name
+                                                END)
          WHEN bp.payer_type = 'ordering_facility' THEN
                pg.group_name
          WHEN bp.payer_type = 'ordering_provider' THEN
@@ -99,7 +101,7 @@ WITH claim_data AS(
     sum(pa.amount) as amount,
     u.username as commented_by,
     CASE amount_type
-         WHEN 'adjustment' THEN 'Adj'
+         WHEN 'adjustment' THEN 'Adjustment'
          WHEN 'payment' THEN (CASE bp.payer_type
                              WHEN 'patient' THEN 'Patient'
                              WHEN 'insurance' THEN 'Insurance'
