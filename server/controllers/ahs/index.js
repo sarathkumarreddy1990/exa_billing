@@ -53,7 +53,7 @@ const ahsController = {
                 log_details
             } = file;
 
-            let filePath = `/home/radha/Documents/${uploaded_file_name}`;
+            let filePath = `${root_directory}/${file_path}/${uploaded_file_name}`;
             let fileContent;
 
             try {
