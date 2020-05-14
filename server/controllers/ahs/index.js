@@ -53,7 +53,7 @@ const ahsController = {
                 log_details
             } = file;
 
-            let filePath = `${root_directory}/${file_path}/${uploaded_file_name}`;
+            let filePath = `/home/radha/Documents/${uploaded_file_name}`;
             let fileContent;
 
             try {
@@ -70,7 +70,7 @@ const ahsController = {
                 fileId: file_id
             });
 
-            await ahsController.process({
+            let processResult = await ahsController.process({
                 company_id: args.company_id,
                 companyId: args.companyId,
                 fileData,
@@ -80,7 +80,25 @@ const ahsController = {
                 ip
             });
 
-            return await eraData.updateERAFileStatus({file_id});
+            let status;
+
+            if (file_type == 'can_ahs_bbr') {
+                let [{
+                    bbr_response = []
+                }] = processResult && processResult.rows || [{}];
+                status = bbr_response && bbr_response.length ? 'success' : 'failure';
+            }
+            else if(file_type == 'can_ahs_ard') {
+                let [{
+                    applied_payments = []
+                }] = processResult && processResult.rows || [{}];
+                status = applied_payments && applied_payments.length ? 'success' : 'failure';
+            }
+
+            return await ahsData.updateFileStatus({
+                fileId: file_id,
+                status
+            });
         });
 
         return await Promise.all(promises);
