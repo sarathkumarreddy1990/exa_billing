@@ -296,7 +296,7 @@ SELECT
 	  "Total"
 FROM
     aging_result
-ORDER BY  "Responsible Party_order_by","Payer Name", "Responsible Party"
+ORDER BY   "Responsible Party_order_by","Payer Name", "Responsible Party"
 
 
 `);
