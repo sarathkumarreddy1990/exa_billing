@@ -1946,6 +1946,8 @@ define('grid', [
                         'validationMessages': data.validationMessages
                     })
                 });
+            } else if (data.isClaimDeleted) {
+                commonjs.showStatus(data.message);
             } else if (data.err) {
                 commonjs.showWarning(data.err);
             } else {

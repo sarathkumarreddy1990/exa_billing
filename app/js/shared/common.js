@@ -5306,6 +5306,7 @@ var commonjs = {
                 defaultStatusCheck.push('R');
                 return defaultStatusCheck.indexOf(claimStatus) !== -1;
             case 'delete':
+                defaultStatusCheck = defaultStatusCheck.concat(['PV', 'PS']);
             case 'change':
                 return defaultStatusCheck.indexOf(claimStatus) !== -1;
         }

@@ -179,14 +179,35 @@ const ahsmodule = {
 
     // Submitting the claim delete request to AHS for already Paid Claim
     deleteAhsClaim: async (args) => {
-        const claimDeleteAccess = await ahs.getPendingTransactionCount(args);
-        const deleteData = claimDeleteAccess.rows && claimDeleteAccess.rows[0];
+        const {
+            targetId,
+            userId
+        } = args;
 
-        if (deleteData.pending_transaction_count > 0) {
-            return { message: 'Could not delete claim, Pending Transaction Found in AHS' };
+        const claimDeleteAccess = await ahs.getPendingTransactionCount(args);
+        const {
+            pending_transaction_count = null,
+            payment_entry_count = 0
+        } = claimDeleteAccess.rows && claimDeleteAccess.rows[0];
+
+        if (pending_transaction_count == 0 && payment_entry_count == 0) {
+            const claimDeletedResult = await ahs.purgeClaim(args);
+            const {
+                purge_claim_or_charge = false
+            } = claimDeletedResult.rowCount && claimDeletedResult.rows[0] || {};
+
+            return {
+                message: purge_claim_or_charge ? 'Claim deleted successfully' : 'Could not delete claim',
+                isClaimDeleted: purge_claim_or_charge
+            };
+
+        } else if (pending_transaction_count > 0 && payment_entry_count == 0) {
+            return {
+                message: 'Could not delete claim, Pending Transaction Found in AHS'
+            };
         }
 
-        args.claimIds = args.targetId || null;
+        args.claimIds = targetId || null;
         args.source = 'delete';
 
         const deleteClaimAhsResult = await ahsmodule.submitClaims(args);
@@ -195,7 +216,7 @@ const ahsmodule = {
             claimIds: args.claimIds,
             statusCode: 'ADP',
             claimNote: 'AHS Delete Pending',
-            userId: args.userId,
+            userId: userId,
         });
 
         return deleteClaimAhsResult;
