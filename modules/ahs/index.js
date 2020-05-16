@@ -197,7 +197,7 @@ const ahsmodule = {
             } = claimDeletedResult.rowCount && claimDeletedResult.rows[0] || {};
 
             return {
-                message: purge_claim_or_charge ? 'Claim deleted successfully' : 'Could not delete claim',
+                message: purge_claim_or_charge ? 'Claim deleted successfully' : 'Could not delete claim, AHS response pending',
                 isClaimDeleted: purge_claim_or_charge
             };
 
