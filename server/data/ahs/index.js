@@ -933,12 +933,17 @@ const ahsData = {
         } = args;
 
         const sql = SQL` SELECT
-                             COUNT(efc.id) AS pending_transaction_count,
-                             COUNT(efp.id) AS payment_entry_count
-                         FROM billing.edi_file_claims efc
-                         LEFT JOIN billing.edi_file_payments efp ON efp.edi_file_id = efc.edi_file_id
-                         WHERE efc.claim_id = ${targetId}
-                         AND NOT did_not_process `;
+                            COUNT(efc.id) AS pending_transaction_count,
+                            ( SELECT
+                                COUNT(pa.id)
+                              FROM billing.charges AS c
+                              INNER JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
+                              WHERE c.claim_id = ${targetId}
+                            ) AS payment_entry_count
+                        FROM billing.edi_file_claims efc
+                        LEFT JOIN billing.edi_file_payments efp ON efp.edi_file_id = efc.edi_file_id
+                        WHERE efc.claim_id = ${targetId}
+                        AND NOT did_not_process `;
 
         return await query(sql);
     },
