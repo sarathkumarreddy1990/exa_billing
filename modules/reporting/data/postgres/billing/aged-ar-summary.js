@@ -259,11 +259,16 @@ aged_ar_summary_details AS(
     INNER JOIN get_claim_details gcd ON gcd.claim_id = bc.id
     INNER JOIN public.patients pp ON pp.id = bc.patient_id
     INNER JOIN public.facilities pf ON pf.id = bc.facility_id
-    LEFT JOIN public.patient_insurances ppi ON ppi.id =
-            CASE WHEN payer_type = 'primary_insurance' THEN primary_patient_insurance_id
-                 WHEN payer_type = 'secondary_insurance' THEN secondary_patient_insurance_id
-                 WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id
+    <% if(incPatDetail == 'true') { %>
+        LEFT JOIN public.patient_insurances ppi ON ppi.id = primary_patient_insurance_id
+     <%} else {%>
+        LEFT JOIN public.patient_insurances ppi ON ppi.id =
+            CASE
+                WHEN payer_type = 'primary_insurance' THEN primary_patient_insurance_id
+                WHEN payer_type = 'secondary_insurance' THEN secondary_patient_insurance_id
+                WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id
             END
+     <% } %>
     LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
     LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
     LEFT JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id
@@ -272,6 +277,9 @@ aged_ar_summary_details AS(
     <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
         WHERE TRUE
         AND <%=companyId%>
+        <% if(incPatDetail == 'true') { %>
+            AND payer_type != 'patient'
+        <% } %>
         <% if (facilityIds) { %>AND <% print(facilityIds); } %>
         <% if(billingProID) { %> AND <% print(billingProID); } %>
         <% if(excCreditBal == 'true'){ %> AND  gcd.balance::MONEY > '0' <% } %>
@@ -387,11 +395,16 @@ aged_ar_summary_details AS(
         INNER JOIN get_claim_details gcd ON gcd.claim_id = bc.id
         INNER JOIN public.patients pp ON pp.id = bc.patient_id
         INNER JOIN public.facilities pf ON pf.id = bc.facility_id
-        LEFT JOIN public.patient_insurances ppi ON ppi.id =
-                CASE WHEN payer_type = 'primary_insurance' THEN primary_patient_insurance_id
-                     WHEN payer_type = 'secondary_insurance' THEN secondary_patient_insurance_id
-                     WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id
+        <% if(incPatDetail == 'true') { %>
+            LEFT JOIN public.patient_insurances ppi ON ppi.id = primary_patient_insurance_id
+         <%} else {%>
+            LEFT JOIN public.patient_insurances ppi ON ppi.id =
+                CASE
+                    WHEN payer_type = 'primary_insurance' THEN primary_patient_insurance_id
+                    WHEN payer_type = 'secondary_insurance' THEN secondary_patient_insurance_id
+                    WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id
                 END
+         <% } %>
         LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
         LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
         LEFT JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id
@@ -405,7 +418,11 @@ aged_ar_summary_details AS(
             <% if(excCreditBal == 'true'){ %> AND  gcd.balance::MONEY > '0' <% } %>
             <% if(insGroups) { %> AND <%=insGroups%> <%}%>
             <% if(insuranceIds) { %> AND <%=insuranceIds%> <% } %>
-            AND payer_type = 'patient'
+            <% if(incPatDetail == 'true') { %>
+                AND payer_type != 'patient'
+            <% } else { %>
+                AND payer_type = 'patient'
+            <% } %>
 <% } %>
   UNION ALL
    SELECT
