@@ -1,4 +1,4 @@
-@import "../../../../skins/default/variables.less"; 
+@import "../../../../skins/default/variables"; 
 @import "./contactList";
 @import "./roomList";
 @import "./room";
@@ -98,6 +98,7 @@
             width: 30px;
             padding: 5px;
             transition: opacity .4s ease;
+            color: #FFF;
 
             &:hover {
                 opacity: .5;
@@ -110,6 +111,9 @@
     }
 }
 
+.glyphicon__star {
+    color: @stat-orange-1;
+}
 
 .user-status {
     -webkit-appearance: none;
