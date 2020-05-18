@@ -1946,6 +1946,8 @@ define('grid', [
                         'validationMessages': data.validationMessages
                     })
                 });
+            } else if (data.isClaimDeleted) {
+                commonjs.showStatus(data.message);
             } else if (data.err) {
                 commonjs.showWarning(data.err);
             } else {
@@ -2024,10 +2026,8 @@ define('grid', [
             if (billingRegion === 'can_AB') {
                 if (gridData.hidden_billing_method === 'electronic_billing') {
 
-                    if (gridData.hidden_claim_status_code === 'ADP') {
+                    if (gridData.hidden_claim_status_code === 'ADP' || !commonjs.isValidClaimStatusToSubmit('delete', gridData.hidden_claim_status_code)) {
                         msg = 'billing.claims.canAhs.couldNotDeleteClaimAhsPending';
-                    } else if (!commonjs.isValidClaimStatusToSubmit('delete', gridData.hidden_claim_status_code)) {
-                        msg = 'billing.claims.canAhs.claimCannotBeDeleted';
                     }
                 }
             }

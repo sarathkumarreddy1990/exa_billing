@@ -933,10 +933,17 @@ const ahsData = {
         } = args;
 
         const sql = SQL` SELECT
-                             COUNT(1) AS pending_transaction_count
-                         FROM billing.edi_file_claims efc
-                         WHERE efc.claim_id = ${targetId}
-                         AND NOT did_not_process `;
+                            COUNT(efc.id) AS pending_transaction_count,
+                            ( SELECT
+                                COUNT(pa.id)
+                              FROM billing.charges AS c
+                              INNER JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
+                              WHERE c.claim_id = ${targetId}
+                            ) AS payment_entry_count
+                        FROM billing.edi_file_claims efc
+                        LEFT JOIN billing.edi_file_payments efp ON efp.edi_file_id = efc.edi_file_id
+                        WHERE efc.claim_id = ${targetId}
+                        AND NOT did_not_process `;
 
         return await query(sql);
     },
@@ -1033,6 +1040,40 @@ const ahsData = {
                       WHERE id = ${fileId}`;
 
         return await query(sql);
+    },
+
+    /**
+     * Purging claim data
+     * @param {String} args.type
+     * @param {Number} args.userId
+     * @param {String} args.clientIp
+     * @param {Number} args.targetId
+     * @param {Number} args.companyId
+     * @param {String} args.entityName
+     */
+    purgeClaim: async (args) => {
+        const { targetId, clientIp, entityName, userId, companyId, type } = args;
+        const screenName = 'claims';
+
+        let audit_json = {
+            client_ip: clientIp,
+            screen_name: screenName,
+            entity_name: entityName,
+            module_name: screenName,
+            user_id: userId,
+            company_id: companyId
+        };
+
+        args.audit_json = JSON.stringify(audit_json);
+
+        const sql = SQL` SELECT billing.purge_claim_or_charge(${targetId}, ${type}, ${args.audit_json}::jsonb)`;
+
+        try {
+            return await query(sql);
+        }
+        catch (err) {
+            return err;
+        }
     }
 
 };
