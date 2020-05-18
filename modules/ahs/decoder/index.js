@@ -24,8 +24,8 @@ const Parser = {
                 let value = recordStr.trim();
                 if ( value && !/(HEADER|TRAILER)\s*$/i.test(value) && value.length === 234 ) {
                     const ardRecord = RemittanceAdviceParser.parseRecord(recordStr, RemittanceAdviceFields);
+                    const codes = [];
                     if ( ardRecord.explanationCodes ) {
-                        const codes = [];
                         for ( let i = 0; i < ardRecord.explanationCodes.length; i += 5 ) {
                             const code = ardRecord.explanationCodes.slice(i, i + 5);
                             if ( code ) {
@@ -34,6 +34,8 @@ const Parser = {
                         }
                         ardRecord.explanationCodes = codes || [];
                     }
+
+                    ardRecord.explanationCodes = codes || [];
 
                     if ( ardRecord.feeModifiers ) {
                         const mods = [];
