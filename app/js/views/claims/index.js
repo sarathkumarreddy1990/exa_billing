@@ -978,12 +978,6 @@ define(['jquery',
                 $('#txtPayToDetailsPostalCode').val(pay_to_details.postal_code);
                 $('#ddlPayToDetailsCountryCode').val(pay_to_details.country_code).change();
 
-                // Good Faith only for Alberta residents without a ULI / PHN
-                if ( claim_data.can_ahs_good_faith || (!claim_data.can_ahs_uli_phn) ) {
-                    $('#divGoodFaith').show();
-                    $('#chkGoodFaith').prop('checked', claim_data.can_ahs_good_faith);
-                }
-
                 var $businessArrangement = $('input[name="BusinessArrangement"]');
 
                 self.can_ahs_business_arrangement = claim_data.can_ahs_business_arrangement;
@@ -3396,7 +3390,6 @@ define(['jquery',
                     can_ahs_locum_arrangement: self.can_ahs_locum_arrangement || null,
                     can_ahs_claimed_amount_indicator: $('#chkClaimedAmountIndicator').prop('checked') || false,
                     can_confidential: $('#chkConfidential').prop('checked') || false,
-                    can_ahs_good_faith: $('#chkGoodFaith').prop('checked') || false,
                     can_ahs_paper_supporting_docs: $('#chkSupportingDocumentationSeparate').prop('checked') || false,
                     can_ahs_newborn_code: $.trim($('#ddlNewbornCode option:selected').val()) || null,
                     can_ahs_emsaf_reason: $.trim($('#txtReasonAdditionalCompensation').val()) || null,

@@ -204,7 +204,7 @@ const ahsData = {
         const now = moment();
         const created_dt = now.format();
         const today = now.format(`YYYY/MM/DD`);
-        const file_name = `${submitter_prefix}_${shared.getUID()}`;
+        const file_name = `${submitter_prefix}_${shared.getUID().replace(/\./g, '')}`;
         const file_path = `AHS/${today}`;
         const dir_path = `${root_directory}/${file_path}`;
         const fullPath = `${dir_path}/${file_name}`;
@@ -531,7 +531,7 @@ const ahsData = {
 
                         CASE
                             WHEN (
-                                ( nums.service_recipient_phn IS NULL OR LOWER(nums.service_recipient_phn_province) != 'ab' ) 
+                                ( nums.service_recipient_phn IS NULL OR LOWER(nums.service_recipient_phn_province) != 'ab' )
                                 AND nums.service_recipient_registration_number_province NOT IN ( 'ab', 'qc' )
                             )
                             THEN nums.service_recipient_registration_number_province
@@ -553,11 +553,7 @@ const ahsData = {
                             ELSE ''
                         END                                          AS confidential_indicator,
 
-                        CASE
-                            WHEN bc.can_ahs_good_faith
-                            THEN 'Y'
-                            ELSE ''
-                        END                                          AS good_faith_indicator,
+                        ''                                           AS good_faith_indicator,
 
                         bc.can_ahs_newborn_code                      AS newborn_code,
 
@@ -860,7 +856,7 @@ const ahsData = {
         } = args.log_details;
         const batchBalanceReportJson = JSON.stringify([fileData]) || JSON.stringify([{}]);
 
-        const sql = SQL` SELECT billing.can_ahs_handle_claim_balance_report(${batchBalanceReportJson}::jsonb, ${company_id})`;
+        const sql = SQL` SELECT billing.can_ahs_handle_claim_balance_report(${batchBalanceReportJson}::jsonb, ${company_id}) AS bbr_response`;
 
         return await query(sql);
     },
@@ -899,7 +895,7 @@ const ahsData = {
             'user_id': user_id
         };
 
-        const sql = SQL` SELECT billing.can_ahs_apply_payments(${default_facility_id}, ${file_id}::BIGINT, ${JSON.stringify(fileData)}::JSONB, ${JSON.stringify(auditDetails)}::JSONB) `;
+        const sql = SQL` SELECT billing.can_ahs_apply_payments(${default_facility_id}, ${file_id}::BIGINT, ${JSON.stringify(fileData)}::JSONB, ${JSON.stringify(auditDetails)}::JSONB) AS applied_payments `;
 
         return await query(sql);
     },
