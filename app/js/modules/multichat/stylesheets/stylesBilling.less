@@ -1,0 +1,55 @@
+@import "../../../../node_modules/@neos21/bootstrap3-glyphicons/dist/css/bootstrap3-glyphicons.css";
+
+.chat {
+    .btn {
+        &__plus,
+        &__resize {
+            color: #FFF;
+
+        }
+    }
+}
+
+.chat-room-list {
+    margin: 0;
+    padding: 0
+}
+
+.chat-item {
+    &-cont__title {
+        margin-bottom: 0;
+        font-weight: 500;
+    }
+    &-cont__date {
+        margin-bottom: 0;
+    }
+    &__name {
+        margin: 0;
+    }
+}
+
+.chat-content {
+    max-height: ~"calc(100vh - 15px)";
+
+    &-header {
+        &__title {
+           margin-bottom: 0px;
+        }
+    }
+     
+    &-footer {
+    height: 50px;
+    }
+}
+
+.glyphicon {
+    color: inherit;
+}
+
+.chat .chat-item__icon-favorite.glyphicon-star {
+    color: @stat-orange-1;
+}
+
+.chat-room-wrap {
+    margin-bottom: 0;
+}

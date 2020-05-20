@@ -2,8 +2,6 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    margin: 0;
-    padding: 0
 }
 
 .chat-item {
@@ -17,14 +15,6 @@
     align-items: flex-start;
     height: 50px;
     position: relative;
-
-    &-cont__title {
-        margin-bottom: 0;
-        font-weight: 500;
-    }
-    &-cont__date {
-        margin-bottom: 0;
-    }
 
     &:hover {
         cursor: pointer;
@@ -56,7 +46,6 @@
         overflow: hidden;
         width: 140px;
         font-size: 16px;
-        margin: 0;
     }
 
     &-cont {
@@ -121,10 +110,6 @@
         top: .3em!important;
     }
 }
-.chat .chat-item__icon-favorite.glyphicon-star {
-    color: @stat-orange-1;
-}
-
 
 // in default theme there are no styles
 .theme-default {}
