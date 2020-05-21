@@ -47,7 +47,7 @@ define(['jquery',
                     data: {
                         'claimIds': data.claimId.toString(),
                         'supportingText': supportText,
-                        'source': data.claim_status !== 'R' ? 'reassessment' : 'submit'
+                        'source': 'reassessment'
                     },
                     success: function (data) {
                         data.err = data && (data.err || data[0]);

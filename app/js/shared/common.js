@@ -5302,12 +5302,10 @@ var commonjs = {
         var defaultStatusCheck = ['AZP', 'APP', 'PIF'];
 
         switch (source) {
-            case 'reassessment':
-                defaultStatusCheck.push('R');
-                return defaultStatusCheck.indexOf(claimStatus) !== -1;
             case 'delete':
                 defaultStatusCheck = defaultStatusCheck.concat(['PV', 'PS']);
                 return defaultStatusCheck.indexOf(claimStatus) !== -1;
+            case 'reassessment':
             case 'change':
                 return defaultStatusCheck.indexOf(claimStatus) !== -1;
         }
