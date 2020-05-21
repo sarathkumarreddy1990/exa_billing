@@ -287,7 +287,7 @@ const ahsData = {
                         c.id,
                         n.batch_number::TEXT,
                         CASE
-                            WHEN ${source} = 'reassessment' OR ${source} = 'change'
+                            WHEN ${source} = 'reassessment' OR ${source} = 'change' OR ${source} = 'delete'
                                 THEN rsc.sequence_number
                             ELSE ( n.sequence_number + row_number() OVER () ) % 10000000
                         END,
@@ -933,17 +933,17 @@ const ahsData = {
         } = args;
 
         const sql = SQL` SELECT
-                            COUNT(efc.id) AS pending_transaction_count,
-                            ( SELECT
-                                COUNT(pa.id)
-                              FROM billing.charges AS c
-                              INNER JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
-                              WHERE c.claim_id = ${targetId}
-                            ) AS payment_entry_count
-                        FROM billing.edi_file_claims efc
-                        LEFT JOIN billing.edi_file_payments efp ON efp.edi_file_id = efc.edi_file_id
-                        WHERE efc.claim_id = ${targetId}
-                        AND NOT did_not_process `;
+                             COUNT(efc.id) AS pending_transaction_count
+                           , COUNT(pa.id) AS payment_entry_count
+                           , bgct.charges_bill_fee_total AS claim_total_amount
+                           , bgct.claim_balance_total AS claim_balance_amount
+                         FROM billing.claims AS bc
+                         INNER JOIN billing.charges AS bch ON bch.claim_id = bc.id
+                         LEFT JOIN billing.edi_file_claims AS efc ON efc.claim_id = bc.id
+                         LEFT JOIN billing.payment_applications AS pa ON pa.charge_id = bch.id
+                         LEFT JOIN billing.get_claim_totals(${targetId}) AS bgct ON TRUE
+                         WHERE bc.id = ${targetId}
+                         GROUP BY bgct.claim_balance_total, bgct.charges_bill_fee_total `;
 
         return await query(sql);
     },
