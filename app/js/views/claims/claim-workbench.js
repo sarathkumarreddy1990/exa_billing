@@ -582,9 +582,10 @@ define(['jquery',
                                ADP - AHS Delete Pending
                                AD  - AHS Deleted
                                PA  - Pending Acknowledgement
-                               R   - Rejected */
+                               R   - Rejected
+                               D   - Denied */
 
-                            var excludeClaimStatus = ['PA', 'ADP', 'AD', 'R'];
+                            var excludeClaimStatus = ['PA', 'ADP', 'AD', 'R', 'D'];
 
                             if (excludeClaimStatus.indexOf(claimStatus) > -1) {
                                 commonjs.showWarning('messages.status.pleaseSelectValidClaimsStatus');
