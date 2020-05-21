@@ -457,10 +457,10 @@
         },
         {
             "id": 44,
-            "field_name": "Claim Action",
+            "field_name": "AHS Claim Action",
             "i18n_name": "billing.claims.canAhs.claimAction",
             "field_info": {
-                "custom_name": "Claim Action",
+                "custom_name": "AHS Claim Action",
                 "name": "claim_action",
                 "width": 250,
                 "defaultValue": ""
