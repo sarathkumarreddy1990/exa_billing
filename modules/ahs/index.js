@@ -41,9 +41,10 @@ const ahsmodule = {
             PS  - Pending Submission
             APP - AHS Partially Paid
             AZP - AHS Zero Paid
+            AOP - AHS Over Paid
             PIF - Paid In Full
             R   - Rejected */
-        const excludeClaimStatus = ['PS', 'APP', 'AZP', 'PIF', 'R'];
++       const excludeClaimStatus = ['PS', 'APP', 'AZP', 'PIF', 'R', 'D', 'AOP'];
 
         let claimStatus = _.difference(_.uniq(validationData.claim_status), excludeClaimStatus); // removed excluded claim status to check other status availability
         // Claim validation
@@ -181,16 +182,23 @@ const ahsmodule = {
     deleteAhsClaim: async (args) => {
         const {
             targetId,
+            claimStatusCode,
             userId
         } = args;
 
         const claimDeleteAccess = await ahs.getPendingTransactionCount(args);
         const {
             pending_transaction_count = null,
-            payment_entry_count = 0
-        } = claimDeleteAccess.rows && claimDeleteAccess.rows[0];
+            payment_entry_count = 0,
+            claim_balance_amount = null,
+            claim_total_amount = null
+        } = claimDeleteAccess.rows && claimDeleteAccess.rows[0] || {};
 
-        if (pending_transaction_count == 0 && payment_entry_count == 0) {
+        let allowDelete = (payment_entry_count > 0 && (claim_balance_amount == claim_total_amount) && claimStatusCode === 'D')
+                            || (payment_entry_count == 0 && ['R', 'BR'].indexOf(claimStatusCode) !== -1)
+                            || (pending_transaction_count == 0 && payment_entry_count == 0);
+
+        if (allowDelete) {
             const claimDeletedResult = await ahs.purgeClaim(args);
             const {
                 purge_claim_or_charge = false

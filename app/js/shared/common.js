@@ -5299,15 +5299,13 @@ var commonjs = {
 
     //claim status validation for submitting claim to AHS
     isValidClaimStatusToSubmit: function (source, claimStatus) {
-        var defaultStatusCheck = ['AZP', 'APP', 'PIF'];
+        var defaultStatusCheck = ['AZP', 'APP', 'PIF', 'AOP'];
 
         switch (source) {
-            case 'reassessment':
-                defaultStatusCheck.push('R');
-                return defaultStatusCheck.indexOf(claimStatus) !== -1;
             case 'delete':
-                defaultStatusCheck = defaultStatusCheck.concat(['PV', 'PS']);
+                defaultStatusCheck = defaultStatusCheck.concat(['PV', 'PS', 'BR', 'D', 'R']);
                 return defaultStatusCheck.indexOf(claimStatus) !== -1;
+            case 'reassessment':
             case 'change':
                 return defaultStatusCheck.indexOf(claimStatus) !== -1;
         }

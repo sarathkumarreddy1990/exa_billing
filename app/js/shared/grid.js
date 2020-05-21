@@ -2007,6 +2007,7 @@ define('grid', [
                             data: {
                                 targetId: studyIds,
                                 type: 'claim',
+                                claimStatusCode: gridData.hidden_claim_status_code,
                                 source: 'delete'
                             }
                         };
