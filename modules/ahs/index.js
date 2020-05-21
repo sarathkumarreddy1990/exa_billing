@@ -45,7 +45,7 @@ const ahsmodule = {
             PIF - Paid In Full
             R   - Rejected
             D   - Denied */
-+       const excludeClaimStatus = ['PS', 'APP', 'AZP', 'PIF', 'R', 'D', 'AOP'];
+        const excludeClaimStatus = ['PS', 'APP', 'AZP', 'PIF', 'R', 'D', 'AOP'];
 
         let claimStatus = _.difference(_.uniq(validationData.claim_status), excludeClaimStatus); // removed excluded claim status to check other status availability
         // Claim validation
