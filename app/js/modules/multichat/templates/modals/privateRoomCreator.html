@@ -1,7 +1,16 @@
 <script type="text/html" id="header">
-    <p class="chat-modal__title"  i18n="chat.labels.addPrivateRoom">Add private room</p>
+    <div class="chat-modal-titles">
+        <p class="chat-modal__title"   i18n="chat.labels.addPrivateRoom">Add private room</p>
+    </div>    
 </script>
 <script type="text/html" id="body">
+    <p class="chat-modal__text">
+        <span i18n="chat.labels.descriptionOfNewRoom">Search user for private chat</span>
+        <% if (commonjs.hasPermission('CHTG'))
+        { %>
+        <span i18n="chat.labels.hasPermissionForAdhocRoom">(or Group)</span><%
+        }%>
+    </p>
     <input class="chat-modal__input js_chat-modal__input" type="text" name=""
            i18np="chat.labels.searchByName">
     <div class="chat-modal-users" id="js_chat-search-result-holder" data-type="addPrivateRoom">
