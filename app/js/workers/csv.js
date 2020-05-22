@@ -36,7 +36,7 @@ const claimColumns = {
     "Ordering Facility": "ordering_facility_name",
     "Facility": "facility_name",
     "First Statement Date": "first_statement_dt",
-    "Claim Action": "claim_action",
+    "AHS Claim Action": "claim_action",
     "Reason Code": "reason_code"
 };
 
