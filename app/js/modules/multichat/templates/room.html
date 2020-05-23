@@ -1,0 +1,41 @@
+<div class="chat-content js_chat-content chat-content__active" data-open-room-id="<%= id %>">
+    <div class="chat-content-header">
+        <% if (roomType === 'private') {
+            var user = _.find(members, function(user) {
+                return user.id != app.userID;
+            });
+            var userStatus = 'chat-user-avatar-wrap-status chat-user-avatar-wrap-status--' + user.get('chat_status');
+            %>
+            <p class="chat-user-avatar-wrap-status js_userAvatarStatus <%= userStatus %>" data-user-id="<%= user.id %>"></p>
+        <% } %>
+        <p class="chat-content-header__title js_chat-content-header__title"><%= title%></p>
+        <button class="chat-content-header__settings js_chat-content-header__chat-settings glyphicon glyphicon-cog"></button>
+        <button class="chat-content-header__favorite js_chat-content-header__favorite glyphicon glyphicon-star" data-toggle="tooltip" data-placement="bottom"></button>
+        <button class="chat-content-header__refresh js_chat-content-header__refresh glyphicon glyphicon-refresh"></button>
+        <div class="chat-content-header-buttons">
+            <button class="chat-content-header__hide js_chat-content-header__hide glyphicon glyphicon-menu-down"></button>
+            <button class="chat-content-header__close js_chat-content-header__close"></button>
+        </div>
+    </div>
+    <div class="chat-content-body js_chat-content-body">
+        <span class="chat-content-body-messages js_earlier-messages hidden" i18n="chat.labels.loadEarlierMessages"></span>
+    </div>
+    <div class="chat-content-footer js_chat-content-footer">
+        <div class="chat-content-footer__div message-editor">
+            <div class="scrolling-container">
+                <div id="quill-container"></div>
+            </div>
+        </div>
+        <button class="chat-content-footer__btn-submit js_chat-content-footer__btn-submit">
+            <svg class="chat-content-footer__btn-submit-icon" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="175 25 200 200"  xml:space="preserve">
+                <polygon points="225,150 325,75 250,175 300,225 375,25 175,100 "/>
+            </svg>
+        </button>
+        <span class="chat-content-footer__limit js_message-limit"></span>
+    </div>
+</div>
+
+<div class="chat-content--minimized js_chat-content--minimized hidden" data-open-room-id="<%= id %>">
+    <p class="chat-content--minimized__title js_chat-content--minimized__title"><%= title%></p>
+    <button class="glyphicon glyphicon-menu-up chat-content--minimized__show pull-right"></button>
+</div>

@@ -1,0 +1,32 @@
+<%
+var messageClassType = (app.userID == message.getAuthorId()) ? 'chat-content-body-message_sent' : 'chat-content-body-message_replies';
+var messageId = message.get('id');
+%>
+
+<div class="chat-content-body-message <%= messageClassType %> " data-message-id="<%= messageId %>">
+    <% if (avatarHtml.length > 0) {
+        var dataPlacementType = messageClassType === 'chat-content-body-message_sent' ? 'left' : 'right';
+    %>
+        <div
+            class="chat-user-avatar-wrap js_chat-user-avatar-wrap"
+            data-toggle="tooltip"
+            data-placement="<%= dataPlacementType %>"
+            title="<%= message.get('author').user.get('user_full_name') %>">
+    <% } else { %>
+        <div class="chat-user-avatar-wrap">
+    <% } %>
+        <%= avatarHtml %>
+    </div>
+    <div class="chat-content-body-message-content">
+        <% if (showTimestampOnTop) { %>
+            <div class="chat-content-body-message-info">
+                <p class="chat-content-body-message-info__text">
+                    <span class="chat-content-body-message-info__date">
+                        <%- message.getTimestamp().format('LT') %>
+                    </span>
+                </p>
+            </div>
+        <% } %>
+        <p class="chat-content-body-message__text" title="<%- message.getTimestamp().format('LLLL')%>"><%= contentHtml %></p>
+    </div>
+</div>

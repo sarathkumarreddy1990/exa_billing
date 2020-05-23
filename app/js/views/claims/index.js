@@ -4383,7 +4383,7 @@ define(['jquery',
             updateReportURL: function (patient_id, order_id, study_id) {
                 if (window.reportWindow && window.reportWindow.location.hash) {
                     var queryParams = window.reportWindow.location.hash.split("?")[1];
-                    window.reportWindow.location.hash = '#patient/patientReport/all/' + btoa(patient_id) + '/' + btoa(order_id) + '/' + btoa(study_id) + '?' + queryParams;
+                    window.reportWindow.location.hash = '#multipanel-billing-docs/'  + btoa(study_id)  + '/' + btoa(patient_id) + '/' + btoa(order_id)  + '?' + queryParams;
                 }
             },
 

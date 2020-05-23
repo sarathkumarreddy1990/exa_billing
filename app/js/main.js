@@ -6,7 +6,7 @@ var rjsConfig = {
         'jquery': '../node_modules/jquery/dist/jquery',
         'jquery.validate': '../node_modules/jquery-validation/dist/jquery.validate',
         'jqueryvalidateadditional': '../node_modules/jquery-validation/dist/additional-methods',
-        'underscore': '../node_modules/underscore/underscore',
+        'underscore': '../node_modules/lodash/index',
         'hotkeys': '../node_modules/jquery.hotkeys/jquery.hotkeys',
         '_get': '../libs/_get/index',
         'text': '../node_modules/requirejs-text/text',
@@ -42,7 +42,9 @@ var rjsConfig = {
         'jquerysortable': '../node_modules/jquery-sortable/source/js/jquery-sortable',
         'ace': '../node_modules/ace-code-editor/lib/ace',
         'beautify': '../node_modules/js-beautify/js/lib/beautify',
-        'jquery-ui-sortable': "../node_modules/jquery-ui-sortable/jquery-ui.min"
+        'jquery-ui': '../node_modules/jquery-ui-dist/jquery-ui',
+        'socket.io-client': '../node_modules/socket.io-client/dist/socket.io',
+        'quill': '../node_modules/quill/dist/quill.min'
     },
     shim: {
         'jquery.validate': {
@@ -128,8 +130,11 @@ var rjsConfig = {
         'mail-merge': {
             deps: ['_get']
         },
-        'jquery-ui-sortable': {
+        'jquery-ui': {
             deps: ['jquery']
+        },
+        'socket.io-client': {
+            exports: 'io'
         }
     },
 };
@@ -168,7 +173,7 @@ if (require && require.config) {
         '_get',
         'mail-merge',
         'permissionsjs',
-        'jquery-ui-sortable'
+        'jquery-ui'
     ], function (
         MomentTimezone,
         jqueryvalidate,

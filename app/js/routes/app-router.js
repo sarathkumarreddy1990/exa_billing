@@ -5,14 +5,16 @@ define([
     'views/claims/claim-workbench',
     'routes/app/index',
     'routes/setup/index',
-    'routes/reports/index'
+    'routes/reports/index',
+    'modules/multichat/utils/chatLoader'
 ], function (Backbone,
     WorklistView,
     StudiesView,
     ClaimWorkBenchView,
     AppRoute,
     SetupRoute,
-    ReportsRoute
+    ReportsRoute,
+    chatLoader
 ) {
         var AppRouter = Backbone.Router.extend({
             routes: {
@@ -49,7 +51,7 @@ define([
             initialize: function () {
                 new AppRouter();
                 Backbone.history.start();
+                chatLoader.loadChat(Backbone.history.getFragment());
             }
         };
     });
-    
