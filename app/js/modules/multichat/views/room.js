@@ -41,7 +41,6 @@ define(['jquery'
             events: {
                 "click .js_chat-content-header__close": "onClose"
                 , "click .js_chat-content-footer__btn-submit": "onMessageSend"
-                , "keyup .js_chat-content-footer": "onMessageSendHotkey"
                 , "click .js_chat-content-header__favorite": 'onAddToFavorite'
                 , "click .js_chat-content-header__hide, .js_chat-content--minimized": "onMinimize"
                 , "click .js_earlier-messages": "onLoadEarlier"
@@ -188,13 +187,6 @@ define(['jquery'
                         ui.element.eq(0).css('top', 'initial');
                     }
                 })
-            },
-
-            onMessageSendHotkey: function (event) {
-                var keyCode = event.keyCode || event.which;
-                if ((keyCode == 10 || keyCode == 13) && !(event.shiftKey || event.metaKey)){
-                    this.onMessageSend();
-                }
             },
 
             onClose: function (event) {
