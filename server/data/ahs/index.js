@@ -387,11 +387,7 @@ const ahsData = {
                         -- currently hard-coded - AHS does not support another code right now
                         'CIP1'                                       AS transaction_type,
 
-                        CASE
-                            WHEN inserted_efc.can_ahs_action_code IN ('a', 'c')
-                            THEN 'RGLR'
-                            ELSE ''
-                        END                                          AS claim_type,
+                        'RGLR'                                       AS claim_type,
 
                         pc_app.can_prid                             AS service_provider_prid,
                         sc.code                                         AS skill_code,
