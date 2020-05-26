@@ -4258,7 +4258,7 @@ define(['jquery',
                     type: 'GET',
                     data: {
                         patient_id: id,
-                        current_date: self.studyDate
+                        current_date: moment(self.studyDate, 'L').format('YYYY-MM-DD')
                     },
                     success: function (data, response) {
 
