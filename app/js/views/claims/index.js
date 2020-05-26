@@ -3729,7 +3729,7 @@ define(['jquery',
 
                 if (app.billingRegionCode === 'can_BC' && ($('#chkEmployment').prop('checked') || $('#chkAutoAccident').prop('checked'))) {
                     if (!commonjs.checkNotEmpty($('#txtOriginalRef').val())) {
-                        commonjs.showWarning(commonjs.geti18NString("messages.warning.shared.otherClaimNumber"));
+                        commonjs.showWarning("messages.warning.shared.otherClaimNumber");
                         $('#txtOriginalRef').focus();
                         return false;
                     }
