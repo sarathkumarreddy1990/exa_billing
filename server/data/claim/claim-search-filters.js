@@ -399,29 +399,32 @@ const api = {
         if (tables.cas_reason_codes) {
             r += ` LEFT JOIN LATERAL (
                         SELECT
-                            claims.id,
+                            bc.id,
                             TRIM ( LEADING '{' FROM
                                 TRIM ( TRAILING '}' FROM
                                         ARRAY_AGG (
-                                            cas_reason_codes.code
-                                            ORDER BY
-                                                cas_reason_codes.code
-                                            )
-                                            FILTER (WHERE cas_reason_codes.code IS NOT NULL)::text
+                                            CASE
+                                                WHEN pa.created_dt IS NULL OR cc.created_dt >= pa.created_dt
+                                                THEN bcrc.code
+                                                ELSE bcr.code
+                                            END
                                         )
+                                        FILTER (WHERE bcrc.code IS NOT NULL OR bcr.code IS NOT NULL)::TEXT
                                 )
-                            code
-                        FROM
-                            billing.claims
-                        LEFT JOIN billing.charges on billing.claims.id = billing.charges.claim_id
-                        LEFT JOIN billing.payment_applications on billing.charges.id = billing.payment_applications.charge_id
-                        LEFT JOIN billing.cas_payment_application_details on billing.payment_applications.id = billing.cas_payment_application_details.payment_application_id
-                        LEFT JOIN billing.cas_reason_codes on billing.cas_payment_application_details.cas_reason_code_id = billing.cas_reason_codes.id
-                        GROUP BY
-                            claims.id
-                        )
-                        AS cas_reason_codes
-                    ON billing.claims.id = cas_reason_codes.id`;
+                            ) AS code
+                        FROM billing.claims bc
+                        INNER JOIN billing.claim_status bcs ON bcs.id = bc.claim_status_id
+                        INNER JOIN billing.charges ch ON ch.claim_id = bc.id
+                        LEFT JOIN billing.claim_explanatory_codes cc ON cc.claim_id = ch.claim_id
+                        LEFT JOIN billing.payment_applications bpa ON bpa.charge_id = ch.id
+                        LEFT JOIN billing.cas_payment_application_details pa ON pa.payment_application_id = bpa.id
+                        LEFT JOIN billing.cas_reason_codes bcrc ON bcrc.id = cc.cas_reason_code_id
+                        LEFT JOIN billing.cas_reason_codes bcr ON bcr.id = pa.cas_reason_code_id
+                        WHERE (bcrc.code IS NOT NULL OR bcr.code IS NOT NULL) AND bcs.code NOT IN('PA', 'PP')
+                        GROUP BY bc.id, cc.created_dt, pa.created_dt, bcs.code
+                        ORDER BY cc.created_dt, pa.created_dt DESC
+                    ) AS cas_reason_codes
+                    ON cas_reason_codes.id = claims.id `;
         }
 
         if (tables.patient_insurances || tables.insurance_providers || tables.edi_clearinghouses) {
