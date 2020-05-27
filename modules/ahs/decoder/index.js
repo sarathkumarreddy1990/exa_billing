@@ -27,7 +27,7 @@ const Parser = {
                     const codes = [];
                     if ( ardRecord.explanationCodes ) {
                         for ( let i = 0; i < ardRecord.explanationCodes.length; i += 5 ) {
-                            const code = ardRecord.explanationCodes.slice(i, i + 5);
+                            const code = ardRecord.explanationCodes.slice(i, i + 5).trim();
                             if ( code ) {
                                 codes.push({"code": code, "amount": 0});
                             }
