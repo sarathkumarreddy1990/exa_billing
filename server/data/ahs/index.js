@@ -430,7 +430,7 @@ const ahsData = {
 
                         cpt.display_code                             AS health_service_code,
                         CASE
-                            WHEN s.hospital_admission_dt IS NULL
+                            WHEN NULLIF(s.hospital_admission_dt, '') IS NULL
                                 THEN TO_CHAR(timezone(f.time_zone, s.study_dt)::date, 'YYYYMMDD')
                                 ELSE TO_CHAR(s.hospital_admission_dt, 'YYYYMMDD')
                         END                                          AS service_start_date,
@@ -443,7 +443,7 @@ const ahsData = {
                         -- Documentation is unclear so leaving as-is until testing
                         (
                             CASE
-                                WHEN s.hospital_admission_dt IS NULL
+                                WHEN NULLIF(s.hospital_admission_dt, '') IS NULL
                                 THEN bch.units
                                 ELSE EXTRACT(DAYS FROM s.study_dt - s.hospital_admission_dt)
                             END
@@ -490,7 +490,7 @@ const ahsData = {
                         END                                          AS oop_referral_indicator,
 
                         CASE
-                            WHEN pc_ref.can_prid IS NULL AND p_ref.id IS NOT NULL
+                            WHEN NULLIF(pc_ref.can_prid, '') IS NULL AND p_ref.id IS NOT NULL
                             THEN JSONB_BUILD_OBJECT(
                                 'person_type', 'RFRC',
                                 'first_name', p_ref.first_name,
@@ -554,7 +554,7 @@ const ahsData = {
                         bc.can_ahs_newborn_code                      AS newborn_code,
 
                         CASE
-                            WHEN bc.can_ahs_emsaf_reason IS NOT NULL
+                            WHEN NULLIF(bc.can_ahs_emsaf_reason, '') IS NOT NULL
                             THEN 'Y'
                             ELSE 'N'
                         END                                          AS emsaf_indicator,
