@@ -834,6 +834,7 @@ define(['jquery',
                                     }
                                 }
                             }
+                            self.toggleOtherClaimNumber();
 
                         } else {
                             commonjs.showWarning('billing.era.claimNotExists');
@@ -1462,6 +1463,20 @@ define(['jquery',
                 }
             },
 
+            toggleOtherClaimNumber: function() {
+                var originalRef = commonjs.geti18NString("billing.claims.originalRef");
+                var otherClaimNumber = commonjs.geti18NString("billing.payments.otherClaimNumber");
+
+                if (app.billingRegionCode === 'can_BC' && ($('#chkEmployment').prop('checked') || $('#chkAutoAccident').prop('checked'))) {
+                    $("#lblOriginalRef").text(otherClaimNumber).append("<span class='Required' style='color: red;padding-left: 5px;'>*</span>");
+                    $("#txtOriginalRef").attr({ 'placeholder': otherClaimNumber, 'maxlength': 8 });
+                }
+                else {
+                    $('#lblOriginalRef').removeClass('field-required').text(originalRef);
+                    $("#txtOriginalRef").attr('placeholder', originalRef).removeAttr('maxlength');
+                }
+            },
+
             bindclaimFormEvents: function (isFrom) {
 
                 var self = this;
@@ -1554,6 +1569,7 @@ define(['jquery',
                     if (!isCauseCode) {
                         $accidentState.val('');
                     }
+                    self.toggleOtherClaimNumber();
                 });
 
                 $('#ddlPayToCode').off().change(function (e) {
@@ -3709,6 +3725,14 @@ define(['jquery',
                     commonjs.showWarning("messages.warning.shared.supportingTextRequired");
                     $('#txtSupportingText').focus();
                     return false;
+                }
+
+                if (app.billingRegionCode === 'can_BC' && ($('#chkEmployment').prop('checked') || $('#chkAutoAccident').prop('checked'))) {
+                    if (!commonjs.checkNotEmpty($('#txtOriginalRef').val())) {
+                        commonjs.showWarning("messages.warning.shared.otherClaimNumber");
+                        $('#txtOriginalRef').focus();
+                        return false;
+                    }
                 }
 
                 /* Insurance section */
