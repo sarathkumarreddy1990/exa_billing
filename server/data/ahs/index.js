@@ -260,10 +260,11 @@ const ahsData = {
                 ),
                 numbers AS (
                     SELECT
-                        ( COALESCE(MAX(batch_number :: INT), 0) + 1 ) % 1000000     AS batch_number,
-                        COALESCE(MAX(sequence_number), '0') :: INT                  AS sequence_number
+                        ( COALESCE(nextVal('edi_file_claims_batch_number_seq')::INT, 0) + 1 ) % 1000000     AS batch_number,
+                        COALESCE(nextVal('edi_file_claims_sequence_number_seq'), '0') :: INT                AS sequence_number
                     FROM
                         billing.edi_file_claims
+                    LIMIT 1
                 ),
                 status AS (
                     SELECT
