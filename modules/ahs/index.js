@@ -14,6 +14,7 @@ const claimWorkBenchController = require('../../server/controllers/claim/claim-w
 const validateClaimsData = require('../../server/data/claim/claim-workbench');
 const sftp = require('./sftp');
 const claimEncoder = require('./encoder/claims');
+const logger = require('../../logger');
 
 const ahsmodule = {
 
@@ -219,16 +220,15 @@ const ahsmodule = {
         args.claimIds = targetId || null;
         args.source = 'delete';
 
-        const deleteClaimAhsResult = await ahsmodule.submitClaims(args);
+        try {
+            const deleteClaimAhsResult = await ahsmodule.submitClaims(args);
+            return deleteClaimAhsResult;
+        }
+        catch(err){
+            logger.error(err);
+            return err;
+        }
 
-        ahs.updateClaimsStatus({
-            claimIds: args.claimIds,
-            statusCode: 'ADP',
-            claimNote: 'AHS Delete Pending',
-            userId: userId,
-        });
-
-        return deleteClaimAhsResult;
     }
 };
 
