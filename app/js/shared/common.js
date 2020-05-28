@@ -2846,6 +2846,8 @@ var commonjs = {
             $('html').unbind('click');
             commonjs.docResize();
         }
+
+        if(app.chat) app.chat.updateChatTheme(currentTheme);
     },
 
     refreshUserSettings: function () {

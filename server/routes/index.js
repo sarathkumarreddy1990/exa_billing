@@ -17,6 +17,7 @@ router.get('/', function (req, res) {
     res.render('index', {
         title: 'EXA-Billing',
         cssPath: staticAssetsRoot + '/skins/' + currentTheme,
+        currentTheme: currentTheme,
         billingRegionCode: billingRegionCode,
         staticAssetsRoot
     });
