@@ -1141,7 +1141,16 @@ define(['jquery',
                     var removeChargeIcons = $('#tblCharge').find('th.addCharge, th.removeCharge');
                     var btnCreateCharge = $('#createNewCharge');
                     if (self.isEdit) {
-                        $('#ddlFrequencyCode option[value="corrected"]').prop('disabled', !commonjs.isValidClaimStatusToSubmit('change', data.claim_status_code));
+                        // Choose default frequency code on edit claim
+                        var frequencyElement = $('#ddlFrequencyCode');
+                        var isRejectedClaimStatus = ['R', 'BR', 'D'].indexOf(data.claim_status_code) !== -1;
+                        var actionCode =  commonjs.isValidClaimStatusToSubmit('change', data.claim_status_code) ? 'corrected' : '';
+                        var disableCorrected = isRejectedClaimStatus || actionCode === '';
+
+                        frequencyElement.find('option[value=""]').prop('disabled', !disableCorrected);
+                        frequencyElement.find('option[value="corrected"]').prop('disabled', disableCorrected);
+                        frequencyElement.find('option[value="'+ actionCode +'"]').prop('selected', 'selected');
+
                         $('#ddlClaimStatus').prop('disabled', self.priInsCode.toLowerCase() === 'ahs');
 
                         //EXA-18272 - Restrict to add/remove new charge on edit claim for alberta billing
@@ -3479,6 +3488,20 @@ define(['jquery',
                         }
                     }
                 });
+
+                // Change Claim status to Pending Submission after correction
+                if (app.billingRegionCode === 'can_AB' && self.isEdit) {
+                    var claimData = claim_model && claim_model.claims || null;
+                    var claimStatusObj = app.claim_status.find(function(e) {
+                        return e.id == claimData.claim_status_id;
+                    });
+                    var pendingSubmissionObj = app.claim_status.find(function(e) {
+                        return e.code === 'PS';
+                    });
+
+                    claimData.claim_status_id = ['PIF', 'APP', 'AZP', 'AOP', 'BR', 'R', 'D'].indexOf(claimStatusObj.code) !== -1 ? pendingSubmissionObj.id : claim_status_id;
+                }
+
 
                 // Assign If any charges removed
                 claim_model.removed_charges = self.removedCharges || [];
