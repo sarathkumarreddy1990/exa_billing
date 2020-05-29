@@ -81,15 +81,16 @@ define([
                     return self.get('me');
                 };
 
+                var rooms = new Rooms.RoomsCollection(null, Object.assign(attributes, { usersCache: self._usersCache }));
+                self.set('rooms', rooms);
+
                 self._usersCache.fetchUserById(attributes.userId, function(error, result) {
                     if (result && !error) {
                         self.set('me', result.user);
                     }
-                });
 
-                var rooms = new Rooms.RoomsCollection(null, Object.assign(attributes, { usersCache: self._usersCache }));
-                self.set('rooms', rooms);
-                rooms.fetchAll();
+                    rooms.fetchAll();
+                });
 
                 this.initializeSocket(function(error) {
                     if (error) self.handleRequestError(error);
