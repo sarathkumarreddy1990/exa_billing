@@ -402,13 +402,7 @@ const ahsData = {
                         nums.service_recipient_parent_registration_number,
                         nums.service_recipient_parent_registration_number_province,
                         CASE
-                            WHEN (
-                                nums.service_recipient_phn IS NOT NULL
-                                OR (
-                                    nums.service_recipient_registration_number IS NOT NULL
-                                    AND nums.service_recipient_registration_number_province IS NOT NULL
-                                )
-                            )
+                            WHEN nums.service_recipient_phn IS NOT NULL
                             THEN NULL
                             ELSE JSONB_BUILD_OBJECT(
                                 'person_type', 'RECP',
