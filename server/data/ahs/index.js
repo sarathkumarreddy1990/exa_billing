@@ -260,8 +260,7 @@ const ahsData = {
                 ),
                 numbers AS (
                     SELECT
-                        ( COALESCE(nextVal('edi_file_claims_batch_number_seq')::INT, 0) + 1 ) % 1000000     AS batch_number,
-                        COALESCE(nextVal('edi_file_claims_sequence_number_seq'), '0') :: INT                AS sequence_number
+                        ( COALESCE(nextVal('edi_file_claims_batch_number_seq')::INT, 0) + 1 ) % 1000000     AS batch_number
                     FROM
                         billing.edi_file_claims
                     LIMIT 1
@@ -290,7 +289,7 @@ const ahsData = {
                         CASE
                             WHEN ${source} = 'reassessment' OR ${source} = 'change' OR ${source} = 'delete'
                                 THEN rsc.sequence_number
-                            ELSE ( n.sequence_number + row_number() OVER () ) % 10000000
+                            ELSE (COALESCE(nextVal('edi_file_claims_sequence_number_seq'), '0')::INT) % 10000000
                         END,
                         CASE
                             WHEN ${source} = 'reassessment'
