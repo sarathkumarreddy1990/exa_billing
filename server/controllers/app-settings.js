@@ -66,6 +66,9 @@ module.exports = {
             app_settings.ohipConfig = getOHIPConfiguration();
         }
 
+        app_settings.modules = {};
+        app_settings.modules.chat = config.get('chatGlobalAvailability');
+
         app_settings.hotkeys = hotkeys;
         app_settings.countries = countries || [];
 
