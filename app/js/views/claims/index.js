@@ -1144,14 +1144,16 @@ define(['jquery',
                         // Choose default frequency code on edit claim
                         var frequencyElement = $('#ddlFrequencyCode');
                         var isRejectedClaimStatus = ['R', 'BR', 'D'].indexOf(data.claim_status_code) !== -1;
-                        var actionCode =  commonjs.isValidClaimStatusToSubmit('change', data.claim_status_code) ? 'corrected' : '';
-                        var disableCorrected = isRejectedClaimStatus || actionCode === '';
+                        var actionCode =  commonjs.isValidClaimStatusToSubmit('change', data.claim_status_code) ? 'corrected' : isRejectedClaimStatus ? '' : data.frequency;
+                        var disableCorrected = isRejectedClaimStatus || !actionCode;
+                        var disableClaimStatus = self.priInsCode.toLowerCase() === 'ahs';
+                        var enableClaimStatus = disableClaimStatus && ['PIF', 'APP', 'AOP'].indexOf(data.claim_status_code) !== -1;
 
                         frequencyElement.find('option[value=""]').prop('disabled', !disableCorrected);
                         frequencyElement.find('option[value="corrected"]').prop('disabled', disableCorrected);
                         frequencyElement.find('option[value="'+ actionCode +'"]').prop('selected', 'selected');
 
-                        $('#ddlClaimStatus').prop('disabled', self.priInsCode.toLowerCase() === 'ahs');
+                        $('#ddlClaimStatus').prop('disabled', disableClaimStatus && !enableClaimStatus);
 
                         //EXA-18272 - Restrict to add/remove new charge on edit claim for alberta billing
                         $("td span.addChargeLine").parent().remove();
@@ -3499,7 +3501,7 @@ define(['jquery',
                         return e.code === 'PS';
                     });
 
-                    claimData.claim_status_id = ['PIF', 'APP', 'AZP', 'AOP', 'BR', 'R', 'D'].indexOf(claimStatusObj.code) !== -1 ? pendingSubmissionObj.id : claim_status_id;
+                    claimData.claim_status_id = ['AZP', 'BR', 'R', 'D'].indexOf(claimStatusObj.code) !== -1 ? pendingSubmissionObj.id : claim_status_id;
                 }
 
 

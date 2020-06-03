@@ -3498,7 +3498,13 @@ define(['jquery',
                 var details = data && data[0] || {};
 
                 if (app.billingRegionCode === 'can_AB') {
-                    $('#ddlClaimStatus').prop('disabled', details && details.primary_ins_provider_code.toLowerCase() === 'ahs');
+                    var currentClaimStatus = app.claim_status.find(function(obj) {
+                        return obj.id === details.claim_status_id;
+                    });
+                    var disableClaimStatus = details && details.primary_ins_provider_code.toLowerCase() === 'ahs';
+                    var enableClaimStatus = disableClaimStatus && ['PIF', 'APP', 'AOP'].indexOf(currentClaimStatus.code) !== -1;
+
+                    $('#ddlClaimStatus').prop('disabled', disableClaimStatus && !enableClaimStatus);
                 } else if (app.billingRegionCode === 'can_MB') {
                     var queryClaimStatusId, p77ClaimStatusId;
 
