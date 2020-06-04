@@ -1146,7 +1146,9 @@ define(['jquery',
                         var isRejectedClaimStatus = ['R', 'BR', 'D'].indexOf(data.claim_status_code) !== -1;
                         var actionCode = commonjs.isValidClaimStatusToSubmit('change', data.claim_status_code)
                         ? 'corrected'
-                        : isRejectedClaimStatus ? '' : data.frequency;
+                        : isRejectedClaimStatus
+                            ? ''
+                            : data.frequency;
                         var disableCorrected = isRejectedClaimStatus || !actionCode;
                         var disableClaimStatus = self.priInsCode.toLowerCase() === 'ahs';
                         var enableClaimStatus = disableClaimStatus && ['PIF', 'APP', 'AOP'].indexOf(data.claim_status_code) !== -1;
