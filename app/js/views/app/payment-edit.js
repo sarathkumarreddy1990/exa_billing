@@ -3532,6 +3532,25 @@ define(['jquery',
                     } else {
                         $("#btnSaveAppliedPendingPayments").hide();
                     }
+                } else if (app.billingRegionCode === 'can_BC') {
+                    var currentClaimStatusCode, ohClaimStatusId;
+
+                    _.each(app.claim_status, function(obj) {
+                        if (obj.id === details.claim_status_id) {
+                            currentClaimStatusCode = obj.code;
+                        }
+
+                        if (obj.code === 'OH') {
+                            ohClaimStatusId = obj.id;
+                        }
+                    });
+
+                    if (currentClaimStatusCode === 'OH') {
+                        $("#btnSaveAppliedPendingPayments").hide();
+                    } else {
+                        $('#ddlClaimStatus option[value="' + ohClaimStatusId  + '"]').hide();
+                        $("#btnSaveAppliedPendingPaymentsNotes").hide();
+                    }
                 }
             }
 

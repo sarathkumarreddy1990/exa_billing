@@ -267,16 +267,24 @@ define([
             },
 
             disableElementsForProvince: function(data) {
-                if (app.billingRegionCode === 'can_MB') {
-                    var saveBtn = $('#btnCISaveNotes');
-                    var saveNotesBtn = $('#btnCISaveIsInternal');
+                var saveBtn = $('#btnCISaveIsInternal');
+                var saveNotesBtn = $('#btnCISaveNotes');
 
+                if (app.billingRegionCode === 'can_MB') {
                     if (data.claim_status_code === 'P77') {
-                        saveBtn.show();
-                        saveNotesBtn.hide();
-                    } else {
                         saveNotesBtn.show();
                         saveBtn.hide();
+                    } else {
+                        saveBtn.show();
+                        saveNotesBtn.hide();
+                    }
+                } else if (app.billingRegionCode === 'can_BC') {
+                    if (data.claim_status_code === 'OH') {
+                        saveNotesBtn.show();
+                        saveBtn.hide();
+                    } else {
+                        saveBtn.show();
+                        saveNotesBtn.hide();
                     }
                 }
             },

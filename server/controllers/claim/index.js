@@ -189,7 +189,14 @@ module.exports = {
         return await data.getClaimAppliedPayments(params);
     },
 
-    updateNotes: data.updateNotes,
+    updateNotes: async (params) => {
+        if (params.billingRegionCode === 'can_MB') {
+            return await data.updateNotesMB(params);
+        } else if (params.billingRegionCode === 'can_BC') {
+            return await data.updateNotesBC(params);
+        }
+    },
+
 
     getChargesByPatientId: data.getChargesByPatientId
 

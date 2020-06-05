@@ -231,8 +231,8 @@ define(['jquery',
                     $('#txtPriGroupNo').attr('maxlength', 2);
                 }
 
-                $('#txtClaimResponsibleNotes').prop('disabled', !(app.billingRegionCode === 'can_MB' || app.country_alpha_3_code === 'usa'));
-                
+                $('#txtClaimResponsibleNotes').prop('disabled', !(app.billingRegionCode === 'can_MB' || app.billingRegionCode === 'can_BC' || app.country_alpha_3_code === 'usa'));
+
                 //EXA-18273 - Move diagnostics codes section under claim for alberta billing
                 if(app.billingRegionCode === 'can_AB') {
                     $('#diagnosticsCodes').detach().appendTo('#claimSection').addClass('col-lg-12');
@@ -1229,6 +1229,22 @@ define(['jquery',
                         p77StatusEle.hide();
                         $('#btnSaveClaimNotes').hide();
                     }
+                } else if (app.billingRegionCode === 'can_BC')  {
+                    var ohClaimStatus = _.find(app.claim_status, function(obj) {
+                       return obj.code === 'OH';
+                    });
+
+                    if (data.claim_status_code === 'OH') {
+                        $('#btnNewPayment, .paymentApply').prop('disabled', true);
+                        $('#btnSaveClaim').hide();
+
+                    } else {
+                        if (ohClaimStatus) {
+                            $('#ddlClaimStatus option[value="' + ohClaimStatus.id + '"]').hide();
+                        }
+
+                        $('#btnSaveClaimNotes').hide();
+                    }
                 }
             },
 
@@ -1457,6 +1473,16 @@ define(['jquery',
 
                     if (p77ClaimStatus) {
                         $('#ddlClaimStatus option[value="' + p77ClaimStatus.id + '"]').hide();
+                    }
+
+                    $('#btnSaveClaimNotes').hide();
+                } else if (app.billingRegionCode === 'can_BC') {
+                    var ohClaimStatus = _.find(app.claim_status, function(item) {
+                        return item.code === 'OH'
+                    });
+
+                    if (ohClaimStatus) {
+                        $('#ddlClaimStatus option[value="' + ohClaimStatus.id + '"]').hide();
                     }
 
                     $('#btnSaveClaimNotes').hide();
@@ -1708,12 +1734,15 @@ define(['jquery',
             updateNotes: function (e) {
                 $('#btnSaveClaimNotes').prop('disabled', true);
                 $('.claimProcess').prop('disabled', true);
+
                 $.ajax({
                     url: '/exa_modules/billing/claims/claim/notes/' + this.claim_Id,
                     type: 'PUT',
                     data: {
+                        billingRegionCode: app.billingRegionCode,
                         claimNotes: $.trim($('#txtClaimNotes').val()) || '',
-                        billingNotes: $.trim($('#txtClaimResponsibleNotes').val()) || ''
+                        billingNotes: $.trim($('#txtClaimResponsibleNotes').val()) || '',
+                        canSupportingText: $.trim($.trim($('#txtSupportingText').val()).replace(/\n/g, ' ')) || ''
                     },
                     success: function (response) {
                         if (response && response.length) {

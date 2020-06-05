@@ -206,7 +206,7 @@ define('grid', [
 
             if (isClaimGrid) {
                 var statusIndex = _.findIndex(selectedStudies, function (item) {
-                    return item.claim_status_code === 'P77' && app.billingRegionCode === 'can_MB';
+                    return (item.claim_status_code === 'P77' && app.billingRegionCode === 'can_MB') || (item.claim_status_code === 'OH' && app.billingRegionCode === 'can_BC');
                 });
 
                 commonjs.getClaimStudy(selectedStudies[0].study_id, function (result) {

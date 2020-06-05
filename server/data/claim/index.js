@@ -1207,7 +1207,7 @@ module.exports = {
         return await query(sql);
     },
 
-    updateNotes: async (params) => {
+    updateNotesMB: async (params) => {
         const {
             billingNotes,
             claimId,
@@ -1217,6 +1217,23 @@ module.exports = {
         let sqlQry = SQL`
                         UPDATE BILLING.CLAIMS
                         SET claim_notes = ${claimNotes}
+                            , billing_notes = ${billingNotes}
+                        WHERE id = ${claimId}
+                        RETURNING *`;
+
+        return await query(sqlQry);
+    },
+
+    updateNotesBC: async (params) => {
+        const {
+            billingNotes,
+            claimId,
+            canSupportingText
+        } = params;
+
+        let sqlQry = SQL`
+                        UPDATE BILLING.CLAIMS
+                        SET can_supporting_text = ${canSupportingText}
                             , billing_notes = ${billingNotes}
                         WHERE id = ${claimId}
                         RETURNING *`;
