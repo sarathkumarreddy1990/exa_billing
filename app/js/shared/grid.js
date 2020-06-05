@@ -1862,6 +1862,10 @@ define('grid', [
 
                 if (gridData.hidden_billing_method === 'electronic_billing') {
                     $('#li_ul_change_claim_status').hide();
+
+                    if (['APP', 'AOP', 'PIF'].indexOf(gridData.hidden_claim_status_code) !== -1) {
+                        $('#li_ul_change_claim_status').show();
+                    }
                 }
 
             } else if (app.billingRegionCode === 'can_MB') {
