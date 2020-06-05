@@ -1207,38 +1207,26 @@ module.exports = {
         return await query(sql);
     },
 
-    updateNotesMB: async (params) => {
+    updateNotes: async (params) => {
         const {
-            billingNotes,
             claimId,
-            claimNotes
-        } = params;
-
-        let sqlQry = SQL`
-                        UPDATE BILLING.CLAIMS
-                        SET claim_notes = ${claimNotes}
-                            , billing_notes = ${billingNotes}
-                        WHERE id = ${claimId}
-                        RETURNING *`;
-
-        return await query(sqlQry);
-    },
-
-    updateNotesBC: async (params) => {
-        const {
             billingNotes,
-            claimId,
+            claimNotes,
             canSupportingText
         } = params;
 
-        let sqlQry = SQL`
-                        UPDATE BILLING.CLAIMS
-                        SET can_supporting_text = ${canSupportingText}
-                            , billing_notes = ${billingNotes}
-                        WHERE id = ${claimId}
-                        RETURNING *`;
+        let sql = SQL`
+                    UPDATE BILLING.CLAIMS
+                    SET billing_notes = ${billingNotes}`;
 
-        return await query(sqlQry);
+        if (params.billingRegionCode === 'can_MB') {
+            sql.append(SQL`, claim_notes = ${claimNotes}`);
+        } else if (params.billingRegionCode === 'can_BC') {
+            sql.append(SQL`, can_supporting_text = ${canSupportingText}`);
+        }
+
+        sql.append(SQL` WHERE id = ${claimId} RETURNING id`);
+
+        return await query(sql);
     }
-
 };

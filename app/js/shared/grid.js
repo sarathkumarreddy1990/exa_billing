@@ -232,7 +232,7 @@ define('grid', [
 
                     // Claim status updation
                     $.each(app.claim_status, function (index, claimStatus) {
-                        if (claimStatus.code === 'P77') {
+                        if ((app.billingRegionCode === 'can_MB' && claimStatus.code === 'P77') || (app.billingRegionCode === 'can_BC' && claimStatus.code === 'OH')) {
                             return;
                         }
 

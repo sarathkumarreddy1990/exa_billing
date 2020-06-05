@@ -190,14 +190,8 @@ module.exports = {
     },
 
     updateNotes: async (params) => {
-        if (params.billingRegionCode === 'can_MB') {
-            return await data.updateNotesMB(params);
-        } else if (params.billingRegionCode === 'can_BC') {
-            return await data.updateNotesBC(params);
-        }
+        return await data.updateNotes(params);
     },
 
-
     getChargesByPatientId: data.getChargesByPatientId
-
 };

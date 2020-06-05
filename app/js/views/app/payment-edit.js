@@ -2567,7 +2567,7 @@ define(['jquery',
                     url: '/exa_modules/billing/payments/notes/' + claimId,
                     type: 'PUT',
                     data: {
-                        billingNotes: $('#txtResponsibleNotes').val() || ''
+                        billingNotes: $.trim($('#txtResponsibleNotes').val())
                     },
                     success: function (response) {
                         if (response && response.length) {

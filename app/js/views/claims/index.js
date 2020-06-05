@@ -1230,15 +1230,13 @@ define(['jquery',
                         $('#btnSaveClaimNotes').hide();
                     }
                 } else if (app.billingRegionCode === 'can_BC')  {
-                    var ohClaimStatus = _.find(app.claim_status, function(obj) {
-                       return obj.code === 'OH';
-                    });
-
                     if (data.claim_status_code === 'OH') {
                         $('#btnNewPayment, .paymentApply').prop('disabled', true);
                         $('#btnSaveClaim').hide();
 
                     } else {
+                        var ohClaimStatus = _.find(app.claim_status, { code: 'OH'});
+
                         if (ohClaimStatus) {
                             $('#ddlClaimStatus option[value="' + ohClaimStatus.id + '"]').hide();
                         }
@@ -1740,9 +1738,9 @@ define(['jquery',
                     type: 'PUT',
                     data: {
                         billingRegionCode: app.billingRegionCode,
-                        claimNotes: $.trim($('#txtClaimNotes').val()) || '',
-                        billingNotes: $.trim($('#txtClaimResponsibleNotes').val()) || '',
-                        canSupportingText: $.trim($.trim($('#txtSupportingText').val()).replace(/\n/g, ' ')) || ''
+                        claimNotes: $.trim($('#txtClaimNotes').val()),
+                        billingNotes: $.trim($('#txtClaimResponsibleNotes').val()),
+                        canSupportingText: $.trim($.trim($('#txtSupportingText').val()).replace(/\n/g, ' '))
                     },
                     success: function (response) {
                         if (response && response.length) {
