@@ -119,7 +119,7 @@ const ahsData = {
                 bc.can_ahs_pay_to_code                       AS pay_to_code,
                 pc.can_submitter_prefix                  AS submitter_prefix,
                 bc.can_ahs_business_arrangement              AS business_arrangement,
-                bc.can_ahs_supporting_text                   AS supporting_text_1,
+                bc.can_supporting_text                   AS supporting_text_1,
                 f.can_facility_number                        AS facility_number,
                 icd.codes[1]                                 AS diagnosis_code_1,
                 pip.insurance_name                           AS "payerName",
@@ -568,7 +568,7 @@ const ahsData = {
                         s.can_ahs_tooth_surface3                     AS tooth_surface3,
                         s.can_ahs_tooth_surface4                     AS tooth_surface4,
                         s.can_ahs_tooth_surface5                     AS tooth_surface5,
-                        bc.can_ahs_supporting_text,
+                        bc.can_supporting_text,
                         inserted_efc.edi_file_id
                     FROM
                         inserted_efc
@@ -708,11 +708,11 @@ const ahsData = {
                         SELECT
                             info.claim_id,
                             billing.can_ahs_get_claim_number(info.claim_id) AS claim_number,
-                            TRIM(LOWER(info.can_ahs_supporting_text))       AS supporting_text
+                            TRIM(LOWER(info.can_supporting_text))       AS supporting_text
                         FROM
                             claim_info info
                         WHERE
-                            TRIM(COALESCE(info.can_ahs_supporting_text, '')) != ''
+                            TRIM(COALESCE(info.can_supporting_text, '')) != ''
                             AND billing.can_ahs_get_claim_number(info.claim_id) IS NOT NULL
                         ORDER BY
                             info.sequence_number
@@ -907,7 +907,7 @@ const ahsData = {
                      UPDATE
                          billing.claims
                      SET
-                         can_ahs_supporting_text = ${supportingText}
+                         can_supporting_text = ${supportingText}
                      WHERE id = ${claimId}`;
         return await query(sql);
     },

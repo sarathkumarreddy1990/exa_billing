@@ -994,7 +994,7 @@ define(['jquery',
                 $('#ddlNewbornCode').val(claim_data.can_ahs_newborn_code).change();
                 $('#txtReasonAdditionalCompensation').val(claim_data.can_ahs_emsaf_reason);
                 $('#chkSupportingDocumentationSeparate').prop('checked', claim_data.can_ahs_paper_supporting_docs);
-                $('#txtSupportingText').val(claim_data.can_ahs_supporting_text);
+                $('#txtSupportingText').val(claim_data.can_supporting_text);
                 $('#spChartNumber').text(claim_data.claim_id);
                 $('#microFilmNumber').val(claim_data.can_mhs_microfilm_no || '');
                 $('#receiptDate').val(claim_data.can_mhs_receipt_date ? moment(claim_data.can_mhs_receipt_date).format('L') : '');
@@ -3451,7 +3451,7 @@ define(['jquery',
                     can_ahs_paper_supporting_docs: $('#chkSupportingDocumentationSeparate').prop('checked') || false,
                     can_ahs_newborn_code: $.trim($('#ddlNewbornCode option:selected').val()) || null,
                     can_ahs_emsaf_reason: $.trim($('#txtReasonAdditionalCompensation').val()) || null,
-                    can_ahs_supporting_text: $.trim($.trim($('#txtSupportingText').val()).replace(/\n/g, ' ')),
+                    can_supporting_text: $.trim($.trim($('#txtSupportingText').val()).replace(/\n/g, ' ')),
                     can_wcb_rejected: $("#chkwcbRejected").prop('checked') || false
                 };
 

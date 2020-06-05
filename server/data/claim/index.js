@@ -499,7 +499,7 @@ module.exports = {
                     , c.can_ahs_newborn_code
                     , c.can_ahs_emsaf_reason
                     , c.can_ahs_paper_supporting_docs
-                    , c.can_ahs_supporting_text
+                    , c.can_supporting_text
                     , cst.code AS claim_status_code
                     , p.account_no AS patient_account_no
                     , p.birth_date::text AS patient_dob
