@@ -24,16 +24,17 @@ const Parser = {
                 let value = recordStr.trim();
                 if ( value && !/(HEADER|TRAILER)\s*$/i.test(value) && value.length === 234 ) {
                     const ardRecord = RemittanceAdviceParser.parseRecord(recordStr, RemittanceAdviceFields);
+                    const codes = new Set();
                     if ( ardRecord.explanationCodes ) {
-                        const codes = [];
                         for ( let i = 0; i < ardRecord.explanationCodes.length; i += 5 ) {
-                            const code = ardRecord.explanationCodes.slice(i, i + 5);
+                            const code = ardRecord.explanationCodes.slice(i, i + 5).trim();
                             if ( code ) {
-                                codes.push({"code": code, "amount": 0});
+                                codes.add(code);
                             }
                         }
-                        ardRecord.explanationCodes = codes || [];
                     }
+
+                    ardRecord.explanationCodes = Array.from(codes).map(code => ({ code, "amount": 0 }));
 
                     if ( ardRecord.feeModifiers ) {
                         const mods = [];

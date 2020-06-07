@@ -804,31 +804,15 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "defaultValue": ""
                     }
                 },
-                "Microfilm Number": {
-                    "id": 71,
-                    "field_code": "can_mhs_microfilm_no",
-                    "field_name": "Microfilm Number",
-                    "i18n_name": "setup.userSettings.microfilmNumber",
-                    "field_info": {
-                        "custom_name": "Microfilm Number",
-                        "name": "can_mhs_microfilm_no",
-                        "width": 250,
-                        "searchFlag": "%",
-                        "sortable": true,
-                        "defaultValue": "",
-                        "hidden": !(app.billingRegionCode === 'can_MB')
-                    }
-                },
-                "Claim Action": {
-                    "id": 43,
+                "AHS Claim Action": {
+                    "id": 44,
                     "field_code": "claim_action",
-                    "field_name": "Claim Action",
+                    "field_name": "AHS Claim Action",
                     "i18n_name": "billing.claims.canAhs.claimAction",
                     "field_info": {
-                        "custom_name": "Claim Action",
+                        "custom_name": "AHS Claim Action",
                         "name": "claim_action",
                         "width": 250,
-                        "searchFlag": "=",
                         "sortable": false,
                         "defaultValue": "",
                         "stype": "select",
@@ -857,6 +841,21 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "searchoptions": {
                             "value": casReasonCodes
                         }
+                    }
+                },
+                "Microfilm Number": {
+                    "id": 71,
+                    "field_code": "can_mhs_microfilm_no",
+                    "field_name": "Microfilm Number",
+                    "i18n_name": "setup.userSettings.microfilmNumber",
+                    "field_info": {
+                        "custom_name": "Microfilm Number",
+                        "name": "can_mhs_microfilm_no",
+                        "width": 250,
+                        "searchFlag": "%",
+                        "sortable": true,
+                        "defaultValue": "",
+                        "hidden": !(app.billingRegionCode === 'can_MB')
                     }
                 },
                 "Alt Account No": {

@@ -612,7 +612,8 @@ module.exports = {
                     LEFT JOIN billing.autobilling_insurance_provider_rules abipr                ON abr.id = abipr.autobilling_rule_id
                 WHERE
                     study_status_code = ${studyStatus}
-                    AND inactivated_dt IS null
+                    AND inactivated_dt IS NULL
+                    AND deleted_dt IS NULL
                 GROUP BY
                     abr.id
                     , abssr.excludes
@@ -638,6 +639,16 @@ module.exports = {
                 WHERE
                     studies.id = ${studyId}
                     AND patient_insurances.coverage_level = 'primary'
+                    AND NOT EXISTS (
+                        SELECT 1
+                        FROM billing.claims bc
+                        JOIN billing.charges bch
+                            ON bch.claim_id = bc.id
+                        JOIN billing.charges_studies bchs
+                            ON bchs.charge_id = bch.id
+                        WHERE
+                            bchs.study_id = ${studyId}
+                    )
 
                 GROUP BY
                     studies.facility_id

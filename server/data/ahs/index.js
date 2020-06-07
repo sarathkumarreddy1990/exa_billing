@@ -260,10 +260,10 @@ const ahsData = {
                 ),
                 numbers AS (
                     SELECT
-                        ( COALESCE(MAX(batch_number :: INT), 0) + 1 ) % 1000000     AS batch_number,
-                        COALESCE(MAX(sequence_number), '0') :: INT                  AS sequence_number
+                        ( COALESCE(nextVal('edi_file_claims_batch_number_seq')::INT, 0) + 1 ) % 1000000     AS batch_number
                     FROM
                         billing.edi_file_claims
+                    LIMIT 1
                 ),
                 status AS (
                     SELECT
@@ -287,9 +287,9 @@ const ahsData = {
                         c.id,
                         n.batch_number::TEXT,
                         CASE
-                            WHEN ${source} = 'reassessment' OR ${source} = 'change'
+                            WHEN ${source} = 'reassessment' OR ${source} = 'change' OR ${source} = 'delete'
                                 THEN rsc.sequence_number
-                            ELSE ( n.sequence_number + row_number() OVER () ) % 10000000
+                            ELSE (COALESCE(nextVal('edi_file_claims_sequence_number_seq'), '0')::INT) % 10000000
                         END,
                         CASE
                             WHEN ${source} = 'reassessment'
@@ -387,11 +387,7 @@ const ahsData = {
                         -- currently hard-coded - AHS does not support another code right now
                         'CIP1'                                       AS transaction_type,
 
-                        CASE
-                            WHEN inserted_efc.can_ahs_action_code IN ('a', 'c')
-                            THEN 'RGLR'
-                            ELSE ''
-                        END                                          AS claim_type,
+                        'RGLR'                                       AS claim_type,
 
                         pc_app.can_prid                             AS service_provider_prid,
                         sc.code                                         AS skill_code,
@@ -405,13 +401,7 @@ const ahsData = {
                         nums.service_recipient_parent_registration_number,
                         nums.service_recipient_parent_registration_number_province,
                         CASE
-                            WHEN (
-                                nums.service_recipient_phn IS NOT NULL
-                                OR (
-                                    nums.service_recipient_registration_number IS NOT NULL
-                                    AND nums.service_recipient_registration_number_province IS NOT NULL
-                                )
-                            )
+                            WHEN nums.service_recipient_phn IS NOT NULL
                             THEN NULL
                             ELSE JSONB_BUILD_OBJECT(
                                 'person_type', 'RECP',
@@ -494,7 +484,7 @@ const ahsData = {
                         END                                          AS oop_referral_indicator,
 
                         CASE
-                            WHEN pc_ref.can_prid IS NULL AND p_ref.id IS NOT NULL
+                            WHEN NULLIF(pc_ref.can_prid, '') IS NULL AND p_ref.id IS NOT NULL
                             THEN JSONB_BUILD_OBJECT(
                                 'person_type', 'RFRC',
                                 'first_name', p_ref.first_name,
@@ -558,7 +548,7 @@ const ahsData = {
                         bc.can_ahs_newborn_code                      AS newborn_code,
 
                         CASE
-                            WHEN bc.can_ahs_emsaf_reason IS NOT NULL
+                            WHEN NULLIF(bc.can_ahs_emsaf_reason, '') IS NOT NULL
                             THEN 'Y'
                             ELSE 'N'
                         END                                          AS emsaf_indicator,
@@ -933,10 +923,17 @@ const ahsData = {
         } = args;
 
         const sql = SQL` SELECT
-                             COUNT(1) AS pending_transaction_count
-                         FROM billing.edi_file_claims efc
-                         WHERE efc.claim_id = ${targetId}
-                         AND NOT did_not_process `;
+                             COUNT(efc.id) AS pending_transaction_count
+                           , COUNT(pa.id) AS payment_entry_count
+                           , bgct.charges_bill_fee_total AS claim_total_amount
+                           , bgct.claim_balance_total AS claim_balance_amount
+                         FROM billing.claims AS bc
+                         INNER JOIN billing.charges AS bch ON bch.claim_id = bc.id
+                         LEFT JOIN billing.edi_file_claims AS efc ON efc.claim_id = bc.id
+                         LEFT JOIN billing.payment_applications AS pa ON pa.charge_id = bch.id
+                         LEFT JOIN billing.get_claim_totals(${targetId}) AS bgct ON TRUE
+                         WHERE bc.id = ${targetId}
+                         GROUP BY bgct.claim_balance_total, bgct.charges_bill_fee_total `;
 
         return await query(sql);
     },
@@ -1033,6 +1030,40 @@ const ahsData = {
                       WHERE id = ${fileId}`;
 
         return await query(sql);
+    },
+
+    /**
+     * Purging claim data
+     * @param {String} args.type
+     * @param {Number} args.userId
+     * @param {String} args.clientIp
+     * @param {Number} args.targetId
+     * @param {Number} args.companyId
+     * @param {String} args.entityName
+     */
+    purgeClaim: async (args) => {
+        const { targetId, clientIp, entityName, userId, companyId, type } = args;
+        const screenName = 'claims';
+
+        let audit_json = {
+            client_ip: clientIp,
+            screen_name: screenName,
+            entity_name: entityName,
+            module_name: screenName,
+            user_id: userId,
+            company_id: companyId
+        };
+
+        args.audit_json = JSON.stringify(audit_json);
+
+        const sql = SQL` SELECT billing.purge_claim_or_charge(${targetId}, ${type}, ${args.audit_json}::jsonb)`;
+
+        try {
+            return await query(sql);
+        }
+        catch (err) {
+            return err;
+        }
     }
 
 };
