@@ -75,8 +75,8 @@ WITH claim_details AS (
      INNER JOIN billing.charges bch ON bch.claim_id = bc.id
      INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
      INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
-     INNER JOIN billing.charges_studies bcs ON bcs.charge_id = bch.id
-     INNER JOIN public.studies pss on pss.id = bcs.study_id
+     LEFT JOIN billing.charges_studies bcs ON bcs.charge_id = bch.id
+     LEFT JOIN public.studies pss on pss.id = bcs.study_id
      INNER JOIN public.patient_insurances AS ppi ON ppi.id =  bc.primary_patient_insurance_id
      LEFT JOIN payment_summary ps ON ps.charge_id = bch.id
      LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
