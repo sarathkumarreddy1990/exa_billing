@@ -49,6 +49,7 @@ module.exports = {
                     , federal_tax_id
                     , npi_no
                     , taxonomy_code
+                    , can_bc_payee_number
                     , contact_person_name
                     , address_line1 as address
                     , address_line2
@@ -70,7 +71,7 @@ module.exports = {
                     , pay_to_phone_number
                     , pay_to_fax_number
                     , communication_info
-                    , can_is_alternate_payment_program
+                    , can_bc_is_alt_payment_program
                     , COUNT(1) OVER (range unbounded preceding) as total_records
                 FROM   billing.providers `;
 
@@ -106,6 +107,7 @@ module.exports = {
                     , federal_tax_id
                     , npi_no
                     , taxonomy_code
+                    , can_bc_payee_number
                     , contact_person_name
                     , address_line1
                     , address_line2
@@ -127,7 +129,7 @@ module.exports = {
                     , pay_to_phone_number
                     , pay_to_fax_number
                     , communication_info
-                    , can_is_alternate_payment_program
+                    , can_bc_is_alt_payment_program
                 FROM   billing.providers
                 WHERE
                     id = ${id} `;
@@ -144,6 +146,7 @@ module.exports = {
             federalTaxId,
             npiNo,
             taxonomyCode,
+            payeeNumber,
             contactPersonName,
             addressLine1,
             addressLine2,
@@ -179,6 +182,7 @@ module.exports = {
                     , federal_tax_id
                     , npi_no
                     , taxonomy_code
+                    , can_bc_payee_number
                     , contact_person_name
                     , address_line1
                     , address_line2
@@ -201,7 +205,7 @@ module.exports = {
                     , pay_to_fax_number
                     , communication_info
                     , company_id
-                    , can_is_alternate_payment_program
+                    , can_bc_is_alt_payment_program
                     , inactivated_dt)
                 values
                     (
@@ -211,6 +215,7 @@ module.exports = {
                     , ${federalTaxId}
                     , ${npiNo || ''}
                     , ${taxonomyCode}
+                    , ${payeeNumber}
                     , ${contactPersonName}
                     , ${addressLine1}
                     , ${addressLine2}
@@ -253,6 +258,7 @@ module.exports = {
             federalTaxId,
             npiNo,
             taxonomyCode,
+            payeeNumber,
             contactPersonName,
             addressLine1,
             addressLine2,
@@ -289,6 +295,7 @@ module.exports = {
                 , federal_tax_id = ${federalTaxId}
                 , npi_no = ${npiNo || ''}
                 , taxonomy_code = ${taxonomyCode}
+                , can_bc_payee_number = ${payeeNumber}
                 , contact_person_name = ${contactPersonName}
                 , address_line1 = ${addressLine1}
                 , address_line2 = ${addressLine2}
@@ -311,7 +318,7 @@ module.exports = {
                 , pay_to_fax_number = ${payToFaxNumber}
                 , communication_info = ${communicationInfo}
                 , inactivated_dt = ${inactivated_dt}
-                , can_is_alternate_payment_program = ${canIsAlternatePaymentProgram}
+                , can_bc_is_alt_payment_program = ${canIsAlternatePaymentProgram}
                 WHERE
                     id = ${id}
                     RETURNING *,
