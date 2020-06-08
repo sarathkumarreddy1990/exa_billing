@@ -267,17 +267,15 @@ define([
             },
 
             disableElementsForProvince: function(data) {
-                if (app.billingRegionCode === 'can_MB') {
-                    var saveBtn = $('#btnCISaveNotes');
-                    var saveNotesBtn = $('#btnCISaveIsInternal');
+                var saveBtn = $('#btnCISaveIsInternal');
+                var saveNotesBtn = $('#btnCISaveNotes');
 
-                    if (data.claim_status_code === 'P77') {
-                        saveBtn.show();
-                        saveNotesBtn.hide();
-                    } else {
-                        saveNotesBtn.show();
-                        saveBtn.hide();
-                    }
+                if ((app.billingRegionCode === 'can_MB' && data.claim_status_code === 'P77') || (app.billingRegionCode === 'can_BC' && data.claim_status_code === 'OH'))  {
+                    saveNotesBtn.show();
+                    saveBtn.hide();
+                } else {
+                    saveBtn.show();
+                    saveNotesBtn.hide();
                 }
             },
 
@@ -549,7 +547,7 @@ define([
                     url: '/exa_modules/billing/claims/claim_inquiry/notes/' + this.claim_id,
                     type: 'PUT',
                     data: {
-                        billingNotes: $.trim($('#txtCIBillingComment').val()) || ''
+                        billingNotes: $.trim($('#txtCIBillingComment').val())
                     },
                     success: function (response) {
                         if (response && response.length) {

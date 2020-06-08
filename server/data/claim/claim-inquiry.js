@@ -1018,7 +1018,7 @@ module.exports = {
                         UPDATE BILLING.CLAIMS
                         SET billing_notes = ${billingNotes}
                         WHERE id = ${claimId}
-                        RETURNING *`;
+                        RETURNING id`;
 
         return await query(sqlQry);
     }

@@ -2567,7 +2567,7 @@ define(['jquery',
                     url: '/exa_modules/billing/payments/notes/' + claimId,
                     type: 'PUT',
                     data: {
-                        billingNotes: $('#txtResponsibleNotes').val() || ''
+                        billingNotes: $.trim($('#txtResponsibleNotes').val())
                     },
                     success: function (response) {
                         if (response && response.length) {
@@ -3531,6 +3531,25 @@ define(['jquery',
                         $("#btnSaveAppliedPendingPaymentsNotes").hide();
                     } else {
                         $("#btnSaveAppliedPendingPayments").hide();
+                    }
+                } else if (app.billingRegionCode === 'can_BC') {
+                    var currentClaimStatusCode, ohClaimStatusId;
+
+                    _.each(app.claim_status, function(obj) {
+                        if (obj.id === details.claim_status_id) {
+                            currentClaimStatusCode = obj.code;
+                        }
+
+                        if (obj.code === 'OH') {
+                            ohClaimStatusId = obj.id;
+                        }
+                    });
+
+                    if (currentClaimStatusCode === 'OH') {
+                        $("#btnSaveAppliedPendingPayments").hide();
+                    } else {
+                        $('#ddlClaimStatus option[value="' + ohClaimStatusId  + '"]').hide();
+                        $("#btnSaveAppliedPendingPaymentsNotes").hide();
                     }
                 }
             }

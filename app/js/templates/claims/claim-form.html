@@ -74,7 +74,7 @@
             <li class="saveAll">
                 <button type="button" class="btn top-buffer" id="btnSaveClaim" title="Alt+S" i18n="shared.buttons.saveAll"></button>
             </li>
-            <% if (billingRegionCode === 'can_MB') { %>
+            <% if (billingRegionCode === 'can_MB' || billingRegionCode === 'can_BC' ) { %>
             <li class="saveAll">
                 <input type="button" class="btn top-buffer" id="btnSaveClaimNotes" title="Alt+S" i18n="shared.buttons.saveNotes" />
             </li>
