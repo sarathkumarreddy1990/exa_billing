@@ -269,24 +269,22 @@ module.exports = {
                                     WHERE
                                         company_id = ${companyID} AND inactivated_dt IS NULL) AS payment_reasons)
                 , cte_modifiers AS(
-                                    SELECT
-                                        json_agg(row_to_json(modifiers)) modifiers
-                                    FROM (
-                                        SELECT
-                                            id
-                                          , modifier_amount
-                                          , override_amount
-                                          , code
-                                          , description
-                                          , level
-                                          , sign
-                                          , type
-                                          , modifier1
-                                          , modifier2
-                                          , modifier3
-                                          , modifier4
-                                        FROM modifiers
-                                        WHERE company_id = ${companyID}
+                                    SELECT Json_agg(Row_to_json(modifiers)) modifiers
+                                    FROM  (
+                                        SELECT id,
+                                        modifier_amount,
+                                        override_amount,
+                                        code,
+                                        description,
+                                        level,
+                                        sign,
+                                        type,
+                                        modifier1,
+                                        modifier2,
+                                        modifier3,
+                                        modifier4
+                                        FROM   modifiers
+                                        WHERE  company_id=${companyID}
                                         AND ( (effective_date IS NULL AND end_date IS NULL)
                                               OR (CURRENT_DATE between effective_date AND end_date)
                                             )
