@@ -392,14 +392,12 @@ module.exports = {
                             , description
                         FROM billing.cas_reason_codes ) AS cas_reason_codes
                 ),
-
                 cte_cities AS (
                     SELECT
                         JSON_AGG(c) cities
                     FROM
                         ( SELECT * FROM cities ) c
                 ),
-
                 cte_grid_filter AS(
                     SELECT json_agg(row_to_json(grid_filter))grid_filter
                         FROM
