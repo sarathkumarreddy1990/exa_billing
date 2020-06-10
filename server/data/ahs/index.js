@@ -258,13 +258,6 @@ const ahsData = {
 	                GROUP BY can_ahs_action_code, claim_id
 	                ORDER BY sequence_number DESC
                 ),
-                numbers AS (
-                    SELECT
-                        ( COALESCE(nextVal('edi_file_claims_batch_number_seq')::INT, 0) + 1 ) % 1000000     AS batch_number
-                    FROM
-                        billing.edi_file_claims
-                    LIMIT 1
-                ),
                 status AS (
                     SELECT
                         id
@@ -289,7 +282,7 @@ const ahsData = {
                         CASE
                             WHEN ${source} = 'reassessment' OR ${source} = 'change' OR ${source} = 'delete'
                                 THEN rsc.sequence_number
-                            ELSE (COALESCE(nextVal('edi_file_claims_sequence_number_seq'), '0')::INT) % 10000000
+                            ELSE nextVal('edi_file_claims_sequence_number_seq') % 10000000
                         END,
                         CASE
                             WHEN ${source} = 'reassessment'
@@ -302,7 +295,9 @@ const ahsData = {
                         END,
                         ${edi_file_id}
                     FROM billing.claims c
-                    INNER JOIN numbers n ON TRUE
+                    INNER JOIN (
+                        SELECT nextVal('edi_file_claims_batch_number_seq') % 1000000 AS batch_number
+                    ) n ON TRUE
                     LEFT JOIN resubmission_claims rsc ON rsc.claim_id = c.id
                     WHERE c.id = ANY(${claimIds})
                     RETURNING
