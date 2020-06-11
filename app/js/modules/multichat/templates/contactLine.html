@@ -9,8 +9,10 @@
   var unread = room.get('possessive').unread_count;
   var title = room.get('title');
   var isActiveClass = room.get('isActive') ? 'chat-item--active' : '';
+  var isEnabled = room.get('isEnabled');
+  var isDisabledAttr = !isEnabled? 'disabled' : '';
 %>
-<div class="chat-item <%= favoriteClass %> <%= isActiveClass %> js_chat-item" data-room-id="<%= room.get('id') %>" title="<%= title %>">
+<div class="chat-item <%= favoriteClass %> <%= isActiveClass %> js_chat-item" data-room-id="<%= room.get('id') %>" title="<%= title %>" <%= isDisabledAttr %>>
     <% if ('private' == room.get('roomType')) {
         var userStatus = '';
         var initials = '';
@@ -19,11 +21,11 @@
         if (!_.isEmpty(users)) {
             companion = users[0].id !== app.userID ? users[0] : users[1];
             userId = companion.id
-            userStatus = 'chat-user-avatar-wrap-status chat-user-avatar-wrap-status--' + companion.get('chat_status')
+            userStatus = 'chat-user-avatar-wrap-status chat-user-avatar-wrap-status--' + (isEnabled? companion.get('chat_status'): 'offline')
             initials = companion.getInitials();
         } %>
     <div class="chat-user-avatar-wrap js_userAvatarStatus <%= userStatus %>" data-user-id="<%= userId %>">
-        <span class="chat-item__badge js_chat-item__badge <%= unread > 0 ? '' : 'hidden' %>"><%= unread %></span>
+        <span class="chat-item__badge js_chat-item__badge <%= isEnabled && unread > 0 ? '' : 'hidden' %>"><%= unread %></span>
         <%= templateUserAvatar({
                 userId: userId,
                 initials: initials,
@@ -33,7 +35,7 @@
     </div>
     <% } else { %>
     <div class="chat-user-avatar-wrap">
-        <span class="chat-item__badge js_chat-item__badge <%= unread > 0 ? '' : 'hidden' %>"><%= unread %></span>
+        <span class="chat-item__badge js_chat-item__badge <%= isEnabled && unread > 0 ? '' : 'hidden' %>"><%= unread %></span>
         <% if (ids.length > 4) {
             for (i = 0; i < 3; i++) { %>
         <%= templateUserAvatar({
