@@ -992,17 +992,19 @@ const ahsData = {
                             LIMIT 1
                         )
                         SELECT
-                            file_store_id,
-                            file_type,
-                            file_path,
-                            file_size,
-                            status,
+                            ef.file_store_id,
+                            ef.file_type,
+                            ef.file_path,
+                            ef.file_size,
+                            ef.status,
                             fs.root_directory,
-                            uploaded_file_name,
+                            ef.uploaded_file_name,
                             ef.id file_id,
+                            comp.can_submitter_prefix,
                             (SELECT row_to_json(_) FROM (SELECT * FROM user_data) AS _) AS log_details
                          FROM billing.edi_files ef
                          INNER JOIN file_stores fs ON fs.id = ef.file_store_id
+                         INNER JOIN companies comp ON comp.id = fs.company_id
                          WHERE ef.status = ${status}
                                AND ef.file_type = ANY(${fileTypes}) LIMIT 10`;
 
