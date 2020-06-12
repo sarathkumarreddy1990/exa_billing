@@ -108,7 +108,7 @@ define(['jquery'
                 }
             },
             closeLeftRoomView: function(){
-                var leftest = _.first(this.openedRoomViews);
+                var leftest = _.head(this.openedRoomViews);
                 if(!_.isEmpty(leftest)) {
                     leftest.close();
                 }
@@ -116,7 +116,7 @@ define(['jquery'
 
             closeRoomView: function(room){
                 this.stopListening(room);
-                _.remove(this.openedRoomViews, ['id', room.id]);
+                _.remove(this.openedRoomViews, {'id': room.id});
             },
 
             onRoomMinimized: function(){

@@ -167,7 +167,7 @@ define([
                     newLi.append(newCB);
                     newLi.append(inputText);
                     $('#' + listID).append(newLi);
-                    if (_.contains(checkedGridFields, field_order[i].id)) {
+                    if (_.includes(checkedGridFields, field_order[i].id)) {
                         newCB.find('input[type=checkbox]').attr('data_name', screenName).addClass('chkBillFields').attr('checked', true);
                     }
                 }
