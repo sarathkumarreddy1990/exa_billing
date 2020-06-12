@@ -28,7 +28,7 @@
         "jquery.hotkeys": "^0.1.0",
         "js-beautify": "^1.7.5",
         "jstorage": "^0.4.8",
-        "lodash": "^3.7.0",
+        "lodash": "^4.7.11",
         "moment": "^2.22.1",
         "moment-timezone": "^0.5.16",
         "pdfmake": "^0.1.36",
