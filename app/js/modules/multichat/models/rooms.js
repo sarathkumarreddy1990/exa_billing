@@ -26,7 +26,8 @@ define([
                 lastMessageDt: null,
 
                 isMinimized: null,
-                isActive: null
+                isActive: null,
+                isEnabled: null
             },
 
             initialize: function (attributes, options) {
@@ -244,6 +245,7 @@ define([
                 , possessive: roomResponse.possessive
                 , isMinimized: roomResponse.isMinimized
                 , direct_user_ids: roomResponse.direct_user_ids
+                , isEnabled: roomResponse.isEnabled
             };
 
             return attributes;
@@ -341,6 +343,11 @@ define([
 
             updateMessagesState: function(updated_messages) {
                 var self = this;
+
+                if (!this.get('isEnabled')) {
+                    return;
+                }
+
                 var newUnreadCount = updated_messages.unread_count;
                 this.set('lastMessageId', updated_messages.last_message_id);
                 this.set('lastMessageDt', updated_messages.last_message_dt);
