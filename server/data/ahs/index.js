@@ -641,9 +641,15 @@ const ahsData = {
 
                     LEFT JOIN LATERAL (
                         SELECT
-                            ( SELECT code FROM public.modifiers WHERE id = bch.modifier1_id ) AS mod1,
-                            ( SELECT code FROM public.modifiers WHERE id = bch.modifier2_id ) AS mod2,
-                            ( SELECT code FROM public.modifiers WHERE id = bch.modifier3_id ) AS mod3
+                            ( SELECT
+                                code
+                                FROM public.modifiers WHERE id = bch.modifier1_id AND NOT is_implicit ) AS mod1,
+                            ( SELECT
+                                code
+                                FROM public.modifiers WHERE id = bch.modifier2_id AND NOT is_implicit ) AS mod2,
+                            ( SELECT
+                                code
+                                FROM public.modifiers WHERE id = bch.modifier3_id AND NOT is_implicit ) AS mod3
                     ) fee_mod ON TRUE
 
                     -- LEFT JOIN LATERAL (
