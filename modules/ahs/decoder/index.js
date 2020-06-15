@@ -97,13 +97,13 @@ const Parser = {
      * Below function used to parse Batch Balance File
      * Identify batch row based on Submitter Prefix (i.e first 3 charecter should match with configured customer Prefix)
      * {param} File data
+     * {param} Customer prefix
      */
-    parseBatchBalanceFile: (dataStr) => {
+    parseBatchBalanceFile: (dataStr, customerPrefix) => {
         let result = { batches: [] };
         let records = dataStr.split('\n');
         let segmentIndex;
         let isSegmentPresent;
-        let customerPrefix = 'HYO' //To Do: Get submitter Prefix from Company settings
 
         /**
          * Parse Batch Informations based on First 3 character should match with customer prefix (eg: 'HYO')

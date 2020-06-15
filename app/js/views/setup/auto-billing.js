@@ -520,7 +520,7 @@ define(['jquery',
                 var modalities = options.modalities;
 
                 $('#ddlAutoBillingStudyStatuses').select2({
-                    data: _.map(app.study_status, function(study_status) {
+                    data: _.map(_.uniq(app.study_status, 'status_code'), function(study_status) {
                         return {
                             id: study_status.status_code,
                             text: formatOptionText(study_status.status_desc, study_status.status_code)

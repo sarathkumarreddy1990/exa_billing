@@ -258,13 +258,6 @@ const ahsData = {
 	                GROUP BY can_ahs_action_code, claim_id
 	                ORDER BY sequence_number DESC
                 ),
-                numbers AS (
-                    SELECT
-                        ( COALESCE(nextVal('edi_file_claims_batch_number_seq')::INT, 0) + 1 ) % 1000000     AS batch_number
-                    FROM
-                        billing.edi_file_claims
-                    LIMIT 1
-                ),
                 status AS (
                     SELECT
                         id
@@ -289,7 +282,7 @@ const ahsData = {
                         CASE
                             WHEN ${source} = 'reassessment' OR ${source} = 'change' OR ${source} = 'delete'
                                 THEN rsc.sequence_number
-                            ELSE (COALESCE(nextVal('edi_file_claims_sequence_number_seq'), '0')::INT) % 10000000
+                            ELSE nextVal('edi_file_claims_sequence_number_seq') % 10000000
                         END,
                         CASE
                             WHEN ${source} = 'reassessment'
@@ -302,7 +295,9 @@ const ahsData = {
                         END,
                         ${edi_file_id}
                     FROM billing.claims c
-                    INNER JOIN numbers n ON TRUE
+                    INNER JOIN (
+                        SELECT nextVal('edi_file_claims_batch_number_seq') % 1000000 AS batch_number
+                    ) n ON TRUE
                     LEFT JOIN resubmission_claims rsc ON rsc.claim_id = c.id
                     WHERE c.id = ANY(${claimIds})
                     RETURNING
@@ -646,9 +641,15 @@ const ahsData = {
 
                     LEFT JOIN LATERAL (
                         SELECT
-                            ( SELECT code FROM public.modifiers WHERE id = bch.modifier1_id ) AS mod1,
-                            ( SELECT code FROM public.modifiers WHERE id = bch.modifier2_id ) AS mod2,
-                            ( SELECT code FROM public.modifiers WHERE id = bch.modifier3_id ) AS mod3
+                            ( SELECT
+                                code
+                                FROM public.modifiers WHERE id = bch.modifier1_id AND NOT is_implicit ) AS mod1,
+                            ( SELECT
+                                code
+                                FROM public.modifiers WHERE id = bch.modifier2_id AND NOT is_implicit ) AS mod2,
+                            ( SELECT
+                                code
+                                FROM public.modifiers WHERE id = bch.modifier3_id AND NOT is_implicit ) AS mod3
                     ) fee_mod ON TRUE
 
                     -- LEFT JOIN LATERAL (
@@ -997,17 +998,19 @@ const ahsData = {
                             LIMIT 1
                         )
                         SELECT
-                            file_store_id,
-                            file_type,
-                            file_path,
-                            file_size,
-                            status,
+                            ef.file_store_id,
+                            ef.file_type,
+                            ef.file_path,
+                            ef.file_size,
+                            ef.status,
                             fs.root_directory,
-                            uploaded_file_name,
+                            ef.uploaded_file_name,
                             ef.id file_id,
+                            comp.can_submitter_prefix,
                             (SELECT row_to_json(_) FROM (SELECT * FROM user_data) AS _) AS log_details
                          FROM billing.edi_files ef
                          INNER JOIN file_stores fs ON fs.id = ef.file_store_id
+                         INNER JOIN companies comp ON comp.id = fs.company_id
                          WHERE ef.status = ${status}
                                AND ef.file_type = ANY(${fileTypes}) LIMIT 10`;
 
