@@ -277,9 +277,6 @@ aged_ar_summary_details AS(
     <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
         WHERE TRUE
         AND <%=companyId%>
-        <% if(incPatDetail == 'true') { %>
-            AND payer_type != 'patient'
-        <% } %>
         <% if (facilityIds) { %>AND <% print(facilityIds); } %>
         <% if(billingProID) { %> AND <% print(billingProID); } %>
         <% if(excCreditBal == 'true'){ %> AND  gcd.balance::MONEY > '0' <% } %>
@@ -340,7 +337,7 @@ aged_ar_summary_details AS(
     "Total Count"
  FROM
     aged_ar_summary_details
-<% if(insGroups == null  && insuranceIds == null) { %>
+ <% if(insGroups == null  && insuranceIds == null) { %>
   UNION ALL
    SELECT
         NULL::TEXT "Facility",
@@ -418,11 +415,7 @@ aged_ar_summary_details AS(
             <% if(excCreditBal == 'true'){ %> AND  gcd.balance::MONEY > '0' <% } %>
             <% if(insGroups) { %> AND <%=insGroups%> <%}%>
             <% if(insuranceIds) { %> AND <%=insuranceIds%> <% } %>
-            <% if(incPatDetail == 'true') { %>
-                AND payer_type != 'patient'
-            <% } else { %>
-                AND payer_type = 'patient'
-            <% } %>
+            AND payer_type = 'patient'
 <% } %>
   UNION ALL
    SELECT
