@@ -30,7 +30,7 @@ define([
             render: function () {
                 var self = this;
                 userID = app.userID;
-                this.$el.html(template({
+                this.$el.html(self.template({
                     country_alpha_3_code: app.country_alpha_3_code
                 }));
                 if (window.location && window.location.hash.split('/')[1] == 'studies') {
