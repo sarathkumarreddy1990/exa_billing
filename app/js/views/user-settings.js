@@ -30,7 +30,7 @@ define([
             render: function () {
                 var self = this;
                 userID = app.userID;
-                this.$el.html(template({
+                this.$el.html(self.template({
                     country_alpha_3_code: app.country_alpha_3_code,
                     province_alpha_2_code: app.province_alpha_2_code,
                     billing_region_code: app.billingRegionCode

@@ -458,12 +458,11 @@ const api = {
             r += ` LEFT JOIN LATERAL (
                         SELECT
                             i_bch.claim_id,
-                            i_ps.study_description AS charge_description
+                            i_pcc.short_description AS charge_description
                         FROM billing.charges i_bch
-                        INNER JOIN billing.charges_studies i_bcs ON i_bcs.charge_id = i_bch.id
-                        INNER JOIN public.studies i_ps ON i_ps.id = i_bcs.study_id
+                        INNER JOIN public.cpt_codes i_pcc on i_pcc.id = i_bch.cpt_id
                         WHERE i_bch.claim_id = claims.id
-                        ORDER BY i_ps.id DESC
+                        ORDER BY i_pcc.id DESC
                         LIMIT 1 ) charge_details ON charge_details.claim_id = claims.id `;
         }
 
