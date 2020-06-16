@@ -153,8 +153,17 @@ module.exports = {
 														 ) pointer) AS charge_pointer
 									, lower(prs.description) = ('self') AS is_pri_relationship_self
 									, lower(srs.description) = ('self') AS is_sec_relationship_self
-									, lower(trs.description) = ('self') AS is_ter_relationship_self
-					FROM
+									, lower(trs.description) = ('self') AS is_ter_relationship_self`;
+					
+					
+									 if(params.billingRegionCode === 'can_BC'){    
+									sql.append(SQL`,ref_pc.can_prid AS "referring_pro_practitioner_number"
+									, rend_pc.can_prid AS "reading_pro_practitioner_number"
+									, pg.can_bc_data_centre_number AS "service_facility_data_centre_number"
+									, bp.can_bc_payee_number AS "billing_pro_payeeNumber" `);									            
+									}
+
+									 sql.append(SQL` FROM
 						billing.claims bc
 					INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
 					INNER JOIN public.patients p ON p.id = bc.patient_id
@@ -181,7 +190,8 @@ module.exports = {
 					LEFT JOIN public.relationship_status trs ON trs.id = t_pi.subscriber_relationship_id
 					LEFT JOIN
 						LATERAL (SELECT icd_id FROM billing.claim_icds ci WHERE ci.claim_id = bc.id LIMIT 1) claim_icd ON true
-					WHERE bc.id = ANY(${params.claim_ids})`;
+						WHERE bc.id = ANY(${params.claim_ids})`);
+
 
         return await query(sql);
     },
