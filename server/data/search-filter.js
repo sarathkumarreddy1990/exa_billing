@@ -495,7 +495,7 @@ const api = {
             case "eligibility_verified": return `(COALESCE(eligibility.verified, false) OR COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)`;
             case 'icd_description': return `icd_codes.description`;
             // Adding `notes` just in case user saved previously as default
-            case `notes`: return `json_study_notes(studies.id)`;
+            case `notes`: return `get_study_notes_as_json(studies.id)`;
         }
 
         return args;
@@ -771,7 +771,7 @@ const api = {
             'studies.study_status as status_code',
             'studies.referring_physician_id', // TODO: Why is this any different from referring_provider and why do i need id if having name already ?
             'studies.cpt_codes',
-            'json_study_notes(studies.id) as notes', // TODO: this should not be returned as column (maybe has_notes but now whole notes)
+            'get_study_notes_as_json(studies.id) as notes', // TODO: this should not be returned as column (maybe has_notes but now whole notes)
             '(studies.deleted_dt is not null)', //  TODO: this column should not be deleted Status should be deleted and if its really purged it shouldnt be there
             'studies.study_description',
             'studies.institution as institution',
