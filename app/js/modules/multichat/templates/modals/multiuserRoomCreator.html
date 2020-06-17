@@ -1,0 +1,16 @@
+<script type="text/html" id="header">
+    <p class="chat-modal__title" i18n="chat.labels.createAdhocRoom">New chat</p>
+</script>
+<script type="text/html" id="body">
+    <form class="chat-modal-new js_chat-new">
+        <label for="js_chat-new__title" class="chat-modal-new__label" i18n="chat.labels.roomTitle">Title</label>
+        <input type="text" id="js_chat-new__title" class="chat-modal-new__input js_chat-new__title" placeholder="Title"
+               i18np="chat.labels.roomTitlePlaceholder">
+        <input type="hidden" id="js_chat-new__type" value="adhoc">
+
+        <button type="submit" class="btn chat-modal__add-room-btn js_chat-modal__add-room-btn js_chat-modal__action"
+                i18n="chat.labels.createNewRoom">Create multi-user room
+        </button>
+    </form>
+</script>
+

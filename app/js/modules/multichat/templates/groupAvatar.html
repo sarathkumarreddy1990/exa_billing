@@ -1,0 +1,11 @@
+<%
+    chatGroupAvatarType = chatGroupAvatarType ? chatGroupAvatarType : '';
+%>
+<div class="chat-group-avatar <%= chatGroupAvatarType %>">
+    <% if (groupId != null) { %>
+        <div class="chat-group-avatar__img" alt=""/>
+    <% } %>
+    <div class="chat-group-avatar-initials">
+        <span class="chat-group-avatar-initials__text"><%= initials %></span>
+    </div>
+</div>

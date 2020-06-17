@@ -50,6 +50,7 @@ const ahsController = {
                 uploaded_file_name,
                 file_type,
                 file_id,
+                can_submitter_prefix,
                 log_details
             } = file;
 
@@ -63,14 +64,14 @@ const ahsController = {
                 logger.error(`Error in file read - ${filePath}`, e);
             }
 
-            let fileData = ahsController.decode(file_type, fileContent);
+            let fileData = ahsController.decode(file_type, fileContent, can_submitter_prefix);
 
             await ahsData.updateFileStatus({
                 status: 'in_progress',
                 fileId: file_id
             });
 
-            await ahsController.process({
+            let processResult = await ahsController.process({
                 company_id: args.company_id,
                 companyId: args.companyId,
                 fileData,
@@ -80,7 +81,25 @@ const ahsController = {
                 ip
             });
 
-            return await eraData.updateERAFileStatus({file_id});
+            let status;
+
+            if (file_type == 'can_ahs_bbr') {
+                let [{
+                    bbr_response = []
+                }] = processResult && processResult.rows || [{}];
+                status = bbr_response && bbr_response.length ? 'success' : 'failure';
+            }
+            else if(file_type == 'can_ahs_ard') {
+                let [{
+                    applied_payments = []
+                }] = processResult && processResult.rows || [{}];
+                status = applied_payments && applied_payments.length ? 'success' : 'failure';
+            }
+
+            return await ahsData.updateFileStatus({
+                fileId: file_id,
+                status
+            });
         });
 
         return await Promise.all(promises);
@@ -91,14 +110,15 @@ const ahsController = {
      * Function used to parse the Batch balance and ARD file to JSON format
      * @param {data} Object {
      *                      file_type,
-     *                      fileData
+     *                      fileData,
+     *                      submitterPrefix
      *                      }
      *
      */
-    decode: (fileType, fileData) => {
+    decode: (fileType, fileData, submitterPrefix) => {
 
         if(fileType === 'can_ahs_bbr') {
-            return parser.parseBatchBalanceFile(fileData);
+            return parser.parseBatchBalanceFile(fileData, submitterPrefix);
         }
         else if(fileType === 'can_ahs_ard'){
             return parser.parseARDFile(fileData);

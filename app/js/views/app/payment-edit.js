@@ -1356,8 +1356,8 @@ define(['jquery',
                     gridelementid: '#tblpendPaymentsGridOnly',
                     custompager: this.pendPaymtInvoicePager,
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
-                    i18nNames: ['', '', '', '', '', '', 'billing.fileInsurance.claimNo', 'billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.fileInsurance.claimDt', 'billing.payments.billFee', 'billing.payments.balance', 'shared.fields.cptCodes', 'setup.userSettings.accountNo', '', ''],
+                    colNames: ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',''],
+                    i18nNames: ['', '', '', '', '', '', 'billing.fileInsurance.claimNo','billing.fileInsurance.ordFacility','billing.fileInsurance.invoiceNo', 'billing.payments.patient', 'billing.fileInsurance.claimDt', 'billing.payments.billFee', 'billing.payments.balance', 'shared.fields.cptCodes', 'setup.userSettings.accountNo', '', ''],
                     colModel: [
                         {
                             name: 'edit', width: 20, sortable: false, search: false,
@@ -1387,6 +1387,7 @@ define(['jquery',
                         { name: 'charge_id', hidden: true },
                         { name: 'claim_dt', hidden: true },
                         { name: 'claim_id', width: 150 },
+                        { name: 'ordering_facility_name', width: 150 },
                         { name: 'invoice_no', width: 150 },
                         { name: 'full_name', width: 250 },
                         { name: 'claim_date', width: 250, formatter: self.claimDateFormatter },
@@ -3498,7 +3499,13 @@ define(['jquery',
                 var details = data && data[0] || {};
 
                 if (app.billingRegionCode === 'can_AB') {
-                    $('#ddlClaimStatus').prop('disabled', details && details.primary_ins_provider_code.toLowerCase() === 'ahs');
+                    var currentClaimStatus = app.claim_status.find(function(obj) {
+                        return obj.id === details.claim_status_id;
+                    });
+                    var disableClaimStatus = details && details.primary_ins_provider_code.toLowerCase() === 'ahs';
+                    var enableClaimStatus = disableClaimStatus && ['PIF', 'APP', 'AOP'].indexOf(currentClaimStatus.code) !== -1;
+
+                    $('#ddlClaimStatus').prop('disabled', disableClaimStatus && !enableClaimStatus);
                 } else if (app.billingRegionCode === 'can_MB') {
                     var queryClaimStatusId, p77ClaimStatusId;
 

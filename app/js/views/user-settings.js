@@ -30,7 +30,7 @@ define([
             render: function () {
                 var self = this;
                 userID = app.userID;
-                this.$el.html(template({
+                this.$el.html(self.template({
                     country_alpha_3_code: app.country_alpha_3_code,
                     province_alpha_2_code: app.province_alpha_2_code,
                     billing_region_code: app.billingRegionCode
@@ -144,7 +144,10 @@ define([
                     var i18nLabel = field_order[i].i18n_name;
                     var newLi = $('<li>');
                     var newCB = CreateCheckBox(value, id, i18nLabel);
-                    var defaultOptions = ['Billing Method', 'Patient Name', 'Claim Date', 'Clearing House', 'Billing Provider','Patient','Study Date','Account#','Status','Accession#', 'Billed Status','Payer Type','Claim Status','Claim No', 'AHS Claim Num'];
+                    var defaultOptions = ['Billing Method', 'Patient Name', 'Claim Date', 'Clearing House', 'Billing Provider','Patient','Study Date','Account#','Status','Accession#', 'Billed Status','Payer Type','Claim Status','Claim No'];
+                    if ( app.billingRegionCode === 'can_AB' ) {
+                        defaultOptions.push('AHS Claim Num');
+                    }
                     if (defaultOptions.indexOf(value) != -1) {
                         newCB.find('input[type=checkbox]').attr('data_name', screenName).addClass('chkBillFields').prop("disabled", "true").attr('checked', true);
 
@@ -164,7 +167,7 @@ define([
                     newLi.append(newCB);
                     newLi.append(inputText);
                     $('#' + listID).append(newLi);
-                    if (_.contains(checkedGridFields, field_order[i].id)) {
+                    if (_.includes(checkedGridFields, field_order[i].id)) {
                         newCB.find('input[type=checkbox]').attr('data_name', screenName).addClass('chkBillFields').attr('checked', true);
                     }
                 }

@@ -138,7 +138,7 @@ const sftpService = {
         }
         finally {
             sftp.end();
-            logger.error('AHS SFTP files upload process done');
+            logger.info('AHS SFTP files upload process done');
         }
     },
 
@@ -269,7 +269,7 @@ const sftpService = {
         }
         finally {
             sftp.end();
-            logger.error('AHS SFTP files download process done');
+            logger.info('AHS SFTP files download process done');
         }
 
     },

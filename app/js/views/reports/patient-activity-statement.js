@@ -98,11 +98,15 @@ define([
                         billingProviderIds: claimInfo.billingProId,
                         sDate: moment().format('MM/DD/YYYY'),
                         billingComments: claimInfo.billingComments,
-                        claimId : claimInfo.claimID
+                        billingAddressTaxNpi: claimInfo.billingAddressTaxNpi,
+                        claimId : claimInfo.claimID,
+                        claimIds: claimInfo.selectedClaimIds || []
                     }
                 }
 
                 urlParams.dateFormat = this.viewModel.dateFormat;
+                urlParams.async = false;
+                urlParams.save = false;
                 var options = {
                     'id': reportName,
                     'category': this.viewModel.reportCategory,
@@ -152,7 +156,8 @@ define([
                                 toDate: claimInfo.toDate,
                                 billingProviderIds: claimInfo.billingProId,
                                 sDate: moment().format('MM/DD/YYYY'),
-                                billingComments: claimInfo.billingComments
+                                billingComments: claimInfo.billingComments,
+                                claimIds: claimInfo.selectedClaimIds || []
                         }
                     }
                 $('#divPageLoading').hide();

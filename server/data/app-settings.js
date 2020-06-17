@@ -269,7 +269,7 @@ module.exports = {
                                     WHERE
                                         company_id = ${companyID} AND inactivated_dt IS NULL) AS payment_reasons)
                 , cte_modifiers AS(
-                                     SELECT Json_agg(Row_to_json(modifiers)) modifiers
+                                    SELECT Json_agg(Row_to_json(modifiers)) modifiers
                                     FROM  (
                                         SELECT id,
                                         modifier_amount,
@@ -284,7 +284,11 @@ module.exports = {
                                         modifier3,
                                         modifier4
                                         FROM   modifiers
-                                        WHERE  company_id=${companyID}  ) AS modifiers)
+                                        WHERE  company_id=${companyID}
+                                        AND ( (effective_date IS NULL AND end_date IS NULL)
+                                              OR (CURRENT_DATE between effective_date AND end_date)
+                                            )
+                                    ) AS modifiers)
                 ,cte_user_facilities as(
                                     SELECT Json_agg(Row_to_json(userFacilities)) "userFacilities"
                                     FROM   (
@@ -388,14 +392,12 @@ module.exports = {
                             , description
                         FROM billing.cas_reason_codes ) AS cas_reason_codes
                 ),
-                
                 cte_cities AS (
                     SELECT
                         JSON_AGG(c) cities
                     FROM
-                        ( SELECT * FROM cities ) c                
+                        ( SELECT * FROM cities ) c
                 ),
-                
                 cte_grid_filter AS(
                     SELECT json_agg(row_to_json(grid_filter))grid_filter
                         FROM

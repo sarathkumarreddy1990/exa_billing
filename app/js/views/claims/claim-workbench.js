@@ -582,9 +582,10 @@ define(['jquery',
                                ADP - AHS Delete Pending
                                AD  - AHS Deleted
                                PA  - Pending Acknowledgement
-                               R   - Rejected */
+                               R   - Rejected
+                               D   - Denied */
 
-                            var excludeClaimStatus = ['PA', 'ADP', 'AD', 'R'];
+                            var excludeClaimStatus = ['PA', 'ADP', 'AD', 'R', 'D'];
 
                             if (excludeClaimStatus.indexOf(claimStatus) > -1) {
                                 commonjs.showWarning('messages.status.pleaseSelectValidClaimsStatus');
@@ -2900,8 +2901,10 @@ define(['jquery',
                             commonjs.hideLoading();
 
                             var isValidClaimData = data.validClaim_data && data.validClaim_data.rows && data.validClaim_data.rows.length;
+                            var updateAhsClaimStatusFlag = app.billingRegionCode === 'can_AB' && data.invalidStatus_claims.length;
+                            var pending77ClaimStatusFlag = app.billingRegionCode === 'can_MB' && data.validP77Claim_data.length;
 
-                            if ((app.billingRegionCode === 'can_MB' && data.validP77Claim_data.length) || isValidClaimAvailable) {
+                            if (pending77ClaimStatusFlag || updateAhsClaimStatusFlag || isValidClaimData) {
                                 commonjs.showStatus("messages.status.validatedSuccessfully");
                             }
 

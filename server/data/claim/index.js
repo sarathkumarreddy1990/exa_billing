@@ -495,7 +495,6 @@ module.exports = {
                     , rend_pc.can_ahs_locum_arrangement AS can_ahs_locum_arrangement_provider
                     , c.can_ahs_claimed_amount_indicator
                     , c.can_confidential
-                    , c.can_ahs_good_faith
                     , c.can_ahs_newborn_code
                     , c.can_ahs_emsaf_reason
                     , c.can_ahs_paper_supporting_docs

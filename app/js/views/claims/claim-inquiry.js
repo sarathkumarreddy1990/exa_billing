@@ -426,10 +426,21 @@ define([
                     gridelementid: '#tblPatientClaimsGrid',
                     custompager: this.claimsPager,
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['', 'Claim Number', 'Claim Date', 'Billing Fee', 'Total Adjustment','Total Insurance Payments', 'Total Patient Payments', 'Balance', 'Claim Status', 'Current responsibility'],
-                    i18nNames: ['', 'billing.fileInsurance.claimNo', 'billing.claims.claimDate', 'billing.COB.billingFee','billing.fileInsurance.totalAdjustment', 'billing.claims.totalInsurancePayments', 'billing.claims.totalPatientPayments', 'billing.claims.Balance', 'billing.claims.claimStatus', 'billing.claims.currentResponsibility'],
+                    colNames: ['', '', 'Claim Number', 'Claim Date', 'Billing Fee', 'Total Adjustment','Total Insurance Payments', 'Total Patient Payments', 'Balance', 'Claim Status', 'Current responsibility'],
+                    i18nNames: ['', '', 'billing.fileInsurance.claimNo', 'billing.claims.claimDate', 'billing.COB.billingFee','billing.fileInsurance.totalAdjustment', 'billing.claims.totalInsurancePayments', 'billing.claims.totalPatientPayments', 'billing.claims.Balance', 'billing.claims.claimStatus', 'billing.claims.currentResponsibility'],
                     colModel: [
                         { name: '', index: 'claim_id', key: true, hidden: true, search: false },
+                        {
+                            name: 'chk_claims',
+                            width: 20,
+                            sortable: false,
+                            resizable: false,
+                            search: false,
+                            isIconCol: true,
+                            formatter: function (cellvalue, option, rowObject) {
+                                return '<input type="checkbox" name="chkClaims" id="chkClaims_' + rowObject.claim_id + '" />';
+                            }
+                        },
                         {
                             name: 'claim_id', search: false, width: 70
                         },
@@ -480,6 +491,10 @@ define([
                     },
                     pager: '#gridPager_PatientClaim',
                     onaftergridbind: self.afterGridBind,
+                    beforeSelectRow: function (rowID, e, options) {
+                        var rowObj = $(e.currentTarget).find('#' + rowID);
+                        $('#chkClaims' + '_' + rowID).prop('checked', rowObj.hasClass('customRowSelect'));
+                    },
                     setCustomData: function (){
                         return {
                             claimID: self.patientId,
@@ -1315,6 +1330,12 @@ define([
                     el: $('#reportFrame')
                 });
 
+                var claimIds = [];
+
+                $('#tblPatientClaimsGrid').find('input[name=chkClaims]:checked').each(function () {
+                    claimIds.push($(this).closest('tr').attr('id'));
+                });
+
                 return {
                     'claimID': claimId,
                     'flag': "patient-activity-statement",
@@ -1323,7 +1344,9 @@ define([
                     'fromDate': reportBy ? '': fromDate,
                     'toDate': reportBy ? '': toDate,
                     'billingProId': selectedBillingProList || [],
-                    'billingComments': $('#bindComments').prop('checked')
+                    'billingComments': $('#bindComments').prop('checked'),
+                    'billingAddressTaxNpi': $('#bindAddressTaxNpi').prop('checked'),
+                    'selectedClaimIds': claimIds
                 }
             },
 
