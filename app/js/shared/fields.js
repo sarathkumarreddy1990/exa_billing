@@ -858,6 +858,34 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                             "value": casReasonCodes
                         }
                     }
+                },
+                "Alt Account No": {
+                    "id": 72,
+                    "field_name": "Alt Account No",
+                    "i18n_name": "patient.advancedSearch.altAccountNo",
+                    "field_info": {
+                        "custom_name": "Alt Account No",
+                        "name": "pid_alt_account",
+                        "width": 150,
+                        "searchFlag": "%",
+                        "sortable": true,
+                        "defaultValue": ""
+                    },
+                    "field_code": "pid_alt_account"
+                },
+                "PHN": {
+                    "id": 73,
+                    "field_name": "PHN",
+                    "i18n_name": "shared.fields.phnuli",
+                    "field_info": {
+                        "custom_name": "PHN",
+                        "name": "phn_alt_account",
+                        "width": 150,
+                        "searchFlag": "%",
+                        "sortable": true,
+                        "defaultValue": ""
+                    },
+                    "field_code": "phn_alt_account"
                 }
             });
         }else{
@@ -1134,6 +1162,35 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     }
                 },
                 "field_code": "facility_name"
+            },
+            "Alt Account No": {
+                "id": 72,
+                "field_name": "Alt Account No",
+                "i18n_name": "patient.advancedSearch.altAccountNo",
+                "field_info": {
+                    "custom_name": "Alt Account No",
+                    "name": "pid_alt_account",
+                    "width": 150,
+                    "searchFlag": "%",
+                    "sortable": true,
+                    "defaultValue": ""
+                },
+                "field_code": "pid_alt_account"
+            },
+            "PHN": {
+                "id": 73,
+                "field_name": "PHN",
+                "i18n_name": "shared.fields.phnuli",
+                "field_info": {
+                    "custom_name": "PHN",
+                    "name": "phn_alt_account",
+                    "width": 150,
+                    "searchFlag": "%",
+                    "sortable": true,
+                    "defaultValue": ""
+                },
+                
+                "field_code": "phn_alt_account"
             },
             "Reading Physician": {
                 "id": 18,
