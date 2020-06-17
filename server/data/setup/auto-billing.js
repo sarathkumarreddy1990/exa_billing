@@ -139,6 +139,8 @@ const getSaveClaimParams = async (params) => {
         saveClaimParams.claims.can_ahs_claimed_amount_indicator = false;
         saveClaimParams.claims.can_confidential = false;
         saveClaimParams.claims.can_ahs_paper_supporting_docs = false;
+        saveClaimParams.claims.can_ahs_pay_to_code = 'BAPY';
+        saveClaimParams.claims.can_ahs_business_arrangement = saveClaimParams.claims.can_ahs_business_arrangement_facility || null;
     }
 
     return saveClaimParams;
