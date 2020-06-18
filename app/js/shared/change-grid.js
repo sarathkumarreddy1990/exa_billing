@@ -870,7 +870,6 @@ define('change-grid', [ 'jquery' ], function ( jQuery ) {
             getTempStudyStatus: getTempStudyStatus,
             getLinkStudy: getLinkStudy,
             getUnlinkStudy: getUnlinkStudy,
-            getLocked: getLocked,
             getAuthorizations: getAuthorizations,
             getNotes: getNotes,
             getOrderNotes: getOrderNotes,
