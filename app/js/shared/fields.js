@@ -53,7 +53,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         //Determine which CAS Codes are integers and which are strings
         for (var i = 0; i < app.cas_reason_codes.length; i++) {
             var indCode = app.cas_reason_codes[i].code;
-            if (isNaN(parseInt(indCode))) {
+            if (isNaN(indCode)) {
                 characters.push(indCode);
             } else {
                 integers.push(parseInt(indCode));
@@ -551,15 +551,15 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     }
                 },
                 "AHS Claim Num": {
-                    "id": 69,
+                    "id": 70,
                     "field_code": "can_ahs_claim_no",
                     "field_name": "AHS Claim Num",
-                    "i18n_name": "setup.userSettings.claimNo",
+                    "i18n_name": "setup.cptCodes.can_ahs.ahsclaimno",
                     "field_info": {
                         "custom_name": "AHS Claim Num",
                         "name": "can_ahs_claim_no",
                         "width": 75,
-                        "hidden": !(app.country_alpha_3_code === 'can' && app.province_alpha_2_code === 'AB')
+                        "hidden": app.billingRegionCode !== "can_AB"
                     }
                 },
                 "Invoice": {
@@ -804,31 +804,15 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "defaultValue": ""
                     }
                 },
-                "Microfilm Number": {
-                    "id": 71,
-                    "field_code": "can_mhs_microfilm_no",
-                    "field_name": "Microfilm Number",
-                    "i18n_name": "setup.userSettings.microfilmNumber",
-                    "field_info": {
-                        "custom_name": "Microfilm Number",
-                        "name": "can_mhs_microfilm_no",
-                        "width": 250,
-                        "searchFlag": "%",
-                        "sortable": true,
-                        "defaultValue": "",
-                        "hidden": !(app.billingRegionCode === 'can_MB')
-                    }
-                },
-                "Claim Action": {
-                    "id": 43,
+                "AHS Claim Action": {
+                    "id": 44,
                     "field_code": "claim_action",
-                    "field_name": "Claim Action",
+                    "field_name": "AHS Claim Action",
                     "i18n_name": "billing.claims.canAhs.claimAction",
                     "field_info": {
-                        "custom_name": "Claim Action",
+                        "custom_name": "AHS Claim Action",
                         "name": "claim_action",
                         "width": 250,
-                        "searchFlag": "=",
                         "sortable": false,
                         "defaultValue": "",
                         "stype": "select",
@@ -839,7 +823,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                             "value": claimAction,
                             "tempvalue": claimAction
                         },
-                        "hidden": !app.billingRegionCode === 'can_AB'
+                        "hidden": app.billingRegionCode !== 'can_AB'
                     }
                 },
                 "Reason Code": {
@@ -857,6 +841,21 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "searchoptions": {
                             "value": casReasonCodes
                         }
+                    }
+                },
+                "Microfilm Number": {
+                    "id": 71,
+                    "field_code": "can_mhs_microfilm_no",
+                    "field_name": "Microfilm Number",
+                    "i18n_name": "setup.userSettings.microfilmNumber",
+                    "field_info": {
+                        "custom_name": "Microfilm Number",
+                        "name": "can_mhs_microfilm_no",
+                        "width": 250,
+                        "searchFlag": "%",
+                        "sortable": true,
+                        "defaultValue": "",
+                        "hidden": !(app.billingRegionCode === 'can_MB')
                     }
                 },
                 "Alt Account No": {
@@ -1189,7 +1188,6 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "sortable": true,
                     "defaultValue": ""
                 },
-                
                 "field_code": "phn_alt_account"
             },
             "Reading Physician": {
@@ -1687,17 +1685,18 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 },
                 "field_code": "claim_no"
             },
-            "AHS Claim #": {
-                "id": 69,
-                "field_name": "AHS Claim #",
-                "i18n_name": "setup.userSettings.claimNo",
+            "AHS Claim Num": {
+                "id": 70,
+                "field_name": "AHS Claim Num",
+                "i18n_name": "setup.cptCodes.can_ahs.ahsclaimno",
                 "field_info": {
-                    "custom_name": "AHS Claim #",
-                    "name": "can_ahs_claim_id",
+                    "custom_name": "AHS Claim Num",
+                    "name": "can_ahs_claim_no",
                     "search": false,
                     "sortable": false,
                     "width": 200,
-                    "defaultValue": ""
+                    "defaultValue": "",
+                    "hidden": app.billingRegionCode !== "can_AB"
                 },
                 "field_code": "can_ahs_claim_no"
             },

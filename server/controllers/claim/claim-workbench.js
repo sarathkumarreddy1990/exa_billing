@@ -609,7 +609,8 @@ module.exports = {
 
         let validation_result = {
             invalidClaim_data: [],
-            validClaim_data: []
+            validClaim_data: [],
+            invalidStatus_claims: []
         };
 
         let error_data;
@@ -639,7 +640,7 @@ module.exports = {
             }
 
             if (!errorMessages.length) {
-                params.success_claimID.push(currentClaim.claim_id);
+                currentClaim.claim_status_code !== 'PV' && validation_result.invalidStatus_claims.push(currentClaim.claim_id) || params.success_claimID.push(currentClaim.claim_id);
             }
             else {
                 error_data = {

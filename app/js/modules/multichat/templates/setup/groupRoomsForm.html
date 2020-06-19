@@ -1,0 +1,56 @@
+<div class="content chat-group-rooms">
+    <form class="form-horizontal form-list" id="inputGroupRoomsForm" novalidate="" _lpchecked="">
+        <div class="row">
+            <div class="col-xs-6 col-md-6 col-lg-6">
+                <div class="form-group form-inline">
+                    <div class="col-form-label">
+                        <label class="control-label field-required" for="txtGroupRoomsName" i18n="chat.labels.groupRoomName"></label>
+                    </div>
+                    <div class="col-form-content">
+                        <div>
+                            <input maxlength="60" type="text" id="txtGroupRoomsName" name="GroupRoomsName" class="form-control fc-short">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row add-table-members">
+            <div class="col-xs-6 col-md-6 col-lg-6">
+                <div id="" class="col-form-content">
+                    <div class="form-group form-inline">
+                        <div class="col-form-label">
+                            <label class="control-label" for="groupRoomMembers" i18n="chat.labels.groupRoomMembers"></label>
+                        </div>
+                        <div class="col-form-content">
+                            <div>
+                                <input type="hidden" id="groupRoomMembers" name="chatRoomMembers" class="form-control-select2">
+                                <a class="btn btn-primary" id="btnAddGroupRoomMembers" title=""><i class="icon-ic-plus"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <ul id="ulGroupRoomsMembers" class="tagList ulListHeight"></ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-6 col-md-6 col-lg-6 table-header">
+                <div id="GroupVisibility" class="col-form-content">
+                    <div class="form-group form-inline">
+                        <div class="col-form-label">
+                            <label class="control-label" for="usersGroupVisibility" i18n="chat.labels.usersGroupVisibility"></label>
+                        </div>
+                        <div class="col-form-content">
+                            <div>
+                                <input type="hidden" id="usersGroupVisibility" name="usersGroupVisibility" class="form-control-select2">
+                                <a class="btn btn-primary" id="btnAddGroupRoomVisibility" title=""><i class="icon-ic-plus"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <ul id="ulGroupVisibility" class="tagList ulListHeight"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>

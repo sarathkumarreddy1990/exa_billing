@@ -1014,12 +1014,6 @@ define(['jquery',
                 $('#txtPayToDetailsPostalCode').val(pay_to_details.postal_code);
                 $('#ddlPayToDetailsCountryCode').val(pay_to_details.country_code).change();
 
-                // Good Faith only for Alberta residents without a ULI / PHN
-                if ( claim_data.can_ahs_good_faith || (!claim_data.can_ahs_uli_phn) ) {
-                    $('#divGoodFaith').show();
-                    $('#chkGoodFaith').prop('checked', claim_data.can_ahs_good_faith);
-                }
-
                 var $businessArrangement = $('input[name="BusinessArrangement"]');
 
                 self.can_ahs_business_arrangement = claim_data.can_ahs_business_arrangement;
@@ -1183,8 +1177,23 @@ define(['jquery',
                     var removeChargeIcons = $('#tblCharge').find('th.addCharge, th.removeCharge');
                     var btnCreateCharge = $('#createNewCharge');
                     if (self.isEdit) {
-                        $('#ddlFrequencyCode option[value="corrected"]').prop('disabled', !commonjs.isValidClaimStatusToSubmit('change', data.claim_status_code));
-                        $('#ddlClaimStatus').prop('disabled', self.priInsCode.toLowerCase() === 'ahs');
+                        // Choose default frequency code on edit claim
+                        var frequencyElement = $('#ddlFrequencyCode');
+                        var isRejectedClaimStatus = ['R', 'BR', 'D'].indexOf(data.claim_status_code) !== -1;
+                        var actionCode = commonjs.isValidClaimStatusToSubmit('change', data.claim_status_code)
+                        ? 'corrected'
+                        : isRejectedClaimStatus
+                            ? ''
+                            : data.frequency;
+                        var disableCorrected = isRejectedClaimStatus || !actionCode;
+                        var disableClaimStatus = self.priInsCode.toLowerCase() === 'ahs';
+                        var enableClaimStatus = disableClaimStatus && ['PIF', 'APP', 'AOP'].indexOf(data.claim_status_code) !== -1;
+
+                        frequencyElement.find('option[value=""]').prop('disabled', !disableCorrected);
+                        frequencyElement.find('option[value="corrected"]').prop('disabled', disableCorrected);
+                        frequencyElement.find('option[value="'+ actionCode +'"]').prop('selected', 'selected');
+
+                        $('#ddlClaimStatus').prop('disabled', disableClaimStatus && !enableClaimStatus);
 
                         //EXA-18272 - Restrict to add/remove new charge on edit claim for alberta billing
                         $("td span.addChargeLine").parent().remove();
@@ -3474,7 +3483,6 @@ define(['jquery',
                     can_ahs_locum_arrangement: self.can_ahs_locum_arrangement || null,
                     can_ahs_claimed_amount_indicator: $('#chkClaimedAmountIndicator').prop('checked') || false,
                     can_confidential: $('#chkConfidential').prop('checked') || false,
-                    can_ahs_good_faith: $('#chkGoodFaith').prop('checked') || false,
                     can_ahs_paper_supporting_docs: $('#chkSupportingDocumentationSeparate').prop('checked') || false,
                     can_ahs_newborn_code: $.trim($('#ddlNewbornCode option:selected').val()) || null,
                     can_ahs_emsaf_reason: $.trim($('#txtReasonAdditionalCompensation').val()) || null,
@@ -3564,6 +3572,20 @@ define(['jquery',
                         }
                     }
                 });
+
+                // Change Claim status to Pending Submission after correction
+                if (app.billingRegionCode === 'can_AB' && self.isEdit) {
+                    var claimData = claim_model && claim_model.claims || null;
+                    var claimStatusObj = app.claim_status.find(function(e) {
+                        return e.id == claimData.claim_status_id;
+                    });
+                    var pendingSubmissionObj = app.claim_status.find(function(e) {
+                        return e.code === 'PS';
+                    });
+
+                    claimData.claim_status_id = ['AZP', 'BR', 'R', 'D'].indexOf(claimStatusObj.code) !== -1 ? pendingSubmissionObj.id : claim_status_id;
+                }
+
 
                 // Assign If any charges removed
                 claim_model.removed_charges = self.removedCharges || [];
@@ -4351,7 +4373,7 @@ define(['jquery',
                     type: 'GET',
                     data: {
                         patient_id: id,
-                        current_date: self.studyDate
+                        current_date: moment(self.studyDate, 'L').format('YYYY-MM-DD')
                     },
                     success: function (data, response) {
 
@@ -4476,7 +4498,7 @@ define(['jquery',
             updateReportURL: function (patient_id, order_id, study_id) {
                 if (window.reportWindow && window.reportWindow.location.hash) {
                     var queryParams = window.reportWindow.location.hash.split("?")[1];
-                    window.reportWindow.location.hash = '#patient/patientReport/all/' + btoa(patient_id) + '/' + btoa(order_id) + '/' + btoa(study_id) + '?' + queryParams;
+                    window.reportWindow.location.hash = '#multipanel-billing-docs/'  + btoa(study_id)  + '/' + btoa(patient_id) + '/' + btoa(order_id)  + '?' + queryParams;
                 }
             },
 

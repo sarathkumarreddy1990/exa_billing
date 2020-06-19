@@ -155,8 +155,8 @@ LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
  LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
  LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
   <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
-      WHERE 1 = 1
-      AND <%=companyId%>
+      WHERE
+      <%=companyId%>
       <% if (facilityIds) { %>AND <% print(facilityIds); } %>
       <% if(billingProID) { %> AND <% print(billingProID); } %>
       <% if(excCreditBal == 'true'){ %> AND  gcd.balance::money > '0' <% } %>

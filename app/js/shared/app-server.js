@@ -43,7 +43,7 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                 default_column: 'claim_id',
                 default_column_order_by: "Desc",
                 default_tab: 'All_Claims',
-                field_order: [1, 19, 2, 12, 22, 27, 11, 17],
+                field_order: [1, 19, 70, 2, 12, 22, 27, 11, 17],
                 grid_field_settings: [
                     {
                         "name": "Claim Date",
@@ -57,7 +57,7 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                     },
                     {
                         "name": "AHS Claim Num",
-                        "id": 69,
+                        "id": 70,
                         "width": 200
                     },
                     {
@@ -105,17 +105,17 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                         app.usersettings.push(studySetting);
                         app.usersettings.push(claimSetting);
                     } else if (app.usersettings.length <= 1) {
-                        if (!_.where(app.usersettings, { grid_name: 'studies' }).length) {
+                        if (!_.filter(app.usersettings, { grid_name: 'studies' }).length) {
                             app.usersettings.push(studySetting)
                         }
 
-                        if (!_.where(app.usersettings, { grid_name: 'claims' }).length) {
+                        if (!_.filter(app.usersettings, { grid_name: 'claims' }).length) {
                             app.usersettings.push(claimSetting)
                         }
                     }
 
-                    app.study_user_settings = _.where(app.usersettings, { grid_name: 'studies' })[0];
-                    app.claim_user_settings = _.where(app.usersettings, { grid_name: 'claims' })[0];
+                    app.study_user_settings = _.filter(app.usersettings, { grid_name: 'studies' })[0];
+                    app.claim_user_settings = _.filter(app.usersettings, { grid_name: 'claims' })[0];
                     app.study_user_settings.grid_field_settings = app.study_user_settings.grid_field_settings || studySetting.grid_field_settings;
                     app.claim_user_settings.grid_field_settings = app.claim_user_settings.grid_field_settings || claimSetting.grid_field_settings;
                     app.default_study_tab = app.study_user_settings.default_tab;

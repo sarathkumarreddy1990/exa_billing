@@ -3,9 +3,11 @@ node_modules/
 build/
 dist/
 yarn.lock
-.vscode/
 build2/
+
+app/package-lock.json
 
 # ignore project files
 .idea
 *.code-workspace
+.vscode/
