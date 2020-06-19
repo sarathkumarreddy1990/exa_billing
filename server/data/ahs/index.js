@@ -587,8 +587,16 @@ const ahsData = {
                         ON s.id = bchs.study_id
                     LEFT JOIN public.orders o
                         ON o.id = s.order_id
-                    LEFT JOIN public.study_transcriptions st
-                        ON st.study_id = s.id
+                    LEFT JOIN LATERAL (
+                        SELECT
+                            study_id,
+                            approving_provider_id,
+                            approved_dt
+                        FROM study_transcriptions
+                        WHERE study_id = s.id
+                        ORDER BY approved_dt DESC
+                        LIMIT 1
+                    ) st ON TRUE
                     LEFT JOIN public.companies comp
                         ON comp.id = s.company_id
                     LEFT JOIN public.provider_contacts pc_app
