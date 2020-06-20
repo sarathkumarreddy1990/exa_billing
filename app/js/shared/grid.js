@@ -1839,7 +1839,7 @@ define('grid', [
             if(app.billingRegionCode === 'can_AB') {
                 var liClaimReassess = commonjs.getRightClickMenu('anc_claim_reassess', 'setup.rightClickMenu.claimReassess', false, 'Claim Reassess', false);
 
-                if (studyArray.length === 1 && gridData.hidden_billing_method === 'electronic_billing') {
+                if (studyArray.length === 1 && gridData.hidden_billing_method === 'electronic_billing' && ['R', 'D', 'BR', 'AD'].indexOf(gridData.hidden_claim_status_code) === -1) {
                     $divObj.append(liClaimReassess);
                 }
 
@@ -1861,6 +1861,10 @@ define('grid', [
 
                 if (gridData.hidden_billing_method === 'electronic_billing') {
                     $('#li_ul_change_claim_status').hide();
+
+                    if (['APP', 'AOP', 'PIF'].indexOf(gridData.hidden_claim_status_code) !== -1) {
+                        $('#li_ul_change_claim_status').show();
+                    }
                 }
 
             } else if (app.billingRegionCode === 'can_MB') {
@@ -1945,6 +1949,8 @@ define('grid', [
                         'validationMessages': data.validationMessages
                     })
                 });
+            } else if (data.isClaimDeleted) {
+                commonjs.showStatus(data.message);
             } else if (data.err) {
                 commonjs.showWarning(data.err);
             } else {
@@ -2004,6 +2010,7 @@ define('grid', [
                             data: {
                                 targetId: studyIds,
                                 type: 'claim',
+                                claimStatusCode: gridData.hidden_claim_status_code,
                                 source: 'delete'
                             }
                         };
@@ -2023,10 +2030,8 @@ define('grid', [
             if (billingRegion === 'can_AB') {
                 if (gridData.hidden_billing_method === 'electronic_billing') {
 
-                    if (gridData.hidden_claim_status_code === 'ADP') {
+                    if (gridData.hidden_claim_status_code === 'ADP' || !commonjs.isValidClaimStatusToSubmit('delete', gridData.hidden_claim_status_code)) {
                         msg = 'billing.claims.canAhs.couldNotDeleteClaimAhsPending';
-                    } else if (!commonjs.isValidClaimStatusToSubmit('delete', gridData.hidden_claim_status_code)) {
-                        msg = 'billing.claims.canAhs.claimCannotBeDeleted';
                     }
                 }
             }

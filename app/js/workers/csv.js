@@ -36,7 +36,7 @@ const claimColumns = {
     "Ordering Facility": "ordering_facility_name",
     "Facility": "facility_name",
     "First Statement Date": "first_statement_dt",
-    "Claim Action": "claim_action",
+    "AHS Claim Action": "claim_action",
     "Reason Code": "reason_code"
 };
 
@@ -167,7 +167,7 @@ function generateCsvData(dbResponse, callback) {
     var csvSimplified = '"' + dbData.map(function (dbRow, rowIndex) {
         var facilityTimeZone = [];
         if (rowIndex) {
-            facilityTimeZone = _.where(facilities, { id: parseInt(dbRow.facility_id) });
+            facilityTimeZone = _.filter(facilities, { id: parseInt(dbRow.facility_id) });
         }
         return columns.map(function (colName, colIndex) {
             var csvText = showLabel && rowIndex == 0 ? colName : dbRow[columnMap[colName]];

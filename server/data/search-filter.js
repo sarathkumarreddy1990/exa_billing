@@ -1061,6 +1061,7 @@ const api = {
         const newFilter = Object.assign(filter, { filter_query });
 
         newFilter.perms_filter = util.getStudyFilterQuery(filter.perm_filter, args.user_id, args.statOverride);
+
         let responseUserSetting=[newFilter];
 
         let permission_query = SQL`
