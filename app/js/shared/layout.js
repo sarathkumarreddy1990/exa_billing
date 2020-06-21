@@ -79,7 +79,8 @@ var layout = {
         'Paper Claim Templates': '#aPaperClaimTemplate',
         'Printer Templates': '#aPrinterTemplate',
         'Payments Realization Rate Analysis': '#aPaymentsRealizationRateAnalysis',
-        'Auto Billing': '#aAutoBilling'
+        'Auto Billing': '#aAutoBilling',
+        'Submission Types': '#aSubmissionTypes'
         /// To be added
     },
 

@@ -1,0 +1,35 @@
+<div class="form-group row">
+    <div class="col-lg-12">
+        <div class="col-lg-6">
+            <form id="formSubmissionTypes" class="form-horizontal">
+                <div class="form-group row">
+                    <label for="txtCode" class="col-sm-3 col-form-label field-required" i18n="setup.common.code"></label>
+                    <div class="col-sm-7">
+                        <input type='text' id="txtCode" class="form-control" name="submissionCode" maxlength="1"></input>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="chkInActive">
+                        <label class="form-check-label" for="chkInActive" i18n="shared.fields.inactive"></label>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtDescription" class="col-sm-3 col-form-label field-required" i18n="setup.common.description"></label>
+                    <div class="col-sm-7">
+                        <textarea rows='3' cols='30' id="txtDescription" class="form-control" name="description" maxlength="100"></textarea>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="ddlCountry" class="col-sm-3 col-form-label field-required" i18n="shared.fields.country"></label>
+                    <div class="col-sm-7">
+                        <select id="ddlCountry" class="form-control select-box">
+                            <% _.each(countries, function(country) { %>
+                            <option value="<%= country.alpha_3_code %>"><%= country.display_name %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                </div>
+                <div id="subTypesProvinceSelect" ></div>
+            </form>
+        </div>
+    </div>
+</div>
