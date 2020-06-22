@@ -119,6 +119,7 @@ define(['jquery',
                 this.billingCodesList = new modelCollection(app.billing_codes);
                 this.billingClassList = new modelCollection(app.billing_classes);
                 this.billingProviderList = new modelCollection(app.billing_providers);
+                this.claimSubmissionCodes = new modelCollection(app.claim_submission_codes);
                 this.InsurancePokitdokTemplateForm = new _.template(insurancePokitdokForm);
                 this.patientsPager = new modelPatientPager();
                 this.patientListcoll = new patientCollection();
@@ -175,6 +176,10 @@ define(['jquery',
             },
             render: function (isFrom) {
                 var self = this;
+                var claimSubmissionCodes = _.filter(self.claimSubmissionCodes.toJSON(), function (obj) {
+                    return obj.country_code.toLowerCase() === app.country_alpha_3_code && obj.province_code === app.province_alpha_2_code
+                });
+
                 self.claimICDLists = [];
                 this.rendered = true;
                 commonjs.showDialog({
@@ -213,6 +218,7 @@ define(['jquery',
                         billingCodesList: self.billingCodesList.toJSON(),
                         billingClassList: self.billingClassList.toJSON(),
                         billingProviderList: self.billingProviderList.toJSON(),
+                        submissionCodes: claimSubmissionCodes,
                         posList: app.places_of_service || [],
                         relationshipList: app.relationship_status || [],
                         chargeList: self.claimChargeList || [],
@@ -1135,6 +1141,7 @@ define(['jquery',
                     $('#ddlClaimResponsible').data('current-payer',claim_data.payer_type);
                     $('#ddlClaimStatus').val(claim_data.claim_status_id || '');
                     $('#ddlFrequencyCode').val(claim_data.frequency || '')
+                    $('#ddlSubmissionCode').val(claim_data.can_submission_code_id || '');
                     $('#ddlPOSType').val(["can_AB", "can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && claim_data.place_of_service_id || '');
                     document.querySelector('#txtClaimDate').value = claim_data.claim_dt ? self.convertToTimeZone(claim_data.facility_id, claim_data.claim_dt).format('L') : '';
                 } else {
@@ -3467,6 +3474,7 @@ define(['jquery',
                     original_reference: $.trim($('#txtOriginalRef').val()),
                     authorization_no: $.trim($('#txtAuthorization').val()),
                     frequency: $('#ddlFrequencyCode option:selected').val() != '' ? $('#ddlFrequencyCode option:selected').val() : null,
+                    can_submission_code_id: parseInt($('#ddlSubmissionCode').val()) || null,
                     is_auto_accident: $('#chkAutoAccident').prop('checked'),
                     is_other_accident: $('#chkOtherAccident').prop('checked'),
                     is_employed: $('#chkEmployment').prop('checked'),

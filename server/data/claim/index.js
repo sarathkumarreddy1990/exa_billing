@@ -474,6 +474,7 @@ module.exports = {
                     , c.original_reference
                     , c.authorization_no
                     , c.frequency
+                    , c.can_submission_code_id
                     , c.is_auto_accident
                     , c.is_other_accident
                     , c.is_employed
