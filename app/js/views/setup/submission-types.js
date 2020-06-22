@@ -27,7 +27,7 @@ define(['jquery',
             model: null,
             submissionTypesTable: null,
             pager: null,
-            countries: { '': 'All', 'usa': 'United States', 'can': 'Canada'},
+            countries: { '': 'All', 'USA': 'United States', 'CAN': 'Canada'},
             provincesForCanada: ["AB", "BC", "MB", "ON", "QC"],
             events: {
                 'change #ddlCountry': 'onChangeCountry'
@@ -190,7 +190,7 @@ define(['jquery',
                         }
                     });
                 } else {
-                    this.bindForm('usa');
+                    this.bindForm('USA');
                     this.model = new SubmissionTypesModel();
                 }
 
@@ -241,7 +241,7 @@ define(['jquery',
             },
 
             getProvinces: function(value) {
-                var provincesArray = (value === 'can' && this.provincesForCanada) || (value === 'usa' && Address.getCountryByAlpha3Code(value).provinces)
+                var provincesArray = (value === 'CAN' && this.provincesForCanada) || (value === 'USA' && Address.getCountryByAlpha3Code('usa').provinces)
                                 || Address.getCountryByAlpha3Code('usa').provinces.concat(this.provincesForCanada);
 
                 var provinces =  _.reduce(provincesArray, function (result, data) {
