@@ -72,6 +72,7 @@ module.exports = {
                     , pay_to_fax_number
                     , communication_info
                     , can_bc_is_alt_payment_program
+                    , can_bc_data_centre_number
                     , COUNT(1) OVER (range unbounded preceding) as total_records
                 FROM   billing.providers `;
 
@@ -130,6 +131,7 @@ module.exports = {
                     , pay_to_fax_number
                     , communication_info
                     , can_bc_is_alt_payment_program
+                    , can_bc_data_centre_number
                 FROM   billing.providers
                 WHERE
                     id = ${id} `;
@@ -171,6 +173,7 @@ module.exports = {
             companyId,
             isActive,
             canIsAlternatePaymentProgram,
+            dataCentreNumber, 
         } = params;
         let inactivated_dt = isActive ? null : 'now()';
 
@@ -206,6 +209,7 @@ module.exports = {
                     , communication_info
                     , company_id
                     , can_bc_is_alt_payment_program
+                    , can_bc_data_centre_number
                     , inactivated_dt)
                 values
                     (
@@ -239,6 +243,7 @@ module.exports = {
                     , ${communicationInfo}
                     , ${companyId}
                     , ${canIsAlternatePaymentProgram}
+                    , ${dataCentreNumber}
                     , ${inactivated_dt})
                 RETURNING *, '{}'::jsonb old_values`;
 
@@ -282,6 +287,7 @@ module.exports = {
             communicationInfo,
             isActive,
             canIsAlternatePaymentProgram,
+            dataCentreNumber,
         } = params;
         let inactivated_dt = isActive ? null : 'now()';
 
@@ -319,6 +325,7 @@ module.exports = {
                 , communication_info = ${communicationInfo}
                 , inactivated_dt = ${inactivated_dt}
                 , can_bc_is_alt_payment_program = ${canIsAlternatePaymentProgram}
+                , can_bc_data_centre_number = ${dataCentreNumber}
                 WHERE
                     id = ${id}
                     RETURNING *,

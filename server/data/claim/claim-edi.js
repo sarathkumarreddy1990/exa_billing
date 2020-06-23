@@ -159,7 +159,7 @@ module.exports = {
 									 if(params.billingRegionCode === 'can_BC'){    
 									sql.append(SQL`,ref_pc.can_prid AS "referring_pro_practitioner_number"
 									, rend_pc.can_prid AS "reading_pro_practitioner_number"
-									, pg.can_bc_data_centre_number AS "service_facility_data_centre_number"
+									, bp.can_bc_data_centre_number AS "service_facility_data_centre_number"
 									, bp.can_bc_payee_number AS "billing_pro_payeeNumber" `);									            
 									}
 
