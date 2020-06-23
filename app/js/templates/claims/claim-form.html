@@ -1312,6 +1312,19 @@
                         <input type="text" class="form-control" id="txtOriginalRef" i18np="billing.claims.originalRef">
                     </div>
                 </div>
+                <% if (billingRegionCode === 'can_BC') { %>
+                <div class="form-group row">
+                    <label for="ddlSubmissionCode" class="col-sm-3 col-form-label" i18n="billing.claims.submissionCode"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlSubmissionCode">
+                            <option value="" i18n="shared.buttons.select"></option>
+                            <% _.each(submissionCodes, function(obj) { %>
+                                <option value="<%= obj.id %>"><%= obj.code %> - <%= obj.description %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                </div>
+                <% } else { %>
                 <div class="form-group row">
                     <label for="ddlFrequencyCode" class="col-sm-3 col-form-label" i18n="billing.claims.frequencyCode"></label>
                     <div class="col-sm-5">
@@ -1328,6 +1341,7 @@
                         </select>
                     </div>
                 </div>
+                <% } %>
             </div>
             <% } %>
 
