@@ -9,7 +9,7 @@
       "RFRC"
     ]
   },
-  "first_name": {
+  "last_name": {
     "format": "A",
     "startPos": 40,
     "length": 30
@@ -19,7 +19,7 @@
     "startPos": 70,
     "length": 12
   },
-  "last_name": {
+  "first_name": {
     "format": "A",
     "startPos": 82,
     "length": 12
