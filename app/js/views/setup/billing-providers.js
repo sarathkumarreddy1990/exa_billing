@@ -272,6 +272,7 @@ define(['jquery',
                                     $('#txtPayBillProPhoneNo').val(data.pay_to_phone_number || '');
                                     $('#txtPayFaxNo').val(data.pay_to_fax_number || '');
                                     $('#txtPayeeNumber').val(data.can_bc_payee_number || '');
+                                    $('#txtDataCentreNumber').val(data.can_bc_data_centre_number || '');
 
                                     $('#chkEnableFTP').prop('checked', !!communication_info.enable_ftp);
                                     $('#txtHostName').val(communication_info.Ftp_host || '');
@@ -506,7 +507,8 @@ define(['jquery',
                     "payToFaxNumber": $('#txtPayFaxNo').val(),
                     "communicationInfo": communication_info,
                     "canIsAlternatePaymentProgram" : $('#chkAltPay').prop('checked'), 
-                    "payeeNumber": $('#txtPayeeNumber').val()
+                    "payeeNumber": $('#txtPayeeNumber').val(),
+                    "dataCentreNumber": $('#txtDataCentreNumber').val()
                 });
 
                 this.model.save({}, {
