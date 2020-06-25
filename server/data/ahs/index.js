@@ -447,9 +447,9 @@ const ahsData = {
                         f.can_facility_number                        AS facility_number,
                         fc.code                                      AS functional_centre,
                         CASE
-                            WHEN f.can_facility_number :: INT > 0
+                            WHEN NULLIF(f.can_facility_number, '') :: INT > 0
                             THEN ''
-                            ELSE COALESCE(o.order_info -> 'patientLocation', 'OTHR')
+                            ELSE COALESCE(NULLIF((o.order_info -> 'patientLocation'), ''), 'OTHR')
                         END                                          AS location_code,
 
                         orig_fac.facility_number                     AS originating_facility,
