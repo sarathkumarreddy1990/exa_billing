@@ -312,21 +312,6 @@ define('change-grid', [ 'jquery' ], function ( jQuery ) {
             return [];
         };
 
-        var getLocked = function ( locked_by ) {
-            var html = locked_by ?
-                       "<i class='fa fa-lock' style='color: red; font-weight: bold;' title='Locked by " + locked_by + "'></i>" :
-                       "";
-            return [
-                {
-                    'field': 'as_locked_by',
-                    'data': html
-                }, {
-                    'field': 'locked_by',
-                    'data': locked_by
-                }
-            ];
-        };
-
         var getAuthorizations = function ( value ) {
             var createEl = function ( cellvalue ) {
                 var authorizations = cellvalue;
@@ -885,7 +870,6 @@ define('change-grid', [ 'jquery' ], function ( jQuery ) {
             getTempStudyStatus: getTempStudyStatus,
             getLinkStudy: getLinkStudy,
             getUnlinkStudy: getUnlinkStudy,
-            getLocked: getLocked,
             getAuthorizations: getAuthorizations,
             getNotes: getNotes,
             getOrderNotes: getOrderNotes,
