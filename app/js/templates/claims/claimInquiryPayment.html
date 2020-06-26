@@ -18,6 +18,11 @@
             <td>
                 <span id="spCIadj_<%= row.charge_id %>"><%= row.adjustment %></span>
             </td>
+            <% if (billingRegionCode === 'can_BC') { %>
+            <td>
+                <span id="spCImspControlNumber_<%= row.charge_id %>"><%= row.can_bc_internal_control_number %></span>
+            </td>   
+            <% } %> 
             <% for(var i=0; i<7; i++) { %> 
                     <% if (row.cas_details && row.cas_details[i] != null) { %>
                             <td>

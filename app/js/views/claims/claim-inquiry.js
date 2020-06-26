@@ -1491,7 +1491,7 @@ define([
 
                         if (data.length > 0) {
 
-                            var paymentCASRow = self.paymentTemplate({ rows: data });
+                            var paymentCASRow = self.paymentTemplate({ rows: data, billingRegionCode: app.billingRegionCode});
                             $('#tBodyCIPayment').append(paymentCASRow);
 
                             self.showCASDescription(data); // to show description of CAS code
