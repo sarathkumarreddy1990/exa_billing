@@ -33,7 +33,7 @@ pipeline {
 	ansiColor('xterm')
 	timestamps()
     }
-    agent { node { label 'windows2016-nvm' } }
+    agent { node { label 'windows2016-node-12.18.0' } }
     stages {
 	stage('Environment') {
 	    steps {

@@ -42,7 +42,7 @@ const getPackageJson = () => {
 
 const fixFilename = (filename) => filename.replace('/', '__');
 
-gulp.task('check-build-environment', () => {
+gulp.task('check-build-environment', (done) => {
     const pkg = getPackageJson();
     const engines = pkg.engines;
     if (!engines) {
@@ -73,14 +73,15 @@ gulp.task('check-build-environment', () => {
         process.exit(1);
     }
     gutil.log('Build environment is valid!');
+    done();
 });
 
 gulp.task('clean', () => {
-    return gulp.src(['./build', './build2', './dist'])
+    return gulp.src(['./build', './build2', './dist'], { allowEmpty: true })
         .pipe(clean());
 });
 
-gulp.task('copy', ['clean'], () => {
+gulp.task('copy', gulp.series('clean', () => {
     return gulp.src([
         './**',
         '!./test/**',
@@ -91,9 +92,9 @@ gulp.task('copy', ['clean'], () => {
         '!./*.code-workspace'
     ])
         .pipe(gulp.dest('./build'));
-});
+}));
 
-gulp.task('install', ['copy'], () => {
+gulp.task('install', gulp.series('copy', () => {
     return gulp.src(['./build/package.json', './build/app/package.json'])
         .pipe(install({
             // npm: '--production',
@@ -103,18 +104,18 @@ gulp.task('install', ['copy'], () => {
             // },
             // yarn: ['--prod', '--silent']
         }));
-});
+}));
 
 /// TODO: Following two tasks should be combined
-gulp.task('less-default', ['install'], () => {
+gulp.task('less-default', gulp.series('install', () => {
     return gulp.src('./app/skins/default/*.less')
         .pipe(less({
             paths: [path.join(__dirname, 'app/skins/default/index.less')]
         }))
         .pipe(gulp.dest('./build/app/skins/default'));
-});
+}));
 
-gulp.task('less', ['less-default'], () => {
+gulp.task('less', gulp.series('less-default', () => {
     return gulp.src([
         './app/skins/dark/*.less'
     ])
@@ -124,9 +125,9 @@ gulp.task('less', ['less-default'], () => {
             ]
         }))
         .pipe(gulp.dest('./build/app/skins/dark'));
-});
+}));
 
-gulp.task('requirejsBuild', ['less'], (done) => {
+gulp.task('requirejsBuild', gulp.series('less', (done) => {
     requirejsConfig = {
         ...requirejsConfig,
         name: 'main',
@@ -154,15 +155,15 @@ gulp.task('requirejsBuild', ['less'], (done) => {
         console.error('requirejs task failed', error)
         process.exit(1);
     });
-});
+}));
 
-gulp.task('compress', ['requirejsBuild'], (done) => {
+gulp.task('compress', gulp.series('requirejsBuild', (done) => {
     pump([
         gulp.src('./build/app/js/main.js'),
         uglify(),
         gulp.dest('./build/app/js')
     ], done);
-});
+}));
 
 gulp.task('compress2', (done) => {
     pump([
@@ -172,14 +173,28 @@ gulp.task('compress2', (done) => {
     ], done);
 });
 
-gulp.task('bump', ['git-init', 'compress'], () => {
-    const bumpType = getBumpType({branch: currentBranch});
-    const dirtyPreID = currentBranch + ( currentBranch === 'release' ? '' : '-' + currentCommit );
+gulp.task('git-init', (done) => {
+    git.init((err) => {
+        if (err) throw err;
+
+        git.revParse({ args: '--abbrev-ref HEAD' }, function (err, branch) {
+            currentBranch = branch;
+        });
+        git.revParse({ args: '--short HEAD' }, function (err, commit) {
+            currentCommit = commit;
+        });
+        done();
+    });
+});
+
+gulp.task('bump', gulp.series('git-init', 'compress', () => {
+    const bumpType = getBumpType({ branch: currentBranch });
+    const dirtyPreID = currentBranch + (currentBranch === 'release' ? '' : '-' + currentCommit);
     const preID = fixFilename(dirtyPreID).replace(/_/g, '-');
     return gulp.src('./package.json')
         .pipe(bump({ type: bumpType, preid: preID }))
         .pipe(gulp.dest('./'));
-});
+}));
 
 function getBumpType(options) {
     if (options.branch.startsWith('release')) {
@@ -191,22 +206,22 @@ function getBumpType(options) {
     }
 }
 
-gulp.task('copy-package-json', ['bump'], () => {
+gulp.task('copy-package-json', gulp.series('bump', () => {
     return gulp.src([
         './package.json'
     ])
         .pipe(gulp.dest('./build'));
-});
+}));
 
-gulp.task('replace', ['copy-package-json'], () => {
+gulp.task('replace', gulp.series('copy-package-json', () => {
     const pkg = getPackageJson();
 
     return gulp.src('./build/server/**/*.pug')
         .pipe(replace(/(\.js|\.css)(\s*'\s*)/g, `$1?v=${pkg.version}'`))
         .pipe(gulp.dest('./build/server/'));
-});
+}));
 
-gulp.task('zip', ['git-init', 'replace'], () => {
+gulp.task('zip', gulp.series('git-init', 'replace', () => {
     const pkg = getPackageJson();
     const buildFileName = `${pkg.name}_${pkg.version}_${fixFilename(currentBranch)}_node-${process.version}_${timestamp}.zip`;
 
@@ -214,7 +229,7 @@ gulp.task('zip', ['git-init', 'replace'], () => {
     return gulp.src('./build/**')
         .pipe(zip(buildFileName))
         .pipe(gulp.dest('./dist'));
-});
+}));
 
 // gulp.task('ftp-upload', ['git-init'], () => {
 //     const conn = ftp.create({
@@ -230,10 +245,10 @@ gulp.task('zip', ['git-init', 'replace'], () => {
 //         .pipe(conn.dest('/EXA'));
 // });
 
-gulp.task('clean-all', ['zip'], () => {
+gulp.task('clean-all', gulp.series('zip', () => {
     return gulp.src('./build')
         .pipe(clean());
-});
+}));
 
 gulp.task('bump-release', () => {
     return gulp.src('./package.json')
@@ -241,38 +256,24 @@ gulp.task('bump-release', () => {
         .pipe(gulp.dest('./'));
 });
 
-gulp.task('git-init', (done) => {
-    git.init((err) => {
-        if (err) throw err;
-
-        git.revParse({ args: '--abbrev-ref HEAD' }, function (err, branch) {
-            currentBranch = branch;
-        });
-        git.revParse({ args: '--short HEAD'}, function (err, commit) {
-            currentCommit = commit;
-        });
-        done();
-    });
-});
-
-gulp.task('git-add', ['git-init'], () => {
+gulp.task('git-add', gulp.series('git-init', () => {
     return gulp.src('./package.json')
         .pipe(git.add());
-});
+}));
 
-gulp.task('git-commit', ['git-add'], () => {
+gulp.task('git-commit', gulp.series('git-add', () => {
     const pkg = getPackageJson();
 
     return gulp.src('./package.json')
         .pipe(git.commit(`Build v${pkg.version}`));
-});
+}));
 
-gulp.task('git-pull', ['git-commit'], (done) => {
+gulp.task('git-pull', gulp.series('git-commit', (done) => {
     git.pull('origin', currentBranch, { args: '--rebase' }, (err) => {
         if (err) throw err;
         done();
     });
-});
+}));
 
 gulp.task('git-push', (done) => {
     git.push('origin', currentBranch, (err) => {
@@ -281,7 +282,7 @@ gulp.task('git-push', (done) => {
     });
 });
 
-gulp.task('build', [
+gulp.task('build', gulp.series(
     'check-build-environment',
     'clean',
     'copy',
@@ -290,15 +291,10 @@ gulp.task('build', [
     'replace',
     'zip',
     'clean-all',
-]);
+));
 
 gulp.task('deploy', (done) => {
-    runSequence('git-pull',
-		'build',
-		'git-commit',
-		'git-push',
-		// 'ftp-upload',
-		done);
+    runSequence('git-pull', 'build', 'git-commit', 'git-push', done);
 });
 
 gulp.task('build-from-repo', (done) => {
@@ -306,6 +302,7 @@ gulp.task('build-from-repo', (done) => {
 });
 
 
-gulp.task('default', ['requirejsBuild'], () => {
-    //gutil.log('done');
-});
+gulp.task('default', gulp.series('requirejsBuild', (done) => {
+    gutil.log('done');
+    done();
+}));
