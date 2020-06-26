@@ -877,15 +877,6 @@ const api = {
             `are_notes_empty(studies.id, patients.id, orders.id)
                 AS empty_notes_flag`,
             `study_cpt.study_cpt_id`,
-            // Lock
-            // TODO: move this out of postgres (or at least as JOIN for now)
-            `(
-                                SELECT
-                                    STRING_AGG(users.first_name || ' ' || users.last_name, ', ')
-                                FROM users
-                                LEFT JOIN user_locks ON user_locks.user_id = users.id AND lock_type = 'viewer' AND user_locks.locked_dt > (now() - INTERVAL '1 hours')
-                                WHERE user_locks.study_id = studies.id
-                        ) AS locked_by`,
             `studies.stat_level AS stat_level`,
             `order_info->'patientRoom' AS patient_room`,
             `insurance_providers.provider_types AS ins_provider_type`,
