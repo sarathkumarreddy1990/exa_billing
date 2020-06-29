@@ -61,10 +61,6 @@ define('formatter', function () {
             // TODO: Handle better - will need to change more than one row's data potentially.
         };
 
-        this.locked_by = function ( value ) {
-            return changeGrid.getLocked(value);
-        };
-
         this.as_authorization = function ( value ) {
             return changeGrid.getAuthorizations(value);
         };
