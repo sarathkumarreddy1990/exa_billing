@@ -149,7 +149,7 @@ const colModel = [
     },
     {
         name: 'patient_age',
-        searchColumns: ['dicom_age(extract(days FROM (studies.study_dt - patients.birth_date))::integer)'],
+        searchColumns: ['get_dicom_age(extract(days FROM (studies.study_dt - patients.birth_date))::integer)'],
         searchFlag: '%'
     },
     {
@@ -469,7 +469,7 @@ const api = {
             case 'ordering_facility': return `provider_groups.group_name`;
             case 'technologist_name': return 'providers.full_name';
             case 'claim_status': return `orders.order_info->'claim_status'`;
-            case 'check_indate': return `text_to_isots(studies.study_info->'Check-InDt')`;             // optimization! use sutom immutable function (instead of timestamptz) and corresponding index to improve query time
+            case 'check_indate': return `to_isots(studies.study_info->'Check-InDt')`;             // optimization! use sutom immutable function (instead of timestamptz) and corresponding index to improve query time
             case 'approving_provider_ref': return 'approving_provider_ref.full_name';
             case 'approving_provider': return 'approving_provider_ref.full_name';
             case 'claim_no': return 'orders.id';
@@ -495,7 +495,7 @@ const api = {
             case "eligibility_verified": return `(COALESCE(eligibility.verified, false) OR COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)`;
             case 'icd_description': return `icd_codes.description`;
             // Adding `notes` just in case user saved previously as default
-            case `notes`: return `study_notes_to_json(studies.id)`;
+            case `notes`: return `get_study_notes_as_json(studies.id)`;
         }
 
         return args;
@@ -753,7 +753,7 @@ const api = {
             'studies.no_of_series',
             'studies.stat_level',
             //'studies.patient_age', // TODO: remove column from db
-            `dicom_age(extract(days from (studies.study_dt - patients.birth_date))::integer)
+            `get_dicom_age(extract(days from (studies.study_dt - patients.birth_date))::integer)
                 AS patient_age`,
             'studies.modalities',
             'studies.has_unread_dicoms', // TODO: What is this !!
@@ -771,7 +771,7 @@ const api = {
             'studies.study_status as status_code',
             'studies.referring_physician_id', // TODO: Why is this any different from referring_provider and why do i need id if having name already ?
             'studies.cpt_codes',
-            'study_notes_to_json(studies.id) as notes', // TODO: this should not be returned as column (maybe has_notes but now whole notes)
+            'get_study_notes_as_json(studies.id) as notes', // TODO: this should not be returned as column (maybe has_notes but now whole notes)
             '(studies.deleted_dt is not null)', //  TODO: this column should not be deleted Status should be deleted and if its really purged it shouldnt be there
             'studies.study_description',
             'studies.institution as institution',
@@ -849,7 +849,7 @@ const api = {
             `auth.as_authorization
                 AS as_authorization`,
             'report_delivery.report_queue_status',
-            `are_notes_empty(studies.id, patients.id, orders.id)
+            `has_empty_notes(studies.id, patients.id, orders.id)
                 AS empty_notes_flag`,
             `study_cpt.study_cpt_id`,
             `studies.stat_level AS stat_level`,

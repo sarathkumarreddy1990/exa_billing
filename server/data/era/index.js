@@ -381,7 +381,7 @@ module.exports = {
                         update_claim_status_and_payer AS (
                             SELECT
                                 DISTINCT claim_id
-                                ,billing.change_responsible_party(claim_id, claim_status_code, ${paymentDetails.company_id}, original_reference, 0, false, ${paymentDetails.id})
+                                ,billing.update_claim_responsible_party(claim_id, claim_status_code, ${paymentDetails.company_id}, original_reference, 0, false, ${paymentDetails.id})
                             FROM
                                 matched_claims
                             WHERE
@@ -723,8 +723,8 @@ module.exports = {
                             INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
                             INNER JOIN billing.claims ON claims.id = bch.claim_id
                             INNER JOIN patients ON patients.id = claims.patient_id
-                            WHERE bef.id = ${file_id} 
-                            AND bch.claim_id IS NOT NULL 
+                            WHERE bef.id = ${file_id}
+                            AND bch.claim_id IS NOT NULL
                             AND bp.mode = 'eft'
                             GROUP BY bpa.applied_dt, bpa.charge_id, bp.id, bch.claim_id, pcc.display_code, bch.bill_fee, bch.units
                             ORDER BY bp.id, bch.claim_id, bpa.applied_dt
@@ -774,9 +774,9 @@ module.exports = {
     },
 
     getEOBFileId: async (paymentID) => {
-        let sql = SQL`SELECT 
-                        edi_files.id AS eob_file_id 
-                    FROM billing.edi_file_payments 
+        let sql = SQL`SELECT
+                        edi_files.id AS eob_file_id
+                    FROM billing.edi_file_payments
                     INNER JOIN billing.edi_files ON edi_files.id = edi_file_payments.edi_file_id AND file_type = 'EOB'
                     WHERE edi_file_payments.payment_id = ${paymentID}`;
 
