@@ -23,7 +23,8 @@ define([
     'routes/setup/billing-messages',
     'routes/setup/insurance-x12-mapping',
     'routes/setup/printer-templates',
-    'routes/setup/auto-billing'
+    'routes/setup/auto-billing',
+    'routes/setup/submission-types'
 
 ], function (
     Backbone,
@@ -50,7 +51,8 @@ define([
     BillingMessagesRoute,
     InsuranceX12MappingRoute,
 	PaperClaimTemplatesRoute,
-    AutoBillingRoute
+    AutoBillingRoute,
+    SubmissionTypesRoute
     ) {
         return Backbone.SubRoute.extend({
             routes: {
@@ -74,8 +76,8 @@ define([
                 "billing_messages/*subroute" : "startBillingMessages",
                 "insurance_x12_mapping/*subroute" : "startInsuranceX12Mapping",
                 "printer_templates/*subroute" : "startPaperClaimTemplates",
-                "auto_billing/*subroute" : "startAutoBilling"
-
+                "auto_billing/*subroute" : "startAutoBilling",
+                "submission_types/*subroute": "startSubmissionType"
             },
 
             accessDeniedTemplate: _.template(AccessDeniedTemplate),
@@ -275,6 +277,15 @@ define([
                 if (this.checkLicense('AutoBilling') && !this.autoBillingRouter) {
                     this.defaultArgs.routePrefix = 'setup/auto_billing/';
                     this.autoBillingRouter = new AutoBillingRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startSubmissionType:  function () {
+                if (this.checkLicense('SubmissionTypes') && !this.submissionTypeRouter) {
+                    this.defaultArgs.routePrefix = 'setup/submission_types/';
+                    this.submissionTypeRouter = new SubmissionTypesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();
                 }

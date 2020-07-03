@@ -30,6 +30,10 @@ define([
                     $(".aEDITemplate").remove();
                     $(".aEDIClearingHouses").remove();
                 }
+
+                if (app.billingRegionCode !== 'can_BC') {
+                    $(".aSubmissionTypes").remove();
+                }
             }
         });
 

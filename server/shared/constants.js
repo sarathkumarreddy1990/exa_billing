@@ -107,7 +107,8 @@ module.exports = {
         validate_claims: 'Claims',
         update_grid_settings: 'user_settings',
         submitClaims: 'submitClaims',
-        fileManagement: 'fileManagement'
+        fileManagement: 'fileManagement',
+        submission_types:'submission_types'
     },
 
     permissionsMap: {
@@ -228,5 +229,6 @@ module.exports = {
         'can_ahs_delete_claim': 'CLIM',
         'invoice-activity-statement': 'IAST',
         'auto_billing': 'AUTO',
+        'submission_types': 'SUBT'
     }
 };
