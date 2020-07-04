@@ -375,7 +375,7 @@ const ahsData = {
                         TO_CHAR(bc.claim_dt, 'YY')                   AS year,
                         TO_CHAR(bc.claim_dt, 'MM')                   AS source_code,
                         inserted_efc.sequence_number                 AS sequence_number,
-                        luhn_generate_checkdigit(
+                        public.get_can_ahs_mod10_for_claim_sequence_number(
                             inserted_efc.sequence_number :: INT8
                         )                                            AS check_digit,
 
