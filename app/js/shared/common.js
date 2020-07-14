@@ -2831,11 +2831,6 @@ var commonjs = {
     },
 
     changeCss: function () {
-        if (document.getElementById("lnkCurrentTheme")) {
-            var theme = app.currentTheme || 'default';
-            // REMOVE THE EXTRA RANDOM STRING AT END AFTER SOME ODD TIME
-            document.getElementById("lnkCurrentTheme").href = '/stylesheets/skins/' + theme + '/main.css?v=' + String(Math.floor(Math.random() * 100));
-        }
         if (app.navPinned && $('header.header:visible .viztek-nav').length) {
             $('#profile_panel').hide('fade');
             $('#viztekIconNav').show();
@@ -2846,6 +2841,8 @@ var commonjs = {
             $('html').unbind('click');
             commonjs.docResize();
         }
+
+        if(app.chat) app.chat.updateChatTheme(currentTheme);
     },
 
     refreshUserSettings: function () {
@@ -5299,13 +5296,13 @@ var commonjs = {
 
     //claim status validation for submitting claim to AHS
     isValidClaimStatusToSubmit: function (source, claimStatus) {
-        var defaultStatusCheck = ['AZP', 'APP', 'PIF'];
+        var defaultStatusCheck = ['AZP', 'APP', 'PIF', 'AOP'];
 
         switch (source) {
-            case 'reassessment':
-                defaultStatusCheck.push('R');
-                return defaultStatusCheck.indexOf(claimStatus) !== -1;
             case 'delete':
+                defaultStatusCheck = defaultStatusCheck.concat(['PV', 'PS', 'BR', 'D', 'R']);
+                return defaultStatusCheck.indexOf(claimStatus) !== -1;
+            case 'reassessment':
             case 'change':
                 return defaultStatusCheck.indexOf(claimStatus) !== -1;
         }

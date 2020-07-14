@@ -50,6 +50,7 @@ const ahsController = {
                 uploaded_file_name,
                 file_type,
                 file_id,
+                can_submitter_prefix,
                 log_details
             } = file;
 
@@ -63,7 +64,7 @@ const ahsController = {
                 logger.error(`Error in file read - ${filePath}`, e);
             }
 
-            let fileData = ahsController.decode(file_type, fileContent);
+            let fileData = ahsController.decode(file_type, fileContent, can_submitter_prefix);
 
             await ahsData.updateFileStatus({
                 status: 'in_progress',
@@ -109,14 +110,15 @@ const ahsController = {
      * Function used to parse the Batch balance and ARD file to JSON format
      * @param {data} Object {
      *                      file_type,
-     *                      fileData
+     *                      fileData,
+     *                      submitterPrefix
      *                      }
      *
      */
-    decode: (fileType, fileData) => {
+    decode: (fileType, fileData, submitterPrefix) => {
 
         if(fileType === 'can_ahs_bbr') {
-            return parser.parseBatchBalanceFile(fileData);
+            return parser.parseBatchBalanceFile(fileData, submitterPrefix);
         }
         else if(fileType === 'can_ahs_ard'){
             return parser.parseARDFile(fileData);

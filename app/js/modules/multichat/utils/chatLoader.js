@@ -31,12 +31,9 @@ define([
             },
 
             loadChat: function (route, extraClass) {
-               /* if (!_.has(app, 'modules.chat')
+                if (!_.has(app, 'modules.chat')
                     || !app.modules.chat
                     || app.chat) {
-                    return;
-                }*/
-                if (app.chat) {
                     return;
                 }
 

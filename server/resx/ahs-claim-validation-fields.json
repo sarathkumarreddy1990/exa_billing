@@ -7,7 +7,6 @@
         "service_provider_prid":true,
         "business_arrangement":true,
         "facility_number":true,
-        "diagnosis_code_1":true,
         "patient_first_name": true
     }
 }

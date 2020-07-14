@@ -258,13 +258,6 @@ const ahsData = {
 	                GROUP BY can_ahs_action_code, claim_id
 	                ORDER BY sequence_number DESC
                 ),
-                numbers AS (
-                    SELECT
-                        ( COALESCE(MAX(batch_number :: INT), 0) + 1 ) % 1000000     AS batch_number,
-                        COALESCE(MAX(sequence_number), '0') :: INT                  AS sequence_number
-                    FROM
-                        billing.edi_file_claims
-                ),
                 status AS (
                     SELECT
                         id
@@ -287,9 +280,9 @@ const ahsData = {
                         c.id,
                         n.batch_number::TEXT,
                         CASE
-                            WHEN ${source} = 'reassessment' OR ${source} = 'change'
+                            WHEN ${source} = 'reassessment' OR ${source} = 'change' OR ${source} = 'delete'
                                 THEN rsc.sequence_number
-                            ELSE ( n.sequence_number + row_number() OVER () ) % 10000000
+                            ELSE nextVal('edi_file_claims_sequence_number_seq') % 10000000
                         END,
                         CASE
                             WHEN ${source} = 'reassessment'
@@ -302,7 +295,9 @@ const ahsData = {
                         END,
                         ${edi_file_id}
                     FROM billing.claims c
-                    INNER JOIN numbers n ON TRUE
+                    INNER JOIN (
+                        SELECT nextVal('edi_file_claims_batch_number_seq') % 1000000 AS batch_number
+                    ) n ON TRUE
                     LEFT JOIN resubmission_claims rsc ON rsc.claim_id = c.id
                     WHERE c.id = ANY(${claimIds})
                     RETURNING
@@ -380,18 +375,14 @@ const ahsData = {
                         TO_CHAR(bc.claim_dt, 'YY')                   AS year,
                         TO_CHAR(bc.claim_dt, 'MM')                   AS source_code,
                         inserted_efc.sequence_number                 AS sequence_number,
-                        luhn_generate_checkdigit(
+                        public.get_can_ahs_mod10_for_claim_sequence_number(
                             inserted_efc.sequence_number :: INT8
                         )                                            AS check_digit,
 
                         -- currently hard-coded - AHS does not support another code right now
                         'CIP1'                                       AS transaction_type,
 
-                        CASE
-                            WHEN inserted_efc.can_ahs_action_code IN ('a', 'c')
-                            THEN 'RGLR'
-                            ELSE ''
-                        END                                          AS claim_type,
+                        'RGLR'                                       AS claim_type,
 
                         pc_app.can_prid                             AS service_provider_prid,
                         sc.code                                         AS skill_code,
@@ -405,13 +396,7 @@ const ahsData = {
                         nums.service_recipient_parent_registration_number,
                         nums.service_recipient_parent_registration_number_province,
                         CASE
-                            WHEN (
-                                nums.service_recipient_phn IS NOT NULL
-                                OR (
-                                    nums.service_recipient_registration_number IS NOT NULL
-                                    AND nums.service_recipient_registration_number_province IS NOT NULL
-                                )
-                            )
+                            WHEN nums.service_recipient_phn IS NOT NULL
                             THEN NULL
                             ELSE JSONB_BUILD_OBJECT(
                                 'person_type', 'RECP',
@@ -462,9 +447,9 @@ const ahsData = {
                         f.can_facility_number                        AS facility_number,
                         fc.code                                      AS functional_centre,
                         CASE
-                            WHEN f.can_facility_number :: INT > 0
+                            WHEN NULLIF(f.can_facility_number, '') :: INT > 0
                             THEN ''
-                            ELSE COALESCE(o.order_info -> 'patientLocation', 'OTHR')
+                            ELSE COALESCE(NULLIF((o.order_info -> 'patientLocation'), ''), 'OTHR')
                         END                                          AS location_code,
 
                         orig_fac.facility_number                     AS originating_facility,
@@ -494,7 +479,7 @@ const ahsData = {
                         END                                          AS oop_referral_indicator,
 
                         CASE
-                            WHEN pc_ref.can_prid IS NULL AND p_ref.id IS NOT NULL
+                            WHEN NULLIF(pc_ref.can_prid, '') IS NULL AND p_ref.id IS NOT NULL
                             THEN JSONB_BUILD_OBJECT(
                                 'person_type', 'RFRC',
                                 'first_name', p_ref.first_name,
@@ -558,7 +543,7 @@ const ahsData = {
                         bc.can_ahs_newborn_code                      AS newborn_code,
 
                         CASE
-                            WHEN bc.can_ahs_emsaf_reason IS NOT NULL
+                            WHEN NULLIF(bc.can_ahs_emsaf_reason, '') IS NOT NULL
                             THEN 'Y'
                             ELSE 'N'
                         END                                          AS emsaf_indicator,
@@ -602,8 +587,16 @@ const ahsData = {
                         ON s.id = bchs.study_id
                     LEFT JOIN public.orders o
                         ON o.id = s.order_id
-                    LEFT JOIN public.study_transcriptions st
-                        ON st.study_id = s.id
+                    LEFT JOIN LATERAL (
+                        SELECT
+                            study_id,
+                            approving_provider_id,
+                            approved_dt
+                        FROM study_transcriptions
+                        WHERE study_id = s.id
+                        ORDER BY approved_dt DESC
+                        LIMIT 1
+                    ) st ON TRUE
                     LEFT JOIN public.companies comp
                         ON comp.id = s.company_id
                     LEFT JOIN public.provider_contacts pc_app
@@ -656,9 +649,15 @@ const ahsData = {
 
                     LEFT JOIN LATERAL (
                         SELECT
-                            ( SELECT code FROM public.modifiers WHERE id = bch.modifier1_id ) AS mod1,
-                            ( SELECT code FROM public.modifiers WHERE id = bch.modifier2_id ) AS mod2,
-                            ( SELECT code FROM public.modifiers WHERE id = bch.modifier3_id ) AS mod3
+                            ( SELECT
+                                code
+                                FROM public.modifiers WHERE id = bch.modifier1_id AND NOT is_implicit ) AS mod1,
+                            ( SELECT
+                                code
+                                FROM public.modifiers WHERE id = bch.modifier2_id AND NOT is_implicit ) AS mod2,
+                            ( SELECT
+                                code
+                                FROM public.modifiers WHERE id = bch.modifier3_id AND NOT is_implicit ) AS mod3
                     ) fee_mod ON TRUE
 
                     -- LEFT JOIN LATERAL (
@@ -933,10 +932,17 @@ const ahsData = {
         } = args;
 
         const sql = SQL` SELECT
-                             COUNT(1) AS pending_transaction_count
-                         FROM billing.edi_file_claims efc
-                         WHERE efc.claim_id = ${targetId}
-                         AND NOT did_not_process `;
+                             COUNT(efc.id) AS pending_transaction_count
+                           , COUNT(pa.id) AS payment_entry_count
+                           , bgct.charges_bill_fee_total AS claim_total_amount
+                           , bgct.claim_balance_total AS claim_balance_amount
+                         FROM billing.claims AS bc
+                         INNER JOIN billing.charges AS bch ON bch.claim_id = bc.id
+                         LEFT JOIN billing.edi_file_claims AS efc ON efc.claim_id = bc.id
+                         LEFT JOIN billing.payment_applications AS pa ON pa.charge_id = bch.id
+                         LEFT JOIN billing.get_claim_totals(${targetId}) AS bgct ON TRUE
+                         WHERE bc.id = ${targetId}
+                         GROUP BY bgct.claim_balance_total, bgct.charges_bill_fee_total `;
 
         return await query(sql);
     },
@@ -1000,17 +1006,19 @@ const ahsData = {
                             LIMIT 1
                         )
                         SELECT
-                            file_store_id,
-                            file_type,
-                            file_path,
-                            file_size,
-                            status,
+                            ef.file_store_id,
+                            ef.file_type,
+                            ef.file_path,
+                            ef.file_size,
+                            ef.status,
                             fs.root_directory,
-                            uploaded_file_name,
+                            ef.uploaded_file_name,
                             ef.id file_id,
+                            comp.can_submitter_prefix,
                             (SELECT row_to_json(_) FROM (SELECT * FROM user_data) AS _) AS log_details
                          FROM billing.edi_files ef
                          INNER JOIN file_stores fs ON fs.id = ef.file_store_id
+                         INNER JOIN companies comp ON comp.id = fs.company_id
                          WHERE ef.status = ${status}
                                AND ef.file_type = ANY(${fileTypes}) LIMIT 10`;
 
@@ -1033,6 +1041,40 @@ const ahsData = {
                       WHERE id = ${fileId}`;
 
         return await query(sql);
+    },
+
+    /**
+     * Purging claim data
+     * @param {String} args.type
+     * @param {Number} args.userId
+     * @param {String} args.clientIp
+     * @param {Number} args.targetId
+     * @param {Number} args.companyId
+     * @param {String} args.entityName
+     */
+    purgeClaim: async (args) => {
+        const { targetId, clientIp, entityName, userId, companyId, type } = args;
+        const screenName = 'claims';
+
+        let audit_json = {
+            client_ip: clientIp,
+            screen_name: screenName,
+            entity_name: entityName,
+            module_name: screenName,
+            user_id: userId,
+            company_id: companyId
+        };
+
+        args.audit_json = JSON.stringify(audit_json);
+
+        const sql = SQL` SELECT billing.purge_claim_or_charge(${targetId}, ${type}, ${args.audit_json}::jsonb)`;
+
+        try {
+            return await query(sql);
+        }
+        catch (err) {
+            return err;
+        }
     }
 
 };
