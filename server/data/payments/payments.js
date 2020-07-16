@@ -221,7 +221,7 @@ module.exports = {
                     , payments.notes
                     , ( CASE
                            WHEN ${country_code} = 'can' AND  mode = 'check' THEN 'cheque'
-                           ELSE mode 
+                           ELSE mode
                         END ) AS payment_mode
                     , card_name
                     , card_number
@@ -328,7 +328,7 @@ module.exports = {
                 , (select adjustments_applied_total from billing.get_payment_totals(payments.id)) AS adjustment_amount
                 , (select payment_status from billing.get_payment_totals(payments.id)) AS current_status
                 , billing.payments.XMIN as payment_row_version
-                , era_payment.edi_file_id 
+                , era_payment.edi_file_id
                 , era_pdf.id AS eob_file_id
                 , charges.claim_id AS claim_id
             FROM
@@ -354,17 +354,17 @@ module.exports = {
             LEFT JOIN LATERAL(
                 SELECT
                     edi_file_id
-                FROM 
-                    billing.edi_file_payments 
+                FROM
+                    billing.edi_file_payments
                 WHERE edi_file_payments.payment_id = payments.id
-                ORDER BY edi_file_id 
+                ORDER BY edi_file_id
                 LIMIT 1
             ) era_payment ON TRUE
             LEFT JOIN LATERAL(
                 SELECT
                     edi_files.id
-                FROM 
-                    billing.edi_file_payments 
+                FROM
+                    billing.edi_file_payments
                 INNER JOIN billing.edi_files ON edi_files.id = edi_file_payments.edi_file_id AND edi_files.file_type = 'EOB'
                 WHERE edi_file_payments.payment_id = payments.id
             ) era_pdf ON TRUE
@@ -641,7 +641,7 @@ module.exports = {
                                 WHERE id IS NOT NULL
                             ),
                             change_responsible_party AS (
-                                    SELECT billing.change_responsible_party(${params.claimId},0,${params.companyId},null, ${params.claimStatusID}, ${is_payerChanged}, ${paymentId}) AS result
+                                    SELECT billing.update_claim_responsible_party(${params.claimId},0,${params.companyId},null, ${params.claimStatusID}, ${is_payerChanged}, ${paymentId}) AS result
                                     WHERE
                                         NOT ${params.changeResponsibleParty}
                             ),
@@ -816,7 +816,7 @@ module.exports = {
                             FROM claim_comment_details
                             RETURNING *, '{}'::jsonb old_values),
                             change_responsible_party AS (
-                                    SELECT billing.change_responsible_party(${params.claimId},0,${params.companyId},null, ${params.claimStatusID}, ${params.is_payerChanged}, ${params.paymentId}) AS result
+                                    SELECT billing.update_claim_responsible_party(${params.claimId},0,${params.companyId},null, ${params.claimStatusID}, ${params.is_payerChanged}, ${params.paymentId}) AS result
                                     WHERE
                                         NOT ${params.changeResponsibleParty}
 
@@ -981,7 +981,7 @@ module.exports = {
                               , amount
                             )
                             SELECT
-                                billing.get_cas_application_id(cas.parent_application_id)
+                                billing.create_get_cas_application_id(cas.parent_application_id)
                               , cas.group_code_id
                               , cas.reason_code_id
                               , cas.amount
@@ -1190,7 +1190,7 @@ module.exports = {
                                         GROUP BY study_id
                                       ) cc ON cc.study_id = studies.id
                         WHERE o.patient_id = ${payerId}
-                           AND o.deleted_dt is null 
+                           AND o.deleted_dt is null
                            AND o.order_status NOT IN ('CAN','NOS')
                            AND studies.study_status NOT IN ('CAN','NOS')
                         `;
@@ -1667,7 +1667,7 @@ module.exports = {
             -- --------------------------------------------------------------------------------------------------------------
             , change_responsible_party AS (
                 SELECT
-                    billing.change_responsible_party(
+                    billing.update_claim_responsible_party(
                         claim_id
                         , 0
                         , ${companyId}
@@ -1694,18 +1694,18 @@ module.exports = {
     },
 
     canDeletePayment: async function ({ paymentId }) {
-        let sql = SQL`SELECT 
-                         CASE WHEN 
-                                 ((payments_applied_total = 0::money) 
-                                     AND 
+        let sql = SQL`SELECT
+                         CASE WHEN
+                                 ((payments_applied_total = 0::money)
+                                     AND
                                  (adjustments_applied_total = 0::money))
                                      OR
                                  (payment_status = 'unapplied')
-                             THEN 
+                             THEN
                                  TRUE
-                             ELSE 
+                             ELSE
                                  FALSE
-                             END can_delete_payment                       
+                             END can_delete_payment
                        FROM billing.get_payment_totals(${paymentId})
                        `;
         return await query(sql);

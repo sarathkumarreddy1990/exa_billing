@@ -430,7 +430,7 @@ module.exports = {
         params.screenName = params.entityName = params.moduleName = 'claims';
         const sql = SQL`
                         SELECT id,
-                        billing.change_payer_type(claims.id,${params.payer_type})
+                        billing.update_payer_type(claims.id,${params.payer_type})
                         ,'{}'::jsonb old_values from billing.claims WHERE id=${params.id}
                         `;
 
@@ -457,7 +457,7 @@ module.exports = {
         if (followupDate == '') {
             sql = SQL`
                     WITH claim_data AS (
-                        SELECT 
+                        SELECT
                               "claimId" AS claim_id
                             , "assignedTo" AS assigned_to
                         FROM json_to_recordset(${JSON.stringify(claimFollowupData)}) AS claim_data
@@ -468,9 +468,9 @@ module.exports = {
                     )
                     ,cancle_followups AS(
                         DELETE FROM billing.claim_followups cf
-                        WHERE EXISTS (SELECT 
-                                        1 
-                                      FROM claim_data cd 
+                        WHERE EXISTS (SELECT
+                                        1
+                                      FROM claim_data cd
                                       WHERE cd.claim_id = cf.claim_id
                                       AND cd.assigned_to = cf.assigned_to
                         )RETURNING *, '{}'::jsonb old_values),
@@ -736,12 +736,12 @@ module.exports = {
     },
 
     validateEDIClaimCreation: async(claimIds) => {
-        const sql = SQL` 
+        const sql = SQL`
                 WITH invalid_claim AS
                 (
                     SELECT COUNT(1) AS claim_count
-                    FROM billing.claims bc 
-                    WHERE bc.id = ANY(${claimIds}) 
+                    FROM billing.claims bc
+                    WHERE bc.id = ANY(${claimIds})
                     AND TIMEZONE(public.get_facility_tz(bc.facility_id :: INT), bc.claim_dt) :: DATE > CURRENT_DATE
                 )
                 SELECT
