@@ -657,9 +657,9 @@ module.exports = {
                 GROUP BY
                     studies.facility_id
                     , studies.modality_id
-                    , studies.study_dt
                     , insurance_providers.provider_payer_type_id
                     , insurance_providers.id
+                    , studies.study_dt
             )
             SELECT
             *
