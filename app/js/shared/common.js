@@ -443,6 +443,12 @@ var commonjs = {
         { minimum: 2, regexp: '^(?=.{2,}$)', fieldName: 'First Name', id: 'fname' },
         { minimum: 3, regexp: '^(?=.{3,}$)', fieldName: 'Phone', id: 'phone' },
         { minimum: 3, regexp: '^(?=.{3,}$)', fieldName: 'Address', id: 'address' },
+        { minimum: 3, regexp: '^(?=.{3,}$)', fieldName: 'Account Number', id: 'account_no' },
+        { minimum: 2, regexp: '^(?=.{2,}$)', fieldName: 'Patient Name', id: 'patient_name' },
+        { minimum: 3, regexp: '^(?=.{3,}$)', fieldName: 'Study Description', id: 'study_description' },
+        { minimum: 3, regexp: '^(?=.{3,}$)', fieldName: 'Accession Number', id: 'accession_no' },
+        { minimum: 3, regexp: '^(?=.{3,}$)', fieldName: 'Ref Physician', id: 'refphy_name' },
+        { minimum: 3, regexp: '^(?=.{3,}$)', fieldName: 'Institution', id: 'institution' },
     ],
     pageSize: [
         { 'value': '', 'text': 'Select' },
@@ -5313,6 +5319,10 @@ var commonjs = {
     */
     isValidSearchLimit: function (targetID, searchVal) {
         var _obj = _.find(commonjs.searchLimitValidation, { id: targetID });
+
+        if(!_obj) {
+            return true;
+        }
         var isValidSearch = _obj && _obj.regexp ? (new RegExp(_obj.regexp)).test(searchVal) : false;
 
         if (!isValidSearch && _obj) {
