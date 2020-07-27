@@ -5752,9 +5752,14 @@ define(['jquery',
             },
 
             insertSupportingText: function() {
-                var existingSupportingText = $('#txtSupportingText').val() + ' ';
-                var updatedSupportingText = existingSupportingText + $('#ddlSupportingTextOptions').val();
-                $('#txtSupportingText').val(updatedSupportingText);
+                var txtSupportingText = $('#txtSupportingText');
+                var ddlSupportingTextOptions = $('#ddlSupportingTextOptions');
+                var updatedSupportingText = txtSupportingText.val() ? txtSupportingText.val() + ' ' + ddlSupportingTextOptions.val() : ddlSupportingTextOptions.val();
+
+                if (app.billingRegionCode === 'can_BC' && updatedSupportingText.length > 400) {
+                    return commonjs.showWarning('messages.warning.shared.supportingText');
+                }
+                txtSupportingText.val(updatedSupportingText);
             },
 
             identifyAssociatedCptsAndModifiers: function() {
