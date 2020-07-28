@@ -435,6 +435,22 @@ var commonjs = {
         { province_code : 'NT' , format:'X' , regexp:'^[a-zA-Z0-9_]{0,8}$' , province: "Northwest Territories" },
         { province_code : 'NL' , format:'N' , regexp:'^[0-9]{0,12}$' , province: "Newfoundland and Labrador" },
     ],
+    searchLimitValidation: [
+        { minimum: 3, regexp: '^(?=.{3,}$)', fieldName: 'MRN', id: 'mrn' },
+        { minimum: 3, regexp: '^(?=.{3,}$)', fieldName: 'SSN', id: 'ssn' },
+        { minimum: 5, regexp: '^(?=.{5,}$)', fieldName: 'Zip', id: 'zip' },
+        { minimum: 2, regexp: '^(?=.{2,}$)', fieldName: 'Last Name', id: 'lname' },
+        { minimum: 2, regexp: '^(?=.{2,}$)', fieldName: 'First Name', id: 'fname' },
+        { minimum: 3, regexp: '^(?=.{3,}$)', fieldName: 'Phone', id: 'phone' },
+        { minimum: 3, regexp: '^(?=.{3,}$)', fieldName: 'Address', id: 'address' },
+        { minimum: 3, regexp: '^(?=.{3,}$)', fieldName: 'Account Number', id: 'account_no' },
+        { minimum: 2, regexp: '^(?=.{2,}$)', fieldName: 'Patient Name', id: 'patient_name' },
+        { minimum: 2, regexp: '^(?=.{2,}$)', fieldName: 'Patient Full Name', id: 'full_name' },
+        { minimum: 3, regexp: '^(?=.{3,}$)', fieldName: 'Study Description', id: 'study_description' },
+        { minimum: 3, regexp: '^(?=.{3,}$)', fieldName: 'Accession Number', id: 'accession_no' },
+        { minimum: 3, regexp: '^(?=.{3,}$)', fieldName: 'Ref Physician', id: 'refphy_name' },
+        { minimum: 3, regexp: '^(?=.{3,}$)', fieldName: 'Institution', id: 'institution' },
+    ],
     pageSize: [
         { 'value': '', 'text': 'Select' },
         { 'value': '25', 'text': '25' },
@@ -5295,6 +5311,29 @@ var commonjs = {
         $select2Container1 = $('.select2-container--open');
         var $searchfield = $select2Container1.children().find('.select2-search__field');
         $searchfield.prop('placeholder', 'Type to search');
+    },
+
+    /**
+    * Validate patient search limit
+    * @param {string} targetID search field id
+    * @param {string} searchVal search value
+    */
+    isValidSearchLimit: function (targetID, searchVal) {
+        var _obj = _.find(commonjs.searchLimitValidation, { id: targetID });
+
+        if(!_obj) {
+            return true;
+        }
+        var isValidSearch = _obj && _obj.regexp ? (new RegExp(_obj.regexp)).test(searchVal) : false;
+
+        if (!isValidSearch && _obj) {
+            var msg = commonjs.geti18NString("messages.warning.patient.searchLimitValidation");
+            msg = msg.replace('FILED_NAME', _obj.fieldName);
+            msg = msg.replace('FIELD_LIMIT', _obj.minimum);
+            commonjs.showWarning(msg);
+        }
+
+        return isValidSearch;
     }
 
 };
