@@ -2675,9 +2675,16 @@ define(['jquery',
                 var isNotEmpty = false;
                 var canSearch = true;
                 $('#searchPatient').find('.search-field').each(function () {
-                    if ($(this).val()) {
-                        isNotEmpty = true;
-                        return false;
+                    var searchText = $(this).val();
+                    var _eleId = $(this).attr('id');
+                    searchText = searchText.replace(/[()_-]/g, '');
+
+                    if (searchText != '') {
+                        isNotEmpty = commonjs.isValidSearchLimit(_eleId, searchText);
+
+                        if (!isNotEmpty) {
+                            return false;
+                        }
                     }
                 });
 
