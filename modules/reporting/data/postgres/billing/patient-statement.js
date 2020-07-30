@@ -147,7 +147,14 @@ WITH claim_data AS (
         <% } %>
         type as payment_type,
         CASE type WHEN 'charge' THEN 1 ELSE 2 END AS sort_order,
-        charge_id
+        charge_id,
+        SUM((CASE type WHEN 'charge' THEN amount
+                      WHEN 'payment' THEN amount
+                      WHEN 'adjustment' THEN amount
+            ELSE 0::MONEY
+            END) * (CASE WHEN type IN('payment','adjustment') THEN -1
+            ELSE 1
+            END)) OVER (PARTITION BY bc.id) AS claim_sum_amount
     FROM public.patients p
     INNER JOIN billing.claims bc on bc.patient_id = p.id
     INNER JOIN billing_comments pc on pc.id = bc.id
@@ -171,8 +178,9 @@ WITH claim_data AS (
                     WHEN payment_type = 'adjustment' THEN amount != 0::money
                     ELSE true
                 END )
-        AND sum_amount >=  <%= minAmount  %>::money
-        AND sum_amount != 0::money
+        AND sum_amount >=  <%= minAmount  %>::MONEY
+        AND sum_amount != 0::MONEY
+        AND claim_sum_amount != 0::MONEY
     ),
 
     create_comments AS (
