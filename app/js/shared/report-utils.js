@@ -253,7 +253,7 @@ define([
                         delay: 250,
                         data: function (params) {
                             return {
-                                page: params.page || 2,
+                                page: params.page || 1,
                                 q: params.term || '',
                                 pageSize: 10,
                                 sortField: "description",
