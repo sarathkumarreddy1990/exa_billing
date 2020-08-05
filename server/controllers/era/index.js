@@ -11,6 +11,7 @@ const mkdirp = require('mkdirp');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const moment = require('moment');
 
 const { promisify } = require('util');
 const readFile = promisify(fs.readFile);
@@ -271,8 +272,16 @@ module.exports = {
                 processDetailsArray.push(processDetails);
             }
             else {
+                const start = moment();
+                logger.logInfo('ERA payment process | started');
+
                 processDetails = await self.applyERAPayments(eraResponseJson, params);
                 processDetailsArray.push(processDetails);
+
+                const finish = moment();
+                const duration = finish.diff(start, 'seconds', true);
+                logger.logInfo(`ERA payment process | finished in ${duration} seconds`);
+
             }
 
             return processDetailsArray;
@@ -307,11 +316,11 @@ module.exports = {
         const results = [];
 
         for (const eraObject of eraResponseJson) {
-
-            results.push(self.processPayments(params, eraObject));
+            let result = await self.processPayments(params, eraObject);
+            results.push(result);
         }
 
-        return await Promise.all(results);
+        return results;
 
     },
 
@@ -408,6 +417,8 @@ module.exports = {
 
         let paymentDetails = await self.createPaymentFromERA(params, eraObject);
 
+        logger.logInfo(`ERA payment process | root payment(${paymentDetails.id}) created`);
+
         let claimLists = eraObject && eraObject.headerNumber ? eraObject.headerNumber : {};
 
         let lineItemsAndClaimLists = await eraParser.getFormatedLineItemsAndClaims(claimLists, params);
@@ -417,12 +428,18 @@ module.exports = {
 
         let processedClaims = await data.createPaymentApplication(lineItemsAndClaimLists, paymentDetails);
 
+        logger.logInfo('ERA payment process | payment applied');
+
         /**
          *  again we call to create payment application for unapplied charges form ERA claims
          */
         await data.applyPaymentApplication(lineItemsAndClaimLists.audit_details, paymentDetails);
 
+        logger.logInfo('ERA payment process | zero payment applied for non exist charges');
+
         await data.updateERAFileStatus(paymentDetails);
+
+        logger.logInfo('ERA payment process | file status updated');
 
         return processedClaims;
     },
