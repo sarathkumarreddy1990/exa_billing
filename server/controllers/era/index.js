@@ -11,7 +11,6 @@ const mkdirp = require('mkdirp');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const moment = require('moment');
 
 const { promisify } = require('util');
 const readFile = promisify(fs.readFile);
@@ -272,15 +271,15 @@ module.exports = {
                 processDetailsArray.push(processDetails);
             }
             else {
-                const start = moment();
+                const start = Date.now();
                 logger.logInfo('ERA payment process | started');
 
                 processDetails = await self.applyERAPayments(eraResponseJson, params);
                 processDetailsArray.push(processDetails);
 
-                const finish = moment();
-                const duration = finish.diff(start, 'seconds', true);
-                logger.logInfo(`ERA payment process | finished in ${duration} seconds`);
+                const finish = Date.now();
+                
+                logger.logInfo(`ERA payment process | finished in ${finish - start}ms`);
 
             }
 
