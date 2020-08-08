@@ -50,6 +50,7 @@ const getSaveClaimParams = async (params) => {
         patient_id,
         companyId,
         userId,
+        claim_dt,
     } = params;
 
     const patientInsurances = (await claimsData.getPatientInsurances(params)).rows;
@@ -78,7 +79,7 @@ const getSaveClaimParams = async (params) => {
             billing_method: primary_insurance.billing_method,
             billing_notes: DEFAULT_BILLING_NOTES,
             billing_provider_id: settings.default_provider_id,
-            claim_dt: moment(),
+            claim_dt,
             claim_notes: DEFAULT_CLAIM_NOTES,
             claim_status_id: params.claim_status_id,
             created_by: userId,
@@ -629,6 +630,7 @@ module.exports = {
                 SELECT
                     studies.facility_id
                     , studies.modality_id
+                    , studies.study_dt
                     , array_agg(study_cpt.cpt_code_id)              AS cpt_code_ids
                     , insurance_providers.provider_payer_type_id    AS insurance_provider_payer_type_id
                     , insurance_providers.id                        AS insurance_provider_id
@@ -657,6 +659,7 @@ module.exports = {
                     , studies.modality_id
                     , insurance_providers.provider_payer_type_id
                     , insurance_providers.id
+                    , studies.study_dt
             )
             SELECT
             *
@@ -683,19 +686,20 @@ module.exports = {
         } = await query(sql);
 
         if (rows.length) {
+            const [ row ] = rows;
             const baseParams = {
                 companyId: COMPANY_ID,
                 patient_id: patientId,
                 userId: RADMIN_USER_ID,
-                claim_date: 'now()',
+                claim_dt: row.study_dt,
                 order_ids: [orderId],
                 from: 'claimCreation',
                 study_ids: studyId,
-                claim_status_id: rows[0].claim_status_id,
+                claim_status_id: row.claim_status_id,
             };
 
             const saveClaimParams = await getSaveClaimParams(baseParams);
-            const results = await claimsData.save(saveClaimParams);
+            await claimsData.save(saveClaimParams);
         }
 
         return rows;
