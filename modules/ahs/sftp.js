@@ -230,6 +230,8 @@ const sftpService = {
                         file_type
                     } = fileInfo;
 
+                    logger.info(`Writing the file ${file_type} - ${file_name} into Database...`);
+
                     await ahsData.storeFile({
                         file_name,
                         file_md5,
