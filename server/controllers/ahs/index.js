@@ -58,19 +58,25 @@ const ahsController = {
             let fileContent;
 
             try {
+                logger.info(`Reading the contents of the file ${file_type}: ${file_id} - ${uploaded_file_name} in location ${filePath}`);
                 fileContent = await readFileAsync(filePath, 'utf8');
             }
             catch (e) {
                 logger.error(`Error in file read - ${filePath}`, e);
             }
 
+            logger.info(`Decoding the file ${file_id} - ${uploaded_file_name}`);
+
             let fileData = ahsController.decode(file_type, fileContent, can_submitter_prefix);
+
+            logger.info(`Decoding file ${file_id} - ${uploaded_file_name} Success!!`);
 
             await ahsData.updateFileStatus({
                 status: 'in_progress',
                 fileId: file_id
             });
 
+            logger.info(`Initiated file processing... ${file_id} - ${uploaded_file_name}`);
             let processResult = await ahsController.process({
                 company_id: args.company_id,
                 companyId: args.companyId,
@@ -96,6 +102,7 @@ const ahsController = {
                 status = applied_payments && applied_payments.length ? 'success' : 'failure';
             }
 
+            logger.info(`${file_type} File Processing completed for ${file_id} - ${uploaded_file_name} with status ${status}`)
             return await ahsData.updateFileStatus({
                 fileId: file_id,
                 status
