@@ -69,25 +69,19 @@ const Parser = {
 
         let {
             submitterPrefix,
-            serviceProviderNumber,
             sequenceNumber,
-            currentYear
         } = segment;
 
         let batchInfo = _.find(batch, (_ele) => {
             let {
                 startSubmitterPrefix,
-                startCurrentYear,
-                startServiceProviderNumber,
                 startSequenceNumber,
                 endSequenceNumber
             } = _ele;
 
-            return (startCurrentYear == currentYear &&
-                startSubmitterPrefix == submitterPrefix &&
-                startServiceProviderNumber == serviceProviderNumber &&
+            return (startSubmitterPrefix == submitterPrefix &&
                 (sequenceNumber >= startSequenceNumber && sequenceNumber <= endSequenceNumber)
-            )
+            );
         });
 
         batchInfo.segments.push(segment);
