@@ -1,0 +1,5 @@
+<% var columnLength = (rows[0].cas_details && rows[0].cas_details.length > 7 && billingRegionCode == 'can_BC' ) ? rows[0].cas_details.length : 7;%>
+<% for(var i=0; i< columnLength; i++) { %>
+    <th><span i18n="billing.payments.cas"></span> <%=i +1%></th>
+    <th><span i18n="billing.payments.amount"></span></th>
+<% } %>
