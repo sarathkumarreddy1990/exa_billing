@@ -259,7 +259,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "id": 1,
                     "field_code": "claim_dt",
                     "field_name": "Claim Date",
-                    "i18n_name": "billing.claims.claimDate",
+                    "i18n_name": "billing.claims.studyDate",
                     "field_info": {
                         "custom_name": "Claim Date",
                         "name": "claim_dt",
@@ -885,6 +885,20 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "defaultValue": ""
                     },
                     "field_code": "phn_alt_account"
+                },
+                "Claim Created Dt": {
+                    "id": 74,
+                    "field_name": "claim_created_dt",
+                    "i18n_name": "setup.userSettings.claimDate",
+                    "field_info": {
+                        "custom_name": "Claim Created Dt",
+                        "name": "claim_created_dt",
+                        "width": 150,
+                        "searchFlag": "%",
+                        "sortable": true,
+                        "defaultValue": ""
+                    },
+                    "field_code": "claim_created_dt"
                 }
             });
         }else{

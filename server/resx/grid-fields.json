@@ -2,10 +2,10 @@
     "claim_management": [
         {
             "field_code": "claim_dt",
-            "field_name": "Claim Date",
-            "i18n_name": "setup.userSettings.claimDate",
+            "field_name": "Study Date",
+            "i18n_name": "setup.userSettings.studyDate",
             "field_info": {
-                "name": "claim_date",
+                "name": "study_date",
                 "searchFlag": "datetime",
                 "formatter": "self.claimDateFormatter",
                 "width": 200
@@ -502,6 +502,18 @@
                 "defaultValue": ""
             },
             "field_code": "phn_alt_account"
+        },
+        {
+            "id": 74,
+            "field_code": "claim_created_dt",
+            "field_name": "Claim Created Dt",
+            "i18n_name": "setup.userSettings.claimDate",
+            "field_info": {
+                "name": "claim_created_dt",
+                "searchFlag": "datetime",
+                "formatter": "self.claimDateFormatter",
+                "width": 200
+            }
         }
     ],
     "study_fields": [
