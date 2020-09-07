@@ -23,7 +23,8 @@
                 <span id="spCImspControlNumber_<%= row.charge_id %>"><%= row.can_bc_internal_control_number %></span>
             </td>   
             <% } %> 
-            <% for(var i=0; i<7; i++) { %> 
+            <% var columnLength = (row.cas_details && row.cas_details.length > 7 && billingRegionCode == 'can_BC' ) ? row.cas_details.length : 7; %>
+            <% for(var i=0; i< columnLength; i++) { %>
                     <% if (row.cas_details && row.cas_details[i] != null) { %>
                             <td>
                                 <span id="spCICasCode"><%= row.cas_details[i].code %></span>
