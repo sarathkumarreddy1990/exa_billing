@@ -22,7 +22,8 @@ define([
     'collections/claim-patient-log',
     'views/app/unapplied-payment',
     'text!templates/claims/claim-inquiry-cas.html',
-    'shared/report-utils'
+    'shared/report-utils',
+    'text!templates/claims/claim-inquiry-cas-header.html'
 ], function (
     $,
     _,
@@ -47,7 +48,8 @@ define([
     claimPatientLogList,
     unappliedPaymentView,
     casTemplate,
-    UI
+    UI,
+    claimEnquiryCasHeader
 ) {
         var paperClaim = new PaperClaim(true);
 
@@ -63,6 +65,7 @@ define([
             invoiceAgingSummaryTemplate: _.template(claimInvoiceAgeHTML),
             casTemplate: _.template(casTemplate),
             payCmtGrid: '',
+            casHeaderTemplate: _.template(claimEnquiryCasHeader),
             claim_id: null,
             rights: null,
             patientClaims: {
@@ -1449,9 +1452,11 @@ define([
                     success: function (data, response) {
                         $("#tBodyCIPayment").empty();
                         $('#tBodyCASRef').empty();
+                        var casHeader = self.casHeaderTemplate({rows: data, billingRegionCode: app.billingRegionCode});
+                        $('#tHeadCIPayment tr').append(casHeader);
 
                         if (data.length > 0) {
-                            var paymentCASRow = self.paymentTemplate({ rows: data });
+                            var paymentCASRow = self.paymentTemplate({ rows: data, billingRegionCode: app.billingRegionCode});
                             $('#tBodyCIPayment').append(paymentCASRow);
 
                             self.showCASDescription(data); // to show description of CAS code
@@ -1491,6 +1496,9 @@ define([
 
                         if (data.length > 0) {
 
+                            var casHeader = self.casHeaderTemplate({rows: data, billingRegionCode: app.billingRegionCode});
+                            $('#tHeadCIPayment tr').append(casHeader);
+
                             var paymentCASRow = self.paymentTemplate({ rows: data, billingRegionCode: app.billingRegionCode});
                             $('#tBodyCIPayment').append(paymentCASRow);
 
@@ -1498,7 +1506,7 @@ define([
 
                             commonjs.showNestedDialog({
                                 header: 'Payment Details',
-                                width: '80%',
+                                width: '90%',
                                 height: '30%',
                                 html: $('#divCIpaymentDetails').html()
                             });

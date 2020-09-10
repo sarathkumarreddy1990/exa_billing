@@ -17,7 +17,8 @@ define(['jquery',
     'views/reports/payments-pdf',
     'views/claims/claim-inquiry',
     'collections/app/studycpt-list',
-    'shared/trackFormChanges'],
+    'shared/trackFormChanges',
+    'text!templates/app/addtional-cas.html'],
 
     function (
         jQuery,
@@ -38,7 +39,9 @@ define(['jquery',
         patSearchContent,
         paymentEditPDF,
         claimInquiryView,
-        studycptCollection
+        studycptCollection,
+        trackFormChanges,
+        AdditionCASTemplate
     ) {
         return Backbone.View.extend({
             el: null,
@@ -75,6 +78,8 @@ define(['jquery',
             isEscKeyPress:false,
             eobFileId: null,
             ediFileId: null,
+            defaultCASField: 7,
+            additionCASFormTemplate: _.template(AdditionCASTemplate),
             events: {
                 'click #btnPaymentSave': 'savePayment',
                 'click #btnApplyCAS': 'getPayemntApplications',
@@ -1751,6 +1756,8 @@ define(['jquery',
                 paymentID = self.payment_id || paymentID;
                 var patient_paid = rowData.patient_paid ? self.formatMoneyValue(rowData.patient_paid) : '0.00';
                 var others_paid = rowData.others_paid ? self.formatMoneyValue(rowData.others_paid) : '0.00';
+                var cas_group_codes = self.cas_group_codes || rowData.cas_group_codes;
+                var cas_reason_codes = self.cas_reason_codes || rowData.cas_reason_codes;
                 var claimDt = (commonjs.checkNotEmpty(rowData.claim_dt) ? commonjs.convertToFacilityTimeZone(rowData.facility_id, rowData.claim_dt).format('L') : '');
                 var casDialogHeader = commonjs.geti18NString('billing.fileInsurance.claim') + ': # <strong>' + rowData.claim_id + ',  ' + rowData.full_name + '  ' + claimDt + '</strong>';
                 var casDialogHtml = self.applyCasTemplate({
@@ -1758,8 +1765,8 @@ define(['jquery',
                     province_alpha_2_code: app.province_alpha_2_code,
                     adjustmentCodes: self.adjustmentCodeList.toJSON(),
                     claimStatusList: this.claimStatusList.toJSON(),
-                    cas_group_codes: self.cas_group_codes || rowData.cas_group_codes,
-                    cas_reason_codes: self.cas_reason_codes || rowData.cas_reason_codes,
+                    cas_group_codes: cas_group_codes,
+                    cas_reason_codes: cas_reason_codes,
                     patient_paid: patient_paid,
                     others_paid: others_paid,
                     claim_statuses: self.claimStatuses.toJSON(),
@@ -1825,6 +1832,15 @@ define(['jquery',
 
                 if (self.screenCode.indexOf('ECST') > -1) { // If the user don't have rights for edit claim status, claim status change action is disabled.
                     $('#ddlClaimStatus').prop({'disabled': true, 'title': commonjs.geti18NString("messages.errors.accessdenied")});
+                }
+
+                if (app.billingRegionCode === 'can_BC') {
+                    $('#spAddCAS').show().off().click(function () {
+                        self.addCAS(cas_group_codes, cas_reason_codes);
+                        commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
+                        commonjs.validateControls();
+                        commonjs.isMaskValidate();
+                    });
                 }
             },
 
@@ -2272,7 +2288,8 @@ define(['jquery',
                 var hasReturned = false;
                 var casObj = [];
                 var rowCame = 0;
-                for (var k = 1; k <= 7; k++) {
+                var length = $('.casPayment').length;
+                for (var k = 1; k <= length; k++) {
                     var emptyCasObj = {};
                     var groupCode = $('#selectGroupCode' + k).val();
                     var reasonCode = $('#selectReason' + k).val();
@@ -2333,6 +2350,9 @@ define(['jquery',
                             var payemntCasApplns = data || self.casSegmentsSelected;
                             $.each(payemntCasApplns, function (index, appln) {
                                 var rowVal = index + 1;
+                                if (rowVal > 7 && app.billingRegionCode === 'can_BC') {
+                                    self.addCAS(self.cas_group_codes, self.cas_reason_codes);
+                                }
                                 $('#selectGroupCode' + rowVal).val(appln.cas_group_code_id).attr('cas_id', appln.id);
                                 $('#selectReason' + rowVal).val(appln.cas_reason_code_id);
                                 var amount = appln.amount.indexOf('$') >= 0 ? self.formatMoneyValue(appln.amount, true) : appln.amount;
@@ -2361,7 +2381,7 @@ define(['jquery',
                         });
                     }
                     else {
-                        for (var k = 1; k <= 7; k++) {
+                        for (var k = 1; k <= this.defaultCASField; k++) {
                             $('#selectGroupCode' + k).attr('cas_id', '');
                         }
                     }
@@ -3558,6 +3578,26 @@ define(['jquery',
                         $('#ddlClaimStatus option[value="' + ohClaimStatusId  + '"]').hide();
                         $("#btnSaveAppliedPendingPaymentsNotes").hide();
                     }
+                }
+            },
+
+            /**
+            * addCAS - Add addtional CAS 
+            *
+            * @param  {Array} cas_group_codes CAS group codes
+            * @param  {Array} cas_reason_codes CAS reason codes
+            */
+            addCAS: function (cas_group_codes, cas_reason_codes) {
+                var element = '';
+
+                var count = $('.casPayment').length
+                if (count + 1 <= 10) {
+                    element += this.additionCASFormTemplate({
+                        cas_group_codes: cas_group_codes,
+                        cas_reason_codes: cas_reason_codes,
+                        id: count + 1
+                    });
+                    $('#contentPaymentCAS').append(element);
                 }
             }
 
