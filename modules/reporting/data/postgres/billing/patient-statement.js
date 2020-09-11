@@ -197,7 +197,7 @@ WITH claim_data AS (
                     SELECT
                           DISTINCT claim_id
                         , 'patient_statement'
-                        , 'Patient Statement  Printed  for ' || full_name || ' (patient)'
+                        , 'Patient Statement Printed for ' || full_name || ' (patient)'
                         , <%= userId %>
                         , now()
                     FROM detail_cte
