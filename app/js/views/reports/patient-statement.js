@@ -170,7 +170,8 @@ define([
                     allBillingProviders: this.viewModel.allBillingProviders,
                     billingProvider: this.viewModel.billingProvider,
                     patientLastnameFrom: this.viewModel.patientLastnameFrom,
-                    patientLastnameTo: this.viewModel.patientLastnameTo
+                    patientLastnameTo: this.viewModel.patientLastnameTo,
+                    logInClaimInquiry: $('#chkLogInClaimInquiry').prop('checked')
                 };
             },
 

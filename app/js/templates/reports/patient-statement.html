@@ -58,22 +58,24 @@
                     <div class="input-group">
                         <input type="number" id="minAmount" class="form-control" required="required" name="minAmount" min="0" value="0">
                     </div>
-                    <label class="control-label" i18n="report.reportFilter.payToProvider"></label>
                     <input type="checkbox" id="chkPayToProvider"/>
+                    <label class="control-label" i18n="report.reportFilter.payToProvider"></label>
                 </div>
             </div>
         </div>
         <div class="col-4">
-            <div class="col-xs-4">
-                <div class="form-group form-inline">
-                        <label class="control-label" i18n="report.reportFilter.statementmode"></label>
-                        <div class="input-group">
-                            <select id="ddlPatientOption">
-                                <option value="All">All</option>
-                                <option value="S">Selected</option>
-                                <option value="R">Range By Patient Last Name</option>
-                            </select>
-                        </div>
+            <div class="form-group form-inline">
+                <div>
+                    <label class="control-label" i18n="report.reportFilter.statementmode"></label>
+                    <div class="input-group">
+                        <select id="ddlPatientOption">
+                            <option value="All">All</option>
+                            <option value="S">Selected</option>
+                            <option value="R">Range By Patient Last Name</option>
+                        </select>
+                    </div>
+                    <input type="checkbox" id="chkLogInClaimInquiry" />
+                    <label class="control-label" i18n="report.reportFilter.logInClaimInquiry"></label>
                 </div>
             </div>
         </div>
