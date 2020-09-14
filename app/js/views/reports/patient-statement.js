@@ -79,6 +79,11 @@ define([
                 UI.bindBillingProvider();
                 UI.bindPatient('txtPatient', this.usermessage.selectPatient, 'btnAddPatient', 'ulListPatients');
 
+                $('#ddlPatientOption')
+                .append('<option value="All">' + commonjs.geti18NString('shared.buttons.all'))
+                .append('<option value="S">' + commonjs.geti18NString('shared.fields.select'))
+                .append('<option value="R">' + commonjs.geti18NString('shared.fields.rangeByPatientName'));
+
                 $('#ddlPatientOption').multiselect({
                     maxHeight: '200px',
                     buttonWidth: '220px',
