@@ -780,6 +780,8 @@ module.exports = {
                             ORDER BY p.id ASC
                         ) payment_details
                     ) AS payment_details
+                    , c.area_of_injury_code_id
+                    , c.nature_of_injury_code_id
                     FROM
                         billing.claims c
                         INNER JOIN public.patients p ON p.id = c.patient_id

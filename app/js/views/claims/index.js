@@ -95,6 +95,10 @@ define(['jquery',
                 'primaryInsState': '#ddlPriState',
                 'primaryInsZipCode': '#txtPriZipCode'
             },
+            events: {
+                'click #chkEmployment': 'toggleWCBInjuryTypes'
+            },
+
             initialize: function (options) {
                 this.options = options;
                 this.model = new newClaimModel();
@@ -225,7 +229,9 @@ define(['jquery',
                         paymentList: self.paymentList,
                         billingRegionCode: app.billingRegionCode,
                         currentDate: self.studyDate === undefined && self.cur_study_date || self.studyDate,
-                        chargeField : self.getClaimChargeFieldDetails(app.billingRegionCode || '')
+                        chargeField : self.getClaimChargeFieldDetails(app.billingRegionCode || ''),
+                        wcbAreaCode: app.wcb_area_code,
+                        wcbNatureCode: app.wcb_nature_code
                     })
                 });
 
@@ -841,6 +847,7 @@ define(['jquery',
                                 }
                             }
                             self.toggleOtherClaimNumber();
+                            self.toggleWCBInjuryTypes();
 
                         } else {
                             commonjs.showWarning('billing.era.claimNotExists');
@@ -1088,6 +1095,8 @@ define(['jquery',
                 $('#txtAuthorization').val(claim_data.authorization_no || '');
                 $('#frequency').val(claim_data.frequency || '');
                 $('#selAccidentState').val(claim_data.accident_state).prop('disabled', !isCauseCode);
+                $('#wcbNatureOfInjury').val(claim_data.nature_of_injury_code_id || '');
+                $('#wcbAreaOfInjury').val(claim_data.area_of_injury_code_id || '');
                 /* Additional info end */
                 /* Billing summary start */
 
@@ -1517,6 +1526,18 @@ define(['jquery',
                 }
             },
 
+            toggleWCBInjuryTypes: function() {
+                if ( $('#chkEmployment').is(':checked')) {
+                    $('#wcbNature_div').show();
+                    $('#wcbArea_div').show();
+                } else {
+                    $('#wcbNature_div').hide();
+                    $('#wcbArea_div').hide();
+                    $('#wcbNatureOfInjury').val('')
+                    $('#wcbAreaOfInjury').val('')
+                }
+            },
+
             bindclaimFormEvents: function (isFrom) {
 
                 var self = this;
@@ -1610,6 +1631,7 @@ define(['jquery',
                         $accidentState.val('');
                     }
                     self.toggleOtherClaimNumber();
+                    self.toggleWCBInjuryTypes();
                 });
 
                 $('#ddlPayToCode').off().change(function (e) {
@@ -3495,7 +3517,9 @@ define(['jquery',
                     can_newborn_code: $.trim($('#ddlNewbornCode option:selected').val()) || null,
                     can_ahs_emsaf_reason: $.trim($('#txtReasonAdditionalCompensation').val()) || null,
                     can_supporting_text: $.trim($.trim($('#txtSupportingText').val()).replace(/\n/g, ' ')),
-                    can_wcb_rejected: $("#chkwcbRejected").prop('checked') || false
+                    can_wcb_rejected: $("#chkwcbRejected").prop('checked') || false,
+                    wcb_injury_area_code: $.trim($('#wcbAreaOfInjury').val()) || null,
+                    wcb_injury_nature_code: $.trim($('#wcbNatureOfInjury').val()) || null
                 };
 
                 // Pay-to Details are only saved when Pay-to Code is Other

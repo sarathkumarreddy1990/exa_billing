@@ -1211,6 +1211,28 @@
                         </select>
                     </div>
                 </div>
+                <div class="form-group row" id="wcbNature_div">
+                        <label class="col-sm-3 col-form-label" for="wcbNatureOfInjury" i18n="order.additionalInfo.natureOfInjury"></label>
+                    <div class="col-sm-3 input-group">
+                        <select name="natureCode" id="wcbNatureOfInjury" class="form-control">
+                            <option value="">Select</option>
+                            <% _.each(wcbNatureCode, function(Obj) { %>
+                                <option value="<%= Obj.id %>"><%= Obj.code %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div class="col-sm-2">
+                        <label class="control-label" for="wcbAreaOfInjury" i18n="order.additionalInfo.areaOfInjury"></label>
+                    </div>
+                    <div class="col-sm-3 input-group">
+                        <select name="areaCode" id="wcbAreaOfInjury" class="form-control">
+                            <option value="">Select</option>
+                            <% _.each(wcbAreaCode, function(Obj) { %>
+                                <option value="<%= Obj.id %>"><%= Obj.code %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                </div>
                 <div class="form-group row" style="padding-left: 3px;">
                     <label class="col-sm-3 col-form-label "></label>
                     <div class="col-sm-5">
