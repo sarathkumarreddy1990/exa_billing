@@ -137,7 +137,9 @@ module.exports = {
                                         get_patient_alerts_to_jsonb(p.id, TRUE) AS alerts,
                                         p.patient_info,
                                         facilities.can_ahs_business_arrangement AS can_ahs_business_arrangement_facility,
-                                        studies_details.can_ahs_locum_arrangement_provider
+                                        studies_details.can_ahs_locum_arrangement_provider,
+                                        (SELECT nature_of_injury_code_id FROM studies WHERE id=${firstStudyId}),
+                                        (SELECT area_of_injury_code_id FROM studies WHERE id=${firstStudyId})
                                     FROM
                                         orders
                                         INNER JOIN facilities ON  facilities.id= orders.facility_id
@@ -613,7 +615,7 @@ module.exports = {
                     , c.can_wcb_rejected
                     , c.can_mhs_receipt_date::text AS can_mhs_receipt_date
                     , c.can_mhs_microfilm_no
-                    , public.get_issuer_details(c.patient_id , 'uli_phn') AS phn_acc_no    
+                    , public.get_issuer_details(c.patient_id , 'uli_phn') AS phn_acc_no
                     , (
                         SELECT array_agg(row_to_json(pointer)) AS claim_charges
                         FROM (
@@ -648,10 +650,10 @@ module.exports = {
                                 INNER JOIN public.cpt_codes cpt ON ch.cpt_id = cpt.id
                                 LEFT JOIN public.plan_benefits pb ON pb.cpt_id = cpt.id
                                 LEFT JOIN billing.charges_studies chs ON chs.charge_id = ch.id
-                            WHERE 
+                            WHERE
                                 claim_id = c.id
                                 AND (
-                                    pb.id IS NULL 
+                                    pb.id IS NULL
                                     OR CURRENT_DATE BETWEEN pb.effective_date AND pb.end_date
                                 )
                             ORDER BY ch.id, ch.line_num ASC

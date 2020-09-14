@@ -1201,34 +1201,26 @@
                         </div>
                     </div>
                 </div>
+                <div class="form-group row wcb_injury" id="natureOfInjuryDiv">
+                    <label for="wcbNatureOfInjury" class="col-sm-3 col-form-label" i18n="order.additionalInfo.natureOfInjury"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="wcbNatureOfInjury" name="wcbNatureOfInjury" style="height:32px;">
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row wcb_injury" id="areaOfInjuryDiv">
+                    <label for="wcbAreaOfInjury" class="col-sm-3 col-form-label" i18n="order.additionalInfo.areaOfInjury"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="wcbAreaOfInjury" name="wcbAreaOfInjury" style="height:32px;">
+                        </select>
+                    </div>
+                </div>
                 <div class="form-group row mt-2">
                     <label for="selAccidentState" class="col-sm-3 col-form-label" i18n="order.additionalInfo.accidentState"></label>
                     <div class="col-sm-2 col-md-2">
                         <select name="states" id="selAccidentState" class="form-control" disabled>
                             <% _.each(states, function(state) { %>
                             <option value="<%= state.id %>"><%= state.text %></option>
-                            <% }); %>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group row" id="wcbNature_div">
-                        <label class="col-sm-3 col-form-label" for="wcbNatureOfInjury" i18n="order.additionalInfo.natureOfInjury"></label>
-                    <div class="col-sm-3 input-group">
-                        <select name="natureCode" id="wcbNatureOfInjury" class="form-control">
-                            <option value="">Select</option>
-                            <% _.each(wcbNatureCode, function(Obj) { %>
-                                <option value="<%= Obj.id %>"><%= Obj.code %></option>
-                            <% }); %>
-                        </select>
-                    </div>
-                    <div class="col-sm-2">
-                        <label class="control-label" for="wcbAreaOfInjury" i18n="order.additionalInfo.areaOfInjury"></label>
-                    </div>
-                    <div class="col-sm-3 input-group">
-                        <select name="areaCode" id="wcbAreaOfInjury" class="form-control">
-                            <option value="">Select</option>
-                            <% _.each(wcbAreaCode, function(Obj) { %>
-                                <option value="<%= Obj.id %>"><%= Obj.code %></option>
                             <% }); %>
                         </select>
                     </div>
