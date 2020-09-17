@@ -183,27 +183,28 @@ WITH claim_data AS (
         AND claim_sum_amount != 0::MONEY
     ),
 
-    create_comments AS (
-        INSERT INTO billing.claim_comments
-            (
-                  claim_id
-                , type
-                , note
-                , created_by
-                , created_dt
-            )
-            (
-                SELECT
-                      DISTINCT claim_id
-                    , 'patient_statement'
-                    , 'Patient Statement  Printed  for ' || full_name || ' (patient)'
-                    , <%= userId %>
-                    , now()
-                FROM detail_cte
-                WHERE row_flag = 1
-            )
-    ),
-
+    <% if (logInClaimInquiry === 'true') { %>
+        create_comments AS (
+            INSERT INTO billing.claim_comments
+                (
+                      claim_id
+                    , type
+                    , note
+                    , created_by
+                    , created_dt
+                )
+                (
+                    SELECT
+                          DISTINCT claim_id
+                        , 'patient_statement'
+                        , 'Patient Statement Printed for ' || full_name || ' (patient)'
+                        , <%= userId %>
+                        , now()
+                    FROM detail_cte
+                    WHERE row_flag = 1
+                )
+            ),
+    <% } %>
     date_cte AS (
     SELECT
         pid,
@@ -596,6 +597,12 @@ const api = {
         }
 
         filtersUsed.push({ name: 'payToProvider', label: 'Use address of Pay-To Provider', value: params.payToProvider ? 'Yes' : 'No' });
+        
+        filtersUsed.push({
+            name: 'logInClaimInquiry',
+            label: 'Log in claim inquiry',
+            value: (params.logInClaimInquiry === "true") ? 'Yes' : 'No'
+        });
 
         if (params.patientOption === 'R') {
             filtersUsed.push({name: 'patientLastnameFrom', label: 'Patient Lastname From', value: params.patientLastnameFrom });
@@ -630,7 +637,8 @@ const api = {
             patientLastnameFrom: null,
             patientLastnameTo: null,
             userId: null,
-            reportFormat: null
+            reportFormat: null,
+            logInClaimInquiry: null
         };
 
         filters.userId = reportParams.userId;
@@ -665,6 +673,7 @@ const api = {
 
         filters.whereDate = queryBuilder.whereDateInTz(` CASE  WHEN type = 'charge' THEN  bc.claim_dt ELSE pc.commented_dt END `, `<=`, [params.length], `f.time_zone`);
         filters.payToProvider = reportParams.payToProvider;
+        filters.logInClaimInquiry = reportParams.logInClaimInquiry;
 
         if (reportParams.patientOption === 'R') {
             filters.patientLastnameFrom = reportParams.patientLastnameFrom;
