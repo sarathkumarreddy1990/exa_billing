@@ -1106,17 +1106,19 @@ define(['jquery',
                     var natureOfInjuryCode = _.find(app.wcb_nature_code, {
                         id: ~~claim_data.nature_of_injury_code_id
                         }) || {};
+                    var areaOfInjuryContainer = $("#select2-wcbAreaOfInjury-container");
+                    var natureOfInjuryContainer = $("#select2-wcbNatureOfInjury-container");
 
                     if (_.isEmpty(areaOfInjuryCode)) {
-                        $("#select2-wcbAreaOfInjury-container").html(commonjs.geti18NString('messages.warning.shared.selectWcbAreaCode'));
+                        areaOfInjuryContainer.text(commonjs.geti18NString('messages.warning.shared.selectWcbAreaCode'));
                     } else {
-                        $("#select2-wcbAreaOfInjury-container").html(areaOfInjuryCode.code + ' - ' + areaOfInjuryCode.description);
+                        areaOfInjuryContainer.text(areaOfInjuryCode.code + ' - ' + areaOfInjuryCode.description);
                     }
 
                     if (_.isEmpty(natureOfInjuryCode)) {
-                        $("#select2-wcbNatureOfInjury-container").html(commonjs.geti18NString('messages.warning.shared.selectWcbNatureCode'));
+                        natureOfInjuryContainer.text(commonjs.geti18NString('messages.warning.shared.selectWcbNatureCode'));
                     } else {
-                        $("#select2-wcbNatureOfInjury-container").html(natureOfInjuryCode.code + ' - ' + natureOfInjuryCode.description);
+                        natureOfInjuryContainer.text(natureOfInjuryCode.code + ' - ' + natureOfInjuryCode.description);
                     }
                     self.wcbNatureCodeId = claim_data.nature_of_injury_code_id || null;
                     self.wcbAreaCodeId = claim_data.area_of_injury_code_id || null;
