@@ -74,4 +74,8 @@ router.get('/adjustment_code', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.get('/wcb_codes', async function (req, res) {
+    const data = await autoCompleteController.getWCBCodes(req.query);
+    httpHandler.sendRows(req, res, data);
+})
 module.exports = router;

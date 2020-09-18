@@ -95,6 +95,10 @@ define(['jquery',
                 'primaryInsState': '#ddlPriState',
                 'primaryInsZipCode': '#txtPriZipCode'
             },
+            events: {
+                'click #chkEmployment': 'toggleWCBInjuryTypes'
+            },
+
             initialize: function (options) {
                 this.options = options;
                 this.model = new newClaimModel();
@@ -225,7 +229,9 @@ define(['jquery',
                         paymentList: self.paymentList,
                         billingRegionCode: app.billingRegionCode,
                         currentDate: self.studyDate === undefined && self.cur_study_date || self.studyDate,
-                        chargeField : self.getClaimChargeFieldDetails(app.billingRegionCode || '')
+                        chargeField : self.getClaimChargeFieldDetails(app.billingRegionCode || ''),
+                        wcbAreaCode: app.wcb_area_code,
+                        wcbNatureCode: app.wcb_nature_code
                     })
                 });
 
@@ -564,6 +570,8 @@ define(['jquery',
                 self.setProviderAutoComplete('RF'); // referring provider auto complete
                 self.setDiagCodesAutoComplete();
                 self.setOrderingFacilityAutoComplete();
+                self.initWCBCodesAutoComplete('wcbNatureOfInjury');
+                self.initWCBCodesAutoComplete('wcbAreaOfInjury');
                 if (!self.isEdit)
                     self.bindExistingPatientInsurance(doHide);
             },
@@ -841,6 +849,7 @@ define(['jquery',
                                 }
                             }
                             self.toggleOtherClaimNumber();
+                            self.toggleWCBInjuryTypes();
 
                         } else {
                             commonjs.showWarning('billing.era.claimNotExists');
@@ -1088,6 +1097,35 @@ define(['jquery',
                 $('#txtAuthorization').val(claim_data.authorization_no || '');
                 $('#frequency').val(claim_data.frequency || '');
                 $('#selAccidentState').val(claim_data.accident_state).prop('disabled', !isCauseCode);
+
+                if (app.billingRegionCode === 'can_BC') {
+
+                    var areaOfInjuryCode = _.find(app.wcb_area_code, {
+                        id: ~~claim_data.area_of_injury_code_id
+                        }) || {};
+                    var natureOfInjuryCode = _.find(app.wcb_nature_code, {
+                        id: ~~claim_data.nature_of_injury_code_id
+                        }) || {};
+                    var areaOfInjuryContainer = $("#select2-wcbAreaOfInjury-container");
+                    var natureOfInjuryContainer = $("#select2-wcbNatureOfInjury-container");
+
+                    if (_.isEmpty(areaOfInjuryCode)) {
+                        areaOfInjuryContainer.text(commonjs.geti18NString('messages.warning.shared.selectWcbAreaCode'));
+                    } else {
+                        areaOfInjuryContainer.text(areaOfInjuryCode.code + ' - ' + areaOfInjuryCode.description);
+                    }
+
+                    if (_.isEmpty(natureOfInjuryCode)) {
+                        natureOfInjuryContainer.text(commonjs.geti18NString('messages.warning.shared.selectWcbNatureCode'));
+                    } else {
+                        natureOfInjuryContainer.text(natureOfInjuryCode.code + ' - ' + natureOfInjuryCode.description);
+                    }
+                    self.wcbNatureCodeId = claim_data.nature_of_injury_code_id || null;
+                    self.wcbAreaCodeId = claim_data.area_of_injury_code_id || null;
+                    $('#wcbAreaOfInjury').val(self.wcbAreaCodeId);
+                    $('#wcbNatureOfInjury').val(self.wcbNatureCodeId);
+                }
+
                 /* Additional info end */
                 /* Billing summary start */
 
@@ -1266,6 +1304,71 @@ define(['jquery',
                 return $.grep(app.relationship_status, function (relationship) {
                     return id == relationship.id;
                 }).length;
+            },
+
+            /**
+            * Setting default autocomplete for wcb codes
+            * This autocomplete returns the response as res.wcb code
+            */
+            initWCBCodesAutoComplete: function (containerID) {
+                var self = this;
+                var wcbCodeType = containerID === 'wcbNatureOfInjury' ? 'n' : 'a';
+                $('#' + containerID).select2({
+                    ajax: {
+                        url: "/exa_modules/billing/autoCompleteRouter/wcb_codes",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                page: params.page || 1,
+                                codeType: wcbCodeType,
+                                q: params.term || '',
+                                pageSize: 10,
+                                sortField: "code",
+                                sortOrder: "asc",
+                                company_id: app.companyID
+                            };
+                        },
+                        processResults: function (data, params) {
+                            return commonjs.getTotalRecords(data, params);
+                        },
+                        cache: true
+                    },
+                    minimumInputLength: 0,
+                    placeholder: wcbCodeType === 'n'
+                        ? commonjs.geti18NString('messages.warning.shared.selectWcbNatureCode')
+                        : commonjs.geti18NString('messages.warning.shared.selectWcbAreaCode'),
+                    escapeMarkup: function (markup) { return markup; },
+                    templateResult: formatRepo,
+                    templateSelection: formatRepoSelection,
+                });
+                function formatRepo(res) {
+                    if (res.loading) {
+                        return res.text;
+                    }
+
+                    var markup = "<table><tr>";
+                    markup += "<td title='" + res.code + " - " + res.description + "'><div>" + res.code + " - " + res.description + "</div>";
+                    markup += "</td></tr></table>";
+                    return markup;
+                }
+                function formatRepoSelection(res) {
+                    if (!res.id) {
+                        return res.text;
+                    }
+                    self.bindWCBDetails(containerID, res);
+                    return res.code + ' - ' + res.description;
+                }
+            },
+
+            toggleWCBInjuryTypes: function() {
+                if ($('#chkEmployment').is(':checked')) {
+                    $('#natureOfInjuryDiv').show();
+                    $('#areaOfInjuryDiv').show();
+                } else {
+                    $('#natureOfInjuryDiv').hide();
+                    $('#areaOfInjuryDiv').hide();
+                }
             },
 
             bindEditClaimInsuranceDetails: function (claimData) {
@@ -1610,6 +1713,7 @@ define(['jquery',
                         $accidentState.val('');
                     }
                     self.toggleOtherClaimNumber();
+                    self.toggleWCBInjuryTypes();
                 });
 
                 $('#ddlPayToCode').off().change(function (e) {
@@ -3033,7 +3137,18 @@ define(['jquery',
                 }
 
             },
-
+            bindWCBDetails: function(elementId, res) {
+                var self = this;
+                if (elementId === 'wcbNatureOfInjury') {
+                    self.wcbNatureCodeId = res.id;
+                    self.wcbNatureCode = res.code || null;
+                    self.wcbNatureDescription = res.description || null;
+                } else {
+                    self.wcbAreaCodeId = res.id;
+                    self.wcbAreaCode = res.code || null;
+                    self.wcbAreaDescription = res.description || null;
+                }
+            },
             bindInsurance: function (element_id, res) {
                 var self = this, payer_type, coverage_level;
                 switch (element_id) {
@@ -3495,7 +3610,9 @@ define(['jquery',
                     can_newborn_code: $.trim($('#ddlNewbornCode option:selected').val()) || null,
                     can_ahs_emsaf_reason: $.trim($('#txtReasonAdditionalCompensation').val()) || null,
                     can_supporting_text: $.trim($.trim($('#txtSupportingText').val()).replace(/\n/g, ' ')),
-                    can_wcb_rejected: $("#chkwcbRejected").prop('checked') || false
+                    can_wcb_rejected: $("#chkwcbRejected").prop('checked') || false,
+                    wcb_injury_area_code: $.trim($('#wcbAreaOfInjury').val()) || null,
+                    wcb_injury_nature_code: $.trim($('#wcbNatureOfInjury').val()) || null
                 };
 
                 // Pay-to Details are only saved when Pay-to Code is Other
@@ -3600,7 +3717,8 @@ define(['jquery',
 
                 /*Setting ICD pointers details*/
                 claim_model.claim_icds = self.claimICDLists || [];
-
+                // set study Id in claims
+                claim_model.claims.study_id = claim_model.charges[0].study_id || null;
                 // set claims details
                 self.model.set({
                     claim_row_version : self.isEdit ? self.claim_row_version : null,
@@ -5016,6 +5134,7 @@ define(['jquery',
                 //binding claim form events
                 self.bindTabMenuEvents();
                 self.bindclaimFormEvents();
+                self.toggleWCBInjuryTypes();
 
                 //EXA-18273 - Bind Charges created on current date for a patient.
                 if (app.billingRegionCode === 'can_AB') {

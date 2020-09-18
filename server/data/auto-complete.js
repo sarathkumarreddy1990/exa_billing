@@ -478,5 +478,39 @@ module.exports = {
             .append(SQL` OFFSET ${((params.page - 1) * params.pageSize)}`);
 
         return await query(adj_code_sql);
+    },
+
+    getWCBCodes: async (params) => {
+        let {
+            q,
+            codeType,
+            sortField,
+            sortOrder,
+            page,
+            pageSize
+        } = params;
+
+        let wcb_code_search = ` AND (pwic.code ILIKE '%${q}%' OR pwic.description ILIKE '%${q}%') `;
+
+        const wcb_code_sql = SQL`SELECT
+                                       id
+                                     , code
+                                     , description
+                                     , injury_code_type
+                                     , COUNT(1) OVER (range unbounded preceding) AS total_records
+                                FROM public.wcb_injury_codes AS pwic
+                                WHERE pwic.injury_code_type = ${codeType}
+                                AND pwic.inactivated_dt IS NULL `;
+
+        if (q != '') {
+            wcb_code_sql.append(wcb_code_search);
+        }
+
+        wcb_code_sql.append(SQL` ORDER BY  ${sortField} `)
+            .append(sortOrder)
+            .append(SQL` LIMIT ${pageSize}`)
+            .append(SQL` OFFSET ${((page - 1) * pageSize)}`);
+
+        return await query(wcb_code_sql);
     }
 };
