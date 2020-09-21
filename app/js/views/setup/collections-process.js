@@ -30,17 +30,17 @@ define([
 
                 // 1. Collections Review Criteria first options
                 var $chkPaymentStmtWise = $('#chkPaymentStmtWise');
-                var $statementFrequency = $('#statementFrequency');
-                var $paymentFrequencyStmtWise = $('#paymentFrequencyStmtWise');
+                var $acrStatementCount = $('#acrStatementCount');
+                var $acrStatementDays = $('#acrStatementDays');
                 $('#chkPaymentStmtWise').off().on('click', function () {
                     var isChecked = $chkPaymentStmtWise.is(':checked');
 
                     if (!isChecked) {
-                        $paymentFrequencyStmtWise.val('');
-                        $statementFrequency.val('');
+                        $acrStatementDays.val('');
+                        $acrStatementCount.val('');
                     }
-                    $paymentFrequencyStmtWise.prop('disabled', !isChecked);
-                    $statementFrequency.prop('disabled', !isChecked);
+                    $acrStatementDays.prop('disabled', !isChecked);
+                    $acrStatementCount.prop('disabled', !isChecked);
                 });
 
                 // 2. Collections Review Criteria second options
@@ -49,9 +49,9 @@ define([
                     var isChecked = $chkLastPatientPayment.is(':checked');
 
                     if (!isChecked) {
-                        $('#lppDaysCount').val('');
+                        $('#acrLastPaymentDays').val('');
                     }
-                    $('#lppDaysCount').prop('disabled', !isChecked);
+                    $('#acrLastPaymentDays').prop('disabled', !isChecked);
                 });
 
                 $('.collection-process-content').prop('hidden', true);
@@ -78,36 +78,36 @@ define([
                         if (data && data.length) {
                             self.isExists = true;
                             var result = data[0];
-
-                            $('#chkAutoCollectionProcess').prop('checked', result.can_process_auto_collections);
-                            $('#txtMinAccBalance').val(result.minimum_account_balance);
-                            $('#txtMinAccBalance').prop('disabled', !result.can_process_auto_collections);
-                            $('.collection-process-content').prop('hidden', !result.can_process_auto_collections);
+                            var can_process_auto_collections = result.acr_min_balance_amount > 0;
+                            $('#chkAutoCollectionProcess').prop('checked', can_process_auto_collections);
+                            $('#txtMinAccBalance').val(result.acr_min_balance_amount);
+                            $('#txtMinAccBalance').prop('disabled', !can_process_auto_collections);
+                            $('.collection-process-content').prop('hidden', !can_process_auto_collections);
 
                             //Collections Review Criteria
-                            var isCheckedPaymentStmtWise = result.statement_frequency && result.payment_frequency_stmt_wise || false
-                            var $paymentFrequencyStmtWise = $('#paymentFrequencyStmtWise');
+                            var isCheckedPaymentStmtWise = result.acr_claim_status_statement_count && result.acr_claim_status_statement_days || false
+                            var $acrStatementDays = $('#acrStatementDays');
                             var $chkLastPatientPayment = $('#chkLastPatientPayment');
-                            var $statementFrequency = $('#statementFrequency');
-                            var $lppDaysCount = $('#lppDaysCount');
+                            var $acrStatementCount = $('#acrStatementCount');
+                            var $acrLastPaymentDays = $('#acrLastPaymentDays');
 
                             $('#chkPaymentStmtWise').prop('checked', isCheckedPaymentStmtWise);
-                            $paymentFrequencyStmtWise.val(result.payment_frequency_stmt_wise || '');
-                            $paymentFrequencyStmtWise.prop('disabled', !isCheckedPaymentStmtWise);
+                            $acrStatementDays.val(result.acr_claim_status_statement_days || '');
+                            $acrStatementDays.prop('disabled', !isCheckedPaymentStmtWise);
 
-                            $statementFrequency.val(result.statement_frequency || '');
-                            $statementFrequency.prop('disabled', !isCheckedPaymentStmtWise);
+                            $acrStatementCount.val(result.acr_claim_status_statement_count || '');
+                            $acrStatementCount.prop('disabled', !isCheckedPaymentStmtWise);
 
-                            $chkLastPatientPayment.prop('checked', result.payment_frequency_last_pymt_wise);
-                            $lppDaysCount.val(result.payment_frequency_last_pymt_wise);
-                            $lppDaysCount.prop('disabled', !result.payment_frequency_last_pymt_wise);
+                            $chkLastPatientPayment.prop('checked', result.acr_claim_status_last_payment_days);
+                            $acrLastPaymentDays.val(result.acr_claim_status_last_payment_days);
+                            $acrLastPaymentDays.prop('disabled', !result.acr_claim_status_last_payment_days);
 
                             // Claim Balance
-                            $('#chkWriteOffBalance').prop('checked', result.write_off_adjustment_code_id);
-                            $('.adj-code-content').prop('hidden', !result.write_off_adjustment_code_id);
+                            $('#chkWriteOffBalance').prop('checked', result.acr_write_off_adjustment_code_id);
+                            $('.adj-code-content').prop('hidden', !result.acr_write_off_adjustment_code_id);
 
-                            if (result.write_off_adjustment_code_id) {
-                                self.writeOffAdjCodeId = result.write_off_adjustment_code_id;
+                            if (result.acr_write_off_adjustment_code_id) {
+                                self.writeOffAdjCodeId = result.acr_write_off_adjustment_code_id;
                                 $('#select2-ddlAdjustmentCode-container').html(result.adjustment_desc);
                             }
                         }
@@ -214,20 +214,26 @@ define([
                     return false;
                 }
 
-                if (!$('#txtMinAccBalance').val()) {
+                if (!$('#txtMinAccBalance').val() || $('#txtMinAccBalance').val() == 0) {
                     commonjs.showWarning('messages.warning.setup.minimumAmtRequired');
                     return false;
                 }
 
+                var isValidStatementCount = !$('#acrStatementCount').val() || $('#acrStatementCount').val() == 0;
+                var isValidStatementDays  = !$('#acrStatementDays').val() || $('#acrStatementDays').val() == 0;
+                var isValidLastPaymentDays  = !$('#acrLastPaymentDays').val() || $('#acrLastPaymentDays').val() == 0;
+                var isChkLastPatientPayment = $('#chkLastPatientPayment').is(':checked');
+                var isChkPaymentStmtWise = $('#chkPaymentStmtWise').is(':checked');
+
                 if (
-                    ((!$('#paymentFrequencyStmtWise').val() || !$('#statementFrequency').val()) && $('#chkPaymentStmtWise').is(':checked')) ||
-                    (!$('#lppDaysCount').val() && $('#chkLastPatientPayment').is(':checked'))
+                    ((isValidStatementDays || isValidStatementCount) && isChkPaymentStmtWise)
+                    || ( isValidLastPaymentDays && isChkLastPatientPayment)
                 ) {
                     commonjs.showWarning('messages.warning.setup.collectionsInputRequired')
                     return false;
                 }
 
-                if (!$('#chkPaymentStmtWise').is(':checked') && !$('#chkLastPatientPayment').is(':checked')) {
+                if (!isChkPaymentStmtWise && !isChkLastPatientPayment) {
                     commonjs.showWarning('messages.warning.setup.collectionSelectOneOption');
                     return false;
                 }
@@ -251,12 +257,11 @@ define([
                     var requestData = {
                         companyId                   : app.companyID,
                         userId                      : app.userID,
-                        statementFreq               : $('#statementFrequency').val() || null,
+                        acrStatementCount           : $('#acrStatementCount').val() || null,
                         WriteOffAdjCodeId           : self.writeOffAdjCodeId || null,
                         minimumAccountBalance       : $('#txtMinAccBalance').val(),
-                        paymentFreqLastPaymentWise  : $('#lppDaysCount').val() || null,
-                        paymentFreqStmtWise         : $('#paymentFrequencyStmtWise').val() || null,
-                        isAutoCollectionProcess     : isCollectionProcessChecked,
+                        acrLastPaymentDays          : $('#acrLastPaymentDays').val() || null,
+                        acrStatementDays            : $('#acrStatementDays').val() || null
                     };
 
                     var request = {
