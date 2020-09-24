@@ -498,7 +498,7 @@ module.exports = {
                                      , description
                                      , injury_code_type
                                      , COUNT(1) OVER (range unbounded preceding) AS total_records
-                                FROM public.wcb_injury_codes AS pwic
+                                FROM public.can_wcb_injury_codes AS pwic
                                 WHERE pwic.injury_code_type = ${codeType}
                                 AND pwic.inactivated_dt IS NULL `;
 
