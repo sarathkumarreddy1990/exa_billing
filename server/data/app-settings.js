@@ -434,7 +434,7 @@ module.exports = {
                                     code,
                                     description,
                                     (inactivated_dt IS NULL) AS is_active
-                            FROM public.wcb_injury_codes
+                            FROM public.can_wcb_injury_codes
                             WHERE injury_code_type = 'n'
                         )  AS wcb_nature_code
                 ),
@@ -446,7 +446,7 @@ module.exports = {
                                     code,
                                     description,
                                     (inactivated_dt IS NULL) AS is_active
-                            FROM public.wcb_injury_codes
+                            FROM public.can_wcb_injury_codes
                             WHERE injury_code_type = 'a'
                         )  AS wcb_area_code
                 )
