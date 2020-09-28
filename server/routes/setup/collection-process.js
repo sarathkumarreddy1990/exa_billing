@@ -31,4 +31,15 @@ router.delete('/', async function (req, res) {
 
 });
 
+router.post('/autoCollectionsProcess', async function (req, res) {
+    let params = {
+        ...req.params,
+        ...req.body,
+        ...req.audit
+    };
+
+    const data = await collectionsControllers.autoCollectionsProcess(params);
+    httpHandler.sendRows(req, res, data);
+});
+
 module.exports = router;
