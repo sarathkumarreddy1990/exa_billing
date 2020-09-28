@@ -32,7 +32,7 @@ define([
                 var $chkPaymentStmtWise = $('#chkPaymentStmtWise');
                 var $acrStatementCount = $('#acrStatementCount');
                 var $acrStatementDays = $('#acrStatementDays');
-                $('#chkPaymentStmtWise').off().on('click', function () {
+                $chkPaymentStmtWise.off().on('click', function () {
                     var isChecked = $chkPaymentStmtWise.is(':checked');
 
                     if (!isChecked) {
@@ -258,7 +258,7 @@ define([
                         companyId                   : app.companyID,
                         userId                      : app.userID,
                         acrStatementCount           : $('#acrStatementCount').val() || null,
-                        WriteOffAdjCodeId           : self.writeOffAdjCodeId || null,
+                        writeOffAdjCodeId           : self.writeOffAdjCodeId || null,
                         minimumAccountBalance       : $('#txtMinAccBalance').val(),
                         acrLastPaymentDays          : $('#acrLastPaymentDays').val() || null,
                         acrStatementDays            : $('#acrStatementDays').val() || null

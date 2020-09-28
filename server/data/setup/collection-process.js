@@ -32,7 +32,7 @@ module.exports = {
             companyId,
             acrStatementDays,
             acrStatementCount,
-            WriteOffAdjCodeId,
+            writeOffAdjCodeId,
             acrLastPaymentDays,
             minimumAccountBalance,
         } = params;
@@ -50,7 +50,7 @@ module.exports = {
                             ${companyId}
                             , (SELECT id FROM billing.claim_status WHERE company_id = ${companyId} and code = 'CR' and description = 'Collections Review')
                             , ${minimumAccountBalance}
-                            , ${WriteOffAdjCodeId || null}
+                            , ${writeOffAdjCodeId || null}
                             , ${acrStatementDays  || null}
                             , ${acrStatementCount || null}
                             , ${acrLastPaymentDays || null}
@@ -72,7 +72,7 @@ module.exports = {
             companyId,
             acrStatementDays,
             acrStatementCount,
-            WriteOffAdjCodeId,
+            writeOffAdjCodeId,
             acrLastPaymentDays,
             minimumAccountBalance,
         } = params;
@@ -81,7 +81,7 @@ module.exports = {
                             billing.company_settings
                         SET
                             acr_min_balance_amount  = ${minimumAccountBalance},
-                            acr_write_off_adjustment_code_id  = ${WriteOffAdjCodeId || null},
+                            acr_write_off_adjustment_code_id  = ${writeOffAdjCodeId || null},
                             acr_claim_status_statement_days  = ${acrStatementDays || null},
                             acr_claim_status_statement_count  = ${acrStatementCount || null},
                             acr_claim_status_last_payment_days = ${acrLastPaymentDays || null}
