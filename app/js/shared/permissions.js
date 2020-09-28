@@ -73,7 +73,7 @@ var permissions = {
             'QCLM': 'anc_query_claim',
             'IAST': 'btnPrint',
             'AUTO': 'aAutoBilling',
-            'COLL': 'aCollectionsProcess',
+            'COLL': 'aCollectionsProcess'
         };
 
         var tosPayments = (app.screens).indexOf('TOSP') > -1 && (app.screens).indexOf('PAYM') === -1 ? true : false ;

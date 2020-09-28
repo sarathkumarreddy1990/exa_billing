@@ -52,7 +52,7 @@ define([
     InsuranceX12MappingRoute,
 	PaperClaimTemplatesRoute,
     AutoBillingRoute,
-    CollectionsProcess,
+    CollectionsProcess
     ) {
         return Backbone.SubRoute.extend({
             routes: {
