@@ -1,0 +1,75 @@
+<div class="col-lg-11 col-md-8">
+    <div id="eraHeaderButtons" class="col-lg-11">
+        <div class="float-right">
+            <button id="btnSaveCollectionProcess" type="button" class="btn btn-primary btn-sm"
+                i18n="setup.buttons.save"></button>
+        </div>
+    </div>
+    <div class="col-lg-11 px-3 mt-4">
+        <div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="chkAutoCollectionProcess" autocomplete="off">
+                <label class="form-check-label" for="chkAutoCollectionProcess" i18n="setup.collectionsProcess.autoCollectionProcess"></label>
+                <div class="d-block py-2 small">
+                    <div>
+                        <label i18n="setup.collectionsProcess.minimumAccountBalance"></label>
+                        <input class="text-right floatbox" type="number" id="txtMinAccBalance" min="1" max="1000" disabled>
+                    </div>
+                </div>
+            </div>
+            <p></p>
+        </div>
+
+        <div class="collection-process-content">
+            <h6 class="pb-2 px-3 mb-0"  i18n="setup.collectionsProcess.collectionsReviewCriteria"></h6>
+            <label class="small px-3 mb-2" i18n="setup.collectionsProcess.leastSelection"></label>
+            <p class="border-bottom border-primary"></p>
+            <div class="form-check ml-3">
+                <input class="form-check-input" type="checkbox" id="chkPaymentStmtWise" autocomplete="off">
+                <label class="form-check-label" for="chkPaymentStmtWise" i18n="setup.collectionsProcess.statementWiseLength1"></label>
+                <label class="font-weight-bold mx-1" i18n="setup.collectionsProcess.statementWiseLength2"></label>
+                <label i18n="setup.collectionsProcess.statementWiseLength3"></label>
+                <div class="d-block py-2">
+                    <div>
+                        <label i18n="setup.collectionsProcess.statementWiseLength4"></label>
+                        <input class="text-right integerbox" type="number" id="acrStatementDays" min="1" max="1000">
+                        <label i18n="setup.collectionsProcess.statementWiseLength5"></label>
+                        <input class="text-right integerbox" type="number" id="acrStatementCount" min="1" max="1000">
+                        <label i18n="setup.collectionsProcess.statementWiseLength6"></label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-check ml-3">
+                <input class="form-check-input" type="checkbox" id="chkLastPatientPayment" autocomplete="off">
+                <label class="form-check-label" for="chkLastPatientPayment" i18n="setup.collectionsProcess.statementWiseLength1"></label>
+                <label class="font-weight-bold mx-1" i18n="setup.collectionsProcess.statementWiseLength2"></label>
+                <label  i18n="setup.collectionsProcess.statementWiseLength3"></label>
+                <div class="d-block py-2">
+                    <div>
+                        <label i18n="setup.collectionsProcess.lastPatientPayment1"></label>
+                        <input class="text-right integerbox" type="number" id="acrLastPaymentDays" min="1" max="1000">
+                        <label i18n="setup.collectionsProcess.lastPatientPayment2"></label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="collection-process-content">
+            <h6 class="pb-2 px-3 mb-0" i18n="setup.collectionsProcess.claimBalance"></h6>
+            <label class="small px-3 mb-2" i18n="setup.collectionsProcess.claimBalanceLength1"></label>
+            <p class="border-bottom border-primary"></p>
+            <div class="form-check ml-3">
+                <input class="form-check-input" type="checkbox" id="chkWriteOffBalance" autocomplete="off">
+                <label class="form-check-label" for="chkWriteOffBalance" i18n="setup.collectionsProcess.claimBalanceLength2"></label>
+                <label class="font-weight-bold mx-1" i18n="setup.collectionsProcess.claimBalanceLength3"></label>
+                <div class="form-group row my-2 adj-code-content">
+                    <label class="col-sm-2 col-form-label" i18n="setup.collectionsProcess.adjustmentCode"></label>
+                    <div class="col-sm-5">
+                        <select id="ddlAdjustmentCode" name="adjustmentCode">
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

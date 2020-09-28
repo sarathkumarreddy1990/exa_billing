@@ -22,6 +22,7 @@ const ediTemplate = require('./edi-templates');
 const insuranceX12Mapping = require('./insurance-x12-mapping');
 const paperClaimTemplates = require('./printer-templates');
 const autoBilling = require('./auto-billing');
+const collectionsProcessRouter = require('./collection-process');
 
 
 const app = module.exports = express();
@@ -36,6 +37,7 @@ app.use('/billing_codes', billingCodeRouter);
 app.use('/paper_claim_printer_setup', paperClaimPrinterSetupRouter);
 app.use('/provider_level_codes', providerLevelCodeRouter);
 app.use('/claim_status', claimStatusRouter);
+app.use('/collections_process', collectionsProcessRouter);
 app.use('/billing_messages', billingMessageRouter);
 app.use('/payment_reasons', paymentReasonRouter);
 app.use('/validations', validationsRouter);
