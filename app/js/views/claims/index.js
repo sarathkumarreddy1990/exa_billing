@@ -896,9 +896,9 @@ define(['jquery',
             getPayToValue: function () {
                 var payToValue = '';
                 var baClaim = this.can_ahs_business_arrangement;
-                var locumClaim = this.can_ahs_locum_arrangement;
+                var locumClaim = this.can_locum_arrangement;
                 var baFacility = this.can_ahs_business_arrangement_facility;
-                var locumProvider = this.can_ahs_locum_arrangement_provider;
+                var locumProvider = this.can_locum_arrangement_provider;
 
                 if ( baClaim ) {
                     if ( !locumClaim ) {
@@ -933,23 +933,23 @@ define(['jquery',
             setBusinessArrangement: function ( payToValue ) {
                 switch ( payToValue ) {
                     case 'LOC_PP':
-                        this.can_ahs_business_arrangement = this.can_ahs_business_arrangement_facility;
-                        this.can_ahs_locum_arrangement = null;
+                        this.can_ahs_business_arrangement = this.can_locum_arrangement_facility;
+                        this.can_locum_arrangement = null;
                         break;
 
                     case 'LOC_LL':
-                        this.can_ahs_business_arrangement = this.can_ahs_locum_arrangement_provider;
-                        this.can_ahs_locum_arrangement = null;
+                        this.can_ahs_business_arrangement = this.can_locum_arrangement_provider;
+                        this.can_locum_arrangement = null;
                         break;
 
                     case 'LOC_PL':
                         this.can_ahs_business_arrangement = this.can_ahs_business_arrangement_facility;
-                        this.can_ahs_locum_arrangement = this.can_ahs_locum_arrangement_provider;
+                        this.can_locum_arrangement = this.can_locum_arrangement_provider;
                         break;
 
                     case 'LOC_LP':
-                        this.can_ahs_business_arrangement = this.can_ahs_locum_arrangement_provider;
-                        this.can_ahs_locum_arrangement = this.can_ahs_business_arrangement_facility;
+                        this.can_ahs_business_arrangement = this.can_locum_arrangement_provider;
+                        this.can_locum_arrangement = this.can_ahs_business_arrangement_facility;
                         break;
 
                     default:
@@ -1032,9 +1032,9 @@ define(['jquery',
                 var $businessArrangement = $('input[name="BusinessArrangement"]');
 
                 self.can_ahs_business_arrangement = claim_data.can_ahs_business_arrangement;
-                self.can_ahs_locum_arrangement = claim_data.can_ahs_locum_arrangement;
+                self.can_locum_arrangement = claim_data.can_locum_arrangement;
                 self.can_ahs_business_arrangement_facility = claim_data.can_ahs_business_arrangement_facility;
-                self.can_ahs_locum_arrangement_provider = claim_data.can_ahs_locum_arrangement_provider;
+                self.can_locum_arrangement_provider = claim_data.can_locum_arrangement_provider;
 
                 /* Locum Payment Type / Business Arrangement is read-only when claim is...
                  *   Paid in Full
@@ -3603,7 +3603,7 @@ define(['jquery',
                     can_ahs_pay_to_uli: "",
                     can_ahs_pay_to_details: null,
                     can_ahs_business_arrangement: self.can_ahs_business_arrangement || null,
-                    can_ahs_locum_arrangement: self.can_ahs_locum_arrangement || null,
+                    can_locum_arrangement: self.can_locum_arrangement || null,
                     can_ahs_claimed_amount_indicator: $('#chkClaimedAmountIndicator').prop('checked') || false,
                     can_confidential: $('#chkConfidential').prop('checked') || false,
                     can_ahs_paper_supporting_docs: $('#chkSupportingDocumentationSeparate').prop('checked') || false,
