@@ -772,6 +772,7 @@ define(['jquery',
 
                             $('#btnSaveClaim').attr('disabled', false);
                             $("#txtClaimDate").attr("disabled", "disabled");
+                            $("#txtClaimCreatedDt").attr("disabled", "disabled");
 
                             self.bindDefaultClaimDetails(claimDetails);
                             $('.claimProcess').prop('disabled', false);
@@ -1092,6 +1093,7 @@ define(['jquery',
                 }
                 /* ResponsibleList End*/
                 /* Common Details Edit & Claim creation */
+                $('#txtClaimCreatedDt').val(claim_data.claim_created_dt ? self.convertToTimeZone(claim_data.facility_id, claim_data.claim_dt).format('L') : '');
                 if (self.isEdit) {
                     self.bindEditClaimInsuranceDetails(claim_data);
                     var responsibleIndex = _.find(self.responsible_list, function (item) { return item.payer_type_name == claim_data.payer_type; });
@@ -1642,6 +1644,7 @@ define(['jquery',
                                 self.getAlertEvent(); // for Patient Alert Button Click event availability
 
                                 $("#txtClaimDate").attr("disabled", "disabled");
+                                $("#txtClaimCreatedDt").attr("disabled", "disabled");
                                 if (self.isInitialLoaded) {
                                     self.bindDetails(true);
                                     self.bindTabMenuEvents();
@@ -3668,9 +3671,9 @@ define(['jquery',
                 self.is_tertiary_available = false;
                 self.isUpdatePatientInfo = false;
                 /* Claims section */
-                if (!$('#txtClaimDate').val()) {
+                if (!$('#txtClaimCreatedDt').val()) {
                     commonjs.showWarning("messages.warning.claims.selectClaimDate");
-                    $('#txtClaimDate').focus();
+                    $('#txtClaimCreatedDt').focus();
                     return false;
                 }
 
@@ -4859,6 +4862,7 @@ define(['jquery',
                     // clear icd details after bind
                     self.ICDID = self.icd_code = self.icd_description = '';
                     $('#txtClaimDate').empty();
+                    $('#txtClaimCreatedDt').empty();
                     $('#ddlFacility option:contains("Select")').prop("selected", true);
                     $('#ddlBillingProvider option:contains("Select")').prop("selected", true);
                     $('#ddlRenderingProvider, #ddlReferringProvider, #ddlOrdFacility').empty();
@@ -4949,6 +4953,7 @@ define(['jquery',
                 self.claim_dt_iso = commonjs.convertToFacilityTimeZone(app.facilityID, app.currentdate).format('YYYY-MM-DD LT z');
                 self.studyDate = commonjs.getConvertedFacilityTime(app.currentdate, '', 'L', app.facilityID);
                 document.querySelector('#txtClaimDate').value = self.studyDate;
+                document.querySelector('#txtClaimCreatedDt').value = self.studyDate;
 
                 // Bind Patient Default details
                 var renderingProvider = patient_details.rendering_provider_full_name || self.usermessage.selectStudyReadPhysician;

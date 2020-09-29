@@ -154,8 +154,10 @@ module.exports = {
                         , '{}'::text[] AS charge_pointer
                         , null AS payment
                         , null AS adjustment
+                        , bc.claim_created_dt
                     FROM
                         billing.claim_comments cc
+                    INNER JOIN billing.claims bc ON bc.id = cc.claim_id
                     WHERE cc.claim_id = ${claim_id}
                     UNION ALL
                     SELECT
@@ -170,7 +172,9 @@ module.exports = {
                         , ARRAY[COALESCE(pointer1, ''), COALESCE(pointer2, ''), COALESCE(pointer3, ''), COALESCE(pointer4, '')] AS charge_pointer
                         , null AS payment
                         , null AS adjustment
+                        , bc.claim_created_dt
                     FROM billing.charges ch
+                    INNER JOIN billing.claims bc ON bc.id = ch.claim_id
                     INNER JOIN cpt_codes cpt on cpt.id = ch.cpt_id
                     WHERE ch.claim_id = ${claim_id}
                     UNION ALL
@@ -204,9 +208,11 @@ module.exports = {
                         , '{}'::text[] AS charge_pointer
                         , SUM(CASE WHEN pa.amount_type = 'payment' THEN pa.amount ELSE 0.00::money END)::text payment
                         , SUM(CASE WHEN pa.amount_type = 'adjustment'  THEN pa.amount  ELSE 0.00::money END)::text adjustment
+                        , bc.claim_created_dt
                     FROM billing.payments bp
                     INNER JOIN billing.payment_applications pa on pa.payment_id = bp.id
                     INNER JOIN billing.charges ch on ch.id = pa.charge_id
+                    INNER JOIN billing.claims bc ON bc.id = ch.claim_id
                     LEFT JOIN public.patients pp on pp.id = bp.patient_id
                     LEFT JOIN public.insurance_providers pip on pip.id = bp.insurance_provider_id
                     LEFT JOIN public.provider_groups  pg on pg.id = bp.provider_group_id
@@ -235,9 +241,11 @@ module.exports = {
                         , '{}'::text[] AS charge_pointer
                         , null AS payment
                         , SUM( pa.amount )::text AS adjustment
+                        , bc.claim_created_dt
                     FROM billing.payments bp
                     INNER JOIN billing.payment_applications pa on pa.payment_id = bp.id
                     INNER JOIN billing.charges ch on ch.id = pa.charge_id
+                    INNER JOIN billing.claims bc ON bc.id = ch.claim_id
                     LEFT JOIN billing.adjustment_codes adj ON adj.id = pa.adjustment_code_id
                     WHERE adj.accounting_entry_type = 'refund_debit'  AND ch.claim_id = ${claim_id}
                     GROUP BY
@@ -257,6 +265,7 @@ module.exports = {
                     , charge_pointer
                     , payment
                     , adjustment
+                    , claim_created_dt
                     , COUNT(1) OVER (range unbounded preceding) AS total_records
                     , ROW_NUMBER () OVER (
                         ORDER BY
