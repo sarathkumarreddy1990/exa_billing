@@ -227,7 +227,8 @@ module.exports = {
                         pa.applied_dt,
                         bp.id ,
                         pa.amount_type,
-                        comments
+                        comments,
+                        bc.claim_created_dt
                     UNION ALL
                     SELECT
                           bp.id AS id
@@ -247,11 +248,12 @@ module.exports = {
                     INNER JOIN billing.charges ch on ch.id = pa.charge_id
                     INNER JOIN billing.claims bc ON bc.id = ch.claim_id
                     LEFT JOIN billing.adjustment_codes adj ON adj.id = pa.adjustment_code_id
-                    WHERE adj.accounting_entry_type = 'refund_debit'  AND ch.claim_id = ${claim_id}
+                    WHERE adj.accounting_entry_type = 'refund_debit' AND ch.claim_id = ${claim_id}
                     GROUP BY
                         bp.id
                         , pa.amount_type
                         , adj.description
+                        , bc.claim_created_dt
                 )
                 SELECT
                       id AS row_id
