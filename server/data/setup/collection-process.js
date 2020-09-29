@@ -1,7 +1,7 @@
 const { query, SQL, queryWithAudit } = require('../index');
 const logger = require('../../../logger');
 
-module.exports = {
+const acr = {
 
     getData: async function ({ companyId }) {
 
@@ -122,22 +122,21 @@ module.exports = {
 
     autoCollectionsProcess: async (params) => {
         let {
-            userId,
-            clientIp,
+            userId = 1,
+            ip,
             companyId,
-            screenName,
-            moduleName,
+            screenName = 'AutoCollectionReview',
+            moduleName = 'Payments',
         } = params;
 
         let auditDetails = {
             company_id: companyId,
             screen_name: screenName,
             module_name: moduleName,
-            client_ip: clientIp,
+            client_ip: ip,
             user_id: parseInt(userId)
         };
-
-        let companySettings = await this.getData(params);
+        let companySettings = await acr.getData(params);
 
         if (companySettings instanceof Error) {
             logger.error('Unable to fetch acr company settings! ', companySettings);
@@ -216,7 +215,7 @@ module.exports = {
                     , ${screenName}
                     , ${moduleName}
                     , 'Created Payment with ' || amount ||' Payment Id as a ' || id
-                    , ${clientIp}
+                    , ${ip}
                     , json_build_object(
                         'old_values', COALESCE(old_values, '{}'),
                         'new_values', (
@@ -455,10 +454,12 @@ module.exports = {
                 -- Should not change claims status which already in 'claim in collection'
                 -- --------------------------------------------------------------------------------------------------------------
                 , update_status AS (
-			        UPDATE  billing.claims
-			            SET claim_status_id = ${acr_claim_status_id}
-                    WHERE id = ANY( SELECT unnest(claims_ids) FROM claim_patient_balance )
+                    UPDATE  billing.claims
+                        SET claim_status_id = ${acr_claim_status_id}
+                    FROM claim_patient_balance
+                    WHERE id = ANY(claim_ids)
                     AND claim_status_id != (SELECT id FROM billing.claim_status WHERE code = 'CIC')
+                    RETURNING id
                 )
                `;
 
@@ -469,3 +470,5 @@ module.exports = {
         return await query(sql);
     }
 };
+
+module.exports = acr;
