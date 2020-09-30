@@ -165,7 +165,7 @@ module.exports = {
                                             SELECT
                                                 p.full_name AS reading_phy_full_name,
                                                 pc.id AS rendering_provider_contact_id,
-                                                pc.can_ahs_locum_arrangement AS can_ahs_locum_arrangement_provider
+                                                pc.can_locum_arrangement AS can_ahs_locum_arrangement_provider
                                             FROM
                                                 public.studies s
                                                 LEFT JOIN public.study_transcriptions st ON st.study_id = s.id
@@ -495,7 +495,7 @@ module.exports = {
                     , c.can_ahs_business_arrangement
                     , c.can_ahs_locum_arrangement
                     , f.can_ahs_business_arrangement AS can_ahs_business_arrangement_facility
-                    , rend_pc.can_ahs_locum_arrangement AS can_ahs_locum_arrangement_provider
+                    , rend_pc.can_locum_arrangement AS can_ahs_locum_arrangement_provider
                     , c.can_ahs_claimed_amount_indicator
                     , c.can_confidential
                     , c.can_ahs_newborn_code
