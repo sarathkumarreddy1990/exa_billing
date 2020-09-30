@@ -154,7 +154,9 @@ module.exports = {
                                             FROM
                                                 providers p
                                             INNER JOIN provider_contacts pc ON pc.provider_id = p.id
-                                            WHERE pc.id = COALESCE(NULLIF(orders.referring_provider_ids [ 1 ],'0'),'0')::numeric
+                                            INNER JOIN studies s ON s.order_id = orders.id
+                                            WHERE s.id = ${firstStudyId}
+                                            AND pc.id = COALESCE(NULLIF(s.referring_physician_id, '0'), NULLIF(orders.referring_provider_ids [ 1 ], '0') ,'0')::NUMERIC
                                             AND p.deleted_dt IS NULL
                                             AND pc.deleted_dt IS NULL
                                             AND p.provider_type = 'RF'
