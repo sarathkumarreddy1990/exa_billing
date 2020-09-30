@@ -889,7 +889,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 "Claim Created Dt": {
                     "id": 74,
                     "field_code": "claim_created_dt",
-                    "field_name": "claim_created_dt",
+                    "field_name": "Claim Created Dt",
                     "i18n_name": "setup.userSettings.claimDate",
                     "field_info": {
                         "custom_name": "Claim Created Dt",

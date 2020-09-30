@@ -1093,7 +1093,6 @@ define(['jquery',
                 }
                 /* ResponsibleList End*/
                 /* Common Details Edit & Claim creation */
-                $('#txtClaimCreatedDt').val(claim_data.claim_created_dt ? self.convertToTimeZone(claim_data.facility_id, claim_data.claim_dt).format('L') : '');
                 if (self.isEdit) {
                     self.bindEditClaimInsuranceDetails(claim_data);
                     var responsibleIndex = _.find(self.responsible_list, function (item) { return item.payer_type_name == claim_data.payer_type; });
@@ -1103,6 +1102,7 @@ define(['jquery',
                     $('#ddlFrequencyCode').val(claim_data.frequency || '')
                     $('#ddlPOSType').val(app.country_alpha_3_code !== 'can' && claim_data.place_of_service_id || '');
                     document.querySelector('#txtClaimDate').value = claim_data.claim_dt ? self.convertToTimeZone(claim_data.facility_id, claim_data.claim_dt).format('L') : '';
+                    $('#txtClaimCreatedDt').val(claim_data.claim_created_dt ? self.convertToTimeZone(claim_data.facility_id, claim_data.claim_created_dt).format('L') : '');
                 } else {
                     var responsibleIndex = _.find(self.responsible_list, function (item) { return item.payer_type == 'PIP_P'; });
                     if (responsibleIndex && responsibleIndex.payer_id) {
@@ -1125,6 +1125,7 @@ define(['jquery',
                     var defaultStudyDate = moment(currentDate).format('L');
                     var lineItemStudyDate = self.studyDate && self.studyDate != '' ?  self.studyDate : '';
                     $('#txtClaimDate').val(self.studyDate ? lineItemStudyDate : defaultStudyDate);
+                    $('#txtClaimCreatedDt').val(defaultStudyDate);
                 }
                 self.disableElementsForProvince(claim_data);
                 /* Common Details end */
@@ -4953,7 +4954,7 @@ define(['jquery',
                 self.claim_dt_iso = commonjs.convertToFacilityTimeZone(app.facilityID, app.currentdate).format('YYYY-MM-DD LT z');
                 self.studyDate = commonjs.getConvertedFacilityTime(app.currentdate, '', 'L', app.facilityID);
                 document.querySelector('#txtClaimDate').value = self.studyDate;
-                document.querySelector('#txtClaimCreatedDt').value = self.studyDate;
+                $('#txtClaimCreatedDt').val(self.studyDate);
 
                 // Bind Patient Default details
                 var renderingProvider = patient_details.rendering_provider_full_name || self.usermessage.selectStudyReadPhysician;

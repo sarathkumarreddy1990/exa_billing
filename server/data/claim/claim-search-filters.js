@@ -12,6 +12,11 @@ const colModel = [
         searchColumns: ['claims.claim_dt'],
         searchFlag: 'daterange'
     },
+	{
+        name: 'claim_created_dt',
+        searchColumns: ['claims.claim_created_dt'],
+        searchFlag: 'daterange'
+    },
     {
         name: 'submitted_dt',
         searchColumns: ['claims.submitted_dt'],
@@ -515,6 +520,7 @@ const api = {
             'claims.id',
             'claims.id as claim_id',
             'claims.claim_dt',
+			'claims.claim_created_dt',
             'claims.facility_id',
             'claim_status.description as claim_status',
             'claim_status.code as claim_status_code',
