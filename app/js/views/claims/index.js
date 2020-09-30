@@ -933,7 +933,7 @@ define(['jquery',
             setBusinessArrangement: function ( payToValue ) {
                 switch ( payToValue ) {
                     case 'LOC_PP':
-                        this.can_ahs_business_arrangement = this.can_ahs_locum_arrangement_facility;
+                        this.can_ahs_business_arrangement = this.can_ahs_business_arrangement_facility;
                         this.can_ahs_locum_arrangement = null;
                         break;
 
