@@ -506,7 +506,7 @@
         {
             "id": 74,
             "field_code": "claim_created_dt",
-            "field_name": "Claim Created Dt",
+            "field_name": "Claim Date",
             "i18n_name": "setup.userSettings.claimDate",
             "field_info": {
                 "custom_name": "Claim Created Dt",
