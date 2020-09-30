@@ -465,7 +465,7 @@ const ahsData = {
 
                         -- Use this to create person data segment CPD1
                         bc.can_ahs_pay_to_details                    AS pay_to_details,
-                        bc.can_locum_arrangement                 AS locum_arrangement,
+                        bc.can_ahs_locum_arrangement                 AS locum_arrangement,
                         pc_ref.can_prid                          AS referral_id,
 
                         CASE
