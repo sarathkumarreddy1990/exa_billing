@@ -1,0 +1,74 @@
+{
+  "record_code": {
+    "format": "A",
+    "startPos": 1,
+    "length": 3,
+    "segmentName": "P01"
+  },
+  "data_centre_number": {
+    "format": "A",
+    "startPos": 4,
+    "length": 5,
+    "segmentName": "P02"
+  },
+  "data_center_sequence": {
+    "format": "A",
+    "startPos": 9,
+    "length": 7,
+    "segmentName": "P03"
+  },
+  "vender_MSP_DC_number": {
+    "format": "A",
+    "startPos": 16,
+    "length": 5,
+    "segmentName": "P04"
+  },
+  "software_name": {
+    "format": "A",
+    "startPos": 21,
+    "length": 25,
+    "segmentName": "P05"
+  },
+  "software_version": {
+    "format": "A",
+    "startPos": 46,
+    "length": 10,
+    "isMandatory": true,
+    "validationRequired": true,
+    "segmentName": "P06",
+    "name": "Software version"
+  },
+  "installation_date": {
+    "format": "A",
+    "startPos": 56,
+    "length": 8,
+    "isMandatory": true,
+    "validationRequired": true,
+    "segmentName": "P07",
+    "name": "Installation date"
+  },
+  "company_name": {
+    "format": "A",
+    "startPos": 64,
+    "length": 40,
+    "segmentName": "P08"
+  },
+  "contact": {
+    "format": "A",
+    "startPos": 104,
+    "length": 15,
+    "segmentName": "P09"
+  },
+  "contact_name": {
+    "format": "A",
+    "startPos": 119,
+    "length": 25,
+    "segmentName": "P10"
+  },
+  "filler": {
+    "format": "A",
+    "startPos": 144,
+    "length": 57,
+    "segmentName": "P100"
+  }
+}
