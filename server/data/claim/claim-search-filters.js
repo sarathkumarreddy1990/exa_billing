@@ -12,7 +12,7 @@ const colModel = [
         searchColumns: ['claims.claim_dt'],
         searchFlag: 'daterange'
     },
-	{
+    {
         name: 'claim_created_dt',
         searchColumns: ['claims.claim_created_dt'],
         searchFlag: 'daterange'
