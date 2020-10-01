@@ -772,7 +772,7 @@ define(['jquery',
 
                             $('#btnSaveClaim').attr('disabled', false);
                             $("#txtClaimDate").attr("disabled", "disabled");
-                            $("#txtClaimCreatedDt").attr("disabled", "disabled");
+                            $("#txtClaimCreatedDt").prop('disabled', true);
 
                             self.bindDefaultClaimDetails(claimDetails);
                             $('.claimProcess').prop('disabled', false);
@@ -1645,7 +1645,7 @@ define(['jquery',
                                 self.getAlertEvent(); // for Patient Alert Button Click event availability
 
                                 $("#txtClaimDate").attr("disabled", "disabled");
-                                $("#txtClaimCreatedDt").attr("disabled", "disabled");
+                                $("#txtClaimCreatedDt").prop('disabled', true);
                                 if (self.isInitialLoaded) {
                                     self.bindDetails(true);
                                     self.bindTabMenuEvents();
