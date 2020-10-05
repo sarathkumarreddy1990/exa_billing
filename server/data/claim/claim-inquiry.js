@@ -148,13 +148,13 @@ module.exports = {
                         , type AS code
                         , null AS type
                         , note AS comments
-                        , created_dt as commented_dt
+                        , cc.created_dt as commented_dt
                         , is_internal
                         , null AS charge_amount
                         , '{}'::text[] AS charge_pointer
                         , null AS payment
                         , null AS adjustment
-                        , bc.claim_created_dt
+                        , bc.created_dt
                     FROM
                         billing.claim_comments cc
                     INNER JOIN billing.claims bc ON bc.id = cc.claim_id
@@ -172,7 +172,7 @@ module.exports = {
                         , ARRAY[COALESCE(pointer1, ''), COALESCE(pointer2, ''), COALESCE(pointer3, ''), COALESCE(pointer4, '')] AS charge_pointer
                         , null AS payment
                         , null AS adjustment
-                        , bc.claim_created_dt
+                        , bc.created_dt
                     FROM billing.charges ch
                     INNER JOIN billing.claims bc ON bc.id = ch.claim_id
                     INNER JOIN cpt_codes cpt on cpt.id = ch.cpt_id
@@ -208,7 +208,7 @@ module.exports = {
                         , '{}'::text[] AS charge_pointer
                         , SUM(CASE WHEN pa.amount_type = 'payment' THEN pa.amount ELSE 0.00::money END)::text payment
                         , SUM(CASE WHEN pa.amount_type = 'adjustment'  THEN pa.amount  ELSE 0.00::money END)::text adjustment
-                        , bc.claim_created_dt
+                        , bc.created_dt
                     FROM billing.payments bp
                     INNER JOIN billing.payment_applications pa on pa.payment_id = bp.id
                     INNER JOIN billing.charges ch on ch.id = pa.charge_id
@@ -228,7 +228,7 @@ module.exports = {
                         bp.id ,
                         pa.amount_type,
                         comments,
-                        bc.claim_created_dt
+                        bc.created_dt
                     UNION ALL
                     SELECT
                           bp.id AS id
@@ -242,7 +242,7 @@ module.exports = {
                         , '{}'::text[] AS charge_pointer
                         , null AS payment
                         , SUM( pa.amount )::text AS adjustment
-                        , bc.claim_created_dt
+                        , bc.created_dt
                     FROM billing.payments bp
                     INNER JOIN billing.payment_applications pa on pa.payment_id = bp.id
                     INNER JOIN billing.charges ch on ch.id = pa.charge_id
@@ -253,7 +253,7 @@ module.exports = {
                         bp.id
                         , pa.amount_type
                         , adj.description
-                        , bc.claim_created_dt
+                        , bc.created_dt
                 )
                 SELECT
                       id AS row_id
@@ -267,7 +267,7 @@ module.exports = {
                     , charge_pointer
                     , payment
                     , adjustment
-                    , claim_created_dt
+                    , created_dt
                     , COUNT(1) OVER (range unbounded preceding) AS total_records
                     , ROW_NUMBER () OVER (
                         ORDER BY

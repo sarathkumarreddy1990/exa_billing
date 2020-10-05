@@ -7,8 +7,8 @@ module.exports = (fieldID, fieldValue, { options }) => {
     const whichTz = options.isCompanyBase ?
         'companies.time_zone' :
         'facilities.time_zone';
-    const useToFacilityDate = ['claims.claim_dt', 'claims.claim_created_dt','studies.study_dt', 'studies.schedule_dt', 'studies.study_received_dt', 'studies.approved_dt'].includes(fieldID); // This is a hack to force query planner to use specific index which is much faster
-    const claimDateFilter = ['claims.claim_dt', 'claims.claim_created_dt']
+    const useToFacilityDate = ['claims.claim_dt', 'claims.created_dt','studies.study_dt', 'studies.schedule_dt', 'studies.study_received_dt', 'studies.approved_dt'].includes(fieldID); // This is a hack to force query planner to use specific index which is much faster
+    const claimDateFilter = ['claims.claim_dt', 'claims.created_dt']
     if (fromToDateTimes.length === 1) {
         const date = moment(fromToDateTimes[0], 'YYYY-MM-DD');
 

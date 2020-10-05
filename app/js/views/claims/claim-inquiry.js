@@ -820,7 +820,7 @@ define([
                         { name: 'id', hidden: true},
                         { name: 'row_id', hidden: true },
                         { name: 'commented_dt', width: 40, search: false, sortable: false, formatter: self.commentDateFormatter },
-                        { name: 'claim_created_dt', width: 40, search: false, sortable: false, formatter: self.dateFormatter },
+                        { name: 'created_dt', width: 40, search: false, sortable: false, formatter: self.dateFormatter },
                         { name: 'code', hidden: true },
                         { name: 'type', width: 40, search: false, sortable: false,
                             cellattr: function (rowId, tv, rowdata) {

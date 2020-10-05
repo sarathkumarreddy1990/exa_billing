@@ -1102,7 +1102,7 @@ define(['jquery',
                     $('#ddlFrequencyCode').val(claim_data.frequency || '')
                     $('#ddlPOSType').val(app.country_alpha_3_code !== 'can' && claim_data.place_of_service_id || '');
                     document.querySelector('#txtClaimDate').value = claim_data.claim_dt ? self.convertToTimeZone(claim_data.facility_id, claim_data.claim_dt).format('L') : '';
-                    $('#txtClaimCreatedDt').val(claim_data.claim_created_dt ? self.convertToTimeZone(claim_data.facility_id, claim_data.claim_created_dt).format('L') : '');
+                    $('#txtClaimCreatedDt').val(claim_data.created_dt ? self.convertToTimeZone(claim_data.facility_id, claim_data.created_dt).format('L') : '');
                 } else {
                     var responsibleIndex = _.find(self.responsible_list, function (item) { return item.payer_type == 'PIP_P'; });
                     if (responsibleIndex && responsibleIndex.payer_id) {
@@ -3380,7 +3380,7 @@ define(['jquery',
                     billing_class_id: $('#ddlBillingClass option:selected').val() != '' ? parseInt($('#ddlBillingClass option:selected').val()) : null,
                     created_by: app.userID,
                     claim_dt: self.claim_dt_iso || null,
-                    claim_created_dt: $('#txtClaimCreatedDt').val() || null,
+                    created_dt: $('#txtClaimCreatedDt').val() || null,
                     current_illness_date: $('#txtDate').val() != '' ? commonjs.getISODateString($('#txtDate').val()) : null,
                     same_illness_first_date: $('#txtOtherDate').val() != '' ? commonjs.getISODateString($('#txtOtherDate').val()) : null,
                     unable_to_work_from_date: $('#txtWCF').val() != '' ? commonjs.getISODateString($('#txtWCF').val()) : null,

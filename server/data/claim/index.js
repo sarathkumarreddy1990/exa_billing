@@ -464,7 +464,7 @@ module.exports = {
                     , c.billing_method
                     , c.billing_notes
                     , c.claim_dt::text
-                    , c.claim_created_dt::text
+                    , c.created_dt::text
                     , c.current_illness_date::text
                     , c.same_illness_first_date::text
                     , c.unable_to_work_from_date::text

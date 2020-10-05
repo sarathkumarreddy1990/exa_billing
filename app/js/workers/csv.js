@@ -5,7 +5,7 @@ importScripts('/exa_modules/billing/static/node_modules/moment-timezone/builds/m
 const claimColumns = {
 
     "Claim No": "claim_id",
-    "Claim Created Dt": "claim_created_dt",
+    "Claim Created Dt": "created_dt",
     "AHS Claim Num": "billing.can_ahs_get_claim_number(claims.id)",
     "Claim Date": "claim_dt",
     "Patient Name": "patient_name",

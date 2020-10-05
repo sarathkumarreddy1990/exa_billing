@@ -505,12 +505,12 @@
         },
         {
             "id": 74,
-            "field_code": "claim_created_dt",
+            "field_code": "created_dt",
             "field_name": "Claim Date",
             "i18n_name": "setup.userSettings.claimDate",
             "field_info": {
                 "custom_name": "Claim Created Dt",
-                "name": "claim_created_dt",
+                "name": "created_dt",
                 "searchFlag": "datetime",
                 "formatter": "self.claimDateFormatter",
                 "width": 200
