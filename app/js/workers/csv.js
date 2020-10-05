@@ -5,6 +5,7 @@ importScripts('/exa_modules/billing/static/node_modules/moment-timezone/builds/m
 const claimColumns = {
 
     "Claim No": "claim_id",
+    "AHS Claim Num": "billing.can_ahs_get_claim_number(claims.id)",
     "Claim Date": "claim_dt",
     "Patient Name": "patient_name",
     "Clearing House": "clearing_house",
@@ -35,6 +36,7 @@ const claimColumns = {
     "Ordering Facility": "ordering_facility_name",
     "Facility": "facility_name",
     "First Statement Date": "first_statement_dt",
+    "AHS Claim Action": "claim_action",
     "Reason Code": "reason_code"
 };
 
@@ -165,7 +167,7 @@ function generateCsvData(dbResponse, callback) {
     var csvSimplified = '"' + dbData.map(function (dbRow, rowIndex) {
         var facilityTimeZone = [];
         if (rowIndex) {
-            facilityTimeZone = _.where(facilities, { id: parseInt(dbRow.facility_id) });
+            facilityTimeZone = _.filter(facilities, { id: parseInt(dbRow.facility_id) });
         }
         return columns.map(function (colName, colIndex) {
             var csvText = showLabel && rowIndex == 0 ? colName : dbRow[columnMap[colName]];

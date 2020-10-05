@@ -28,7 +28,7 @@ module.exports = {
             customArgs
         } = params;
 
-        whereQuery.push(` ef.file_type != 'EOB' `);
+        whereQuery.push(` NOT (ef.file_type = ANY (ARRAY['EOB', '837'])) `);  // removing claim submission records shown in EOB screen
 
         if (id) {
             whereQuery.push(` ef.id = ${id} `);
@@ -744,7 +744,7 @@ module.exports = {
                         processed_eob_payments AS(
                             SELECT
                                 payment_id,
-                                claim_id,
+                                gcp.claim_id,
                                 applied_dt,
                                 cpp.*,
                                 patients.id AS patient_id,
@@ -758,11 +758,12 @@ module.exports = {
                             INNER JOIN patients ON patients.id = claims.patient_id
                             LEFT JOIN LATERAL (
                                 SELECT
+                                    c.claim_id,
                                     json_agg(row_to_json(c.*)) AS charges
                                 FROM charge_payments c
                                 WHERE c.applied_dt = gcp.applied_dt
-                                GROUP BY c.applied_dt
-                                ) cpp ON true
+                                GROUP BY c.applied_dt, c.claim_id
+                            ) cpp ON cpp.claim_id = gcp.claim_id
                             ORDER BY payment_id
                         )
                     SELECT

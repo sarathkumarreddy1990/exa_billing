@@ -13,8 +13,10 @@ define('grid', [
     'text!templates/setup/study-filter-grid.html',
     'views/claims/claim-inquiry',
     'views/claims/split-claim',
-    'views/claims/followup'
-], function (jQuery, _, initChangeGrid, utils, Pager, StudyFields, Studies, claimWorkbench, claimsView, UserSettingsView, StudyFilterView, studyFilterGrid, claimInquiryView, splitClaimView, followUpView) {
+    'views/claims/followup',
+    'views/claims/reassessClaim',
+    'text!templates/claims/validations.html',
+], function (jQuery, _, initChangeGrid, utils, Pager, StudyFields, Studies, claimWorkbench, claimsView, UserSettingsView, StudyFilterView, studyFilterGrid, claimInquiryView, splitClaimView, followUpView, claimReassessView, validationTemplate) {
     var $ = jQuery;
     var isTrue = utils.isTrue;
     var isFalse = utils.isFalse;
@@ -175,6 +177,7 @@ define('grid', [
                     claim_id: gridData.hidden_claim_id,
                     invoice_no: _storeEle.invoice_no,
                     payer_type: _storeEle.payer_type,
+                    claim_status_code: _storeEle.claim_status_code,
                     billing_method: _storeEle.billing_method
                 };
                 if (gridData.billed_status && gridData.billed_status.toLocaleLowerCase() == 'billed') {
@@ -200,29 +203,40 @@ define('grid', [
             }
 
             var studyIds = studyArray.join();
+
             if (isClaimGrid) {
-                var liClaimStatus = commonjs.getRightClickMenu('ul_change_claim_status', 'setup.rightClickMenu.claimStatus', false, 'Change Claim Status', true);
+                var statusIndex = _.findIndex(selectedStudies, function (item) {
+                    return item.claim_status_code === 'P77' && app.billingRegionCode === 'can_MB';
+                });
 
-                // If the user have rights to change the claim status, then will show the claim status in right click menu
-                if (rightclickMenuRights.indexOf('li_ul_change_claim_status') === -1 ) {
-                    $divObj.append(liClaimStatus);
-                }
-
-                var liArray = [];
                 commonjs.getClaimStudy(selectedStudies[0].study_id, function (result) {
                     if (result) {
                         study_id = result.study_id;
                         order_id = result.order_id;
-                        if(rightclickMenuRights.indexOf('anc_view_documents') == -1){
+                        if (rightclickMenuRights.indexOf('anc_view_documents') == -1) {
                             $('#anc_view_documents').removeClass('disabled')
                             $('#anc_view_reports').removeClass('disabled')
                         }
                     }
                 });
 
-                // Claim status updation
-                $.each(app.claim_status, function (index, claimStatus) {
-                    var $claimStatusLink = $(commonjs.getRightClickMenu('ancclaimStatus_' + claimStatus.id,'setup.rightClickMenu.billingCode',true,claimStatus.description ,false));
+                if (statusIndex < 0) {
+                    var liClaimStatus = commonjs.getRightClickMenu('ul_change_claim_status', 'setup.rightClickMenu.claimStatus', false, 'Change Claim Status', true);
+
+                    // If the user have rights to change the claim status, then will show the claim status in right click menu
+                    if (rightclickMenuRights.indexOf('li_ul_change_claim_status') === -1) {
+                        $divObj.append(liClaimStatus);
+                    }
+
+                    var liArray = [];
+
+                    // Claim status updation
+                    $.each(app.claim_status, function (index, claimStatus) {
+                        if (claimStatus.code === 'P77') {
+                            return;
+                        }
+
+                        var $claimStatusLink = $(commonjs.getRightClickMenu('ancclaimStatus_' + claimStatus.id, 'setup.rightClickMenu.billingCode', true, claimStatus.description, false));
                         $claimStatusLink.click(function () {
 
                             $.ajax({
@@ -230,8 +244,8 @@ define('grid', [
                                 type: 'PUT',
                                 data: {
                                     claimIds: studyArray,
-                                    claim_status_id:claimStatus.id,
-                                    process:"Claim Status"
+                                    claim_status_id: claimStatus.id,
+                                    process: "Claim Status"
                                 },
                                 success: function (data, response) {
 
@@ -264,8 +278,9 @@ define('grid', [
                             });
                         });
                         liArray[liArray.length] = $claimStatusLink;
-                });
-                $('#ul_change_claim_status').append(liArray);
+                    });
+                    $('#ul_change_claim_status').append(liArray);
+                }
 
                 // Billing Code status updation
                 var liBillingCode = commonjs.getRightClickMenu('ul_change_billing_code','setup.rightClickMenu.billingCode',false,'Change Billing Code',true);
@@ -327,7 +342,7 @@ define('grid', [
                 });
                 $('#ul_change_billing_class').append(liArrayBillingClass);
 
-                if (studyArray.length == 1) {
+                if (studyArray.length === 1 && statusIndex < 0) {
                     var liPayerType = commonjs.getRightClickMenu('ul_change_payer_type', 'setup.rightClickMenu.billingPayerType', false, 'Change Billing PayerType', true);
                     $divObj.append(liPayerType);
                     self.checkSubMenuRights('li_ul_change_payer_type');
@@ -383,14 +398,14 @@ define('grid', [
                                     $.ajax({
                                         url: '/exa_modules/billing/claim_workbench/billing_payers',
                                         type: 'PUT',
-                                        data:{
-                                            id:rowID,
-                                            payer_type:payer_type
+                                        data: {
+                                            id: rowID,
+                                            payer_type: payer_type
                                         },
                                         success: function (data, response) {
-                                            if(data) {
+                                            if (data) {
                                                 commonjs.showStatus('messages.status.claimPayerCompleted');
-                                                $target.jqGrid('setCell',rowID,'payer_type', payer_type);
+                                                $target.jqGrid('setCell', rowID, 'payer_type', payer_type);
                                             }
                                         },
                                         error: function (err, response) {
@@ -426,61 +441,50 @@ define('grid', [
                     });
                 });
 
-                var liDeleteClaim = commonjs.getRightClickMenu('anc_delete_claim','setup.rightClickMenu.deleteClaim',false,'Delete Claim',false);
+                if (studyArray.length === 1 && statusIndex < 0) {
+                    var liDeleteClaim = commonjs.getRightClickMenu('anc_delete_claim', 'setup.rightClickMenu.deleteClaim', false, 'Delete Claim', false);
 
-                if(studyArray.length == 1)
                     $divObj.append(liDeleteClaim);
+                    self.checkRights('anc_delete_claim');
 
-                self.checkRights('anc_delete_claim');
+                    $('#anc_delete_claim').off().click(function () {
+                        if ($('#anc_delete_claim').hasClass('disabled')) {
+                            return false;
+                        }
 
-                $('#anc_delete_claim').off().click(function () {
-                    if ($('#anc_delete_claim').hasClass('disabled')) {
-                        return false;
-                    }
+                        if (confirm(commonjs.geti18NString("messages.status.areYouSureWantToDeleteClaims"))) {
 
-                if (confirm(commonjs.geti18NString("messages.status.areYouSureWantToDeleteClaims"))) {
+                            if (app.country_alpha_3_code !== 'usa') {
+                                var msg = self.provinceBasedValidationResults(app.billingRegionCode, gridData);
 
-                    $.ajax({
-                        url: '/exa_modules/billing/claim_workbench/claim_check_payment_details',
-                        type: 'GET',
-                        data: {
-                            target_id: studyIds,
-                            type: 'claim'
-                        },
-                        success: function (data, response) {
-                            var claim_adjustment = data.rows[0].claim_adjustment;
-                            var claim_applied = data.rows[0].claim_applied;
-                            var claim_refund = data.rows[0].claim_refund;
+                                if (msg) {
+                                    return commonjs.showWarning(msg);
+                                }
+                            }
 
-                            if(parseInt(claim_applied) === 0 && parseInt(claim_adjustment) === 0 && parseInt(claim_refund) === 0){
-                                $.ajax({
-                                    url: '/exa_modules/billing/claim_workbench/claim_charge/delete',
-                                    type: 'PUT',
-                                    data: {
-                                        target_id: studyIds,
-                                        type: 'claim'
-                                    },
-                                    success: function (data, response) {
-                                        commonjs.showStatus('messages.status.claimHasBeenDeleted');
-                                        $("#btnClaimsRefresh").click();
-                                    },
-                                    error: function (err, response) {
-                                        commonjs.handleXhrError(err, response);
+                            var params = self.getProvinceBasedParams(app.billingRegionCode, 'delete', studyIds, gridData);
+
+                            commonjs.showLoading();
+                            $.ajax({
+                                url: params.url,
+                                type: params.type,
+                                data: params.data,
+                                success: function (data, response) {
+                                    commonjs.hideLoading();
+
+                                    if (app.billingRegionCode === 'can_AB' && gridData.hidden_billing_method === 'electronic_billing') {
+                                        self.ahsDeleteResponse(data);
+                                    } else {
+                                        self.claimDeleteResponse(data, studyIds);
                                     }
-                                });
+                                },
+                                error: function (err, response) {
+                                    commonjs.handleXhrError(err, response);
                                 }
-                                else{
-                                    alert('Claim has payment, Please unapply before delete');
-                                }
-
-                        },
-                        error: function (err, response) {
-                            commonjs.handleXhrError(err, response);
+                            });
                         }
                     });
-
-                 }
-                });
+                }
 
                 var liClaimInquiry = commonjs.getRightClickMenu('anc_claim_inquiry','setup.rightClickMenu.claimInquiry',false,'Claim Inquiry',false);
                 if(studyArray.length == 1)
@@ -524,8 +528,7 @@ define('grid', [
                         return false;
                     }
                     commonjs.showDialog({
-                        'header': 'Invoices',
-                        'i18nHeader': 'shared.fields.invoices',
+                        'header': commonjs.geti18NString('shared.fields.invoices') + ' ' +  commonjs.geti18NString('shared.fields.payerName') + ': ' + gridData.payer_name ,
                         'width': '95%',
                         'height': '80%',
                         'needShrink': true
@@ -554,17 +557,19 @@ define('grid', [
                 self.claimInquiryView.patientInquiryLog(studyIds, selectedStudies[0].patient_id, selectedStudies[0].patient_name);
                 });
 
-                var liSplitOrders = commonjs.getRightClickMenu('anc_split_claim','setup.rightClickMenu.splitClaim',false,'Split Claim',false);
-                if(studyArray.length == 1)
+                if (studyArray.length === 1 && statusIndex < 0) {
+                    var liSplitOrders = commonjs.getRightClickMenu('anc_split_claim', 'setup.rightClickMenu.splitClaim', false, 'Split Claim', false);
+
                     $divObj.append(liSplitOrders);
-                self.checkRights('anc_split_claim');
-                $('#anc_split_claim').click(function () {
-                    if ($('#anc_split_claim').hasClass('disabled')) {
-                        return false;
-                    }
-                    self.splitClaimView = new splitClaimView();
-                    self.splitClaimView.validateSplitClaim(studyIds);
-                });
+                    self.checkRights('anc_split_claim');
+                    $('#anc_split_claim').click(function () {
+                        if ($('#anc_split_claim').hasClass('disabled')) {
+                            return false;
+                        }
+                        self.splitClaimView = new splitClaimView();
+                        self.splitClaimView.validateSplitClaim(studyIds);
+                    });
+                }
 
                 if (selectedStudies.length == 1) {
                     var liViewDocumetns = commonjs.getRightClickMenu('anc_view_documents', 'setup.rightClickMenu.viewDocuments', false, 'View Documents', false);
@@ -656,6 +661,7 @@ define('grid', [
                         self.resetInvoiceNumber(selectedStudies[0].invoice_no);
                     });
                 }
+                self.bindProvinceBasedMenus($divObj, studyArray, gridData, isClaimGrid, selectedStudies, $target);
 
             } else {
                 if (!isbilled_status) {
@@ -714,6 +720,7 @@ define('grid', [
             filterData = JSON.stringify(filterContent.pager.get('FilterData'));
             filterCol = JSON.stringify(filterContent.pager.get('FilterCol'));
             var isDatePickerClear = filterCol.indexOf('study_dt') === -1;
+            var isAlbertaBilling = app.billingRegionCode === 'can_AB';
 
             batchClaimArray = [];
             for (var r = 0; r < selectedCount; r++) {
@@ -775,8 +782,7 @@ define('grid', [
                         success: function (data, response) {
                             commonjs.showStatus('messages.status.batchClaimCompleted');
                             commonjs.hideLoading();
-
-                            var claim_id = data && data.length && data[0].create_claim_charge || null;
+                            var claim_id = data && data.length && (data[0].create_claim_charge || data[0].can_ahs_create_claim_per_charge) || null;
 
                             // Change grid values after claim creation instead of refreshing studies grid
                             if (claim_id) {
@@ -786,9 +792,11 @@ define('grid', [
                                 var changeGrid = initChangeGrid(claimsTable);
                                 var cells = [];
 
-                                cells = cells.concat(changeGrid.getClaimId(claim_id))
+                                if (!isAlbertaBilling) {
+                                    cells = cells.concat(changeGrid.getClaimId(claim_id))
                                         .concat(changeGrid.getBillingStatus('Billed'))
                                         .concat(changeGrid.setEditIcon());
+                                }
 
                                 for (var r = 0; r < batchClaimArray.length; r++) {
                                     var rowId = batchClaimArray[r].study_id;
@@ -799,6 +807,14 @@ define('grid', [
 
                                     var setCell = changeGrid.setCell($row);
 
+                                    //EXA-18272 - Bind multiple claim ids for Alberta biling batch claim
+                                    if (isAlbertaBilling) {
+                                        claim_id = _.map(data, 'can_ahs_create_claim_per_charge');
+                                        cells = cells.concat(changeGrid.getClaimId(claim_id[r]))
+                                            .concat(changeGrid.getBillingStatus('Billed'))
+                                            .concat(changeGrid.setEditIcon());
+                                    }
+
                                     setCell(cells);
                                     // In user filter Billed Status selected as unbilled means, After claim creation hide from grid.
                                     var isBilledStatus = currentFilter.filter_info && currentFilter.filter_info.studyInformation && currentFilter.filter_info.studyInformation.billedstatus === 'unbilled' || false;
@@ -806,7 +822,6 @@ define('grid', [
                                     if ($('#gs_billed_status').val() === 'unbilled' || isBilledStatus) {
                                         $row.remove();
                                     }
-
                                 }
                             }
                         },
@@ -1092,13 +1107,13 @@ define('grid', [
 
                                     _contentTable.append($('<tr/>')
                                         .addClass('row')
-                                        .append($('<td/>').addClass('col-3').text(commonjs.geti18NString("order.summary.cptCodes")))
+                                        .append($('<td/>').addClass('col-3').text(commonjs.geti18NString("shared.fields.cptCodes")))
                                         .append($('<td/>').addClass('pl-0 pr-2').text(':'))
                                         .append($('<td/>').addClass('col-8 pl-0 text-truncate').text(cptCodes).attr({ title: cptCodes }))
                                     );
                                     _contentTable.append($('<tr/>')
                                         .addClass('row')
-                                        .append($('<td/>').addClass('col-3').text(commonjs.geti18NString("billing.payments.cptDescription")))
+                                        .append($('<td/>').addClass('col-3').text(commonjs.geti18NString("shared.fields.cptDescription")))
                                         .append($('<td/>').addClass('pl-0 pr-2').text(':'))
                                         .append($('<td/>').addClass('col-8 pl-0 text-truncate').text(cptDesc).attr({ title: cptDesc }))
                                     );
@@ -1215,7 +1230,8 @@ define('grid', [
                     hidden: true,
                     isIconCol: true,
                     formatter: function (cellvalue, options, rowObject) {
-                        return rowObject.claim_id || "";
+                        return Array.isArray(rowObject.claim_id) ?
+                            rowObject.claim_id[0] : rowObject.claim_id || '';
                     }
                 },
                 {
@@ -1815,6 +1831,211 @@ define('grid', [
                     }
                 });
             })
+        },
+
+        //To bind province based right click menus in claim grid
+        self.bindProvinceBasedMenus = function ($divObj, studyArray, gridData, isClaimGrid, selectedStudies, $target) {
+
+            if(app.billingRegionCode === 'can_AB') {
+                var liClaimReassess = commonjs.getRightClickMenu('anc_claim_reassess', 'setup.rightClickMenu.claimReassess', false, 'Claim Reassess', false);
+
+                if (studyArray.length === 1 && gridData.hidden_billing_method === 'electronic_billing' && ['R', 'D', 'BR', 'AD'].indexOf(gridData.hidden_claim_status_code) === -1) {
+                    $divObj.append(liClaimReassess);
+                }
+
+                self.checkRights('anc_claim_reassess');
+                var elReassess = $('#anc_claim_reassess');
+                elReassess.off().click(function () {
+                    if (elReassess.hasClass('disabled')) {
+                        return false;
+                    }
+                    
+                    if (!commonjs.isValidClaimStatusToSubmit('reassessment', gridData.hidden_claim_status_code)) {
+                        return commonjs.showWarning('billing.claims.canAhs.couldNotReassessClaim');
+                    }
+
+                    self.claimReassessView = new claimReassessView({el: $('#modal_div_container')});
+                    self.claimReassessView.render({claimId: studyArray, claim_status: gridData.hidden_claim_status_code});
+
+                });
+
+                if (gridData.hidden_billing_method === 'electronic_billing') {
+                    $('#li_ul_change_claim_status').hide();
+
+                    if (['APP', 'AOP', 'PIF'].indexOf(gridData.hidden_claim_status_code) !== -1) {
+                        $('#li_ul_change_claim_status').show();
+                    }
+                }
+
+            } else if (app.billingRegionCode === 'can_MB') {
+                var queryClaimStatus = app.claim_status.find(function (e) {
+                    return e.code === 'QR';
+                });
+                var isValidQueryClaim = selectedStudies.length === selectedStudies.filter(function (e) {
+                    return ['MPP', 'OP', 'R'].includes(e.claim_status_code);
+                }).length;
+
+                var liClaimQuery = commonjs.getRightClickMenu('anc_query_claim', 'setup.rightClickMenu.queryClaim', false, 'Query Claim', false);
+
+                if (isValidQueryClaim && rightclickMenuRights.indexOf('anc_query_claim') === -1) {
+                    $divObj.append(liClaimQuery);
+                } else {
+                    $('#ancclaimStatus_' + queryClaimStatus.id).parent().hide();
+                }
+
+                self.checkRights('anc_claim_query');
+                var elQueryClaim = $('#anc_query_claim');
+
+                elQueryClaim.off().click(function () {
+                    if (elQueryClaim.hasClass('disabled')) {
+                        return false;
+                    }
+
+                    var dataObj = {
+                        claimIds: studyArray,
+                        claim_status_id: queryClaimStatus.id,
+                        process: "Query Claim"
+                    };
+
+                    if (confirm(i18n.get('billing.claims.canMhs.queryClaimWarning'))) {
+                        $.ajax({
+                            url: '/exa_modules/billing/claim_workbench/claims/update',
+                            type: 'PUT',
+                            data: dataObj,
+                            success: function (data, response) {
+                                if (data && data.length) {
+                                    commonjs.showStatus('messages.status.claimStatusChanged');
+                                    var colorCodeDetails = commonjs.getClaimColorCodeForStatus(queryClaimStatus.code, 'claim');
+                                    var colorCode = colorCodeDetails && colorCodeDetails.length && colorCodeDetails[0].color_code || 'transparent';
+                                    var tblId = gridID.replace(/#/, '');
+                                    var cells = [{
+                                        'field': 'claim_status',
+                                        'data': queryClaimStatus.description,
+                                        'css': {
+                                            "backgroundColor": colorCode
+                                        }
+                                    }];
+
+                                    data.forEach(function (obj) {
+                                        var $claimGrid = $(gridID + ' tr#' + obj.id);
+                                        var $td = $claimGrid.children('td');
+                                        commonjs.setGridCellValue(cells, $td, tblId);
+                                    });
+                                    $("#btnClaimsRefresh").click();
+                                }
+                            },
+                            error: function (err, response) {
+                                commonjs.handleXhrError(err, response);
+                            }
+                        });
+                    }
+                });
+            }
+        },
+
+        //To handle claim delete response for alberta 
+        self.ahsDeleteResponse = function(data) {
+            data.err = data && (data.err || data.message || data[0]);
+
+            if (data && data.validationMessages && data.validationMessages.length) {
+                var responseTemplate = _.template(validationTemplate);
+                // To show array of validation messages
+                commonjs.showNestedDialog({
+                    header: 'Claim Validation Result',
+                    i18nHeader: 'billing.claims.claimValidationResponse',
+                    height: '50%',
+                    width: '60%',
+                    html: responseTemplate({
+                        'validationMessages': data.validationMessages
+                    })
+                });
+            } else if (data.isClaimDeleted) {
+                commonjs.showStatus(data.message);
+            } else if (data.err) {
+                commonjs.showWarning(data.err);
+            } else {
+                commonjs.showStatus('messages.status.claimSubmitted');
+            }
+        },
+
+        // Delete claim function for handing delete response when country is usa
+        self.claimDeleteResponse = function(data, studyIds) {
+            var deleteResponse = data && data.rows && data.rows[0];
+
+            if (deleteResponse) {
+                var claim_adjustment = deleteResponse.claim_adjustment || 0;
+                var claim_applied = deleteResponse.claim_applied || 0;
+                var claim_refund = deleteResponse.claim_refund || 0;
+            }
+
+            if (parseInt(claim_applied) === 0 && parseInt(claim_adjustment) === 0 && parseInt(claim_refund) === 0) {
+                $.ajax({
+                    url: '/exa_modules/billing/claim_workbench/claim_charge/delete',
+                    type: 'PUT',
+                    data: {
+                        target_id: studyIds,
+                        type: 'claim'
+                    },
+                    success: function (data, response) {
+                        commonjs.showStatus('messages.status.claimHasBeenDeleted');
+                        $("#btnClaimsRefresh").click();
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
+            }
+            else {
+                alert(commonjs.geti18NString('messages.claims.claimHasPaymentPleaseUnapply'));
+            }
+        },
+
+        // Bind url parameters to ajax calls based on province
+        self.getProvinceBasedParams = function (billingRegion, from, studyIds, gridData) {
+            var defaultParamsForDelete = {
+                url: '/exa_modules/billing/claim_workbench/claim_check_payment_details',
+                type: 'GET',
+                data: {
+                    target_id: studyIds,
+                    type: 'claim'
+                }
+            };
+
+            switch (billingRegion) {
+                case 'can_AB':
+                    if (from === 'delete' && gridData.hidden_billing_method === 'electronic_billing') {
+                        return {
+                            url: '/exa_modules/billing/ahs/can_ahs_delete_claim',
+                            type: 'PUT',
+                            data: {
+                                targetId: studyIds,
+                                type: 'claim',
+                                claimStatusCode: gridData.hidden_claim_status_code,
+                                source: 'delete'
+                            }
+                        };
+                    } else {
+                        return defaultParamsForDelete;
+                    }
+                default:
+                    if (from == 'delete') {
+                        return defaultParamsForDelete;
+                    }
+            }
+        },
+
+        // Province based validations are handled in this block and returns validation results.
+        self.provinceBasedValidationResults = function (billingRegion, gridData) {
+            var msg = '';
+            if (billingRegion === 'can_AB') {
+                if (gridData.hidden_billing_method === 'electronic_billing') {
+
+                    if (gridData.hidden_claim_status_code === 'ADP' || !commonjs.isValidClaimStatusToSubmit('delete', gridData.hidden_claim_status_code)) {
+                        msg = 'billing.claims.canAhs.couldNotDeleteClaimAhsPending';
+                    }
+                }
+            }
+            return msg;
         }
     };
 });

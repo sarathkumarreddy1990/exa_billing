@@ -11,6 +11,7 @@ module.exports = {
 
         let sql = SQL`SELECT json_agg(row_to_json(claim)) claim_details FROM ( SELECT
                           bc.id AS claim_no
+                        , billing.can_ahs_get_claim_number(bc.id) AS can_ahs_claim_no
                         , ch.cpt_id
                         , bc.id AS patient_id
                         , cpt.display_code AS cpt_code

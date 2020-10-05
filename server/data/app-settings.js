@@ -91,7 +91,7 @@ module.exports = {
                                         default_tab
                                     FROM   billing.user_settings
                                     WHERE  user_id=${userID}  ) AS userSettings)
-               , cte_study_status AS(
+                , cte_study_status AS(
                                     SELECT Json_agg(Row_to_json(study_status)) study_status
                                     FROM  (
                                     SELECT id,
@@ -152,7 +152,8 @@ module.exports = {
                                 SELECT id as siteID,
                                     stat_level_config,
                                     tat_config,
-                                    country_alpha_3_code
+                                    country_alpha_3_code,
+                                    province_alpha_2_code
                                     FROM   sites
                                     WHERE  id=${siteID})
                 , cte_hidden_reports AS (
@@ -268,7 +269,7 @@ module.exports = {
                                     WHERE
                                         company_id = ${companyID} AND inactivated_dt IS NULL) AS payment_reasons)
                 , cte_modifiers AS(
-                                     SELECT Json_agg(Row_to_json(modifiers)) modifiers
+                                    SELECT Json_agg(Row_to_json(modifiers)) modifiers
                                     FROM  (
                                         SELECT id,
                                         modifier_amount,
@@ -283,7 +284,11 @@ module.exports = {
                                         modifier3,
                                         modifier4
                                         FROM   modifiers
-                                        WHERE  company_id=${companyID}  ) AS modifiers)
+                                        WHERE  company_id=${companyID}
+                                        AND ( (effective_date IS NULL AND end_date IS NULL)
+                                              OR (CURRENT_DATE between effective_date AND end_date)
+                                            )
+                                    ) AS modifiers)
                 ,cte_user_facilities as(
                                     SELECT Json_agg(Row_to_json(userFacilities)) "userFacilities"
                                     FROM   (
@@ -387,6 +392,12 @@ module.exports = {
                             , description
                         FROM billing.cas_reason_codes ) AS cas_reason_codes
                 ),
+                cte_cities AS (
+                    SELECT
+                        JSON_AGG(c) cities
+                    FROM
+                        ( SELECT * FROM cities ) c
+                ),
                 cte_grid_filter AS(
                     SELECT json_agg(row_to_json(grid_filter))grid_filter
                         FROM
@@ -435,6 +446,7 @@ module.exports = {
                       cte_clearing_house,
                       cte_vehicle_list,
                       cte_cas_reason_codes,
+                      cte_cities,
                       cte_grid_filter
                `;
 

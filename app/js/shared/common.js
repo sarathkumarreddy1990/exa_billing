@@ -2847,11 +2847,6 @@ var commonjs = {
     },
 
     changeCss: function () {
-        if (document.getElementById("lnkCurrentTheme")) {
-            var theme = app.currentTheme || 'default';
-            // REMOVE THE EXTRA RANDOM STRING AT END AFTER SOME ODD TIME
-            document.getElementById("lnkCurrentTheme").href = '/stylesheets/skins/' + theme + '/main.css?v=' + String(Math.floor(Math.random() * 100));
-        }
         if (app.navPinned && $('header.header:visible .viztek-nav').length) {
             $('#profile_panel').hide('fade');
             $('#viztekIconNav').show();
@@ -2862,6 +2857,8 @@ var commonjs = {
             $('html').unbind('click');
             commonjs.docResize();
         }
+
+        if(app.chat) app.chat.updateChatTheme(currentTheme);
     },
 
     refreshUserSettings: function () {
@@ -4209,7 +4206,7 @@ var commonjs = {
             order_id = options.order_id,
             patient_id = options.patient_id;
 
-        var url = '/vieworder#patient/patientReport/all/' + btoa(patient_id) + '/' + btoa(order_id) + '/' + btoa(study_id);
+        var url = '/exa#multipanel-billing-docs/' + btoa(study_id)  + '/' + btoa(patient_id) + '/' + btoa(order_id);
         this.openWindow(url);
     },
 
@@ -5311,6 +5308,20 @@ var commonjs = {
         $select2Container1 = $('.select2-container--open');
         var $searchfield = $select2Container1.children().find('.select2-search__field');
         $searchfield.prop('placeholder', 'Type to search');
+    },
+
+    //claim status validation for submitting claim to AHS
+    isValidClaimStatusToSubmit: function (source, claimStatus) {
+        var defaultStatusCheck = ['AZP', 'APP', 'PIF', 'AOP'];
+
+        switch (source) {
+            case 'delete':
+                defaultStatusCheck = defaultStatusCheck.concat(['PV', 'PS', 'BR', 'D', 'R']);
+                return defaultStatusCheck.indexOf(claimStatus) !== -1;
+            case 'reassessment':
+            case 'change':
+                return defaultStatusCheck.indexOf(claimStatus) !== -1;
+        }
     },
 
     /**

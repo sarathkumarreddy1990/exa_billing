@@ -126,5 +126,19 @@ module.exports = {
         } catch (err) {
             logger.error('When sending error response', err);
         }
+    },
+
+    /**
+    * download - download file
+    * @param {Object} req
+    * @param {Object} res
+    * @param {Object} responseData
+    */
+    download: function (req, res, responseData) {
+        if (responseData && ['error', 'RequestError'].indexOf(responseData.file_path) > -1) {
+            return this.sendError(req, res, responseData);
+        }
+
+        res.download(responseData.file_path);
     }
 };

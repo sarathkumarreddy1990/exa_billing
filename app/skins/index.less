@@ -85,6 +85,13 @@ input[type="text"], select {
     .form-control();
 }
 
+input[type="text"] {
+    &[disabled] {
+        cursor: not-allowed;
+        background-color: @input-bg-disabled;
+        opacity: 1;
+    }
+}
 .modal-footer {
 	background: @header_bg;
 }

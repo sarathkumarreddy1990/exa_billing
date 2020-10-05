@@ -4,6 +4,8 @@ const paymentController = require('../payments/payments');
 const eraParser = require('./era-parser');
 const logger = require('../../../logger');
 const shared = require('../../shared');
+const mhsData = require('../../data/mhs');
+const mhsController = require('../mhs/index');
 
 const mkdirp = require('mkdirp');
 const fs = require('fs');
@@ -13,6 +15,7 @@ const crypto = require('crypto');
 const { promisify } = require('util');
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
+const statAsync = promisify(fs.stat);
 
 const createDir = function (fileStorePath, filePath) {
     return new Promise(function(resolve, reject) {
@@ -107,12 +110,12 @@ module.exports = {
         const fileName = params.file.originalname;
 
         let tempString = buffer.toString();
-        let bufferString = tempString.replace(/(?:\r\n|\r|\n)/g, '');
+        let bufferString = (params.billingRegionCode === 'can_MB' && tempString) || tempString.replace(/(?:\r\n|\r|\n)/g, '');
 
         bufferString = bufferString.trim() || '';
-        let isValidFileContent = params.countryCode === 'can' ? (bufferString.indexOf('HR1') == -1 || bufferString.indexOf('HR4') == -1 || bufferString.indexOf('HR7') == -1) : (bufferString.indexOf('ISA') == -1 || bufferString.indexOf('CLP') == -1);
-
-        if (!isEob && isValidFileContent) {
+        let isInValidFileContent = params.billingRegionCode === 'can_MB' ? false : (params.billingRegionCode === 'can_ON' ? (bufferString.indexOf('HR1') == -1 || bufferString.indexOf('HR4') == -1 || bufferString.indexOf('HR7') == -1) : (bufferString.indexOf('ISA') == -1 || bufferString.indexOf('CLP') == -1));
+        
+        if (!isEob && isInValidFileContent) {
             return {
                 status: 'INVALID_FILE',
             };
@@ -133,9 +136,9 @@ module.exports = {
         const fileExist = dataRes.rows[0].file_exists[0];
 
         const currentTime = new Date();
-        const fileDirectory = uploadingMode.toLowerCase();
+        const fileDirectory = params.billingRegionCode === 'can_MB' ? 'MHSAL\\Returns' : uploadingMode.toLowerCase();
 
-        let fileRootPath = `${fileDirectory}\\${currentTime.getFullYear()}\\${currentTime.getMonth()}\\${currentTime.getDate()}`;
+        let fileRootPath = `${fileDirectory}\\${currentTime.getFullYear()}\\${currentTime.getMonth() + 1}\\${currentTime.getDate()}`;
 
         if (isPreviewMode) {
             logger.info('ERA Preview MODE');
@@ -456,7 +459,7 @@ module.exports = {
         let eraResponse = await data.getProcessedFileData(params);
         let eraResponseValues = eraResponse.rows && eraResponse.rows[0].payer_details;
 
-        if (eraResponseValues && eraResponseValues.file_name) {
+        if (eraResponseValues && eraResponseValues.file_name && params.billingRegionCode !== 'can_MB') {
             const filePath = path.join(eraResponseValues.root_directory, eraResponseValues.file_path, eraResponseValues.file_name);
 
             try {
@@ -543,5 +546,39 @@ module.exports = {
         return paymentResult;
     },
 
+    getEraFileJson: async (params) => {
+        let
+            eraPath,
+            rootDir,
+            message = [];
+        const eraFileDir = await mhsData.getERAFilePathById(params);
+
+        if (eraFileDir && eraFileDir.rows && eraFileDir.rows.length) {
+            rootDir = eraFileDir.rows[0].root_directory || '';
+            eraPath = eraFileDir.rows[0].file_path || '';
+            params.uploaded_file_name = eraFileDir.rows[0].uploaded_file_name || '';
+        }
+
+        eraPath = path.join(rootDir, eraPath);
+
+        try {
+            let dirExists = await statAsync(eraPath);
+
+            if (!dirExists) {
+                message.push({
+                    status: 100,
+                    message: 'Directory not found in file store'
+                });
+            }
+
+            eraPath = path.join(eraPath, params.file_id);
+            let eraResponseJson = await mhsController.getFile(eraPath, params);
+            eraResponseJson.errno ? logger.info('Failed to Download the Json OutPut...') : logger.info('Json Downloaded Successfully...');
+            return eraResponseJson;
+        } catch (err) {
+            logger.error('Failed to Download the Json OutPut...', err);
+        }
+    },
+    
     getEOBFileId: data.getEOBFileId
 };

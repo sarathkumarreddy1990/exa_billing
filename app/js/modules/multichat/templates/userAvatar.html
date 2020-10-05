@@ -1,0 +1,11 @@
+<%
+    chatUserAvatarType = chatUserAvatarType ? chatUserAvatarType : '';
+%>
+<div class="chat-user-avatar <%= chatUserAvatarType %>">
+    <% if (userId != null) { %>
+        <img class="chat-user-avatar__img" src="/avatars/<%= userId %>/thumbnail" alt=""/>
+    <% } %>
+    <div class="chat-user-avatar-initials">
+        <span class="chat-user-avatar-initials__text"><%= initials %></span>
+    </div>
+</div>

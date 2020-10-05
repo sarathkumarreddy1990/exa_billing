@@ -1,0 +1,157 @@
+{
+  "batchConfig": {
+    "submitterPrefix": {
+      "startPos": 1,
+      "fieldLength": 3
+    },
+    "batchNumber": {
+      "startPos": 4,
+      "fieldLength": 6,
+      "format": "N"
+    },
+    "startClaimNumber": {
+      "startPos": 13,
+      "fieldLength": 15
+    },
+    "endClaimNumber": {
+      "startPos": 35,
+      "fieldLength": 15
+    },
+    "startSubmitterPrefix": {
+      "startPos": 13,
+      "fieldLength": 3
+    },
+    "startCurrentYear": {
+      "startPos": 16,
+      "fieldLength": 2
+    },
+    "startServiceProviderNumber": {
+      "startPos": 18,
+      "fieldLength": 2
+    },
+    "startSequenceNumber": {
+      "startPos": 20,
+      "fieldLength": 7,
+      "format": "N"
+    },
+    "startCheckDigit": {
+      "startPos": 26,
+      "fieldLength": 1
+    },
+    "endSubmitterPrefix": {
+      "startPos": 34,
+      "fieldLength": 3
+    },
+    "endCurrentYear": {
+      "startPos": 37,
+      "fieldLength": 2
+    },
+    "endServiceProviderNumber": {
+      "startPos": 39,
+      "fieldLength": 2
+    },
+    "endSequenceNumber": {
+      "startPos": 41,
+      "fieldLength": 7,
+      "format": "N"
+    },
+    "endCheckDigit": {
+      "startPos": 48,
+      "fieldLength": 1
+    },
+    "status": {
+      "startPos": 55,
+      "fieldLength": 4
+    },
+    "reasonCode": {
+      "startPos": 66,
+      "fieldLength": 4
+    }
+  },
+  "segmentConfig": {
+    "transactionRecordType": {
+      "startPos": 1,
+      "fieldLength": 1
+    },
+    "claimNumber": {
+      "startPos": 2,
+      "fieldLength": 15
+    },
+    "submitterPrefix": {
+      "startPos": 2,
+      "fieldLength": 3
+    },
+    "currentYear": {
+      "startPos": 5,
+      "fieldLength": 2
+    },
+    "serviceProviderNumber": {
+      "startPos": 7,
+      "fieldLength": 2
+    },
+    "sequenceNumber": {
+      "startPos": 9,
+      "fieldLength": 7
+    },
+    "checkDigit": {
+      "startPos": 16,
+      "fieldLength": 1
+    },
+    "transctionType": {
+      "startPos": 17,
+      "fieldLength": 7
+    },
+    "segmentType": {
+      "startPos": 21,
+      "fieldLength": 4
+    },
+    "segmentSequence": {
+      "startPos": 25,
+      "fieldLength": 4
+    },
+    "actionCode": {
+      "startPos": 29,
+      "fieldLength": 1
+    },
+    "explanatoryCode": {
+      "startPos": 36,
+      "fieldLength": 4
+    }
+  },
+  "headerConfig": {
+    "code": {
+      "startPos": 1,
+      "fieldLength": 1
+    },
+    "reportTimeStamp": {
+      "startPos": 2,
+      "fieldLength": 25
+    },
+    "gdgGenerationNumber": {
+      "startPos": 29,
+      "fieldLength": 4
+    },
+    "text": {
+      "startPos": 34,
+      "fieldLength": 6
+    }
+  },
+  "trailerConfig": {
+    "code": {
+      "startPos": 1,
+      "fieldLength": 1
+    },
+    "transactionRefusedCount": {
+      "startPos": 2,
+      "fieldLength": 9
+    },
+    "segmentsRefusedCount": {
+      "startPos": 11,
+      "fieldLength": 9
+    },
+    "rejectedtext": {
+      "startPos": 25,
+      "fieldLength": 7
+    }
+  }
+}

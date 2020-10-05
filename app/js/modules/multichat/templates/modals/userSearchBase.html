@@ -1,0 +1,44 @@
+<%
+    var roomUsers = room != null ? room.attributes.members.map(function(member){return member.id}) : [];
+    var resCnt = 0;
+    users.forEach(function(user) {
+        var userId = user.get('id');
+        var initials = user.getInitials();
+        var userStatus = 'chat-user-avatar-wrap-status chat-user-avatar-wrap-status--' + user.get('chat_status');
+        if(roomUsers.indexOf(userId) === -1) {
+            resCnt++ %>
+            <div class="chat-modal-user js_chat-modal__action" data-user-id="<%= userId %>">
+                <div class="chat-user-avatar-wrap <%= userStatus %>">
+                    <%= templateUserAvatar({
+                        userId: userId,
+                        initials: initials,
+                        chatUserAvatarType: null
+                    }) %>
+                </div>
+                <p class="chat-modal-user__name"><%= user.get('user_full_name') %></p>
+            </div>
+        <% }
+    });
+
+    rooms.forEach(function(room) {
+        var multiple = 'chat-user-avatar--multiple ';
+        var roomUsers = room.get('members');
+        var ids = [];
+        var groupId = room.get('id');
+ %>
+            <div class="chat-modal-group js_chat-modal__action" data-group-id="<%= groupId %>">
+                <div class="chat-group-avatar-wrap">
+                    <%= templateGroupAvatar({
+                    groupId: groupId,
+                    initials: 'G',
+                    chatGroupAvatarType: null
+                    }) %>
+                </div>
+                <p class="chat-modal-group__name"><%= room.get('title') %></p>
+            </div>
+    <%})
+        if(resCnt === 0) { %>
+        <div class="chat-modal-user">
+            <p class="chat-modal-user__name" i18n="chat.errors.usersNotFound">Users not found or has not permissions to be added to this room</p>
+        </div>
+    <% }%>

@@ -4,6 +4,7 @@ define(['backbone'], function (Backbone) {
         defaults: {
             companyId: "",
             claimClearingHouse: null,
+            payer_edi_code: null,
             billingMethod: ""
         },
         initialize: function (models) {

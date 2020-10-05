@@ -98,6 +98,11 @@ const colModel = [
         searchColumns: ['claims.id']
     },
     {
+        name: 'can_ahs_claim_no',
+        searchFlag: '%',
+        searchColumns: ['billing.can_ahs_get_claim_number(claims.id)']
+    },
+    {
         name: 'policy_number',
         searchFlag: '%',
         searchColumns: ['patient_insurances.policy_number']
@@ -195,10 +200,34 @@ const colModel = [
         searchFlag: 'arrayString'
     },
     {
+        name: 'claim_action',
+        searchColumns: [`(CASE
+                WHEN claims.frequency = 'corrected'
+                THEN 'corrected_claim'
+                WHEN (claims.frequency != 'corrected' OR claims.frequency IS NULL)
+                THEN 'new_claim' END)`],
+        searchFlag: '='
+    },
+    {
         name: 'insurance_providers'
         , searchColumns: [`insurance_providers.insurance_name`]
         , searchFlag: '%'
     },
+    {
+        name: 'can_mhs_microfilm_no'
+        , searchColumns:[`claims.can_mhs_microfilm_no`]
+        , searchFlag: '%'
+    },
+    {
+        name: 'pid_alt_account',
+        searchColumns: ['patient_alt_accounts.pid_alt_account'],
+        searchFlag: 'arrayString'
+    },
+    {
+        name: 'phn_alt_account',
+        searchColumns: ['patient_alt_accounts.phn_alt_account'],
+        searchFlag: 'arrayString'
+    }
 ];
 
 const api = {
@@ -261,6 +290,7 @@ const api = {
             case 'followup_date': return 'claim_followups.followup_date::text';
             case 'current_illness_date': return 'claims.current_illness_date::text';
             case 'claim_no': return 'claims.id';
+            case 'can_ahs_claim_no': return 'billing.can_ahs_get_claim_number(claims.id)';
             case 'policy_number': return 'patient_insurances.policy_number';
             case 'group_number': return 'patient_insurances.group_number';
             case 'payer_type':
@@ -287,7 +317,11 @@ const api = {
             case 'charge_description': return `nullif(charge_details.charge_description,'')`;
             case 'ins_provider_type': return 'insurance_provider_payer_types.description';
             case 'icd_description': return 'claim_icds.description';
+            case 'claim_action': return 'claims.frequency';
             case 'insurance_providers': return `insurance_providers.insurance_name`;
+            case 'can_mhs_microfilm_no': return `claims.can_mhs_microfilm_no`;
+            case 'pid_alt_account': return 'patient_alt_accounts.pid_alt_account';
+            case 'phn_alt_account': return 'patient_alt_accounts.phn_alt_account';
         }
 
         return args;
@@ -343,6 +377,18 @@ const api = {
                                            LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.provider_id`;
         }
 
+        if (tables.patient_alt_accounts) {
+            r += `
+                INNER JOIN LATERAL (
+                    SELECT
+                        ARRAY_AGG(pa.alt_account_no) FILTER (WHERE i.issuer_type = 'pid') AS pid_alt_account,
+                        ARRAY_AGG(pa.alt_account_no) FILTER (WHERE i.issuer_type = 'uli_phn' AND pa.is_primary) AS phn_alt_account
+                     FROM patient_alt_accounts pa
+                     INNER JOIN issuers i ON pa.issuer_id = i.id
+                     WHERE pa.patient_id = claims.patient_id
+                ) patient_alt_accounts ON TRUE `;
+        }
+
         if (filterID == 'Follow_up_queue' && isInnerQuery) {
             r += ' INNER JOIN billing.claim_followups ON  claim_followups.claim_id=claims.id left join users on users.id=assigned_to';
         } else if (tables.claim_followups) {
@@ -353,29 +399,32 @@ const api = {
         if (tables.cas_reason_codes) {
             r += ` LEFT JOIN LATERAL (
                         SELECT
-                            claims.id,
+                            bc.id,
                             TRIM ( LEADING '{' FROM
                                 TRIM ( TRAILING '}' FROM
                                         ARRAY_AGG (
-                                            cas_reason_codes.code
-                                            ORDER BY
-                                                cas_reason_codes.code
-                                            )
-                                            FILTER (WHERE cas_reason_codes.code IS NOT NULL)::text
+                                            CASE
+                                                WHEN pa.created_dt IS NULL OR cc.created_dt >= pa.created_dt
+                                                THEN bcrc.code
+                                                ELSE bcr.code
+                                            END
                                         )
+                                        FILTER (WHERE bcrc.code IS NOT NULL OR bcr.code IS NOT NULL)::TEXT
                                 )
-                            code
-                        FROM
-                            billing.claims
-                        LEFT JOIN billing.charges on billing.claims.id = billing.charges.claim_id
-                        LEFT JOIN billing.payment_applications on billing.charges.id = billing.payment_applications.charge_id
-                        LEFT JOIN billing.cas_payment_application_details on billing.payment_applications.id = billing.cas_payment_application_details.payment_application_id
-                        LEFT JOIN billing.cas_reason_codes on billing.cas_payment_application_details.cas_reason_code_id = billing.cas_reason_codes.id
-                        GROUP BY
-                            claims.id
-                        )
-                        AS cas_reason_codes
-                    ON billing.claims.id = cas_reason_codes.id`;
+                            ) AS code
+                        FROM billing.claims bc
+                        INNER JOIN billing.claim_status bcs ON bcs.id = bc.claim_status_id
+                        INNER JOIN billing.charges ch ON ch.claim_id = bc.id
+                        LEFT JOIN billing.claim_explanatory_codes cc ON cc.claim_id = ch.claim_id
+                        LEFT JOIN billing.payment_applications bpa ON bpa.charge_id = ch.id
+                        LEFT JOIN billing.cas_payment_application_details pa ON pa.payment_application_id = bpa.id
+                        LEFT JOIN billing.cas_reason_codes bcrc ON bcrc.id = cc.cas_reason_code_id
+                        LEFT JOIN billing.cas_reason_codes bcr ON bcr.id = pa.cas_reason_code_id
+                        WHERE (bcrc.code IS NOT NULL OR bcr.code IS NOT NULL) AND bcs.code NOT IN('PA', 'PP')
+                        GROUP BY bc.id, cc.created_dt, pa.created_dt, bcs.code
+                        ORDER BY cc.created_dt, pa.created_dt DESC
+                    ) AS cas_reason_codes
+                    ON cas_reason_codes.id = claims.id `;
         }
 
         if (tables.patient_insurances || tables.insurance_providers || tables.edi_clearinghouses) {
@@ -485,6 +534,7 @@ const api = {
             'bgct.charges_bill_fee_total as billing_fee',
             'claims.current_illness_date::text as current_illness_date',
             'claims.id As claim_no',
+            'billing.can_ahs_get_claim_number(claims.id) AS can_ahs_claim_no',
             'patient_insurances.policy_number',
             'patient_insurances.group_number',
             'claims.payer_type',
@@ -528,6 +578,12 @@ const api = {
                     null
             END AS as_eligibility_status`,
             `claim_icds.description AS icd_description`,
+            `(CASE
+                 WHEN claims.frequency = 'corrected'
+                 THEN 'corrected_claim'
+                 WHEN (claims.frequency != 'corrected' OR claims.frequency IS NULL)
+                 THEN 'new_claim'
+              END) AS claim_action`,
             `(
                 SELECT
                     array_agg(insurance_name)
@@ -540,6 +596,9 @@ const api = {
                     OR pi.id = secondary_patient_insurance_id
                     OR pi.id = tertiary_patient_insurance_id
             ) AS insurance_providers`,
+            `claims.can_mhs_microfilm_no`,
+            `patient_alt_accounts.pid_alt_account`,
+            `patient_alt_accounts.phn_alt_account`
         ];
 
         if(args.customArgs.filter_id=='Follow_up_queue'){
@@ -694,7 +753,7 @@ const api = {
             query: '',
             studyFilter: '',
             userFilter: '',
-            permission_filter: ` claims.company_id = ${args.company_id} `
+            permission_filter: ` claims.company_id = ${args.company_id || args.companyId} `
         };
 
 

@@ -78,8 +78,8 @@ define([
                     gridelementid: '#tblEOBFileList',
                     custompager: this.pager,
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['', '', '', 'Id', 'Payment Id','File Name', 'Size', 'File Updated Date/Time', 'Status'],
-                    i18nNames: ['', '', '', 'shared.fields.id', 'shared.fields.paymentId','shared.fields.fileName', 'shared.fields.size', 'shared.fields.fileUpdatedDateTime', 'shared.fields.status'],
+                    colNames: ['', '', '', '', 'Id', 'Payment Id','File Name', 'Size', 'File Updated Date/Time', 'Status'],
+                    i18nNames: ['', '', '', '', 'shared.fields.id', 'shared.fields.paymentId','shared.fields.fileName', 'shared.fields.size', 'shared.fields.fileUpdatedDateTime', 'shared.fields.status'],
                     colModel: [
                         { name: 'file_store_id', hidden: true, searchFlag: '%', search: false },
                         {
@@ -127,9 +127,23 @@ define([
                                 }
                             }
                         },
+                        {
+                            name: 'decode_file',
+                            width: 180,
+                            sortable: false,
+                            search: false,
+                            hidden: app.billingRegionCode !== 'can_MB',
+                            formatter: function (cellvalue, options, rowObject) {
+                                return rowObject.file_path.indexOf('Returns') > -1 ? "<a name='decode' href='javascript: void(0)'  style='text-align: center;text-decoration: underline;' data-path= "+ rowObject.uploaded_file_name +" i18n='shared.buttons.decodeOutput'></a>" : '';
+                            },
+                            customAction: function(rowID, event, gridObj) {
+                                var fileName = event.target.dataset.path;
+                                self.downloadEobJson(fileName, rowID, gridObj);
+                            }
+                        },
                         { name: 'id', index: 'id',  width: 50, searchFlag: 'int', searchFlag: '%' },
                         { name: 'payment_id', width: 100, searchFlag: '%', paymentIDFormatter: true },
-                        { name: 'uploaded_file_name', width: 400, searchFlag: 'hstore', searchoptions: { defaultValue: commonjs.filterData['uploaded_file_name'] } },
+                        { name: 'uploaded_file_name', width: 300, searchFlag: 'hstore', searchoptions: { defaultValue: commonjs.filterData['uploaded_file_name'] } },
                         {
                             name: 'size', width: 100, search: false, searchoptions: { defaultValue: commonjs.filterData['size'] }, formatter: function (cellvalue, options, rowObject) {
                                 return self.fileSizeTypeFormatter(cellvalue, options, rowObject);
@@ -278,7 +292,7 @@ define([
                     && document.getElementById("ifrEobFileUpload").contentWindow.document && document.getElementById("ifrEobFileUpload").contentWindow.document.getElementById('fileNameUploaded');
 
                 if (fileUploadedObj && fileUploadedObj.innerHTML && this.uploadMode !== 'PDF') {
-                    $('#tblEOBFileList #' + fileUploadedObj.innerHTML).dblclick();
+                    $('#tblEOBFileList tr#' + fileUploadedObj.innerHTML).off().dblclick();
                     fileUploadedObj.innerHTML = '';
                 }
                 this.uploadMode = null;
@@ -322,6 +336,11 @@ define([
                     created_by: app.userID,
                     company_id: app.companyID
                 });
+
+                if (app.billingRegionCode === 'can_MB') {
+                    return self.processMhsFile(file_id, gridData, currentStatus);
+                }
+
                 $('#btnProcessPayment').prop('disabled', true);
                 commonjs.showLoading();
                 $.ajax({
@@ -371,6 +390,42 @@ define([
                             commonjs.hideLoading();
                         }
 
+                    },
+                    error: function (err, response) {
+                        commonjs.hideLoading();
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
+            },
+
+            processMhsFile: function (file_id, gridData, currentStatus) {
+                var self = this;
+                var processPaymentBtn = $('#btnProcessPayment');
+                processPaymentBtn.prop('disabled', true);
+                commonjs.showLoading();
+
+                $.ajax({
+                    url: '/exa_modules/billing/mhs/process-file',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        status: currentStatus || gridData.current_status,
+                        file_id: file_id || null,
+                        company_id: app.companyID,
+                        facility_id: app.facilityID
+                    },
+                    success: function(model, response) {
+                        if (model && model.status == 100) {
+                            return commonjs.showWarning(model.message);
+                        } 
+
+                        if (model && model.rows && model.rows.length) {
+                            commonjs.hideDialog();
+                            self.reloadERAFilesLocal();
+                            $('.modal-dialog .btn-secondary, .modal-dialog .close').removeClass('eraClose');
+                        }
+                        processPaymentBtn.prop('disabled', false);
+                        commonjs.hideLoading();
                     },
                     error: function (err, response) {
                         commonjs.hideLoading();
@@ -583,14 +638,15 @@ define([
                                     html: self.eraResponseTemplate({
                                         claims: ins.processed_eob_payments || [],
                                         ins: ins,
-                                        moment: moment
+                                        moment: moment,
+                                        billingRegionCode: app.billingRegionCode
                                     })
 
                                 });
 
                                 try {
                                     var eraPreview = _.template(EraPreview);
-                                    ins.rawResponse = ins.rawResponse.err ? [] : ins.rawResponse;
+                                    ins.rawResponse = ins.rawResponse && ins.rawResponse.err ? [] : ins.rawResponse || [];
                                     var previewHtml = eraPreview({ data: ins.rawResponse });
                                     $('#era-processed-preview').html(previewHtml);
                                 }
@@ -617,6 +673,29 @@ define([
 
                 $('.btnCloseEraResultDiv').off().click(function (e) {
                     $("#divEraResult").hide();
+                });
+            },
+
+            downloadEobJson: function(fileName, rowID, gridObj) {
+                $.ajax({
+                    url: '/exa_modules/billing/era/get_json_file',
+                    type: "GET",
+                    data: {
+                        company_id: app.companyID,
+                        file_id: rowID
+                    },
+                    success: function (model, response) {
+                        var decodeEle = document.createElement('a');
+                        decodeEle.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(model)));
+                        decodeEle.setAttribute('download', fileName + '.txt');
+                        decodeEle.style.display = 'none';
+
+                        decodeEle.click();
+                        commonjs.showWarning('messages.status.downloadSuccess');
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
                 });
             }
         });

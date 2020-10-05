@@ -4,6 +4,7 @@ const filterValidator = require('./filter-validator')();
 const moment = require('moment');
 const { query, SQL } = require('./index');
 const util = require('./util');
+
 const SHOW_DELETED_STUDIES_DEFAULT = false;
 
 const colModel = [
@@ -262,7 +263,7 @@ const colModel = [
     },
     {
         name: 'has_deleted',
-        searchColumns: ['studies.deleted_dt'],
+        searchColumns: ['(studies.deleted_dt IS NOT NULL)'],
         searchFlag: 'bool_null'
     },
     // This takes the hstore key as the "fieldValue" and verifies it isn't 'false' or NULL
@@ -313,6 +314,16 @@ const colModel = [
     {
         name: 'icd_description',
         searchColumns: ['icd_codes.description'],
+        searchFlag: 'arrayString'
+    },
+    {
+        name: 'pid_alt_account',
+        searchColumns: ['patient_alt_accounts.pid_alt_account'],
+        searchFlag: 'arrayString'
+    },
+    {
+        name: 'phn_alt_account',
+        searchColumns: ['patient_alt_accounts.phn_alt_account'],
         searchFlag: 'arrayString'
     }
 ];
@@ -380,7 +391,7 @@ const api = {
                 ])`;
             case 'image_delivery': return 'imagedelivery.image_delivery';
             case 'station': return "study_info->'station'";
-            case 'has_deleted': return 'studies.deleted_dt';
+            case 'has_deleted': return '(studies.deleted_dt IS NOT NULL)';
             case 'send_status': return "studies.study_info->'send_status'";
             case 'billing_code': return 'billing_codes.description';
             case 'billing_class': return 'billing_classes.description';
@@ -496,6 +507,8 @@ const api = {
             case 'icd_description': return `icd_codes.description`;
             // Adding `notes` just in case user saved previously as default
             case `notes`: return `get_study_notes_as_json(studies.id)`;
+            case 'pid_alt_account': return 'patient_alt_accounts.pid_alt_account';
+            case 'phn_alt_account': return 'patient_alt_accounts.phn_alt_account';
         }
 
         return args;
@@ -712,6 +725,18 @@ const api = {
                 ) AS icd_codes ON TRUE `;
         }
 
+        if (tables.patient_alt_accounts) {
+            r += `
+                 INNER JOIN LATERAL (
+                    SELECT
+                        ARRAY_AGG(pa.alt_account_no) FILTER (WHERE i.issuer_type = 'pid') AS pid_alt_account,
+                        ARRAY_AGG(pa.alt_account_no) FILTER (WHERE i.issuer_type = 'uli_phn' AND pa.is_primary) AS phn_alt_account
+                    FROM patient_alt_accounts pa
+                    INNER JOIN issuers i ON pa.issuer_id = i.id
+                    WHERE pa.patient_id = studies.patient_id
+            ) patient_alt_accounts ON TRUE `;
+        }
+
         return r;
     },
 
@@ -772,7 +797,7 @@ const api = {
             'studies.referring_physician_id', // TODO: Why is this any different from referring_provider and why do i need id if having name already ?
             'studies.cpt_codes',
             'get_study_notes_as_json(studies.id) as notes', // TODO: this should not be returned as column (maybe has_notes but now whole notes)
-            '(studies.deleted_dt is not null)', //  TODO: this column should not be deleted Status should be deleted and if its really purged it shouldnt be there
+            '(studies.deleted_dt IS NOT NULL)', // TODO: this column should not be deleted Status should be deleted and if its really purged it shouldnt be there
             'studies.study_description',
             'studies.institution as institution',
             '(SELECT claim_id FROM billing.charges_studies inner JOIN billing.charges ON charges.id= charges_studies.charge_id  WHERE study_id = studies.id LIMIT 1) as claim_id',
@@ -805,7 +830,7 @@ const api = {
             'orders.order_status AS order_status_code', // TODO: why is this ? suplicated in similar fashion as study_status
             'orders.order_type',
             'orders.ordered_by',                    // TODO: isnt this the same as the results for users ??
-            '(orders.deleted_dt is not null) as orders_deleted',  //  TODO: why do we need this ? shouldnt we delete ordered completely ?
+            '(orders.deleted_dt IS NOT NULL) as orders_deleted', // TODO: why do we need this ? shouldnt we delete ordered completely ?
             'orders.icd_codes',
             'orders.modality_room_id', // TODO: this MUST be part of study and not order, order has no ROOM
             'studies.schedule_dt::text as scheduled_dt',
@@ -858,7 +883,9 @@ const api = {
             `(SELECT array_agg(insurance_name) FROM insurance_providers WHERE id IN (SELECT insurance_provider_id FROM patient_insurances WHERE id = orders.primary_patient_insurance_id OR id = orders.secondary_patient_insurance_id OR id = orders.tertiary_patient_insurance_id )) AS insurance_providers`,
             `(COALESCE(eligibility.verified, false) OR COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)   AS eligibility_verified`,
             `eligibility.dt AS eligibility_dt`,
-            `icd_codes.description AS icd_description`
+            `icd_codes.description AS icd_description`,
+            `patient_alt_accounts.pid_alt_account`,
+            `patient_alt_accounts.phn_alt_account`
         ];
 
         return stdcolumns.concat(
@@ -1187,4 +1214,3 @@ const api = {
 };
 
 module.exports = api;
-

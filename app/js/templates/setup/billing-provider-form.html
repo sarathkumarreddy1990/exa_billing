@@ -33,12 +33,14 @@
                     </div>
                 </div>
                 <div class="col">
+                    <% if (["can_AB","can_MB"].indexOf(billingRegionCode) === -1) { %>
                     <div class="form-group row">
-                        <label for="txtNpi" class="col-sm-3 col-form-label field-required" i18n="shared.fields.npi"></label>
+                        <label for="txtNpi" class="col-sm-3 col-form-label field-required" i18n="shared.fields.billingProviderNPI"></label>
                         <div class="col-sm-5">
                             <input type="text" class="form-control" id="txtNpi" name="npiNo">
                         </div>
                     </div>
+                    <% } %>
                     <% if (country_alpha_3_code === "usa") { %>
                     <div class="form-group row">
                         <label for="txtTaxonomy" class="col-sm-3 col-form-label field-required" i18n="setup.providers.taxonomyCode"></label>
@@ -314,10 +316,10 @@
                         <select id="ddlIdCodeQualifier" class="form-control valid" style="width: 70%" name="codeQualifier">
                             <option value="" i18n="shared.buttons.select"></option>
                             <% _.each(qualifierCodes, function(qualifiers) { %>
-                                <option value='<%= qualifiers.id %>'>
-                                    <%=qualifiers.description%>
-                                </option>
-                                <% }); %>
+                            <option value='<%= qualifiers.id %>'>
+                                <%=qualifiers.description%>
+                            </option>
+                            <% }); %>
                         </select>
                     </div>
                 </div>

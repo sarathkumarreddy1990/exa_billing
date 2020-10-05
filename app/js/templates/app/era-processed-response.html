@@ -28,9 +28,11 @@
                 <li id="liEobProcessed" class="nav-item">
                     <a href="#divEobProcessed" class="nav-link active show" i18n="shared.fields.eobProcessed" data-toggle="tab"></a>
                 </li>
-                <li id="liEobOriginal" class="nav-item">
-                    <a href="#div-era-processed-preview" class="nav-link" i18n="billing.COB.original" data-toggle="tab"></a>
-                </li>
+                <% if (billingRegionCode !== 'can_MB') { %>
+                    <li id="liEobOriginal" class="nav-item">
+                        <a href="#div-era-processed-preview" class="nav-link" i18n="billing.COB.original" data-toggle="tab"></a>
+                    </li>
+                <% } %>
             </ul>
             <div class="tab-content">
                 <div class="tab-pane active" id="divEobProcessed" style="margin-top: 10px;">
@@ -130,7 +132,7 @@
                                             <table class="table table-bordered table-striped">
                                                 <thead>
                                                     <th i18n ="billing.claims.date">Date</th>
-                                                    <th i18n ="billing.payments.cptCode">CPT Code</th>
+                                                    <th i18n ="shared.fields.cptCode">CPT Code</th>
                                                     <th class="txtAlignRight" i18n="shared.fields.billFee">Bill Fee</th>
                                                     <th class="txtAlignRight" i18n="shared.fields.Amount">Amount</th>
                                                     <th class="txtAlignRight" i18n="billing.payments.adjustments">Adjustment</th>

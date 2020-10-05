@@ -52,5 +52,7 @@ module.exports = {
 
     getclaimPatientLog: (params) => {
         return data.getclaimPatientLog(params);
-    }
+    },
+
+    updateNotes: data.updateNotes
 };
