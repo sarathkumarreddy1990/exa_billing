@@ -576,7 +576,8 @@ define(['jquery',
                             return false;
                         }
 
-                        if (app.billingRegionCode === 'can_AB') {
+                        switch (app.billingRegionCode) {
+                            case 'can_AB': {
                             /* Allowed to submit electronic claim when claim is in paid in full/partial/at 0 statuses.
                                claim was restricted to submit when status of claim is in any of the below:
                                ADP - AHS Delete Pending
@@ -591,9 +592,26 @@ define(['jquery',
                                 commonjs.showWarning('messages.status.pleaseSelectValidClaimsStatus');
                                 return false;
                             }
-                        } else if (app.billingRegionCode === 'can_MB' && claimStatus != 'PS') {
+                            }
+                            case 'can_MB': {
+                                if (claimStatus != 'PS') {
                             commonjs.showWarning('messages.status.pleaseSelectValidClaimsStatus');
                             return false;
+                        }
+                            }
+                            case 'can_BC': {
+                                /* Allowed to submit electronic claim when status of claim is in any of the below:
+                                   SF - Submission failed
+                                   PS  - Pending submission
+                                */
+
+                                   var excludeClaimStatus = ['SF', 'PS'];
+
+                                   if (excludeClaimStatus.indexOf(claimStatus) === -1) {
+                                       commonjs.showWarning('messages.status.pleaseSelectValidClaimsStatus');
+                                       return false;
+                                   }
+                            }
                         }
 
                         var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_billing_method');
@@ -715,8 +733,11 @@ define(['jquery',
                             case 'can_ON':
                                 self.ohipResponse(data);
                                 break;
+                            case 'can_BC':
+                                self.bcResponse(data, isFromReclaim);
+                                break;
                             default:
-                                self.ediResponse(data, isFromReClaim);
+                                self.ediResponse(data, isFromReclaim);
                         }
                     },
                     error: function (err) {
@@ -3059,6 +3080,8 @@ define(['jquery',
                         return '/exa_modules/billing/mhs/submitClaims';
                     case 'can_ON':
                         return '/exa_modules/billing/ohip/submitClaims';
+                    case 'can_BC':
+                        return '/exa_modules/billing/bc/submitClaims';
                     default:
                         return '/exa_modules/billing/claim_workbench/create_claim';
                 }
@@ -3087,6 +3110,34 @@ define(['jquery',
                     window.open(window.location.origin + '/exa_modules/billing/mhs/downloadFile?fileStoreId=' + data.id, "_self");
                     $("#btnClaimsRefresh").click();
                 }
+            },
+
+            /**
+             * Validating response for BC
+             *
+             * @param  {Object} data  response result
+             */
+            bcResponse: function (data) {
+
+                if (data.responseCode) {
+                    switch (data.responseCode) {
+                        case 'isNotpendingSubmission':
+                            commonjs.showWarning('messages.status.pleaseSelectValidClaimsStatus');
+                            break;
+                        case 'isFileStoreError':
+                            commonjs.showWarning('messages.warning.era.fileStoreNotconfigured');
+                            break;
+                        case 'unableToWriteFile':
+                            commonjs.showError('messages.errors.rootdirectorynotexists');
+                            break;
+                        case 'submitted':
+                            commonjs.showStatus('messages.status.claimSubmitted');
+                            break;
+                        default:
+                            commonjs.showError('billing.claims.claimError');
+                    }
+                }
+                $("#btnClaimsRefresh").click();
             }
         });
 
