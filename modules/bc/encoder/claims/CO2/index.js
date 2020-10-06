@@ -28,48 +28,10 @@ const getShortName = (first_name, middle_name, last_name) => {
     name += middle_name ? middle_name.slice(0, 1) : ' ';
     name += last_name ? last_name.slice(0, 2).padEnd(2, ' ') : '  ';
 
-    CO2recordDescription.patient_name = {
-        ...CO2recordDescription.patient_name,
-        validationRequired: true,
-        name: 'Patient name',
-        customMessage: 'not follow pattern',
-        constraints: [`^[A-Za-z][A-Za-z\\s][A-Za-z][A-Za-z\\s.'-]$`]
-    };
-
     return name;
 
 };
 
-/**
- * initializeValidation -  To initialize validation Object
- *
- */
-const initializeValidation = () => {
-    let validation = [
-        'postal_code',
-        'first_name',
-        'middle_name',
-        'last_name',
-        'insurer_code',
-        'file_number',
-        'add4_wsbc_claim_number',
-        'add1_wsbc_data',
-        'patient_name',
-        'comments',
-        'add3_wsbc_nature_of_injury',
-        'add2_wsbc_area_of_injury_anatomical_position',
-        'gender'
-    ];
-
-    validation.forEach((instance) => {
-        CO2recordDescription[instance].validationRequired = false;
-        CO2recordDescription[instance].constraints = [];
-        CO2recordDescription[instance].isMandatory = false;
-        CO2recordDescription[instance].validLength = null;
-        CO2recordDescription[instance].isNumeric = false;
-        CO2recordDescription[instance].isValidDate = false;
-    });
-};
 
 /**
  * convertToFacilityDate -  Converting facility date 
@@ -136,11 +98,11 @@ const processResults = (args, service) => {
         end_time,
         start_time,
         service_to_day,
-        ref_practitioner_2,
         record_code_C02,
         service_indicator,
-        ref_practitioner_2_cd,
+        ref_practitioner_2,
         facility_sub_number,
+        ref_practitioner_2_cd,
         dob_icbc_claim_number
     } = defaultValues;
 
@@ -158,85 +120,13 @@ const processResults = (args, service) => {
     let isNO1required = (can_supporting_text && can_supporting_text.length) > 20;
     let isWsbc = is_employed || submission_code == 'W';
 
-    initializeValidation();
 
     if (phn && phn.country_alpha_3_code === 'can' && phn.province_alpha_2_code === 'BC') {
         phin = phn.alt_account_no;
         dependent_number = can_bc_is_newborn ? '66' : '00';
     }
 
-    // Mandatory field constrains for WSBC type claim
-    if (isWsbc) {
-        CO2recordDescription.add3_wsbc_nature_of_injury = {
-            ...CO2recordDescription.add3_wsbc_nature_of_injury,
-            isMandatory: true,
-            validationRequired: true,
-            isNumeric: true,
-            validLength: 5,
-            name: 'WSBC nature of injury'
-        };
-
-        CO2recordDescription.add2_wsbc_area_of_injury_anatomical_position = {
-            ...CO2recordDescription.add2_wsbc_area_of_injury_anatomical_position,
-            isMandatory: true,
-            validationRequired: true,
-            isNumeric: true,
-            validLength: 5,
-            name: 'WSBC area of injury'
-        };
-
-        CO2recordDescription.add4_wsbc_claim_number = {
-            ...CO2recordDescription.add4_wsbc_claim_number,
-            isMandatory: true,
-            validationRequired: true,
-            validLength: 8,
-            name: 'WSBC claim number'
-        };
-
-        CO2recordDescription.add1_wsbc_data = {
-            ...CO2recordDescription.add1_wsbc_data,
-            validationRequired: true,
-            isValidDate: true,
-            name: 'WSBC date of injury'
-        };
-
-        is_auto_accident = false;
-    }
-
-    // Unique submission code constrains
-    switch (submission_code) {
-        case 'E': {
-            CO2recordDescription.file_number = {
-                ...CO2recordDescription.file_number,
-                validationRequired: true,
-                isMandatory: true,
-                name: 'File number'
-            };
-
-            break;
-        }
-
-        case 'R': {
-            if (!(can_supporting_text && can_supporting_text.length)) {
-                CO2recordDescription.comments = {
-                    ...CO2recordDescription.comments,
-                    validationRequired: true,
-                    isMandatory: true,
-                    name: 'Claim short comment'
-                };
-            }
-
-            break;
-        }
-
-        default: {
-            CO2recordDescription.file_number = {
-                ...CO2recordDescription.file_number,
-                'paddingChar': '0',
-                'isLeftJustified': false
-            };
-        }
-    }
+    
 
     if (submission_code != 'I' && !is_auto_accident && ((phn && phn.province_alpha_2_code !== 'BC') || isWsbc)) {
         let wsbcDate = convertToFacilityDate(current_illness_date, facility_time_zone);
@@ -247,47 +137,6 @@ const processResults = (args, service) => {
         add4_wsbc_claim_number = !isWsbc ? '' : original_reference && original_reference.padStart(8, '0');
         registration_number = phn ? `${phn.alt_account_no.padStart(10, '0')}${dependent_number}` : '';
         phin = '0';
-
-        CO2recordDescription.first_name = {
-            ...CO2recordDescription.first_name,
-            validationRequired: true,
-            constraints: ['^[A-Za-z]{1}'],
-            name: 'RCP First Name',
-            customMessage: '(char 1 out of 12) must be A to Z'
-        };
-
-        CO2recordDescription.middle_name = {
-            ...CO2recordDescription.middle_name,
-            validationRequired: true,
-            constraints: ['^[A-Za-z\\s]{1}$|^$'],
-            name: 'RCP Initial',
-            customMessage: 'must be blank or A-Z'
-        };
-
-        CO2recordDescription.last_name = {
-            ...CO2recordDescription.last_name,
-            validationRequired: true,
-            constraints: ['^[A-Za-z]{2}|[\\s]{2}'],
-            name: 'RCP Last Name',
-            customMessage: '(character 2 out of 12) must be A-Z or blank'
-        };
-
-        CO2recordDescription.insurer_code = {
-            ...CO2recordDescription.insurer_code,
-            validationRequired: true,
-            constraints: ['AB|SK|MB|ON|NB|NS|PE|NF|NT|YT|NU|WC'],
-            name: 'Insurer Code',
-            customMessage: 'is invalid'
-        };
-
-        CO2recordDescription.gender = {
-            ...CO2recordDescription.gender,
-            validationRequired: true,
-            constraints: ['^[M|F|m|f]$'],
-            name: 'RCP Sex Code',
-            customMessage: 'must be M or F'
-        };
-
         patient_name = '0000';
         oin_birthday = patient_dob;
         insurer_code = (!isWsbc) ? (phn && phn.province_alpha_2_code) : 'WC';
