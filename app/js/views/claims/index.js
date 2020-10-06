@@ -1125,7 +1125,7 @@ define(['jquery',
                     var defaultStudyDate = moment(currentDate).format('L');
                     var lineItemStudyDate = self.studyDate && self.studyDate != '' ?  self.studyDate : '';
                     $('#txtClaimDate').val(self.studyDate ? lineItemStudyDate : defaultStudyDate);
-                    $('#txtClaimCreatedDt').val(defaultStudyDate);
+                    $('#divClaimDate').hide();
                 }
                 self.disableElementsForProvince(claim_data);
                 /* Common Details end */
@@ -3380,7 +3380,6 @@ define(['jquery',
                     billing_class_id: $('#ddlBillingClass option:selected').val() != '' ? parseInt($('#ddlBillingClass option:selected').val()) : null,
                     created_by: app.userID,
                     claim_dt: self.claim_dt_iso || null,
-                    created_dt: $('#txtClaimCreatedDt').val() || null,
                     current_illness_date: $('#txtDate').val() != '' ? commonjs.getISODateString($('#txtDate').val()) : null,
                     same_illness_first_date: $('#txtOtherDate').val() != '' ? commonjs.getISODateString($('#txtOtherDate').val()) : null,
                     unable_to_work_from_date: $('#txtWCF').val() != '' ? commonjs.getISODateString($('#txtWCF').val()) : null,
@@ -3673,12 +3672,6 @@ define(['jquery',
                 self.is_tertiary_available = false;
                 self.isUpdatePatientInfo = false;
                 /* Claims section */
-                if (!$('#txtClaimCreatedDt').val()) {
-                    commonjs.showWarning("messages.warning.claims.selectClaimDate");
-                    $('#txtClaimCreatedDt').focus();
-                    return false;
-                }
-
                 if (!$('#ddlFacility').val()) {
                     commonjs.showWarning("messages.warning.shared.selectfacility");
                     $('#ddlFacility').focus();
@@ -4955,7 +4948,6 @@ define(['jquery',
                 self.claim_dt_iso = commonjs.convertToFacilityTimeZone(app.facilityID, app.currentdate).format('YYYY-MM-DD LT z');
                 self.studyDate = commonjs.getConvertedFacilityTime(app.currentdate, '', 'L', app.facilityID);
                 document.querySelector('#txtClaimDate').value = self.studyDate;
-                $('#txtClaimCreatedDt').val(self.studyDate);
 
                 // Bind Patient Default details
                 var renderingProvider = patient_details.rendering_provider_full_name || self.usermessage.selectStudyReadPhysician;
