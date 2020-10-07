@@ -498,7 +498,7 @@ define(['jquery',
                 $('#chkStudyHeader_' + filterID).prop('checked', true);
                 commonjs.setFilter(filterID, filter);
             },
-            createClaims: function (e, isFromReClaim) {
+            createClaims: function (e, isFromReclaim) {
                 var self = this;
                 var billingMethodFormat = '';
                 var isCanada = app.country_alpha_3_code === 'can';
@@ -844,7 +844,7 @@ define(['jquery',
 
             },
 
-            ediResponse: function (data, isFromReClaim) {
+            ediResponse: function (data, isFromReclaim) {
                 var self = this;
                 self.ediResultTemplate = _.template(ediResultHTML);
                 self.ohipResultTemplate = _.template(ohipResultHTML);

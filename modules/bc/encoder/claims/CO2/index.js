@@ -19,7 +19,6 @@ const checkVaildICD = (icds, pointer) => {
  * @param {string} first_name - first name
  * @param {string} middle_name - middle name
  * @param {string} last_name - last name
- * @param {Int} phin -phin number
  * @returns {string}
  */
 const getShortName = (first_name, middle_name, last_name) => {
@@ -55,7 +54,8 @@ const convertToFacilityDate = (value, timeZone) => {
 
 /**
  * C02 segment processing based on result
- * @param {Object} args
+ * @param {Object} args - incoming claim details
+ * @param {Object} service - health service details
  * @returns {Object}
  */
 
