@@ -261,6 +261,53 @@ const util = {
                     }
                 }
 
+                if (filterObj.ClaimInformation.billingCode) {
+                    let obj = filterObj.ClaimInformation.billingCode;
+                    let l = obj.list.length;
+                    let billingCodeQuery = '';
+
+                    if (l > 0) {
+                        for (let i = 0; i < l; i++) {
+                            if (i == 0) {
+                                billingCodeQuery += 'claims.billing_code_id' + util.getConditionalOperator(obj.condition, obj.list[i].value, false, 'billingCode');
+                            } else {
+                                billingCodeQuery += util.getConditionalRelationOperator(obj.condition) + 'claims.billing_code_id' + util.getConditionalOperator(obj.condition, obj.list[i].value, false, 'billingCode');
+                            }
+                        }
+
+                        if (obj.condition == 'IsNot') {
+                            billingCodeQuery += ' OR claims.billing_code_id IS NULL';
+                        }
+
+                        query += util.getRelationOperator(query) + (l == 1 && !obj.condition ? billingCodeQuery : '(' + billingCodeQuery + ')');
+
+                    }
+                }
+
+                if (filterObj.ClaimInformation.billingClass) {
+                    let obj = filterObj.ClaimInformation.billingClass;
+                    let l = obj.list.length;
+                    let billingClassQuery = '';
+
+                    if (l > 0) {
+                        for (let i = 0; i < l; i++) {
+                            if (i == 0) {
+                                billingClassQuery += 'claims.billing_class_id' + util.getConditionalOperator(obj.condition, obj.list[i].value, false, 'billingClass');
+                            } else {
+                                billingClassQuery += util.getConditionalRelationOperator(obj.condition) + 'claims.billing_class_id' + util.getConditionalOperator(obj.condition, obj.list[i].value, false, 'billingClass');
+                            }
+                        }
+
+                        if (obj.condition == 'IsNot') {
+                            billingClassQuery += ' OR claims.billing_class_id IS NULL';
+                        }
+
+                        query += util.getRelationOperator(query) + (l == 1 && !obj.condition ? billingClassQuery : '(' + billingClassQuery + ')');
+
+                    }
+                }
+
+
                 if (filterObj.ClaimInformation.payerType) {
                     let obj = filterObj.ClaimInformation.payerType;
                     let l = obj.list.length;
