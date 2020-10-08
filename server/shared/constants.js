@@ -228,5 +228,6 @@ module.exports = {
         'can_ahs_delete_claim': 'CLIM',
         'invoice-activity-statement': 'IAST',
         'auto_billing': 'AUTO',
+        'collections_process': 'COLL',
     }
 };
