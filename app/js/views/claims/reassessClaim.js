@@ -29,10 +29,16 @@ define(['jquery',
                 html: this.claimReassessTemplate()
             });
             this.bindEvents(data);
+            this.identifyAssociatedCpts(data);
         },
 
         bindEvents: function (data) {
             var self = this;
+
+            $("#btnAddSupportingText").off().click(function (e) {
+                self.insertSupportingText();
+            })
+
             $('#saveSupportText').off().click(function () {
                 var supportText = $('#claimReassessment').val();
 
@@ -76,7 +82,56 @@ define(['jquery',
                     }
                 });
             });
-        }
+        },
+
+        identifyAssociatedCpts: function(data) {
+            var self = this;
+            $.ajax({
+                url: '/exa_modules/billing/claims/claim',
+                method: 'GET',
+                data: {
+                    id: data.claimId[0] ? data.claimId[0] : 0
+                }
+            }).then(function(response) {
+                var claimChargeList = response[0] && response[0].claim_charges ? response[0].claim_charges : [];
+                var associatedCpts = [];
+                for (var i = 0; i < claimChargeList.length; i++) {
+                    var index = claimChargeList[i];
+                    if (index.cpt_id) {
+                        associatedCpts.push(index.cpt_id);
+                    }
+                }
+                self.findRelevantTemplates(associatedCpts);
+            })
+
+        },
+
+        findRelevantTemplates: function(associatedCpts) {
+            $.ajax({
+                url: '/exa_modules/billing/setup/supporting_text/findRelevantTemplates',
+                method: 'POST',
+                data: {
+                    cpts: associatedCpts
+                }
+            }).then(function(response) {
+                var $templateDropdown = $('#ddlSupportingTextOptions');
+                $templateDropdown.empty();
+                $templateDropdown.append('<option value="" i18n="shared.buttons.select">Select</option>');
+                if (response.length > 0) {
+                    for (var i = 0; i < response.length; i++) {
+                        $templateDropdown.append('<option value="' + response[i].supporting_text + '">' + response[i].template_name + '</option');
+                    }
+                } else {
+                    $templateDropdown.append('<option disabled value="">' + '(No applicable templates)' + '</option');
+                }
+            })
+        },
+
+        insertSupportingText: function() {
+            var existingSupportingText = $('#claimReassessment').val() + ' ';
+            var updatedSupportingText = existingSupportingText + $('#ddlSupportingTextOptions').val();
+            $('#claimReassessment').val(updatedSupportingText);
+        },
 
     });
 });
