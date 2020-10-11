@@ -592,9 +592,7 @@ const api = {
                 LEFT JOIN patient_insurances pi
                     ON pi.insurance_provider_id = ip.id
                 WHERE
-                    pi.id = primary_patient_insurance_id
-                    OR pi.id = secondary_patient_insurance_id
-                    OR pi.id = tertiary_patient_insurance_id
+                    pi.id = primary_patient_insurance_id                    
             ) AS insurance_providers`,
             `claims.can_mhs_microfilm_no`,
             `patient_alt_accounts.pid_alt_account`,
