@@ -14,6 +14,7 @@ define(['jquery',
         el: null,
         claimReassessTemplate: _.template(claimReassessTemplate),
         validationTemplate: _.template(validationTemplate),
+        supportingTextOptions: [],
 
         initialize: function (options) {
             this.options = options;
@@ -107,6 +108,7 @@ define(['jquery',
         },
 
         findRelevantTemplates: function(associatedCpts) {
+            var self = this;
             $.ajax({
                 url: '/exa_modules/billing/setup/supporting_text/findRelevantTemplates',
                 method: 'POST',
@@ -114,22 +116,23 @@ define(['jquery',
                     cpts: associatedCpts
                 }
             }).then(function(response) {
-                var $templateDropdown = $('#ddlSupportingTextOptions');
-                $templateDropdown.empty();
-                $templateDropdown.append('<option value="" i18n="shared.buttons.select">Select</option>');
+                self.supportingTextOptions = response || [];
                 if (response.length > 0) {
+                    var $templateDropdown = $('#ddlSupportingTextOptions_claimReassess');
+                    $templateDropdown.empty();
+                    $templateDropdown.append('<option value="" i18n="shared.buttons.select">Select</option>');
                     for (var i = 0; i < response.length; i++) {
-                        $templateDropdown.append('<option value="' + response[i].supporting_text + '">' + response[i].template_name + '</option');
+                        $templateDropdown.append('<option value="' + response[i].id + '">' + response[i].template_name + '</option');
                     }
-                } else {
-                    $templateDropdown.append('<option disabled value="">' + '(No applicable templates)' + '</option');
                 }
             })
         },
 
         insertSupportingText: function() {
-            var existingSupportingText = $('#claimReassessment').val() + ' ';
-            var updatedSupportingText = existingSupportingText + $('#ddlSupportingTextOptions').val();
+            var existingSupportingText = $('#claimReassessment').val();
+            var selectedTemplateId = $('#ddlSupportingTextOptions_claimReassess').val();
+            var correspondingTemplateText = _.find(this.supportingTextOptions, { 'id': selectedTemplateId}).supporting_text;
+            var updatedSupportingText = existingSupportingText + ' ' + correspondingTemplateText;
             $('#claimReassessment').val(updatedSupportingText);
         },
 
