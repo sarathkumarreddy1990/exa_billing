@@ -812,14 +812,15 @@ define([
                     gridelementid: '#tblCIClaimComments',
                     custompager: self.claimInquiryPager,
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['','', 'date', '', 'code', 'payment.id', 'comment', 'Diag Ptr', 'charge', 'payment', 'adjustment', '', '', '', '',''],
-                    i18nNames: ['', '', 'billing.claims.date', '', 'billing.COB.code', 'billing.payments.paymentID', 'billing.payments.comment', 'billing.COB.diagptr',
+                    colNames: ['','', 'date','ClaimDate', '', 'code', 'payment.id', 'comment', 'Diag Ptr', 'charge', 'payment', 'adjustment', '', '', '', '',''],
+                    i18nNames: ['', '', 'billing.claims.date','billing.claims.claimDate', '', 'billing.COB.code', 'billing.payments.paymentID', 'billing.payments.comment', 'billing.COB.diagptr',
                         'billing.payments.charge', 'billing.payments.payments', 'billing.fileInsurance.adjustments', '', '', '', '', 'billing.payments.printOnStatements'
                     ],
                     colModel: [
                         { name: 'id', hidden: true},
                         { name: 'row_id', hidden: true },
                         { name: 'commented_dt', width: 40, search: false, sortable: false, formatter: self.commentDateFormatter },
+                        { name: 'created_dt', width: 40, search: false, sortable: false, formatter: self.dateFormatter },
                         { name: 'code', hidden: true },
                         { name: 'type', width: 40, search: false, sortable: false,
                             cellattr: function (rowId, tv, rowdata) {
