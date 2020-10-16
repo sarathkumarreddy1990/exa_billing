@@ -546,13 +546,21 @@ function customGrid ( datastore, gridID ) {
         }*/
         $("#chkStudyHeader_"+self.options.filterid ).prop('checked',false);
         var nextIndex = self.datastore.length;
-        var filterData = self.pager.get('FilterData');
-        var filterCol = self.pager.get('FilterCol');
+        var filterData = self.pager.get('FilterData') || [];
+        var filterCol = self.pager.get('FilterCol') || [];
         var SearchFlag=self.pager.get('searchFlag');
         // Added fromDate/toDate
         var _fromDate = (self.fromDate && $(self.fromDate).length)? $(self.fromDate).val() : null;
         var _toDate = (self.toDate && $(self.toDate).length)? $(self.toDate).val() : null;
 
+        for (var i = 0; i < filterData.length; i++) {
+            var isNotEmpty = commonjs.isValidSearchLimit(filterCol[i], filterData[i]);
+
+            if (!isNotEmpty) {
+                commonjs.hideLoading();
+                return isNotEmpty;
+            }
+        }
 
         var _data = {
             "pageNo": self.pager.get('PageNo'),
@@ -783,7 +791,7 @@ function customGrid ( datastore, gridID ) {
                     filterValue = filterValue.replace(/[^0-9,]/g, '');
                     $('#' + element.id).val(filterValue);
                 }
-    
+
                 if ( /mu_last_updated|check_indate|(.*_(dt|date|date_time)$)/.test(element.name) ) {
                     var dates = getDates(filterValue);
                     filterData.push(dates);

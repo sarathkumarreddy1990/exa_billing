@@ -147,7 +147,14 @@ WITH claim_data AS (
         <% } %>
         type as payment_type,
         CASE type WHEN 'charge' THEN 1 ELSE 2 END AS sort_order,
-        charge_id
+        charge_id,
+        SUM((CASE type WHEN 'charge' THEN amount
+                      WHEN 'payment' THEN amount
+                      WHEN 'adjustment' THEN amount
+            ELSE 0::MONEY
+            END) * (CASE WHEN type IN('payment','adjustment') THEN -1
+            ELSE 1
+            END)) OVER (PARTITION BY bc.id) AS claim_sum_amount
     FROM public.patients p
     INNER JOIN billing.claims bc on bc.patient_id = p.id
     INNER JOIN billing_comments pc on pc.id = bc.id
@@ -171,31 +178,33 @@ WITH claim_data AS (
                     WHEN payment_type = 'adjustment' THEN amount != 0::money
                     ELSE true
                 END )
-        AND sum_amount >=  <%= minAmount  %>::money
-        AND sum_amount != 0::money
+        AND sum_amount >=  <%= minAmount  %>::MONEY
+        AND sum_amount != 0::MONEY
+        AND claim_sum_amount != 0::MONEY
     ),
 
-    create_comments AS (
-        INSERT INTO billing.claim_comments
-            (
-                  claim_id
-                , type
-                , note
-                , created_by
-                , created_dt
-            )
-            (
-                SELECT
-                      DISTINCT claim_id
-                    , 'patient_statement'
-                    , 'Patient Statement  Printed  for ' || full_name || ' (patient)'
-                    , <%= userId %>
-                    , now()
-                FROM detail_cte
-                WHERE row_flag = 1
-            )
-    ),
-
+    <% if (logInClaimInquiry === 'true') { %>
+        create_comments AS (
+            INSERT INTO billing.claim_comments
+                (
+                      claim_id
+                    , type
+                    , note
+                    , created_by
+                    , created_dt
+                )
+                (
+                    SELECT
+                          DISTINCT claim_id
+                        , 'patient_statement'
+                        , 'Patient Statement Printed for ' || full_name || ' (patient)'
+                        , <%= userId %>
+                        , now()
+                    FROM detail_cte
+                    WHERE row_flag = 1
+                )
+            ),
+    <% } %>
     date_cte AS (
     SELECT
         pid,
@@ -588,6 +597,12 @@ const api = {
         }
 
         filtersUsed.push({ name: 'payToProvider', label: 'Use address of Pay-To Provider', value: params.payToProvider ? 'Yes' : 'No' });
+        
+        filtersUsed.push({
+            name: 'logInClaimInquiry',
+            label: 'Log in claim inquiry',
+            value: (params.logInClaimInquiry === "true") ? 'Yes' : 'No'
+        });
 
         if (params.patientOption === 'R') {
             filtersUsed.push({name: 'patientLastnameFrom', label: 'Patient Lastname From', value: params.patientLastnameFrom });
@@ -622,7 +637,8 @@ const api = {
             patientLastnameFrom: null,
             patientLastnameTo: null,
             userId: null,
-            reportFormat: null
+            reportFormat: null,
+            logInClaimInquiry: null
         };
 
         filters.userId = reportParams.userId;
@@ -657,6 +673,7 @@ const api = {
 
         filters.whereDate = queryBuilder.whereDateInTz(` CASE  WHEN type = 'charge' THEN  bc.claim_dt ELSE pc.commented_dt END `, `<=`, [params.length], `f.time_zone`);
         filters.payToProvider = reportParams.payToProvider;
+        filters.logInClaimInquiry = reportParams.logInClaimInquiry;
 
         if (reportParams.patientOption === 'R') {
             filters.patientLastnameFrom = reportParams.patientLastnameFrom;

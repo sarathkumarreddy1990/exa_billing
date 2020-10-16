@@ -24,7 +24,8 @@ define([
     'routes/setup/insurance-x12-mapping',
     'routes/setup/printer-templates',
     'routes/setup/auto-billing',
-    'routes/setup/submission-types'
+    'routes/setup/submission-types',
+    'routes/setup/collections-process'
 
 ], function (
     Backbone,
@@ -52,7 +53,8 @@ define([
     InsuranceX12MappingRoute,
 	PaperClaimTemplatesRoute,
     AutoBillingRoute,
-    SubmissionTypesRoute
+    SubmissionTypesRoute,
+    CollectionsProcess
     ) {
         return Backbone.SubRoute.extend({
             routes: {
@@ -77,7 +79,9 @@ define([
                 "insurance_x12_mapping/*subroute" : "startInsuranceX12Mapping",
                 "printer_templates/*subroute" : "startPaperClaimTemplates",
                 "auto_billing/*subroute" : "startAutoBilling",
-                "submission_types/*subroute": "startSubmissionType"
+                "submission_types/*subroute": "startSubmissionType",
+                "collections_process/*subroute": "startCollectionsProcess"
+
             },
 
             accessDeniedTemplate: _.template(AccessDeniedTemplate),
@@ -277,6 +281,14 @@ define([
                 if (this.checkLicense('AutoBilling') && !this.autoBillingRouter) {
                     this.defaultArgs.routePrefix = 'setup/auto_billing/';
                     this.autoBillingRouter = new AutoBillingRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+            startCollectionsProcess: function () {
+                if (this.checkLicense('CollectionsProcess') && !this.collectionsProcessRouter) {
+                    this.defaultArgs.routePrefix = 'setup/collections_process/';
+                    this.collectionsProcessRouter = new CollectionsProcess(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();
                 }

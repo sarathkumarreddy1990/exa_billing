@@ -81,7 +81,7 @@ module.exports = {
                             INNER JOIN public.orders o on o.id = s.order_id
                             WHERE
                                 study_id = ANY(${studyIds}) AND sc.has_deleted = FALSE /* study_cpt.has_deleted */
-                            ORDER BY s.accession_no DESC
+                            ORDER BY sc.cpt_code ASC
 
                         )
                         ,claim_details AS (

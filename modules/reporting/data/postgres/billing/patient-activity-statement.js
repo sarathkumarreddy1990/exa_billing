@@ -52,21 +52,14 @@ WITH claim_data AS(
         , 'claim' AS type
         , note AS comments
         , created_dt AS commented_dt
-        , null AS amount
+        , NULL AS amount
         , u.username AS commented_by
-        , null AS code
-        , cc.id as charge_id
+        , NULL AS code
+        , cc.id AS charge_id
     FROM
-          billing.claim_comments cc
-    INNER JOIN claim_data cd on cd.claim_id = cc.claim_id
-    INNER JOIN users u  on u.id = cc.created_by
-    WHERE(
-        CASE WHEN cc.type in( 'manual', 'auto', 'patient_statement')  THEN
-            cc.is_internal
-        ELSE
-            cc.type in ('co_pay', 'co_insurance', 'deductible')
-        END
-    )
+        billing.claim_comments cc
+    INNER JOIN claim_data cd ON cd.claim_id = cc.claim_id
+    INNER JOIN users u ON u.id = cc.created_by
     UNION
     <% } %>
     SELECT

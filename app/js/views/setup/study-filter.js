@@ -1072,6 +1072,26 @@ define([
                                             }
                                         });
                                     }
+                                    
+                                    var billingCodeJson = response.filter_info.ClaimInformation.billingCode;
+                                    $("input:radio[name=BillingCode][value=" + billingCodeJson.condition + "]").prop('checked', true);
+                                    for (var j = 0; j < billingCodeJson.list.length; j++) {
+                                        $('#listBillingCode option').each(function (i, selected) {
+                                            if (billingCodeJson.list[j].value == $(selected).val()) {
+                                                document.getElementById('listBillingCode').options[i].selected = true;
+                                            }
+                                        });
+                                    }
+
+                                    var billingClassJson = response.filter_info.ClaimInformation.billingClass;
+                                    $("input:radio[name=BillingClass][value=" + billingClassJson.condition + "]").prop('checked', true);
+                                    for (var j = 0; j < billingClassJson.list.length; j++) {
+                                        $('#listBillingClass option').each(function (i, selected) {
+                                            if (billingClassJson.list[j].value == $(selected).val()) {
+                                                document.getElementById('listBillingClass').options[i].selected = true;
+                                            }
+                                        });
+                                    }
 
                                     var billingMethodJson = response.filter_info.ClaimInformation.billingMethod;
                                     $("input:radio[name=BillingMethod][value=" + billingMethodJson.condition + "]").prop('checked', true);
@@ -1268,6 +1288,28 @@ define([
                     claimStatus.push(jsonlistClaimInfo);
                 });
                 if (claimStatus.length > 0 && !self.validateRadioButton('ClaimInfo', 'ClaimInfo')) {
+                    return;
+                }
+
+                var billingCode = [];
+                $('#listBillingCode option:selected').each(function (i, selected) {
+                    var jsonlistBillingCode = {};
+                    jsonlistBillingCode.value = $(selected).val();
+                    jsonlistBillingCode.text = $(selected).text();
+                    billingCode.push(jsonlistBillingCode);
+                });
+                if (billingCode.length > 0 && !self.validateRadioButton('BillingCode', 'BillingCode')) {
+                    return;
+                }
+
+                var billingClass = [];
+                $('#listBillingClass option:selected').each(function (i, selected) {
+                    var jsonlistBillingClass = {};
+                    jsonlistBillingClass.value = $(selected).val();
+                    jsonlistBillingClass.text = $(selected).text();
+                    billingClass.push(jsonlistBillingClass);
+                });
+                if (billingClass.length > 0 && !self.validateRadioButton('BillingClass', 'BillingClass')) {
                     return;
                 }
 
@@ -1681,6 +1723,14 @@ define([
                                 condition: $('input[name=ClaimInfo]:checked').val(),
                                 list: claimStatus
                             },
+                            billingCode: {
+                                condition: $('input[name=BillingCode]:checked').val(),
+                                list: billingCode
+                            },
+                            billingClass: {
+                                condition: $('input[name=BillingClass]:checked').val(),
+                                list: billingClass
+                            },
                             billingMethod: {
                                 condition: $('input[name=BillingMethod]:checked').val(),
                                 list: billingMethod
@@ -2061,6 +2111,8 @@ define([
                     setupList('listPayerType', defaultPayerType, 'desc', 'code');
                     setupList('listBalance', app.balance, 'balance');
                     setupList('listClaimFacility', facilities, 'facility_name');
+                    setupList('listBillingCode', app.billing_codes, 'description', 'id');
+                    setupList('listBillingClass', app.billing_classes, 'description', 'id');
                 }
                 this.setOrderingFacilityAutoComplete();
                 this.setProviderAutoComplete("RF");
@@ -2283,6 +2335,8 @@ define([
                 $('#listBillingMethod option').remove();
                 $('#listClaimInfo option').remove();
                 $('#listBalance').val('');
+                $('#listBillingCode option').remove();
+                $('#listBillingClass option').remove();
 
                 this.uncheckRadioButtons();
                 this.changeDateTimeStdFilter();
