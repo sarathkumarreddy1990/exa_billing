@@ -598,7 +598,8 @@ module.exports = {
                         , pa.payment_amount AS payment
                         , pa.adjustment_amount AS adjustment
                         , cpt.display_code AS cpt_code
-                    FROM (SELECT charge_id, id, payment_amount, adjustment_amount, payment_applied_dt, payment_id, payment_application_adjustment_id from billing.get_payment_applications(${payment_id}, ${pay_application_id}) ) AS pa
+                        , can_bc_internal_control_number
+                    FROM (SELECT charge_id, id, payment_amount, adjustment_amount, payment_applied_dt, payment_id, can_bc_internal_control_number, payment_application_adjustment_id from billing.get_payment_applications(${payment_id}, ${pay_application_id}) ) AS pa
                     INNER JOIN billing.charges ch on ch.id = pa.charge_id
                     INNER JOIN public.cpt_codes cpt ON cpt.id = ch.cpt_id
                     LEFT JOIN LATERAL (
@@ -1030,7 +1031,7 @@ module.exports = {
                         UPDATE BILLING.CLAIMS
                         SET billing_notes = ${billingNotes}
                         WHERE id = ${claimId}
-                        RETURNING *`;
+                        RETURNING id`;
 
         return await query(sqlQry);
     }

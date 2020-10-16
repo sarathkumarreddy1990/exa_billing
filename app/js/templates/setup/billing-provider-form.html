@@ -33,7 +33,7 @@
                     </div>
                 </div>
                 <div class="col">
-                    <% if (["can_AB","can_MB"].indexOf(billingRegionCode) === -1) { %>
+                    <% if (["can_AB","can_MB","can_BC"].indexOf(billingRegionCode) === -1) { %>
                     <div class="form-group row">
                         <label for="txtNpi" class="col-sm-3 col-form-label field-required" i18n="shared.fields.billingProviderNPI"></label>
                         <div class="col-sm-5">
@@ -57,6 +57,28 @@
                             </div>
                         </div>
                     </div>
+                    <% if (billingRegionCode === "can_BC") { %>
+                        <div class="form-group row">
+                            <label for="txtPayeeNumber" class="col-sm-3 col-form-label" i18n="setup.clearingHouse.payeeNumber"></label>
+                            <div class="col-sm-5">
+                                <input type="text" class="form-control integerbox" id="txtPayeeNumber" name="payeeNumber" maxlength="5">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="chkAltPay" class="col-sm-3 col-form-label" i18n="setup.billingProvider.alternatePaymentPrograms"></label>
+                            <div class="col-sm-5">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="chkAltPay">
+                                </div>
+                        </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="txtDataCentreNumber" class="col-sm-3 col-form-label" i18n="setup.billingProvider.dataCentreNumber"></label>
+                            <div class="col-sm-5">
+                                <input type="text" class="form-control integerbox" id="txtDataCentreNumber" name="DataCentreNumber" maxlength="5">
+                            </div>
+                        </div>
+                        <% } %>
                 </div>
             </div>
 

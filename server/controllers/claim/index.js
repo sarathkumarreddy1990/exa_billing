@@ -192,5 +192,4 @@ module.exports = {
     updateNotes: data.updateNotes,
 
     getChargesByPatientId: data.getChargesByPatientId
-
 };

@@ -875,7 +875,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 "PHN": {
                     "id": 73,
                     "field_name": "PHN",
-                    "i18n_name": "setup.userSettings.phn",
+                    "i18n_name": "shared.fields.phnuli",
                     "field_info": {
                         "custom_name": "PHN",
                         "name": "phn_alt_account",
@@ -1192,7 +1192,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "PHN": {
                 "id": 73,
                 "field_name": "PHN",
-                "i18n_name": "setup.userSettings.phn",
+                "i18n_name": "shared.fields.phnuli",
                 "field_info": {
                     "custom_name": "PHN",
                     "name": "phn_alt_account",
@@ -1201,7 +1201,6 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "sortable": true,
                     "defaultValue": ""
                 },
-
                 "field_code": "phn_alt_account"
             },
             "Reading Physician": {

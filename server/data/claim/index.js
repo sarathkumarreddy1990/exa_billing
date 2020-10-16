@@ -137,7 +137,9 @@ module.exports = {
                                         get_patient_alerts_to_jsonb(p.id, TRUE) AS alerts,
                                         p.patient_info,
                                         facilities.can_ahs_business_arrangement AS can_ahs_business_arrangement_facility,
-                                        studies_details.can_ahs_locum_arrangement_provider
+                                        studies_details.can_ahs_locum_arrangement_provider,
+                                        (SELECT nature_of_injury_code_id FROM studies WHERE id=${firstStudyId}),
+                                        (SELECT area_of_injury_code_id FROM studies WHERE id=${firstStudyId})
                                     FROM
                                         orders
                                         INNER JOIN facilities ON  facilities.id= orders.facility_id
@@ -165,7 +167,7 @@ module.exports = {
                                             SELECT
                                                 p.full_name AS reading_phy_full_name,
                                                 pc.id AS rendering_provider_contact_id,
-                                                pc.can_ahs_locum_arrangement AS can_ahs_locum_arrangement_provider
+                                                pc.can_locum_arrangement AS can_ahs_locum_arrangement_provider
                                             FROM
                                                 public.studies s
                                                 LEFT JOIN public.study_transcriptions st ON st.study_id = s.id
@@ -477,6 +479,7 @@ module.exports = {
                     , c.original_reference
                     , c.authorization_no
                     , c.frequency
+                    , c.can_submission_code_id
                     , c.is_auto_accident
                     , c.is_other_accident
                     , c.is_employed
@@ -495,13 +498,13 @@ module.exports = {
                     , c.can_ahs_business_arrangement
                     , c.can_ahs_locum_arrangement
                     , f.can_ahs_business_arrangement AS can_ahs_business_arrangement_facility
-                    , rend_pc.can_ahs_locum_arrangement AS can_ahs_locum_arrangement_provider
+                    , rend_pc.can_locum_arrangement AS can_ahs_locum_arrangement_provider
                     , c.can_ahs_claimed_amount_indicator
                     , c.can_confidential
                     , c.can_ahs_newborn_code
                     , c.can_ahs_emsaf_reason
                     , c.can_ahs_paper_supporting_docs
-                    , c.can_ahs_supporting_text
+                    , c.can_supporting_text
                     , cst.code AS claim_status_code
                     , p.account_no AS patient_account_no
                     , p.birth_date::text AS patient_dob
@@ -615,6 +618,7 @@ module.exports = {
                     , c.can_wcb_rejected
                     , c.can_mhs_receipt_date::text AS can_mhs_receipt_date
                     , c.can_mhs_microfilm_no
+                    , public.get_issuer_details(c.patient_id , 'uli_phn') AS phn_acc_no
                     , (
                         SELECT array_agg(row_to_json(pointer)) AS claim_charges
                         FROM (
@@ -649,10 +653,10 @@ module.exports = {
                                 INNER JOIN public.cpt_codes cpt ON ch.cpt_id = cpt.id
                                 LEFT JOIN public.plan_benefits pb ON pb.cpt_id = cpt.id
                                 LEFT JOIN billing.charges_studies chs ON chs.charge_id = ch.id
-                            WHERE 
+                            WHERE
                                 claim_id = c.id
                                 AND (
-                                    pb.id IS NULL 
+                                    pb.id IS NULL
                                     OR CURRENT_DATE BETWEEN pb.effective_date AND pb.end_date
                                 )
                             ORDER BY ch.id, ch.line_num ASC
@@ -781,6 +785,8 @@ module.exports = {
                             ORDER BY p.id ASC
                         ) payment_details
                     ) AS payment_details
+                    , c.area_of_injury_code_id
+                    , c.nature_of_injury_code_id
                     FROM
                         billing.claims c
                         INNER JOIN public.patients p ON p.id = c.patient_id
@@ -1210,19 +1216,24 @@ module.exports = {
 
     updateNotes: async (params) => {
         const {
-            billingNotes,
             claimId,
-            claimNotes
+            billingNotes,
+            claimNotes,
+            canSupportingText
         } = params;
 
-        let sqlQry = SQL`
-                        UPDATE BILLING.CLAIMS
-                        SET claim_notes = ${claimNotes}
-                            , billing_notes = ${billingNotes}
-                        WHERE id = ${claimId}
-                        RETURNING *`;
+        let sql = SQL`
+                    UPDATE BILLING.CLAIMS
+                    SET billing_notes = ${billingNotes}`;
 
-        return await query(sqlQry);
+        if (params.billingRegionCode === 'can_MB') {
+            sql.append(SQL`, claim_notes = ${claimNotes}`);
+        } else if (params.billingRegionCode === 'can_BC') {
+            sql.append(SQL`, can_supporting_text = ${canSupportingText}`);
+        }
+
+        sql.append(SQL` WHERE id = ${claimId} RETURNING id`);
+
+        return await query(sql);
     }
-
 };

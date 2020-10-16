@@ -490,10 +490,10 @@
             },
             "field_code": "pid_alt_account"
         },
-         {
+        {
             "id": 73,
             "field_name": "PHN",
-            "i18n_name": "patient.advancedSearch.phn",
+            "i18n_name": "shared.fields.phnuli",
             "field_info": {
                 "custom_name": "PHN",
                 "name": "phn_alt_account",
@@ -1332,7 +1332,7 @@
         {
             "id": 73,
             "field_name": "PHN",
-            "i18n_name": "patient.advancedSearch.phn",
+            "i18n_name": "shared.fields.phnuli",
             "field_info": {
                 "custom_name": "PHN",
                 "name": "phn_alt_account",

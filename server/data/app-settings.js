@@ -411,7 +411,46 @@ module.exports = {
                                     , filter_info
                                 FROM billing.grid_filters
                                 WHERE (user_id= ${userID}  OR is_global_filter)
-                            ) AS grid_filter)
+                            ) AS grid_filter),
+
+                cte_claim_submission_codes AS(
+                    SELECT COALESCE(JSON_AGG(ROW_TO_JSON(submission_codes)),'[]') claim_submission_codes
+                        FROM
+                            (
+                                SELECT
+                                    id
+                                    , code
+                                    , description
+                                    , country_code
+                                    , province_code
+                                FROM billing.claim_submission_codes
+                                WHERE inactivated_dt IS NULL
+                            ) AS submission_codes),
+
+                cte_wcb_injury_nature AS (
+                    SELECT  coalesce(JSON_AGG(ROW_TO_JSON(wcb_nature_code)), '[]') "wcb_nature_code"
+                        FROM (SELECT
+                                    id,
+                                    code,
+                                    description,
+                                    (inactivated_dt IS NULL) AS is_active
+                            FROM public.can_wcb_injury_codes
+                            WHERE injury_code_type = 'n'
+                        )  AS wcb_nature_code
+                ),
+
+                cte_wcb_injury_area AS (
+                    SELECT  coalesce(JSON_AGG(ROW_TO_JSON(wcb_area_code)), '[]') "wcb_area_code"
+                        FROM (SELECT
+                                    id,
+                                    code,
+                                    description,
+                                    (inactivated_dt IS NULL) AS is_active
+                            FROM public.can_wcb_injury_codes
+                            WHERE injury_code_type = 'a'
+                        )  AS wcb_area_code
+                )
+
                SELECT *
                FROM   cte_call_categories,
                       cte_company,
@@ -447,7 +486,10 @@ module.exports = {
                       cte_vehicle_list,
                       cte_cas_reason_codes,
                       cte_cities,
-                      cte_grid_filter
+                      cte_grid_filter,
+                      cte_claim_submission_codes,
+                      cte_wcb_injury_nature,
+                      cte_wcb_injury_area
                `;
 
         return await query(sql);
