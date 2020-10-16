@@ -15,12 +15,14 @@ const {
 
 const descriptors = {
     'VS1': require('./VS1/recordDescription'),
-    'CO2': require('./CO2/recordDescription')
+    'CO2': require('./CO2/recordDescription'),
+    'NO1': require('./NO1/recordDescription')
 };
 
 const processors = {
     'VS1': require('./VS1'),
-    'CO2': require('./CO2')
+    'CO2': require('./CO2'),
+    'NO1': require('./NO1')
 };
 
 for (const key in descriptors) {
@@ -82,6 +84,7 @@ const encoder = (rows) => {
 
         batchRow.forEach(row => {
             let claimEncodedArray = [];
+            let isN01 = row.can_supporting_text && row.can_supporting_text.length > 20;
 
             row.health_services.forEach(service => {
 
@@ -119,6 +122,41 @@ const encoder = (rows) => {
                     }
                 }
             });
+
+            if (row.submission_code === 'C' && !isN01) {
+                isError = true;
+                let noteError = [{
+                    fieldName: 'Note record(N01)',
+                    message: 'Submission code C required N01 record note information',
+                    segmentID: 'N01',
+                    segmentName: 'P22'
+                }];
+
+                if (!encoderErrorArray[`${row.claim_number}`]) {
+                    encoderErrorArray[`${row.claim_number}`] = [];
+                }
+
+                encoderErrorArray[`${row.claim_number}`] = encoderErrorArray[`${row.claim_number}`].concat(noteError);
+            } else if (isN01 && !isError) {
+
+                //N01 Record
+                let N01encodedText = encodeRecord(
+                    processors.NO1(row),
+                    descriptors.NO1
+                );
+
+                if (N01encodedText.error) {
+                    isError = true;
+
+                    if (!encoderErrorArray[`${row.claim_number}`]) {
+                        encoderErrorArray[`${row.claim_number}`] = [];
+                    }
+
+                    encoderErrorArray[`${row.claim_number}`] = encoderErrorArray[`${row.claim_number}`].concat(N01encodedText.error);
+                } else if (!isError) {
+                    claimEncodedArray.push(N01encodedText.encodedData);
+                }
+            }
 
         });
 
