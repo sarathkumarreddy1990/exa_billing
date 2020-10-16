@@ -821,6 +821,7 @@ define(['jquery',
 
                             $('#btnSaveClaim').attr('disabled', false);
                             $("#txtClaimDate").attr("disabled", "disabled");
+                            $("#txtClaimCreatedDt").prop('disabled', true);
 
                             self.bindDefaultClaimDetails(claimDetails);
                             $('.claimProcess').prop('disabled', false);
@@ -1182,6 +1183,7 @@ define(['jquery',
                     $('#ddlSubmissionCode').val(claim_data.can_submission_code_id || '');
                     $('#ddlPOSType').val(["can_AB", "can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && claim_data.place_of_service_id || '');
                     document.querySelector('#txtClaimDate').value = claim_data.claim_dt ? self.convertToTimeZone(claim_data.facility_id, claim_data.claim_dt).format('L') : '';
+                    $('#txtClaimCreatedDt').val(claim_data.created_dt ? self.convertToTimeZone(claim_data.facility_id, claim_data.created_dt).format('L') : '');
                 } else {
                     var responsibleIndex = _.find(self.responsible_list, function (item) { return item.payer_type == 'PIP_P'; });
                     if (responsibleIndex && responsibleIndex.payer_id) {
@@ -1204,6 +1206,7 @@ define(['jquery',
                     var defaultStudyDate = moment(currentDate).format('L');
                     var lineItemStudyDate = self.studyDate && self.studyDate != '' ?  self.studyDate : '';
                     $('#txtClaimDate').val(self.studyDate ? lineItemStudyDate : defaultStudyDate);
+                    $('#divClaimDate').hide();
                 }
                 self.disableElementsForProvince(claim_data);
                 /* Common Details end */
@@ -1828,6 +1831,7 @@ define(['jquery',
                                 self.getAlertEvent(); // for Patient Alert Button Click event availability
 
                                 $("#txtClaimDate").attr("disabled", "disabled");
+                                $("#txtClaimCreatedDt").prop('disabled', true);
                                 if (self.isInitialLoaded) {
                                     self.bindDetails(true);
                                     self.bindTabMenuEvents();
@@ -3872,12 +3876,6 @@ define(['jquery',
                 self.is_tertiary_available = false;
                 self.isUpdatePatientInfo = false;
                 /* Claims section */
-                if (!$('#txtClaimDate').val()) {
-                    commonjs.showWarning("messages.warning.claims.selectClaimDate");
-                    $('#txtClaimDate').focus();
-                    return false;
-                }
-
                 if (!$('#ddlFacility').val()) {
                     commonjs.showWarning("messages.warning.shared.selectfacility");
                     $('#ddlFacility').focus();
@@ -5071,6 +5069,7 @@ define(['jquery',
                     // clear icd details after bind
                     self.ICDID = self.icd_code = self.icd_description = '';
                     $('#txtClaimDate').empty();
+                    $('#txtClaimCreatedDt').empty();
                     $('#ddlFacility option:contains("Select")').prop("selected", true);
                     $('#ddlBillingProvider option:contains("Select")').prop("selected", true);
                     $('#ddlRenderingProvider, #ddlReferringProvider, #ddlOrdFacility').empty();
