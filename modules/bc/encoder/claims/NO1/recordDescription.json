@@ -1,0 +1,44 @@
+{
+  "record_code": {
+    "format": "A",
+    "startPos": 1,
+    "length": 3,
+    "segmentName": "P01"
+  },
+  "data_centre_number": {
+    "format": "A",
+    "startPos": 4,
+    "length": 5,
+    "segmentName": "P01"
+  },
+  "data_center_sequence": {
+    "format": "A",
+    "startPos": 9,
+    "length": 7,
+    "segmentName": "P01"
+  },
+  "payee_number": {
+    "format": "A",
+    "startPos": 16,
+    "length": 5,
+    "segmentName": "P01"
+  },
+  "practitioner_number": {
+    "format": "A",
+    "startPos": 21,
+    "length": 5,
+    "segmentName": "P01"
+  },
+  "note_data_type": {
+    "format": "A",
+    "startPos": 26,
+    "length": 1,
+    "segmentName": "P20"
+  },
+  "note_data": {
+    "format": "A",
+    "startPos": 27,
+    "length": 400,
+    "segmentName": "P22"
+  }
+}
