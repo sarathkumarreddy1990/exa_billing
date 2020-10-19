@@ -95,6 +95,10 @@ define(['jquery',
                 'primaryInsState': '#ddlPriState',
                 'primaryInsZipCode': '#txtPriZipCode'
             },
+            events: {
+                'click #chkEmployment': 'toggleWCBInjuryTypes'
+            },
+
             initialize: function (options) {
                 this.options = options;
                 this.model = new newClaimModel();
@@ -119,6 +123,7 @@ define(['jquery',
                 this.billingCodesList = new modelCollection(app.billing_codes);
                 this.billingClassList = new modelCollection(app.billing_classes);
                 this.billingProviderList = new modelCollection(app.billing_providers);
+                this.claimSubmissionCodes = new modelCollection(app.claim_submission_codes);
                 this.InsurancePokitdokTemplateForm = new _.template(insurancePokitdokForm);
                 this.patientsPager = new modelPatientPager();
                 this.patientListcoll = new patientCollection();
@@ -139,8 +144,46 @@ define(['jquery',
                     return false
                 }
             },
+            getClaimChargeFieldDetails: function (billingRegionCode) {
+                switch (billingRegionCode) {
+                    case 'can_AB':
+                        return {
+                            pointers: [false, false, false, false],
+                            modifiers: [true, true, true, false]
+                        }
+                        break;
+                    case 'can_BC':
+                        return {
+                            pointers: [true, true, true, false],
+                            modifiers: [true, true, true, true]
+                        }
+                        break;
+                    case 'can_MB':
+                        return {
+                            pointers: [true, false, false, false],
+                            modifiers: [true, true, true, true]
+                        }
+                        break;
+                    case 'can_ON':
+                        return {
+                            pointers: [true, true, true, true],
+                            modifiers: [true, true, true, true]
+                        }
+                        break;
+                    default:
+                        return {
+                            pointers: [true, true, true, true],
+                            modifiers: [true, true, true, true]
+                        }
+                        break;
+                }
+            },
             render: function (isFrom) {
                 var self = this;
+                var claimSubmissionCodes = _.filter(self.claimSubmissionCodes.toJSON(), function (obj) {
+                    return obj.country_code.toLowerCase() === app.country_alpha_3_code && obj.province_code === app.province_alpha_2_code
+                });
+
                 self.claimICDLists = [];
                 this.rendered = true;
                 commonjs.showDialog({
@@ -179,12 +222,16 @@ define(['jquery',
                         billingCodesList: self.billingCodesList.toJSON(),
                         billingClassList: self.billingClassList.toJSON(),
                         billingProviderList: self.billingProviderList.toJSON(),
+                        submissionCodes: claimSubmissionCodes,
                         posList: app.places_of_service || [],
                         relationshipList: app.relationship_status || [],
                         chargeList: self.claimChargeList || [],
                         paymentList: self.paymentList,
                         billingRegionCode: app.billingRegionCode,
-                        currentDate: self.studyDate === undefined && self.cur_study_date || self.studyDate
+                        currentDate: self.studyDate === undefined && self.cur_study_date || self.studyDate,
+                        chargeField : self.getClaimChargeFieldDetails(app.billingRegionCode || ''),
+                        wcbAreaCode: app.wcb_area_code,
+                        wcbNatureCode: app.wcb_nature_code
                     })
                 });
 
@@ -196,7 +243,7 @@ define(['jquery',
                     $('#txtPriGroupNo').attr('maxlength', 2);
                 }
 
-                $('#txtClaimResponsibleNotes').prop('disabled', !(app.billingRegionCode === 'can_MB' || app.country_alpha_3_code === 'usa'));
+                $('#txtClaimResponsibleNotes').prop('disabled', !(app.billingRegionCode === 'can_MB' || app.billingRegionCode === 'can_BC' || app.country_alpha_3_code === 'usa'));
 
                 //EXA-18273 - Move diagnostics codes section under claim for alberta billing
                 if(app.billingRegionCode === 'can_AB') {
@@ -523,6 +570,8 @@ define(['jquery',
                 self.setProviderAutoComplete('RF'); // referring provider auto complete
                 self.setDiagCodesAutoComplete();
                 self.setOrderingFacilityAutoComplete();
+                self.initWCBCodesAutoComplete('wcbNatureOfInjury');
+                self.initWCBCodesAutoComplete('wcbAreaOfInjury');
                 if (!self.isEdit)
                     self.bindExistingPatientInsurance(doHide);
             },
@@ -772,6 +821,7 @@ define(['jquery',
 
                             $('#btnSaveClaim').attr('disabled', false);
                             $("#txtClaimDate").attr("disabled", "disabled");
+                            $("#txtClaimCreatedDt").prop('disabled', true);
 
                             self.bindDefaultClaimDetails(claimDetails);
                             $('.claimProcess').prop('disabled', false);
@@ -799,6 +849,8 @@ define(['jquery',
                                     }
                                 }
                             }
+                            self.toggleOtherClaimNumber();
+                            self.toggleWCBInjuryTypes();
 
                         } else {
                             commonjs.showWarning('billing.era.claimNotExists');
@@ -955,10 +1007,10 @@ define(['jquery',
                 $('#chkClaimedAmountIndicator').prop('checked', claim_data.can_ahs_claimed_amount_indicator);
                 $('#chkConfidential').prop('checked', claim_data.can_confidential);
                 $('#chkwcbRejected').prop('checked', claim_data.can_wcb_rejected);
-                $('#ddlNewbornCode').val(claim_data.can_ahs_newborn_code).change();
+                $('#ddlNewbornCode').val(claim_data.can_newborn_code).change();
                 $('#txtReasonAdditionalCompensation').val(claim_data.can_ahs_emsaf_reason);
                 $('#chkSupportingDocumentationSeparate').prop('checked', claim_data.can_ahs_paper_supporting_docs);
-                $('#txtSupportingText').val(claim_data.can_ahs_supporting_text);
+                $('#txtSupportingText').val(claim_data.can_supporting_text);
                 $('#spChartNumber').text(claim_data.claim_id);
                 $('#microFilmNumber').val(claim_data.can_mhs_microfilm_no || '');
                 $('#receiptDate').val(claim_data.can_mhs_receipt_date ? moment(claim_data.can_mhs_receipt_date).format('L') : '');
@@ -1046,6 +1098,35 @@ define(['jquery',
                 $('#txtAuthorization').val(claim_data.authorization_no || '');
                 $('#frequency').val(claim_data.frequency || '');
                 $('#selAccidentState').val(claim_data.accident_state).prop('disabled', !isCauseCode);
+
+                if (app.billingRegionCode === 'can_BC') {
+
+                    var areaOfInjuryCode = _.find(app.wcb_area_code, {
+                        id: ~~claim_data.area_of_injury_code_id
+                        }) || {};
+                    var natureOfInjuryCode = _.find(app.wcb_nature_code, {
+                        id: ~~claim_data.nature_of_injury_code_id
+                        }) || {};
+                    var areaOfInjuryContainer = $("#select2-wcbAreaOfInjury-container");
+                    var natureOfInjuryContainer = $("#select2-wcbNatureOfInjury-container");
+
+                    if (_.isEmpty(areaOfInjuryCode)) {
+                        areaOfInjuryContainer.text(commonjs.geti18NString('messages.warning.shared.selectWcbAreaCode'));
+                    } else {
+                        areaOfInjuryContainer.text(areaOfInjuryCode.code + ' - ' + areaOfInjuryCode.description);
+                    }
+
+                    if (_.isEmpty(natureOfInjuryCode)) {
+                        natureOfInjuryContainer.text(commonjs.geti18NString('messages.warning.shared.selectWcbNatureCode'));
+                    } else {
+                        natureOfInjuryContainer.text(natureOfInjuryCode.code + ' - ' + natureOfInjuryCode.description);
+                    }
+                    self.wcbNatureCodeId = claim_data.nature_of_injury_code_id || null;
+                    self.wcbAreaCodeId = claim_data.area_of_injury_code_id || null;
+                    $('#wcbAreaOfInjury').val(self.wcbAreaCodeId);
+                    $('#wcbNatureOfInjury').val(self.wcbNatureCodeId);
+                }
+
                 /* Additional info end */
                 /* Billing summary start */
 
@@ -1099,8 +1180,10 @@ define(['jquery',
                     $('#ddlClaimResponsible').data('current-payer',claim_data.payer_type);
                     $('#ddlClaimStatus').val(claim_data.claim_status_id || '');
                     $('#ddlFrequencyCode').val(claim_data.frequency || '')
-                    $('#ddlPOSType').val(app.country_alpha_3_code !== 'can' && claim_data.place_of_service_id || '');
+                    $('#ddlSubmissionCode').val(claim_data.can_submission_code_id || '');
+                    $('#ddlPOSType').val(["can_AB", "can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && claim_data.place_of_service_id || '');
                     document.querySelector('#txtClaimDate').value = claim_data.claim_dt ? self.convertToTimeZone(claim_data.facility_id, claim_data.claim_dt).format('L') : '';
+                    $('#txtClaimCreatedDt').val(claim_data.created_dt ? self.convertToTimeZone(claim_data.facility_id, claim_data.created_dt).format('L') : '');
                 } else {
                     var responsibleIndex = _.find(self.responsible_list, function (item) { return item.payer_type == 'PIP_P'; });
                     if (responsibleIndex && responsibleIndex.payer_id) {
@@ -1114,7 +1197,7 @@ define(['jquery',
                         var code = _.find(frequency, function (item) { return item.code == parseInt(claim_data.frequency); });
                         $('#ddlFrequencyCode').val(code.desc || '');
                     }
-                    if (app.country_alpha_3_code !== 'can' && claim_data.pos_type_code && claim_data.pos_type_code != '') {
+                    if (["can_AB", "can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && claim_data.pos_type_code && claim_data.pos_type_code != '') {
                         $('#ddlPOSType').val($('option[data-code = ' + claim_data.pos_type_code.trim() + ']').val());
                     } else if (app.country_alpha_3_code !== 'can') {
                         $('#ddlPOSType').val(claim_data.fac_place_of_service_id || '');
@@ -1123,6 +1206,7 @@ define(['jquery',
                     var defaultStudyDate = moment(currentDate).format('L');
                     var lineItemStudyDate = self.studyDate && self.studyDate != '' ?  self.studyDate : '';
                     $('#txtClaimDate').val(self.studyDate ? lineItemStudyDate : defaultStudyDate);
+                    $('#divClaimDate').hide();
                 }
                 self.disableElementsForProvince(claim_data);
                 /* Common Details end */
@@ -1202,6 +1286,20 @@ define(['jquery',
                         p77StatusEle.hide();
                         $('#btnSaveClaimNotes').hide();
                     }
+                } else if (app.billingRegionCode === 'can_BC')  {
+                    if (data.claim_status_code === 'OH') {
+                        $('#btnNewPayment, .paymentApply').prop('disabled', true);
+                        $('#btnSaveClaim').hide();
+
+                    } else {
+                        var ohClaimStatus = _.find(app.claim_status, { code: 'OH'});
+
+                        if (ohClaimStatus) {
+                            $('#ddlClaimStatus option[value="' + ohClaimStatus.id + '"]').hide();
+                        }
+
+                        $('#btnSaveClaimNotes').hide();
+                    }
                 }
             },
 
@@ -1209,6 +1307,71 @@ define(['jquery',
                 return $.grep(app.relationship_status, function (relationship) {
                     return id == relationship.id;
                 }).length;
+            },
+
+            /**
+            * Setting default autocomplete for wcb codes
+            * This autocomplete returns the response as res.wcb code
+            */
+            initWCBCodesAutoComplete: function (containerID) {
+                var self = this;
+                var wcbCodeType = containerID === 'wcbNatureOfInjury' ? 'n' : 'a';
+                $('#' + containerID).select2({
+                    ajax: {
+                        url: "/exa_modules/billing/autoCompleteRouter/wcb_codes",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                page: params.page || 1,
+                                codeType: wcbCodeType,
+                                q: params.term || '',
+                                pageSize: 10,
+                                sortField: "code",
+                                sortOrder: "asc",
+                                company_id: app.companyID
+                            };
+                        },
+                        processResults: function (data, params) {
+                            return commonjs.getTotalRecords(data, params);
+                        },
+                        cache: true
+                    },
+                    minimumInputLength: 0,
+                    placeholder: wcbCodeType === 'n'
+                        ? commonjs.geti18NString('messages.warning.shared.selectWcbNatureCode')
+                        : commonjs.geti18NString('messages.warning.shared.selectWcbAreaCode'),
+                    escapeMarkup: function (markup) { return markup; },
+                    templateResult: formatRepo,
+                    templateSelection: formatRepoSelection,
+                });
+                function formatRepo(res) {
+                    if (res.loading) {
+                        return res.text;
+                    }
+
+                    var markup = "<table><tr>";
+                    markup += "<td title='" + res.code + " - " + res.description + "'><div>" + res.code + " - " + res.description + "</div>";
+                    markup += "</td></tr></table>";
+                    return markup;
+                }
+                function formatRepoSelection(res) {
+                    if (!res.id) {
+                        return res.text;
+                    }
+                    self.bindWCBDetails(containerID, res);
+                    return res.code + ' - ' + res.description;
+                }
+            },
+
+            toggleWCBInjuryTypes: function() {
+                if ($('#chkEmployment').is(':checked')) {
+                    $('#natureOfInjuryDiv').show();
+                    $('#areaOfInjuryDiv').show();
+                } else {
+                    $('#natureOfInjuryDiv').hide();
+                    $('#areaOfInjuryDiv').hide();
+                }
             },
 
             bindEditClaimInsuranceDetails: function (claimData) {
@@ -1433,6 +1596,30 @@ define(['jquery',
                     }
 
                     $('#btnSaveClaimNotes').hide();
+                } else if (app.billingRegionCode === 'can_BC') {
+                    var ohClaimStatus = _.find(app.claim_status, function(item) {
+                        return item.code === 'OH'
+                    });
+
+                    if (ohClaimStatus) {
+                        $('#ddlClaimStatus option[value="' + ohClaimStatus.id + '"]').hide();
+                    }
+
+                    $('#btnSaveClaimNotes').hide();
+                }
+            },
+
+            toggleOtherClaimNumber: function() {
+                var originalRef = commonjs.geti18NString("billing.claims.originalRef");
+                var otherClaimNumber = commonjs.geti18NString("billing.payments.otherClaimNumber");
+
+                if (app.billingRegionCode === 'can_BC' && ($('#chkEmployment').prop('checked') || $('#chkAutoAccident').prop('checked'))) {
+                    $("#lblOriginalRef").text(otherClaimNumber).append("<span class='Required' style='color: red;padding-left: 5px;'>*</span>");
+                    $("#txtOriginalRef").attr({ 'placeholder': otherClaimNumber, 'maxlength': 8 });
+                }
+                else {
+                    $('#lblOriginalRef').removeClass('field-required').text(originalRef);
+                    $("#txtOriginalRef").attr('placeholder', originalRef).removeAttr('maxlength');
                 }
             },
 
@@ -1528,6 +1715,8 @@ define(['jquery',
                     if (!isCauseCode) {
                         $accidentState.val('');
                     }
+                    self.toggleOtherClaimNumber();
+                    self.toggleWCBInjuryTypes();
                 });
 
                 $('#ddlPayToCode').off().change(function (e) {
@@ -1642,6 +1831,7 @@ define(['jquery',
                                 self.getAlertEvent(); // for Patient Alert Button Click event availability
 
                                 $("#txtClaimDate").attr("disabled", "disabled");
+                                $("#txtClaimCreatedDt").prop('disabled', true);
                                 if (self.isInitialLoaded) {
                                     self.bindDetails(true);
                                     self.bindTabMenuEvents();
@@ -1666,12 +1856,15 @@ define(['jquery',
             updateNotes: function (e) {
                 $('#btnSaveClaimNotes').prop('disabled', true);
                 $('.claimProcess').prop('disabled', true);
+
                 $.ajax({
                     url: '/exa_modules/billing/claims/claim/notes/' + this.claim_Id,
                     type: 'PUT',
                     data: {
-                        claimNotes: $.trim($('#txtClaimNotes').val()) || '',
-                        billingNotes: $.trim($('#txtClaimResponsibleNotes').val()) || ''
+                        billingRegionCode: app.billingRegionCode,
+                        claimNotes: $.trim($('#txtClaimNotes').val()),
+                        billingNotes: $.trim($('#txtClaimResponsibleNotes').val()),
+                        canSupportingText: $.trim($.trim($('#txtSupportingText').val()).replace(/\n/g, ' '))
                     },
                     success: function (response) {
                         if (response && response.length) {
@@ -2948,7 +3141,18 @@ define(['jquery',
                 }
 
             },
-
+            bindWCBDetails: function(elementId, res) {
+                var self = this;
+                if (elementId === 'wcbNatureOfInjury') {
+                    self.wcbNatureCodeId = res.id;
+                    self.wcbNatureCode = res.code || null;
+                    self.wcbNatureDescription = res.description || null;
+                } else {
+                    self.wcbAreaCodeId = res.id;
+                    self.wcbAreaCode = res.code || null;
+                    self.wcbAreaDescription = res.description || null;
+                }
+            },
             bindInsurance: function (element_id, res) {
                 var self = this, payer_type, coverage_level;
                 switch (element_id) {
@@ -3371,7 +3575,7 @@ define(['jquery',
                     rendering_provider_contact_id: self.ACSelect && self.ACSelect.readPhy ? self.ACSelect.readPhy.contact_id : null,
                     referring_provider_contact_id: self.ACSelect && self.ACSelect.refPhy ? self.ACSelect.refPhy.contact_id : null,
                     ordering_facility_id: self.group_id ? parseInt(self.group_id) : null,
-                    place_of_service_id: app.country_alpha_3_code !== 'can' && $('#ddlPOSType option:selected').val() != '' ? parseInt($('#ddlPOSType option:selected').val()) : null,
+                    place_of_service_id: ["can_AB", "can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && $('#ddlPOSType option:selected').val() != '' ? parseInt($('#ddlPOSType option:selected').val()) : null,
                     billing_code_id: $('#ddlBillingCode option:selected').val() != '' ? parseInt($('#ddlBillingCode option:selected').val()) : null,
                     billing_class_id: $('#ddlBillingClass option:selected').val() != '' ? parseInt($('#ddlBillingClass option:selected').val()) : null,
                     created_by: app.userID,
@@ -3389,6 +3593,7 @@ define(['jquery',
                     original_reference: $.trim($('#txtOriginalRef').val()),
                     authorization_no: $.trim($('#txtAuthorization').val()),
                     frequency: $('#ddlFrequencyCode option:selected').val() != '' ? $('#ddlFrequencyCode option:selected').val() : null,
+                    can_submission_code_id: parseInt($('#ddlSubmissionCode').val()) || null,
                     is_auto_accident: $('#chkAutoAccident').prop('checked'),
                     is_other_accident: $('#chkOtherAccident').prop('checked'),
                     is_employed: $('#chkEmployment').prop('checked'),
@@ -3406,10 +3611,12 @@ define(['jquery',
                     can_ahs_claimed_amount_indicator: $('#chkClaimedAmountIndicator').prop('checked') || false,
                     can_confidential: $('#chkConfidential').prop('checked') || false,
                     can_ahs_paper_supporting_docs: $('#chkSupportingDocumentationSeparate').prop('checked') || false,
-                    can_ahs_newborn_code: $.trim($('#ddlNewbornCode option:selected').val()) || null,
+                    can_newborn_code: $.trim($('#ddlNewbornCode option:selected').val()) || null,
                     can_ahs_emsaf_reason: $.trim($('#txtReasonAdditionalCompensation').val()) || null,
-                    can_ahs_supporting_text: $.trim($.trim($('#txtSupportingText').val()).replace(/\n/g, ' ')),
-                    can_wcb_rejected: $("#chkwcbRejected").prop('checked') || false
+                    can_supporting_text: $.trim($.trim($('#txtSupportingText').val()).replace(/\n/g, ' ')),
+                    can_wcb_rejected: $("#chkwcbRejected").prop('checked') || false,
+                    wcb_injury_area_code: $.trim($('#wcbAreaOfInjury').val()) || null,
+                    wcb_injury_nature_code: $.trim($('#wcbNatureOfInjury').val()) || null
                 };
 
                 // Pay-to Details are only saved when Pay-to Code is Other
@@ -3514,7 +3721,8 @@ define(['jquery',
 
                 /*Setting ICD pointers details*/
                 claim_model.claim_icds = self.claimICDLists || [];
-
+                // set study Id in claims
+                claim_model.claims.study_id = claim_model.charges[0].study_id || null;
                 // set claims details
                 self.model.set({
                     claim_row_version : self.isEdit ? self.claim_row_version : null,
@@ -3668,12 +3876,6 @@ define(['jquery',
                 self.is_tertiary_available = false;
                 self.isUpdatePatientInfo = false;
                 /* Claims section */
-                if (!$('#txtClaimDate').val()) {
-                    commonjs.showWarning("messages.warning.claims.selectClaimDate");
-                    $('#txtClaimDate').focus();
-                    return false;
-                }
-
                 if (!$('#ddlFacility').val()) {
                     commonjs.showWarning("messages.warning.shared.selectfacility");
                     $('#ddlFacility').focus();
@@ -3696,6 +3898,14 @@ define(['jquery',
                     commonjs.showWarning("messages.warning.shared.supportingTextRequired");
                     $('#txtSupportingText').focus();
                     return false;
+                }
+
+                if (app.billingRegionCode === 'can_BC' && ($('#chkEmployment').prop('checked') || $('#chkAutoAccident').prop('checked'))) {
+                    if (!commonjs.checkNotEmpty($('#txtOriginalRef').val())) {
+                        commonjs.showWarning("messages.warning.shared.otherClaimNumber");
+                        $('#txtOriginalRef').focus();
+                        return false;
+                    }
                 }
 
                 /* Insurance section */
@@ -4859,6 +5069,7 @@ define(['jquery',
                     // clear icd details after bind
                     self.ICDID = self.icd_code = self.icd_description = '';
                     $('#txtClaimDate').empty();
+                    $('#txtClaimCreatedDt').empty();
                     $('#ddlFacility option:contains("Select")').prop("selected", true);
                     $('#ddlBillingProvider option:contains("Select")').prop("selected", true);
                     $('#ddlRenderingProvider, #ddlReferringProvider, #ddlOrdFacility').empty();
@@ -4929,6 +5140,7 @@ define(['jquery',
                 //binding claim form events
                 self.bindTabMenuEvents();
                 self.bindclaimFormEvents();
+                self.toggleWCBInjuryTypes();
 
                 //EXA-18273 - Bind Charges created on current date for a patient.
                 if (app.billingRegionCode === 'can_AB') {
@@ -4957,7 +5169,7 @@ define(['jquery',
                 self.group_id = patient_details.service_facility_id ? parseInt(patient_details.service_facility_id) : null;
                 self.group_name = service_facility_name;
 
-                $('#ddlPOSType').val(app.country_alpha_3_code !== 'can' && patient_details.fac_place_of_service_id || '');
+                $('#ddlPOSType').val(["can_AB", "can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && patient_details.fac_place_of_service_id || '');
                 $('#ddlBillingProvider').val(patient_details.billing_provider_id || '');
                 $('#ddlFacility').val(patient_details.facility_id || '');
                 $('#select2-ddlRenderingProvider-container').html(renderingProvider);
@@ -5216,7 +5428,9 @@ define(['jquery',
                                 window.patientChartWindow = window.open("about:blank");
                                 window.patientChartWindow.location.href = url;
                             }
-                        }));
+                        }))
+                        .append($('<span>').attr({'i18n': 'patient.advancedSearch.phn', class: 'pl-3'}))
+                        .append(':' +  (patient_details && patient_details.phn_acc_no && patient_details.phn_acc_no.alt_account_no || ''));
             },
 
             bindClaimPaymentEvent: function () {
@@ -5663,9 +5877,14 @@ define(['jquery',
             },
 
             insertSupportingText: function() {
-                var existingSupportingText = $('#txtSupportingText').val() + ' ';
-                var updatedSupportingText = existingSupportingText + $('#ddlSupportingTextOptions').val();
-                $('#txtSupportingText').val(updatedSupportingText);
+                var txtSupportingText = $('#txtSupportingText');
+                var ddlSupportingTextOptions = $('#ddlSupportingTextOptions');
+                var updatedSupportingText = txtSupportingText.val() ? txtSupportingText.val() + ' ' + ddlSupportingTextOptions.val() : ddlSupportingTextOptions.val();
+
+                if (app.billingRegionCode === 'can_BC' && updatedSupportingText.length > 400) {
+                    return commonjs.showWarning('messages.warning.shared.supportingText');
+                }
+                txtSupportingText.val(updatedSupportingText);
             },
 
             identifyAssociatedCptsAndModifiers: function() {

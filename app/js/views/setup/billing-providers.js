@@ -194,6 +194,9 @@ define(['jquery',
                 if ( app.country_alpha_3_code === 'can' && app.province_alpha_2_code === 'ON' ) {
                     $('#txtNpi').attr('maxlength', 4);
                 }
+                if ( app.billingRegionCode === 'can_BC' ) {
+                    $('#txtFederalTaxID').attr({'readonly':true, "placeholder":"1234"});
+                }
                 var AddressInfoMap = {
                     city: {
                         domId: 'txtCity',
@@ -242,6 +245,7 @@ define(['jquery',
                                     Address.loadCityStateZipTemplate('#divPayToAddress', data, payToAddressMap);
                                     $('#txtName').val(data.name || '');
                                     $('#chkIsActive').prop('checked', !!data.inactivated_dt);
+                                    $('#chkAltPay').prop('checked', data.can_bc_is_alt_payment_program);
                                     $('#txtCode').val(data.code || '');
                                     $('#txtShortDesc').val(data.short_description || '');
                                     $('#txtFederalTaxID').val(data.federal_tax_id || '');
@@ -267,6 +271,8 @@ define(['jquery',
                                     $('#txtPayEmail').val(data.pay_to_email || '');
                                     $('#txtPayBillProPhoneNo').val(data.pay_to_phone_number || '');
                                     $('#txtPayFaxNo').val(data.pay_to_fax_number || '');
+                                    $('#txtPayeeNumber').val(data.can_bc_payee_number || '');
+                                    $('#txtDataCentreNumber').val(data.can_bc_data_centre_number || '');
 
                                     $('#chkEnableFTP').prop('checked', !!communication_info.enable_ftp);
                                     $('#txtHostName').val(communication_info.Ftp_host || '');
@@ -389,6 +395,14 @@ define(['jquery',
                     }
                 }
 
+                var payeeNumber = $('#txtPayeeNumber');
+                var payeeNumberRegex = !(/^[a-z0-9]+$/i.test(payeeNumber.val()));
+
+                if (app.billingRegionCode === "can_BC" && payeeNumber.val() && payeeNumberRegex) {
+                    commonjs.showWarning('messages.warning.setup.payeeNumber', 'mediumwarning');
+                    return false;
+                }
+
                 var messages = {
                     providerName: commonjs.getMessage("e", "Billing Provider Name"),
                     providerCode: commonjs.getMessage("e", "Billing Provider Code"),
@@ -491,7 +505,10 @@ define(['jquery',
                     "payToEmail": $('#txtPayEmail').val(),
                     "payToPhoneNumber": $('#txtPayBillProPhoneNo').val(),
                     "payToFaxNumber": $('#txtPayFaxNo').val(),
-                    "communicationInfo": communication_info
+                    "communicationInfo": communication_info,
+                    "canIsAlternatePaymentProgram" : $('#chkAltPay').prop('checked'), 
+                    "payeeNumber": $('#txtPayeeNumber').val(),
+                    "dataCentreNumber": $('#txtDataCentreNumber').val()
                 });
 
                 this.model.save({}, {

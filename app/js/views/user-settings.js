@@ -144,7 +144,7 @@ define([
                     var i18nLabel = field_order[i].i18n_name;
                     var newLi = $('<li>');
                     var newCB = CreateCheckBox(value, id, i18nLabel);
-                    var defaultOptions = ['Billing Method', 'Patient Name', 'Claim Date', 'Clearing House', 'Billing Provider','Patient','Study Date','Account#','Status','Accession#', 'Billed Status','Payer Type','Claim Status','Claim No'];
+                    var defaultOptions = ['Claim Created Dt', 'Billing Method', 'Patient Name', 'Claim Date', 'Clearing House', 'Billing Provider','Patient','Study Date','Account#','Status','Accession#', 'Billed Status','Payer Type','Claim Status','Claim No'];
                     if ( app.billingRegionCode === 'can_AB' ) {
                         defaultOptions.push('AHS Claim Num');
                     }

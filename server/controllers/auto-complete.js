@@ -44,5 +44,9 @@ module.exports = {
 
     getAdjustmentCodes: (params) => {
         return data.getAdjustmentCodes(params);
+    },
+
+    getWCBCodes: (params) => {
+        return data.getWCBCodes(params);
     }
 };
