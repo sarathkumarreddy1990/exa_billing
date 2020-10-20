@@ -79,16 +79,22 @@ WITH claim_data AS(
     SELECT
       bc.claim_id as id,
       amount_type as type,
-      CASE WHEN bp.payer_type = 'patient' THEN
-               pp.full_name
+      CASE WHEN bp.payer_type = 'patient' THEN (CASE amount_type
+                                                WHEN 'adjustment' THEN 'DISCOUNT'
+                                                ELSE pp.full_name
+                                                END)
          WHEN bp.payer_type = 'insurance' THEN (CASE amount_type
                                                 WHEN 'adjustment' THEN 'DISCOUNT'
                                                 ELSE pip.insurance_name
                                                 END)
-         WHEN bp.payer_type = 'ordering_facility' THEN
-               pg.group_name
-         WHEN bp.payer_type = 'ordering_provider' THEN
-               p.full_name
+         WHEN bp.payer_type = 'ordering_facility' THEN (CASE amount_type
+                                                        WHEN 'adjustment' THEN 'DISCOUNT'
+                                                        ELSE pg.group_name
+                                                        END)
+         WHEN bp.payer_type = 'ordering_provider' THEN (CASE amount_type
+                                                        WHEN 'adjustment' THEN 'DISCOUNT'
+                                                        ELSE p.full_name
+                                                        END)
     END AS comments,
     bp.accounting_date as commented_dt,
     sum(pa.amount) as amount,
