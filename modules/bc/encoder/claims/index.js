@@ -40,11 +40,39 @@ for (const key in descriptors) {
 }
 
 /**
+ * checkFileLimit - Checks the File has less than 9000 lines and $9,999,999.99
+ * @param {BigInt} rowCount - file row count
+ * @param {BigInt} billFee - bill fee
+ */
+const checkFileLimit = (rowCount, billFee) => {
+    let fileError = [];
+
+    if (rowCount > 9000) {
+        fileError.push({
+            fieldName: 'File type error',
+            message: 'File consist more than 9000 line',
+            segmentID: '',
+            segmentName: ''
+        });
+    } else if (billFee > 9999999.99) {
+        fileError.push({
+            fieldName: 'File type error',
+            message: 'File total bill fee exceeds $9,999,999.99',
+            segmentID: '',
+            segmentName: ''
+        });
+    }
+
+    return { fileError };
+};
+
+/**
  * Encode the claim data 
  * @param {Object} rows
+ * @param {Boolean} isCron
  * @returns {String}
  */
-const encoder = (rows) => {
+const encoder = (rows, isCron) => {
 
     let {
         claimData
@@ -60,6 +88,8 @@ const encoder = (rows) => {
     batches.forEach(batch => {
         let encoderBatchArray = [];
         let batchRow = claimData[batch];
+        let rowCount = 0;
+        let totalFileBillFee = 0;
         let submittedClaimIds = [];
         let isError = false;
 
@@ -79,6 +109,7 @@ const encoder = (rows) => {
             commonError = commonError.concat(error);
             isError = true;
         } else {
+            rowCount++;
             encoderBatchArray.push(encodedData);
         }
 
@@ -154,8 +185,40 @@ const encoder = (rows) => {
 
                     encoderErrorArray[`${row.claim_number}`] = encoderErrorArray[`${row.claim_number}`].concat(N01encodedText.error);
                 } else if (!isError) {
+                    rowCount++;
                     claimEncodedArray.push(N01encodedText.encodedData);
                 }
+            }
+
+            // Check for File Limit 
+            let { fileError = [] } = checkFileLimit(rowCount + claimEncodedArray.length, (parseFloat(totalFileBillFee) + parseFloat(row.claim_total_bill_fee)));
+
+            // split claims into mulitple file when it is cron and with only file limit error  
+            if (fileError.length && isCron && !isError && rowCount > 1) {
+
+                submittedClaim.push({
+                    encodedText: finalizeText(encoderBatchArray.join('\r\n')),
+                    submittedClaimIds,
+                    dataCentreNumber: batch
+                });
+
+                totalClaimIdsSubmitted = totalClaimIdsSubmitted.concat(submittedClaimIds);
+
+                encoderBatchArray = [];
+                submittedClaimIds = [];
+                isError = error ? true : false;
+                rowCount = claimEncodedArray.length + 1;
+                totalFileBillFee = row.claim_total_bill_fee;
+                encoderBatchArray.push(encodedData);
+                encoderBatchArray = encoderBatchArray.concat(claimEncodedArray);
+                submittedClaimIds.push(row.claim_number);
+            } else if (fileError.length) {
+                commonError = commonError.concat(fileError);
+            } else if (!isError && claimEncodedArray.length) {
+                encoderBatchArray = encoderBatchArray.concat(claimEncodedArray);
+                rowCount += claimEncodedArray.length;
+                totalFileBillFee += row.claim_total_bill_fee;
+                submittedClaimIds.push(row.claim_number);
             }
 
         });
@@ -171,7 +234,7 @@ const encoder = (rows) => {
         }
     });
 
-
+   
 
     return {
         submittedClaim,
