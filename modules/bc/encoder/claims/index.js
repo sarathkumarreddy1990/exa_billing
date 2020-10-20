@@ -50,7 +50,7 @@ const checkFileLimit = (rowCount, billFee) => {
     if (rowCount > 9000) {
         fileError.push({
             fieldName: 'File type error',
-            message: 'File consist more than 9000 lines',
+            message: 'File consists of more than 9000 lines',
             segmentID: '',
             segmentName: ''
         });
