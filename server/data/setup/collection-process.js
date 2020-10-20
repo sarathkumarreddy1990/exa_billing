@@ -171,6 +171,23 @@ const acr = {
         if (acr_write_off_adjustment_code_id) {
             writeOffQuery = SQL`
                 -- --------------------------------------------------------------------------------------------------------------
+                -- Filter collection_claim_ids to apply write-off adjustment
+                -- --------------------------------------------------------------------------------------------------------------
+                , write_off_claims AS (
+                    SELECT
+                        p.id AS patient_id
+                        ,p.full_name
+                        ,p.facility_id
+                        ,ARRAY_AGG(claims.id)  AS collection_claim_ids
+                    FROM
+                        billing.claims
+                    INNER JOIN patients p ON p.id = claims.patient_id
+                    INNER JOIN billing.claim_status cs ON cs.id = claims.claim_status_id
+                    WHERE cs.code = 'CIC'
+                    GROUP BY p.id
+                    ORDER BY p.id DESC
+                )
+                -- --------------------------------------------------------------------------------------------------------------
                 -- Create payments for write-off adjustment
                 -- --------------------------------------------------------------------------------------------------------------
                 , insert_payment AS (
@@ -198,8 +215,7 @@ const acr = {
                             , 'adjustment' AS payment_mode
                             , facility_id
                         FROM
-                            claim_patient_balance
-                        WHERE collection_claim_ids IS NOT NULL
+                            write_off_claims
                     RETURNING
                         id
                         , company_id
@@ -263,16 +279,16 @@ const acr = {
                         , 0::money AS payment
                         , ((bch.bill_fee * bch.units) - ( bgct.other_payment + bgct.other_adjustment )) AS adjustment
                         , '[]'::jsonb AS cas_details
-                        , cpl.claim_balance_total
+                        , claim_details.claim_balance_total
                         , COALESCE (is_debit_adjustment, false) AS is_debit_adjustment
                     FROM
                         billing.claims
                     INNER JOIN insert_payment ip ON ip.patient_id = claims.patient_id
                     INNER JOIN billing.claim_status cs ON cs.id = claims.claim_status_id
-                    INNER JOIN claim_payment_lists cpl ON cpl.claim_id = claims.id
                     INNER JOIN billing.charges bch ON bch.claim_id = claims.id
                     INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
                     INNER JOIN LATERAL billing.get_charge_other_payment_adjustment(bch.id) bgct ON TRUE
+                    LEFT JOIN billing.get_claim_totals(claims.id) claim_details ON TRUE
                     LEFT JOIN LATERAL (
                         SELECT
                             ((i_bch.bill_fee * i_bch.units) - ( i_bgct.other_payment + i_bgct.other_adjustment )) < 0::money AS is_debit_adjustment
@@ -282,8 +298,8 @@ const acr = {
                         AND ( CASE WHEN ((i_bch.bill_fee * i_bch.units) - ( i_bgct.other_payment + i_bgct.other_adjustment )) < 0::money THEN true ELSE false END )
                         LIMIT 1
                     ) ida ON true
-                    WHERE cpl.claim_balance_total != 0::money
-                    AND EXISTS (SELECT 1 FROM claim_patient_balance WHERE claims.id = ANY(collection_claim_ids))
+                    WHERE claim_details.claim_balance_total != 0::money
+                    AND EXISTS (SELECT 1 FROM write_off_claims WHERE claims.id = ANY(collection_claim_ids))
                     ORDER BY claims.id ASC
                 )
                 -- --------------------------------------------------------------------------------------------------------------
@@ -360,9 +376,11 @@ const acr = {
 
             selectResult.append(`
                  UNION ALL
-                SELECT details,null,null FROM credit_adjustment_charges
+                SELECT null,null,id::text FROM insert_audit_cte
                  UNION ALL
-                SELECT details,null,null FROM debit_adjustment_charges
+                SELECT details::text,null,null FROM credit_adjustment_charges
+                 UNION ALL
+                SELECT details::text,null,null FROM debit_adjustment_charges
                  UNION ALL
                 SELECT null,null,result::text FROM change_responsible_party `);
         }
@@ -395,45 +413,52 @@ const acr = {
                         INNER JOIN billing.payment_applications AS pa ON pa.charge_id = ch.id
                         WHERE ch.claim_id = c.id
                         AND pa.amount != 0::money
-                    ) AS payment_details ON TRUE
-                    WHERE last_patient_statement.created_dt IS NOT NULL `;
+                    ) AS payment_details ON TRUE `;
 
         if (acr_claim_status_statement_count && acr_claim_status_statement_days && acr_claim_status_last_payment_days) {
-            sql.append(`AND
+            sql.append(`WHERE
                 NOT ( CASE
-                        WHEN  payment_details.last_payment_dt IS NULL AND last_patient_statement.created_dt IS NOT NULL THEN FALSE
-                        WHEN  payment_details.last_payment_dt IS NOT NULL AND last_patient_statement.created_dt IS NOT NULL THEN
+                        WHEN  payment_details.last_payment_dt IS NULL AND last_patient_statement.created_dt IS NULL THEN TRUE
+                        WHEN  payment_details.last_payment_dt IS NOT NULL THEN
                             CASE
-                                WHEN (payment_details.last_payment_dt
-                                    BETWEEN (last_patient_statement.created_dt) AND (last_patient_statement.created_dt + interval '${acr_claim_status_statement_days} days')::DATE)  THEN TRUE
-                                WHEN (payment_details.last_payment_dt
-                                    BETWEEN (payment_details.last_payment_dt + interval '1 days') AND (payment_details.last_payment_dt + interval '${acr_claim_status_last_payment_days} days')::DATE)
-                                    THEN TRUE
+                                --first case
+                                WHEN last_patient_statement.created_dt IS NOT NULL AND (payment_details.last_payment_dt
+                                   BETWEEN (last_patient_statement.created_dt) AND (last_patient_statement.created_dt + interval '${acr_claim_status_statement_days} days')::DATE)
+                                     THEN TRUE
+                                WHEN last_patient_statement.created_dt IS NOT NULL AND
+                                   (last_patient_statement.created_dt + interval '${acr_claim_status_statement_days} days')::DATE > timezone(get_facility_tz(c.facility_id::integer), now())::DATE THEN TRUE
+                                --Second case
+                                WHEN (payment_details.last_payment_dt + interval '${acr_claim_status_last_payment_days} days')::DATE > timezone(get_facility_tz(c.facility_id::integer), now())::DATE THEN TRUE
                                 ELSE FALSE
                             END
+                        WHEN  payment_details.last_payment_dt IS NULL AND last_patient_statement.created_dt IS NOT NULL AND
+                            (last_patient_statement.created_dt + interval '${acr_claim_status_statement_days} days')::DATE > timezone(get_facility_tz(c.facility_id::integer), now())::DATE THEN TRUE
+                        ELSE FALSE
                     END
                 )`);
         } else if (acr_claim_status_statement_count && acr_claim_status_statement_days && !acr_claim_status_last_payment_days) {
-            sql.append(`AND
+            sql.append(`WHERE
+                last_patient_statement.created_dt IS NOT NULL AND
                 NOT ( CASE
-                        WHEN  payment_details.last_payment_dt IS NULL AND last_patient_statement.created_dt IS NOT NULL THEN FALSE
-                        WHEN  payment_details.last_payment_dt IS NOT NULL AND last_patient_statement.created_dt IS NOT NULL THEN
+                        WHEN  payment_details.last_payment_dt IS NULL THEN FALSE
+                        WHEN  payment_details.last_payment_dt IS NOT NULL THEN
                             CASE
                                 WHEN (payment_details.last_payment_dt
-                                    BETWEEN (last_patient_statement.created_dt) AND (last_patient_statement.created_dt + interval '${acr_claim_status_statement_days} days')::DATE)  THEN TRUE
+                                   BETWEEN (last_patient_statement.created_dt) AND (last_patient_statement.created_dt + interval '${acr_claim_status_statement_days} days')::DATE)
+                                     THEN TRUE
+                                WHEN (last_patient_statement.created_dt + interval '${acr_claim_status_statement_days} days')::DATE > timezone(get_facility_tz(c.facility_id::integer), now())::DATE THEN TRUE
                                 ELSE FALSE
                             END
                     END
                 )`);
         } else {
-            sql.append(`AND
+            sql.append(`WHERE
                 NOT ( CASE
-                        WHEN  payment_details.last_payment_dt IS NULL AND last_patient_statement.created_dt IS NOT NULL THEN FALSE
-                        WHEN  payment_details.last_payment_dt IS NOT NULL AND last_patient_statement.created_dt IS NOT NULL THEN
+                        WHEN  payment_details.last_payment_dt IS NULL THEN TRUE
+                        WHEN  payment_details.last_payment_dt IS NOT NULL THEN
                             CASE
-                                WHEN (payment_details.last_payment_dt
-                                    BETWEEN (payment_details.last_payment_dt + interval '1 days') AND (payment_details.last_payment_dt + interval '${acr_claim_status_last_payment_days} days')::DATE)
-                                    THEN TRUE
+                                WHEN (payment_details.last_payment_dt + interval '${acr_claim_status_last_payment_days} days')::DATE > timezone(get_facility_tz(c.facility_id::integer), now())::DATE
+                                   THEN TRUE
                                 ELSE FALSE
                             END
                     END
@@ -483,7 +508,6 @@ const acr = {
                 )
                 -- --------------------------------------------------------------------------------------------------------------
                 -- Getting total patient balance >= acr_min_balance_amount
-                -- Filter collection_claim_ids to apply write-off adjustment
                 -- --------------------------------------------------------------------------------------------------------------
                 , claim_patient_balance AS (
                     SELECT
@@ -492,7 +516,6 @@ const acr = {
                         ,p.full_name
                         ,p.facility_id
                         ,ARRAY_AGG(claims.id) FILTER ( WHERE claim_status_id != ${acr_claim_status_id} ) AS claim_ids
-                        ,ARRAY_AGG(claims.id) FILTER ( WHERE claim_status_id = (SELECT id FROM billing.claim_status WHERE code = 'CIC')) AS collection_claim_ids
                     FROM
                         billing.claims
 		            INNER JOIN claim_payment_lists cpl ON cpl.claim_id = claims.id
