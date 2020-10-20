@@ -23,7 +23,9 @@ define([
     'routes/setup/billing-messages',
     'routes/setup/insurance-x12-mapping',
     'routes/setup/printer-templates',
-    'routes/setup/auto-billing'
+    'routes/setup/auto-billing',
+    'routes/setup/submission-types',
+    'routes/setup/collections-process'
 
 ], function (
     Backbone,
@@ -50,7 +52,9 @@ define([
     BillingMessagesRoute,
     InsuranceX12MappingRoute,
 	PaperClaimTemplatesRoute,
-    AutoBillingRoute
+    AutoBillingRoute,
+    SubmissionTypesRoute,
+    CollectionsProcess
     ) {
         return Backbone.SubRoute.extend({
             routes: {
@@ -74,7 +78,9 @@ define([
                 "billing_messages/*subroute" : "startBillingMessages",
                 "insurance_x12_mapping/*subroute" : "startInsuranceX12Mapping",
                 "printer_templates/*subroute" : "startPaperClaimTemplates",
-                "auto_billing/*subroute" : "startAutoBilling"
+                "auto_billing/*subroute" : "startAutoBilling",
+                "submission_types/*subroute": "startSubmissionType",
+                "collections_process/*subroute": "startCollectionsProcess"
 
             },
 
@@ -275,6 +281,23 @@ define([
                 if (this.checkLicense('AutoBilling') && !this.autoBillingRouter) {
                     this.defaultArgs.routePrefix = 'setup/auto_billing/';
                     this.autoBillingRouter = new AutoBillingRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+            startCollectionsProcess: function () {
+                if (this.checkLicense('CollectionsProcess') && !this.collectionsProcessRouter) {
+                    this.defaultArgs.routePrefix = 'setup/collections_process/';
+                    this.collectionsProcessRouter = new CollectionsProcess(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
+            },
+
+            startSubmissionType:  function () {
+                if (this.checkLicense('SubmissionTypes') && !this.submissionTypeRouter) {
+                    this.defaultArgs.routePrefix = 'setup/submission_types/';
+                    this.submissionTypeRouter = new SubmissionTypesRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
                     this.accessDenied();
                 }

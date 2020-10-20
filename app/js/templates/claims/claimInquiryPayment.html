@@ -18,7 +18,13 @@
             <td>
                 <span id="spCIadj_<%= row.charge_id %>"><%= row.adjustment %></span>
             </td>
-            <% for(var i=0; i<7; i++) { %> 
+            <% if (billingRegionCode === 'can_BC') { %>
+            <td>
+                <span id="spCImspControlNumber_<%= row.charge_id %>"><%= row.can_bc_internal_control_number %></span>
+            </td>   
+            <% } %> 
+            <% var columnLength = (row.cas_details && row.cas_details.length > 7 && billingRegionCode == 'can_BC' ) ? row.cas_details.length : 7; %>
+            <% for(var i=0; i< columnLength; i++) { %>
                     <% if (row.cas_details && row.cas_details[i] != null) { %>
                             <td>
                                 <span id="spCICasCode"><%= row.cas_details[i].code %></span>

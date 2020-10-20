@@ -13,6 +13,11 @@ const colModel = [
         searchFlag: 'daterange'
     },
     {
+        name: 'created_dt',
+        searchColumns: ['claims.created_dt'],
+        searchFlag: 'daterange'
+    },
+    {
         name: 'submitted_dt',
         searchColumns: ['claims.submitted_dt'],
         searchFlag: 'daterange'
@@ -515,6 +520,7 @@ const api = {
             'claims.id',
             'claims.id as claim_id',
             'claims.claim_dt',
+            'claims.created_dt',
             'claims.facility_id',
             'claim_status.description as claim_status',
             'claim_status.code as claim_status_code',
@@ -592,9 +598,7 @@ const api = {
                 LEFT JOIN patient_insurances pi
                     ON pi.insurance_provider_id = ip.id
                 WHERE
-                    pi.id = primary_patient_insurance_id
-                    OR pi.id = secondary_patient_insurance_id
-                    OR pi.id = tertiary_patient_insurance_id
+                    pi.id = primary_patient_insurance_id                    
             ) AS insurance_providers`,
             `claims.can_mhs_microfilm_no`,
             `patient_alt_accounts.pid_alt_account`,

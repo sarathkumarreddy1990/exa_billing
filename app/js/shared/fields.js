@@ -259,7 +259,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "id": 1,
                     "field_code": "claim_dt",
                     "field_name": "Claim Date",
-                    "i18n_name": "billing.claims.claimDate",
+                    "i18n_name": "billing.claims.studyDate",
                     "field_info": {
                         "custom_name": "Claim Date",
                         "name": "claim_dt",
@@ -875,7 +875,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                 "PHN": {
                     "id": 73,
                     "field_name": "PHN",
-                    "i18n_name": "setup.userSettings.phn",
+                    "i18n_name": "shared.fields.phnuli",
                     "field_info": {
                         "custom_name": "PHN",
                         "name": "phn_alt_account",
@@ -885,6 +885,19 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "defaultValue": ""
                     },
                     "field_code": "phn_alt_account"
+                },
+                "Claim Created Dt": {
+                    "id": 74,
+                    "field_code": "created_dt",
+                    "field_name": "Claim Created Dt",
+                    "i18n_name": "setup.userSettings.claimDate",
+                    "field_info": {
+                        "custom_name": "Claim Created Dt",
+                        "name": "created_dt",
+                        "searchFlag": "datetime",
+                        "formatter": claimDateFormatter,
+                        "width": 200
+                    }
                 }
             });
         }else{
@@ -1179,7 +1192,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
             "PHN": {
                 "id": 73,
                 "field_name": "PHN",
-                "i18n_name": "setup.userSettings.phn",
+                "i18n_name": "shared.fields.phnuli",
                 "field_info": {
                     "custom_name": "PHN",
                     "name": "phn_alt_account",
@@ -1188,7 +1201,6 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "sortable": true,
                     "defaultValue": ""
                 },
-
                 "field_code": "phn_alt_account"
             },
             "Reading Physician": {

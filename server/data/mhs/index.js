@@ -64,6 +64,8 @@ const mhsData = {
                             , c.patient_id
                             , c.can_wcb_rejected
                             , c.can_confidential
+                            , c.area_of_injury_code_id
+                            , c.nature_of_injury_code_id
                             , JSON_BUILD_OBJECT(
                                 'phn_details', phn.*
                                 , 'last_name', p.last_name
