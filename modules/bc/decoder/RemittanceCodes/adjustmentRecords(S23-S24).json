@@ -1,0 +1,91 @@
+{
+    "recordCode":{
+        "startPos": 1,
+        "fieldLength": 3
+    },
+    "dataCentreNumber": {
+        "startPos": 4,
+        "fieldLength": 5
+    },
+    "dataCentreSequenceNumber": {
+        "startPos": 9,
+        "fieldLength": 7
+    },
+    "paymentDate": {
+        "startPos": 16,
+        "fieldLength": 8,
+        "format": "D"
+    },
+    "lineCode": {
+        "startPos": 24,
+        "fieldLength": 1
+    },
+    "payeeNumber": {
+        "startPos": 25,
+        "fieldLength": 5
+    },
+    "mspControlNumber": {
+        "startPos": 30,
+        "fieldLength": 6
+    },
+    "adjustmentCode": {
+        "startPos": 36,
+        "fieldLength": 2
+    },
+    "adjustmentIdentification": {
+        "startPos": 38,
+        "fieldLength": 12
+    },
+    "adjustmentMessage":{
+        "startPos": 50,
+        "fieldLength": 20
+    },
+    "calculationMethod": {
+        "startPos": 70,
+        "fieldLength": 1
+    },
+    "regularPercent": {
+        "startPos": 71,
+        "fieldLength": 5,
+        "format": "M"
+    },
+    "oneTimePercent": {
+        "startPos": 76,
+        "fieldLength": 5,
+        "format": "M"
+    },
+    "grossPaymentAmount":{
+        "startPos": 81,
+        "fieldLength": 9,
+        "format": "M"
+    },
+    "regularAmount": {
+        "startPos": 90,
+        "fieldLength": 9,
+        "format": "M"
+    },
+    "oneTimeAmount":{
+        "startPos": 99,
+        "fieldLength":9,
+        "format":"M"
+    },
+    "balanceForward":{
+        "startPos": 108,
+        "fieldLength": 9,
+        "format": "M"
+    },
+    "adjustmentMade":{
+        "startPos": 117,
+        "fieldLength": 9,
+        "format": "M"
+    },
+    "adjustmentOutstanding": {
+        "startPos": 126,
+        "fieldLength": 9,
+        "format": "M"
+    },
+    "filler": {
+        "startPos": 135,
+        "fieldLength": 32
+    }
+}
