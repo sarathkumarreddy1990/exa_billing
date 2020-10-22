@@ -441,7 +441,7 @@ const acr = {
                 last_patient_statement.created_dt IS NOT NULL AND
                 NOT ( CASE
                         WHEN  payment_details.last_payment_dt IS NULL THEN
-						 (last_patient_statement.created_dt + interval '${acr_claim_status_statement_days} days')::DATE > timezone(get_facility_tz(c.facility_id::integer), now())::DATE
+                            (last_patient_statement.created_dt + interval '${acr_claim_status_statement_days} days')::DATE > timezone(get_facility_tz(c.facility_id::integer), now())::DATE
                         WHEN  payment_details.last_payment_dt IS NOT NULL THEN
                             CASE
                                 WHEN (payment_details.last_payment_dt
