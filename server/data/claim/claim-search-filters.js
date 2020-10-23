@@ -433,7 +433,7 @@ const api = {
         }
 
         if (tables.patient_insurances || tables.insurance_providers || tables.edi_clearinghouses) {
-            r += ' LEFT JOIN patient_insurances ON patient_insurances.id = primary_patient_insurance_id ';       
+            r += ' LEFT JOIN patient_insurances ON patient_insurances.id = primary_patient_insurance_id ';
             r += ' LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id ';
             r += ' LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id ';
             r += ' LEFT JOIN   billing.edi_clearinghouses ON  billing.edi_clearinghouses.id=insurance_provider_details.clearing_house_id';
@@ -590,7 +590,7 @@ const api = {
                 LEFT JOIN patient_insurances pi
                     ON pi.insurance_provider_id = ip.id
                 WHERE
-                    pi.id = primary_patient_insurance_id                    
+                    pi.id = primary_patient_insurance_id
             ) AS insurance_providers`,
             `claims.can_mhs_microfilm_no`,
             `patient_alt_accounts.pid_alt_account`,
