@@ -232,6 +232,11 @@ const colModel = [
         name: 'phn_alt_account',
         searchColumns: ['patient_alt_accounts.phn_alt_account'],
         searchFlag: 'arrayString'
+    },
+    {
+        name: 'can_bc_claim_sequence_numbers',
+        searchColumns: ['billing.can_bc_get_claim_sequence_numbers(claims.id)'],
+        searchFlag: 'arrayString'
     }
 ];
 
@@ -327,6 +332,7 @@ const api = {
             case 'can_mhs_microfilm_no': return `claims.can_mhs_microfilm_no`;
             case 'pid_alt_account': return 'patient_alt_accounts.pid_alt_account';
             case 'phn_alt_account': return 'patient_alt_accounts.phn_alt_account';
+            case 'can_bc_claim_sequence_numbers': return 'billing.can_bc_get_claim_sequence_numbers(claims.id)';
         }
 
         return args;
@@ -602,7 +608,8 @@ const api = {
             ) AS insurance_providers`,
             `claims.can_mhs_microfilm_no`,
             `patient_alt_accounts.pid_alt_account`,
-            `patient_alt_accounts.phn_alt_account`
+            `patient_alt_accounts.phn_alt_account`,
+            `billing.can_bc_get_claim_sequence_numbers(claims.id) AS can_bc_claim_sequence_numbers`
         ];
 
         if(args.customArgs.filter_id=='Follow_up_queue'){

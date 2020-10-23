@@ -392,6 +392,9 @@ define(['jquery',
                     },
                     email: {
                         email: true
+                    },
+                    DataCentreNumber: {
+                        required: app.billingRegionCode === 'can_BC'
                     }
                 }
 
@@ -417,7 +420,8 @@ define(['jquery',
                     zip: commonjs.getMessage("e", "Zip"),
                     phoneNo: commonjs.getMessage("e", "Phone Number"),
                     faxNo: commonjs.getMessage("e", "Fax Number"),
-                    email: commonjs.getMessage("e", "Email")
+                    email: commonjs.getMessage("e", "Email"),
+                    DataCentreNumber: commonjs.getMessage("e", "Data Centre Number")
                 }
 
                 if ($('#chkEnableFTP').prop('checked')) {

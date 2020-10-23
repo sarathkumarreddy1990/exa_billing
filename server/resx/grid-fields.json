@@ -1341,6 +1341,19 @@
                 "defaultValue": ""
             },
             "field_code": "phn_alt_account"
+        },
+        {
+            "id": 74,
+            "field_name": "Sequence Numbers",
+            "i18n_name": "shared.fields.sequenceNumbers",
+            "field_info": {
+                "custom_name": "Sequence Numbers",
+                "name": "can_bc_claim_sequence_numbers",
+                "width": 150,
+                "searchFlag": "%",
+                "defaultValue": ""
+            },
+            "field_code": "can_bc_claim_sequence_numbers"
         }
     ]
 }

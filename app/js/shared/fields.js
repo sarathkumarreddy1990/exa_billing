@@ -2118,6 +2118,21 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "defaultValue": ""
                 },
                 "field_code": "icd_description"
+            },
+            "Sequence Numbers": {
+                    "id": 74,
+                    "field_name": "Sequence Numbers",
+                    "i18n_name": "shared.fields.sequenceNumbers",
+                    "field_info": {
+                        "custom_name": "Sequence Numbers",
+                        "name": "can_bc_claim_sequence_numbers",
+                        "width": 150,
+                        "searchFlag": "%",
+                        "sortable": true,
+                        "defaultValue": "",
+                        "hidden": !(app.billingRegionCode === 'can_BC')
+                    },
+                    "field_code": "can_bc_claim_sequence_numbers"
             }
         });
 
