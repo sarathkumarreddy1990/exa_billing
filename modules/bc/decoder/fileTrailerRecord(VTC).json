@@ -1,0 +1,122 @@
+{
+    "recordCode": {
+        "startPos": 1,
+        "fieldLength": 3
+    },
+    "dataCentreNumber":{
+        "startPos": 4,
+        "fieldLength": 5
+    },
+    "timestamp": {
+        "startPos": 9,
+        "fieldLength": 20
+    },
+    "record_type_1":{
+        "startPos": 29,
+        "fieldLength": 1
+    },
+    "record_type_1_count":{
+        "startPos": 30,
+        "fieldLength": 7,
+        "format": "N"
+    },
+    "record_type_2":{
+        "startPos": 37,
+        "fieldLength": 1
+    },
+    "record_type_2_count":{
+        "startPos": 38,
+        "fieldLength": 7,
+        "format": "N"
+    },
+    "record_type_3":{
+        "startPos": 45,
+        "fieldLength": 1
+    },
+    "record_type_3_count":{
+        "startPos": 46,
+        "fieldLength": 7,
+        "format": "N"
+    },
+    "record_type_4":{
+        "startPos": 53,
+        "fieldLength": 1
+    },
+    "record_type_4_count":{
+        "startPos": 54,
+        "fieldLength": 7,
+        "format": "N"
+    },
+    "record_type_5":{
+        "startPos": 61,
+        "fieldLength": 1
+    },
+    "record_type_5_count":{
+        "startPos": 62,
+        "fieldLength": 7,
+        "format": "N"
+    },
+    "record_type_6":{
+        "startPos": 69,
+        "fieldLength": 1
+    },
+    "record_type_6_count":{
+        "startPos": 70,
+        "fieldLength": 7,
+        "format": "N"
+    },
+    "record_type_7":{
+        "startPos": 77,
+        "fieldLength": 1
+    },
+    "record_type_7_count":{
+        "startPos": 78,
+        "fieldLength": 7,
+        "format": "N"
+    },
+    "record_type_8":{
+        "startPos": 85,
+        "fieldLength": 1
+    },
+    "record_type_8_count":{
+        "startPos": 86,
+        "fieldLength": 7,
+        "format": "N"
+    },
+    "record_type_9":{
+        "startPos": 93,
+        "fieldLength": 1
+    },
+    "record_type_9_count":{
+        "startPos": 94,
+        "fieldLength": 7,
+        "format": "N"
+    },
+    "record_type_10":{
+        "startPos": 101,
+        "fieldLength": 1
+    },
+    "record_type_10_count":{
+        "startPos": 102,
+        "fieldLength": 7,
+        "format": "N"
+    },
+    "record_type_11":{
+        "startPos": 109,
+        "fieldLength": 1
+    },
+    "record_type_11_count":{
+        "startPos": 110,
+        "fieldLength": 7,
+        "format": "N"
+    },
+    "total_records_count":{
+        "startPos": 117,
+        "fieldLength": 8,
+        "format": "N"
+    },
+    "filler":{
+        "startPos": 125,
+        "fieldLength": 42
+    }
+}

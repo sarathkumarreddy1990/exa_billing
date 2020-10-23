@@ -1,0 +1,52 @@
+{
+    "dataCentreNumber": {
+        "startPos": 4,
+        "fieldLength": 5
+    },
+    "dataCentreSequenceNumber": {
+        "startPos": 9,
+        "fieldLength": 7
+    },
+    "nameVerify": {
+        "startPos": 16,
+        "fieldLength": 4
+    },
+    "dateOfRequest": {
+        "startPos": 20,
+        "fieldLength": 8,
+        "format":"D"
+    },
+    "statusCoverageCode": {
+        "startPos": 28,
+        "fieldLength": 3
+    },
+    "serviceValidDate": {
+        "startPos": 31,
+        "fieldLength": 8,
+        "format":"D"
+    },
+    "coverageReplyText": {
+        "startPos": 39,
+        "fieldLength": 40
+    },
+    "patientStatusRequest": {
+        "startPos": 79,
+        "fieldLength": 1
+    },
+    "patientStatusReplyText": {
+        "startPos": 80,
+        "fieldLength": 24
+    },
+    "payeeNumber": {
+        "startPos": 104,
+        "fieldLength": 5
+    },
+    "officeFolioNumber": {
+        "startPos": 109,
+        "fieldLength": 7
+    },
+    "filler": {
+        "startPos": 116,
+        "fieldLength": 21
+    }
+}

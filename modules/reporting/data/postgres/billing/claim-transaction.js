@@ -103,7 +103,7 @@ WITH claim_details AS(
         END AS "Insurance Balance",
     insurance_code  AS "Insurance (Cur)",
     insurance_name  AS "Insurance (Paid)",
-    ref_doctor_name AS "Ref. Doctor",
+    ref_doctor_name AS "Referring Doctor",
     insurance_payer_type AS "Insurance Payer Type"
     FROM claim_details
     INNER JOIN  billing.get_claim_totals(claim_details.claim_id) bgct on true

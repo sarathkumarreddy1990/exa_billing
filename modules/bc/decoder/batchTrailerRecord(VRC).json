@@ -1,0 +1,34 @@
+{
+    "recordCode": {
+        "startPos": 1,
+        "fieldLength": 3
+    },
+    "dataCentreNumber":{
+        "startPos": 4,
+        "fieldLength": 5
+    },
+    "paymentDate": {
+        "startPos": 9,
+        "fieldLength": 8,
+        "format": "D"
+    },
+    "remittanceRecordChar":{
+        "startPos": 17,
+        "fieldLength": 1
+    },
+    "totalRemittanceRecordCount":{
+        "startPos": 18,
+        "fieldLength": 7,
+        "format": "N"
+    },
+    "timestamp":{
+        "startPos": 25,
+        "fieldLength": 20,
+        "format": "DT"
+    },
+    "filler":{
+        "startPos": 45,
+        "fieldLength": 122
+    }
+}
+

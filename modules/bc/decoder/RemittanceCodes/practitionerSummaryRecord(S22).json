@@ -1,0 +1,54 @@
+{
+    "recordCode": {
+        "startPos": 1,
+        "fieldLength": 3
+    },
+    "dataCentreNumber": {
+        "startPos": 4,
+        "fieldLength": 5
+    },
+    "dataCentreSequenceNumber": {
+        "startPos": 9,
+        "fieldLength": 7
+    },
+    "paymentDate": {
+        "startPos": 16,
+        "fieldLength": 8,
+        "format": "D"
+    },
+    "lineCode": {
+        "startPos": 24,
+        "fieldLength": 1
+    },
+    "payeeNumber": {
+        "startPos": 25,
+        "fieldLength": 5
+    },
+    "mspControlNumber": {
+        "startPos": 30,
+        "fieldLength": 6
+    },
+    "practitionerNumber": {
+        "startPos":36,
+        "fieldLength": 5
+    },
+    "practitionerName": {
+        "startPos": 41,
+        "fieldLength": 25
+    },
+    "billedAmount": {
+        "startPos": 66,
+        "fieldLength": 9,
+        "format": "M"
+    },
+    "amountPaid": {
+        "startPos": 75,
+        "fieldLength": 9,
+        "format": "M"
+    },
+    "filler": {
+        "startPos": 84,
+        "fieldLength":83
+    }
+
+}

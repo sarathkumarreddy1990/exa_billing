@@ -1,0 +1,69 @@
+{
+    "dataCentre": {
+        "startPos": 4,
+        "fieldLength": 5
+    },
+    "summaryCode": {
+        "startPos": 9,
+        "fieldLength": 1
+    },
+    "dataCentreSelection": {
+        "startPos": 10,
+        "fieldLength": 1
+    },
+    "searchPayee": {
+        "startPos": 11,
+        "fieldLength": 5
+    },
+    "practioner": {
+        "startPos": 16,
+        "fieldLength": 5
+    },
+    "filler1": {
+        "startPos": 21,
+        "fieldLength": 10
+    },
+    "dependentNumber": {
+        "startPos": 31,
+        "fieldLength": 2
+    },
+    "surName": {
+        "startPos": 33,
+        "fieldLength": 18
+    },
+    "firstName": {
+        "startPos": 51,
+        "fieldLength": 12
+    },
+    "secondName": {
+        "startPos": 63,
+        "fieldLength": 12
+    },
+    "birthDate": {
+        "startPos": 75,
+        "fieldLength": 8,
+        "format": "D"
+    },
+    "serviceDate": {
+        "startPos": 83,
+        "fieldLength": 8,
+        "format":"D"
+    },
+    "xrefPhn": {
+        "startPos": 91,
+        "fieldLength": 10
+    },
+    "xrefIndex": {
+        "startPos": 101,
+        "fieldLength": 1
+    },
+    "internalMsp": {
+        "startPos": 102,
+        "fieldLength": 8,
+        "format":"D"
+    },
+    "filler2": {
+        "startPos": 110,
+        "fieldLength": 19
+    }
+}
