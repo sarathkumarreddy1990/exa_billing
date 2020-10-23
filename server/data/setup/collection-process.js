@@ -176,7 +176,6 @@ const acr = {
                 , write_off_claims AS (
                     SELECT
                         p.id AS patient_id
-                        ,p.full_name
                         ,p.facility_id
                         ,ARRAY_AGG(claims.id)  AS collection_claim_ids
                     FROM
@@ -296,7 +295,6 @@ const acr = {
                         INNER JOIN LATERAL billing.get_charge_other_payment_adjustment(i_bch.id) i_bgct ON TRUE
                         WHERE i_bch.claim_id = claims.id
                         AND ( CASE WHEN ((i_bch.bill_fee * i_bch.units) - ( i_bgct.other_payment + i_bgct.other_adjustment )) < 0::money THEN true ELSE false END )
-                        LIMIT 1
                     ) ida ON true
                     WHERE claim_details.claim_balance_total != 0::money
                     AND EXISTS (SELECT 1 FROM write_off_claims WHERE claims.id = ANY(collection_claim_ids))
