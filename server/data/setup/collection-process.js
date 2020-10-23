@@ -207,7 +207,7 @@ const acr = {
                             ${companyId} AS company_id
                             , patient_id
                             , 0::money AS amount
-                            , now()::date AS accounting_date
+                            , CURRENT_DATE AS accounting_date
                             , ${userId} AS created_by
                             , timezone(get_facility_tz(facility_id), now()::timestamp) AS payment_dt
                             , 'patient' AS payer_type
@@ -240,12 +240,12 @@ const acr = {
                     , id
                     , ${screenName}
                     , ${moduleName}
-                    , 'Created Payment with ' || amount ||' Payment Id as a ' || id
+                    , 'Created Payment with ' || amount ||' Payment Id is ' || id
                     , ${ip}
-                    , json_build_object(
+                    , jsonb_build_object(
                         'old_values', COALESCE(old_values, '{}'),
                         'new_values', (
-                                json_build_object(
+                                jsonb_build_object(
                                     'mode', mode,
                                     'notes', notes,
                                     'amount', amount ,
@@ -256,9 +256,9 @@ const acr = {
                                     'created_by', created_by,
                                     'facility_id', facility_id,
                                     'accounting_date', accounting_date
-                                    )::jsonb - 'old_values'::text
+                                    ) - 'old_values'::text
                                 )
-                        )::jsonb
+                        )
                     , ${userId}
                     ) AS id
                     FROM
@@ -563,10 +563,10 @@ const acr = {
                         , '${auditDetails.module_name}'
                         , 'Claim Comments inserted AS Claim was sent to collections review'
                         , '${auditDetails.client_ip}'
-                        , json_build_object(
+                        , jsonb_build_object(
                             'old_values', COALESCE(old_values, '{}'),
                             'new_values', ('{}')::text
-                        )::jsonb
+                        )
                         , ${userId}
                     ) AS id
                     FROM insert_claim_comments
