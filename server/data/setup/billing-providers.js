@@ -210,6 +210,7 @@ module.exports = {
                     , company_id
                     , can_bc_is_alt_payment_program
                     , can_bc_data_centre_number
+                    , can_bc_data_centre_sequence_number
                     , inactivated_dt)
                 values
                     (
@@ -244,6 +245,7 @@ module.exports = {
                     , ${companyId}
                     , ${canIsAlternatePaymentProgram}
                     , ${dataCentreNumber}
+                    , '0'::INT
                     , ${inactivated_dt})
                 RETURNING *, '{}'::jsonb old_values`;
 
