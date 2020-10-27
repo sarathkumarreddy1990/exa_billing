@@ -512,7 +512,6 @@ const acr = {
                     SELECT
                         SUM(cpl.claim_balance_total) AS patient_balance
                         ,p.id AS patient_id
-                        ,p.full_name
                         ,p.facility_id
                         ,ARRAY_AGG(claims.id) FILTER ( WHERE claim_status_id != ${acr_claim_status_id} ) AS claim_ids
                     FROM
