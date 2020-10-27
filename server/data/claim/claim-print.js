@@ -180,6 +180,7 @@ module.exports = {
             'paper_claim_full': 'paper_claim_full_template_id',
             'direct_invoice': 'direct_invoice_template_id',
             'patient_invoice': 'patient_invoice_template_id',
+            'special_form': 'special_form_template_id'
         };
 
         if (!colName[templateType]) {

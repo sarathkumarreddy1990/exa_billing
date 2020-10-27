@@ -247,6 +247,7 @@ define(['jquery',
                 "click #btnSelectAllStudy": "selectAllRows",
                 "click #btnElectronicClaim": "createClaims",
                 "click #btnPaperClaimBW": "createClaims",
+                "click #btnSpecialForm": "createClaims",
                 "click #btnPaperClaimRed": "createClaims",
                 "click #btnInvoiceServiceDate": "createClaims",
                 "click #btnInvoicePatientName": "createClaims",
@@ -621,7 +622,8 @@ define(['jquery',
                         var futureClaim = claimDt && moment(claimDt).diff(moment(), 'days');
 
                         if (e.target) {
-                            if (billingMethodFormat !== billingMethod) {
+                            if ((billingMethodFormat != "special_form" && billingMethodFormat !== billingMethod)
+                                || (billingMethodFormat === 'special_form' && billingMethod === 'electronic_billing')) {
                                 commonjs.showWarning('messages.status.pleaseSelectValidClaimsMethod');
                                 return false;
                             }
@@ -633,7 +635,7 @@ define(['jquery',
                         }
 
                         if (existingBillingMethod === '') existingBillingMethod = billingMethod;
-                        if (existingBillingMethod !== billingMethod) {
+                        if (existingBillingMethod !== billingMethod && billingMethodFormat != "special_form") {
                             commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfBillingMethod');
                             return false;
                         } else {
@@ -660,6 +662,11 @@ define(['jquery',
                     data = {
                         claimIds: claimIds.toString(),
                         userId: app.userID
+                    }
+
+                    if (billingMethodFormat === "special_form") {
+                        paperClaim.print('special_form', claimIds);
+                        return;
                     }
 
                     if (existingBillingMethod === 'paper_claim') {

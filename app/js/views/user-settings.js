@@ -99,7 +99,8 @@ define([
                     paper_claim_full: $('#ddlPaperClaimFullForm').val() ? parseInt($('#ddlPaperClaimFullForm').val()) : null,
                     paper_claim_original: $('#ddlPaperClaimOriginalForm').val() ? $('#ddlPaperClaimOriginalForm').val() : null,
                     direct_invoice: $('#ddlDirectInvoice').val() ? $('#ddlDirectInvoice').val() : null,
-                    patient_invoice: $('#ddlPatientInvoice').val() ? $('#ddlPatientInvoice').val() : null
+                    patient_invoice: $('#ddlPatientInvoice').val() ? $('#ddlPatientInvoice').val() : null,
+                    special_form: $('#ddlSpecialForm').val() || null
 
                 });
                 this.model.save({},
@@ -293,6 +294,7 @@ define([
                         self.loadPrinterTemplates('ddlPaperClaimOriginalForm','paper_claim_original', result_data.paper_claim_original);
                         self.loadPrinterTemplates('ddlDirectInvoice','direct_invoice', result_data.direct_invoice);
                         self.loadPrinterTemplates('ddlPatientInvoice','patient_invoice', result_data.patient_invoice);
+                        self.loadPrinterTemplates('ddlSpecialForm','special_form', result_data.special_form);
 
                     },
                     error: function (err, response) {

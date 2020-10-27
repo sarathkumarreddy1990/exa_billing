@@ -815,6 +815,7 @@ function customGrid ( datastore, gridID ) {
             } else if (filterCol.indexOf('billing_method') > -1 && filterDataValue.indexOf('paper\\_claim') > -1) {
                 $("#liEC").addClass('disabled');
                 $("#liPCBW").removeClass('disabled');
+                $("#liSF").removeClass('disabled');
                 $("#liPCRED").removeClass('disabled');
                 $("#liINSD").addClass('disabled');
                 $("#liINPN").addClass('disabled');
@@ -837,6 +838,7 @@ function customGrid ( datastore, gridID ) {
             else if (filterCol.indexOf('billing_method') > -1 && filterDataValue.indexOf('electronic\\_billing') > -1) {
                 $("#liEC").removeClass('disabled');
                 $("#liPCBW").addClass('disabled');
+                $("#liSF").addClass('disabled');
                 $("#liPCRED").addClass('disabled');
                 $("#liINSD").addClass('disabled');
                 $("#liINPN").addClass('disabled');
@@ -849,6 +851,7 @@ function customGrid ( datastore, gridID ) {
             else if (filterCol.indexOf('billing_method') > -1 && filterDataValue.indexOf('direct\\_billing') > -1) {
                 $("#liEC").addClass('disabled');
                 $("#liPCBW").addClass('disabled');
+                $("#liSF").removeClass('disabled');
                 $("#liPCRED").addClass('disabled');
                 $("#liINSD").removeClass('disabled');
                 $("#liINPN").removeClass('disabled');
@@ -873,6 +876,7 @@ function customGrid ( datastore, gridID ) {
             else if (filterCol.indexOf('billing_method') > -1 && filterDataValue.indexOf('patient\\_payment') > -1) {
                 $("#liEC").addClass('disabled');
                 $("#liPCBW").addClass('disabled');
+                $("#liSF").removeClass('disabled');
                 $("#liPCRED").addClass('disabled');
                 $("#liINSD").addClass('disabled');
                 $("#liINPN").addClass('disabled');
@@ -883,6 +887,7 @@ function customGrid ( datastore, gridID ) {
             } else {
                 $("#liEC").removeClass('disabled');
                 $("#liPCBW").removeClass('disabled');
+                $("#liSF").removeClass('disabled');
                 $("#liPCRED").removeClass('disabled');
                 $("#liINSD").removeClass('disabled');
                 $("#liINPN").removeClass('disabled');

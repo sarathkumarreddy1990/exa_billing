@@ -303,8 +303,8 @@ define([
                 ];
 
                 if (app.billingRegionCode !== "can_ON") {
-                    colNames.push('Paper Claim Original', 'Paper Claim Full');
-                    i18nNames.push('billing.COB.paperClaimOriginal', 'billing.COB.paperClaimFull');
+                    colNames.push('Paper Claim Original', 'Paper Claim Full', 'Special Form');
+                    i18nNames.push('billing.COB.paperClaimOriginal', 'billing.COB.paperClaimFull', 'billing.COB.specialForm');
                     colModel.push({
                         name: 'paper_claim_original', search: false,
                         customAction: function (rowID) {
@@ -320,6 +320,14 @@ define([
                         formatter: function (cellvalue, options, rowObject) {
                             return "<input type='button' style='line-height: 1;' class='btn btn-paper-claim-fax btn-primary' value='Paper Claim' data-payer-type=" + rowObject.payer_type + " i18n='shared.buttons.fax' id='spnPaperClaim_" + rowObject.id + "'>" +
                                 "<input type='button' style='line-height: 1;' class='btn btn-paper-claim-full btn-primary ml-2' value='Paper Claim' data-payer-type=" + rowObject.payer_type + " i18n='shared.buttons.paperclaimFull' id='spnPaperClaim_" + rowObject.id + "'>";
+                        }
+                    },
+                    {
+                        name: 'special_form', search: false,
+                        customAction: function (rowID) {
+                        },
+                        formatter: function (cellvalue, options, rowObject) {
+                            return "<input type='button' style='line-height: 1;' class='btn btn-special_form btn-primary' value='Special Form' data-payer-type=" + rowObject.payer_type + " i18n='shared.buttons.specialForm' id='spnSpecialForm_" + rowObject.id + "'>"
                         }
                     });
                 }
@@ -344,7 +352,10 @@ define([
                             self.showPaperClaim('paper_claim_original', [self.claim_id], rowid, payerType);
                         } else if (target.className.indexOf('btn-paper-claim-full') > -1) {
                             self.showPaperClaim('paper_claim_full', [self.claim_id], rowid, payerType);
-                        } else if (target.className.indexOf('btn-paper-claim-fax') > -1) {
+                        } else if (target.className.indexOf('btn-special_form') > -1){
+                            self.showPaperClaim('special_form', [self.claim_id], rowid, payerType);
+                        }
+                        else if (target.className.indexOf('btn-paper-claim-fax') > -1) {
                             $('#divFaxReceipientPaperClaim').show();
                             var faxClaimId = self.claim_id;
                             var faxInsuranceId = rowid;
