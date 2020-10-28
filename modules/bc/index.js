@@ -7,10 +7,14 @@ const logger = require('../../logger');
 const moment = require('moment');
 const crypto = require('crypto');
 const fse = require('fs-extra');
+const path = require('path');
 const {
     promisify,
 } = require('util');
+const parser = require('./decoder');
+const bcData = require('../../server/data/bc');
 const statAsync = promisify(fs.stat);
+const readFileAsync = promisify(fs.readFile);
 
 const bcModules = {
     /**
