@@ -890,12 +890,7 @@ define(['jquery',
                         result = _.groupBy(validations, "dataID");
                     }
 
-                    self.ediTemplateRender(isFromReclaim, {
-                        result: result,
-                        ediText: data.ediTextWithValidations,
-                        commonResult: commonErrorValidation,
-                        billingRegionCode: app.billingRegionCode
-                    });
+                    self.ediTemplateRender(isFromReclaim, result, data.ediTextWithValidations, commonErrorValidation);
                     $(".popoverWarning").popover();
 
                     if (data.validations && data.validations.length == 0) {
@@ -3135,12 +3130,8 @@ define(['jquery',
                         result: $.extend(true, {}, data)
                     };
 
-                    self.ediTemplateRender(isFromReclaim, {
-                        result: Object.keys(errorResult.reciprocalErrorArray).length ? errorResult.reciprocalErrorArray : errorResult.encoderErrorArray,
-                        ediText: null,
-                        commonResult: errorResult.commonError,
-                        billingRegionCode: app.billingRegionCode
-                    });
+                    var result = Object.keys(errorResult.reciprocalErrorArray).length ? errorResult.reciprocalErrorArray : errorResult.encoderErrorArray;
+                    self.ediTemplateRender(isFromReclaim, result, null, errorResult.commonError);
                     $('#divEDIResult, #aDownloadEDI, #liEDI').hide();
                     $('#reclaimEDI, #divErrorMsgs').show();
                 } else {
@@ -3152,13 +3143,20 @@ define(['jquery',
              * ediTemplateRender - edi error result
              *
              * @param  {Boolean} isFromReclaim  reclaim flag
-             * @param  {Object} response  edi response response
+             * @param  {Object} result  edi response
+             * @param  {Object} ediText  edi text
+             * @param  {Object} commonErrorValidation  common error list
              */
-            ediTemplateRender: function (isFromReclaim, response) {
+            ediTemplateRender: function (isFromReclaim, result, ediText, commonErrorValidation) {
                 var self = this;
                 if (isFromReclaim) {
                     $('#modal_div_container').html(
-                        self.ediResultTemplate(response));
+                        self.ediResultTemplate({
+                            result: result,
+                            ediText: ediText,
+                            commonResult: commonErrorValidation,
+                            billingRegionCode: app.billingRegionCode
+                        }));
                     commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());
                     self.initEvent(true);
                 } else {
@@ -3168,7 +3166,12 @@ define(['jquery',
                         width: '95%',
                         height: '75%',
                         fromValidate: true,
-                        html: self.ediResultTemplate(response),
+                        html: self.ediResultTemplate({
+                            result: result,
+                            ediText: ediText,
+                            commonResult: commonErrorValidation,
+                            billingRegionCode: app.billingRegionCode
+                        }),
                         onShown: function () {
                             self.initEvent(true);
                         },
