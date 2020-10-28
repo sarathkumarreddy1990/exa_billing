@@ -163,10 +163,129 @@ const bcModules = {
                 });
             }
 
-            return { responseCode: 'unableToWriteFile' };
+    /**
+    * To process the Batch Eligibility Response from remittance file
+    */
+    processEligibilityResponse: async (response, params) => {
+        const eligibilityDetails = response && response.batchEligibilityResponse || [];
+
+        try {
+            if (!eligibilityDetails.length) {
+                logger.logInfo('No Eligibility Response found');
+                return;
+            }
+
+            return await bcData.storeEligibilityResponse(eligibilityDetails, params);
+        }
+        catch (err) {
+            logger.error('Error Occured in Batch Eligibility Response Processing');
+            return err;
         }
 
     },
+
+    /**
+    * To reading the contents of the file
+    */
+    getFileContents: async (filePath, params) => {
+        let contents;
+
+        try {
+            contents = await readFileAsync(filePath, 'utf8');
+            return parser.processFile(contents, params);
+        }
+        catch (e) {
+            logger.error('Error in file Processing', e);
+            return e;
+        }
+    },
+
+    /***
+    * Function used to process the ERA file
+    * @param {data} Object {
+    *                      ip,
+    *                      file_id
+    *                      }
+    */
+    processRemittanceFile: async (params) => {
+        let processDetails;
+        let eraPath;
+        let rootDir;
+        let message = [];
+        const { rows = [] } = await bcData.getRemittanceFilePathById(params);
+
+        if (rows.length) {
+            const {
+                root_directory,
+                file_path,
+                uploaded_file_name
+            } = rows[0];
+            rootDir = root_directory || '';
+            eraPath = file_path || '';
+            params.uploaded_file_name = uploaded_file_name || '';
+        }
+
+        eraPath = path.join(rootDir, eraPath);
+
+        try {
+            let dirExists = fs.existsSync(eraPath);
+
+            if (!dirExists) {
+                message.push({
+                    status: 100,
+                    message: 'Directory not found in file store'
+                });
+
+                return message;
+            }
+
+            const fileName = params.isCron ? `${params.uploaded_file_name}` : params.file_id;
+            eraPath = path.join(eraPath, fileName);
+            let remittanceResponse = await bcModules.getFileContents(eraPath, params);
+
+            logger.logInfo('File processing finished...');
+
+            await bcController.updateFileStatus({
+                status: 'in_progress',
+                fileId: params.file_id
+            });
+
+            logger.info('Processing Eligibility Response...');
+
+            const eligibilityResponse = await bcModules.processEligibilityResponse(remittanceResponse, params);
+
+            if (!(eligibilityResponse && eligibilityResponse.rows && eligibilityResponse.rows.length)) {
+                logger.info(`Eligibility Records not matched in file - ${fileName}`);
+            }
+
+            logger.logInfo('Applying payments started...');
+            let status;
+
+            //Applying payments from the payment file
+            processDetails = await bcData.processRemittance(remittanceResponse, params);
+
+            //Again we call to create payment application for unapplied charges from Remittance claims
+            await bcData.unappliedChargePayments(params);
+
+            let {
+                can_bc_process_remittance = []
+            } = processDetails && processDetails.rows && processDetails.rows.length && processDetails.rows[0] || {};
+            status = can_bc_process_remittance && can_bc_process_remittance.length && can_bc_process_remittance[0] !== null ? 'success' : 'failure';
+
+            logger.logInfo('Applying payments finished...');
+            logger.logInfo('Payment application Result : ', can_bc_process_remittance);
+
+            return await bcData.updateFileStatus({
+                fileId: params.file_id,
+                status
+            });
+
+        }
+        catch (err) {
+            logger.error(err);
+            return err;
+        }
+    }
 
 };
 

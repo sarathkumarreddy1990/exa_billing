@@ -41,7 +41,13 @@ const bcController = {
 
     updateClaimsStatus: async (args) => {
         return await bcData.updateClaimsStatus(args);
-    }
+    },
+
+    updateFileStatus: bcData.updateFileStatus,
+
+    getFilesList: bcData.getFilesList,
+
+    processRemittanceFile: bcData.processRemittance,
 };
 
 module.exports = bcController;

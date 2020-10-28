@@ -60,6 +60,29 @@ const createDir = function (fileStorePath, filePath) {
     });
 };
 
+const checkInvalidFileContent = (fileString, billingRegionCode) => {
+
+    switch(billingRegionCode) {
+        case 'can_ON':
+            return (fileString.indexOf('HR1') == -1 || fileString.indexOf('HR4') == -1 || fileString.indexOf('HR7') == -1);
+        case 'can_MB':
+            return false;
+        case 'can_BC':
+            return (fileString.indexOf('M01') == -1 || fileString.indexOf('VTC') == -1);
+        default:
+            return (fileString.indexOf('ISA') == -1 || fileString.indexOf('CLP') == -1);
+    }
+
+};
+
+const getProvinceBasedProperties = (billingRegionCode) => {
+    if (billingRegionCode === 'can_BC') {
+        return 'can_bc_remit';
+    }
+
+    return '835';
+};
+
 module.exports = {
 
     getEraFiles: function (params) {
@@ -110,12 +133,11 @@ module.exports = {
         const fileName = params.file.originalname;
 
         let tempString = buffer.toString();
-        let bufferString = (params.billingRegionCode === 'can_MB' && tempString) || tempString.replace(/(?:\r\n|\r|\n)/g, '');
+        let bufferString = (['can_MB', 'can_BC'].indexOf(params.billingRegionCode) !== -1 && tempString) || tempString.replace(/(?:\r\n|\r|\n)/g, '');
 
         bufferString = bufferString.trim() || '';
-        let isInValidFileContent = params.billingRegionCode === 'can_MB' ? false : (params.billingRegionCode === 'can_ON' ? (bufferString.indexOf('HR1') == -1 || bufferString.indexOf('HR4') == -1 || bufferString.indexOf('HR7') == -1) : (bufferString.indexOf('ISA') == -1 || bufferString.indexOf('CLP') == -1));
-        
-        if (!isEob && isInValidFileContent) {
+
+        if (!isEob && checkInvalidFileContent(bufferString, params.billingRegionCode)) {
             return {
                 status: 'INVALID_FILE',
             };
@@ -136,7 +158,19 @@ module.exports = {
         const fileExist = dataRes.rows[0].file_exists[0];
 
         const currentTime = new Date();
-        const fileDirectory = params.billingRegionCode === 'can_MB' ? 'MHSAL\\Returns' : uploadingMode.toLowerCase();
+        let fileDirectory = null;
+
+        switch(params.billingRegionCode) {
+            case 'can_MB':
+                fileDirectory = 'MHSAL\\Returns';
+                break;
+            case 'can_BC':
+                fileDirectory = 'MSP\\Remittance';
+                break;
+            default:
+                fileDirectory = uploadingMode.toLowerCase();
+                break;
+        }
 
         let fileRootPath = `${fileDirectory}\\${currentTime.getFullYear()}\\${currentTime.getMonth() + 1}\\${currentTime.getDate()}`;
 
@@ -187,7 +221,7 @@ module.exports = {
             file_store_id: fileStoreId,
             company_id: params.audit.companyId,
             status: isEob ? 'success' : 'pending',
-            file_type: isEob ? 'EOB' :'835',
+            file_type: isEob ? 'EOB' : getProvinceBasedProperties(params.billingRegionCode),
             file_path: fileRootPath,
             file_size: fileSize,
             file_md5: fileMd5,

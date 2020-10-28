@@ -265,8 +265,268 @@ const bcData = {
                 billing.claims.id
         `;
         return await query(sql.text, sql.values);
-    }
+    },
 
+    /**
+     * Update File status
+     * @param  {object} args {
+     *                          fileId: Number
+     *                          status: text
+     *                       }
+     */
+    updateFileStatus: async ({fileId, status}) => {
+
+        const sql = SQL`UPDATE
+                            billing.edi_files
+                        SET status = ${status}
+                        WHERE id = ${fileId}`;
+
+        return await query(sql.text, sql.values);
+    },
+
+    /**
+     *  Get Files list from edi_files table based on status
+     * @param {args} JSON
+     */
+    getRemittanceFilePathById: async ({file_id, company_id}) => {
+
+        const sql = SQL`SELECT
+                         ef.id
+                       , ef.status
+                       , ef.file_type
+                       , ef.file_path
+                       , fs.root_directory
+                       , ef.uploaded_file_name
+                     FROM billing.edi_files ef
+                     INNER JOIN file_stores fs on fs.id = ef.file_store_id
+                     WHERE ef.id = ${file_id} AND ef.company_id = ${company_id}`;
+
+        return await query(sql.text, sql.values);
+    },
+
+    unappliedChargePayments: async (params) => {
+        let {
+            file_id,
+            company_id,
+            clientIp,
+            userId
+        } = params;
+        const audit_details = {
+            'company_id': company_id,
+            'screen_name': 'payments',
+            'module_name': 'payments',
+            'client_ip': clientIp,
+            'user_id': userId
+        };
+
+        const sql = SQL`
+                    WITH claim_payment AS (
+                        SELECT
+                              ch.claim_id
+                            , efp.payment_id
+                            , pa.applied_dt
+                        FROM billing.charges AS ch
+                        INNER JOIN billing.payment_applications AS pa ON pa.charge_id = ch.id
+                        INNER JOIN billing.payments AS p ON pa.payment_id  = p.id
+                        INNER JOIN billing.edi_file_payments AS efp ON pa.payment_id = efp.payment_id
+                        WHERE efp.edi_file_id = ${file_id}  AND mode = 'eft'
+                        GROUP BY ch.claim_id, efp.payment_id, pa.applied_dt
+                        ORDER BY pa.applied_dt DESC
+                    )
+                    , unapplied_charges AS (
+                        SELECT
+                              cp.payment_id
+                            , json_build_object(
+                                  'charge_id', ch.id
+                                , 'payment', 0
+                                , 'adjustment', 0
+                                , 'cas_details', '[]'::jsonb
+                                , 'applied_dt', cp.applied_dt
+                            )
+                        FROM billing.charges ch
+                        INNER JOIN billing.claims AS c ON ch.claim_id = c.id
+                        INNER JOIN claim_payment AS cp ON cp.claim_id = c.id
+                        WHERE ch.id NOT IN ( SELECT charge_id
+                                             FROM  billing.payment_applications pa
+                                             WHERE pa.charge_id = ch.id
+                                             AND pa.payment_id = cp.payment_id
+                                             AND pa.applied_dt = cp.applied_dt
+                                           )
+                    )
+                    , insert_payment_adjustment AS (
+                        SELECT
+                            billing.create_payment_applications(
+                                  uc.payment_id
+                                , null
+                                , ${userId}
+                                , json_build_array(uc.json_build_object)::jsonb
+                                , (${audit_details})::jsonb
+                            )
+                        FROM unapplied_charges uc
+                    )
+                    SELECT * FROM insert_payment_adjustment `;
+
+        return await query(sql);
+    },
+
+    processRemittance: async (remittanceJson, args) => {
+        let {
+            file_id,
+            company_id,
+            userId,
+            facility_id,
+            clientIp,
+            log_details = {},
+            ip
+        } = args;
+
+        let {
+            user_id = null,
+            default_facility_id = null
+        } = log_details;
+
+        let auditDetails = {
+            'company_id': company_id,
+            'screen_name': 'payments',
+            'module_name': 'payments',
+            'client_ip': clientIp || ip,
+            'user_id': userId || user_id
+        };
+
+        const sql = SQL`SELECT billing.can_bc_process_remittance(
+                            ${facility_id || default_facility_id}
+                          , ${file_id}::BIGINT
+                          , ${JSON.stringify(remittanceJson)}::JSONB
+                          , ${JSON.stringify(auditDetails)}::JSONB
+                        )`;
+
+        return await query(sql);
+    },
+
+    /*
+     * Get Files list from edi_files table based on status
+     * @param {args} JSON
+     */
+    getFilesList: async (args) => {
+        const {
+            status,
+            fileTypes
+        } = args;
+
+        const sql = SQL` WITH user_data AS (
+                            SELECT
+                                company_id,
+                                default_facility_id,
+                                id AS user_id
+                            FROM users
+                            WHERE username ILIKE 'radmin'
+                            LIMIT 1
+                        )
+                        SELECT
+                              ef.file_store_id
+                            , ef.file_type
+                            , ef.file_path
+                            , ef.file_size
+                            , ef.status
+                            , fs.root_directory
+                            , ef.uploaded_file_name
+                            , ef.id file_id
+                            , (SELECT row_to_json(_) FROM (SELECT * FROM user_data) AS _) AS log_details
+                        FROM billing.edi_files ef
+                        INNER JOIN file_stores fs ON fs.id = ef.file_store_id
+                        INNER JOIN companies comp ON comp.id = fs.company_id
+                        WHERE ef.status = ${status}
+                            AND ef.file_type = ANY(${fileTypes}) LIMIT 10`;
+
+        return await query(sql);
+    },
+
+    storeEligibilityResponse: async (data, {uploaded_file_name}) => {
+        const sql = SQL` WITH
+                            eligibility_response AS (
+                                SELECT
+                                    "dataCentreNumber" AS data_centre_number
+                                  , "dataCentreSequenceNumber" AS data_centre_sequence_number
+                                  , CASE
+                                        WHEN NULLIF("statusCoverageCode", '') IS NULL
+                                        THEN json_build_object(
+                                                'results', jsonb_agg(jsonb_build_object(
+                                                            'Patient Name', "nameVerify",
+                                                            'Payee Number', "payeeNumber",
+                                                            'Reference Number', "officeFolioNumber",
+                                                            'Patient Status', "patientStatusReplyText",
+                                                            'Eligibility Date', "serviceValidDate",
+                                                            'Date of request', "dateOfRequest",
+                                                            'response', "statusCoverageCode",
+                                                            'ELIG_ON_DOS', 'YES',
+                                                            'Msgs', "coverageReplyText",
+                                                            'responseDescription', "coverageReplyText"
+                                                          ))
+                                             )
+                                        ELSE json_build_object(
+                                                'err', jsonb_agg(jsonb_build_object(
+                                                        'Patient Name', "nameVerify",
+														'Payee Number', "payeeNumber",
+														'Reference Number', "officeFolioNumber",
+                                                        'Patient Status', "patientStatusReplyText",
+														'Eligibility Date', "serviceValidDate",
+														'Date of request', "dateOfRequest",
+                                                        'response', "statusCoverageCode",
+                                                        'ELIG_ON_DOS', 'NO',
+                                                        'Msgs', "coverageReplyText",
+                                                        'errDescription', "coverageReplyText"
+                                                      ))
+                                                )
+                                        END AS eligibility_response
+                                      , NULLIF("serviceValidDate", '') AS eligibility_date
+                                    FROM jsonb_to_recordset(${JSON.stringify(data)}) AS (
+                                        "dataCentreNumber" TEXT,
+                                        "dataCentreSequenceNumber" BIGINT,
+                                        "nameVerify" TEXT,
+                                        "dateOfRequest" TEXT,
+                                        "statusCoverageCode" TEXT,
+                                        "serviceValidDate" TEXT,
+                                        "coverageReplyText" TEXT,
+                                        "patientStatusReplyText" TEXT,
+                                        "payeeNumber" TEXT,
+                                        "officeFolioNumber" TEXT,
+                                        "filler" TEXT
+                                    )
+                                    GROUP BY "dataCentreNumber"
+                                            , "dataCentreSequenceNumber"
+                                            , "statusCoverageCode"
+                                            , "serviceValidDate"
+                            )
+                            , default_insurance_details AS (
+                                SELECT
+                                    id
+                                FROM public.insurance_providers
+                                WHERE code ILIKE 'msp'
+                                LIMIT 1
+                            )
+                            INSERT INTO eligibility_log
+                            (
+                                patient_id
+                              , patient_insurance_id
+                              , eligibility_response
+                              , eligibility_dt
+                            )
+                            SELECT
+                                s.patient_id
+                              , pi.id
+                              , er.eligibility_date
+                              , er.service_eligibility_date::TIMESTAMPTZ
+                            FROM eligibility_response er
+                            INNER JOIN billing.edi_file_charges befc ON befc.sequence_number = er.data_centre_sequence_number
+                                AND befc.data_centre_number = er.data_centre_number
+                            INNER JOIN billing.charges_studies bchs ON bchs.charge_id = befc.charge_id
+                            INNER JOIN studies s ON s.id = bchs.study_id
+                            INNER JOIN patient_insurances pi ON pi.patient_id = s.patient_id
+                            WHERE pi.insurance_provider_id = default_insurance_details.id`;
+
+        return await query(sql);
+
+    }
 };
 
 module.exports = bcData;
