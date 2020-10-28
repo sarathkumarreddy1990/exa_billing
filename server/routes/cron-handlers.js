@@ -6,6 +6,7 @@ const logger = require('../../logger');
 
 const ohip = require('../../modules/ohip');
 const ahs = require('../../modules/ahs/sftp');
+const acr = require('../controllers/setup/collection-process');
 const httpHandler = require('../shared/http');
 const bc = require('../../modules/bc/cron');
 
@@ -104,5 +105,33 @@ const handleEvents = async (req, res) => {
 };
 
 router.get('/:province/files/:action', restrictAccess, handleEvents);
+
+const autoCollectionsProcess = async (req, res) => {
+    let {
+        ip,
+        session,
+        params,
+        query,
+    } = req;
+
+    let companyId = 0;
+
+    if (session && session.company_id > 0) {
+        companyId = session.company_id;
+    }
+    else if (query && query.company_id > 0) {
+        companyId = query.company_id;
+    }
+
+    let response = await acr.autoCollectionsProcess({
+        ...params,
+        ...query,
+        companyId,
+        ip,
+    });
+    return httpHandler.send(req, res, response);
+};
+
+router.get('/acr/process', restrictAccess, autoCollectionsProcess);
 
 module.exports = router;
