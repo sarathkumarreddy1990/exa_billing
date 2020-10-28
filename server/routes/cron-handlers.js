@@ -7,6 +7,7 @@ const logger = require('../../logger');
 const ohip = require('../../modules/ohip');
 const ahs = require('../../modules/ahs/sftp');
 const httpHandler = require('../shared/http');
+const bc = require('../../modules/bc/cron');
 
 const restrictAccess = ( req, res, next ) => {
     const ipList = [
@@ -57,6 +58,7 @@ const runJob = ( req, res ) => {
                 'inProgress': false,
             });
         }
+
         return res.send({
             'successful': true,
             'inProgress': false,
@@ -69,28 +71,38 @@ router.get('/ohip/:endpoint', restrictAccess, checkProgress, runJob);
 const handleEvents = async (req, res) => {
     let {
         ip,
-        session,
+        session: {
+            company_id
+        } = {},
         params,
         query,
     } = req;
 
-    let company_id = 0;
-    if ( session && session.company_id > 0 ) {
-        company_id = session.company_id;
-    }
-    else if ( query && query.company_id > 0 ) {
-        company_id = query.company_id;
+    let companyId = 0;
+    let response;
+
+    companyId = company_id || query && query.company_id;
+
+    if (params.province === 'bc') {
+        response = await bc.events({
+            ...params,
+            ...query,
+            companyId,
+            ip,
+            isCron: true
+        });
+    } else if (params.province === 'ahs') {
+        response = await ahs.events({
+            ...params,
+            ...query,
+            company_id,
+            ip,
+        });
     }
 
-    let response = await ahs.events({
-        ...params,
-        ...query,
-        company_id,
-        ip,
-    });
     return httpHandler.send(req, res, response);
 };
 
-router.get('/ahs/files/:action', restrictAccess, handleEvents);
+router.get('/:province/files/:action', restrictAccess, handleEvents);
 
 module.exports = router;
