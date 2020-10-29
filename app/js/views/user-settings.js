@@ -96,10 +96,10 @@ define([
                     billingClaimGridFields: JSON.stringify(billingClaimGridFields),
                     claimFieldOrder: JSON.stringify(claimFieldOrder),
                     claimSettingFields: claimSettingFields,
-                    paper_claim_full: $('#ddlPaperClaimFullForm').val() ? parseInt($('#ddlPaperClaimFullForm').val()) : null,
-                    paper_claim_original: $('#ddlPaperClaimOriginalForm').val() ? $('#ddlPaperClaimOriginalForm').val() : null,
-                    direct_invoice: $('#ddlDirectInvoice').val() ? $('#ddlDirectInvoice').val() : null,
-                    patient_invoice: $('#ddlPatientInvoice').val() ? $('#ddlPatientInvoice').val() : null,
+                    paper_claim_full: $('#ddlPaperClaimFullForm').val() || null,
+                    paper_claim_original: $('#ddlPaperClaimOriginalForm').val() || null,
+                    direct_invoice: $('#ddlDirectInvoice').val() || null,
+                    patient_invoice: $('#ddlPatientInvoice').val() || null,
                     special_form: $('#ddlSpecialForm').val() || null
 
                 });

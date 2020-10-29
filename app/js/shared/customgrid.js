@@ -812,86 +812,59 @@ function customGrid ( datastore, gridID ) {
         if (self.options.isClaimGrid) {
             if (this.options.filterid == 'Follow_up_queue') {
                 $("#btnInsuranceClaim").hide();
-            } else if (filterCol.indexOf('billing_method') > -1 && filterDataValue.indexOf('paper\\_claim') > -1) {
-                $("#liEC").addClass('disabled');
-                $("#liPCBW").removeClass('disabled');
-                $("#liSF").removeClass('disabled');
-                $("#liPCRED").removeClass('disabled');
-                $("#liINSD").addClass('disabled');
-                $("#liINPN").addClass('disabled');
-                $("#liPP").addClass('disabled');
-                $("#btnClaimFormat").attr('data-method', 'paper_claim');
+            } else if (filterCol.indexOf('billing_method') > -1) {
+                if (filterDataValue.indexOf('paper\\_claim') > -1) {
+                    self.disableTemplate(["#liEC", "#liINSD", "#liINPN", "#liPP"]);
+                    self.enableTemplate(["#liPCBW", "#liSF", "#liPCRED"]);
+                    $("#btnClaimFormat").attr('data-method', 'paper_claim');
 
-                if (localStorage.getItem('default_paperclaim')) {
-                    $("#btnClaimFormat").text(localStorage.getItem('default_paperclaim'));
-                    $("#btnClaimFormat").attr('data-format', localStorage.getItem('default_paperclaim_format'));
-                    $("#btnClaimFormat").attr('data-value', localStorage.getItem('default_paperclaim'));
+                    if (localStorage.getItem('default_paperclaim')) {
+                        $("#btnClaimFormat").text(localStorage.getItem('default_paperclaim'));
+                        $("#btnClaimFormat").attr('data-format', localStorage.getItem('default_paperclaim_format'));
+                        $("#btnClaimFormat").attr('data-value', localStorage.getItem('default_paperclaim'));
+
+                    } else {
+                        $("#btnClaimFormat").text($("#liPCBW").find('a').attr('data-value'));
+                        $("#btnClaimFormat").attr('data-format', $("#liPCBW").find('a').attr('data-format'));
+                        $("#btnClaimFormat").attr('data-value', $("#liPCBW").find('a').attr('data-value'));
+                    }
+                } else if (filterDataValue.indexOf('electronic\\_billing') > -1) {
+                    self.disableTemplate([ "#liPCBW", "#liSF", "#liPCRED", "#liINSD", "#liINPN", "#liPP"]);
+                    self.enableTemplate(["#liEC"]);
+                    $("#btnClaimFormat").attr('data-method', 'electronic_billing');
+                    $("#btnClaimFormat").text($("#liEC").find('a').attr('data-value'));
+                    $("#btnClaimFormat").attr('data-value', $("#liEC").find('a').attr('data-value'));
+
+                } else if (filterDataValue.indexOf('direct\\_billing') > -1) {
+                    self.disableTemplate([ "#liEC", "#liPCBW", "#liPCRED", "#liPP"]);
+                    self.enableTemplate([ "#liSF", "#liINSD", "#liINPN"]);
+                    $("#btnClaimFormat").attr('data-method', 'direct_billing');
+
+                    if (localStorage.getItem('default_directbilling')) {
+
+                        $("#btnClaimFormat").text(localStorage.getItem('default_directbilling'));
+                        $("#btnClaimFormat").attr('data-value', localStorage.getItem('default_directbilling'));
+                        $("#btnClaimFormat").attr('data-format', (localStorage.getItem('default_directbilling_format')));
+
+                    }
+                    else {
+
+                        $("#btnClaimFormat").text($("#liINSD").find('a').attr('data-value'));
+                        $("#btnClaimFormat").attr('data-value', $("#liINSD").find('a').attr('data-value'));
+                        $("#btnClaimFormat").attr('data-format', $("#liINSD").find('a').attr('data-format'));
+                    }
+
+                } else if (filterDataValue.indexOf('patient\\_payment') > -1) {
+                    self.disableTemplate([ "#liEC", "#liPCBW", "#liPCRED", "#liINSD", "#liINPN"]);
+                    self.enableTemplate([ "#liSF", "#liPP"]);
+                    $("#btnClaimFormat").attr('data-method', 'patient_payment');
+                    $("#btnClaimFormat").text($("#liPP").find('a').attr('data-value'));
 
                 } else {
-                    $("#btnClaimFormat").text($("#liPCBW").find('a').attr('data-value'));
-                    $("#btnClaimFormat").attr('data-format', $("#liPCBW").find('a').attr('data-format'));
-                    $("#btnClaimFormat").attr('data-value', $("#liPCBW").find('a').attr('data-value'));
+                    self.enableTemplate([ "#liEC", "#liPCBW", "#liPCRED", "#liINSD", "#liINPN", "#liSF", "#liPP"]);
                 }
-
-
-            }
-            else if (filterCol.indexOf('billing_method') > -1 && filterDataValue.indexOf('electronic\\_billing') > -1) {
-                $("#liEC").removeClass('disabled');
-                $("#liPCBW").addClass('disabled');
-                $("#liSF").addClass('disabled');
-                $("#liPCRED").addClass('disabled');
-                $("#liINSD").addClass('disabled');
-                $("#liINPN").addClass('disabled');
-                $("#liPP").addClass('disabled');
-                $("#btnClaimFormat").attr('data-method', 'electronic_billing');
-                $("#btnClaimFormat").text($("#liEC").find('a').attr('data-value'));
-                $("#btnClaimFormat").attr('data-value', $("#liEC").find('a').attr('data-value'));
-
-            }
-            else if (filterCol.indexOf('billing_method') > -1 && filterDataValue.indexOf('direct\\_billing') > -1) {
-                $("#liEC").addClass('disabled');
-                $("#liPCBW").addClass('disabled');
-                $("#liSF").removeClass('disabled');
-                $("#liPCRED").addClass('disabled');
-                $("#liINSD").removeClass('disabled');
-                $("#liINPN").removeClass('disabled');
-                $("#liPP").addClass('disabled');
-                $("#btnClaimFormat").attr('data-method', 'direct_billing');
-
-                if (localStorage.getItem('default_directbilling')) {
-
-                    $("#btnClaimFormat").text(localStorage.getItem('default_directbilling'));
-                    $("#btnClaimFormat").attr('data-value', localStorage.getItem('default_directbilling'));
-                    $("#btnClaimFormat").attr('data-format', (localStorage.getItem('default_directbilling_format')));
-
-                }
-                else {
-
-                    $("#btnClaimFormat").text($("#liINSD").find('a').attr('data-value'));
-                    $("#btnClaimFormat").attr('data-value', $("#liINSD").find('a').attr('data-value'));
-                    $("#btnClaimFormat").attr('data-format', $("#liINSD").find('a').attr('data-format'));
-                }
-
-            }
-            else if (filterCol.indexOf('billing_method') > -1 && filterDataValue.indexOf('patient\\_payment') > -1) {
-                $("#liEC").addClass('disabled');
-                $("#liPCBW").addClass('disabled');
-                $("#liSF").removeClass('disabled');
-                $("#liPCRED").addClass('disabled');
-                $("#liINSD").addClass('disabled');
-                $("#liINPN").addClass('disabled');
-                $("#liPP").removeClass('disabled');
-                $("#btnClaimFormat").attr('data-method', 'patient_payment');
-                $("#btnClaimFormat").text($("#liPP").find('a').attr('data-value'));
-
             } else {
-                $("#liEC").removeClass('disabled');
-                $("#liPCBW").removeClass('disabled');
-                $("#liSF").removeClass('disabled');
-                $("#liPCRED").removeClass('disabled');
-                $("#liINSD").removeClass('disabled');
-                $("#liINPN").removeClass('disabled');
-                $("#liPP").removeClass('disabled');
+                self.enableTemplate([ "#liEC", "#liPCBW", "#liPCRED", "#liINSD", "#liINPN", "#liSF", "#liPP"]);
             }
         }
         self.pager.set({
@@ -904,6 +877,16 @@ function customGrid ( datastore, gridID ) {
         });
     };
 
+    this.disableTemplate = function (templateList) {
+        templateList.map(eachTemplate => {
+            $(eachTemplate).addClass('disabled');
+        });
+    };
+    this.enableTemplate = function (templateList) {
+        templateList.map(eachTemplate => {
+            $(eachTemplate).removeClass('disabled');
+        });
+    };
     var getIDKey = function ( row ) {
         return row.idAttribute ||
             row.id && 'id' ||
