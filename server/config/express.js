@@ -2,9 +2,9 @@
 
 const SQL = require('sql-template-strings');
 const path = require('path');
-
 const bodyParser = require('body-parser');
-
+const crypto = require('crypto');
+const helmet = require('helmet');
 const createError = require('http-errors');
 const cookieParser = require('cookie-parser');
 const responseTime = require('response-time');
@@ -27,6 +27,38 @@ module.exports = function (app, express, companyId) {
     app.use(bodyParser.urlencoded({
         limit: '500mb',
         extended: true
+    }));
+
+    app.use((req, res, next) => {
+        res.setHeader('X-XSS-Protection', '1; mode=block');
+        res.locals.cspNonce = crypto.randomBytes(16).toString('hex');
+        next();
+    });
+
+    app.use(helmet.contentSecurityPolicy({
+        directives: {
+            imgSrc: [
+                "'self'",
+                "data:",
+                "blob:"
+            ],
+            defaultSrc: [
+                "'self'",
+                "'unsafe-inline'",
+            ],
+            scriptSrc: [
+                "'self'",
+                "'unsafe-inline'",
+                "'unsafe-eval'",
+                (req, res) => `nonce-${res.locals.cspNonce}'`
+            ]
+        }
+    }));
+
+    app.use(helmet.noSniff());
+
+    app.use(helmet.frameguard({
+        action: 'sameorigin'
     }));
 
     if (process.env.NODE_ENV != 'production') {
