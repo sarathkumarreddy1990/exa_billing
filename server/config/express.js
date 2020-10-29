@@ -1,13 +1,15 @@
 'use strict';
 
-const SQL = require('sql-template-strings');
 const path = require('path');
-
 const bodyParser = require('body-parser');
-
 const createError = require('http-errors');
 const cookieParser = require('cookie-parser');
 const responseTime = require('response-time');
+const csurf = require('csurf');
+
+const csrfMiddleware = csurf({
+    cookie: true
+});
 
 const logger = require('../../logger');
 
@@ -44,6 +46,7 @@ module.exports = function (app, express, companyId) {
     app.use(express.json());
     app.use(express.urlencoded({ extended: false }));
     app.use(cookieParser());
+    app.use(csrfMiddleware);
     app.use('/exa_modules/billing/static', express.static(path.join(__dirname, '../../app')));
 
     require('./session')(app, companyId);
