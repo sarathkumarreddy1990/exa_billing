@@ -813,58 +813,51 @@ function customGrid ( datastore, gridID ) {
             if (this.options.filterid == 'Follow_up_queue') {
                 $("#btnInsuranceClaim").hide();
             } else if (filterCol.indexOf('billing_method') > -1) {
+                var claimFormat = $("#btnClaimFormat");
                 if (filterDataValue.indexOf('paper\\_claim') > -1) {
                     self.disableTemplate(["#liEC", "#liINSD", "#liINPN", "#liPP"]);
                     self.enableTemplate(["#liPCBW", "#liSF", "#liPCRED"]);
-                    $("#btnClaimFormat").attr('data-method', 'paper_claim');
+                    claimFormat.attr('data-method', 'paper_claim');
 
                     if (localStorage.getItem('default_paperclaim')) {
-                        $("#btnClaimFormat").text(localStorage.getItem('default_paperclaim'));
-                        $("#btnClaimFormat").attr('data-format', localStorage.getItem('default_paperclaim_format'));
-                        $("#btnClaimFormat").attr('data-value', localStorage.getItem('default_paperclaim'));
-
+                        claimFormat.text(localStorage.getItem('default_paperclaim'));
+                        claimFormat.attr('data-format', localStorage.getItem('default_paperclaim_format'));
+                        claimFormat.attr('data-value', localStorage.getItem('default_paperclaim'));
                     } else {
-                        $("#btnClaimFormat").text($("#liPCBW").find('a').attr('data-value'));
-                        $("#btnClaimFormat").attr('data-format', $("#liPCBW").find('a').attr('data-format'));
-                        $("#btnClaimFormat").attr('data-value', $("#liPCBW").find('a').attr('data-value'));
+                        claimFormat.text($("#liPCBW").find('a').attr('data-value'));
+                        claimFormat.attr('data-format', $("#liPCBW").find('a').attr('data-format'));
+                        claimFormat.attr('data-value', $("#liPCBW").find('a').attr('data-value'));
                     }
                 } else if (filterDataValue.indexOf('electronic\\_billing') > -1) {
-                    self.disableTemplate([ "#liPCBW", "#liSF", "#liPCRED", "#liINSD", "#liINPN", "#liPP"]);
+                    self.disableTemplate(["#liPCBW", "#liSF", "#liPCRED", "#liINSD", "#liINPN", "#liPP"]);
                     self.enableTemplate(["#liEC"]);
-                    $("#btnClaimFormat").attr('data-method', 'electronic_billing');
-                    $("#btnClaimFormat").text($("#liEC").find('a').attr('data-value'));
-                    $("#btnClaimFormat").attr('data-value', $("#liEC").find('a').attr('data-value'));
-
+                    claimFormat.attr('data-method', 'electronic_billing');
+                    claimFormat.text($("#liEC").find('a').attr('data-value'));
+                    claimFormat.attr('data-value', $("#liEC").find('a').attr('data-value'));
                 } else if (filterDataValue.indexOf('direct\\_billing') > -1) {
-                    self.disableTemplate([ "#liEC", "#liPCBW", "#liPCRED", "#liPP"]);
-                    self.enableTemplate([ "#liSF", "#liINSD", "#liINPN"]);
-                    $("#btnClaimFormat").attr('data-method', 'direct_billing');
+                    self.disableTemplate(["#liEC", "#liPCBW", "#liPCRED", "#liPP"]);
+                    self.enableTemplate(["#liSF", "#liINSD", "#liINPN"]);
+                    claimFormat.attr('data-method', 'direct_billing');
 
                     if (localStorage.getItem('default_directbilling')) {
-
-                        $("#btnClaimFormat").text(localStorage.getItem('default_directbilling'));
-                        $("#btnClaimFormat").attr('data-value', localStorage.getItem('default_directbilling'));
-                        $("#btnClaimFormat").attr('data-format', (localStorage.getItem('default_directbilling_format')));
-
+                        claimFormat.text(localStorage.getItem('default_directbilling'));
+                        claimFormat.attr('data-value', localStorage.getItem('default_directbilling'));
+                        claimFormat.attr('data-format', (localStorage.getItem('default_directbilling_format')));
+                    } else {
+                        claimFormat.text($("#liINSD").find('a').attr('data-value'));
+                        claimFormat.attr('data-value', $("#liINSD").find('a').attr('data-value'));
+                        claimFormat.attr('data-format', $("#liINSD").find('a').attr('data-format'));
                     }
-                    else {
-
-                        $("#btnClaimFormat").text($("#liINSD").find('a').attr('data-value'));
-                        $("#btnClaimFormat").attr('data-value', $("#liINSD").find('a').attr('data-value'));
-                        $("#btnClaimFormat").attr('data-format', $("#liINSD").find('a').attr('data-format'));
-                    }
-
                 } else if (filterDataValue.indexOf('patient\\_payment') > -1) {
-                    self.disableTemplate([ "#liEC", "#liPCBW", "#liPCRED", "#liINSD", "#liINPN"]);
-                    self.enableTemplate([ "#liSF", "#liPP"]);
-                    $("#btnClaimFormat").attr('data-method', 'patient_payment');
-                    $("#btnClaimFormat").text($("#liPP").find('a').attr('data-value'));
-
+                    self.disableTemplate(["#liEC", "#liPCBW", "#liPCRED", "#liINSD", "#liINPN"]);
+                    self.enableTemplate(["#liSF", "#liPP"]);
+                    claimFormat.attr('data-method', 'patient_payment');
+                    claimFormat.text($("#liPP").find('a').attr('data-value'));
                 } else {
-                    self.enableTemplate([ "#liEC", "#liPCBW", "#liPCRED", "#liINSD", "#liINPN", "#liSF", "#liPP"]);
+                    self.enableTemplate(["#liEC", "#liPCBW", "#liPCRED", "#liINSD", "#liINPN", "#liSF", "#liPP"]);
                 }
             } else {
-                self.enableTemplate([ "#liEC", "#liPCBW", "#liPCRED", "#liINSD", "#liINPN", "#liSF", "#liPP"]);
+                self.enableTemplate(["#liEC", "#liPCBW", "#liPCRED", "#liINSD", "#liINPN", "#liSF", "#liPP"]);
             }
         }
         self.pager.set({
