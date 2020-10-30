@@ -6,7 +6,7 @@
     "main": "server/app.js",
     "scripts": {
         "lint": "eslint",
-        "dev": "npm run less && nodemon ./bin/www",
+        "dev": "npm run less && nodemon ./bin/www | pino-pretty",
         "dev:log": "node ./bin/www | node ./modules/logger/file-transport.js",
         "less": "cd app/skins/default && lessc index.less > index.css && cd ../dark && lessc index.less > index.css && cd ../../js/modules/multichat/stylesheets/ && lessc chat.less > chat.css",
         "start": "npm-run-all lint dev",
@@ -78,6 +78,7 @@
         "mocha": "^5.2.0",
         "nodemon": "^1.17.5",
         "npm-run-all": "^4.1.3",
+        "pino-pretty": "^4.3.0",
         "requirejs": "^2.3.5",
         "run-sequence": "^2.2.1",
         "semver": "^5.5.0",

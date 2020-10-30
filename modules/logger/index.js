@@ -14,6 +14,10 @@ class Logger {
         this.enableAsyncLog = process.env.ENABLE_ASYNC_LOG === 'true';
         this.disableLogging = process.env.DISABLE_LOGGING === 'true';
         this.logLevel = process.env.LOG_LEVEL || 'debug';
+
+        if (!process.env.ENABLE_STDOUT && process.env.NODE_ENV != 'production') {
+            this.enableStdout = true;
+        }
     }
 
     get instance() {
