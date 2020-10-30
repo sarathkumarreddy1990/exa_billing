@@ -871,12 +871,12 @@ function customGrid ( datastore, gridID ) {
     };
 
     this.disableTemplate = function (templateList) {
-        templateList.map(eachTemplate => {
+        templateList.map(function (eachTemplate) {
             $(eachTemplate).addClass('disabled');
         });
     };
     this.enableTemplate = function (templateList) {
-        templateList.map(eachTemplate => {
+        templateList.map(function (eachTemplate) {
             $(eachTemplate).removeClass('disabled');
         });
     };
