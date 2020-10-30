@@ -532,6 +532,8 @@ module.exports = {
 											provider_groups.group_name as "suffix",
 											'' as "prefix",
 											group_info->'npi_no' as "NPINO",
+											group_info->'federal_tax_id' as "federalTaxId",
+											group_info->'Fax' as "fax",
 											group_info->'taxonomy_code' as "taxonomyCode",
 											group_info->'AddressLine1' as "addressLine1",
 											group_info->'AddressLine2' as "addressLine2",
@@ -779,13 +781,13 @@ module.exports = {
 					INNER JOIN LATERAL billing.get_claim_payments(claims.id, true) bgcp ON TRUE
 					INNER JOIN facilities ON facilities.id=claims.facility_id
 					INNER JOIN patients ON patients.id=claims.patient_id
-					INNER JOIN    patient_insurances pi  ON  pi.id =
+					LEFT JOIN    patient_insurances pi  ON  pi.id =
 											(  CASE COALESCE(${params.payerType}, payer_type)
 											WHEN 'primary_insurance' THEN primary_patient_insurance_id
 											WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
 											WHEN 'tertiary_insurance' THEN tertiary_patient_insurance_id
 											END)
-                                            INNER JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id
+                                            LEFT JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id
                                             LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id
                                             LEFT JOIN relationship_status ON  subscriber_relationship_id =relationship_status.id
                                             LEFT JOIN public.insurance_provider_payer_types  ON insurance_provider_payer_types.id = insurance_providers.provider_payer_type_id
