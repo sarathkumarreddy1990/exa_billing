@@ -12,13 +12,19 @@ const acr = {
                 , cps.acr_claim_status_id
                 , cps.acr_min_balance_amount::numeric
                 , cps.acr_claim_status_statement_days
-                , cps.acr_write_off_adjustment_code_id
+                , cps.acr_write_off_debit_adjustment_code_id
+                , cps.acr_write_off_credit_adjustment_code_id
                 , cps.acr_claim_status_statement_count
                 , cps.acr_claim_status_last_payment_days
-                , adj.description AS adjustment_desc
-                , adj.code AS adjustment_code
+                ,JSON_BUILD_OBJECT(
+                   'debit_adj_code', adj_d.code,
+                   'debit_adj_desc', adj_d.description,
+                   'credit_adj_code',adj_c.code,
+                   'credit_adj_desc',adj_c.description
+                ) AS adjustment_info
             FROM   billing.company_settings cps
-            LEFT JOIN billing.adjustment_codes adj ON adj.id = cps.acr_write_off_adjustment_code_id
+            LEFT JOIN billing.adjustment_codes adj_d ON adj_d.id = cps.acr_write_off_debit_adjustment_code_id
+            LEFT JOIN billing.adjustment_codes adj_c ON adj_c.id = cps.acr_write_off_credit_adjustment_code_id
             WHERE
                 cps.company_id = ${companyId}`;
 
@@ -33,16 +39,18 @@ const acr = {
             companyId,
             acrStatementDays,
             acrStatementCount,
-            writeOffAdjCodeId,
             acrLastPaymentDays,
             minimumAccountBalance,
+            writeOffDebitAdjCodeId,
+            writeOffCreditAdjCodeId,
         } = params;
 
         const sql = SQL`INSERT INTO billing.company_settings (
                             company_id,
                             acr_claim_status_id,
                             acr_min_balance_amount,
-                            acr_write_off_adjustment_code_id,
+                            acr_write_off_debit_adjustment_code_id,
+                            acr_write_off_credit_adjustment_code_id,
                             acr_claim_status_statement_days,
                             acr_claim_status_statement_count,
                             acr_claim_status_last_payment_days
@@ -51,7 +59,8 @@ const acr = {
                             ${companyId}
                             , (SELECT id FROM billing.claim_status WHERE company_id = ${companyId} and code = 'CR' and description = 'Collections Review')
                             , ${minimumAccountBalance}
-                            , ${writeOffAdjCodeId || null}
+                            , ${writeOffDebitAdjCodeId || null}
+                            , ${writeOffCreditAdjCodeId || null}
                             , ${acrStatementDays  || null}
                             , ${acrStatementCount || null}
                             , ${acrLastPaymentDays || null}
@@ -73,16 +82,18 @@ const acr = {
             companyId,
             acrStatementDays,
             acrStatementCount,
-            writeOffAdjCodeId,
             acrLastPaymentDays,
             minimumAccountBalance,
+            writeOffDebitAdjCodeId,
+            writeOffCreditAdjCodeId,
         } = params;
 
         const sql = SQL`UPDATE
                             billing.company_settings
                         SET
                             acr_min_balance_amount  = ${minimumAccountBalance},
-                            acr_write_off_adjustment_code_id  = ${writeOffAdjCodeId || null},
+                            acr_write_off_debit_adjustment_code_id  = ${writeOffDebitAdjCodeId || null},
+                            acr_write_off_credit_adjustment_code_id = ${writeOffCreditAdjCodeId || null},
                             acr_claim_status_statement_days  = ${acrStatementDays || null},
                             acr_claim_status_statement_count  = ${acrStatementCount || null},
                             acr_claim_status_last_payment_days = ${acrLastPaymentDays || null}
@@ -157,7 +168,8 @@ const acr = {
             acr_claim_status_id = null
             , acr_min_balance_amount = null
             , acr_claim_status_statement_days = null
-            , acr_write_off_adjustment_code_id = null
+            , acr_write_off_debit_adjustment_code_id = null
+            , acr_write_off_credit_adjustment_code_id = null
             , acr_claim_status_statement_count = null
             , acr_claim_status_last_payment_days = null
         } = companySettings.rowCount && companySettings.rows[0] || {};
@@ -168,7 +180,7 @@ const acr = {
            UNION ALL
           SELECT null, null, id::text FROM insert_claim_comment_audit_cte `;
 
-        if (acr_write_off_adjustment_code_id) {
+        if (acr_write_off_debit_adjustment_code_id && acr_write_off_credit_adjustment_code_id) {
             writeOffQuery = SQL`
                 -- --------------------------------------------------------------------------------------------------------------
                 -- Filter collection_claim_ids to apply write-off adjustment
@@ -321,7 +333,7 @@ const acr = {
                         , charge_id
                         , payment
                         , ( CASE WHEN adjustment > 0::money THEN adjustment ELSE 0::money END )
-                        , ( SELECT id FROM billing.adjustment_codes WHERE code = 'SBCA' )
+                        , ${acr_write_off_credit_adjustment_code_id}
                         , ${userId}
                         , cas_details
                         , (${JSON.stringify(auditDetails)})::jsonb
@@ -341,7 +353,7 @@ const acr = {
                         , charge_id
                         , payment
                         , ( CASE WHEN adjustment < 0::money THEN adjustment ELSE 0::money END )
-                        , ( SELECT id FROM billing.adjustment_codes WHERE code = 'SBDA' )
+                        , ${acr_write_off_debit_adjustment_code_id}
                         , ${userId}
                         , cas_details
                         , (${JSON.stringify(auditDetails)})::jsonb

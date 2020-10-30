@@ -7,12 +7,19 @@ module.exports = {
             report_id,
             code
         } = params;
-        const sql = SQL`SELECT country_alpha_3_code,value
-            FROM report_settings
-            WHERE company_id = ${companyId}
-            AND report_id = ${report_id}
-            AND code = ${code}
-            AND country_alpha_3_code = (SELECT country_alpha_3_code
+        const sql = SQL`SELECT
+                rs.country_alpha_3_code,
+                rs.value,
+                (CASE
+                    WHEN cs.acr_write_off_debit_adjustment_code_id IS NOT NULL AND cs.acr_write_off_credit_adjustment_code_id IS NOT NULL THEN TRUE
+	                ELSE FALSE
+	            END) AS claim_write_off_required
+            FROM report_settings rs
+            LEFT JOIN billing.company_settings cs ON cs.company_id = ${companyId}
+            WHERE rs.company_id = ${companyId}
+            AND rs.report_id = ${report_id}
+            AND rs.code = ${code}
+            AND rs.country_alpha_3_code = (SELECT country_alpha_3_code
                                         FROM public.sites
                                         WHERE id = 1)`;
 
