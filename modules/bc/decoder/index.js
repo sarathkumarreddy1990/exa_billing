@@ -187,6 +187,7 @@ const parser = {
         ];
 
         let notes = '';
+        let paymentDate = null;
         let fileTrailerData = result.fileTrailerRecords.length  && result.fileTrailerRecords[0] || {};
 
         result.batchTrailerRecords.length && result.batchTrailerRecords.map(function (data) {
@@ -195,11 +196,13 @@ const parser = {
 
         if (fileTrailerData) {
             notes += `Total ${fileTrailerData.record_type_1 || 'S'} remittance records in file: ${fileTrailerData.record_type_1_count || 0} \n`;
+            paymentDate = fileTrailerData.timestamp || null;
         }
 
         notes += `File Name: ${params.uploaded_file_name || ''}`;
 
         result.notes = notes;
+        result.paymentDate = paymentDate;
 
         return result;
     }
