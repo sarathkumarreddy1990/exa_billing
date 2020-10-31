@@ -167,6 +167,10 @@ const bcModules = {
                 });
             }
 
+            return { responseCode: 'unableToWriteFile' };
+        }
+    },
+
     /**
     * To process the Batch Eligibility Response from remittance file
     */
@@ -232,7 +236,7 @@ const bcModules = {
         eraPath = path.join(rootDir, eraPath);
 
         try {
-            let dirExists = fs.existsSync(eraPath);
+            let dirExists = await fse.pathExists(eraPath);
 
             if (!dirExists) {
                 message.push({
@@ -243,7 +247,7 @@ const bcModules = {
                 return message;
             }
 
-            const fileName = params.isCron ? `${params.uploaded_file_name}` : params.file_id;
+            const fileName = params.isCron ? params.uploaded_file_name : params.file_id;
             eraPath = path.join(eraPath, fileName);
             let remittanceResponse = await bcModules.getFileContents(eraPath, params);
 
