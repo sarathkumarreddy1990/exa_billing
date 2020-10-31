@@ -16,5 +16,9 @@ module.exports = {
 
     delete: (params) => {
         return data.delete(params);
-    }
+    },
+
+    autoCollectionsProcess: (params) => {
+        return data.autoCollectionsProcess(params);
+    },
 };
