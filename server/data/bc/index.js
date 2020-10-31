@@ -40,8 +40,8 @@ const bcData = {
                                 SELECT ARRAY(SELECT code FROM modifiers WHERE id IN (bc.modifier1_id, bc.modifier2_id, bc.modifier3_id, bc.modifier4_id)) AS modifier_ids
                             ) modifiers  ON TRUE
                             LEFT JOIN LATERAL (
-                                SELECT 
-                                   sequence_number 
+                                SELECT
+                                   sequence_number
                                 FROM billing.edi_file_charges
                                 WHERE charge_id = bc.id
                                 ORDER BY id desc
@@ -466,11 +466,11 @@ const bcData = {
                                         ELSE json_build_object(
                                                 'err', jsonb_agg(jsonb_build_object(
                                                         'Patient Name', "nameVerify",
-														'Payee Number', "payeeNumber",
-														'Reference Number', "officeFolioNumber",
+                                                        'Payee Number', "payeeNumber",
+                                                        'Reference Number', "officeFolioNumber",
                                                         'Patient Status', "patientStatusReplyText",
-														'Eligibility Date', "serviceValidDate",
-														'Date of request', "dateOfRequest",
+                                                        'Eligibility Date', "serviceValidDate",
+                                                        'Date of request', "dateOfRequest",
                                                         'response', "statusCoverageCode",
                                                         'ELIG_ON_DOS', 'NO',
                                                         'Msgs', "coverageReplyText",
