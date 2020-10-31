@@ -209,7 +209,7 @@ const bcModules = {
     },
 
     /**
-     * convertToJson - Converting response from thirparty to json
+     * WriteToFile - Writing the encoded contents into a file
      *
      * @param  {String} args
      * @param {String} time zone
