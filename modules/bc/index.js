@@ -4,7 +4,7 @@ const bcController = require('../../server/controllers/bc');
 const processClaim = require('./encoder/claims');
 const fs = require('fs');
 const logger = require('../../logger');
-const moment = require('moment');
+const moment = require('moment-timezone');
 const crypto = require('crypto');
 const fse = require('fs-extra');
 const mkdirp = require('mkdirp');
@@ -334,6 +334,7 @@ const bcModules = {
         let {
             file_store_id,
             root_directory,
+            time_zone
         } = fileStoreDetails[0];
 
         if (!root_directory) {
@@ -363,7 +364,7 @@ const bcModules = {
         const {
             data = null,
             error = null
-        } = await bcModules.doRequest(downloadParams);
+        } = await bcModules.doRequest(downloadParams, time_zone);
 
         //Error Validations in MSP portal connectivity
         if (error) {
