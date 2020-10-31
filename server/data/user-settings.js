@@ -24,6 +24,7 @@ module.exports = {
                  ,paper_claim_original_template_id
                  ,direct_invoice_template_id
                  ,patient_invoice_template_id
+                 ,special_form_template_id
                  ,company_id
                  ,default_date_range
                 )
@@ -39,6 +40,7 @@ module.exports = {
                 , ${args.paper_claim_original}
                 , ${args.direct_invoice}
                 , ${args.patient_invoice}
+                , ${args.special_form}
                 , ${args.companyId}
                 , 'this_year'
             WHERE NOT EXISTS (
@@ -60,6 +62,7 @@ module.exports = {
                 ,paper_claim_original_template_id = ${args.paper_claim_original}
                 ,direct_invoice_template_id = ${args.direct_invoice}
                 ,patient_invoice_template_id = ${args.patient_invoice}
+                ,special_form_template_id = ${args.special_form}
             WHERE
                 user_id = ${args.userId}
                 AND grid_name = ${args.flag}
@@ -227,6 +230,7 @@ module.exports = {
             , paper_claim_original_template_id AS "paper_claim_original"
             , direct_invoice_template_id AS "direct_invoice"
             , patient_invoice_template_id AS "patient_invoice"
+            , special_form_template_id AS "special_form"
 
         FROM
            billing.user_settings WHERE user_id = ${params.userId}
