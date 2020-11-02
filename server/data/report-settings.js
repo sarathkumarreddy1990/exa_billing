@@ -11,7 +11,9 @@ module.exports = {
                 rs.country_alpha_3_code,
                 rs.value,
                 (CASE
-                    WHEN cs.acr_write_off_debit_adjustment_code_id IS NOT NULL AND cs.acr_write_off_credit_adjustment_code_id IS NOT NULL THEN TRUE
+                    WHEN cs.acr_write_off_debit_adjustment_code_id IS NOT NULL AND 
+                         cs.acr_write_off_credit_adjustment_code_id IS NOT NULL 
+                            THEN TRUE
 	                ELSE FALSE
 	            END) AS claim_write_off_required
             FROM report_settings rs
