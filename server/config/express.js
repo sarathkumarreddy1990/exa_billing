@@ -45,6 +45,7 @@ module.exports = function (app, express, companyId) {
             defaultSrc: [
                 "'self'",
                 "'unsafe-inline'",
+                "'self' blob:",
             ],
             scriptSrc: [
                 "'self'",
