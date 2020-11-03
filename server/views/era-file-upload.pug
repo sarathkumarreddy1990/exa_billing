@@ -16,7 +16,7 @@ html
                     document.getElementById("hdnMode").value = id;
                     document.getElementById("eraFile").click();
                 }
-                
+
                 return false;
             }
 
@@ -43,7 +43,7 @@ html
             }
 
     body(class="exportFrame" style="background-color: transparent !important;")
-        form#eraFileUpload(name='formEraUpload', action='/exa_modules/billing/era/upload', method='POST', style="float:right;", enctype="multipart/form-data")
+        form#eraFileUpload(name='formEraUpload', action='/exa_modules/billing/era/upload?_csrf=' + csrfToken, method='POST', style="float:right;", enctype="multipart/form-data")
             button#btnProcess_EOB.btn.btn-primary.btn-sm(type="button", onClick="fireUpload(event);", style="background: #3c91f0; margin-top: 4px; margin-right: 5px;", i18n="shared.fields.uploadProcessEOBFile")
             button#btnPreview_EOB.btn.btn-primary.btn-sm(type="button", onClick="fireUpload(event);", style="background: #3c91f0; margin-top: 4px;", i18n="shared.fields.previewEOBFile")
 
