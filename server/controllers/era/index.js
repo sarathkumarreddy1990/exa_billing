@@ -16,6 +16,7 @@ const { promisify } = require('util');
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
 const statAsync = promisify(fs.stat);
+const sftp = require('../../../modules/edi/sftp');
 
 const createDir = function (fileStorePath, filePath) {
     return new Promise(function(resolve, reject) {
@@ -249,9 +250,13 @@ module.exports = {
 
             }
 
-            eraPath = path.join(eraPath, params.file_id);
+            let eraFilePath = path.join(eraPath, params.uploaded_file_name);
 
-            let eraRequestText = await readFile(eraPath, 'utf8');
+            if (!fs.existsSync(eraFilePath)) {
+                eraFilePath = path.join(eraPath, params.file_id);
+            }
+
+            let eraRequestText = await readFile(eraFilePath, 'utf8');
 
             let templateName = await ediConnect.getDefaultEraTemplate();
 
@@ -579,6 +584,8 @@ module.exports = {
             logger.error('Failed to Download the Json OutPut...', err);
         }
     },
-    
-    getEOBFileId: data.getEOBFileId
+
+    getEOBFileId: data.getEOBFileId,
+
+    initializeDownload: sftp.initiateDownload
 };
