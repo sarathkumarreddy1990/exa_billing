@@ -217,7 +217,7 @@ const bcModules = {
     */
     processRemittanceFile: async (params) => {
         let processDetails;
-        let eraPath;
+        let filePath;
         let rootDir;
         let message = [];
         const { rows = [] } = await bcData.getRemittanceFilePathById(params);
@@ -229,14 +229,14 @@ const bcModules = {
                 uploaded_file_name
             } = rows[0];
             rootDir = root_directory || '';
-            eraPath = file_path || '';
+            filePath = file_path || '';
             params.uploaded_file_name = uploaded_file_name || '';
         }
 
-        eraPath = path.join(rootDir, eraPath);
+        let dirPath = path.join(rootDir, filePath);
 
         try {
-            let dirExists = await fse.pathExists(eraPath);
+            let dirExists = await fse.pathExists(dirPath);
 
             if (!dirExists) {
                 message.push({
@@ -248,8 +248,8 @@ const bcModules = {
             }
 
             const fileName = params.isCron ? params.uploaded_file_name : params.file_id;
-            eraPath = path.join(eraPath, fileName);
-            let remittanceResponse = await bcModules.getFileContents(eraPath, params);
+            let fullFilePath = path.join(dirPath, fileName);
+            let remittanceResponse = await bcModules.getFileContents(fullFilePath, params);
 
             logger.logInfo('File processing finished...');
 
