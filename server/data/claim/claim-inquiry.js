@@ -194,7 +194,7 @@ module.exports = {
                             WHEN bp.payer_type = 'ordering_provider' THEN
                                     p.full_name
                             END as comments
-                        , bp.accounting_date as commented_dt
+                        , bp.accounting_date::text AS commented_dt
                         , false AS is_internal
                         , null AS charge_amount
                         , '{}'::text[] AS charge_pointer
@@ -225,7 +225,7 @@ module.exports = {
                         , 'refund' AS code
                         , 'Refund'  AS type
                         , adj.description AS comments
-                        , bp.accounting_date AS commented_dt
+                        , bp.accounting_date::text AS commented_dt
                         , false AS is_internal
                         , null AS charge_amount
                         , '{}'::text[] AS charge_pointer
