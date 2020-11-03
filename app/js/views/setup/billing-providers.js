@@ -35,7 +35,6 @@ define(['jquery',
             editedInsuraceIDCode : null,
             pager: null,
             events: {
-                'change #chkEnableFTP': 'showFTPDetails',
                 'click #btnSaveICDCode': 'saveProviderIDCodes',
                 'click #btnAddNewProviderCodes': 'addNewProviderIDCodes',
                 'click #btnRefreshProviderCodes': 'refreshProviderCodes',
@@ -274,22 +273,11 @@ define(['jquery',
                                     $('#txtPayeeNumber').val(data.can_bc_payee_number || '');
                                     $('#txtDataCentreNumber').val(data.can_bc_data_centre_number || '');
 
-                                    $('#chkEnableFTP').prop('checked', !!communication_info.enable_ftp);
-                                    $('#txtHostName').val(communication_info.Ftp_host || '');
-                                    $('#txtPort').val(communication_info.Ftp_port || '');
-                                    $('#txtUserName').val(communication_info.Ftp_user_name || '');
-                                    $('#txtPassword').val(communication_info.Ftp_password || '');
-                                    $('#ddlFtpType').val(communication_info.Ftp_type || '');
-                                    $('#txtSentFolder').val(communication_info.Ftp_sent_folder || '');
-                                    $('#txtReceiveFolder').val(communication_info.Ftp_receive_folder || '');
-                                    $('#txtIdentityFilePath').val(communication_info.Ftp_identity_file || '');
-
                                     var $txtPayCity = $("[for=txtPayCity]");
                                     $txtPayCity.find("span").remove();
                                     $txtPayCity.removeClass('field-required');
 
                                 }
-                                self.showFTPDetails();
                                 self.bindProviderIDCodes();
                             }
                         }
@@ -424,21 +412,6 @@ define(['jquery',
                     DataCentreNumber: commonjs.getMessage("e", "Data Centre Number")
                 }
 
-                if ($('#chkEnableFTP').prop('checked')) {
-                    rules.hostname = { required: true }
-                    rules.username = { required: true }
-                    rules.password = { required: true }
-                    rules.port = { required: true }
-                    rules.sentFolder = { required: true }
-                    rules.receiveFolder = { required: true }
-                    messages.hostname = commonjs.getMessage("e", "FTP Host Name");
-                    messages.username = commonjs.getMessage("e", "FTP User Name");
-                    messages.password = commonjs.getMessage("e", "FTP Passord");
-                    messages.port = commonjs.getMessage("e", "FTP Port");
-                    messages.sentFolder = commonjs.getMessage("e", "FTP Sent Folder");
-                    messages.ReceiveFolder = commonjs.getMessage("e", "FTP Receive Folder");
-                }
-
                 commonjs.validateForm({
                     rules: rules,
                     messages : messages,
@@ -467,18 +440,7 @@ define(['jquery',
                     return false;
                 }
 
-                var isFtpEnabled = $('#chkEnableFTP').prop('checked');
-                var communication_info = {
-                    "enable_ftp": isFtpEnabled,
-                    "Ftp_host": isFtpEnabled ? $('#txtHostName').val() : "",
-                    "Ftp_port": isFtpEnabled ? $('#txtPort').val() : "",
-                    "Ftp_user_name": isFtpEnabled ? $('#txtUserName').val() : "",
-                    "Ftp_password": isFtpEnabled ? $('#txtPassword').val() : "",
-                    "Ftp_type": isFtpEnabled ? $('#ddlFtpType').val() : "",
-                    "Ftp_sent_folder": isFtpEnabled ? $('#txtSentFolder').val() : "",
-                    "Ftp_receive_folder": isFtpEnabled ? $('#txtReceiveFolder').val() : "",
-                    "Ftp_identity_file": isFtpEnabled ? $('#txtIdentityFilePath').val() : ""
-                }
+                var communication_info = {};
 
                 this.model.set({
                     "name": $('#txtName').val(),
@@ -692,14 +654,6 @@ define(['jquery',
                         commonjs.handleXhrError(model, response);
                     }
                 });
-            },
-
-            showFTPDetails: function () {
-                if ($('#chkEnableFTP').prop('checked')) {
-                    $('#divFTPDetails').show();
-                } else {
-                    $('#divFTPDetails').hide();
-                }
             },
 
             clearIDCodesForm: function () {
