@@ -162,21 +162,21 @@ module.exports = {
 
         switch(params.billingRegionCode) {
             case 'can_MB':
-                fileDirectory = 'MHSAL\\Returns';
+                fileDirectory = 'MHSAL/Returns';
                 break;
             case 'can_BC':
-                fileDirectory = 'MSP\\Remittance';
+                fileDirectory = 'MSP/Remittance';
                 break;
             default:
                 fileDirectory = uploadingMode.toLowerCase();
                 break;
         }
 
-        let fileRootPath = `${fileDirectory}\\${currentTime.getFullYear()}\\${currentTime.getMonth() + 1}\\${currentTime.getDate()}`;
+        let fileRootPath = `${fileDirectory}/${currentTime.getFullYear()}/${currentTime.getMonth() + 1}/${currentTime.getDate()}`;
 
         if (isPreviewMode) {
             logger.info('ERA Preview MODE');
-            fileRootPath = `trash\\${currentTime.getFullYear()}\\${currentTime.getMonth()}`;
+            fileRootPath = `trash/${currentTime.getFullYear()}/${currentTime.getMonth()}`;
 
             try {
                 await createDir(fileStorePath, fileRootPath);
@@ -312,7 +312,7 @@ module.exports = {
                 processDetailsArray.push(processDetails);
 
                 const finish = Date.now();
-                
+
                 logger.logInfo(`ERA payment process | finished in ${finish - start}ms`);
 
             }
@@ -613,6 +613,6 @@ module.exports = {
             logger.error('Failed to Download the Json OutPut...', err);
         }
     },
-    
+
     getEOBFileId: data.getEOBFileId
 };

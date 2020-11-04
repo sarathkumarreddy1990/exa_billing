@@ -14,15 +14,14 @@ const {
 } = require('util');
 const parser = require('./decoder');
 const bcData = require('../../server/data/bc');
+const eraData = require('../../server/data/era');
 const request = require('request-promise-native');
 const downtime = require('../bc/resx/downtime.json');
 const siteConfig = require('../../server/config');
 const externalUrlBc = siteConfig.get('externalUrlBc');
 const externalUrlBcUserName = siteConfig.get('externalUrlBcUserName');
 const externalUrlBcPassword = siteConfig.get('externalUrlBcPassword');
-const parser = require('./decoder');
-const bcData = require('../../server/data/bc');
-const eraData = require('../../server/data/era');
+
 const writeFileAsync = promisify(fs.writeFile);
 const mkdirpAsync = promisify(mkdirp);
 const statAsync = promisify(fs.stat);

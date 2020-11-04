@@ -336,7 +336,7 @@ const bcData = {
                     , unapplied_charges AS (
                         SELECT
                               cp.payment_id
-                            , json_build_object(
+                            , jsonb_build_object(
                                   'charge_id', ch.id
                                 , 'payment', 0
                                 , 'adjustment', 0
@@ -359,7 +359,7 @@ const bcData = {
                                   uc.payment_id
                                 , null
                                 , ${userId}
-                                , json_build_array(uc.json_build_object)::jsonb
+                                , jsonb_build_array(uc.jsonb_build_object)::jsonb
                                 , (${audit_details})::jsonb
                             )
                         FROM unapplied_charges uc
@@ -449,7 +449,7 @@ const bcData = {
                                   , "dataCentreSequenceNumber" AS data_centre_sequence_number
                                   , CASE
                                         WHEN NULLIF("statusCoverageCode", '') IS NULL
-                                        THEN json_build_object(
+                                        THEN jsonb_build_object(
                                                 'results', jsonb_agg(jsonb_build_object(
                                                             'Patient Name', "nameVerify",
                                                             'Payee Number', "payeeNumber",
@@ -463,7 +463,7 @@ const bcData = {
                                                             'responseDescription', "coverageReplyText"
                                                           ))
                                              )
-                                        ELSE json_build_object(
+                                        ELSE jsonb_build_object(
                                                 'err', jsonb_agg(jsonb_build_object(
                                                         'Patient Name', "nameVerify",
                                                         'Payee Number', "payeeNumber",
