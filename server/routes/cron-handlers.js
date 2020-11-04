@@ -159,8 +159,6 @@ const clearingHouse = async (req, res) => {
     return httpHandler.send(req, res, response);
 };
 
-router.get('/ahs/files/:action', restrictAccess, handleEvents);
-
 router.get('/acr/process', restrictAccess, autoCollectionsProcess);
 
 router.get('/edi/files/:action', restrictAccess, clearingHouse);
