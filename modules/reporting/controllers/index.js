@@ -140,6 +140,10 @@ const api = {
                         logger.logInfo(`${repInfo} finished in ${duration} seconds`);
 
                         if (reportParams.async === 'false') {
+
+                            if(reportParams.reportFormat === 'pdf') {
+                                res.setHeader('content-type', 'application/pdf');
+                            }
                             return response
                                 .pipe(res)
                                 .on('finish', () => {
