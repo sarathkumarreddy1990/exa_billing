@@ -22,10 +22,9 @@ const claimData = require('../../server/data/claim/claim-workbench');
 const sftpService = {
 
     /**
-    * Upload the files into SFTP server
-    * {@param} claimInfo - which contains folderPath, fileName, sftpList of uploading file
-    * {@param} cb - callback fn
-    */
+     * Upload the files into SFTP server
+     * {@param} claimInfo - which contains companyId, sftpData, ediText of uploading file
+     */
     upload: async (claimInfo) => {
 
         let sftp = new sftpClient;
@@ -128,9 +127,9 @@ const sftpService = {
     },
 
     /**
-   * Download the files from SFTP server
-   * {@param} - which contains fileName, companyId of uploading file
-   */
+     * Download the files from SFTP server
+     * {@param} - which contains companyId, sftpInfo of downloading file
+     */
     download: async (companyId, sftpInfo) => {
         let {
             name,
@@ -138,12 +137,13 @@ const sftpService = {
         } = sftpInfo || {};
 
         if (config && !config.enable_ftp) {
-            logger.info(`SFTP option not enabled in ${name} clearing house, So skipping process.`);
+            logger.info(`SFTP option not enabled in ${name} clearing house, skipping process.`);
             return {
                 error: true,
                 message: 'SFTP connection not in enabled mode'
             };
         }
+
         let sftp = new sftpClient;
 
         try {
@@ -323,8 +323,8 @@ const sftpService = {
     },
 
     /**
-    * Function used to identify the SFTP action based req.param
-    */
+     * Function used to identify the SFTP action based req.param
+     */
     events: async (data) => {
         let {
             action
@@ -337,9 +337,9 @@ const sftpService = {
     },
 
     /**
-    * Used to throw custom error
-    * {@param} Error Message
-    */
+     * Used to throw custom error
+     * {@param} Error Message
+     */
     sendDataError: (message) => {
         logger.error(message);
         throw new Error(message);
