@@ -2,6 +2,7 @@ doctype html
 html
   head
     title= title
+    meta(name="csrf-token", content=csrfToken)
     link(rel='stylesheet', href=staticAssetsRoot + '/node_modules/bootstrap/dist/css/bootstrap.min.css')
     link(rel='stylesheet', href=staticAssetsRoot + '/node_modules/select2/dist/css/select2.min.css')
     link(rel='stylesheet', href=staticAssetsRoot + '/node_modules/bootstrap-multiselect/dist/css/bootstrap-multiselect.css')
@@ -12,12 +13,12 @@ html
 
     link(rel='stylesheet', href=staticAssetsRoot + '/libs/jqgrid/css/ui.jqgrid.css')
     link(rel='stylesheet', href=staticAssetsRoot + '/libs/jqgrid/css/jquery-ui-1.10.2.custom.css')
-    
+
     link(rel='stylesheet', href=staticAssetsRoot + '/js/modules/multichat/stylesheets/chat.css')
     link(rel='stylesheet', href=staticAssetsRoot + '/skins/' + currentTheme + '/index.css')
     script.
-        var currentTheme = '#{currentTheme}';     
-    
+        var currentTheme = '#{currentTheme}';
+
     //- link(rel='stylesheet', href=staticAssetsRoot + '/skins/default/index.css')
 
   body
@@ -40,7 +41,7 @@ html
             div.modal-content
                 div.modal-header
                     button.close.btn-close.btn.circle(type='button', data-dismiss='modal')
-                            i.icon-ic-close 
+                            i.icon-ic-close
                     h4#spanModalHeaderNested.modal-title
                 div#modalBodyNested.modal-body
                     div(id="modal_div_container_nested")
