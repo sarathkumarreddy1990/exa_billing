@@ -22,8 +22,11 @@ const claimData = require('../../server/data/claim/claim-workbench');
 const sftpService = {
 
     /**
-     * Upload the files into SFTP server
-     * {@param} claimInfo - which contains companyId, sftpData, ediText of uploading file
+     * upload: Upload the files into SFTP server
+     * {@param} {object} claimInfo - Incoming data for claim information
+     * {@param} {number} claimInfo.companyId - Pass company id for getting file store information
+     * {@param} {object} claimInfo.sftpInfo - To get sftp information
+     * {@param} {string} claimInfo.editext - Content to write a file and upload into clearing house
      */
     upload: async (claimInfo) => {
 
@@ -127,8 +130,11 @@ const sftpService = {
     },
 
     /**
-     * Download the files from SFTP server
-     * {@param} - which contains companyId, sftpInfo of downloading file
+     * download: Download the files from SFTP server
+     * {@param} {number} companyId - Pass company id to get a file store information
+     * {@param} {object} sftpInfo - SFTP information for clearing house
+     * {@param} {string} sftpInfo.name - Clearing house name
+     * {@param} {object} sftpInfo.config - It contains sftp information
      */
     download: async (companyId, sftpInfo) => {
         let {
@@ -270,6 +276,11 @@ const sftpService = {
 
     },
 
+    /**
+     * initiateDownload: Initialize the download process
+     * {@param} {object} params - Request parameter
+     * {@param} {number} params.companyId - Pass company id to get a sftp details
+     */
     initiateDownload: async (params) => {
         let {
             companyId = null
@@ -323,7 +334,9 @@ const sftpService = {
     },
 
     /**
-     * Function used to identify the SFTP action based req.param
+     * events: Function used to identify the SFTP action based on req.param
+     * {@param} {object} data - Incoming data
+     * {@param} {string} data.action - Cron action (download or upload)
      */
     events: async (data) => {
         let {
@@ -337,8 +350,8 @@ const sftpService = {
     },
 
     /**
-     * Used to throw custom error
-     * {@param} Error Message
+     * sendDataError: Used to throw custom error
+     * {@param} {string} message - Error Message
      */
     sendDataError: (message) => {
         logger.error(message);
