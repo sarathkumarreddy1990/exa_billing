@@ -72,7 +72,7 @@ const encoder = (rows) => {
     encoderArray.push(encodeRecord(
         processors.fileHeader(claimData[batches[0]][0], companyInfo),
         descriptors.fileHeader,
-    ));
+    ).encodedData);
 
     batches.forEach(batch =>{
         let batch_tracker = {
@@ -91,7 +91,7 @@ const encoder = (rows) => {
         encoderArray.push(encodeRecord(
             processors.batchHeader(row),
             descriptors.batchHeader
-        ));
+        ).encodedData);
 
         /**
          * TRANSACTIONS / CLAIMS
@@ -104,7 +104,7 @@ const encoder = (rows) => {
         encoderArray.push(encodeRecord(
             processors.batchTrailer(row, batch_tracker),
             descriptors.batchTrailer,
-        ));
+        ).encodedData);
 
     });
 
@@ -116,7 +116,7 @@ const encoder = (rows) => {
     encoderArray.push((encodeRecord(
         processors.fileTrailer(lastBach[lastBach.length - 1], tracker, companyInfo),
         descriptors.fileTrailer,
-    )) + '\r\n');
+    ).encodedData) + '\r\n');
     
     return {
         encodedText: finalizeText(encoderArray.join('\r\n'))
