@@ -41,7 +41,45 @@ const bcController = {
 
     updateClaimsStatus: async (args) => {
         return await bcData.updateClaimsStatus(args);
-    }
+    },
+
+    getAllClaims: async (args) => {
+        return await bcData.getAllClaims(args.companyId);
+    },
+
+    updateEDIFile: async (args) => {
+        return await bcData.updateEDIFile(args);
+    },
+
+    getLastUpdatedSequence: async (args) => {
+        return await bcData.getLastUpdatedSequence(args);
+    },
+
+    ediFilesNotes: async (args, submittedClaimDetails) => {
+        return await bcData.ediFilesNotes(args, submittedClaimDetails);
+    },
+
+    ediFilesCharges: async(submittedClaimDetails) => {
+        return await bcData.ediFilesCharges(submittedClaimDetails);
+    },
+
+    getAllpendingFiles: async(args) => {
+        return await bcData.getAllpendingFiles(args);
+    },
+
+    updateLastSequenceNumber: async(args, billing_provider_id, currentSequence) => {
+        return await bcData.updateLastSequenceNumber(args, billing_provider_id, currentSequence);
+    },
+
+    saveBatchEligibilitySequence: async(args) => {
+        return await bcData.saveBatchEligibilitySequence(args);
+    },
+
+    getediFileClaimId: async(claim_number, edi_file_id) => {
+        return await bcData.getediFileClaimId(claim_number, edi_file_id);
+    },
+
+
 };
 
 module.exports = bcController;

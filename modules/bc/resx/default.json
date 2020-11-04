@@ -1,7 +1,18 @@
 {
+    "service_indicator": "0",
+    "record_code_C02": "C02",
+    "ref_practitioner_2": "00000",
+    "ref_practitioner_2_cd": "0",
+    "start_time": "0000",
+    "end_time": "0000",
+    "facility_sub_number": "00000",
+    "dob_icbc_claim_number": "00000000",
+    "service_to_day": "00",
     "record_code_VS1": "VS1",
     "software_name": "EXA",
     "company_name": "KONICA MINOLTA",
     "contact": "(888)466-3553",
+    "record_code_N01": "N01",
+    "record_code_B04": "B04",
     "vender_MSP_DC_number": "V0033"
 }

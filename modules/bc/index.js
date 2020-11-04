@@ -209,7 +209,7 @@ const bcModules = {
     },
 
     /**
-     * WriteToFile - Writing the encoded contents into a file
+     * convertToJson - Converting response from thirparty to json
      *
      * @param  {String} args
      * @param {String} time zone
@@ -254,61 +254,281 @@ const bcModules = {
             return { responseCode: 'unableToWriteFile' };
         }
 
+        let promises =  submittedClaim.map( async(claim) => {
 
-        let {
-            encodedText,
-            submittedClaimIds = [],
-            dataCentreNumber
-        } = submittedClaim;
+            return new Promise(async (resolve, reject) => {
+                try {
 
-        if (encodedText.length && (submittedClaimIds.length || args.isBatchEligibilityFile)) {
-            const now = moment();
-            /* file_name generated to support in format XXXXXXYYYYMMDDXX
-                XXXXXX - Datacenter number
-                YYYY - year
-                MM - month
-                DD - date
-                XX - some random numbers, here it is current hour(HH) minute(mm) second(ss) and millisecond(SSS)
-            */
-            const file_name = `${dataCentreNumber}_${now.format('YYYYMMDD_HHmmssSSS')}.txt`;
-            const file_path = `MSP/Claims/${now.format('YYYY/MM/DD')}`;
-            const fullPath = `${root_directory}/${file_path}/${file_name}`;
+                    let {
+                        encodedText,
+                        submittedClaimIds = [],
+                        dataCentreNumber
+                    } = claim;
 
-            await fse.outputFile(fullPath, encodedText);
+                    if (!encodedText.length) {
+                        reject(true);
+                    } else if (encodedText.length && (submittedClaimIds.length || args.isBatchEligibilityFile)) {
+                        const now = moment();
+                        /* file_name generated to support in format XXXXXXYYYYMMDDXX
+                            XXXXXX - Datacenter number
+                            YYYY - year
+                            MM - month
+                            DD - date
+                            XX - some random numbers, here it is current hour(HH) minute(mm) second(ss) and millisecond(SSS)
+                        */
+                        const file_name = `${dataCentreNumber}_${now.format('YYYYMMDD_HHmmssSSS')}.txt`;
+                        const file_path = `MSP/Claims/${now.format('YYYY/MM/DD')}`;
+                        const fullPath = `${root_directory}/${file_path}/${file_name}`;
 
-            const statAfter = await statAsync(fullPath);
-            const file_size = statAfter.size;
-            const file_md5 = crypto
-                .createHash('MD5')
-                .update(encodedText, 'utf8')
-                .digest('hex');
+                        await fse.outputFile(fullPath, encodedText);
 
-            let ediFileId = await bcController.storeFile({
-                file_store_id,
-                file_path,
-                file_name,
-                file_md5,
-                file_size,
-                companyId: args.companyId
+                        const statAfter = await statAsync(fullPath);
+                        const file_size = statAfter.size;
+                        const file_md5 = crypto
+                            .createHash('MD5')
+                            .update(encodedText, 'utf8')
+                            .digest('hex');
+
+                        let ediFileId = await bcController.storeFile({
+                            file_store_id,
+                            file_path,
+                            file_name,
+                            file_md5,
+                            file_size,
+                            companyId: args.companyId
+                        });
+
+                        if (!args.isBatchEligibilityFile) {
+                            await bcController.ediFiles({
+                                ediFileId,
+                                claimIds: submittedClaimIds
+                            });
+
+                            await bcController.updateClaimsStatus({
+                                claimIds: submittedClaimIds,
+                                statusCode: 'SU',
+                                claimNote: 'Electronic claim submitted',
+                                userId: args.userId,
+                            });
+                        }
+
+                        resolve(true);
+                    }
+                } catch (err) {
+                    reject(err);
+                }
             });
+        });
 
-            if (!args.isBatchEligibilityFile) {
-                await bcController.ediFiles({
-                    ediFileId,
-                    claimIds: submittedClaimIds
-                });
+        return  await Promise.all(promises).then((data) => {
+            if (data) {
+                return { responseCode: 'submitted' };
+            }
+        }).catch((error) => {
+            logger.error('Error occured in wrting file', error);
+            return { responseCode: 'exceptionErrors' };
+        });
+    },
 
-                await bcController.updateClaimsStatus({
-                    claimIds: submittedClaimIds,
-                    statusCode: 'SU',
-                    claimNote: 'Electronic claim submitted',
-                    userId: args.userId,
-                });
+
+    /**
+     * transferFileToMsp - Transfer file from local storage to MSP portal
+     *
+     * @param  {String} args
+     * @param  {String} rows
+     */
+    transferFileToMsp: async (args, rows) => {
+        try {
+
+            let fileTransferResponse = [];
+
+            for (let i = 0; i < rows.length; i++) {
+                let row = rows[i];
+
+                let {
+                    edi_file_id
+                    , root_directory
+                    , file_path
+                    , uploaded_file_name
+                    , time_zone
+                    , billing_provider_id
+                    , can_bc_data_centre_number
+                } = row;
+
+                try {
+                    await statAsync(`${root_directory}/${file_path}/${uploaded_file_name}`);
+
+
+                    let filePath = `${root_directory}/${file_path}/${uploaded_file_name}`;
+                    let { can_bc_data_centre_sequence_number } = await bcController.getLastUpdatedSequence(billing_provider_id);
+
+                    let sequenceMapping = {
+                        VS1: [],
+                        C02: [],
+                        N01: [],
+                        B04: []
+                    };
+
+                    let isBatchEligibilityFile = false;
+
+                    let fileTextValue = await fse.readFile(filePath, 'utf8');
+
+                    let fileTextArray = fileTextValue.split('\r\n');
+                    let currentSequence;
+                    let claimNumber;
+                    let totalClaimNumber = [];
+
+                    for (let i = 0; i < fileTextArray.length; i++) {
+                        let record = fileTextArray[i];
+                        currentSequence = (((can_bc_data_centre_sequence_number + 1).toString()).padStart(7, '0')).slice(0, 7);
+                        let recordCode = record.substring(0, 3);
+
+                        switch (recordCode) {
+                            case 'VS1': {
+                                fileTextArray[i] = `${record.substring(0, 8)}${currentSequence}${record.substring(15)}`;
+                                sequenceMapping[recordCode].push(currentSequence);
+                            }
+
+                                break;
+                            case 'C02': {
+                                let chargeId = record.substring(8, 15);
+                                claimNumber = record.substring(139, 146);
+                                totalClaimNumber.push(claimNumber);
+                                let { id } = await bcController.getediFileClaimId(claimNumber, edi_file_id);
+
+                                fileTextArray[i] = `${record.substring(0, 8)}${currentSequence}${record.substring(15)}`;
+
+                                sequenceMapping[recordCode].push({
+                                    charge_id: chargeId,
+                                    current_sequence: currentSequence,
+                                    edi_file_claim_id: id,
+                                    can_bc_data_centre_number
+                                });
+                            }
+
+                                break;
+                            case 'N01': {
+
+                                let { id } = await bcController.getediFileClaimId(claimNumber, edi_file_id);
+                                fileTextArray[i] = `${record.substring(0, 8)}${currentSequence}${record.substring(15)}`;
+
+                                sequenceMapping[recordCode].push({
+                                    current_sequence: currentSequence,
+                                    edi_file_claim_id: id,
+                                    can_bc_data_centre_number
+                                });
+                            }
+
+                                break;
+
+                            case 'B04': {
+                                isBatchEligibilityFile = true;
+                                let studyId = record.substring(54, 61);
+
+                                sequenceMapping[recordCode].push({
+                                    current_sequence: currentSequence,
+                                    edi_file_id,
+                                    can_bc_data_centre_number,
+                                    study_id: studyId
+                                });
+                            }
+                        }
+
+                        can_bc_data_centre_sequence_number++;
+                    }
+
+                    await fse.outputFile(filePath, fileTextArray.join('\r\n'));
+
+                    let buffer = fs.createReadStream(filePath);
+
+                    let response = await bcModules.doRequest({
+                        method: 'POST',
+                        uri: externalUrlBc,
+                        rejectUnauthorized: false,
+                        formData: {
+                            submitFile: buffer,
+                            ExternalAction: 'AputRemit'
+                        }
+                    }, time_zone);
+
+                    let { data, error } = response;
+
+                    if (error) {
+                        fileTransferResponse.push({ responseCode: error });
+                        await fse.outputFile(filePath, fileTextValue);
+                    } else {
+                        let jsonResponse = bcModules.convertToJson(data);
+
+                        /* MSP portal send API response status in Result {
+                            SUCCESS - api transaction successful
+                            FAILURE - api transaction failed
+                        }*/
+                        if (jsonResponse.Result === 'FAILURE') {
+                            if (isBatchEligibilityFile) {
+                                fileTransferResponse.push({ responseCode: 'batchEligiblityFailed' });
+                            } else {
+                                await bcController.updateClaimsStatus({
+                                    claimIds: totalClaimNumber,
+                                    statusCode: 'MV',
+                                    claimNote: 'MSP Validation Failed',
+                                    userId: 1
+                                });
+
+                                fileTransferResponse.push({ responseCode: 'ediFileFailed' });
+                            }
+                        } else if (jsonResponse.Result === 'SUCCESS') {
+
+                            if (isBatchEligibilityFile && sequenceMapping.B04.length) {
+                                await bcController.saveBatchEligibilitySequence(sequenceMapping.C02);
+                                fileTransferResponse.push({ responseCode: 'batchEligibilitySubmitted' });
+                            } else {
+                                if (sequenceMapping.C02.length) {
+                                    await bcController.ediFilesCharges(sequenceMapping.C02);
+                                }
+
+                                if (sequenceMapping.N01.length) {
+                                    args.moduleName = 'claims';
+                                    args.screenName = 'claims submission(cron service)';
+                                    args.logDescription = 'Add: New sequence number inserted for corresponding claim notes';
+                                    await bcController.ediFilesNotes(args, sequenceMapping.N01);
+                                }
+
+                                await bcController.updateClaimsStatus({
+                                    claimIds: totalClaimNumber,
+                                    statusCode: 'PP',
+                                    claimNote: 'Pending payment',
+                                    userId: 1
+                                });
+
+                                fileTransferResponse.push({ responseCode: 'ediFileSubmitted' });
+                            }
+
+                            await bcController.updateLastSequenceNumber(args, billing_provider_id, currentSequence);
+
+                        }
+
+                        await bcController.updateEDIFile({
+                            status: jsonResponse.Result.toLowerCase(),
+                            ediFileId: edi_file_id
+                        });
+                    }
+                } catch (e) {
+                    logger.error('Unable to find file store- ', e);
+
+                    await bcController.updateEDIFile({
+                        status: 'failure',
+                        ediFileId: edi_file_id
+                    });
+
+                    fileTransferResponse.push({ responseCode: 'unableToWriteFile' });
+                }
             }
 
-            return { responseCode: 'unableToWriteFile' };
-        }
+            return fileTransferResponse;
 
+        } catch (err) {
+            logger.error('Error in transfering file to MSP portal', err);
+        }
     },
 
     /*
