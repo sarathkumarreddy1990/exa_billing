@@ -198,6 +198,8 @@ define(['jquery',
                         if (prevValidationResults && !options.fromValidate) {
                             if (prevValidationResults.isFromEDI) {
                                 self.claimWorkBench.ediResponse(prevValidationResults.result);
+                            } else if (prevValidationResults.isFromBC) {
+                                self.claimWorkBench.bcResponse(prevValidationResults.result);
                             } else {
                                 self.claimWorkBench.showValidationResult(prevValidationResults.result);
                             }

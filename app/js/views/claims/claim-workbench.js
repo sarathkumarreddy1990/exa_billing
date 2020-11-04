@@ -579,26 +579,26 @@ define(['jquery',
 
                         switch (app.billingRegionCode) {
                             case 'can_AB': {
-                            /* Allowed to submit electronic claim when claim is in paid in full/partial/at 0 statuses.
-                               claim was restricted to submit when status of claim is in any of the below:
-                               ADP - AHS Delete Pending
-                               AD  - AHS Deleted
-                               PA  - Pending Acknowledgement
-                               R   - Rejected
-                               D   - Denied */
+                                /* Allowed to submit electronic claim when claim is in paid in full/partial/at 0 statuses.
+                                   claim was restricted to submit when status of claim is in any of the below:
+                                   ADP - AHS Delete Pending
+                                   AD  - AHS Deleted
+                                   PA  - Pending Acknowledgement
+                                   R   - Rejected
+                                   D   - Denied */
 
-                            var excludeClaimStatus = ['PA', 'ADP', 'AD', 'R', 'D'];
+                                var excludeClaimStatus = ['PA', 'ADP', 'AD', 'R', 'D'];
 
-                            if (excludeClaimStatus.indexOf(claimStatus) > -1) {
-                                commonjs.showWarning('messages.status.pleaseSelectValidClaimsStatus');
-                                return false;
-                            }
+                                if (excludeClaimStatus.indexOf(claimStatus) > -1) {
+                                    commonjs.showWarning('messages.status.pleaseSelectValidClaimsStatus');
+                                    return false;
+                                }
                             }
                             case 'can_MB': {
                                 if (claimStatus != 'PS') {
-                            commonjs.showWarning('messages.status.pleaseSelectValidClaimsStatus');
-                            return false;
-                        }
+                                    commonjs.showWarning('messages.status.pleaseSelectValidClaimsStatus');
+                                    return false;
+                                }
                             }
                             case 'can_BC': {
                                 /* Allowed to submit electronic claim when status of claim is in any of the below:
@@ -897,26 +897,7 @@ define(['jquery',
                         result = _.groupBy(validations, "dataID");
                     }
 
-                    if (isFromReClaim) {
-                        $('#modal_div_container').html(self.ediResultTemplate({ result: result, ediText: data.ediTextWithValidations, commonResult: commonErrorValidation }));
-                        commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());
-                        self.initEvent(true);
-                    } else {
-                        commonjs.showDialog({
-                            header: 'EDI Claim',
-                            i18nHeader:'shared.moduleheader.ediClaims',
-                            width: '95%',
-                            height: '75%',
-                            fromValidate: true,
-                            html: self.ediResultTemplate({ result: result, ediText: data.ediTextWithValidations, commonResult: commonErrorValidation }),
-                            onShown: function () {
-                                self.initEvent(true);
-                            },
-                            onHide: function () {
-                                commonjs.previousValidationResults = null;
-                            }
-                        });
-                    }
+                    self.ediTemplateRender(isFromReclaim, result, data.ediTextWithValidations, commonErrorValidation);
                     $(".popoverWarning").popover();
 
                     if (data.validations && data.validations.length == 0) {
@@ -2213,6 +2194,7 @@ define(['jquery',
                                 switch (data.file_type) {
                                     case 'can_ohip_p':
                                     case 'can_ahs_ard':
+                                    case 'can_bc_remit':
                                         return i18n.get('billing.payments.payment');
                                     case 'can_ohip_b':
                                     case 'can_ahs_bbr':
@@ -3123,8 +3105,11 @@ define(['jquery',
              * Validating response for BC
              *
              * @param  {Object} data  response result
+             * @param  {Boolean} isFromReclaim  reclaim flag
              */
-            bcResponse: function (data) {
+            bcResponse: function (data, isFromReclaim) {
+                var self = this;
+                self.ediResultTemplate = _.template(ediResultHTML);
 
                 if (data.responseCode) {
                     switch (data.responseCode) {
@@ -3144,7 +3129,64 @@ define(['jquery',
                             commonjs.showError('billing.claims.claimError');
                     }
                 }
-                $("#btnClaimsRefresh").click();
+
+                var errorResult = data.errorData;
+                if (errorResult && Object.keys(errorResult).length) {
+                    commonjs.previousValidationResults = {
+                        isFromBC: true,
+                        result: $.extend(true, {}, data)
+                    };
+
+                    var result = Object.keys(errorResult.reciprocalErrorArray).length ? errorResult.reciprocalErrorArray : errorResult.encoderErrorArray;
+                    self.ediTemplateRender(isFromReclaim, result, null, errorResult.commonError);
+                    $('#divEDIResult, #aDownloadEDI, #liEDI').hide();
+                    $('#reclaimEDI, #divErrorMsgs').show();
+                } else {
+                    $("#btnClaimsRefresh").click();
+                }
+            },
+
+            /**
+             * ediTemplateRender - edi error result
+             *
+             * @param  {Boolean} isFromReclaim  reclaim flag
+             * @param  {Object} result  edi response
+             * @param  {Object} ediText  edi text
+             * @param  {Object} commonErrorValidation  common error list
+             */
+            ediTemplateRender: function (isFromReclaim, result, ediText, commonErrorValidation) {
+                var self = this;
+                if (isFromReclaim) {
+                    $('#modal_div_container').html(
+                        self.ediResultTemplate({
+                            result: result,
+                            ediText: ediText,
+                            commonResult: commonErrorValidation,
+                            billingRegionCode: app.billingRegionCode
+                        }));
+                    commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());
+                    self.initEvent(true);
+                } else {
+                    commonjs.showDialog({
+                        header: 'EDI Claim',
+                        i18nHeader: 'shared.moduleheader.ediClaims',
+                        width: '95%',
+                        height: '75%',
+                        fromValidate: true,
+                        html: self.ediResultTemplate({
+                            result: result,
+                            ediText: ediText,
+                            commonResult: commonErrorValidation,
+                            billingRegionCode: app.billingRegionCode
+                        }),
+                        onShown: function () {
+                            self.initEvent(true);
+                        },
+                        onHide: function () {
+                            commonjs.previousValidationResults = null;
+                        }
+                    });
+                }
             }
         });
 

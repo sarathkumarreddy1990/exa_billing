@@ -66,7 +66,7 @@ const encode = ( rows ) => {
         encodeRecord(
             processors.batchHeader(rows),
             descriptors.batchHeader,
-        ),
+        ).encodedData,
 
         /**
          * TRANSACTIONS / CLAIMS
@@ -79,7 +79,7 @@ const encode = ( rows ) => {
         encodeRecord(
             processors.batchTrailer(rows, tracker),
             descriptors.batchTrailer,
-        ),
+        ).encodedData,
     ];
 
     return finalizeText(encodedArray.join(`\r\n`));

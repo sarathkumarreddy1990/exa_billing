@@ -32,7 +32,10 @@ module.exports = {
         ahsSFTPPassword: 'ahsSFTPPassword',
         ahsSFTPSendFolder: 'ahsSFTPSendFolder',
         ahsSFTPDownloadFolder: 'ahsSFTPDownloadFolder',
-        ahsSFTPPublicKeyPassPhrase: 'ahsSFTPPublicKeyPassPhrase'
+        ahsSFTPPublicKeyPassPhrase: 'ahsSFTPPublicKeyPassPhrase',
+        externalUrlBc: 'externalUrlBc',
+        externalUrlBcUserName: 'externalUrlBcUserName',
+        externalUrlBcPassword: 'externalUrlBcPassword'
     },
 
     paths: [
