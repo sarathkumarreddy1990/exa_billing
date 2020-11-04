@@ -223,7 +223,7 @@ module.exports = {
     processERAFile: async function (params) {
         let self = this,
             processDetails,
-            eraPath,
+            directoryPath,
             rootDir;
         let processDetailsArray = [];
         let message = [];
@@ -231,15 +231,15 @@ module.exports = {
         const eraFileDir = await data.getERAFilePathById(params);
 
         rootDir = eraFileDir.rows && eraFileDir.rows.length && eraFileDir.rows[0].root_directory ? eraFileDir.rows[0].root_directory : '';
-        eraPath = eraFileDir.rows && eraFileDir.rows.length && eraFileDir.rows[0].file_path ? eraFileDir.rows[0].file_path : '';
+        directoryPath = eraFileDir.rows && eraFileDir.rows.length && eraFileDir.rows[0].file_path ? eraFileDir.rows[0].file_path : '';
         params.uploaded_file_name = eraFileDir.rows && eraFileDir.rows.length && eraFileDir.rows[0].uploaded_file_name ? eraFileDir.rows[0].uploaded_file_name : '';
 
-        eraPath = path.join(rootDir, eraPath);
+        let dirFullPath = path.join(rootDir, directoryPath);
 
         try {
-            let dirExists = fs.existsSync(eraPath);
+            let dirStat = await statAsync(dirFullPath);
 
-            if (!dirExists) {
+            if (!dirStat.isDirectory()) {
 
                 message.push({
                     status: 100,
@@ -249,14 +249,32 @@ module.exports = {
                 return message;
 
             }
+            /**
+             * ERA file is stored in a directory with two naming conventions,
+             * One from the sftp and the other from the normal uploaded file.
+             * 1. Downloaded file from SFTP
+             * 2. edi_files table id (primary key)
+             * So file processing should be checked with two naming.
+             */
 
-            let eraFilePath = path.join(eraPath, params.uploaded_file_name);
+            let filePath = path.join(dirFullPath, params.uploaded_file_name);
 
-            if (!fs.existsSync(eraFilePath)) {
-                eraFilePath = path.join(eraPath, params.file_id);
+            if (!fs.existsSync(filePath)) {
+
+                filePath = path.join(dirFullPath, params.file_id);
+                stat = await statAsync(filePath);
+
+                if (!stat.isFile()) {
+                    message.push({
+                        status: 100,
+                        message: 'File not found in directory'
+                    });
+
+                    return message;
+                }
             }
 
-            let eraRequestText = await readFile(eraFilePath, 'utf8');
+            let eraRequestText = await readFile(filePath, 'utf8');
 
             let templateName = await ediConnect.getDefaultEraTemplate();
 
