@@ -21,7 +21,8 @@ router.get('/era_file_preview', async function (req, res) {
 
 router.get('/upload', function (req, res) {
     return res.render('../server/views/era-file-upload.pug', {
-        staticAssetsRoot
+        staticAssetsRoot,
+        csrfToken: req.csrfToken(),
     });
 });
 
@@ -49,7 +50,8 @@ router.post('/upload', upload.single('displayImage'), async function (req, res) 
             previewFileName: '',
             status: '',
             staticAssetsRoot,
-            ...response
+            ...response,
+            csrfToken: req.csrfToken(),
         });
     } catch (err) {
         httpHandler.sendError(req, res, err);
