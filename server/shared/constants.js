@@ -231,5 +231,6 @@ module.exports = {
         'auto_billing': 'AUTO',
         'submission_types': 'SUBT',
         'collections_process': 'COLL',
+        'send-claims-to-collections': 'SCTC',
     }
 };

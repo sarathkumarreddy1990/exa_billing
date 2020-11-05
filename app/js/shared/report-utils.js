@@ -8,18 +8,22 @@ define([
         var reportId = "";
         var UI = {
             getReportSetting: function (viewModel, report_id, code) {
+                var is_required = viewModel.reportId === 'collections';
                 $.ajax({
                     url: '/exa_modules/billing/reportSettingsRouter/getReportSetting',
                     type: 'GET',
                     async: false,
                     data: {
                         report_id: report_id,
-                        code: code
+                        code: code,
+                        company_id: app.companyID,
+                        is_required_company_settings: is_required
                     },
                     success: function (data, response) {
                         if (data[0].value !== undefined) {
                             viewModel[code] = data[0].value;
                             viewModel.country_alpha_3_code = data[0].country_alpha_3_code;
+                            viewModel.claim_write_off_required = data[0].claim_write_off_required || false;
                         }
                     },
                     error: function (err, response) {

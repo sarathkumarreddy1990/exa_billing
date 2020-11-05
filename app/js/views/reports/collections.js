@@ -74,6 +74,13 @@ define
                     enableCaseInsensitiveFiltering: true
                 });
                 UI.bindBillingProvider();
+
+                //check send claims to collection have user right
+                if (app.screens.indexOf('SCTC') == -1 && app.userInfo.user_type !== 'SU') {
+                    $('#divSendCollections').hide();
+                } else {
+                    $('#divSendCollections').show();
+                }
             },
 
             bindDateRangePicker: function () {
@@ -139,7 +146,8 @@ define
                 var openInNewTab = btnClicked ? btnClicked.attr('id') === 'btnViewReportNewTabCollections' : false;
                 self.viewModel.reportFormat = rFormat;
                 self.viewModel.openInNewTab = (openInNewTab && rFormat === 'html') ? true : false;
-                if ($('#chkSentCollections').prop('checked')) {
+
+                if ($('#chkSentCollections').prop('checked') && self.viewModel.claim_write_off_required) {
                     if (confirm(commonjs.geti18NString("messages.status.areYouSureToSendClaimstoCollections"))) {
                         self.viewModel.claimsToCollections = true;
                     } else {
