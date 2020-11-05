@@ -254,80 +254,85 @@ const bcModules = {
             return { responseCode: 'unableToWriteFile' };
         }
 
-        let promises =  submittedClaim.map( async(claim) => {
 
-            return new Promise(async (resolve, reject) => {
-                try {
+        let response = {
+            error: [],
+            data: []
+        };
 
-                    let {
-                        encodedText,
-                        submittedClaimIds = [],
-                        dataCentreNumber
-                    } = claim;
+        for(let i=0; i<submittedClaim.length; i++){
+            let claim = submittedClaim[i];
+        
+            try {
+                let {
+                    encodedText,
+                    submittedClaimIds = [],
+                    dataCentreNumber,
+                } = claim;
 
-                    if (!encodedText.length) {
-                        reject(true);
-                    } else if (encodedText.length && (submittedClaimIds.length || args.isBatchEligibilityFile)) {
-                        const now = moment();
-                        /* file_name generated to support in format XXXXXXYYYYMMDDXX
+                if (!encodedText.length) {
+                    response.error.push(true);
+                } else if (
+                    encodedText.length &&
+                    (submittedClaimIds.length || args.isBatchEligibilityFile)
+                ) {
+                    const now = moment();
+                    /* file_name generated to support in format XXXXXXYYYYMMDDXX
                             XXXXXX - Datacenter number
                             YYYY - year
                             MM - month
                             DD - date
                             XX - some random numbers, here it is current hour(HH) minute(mm) second(ss) and millisecond(SSS)
                         */
-                        const file_name = `${dataCentreNumber}_${now.format('YYYYMMDD_HHmmssSSS')}.txt`;
-                        const file_path = `MSP/Claims/${now.format('YYYY/MM/DD')}`;
-                        const fullPath = `${root_directory}/${file_path}/${file_name}`;
+                    const file_name = `${dataCentreNumber}_${now.format('YYYYMMDD_HHmmssSSS')}.txt`;
+                    const file_path = `MSP/Claims/${now.format('YYYY/MM/DD')}`;
+                    const fullPath = `${root_directory}/${file_path}/${file_name}`;
 
-                        await fse.outputFile(fullPath, encodedText);
+                    await fse.outputFile(fullPath, encodedText);
 
-                        const statAfter = await statAsync(fullPath);
-                        const file_size = statAfter.size;
-                        const file_md5 = crypto
-                            .createHash('MD5')
-                            .update(encodedText, 'utf8')
-                            .digest('hex');
+                    const statAfter = await statAsync(fullPath);
+                    const file_size = statAfter.size;
+                    const file_md5 = crypto
+                        .createHash('MD5')
+                        .update(encodedText, 'utf8')
+                        .digest('hex');
 
-                        let ediFileId = await bcController.storeFile({
-                            file_store_id,
-                            file_path,
-                            file_name,
-                            file_md5,
-                            file_size,
-                            companyId: args.companyId
+                    let ediFileId = await bcController.storeFile({
+                        file_store_id,
+                        file_path,
+                        file_name,
+                        file_md5,
+                        file_size,
+                        companyId: args.companyId,
+                    });
+
+                    if (!args.isBatchEligibilityFile) {
+                        await bcController.ediFiles({
+                            ediFileId,
+                            claimIds: submittedClaimIds,
                         });
 
-                        if (!args.isBatchEligibilityFile) {
-                            await bcController.ediFiles({
-                                ediFileId,
-                                claimIds: submittedClaimIds
-                            });
-
-                            await bcController.updateClaimsStatus({
-                                claimIds: submittedClaimIds,
-                                statusCode: 'SU',
-                                claimNote: 'Electronic claim submitted',
-                                userId: args.userId,
-                            });
-                        }
-
-                        resolve(true);
+                        await bcController.updateClaimsStatus({
+                            claimIds: submittedClaimIds,
+                            statusCode: 'SU',
+                            claimNote: 'Electronic claim submitted',
+                            userId: args.userId,
+                        });
                     }
-                } catch (err) {
-                    reject(err);
-                }
-            });
-        });
 
-        return  await Promise.all(promises).then((data) => {
-            if (data) {
-                return { responseCode: 'submitted' };
+                    response.data.push(true);
+                }
+            } catch (err) {
+                response.error.push(err);
             }
-        }).catch((error) => {
-            logger.error('Error occured in wrting file', error);
+        }
+
+        if(response.error.length){
+            logger.error('Error occured in wrting file', response.error);
             return { responseCode: 'exceptionErrors' };
-        });
+        }
+
+        return { responseCode: 'submitted' };
     },
 
 
