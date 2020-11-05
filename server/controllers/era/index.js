@@ -60,6 +60,12 @@ const createDir = function (fileStorePath, filePath) {
     });
 };
 
+/**
+ * Function used to check whether the file is invalid or not
+ * @param {String} fileString fileString,
+ * @param {String} billingRegionCode billingRegionCode
+ * @returns {Boolean} true if fileString doesn't contains the mentioned string subset
+ */
 const checkInvalidFileContent = (fileString, billingRegionCode) => {
 
     switch(billingRegionCode) {
@@ -138,6 +144,7 @@ module.exports = {
         bufferString = bufferString.trim() || '';
 
         if (!isEob && checkInvalidFileContent(bufferString, params.billingRegionCode)) {
+            logger.error(`Invalid Remittance File ${fileName}`);
             return {
                 status: 'INVALID_FILE',
             };
