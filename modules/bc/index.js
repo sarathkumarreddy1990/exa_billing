@@ -392,9 +392,9 @@ const bcModules = {
                             case 'VS1': {
                                 fileTextArray[i] = `${record.substring(0, 8)}${currentSequence}${record.substring(15)}`;
                                 sequenceMapping[recordCode].push(currentSequence);
+                                break;
                             }
 
-                                break;
                             case 'C02': {
                                 let chargeId = record.substring(8, 15);
                                 claimNumber = record.substring(139, 146);
@@ -409,9 +409,10 @@ const bcModules = {
                                     edi_file_claim_id: id,
                                     can_bc_data_centre_number
                                 });
-                            }
 
                                 break;
+                            }
+
                             case 'N01': {
 
                                 let { id } = await bcController.getediFileClaimId(claimNumber, edi_file_id);
@@ -422,9 +423,9 @@ const bcModules = {
                                     edi_file_claim_id: id,
                                     can_bc_data_centre_number
                                 });
-                            }
 
                                 break;
+                            }
 
                             case 'B04': {
                                 isBatchEligibilityFile = true;
@@ -436,6 +437,8 @@ const bcModules = {
                                     can_bc_data_centre_number,
                                     study_id: studyId
                                 });
+
+                                break;
                             }
                         }
 

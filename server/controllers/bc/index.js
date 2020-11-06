@@ -23,61 +23,33 @@ const bcController = {
         return { claimIds: claimIds.toString() };
     },
 
-    submitClaim: async (args) => {
-        return await bcData.submitClaim(args);
-    },
+    submitClaim: bcData.submitClaim,
 
-    getCompanyFileStore: async (args) => {
-        return await bcData.getCompanyFileStore(args);
-    },
+    getCompanyFileStore: bcData.getCompanyFileStore,
 
-    storeFile: async (args) => {
-        return await bcData.storeFile(args);
-    },
+    storeFile:  bcData.storeFile,
 
-    ediFiles: async (args) => {
-        return await bcData.ediFiles(args);
-    },
+    ediFiles:  bcData.ediFiles,
 
-    updateClaimsStatus: async (args) => {
-        return await bcData.updateClaimsStatus(args);
-    },
+    updateClaimsStatus: bcData.updateClaimsStatus,
 
-    getAllClaims: async (args) => {
-        return await bcData.getAllClaims(args.companyId);
-    },
+    getAllClaims: async (args) =>  await bcData.getAllClaims(args.companyId),
 
-    updateEDIFile: async (args) => {
-        return await bcData.updateEDIFile(args);
-    },
+    updateEDIFile: bcData.updateEDIFile,
 
-    getLastUpdatedSequence: async (args) => {
-        return await bcData.getLastUpdatedSequence(args);
-    },
+    getLastUpdatedSequence: bcData.getLastUpdatedSequence,
 
-    ediFilesNotes: async (args, submittedClaimDetails) => {
-        return await bcData.ediFilesNotes(args, submittedClaimDetails);
-    },
+    ediFilesNotes: async (args, submittedClaimDetails) => await bcData.ediFilesNotes(args, submittedClaimDetails),
 
-    ediFilesCharges: async(submittedClaimDetails) => {
-        return await bcData.ediFilesCharges(submittedClaimDetails);
-    },
+    ediFilesCharges: bcData.ediFilesCharges,
 
-    getAllpendingFiles: async(args) => {
-        return await bcData.getAllpendingFiles(args);
-    },
+    getAllpendingFiles: bcData.getAllpendingFiles,
 
-    updateLastSequenceNumber: async(args, billing_provider_id, currentSequence) => {
-        return await bcData.updateLastSequenceNumber(args, billing_provider_id, currentSequence);
-    },
+    updateLastSequenceNumber: async(args, billing_provider_id, currentSequence) => await bcData.updateLastSequenceNumber(args, billing_provider_id, currentSequence),
 
-    saveBatchEligibilitySequence: async(args) => {
-        return await bcData.saveBatchEligibilitySequence(args);
-    },
+    saveBatchEligibilitySequence: bcData.saveBatchEligibilitySequence,
 
-    getediFileClaimId: async(claim_number, edi_file_id) => {
-        return await bcData.getediFileClaimId(claim_number, edi_file_id);
-    },
+    getediFileClaimId: async(claim_number, edi_file_id) => await bcData.getediFileClaimId(claim_number, edi_file_id),
 
 
 };
