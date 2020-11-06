@@ -19,7 +19,7 @@ const statAsync = promisify(fs.stat);
 
 const createDir = function (fileStorePath, filePath) {
     return new Promise(function(resolve, reject) {
-        const dirPath = `${fileStorePath}\\${filePath}`;
+        const dirPath = `${fileStorePath}/${filePath}`;
 
         logger.info(`File store: ${fileStorePath}, ${filePath}`);
 
@@ -70,13 +70,13 @@ const checkInvalidFileContent = (fileString, billingRegionCode) => {
 
     switch(billingRegionCode) {
         case 'can_ON':
-            return (fileString.indexOf('HR1') == -1 || fileString.indexOf('HR4') == -1 || fileString.indexOf('HR7') == -1);
+            return !(fileString.indexOf('HR1') !== -1 && fileString.indexOf('HR4') !== -1 && fileString.indexOf('HR7') !== -1);
         case 'can_MB':
             return false;
         case 'can_BC':
-            return (fileString.indexOf('M01') == -1 || fileString.indexOf('VTC') == -1);
+            return !(fileString.indexOf('M01') !== -1 && fileString.indexOf('VTC') !== -1);
         default:
-            return (fileString.indexOf('ISA') == -1 || fileString.indexOf('CLP') == -1);
+            return !(fileString.indexOf('ISA') !== -1 && fileString.indexOf('CLP') !== -1);
     }
 
 };
