@@ -258,13 +258,20 @@ module.exports = {
              */
 
             let filePath = path.join(dirFullPath, params.uploaded_file_name);
+            let fileStat;
 
-            if (!fs.existsSync(filePath)) {
+            try {
+                fileStat = await statAsync(filePath);
+             } catch(e) {
+                logger.logInfo('Could not found era file by file name.');
+            }
+
+            if (!fileStat || (fileStat && !fileStat.isFile())) {
 
                 filePath = path.join(dirFullPath, params.file_id);
-                stat = await statAsync(filePath);
+                fileStat = await statAsync(filePath);
 
-                if (!stat.isFile()) {
+                if (!fileStat.isFile()) {
                     message.push({
                         status: 100,
                         message: 'File not found in directory'
