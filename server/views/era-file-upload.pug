@@ -43,7 +43,8 @@ html
             }
 
             function download(e) {
-                parent.commonjs.showLoading('Downloading file. please wait..');
+                var loadingMsg = parent.commonjs.geti18NString('billing.era.eraDownloadingStatus');
+                parent.commonjs.showLoading(loadingMsg);
 
                 $.ajax({
                     type: "GET",
