@@ -71,6 +71,7 @@ module.exports = {
                 , p.last_name
                 , p.full_name
                 , p.provider_code
+                , p.specialities
                 , hstore_to_json(contact_info) AS contact_info
                 , COUNT(1) OVER (range unbounded preceding) AS total_records
             FROM public.providers p

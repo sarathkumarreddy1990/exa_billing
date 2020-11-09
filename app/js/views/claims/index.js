@@ -88,6 +88,7 @@ define(['jquery',
             patientTotalRecords: 0,
             patientAddress: {},
             priInsCode : '',
+            isProviderChiropractor: false,
             elIDs: {
                 'primaryInsAddress1': '#txtPriSubPriAddr',
                 'primaryInsAddress2': '#txtPriSubSecAddr',
@@ -1210,6 +1211,17 @@ define(['jquery',
                     $('#txtClaimDate').val(self.studyDate ? lineItemStudyDate : defaultStudyDate);
                     $('#divClaimDate').hide();
                 }
+
+                if (app.billingRegionCode === 'can_BC') {
+                    self.isProviderChiropractor = _.some(claim_data.specialities, function(val) {
+                        return val.toLowerCase() === 'chiropractor';
+                    }) || false;
+
+                    if (!self.isEdit && self.isProviderChiropractor && (!self.priInsCode || self.priInsCode.toLowerCase() === 'msp') ) {
+                        $('#ddlClaimResponsible').val('PPP');
+                    }
+                }
+                self.toggleWCBInjuryTypes();
                 self.disableElementsForProvince(claim_data);
                 /* Common Details end */
 
@@ -1614,6 +1626,11 @@ define(['jquery',
             toggleOtherClaimNumber: function() {
                 var originalRef = commonjs.geti18NString("billing.claims.originalRef");
                 var otherClaimNumber = commonjs.geti18NString("billing.payments.otherClaimNumber");
+
+                if (app.billingRegionCode === 'can_BC'){
+                    $("#lblOriginalRef").text(otherClaimNumber);
+                    $("#txtOriginalRef").attr({ 'placeholder': otherClaimNumber});
+                }
 
                 if (app.billingRegionCode === 'can_BC' && ($('#chkEmployment').prop('checked') || $('#chkAutoAccident').prop('checked'))) {
                     $("#lblOriginalRef").text(otherClaimNumber).append("<span class='Required' style='color: red;padding-left: 5px;'>*</span>");
@@ -3216,6 +3233,10 @@ define(['jquery',
                 if (payer_type == 'PIP_P' && !self.isEdit) {
                     $('#ddlClaimResponsible').val('PIP_P');
                 }
+
+                if (app.billingRegionCode === 'can_BC' && self.isProviderChiropractor && res.insurance_code.toLowerCase() === 'msp') {
+                    $('#ddlClaimResponsible').val('PPP');
+                }
             },
 
             updateInsAddress: function (level, res) {
@@ -3405,9 +3426,15 @@ define(['jquery',
                     }
                     setTimeout(function () {
                         if (!self.isEdit) {
+                            var responsibleEle = $('#ddlClaimResponsible');
                             var responsibleIndex = _.find(self.responsible_list, function (item) { return item.payer_type == 'PIP_P'; });
                             var val = responsibleIndex && responsibleIndex.payer_id ? 'PIP_P' : 'PPP'
-                            $('#ddlClaimResponsible').val(val);
+
+                            if (app.billingRegionCode === 'can_BC' && self.isProviderChiropractor && (!self.priInsCode || self.priInsCode.toLowerCase() === 'msp')) {
+                                responsibleEle.val('PPP');
+                            } else {
+                                responsibleEle.val(val);
+                            }
                         }
                     }, 200);
 
@@ -3902,11 +3929,18 @@ define(['jquery',
                     return false;
                 }
 
-                if (app.billingRegionCode === 'can_BC' && ($('#chkEmployment').prop('checked') || $('#chkAutoAccident').prop('checked'))) {
-                    if (!commonjs.checkNotEmpty($('#txtOriginalRef').val())) {
-                        commonjs.showWarning("messages.warning.shared.otherClaimNumber");
-                        $('#txtOriginalRef').focus();
-                        return false;
+                if (app.billingRegionCode === 'can_BC') {
+
+                    if (self.isProviderChiropractor && (!self.priInsCode || self.priInsCode.toLowerCase() === 'msp') && $('#ddlClaimResponsible').val() !== 'PPP') {
+                        alert(commonjs.geti18NString('messages.warning.shared.responsiblePartyMustBePatient'));
+                    }
+
+                    if ($('#chkEmployment').prop('checked') || $('#chkAutoAccident').prop('checked')) {
+                        if (!commonjs.checkNotEmpty($('#txtOriginalRef').val())) {
+                            commonjs.showWarning("messages.warning.shared.otherClaimNumber");
+                            $('#txtOriginalRef').focus();
+                            return false;
+                        }
                     }
                 }
 
