@@ -32,7 +32,8 @@ define(['jquery',
             events: {
                 'change #ddlXmlTemplateSyntax' : 'changeXmlTemplateSyntax',
                 'keyup #txtSubElementDelimiter': 'checkValidSubDelimiter',
-                'keyup #txtElementDelimiter': 'checkValidDelimiter'
+                'keyup #txtElementDelimiter': 'checkValidDelimiter',
+                'change #chkEnableFTP': 'showFTPDetails'
             },
 
             initialize: function (options) {
@@ -205,7 +206,19 @@ define(['jquery',
                                         $('#txtUserName').val(info.userID ? info.userID : '');
                                         $('#txtPassword').val(info.password ? info.password : '');
                                     }
+
+                                    $('#chkEnableFTP').prop('checked', !!info.enable_ftp);
+                                    $('#txtHostName').val(info.ftp_host || '');
+                                    $('#txtPort').val(info.ftp_port || '');
+                                    $('#txtUserName').val(info.ftp_user_name || '');
+                                    $('#txtPassword').val(info.ftp_password || '');
+                                    $('#ddlFtpType').val(info.ftp_type || '');
+                                    $('#txtSentFolder').val(info.ftp_sent_folder || '');
+                                    $('#txtReceiveFolder').val(info.ftp_receive_folder || '');
+                                    $('#txtIdentityFilePath').val(info.ftp_identity_file || '');
                                 }
+
+                                self.showFTPDetails();
                             }
                         }
                     });
@@ -238,6 +251,7 @@ define(['jquery',
                 ]});
                 $('#divEDIClearingHousesGrid').hide();
                 $('#divEDIClearingHousesForm').show();
+                $('#divFTPDetails').hide();
                 commonjs.processPostRender();
             },
             saveEDIClearingHouses : function() {
@@ -297,6 +311,7 @@ define(['jquery',
             },
 
             save: function () {
+                var isFtpEnabled = $('#chkEnableFTP').prop('checked');
                 var communication_info = {
                     authorizationInformation: $('#txtAuthInfo').val(),
                     authorizationInformationQualifier: $('#txtAuthInfoQualifier').val(),
@@ -325,7 +340,16 @@ define(['jquery',
                     xmlSyntaxTag: $('#ddlXmlTemplateSyntax').val(),
                     userID: $('#txtUserName').val(),
                     password: $('#txtPassword').val(),
-                    providerOfficeNumber: $('#txtProviderOfficeNo').val()
+                    providerOfficeNumber: $('#txtProviderOfficeNo').val(),
+                    enable_ftp: isFtpEnabled,
+                    ftp_host: isFtpEnabled ? $('#txtHostName').val() : "",
+                    ftp_port: isFtpEnabled ? $('#txtPort').val() : "",
+                    ftp_user_name: isFtpEnabled ? $('#txtUserName').val() : "",
+                    ftp_password: isFtpEnabled ? $('#txtPassword').val() : "",
+                    ftp_type: isFtpEnabled ? $('#ddlFtpType').val() : "",
+                    ftp_sent_folder: isFtpEnabled ? $('#txtSentFolder').val() : "",
+                    ftp_receive_folder: isFtpEnabled ? $('#txtReceiveFolder').val() : "",
+                    ftp_identity_file: isFtpEnabled ? $('#txtIdentityFilePath').val() : ""
                 }
                 this.model.set({
                     "name": $('#txtName').val(),
@@ -385,6 +409,14 @@ define(['jquery',
                 });
 
                 return templates;
+            },
+
+            showFTPDetails: function () {
+                if ($('#chkEnableFTP').prop('checked')) {
+                    $('#divFTPDetails').show();
+                } else {
+                    $('#divFTPDetails').hide();
+                }
             }
         });
         return EDIClearingHousesView;
