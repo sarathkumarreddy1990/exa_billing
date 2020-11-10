@@ -1,6 +1,6 @@
-const _ = require('lodash');
 const bcModules = require('./');
-const bcController = require('../../server/controllers/BC');
+const _ = require('lodash');
+const bcController = require('../../server/controllers/bc');
 const logger = require('../../logger');
 
 const bcCronService = {
@@ -47,6 +47,7 @@ const bcCronService = {
         });
 
         return await Promise.all(promises);
+
     },
 
     /**
@@ -59,13 +60,51 @@ const bcCronService = {
         } = data;
 
         switch (action) {
-            case 'download':
+            case 'BCCLAIMSUBMISSIONSERVICE':
+                return bcCronService.submitPendingSubmission(data);
+            case 'BCFILESUPLOADSERVICE':
+                return bcCronService.transferFileToMsp(data);
+            case 'BCBATCHELIGIBILITYSERVICE':
+                return bcCronService.submitBatchEligibility(data);
+            case 'BCFILESDOWNLOADSERVICE':
                 return bcModules.downloadFiles(data);
-            case 'process':
+            case 'BCFILESPROCESSSERVICE':
                 return bcCronService.processFile(data);
         }
-    }
+    },
 
+    /**
+     * submitPendingSubmission -
+      To submit all pending submission claims
+     * @param  {Object} args
+     */
+    submitPendingSubmission: async (args) => {
+        let result = await bcController.getAllClaims(args);
+        let [{ ids }] = result.length && result || [{}];
+
+        if (ids && ids.length) {
+            args.claimIds = ids;
+            let response = await bcModules.submitClaims(args);
+            return [response];
+        } 
+
+        return [{ responseCode: 'noRecord' }];
+    },
+
+    /**
+     * transferFileToMsp - To submit edi files to MSP portal
+     * @param  {Object} args  
+     * @param  {Object} data
+     */
+    transferFileToMsp: async (data) => {
+        let fileList = await bcController.getAllpendingFiles(data);
+
+        if (!fileList.rows || !fileList.rows.length) {
+            return [{ responseCode: 'noPendingEdiFile' }];
+        }
+
+        return await bcModules.transferFileToMsp(data, fileList.rows);
+    }
 };
 
 module.exports = bcCronService;

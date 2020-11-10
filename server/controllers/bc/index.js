@@ -23,25 +23,35 @@ const bcController = {
         return { claimIds: claimIds.toString() };
     },
 
-    submitClaim: async (args) => {
-        return await bcData.submitClaim(args);
-    },
+    submitClaim: bcData.submitClaim,
 
-    getCompanyFileStore: async (args) => {
-        return await bcData.getCompanyFileStore(args);
-    },
+    getCompanyFileStore: bcData.getCompanyFileStore,
 
-    storeFile: async (args) => {
-        return await bcData.storeFile(args);
-    },
+    storeFile:  bcData.storeFile,
 
-    ediFiles: async (args) => {
-        return await bcData.ediFiles(args);
-    },
+    ediFiles:  bcData.ediFiles,
 
-    updateClaimsStatus: async (args) => {
-        return await bcData.updateClaimsStatus(args);
-    }
+    updateClaimsStatus: bcData.updateClaimsStatus,
+
+    getAllClaims: async (args) =>  await bcData.getAllClaims(args.companyId),
+
+    updateEDIFile: bcData.updateEDIFile,
+
+    getLastUpdatedSequence: bcData.getLastUpdatedSequence,
+
+    ediFilesNotes: async (args, submittedClaimDetails) => await bcData.ediFilesNotes(args, submittedClaimDetails),
+
+    ediFilesCharges: bcData.ediFilesCharges,
+
+    getAllpendingFiles: bcData.getAllpendingFiles,
+
+    updateLastSequenceNumber: async(args, billing_provider_id, currentSequence) => await bcData.updateLastSequenceNumber(args, billing_provider_id, currentSequence),
+
+    saveBatchEligibilitySequence: bcData.saveBatchEligibilitySequence,
+
+    getediFileClaimId: async(claim_number, edi_file_id) => await bcData.getediFileClaimId(claim_number, edi_file_id),
+
+
 };
 
 module.exports = bcController;

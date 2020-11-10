@@ -191,7 +191,7 @@ const processResults = (args, service) => {
         comments: !isNO1required ? can_supporting_text : '',
         mva_claim_code: is_auto_accident ? 'Y' : 'N',
         icbc_claim_number: submission_code === 'I' ? original_reference : dob_icbc_claim_number,
-        file_number: submission_code === 'E' ? `${can_bc_data_centre_number}${((service.last_sequence.toString()).padStart(7, '0')).slice(0, 7)}` : '0',
+        file_number: submission_code === 'E' ? `${can_bc_data_centre_number}${(((service.last_sequence && service.last_sequence.toString()) || '').padStart(7, '0')).slice(0, 7)}` : '0',
         facility_number: can_facility_number,
         insurer_code,
         facility_sub_number,

@@ -1,5 +1,5 @@
 'use strict';
-const { queryRows, SQL, query } = require('../index');
+const { queryRows, SQL, query, queryWithAudit } = require('../index');
 
 const bcData = {
 
@@ -265,7 +265,286 @@ const bcData = {
                 billing.claims.id
         `;
         return await query(sql.text, sql.values);
-    }
+    },
+
+    /*
+    * getAllClaims - Get all pending submission claim ids
+    * @param {BigInteger} companyId - company id
+    * @returns {Object}
+    */
+    getAllClaims: async(companyId) => {
+        const pendingSubmissionClaims = SQL`
+                                            SELECT
+                                                ARRAY_AGG(claims.id)  AS ids
+                                            FROM billing.claims
+                                            INNER JOIN billing.claim_status cs ON cs.id = claims.claim_status_id
+                                            WHERE cs.code = 'PS'
+                                                AND claims.billing_method = 'electronic_billing'
+                                                AND claims.company_id = ${companyId}`;
+
+        return await queryRows(pendingSubmissionClaims);
+    },
+
+    /**
+    * updateEDIFile - EDI file status update
+    * @param {object} args    {
+    *                             status: String,
+    *                             ediFileId: Number,
+    *                             fileInfo: Object
+    *                         }
+    * @returns {BigInt} id
+    */
+    updateEDIFile: async (args) => {
+        const {
+            status,
+            ediFileId,
+            fileInfo,
+        } = args;
+
+        const sql = SQL`
+            UPDATE
+                billing.edi_files ef
+            SET`;
+
+        if (fileInfo) {
+            sql.append(SQL`
+                file_size = ${fileInfo.file_size},
+                file_md5 = ${fileInfo.file_md5},
+            `);
+        }
+
+        sql.append(SQL`
+                status = ${status}
+            WHERE
+                ef.id = ${ediFileId}
+            RETURNING
+                id;
+        `);
+
+        return await query(sql.text, sql.values);
+    },
+
+    /**
+    * getLastUpdatedSequence - Last sequence number of billing provider
+    * @param {bigint} providerId  - billing provider id
+    * 
+    *  @returns {Int} sequence number
+    */
+    getLastUpdatedSequence: async(providerId) => {
+        const sql = SQL`
+                        SELECT 
+                            can_bc_data_centre_sequence_number
+                        FROM billing.providers 
+                        WHERE id = ${providerId}`;
+
+        return (await queryRows(sql)).pop();
+    },
+
+    /**
+    * ediFilesCharges - Insert edi file claim's charge details
+    * @param {Object} submittedClaimDetails  - charge object
+    */
+    ediFilesCharges: async(submittedClaimDetails) => {
+        const sql = SQL`
+                        WITH cte AS (
+                            SELECT
+                                "charge_id"
+                                , "edi_file_claim_id"
+                                , "can_bc_data_centre_number"
+                                , "current_sequence"
+                        FROM  jsonb_to_recordset(${JSON.stringify(submittedClaimDetails)}) AS (
+                                "charge_id" BIGINT ,
+                                "edi_file_claim_id" BIGINT,
+                                "can_bc_data_centre_number" TEXT,
+                                "current_sequence" INT)
+                        )
+                        INSERT INTO billing.edi_file_charges (
+                            charge_id
+                            , data_centre_number
+                            , edi_file_claim_id
+                            , sequence_number
+                        ) SELECT
+                            charge_id
+                            , can_bc_data_centre_number
+                            , edi_file_claim_id
+                            , current_sequence
+                            FROM cte
+                        `;
+
+        return await queryRows(sql);
+    },
+
+    /**
+    * getAllpendingFiles - fetch pending file status
+    * @param {object} args    {
+    *                             companyId: BIGINT,
+    *                         }
+    */
+    getAllpendingFiles: async(args)=> {
+        const {
+            companyId
+        } = args;
+
+        const sql = SQL`
+                    SELECT  
+                        billing_providers.billing_provider_id
+                        , billing_providers.claim_id
+                        , billing_providers.can_bc_data_centre_number
+                        , bef.id AS edi_file_id
+                        , fs.root_directory
+                        , bef.file_path
+                        , bef.uploaded_file_name
+                        , c.time_zone
+                    FROM  billing.edi_files bef 
+                    INNER JOIN file_stores fs ON fs.id = bef.file_store_id
+                    INNER JOIN companies c ON c.id = ${companyId}
+                    INNER JOIN LATERAL (
+                        SELECT
+                            bp.id AS billing_provider_id
+                            , befc.id AS claim_id
+                            , bp.can_bc_data_centre_number
+                        FROM billing.edi_file_claims befc
+                        INNER JOIN billing.claims bc ON bc.id = befc.claim_id
+                        INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
+                        WHERE befc.edi_file_id = bef.id
+                        LIMIT 1 
+                    ) billing_providers ON true
+                    WHERE bef.status  = 'pending' AND bef.company_id = ${companyId} AND bef.file_type = 'can_bc_submit'
+                    ORDER BY bef.id DESC
+        `;
+
+        return await query(sql);
+    },
+
+    /**
+    * updateLastSequenceNumber - update last sequence number of billing provider
+    * @param {bigint} billing_provider_id  - provider id
+    * @param {Int} currentSequence  - sequence number
+    */
+    updateLastSequenceNumber: async(args, billing_provider_id, currentSequence) => {
+        const sql = SQL`
+                        UPDATE billing.providers
+                        SET can_bc_data_centre_sequence_number = ${currentSequence}
+                        WHERE id = ${billing_provider_id}
+                        RETURNING *,
+                        (
+                            SELECT row_to_json(old_row)
+                            FROM   (SELECT *
+                                    FROM   billing.providers
+                                    WHERE  id = ${billing_provider_id}) old_row
+                        ) old_values`;
+
+
+        return await queryWithAudit(sql, {
+            logDescription: `Update: Sequence number for billing provider(${billing_provider_id}) updated`,
+            userId: args.userId || 1,
+            entityName: 'claims submission(cron service)',
+            screenName: 'claim submission(cron service)',
+            moduleName: 'claims',
+            clientIp: args.ip || '127.0.0.1',
+            companyId: args.companyId
+        });
+    },
+
+    /**
+    * ediFilesNotes - insert edi file note
+    *  @param {object} submittedClaimDetails - submitted claim notes
+    */
+    ediFilesNotes: async(args, submittedClaimDetails) => {
+        const sql = SQL`
+                        WITH cte AS (
+                            SELECT
+                                "edi_file_claim_id"
+                                , "can_bc_data_centre_number"
+                                , "current_sequence"
+                            FROM  jsonb_to_recordset(${JSON.stringify(submittedClaimDetails)}) AS (
+                                "edi_file_claim_id" BIGINT
+                                , "can_bc_data_centre_number" TEXT
+                                , "current_sequence" INT)
+                        ), insert_billing_notes AS (
+                            INSERT INTO billing.edi_file_billing_notes (
+                                data_centre_number
+                                , edi_file_claim_id
+                                , sequence_number
+                            )
+                            SELECT
+                                can_bc_data_centre_number
+                                , edi_file_claim_id
+                                , current_sequence
+                            FROM cte
+                            RETURNING *, '{}'::jsonb old_values
+                        ), audit_cte AS (
+                            SELECT billing.create_audit(
+                                ${args.companyId}
+                                , ${args.screenName}
+                                , ibn.id
+                                , ${args.screenName}
+                                , ${args.moduleName}
+                                , ${args.logDescription}
+                                , ${args.ip || '127.0.0.1'}
+                                , json_build_object(
+                                    'old_values', (SELECT COALESCE(old_values, '{}') FROM insert_billing_notes),
+                                    'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM insert_billing_notes) temp_row)
+                                  )::jsonb
+                                , ${args.userId || 1}
+                            ) id
+                            FROM insert_billing_notes ibn
+                        )
+                        SELECT  *
+                        FROM    audit_cte`;
+                        
+        return await queryRows(sql);
+    },
+
+    /**
+    * saveBatchEligibilitySequence - insert batch eligibility sequence
+    *  @param {object} submittedeligibilityDetails - eligibility details
+    */
+    saveBatchEligibilitySequence: async(submittedeligibilityDetails) => {
+        const sql = SQL`
+                    WITH cte AS (
+                        SELECT  
+                            "study_id"
+                            , "can_bc_data_centre_number"
+                            , "current_sequence"
+                            , "edi_file_id"
+                        FROM  jsonb_to_recordset(${JSON.stringify(submittedeligibilityDetails)}) AS (
+                            "study_id" BIGINT
+                            , "can_bc_data_centre_number" TEXT
+                            , "current_sequence" INT
+                            , "edi_file_id" BIGINT)
+                    )
+                    INSERT INTO billing.edi_file_batch_eligibility (
+                        study_id
+                        , data_centre_number
+                        , sequence_number
+                        , edi_file_id
+                    )
+                    SELECT
+                        study_id
+                        , can_bc_data_centre_number
+                        , current_sequence
+                        , edi_file_id
+                    FROM cte`;
+                    
+        return await queryRows(sql);
+    },
+
+    /**
+    * getediFileClaimId - Get edi_file_claims id for submitted claim and edi file
+    * @param {bigint} claim_number  - claim number
+    * @param {bigint} edi_file_id  - edi file id
+    */
+    getediFileClaimId: async(claim_number, edi_file_id) => {
+        const sql = SQL`
+                    SELECT 
+                        id
+                    FROM billing.edi_file_claims  
+                    WHERE edi_file_id = ${edi_file_id}
+                    AND claim_id = ${claim_number}`;
+
+        return (await queryRows(sql)).pop();
+    },
 
 };
 
