@@ -190,7 +190,7 @@ module.exports = {
                     UNION ALL
                     (SELECT
                         befbn.id AS id
-                        , COALESCE(null, '') AS payment_id
+                        , '' AS payment_id
                         , null AS code
                         , null AS type
                         , 'Note record submitted' AS comments
