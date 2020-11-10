@@ -243,7 +243,7 @@ module.exports = {
                     , ${payToFaxNumber}
                     , ${communicationInfo}
                     , ${companyId}
-                    , ${canIsAlternatePaymentProgram}
+                    , ${canIsAlternatePaymentProgram || false}
                     , ${dataCentreNumber}
                     , '0'::INT
                     , ${inactivated_dt})
@@ -326,7 +326,7 @@ module.exports = {
                 , pay_to_fax_number = ${payToFaxNumber}
                 , communication_info = ${communicationInfo}
                 , inactivated_dt = ${inactivated_dt}
-                , can_bc_is_alt_payment_program = ${canIsAlternatePaymentProgram}
+                , can_bc_is_alt_payment_program = ${canIsAlternatePaymentProgram || false}
                 , can_bc_data_centre_number = ${dataCentreNumber}
                 WHERE
                     id = ${id}
