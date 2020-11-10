@@ -148,7 +148,7 @@ module.exports = {
                         , type AS code
                         , null AS type
                         , note AS comments
-                        , cc.created_dt as commented_dt
+                        , cc.created_dt::text as commented_dt
                         , is_internal
                         , null AS charge_amount
                         , '{}'::text[] AS charge_pointer
@@ -166,7 +166,7 @@ module.exports = {
                         , 'charge' AS code
                         , cpt.display_code AS  type
                         , cpt.short_description AS comments
-                        , ch.charge_dt as commented_dt
+                        , ch.charge_dt::text as commented_dt
                         , false AS is_internal
                         , (ch.units * ch.bill_fee) AS charge_amount
                         , ARRAY[COALESCE(pointer1, ''), COALESCE(pointer2, ''), COALESCE(pointer3, ''), COALESCE(pointer4, '')] AS charge_pointer
@@ -202,7 +202,7 @@ module.exports = {
                             WHEN bp.payer_type = 'ordering_provider' THEN
                                     p.full_name
                             END as comments
-                        , bp.accounting_date as commented_dt
+                        , bp.accounting_date::text AS commented_dt
                         , false AS is_internal
                         , null AS charge_amount
                         , '{}'::text[] AS charge_pointer
@@ -236,7 +236,7 @@ module.exports = {
                         , 'refund' AS code
                         , 'Refund'  AS type
                         , adj.description AS comments
-                        , bp.accounting_date AS commented_dt
+                        , bp.accounting_date::text AS commented_dt
                         , false AS is_internal
                         , null AS charge_amount
                         , '{}'::text[] AS charge_pointer
@@ -824,7 +824,7 @@ module.exports = {
                 havingQuery += ' AND  SUM(balance) <> (0)::MONEY';
             }
         }
-        
+
         if (params.invoice_payment) {
             havingQuery += ` AND SUM(payment) = (${params.invoice_payment})::MONEY`;
         }
@@ -899,7 +899,7 @@ module.exports = {
                 ${havingQuery}
                 ORDER BY ${sortField}  ${sortOrder}   LIMIT ${pageSize}
                 OFFSET ${((pageNo * pageSize) - pageSize)}`;
-                
+
         return await query(sql);
 
     },
