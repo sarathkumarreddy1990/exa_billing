@@ -103,6 +103,7 @@ module.exports = {
                                         COALESCE(NULLIF(order_info->'accident_state',''), '') AS accident_state,
                                         referring_provider.ref_prov_full_name,
                                         referring_provider.referring_provider_contact_id,
+                                        referring_provider.specialities,
                                         (   SELECT
                                                     studies.study_info->'refDescription'
                                             FROM
@@ -152,7 +153,8 @@ module.exports = {
                                         LEFT JOIN LATERAL (
                                             SELECT
                                                 pc.id AS referring_provider_contact_id,
-                                                p.full_name AS ref_prov_full_name
+                                                p.full_name AS ref_prov_full_name,
+                                                p.specialities
                                             FROM
                                                 providers p
                                             INNER JOIN provider_contacts pc ON pc.provider_id = p.id
@@ -516,6 +518,7 @@ module.exports = {
                     , ref_pr.full_name AS ref_prov_full_name
                     , ref_pr.provider_code AS ref_prov_code
                     , ref_pr.provider_info->'NPI' AS referring_prov_npi_no
+                    , ref_pr.specialities
                     , rend_pr.full_name AS reading_phy_full_name
                     , rend_pr.provider_info->'NPI' AS rendering_prov_npi_no
                     , pg.group_info->'AddressLine1' AS service_facility_addressLine1
