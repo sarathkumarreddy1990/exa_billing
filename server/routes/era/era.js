@@ -23,6 +23,7 @@ router.get('/upload', function (req, res) {
     return res.render('../server/views/era-file-upload.pug', {
         staticAssetsRoot,
         csrfToken: req.csrfToken(),
+        billingRegionCode: req.session && req.session.billingRegionCode || ''
     });
 });
 
@@ -52,6 +53,7 @@ router.post('/upload', upload.single('displayImage'), async function (req, res) 
             staticAssetsRoot,
             ...response,
             csrfToken: req.csrfToken(),
+            billingRegionCode: req.billingRegionCode || ''
         });
     } catch (err) {
         httpHandler.sendError(req, res, err);

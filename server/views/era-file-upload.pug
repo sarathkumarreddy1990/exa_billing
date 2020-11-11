@@ -71,7 +71,8 @@ html
         form#eraFileUpload(name='formEraUpload', action='/exa_modules/billing/era/upload?_csrf=' + csrfToken, method='POST', style="float:right;", enctype="multipart/form-data")
             button#btnDownload_EOB.btn.btn-primary.btn-sm(type="button", onClick="download(event);", style="background: #3c91f0; margin-top: 4px; margin-right: 5px;", i18n="shared.buttons.download")
             button#btnProcess_EOB.btn.btn-primary.btn-sm(type="button", onClick="fireUpload(event);", style="background: #3c91f0; margin-top: 4px; margin-right: 5px;", i18n="shared.fields.uploadProcessEOBFile")
-            button#btnPreview_EOB.btn.btn-primary.btn-sm(type="button", onClick="fireUpload(event);", style="background: #3c91f0; margin-top: 4px;", i18n="shared.fields.previewEOBFile")
+            if ['can_MB', 'can_BC'].indexOf(billingRegionCode) == -1
+                button#btnPreview_EOB.btn.btn-primary.btn-sm(type="button", onClick="fireUpload(event);", style="background: #3c91f0; margin-top: 4px;", i18n="shared.fields.previewEOBFile")
 
             input#eraFile(type="file", name="displayImage", onchange="doImport(event);", style="visibility:hidden; height:0px; width: 0px" )
             input#eraPDFFile(type="file", name="displayImage", onchange="doImport(event);", accept="application/pdf" style="visibility:hidden; height:0px; width: 0px" )

@@ -489,7 +489,7 @@ module.exports = {
         let eraResponse = await data.getProcessedFileData(params);
         let eraResponseValues = eraResponse.rows && eraResponse.rows[0].payer_details;
 
-        if (eraResponseValues && eraResponseValues.file_name && params.billingRegionCode !== 'can_MB') {
+        if (eraResponseValues && eraResponseValues.file_name && ['can_MB', 'can_BC'].indexOf(params.billingRegionCode) == -1) {
             const filePath = path.join(eraResponseValues.root_directory, eraResponseValues.file_path, eraResponseValues.file_name);
 
             try {
