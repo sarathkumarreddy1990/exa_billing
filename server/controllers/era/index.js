@@ -19,7 +19,7 @@ const statAsync = promisify(fs.stat);
 
 const createDir = function (fileStorePath, filePath) {
     return new Promise(function(resolve, reject) {
-        const dirPath = `${fileStorePath}/${filePath}`;
+        const dirPath = path.join(fileStorePath, filePath);
 
         logger.info(`File store: ${fileStorePath}, ${filePath}`);
 
