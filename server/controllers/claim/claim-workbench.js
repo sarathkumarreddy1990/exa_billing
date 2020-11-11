@@ -17,6 +17,8 @@ const studiesController = require('../../controllers/studies');
 const helper = require('../../data');
 const _ = require('lodash');
 
+const sftp = require('../../../modules/edi/sftp');
+
 const fonts = {
     Roboto: {
         normal: path.join(__dirname, '../../../app/fonts/Roboto/Roboto-Regular.ttf'),
@@ -100,6 +102,7 @@ module.exports = {
         const result = await ediData.getClaimData(params);
         let ediResponse = {};
         let claimDetails = [];
+        let sftpData = {};
 
         if (result && result instanceof Error) {
             return result;
@@ -117,6 +120,21 @@ module.exports = {
 
             if (!result.rows[0].header.edi_template_name) {
                 return new Error('EDI Template not yet mapped with Clearinghouse');
+            }
+
+            let header = result.rows[0].header;
+
+            if (header.enableFtp) {
+                sftpData = {
+                    enableFtp: true,
+                    host: header.ftpHostName,
+                    user: header.ftpUserName,
+                    password: header.ftpPassword,
+                    port: header.ftpPort,
+                    privateKey: header.ftpIdentityFile,
+                    uploadDirPath: header.ftpSentFolder || 'batches',
+                    clearingHouseName: header.clearinghouses_name
+                };
             }
 
             let ediData = _.map(result.rows, function (obj) {
@@ -162,15 +180,52 @@ module.exports = {
                 validation = ediResponse.validations.concat(segmentValidations);
             }
 
-            if (!ediResponse.errMsg && (validation && validation.length == 0)) {
-                params.claim_status = 'PP';
-                params.type = 'auto';
-                params.success_claimID = params.claimIds.split(',');
-                params.isClaim = true;
-                params.claimDetails = JSON.stringify(claimDetails);
-                await data.changeClaimStatus(params);
-            }
+            if (!ediResponse.errMsg && !ediResponse.err && (validation && validation.length == 0)) {
+                const companyId = req.body.companyId || req.companyId;
+                let claimInfo = {};
+                let uploadRes;
 
+                if (sftpData && sftpData.enableFtp) {
+                    claimInfo = {
+                        companyId: companyId,
+                        sftpData: sftpData,
+                        ediText: ediResponse.ediText
+                    };
+
+                    uploadRes = await sftp.upload(claimInfo);
+                } else {
+                    logger.info(`SFTP option not enabled in ${sftpData.clearingHouseName} clearing house, So skipping process.`);
+
+                    uploadRes = {
+                        err: null,
+                        status: 'ok'
+                    };
+                }
+
+                let ediStatus = '';
+                let ediFileId = 0;
+
+                if (uploadRes && !uploadRes.err) {
+                    ediFileId = uploadRes.edi_file_id || 0;
+                    params.claim_status = 'PP';
+                    params.type = 'auto';
+                    params.success_claimID = params.claimIds.split(',');
+                    params.isClaim = true;
+                    params.claimDetails = JSON.stringify(claimDetails);
+                    ediStatus = 'success';
+                    await data.changeClaimStatus(params);
+                } else {
+                    ediResponse.err = uploadRes.err;
+                    ediStatus = 'failure';
+                }
+
+                if (ediFileId > 0) {
+                    await data.updateEDIFile({
+                        status: ediStatus,
+                        ediFileId: ediFileId
+                    });
+                }
+            }
         } else {
             ediResponse = result;
         }

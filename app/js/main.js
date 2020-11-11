@@ -44,7 +44,8 @@ var rjsConfig = {
         'beautify': '../node_modules/js-beautify/js/lib/beautify',
         'jquery-ui': '../node_modules/jquery-ui-dist/jquery-ui',
         'socket.io-client': '../node_modules/socket.io-client/dist/socket.io',
-        'quill': '../node_modules/quill/dist/quill.min'
+        'quill': '../node_modules/quill/dist/quill.min',
+        'ajaxinterceptor': 'shared/ajaxinterceptor'
     },
     shim: {
         'jquery.validate': {
@@ -135,6 +136,9 @@ var rjsConfig = {
         },
         'socket.io-client': {
             exports: 'io'
+        },
+        'ajaxinterceptor': {
+            exports: "ajaxinterceptor"
         }
     },
 };
@@ -173,7 +177,8 @@ if (require && require.config) {
         '_get',
         'mail-merge',
         'permissionsjs',
-        'jquery-ui'
+        'jquery-ui',
+        'ajaxinterceptor'
     ], function (
         MomentTimezone,
         jqueryvalidate,
@@ -204,7 +209,8 @@ if (require && require.config) {
         _get,
         mailMerge,
         permissionsjs,
-        jqueryuisortable
+        jqueryuisortable,
+        ajaxinterceptor
         ) {
             browserLocale = navigator.language.toLowerCase();
             window.browserLocale = typeof browserLocale == 'undefined' ? 'en-US' : browserLocale;

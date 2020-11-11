@@ -18,7 +18,12 @@ define([
                 'click #btnSaveCollectionProcess': 'save',
             },
             isExists: false,
-            writeOffAdjCodeId: null,
+            adjustmentCodes: {
+                creditCodeId: null,
+                debitCodeId: null,
+                creditType: null,
+                debitType: null
+            },
             initialize: function (options) {
                 this.options = options;
                 $('#divPageHeaderButtons').empty();
@@ -56,9 +61,11 @@ define([
 
                 $('.collection-process-content').prop('hidden', true);
                 $('.adj-code-content').prop('hidden', true);
+                var placeHolderMsg = commonjs.geti18NString("messages.warning.payments.pleaseSelectAdjustment");
 
                 self.clearFields();
-                self.adjustmentCodeAutoComplete();
+                self.debitAdjustmentCodeAutoComplete(placeHolderMsg);
+                self.creditAdjustmentCodeAutoComplete(placeHolderMsg);
                 self.getCollectionProcess();
 
                 commonjs.processPostRender();
@@ -102,13 +109,20 @@ define([
                             $acrLastPaymentDays.val(result.acr_claim_status_last_payment_days);
                             $acrLastPaymentDays.prop('disabled', !result.acr_claim_status_last_payment_days);
 
-                            // Claim Balance
-                            $('#chkWriteOffBalance').prop('checked', result.acr_write_off_adjustment_code_id);
-                            $('.adj-code-content').prop('hidden', !result.acr_write_off_adjustment_code_id);
+                            // Claim Balance - adjustment_info
+                            isChecked = result.acr_write_off_debit_adjustment_code_id && result.acr_write_off_credit_adjustment_code_id
+                            $('#chkWriteOffBalance').prop('checked', isChecked);
+                            $('.adj-code-content').prop('hidden', !isChecked);
 
-                            if (result.acr_write_off_adjustment_code_id) {
-                                self.writeOffAdjCodeId = result.acr_write_off_adjustment_code_id;
-                                $('#select2-ddlAdjustmentCode-container').html(result.adjustment_desc);
+                            if (result.acr_write_off_debit_adjustment_code_id) { // debit
+                                self.adjustmentCodes.debitCodeId = result.acr_write_off_debit_adjustment_code_id;
+                                var debitAdjDesc = result.adjustment_info && result.adjustment_info.debit_adj_desc || '';
+                                $('#select2-ddlDebitAdjustmentCode-container').html(debitAdjDesc);
+                            }
+                            if (result.acr_write_off_credit_adjustment_code_id) { // credit
+                                self.adjustmentCodes.creditCodeId = result.acr_write_off_credit_adjustment_code_id;
+                                var creditAdjDesc = result.adjustment_info && result.adjustment_info.credit_adj_desc || '';
+                                $('#select2-ddlCreditAdjustmentCode-container').html(creditAdjDesc);
                             }
                         }
                     },
@@ -135,15 +149,23 @@ define([
                 $('.adj-code-content').prop('hidden', !isChecked);
 
                 if (!isChecked) {
-                    $("#ddlAdjustmentCode").empty();
-                    this.writeOffAdjCodeId = null;
+                    var placeHolderMsg = commonjs.geti18NString("messages.warning.payments.pleaseSelectAdjustment");
+                    $('#select2-ddlDebitAdjustmentCode-container').html(placeHolderMsg);
+                    $('#select2-ddlCreditAdjustmentCode-container').html(placeHolderMsg);
+                    $("#ddlDebitAdjustmentCode").empty();
+                    $("#ddlCreditAdjustmentCode").empty();
+                    this.adjustmentCodes = {
+                        creditCodeId: null,
+                        debitCodeId: null,
+                        creditType: null,
+                        debitType: null
+                    }
                 }
             },
 
-            adjustmentCodeAutoComplete: function () {
+            debitAdjustmentCodeAutoComplete: function (placeHolderMsg) {
                 var self = this;
-                var placeHolderMsg = commonjs.geti18NString("messages.warning.payments.pleaseSelectAdjustment");
-                $("#ddlAdjustmentCode").select2({
+                $("#ddlDebitAdjustmentCode").select2({
                     ajax: {
                         url: "/exa_modules/billing/autoCompleteRouter/adjustment_code",
                         dataType: 'json',
@@ -181,13 +203,61 @@ define([
                 }
                 function formatRepoSelection(res) {
                     if (res && res.id) {
-                        self.writeOffAdjCodeId = res.id;
+                        self.adjustmentCodes.debitCodeId = res.id;
+                        self.adjustmentCodes.debitType = res.accounting_entry_type;
                         return res.description;
                     }
                 }
 
             },
 
+            creditAdjustmentCodeAutoComplete: function (placeHolderMsg) {
+                var self = this;
+                $("#ddlCreditAdjustmentCode").select2({
+                    ajax: {
+                        url: "/exa_modules/billing/autoCompleteRouter/adjustment_code",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                page: params.page || 1,
+                                q: params.term || '',
+                                pageSize: 10,
+                                sortField: "code",
+                                sortOrder: "ASC",
+                                company_id: app.companyID
+                            };
+                        },
+                        processResults: function (data, params) {
+                            return commonjs.getTotalRecords(data, params);
+                        },
+                        cache: true
+                    },
+                    placeholder: placeHolderMsg,
+                    escapeMarkup: function (markup) { return markup; },
+                    minimumInputLength: 0,
+                    templateResult: formatRepo,
+                    templateSelection: formatRepoSelection
+                });
+
+                function formatRepo(repo) {
+                    if (repo.loading) {
+                        return repo.code;
+                    }
+                    var markup = "<table><tr>";
+                    markup += "<td  data-id='" + repo.id + " ' title='" + repo.code + "(" + repo.code + ")'> <div>" + repo.description + '(' + repo.code + ')' + "</div>";
+                    markup += "</td></tr></table>";
+                    return markup;
+
+                }
+                function formatRepoSelection(res) {
+                    if (res && res.id) {
+                        self.adjustmentCodes.creditCodeId = res.id;
+                        self.adjustmentCodes.creditType = res.accounting_entry_type;
+                        return res.description;
+                    }
+                }
+            },
             clearFields: function () {
                 $('#chkPaymentStmtWise').prop('checked', false);
                 $('#chkWriteOffBalance').prop('checked', false);
@@ -199,8 +269,17 @@ define([
                 $('input[type="number"]').prop('disabled', true);
 
                 // clear adjustment option
-                $("#ddlAdjustmentCode").empty();
-                this.writeOffAdjCodeId = null;
+                $("#ddlDebitAdjustmentCode").empty();
+                $("#ddlCreditAdjustmentCode").empty();
+                var placeHolderMsg = commonjs.geti18NString("messages.warning.payments.pleaseSelectAdjustment");
+                $('#select2-ddlDebitAdjustmentCode-container').html(placeHolderMsg);
+                $('#select2-ddlCreditAdjustmentCode-container').html(placeHolderMsg);
+                this.adjustmentCodes = {
+                    creditCodeId: null,
+                    debitCodeId: null,
+                    creditType: null,
+                    debitType: null
+                }
             },
 
             validateCollectionProcess: function () {
@@ -238,8 +317,29 @@ define([
                     return false;
                 }
 
-                if ($('#chkWriteOffBalance').is(':checked') && !this.writeOffAdjCodeId) {
-                    commonjs.showWarning('messages.warning.payments.pleaseSelectAdjustment')
+                if ($('#chkWriteOffBalance').is(':checked') &&
+                    (!this.adjustmentCodes.debitCodeId || !this.adjustmentCodes.creditCodeId)
+                ) {
+
+                    var msg = !this.adjustmentCodes.debitCodeId ? commonjs.geti18NString("setup.collectionsProcess.debitAdjustmentCode")
+                        : commonjs.geti18NString("setup.collectionsProcess.creditAdjustmentCode")
+
+                    msg = commonjs.geti18NString("messages.warning.shared.pleaseselect") + ' ' + msg;
+                    commonjs.showWarning(msg);
+                    return false;
+                }
+
+                if (
+                    (this.adjustmentCodes.creditCodeId &&
+                        this.adjustmentCodes.creditType &&
+                        this.adjustmentCodes.creditType !== 'credit'
+                    ) ||
+                    (this.adjustmentCodes.debitCodeId &&
+                        this.adjustmentCodes.debitType &&
+                        ['debit', 'refund_debit', 'recoupment_debit'].indexOf(this.adjustmentCodes.debitType) == -1
+                    )
+                ) {
+                    commonjs.showWarning("setup.collectionsProcess.adjustmentTypeMismatch");
                     return false;
                 }
 
@@ -258,7 +358,8 @@ define([
                         companyId                   : app.companyID,
                         userId                      : app.userID,
                         acrStatementCount           : $('#acrStatementCount').val() || null,
-                        writeOffAdjCodeId           : self.writeOffAdjCodeId || null,
+                        writeOffDebitAdjCodeId      : self.adjustmentCodes.debitCodeId || null,
+                        writeOffCreditAdjCodeId     : self.adjustmentCodes.creditCodeId || null,
                         minimumAccountBalance       : $('#txtMinAccBalance').val(),
                         acrLastPaymentDays          : $('#acrLastPaymentDays').val() || null,
                         acrStatementDays            : $('#acrStatementDays').val() || null
