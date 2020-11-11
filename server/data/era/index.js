@@ -1,4 +1,4 @@
-const { query, SQL } = require('./../index');
+const { query, queryRows, SQL } = require('./../index');
 const _ = require('lodash');
 const queryMakers = require('./../query-maker-map');
 const generator = queryMakers.get('datetime');
@@ -782,5 +782,44 @@ module.exports = {
                     WHERE edi_file_payments.payment_id = ${paymentID}`;
 
         return await query(sql);
+    },
+
+    /**
+    * {@param} company_id
+    * {@response} Returns file store for configured company
+    */
+    getCompanyFileStore: (company_id) => {
+        const fileSql = SQL`
+        SELECT
+            fs.id AS file_store_id,
+            fs.root_directory
+        FROM file_stores fs
+        INNER JOIN companies c ON c.file_store_id = fs.id
+        WHERE c.id = ${company_id}`;
+
+        return query(fileSql.text, fileSql.values);
+
+    },
+
+    getClearingHouseList: async (companyId) => {
+        let sql = SQL`SELECT
+                        id AS clearing_house_id,
+                        code AS clearing_house_code,
+                        name AS clearing_house_name,
+                        jsonb_build_object(
+                            'ftp_host', communication_info->>'ftp_host',
+                            'ftp_port', communication_info->>'ftp_port',
+                            'ftp_type', communication_info->>'ftp_type',
+                            'enable_ftp', communication_info->>'enable_ftp',
+                            'ftp_password', communication_info->>'ftp_password',
+                            'ftp_user_name', communication_info->>'ftp_user_name',
+                            'ftp_receive_folder', communication_info->>'ftp_receive_folder'
+                        ) AS config
+                    FROM billing.edi_clearinghouses
+                    WHERE inactivated_dt IS NULL
+                    AND company_id = ${companyId}`;
+
+        return await queryRows(sql);
     }
+
 };

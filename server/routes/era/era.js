@@ -83,4 +83,9 @@ router.get('/eob_file_id', async function (req, res) {
     httpHandler.send(req, res, data);
 });
 
+router.get('/download', async function (req, res) {
+    const data = await eraController.initializeDownload(req.query);
+    httpHandler.send(req, res, data);
+})
+
 module.exports = router;
