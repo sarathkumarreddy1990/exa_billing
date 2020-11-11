@@ -70,7 +70,7 @@ const checkInvalidFileContent = (fileString, billingRegionCode) => {
 
     switch(billingRegionCode) {
         case 'can_ON':
-            return !(fileString.indexOf('HR1') !== -1 && fileString.indexOf('HR4') !== -1 && fileString.indexOf('HR7') !== -1);
+            return (fileString.indexOf('HR1') === -1 && fileString.indexOf('HR4') === -1 && fileString.indexOf('HR7') === -1);
         case 'can_MB':
             return false;
         case 'can_BC':
