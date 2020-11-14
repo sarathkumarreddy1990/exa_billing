@@ -28,7 +28,7 @@
                 <li id="liEobProcessed" class="nav-item">
                     <a href="#divEobProcessed" class="nav-link active show" i18n="shared.fields.eobProcessed" data-toggle="tab"></a>
                 </li>
-                <% if (billingRegionCode !== 'can_MB') { %>
+                <% if (['can_MB', 'can_BC'].indexOf(billingRegionCode) == -1) { %>
                     <li id="liEobOriginal" class="nav-item">
                         <a href="#div-era-processed-preview" class="nav-link" i18n="billing.COB.original" data-toggle="tab"></a>
                     </li>

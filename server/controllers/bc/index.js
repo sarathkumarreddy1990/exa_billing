@@ -51,7 +51,11 @@ const bcController = {
 
     getediFileClaimId: async(claim_number, edi_file_id) => await bcData.getediFileClaimId(claim_number, edi_file_id),
 
+    updateFileStatus: bcData.updateFileStatus,
 
+    getFilesList: bcData.getFilesList,
+
+    processRemittanceFile: bcData.processRemittance,
 };
 
 module.exports = bcController;
