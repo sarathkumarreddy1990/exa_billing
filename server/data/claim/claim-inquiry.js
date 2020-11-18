@@ -194,7 +194,7 @@ module.exports = {
                         , null AS code
                         , null AS type
                         , 'Note record submitted' AS comments
-                        , bc.claim_dt as commented_dt
+                        , bc.claim_dt::text as commented_dt
                         , false AS is_internal
                         , null AS charge_amount
                         , '{}'::text[] AS charge_pointer
