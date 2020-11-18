@@ -1,54 +1,76 @@
-const _ = require('lodash')
-    , Promise = require('bluebird')
-    , db = require('../db')
-    , dataHelper = require('../dataHelper')
-    , queryBuilder = require('../queryBuilder')
-    , moment = require('moment');
+const _ = require('lodash');
+const Promise = require('bluebird');
+const db = require('../db');
+const dataHelper = require('../dataHelper');
+const queryBuilder = require('../queryBuilder');
+const moment = require('moment');
 
 const paymentRealizationRateAnalysisQueryTemplate = _.template(`
-    WITH
-        paymentRealizationRateAnalysis AS (
-      SELECT
-          bc.id AS claim_id,
-          payment_details.payment_accounting_date,
-          insurance_providers.insurance_name AS payer_name,
-          payment_payer_details.payer_type,
-          bp.name AS provider_name,
-          ippt.description AS insurance_payer_name ,
-          f.facility_name AS Facility_name,
-          MAX(c.charge_dt) AS scheduled_dt,
-          get_full_name(pp.last_name,pp.first_name) AS patient_name,
-          pp.account_no AS account_no,
-          m.modality_code AS modality_code,
-          bgct.charges_bill_fee_total AS bill_fee,
-          bgct.payments_applied_total AS applied,
-          bgct.adjustments_applied_total As adjustment,
-          bgct.claim_balance_total As balance,
-          round((CASE (bgct.charges_bill_fee_total)
-               WHEN 0::money THEN 0.0 ELSE
-                      (( bgct.payments_applied_total/bgct.charges_bill_fee_total) * 100) END )::decimal,2)AS rate_paid
-      FROM
-          public.orders AS o
-          INNER JOIN public.studies s ON o.id = s.order_id
-          INNER JOIN modalities m ON m.id = o.modality_id
-          INNER JOIN billing.charges_studies cs ON s.id = cs.study_id
-          INNER JOIN billing.charges c ON c.id = cs.charge_id
-          INNER JOIN billing.claims bc ON bc.id = c.claim_id
-          INNER JOIN billing.get_claim_totals(bc.id) bgct on true
-          INNER JOIN public.patients pp ON pp.id = bc.patient_id
-          INNER JOIN facilities f ON f.id = bc.facility_id
-          INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
-          LEFT JOIN LATERAL(
-               SELECT
-                      i_bch.claim_id AS claim_id,
-		max(accounting_date) AS payment_accounting_date
-               FROM billing.payments bp
-               INNER JOIN billing.payment_applications bpa  ON bpa.payment_id = bp.id
-               INNER JOIN billing.charges i_bch ON i_bch.id = bpa.charge_id
-               WHERE i_bch.claim_id = bc.id
-               GROUP BY i_bch.claim_id
-          ) AS payment_details ON payment_details.claim_id = bc.id
-          LEFT JOIN LATERAL(
+    SELECT
+        bc.id "Claim ID",
+        TO_CHAR(payment_details.payment_accounting_date, '<%= dateFormat %>') "Payment Accounting Date",
+        bp.name "Billing Provider",
+        f.facility_name "Facility Name",
+        payment_payer_details.payer_type "Payer Type",
+        insurance_providers.insurance_name "Primary Insurance",
+        ippt.description "Insurance Group",
+        TO_CHAR(MAX(c.charge_dt), '<%= dateFormat %>') AS "Service Date",
+        m.modality_code "Modality",
+        get_full_name(pp.last_name,pp.first_name) "Patient Name",
+        pp.account_no "Account #",
+        bgch.charges_bill_fee_total "Charge",
+        bgct.payments_applied_total "Payment",
+        bgct.adjustments_applied_total "Adjustment",
+        bgch.charges_bill_fee_total - (
+            bgct.payments_applied_total +
+            bgct.adjustments_applied_total +
+            bgct.refund_amount
+        ) "Balance",
+        ROUND((CASE (bgch.charges_bill_fee_total)
+            WHEN 0::MONEY THEN 0.0 ELSE
+                (( bgct.payments_applied_total/bgch.charges_bill_fee_total) * 100) END )::decimal,2) "Rate Paid (%)"
+    FROM
+        public.orders AS o
+    INNER JOIN public.studies s ON o.id = s.order_id
+    INNER JOIN modalities m ON m.id = o.modality_id
+    INNER JOIN billing.charges_studies cs ON s.id = cs.study_id
+    INNER JOIN billing.charges c ON c.id = cs.charge_id
+    INNER JOIN billing.claims bc ON bc.id = c.claim_id
+    INNER JOIN public.patients pp ON pp.id = bc.patient_id
+    INNER JOIN facilities f ON f.id = bc.facility_id
+    INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
+    INNER JOIN LATERAL(
+        SELECT
+            COALESCE(SUM(pa.amount) FILTER (WHERE pa.amount_type = 'payment'),0::MONEY)    AS payments_applied_total,
+            COALESCE(SUM(pa.amount) FILTER (WHERE pa.amount_type = 'adjustment' AND (adj.accounting_entry_type != 'refund_debit' OR pa.adjustment_code_id IS NULL)),0::money) AS adjustments_applied_total,
+            COALESCE(SUM(pa.amount) FILTER (WHERE adj.accounting_entry_type = 'refund_debit'),0::MONEY) AS refund_amount
+        FROM billing.charges AS c
+        INNER JOIN public.cpt_codes AS pc ON pc.id = c.cpt_id
+        INNER JOIN billing.payment_applications AS pa ON pa.charge_id = c.id
+        LEFT JOIN billing.adjustment_codes adj ON adj.id = pa.adjustment_code_id
+        WHERE c.claim_id = bc.id
+    ) bgct ON TRUE
+    INNER JOIN LATERAL(
+        SELECT
+             SUM(c.bill_fee * c.units) charges_bill_fee_total
+        FROM
+            billing.charges AS c
+        INNER JOIN public.cpt_codes AS pc ON pc.id = c.cpt_id
+        LEFT OUTER JOIN billing.charges_studies AS cs ON c.id = cs.charge_id
+        WHERE
+            c.claim_id = bc.id
+    ) bgch ON TRUE
+    LEFT JOIN LATERAL(
+            SELECT
+                i_bch.claim_id AS claim_id,
+                MAX(accounting_date) AS payment_accounting_date
+            FROM billing.payments bp
+            INNER JOIN billing.payment_applications bpa ON bpa.payment_id = bp.id
+            INNER JOIN billing.charges i_bch ON i_bch.id = bpa.charge_id
+            WHERE i_bch.claim_id = bc.id
+            GROUP BY i_bch.claim_id
+    ) AS payment_details ON payment_details.claim_id = bc.id
+    LEFT JOIN LATERAL(
                SELECT
                     i_bch.claim_id AS claim_id,
                     (CASE bp.payer_type
@@ -75,44 +97,29 @@ const paymentRealizationRateAnalysisQueryTemplate = _.template(`
           LEFT JOIN insurance_providers ON insurance_providers.id = patient_insurances.insurance_provider_id
           LEFT JOIN provider_groups ON bc.ordering_facility_id = provider_groups.id
           LEFT JOIN insurance_provider_payer_types ippt ON ippt.id = insurance_providers.provider_payer_type_id
-      WHERE
-          bgct.claim_balance_total = 0::MONEY
-          AND <%=companyId%>
-          <% if(serviceDate) { %> AND <%=serviceDate%> <%}%>
-          <% if(accountingDate) { %> AND <%=accountingDate%> <%}%>
-          <% if(insuranceIds) { %> AND <%=insuranceIds%> <%}%>
-          <% if(insGroups) { %> AND <%=insGroups%> <%}%>
-          <% if (facilityIds) { %>AND <% print(facilityIds); } %>
-          <% if(billingProID) { %> AND <% print(billingProID); } %>
-       GROUP BY
-          bc.id,bp.id,f.id,pp.id,m.id,
-          bgct.charges_bill_fee_total ,
-          bgct.payments_applied_total,
-          bgct.adjustments_applied_total,
-          bgct.claim_balance_total,
-          payment_details.payment_accounting_date,
-          insurance_providers.insurance_name,
-          payment_payer_details.payer_type,
-          ippt.description)
-      SELECT
-          claim_id AS "Claim ID"
-        , to_char(payment_accounting_date, '<%= dateFormat %>') AS "Payment Accounting Date"
-        , provider_name   AS "Billing Provider"
-        , facility_name AS "Facility Name"
-        , payer_type AS "Payer Type"
-        , payer_name AS "Primary Insurance"
-        , insurance_payer_name AS "Insurance Group"
-        , to_char(scheduled_dt, '<%= dateFormat %>') AS "Service Date"
-        , modality_code AS "Modality"
-        , patient_name AS "Patient Name"
-        , account_no AS "Account #"
-        , bill_fee AS "Charge"
-        , applied AS "Payment"
-        , adjustment AS "Adjustment"
-        , balance AS "Balance"
-        , rate_paid AS "Rate Paid (%)"
-    FROM
-          paymentRealizationRateAnalysis
+    WHERE
+        bgch.charges_bill_fee_total - (
+            bgct.payments_applied_total +
+            bgct.adjustments_applied_total +
+            bgct.refund_amount
+        )  = 0::MONEY
+        AND <%=companyId%>
+        <% if(serviceDate) { %> AND <%=serviceDate%> <%}%>
+        <% if(accountingDate) { %> AND <%=accountingDate%> <%}%>
+        <% if(insuranceIds) { %> AND <%=insuranceIds%> <%}%>
+        <% if(insGroups) { %> AND <%=insGroups%> <%}%>
+        <% if (facilityIds) { %>AND <% print(facilityIds); } %>
+        <% if(billingProID) { %> AND <% print(billingProID); } %>
+    GROUP BY
+        bc.id,bp.id,f.id,pp.id,m.id,
+        bgch.charges_bill_fee_total ,
+        bgct.payments_applied_total,
+        bgct.adjustments_applied_total,
+        bgct.refund_amount,
+        payment_details.payment_accounting_date,
+        insurance_providers.insurance_name,
+        payment_payer_details.payer_type,
+        ippt.description
 `);
 
 const api = {
