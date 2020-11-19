@@ -464,7 +464,8 @@
                 "name": "claim_action",
                 "width": 250,
                 "defaultValue": ""
-            }
+            },
+            "field_code": "claim_action"
         },
         {
             "field_code": "reason_code",
