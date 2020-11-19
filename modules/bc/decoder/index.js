@@ -73,7 +73,7 @@ const recordSet = {
     'S25': {
         type: 'remittance_comments',
         name: 'payeePractionerBroadCastRecords',
-        value: require('./RemittanceCodes/payeePractitionerBroadCastRecord(S25)')
+        value: require('./RemittanceCodes/payeePractitionerBroadcastRecord(S25)')
     },
     'VRC': {
         type: 'batch_trailer',
