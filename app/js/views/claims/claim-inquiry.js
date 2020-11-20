@@ -1465,6 +1465,7 @@ define([
                     success: function (data, response) {
                         $("#tBodyCIPayment").empty();
                         $('#tBodyCASRef').empty();
+                        $('.addtionalCas').remove();
                         var casHeader = self.casHeaderTemplate({rows: data, billingRegionCode: app.billingRegionCode});
                         $('#tHeadCIPayment tr').append(casHeader);
 
@@ -1506,6 +1507,7 @@ define([
                     success: function (data, response) {
                         $("#tBodyCIPayment").empty();
                         $('#tBodyCASRef').empty();
+                        $('.addtionalCas').remove();
 
                         if (data.length > 0) {
 
