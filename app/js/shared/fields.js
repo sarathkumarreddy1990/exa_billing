@@ -882,7 +882,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "width": 150,
                         "searchFlag": "%",
                         "sortable": true,
-                        "defaultValue": ""
+                        "defaultValue": "",
+                        "hidden": ['can_AB', 'can_BC', 'can_MB'].indexOf(app.billingRegionCode) == -1
                     },
                     "field_code": "phn_alt_account"
                 },
@@ -1199,7 +1200,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "width": 150,
                     "searchFlag": "%",
                     "sortable": true,
-                    "defaultValue": ""
+                    "defaultValue": "",
+                    "hidden": ['can_AB', 'can_BC', 'can_MB'].indexOf(app.billingRegionCode) == -1
                 },
                 "field_code": "phn_alt_account"
             },
