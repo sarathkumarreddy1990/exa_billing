@@ -1207,6 +1207,7 @@
                         </div>
                     </div>
                 </div>
+                <% if(billingRegionCode === 'can_BC') { %>
                 <div class="form-group row wcb_injury" id="natureOfInjuryDiv">
                     <label for="wcbNatureOfInjury" class="col-sm-3 col-form-label" i18n="order.additionalInfo.natureOfInjury"></label>
                     <div class="col-sm-5">
@@ -1221,6 +1222,7 @@
                         </select>
                     </div>
                 </div>
+                <% } %>
                 <div class="form-group row mt-2">
                     <label for="selAccidentState" class="col-sm-3 col-form-label" i18n="order.additionalInfo.accidentState"></label>
                     <div class="col-sm-2 col-md-2">
