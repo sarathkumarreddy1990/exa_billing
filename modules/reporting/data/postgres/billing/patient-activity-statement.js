@@ -264,6 +264,8 @@ WITH claim_data AS(
             <% } else { %>
                  <%= patientIds %>
             <% } %>
+            ORDER BY bc.id ASC
+            LIMIT 1
           ),
           all_cte AS (
           -- 1st Header, Billing Provider, update the columns in the dataset
@@ -993,7 +995,7 @@ const api = {
         filters.billingAddressTaxNpi = billingAddressTaxNpi;
 
         // billingProvider single or multiple
-        if (billingProviderIds.length && billingProviderIds[0] != "0") {
+        if (billingProviderIds && billingProviderIds.length) {
             params.push(billingProviderIds);
             filters.billingProviderIds = queryBuilder.whereIn(`bp.id`, [params.length]);
         }
