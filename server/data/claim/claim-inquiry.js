@@ -734,6 +734,7 @@ module.exports = {
                         , COUNT(1) OVER (range unbounded preceding) AS total_records
                         ,(select Row_to_json(agg_arr) agg_arr FROM (SELECT * FROM billing.get_age_patient_claim (patients.id, ${billProvId}::bigint ) )as agg_arr) as age_summary
                         ,claims.id
+                        ,claims.billing_provider_id
                     FROM billing.claims
                     INNER JOIN patients ON claims.patient_id = patients.id
                     INNER JOIN LATERAL billing.get_claim_payments(claims.id, false) bgcp ON TRUE
