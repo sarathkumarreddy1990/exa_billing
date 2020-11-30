@@ -516,7 +516,21 @@
                 "formatter": "self.claimDateFormatter",
                 "width": 200
             }
+        },
+        {
+            "id": 75,
+            "field_name": "Sequence Numbers",
+            "i18n_name": "shared.fields.sequenceNumbers",
+            "field_info": {
+                "custom_name": "Sequence Numbers",
+                "name": "can_bc_claim_sequence_numbers",
+                "width": 150,
+                "searchFlag": "%",
+                "defaultValue": ""
+            },
+            "field_code": "can_bc_claim_sequence_numbers"
         }
+
     ],
     "study_fields": [
         {
