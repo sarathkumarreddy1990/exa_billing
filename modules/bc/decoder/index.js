@@ -28,62 +28,62 @@ const recordSet = {
     'S01': {
         type: 'remittance_advice',
         name: 'remittancePartialDetailRecords',
-        value: require('./RemittanceCodes/remittancePartialDetailRecord(S01)')
+        value: require('./RemittanceCodes/remittancePartialDetailRecord')
     },
     'S00': {
         type: 'remittance_advice',
         name: 'remittanceWithDataCentreChangeRecords',
-        value: require('./RemittanceCodes/remittanceFullDetailRecords(S00-S02-S03)')
+        value: require('./RemittanceCodes/remittanceFullDetailRecords')
     },
     'S02': {
         type: 'remittance_advice',
         name: 'remittanceWithExplanationRecords',
-        value: require('./RemittanceCodes/remittanceFullDetailRecords(S00-S02-S03)')
+        value: require('./RemittanceCodes/remittanceFullDetailRecords')
     },
     'S03': {
         type: 'remittance_advice',
         name: 'remittanceWithAdjudicationRefusalRecords',
-        value: require('./RemittanceCodes/remittanceFullDetailRecords(S00-S02-S03)')
+        value: require('./RemittanceCodes/remittanceFullDetailRecords')
     },
     'S04': {
         type: 'remittance_advice',
         name: 'inHoldProcessRecords',
-        value: require('./RemittanceCodes/inHoldProcessRecord(S04)')
+        value: require('./RemittanceCodes/inHoldProcessRecord')
     },
     'S21': {
         type: 'remittance_summary',
         name: 'payeePaymentSummaryRecords',
-        value: require('./RemittanceCodes/payeePaymentSummaryRecord(S21)')
+        value: require('./RemittanceCodes/payeePaymentSummaryRecord')
     },
     'S22': {
         type: 'remittance_summary',
         name: 'practionerSummaryRecords',
-        value: require('./RemittanceCodes/practitionerSummaryRecord(S22)')
+        value: require('./RemittanceCodes/practitionerSummaryRecord')
     },
     'S23': {
         type: 'remittance_advice',
         name: 'adjustmentDetailRecords',
-        value: require('./RemittanceCodes/adjustmentRecords(S23-S24)')
+        value: require('./RemittanceCodes/adjustmentRecords')
     },
     'S24': {
         type: 'remittance_summary',
         name: 'adjustmentSummaryRecords',
-        value: require('./RemittanceCodes/adjustmentRecords(S23-S24)')
+        value: require('./RemittanceCodes/adjustmentRecords')
     },
     'S25': {
         type: 'remittance_comments',
         name: 'payeePractionerBroadCastRecords',
-        value: require('./RemittanceCodes/payeePractitionerBroadcastRecord(S25)')
+        value: require('./RemittanceCodes/payeePractitionerBroadcastRecord')
     },
     'VRC': {
         type: 'batch_trailer',
         name: 'batchTrailerRecords',
-        value: require('./batchTrailerRecord(VRC)')
+        value: require('./batchTrailerRecord')
     },
     'VTC': {
         type: 'file_trailer',
         name: 'fileTrailerRecords',
-        value: require('./fileTrailerRecord(VTC)')
+        value: require('./fileTrailerRecord')
     }
 };
 
