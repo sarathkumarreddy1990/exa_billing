@@ -212,7 +212,7 @@ define([
                             self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && (field.field_code == "clearing_house" ||
                             field.field_code == "patient_ssn" || field.field_code == "place_of_service" )) }) || [];
                         } else {
-                            self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && field.field_code == "payment_id") }) || [];
+                            self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && field.field_code == "payment_id" || field.field_code == "phn_alt_account" || field.field_code == "pid_alt_account" ) }) || [];
                         }
 
                         if (app.billingRegionCode !== "can_MB") {
