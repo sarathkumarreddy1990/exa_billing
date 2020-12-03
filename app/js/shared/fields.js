@@ -868,7 +868,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "width": 150,
                         "searchFlag": "%",
                         "sortable": true,
-                        "defaultValue": ""
+                        "defaultValue": "",
+                        "hidden": (app.country_alpha_3_code !== 'can')
                     },
                     "field_code": "pid_alt_account"
                 },
@@ -1202,7 +1203,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "width": 150,
                     "searchFlag": "%",
                     "sortable": true,
-                    "defaultValue": ""
+                    "defaultValue": "",
+                    "hidden": (app.country_alpha_3_code !== 'can')
                 },
                 "field_code": "pid_alt_account"
             },
