@@ -69,7 +69,11 @@ define(['jquery'
                 this.listenTo(this.model, "change:possessive.is_favorite", this.onFavoriteChange);
                 this.listenTo(this.model, 'change:title', this.onTitleChange, this);
 
-                $(this.el).append(this.templateRoom(this.model.attributes));
+                $(this.el).append(this.templateRoom({
+                    roomType: this.model.attributes.roomType,
+                    members: this.model.attributes.members,
+                    userID: app.userID
+                }));
 
                 this._draw();
                 this._reloadMessages();
@@ -310,7 +314,9 @@ define(['jquery'
 
                     message: curMessage,   //this includes _unsecure_ content string with non-converted exalinks...
                     // ...therefore we sending separate field with secured & pre-processed content
-                    contentHtml: this._getContentHtml(curMessage.get('content'))
+                    contentHtml: this._getContentHtml(curMessage.get('content')),
+
+                    userID: app.userID
                 });
 
                 return messageHtml;
