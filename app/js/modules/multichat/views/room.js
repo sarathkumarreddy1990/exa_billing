@@ -70,6 +70,8 @@ define(['jquery'
                 this.listenTo(this.model, 'change:title', this.onTitleChange, this);
 
                 $(this.el).append(this.templateRoom({
+                    id: this.model.attributes.id,
+                    title: this.model.attributes.title,
                     roomType: this.model.attributes.roomType,
                     members: this.model.attributes.members,
                     userID: app.userID
