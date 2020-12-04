@@ -415,7 +415,12 @@ const bcData = {
                             ORDER BY id DESC 
                             LIMIT 1
                         ) el ON true
-                        WHERE s.schedule_dt IS NOT NULL AND to_facility_date(s.facility_id, s.schedule_dt) = current_date + interval '1 days' AND f.company_id = ${args.companyId} AND bp.can_bc_data_centre_number IS NOT NULL AND ip.insurance_code = 'MSP'
+                        WHERE 
+                            s.schedule_dt IS NOT NULL 
+                            AND to_facility_date(s.facility_id, s.schedule_dt) = current_date + interval '1 days' 
+                            AND f.company_id = ${args.companyId} 
+                            AND bp.can_bc_data_centre_number IS NOT NULL 
+                            AND ip.insurance_code = 'MSP'
                         `;
         
         return await queryRows(sql);
