@@ -19,6 +19,7 @@ define(['jquery',
 'text!templates/claims/payment-row.html',
 'shared/address',
 'text!templates/claims/eligibilityResponseOHIP.html',
+'text!templates/claims/eligibilityResponseBC.html',
 'text!templates/claims/ahs_charges_today.html'
 ],
     function ($,
@@ -42,6 +43,7 @@ define(['jquery',
         paymentRowTemplate,
         address,
         insuranceOhipForm,
+        insuranceBCForm,
         patientChargesTemplate
     ) {
         var claimView = Backbone.View.extend({
@@ -55,6 +57,7 @@ define(['jquery',
             paymentRowTemplate: _.template(paymentRowTemplate),
             insuranceOhipTemplate: _.template(insuranceOhipForm),
             patientChargesTemplate: _.template(patientChargesTemplate),
+            insuranceBCTemplate: _.template(insuranceBCForm),
             updateResponsibleList: [],
             chargeModel: [],
             claimICDLists: [],
@@ -329,10 +332,16 @@ define(['jquery',
 
             checkInsuranceEligibility: function (e) {
                 var self = this;
-                if (app.country_alpha_3_code === 'can')
-                    self.insuranceEligibilityCan(e)
-                else
-                    self.insuranceEligibilityUsa(e)
+                switch (app.billingRegionCode) {
+                    case 'can_ON':
+                        self.insuranceEligibilityCan(e);
+                        break;
+                    case 'can_BC':
+                        self.insuranceEligibilityBC(e);
+                        break;
+                    default:
+                        self.insuranceEligibilityUsa(e);
+                }
             },
 
             insuranceEligibilityCan: function (e) {
@@ -5945,7 +5954,66 @@ define(['jquery',
                     }
                 }
                 self.findRelevantTemplates();
-            }
+            },
+
+            insuranceEligibilityBC: function (e) {
+                var self = this;
+
+                if ($('#txtPriPolicyNo').val().length == 0 && self.priInsCode != '' && 'msp' != self.priInsCode.toLowerCase()) {
+                    return commonjs.showWarning('messages.warning.shared.invalidHealthNumber');
+                }
+
+                if (!self.phn) {
+                    return commonjs.showWarning('messages.warning.phn');
+                }
+                $.ajax({
+                    url: '/exa_modules/billing/bc/validateHealthCard',
+                    type: "GET",
+                    data: {
+                        patient_id: self.cur_patient_id,
+                        patient_insurance_id: self.priClaimInsID || self.primaryPatientInsuranceId,
+                        eligibility_dt: self.benefitDate1 && self.benefitDate1.date() ? self.benefitDate1.date().format('YYYY-MM-DD') : null,
+                        phn: self.phn && self.phn.alt_account_no,
+                        birth_date: self.cur_patient_dob
+                    },
+                    success: function (result) {
+                        var data = result.data;
+                        var responseCode = result.responseCode;
+                        if (responseCode) {
+                            switch (responseCode) {
+                                case 'error':
+                                    commonjs.showWarning('messages.status.communicationError');
+                                    break;
+
+                                case 'isDownTime':
+                                    commonjs.showWarning('messages.status.downTime');
+                                    break;
+                            }
+                        } else if (data) {
+                            var eligibility = _.get(data, "results[0]") || _.get(data, "err[0]") || {};
+                            eligibility.BIRTHDATE = (eligibility.BIRTHDATE && commonjs.getFormattedDate(eligibility.BIRTHDATE)) || '';
+                            eligibility.DOS = (eligibility.DOS && commonjs.getFormattedDate(eligibility.DOS)) || '';
+                            commonjs.showDialog({
+                                header: 'Healthcard Eligibility Result',
+                                i18nHeader: 'menuTitles.patient.patientInsuranceEligibility',
+                                height: '70%',
+                                width: '70%',
+                                html: self.insuranceBCTemplate({
+                                    insuranceData: eligibility,
+                                    firstName: self.cur_patient_patient_first_name,
+                                    lastName: self.cur_patient_patient_last_name,
+                                    healthNumber: self.phn && self.phn.alt_account_no,
+                                    gender: self.cur_patient_gender
+                                })
+                            });
+                        }
+                    },
+                    error: function (request, status, error) {
+                        commonjs.handleXhrError(request);
+                    }
+                });
+            },
+
 
         });
 
