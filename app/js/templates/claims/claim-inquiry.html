@@ -120,7 +120,7 @@
                     </div>
                     <div class="col-md-3">
                         <input type="button" id="btnCISaveIsInternal" class=" btn btn-primary ci-header-btn" value="Save" i18n="shared.buttons.save">
-                        <% if (billingRegionCode === 'can_MB') { %>
+                        <% if (billingRegionCode === 'can_MB' || billingRegionCode === 'can_BC') { %>
                         <input type="button" id="btnCISaveNotes" class=" btn btn-primary ci-header-btn" value="SaveNotes" i18n="shared.buttons.saveNotes">
                         <% } %>
                     </div>
@@ -199,20 +199,9 @@
                            <th>Allowed</th>
                            <th>Paid</th>
                            <th>Adjustment</th>
-                           <th>CAS 1</th>
-                           <th>Amt</th>
-                           <th>CAS 2</th>
-                           <th>Amt</th>
-                           <th>CAS 3</th>
-                           <th>Amt</th>
-                           <th>CAS 4</th>
-                           <th>Amt</th>
-                           <th>CAS 5</th>
-                           <th>Amt</th>
-                           <th>CAS 6</th>
-                           <th>Amt</th>
-                           <th>CAS 7</th>
-                           <th>Amt</th>
+                           <% if (billingRegionCode === 'can_BC') { %>
+                            <th>MSP Internal control number</th>
+                            <% } %> 
                        </tr>
                    </thead>
                    <tbody id="tBodyCIPayment"></tbody>

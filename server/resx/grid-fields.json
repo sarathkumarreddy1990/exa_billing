@@ -2,10 +2,10 @@
     "claim_management": [
         {
             "field_code": "claim_dt",
-            "field_name": "Claim Date",
-            "i18n_name": "setup.userSettings.claimDate",
+            "field_name": "Study Date",
+            "i18n_name": "setup.userSettings.studyDate",
             "field_info": {
-                "name": "claim_date",
+                "name": "study_date",
                 "searchFlag": "datetime",
                 "formatter": "self.claimDateFormatter",
                 "width": 200
@@ -464,7 +464,8 @@
                 "name": "claim_action",
                 "width": 250,
                 "defaultValue": ""
-            }
+            },
+            "field_code": "claim_action"
         },
         {
             "field_code": "reason_code",
@@ -490,10 +491,10 @@
             },
             "field_code": "pid_alt_account"
         },
-         {
+        {
             "id": 73,
             "field_name": "PHN",
-            "i18n_name": "patient.advancedSearch.phn",
+            "i18n_name": "shared.fields.phnuli",
             "field_info": {
                 "custom_name": "PHN",
                 "name": "phn_alt_account",
@@ -502,7 +503,34 @@
                 "defaultValue": ""
             },
             "field_code": "phn_alt_account"
+        },
+        {
+            "id": 74,
+            "field_code": "created_dt",
+            "field_name": "Claim Date",
+            "i18n_name": "setup.userSettings.claimDate",
+            "field_info": {
+                "custom_name": "Claim Created Dt",
+                "name": "created_dt",
+                "searchFlag": "datetime",
+                "formatter": "self.claimDateFormatter",
+                "width": 200
+            }
+        },
+        {
+            "id": 75,
+            "field_name": "Sequence Numbers",
+            "i18n_name": "shared.fields.sequenceNumbers",
+            "field_info": {
+                "custom_name": "Sequence Numbers",
+                "name": "can_bc_claim_sequence_numbers",
+                "width": 150,
+                "searchFlag": "%",
+                "defaultValue": ""
+            },
+            "field_code": "can_bc_claim_sequence_numbers"
         }
+
     ],
     "study_fields": [
         {
@@ -1319,7 +1347,7 @@
         {
             "id": 73,
             "field_name": "PHN",
-            "i18n_name": "patient.advancedSearch.phn",
+            "i18n_name": "shared.fields.phnuli",
             "field_info": {
                 "custom_name": "PHN",
                 "name": "phn_alt_account",
@@ -1328,6 +1356,19 @@
                 "defaultValue": ""
             },
             "field_code": "phn_alt_account"
+        },
+        {
+            "id": 74,
+            "field_name": "Sequence Numbers",
+            "i18n_name": "shared.fields.sequenceNumbers",
+            "field_info": {
+                "custom_name": "Sequence Numbers",
+                "name": "can_bc_claim_sequence_numbers",
+                "width": 150,
+                "searchFlag": "%",
+                "defaultValue": ""
+            },
+            "field_code": "can_bc_claim_sequence_numbers"
         }
     ]
 }

@@ -206,7 +206,7 @@ define('grid', [
 
             if (isClaimGrid) {
                 var statusIndex = _.findIndex(selectedStudies, function (item) {
-                    return item.claim_status_code === 'P77' && app.billingRegionCode === 'can_MB';
+                    return (item.claim_status_code === 'P77' && app.billingRegionCode === 'can_MB') || (item.claim_status_code === 'OH' && app.billingRegionCode === 'can_BC');
                 });
 
                 commonjs.getClaimStudy(selectedStudies[0].study_id, function (result) {
@@ -232,7 +232,7 @@ define('grid', [
 
                     // Claim status updation
                     $.each(app.claim_status, function (index, claimStatus) {
-                        if (claimStatus.code === 'P77') {
+                        if ((app.billingRegionCode === 'can_MB' && claimStatus.code === 'P77') || (app.billingRegionCode === 'can_BC' && claimStatus.code === 'OH')) {
                             return;
                         }
 

@@ -96,10 +96,11 @@ define([
                     billingClaimGridFields: JSON.stringify(billingClaimGridFields),
                     claimFieldOrder: JSON.stringify(claimFieldOrder),
                     claimSettingFields: claimSettingFields,
-                    paper_claim_full: $('#ddlPaperClaimFullForm').val() ? parseInt($('#ddlPaperClaimFullForm').val()) : null,
-                    paper_claim_original: $('#ddlPaperClaimOriginalForm').val() ? $('#ddlPaperClaimOriginalForm').val() : null,
-                    direct_invoice: $('#ddlDirectInvoice').val() ? $('#ddlDirectInvoice').val() : null,
-                    patient_invoice: $('#ddlPatientInvoice').val() ? $('#ddlPatientInvoice').val() : null
+                    paper_claim_full: $('#ddlPaperClaimFullForm').val() || null,
+                    paper_claim_original: $('#ddlPaperClaimOriginalForm').val() || null,
+                    direct_invoice: $('#ddlDirectInvoice').val() || null,
+                    patient_invoice: $('#ddlPatientInvoice').val() || null,
+                    special_form: $('#ddlSpecialForm').val() || null
 
                 });
                 this.model.save({},
@@ -144,7 +145,7 @@ define([
                     var i18nLabel = field_order[i].i18n_name;
                     var newLi = $('<li>');
                     var newCB = CreateCheckBox(value, id, i18nLabel);
-                    var defaultOptions = ['Billing Method', 'Patient Name', 'Claim Date', 'Clearing House', 'Billing Provider','Patient','Study Date','Account#','Status','Accession#', 'Billed Status','Payer Type','Claim Status','Claim No'];
+                    var defaultOptions = ['Claim Created Dt', 'Billing Method', 'Patient Name', 'Claim Date', 'Clearing House', 'Billing Provider','Patient','Study Date','Account#','Status','Accession#', 'Billed Status','Payer Type','Claim Status','Claim No'];
                     if ( app.billingRegionCode === 'can_AB' ) {
                         defaultOptions.push('AHS Claim Num');
                     }
@@ -211,11 +212,25 @@ define([
                             self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && (field.field_code == "clearing_house" ||
                             field.field_code == "patient_ssn" || field.field_code == "place_of_service" )) }) || [];
                         } else {
-                            self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && field.field_code == "payment_id") }) || [];
+                            self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && field.field_code == "payment_id" || field.field_code == "phn_alt_account" || field.field_code == "pid_alt_account" ) }) || [];
                         }
+
                         if (app.billingRegionCode !== "can_MB") {
-                            self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && field.field_code == "can_mhs_microfilm_no") }) || [];
+                            self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && (field.field_code == "can_mhs_microfilm_no")) }) || [];
                         }
+
+                        if (app.billingRegionCode !== "can_AB") {
+                            self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && (field.field_code == "can_ahs_claim_no" || field.field_code == "claim_action")) }) || [];
+                        }
+
+                        if (app.billingRegionCode !== "can_BC") {
+                            self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && (field.field_code == "can_bc_claim_sequence_numbers")) }) || [];
+                        }
+
+                        if (['can_AB', 'can_BC', 'can_MB'].indexOf(app.billingRegionCode) == -1) {
+                            self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && (field.field_code == "phn_alt_account")) }) || [];
+                        }
+
                         var result_data = data && data.length && data[1] && data[1].rows && data[1].rows.length ? data[1].rows[0] : {};
                         self.checkedBillingDisplayFields = result_data.field_order || [] ;
                         self.checkedFields = self.checkedBillingDisplayFields ? self.checkedBillingDisplayFields : [];
@@ -293,6 +308,7 @@ define([
                         self.loadPrinterTemplates('ddlPaperClaimOriginalForm','paper_claim_original', result_data.paper_claim_original);
                         self.loadPrinterTemplates('ddlDirectInvoice','direct_invoice', result_data.direct_invoice);
                         self.loadPrinterTemplates('ddlPatientInvoice','patient_invoice', result_data.patient_invoice);
+                        self.loadPrinterTemplates('ddlSpecialForm','special_form', result_data.special_form);
 
                     },
                     error: function (err, response) {

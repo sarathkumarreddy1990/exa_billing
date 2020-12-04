@@ -67,13 +67,13 @@ const claimTransactionHeader = ( row ) => {
             'empty': ``,
         };
 
-        const encodedHeader = encodeRecord(headerRecord, descriptors.claimTransactionHeader);
+        const encodedHeader = encodeRecord(headerRecord, descriptors.claimTransactionHeader).encodedData;
 
         if ( segmentType ) {
             const segmentProcessor = segmentProcessors[ segmentType ];
             const segmentDescriptor = descriptors[ segmentType ];
             const segmentRecord = segmentProcessor(row, headerRecord, segmentData);
-            const encodedSegment = encodeRecord(segmentRecord, segmentDescriptor);
+            const encodedSegment = encodeRecord(segmentRecord, segmentDescriptor).encodedData;
 
             return `${encodedHeader}${encodedSegment}`;
         }

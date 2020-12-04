@@ -22,6 +22,9 @@
                 <li class="nav-item">
                     <a class="nav-link" id="aClaimStatus" href="#setup/claim_status/list" i18n="shared.screens.setup.claimStatus"></a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="aCollectionsProcess" href="#setup/collections_process/all" i18n="shared.screens.setup.collectionsProcess"></a>
+                </li>
 
                 <li class="nav-item">
                     <a class="nav-link" id="aBillingProviders" href="#setup/billing_providers/list" i18n="shared.screens.setup.billingProvider"></a>
@@ -45,9 +48,11 @@
                 <li class="nav-item">
                     <a class="nav-link" id="aStatusColorCodes" href="#setup/status_color_codes/list" i18n="shared.screens.setup.statusColorCodes"></a>
                 </li>
+                <% if (billingRegionCode === 'can_AB') { %>
                 <li class="nav-item">
                     <a class="nav-link" id="aSupportingText" href="#setup/supporting_text/list" i18n="shared.screens.setup.supportingText"></a>
                 </li>
+                <% } %>
                 <li class="nav-item">
                     <a class="nav-link" id="aBillingValidations" href="#setup/validations/all" i18n="shared.screens.setup.billingValidations"></a>
                 </li>
@@ -73,6 +78,11 @@
                 <li class="nav-item">
                     <a class="nav-link" id="aAutoBilling" href="#setup/auto_billing/list" i18n="shared.screens.setup.autoBilling"></a>
                 </li>
+                <% if (billingRegionCode === 'can_BC') { %>
+                <li class="nav-item">
+                    <a class="nav-link" id="aSubmissionTypes" href="#setup/submission_types/list" i18n="shared.screens.setup.submissionTypes"></a>
+                </li>
+                <% } %>
             </ul>
         </div>
         <div class="col-10">

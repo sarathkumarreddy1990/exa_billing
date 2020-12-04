@@ -153,8 +153,17 @@ module.exports = {
 														 ) pointer) AS charge_pointer
 									, lower(prs.description) = ('self') AS is_pri_relationship_self
 									, lower(srs.description) = ('self') AS is_sec_relationship_self
-									, lower(trs.description) = ('self') AS is_ter_relationship_self
-					FROM
+									, lower(trs.description) = ('self') AS is_ter_relationship_self`;
+					
+					
+									 if(params.billingRegionCode === 'can_BC'){    
+									sql.append(SQL`,ref_pc.can_prid AS "referring_pro_practitioner_number"
+									, rend_pc.can_prid AS "reading_pro_practitioner_number"
+									, bp.can_bc_data_centre_number AS "service_facility_data_centre_number"
+									, bp.can_bc_payee_number AS "billing_pro_payeeNumber" `);									            
+									}
+
+									 sql.append(SQL` FROM
 						billing.claims bc
 					INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
 					INNER JOIN public.patients p ON p.id = bc.patient_id
@@ -181,7 +190,8 @@ module.exports = {
 					LEFT JOIN public.relationship_status trs ON trs.id = t_pi.subscriber_relationship_id
 					LEFT JOIN
 						LATERAL (SELECT icd_id FROM billing.claim_icds ci WHERE ci.claim_id = bc.id LIMIT 1) claim_icd ON true
-					WHERE bc.id = ANY(${params.claim_ids})`;
+						WHERE bc.id = ANY(${params.claim_ids})`);
+
 
         return await query(sql);
     },
@@ -234,6 +244,15 @@ module.exports = {
 						claims.id as "groupControlNo",
 						communication_info->'responsibleAgencyCode' as "responsibleAgencyCode",
 						communication_info->'verRelIndIdCode' as "verReleaseIDCode",
+						communication_info->'enable_ftp' as "enableFtp",
+						communication_info->'ftp_host' as "ftpHostName",
+						communication_info->'ftp_port' as "ftpPort",
+						communication_info->'ftp_user_name' as "ftpUserName",
+						communication_info->'ftp_password' as "ftpPassword",
+						communication_info->'ftp_type' as "ftpType",
+						communication_info->'ftp_sent_folder' as "ftpSentFolder",
+						communication_info->'ftp_receive_folder' as "ftpReceiveFolder",
+						communication_info->'ftp_identity_file' as "ftpIdentityFile",
 						'837' as "tsIDCode",
 						'0001' as "tsControlNo",
 						edi_clearinghouses.name as clearinghouses_name,
@@ -522,6 +541,8 @@ module.exports = {
 											provider_groups.group_name as "suffix",
 											'' as "prefix",
 											group_info->'npi_no' as "NPINO",
+											group_info->'federal_tax_id' as "federalTaxId",
+											group_info->'Fax' as "fax",
 											group_info->'taxonomy_code' as "taxonomyCode",
 											group_info->'AddressLine1' as "addressLine1",
 											group_info->'AddressLine2' as "addressLine2",
@@ -769,13 +790,13 @@ module.exports = {
 					INNER JOIN LATERAL billing.get_claim_payments(claims.id, true) bgcp ON TRUE
 					INNER JOIN facilities ON facilities.id=claims.facility_id
 					INNER JOIN patients ON patients.id=claims.patient_id
-					INNER JOIN    patient_insurances pi  ON  pi.id =
+					LEFT JOIN    patient_insurances pi  ON  pi.id =
 											(  CASE COALESCE(${params.payerType}, payer_type)
 											WHEN 'primary_insurance' THEN primary_patient_insurance_id
 											WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
 											WHEN 'tertiary_insurance' THEN tertiary_patient_insurance_id
 											END)
-                                            INNER JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id
+                                            LEFT JOIN  insurance_providers ON insurance_providers.id=insurance_provider_id
                                             LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id
                                             LEFT JOIN relationship_status ON  subscriber_relationship_id =relationship_status.id
                                             LEFT JOIN public.insurance_provider_payer_types  ON insurance_provider_payer_types.id = insurance_providers.provider_payer_type_id

@@ -1,0 +1,58 @@
+{
+    "dataCentreNumber": {
+        "startPos": 4,
+        "fieldLength": 5
+    },
+    "dataCentreSequenceNumber": {
+        "startPos": 9,
+        "fieldLength": 7
+    },
+    "payeeNumber": {
+        "startPos": 16,
+        "fieldLength": 5
+    },
+    "practionerNumber": {
+        "startPos": 21,
+        "fieldLength": 5
+    },
+    "eob": {
+        "startPos": 26,
+        "fieldLength": 14
+    },
+    "expCode_1": {
+        "startPos": 26,
+        "fieldLength": 2
+    },
+    "expCode_2": {
+        "startPos": 28,
+        "fieldLength": 2
+    },
+    "expCode_3": {
+        "startPos": 30,
+        "fieldLength": 2
+    },
+    "expCode_4": {
+        "startPos": 32,
+        "fieldLength": 2
+    },
+    "expCode_5": {
+        "startPos": 34,
+        "fieldLength": 2
+    },
+    "expCode_6": {
+        "startPos": 36,
+        "fieldLength": 2
+    },
+    "expCode_7": {
+        "startPos": 38,
+        "fieldLength": 2
+    },
+    "officeFolioClaimNumber": {
+        "startPos": 40,
+        "fieldLength": 7
+    },
+    "filler": {
+        "startPos": 47,
+        "fieldLength": 24
+    }
+}

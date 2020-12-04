@@ -259,7 +259,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "id": 1,
                     "field_code": "claim_dt",
                     "field_name": "Claim Date",
-                    "i18n_name": "billing.claims.claimDate",
+                    "i18n_name": "billing.claims.studyDate",
                     "field_info": {
                         "custom_name": "Claim Date",
                         "name": "claim_dt",
@@ -868,24 +868,55 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "width": 150,
                         "searchFlag": "%",
                         "sortable": true,
-                        "defaultValue": ""
+                        "defaultValue": "",
+                        "hidden": (app.country_alpha_3_code !== 'can')
                     },
                     "field_code": "pid_alt_account"
                 },
                 "PHN": {
                     "id": 73,
                     "field_name": "PHN",
-                    "i18n_name": "setup.userSettings.phn",
+                    "i18n_name": "shared.fields.phnuli",
                     "field_info": {
                         "custom_name": "PHN",
                         "name": "phn_alt_account",
                         "width": 150,
                         "searchFlag": "%",
                         "sortable": true,
-                        "defaultValue": ""
+                        "defaultValue": "",
+                        "hidden": ['can_AB', 'can_BC', 'can_MB'].indexOf(app.billingRegionCode) == -1
                     },
                     "field_code": "phn_alt_account"
+                },
+                "Claim Created Dt": {
+                    "id": 74,
+                    "field_code": "created_dt",
+                    "field_name": "Claim Created Dt",
+                    "i18n_name": "setup.userSettings.claimDate",
+                    "field_info": {
+                        "custom_name": "Claim Created Dt",
+                        "name": "created_dt",
+                        "searchFlag": "datetime",
+                        "formatter": claimDateFormatter,
+                        "width": 200
+                    }
+                },
+                "Sequence Numbers": {
+                    "id": 75,
+                    "field_name": "Sequence Numbers",
+                    "i18n_name": "shared.fields.sequenceNumbers",
+                    "field_info": {
+                        "custom_name": "Sequence Numbers",
+                        "name": "can_bc_claim_sequence_numbers",
+                        "width": 150,
+                        "searchFlag": "%",
+                        "sortable": true,
+                        "defaultValue": "",
+                        "hidden": app.billingRegionCode !== 'can_BC'
+                    },
+                    "field_code": "can_bc_claim_sequence_numbers"
                 }
+
             });
         }else{
         return Immutable.Map({
@@ -1172,23 +1203,24 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "width": 150,
                     "searchFlag": "%",
                     "sortable": true,
-                    "defaultValue": ""
+                    "defaultValue": "",
+                    "hidden": (app.country_alpha_3_code !== 'can')
                 },
                 "field_code": "pid_alt_account"
             },
             "PHN": {
                 "id": 73,
                 "field_name": "PHN",
-                "i18n_name": "setup.userSettings.phn",
+                "i18n_name": "shared.fields.phnuli",
                 "field_info": {
                     "custom_name": "PHN",
                     "name": "phn_alt_account",
                     "width": 150,
                     "searchFlag": "%",
                     "sortable": true,
-                    "defaultValue": ""
+                    "defaultValue": "",
+                    "hidden": ['can_AB', 'can_BC', 'can_MB'].indexOf(app.billingRegionCode) == -1
                 },
-
                 "field_code": "phn_alt_account"
             },
             "Reading Physician": {
@@ -2106,6 +2138,21 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "defaultValue": ""
                 },
                 "field_code": "icd_description"
+            },
+            "Sequence Numbers": {
+                    "id": 74,
+                    "field_name": "Sequence Numbers",
+                    "i18n_name": "shared.fields.sequenceNumbers",
+                    "field_info": {
+                        "custom_name": "Sequence Numbers",
+                        "name": "can_bc_claim_sequence_numbers",
+                        "width": 150,
+                        "searchFlag": "%",
+                        "sortable": true,
+                        "defaultValue": "",
+                        "hidden": app.billingRegionCode !== 'can_BC'
+                    },
+                    "field_code": "can_bc_claim_sequence_numbers"
             }
         });
 

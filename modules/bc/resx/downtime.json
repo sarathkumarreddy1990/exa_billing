@@ -1,0 +1,46 @@
+{
+    "1": [
+        {
+            "startTime": "05:00",
+            "endTime": "07:00"
+        }
+    ],
+    "2": [
+        {
+            "startTime": "05:00",
+            "endTime": "07:00"
+        }
+    ],
+    "3": [
+        {
+            "startTime": "05:00",
+            "endTime": "07:00"
+        },
+        {
+            "startTime": "21:00",
+            "endTime": "23:59"
+        }
+    ],
+    "4": [
+        {
+            "startTime": "05:00",
+            "endTime": "07:00"
+        },
+        {
+            "startTime": "00:00",
+            "endTime": "08:00"
+        }
+    ],
+    "5": [
+        {
+            "startTime": "05:00",
+            "endTime": "07:00"
+        }
+    ],
+    "7": [
+        {
+            "startTime": "05:00",
+            "endTime": "09:00"
+        }
+    ]
+}

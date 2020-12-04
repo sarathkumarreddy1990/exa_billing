@@ -36,6 +36,7 @@ var layout = {
         'Billing Codes': '#aBillingCodes',
         'Billing Classes': '#aBillingClasses',
         'Claim Status': '#aClaimStatus',
+        'Collections Process': '#aCollectionsProcess',
         'Billing Provider': '#aBillingProviders',
         'Provider ID Code Qualifiers': '#aProviderIdCodeQualifiers',
         'Payment Reasons': '#aPaymentReasons',
@@ -79,7 +80,8 @@ var layout = {
         'Paper Claim Templates': '#aPaperClaimTemplate',
         'Printer Templates': '#aPrinterTemplate',
         'Payments Realization Rate Analysis': '#aPaymentsRealizationRateAnalysis',
-        'Auto Billing': '#aAutoBilling'
+        'Auto Billing': '#aAutoBilling',
+        'Submission Types': '#aSubmissionTypes'
         /// To be added
     },
 

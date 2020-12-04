@@ -325,6 +325,11 @@ const colModel = [
         name: 'phn_alt_account',
         searchColumns: ['patient_alt_accounts.phn_alt_account'],
         searchFlag: 'arrayString'
+    },
+    {
+        name: 'can_bc_claim_sequence_numbers',
+        searchColumns:[`claim_sequence_numbers.can_bc_claim_sequence_numbers`],
+        searchFlag: 'arrayString'
     }
 ];
 
@@ -509,6 +514,7 @@ const api = {
             case `notes`: return `get_study_notes_as_json(studies.id)`;
             case 'pid_alt_account': return 'patient_alt_accounts.pid_alt_account';
             case 'phn_alt_account': return 'patient_alt_accounts.phn_alt_account';
+            case 'can_bc_claim_sequence_numbers': return `claim_sequence_numbers.can_bc_claim_sequence_numbers`;
         }
 
         return args;
@@ -737,6 +743,17 @@ const api = {
             ) patient_alt_accounts ON TRUE `;
         }
 
+        if (tables.claim_sequence_numbers) {
+            r += `LEFT JOIN LATERAL (
+                    SELECT
+                        billing.can_bc_get_claim_sequence_numbers(bch.claim_id) AS can_bc_claim_sequence_numbers
+                    FROM billing.charges_studies bcs
+                    INNER JOIN billing.charges bch ON bch.id = bcs.charge_id
+                    WHERE bcs.study_id = studies.id
+                    LIMIT 1
+                  ) claim_sequence_numbers ON TRUE`;
+        }
+
         return r;
     },
 
@@ -885,7 +902,8 @@ const api = {
             `eligibility.dt AS eligibility_dt`,
             `icd_codes.description AS icd_description`,
             `patient_alt_accounts.pid_alt_account`,
-            `patient_alt_accounts.phn_alt_account`
+            `patient_alt_accounts.phn_alt_account`,
+            `claim_sequence_numbers.can_bc_claim_sequence_numbers`
         ];
 
         return stdcolumns.concat(

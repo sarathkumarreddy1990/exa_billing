@@ -33,6 +33,11 @@ define([
                     i18nHeader: 'setup.userSettings.patientInvoice',
                     api: '/exa_modules/billing/claim_workbench/invoice_data'
                 },
+                'special_form': {
+                    header: 'Special Form',
+                    i18nHeader: 'setup.userSettings.specialForm',
+                    api: '/exa_modules/billing/claim_workbench/claim_json'
+                },
             };
 
             this.print = function (templateType, claimIDs, options) {
@@ -58,6 +63,7 @@ define([
                 commonjs.showLoading();
 
                 this.getTemplate(claimIDs, templateType, function (err, template) {
+                    var typesOfTemplates = ['paper_claim_original', 'paper_claim_full', 'special_form'];
                     if (template && !_.isEmpty(template)) {
                         self.getClaimObject(claimIDs, templateType, options, function (err, claimData) {
 
@@ -76,7 +82,7 @@ define([
                                 processedIDs = claimData[0].claim_details.map(function (claim) { return claim.claim_no })
                             }
 
-                            if (templateType === 'paper_claim_original' || templateType === 'paper_claim_full') {
+                            if (typesOfTemplates.indexOf(templateType) > -1) {
                                 processedIDs = claimData.map(function (c) { return c.claim_id });
                             }
 
@@ -101,12 +107,14 @@ define([
                         });
                 } else {
                     commonjs.hideLoading();
-                    if (templateType === 'paper_claim_full' || templateType === 'paper_claim_original') {
+
+                    if (typesOfTemplates.indexOf(templateType) > -1){
                         commonjs.showError('messages.errors.userSettingConfig');
                     }
-                    else {
+                    else{
                         commonjs.showError('messages.errors.invalidDataTemplate');
                     }
+
                     return false;
                 }
                 });

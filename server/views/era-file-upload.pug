@@ -16,7 +16,7 @@ html
                     document.getElementById("hdnMode").value = id;
                     document.getElementById("eraFile").click();
                 }
-                
+
                 return false;
             }
 
@@ -42,10 +42,37 @@ html
                 }
             }
 
+            function download(e) {
+                var loadingMsg = parent.commonjs.geti18NString('billing.era.eraDownloadingStatus');
+                parent.commonjs.showLoading(loadingMsg);
+
+                $.ajax({
+                    type: "GET",
+                    url: "/exa_modules/billing/era/download",
+                    data: {},
+                    success: function(result) {
+                        parent.commonjs.hideLoading();
+                        if(result && result.status == 'error') {
+                            parent.commonjs.showWarning(result.message);
+                        } else {
+                            parent.commonjs.showStatus(result.message);
+                        }
+                        var reloadERA = parent.document.getElementById('btnReloadERA');
+                        reloadERA && reloadERA.click();
+                    },
+                    error: function (err, response) {
+                        parent.commonjs.handleXhrError(err, response);
+                    },
+                    dataType: 'json'
+                });
+            }
+
     body(class="exportFrame" style="background-color: transparent !important;")
-        form#eraFileUpload(name='formEraUpload', action='/exa_modules/billing/era/upload', method='POST', style="float:right;", enctype="multipart/form-data")
+        form#eraFileUpload(name='formEraUpload', action='/exa_modules/billing/era/upload?_csrf=' + csrfToken, method='POST', style="float:right;", enctype="multipart/form-data")
+            button#btnDownload_EOB.btn.btn-primary.btn-sm(type="button", onClick="download(event);", style="background: #3c91f0; margin-top: 4px; margin-right: 5px;", i18n="shared.buttons.download")
             button#btnProcess_EOB.btn.btn-primary.btn-sm(type="button", onClick="fireUpload(event);", style="background: #3c91f0; margin-top: 4px; margin-right: 5px;", i18n="shared.fields.uploadProcessEOBFile")
-            button#btnPreview_EOB.btn.btn-primary.btn-sm(type="button", onClick="fireUpload(event);", style="background: #3c91f0; margin-top: 4px;", i18n="shared.fields.previewEOBFile")
+            if ['can_MB', 'can_BC'].indexOf(billingRegionCode) == -1
+                button#btnPreview_EOB.btn.btn-primary.btn-sm(type="button", onClick="fireUpload(event);", style="background: #3c91f0; margin-top: 4px;", i18n="shared.fields.previewEOBFile")
 
             input#eraFile(type="file", name="displayImage", onchange="doImport(event);", style="visibility:hidden; height:0px; width: 0px" )
             input#eraPDFFile(type="file", name="displayImage", onchange="doImport(event);", accept="application/pdf" style="visibility:hidden; height:0px; width: 0px" )

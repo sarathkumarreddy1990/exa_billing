@@ -21,7 +21,9 @@ router.get('/era_file_preview', async function (req, res) {
 
 router.get('/upload', function (req, res) {
     return res.render('../server/views/era-file-upload.pug', {
-        staticAssetsRoot
+        staticAssetsRoot,
+        csrfToken: req.csrfToken(),
+        billingRegionCode: req.session && req.session.billingRegionCode || ''
     });
 });
 
@@ -49,7 +51,9 @@ router.post('/upload', upload.single('displayImage'), async function (req, res) 
             previewFileName: '',
             status: '',
             staticAssetsRoot,
-            ...response
+            ...response,
+            csrfToken: req.csrfToken(),
+            billingRegionCode: req.billingRegionCode || ''
         });
     } catch (err) {
         httpHandler.sendError(req, res, err);
@@ -80,5 +84,10 @@ router.get('/eob_file_id', async function (req, res) {
     const data = await eraController.getEOBFileId(req.query.paymentID);
     httpHandler.send(req, res, data);
 });
+
+router.get('/download', async function (req, res) {
+    const data = await eraController.initializeDownload(req.query);
+    httpHandler.send(req, res, data);
+})
 
 module.exports = router;
