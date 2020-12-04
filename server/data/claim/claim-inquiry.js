@@ -148,14 +148,17 @@ module.exports = {
                         , type AS code
                         , null AS type
                         , note AS comments
-                        , created_dt as commented_dt
+                        , cc.created_dt::text as commented_dt
                         , is_internal
                         , null AS charge_amount
                         , '{}'::text[] AS charge_pointer
                         , null AS payment
                         , null AS adjustment
+                        , bc.created_dt
+                        , null AS sequence_number
                     FROM
                         billing.claim_comments cc
+                    INNER JOIN billing.claims bc ON bc.id = cc.claim_id
                     WHERE cc.claim_id = ${claim_id}
                     UNION ALL
                     SELECT
@@ -164,15 +167,48 @@ module.exports = {
                         , 'charge' AS code
                         , cpt.display_code AS  type
                         , cpt.short_description AS comments
-                        , ch.charge_dt as commented_dt
+                        , ch.charge_dt::text as commented_dt
                         , false AS is_internal
                         , (ch.units * ch.bill_fee) AS charge_amount
                         , ARRAY[COALESCE(pointer1, ''), COALESCE(pointer2, ''), COALESCE(pointer3, ''), COALESCE(pointer4, '')] AS charge_pointer
                         , null AS payment
                         , null AS adjustment
+                        , bc.created_dt
+                        , seq.sequence_number
                     FROM billing.charges ch
+                    INNER JOIN billing.claims bc ON bc.id = ch.claim_id
                     INNER JOIN cpt_codes cpt on cpt.id = ch.cpt_id
+                    LEFT JOIN LATERAL (
+                        SELECT
+                            befc.sequence_number
+                        FROM billing.edi_file_charges befc
+                        WHERE befc.charge_id = ch.id
+                        ORDER BY id DESC 
+                        LIMIT 1
+                    ) AS seq ON TRUE
                     WHERE ch.claim_id = ${claim_id}
+                    UNION ALL
+                    (SELECT
+                        befbn.id AS id
+                        , '' AS payment_id
+                        , null AS code
+                        , null AS type
+                        , 'Note record submitted' AS comments
+                        , bc.claim_dt::text as commented_dt
+                        , false AS is_internal
+                        , null AS charge_amount
+                        , '{}'::text[] AS charge_pointer
+                        , null AS payment
+                        , null AS adjustment
+                        , null AS created_dt
+                        , befbn.sequence_number
+                    FROM
+                        billing.edi_file_billing_notes befbn
+                        INNER JOIN billing.edi_file_claims befc ON befc.id = befbn.edi_file_claim_id 
+                        INNER JOIN billing.claims bc ON bc.id = befc.claim_id
+                    WHERE befc.claim_id = ${claim_id}
+                    ORDER BY befc.id DESC 
+                    LIMIT 1)
                     UNION ALL
                     SELECT
                           max(pa.id) AS id
@@ -198,15 +234,18 @@ module.exports = {
                             WHEN bp.payer_type = 'ordering_provider' THEN
                                     p.full_name
                             END as comments
-                        , bp.accounting_date as commented_dt
+                        , bp.accounting_date::text AS commented_dt
                         , false AS is_internal
                         , null AS charge_amount
                         , '{}'::text[] AS charge_pointer
                         , SUM(CASE WHEN pa.amount_type = 'payment' THEN pa.amount ELSE 0.00::money END)::text payment
                         , SUM(CASE WHEN pa.amount_type = 'adjustment'  THEN pa.amount  ELSE 0.00::money END)::text adjustment
+                        , bc.created_dt
+                        , null AS sequence_number
                     FROM billing.payments bp
                     INNER JOIN billing.payment_applications pa on pa.payment_id = bp.id
                     INNER JOIN billing.charges ch on ch.id = pa.charge_id
+                    INNER JOIN billing.claims bc ON bc.id = ch.claim_id
                     LEFT JOIN public.patients pp on pp.id = bp.patient_id
                     LEFT JOIN public.insurance_providers pip on pip.id = bp.insurance_provider_id
                     LEFT JOIN public.provider_groups  pg on pg.id = bp.provider_group_id
@@ -221,7 +260,8 @@ module.exports = {
                         pa.applied_dt,
                         bp.id ,
                         pa.amount_type,
-                        comments
+                        comments,
+                        bc.created_dt
                     UNION ALL
                     SELECT
                           bp.id AS id
@@ -229,21 +269,25 @@ module.exports = {
                         , 'refund' AS code
                         , 'Refund'  AS type
                         , adj.description AS comments
-                        , bp.accounting_date AS commented_dt
+                        , bp.accounting_date::text AS commented_dt
                         , false AS is_internal
                         , null AS charge_amount
                         , '{}'::text[] AS charge_pointer
                         , null AS payment
                         , SUM( pa.amount )::text AS adjustment
+                        , bc.created_dt
+                        , null AS sequence_number
                     FROM billing.payments bp
                     INNER JOIN billing.payment_applications pa on pa.payment_id = bp.id
                     INNER JOIN billing.charges ch on ch.id = pa.charge_id
+                    INNER JOIN billing.claims bc ON bc.id = ch.claim_id
                     LEFT JOIN billing.adjustment_codes adj ON adj.id = pa.adjustment_code_id
-                    WHERE adj.accounting_entry_type = 'refund_debit'  AND ch.claim_id = ${claim_id}
+                    WHERE adj.accounting_entry_type = 'refund_debit' AND ch.claim_id = ${claim_id}
                     GROUP BY
                         bp.id
                         , pa.amount_type
                         , adj.description
+                        , bc.created_dt
                 )
                 SELECT
                       id AS row_id
@@ -257,6 +301,7 @@ module.exports = {
                     , charge_pointer
                     , payment
                     , adjustment
+                    , created_dt
                     , COUNT(1) OVER (range unbounded preceding) AS total_records
                     , ROW_NUMBER () OVER (
                         ORDER BY
@@ -271,6 +316,7 @@ module.exports = {
                                 WHEN 'co_insurance' THEN 7
                                 WHEN 'deductible' THEN 8 END
                     ) AS id
+                    , sequence_number
                 FROM agg
                 ORDER BY
                       commented_dt
@@ -587,7 +633,8 @@ module.exports = {
                         , pa.payment_amount AS payment
                         , pa.adjustment_amount AS adjustment
                         , cpt.display_code AS cpt_code
-                    FROM (SELECT charge_id, id, payment_amount, adjustment_amount, payment_applied_dt, payment_id, payment_application_adjustment_id from billing.get_payment_applications(${payment_id}, ${pay_application_id}) ) AS pa
+                        , can_bc_internal_control_number
+                    FROM (SELECT charge_id, id, payment_amount, adjustment_amount, payment_applied_dt, payment_id, can_bc_internal_control_number, payment_application_adjustment_id from billing.get_payment_applications(${payment_id}, ${pay_application_id}) ) AS pa
                     INNER JOIN billing.charges ch on ch.id = pa.charge_id
                     INNER JOIN public.cpt_codes cpt ON cpt.id = ch.cpt_id
                     LEFT JOIN LATERAL (
@@ -687,6 +734,7 @@ module.exports = {
                         , COUNT(1) OVER (range unbounded preceding) AS total_records
                         ,(select Row_to_json(agg_arr) agg_arr FROM (SELECT * FROM billing.get_age_patient_claim (patients.id, ${billProvId}::bigint ) )as agg_arr) as age_summary
                         ,claims.id
+                        ,claims.billing_provider_id
                     FROM billing.claims
                     INNER JOIN patients ON claims.patient_id = patients.id
                     INNER JOIN LATERAL billing.get_claim_payments(claims.id, false) bgcp ON TRUE
@@ -812,7 +860,7 @@ module.exports = {
                 havingQuery += ' AND  SUM(balance) <> (0)::MONEY';
             }
         }
-        
+
         if (params.invoice_payment) {
             havingQuery += ` AND SUM(payment) = (${params.invoice_payment})::MONEY`;
         }
@@ -887,7 +935,7 @@ module.exports = {
                 ${havingQuery}
                 ORDER BY ${sortField}  ${sortOrder}   LIMIT ${pageSize}
                 OFFSET ${((pageNo * pageSize) - pageSize)}`;
-                
+
         return await query(sql);
 
     },
@@ -1019,7 +1067,7 @@ module.exports = {
                         UPDATE BILLING.CLAIMS
                         SET billing_notes = ${billingNotes}
                         WHERE id = ${claimId}
-                        RETURNING *`;
+                        RETURNING id`;
 
         return await query(sqlQry);
     }

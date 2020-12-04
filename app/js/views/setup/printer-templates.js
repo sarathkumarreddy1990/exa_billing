@@ -41,7 +41,7 @@ define(['jquery',
             highlighClass: {
                 'background': '#bbddff', 'border-radius': '6px'
             },
-            events: { 
+            events: {
                 'change #ddlTemplateType' : 'changeTemplateType'
             },
 
@@ -54,7 +54,8 @@ define(['jquery',
                     { 'value': "direct_invoice", 'text': "Direct Invoice" },
                     { 'value': "patient_invoice", 'text': "Patient Invoice" },
                     { 'value': "paper_claim_full", 'text': "Paper Claim (B & W)" },
-                    { 'value': "paper_claim_original", 'text': "Paper Claim (RED)" }
+                    { 'value': "paper_claim_original", 'text': "Paper Claim (RED)" },
+                    { 'value': "special_form", 'text': "Special Form" }
 
                 ];
                 if (app.country_alpha_3_code === 'can') {
@@ -402,7 +403,9 @@ define(['jquery',
                     'direct_invoice': 'direct_invoice.template',
                     'patient_invoice': 'patient_Invoice.template',
                     'paper_claim_full': app.billingRegionCode === 'can_MB' ? 'wcb-mhsal.template' : 'paper_claim_BW.template',
-                    'paper_claim_original': 'paper_claim_red.template'
+                    'paper_claim_original': 'paper_claim_red.template',
+                    "special_form" : "special_form.template"
+
                 };
 
                 if (templateType) {
@@ -480,6 +483,9 @@ define(['jquery',
                         break;
                     case "patient_invoice":
                         colvalue = 'Patient Invoice';
+                        break;
+                    case "special_form":
+                        colvalue = 'Special Form';
                         break;
                 }
                 return colvalue;

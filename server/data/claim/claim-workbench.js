@@ -913,6 +913,67 @@ module.exports = {
                     claim_payments_list cp `);
 
         return await query(sql);
-    }
+    },
 
+    storeFile: async (info) => {
+        const {
+            file_name,
+            file_md5,
+            file_size,
+            file_type,
+            file_store_id,
+            companyId,
+            file_path,
+            created_dt
+        } = info || {};
+
+        const sql = SQL`
+            INSERT INTO billing.edi_files (
+                company_id,
+                file_store_id,
+                created_dt,
+                status,
+                file_type,
+                file_path,
+                file_size,
+                file_md5,
+                uploaded_file_name
+            )
+            SELECT
+                ${companyId},
+                ${file_store_id},
+                ${created_dt},
+                'pending',
+                ${file_type},
+                ${file_path},
+                ${file_size},
+                ${file_md5},
+                ${file_name}
+            RETURNING
+                id
+        `;
+
+        const dbResults = (await query(sql.text, sql.values)).rows;
+
+        return dbResults.pop().id;
+    },
+
+    updateEDIFile: async (args) => {
+        const {
+            status,
+            ediFileId
+        } = args || {};
+
+        const sql = SQL`
+            UPDATE
+                billing.edi_files ef
+            SET
+                status = ${status}
+            WHERE
+                ef.id = ${ediFileId}
+            RETURNING
+                id;`;
+
+        return await query(sql.text, sql.values);
+    }
 };

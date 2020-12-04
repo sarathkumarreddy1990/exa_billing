@@ -337,14 +337,10 @@ define([
                     company_id: app.companyID
                 });
 
-                if (app.billingRegionCode === 'can_MB') {
-                    return self.processMhsFile(file_id, gridData, currentStatus);
-                }
-
                 $('#btnProcessPayment').prop('disabled', true);
                 commonjs.showLoading();
                 $.ajax({
-                    url: '/exa_modules/billing/era/process-file',
+                    url: self.bindProvinceBasedUrl(app.billingRegionCode),
                     type: "POST",
                     dataType: 'json',
                     data: {
@@ -355,41 +351,13 @@ define([
                         facility_id: app.facilityID
                     },
                     success: function (model, response) {
-
-                        var array_to_object = function ($value) {
-                            return isArray($value) ? array_to_object($value[0]) : $value;
+                        switch(app.billingRegionCode) {
+                            case 'can_MB':
+                            case 'can_BC':
+                                return self.processCanadaResponse(model);
+                            default:
+                                return self.processUsaResponse(model);
                         }
-
-                        if (model && model != undefined) {
-
-                            model = model && model.length ? array_to_object(model) : model;
-
-                            if (model && model.status == 100) {
-                                commonjs.showWarning(model.message);
-                            } else if (model && model.payer_id) {
-                                model.file_store_id = gridData.file_store_id;
-                                self.showProgressDialog(file_id, model, 'initialize');
-                            } else if (model && model.rows && model.rows.length) {
-                                commonjs.hideDialog();
-                                self.reloadERAFilesLocal();
-                                $('.modal-dialog .btn-secondary, .modal-dialog  .close').removeClass('eraClose');
-                            } else if (model && model.type && model.type == 'none') {
-                                model.file_store_id = gridData.file_store_id;
-                                self.showProgressDialog(file_id, model, 'initialize');
-                            } else if (model && model.name == 'error') {
-                                var msg = 'error';
-                                
-                                if (model.table) {
-                                    msg = model.table + ' ' + model.detail;
-                                } else if (model.hint) {
-                                    msg = model.hint;
-                                }
-                                commonjs.showWarning(msg);
-                            }
-                            $('#btnProcessPayment').prop('disabled', false);
-                            commonjs.hideLoading();
-                        }
-
                     },
                     error: function (err, response) {
                         commonjs.hideLoading();
@@ -398,40 +366,68 @@ define([
                 });
             },
 
-            processMhsFile: function (file_id, gridData, currentStatus) {
+            processUsaResponse: function(model) {
+                var self = this;
+                var array_to_object = function ($value) {
+                    return isArray($value) ? array_to_object($value[0]) : $value;
+                }
+
+                model = model && model.length ? array_to_object(model) : model;
+
+                if (model) {
+
+                    if (model.status == 100) {
+                        commonjs.showWarning(model.message);
+                    } else if (model.payer_id || (model.type && model.type == 'none')) {
+                        model.file_store_id = gridData.file_store_id;
+                        self.showProgressDialog(file_id, model, 'initialize');
+                    } else if (model.rows && model.rows.length) {
+                        commonjs.hideDialog();
+                        self.reloadERAFilesLocal();
+                        $('.modal-dialog .btn-secondary, .modal-dialog  .close').removeClass('eraClose');
+                    } else if (model.name == 'error') {
+                        var msg = 'error';
+
+                        if (model.table) {
+                            msg = model.table + ' ' + model.detail;
+                        } else if (model.hint) {
+                            msg = model.hint;
+                        }
+                        commonjs.showWarning(msg);
+                    }
+                    $('#btnProcessPayment').prop('disabled', false);
+                    commonjs.hideLoading();
+                }
+            },
+
+            bindProvinceBasedUrl: function(billingRegionCode) {
+                switch(billingRegionCode) {
+                    case 'can_MB':
+                        return '/exa_modules/billing/mhs/process-file';
+                    case 'can_BC':
+                        return '/exa_modules/billing/bc/process-file';
+                    default:
+                        return '/exa_modules/billing/era/process-file';
+                }
+            },
+
+            processCanadaResponse: function (model) {
                 var self = this;
                 var processPaymentBtn = $('#btnProcessPayment');
                 processPaymentBtn.prop('disabled', true);
                 commonjs.showLoading();
 
-                $.ajax({
-                    url: '/exa_modules/billing/mhs/process-file',
-                    type: 'POST',
-                    dataType: 'json',
-                    data: {
-                        status: currentStatus || gridData.current_status,
-                        file_id: file_id || null,
-                        company_id: app.companyID,
-                        facility_id: app.facilityID
-                    },
-                    success: function(model, response) {
-                        if (model && model.status == 100) {
-                            return commonjs.showWarning(model.message);
-                        } 
+                if (model && model.status == 100) {
+                    return commonjs.showWarning(model.message);
+                }
 
-                        if (model && model.rows && model.rows.length) {
-                            commonjs.hideDialog();
-                            self.reloadERAFilesLocal();
-                            $('.modal-dialog .btn-secondary, .modal-dialog .close').removeClass('eraClose');
-                        }
-                        processPaymentBtn.prop('disabled', false);
-                        commonjs.hideLoading();
-                    },
-                    error: function (err, response) {
-                        commonjs.hideLoading();
-                        commonjs.handleXhrError(err, response);
-                    }
-                });
+                if (model && model.rows && model.rows.length) {
+                    commonjs.hideDialog();
+                    self.reloadERAFilesLocal();
+                    $('.modal-dialog .btn-secondary, .modal-dialog .close').removeClass('eraClose');
+                }
+                processPaymentBtn.prop('disabled', false);
+                commonjs.hideLoading();
             },
 
             showProgressDialog: function (file_id, payerDetails, isFrom) {

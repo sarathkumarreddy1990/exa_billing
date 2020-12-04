@@ -96,7 +96,7 @@ const processRow = (tracker, batch_tracker) => row => {
                                 encodeRecord(
                                     segmentProcessors[key](row, currentString),
                                     descriptors[key]
-                                )
+                                ).encodedData
                             );
 
                             row.sequence_number++;
@@ -108,7 +108,7 @@ const processRow = (tracker, batch_tracker) => row => {
                                 encodeRecord(
                                     segmentProcessors[key](row, currentString),
                                     descriptors[key]
-                                )
+                                ).encodedData
                             );
 
                             row.sequence_number++;
@@ -123,7 +123,7 @@ const processRow = (tracker, batch_tracker) => row => {
                         encodeRecord(
                             segmentProcessors[key](row, providerRemarks),
                             descriptors[key]
-                        )
+                        ).encodedData
                     );
 
                     tracker[key]++;
@@ -145,7 +145,7 @@ const processRow = (tracker, batch_tracker) => row => {
                             encodeRecord(
                                 segmentProcessors[key](row, service),
                                 descriptors[key]
-                            )
+                            ).encodedData
                         );
 
                         tracker[key]++;
@@ -162,7 +162,7 @@ const processRow = (tracker, batch_tracker) => row => {
                         encodeRecord(
                             segmentProcessors[key](row),
                             descriptors[key]
-                        )
+                        ).encodedData
                     );
 
                     tracker[key]++;
@@ -180,7 +180,7 @@ const processRow = (tracker, batch_tracker) => row => {
                     encodeRecord(
                         segmentProcessors[key](row),
                         descriptors[key]
-                    )
+                    ).encodedData
                 );
 
                 break;

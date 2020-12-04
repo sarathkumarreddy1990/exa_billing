@@ -22,7 +22,8 @@ define([
     'collections/claim-patient-log',
     'views/app/unapplied-payment',
     'text!templates/claims/claim-inquiry-cas.html',
-    'shared/report-utils'
+    'shared/report-utils',
+    'text!templates/claims/claim-inquiry-cas-header.html'
 ], function (
     $,
     _,
@@ -47,7 +48,8 @@ define([
     claimPatientLogList,
     unappliedPaymentView,
     casTemplate,
-    UI
+    UI,
+    claimEnquiryCasHeader
 ) {
         var paperClaim = new PaperClaim(true);
 
@@ -63,6 +65,7 @@ define([
             invoiceAgingSummaryTemplate: _.template(claimInvoiceAgeHTML),
             casTemplate: _.template(casTemplate),
             payCmtGrid: '',
+            casHeaderTemplate: _.template(claimEnquiryCasHeader),
             claim_id: null,
             rights: null,
             patientClaims: {
@@ -267,17 +270,15 @@ define([
             },
 
             disableElementsForProvince: function(data) {
-                if (app.billingRegionCode === 'can_MB') {
-                    var saveBtn = $('#btnCISaveNotes');
-                    var saveNotesBtn = $('#btnCISaveIsInternal');
+                var saveBtn = $('#btnCISaveIsInternal');
+                var saveNotesBtn = $('#btnCISaveNotes');
 
-                    if (data.claim_status_code === 'P77') {
-                        saveBtn.show();
-                        saveNotesBtn.hide();
-                    } else {
-                        saveNotesBtn.show();
-                        saveBtn.hide();
-                    }
+                if ((app.billingRegionCode === 'can_MB' && data.claim_status_code === 'P77') || (app.billingRegionCode === 'can_BC' && data.claim_status_code === 'OH'))  {
+                    saveNotesBtn.show();
+                    saveBtn.hide();
+                } else {
+                    saveBtn.show();
+                    saveNotesBtn.hide();
                 }
             },
 
@@ -302,8 +303,8 @@ define([
                 ];
 
                 if (app.billingRegionCode !== "can_ON") {
-                    colNames.push('Paper Claim Original', 'Paper Claim Full');
-                    i18nNames.push('billing.COB.paperClaimOriginal', 'billing.COB.paperClaimFull');
+                    colNames.push('Paper Claim Original', 'Paper Claim Full', 'Special Form');
+                    i18nNames.push('billing.COB.paperClaimOriginal', 'billing.COB.paperClaimFull', 'billing.COB.specialForm');
                     colModel.push({
                         name: 'paper_claim_original', search: false,
                         customAction: function (rowID) {
@@ -319,6 +320,14 @@ define([
                         formatter: function (cellvalue, options, rowObject) {
                             return "<input type='button' style='line-height: 1;' class='btn btn-paper-claim-fax btn-primary' value='Paper Claim' data-payer-type=" + rowObject.payer_type + " i18n='shared.buttons.fax' id='spnPaperClaim_" + rowObject.id + "'>" +
                                 "<input type='button' style='line-height: 1;' class='btn btn-paper-claim-full btn-primary ml-2' value='Paper Claim' data-payer-type=" + rowObject.payer_type + " i18n='shared.buttons.paperclaimFull' id='spnPaperClaim_" + rowObject.id + "'>";
+                        }
+                    },
+                    {
+                        name: 'special_form', search: false,
+                        customAction: function (rowID) {
+                        },
+                        formatter: function (cellvalue, options, rowObject) {
+                            return "<input type='button' style='line-height: 1;' class='btn btn-special_form btn-primary' value='Special Form' data-payer-type=" + rowObject.payer_type + " i18n='shared.buttons.specialForm' id='spnSpecialForm_" + rowObject.id + "'>"
                         }
                     });
                 }
@@ -343,7 +352,10 @@ define([
                             self.showPaperClaim('paper_claim_original', [self.claim_id], rowid, payerType);
                         } else if (target.className.indexOf('btn-paper-claim-full') > -1) {
                             self.showPaperClaim('paper_claim_full', [self.claim_id], rowid, payerType);
-                        } else if (target.className.indexOf('btn-paper-claim-fax') > -1) {
+                        } else if (target.className.indexOf('btn-special_form') > -1){
+                            self.showPaperClaim('special_form', [self.claim_id], rowid, payerType);
+                        }
+                        else if (target.className.indexOf('btn-paper-claim-fax') > -1) {
                             $('#divFaxReceipientPaperClaim').show();
                             var faxClaimId = self.claim_id;
                             var faxInsuranceId = rowid;
@@ -428,10 +440,11 @@ define([
                     gridelementid: '#tblPatientClaimsGrid',
                     custompager: this.claimsPager,
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['', '', 'Claim Number', 'Claim Date', 'Billing Fee', 'Total Adjustment','Total Insurance Payments', 'Total Patient Payments', 'Balance', 'Claim Status', 'Current responsibility'],
-                    i18nNames: ['', '', 'billing.fileInsurance.claimNo', 'billing.claims.claimDate', 'billing.COB.billingFee','billing.fileInsurance.totalAdjustment', 'billing.claims.totalInsurancePayments', 'billing.claims.totalPatientPayments', 'billing.claims.Balance', 'billing.claims.claimStatus', 'billing.claims.currentResponsibility'],
+                    colNames: ['', '', '', 'Claim Number', 'Claim Date', 'Billing Fee', 'Total Adjustment','Total Insurance Payments', 'Total Patient Payments', 'Balance', 'Claim Status', 'Current responsibility'],
+                    i18nNames: ['', '', '', 'billing.fileInsurance.claimNo', 'billing.claims.claimDate', 'billing.COB.billingFee','billing.fileInsurance.totalAdjustment', 'billing.claims.totalInsurancePayments', 'billing.claims.totalPatientPayments', 'billing.claims.Balance', 'billing.claims.claimStatus', 'billing.claims.currentResponsibility'],
                     colModel: [
                         { name: '', index: 'claim_id', key: true, hidden: true, search: false },
+                        { name: 'billing_provider_id', hidden: true, search: false },
                         {
                             name: 'chk_claims',
                             width: 20,
@@ -564,7 +577,7 @@ define([
                     url: '/exa_modules/billing/claims/claim_inquiry/notes/' + this.claim_id,
                     type: 'PUT',
                     data: {
-                        billingNotes: $.trim($('#txtCIBillingComment').val()) || ''
+                        billingNotes: $.trim($('#txtCIBillingComment').val())
                     },
                     success: function (response) {
                         if (response && response.length) {
@@ -812,15 +825,17 @@ define([
                     gridelementid: '#tblCIClaimComments',
                     custompager: self.claimInquiryPager,
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['','', 'date', '', 'code', 'payment.id', 'comment', 'Diag Ptr', 'charge', 'payment', 'adjustment', '', '', '', '',''],
-                    i18nNames: ['', '', 'billing.claims.date', '', 'billing.COB.code', 'billing.payments.paymentID', 'billing.payments.comment', 'billing.COB.diagptr',
+                    colNames: ['','', 'date','ClaimDate', '', 'code', '','payment.id', 'comment', 'Diag Ptr', 'charge', 'payment', 'adjustment', '', '', '', '',''],
+                    i18nNames: ['', '', 'billing.claims.date','billing.claims.claimDate', '', 'billing.COB.code', 'shared.fields.sequenceNumbers', 'billing.payments.paymentID', 'billing.payments.comment', 'billing.COB.diagptr',
                         'billing.payments.charge', 'billing.payments.payments', 'billing.fileInsurance.adjustments', '', '', '', '', 'billing.payments.printOnStatements'
                     ],
                     colModel: [
                         { name: 'id', hidden: true},
                         { name: 'row_id', hidden: true },
                         { name: 'commented_dt', width: 40, search: false, sortable: false, formatter: self.commentDateFormatter },
+                        { name: 'created_dt', width: 40, search: false, sortable: false, formatter: self.dateFormatter },
                         { name: 'code', hidden: true },
+                        { name: 'sequence_number', width: 40, search: false, sortable: false },
                         { name: 'type', width: 40, search: false, sortable: false,
                             cellattr: function (rowId, tv, rowdata) {
                                 if(rowdata && rowdata.code == 'manual')
@@ -1195,7 +1210,7 @@ define([
                         var billingProviderList = app.billing_providers,
                         ddlBillingProvider = $('#ddlBillingProvider');
                         ddlBillingProvider.empty();
-                        ddlBillingProvider.append("<option value='0' i18n='shared.fields.all'></option>");
+                        ddlBillingProvider.append("<option value='' i18n='shared.fields.all'></option>");
 
                         if (billingProviderList && billingProviderList.length > 0) {
                             for (var b = 0; b < billingProviderList.length; b++) {
@@ -1333,9 +1348,13 @@ define([
                 });
 
                 var claimIds = [];
+                var billingProviderIds = [];
 
                 $('#tblPatientClaimsGrid').find('input[name=chkClaims]:checked').each(function () {
-                    claimIds.push($(this).closest('tr').attr('id'));
+                    var rowID = $(this).closest('tr').attr('id');
+                    var gridData = $('#tblPatientClaimsGrid').jqGrid('getRowData', rowID);
+                    claimIds.push(gridData.claim_id);
+                    billingProviderIds.push(gridData.billing_provider_id);
                 });
 
                 return {
@@ -1345,7 +1364,7 @@ define([
                     'reportByFlag': reportBy ,
                     'fromDate': reportBy ? '': fromDate,
                     'toDate': reportBy ? '': toDate,
-                    'billingProId': selectedBillingProList || [],
+                    'billingProId': selectedBillingProList.length ? selectedBillingProList : billingProviderIds,
                     'billingComments': $('#bindComments').prop('checked'),
                     'billingAddressTaxNpi': $('#bindAddressTaxNpi').prop('checked'),
                     'selectedClaimIds': claimIds
@@ -1451,9 +1470,12 @@ define([
                     success: function (data, response) {
                         $("#tBodyCIPayment").empty();
                         $('#tBodyCASRef').empty();
+                        $('.addtionalCas').remove();
+                        var casHeader = self.casHeaderTemplate({rows: data, billingRegionCode: app.billingRegionCode});
+                        $('#tHeadCIPayment tr').append(casHeader);
 
                         if (data.length > 0) {
-                            var paymentCASRow = self.paymentTemplate({ rows: data });
+                            var paymentCASRow = self.paymentTemplate({ rows: data, billingRegionCode: app.billingRegionCode});
                             $('#tBodyCIPayment').append(paymentCASRow);
 
                             self.showCASDescription(data); // to show description of CAS code
@@ -1490,17 +1512,21 @@ define([
                     success: function (data, response) {
                         $("#tBodyCIPayment").empty();
                         $('#tBodyCASRef').empty();
+                        $('.addtionalCas').remove();
 
                         if (data.length > 0) {
 
-                            var paymentCASRow = self.paymentTemplate({ rows: data });
+                            var casHeader = self.casHeaderTemplate({rows: data, billingRegionCode: app.billingRegionCode});
+                            $('#tHeadCIPayment tr').append(casHeader);
+
+                            var paymentCASRow = self.paymentTemplate({ rows: data, billingRegionCode: app.billingRegionCode});
                             $('#tBodyCIPayment').append(paymentCASRow);
 
                             self.showCASDescription(data); // to show description of CAS code
 
                             commonjs.showNestedDialog({
                                 header: 'Payment Details',
-                                width: '80%',
+                                width: '90%',
                                 height: '30%',
                                 html: $('#divCIpaymentDetails').html()
                             });

@@ -43,11 +43,16 @@ define(['backbone', 'collections/app-settings'], function (Backbone, AppCollecti
                 default_column: 'claim_id',
                 default_column_order_by: "Desc",
                 default_tab: 'All_Claims',
-                field_order: [1, 19, 70, 2, 12, 22, 27, 11, 17],
+                field_order: [1, 74, 19, 70, 2, 12, 22, 27, 11, 17],
                 grid_field_settings: [
                     {
                         "name": "Claim Date",
                         "id": 1,
+                        "width": 200
+                    },
+                    {
+                        "name": "Claim Created Dt",
+                        "id": 74,
                         "width": 200
                     },
                     {

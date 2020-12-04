@@ -1720,7 +1720,7 @@ module.exports = {
         let sql = SQL`UPDATE billing.claims
                         SET billing_notes = ${billingNotes}
                         WHERE id = ${claimId}
-                        RETURNING *`;
+                        RETURNING id`;
 
         return await query(sql);
     }

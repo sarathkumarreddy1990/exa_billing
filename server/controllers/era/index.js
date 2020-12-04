@@ -16,10 +16,11 @@ const { promisify } = require('util');
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
 const statAsync = promisify(fs.stat);
+const sftp = require('../../../modules/edi/sftp');
 
 const createDir = function (fileStorePath, filePath) {
     return new Promise(function(resolve, reject) {
-        const dirPath = `${fileStorePath}\\${filePath}`;
+        const dirPath = path.join(fileStorePath, filePath);
 
         logger.info(`File store: ${fileStorePath}, ${filePath}`);
 
@@ -58,6 +59,36 @@ const createDir = function (fileStorePath, filePath) {
             });
         }
     });
+};
+
+/**
+ * Function used to check the file is invalid
+ * @param {String} fileString fileString,
+ * @param {String} billingRegionCode billingRegionCode
+ * @returns {Boolean} false if file is valid with fileString contains all the given substrings
+ * @returns {Boolean} true if file is invalid with fileString missed any one of the given substrings
+ */
+const isInvalidFile = (fileString, billingRegionCode) => {
+
+    switch(billingRegionCode) {
+        case 'can_ON':
+            return !(fileString.indexOf('HR1') !== -1 && fileString.indexOf('HR4') !== -1 && fileString.indexOf('HR7') !== -1);
+        case 'can_MB':
+            return false;
+        case 'can_BC':
+            return !(fileString.indexOf('M01') !== -1 && fileString.indexOf('VTC') !== -1);
+        default:
+            return !(fileString.indexOf('ISA') !== -1 && fileString.indexOf('CLP') !== -1);
+    }
+
+};
+
+const getProvinceBasedProperties = (billingRegionCode) => {
+    if (billingRegionCode === 'can_BC') {
+        return 'can_bc_remit';
+    }
+
+    return '835';
 };
 
 module.exports = {
@@ -110,12 +141,12 @@ module.exports = {
         const fileName = params.file.originalname;
 
         let tempString = buffer.toString();
-        let bufferString = (params.billingRegionCode === 'can_MB' && tempString) || tempString.replace(/(?:\r\n|\r|\n)/g, '');
+        let bufferString = (['can_MB', 'can_BC'].indexOf(params.billingRegionCode) !== -1 && tempString) || tempString.replace(/(?:\r\n|\r|\n)/g, '');
 
         bufferString = bufferString.trim() || '';
-        let isInValidFileContent = params.billingRegionCode === 'can_MB' ? false : (params.billingRegionCode === 'can_ON' ? (bufferString.indexOf('HR1') == -1 || bufferString.indexOf('HR4') == -1 || bufferString.indexOf('HR7') == -1) : (bufferString.indexOf('ISA') == -1 || bufferString.indexOf('CLP') == -1));
-        
-        if (!isEob && isInValidFileContent) {
+
+        if (!isEob && isInvalidFile(bufferString, params.billingRegionCode)) {
+            logger.error(`Invalid Remittance File ${fileName}`);
             return {
                 status: 'INVALID_FILE',
             };
@@ -136,13 +167,25 @@ module.exports = {
         const fileExist = dataRes.rows[0].file_exists[0];
 
         const currentTime = new Date();
-        const fileDirectory = params.billingRegionCode === 'can_MB' ? 'MHSAL\\Returns' : uploadingMode.toLowerCase();
+        let fileDirectory = null;
 
-        let fileRootPath = `${fileDirectory}\\${currentTime.getFullYear()}\\${currentTime.getMonth() + 1}\\${currentTime.getDate()}`;
+        switch(params.billingRegionCode) {
+            case 'can_MB':
+                fileDirectory = 'MHSAL/Returns';
+                break;
+            case 'can_BC':
+                fileDirectory = 'MSP/Remittance';
+                break;
+            default:
+                fileDirectory = uploadingMode.toLowerCase();
+                break;
+        }
+
+        let fileRootPath = `${fileDirectory}/${currentTime.getFullYear()}/${currentTime.getMonth() + 1}/${currentTime.getDate()}`;
 
         if (isPreviewMode) {
             logger.info('ERA Preview MODE');
-            fileRootPath = `trash\\${currentTime.getFullYear()}\\${currentTime.getMonth()}`;
+            fileRootPath = `trash/${currentTime.getFullYear()}/${currentTime.getMonth()}`;
 
             try {
                 await createDir(fileStorePath, fileRootPath);
@@ -187,7 +230,7 @@ module.exports = {
             file_store_id: fileStoreId,
             company_id: params.audit.companyId,
             status: isEob ? 'success' : 'pending',
-            file_type: isEob ? 'EOB' :'835',
+            file_type: isEob ? 'EOB' : getProvinceBasedProperties(params.billingRegionCode),
             file_path: fileRootPath,
             file_size: fileSize,
             file_md5: fileMd5,
@@ -222,7 +265,7 @@ module.exports = {
     processERAFile: async function (params) {
         let self = this,
             processDetails,
-            eraPath,
+            directoryPath,
             rootDir;
         let processDetailsArray = [];
         let message = [];
@@ -230,15 +273,15 @@ module.exports = {
         const eraFileDir = await data.getERAFilePathById(params);
 
         rootDir = eraFileDir.rows && eraFileDir.rows.length && eraFileDir.rows[0].root_directory ? eraFileDir.rows[0].root_directory : '';
-        eraPath = eraFileDir.rows && eraFileDir.rows.length && eraFileDir.rows[0].file_path ? eraFileDir.rows[0].file_path : '';
+        directoryPath = eraFileDir.rows && eraFileDir.rows.length && eraFileDir.rows[0].file_path ? eraFileDir.rows[0].file_path : '';
         params.uploaded_file_name = eraFileDir.rows && eraFileDir.rows.length && eraFileDir.rows[0].uploaded_file_name ? eraFileDir.rows[0].uploaded_file_name : '';
 
-        eraPath = path.join(rootDir, eraPath);
+        let dirFullPath = path.join(rootDir, directoryPath);
 
         try {
-            let dirExists = fs.existsSync(eraPath);
+            let dirStat = await statAsync(dirFullPath);
 
-            if (!dirExists) {
+            if (!dirStat.isDirectory()) {
 
                 message.push({
                     status: 100,
@@ -248,10 +291,39 @@ module.exports = {
                 return message;
 
             }
+            /**
+             * ERA file is stored in a directory with two naming conventions,
+             * One from the sftp and the other from the normal uploaded file.
+             * 1. Downloaded file from SFTP
+             * 2. edi_files table id (primary key)
+             * So file processing should be checked with two naming.
+             */
 
-            eraPath = path.join(eraPath, params.file_id);
+            let filePath = path.join(dirFullPath, params.uploaded_file_name);
+            let fileStat;
 
-            let eraRequestText = await readFile(eraPath, 'utf8');
+            try {
+                fileStat = await statAsync(filePath);
+             } catch(e) {
+                logger.logInfo('Could not found era file by file name.');
+            }
+
+            if (!fileStat || (fileStat && !fileStat.isFile())) {
+
+                filePath = path.join(dirFullPath, params.file_id);
+                fileStat = await statAsync(filePath);
+
+                if (!fileStat.isFile()) {
+                    message.push({
+                        status: 100,
+                        message: 'File not found in directory'
+                    });
+
+                    return message;
+                }
+            }
+
+            let eraRequestText = await readFile(filePath, 'utf8');
 
             let templateName = await ediConnect.getDefaultEraTemplate();
 
@@ -278,7 +350,7 @@ module.exports = {
                 processDetailsArray.push(processDetails);
 
                 const finish = Date.now();
-                
+
                 logger.logInfo(`ERA payment process | finished in ${finish - start}ms`);
 
             }
@@ -459,7 +531,7 @@ module.exports = {
         let eraResponse = await data.getProcessedFileData(params);
         let eraResponseValues = eraResponse.rows && eraResponse.rows[0].payer_details;
 
-        if (eraResponseValues && eraResponseValues.file_name && params.billingRegionCode !== 'can_MB') {
+        if (eraResponseValues && eraResponseValues.file_name && ['can_MB', 'can_BC'].indexOf(params.billingRegionCode) == -1) {
             const filePath = path.join(eraResponseValues.root_directory, eraResponseValues.file_path, eraResponseValues.file_name);
 
             try {
@@ -579,6 +651,8 @@ module.exports = {
             logger.error('Failed to Download the Json OutPut...', err);
         }
     },
-    
-    getEOBFileId: data.getEOBFileId
+
+    getEOBFileId: data.getEOBFileId,
+
+    initializeDownload: sftp.initiateDownload
 };

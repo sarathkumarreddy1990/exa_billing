@@ -32,7 +32,8 @@ define(['jquery',
             events: {
                 'change #ddlXmlTemplateSyntax' : 'changeXmlTemplateSyntax',
                 'keyup #txtSubElementDelimiter': 'checkValidSubDelimiter',
-                'keyup #txtElementDelimiter': 'checkValidDelimiter'
+                'keyup #txtElementDelimiter': 'checkValidDelimiter',
+                'change #chkEnableFTP': 'showFTPDetails'
             },
 
             initialize: function (options) {
@@ -205,7 +206,19 @@ define(['jquery',
                                         $('#txtUserName').val(info.userID ? info.userID : '');
                                         $('#txtPassword').val(info.password ? info.password : '');
                                     }
+
+                                    $('#chkEnableFTP').prop('checked', !!info.enable_ftp);
+                                    $('#txtHostName').val(info.ftp_host || '');
+                                    $('#txtPort').val(info.ftp_port || '');
+                                    $('#txtFtpUserName').val(info.ftp_user_name || '');
+                                    $('#txtFtpPassword').val(info.ftp_password || '');
+                                    $('#ddlFtpType').val(info.ftp_type || '');
+                                    $('#txtSentFolder').val(info.ftp_sent_folder || '');
+                                    $('#txtReceiveFolder').val(info.ftp_receive_folder || '');
+                                    $('#txtIdentityFilePath').val(info.ftp_identity_file || '');
                                 }
+
+                                self.showFTPDetails();
                             }
                         }
                     });
@@ -238,6 +251,7 @@ define(['jquery',
                 ]});
                 $('#divEDIClearingHousesGrid').hide();
                 $('#divEDIClearingHousesForm').show();
+                $('#divFTPDetails').hide();
                 commonjs.processPostRender();
             },
             saveEDIClearingHouses : function() {
@@ -264,30 +278,48 @@ define(['jquery',
                     rules.username = { required: true }
                     rules.password = { required: true }
                 }
+
+                var messages = {
+                    name: commonjs.getMessage("e", "Clearing House Name"),
+                    code: commonjs.getMessage("e", "Code"),
+                    receiverName: commonjs.getMessage("e", "Receiver Name"),
+                    receiverID: commonjs.getMessage("e", "Receiver ID"),
+                    authInfoQualifier: commonjs.getMessage("e", "Authorization Information Qualifier"),
+                    authInfo: commonjs.getMessage("e", "Authorization Information"),
+                    securityAuthInfoQualifier: commonjs.getMessage("e", "Security Information Qualifier"),
+                    securityAuthInfo: commonjs.getMessage("e", "Security Information"),
+                    senderIDQualifier: commonjs.getMessage("e", "Interchange Sender ID Qualifier"),
+                    senderID: commonjs.getMessage("e", "Interchange Sender ID"),
+                    iReceiverIDQualifier: commonjs.getMessage("e", "Interchange Receiver ID Qualifier"),
+                    iRecevierID: commonjs.getMessage("e", "Interchange Receiver ID"),
+                    ctrlStandID: commonjs.getMessage("e", "Interchange Control Standards Identifier"),
+                    radUsage: commonjs.getMessage("*", "Usage"),
+                    appSenderCode: commonjs.getMessage("e", "Application Sender Code"),
+                    responsibleAgencyCode: commonjs.getMessage("e", "Responsible Agency Code"),
+                    appReceiverCode: commonjs.getMessage("e", "Application Receiver Code"),
+                    providerOfficeNo: commonjs.getMessage("e", "Provider Office No"),
+                    username: commonjs.getMessage("e", "Username"),
+                    password: commonjs.getMessage("e", "Password")
+                }
+
+                if ($('#chkEnableFTP').prop('checked')) {
+                    rules.hostname = { required: true };
+                    rules.ftpUsername = { required: true };
+                    rules.ftpPassword = { required: true };
+                    rules.port = { required: true };
+                    rules.sentFolder = { required: true };
+                    rules.receiveFolder = { required: true };
+                    messages.hostname = commonjs.getMessage("e", "FTP Host Name");
+                    messages.ftpUsername = commonjs.getMessage("e", "FTP User Name");
+                    messages.ftpPassword = commonjs.getMessage("e", "FTP Passord");
+                    messages.port = commonjs.getMessage("e", "FTP Port");
+                    messages.sentFolder = commonjs.getMessage("e", "FTP Sent Folder");
+                    messages.receiveFolder = commonjs.getMessage("e", "FTP Receive Folder");
+                }
+
                 commonjs.validateForm({
                     rules: rules,
-                    messages: {
-                        name: commonjs.getMessage("e", "Clearing House Name"),
-                        code: commonjs.getMessage("e", "Code"),
-                        receiverName: commonjs.getMessage("e", "Recevier Name"),
-                        receiverID: commonjs.getMessage("e", "Recevier ID"),
-                        authInfoQualifier: commonjs.getMessage("e", "Authorization Information Qualifier"),
-                        authInfo: commonjs.getMessage("e", "Authorization Information"),
-                        securityAuthInfoQualifier: commonjs.getMessage("e", "Security Information Qualifier"),
-                        securityAuthInfo: commonjs.getMessage("e", "Security Information"),
-                        senderIDQualifier: commonjs.getMessage("e", "Interchange Sender ID Qualifier"),
-                        senderID: commonjs.getMessage("e", "Interchange Sender ID"),
-                        iReceiverIDQualifier: commonjs.getMessage("e", "Interchange Receiver ID Qualifier"),
-                        iRecevierID: commonjs.getMessage("e", "Interchange Receiver ID"),
-                        ctrlStandID: commonjs.getMessage("e", "Interchange Control Standards Identifier"),
-                        radUsage: commonjs.getMessage("*", "Usage"),
-                        appSenderCode: commonjs.getMessage("e", "Application Sender Code"),
-                        responsibleAgencyCode: commonjs.getMessage("e", "Responsible Agency Code"),
-                        appReceiverCode: commonjs.getMessage("e", "Application Receiver Code"),
-                        providerOfficeNo: commonjs.getMessage("e", "Provider Office No"),
-                        username: commonjs.getMessage("e", "Username"),
-                        password: commonjs.getMessage("e", "Password")
-                    },
+                    messages: messages,
                     submitHandler: function () {
                         self.save();
                     },
@@ -297,6 +329,7 @@ define(['jquery',
             },
 
             save: function () {
+                var isFtpEnabled = $('#chkEnableFTP').prop('checked');
                 var communication_info = {
                     authorizationInformation: $('#txtAuthInfo').val(),
                     authorizationInformationQualifier: $('#txtAuthInfoQualifier').val(),
@@ -325,7 +358,16 @@ define(['jquery',
                     xmlSyntaxTag: $('#ddlXmlTemplateSyntax').val(),
                     userID: $('#txtUserName').val(),
                     password: $('#txtPassword').val(),
-                    providerOfficeNumber: $('#txtProviderOfficeNo').val()
+                    providerOfficeNumber: $('#txtProviderOfficeNo').val(),
+                    enable_ftp: isFtpEnabled,
+                    ftp_host: isFtpEnabled ? $('#txtHostName').val() : "",
+                    ftp_port: isFtpEnabled ? $('#txtPort').val() : "",
+                    ftp_user_name: isFtpEnabled ? $('#txtFtpUserName').val() : "",
+                    ftp_password: isFtpEnabled ? $('#txtFtpPassword').val() : "",
+                    ftp_type: isFtpEnabled ? $('#ddlFtpType').val() : "",
+                    ftp_sent_folder: isFtpEnabled ? $('#txtSentFolder').val() : "",
+                    ftp_receive_folder: isFtpEnabled ? $('#txtReceiveFolder').val() : "",
+                    ftp_identity_file: isFtpEnabled ? $('#txtIdentityFilePath').val() : ""
                 }
                 this.model.set({
                     "name": $('#txtName').val(),
@@ -385,6 +427,14 @@ define(['jquery',
                 });
 
                 return templates;
+            },
+
+            showFTPDetails: function () {
+                if ($('#chkEnableFTP').prop('checked')) {
+                    $('#divFTPDetails').show();
+                } else {
+                    $('#divFTPDetails').hide();
+                }
             }
         });
         return EDIClearingHousesView;

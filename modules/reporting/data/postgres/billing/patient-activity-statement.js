@@ -79,16 +79,22 @@ WITH claim_data AS(
     SELECT
       bc.claim_id as id,
       amount_type as type,
-      CASE WHEN bp.payer_type = 'patient' THEN
-               pp.full_name
+      CASE WHEN bp.payer_type = 'patient' THEN (CASE amount_type
+                                                WHEN 'adjustment' THEN 'DISCOUNT'
+                                                ELSE pp.full_name
+                                                END)
          WHEN bp.payer_type = 'insurance' THEN (CASE amount_type
                                                 WHEN 'adjustment' THEN 'DISCOUNT'
                                                 ELSE pip.insurance_name
                                                 END)
-         WHEN bp.payer_type = 'ordering_facility' THEN
-               pg.group_name
-         WHEN bp.payer_type = 'ordering_provider' THEN
-               p.full_name
+         WHEN bp.payer_type = 'ordering_facility' THEN (CASE amount_type
+                                                        WHEN 'adjustment' THEN 'DISCOUNT'
+                                                        ELSE pg.group_name
+                                                        END)
+         WHEN bp.payer_type = 'ordering_provider' THEN (CASE amount_type
+                                                        WHEN 'adjustment' THEN 'DISCOUNT'
+                                                        ELSE p.full_name
+                                                        END)
     END AS comments,
     bp.accounting_date as commented_dt,
     sum(pa.amount) as amount,
@@ -258,6 +264,8 @@ WITH claim_data AS(
             <% } else { %>
                  <%= patientIds %>
             <% } %>
+            ORDER BY bc.id ASC
+            LIMIT 1
           ),
           all_cte AS (
           -- 1st Header, Billing Provider, update the columns in the dataset
@@ -987,7 +995,7 @@ const api = {
         filters.billingAddressTaxNpi = billingAddressTaxNpi;
 
         // billingProvider single or multiple
-        if (billingProviderIds.length && billingProviderIds[0] != "0") {
+        if (billingProviderIds && billingProviderIds.length) {
             params.push(billingProviderIds);
             filters.billingProviderIds = queryBuilder.whereIn(`bp.id`, [params.length]);
         }

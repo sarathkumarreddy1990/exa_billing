@@ -161,6 +161,11 @@ define(['jquery',
                     billingRegionCode: app.billingRegionCode,
                     countryCode: app.country_alpha_3_code
                 }));
+
+                // Restricting supporting text length
+                if (app.billingRegionCode === 'can_BC') {
+                    $('#textSupportingText').attr('maxlength', 400);
+                }
                 if(id > 0) {
                     this.model.set({id: id});
                     this.model.fetch({

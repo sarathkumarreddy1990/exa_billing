@@ -21,69 +21,47 @@
         <td class="charges__cpt-description">
             <div id="divChargeCptDesc_<%= row.data_row_id %>"></div>
         </td>
-        <% if (billing_region_code === 'can_AB') { %>
-            <td>
-                <input type="text" id="txtModifier1_<%= row.data_row_id %>" class="form-control inputModifiers modifiers" data-type="M1" data-value="<%= row.data_row_id %>">
-            </td>
-            <td>
-                <input type="text" id="txtModifier2_<%= row.data_row_id %>" class="form-control inputModifiers modifiers" data-type="M2" data-value="<%= row.data_row_id %>">
-            </td>
-            <td>
-                <input type="text" id="txtModifier3_<%= row.data_row_id %>" class="form-control inputModifiers modifiers" data-type="M3" data-value="<%= row.data_row_id %>">
-            </td>
-            <td>
-                <input value="<%= row.units ? row.units : 1 %>"  id="txtUnits_<%= row.data_row_id %>" type="text" class="form-control integerbox units width-75 text-right" maxlength="2">
-            </td>
-        <%} else if (billing_region_code === 'can_MB') { %>
+        <% if (chargeField.pointers[0]) { %>
             <td>
                 <input id="ddlPointer1_<%= row.data_row_id %>" class="form-control inputModifiers typeahead diagCodes" data-type="P1" data-value="<%= row.data_row_id %>" type="text">
             </td>
+        <% } if (chargeField.pointers[1]) { %>
+            <td>
+                <input id="ddlPointer2_<%= row.data_row_id %>" class="form-control inputModifiers typeahead diagCodes" data-type="P2" data-value="<%= row.data_row_id %>"
+                       type="text">
+            </td>
+        <% } if (chargeField.pointers[2]) { %>
+            <td>
+                <input id="ddlPointer3_<%= row.data_row_id %>" class="form-control inputModifiers typeahead diagCodes" data-type="P3" data-value="<%= row.data_row_id %>"
+                       type="text">
+            </td>
+        <% } if (chargeField.pointers[3]) { %> 
+            <td>
+                <input id="ddlPointer4_<%= row.data_row_id %>" class="form-control inputModifiers typeahead diagCodes" data-type="P4" data-value="<%= row.data_row_id %>"
+                       type="text">
+            </td>
+        <% } if (chargeField.modifiers[0]) { %>
             <td>
                 <input type="text" id="txtModifier1_<%= row.data_row_id %>" class="form-control inputModifiers modifiers" data-type="M1" data-value="<%= row.data_row_id %>">
             </td>
+        <% } if (chargeField.modifiers[1]) { %>
             <td>
                 <input type="text" id="txtModifier2_<%= row.data_row_id %>" class="form-control inputModifiers modifiers" data-type="M2" data-value="<%= row.data_row_id %>">
             </td>
+        <% } if (chargeField.modifiers[2]) { %>
             <td>
                 <input type="text" id="txtModifier3_<%= row.data_row_id %>" class="form-control inputModifiers modifiers" data-type="M3" data-value="<%= row.data_row_id %>">
             </td>
+        <% } if (chargeField.modifiers[3]) { %>
             <td>
                 <input type="text" id="txtModifier4_<%= row.data_row_id %>" class="form-control inputModifiers modifiers" data-type="M4" data-value="<%= row.data_row_id %>">
             </td>
+        <% } %>
+        
+        <% if (billing_region_code === 'can_AB') { %>
             <td>
-                <input value="<%= row.units ? row.units : 1.000 %>"  id="txtUnits_<%= row.data_row_id %>" type="text" class="form-control maskUnits units floatbox width-75" maxlength="7">
+                <input value="<%= row.units ? row.units : 1 %>"  id="txtUnits_<%= row.data_row_id %>" type="text" class="form-control integerbox units width-75 text-right" maxlength="2">
             </td>
-        <%} else if(billing_region_code !== 'can_ON'){ %>
-            <td>
-            <input id="ddlPointer1_<%= row.data_row_id %>" class="form-control inputModifiers typeahead diagCodes" data-type="P1" data-value="<%= row.data_row_id %>" type="text">
-        </td>
-        <td>
-            <input id="ddlPointer2_<%= row.data_row_id %>" class="form-control inputModifiers typeahead diagCodes" data-type="P2" data-value="<%= row.data_row_id %>"
-                   type="text">
-        </td>
-        <td>
-            <input id="ddlPointer3_<%= row.data_row_id %>" class="form-control inputModifiers typeahead diagCodes" data-type="P3" data-value="<%= row.data_row_id %>"
-                   type="text">
-        </td>
-        <td>
-            <input id="ddlPointer4_<%= row.data_row_id %>" class="form-control inputModifiers typeahead diagCodes" data-type="P4" data-value="<%= row.data_row_id %>"
-                   type="text">
-        </td>
-        <td>
-            <input type="text" id="txtModifier1_<%= row.data_row_id %>" class="form-control inputModifiers modifiers" data-type="M1" data-value="<%= row.data_row_id %>">
-        </td>
-        <td>
-            <input type="text" id="txtModifier2_<%= row.data_row_id %>" class="form-control inputModifiers modifiers" data-type="M2" data-value="<%= row.data_row_id %>">
-        </td>
-        <td>
-            <input type="text" id="txtModifier3_<%= row.data_row_id %>" class="form-control inputModifiers modifiers" data-type="M3" data-value="<%= row.data_row_id %>">
-        </td>
-        <td>
-            <input type="text" id="txtModifier4_<%= row.data_row_id %>" class="form-control inputModifiers modifiers" data-type="M4" data-value="<%= row.data_row_id %>">
-        </td>
-        <td>
-            <input value="<%= row.units ? row.units : 1.000 %>"  id="txtUnits_<%= row.data_row_id %>" type="text" class="form-control maskUnits units floatbox width-75" maxlength="7">
-        </td>
         <% } else { %>
             <td>
                 <input value="<%= row.units ? row.units : 1.000 %>"  id="txtUnits_<%= row.data_row_id %>" type="text" class="form-control maskUnits units floatbox width-75" maxlength="7">

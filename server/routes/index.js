@@ -18,6 +18,7 @@ router.get('/', function (req, res) {
         title: 'EXA-Billing',
         billingRegionCode: billingRegionCode,
         currentTheme: currentTheme,
+        csrfToken: req.csrfToken(),
         staticAssetsRoot
     });
 });

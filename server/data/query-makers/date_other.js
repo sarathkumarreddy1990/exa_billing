@@ -7,14 +7,14 @@ module.exports = (fieldID, fieldValue, { options }) => {
     const whichTz = options.isCompanyBase ?
         'companies.time_zone' :
         'facilities.time_zone';
-    const useToFacilityDate = ['claims.claim_dt', 'studies.study_dt', 'studies.schedule_dt', 'studies.study_received_dt', 'studies.approved_dt'].includes(fieldID); // This is a hack to force query planner to use specific index which is much faster
-
+    const useToFacilityDate = ['claims.claim_dt', 'claims.created_dt','studies.study_dt', 'studies.schedule_dt', 'studies.study_received_dt', 'studies.approved_dt'].includes(fieldID); // This is a hack to force query planner to use specific index which is much faster
+    const claimDateFilter = ['claims.claim_dt', 'claims.created_dt']
     if (fromToDateTimes.length === 1) {
         const date = moment(fromToDateTimes[0], 'YYYY-MM-DD');
 
         if (date.isValid()) {
             if (useToFacilityDate) {
-                if (`${fieldID}` === 'claims.claim_dt') {
+                if (claimDateFilter.indexOf(`${fieldID}`) >= 0) {
                     return `  ( ${fieldID} IS NOT NULL AND to_facility_date(claims.facility_id, ${fieldID}) = ('${date.format('YYYY-MM-DD')}'):: date )`;
                 }
 
@@ -31,7 +31,7 @@ module.exports = (fieldID, fieldValue, { options }) => {
 
             if (useToFacilityDate) {
 
-                if (`${fieldID}` === 'claims.claim_dt') {
+                if (claimDateFilter.indexOf(`${fieldID}`) >= 0) {
                     return ` (  ${fieldID} IS NOT NULL AND to_facility_date(claims.facility_id, ${fieldID}) BETWEEN ('${from.format('YYYY-MM-DD')}')::date AND ('${to.format('YYYY-MM-DD')}')::date)`;
                 }
                 

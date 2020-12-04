@@ -13,6 +13,11 @@ const colModel = [
         searchFlag: 'daterange'
     },
     {
+        name: 'created_dt',
+        searchColumns: ['claims.created_dt'],
+        searchFlag: 'daterange'
+    },
+    {
         name: 'submitted_dt',
         searchColumns: ['claims.submitted_dt'],
         searchFlag: 'daterange'
@@ -227,6 +232,11 @@ const colModel = [
         name: 'phn_alt_account',
         searchColumns: ['patient_alt_accounts.phn_alt_account'],
         searchFlag: 'arrayString'
+    },
+    {
+        name: 'can_bc_claim_sequence_numbers',
+        searchColumns: ['billing.can_bc_get_claim_sequence_numbers(claims.id)'],
+        searchFlag: 'arrayString'
     }
 ];
 
@@ -322,6 +332,7 @@ const api = {
             case 'can_mhs_microfilm_no': return `claims.can_mhs_microfilm_no`;
             case 'pid_alt_account': return 'patient_alt_accounts.pid_alt_account';
             case 'phn_alt_account': return 'patient_alt_accounts.phn_alt_account';
+            case 'can_bc_claim_sequence_numbers': return 'billing.can_bc_get_claim_sequence_numbers(claims.id)';
         }
 
         return args;
@@ -428,18 +439,10 @@ const api = {
         }
 
         if (tables.patient_insurances || tables.insurance_providers || tables.edi_clearinghouses) {
-            r += `
-                LEFT JOIN patient_insurances ON patient_insurances.id =
-                (  CASE payer_type
-                WHEN 'primary_insurance' THEN primary_patient_insurance_id
-                WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
-                WHEN 'tertiary_insurance' THEN tertiary_patient_insurance_id
-                END)`;
-
+            r += ' LEFT JOIN patient_insurances ON patient_insurances.id = primary_patient_insurance_id ';
             r += ' LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id ';
             r += ' LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id ';
             r += ' LEFT JOIN   billing.edi_clearinghouses ON  billing.edi_clearinghouses.id=insurance_provider_details.clearing_house_id';
-
         }
 
         if (tables.insurance_provider_payer_types) {
@@ -515,6 +518,7 @@ const api = {
             'claims.id',
             'claims.id as claim_id',
             'claims.claim_dt',
+            'claims.created_dt',
             'claims.facility_id',
             'claim_status.description as claim_status',
             'claim_status.code as claim_status_code',
@@ -593,12 +597,11 @@ const api = {
                     ON pi.insurance_provider_id = ip.id
                 WHERE
                     pi.id = primary_patient_insurance_id
-                    OR pi.id = secondary_patient_insurance_id
-                    OR pi.id = tertiary_patient_insurance_id
             ) AS insurance_providers`,
             `claims.can_mhs_microfilm_no`,
             `patient_alt_accounts.pid_alt_account`,
-            `patient_alt_accounts.phn_alt_account`
+            `patient_alt_accounts.phn_alt_account`,
+            `billing.can_bc_get_claim_sequence_numbers(claims.id) AS can_bc_claim_sequence_numbers`
         ];
 
         if(args.customArgs.filter_id=='Follow_up_queue'){

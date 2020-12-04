@@ -247,6 +247,7 @@ define(['jquery',
                 "click #btnSelectAllStudy": "selectAllRows",
                 "click #btnElectronicClaim": "createClaims",
                 "click #btnPaperClaimBW": "createClaims",
+                "click #btnSpecialForm": "createClaims",
                 "click #btnPaperClaimRed": "createClaims",
                 "click #btnInvoiceServiceDate": "createClaims",
                 "click #btnInvoicePatientName": "createClaims",
@@ -413,7 +414,7 @@ define(['jquery',
                 var drpTabColumnSet = [
                     {
                         forTab: "claims",
-                        columns: ["current_illness_date", "claim_dt", "followup_date", "birth_date", 'submitted_dt', 'first_statement_dt']
+                        columns: ["current_illness_date", "claim_dt", "followup_date", "birth_date", 'submitted_dt', 'first_statement_dt', 'created_dt']
                     }
                 ];
                 var columnsToBind = _.find(drpTabColumnSet,function (val) {
@@ -498,7 +499,7 @@ define(['jquery',
                 $('#chkStudyHeader_' + filterID).prop('checked', true);
                 commonjs.setFilter(filterID, filter);
             },
-            createClaims: function (e, isFromReClaim) {
+            createClaims: function (e, isFromReclaim) {
                 var self = this;
                 var billingMethodFormat = '';
                 var isCanada = app.country_alpha_3_code === 'can';
@@ -576,24 +577,42 @@ define(['jquery',
                             return false;
                         }
 
-                        if (app.billingRegionCode === 'can_AB') {
-                            /* Allowed to submit electronic claim when claim is in paid in full/partial/at 0 statuses.
-                               claim was restricted to submit when status of claim is in any of the below:
-                               ADP - AHS Delete Pending
-                               AD  - AHS Deleted
-                               PA  - Pending Acknowledgement
-                               R   - Rejected
-                               D   - Denied */
+                        switch (app.billingRegionCode) {
+                            case 'can_AB': {
+                                /* Allowed to submit electronic claim when claim is in paid in full/partial/at 0 statuses.
+                                   claim was restricted to submit when status of claim is in any of the below:
+                                   ADP - AHS Delete Pending
+                                   AD  - AHS Deleted
+                                   PA  - Pending Acknowledgement
+                                   R   - Rejected
+                                   D   - Denied */
 
-                            var excludeClaimStatus = ['PA', 'ADP', 'AD', 'R', 'D'];
+                                var excludeClaimStatus = ['PA', 'ADP', 'AD', 'R', 'D'];
 
-                            if (excludeClaimStatus.indexOf(claimStatus) > -1) {
-                                commonjs.showWarning('messages.status.pleaseSelectValidClaimsStatus');
-                                return false;
+                                if (excludeClaimStatus.indexOf(claimStatus) > -1) {
+                                    commonjs.showWarning('messages.status.pleaseSelectValidClaimsStatus');
+                                    return false;
+                                }
                             }
-                        } else if (app.billingRegionCode === 'can_MB' && claimStatus != 'PS') {
-                            commonjs.showWarning('messages.status.pleaseSelectValidClaimsStatus');
-                            return false;
+                            case 'can_MB': {
+                                if (claimStatus != 'PS') {
+                                    commonjs.showWarning('messages.status.pleaseSelectValidClaimsStatus');
+                                    return false;
+                                }
+                            }
+                            case 'can_BC': {
+                                /* Allowed to submit electronic claim when status of claim is in any of the below:
+                                   SF - Submission failed
+                                   PS  - Pending submission
+                                */
+
+                                   var excludeClaimStatus = ['SF', 'PS'];
+
+                                   if (excludeClaimStatus.indexOf(claimStatus) === -1) {
+                                       commonjs.showWarning('messages.status.pleaseSelectValidClaimsStatus');
+                                       return false;
+                                   }
+                            }
                         }
 
                         var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_billing_method');
@@ -603,7 +622,8 @@ define(['jquery',
                         var futureClaim = claimDt && moment(claimDt).diff(moment(), 'days');
 
                         if (e.target) {
-                            if (billingMethodFormat !== billingMethod) {
+                            if ((billingMethodFormat != "special_form" && billingMethodFormat !== billingMethod)
+                                || (billingMethodFormat === 'special_form' && billingMethod === 'electronic_billing')) {
                                 commonjs.showWarning('messages.status.pleaseSelectValidClaimsMethod');
                                 return false;
                             }
@@ -615,7 +635,7 @@ define(['jquery',
                         }
 
                         if (existingBillingMethod === '') existingBillingMethod = billingMethod;
-                        if (existingBillingMethod !== billingMethod) {
+                        if (existingBillingMethod !== billingMethod && billingMethodFormat != "special_form") {
                             commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfBillingMethod');
                             return false;
                         } else {
@@ -642,6 +662,11 @@ define(['jquery',
                     data = {
                         claimIds: claimIds.toString(),
                         userId: app.userID
+                    }
+
+                    if (billingMethodFormat === "special_form") {
+                        paperClaim.print('special_form', claimIds);
+                        return;
                     }
 
                     if (existingBillingMethod === 'paper_claim') {
@@ -715,8 +740,11 @@ define(['jquery',
                             case 'can_ON':
                                 self.ohipResponse(data);
                                 break;
+                            case 'can_BC':
+                                self.bcResponse(data, isFromReclaim);
+                                break;
                             default:
-                                self.ediResponse(data, isFromReClaim);
+                                self.ediResponse(data, isFromReclaim);
                         }
                     },
                     error: function (err) {
@@ -823,7 +851,7 @@ define(['jquery',
 
             },
 
-            ediResponse: function (data, isFromReClaim) {
+            ediResponse: function (data, isFromReclaim) {
                 var self = this;
                 self.ediResultTemplate = _.template(ediResultHTML);
                 self.ohipResultTemplate = _.template(ohipResultHTML);
@@ -869,26 +897,7 @@ define(['jquery',
                         result = _.groupBy(validations, "dataID");
                     }
 
-                    if (isFromReClaim) {
-                        $('#modal_div_container').html(self.ediResultTemplate({ result: result, ediText: data.ediTextWithValidations, commonResult: commonErrorValidation }));
-                        commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());
-                        self.initEvent(true);
-                    } else {
-                        commonjs.showDialog({
-                            header: 'EDI Claim',
-                            i18nHeader:'shared.moduleheader.ediClaims',
-                            width: '95%',
-                            height: '75%',
-                            fromValidate: true,
-                            html: self.ediResultTemplate({ result: result, ediText: data.ediTextWithValidations, commonResult: commonErrorValidation }),
-                            onShown: function () {
-                                self.initEvent(true);
-                            },
-                            onHide: function () {
-                                commonjs.previousValidationResults = null;
-                            }
-                        });
-                    }
+                    self.ediTemplateRender(isFromReclaim, result, data.ediTextWithValidations, commonErrorValidation);
                     $(".popoverWarning").popover();
 
                     if (data.validations && data.validations.length == 0) {
@@ -2185,6 +2194,7 @@ define(['jquery',
                                 switch (data.file_type) {
                                     case 'can_ohip_p':
                                     case 'can_ahs_ard':
+                                    case 'can_bc_remit':
                                         return i18n.get('billing.payments.payment');
                                     case 'can_ohip_b':
                                     case 'can_ahs_bbr':
@@ -3059,6 +3069,8 @@ define(['jquery',
                         return '/exa_modules/billing/mhs/submitClaims';
                     case 'can_ON':
                         return '/exa_modules/billing/ohip/submitClaims';
+                    case 'can_BC':
+                        return '/exa_modules/billing/bc/submitClaims';
                     default:
                         return '/exa_modules/billing/claim_workbench/create_claim';
                 }
@@ -3086,6 +3098,94 @@ define(['jquery',
                 } else {
                     window.open(window.location.origin + '/exa_modules/billing/mhs/downloadFile?fileStoreId=' + data.id, "_self");
                     $("#btnClaimsRefresh").click();
+                }
+            },
+
+            /**
+             * Validating response for BC
+             *
+             * @param  {Object} data  response result
+             * @param  {Boolean} isFromReclaim  reclaim flag
+             */
+            bcResponse: function (data, isFromReclaim) {
+                var self = this;
+                self.ediResultTemplate = _.template(ediResultHTML);
+
+                if (data.responseCode) {
+                    switch (data.responseCode) {
+                        case 'isNotpendingSubmission':
+                            commonjs.showWarning('messages.status.pleaseSelectValidClaimsStatus');
+                            break;
+                        case 'isFileStoreError':
+                            commonjs.showWarning('messages.warning.era.fileStoreNotconfigured');
+                            break;
+                        case 'unableToWriteFile':
+                            commonjs.showError('messages.errors.rootdirectorynotexists');
+                            break;
+                        case 'submitted':
+                            commonjs.showStatus('messages.status.claimSubmitted');
+                            break;
+                        default:
+                            commonjs.showError('billing.claims.claimError');
+                    }
+                }
+
+                var errorResult = data.errorData;
+                if (errorResult && Object.keys(errorResult).length) {
+                    commonjs.previousValidationResults = {
+                        isFromBC: true,
+                        result: $.extend(true, {}, data)
+                    };
+
+                    var result = Object.keys(errorResult.reciprocalErrorArray).length ? errorResult.reciprocalErrorArray : errorResult.encoderErrorArray;
+                    self.ediTemplateRender(isFromReclaim, result, null, errorResult.commonError);
+                    $('#divEDIResult, #aDownloadEDI, #liEDI').hide();
+                    $('#reclaimEDI, #divErrorMsgs').show();
+                } else {
+                    $("#btnClaimsRefresh").click();
+                }
+            },
+
+            /**
+             * ediTemplateRender - edi error result
+             *
+             * @param  {Boolean} isFromReclaim  reclaim flag
+             * @param  {Object} result  edi response
+             * @param  {Object} ediText  edi text
+             * @param  {Object} commonErrorValidation  common error list
+             */
+            ediTemplateRender: function (isFromReclaim, result, ediText, commonErrorValidation) {
+                var self = this;
+                if (isFromReclaim) {
+                    $('#modal_div_container').html(
+                        self.ediResultTemplate({
+                            result: result,
+                            ediText: ediText,
+                            commonResult: commonErrorValidation,
+                            billingRegionCode: app.billingRegionCode
+                        }));
+                    commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());
+                    self.initEvent(true);
+                } else {
+                    commonjs.showDialog({
+                        header: 'EDI Claim',
+                        i18nHeader: 'shared.moduleheader.ediClaims',
+                        width: '95%',
+                        height: '75%',
+                        fromValidate: true,
+                        html: self.ediResultTemplate({
+                            result: result,
+                            ediText: ediText,
+                            commonResult: commonErrorValidation,
+                            billingRegionCode: app.billingRegionCode
+                        }),
+                        onShown: function () {
+                            self.initEvent(true);
+                        },
+                        onHide: function () {
+                            commonjs.previousValidationResults = null;
+                        }
+                    });
                 }
             }
         });
