@@ -10,4 +10,14 @@ router.use('/submitClaims', async (req, res) => {
     return httpHandler.send(req, res, response);
 });
 
+router.get('/validateHealthCard', async(req, res) => {
+    let response = await bc.validateHealthCard(req.query, res);
+    return httpHandler.send(req, res, response);
+});
+
+router.use('/process-file', async (req, res) => {
+    let response = await bc.processRemittanceFile(req.body);
+    return httpHandler.send(req, res, response);
+});
+
 module.exports = router;
