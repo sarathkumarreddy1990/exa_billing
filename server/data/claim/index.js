@@ -333,8 +333,8 @@ module.exports = {
                         INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id
                         LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id
                         LEFT JOIN public.patients p ON p.id= pi.patient_id
-                        LEFT JOIN public.patient_facilities pf ON pf.id= pi.patient_id
-                        LEFT JOIN public.facilities f ON pf.facility_id = f.id
+                        LEFT JOIN public.patient_facilities pf ON pf.patient_id = pi.patient_id
+                        LEFT JOIN public.facilities f ON f.id = pf.facility_id AND pf.is_default
                         WHERE
                             pi.patient_id = ${params.patient_id}
                         ORDER BY pi.id asc
@@ -853,7 +853,7 @@ module.exports = {
         let sqlQry = SQL`
         SELECT account_no, facility_info->'pokitdok_response' as filepath from public.patients p 
         INNER JOIN patient_facilities pf on pf.patient_id=p.id
-        INNER JOIN public.facilities f on f.id = pf.facility_id where p.id = ${params.patient_id} `;
+        INNER JOIN public.facilities f on f.id = pf.facility_id AND pf.is_default where p.id = ${params.patient_id} `;
 
         return await query(sqlQry);
     },
@@ -917,10 +917,10 @@ module.exports = {
                         FROM
                             patients p
                         INNER JOIN patient_facilities pfc ON pfc.patient_id = p.id
-                        INNER JOIN facilities f ON f.id = pfc.facility_id
+                        INNER JOIN facilities f ON f.id = pfc.facility_id AND pfc.is_default
                         LEFT JOIN provider_contacts fac_prov_cont ON f.facility_info->'rendering_provider_id'::text = fac_prov_cont.id::text
                         LEFT JOIN providers fac_prov ON fac_prov.id = fac_prov_cont.provider_id
-                        LEFT JOIN billing.facility_settings fs ON fs.facility_id = pfc.facility_id
+                        LEFT JOIN billing.facility_settings fs ON fs.facility_id = pfc.facility_id AND pfc.is_default
                         WHERE p.id = ${id}
                     ) AS patient_default_details
             ) patient_info `;
