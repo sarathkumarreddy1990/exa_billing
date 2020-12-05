@@ -5,7 +5,7 @@ pipeline {
 	ansiColor('xterm')
 	timestamps()
     }
-    agent { node { label 'windows2016-node-12.18.0' } }
+    agent { node { label 'windows2016-node-14.15.1' } }
     stages {
 	stage('prep') {
 	    steps {
