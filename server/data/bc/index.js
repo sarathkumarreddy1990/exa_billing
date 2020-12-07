@@ -385,7 +385,6 @@ const bcData = {
                         SELECT 
                             s.id AS study_id
                             , f.time_zone
-                            , timezone(f.time_zone, s.schedule_dt)::date
                             , bp.can_bc_payee_number
                             , bp.can_bc_data_centre_number
                             , p.gender
