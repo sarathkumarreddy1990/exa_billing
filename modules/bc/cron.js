@@ -104,7 +104,25 @@ const bcCronService = {
         }
 
         return await bcModules.transferFileToMsp(data, fileList.rows);
+    },
+
+    /**
+    * submitBatchEligibility - To submit all batch eligible of claims
+    * @param  {Object} args  
+    */
+    submitBatchEligibility: async (args) => {
+        let result = await bcController.getAllscheduledClaims(args);
+
+        if (!result || !result.length) {
+            return [{ responseCode: 'noRecord' }];
+        }
+
+        args.isBatchEligibilityFile = true;
+        let response = await bcModules.submitBatchEligibility(args, result);
+        return [response];
+        
     }
+
 };
 
 module.exports = bcCronService;

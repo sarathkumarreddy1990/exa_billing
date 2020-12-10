@@ -91,7 +91,7 @@ const encoder = (rows, isCron) => {
         let rowCount = 0;
         let totalFileBillFee = 0;
         let submittedClaimIds = [];
-        let isError = false;
+        let isBatchError = false;
 
         // VS1 Record 
         let encodedResult = encodeRecord(
@@ -107,7 +107,7 @@ const encoder = (rows, isCron) => {
 
         if (error) {
             commonError = commonError.concat(error);
-            isError = true;
+            isBatchError = true;
         } else {
             rowCount++;
             encoderBatchArray.push(encodedData);
@@ -116,6 +116,7 @@ const encoder = (rows, isCron) => {
         batchRow.forEach(row => {
             let claimEncodedArray = [];
             let isN01 = row.can_supporting_text && row.can_supporting_text.length > 20;
+            let claimError = false;
 
             row.health_services.forEach(service => {
 
@@ -141,21 +142,21 @@ const encoder = (rows, isCron) => {
                     );
 
                     if (CO2encodedText.error) {
-                        isError = true;
+                        claimError = true;
 
                         if (!encoderErrorArray[`${row.claim_number}`]) {
                             encoderErrorArray[`${row.claim_number}`] = [];
                         }
 
                         encoderErrorArray[`${row.claim_number}`] = encoderErrorArray[`${row.claim_number}`].concat(CO2encodedText.error);
-                    } else if (!isError) {
+                    } else if (!claimError && !isBatchError) {
                         claimEncodedArray.push(CO2encodedText.encodedData);
                     }
                 }
             });
 
             if (row.submission_code === 'C' && !isN01) {
-                isError = true;
+                claimError = true;
                 let noteError = [{
                     fieldName: 'Note record(N01)',
                     message: 'Submission code C required N01 record note information',
@@ -168,7 +169,7 @@ const encoder = (rows, isCron) => {
                 }
 
                 encoderErrorArray[`${row.claim_number}`] = encoderErrorArray[`${row.claim_number}`].concat(noteError);
-            } else if (isN01 && !isError) {
+            } else if (isN01 && !isBatchError && !claimError) {
 
                 //N01 Record
                 let N01encodedText = encodeRecord(
@@ -177,14 +178,14 @@ const encoder = (rows, isCron) => {
                 );
 
                 if (N01encodedText.error) {
-                    isError = true;
+                    claimError = true;
 
                     if (!encoderErrorArray[`${row.claim_number}`]) {
                         encoderErrorArray[`${row.claim_number}`] = [];
                     }
 
                     encoderErrorArray[`${row.claim_number}`] = encoderErrorArray[`${row.claim_number}`].concat(N01encodedText.error);
-                } else if (!isError) {
+                } else if (!isBatchError && !claimError) {
                     rowCount++;
                     claimEncodedArray.push(N01encodedText.encodedData);
                 }
@@ -194,7 +195,7 @@ const encoder = (rows, isCron) => {
             let { fileError = [] } = checkFileLimit(rowCount + claimEncodedArray.length, (parseFloat(totalFileBillFee) + parseFloat(row.claim_total_bill_fee)));
 
             // split claims into mulitple file when it is cron and with only file limit error  
-            if (fileError.length && isCron && !isError && rowCount > 1) {
+            if (fileError.length && isCron && !isBatchError && !claimError && rowCount > 1) {
 
                 submittedClaim.push({
                     encodedText: finalizeText(encoderBatchArray.join('\r\n')),
@@ -206,7 +207,7 @@ const encoder = (rows, isCron) => {
 
                 encoderBatchArray = [];
                 submittedClaimIds = [];
-                isError = error ? true : false;
+                isBatchError = error ? true : false;
                 rowCount = claimEncodedArray.length + 1;
                 totalFileBillFee = row.claim_total_bill_fee;
                 encoderBatchArray.push(encodedData);
@@ -214,7 +215,7 @@ const encoder = (rows, isCron) => {
                 submittedClaimIds.push(row.claim_number);
             } else if (fileError.length) {
                 commonError = commonError.concat(fileError);
-            } else if (!isError && claimEncodedArray.length) {
+            } else if (!isBatchError && !claimError && claimEncodedArray.length) {
                 encoderBatchArray = encoderBatchArray.concat(claimEncodedArray);
                 rowCount += claimEncodedArray.length;
                 totalFileBillFee += row.claim_total_bill_fee;
@@ -223,7 +224,7 @@ const encoder = (rows, isCron) => {
 
         });
 
-        if (!isError && encoderBatchArray.length) {
+        if (!isBatchError && encoderBatchArray.length && submittedClaimIds.length) {
             submittedClaim.push({
                 encodedText: finalizeText(encoderBatchArray.join('\r\n')),
                 submittedClaimIds,
