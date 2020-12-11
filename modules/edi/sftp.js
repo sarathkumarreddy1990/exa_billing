@@ -176,7 +176,11 @@ const sftpService = {
                 host: config.ftp_host,
                 user: config.ftp_user_name,
                 password: config.ftp_password,
-                port: config.ftp_port
+                port: config.ftp_port,
+
+                algorithms: {
+                    cipher: ['aes128-cbc']
+                }
             });
 
             let downloadDirPath = config.ftp_receive_folder || 'responses';
@@ -296,11 +300,9 @@ const sftpService = {
             };
         }
 
-        let requests = _.map(sftpDetails, (sftp, index) => {
-            return new Promise(async (resolve, reject) => {
-                const data = await sftpService.download(companyId, sftp);
-                resolve(data);
-            });
+        let requests = _.map(sftpDetails, async (sftp, index) => {
+            const data = await sftpService.download(companyId, sftp);
+            return [data];
         });
 
         logger.info('ERA sftp download process started..');
