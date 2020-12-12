@@ -1126,8 +1126,6 @@ define(['jquery',
                     }
                     self.wcbNatureCodeId = claim_data.nature_of_injury_code_id || null;
                     self.wcbAreaCodeId = claim_data.area_of_injury_code_id || null;
-                    $('#wcbAreaOfInjury').val(self.wcbAreaCodeId);
-                    $('#wcbNatureOfInjury').val(self.wcbNatureCodeId);
                 }
 
                 /* Additional info end */
@@ -3644,8 +3642,8 @@ define(['jquery',
                     can_ahs_emsaf_reason: $.trim($('#txtReasonAdditionalCompensation').val()) || null,
                     can_supporting_text: $.trim($.trim($('#txtSupportingText').val()).replace(/\n/g, ' ')),
                     can_wcb_rejected: $("#chkwcbRejected").prop('checked') || false,
-                    wcb_injury_area_code: $.trim($('#wcbAreaOfInjury').val()) || null,
-                    wcb_injury_nature_code: $.trim($('#wcbNatureOfInjury').val()) || null
+                    wcb_injury_area_code: self.wcbAreaCodeId || null,
+                    wcb_injury_nature_code: self.wcbNatureCodeId || null
                 };
 
                 // Pay-to Details are only saved when Pay-to Code is Other
