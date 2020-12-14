@@ -188,12 +188,13 @@ const acr = {
                 , write_off_claims AS (
                     SELECT
                         p.id AS patient_id
-                        ,p.facility_id
+                        ,pf.facility_id
                         ,ARRAY_AGG(claims.id)  AS collection_claim_ids
                     FROM
                         billing.claims
                     INNER JOIN patients p ON p.id = claims.patient_id
                     INNER JOIN billing.claim_status cs ON cs.id = claims.claim_status_id
+                    INNER JOIN patient_facilities pf ON pf.patient_id = p.id AND pf.is_default
                     WHERE cs.code = 'CIC'
                     GROUP BY p.id
                     ORDER BY p.id DESC
@@ -524,12 +525,13 @@ const acr = {
                     SELECT
                         SUM(cpl.claim_balance_total) AS patient_balance
                         ,p.id AS patient_id
-                        ,p.facility_id
+                        ,pf.facility_id
                         ,ARRAY_AGG(claims.id) FILTER ( WHERE claim_status_id != ${acr_claim_status_id} ) AS claim_ids
                     FROM
                         billing.claims
 		            INNER JOIN claim_payment_lists cpl ON cpl.claim_id = claims.id
                     INNER JOIN patients p ON p.id = claims.patient_id
+                    INNER JOIN patient_facilities pf ON pf.patient_id = p.id AND pf.is_default
                     GROUP BY p.id
                     HAVING sum(cpl.claim_balance_total) >= ${acr_min_balance_amount}::money
                     ORDER BY p.id DESC
