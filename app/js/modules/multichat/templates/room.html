@@ -2,7 +2,7 @@
     <div class="chat-content-header">
         <% if (roomType === 'private') {
             var user = _.find(members, function(user) {
-                return user.id != app.userID;
+                return user.id != userID;
             });
             var userStatus = 'chat-user-avatar-wrap-status chat-user-avatar-wrap-status--' + user.get('chat_status');
             %>

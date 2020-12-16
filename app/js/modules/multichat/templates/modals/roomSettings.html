@@ -74,7 +74,7 @@
             <p class="chat-modal-user__name">
                 <%= member.get('user_full_name')%>
             </p>
-            <% if ((userId != app.userID) && (can_remove_users === true)) { %>
+            <% if ((userId != userID) && (can_remove_users === true)) { %>
                 <span class="chat-modal-user__remove js_chat-modal-user__remove" i18n="chat.labels.exclude" data-user="<%= userId %>">exclude</span>
             <% }; %>
         </div>
@@ -82,7 +82,7 @@
 
     <%
     var groups = room.get('groups');
-    
+
     if (groups.length) { %>
         <div class="chat-modal-groups" i18n="chat.labels.groups">Groups</div>
     <%

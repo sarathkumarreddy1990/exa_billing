@@ -1,5 +1,5 @@
 <%
-var messageClassType = (app.userID == message.getAuthorId()) ? 'chat-content-body-message_sent' : 'chat-content-body-message_replies';
+var messageClassType = (userID == message.getAuthorId()) ? 'chat-content-body-message_sent' : 'chat-content-body-message_replies';
 var messageId = message.get('id');
 %>
 

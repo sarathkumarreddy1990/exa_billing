@@ -61,7 +61,8 @@ define(['jquery'
                 $chatParticipantsHolder.append(templateParticipants({
                     room: this.model,
                     members: individualMembers,
-                    itemTemplate: this.templateUserAvatar
+                    itemTemplate: this.templateUserAvatar,
+                    userID: app.userID
                 }));
             },
 

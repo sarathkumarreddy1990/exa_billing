@@ -85,6 +85,7 @@ define(['jquery'
             draw: function () {
                 var self = this;
                 this.$el.html(this.templateChat({
+                    userFullName: app.userInfo.userFullName,
                     templateContactList: self.templateContactList,
                 }));
                 if (!this.roomList) {
@@ -288,6 +289,7 @@ define(['jquery'
                 return this.templateContactLine({
                     room: room,
                     users: room.get('members'),
+                    userID: app.userID,
                     templateUserAvatar: this.templateUserAvatar
                 });
             },
