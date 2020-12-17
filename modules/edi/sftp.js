@@ -266,12 +266,13 @@ const sftpService = {
             };
         }
         catch (e) {
-            logger.error('Error occurred in files download', e);
-            return {
+            let errorResponse = {
                 error: true,
                 message: e.message.replace(/[^\w\s]/gi, ''),
                 response: {}
             };
+            logger.error(`Error occurred in files download ${JSON.stringify(errorResponse)}`);
+            return errorResponse;
         }
         finally {
             sftp.end();
@@ -301,8 +302,7 @@ const sftpService = {
         }
 
         let requests = _.map(sftpDetails, async (sftp, index) => {
-            const data = await sftpService.download(companyId, sftp);
-            return [data];
+            return await sftpService.download(companyId, sftp);
         });
 
         logger.info('ERA sftp download process started..');
