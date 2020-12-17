@@ -19,7 +19,7 @@
         var companion = '';
         var userId = '';
         if (!_.isEmpty(users)) {
-            companion = users[0].id !== app.userID ? users[0] : users[1];
+            companion = users[0].id !== userID ? users[0] : users[1];
             userId = companion.id
             userStatus = 'chat-user-avatar-wrap-status chat-user-avatar-wrap-status--' + (isEnabled? companion.get('chat_status'): 'offline')
             initials = companion.getInitials();
