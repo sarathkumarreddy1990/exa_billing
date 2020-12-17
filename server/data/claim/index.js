@@ -690,6 +690,7 @@ module.exports = {
                             , ip.insurance_code
                             , ip.insurance_info->'partner_id' AS ins_partner_id
                             , pi.coverage_level
+                            , pi.valid_to_date
                         FROM public.patient_insurances pi
                         INNER JOIN public.insurance_providers ip ON ip.id = pi.insurance_provider_id
                         WHERE
