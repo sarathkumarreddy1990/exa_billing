@@ -272,22 +272,14 @@ module.exports = {
                             public.patient_insurances pi
                         INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id
                         LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id
-                        LEFT JOIN LATERAL (
-                            SELECT
-                                coverage_level,
-                                MIN(valid_to_date) as valid_to_date
-                            FROM
-                                public.patient_insurances
-                            WHERE
-                                patient_id = ${params.patient_id} AND (valid_to_date >= (${params.claim_date})::date  OR valid_to_date IS NULL)
-                                AND (valid_from_date <= (${params.claim_date})::date OR valid_from_date IS NULL)
-                                AND CASE WHEN EXISTS(SELECT patient_ins_id FROM order_level_beneficiary) THEN patient_insurances.id = ANY(SELECT UNNEST(patient_ins_id) FROM order_level_beneficiary) ELSE TRUE END
-                                GROUP BY coverage_level
-                        ) as expiry ON TRUE
-                        WHERE
-                            pi.patient_id = ${params.patient_id}  AND (expiry.valid_to_date = pi.valid_to_date OR expiry.valid_to_date IS NULL) AND expiry.coverage_level = pi.coverage_level
-                            AND CASE WHEN EXISTS(SELECT patient_ins_id FROM order_level_beneficiary) THEN pi.id = ANY(SELECT UNNEST(patient_ins_id) FROM order_level_beneficiary) ELSE TRUE END
-                            ORDER BY id ASC
+                        WHERE pi.patient_id = ${params.patient_id}
+                        AND EXISTS ( SELECT
+                                        1
+                                    FROM public.patient_insurances i_pi
+                                    WHERE (i_pi.valid_to_date >= (${params.claim_date})::DATE OR i_pi.valid_to_date IS NULL)
+                                    AND i_pi.id = pi.id)
+                        AND CASE WHEN EXISTS(SELECT patient_ins_id FROM order_level_beneficiary) THEN pi.id = ANY(SELECT UNNEST(patient_ins_id) FROM order_level_beneficiary) ELSE TRUE END
+                        ORDER BY id ASC
                 ),
                 existing_insurance as (
                         SELECT

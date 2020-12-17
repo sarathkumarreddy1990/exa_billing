@@ -2980,7 +2980,7 @@ define(['jquery',
                     type: 'GET',
                     data: {
                         'patient_id': self.cur_patient_id || 0,
-                        'claim_date': self.claim_dt_iso || 'now()',
+                        'claim_date': self.claim_dt_iso || self.cur_study_date || 'now()',
                         'order_ids': self.selectedOrderIds || [0]
                     },
                     success: function (response) {
