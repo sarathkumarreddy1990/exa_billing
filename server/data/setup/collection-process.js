@@ -188,13 +188,11 @@ const acr = {
                 , write_off_claims AS (
                     SELECT
                         p.id AS patient_id
-                        ,pf.facility_id
                         ,ARRAY_AGG(claims.id)  AS collection_claim_ids
                     FROM
                         billing.claims
                     INNER JOIN patients p ON p.id = claims.patient_id
                     INNER JOIN billing.claim_status cs ON cs.id = claims.claim_status_id
-                    INNER JOIN patient_facilities pf ON pf.patient_id = p.id AND pf.is_default
                     WHERE cs.code = 'CIC'
                     GROUP BY p.id
                     ORDER BY p.id DESC
@@ -217,17 +215,18 @@ const acr = {
                         )
                         SELECT
                             ${companyId} AS company_id
-                            , patient_id
+                            , woc.patient_id
                             , 0::money AS amount
                             , CURRENT_DATE AS accounting_date
                             , ${userId} AS created_by
-                            , timezone(get_facility_tz(facility_id), now()::timestamp) AS payment_dt
+                            , timezone(get_facility_tz(pf.facility_id), now()::timestamp) AS payment_dt
                             , 'patient' AS payer_type
                             , 'Auto collections review write-off is $' || ${acr_min_balance_amount} AS notes
                             , 'adjustment' AS payment_mode
-                            , facility_id
+                            , pf.facility_id
                         FROM
-                            write_off_claims
+                            write_off_claims woc
+                        INNER JOIN patient_facilities pf ON pf.patient_id = woc.patient_id AND pf.is_default
                     RETURNING
                         id
                         , company_id
@@ -525,7 +524,6 @@ const acr = {
                     SELECT
                         SUM(cpl.claim_balance_total) AS patient_balance
                         ,p.id AS patient_id
-                        ,pf.facility_id
                         ,ARRAY_AGG(claims.id) FILTER ( WHERE claim_status_id != ${acr_claim_status_id} ) AS claim_ids
                     FROM
                         billing.claims
