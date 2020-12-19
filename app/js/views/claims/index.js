@@ -813,17 +813,23 @@ define(['jquery',
                             self.enableInsuranceEligibility = claimDetails.enable_insurance_eligibility || '';
 
                             $.each(existing_insurance, function (index, value) {
+                                var isDisplayInsurance = !value.valid_to_date || moment(claimDetails.claim_dt).isSameOrBefore(value.valid_to_date);
+
                                 switch (value.coverage_level) {
                                     case 'primary':
-                                        if (moment().isBefore(value.valid_to_date)) {
-                                            self.existingPrimaryInsurance.push(value);
+                                        if (isDisplayInsurance) {
+                                            existingPrimaryInsurance.push(value);
                                         }
                                         break;
                                     case 'secondary':
-                                        existingSecondaryInsurance.push(value);
+                                        if (isDisplayInsurance) {
+                                            existingSecondaryInsurance.push(value);
+                                        }
                                         break;
                                     case 'tertiary':
-                                        existingTriInsurance.push(value);
+                                        if (isDisplayInsurance) {
+                                            existingTriInsurance.push(value);
+                                        }
                                 }
                             });
                             self.bindExistingInsurance(existingPrimaryInsurance, 'ddlExistPriIns')
@@ -2974,7 +2980,7 @@ define(['jquery',
                     type: 'GET',
                     data: {
                         'patient_id': self.cur_patient_id || 0,
-                        'claim_date': self.claim_dt_iso || 'now()',
+                        'claim_date': self.claim_dt_iso || self.cur_study_date || 'now()',
                         'order_ids': self.selectedOrderIds || [0]
                     },
                     success: function (response) {
@@ -2992,17 +2998,23 @@ define(['jquery',
                             self.tradingPartnerId = existing_insurance.length && existing_insurance[0].ins_partner_id ? existing_insurance[0].ins_partner_id : '';
 
                             $.each(existing_insurance, function (index, value) {
+                                var isDiplayInsurance = !value.valid_to_date || moment(self.cur_study_date).isSameOrBefore(value.valid_to_date);
+
                                 switch (value.coverage_level) {
                                     case 'primary':
-                                        if (moment().isBefore(value.valid_to_date)) {
+                                        if (isDiplayInsurance) {
                                             self.existingPrimaryInsurance.push(value);
                                         }
                                         break;
                                     case 'secondary':
-                                        self.existingSecondaryInsurance.push(value);
+                                        if (isDiplayInsurance) {
+                                            self.existingSecondaryInsurance.push(value);
+                                        }
                                         break;
                                     case 'tertiary':
-                                        self.existingTriInsurance.push(value);
+                                        if (isDiplayInsurance) {
+                                            self.existingTriInsurance.push(value);
+                                        }
                                 }
                             });
                             self.bindExistingInsurance(self.existingPrimaryInsurance, 'ddlExistPriIns')
