@@ -212,11 +212,25 @@ define([
                             self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && (field.field_code == "clearing_house" ||
                             field.field_code == "patient_ssn" || field.field_code == "place_of_service" )) }) || [];
                         } else {
-                            self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && field.field_code == "payment_id") }) || [];
+                            self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && field.field_code == "payment_id" || field.field_code == "phn_alt_account" || field.field_code == "pid_alt_account" ) }) || [];
                         }
+
                         if (app.billingRegionCode !== "can_MB") {
-                            self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && field.field_code == "can_mhs_microfilm_no") }) || [];
+                            self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && (field.field_code == "can_mhs_microfilm_no")) }) || [];
                         }
+
+                        if (app.billingRegionCode !== "can_AB") {
+                            self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && (field.field_code == "can_ahs_claim_no" || field.field_code == "claim_action")) }) || [];
+                        }
+
+                        if (app.billingRegionCode !== "can_BC") {
+                            self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && (field.field_code == "can_bc_claim_sequence_numbers")) }) || [];
+                        }
+
+                        if (['can_AB', 'can_BC', 'can_MB'].indexOf(app.billingRegionCode) == -1) {
+                            self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && (field.field_code == "phn_alt_account")) }) || [];
+                        }
+
                         var result_data = data && data.length && data[1] && data[1].rows && data[1].rows.length ? data[1].rows[0] : {};
                         self.checkedBillingDisplayFields = result_data.field_order || [] ;
                         self.checkedFields = self.checkedBillingDisplayFields ? self.checkedBillingDisplayFields : [];

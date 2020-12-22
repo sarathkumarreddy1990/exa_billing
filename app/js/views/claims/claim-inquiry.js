@@ -440,10 +440,11 @@ define([
                     gridelementid: '#tblPatientClaimsGrid',
                     custompager: this.claimsPager,
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['', '', 'Claim Number', 'Claim Date', 'Billing Fee', 'Total Adjustment','Total Insurance Payments', 'Total Patient Payments', 'Balance', 'Claim Status', 'Current responsibility'],
-                    i18nNames: ['', '', 'billing.fileInsurance.claimNo', 'billing.claims.claimDate', 'billing.COB.billingFee','billing.fileInsurance.totalAdjustment', 'billing.claims.totalInsurancePayments', 'billing.claims.totalPatientPayments', 'billing.claims.Balance', 'billing.claims.claimStatus', 'billing.claims.currentResponsibility'],
+                    colNames: ['', '', '', 'Claim Number', 'Claim Date', 'Billing Fee', 'Total Adjustment','Total Insurance Payments', 'Total Patient Payments', 'Balance', 'Claim Status', 'Current responsibility'],
+                    i18nNames: ['', '', '', 'billing.fileInsurance.claimNo', 'billing.claims.claimDate', 'billing.COB.billingFee','billing.fileInsurance.totalAdjustment', 'billing.claims.totalInsurancePayments', 'billing.claims.totalPatientPayments', 'billing.claims.Balance', 'billing.claims.claimStatus', 'billing.claims.currentResponsibility'],
                     colModel: [
                         { name: '', index: 'claim_id', key: true, hidden: true, search: false },
+                        { name: 'billing_provider_id', hidden: true, search: false },
                         {
                             name: 'chk_claims',
                             width: 20,
@@ -1209,7 +1210,7 @@ define([
                         var billingProviderList = app.billing_providers,
                         ddlBillingProvider = $('#ddlBillingProvider');
                         ddlBillingProvider.empty();
-                        ddlBillingProvider.append("<option value='0' i18n='shared.fields.all'></option>");
+                        ddlBillingProvider.append("<option value='' i18n='shared.fields.all'></option>");
 
                         if (billingProviderList && billingProviderList.length > 0) {
                             for (var b = 0; b < billingProviderList.length; b++) {
@@ -1347,9 +1348,13 @@ define([
                 });
 
                 var claimIds = [];
+                var billingProviderIds = [];
 
                 $('#tblPatientClaimsGrid').find('input[name=chkClaims]:checked').each(function () {
-                    claimIds.push($(this).closest('tr').attr('id'));
+                    var rowID = $(this).closest('tr').attr('id');
+                    var gridData = $('#tblPatientClaimsGrid').jqGrid('getRowData', rowID);
+                    claimIds.push(gridData.claim_id);
+                    billingProviderIds.push(gridData.billing_provider_id);
                 });
 
                 return {
@@ -1359,7 +1364,7 @@ define([
                     'reportByFlag': reportBy ,
                     'fromDate': reportBy ? '': fromDate,
                     'toDate': reportBy ? '': toDate,
-                    'billingProId': selectedBillingProList || [],
+                    'billingProId': selectedBillingProList.length ? selectedBillingProList : billingProviderIds,
                     'billingComments': $('#bindComments').prop('checked'),
                     'billingAddressTaxNpi': $('#bindAddressTaxNpi').prop('checked'),
                     'selectedClaimIds': claimIds
@@ -1465,6 +1470,7 @@ define([
                     success: function (data, response) {
                         $("#tBodyCIPayment").empty();
                         $('#tBodyCASRef').empty();
+                        $('.addtionalCas').remove();
                         var casHeader = self.casHeaderTemplate({rows: data, billingRegionCode: app.billingRegionCode});
                         $('#tHeadCIPayment tr').append(casHeader);
 
@@ -1506,6 +1512,7 @@ define([
                     success: function (data, response) {
                         $("#tBodyCIPayment").empty();
                         $('#tBodyCASRef').empty();
+                        $('.addtionalCas').remove();
 
                         if (data.length > 0) {
 

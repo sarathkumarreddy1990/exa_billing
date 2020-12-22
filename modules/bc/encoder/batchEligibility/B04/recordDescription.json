@@ -1,0 +1,72 @@
+{
+    "record_code": {
+      "format": "A",
+      "startPos": 1,
+      "length": 3
+    },
+    "data_centre_number": {
+      "format": "A",
+      "startPos": 4,
+      "length": 5
+    },
+    "data_center_sequence": {
+      "format": "A",
+      "startPos": 9,
+      "length": 7
+    },
+    "payee_number": {
+      "format": "A",
+      "startPos": 16,
+      "length": 5
+    },
+    "phn": {
+      "format": "A",
+      "startPos": 21,
+      "length": 10,
+      "paddingChar": "0",
+      "isLeftJustified": false
+    },
+    "dependent_number": {
+      "format": "A",
+      "startPos": 31,
+      "length": 2
+    },
+    "name_verify":{
+      "format": "A",
+      "startPos": 33,
+      "length": 4
+    },
+    "birth_date": {
+      "format": "A",
+      "startPos": 37,
+      "length": 8
+    },
+    "date_of_service": {
+      "format": "A",
+      "startPos": 45,
+      "length": 8
+    },
+    "sex": {
+      "format": "A",
+      "startPos": 53,
+      "length": 1
+    },
+    "patient_status": {
+      "format": "A",
+      "startPos": 54,
+      "length": 1
+    },
+    "office_folio_number": {
+      "format": "A",
+      "startPos": 55,
+      "length": 7,
+      "paddingChar": "0",
+      "isLeftJustified": false
+    },
+    "filler": {
+      "format": "A",
+      "startPos": 62,
+      "length": 19
+    }
+  }
+  
