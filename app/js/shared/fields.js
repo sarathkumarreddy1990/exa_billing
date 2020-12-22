@@ -868,7 +868,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "width": 150,
                         "searchFlag": "%",
                         "sortable": true,
-                        "defaultValue": ""
+                        "defaultValue": "",
+                        "hidden": (app.country_alpha_3_code !== 'can')
                     },
                     "field_code": "pid_alt_account"
                 },
@@ -882,7 +883,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "width": 150,
                         "searchFlag": "%",
                         "sortable": true,
-                        "defaultValue": ""
+                        "defaultValue": "",
+                        "hidden": ['can_AB', 'can_BC', 'can_MB'].indexOf(app.billingRegionCode) == -1
                     },
                     "field_code": "phn_alt_account"
                 },
@@ -898,7 +900,23 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "formatter": claimDateFormatter,
                         "width": 200
                     }
+                },
+                "Sequence Numbers": {
+                    "id": 75,
+                    "field_name": "Sequence Numbers",
+                    "i18n_name": "shared.fields.sequenceNumbers",
+                    "field_info": {
+                        "custom_name": "Sequence Numbers",
+                        "name": "can_bc_claim_sequence_numbers",
+                        "width": 150,
+                        "searchFlag": "%",
+                        "sortable": true,
+                        "defaultValue": "",
+                        "hidden": app.billingRegionCode !== 'can_BC'
+                    },
+                    "field_code": "can_bc_claim_sequence_numbers"
                 }
+
             });
         }else{
         return Immutable.Map({
@@ -1185,7 +1203,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "width": 150,
                     "searchFlag": "%",
                     "sortable": true,
-                    "defaultValue": ""
+                    "defaultValue": "",
+                    "hidden": (app.country_alpha_3_code !== 'can')
                 },
                 "field_code": "pid_alt_account"
             },
@@ -1199,7 +1218,8 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "width": 150,
                     "searchFlag": "%",
                     "sortable": true,
-                    "defaultValue": ""
+                    "defaultValue": "",
+                    "hidden": ['can_AB', 'can_BC', 'can_MB'].indexOf(app.billingRegionCode) == -1
                 },
                 "field_code": "phn_alt_account"
             },
@@ -2130,7 +2150,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "searchFlag": "%",
                         "sortable": true,
                         "defaultValue": "",
-                        "hidden": !(app.billingRegionCode === 'can_BC')
+                        "hidden": app.billingRegionCode !== 'can_BC'
                     },
                     "field_code": "can_bc_claim_sequence_numbers"
             }

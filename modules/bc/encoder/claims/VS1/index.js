@@ -1,6 +1,8 @@
 'use strict';
 const defaultValues = require('../../../resx/default.json');
 const { version } = require('../../../../../package.json');
+const VS1recordDescription = require('./recordDescription.json');
+
 
 let {
     contact,
@@ -15,11 +17,24 @@ let {
  * @param {Object} args
  * @returns {Object}
  */
-const processResults = (args) => {
+const processResults = (args, isBatchEligibilityFile) => {
     let {
         can_bc_data_centre_number,
         installation_date
     } = args;
+
+
+    VS1recordDescription.installation_date = {
+        ...VS1recordDescription.installation_date,
+        validationRequired: !isBatchEligibilityFile,
+        isMandatory: !isBatchEligibilityFile,
+    };
+
+    VS1recordDescription.software_version = {
+        ...VS1recordDescription.software_version,
+        validationRequired: !isBatchEligibilityFile,
+        isMandatory: !isBatchEligibilityFile,
+    };
 
     return {
         record_code: record_code_VS1,

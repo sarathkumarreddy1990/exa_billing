@@ -303,6 +303,10 @@ define(['jquery',
                     return commonjs.showWarning('messages.warning.claims.electronicBillingOnlyAHS');
                 }
 
+                if (app.billingRegionCode === 'can_BC' && this.model.get('insurance_code') !== 'MSP' && isElectronicBilling) {
+                    return commonjs.showWarning('messages.warning.claims.electronicBillingOnlyMSP');
+                }
+
                 this.model.set({
                     "claimClearingHouse": ($('#ddlClaimClearingHouse').val() && isElectronicBilling) ? $('#ddlClaimClearingHouse').val() : null,
                     "billingMethod": billingMethod,

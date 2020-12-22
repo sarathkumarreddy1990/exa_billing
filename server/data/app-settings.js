@@ -11,13 +11,14 @@ module.exports = {
                         SELECT Json_agg(Row_to_json(call_categories)) AS "callCategories"
                         FROM (
                                 SELECT
-                                    id,
-                                    name
-                                FROM
-                                    call_categories
+                                      id
+                                    , reason as name
+                                FROM reason_codes
                                 WHERE
-                                    deleted_dt IS NULL
-                                    AND company_id = ${companyID}
+                                    company_id = ${companyID}
+                                AND category = 'CALL_CATEGORIES'
+                                AND deleted_dt IS NULL
+                                ORDER BY reason
                              ) AS call_categories
                     )
 
