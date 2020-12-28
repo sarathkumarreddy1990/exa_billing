@@ -752,17 +752,20 @@ define(['jquery',
                             self.enableInsuranceEligibility = claimDetails.enable_insurance_eligibility || '';
 
                             $.each(existing_insurance, function (index, value) {
-                                switch (value.coverage_level) {
-                                    case 'primary':
-                                        if (moment().isBefore(value.valid_to_date)) {
-                                            self.existingPrimaryInsurance.push(value);
-                                        }
-                                        break;
-                                    case 'secondary':
-                                        existingSecondaryInsurance.push(value);
-                                        break;
-                                    case 'tertiary':
-                                        existingTriInsurance.push(value);
+                                var isDisplayInsurance = !value.valid_to_date || moment(claimDetails.claim_dt).isSameOrBefore(value.valid_to_date);
+
+                                if (isDisplayInsurance) {
+                                    switch (value.coverage_level) {
+                                        case 'primary':
+                                            existingPrimaryInsurance.push(value);
+                                            break;
+                                        case 'secondary':
+                                            existingSecondaryInsurance.push(value);
+                                            break;
+                                        case 'tertiary':
+                                            existingTriInsurance.push(value);
+                                            break;
+                                    }
                                 }
                             });
                             self.bindExistingInsurance(existingPrimaryInsurance, 'ddlExistPriIns')
@@ -2754,7 +2757,7 @@ define(['jquery',
                     type: 'GET',
                     data: {
                         'patient_id': self.cur_patient_id || 0,
-                        'claim_date': self.claim_dt_iso || 'now()',
+                        'claim_date': self.claim_dt_iso || self.cur_study_date || 'now()',
                         'order_ids': self.selectedOrderIds || [0]
                     },
                     success: function (response) {
@@ -2772,17 +2775,21 @@ define(['jquery',
                             self.tradingPartnerId = existing_insurance.length && existing_insurance[0].ins_partner_id ? existing_insurance[0].ins_partner_id : '';
 
                             $.each(existing_insurance, function (index, value) {
-                                switch (value.coverage_level) {
-                                    case 'primary':
-                                        if (moment().isBefore(value.valid_to_date)) {
+                                var isDisplayInsurance = !value.valid_to_date || moment(self.cur_study_date).isSameOrBefore(value.valid_to_date);
+
+                                if (isDisplayInsurance) {
+
+                                    switch (value.coverage_level) {
+                                        case 'primary':
                                             self.existingPrimaryInsurance.push(value);
-                                        }
-                                        break;
-                                    case 'secondary':
-                                        self.existingSecondaryInsurance.push(value);
-                                        break;
-                                    case 'tertiary':
-                                        self.existingTriInsurance.push(value);
+                                            break;
+                                        case 'secondary':
+                                            self.existingSecondaryInsurance.push(value);
+                                            break;
+                                        case 'tertiary':
+                                            self.existingTriInsurance.push(value);
+                                            break;
+                                    }
                                 }
                             });
                             self.bindExistingInsurance(self.existingPrimaryInsurance, 'ddlExistPriIns')
