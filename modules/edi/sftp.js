@@ -38,7 +38,7 @@ const sftpService = {
             ediText
         } = claimInfo;
 
-        try {            
+        try {
 
             const fileSqlResponse = await data.getCompanyFileStore(companyId);
 
@@ -294,10 +294,10 @@ const sftpService = {
         let sftpDetails = await data.getClearingHouseList(companyId) || {};
 
         if (!sftpDetails.length) {
-            logger.info('ERA sftp download | Clearing house not configured');
+            logger.info('ERA sftp download | SFTP not configured in clearing house');
             return {
                 error: true,
-                message: 'Clearing house not configured'
+                message: 'SFTP not configured in clearing house'
             };
         }
 
