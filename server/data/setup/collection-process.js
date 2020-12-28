@@ -431,13 +431,20 @@ const acr = {
                         WHEN  payment_details.last_payment_dt IS NULL AND last_patient_statement.created_dt IS NULL THEN TRUE
                         WHEN  payment_details.last_payment_dt IS NOT NULL THEN
                             CASE
-                                --first case
-                                WHEN last_patient_statement.created_dt IS NOT NULL AND (payment_details.last_payment_dt
-                                   BETWEEN (last_patient_statement.created_dt) AND (last_patient_statement.created_dt + interval '${acr_claim_status_statement_days} days')::DATE)
-                                     THEN TRUE
-                                WHEN last_patient_statement.created_dt IS NOT NULL AND
-                                   (last_patient_statement.created_dt + interval '${acr_claim_status_statement_days} days')::DATE > timezone(get_facility_tz(c.facility_id::integer), now())::DATE THEN TRUE
-                                --Second case
+                                WHEN
+                                ( --First case
+                                   last_patient_statement.created_dt IS NOT NULL AND ( payment_details.last_payment_dt BETWEEN (last_patient_statement.created_dt) AND (last_patient_statement.created_dt + interval '${acr_claim_status_statement_days} days')::DATE )
+                                ) OR
+                                ( --First case
+                                   last_patient_statement.created_dt IS NOT NULL AND ( last_patient_statement.created_dt + interval '${acr_claim_status_statement_days} days')::DATE > timezone(get_facility_tz(c.facility_id::integer), now())::DATE
+                                ) THEN
+                                  --If first case true then check second case
+                                   CASE
+                                    WHEN (payment_details.last_payment_dt + interval '${acr_claim_status_last_payment_days} days')::DATE > timezone(get_facility_tz(c.facility_id::integer), now())::DATE
+                                        THEN TRUE
+                                    ELSE FALSE
+                                   END
+                                --If first case failed then check second case
                                 WHEN (payment_details.last_payment_dt + interval '${acr_claim_status_last_payment_days} days')::DATE > timezone(get_facility_tz(c.facility_id::integer), now())::DATE THEN TRUE
                                 ELSE FALSE
                             END
