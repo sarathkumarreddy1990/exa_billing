@@ -154,14 +154,13 @@ module.exports = {
 									, lower(prs.description) = ('self') AS is_pri_relationship_self
 									, lower(srs.description) = ('self') AS is_sec_relationship_self
 									, lower(trs.description) = ('self') AS is_ter_relationship_self`;
-					
-					
-									 if(params.billingRegionCode === 'can_BC'){    
-									sql.append(SQL`,ref_pc.can_prid AS "referring_pro_practitioner_number"
-									, rend_pc.can_prid AS "reading_pro_practitioner_number"
-									, bp.can_bc_data_centre_number AS "service_facility_data_centre_number"
-									, bp.can_bc_payee_number AS "billing_pro_payeeNumber" `);									            
-									}
+
+                                    if (params.billingRegionCode === 'can_BC') {
+                                        sql.append(SQL`, ref_pc.can_prid AS "referring_pro_practitioner_number"
+                                        , rend_pc.can_prid AS "reading_pro_practitioner_number"
+                                        , bp.can_bc_data_centre_number AS "billing_pro_data_centre_number"
+                                        , bp.can_bc_payee_number AS "billing_pro_payeeNumber" `);
+                                    }
 
 									 sql.append(SQL` FROM
 						billing.claims bc

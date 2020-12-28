@@ -29,6 +29,10 @@
             "enabled": false,
             "show": []
         }, {
+            "field": "billing_pro_data_centre_number",
+            "enabled": false,
+            "show": ["can_BC"]
+        }, {
             "field": "claim_icd_code1",
             "enabled": false,
             "show": []
@@ -145,10 +149,6 @@
             "enabled": false,
             "show": ["not_can_AB", "not_can_BC"]
         }, {
-            "field": "service_facility_data_centre_number",
-            "enabled": false,
-            "show": ["can_BC"]
-        },{
             "field": "service_facility_state",
             "enabled": false,
             "show": []
@@ -243,6 +243,10 @@
             "field": "billing_pro_zip",
             "enabled": false,
             "show": []
+        }, {
+            "field": "billing_pro_data_centre_number",
+            "enabled": false,
+            "show": ["can_BC"]
         }, {
             "field": "claim_icd_code1",
             "enabled": false,
@@ -352,10 +356,6 @@
             "enabled": false,
             "show": ["not_can_AB", "not_can_BC"]
          }, {
-            "field": "service_facility_data_centre_number",
-            "enabled": false,
-            "show": ["can_BC"]
-        }, {
             "field": "service_facility_state",
             "enabled": false,
             "show": []
@@ -451,6 +451,10 @@
             "enabled": false,
             "show": []
         }, {
+            "field": "billing_pro_data_centre_number",
+            "enabled": false,
+            "show": ["can_BC"]
+        }, {
             "field": "claim_icd_code1",
             "enabled": false,
             "show": []
@@ -535,10 +539,6 @@
             "enabled": false,
             "show": ["not_can_AB", "not_can_BC"]
         }, {
-            "field": "service_facility_data_centre_number",
-            "enabled": false,
-            "show": ["can_BC"]},
-            {
             "field": "service_facility_state",
             "enabled": false,
             "show": []
