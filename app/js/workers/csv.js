@@ -37,7 +37,8 @@ const claimColumns = {
     "Facility": "facility_name",
     "First Statement Date": "first_statement_dt",
     "AHS Claim Action": "claim_action",
-    "Reason Code": "reason_code"
+    "Reason Code": "reason_code",
+    "PHN": "phn_alt_account"
 };
 
 const paymentsColumns = {
