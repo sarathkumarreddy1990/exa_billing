@@ -265,20 +265,20 @@ const bcModules = {
                 password: externalUrlBcPassword
             };
 
-            logger.info(`Sign in to MSP portal.. ${JSON.stringify(enableSessionOptions)}`);
+            logger.debug(`Sign in to MSP portal.. ${JSON.stringify(enableSessionOptions)}`);
             let enableSessionResponse = await request(enableSessionOptions);
             let sessionResponse = await bcModules.convertToJson(enableSessionResponse.body);
 
             if (sessionResponse.Result === 'SUCCESS') {
                 let cookieMSP = enableSessionResponse.headers['set-cookie'];
-                logger.info(`Requesting MSP portal for web service... ${JSON.stringify(requestOptions)}`);
+                logger.debug(`Requesting MSP portal for web service... ${JSON.stringify(requestOptions)}`);
                 //MSP Teleplan Web Service accessing
                 let webServiceResponse = await request({
                     ...requestOptions,
                     headers: { Cookie: cookieMSP }
                 });
 
-                logger.info(`Response from MSP portal web service... ${JSON.stringify(webServiceResponse)}`);
+                logger.debug(`Response from MSP portal web service... ${JSON.stringify(webServiceResponse)}`);
                 let disableSessionOptions = {
                     method: 'POST',
                     uri: externalUrlBc,
@@ -291,10 +291,10 @@ const bcModules = {
                 };
 
                 //MSP Teleplan Web Service sign off
-                logger.info(`Sign out from MSP portal... ${JSON.stringify(disableSessionOptions)}`);
+                logger.debug(`Sign out from MSP portal... ${JSON.stringify(disableSessionOptions)}`);
                 let disableResponse = await request(disableSessionOptions);
                 disableResponse = bcModules.convertToJson(disableResponse.body);
-                logger.info(`Received Success Response from MSP Portal... ${JSON.stringify(webServiceResponse)}`);
+                logger.debug(`Received Success Response from MSP Portal... ${JSON.stringify(webServiceResponse)}`);
 
                 if (disableResponse.Result === 'SUCCESS') {
                     return { data: webServiceResponse };
