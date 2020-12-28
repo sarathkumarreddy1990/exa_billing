@@ -291,7 +291,7 @@ const bcModules = {
                 let disableResponse = await request(disableSessionOptions);
                 disableResponse = bcModules.convertToJson(disableResponse.body);
 
-                if (disableResponse.Result === 'SUCCESS') {
+                if (disableResponse.Result == 'SUCCESS') {
                     return { data: webServiceResponse };
                 }
 
