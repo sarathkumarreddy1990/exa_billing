@@ -607,13 +607,11 @@ define([
                     colModel: [
                         { name: '', index: 'id', key: true, hidden: true, search: false },
                         { name: 'claim_ids', hidden: true} ,
+                        { name: 'invoice_no', search: true, width: 100},
                         {
                             name: 'invoice_date', width: 200, searchFlag: 'date', formatter: function (cellvalue, options, rowObject) {
                                 return (commonjs.checkNotEmpty(rowObject.invoice_date) ? moment(rowObject.invoice_date).format('L') : '');
                             }
-                        },
-                        {
-                            name: 'invoice_date', search: true, formatter: self.dateFormatter, width: 150
                         },
                         {
                             name: 'invoice_bill_fee', search: true, width: 150
