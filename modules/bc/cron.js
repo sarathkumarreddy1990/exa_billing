@@ -46,7 +46,28 @@ const bcCronService = {
             logger.info(`Remittance File ${file_id}-${uploaded_file_name} processed successfully`);
         });
 
-        return await Promise.all(promises);
+        let processedResult = await Promise.all(promises);
+        let erroneous_list = _.filter(processedResult, { 'error': true });
+        let response;
+
+        if (erroneous_list.length === processedResult.length) {
+            response = {
+                status: 'error',
+                message: erroneous_list[0].message || 'Error on Remittance file process see billing log'
+            };
+        } else if (erroneous_list.length) {
+            response = {
+                status: 'error',
+                message: 'Partial Remittance files processed, For other see billing log'
+            };
+        } else {
+            response = {
+                status: 'ok',
+                message: 'MSP Remittance files processing successfully completed'
+            };
+        }
+
+        return [response];
 
     },
 

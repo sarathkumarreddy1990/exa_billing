@@ -57,9 +57,9 @@ const bcController = {
 
     processRemittanceFile: bcData.processRemittance,
 
-    saveEligibilityResponse:  bcData.saveEligibilityResponse(),
+    saveEligibilityResponse:  bcData.saveEligibilityResponse,
 
-    getAllscheduledClaims:  bcData.getAllscheduledClaims(),
+    getAllscheduledClaims:  bcData.getAllscheduledClaims,
 };
 
 module.exports = bcController;
