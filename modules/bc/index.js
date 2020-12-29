@@ -786,15 +786,25 @@ const bcModules = {
             logger.logInfo('Applying payments finished...');
             logger.logInfo('Payment application Result : ', JSON.stringify(can_bc_process_remittance));
 
-            return await bcData.updateFileStatus({
+            await bcData.updateFileStatus({
                 fileId: params.file_id,
                 status
             });
 
+            logger.info(`Processing Remittance file ${params.file_id} completed with status ${status}`);
+            return {
+                can_bc_process_remittance,
+                fileId: params.file_id || null,
+                status
+            }
+
         }
         catch (err) {
             logger.error(err);
-            return err;
+            return {
+                error: true,
+                message: err
+            };
         }
     },
 
@@ -818,6 +828,14 @@ const bcModules = {
         } = params;
 
         let fileStoreDetails = await bcController.getCompanyFileStore(companyId);
+
+        if (!fileStoreDetails || !fileStoreDetails.length) {
+            return {
+                error: true,
+                responseCode: 'isFileStoreError'
+            };
+        }
+
         let {
             root_directory,
             time_zone
@@ -849,15 +867,25 @@ const bcModules = {
         logger.info('Establishing connectivity with MSP Portal');
         const {
             data = null,
-            error = null
+            error = null,
+            isDownTime
         } = await bcModules.doRequest(downloadParams, time_zone);
 
         //Error Validations in MSP portal connectivity
+        if (isDownTime) {
+            logger.error(`MSP Portal connection downtime`);
+            return {
+                error: true,
+                responseCode: 'isDownTime'
+            };
+        }
+
         if (error) {
             logger.error(`MSP Portal Response Error: ${error}`);
 
             return {
-                err: error
+                error: true,
+                message: error
             };
         }
 
@@ -890,7 +918,10 @@ const bcModules = {
                     logger.error(`Invalid Remittance File ${fileName}`);
 
                     return {
-                        status: 'INVALID_FILE'
+                        error: true,
+                        status: 'INVALID_FILE',
+                        message: 'Invalid Remittance File',
+                        response: {}
                     };
                 }
 
@@ -906,12 +937,14 @@ const bcModules = {
                 } = rows.length && rows[0];
 
                 if (!file_store_info.length) {
-                    return {
-                        file_store_status: 'FILE_STORE_NOT_EXISTS'
-                    };
+                    logger.error('File Store Not Configured');
+
+                    return [{
+                        error: true,
+                        responseCode: 'isFileStoreError'
+                    }];
                 }
 
-                const fileStorePath = file_store_info[0].root_directory;
                 const fileStoreId = file_store_info[0].file_store_id;
                 const fileExist = file_exists.length && file_exists[0];
                 const created_dt = moment().format('YYYY/MM/DD');
@@ -923,10 +956,11 @@ const bcModules = {
                 if (fileExist) {
                     logger.info(`Duplicate Remittance file: ${fileMd5}`);
 
-                    return {
+                    return [{
+                        error: true,
                         status: 'DUPLICATE_FILE',
                         duplicate_file: true
-                    };
+                    }];
                 }
 
                 logger.info(`Writing file in Disk - ${filePath}/${fileName}`);
@@ -934,7 +968,10 @@ const bcModules = {
                     await writeFileAsync(`${filePath}/${fileName}`, bufferString, 'utf8');
                 } catch (err) {
                     logger.error(`Error occurred on writing file into disk ${err}`);
-                    return err;
+                    return [{
+                        error: true,
+                        message: err
+                    }];
                 }
 
                 const statAfter = await statAsync(`${filePath}/${fileName}`);
@@ -955,14 +992,20 @@ const bcModules = {
 
                 } catch (err) {
                     logger.error(`Error occured on writing file into db: ${err}`);
-                    return err;
+                    return [{
+                        error: true,
+                        message: err
+                    }];
                 }
 
                 logger.info(`Remittance File ${fileName} downloaded successfully`);
-                return {
-                    status: `ok`,
-                    message: `Remittance File ${fileName} downloaded successfully`
-                };
+                return [{
+                    error: null,
+                    response: {
+                        status: `ok`,
+                        message: `Remittance File ${fileName} downloaded successfully`
+                    }
+                }];
             }
         }
     },
