@@ -669,7 +669,8 @@ module.exports = {
                         , COALESCE(pa_adjustment.amount, 0::money) AS adjustment
                         , cpt.display_code AS cpt_code
                         , pa_adjustment.id AS payment_application_adjustment_id
-                    FROM	billing.payment_applications pa
+                        , pa.can_bc_internal_control_number
+                    FROM billing.payment_applications pa
                     INNER JOIN billing.charges ch ON ch.id = pa.charge_id
                     INNER JOIN public.cpt_codes cpt ON cpt.id = ch.cpt_id
                     LEFT JOIN LATERAL (
