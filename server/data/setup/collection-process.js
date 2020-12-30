@@ -432,19 +432,17 @@ const acr = {
                         WHEN  payment_details.last_payment_dt IS NOT NULL THEN
                             CASE
                                 WHEN
-                                ( --First case
+                                (
                                    last_patient_statement.created_dt IS NOT NULL AND ( payment_details.last_payment_dt BETWEEN (last_patient_statement.created_dt) AND (last_patient_statement.created_dt + interval '${acr_claim_status_statement_days} days')::DATE )
                                 ) OR
-                                ( --First case
+                                (
                                    last_patient_statement.created_dt IS NOT NULL AND ( last_patient_statement.created_dt + interval '${acr_claim_status_statement_days} days')::DATE > timezone(get_facility_tz(c.facility_id::integer), now())::DATE
                                 ) THEN
-                                  --If first case true then check second case
                                    CASE
                                     WHEN (payment_details.last_payment_dt + interval '${acr_claim_status_last_payment_days} days')::DATE > timezone(get_facility_tz(c.facility_id::integer), now())::DATE
                                         THEN TRUE
                                     ELSE FALSE
                                    END
-                                --If first case failed then check second case
                                 WHEN (payment_details.last_payment_dt + interval '${acr_claim_status_last_payment_days} days')::DATE > timezone(get_facility_tz(c.facility_id::integer), now())::DATE THEN TRUE
                                 ELSE FALSE
                             END
@@ -536,7 +534,6 @@ const acr = {
                         billing.claims
 		            INNER JOIN claim_payment_lists cpl ON cpl.claim_id = claims.id
                     INNER JOIN patients p ON p.id = claims.patient_id
-                    INNER JOIN patient_facilities pf ON pf.patient_id = p.id AND pf.is_default
                     GROUP BY p.id
                     HAVING sum(cpl.claim_balance_total) >= ${acr_min_balance_amount}::money
                     ORDER BY p.id DESC
