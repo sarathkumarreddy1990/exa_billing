@@ -56,6 +56,10 @@ const bcController = {
     getFilesList: bcData.getFilesList,
 
     processRemittanceFile: bcData.processRemittance,
+
+    saveEligibilityResponse:  bcData.saveEligibilityResponse,
+
+    getAllscheduledClaims:  bcData.getAllscheduledClaims,
 };
 
 module.exports = bcController;

@@ -188,7 +188,6 @@ const acr = {
                 , write_off_claims AS (
                     SELECT
                         p.id AS patient_id
-                        ,p.facility_id
                         ,ARRAY_AGG(claims.id)  AS collection_claim_ids
                     FROM
                         billing.claims
@@ -216,17 +215,18 @@ const acr = {
                         )
                         SELECT
                             ${companyId} AS company_id
-                            , patient_id
+                            , woc.patient_id
                             , 0::money AS amount
                             , CURRENT_DATE AS accounting_date
                             , ${userId} AS created_by
-                            , timezone(get_facility_tz(facility_id), now()::timestamp) AS payment_dt
+                            , timezone(get_facility_tz(pf.facility_id), now()::timestamp) AS payment_dt
                             , 'patient' AS payer_type
                             , 'Auto collections review write-off is $' || ${acr_min_balance_amount} AS notes
                             , 'adjustment' AS payment_mode
-                            , facility_id
+                            , pf.facility_id
                         FROM
-                            write_off_claims
+                            write_off_claims woc
+                        INNER JOIN patient_facilities pf ON pf.patient_id = woc.patient_id AND pf.is_default
                     RETURNING
                         id
                         , company_id
@@ -431,13 +431,18 @@ const acr = {
                         WHEN  payment_details.last_payment_dt IS NULL AND last_patient_statement.created_dt IS NULL THEN TRUE
                         WHEN  payment_details.last_payment_dt IS NOT NULL THEN
                             CASE
-                                --first case
-                                WHEN last_patient_statement.created_dt IS NOT NULL AND (payment_details.last_payment_dt
-                                   BETWEEN (last_patient_statement.created_dt) AND (last_patient_statement.created_dt + interval '${acr_claim_status_statement_days} days')::DATE)
-                                     THEN TRUE
-                                WHEN last_patient_statement.created_dt IS NOT NULL AND
-                                   (last_patient_statement.created_dt + interval '${acr_claim_status_statement_days} days')::DATE > timezone(get_facility_tz(c.facility_id::integer), now())::DATE THEN TRUE
-                                --Second case
+                                WHEN
+                                (
+                                   last_patient_statement.created_dt IS NOT NULL AND ( payment_details.last_payment_dt BETWEEN (last_patient_statement.created_dt) AND (last_patient_statement.created_dt + interval '${acr_claim_status_statement_days} days')::DATE )
+                                ) OR
+                                (
+                                   last_patient_statement.created_dt IS NOT NULL AND ( last_patient_statement.created_dt + interval '${acr_claim_status_statement_days} days')::DATE > timezone(get_facility_tz(c.facility_id::integer), now())::DATE
+                                ) THEN
+                                   CASE
+                                    WHEN (payment_details.last_payment_dt + interval '${acr_claim_status_last_payment_days} days')::DATE > timezone(get_facility_tz(c.facility_id::integer), now())::DATE
+                                        THEN TRUE
+                                    ELSE FALSE
+                                   END
                                 WHEN (payment_details.last_payment_dt + interval '${acr_claim_status_last_payment_days} days')::DATE > timezone(get_facility_tz(c.facility_id::integer), now())::DATE THEN TRUE
                                 ELSE FALSE
                             END
@@ -524,7 +529,6 @@ const acr = {
                     SELECT
                         SUM(cpl.claim_balance_total) AS patient_balance
                         ,p.id AS patient_id
-                        ,p.facility_id
                         ,ARRAY_AGG(claims.id) FILTER ( WHERE claim_status_id != ${acr_claim_status_id} ) AS claim_ids
                     FROM
                         billing.claims

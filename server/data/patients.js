@@ -28,7 +28,7 @@ module.exports = {
                             patients.patient_info,
                             get_patient_notes_as_json(patients.id),
                             get_patient_alerts_to_jsonb(patients.id, TRUE) AS alerts,
-                            patients.facility_id,
+                            pf.facility_id,
                             patients.company_id,
                             patients.is_active,
                             (patients.deleted_dt IS NOT NULL) AS has_deleted,
@@ -43,6 +43,8 @@ module.exports = {
                             vital_signs.more_info->'heightinInches' AS vital_height,
                             vital_signs.more_info->'weightinPounds' AS vital_weight
                         FROM patients
+                            LEFT JOIN patient_facilities pf ON pf.patient_id = patients.id
+                            AND pf.is_default = true
                             LEFT JOIN vital_signs ON patients.id = vital_signs.patient_id
                         WHERE
                             patients.id = ${id}

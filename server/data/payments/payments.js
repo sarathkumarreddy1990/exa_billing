@@ -1392,7 +1392,7 @@ module.exports = {
                 SELECT
                     cp.patient_balance
                     , cp.patient_id
-                    , p.facility_id `;
+                    , pf.facility_id `;
 
             if(params.from === 'patients'){
                 sql.append(selectColumn);
@@ -1400,7 +1400,8 @@ module.exports = {
 
             sql.append(SQL` FROM
                                 claim_payments cp
-                            INNER JOIN patients p ON p.id = cp.patient_id `);
+                            INNER JOIN patients p ON p.id = cp.patient_id
+                            INNER JOIN patient_facilities pf ON pf.patient_id=p.id AND pf.is_default `);
 
             if (params.from === 'patients') {
                 sql.append(SQL` ORDER BY  `)
@@ -1487,11 +1488,12 @@ module.exports = {
                 SELECT
                     sum(cp.claim_balance_total) AS patient_balance
                     , p.id AS patient_id
-                    , p.facility_id AS facility_id
+                    , pf.facility_id AS facility_id
                 FROM
                     billing.claims
 		        INNER JOIN claim_payments_list cp ON cp.claim_id = claims.id
                 INNER JOIN patients p ON p.id = claims.patient_id
+                INNER JOIN patient_facilities pf ON pf.patient_id = p.id AND pf.is_default
 		        GROUP BY p.id
                 HAVING sum(cp.claim_balance_total) <= ${writeOffAmount}::money
                     AND sum(cp.claim_balance_total) > 0::money

@@ -46,7 +46,28 @@ const bcCronService = {
             logger.info(`Remittance File ${file_id}-${uploaded_file_name} processed successfully`);
         });
 
-        return await Promise.all(promises);
+        let processedResult = await Promise.all(promises);
+        let erroneous_list = _.filter(processedResult, { 'error': true });
+        let response;
+
+        if (erroneous_list.length === processedResult.length) {
+            response = {
+                status: 'error',
+                message: erroneous_list[0].message || 'Error on Remittance file process see billing log'
+            };
+        } else if (erroneous_list.length) {
+            response = {
+                status: 'error',
+                message: 'Partial Remittance files processed, For other see billing log'
+            };
+        } else {
+            response = {
+                status: 'ok',
+                message: 'MSP Remittance files processing successfully completed'
+            };
+        }
+
+        return [response];
 
     },
 
@@ -104,7 +125,25 @@ const bcCronService = {
         }
 
         return await bcModules.transferFileToMsp(data, fileList.rows);
+    },
+
+    /**
+    * submitBatchEligibility - To submit all batch eligible of claims
+    * @param  {Object} args  
+    */
+    submitBatchEligibility: async (args) => {
+        let result = await bcController.getAllscheduledClaims(args);
+
+        if (!result || !result.length) {
+            return [{ responseCode: 'noRecord' }];
+        }
+
+        args.isBatchEligibilityFile = true;
+        let response = await bcModules.submitBatchEligibility(args, result);
+        return [response];
+        
     }
+
 };
 
 module.exports = bcCronService;

@@ -8,6 +8,7 @@ const uglify = require('gulp-uglify');
 const requirejs = require('requirejs');
 const replace = require('gulp-replace');
 const zip = require('gulp-zip');
+const chmod = require('gulp-chmod');
 const bump = require('gulp-bump');
 const git = require('gulp-git');
 const gutil = require('gulp-util');
@@ -227,6 +228,7 @@ gulp.task('zip', gulp.series('git-init', 'replace', () => {
 
     gutil.log(`Compressing to "dist\\${buildFileName}" ...`);
     return gulp.src('./build/**')
+        .pipe(chmod(undefined, 0o40755))
         .pipe(zip(buildFileName))
         .pipe(gulp.dest('./dist'));
 }));

@@ -19,6 +19,7 @@ define(['jquery',
 'text!templates/claims/payment-row.html',
 'shared/address',
 'text!templates/claims/eligibilityResponseOHIP.html',
+'text!templates/claims/eligibilityResponseBC.html',
 'text!templates/claims/ahs_charges_today.html'
 ],
     function ($,
@@ -42,6 +43,7 @@ define(['jquery',
         paymentRowTemplate,
         address,
         insuranceOhipForm,
+        insuranceBCForm,
         patientChargesTemplate
     ) {
         var claimView = Backbone.View.extend({
@@ -55,6 +57,7 @@ define(['jquery',
             paymentRowTemplate: _.template(paymentRowTemplate),
             insuranceOhipTemplate: _.template(insuranceOhipForm),
             patientChargesTemplate: _.template(patientChargesTemplate),
+            insuranceBCTemplate: _.template(insuranceBCForm),
             updateResponsibleList: [],
             chargeModel: [],
             claimICDLists: [],
@@ -329,10 +332,16 @@ define(['jquery',
 
             checkInsuranceEligibility: function (e) {
                 var self = this;
-                if (app.country_alpha_3_code === 'can')
-                    self.insuranceEligibilityCan(e)
-                else
-                    self.insuranceEligibilityUsa(e)
+                switch (app.billingRegionCode) {
+                    case 'can_ON':
+                        self.insuranceEligibilityCan(e);
+                        break;
+                    case 'can_BC':
+                        self.insuranceEligibilityBC(e);
+                        break;
+                    default:
+                        self.insuranceEligibilityUsa(e);
+                }
             },
 
             insuranceEligibilityCan: function (e) {
@@ -804,17 +813,23 @@ define(['jquery',
                             self.enableInsuranceEligibility = claimDetails.enable_insurance_eligibility || '';
 
                             $.each(existing_insurance, function (index, value) {
+                                var isDisplayInsurance = !value.valid_to_date || moment(claimDetails.claim_dt).isSameOrBefore(value.valid_to_date);
+
                                 switch (value.coverage_level) {
                                     case 'primary':
-                                        if (moment().isBefore(value.valid_to_date)) {
-                                            self.existingPrimaryInsurance.push(value);
+                                        if (isDisplayInsurance) {
+                                            existingPrimaryInsurance.push(value);
                                         }
                                         break;
                                     case 'secondary':
-                                        existingSecondaryInsurance.push(value);
+                                        if (isDisplayInsurance) {
+                                            existingSecondaryInsurance.push(value);
+                                        }
                                         break;
                                     case 'tertiary':
-                                        existingTriInsurance.push(value);
+                                        if (isDisplayInsurance) {
+                                            existingTriInsurance.push(value);
+                                        }
                                 }
                             });
                             self.bindExistingInsurance(existingPrimaryInsurance, 'ddlExistPriIns')
@@ -1010,7 +1025,7 @@ define(['jquery',
                 $('#chkClaimedAmountIndicator').prop('checked', claim_data.can_ahs_claimed_amount_indicator);
                 $('#chkConfidential').prop('checked', claim_data.can_confidential);
                 $('#chkwcbRejected').prop('checked', claim_data.can_wcb_rejected);
-                $('#ddlNewbornCode').val(claim_data.can_newborn_code).change();
+                $('#ddlNewbornCode').val(claim_data.can_ahs_newborn_code).change();
                 $('#txtReasonAdditionalCompensation').val(claim_data.can_ahs_emsaf_reason);
                 $('#chkSupportingDocumentationSeparate').prop('checked', claim_data.can_ahs_paper_supporting_docs);
                 $('#txtSupportingText').val(claim_data.can_supporting_text);
@@ -1126,8 +1141,6 @@ define(['jquery',
                     }
                     self.wcbNatureCodeId = claim_data.nature_of_injury_code_id || null;
                     self.wcbAreaCodeId = claim_data.area_of_injury_code_id || null;
-                    $('#wcbAreaOfInjury').val(self.wcbAreaCodeId);
-                    $('#wcbNatureOfInjury').val(self.wcbNatureCodeId);
                 }
 
                 /* Additional info end */
@@ -2967,7 +2980,7 @@ define(['jquery',
                     type: 'GET',
                     data: {
                         'patient_id': self.cur_patient_id || 0,
-                        'claim_date': self.claim_dt_iso || 'now()',
+                        'claim_date': self.claim_dt_iso || self.cur_study_date || 'now()',
                         'order_ids': self.selectedOrderIds || [0]
                     },
                     success: function (response) {
@@ -2985,17 +2998,23 @@ define(['jquery',
                             self.tradingPartnerId = existing_insurance.length && existing_insurance[0].ins_partner_id ? existing_insurance[0].ins_partner_id : '';
 
                             $.each(existing_insurance, function (index, value) {
+                                var isDiplayInsurance = !value.valid_to_date || moment(self.cur_study_date).isSameOrBefore(value.valid_to_date);
+
                                 switch (value.coverage_level) {
                                     case 'primary':
-                                        if (moment().isBefore(value.valid_to_date)) {
+                                        if (isDiplayInsurance) {
                                             self.existingPrimaryInsurance.push(value);
                                         }
                                         break;
                                     case 'secondary':
-                                        self.existingSecondaryInsurance.push(value);
+                                        if (isDiplayInsurance) {
+                                            self.existingSecondaryInsurance.push(value);
+                                        }
                                         break;
                                     case 'tertiary':
-                                        self.existingTriInsurance.push(value);
+                                        if (isDiplayInsurance) {
+                                            self.existingTriInsurance.push(value);
+                                        }
                                 }
                             });
                             self.bindExistingInsurance(self.existingPrimaryInsurance, 'ddlExistPriIns')
@@ -3641,12 +3660,12 @@ define(['jquery',
                     can_ahs_claimed_amount_indicator: $('#chkClaimedAmountIndicator').prop('checked') || false,
                     can_confidential: $('#chkConfidential').prop('checked') || false,
                     can_ahs_paper_supporting_docs: $('#chkSupportingDocumentationSeparate').prop('checked') || false,
-                    can_newborn_code: $.trim($('#ddlNewbornCode option:selected').val()) || null,
+                    can_ahs_newborn_code: $.trim($('#ddlNewbornCode option:selected').val()) || null,
                     can_ahs_emsaf_reason: $.trim($('#txtReasonAdditionalCompensation').val()) || null,
                     can_supporting_text: $.trim($.trim($('#txtSupportingText').val()).replace(/\n/g, ' ')),
                     can_wcb_rejected: $("#chkwcbRejected").prop('checked') || false,
-                    wcb_injury_area_code: $.trim($('#wcbAreaOfInjury').val()) || null,
-                    wcb_injury_nature_code: $.trim($('#wcbNatureOfInjury').val()) || null
+                    wcb_injury_area_code: self.wcbAreaCodeId || null,
+                    wcb_injury_nature_code: self.wcbNatureCodeId || null
                 };
 
                 // Pay-to Details are only saved when Pay-to Code is Other
@@ -5945,7 +5964,66 @@ define(['jquery',
                     }
                 }
                 self.findRelevantTemplates();
-            }
+            },
+
+            insuranceEligibilityBC: function (e) {
+                var self = this;
+
+                if ($('#txtPriPolicyNo').val().length == 0 && self.priInsCode != '' && 'msp' != self.priInsCode.toLowerCase()) {
+                    return commonjs.showWarning('messages.warning.shared.invalidHealthNumber');
+                }
+
+                if (!self.phn) {
+                    return commonjs.showWarning('messages.warning.phn');
+                }
+                $.ajax({
+                    url: '/exa_modules/billing/bc/validateHealthCard',
+                    type: "GET",
+                    data: {
+                        patient_id: self.cur_patient_id,
+                        patient_insurance_id: self.priClaimInsID || self.primaryPatientInsuranceId,
+                        eligibility_dt: self.benefitDate1 && self.benefitDate1.date() ? self.benefitDate1.date().format('YYYY-MM-DD') : null,
+                        phn: self.phn && self.phn.alt_account_no,
+                        birth_date: self.cur_patient_dob
+                    },
+                    success: function (result) {
+                        var data = result.data;
+                        var responseCode = result.responseCode;
+                        if (responseCode) {
+                            switch (responseCode) {
+                                case 'error':
+                                    commonjs.showWarning('messages.status.communicationError');
+                                    break;
+
+                                case 'isDownTime':
+                                    commonjs.showWarning('messages.status.downTime');
+                                    break;
+                            }
+                        } else if (data) {
+                            var eligibility = _.get(data, "results[0]") || _.get(data, "err[0]") || {};
+                            eligibility.BIRTHDATE = (eligibility.BIRTHDATE && commonjs.getFormattedDate(eligibility.BIRTHDATE)) || '';
+                            eligibility.DOS = (eligibility.DOS && commonjs.getFormattedDate(eligibility.DOS)) || '';
+                            commonjs.showDialog({
+                                header: 'Healthcard Eligibility Result',
+                                i18nHeader: 'menuTitles.patient.patientInsuranceEligibility',
+                                height: '70%',
+                                width: '70%',
+                                html: self.insuranceBCTemplate({
+                                    insuranceData: eligibility,
+                                    firstName: self.cur_patient_patient_first_name,
+                                    lastName: self.cur_patient_patient_last_name,
+                                    healthNumber: self.phn && self.phn.alt_account_no,
+                                    gender: self.cur_patient_gender
+                                })
+                            });
+                        }
+                    },
+                    error: function (request, status, error) {
+                        commonjs.handleXhrError(request);
+                    }
+                });
+            },
+
 
         });
 
