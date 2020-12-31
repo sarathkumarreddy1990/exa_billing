@@ -761,6 +761,17 @@ const bcModules = {
                 fileId: params.file_id
             });
 
+            if (remittanceResponse && remittanceResponse.invalidRemittanceRecords.length) {
+                logger.info(`Unable to proceed remittance file process with following remittance records ${JSON.stringify(remittanceResponse.invalidRemittanceRecords)}`);
+
+                await bcController.updateFileStatus({
+                    status: 'failure',
+                    fileId: params.file_id
+                });
+
+				return;
+            }
+
             logger.info('Processing Eligibility Response...');
 
             const eligibilityResponse = await bcModules.processEligibilityResponse(remittanceResponse, params);

@@ -864,7 +864,7 @@ const bcData = {
                                 SELECT
                                     id
                                 FROM public.insurance_providers
-                                WHERE code ILIKE 'msp'
+                                WHERE insurance_code ILIKE 'msp'
                                 LIMIT 1
                             )
                             INSERT INTO eligibility_log
@@ -877,15 +877,16 @@ const bcData = {
                             SELECT
                                 s.patient_id
                               , pi.id
-                              , er.eligibility_date
+                              , er.eligibility_response
                               , er.service_eligibility_date::TIMESTAMPTZ
                             FROM eligibility_response er
-                            INNER JOIN billing.edi_file_charges befc ON befc.sequence_number = er.data_centre_sequence_number
-                                AND befc.data_centre_number = er.data_centre_number
-                            INNER JOIN billing.charges_studies bchs ON bchs.charge_id = befc.charge_id
-                            INNER JOIN studies s ON s.id = bchs.study_id
+                            INNER JOIN billing.edi_file_batch_eligibility befbe ON befbe.sequence_number = er.data_centre_sequence_number
+                                AND befbe.data_centre_number = er.data_centre_number
+                            INNER JOIN studies s ON s.id = befbe.study_id
                             INNER JOIN patient_insurances pi ON pi.patient_id = s.patient_id
-                            WHERE pi.insurance_provider_id = default_insurance_details.id`;
+                            INNER JOIN default_insurance_details dinsd ON TRUE
+                            WHERE pi.insurance_provider_id = dinsd.id`;
+
 
         return await query(sql);
 

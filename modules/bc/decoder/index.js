@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const util = require('./utils');
+const logger = require('./../../../logger');
 const {
     getcasReasonGroupCodes
     } = require('./../../../server/data/era');
@@ -105,6 +106,7 @@ const parser = {
         } = rows && rows.length ? rows[0] : {};
         const msp_adj_group = _.filter(cas_group_codes, (obj) => obj.code === 'MSP_ADJ');
         const msp_exp_group = _.filter(cas_group_codes, (obj) => obj.code === 'MSP_EOB');
+        let invalidRemittanceRecords = [];
 
         for (let recordCode in recordSet) {
             let parserKeys = recordSet[recordCode];
@@ -125,6 +127,12 @@ const parser = {
                                 const code = parsedData.eob.slice(i, i + 2).trim();
                                 const validReasonCodes = _.filter(cas_reason_codes, {code: code});
 
+                                if (!validReasonCodes.length) {
+									logger.debug(`Reason code ${code} missing in database`);
+									invalidRecords.push(parsedData);
+									return;
+								}
+
                                 if (code) {
                                     casDetails.add({
                                         code,
@@ -143,6 +151,12 @@ const parser = {
                             const adjustmentCode = parsedData['adjustmentCode_' + i] || null;
                             const adjustmentAmount = parsedData['adjustmentAmount_' + i] || 0.00;
                             const validAdjustmentCodes = _.filter(cas_reason_codes, {code: adjustmentCode});
+
+                            if (!validAdjustmentCodes.length) {
+								logger.debug(`Reason code ${adjustmentCode} missing in database`);
+								invalidRecords.push(parsedData);
+								return;
+							}
 
                             if (adjustmentCode) {
                                 adjustments.push(adjustmentAmount);
@@ -172,8 +186,8 @@ const parser = {
                 && data.dataCentreSequenceNumber === item.dataCentreSequenceNumber) : null;
 
                 if (matchedRecord) {
-                    matchedRecord.explanatoryCodes = matchedRecord.explanatoryCodes.concat(item.explanatoryCodes);
-                    matchedRecord.explanatoryDetails = matchedRecord.explanatoryDetails.concat(item.explanatoryDetails);
+                    matchedRecord.explanationCodes = matchedRecord.explanationCodes && matchedRecord.explanationCodes.concat(item.explanationCodes);
+                    matchedRecord.explanatoryDetails = matchedRecord.explanatoryDetails && matchedRecord.explanatoryDetails.concat(item.explanatoryDetails);
                 } else {
                     result[parserKeys.name].push(item);
                 }
@@ -203,6 +217,7 @@ const parser = {
 
         result.notes = notes;
         result.paymentDate = paymentDate;
+        result.invalidRemittanceRecords = invalidRemittanceRecords;
 
         return result;
     }
