@@ -434,6 +434,7 @@ const bcModules = {
                         file_name,
                         file_md5,
                         file_size,
+                        file_type: args.isBatchEligibilityFile ? 'can_bc_be' : 'can_bc_submit',
                         companyId: args.companyId
                     });
 

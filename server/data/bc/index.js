@@ -159,6 +159,7 @@ const bcData = {
             file_path,
             file_md5,
             file_size,
+            file_type,
         } = info;
 
         const sql = SQL`
@@ -181,7 +182,7 @@ const bcData = {
                         , ${file_path}
                         , ${file_size}
                         , ${file_md5}
-                        , 'can_bc_submit'
+                        , ${file_type}
                         , ${file_name}
                     RETURNING
                         id`;
