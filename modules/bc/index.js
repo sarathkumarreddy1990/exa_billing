@@ -769,7 +769,7 @@ const bcModules = {
                     fileId: params.file_id
                 });
 
-				return;
+                return;
             }
 
             logger.info('Processing Eligibility Response...');

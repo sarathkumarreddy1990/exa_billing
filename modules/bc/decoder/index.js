@@ -128,10 +128,10 @@ const parser = {
                                 const validReasonCodes = _.filter(cas_reason_codes, {code: code});
 
                                 if (!validReasonCodes.length) {
-									logger.debug(`Reason code ${code} missing in database`);
-									invalidRecords.push(parsedData);
-									return;
-								}
+                                    logger.debug(`Reason code ${code} missing in database`);
+                                    invalidRecords.push(parsedData);
+                                    return;
+                                }
 
                                 if (code) {
                                     casDetails.add({
@@ -153,10 +153,10 @@ const parser = {
                             const validAdjustmentCodes = _.filter(cas_reason_codes, {code: adjustmentCode});
 
                             if (!validAdjustmentCodes.length) {
-								logger.debug(`Reason code ${adjustmentCode} missing in database`);
-								invalidRecords.push(parsedData);
-								return;
-							}
+                                logger.debug(`Reason code ${adjustmentCode} missing in database`);
+                                invalidRecords.push(parsedData);
+                                return;
+                            }
 
                             if (adjustmentCode) {
                                 adjustments.push(adjustmentAmount);
