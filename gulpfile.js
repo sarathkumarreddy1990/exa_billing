@@ -1,9 +1,10 @@
-const {dest, series, src } = require('gulp');
+const {dest, parallel, series, src } = require('gulp');
 const chmod = require('gulp-chmod');
 const exec = require('gulp-exec');
 const fs = require('fs');
 const gulp_bump = require('gulp-bump');
 const gulp_clean = require('gulp-clean');
+const gulp_less = require('gulp-less');
 const gulp_zip = require('gulp-zip');
 const moment = require('moment-timezone');
 const path = require('path');
@@ -44,12 +45,17 @@ function get_branch() {
     return `${branch}`;
 }
 
+const less = parallel(less_default, less_dark);
+exports.less = less;
+exports.clean = clean;
 exports.default = exports.build = series(check_build_environment,
 					 clean,
 					 copy,
 					 bump,
-					 // npm_ci, less_default, requirejs, compress, zip
-		      );
+					 npm_ci,
+					 less,
+					 // requirejs, compress, zip
+					);
 // Drops clean all make sure it's covered in clean
 
 function check_build_environment(cb) {
@@ -76,3 +82,33 @@ function copy() {
 function bump() {
     return src(['./build/**/package*.json']).pipe(gulp_bump({version: build_version}));
 }
+
+const execOptions = {
+    continueOnError: false,
+    pipeStdout: false
+};
+const execReportOptions = {
+    err: true,
+    stderr: true,
+    stdout: true
+};
+
+function npm_ci() {
+    return src(['./build/**/package.json', '!./**/node_modules/**/package.json'])
+        .pipe(exec(file => `echo ${file.dirname} && cd ${file.dirname} && npm ci --only=production && echo ${file.dirname} $?`, execOptions))
+        .pipe(exec.reporter(execReportOptions));
+}
+
+function less_default() {
+    return src(['./app/skins/default/*.less'])
+	.pipe(gulp_less({paths: [path.join(__dirname, 'app/skins/default/index.less')]}))
+	.pipe(dest('./build/app/skins/default'));
+}
+
+function less_dark() {
+    return src(['./app/skins/dark/*.less'])
+	.pipe(gulp_less({paths: [path.join(__dirname, 'app/skins/dark/index.less')]}))
+	.pipe(dest('./build/app/skins/dark'))
+}
+
+exports.less_default = less_default;
