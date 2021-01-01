@@ -8,6 +8,7 @@ const gulp_less = require('gulp-less');
 const gulp_zip = require('gulp-zip');
 const moment = require('moment-timezone');
 const path = require('path');
+const requirejs = require('requirejs');
 const semver = require('semver');
 
 const package_json = path.join(path.dirname(__filename),'package.json');
@@ -54,7 +55,7 @@ exports.default = exports.build = series(check_build_environment,
 					 bump,
 					 npm_ci,
 					 less,
-					 // requirejs, compress, zip
+					 requirejsBuild, // compress, zip
 					);
 // Drops clean all make sure it's covered in clean
 
@@ -111,4 +112,31 @@ function less_dark() {
 	.pipe(dest('./build/app/skins/dark'))
 }
 
-exports.less_default = less_default;
+function requirejsBuild(cb) {
+    const { rjsConfig } = require('./app/js/main');
+    const requirejsConfig = {
+	...rjsConfig,
+	name: 'main',
+	baseUrl: './app/js',
+	out: './build/app/js/main.js',
+	optimize: 'uglify2',
+	preserveLicenseComments: false,
+	waitSeconds: 0,
+	wrap: true,
+	optimizeCss: "none", //standard","
+	generateSourceMaps: false,
+	uglify2: {
+	    mangle: false,
+	    codegen: {
+		ascii_only: true
+	    }
+	}
+    };
+
+    requirejs.optimize(requirejsConfig, function () {
+	cb()
+    }, function (error) {
+	console.error('requirejs task failed', error);
+	throw error;
+    });
+}
