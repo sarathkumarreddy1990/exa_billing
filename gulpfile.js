@@ -47,7 +47,8 @@ function get_branch() {
 exports.default = exports.build = series(check_build_environment,
 					 clean,
 					 copy,
-					 // bump, npm_ci, less_default, requirejs, compress, zip
+					 bump,
+					 // npm_ci, less_default, requirejs, compress, zip
 		      );
 // Drops clean all make sure it's covered in clean
 
@@ -70,4 +71,8 @@ function clean() {
 
 function copy() {
     return src(['./**', '!./build{,//*}', '!./dist{,/**}', '!./**/node_modules{,/**}']).pipe(dest('./build'));
+}
+
+function bump() {
+    return src(['./build/**/package*.json']).pipe(gulp_bump({version: build_version}));
 }
