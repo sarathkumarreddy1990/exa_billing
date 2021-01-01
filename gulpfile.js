@@ -5,6 +5,7 @@ const fs = require('fs');
 const gulp_bump = require('gulp-bump');
 const gulp_clean = require('gulp-clean');
 const gulp_less = require('gulp-less');
+const gulp_uglify = require('gulp-uglify');
 const gulp_zip = require('gulp-zip');
 const moment = require('moment-timezone');
 const path = require('path');
@@ -49,13 +50,8 @@ function get_branch() {
 const less = parallel(less_default, less_dark);
 exports.less = less;
 exports.clean = clean;
-exports.default = exports.build = series(check_build_environment,
-					 clean,
-					 copy,
-					 bump,
-					 npm_ci,
-					 less,
-					 requirejsBuild, // compress, zip
+exports.default = exports.build = series(check_build_environment, clean, copy, bump, npm_ci, less,
+					 requirejsBuild, compress, zip
 					);
 // Drops clean all make sure it's covered in clean
 
@@ -139,4 +135,12 @@ function requirejsBuild(cb) {
 	console.error('requirejs task failed', error);
 	throw error;
     });
+}
+
+function compress() {
+    return src(['./build/app/js/main.js']).pipe(gulp_uglify()).pipe(dest('./build/app/js'));
+}
+
+function zip() {
+    return src(['./build/**']).pipe(chmod(undefined, 0o40755)).pipe(gulp_zip(build_file_name)).pipe(dest('./dist'));
 }
