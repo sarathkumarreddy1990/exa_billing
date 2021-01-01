@@ -21,22 +21,22 @@ const build_file_name = `${pkg.name}_${build_version}.zip`;
 // TODO: This belongs in an npm registry for us to reuse across all projects
 function get_build_version(version) {
     const build_meta = [
-	process.env.BUILD_TAG,
-	process.env.GIT_BRANCH || get_branch(),
-	`node-${process.version}`,
-	moment().tz(process.env.TZ || 'UTC').format('YYYYMMDDHHmm'),
+        process.env.BUILD_TAG,
+        process.env.GIT_BRANCH || get_branch(),
+        `node-${process.version}`,
+        moment().tz(process.env.TZ || 'UTC').format('YYYYMMDDHHmm'),
     ]
-	  .filter(x => !!x)
-	  .map(x => x.replace(/[\n\.\/]/g, function (m){
-	      return {
-		  '\n': '',
-		  '.': '-',
-		  '/': '--'
-	      }[m]
-	  })).join('.');
+          .filter(x => !!x)
+          .map(x => x.replace(/[\n\.\/]/g, function (m){
+              return {
+                  '\n': '',
+                  '.': '-',
+                  '/': '--'
+              }[m]
+          })).join('.');
     const build_version = [version, build_meta].filter(x => !!x).join('+');
     if (!semver.valid(build_version)) {
-	throw new Error('Cannot parse build_version ${build_version}');
+        throw new Error('Cannot parse build_version ${build_version}');
     }
     return build_version;
 }
@@ -51,8 +51,8 @@ const less = parallel(less_default, less_dark);
 exports.less = less;
 exports.clean = clean;
 exports.default = exports.build = series(check_build_environment, clean, copy, bump, npm_ci, less,
-					 requirejsBuild, compress, zip
-					);
+                                         requirejsBuild, compress, zip
+                                        );
 // Drops clean all make sure it's covered in clean
 
 function check_build_environment(cb) {
@@ -98,42 +98,42 @@ function npm_ci() {
 
 function less_default() {
     return src(['./app/skins/default/*.less'])
-	.pipe(gulp_less({paths: [path.join(__dirname, 'app/skins/default/index.less')]}))
-	.pipe(dest('./build/app/skins/default'));
+        .pipe(gulp_less({paths: [path.join(__dirname, 'app/skins/default/index.less')]}))
+        .pipe(dest('./build/app/skins/default'));
 }
 
 function less_dark() {
     return src(['./app/skins/dark/*.less'])
-	.pipe(gulp_less({paths: [path.join(__dirname, 'app/skins/dark/index.less')]}))
-	.pipe(dest('./build/app/skins/dark'))
+        .pipe(gulp_less({paths: [path.join(__dirname, 'app/skins/dark/index.less')]}))
+        .pipe(dest('./build/app/skins/dark'))
 }
 
 function requirejsBuild(cb) {
     const { rjsConfig } = require('./app/js/main');
     const requirejsConfig = {
-	...rjsConfig,
-	name: 'main',
-	baseUrl: './app/js',
-	out: './build/app/js/main.js',
-	optimize: 'uglify2',
-	preserveLicenseComments: false,
-	waitSeconds: 0,
-	wrap: true,
-	optimizeCss: "none", //standard","
-	generateSourceMaps: false,
-	uglify2: {
-	    mangle: false,
-	    codegen: {
-		ascii_only: true
-	    }
-	}
+        ...rjsConfig,
+        name: 'main',
+        baseUrl: './app/js',
+        out: './build/app/js/main.js',
+        optimize: 'uglify2',
+        preserveLicenseComments: false,
+        waitSeconds: 0,
+        wrap: true,
+        optimizeCss: "none", //standard","
+        generateSourceMaps: false,
+        uglify2: {
+            mangle: false,
+            codegen: {
+                ascii_only: true
+            }
+        }
     };
 
     requirejs.optimize(requirejsConfig, function () {
-	cb()
+        cb()
     }, function (error) {
-	console.error('requirejs task failed', error);
-	throw error;
+        console.error('requirejs task failed', error);
+        throw error;
     });
 }
 
