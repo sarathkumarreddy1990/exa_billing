@@ -46,7 +46,8 @@ function get_branch() {
 
 exports.default = exports.build = series(check_build_environment,
 					 clean,
-					 // copy, bump, npm_ci, less_default, requirejs, compress, zip
+					 copy,
+					 // bump, npm_ci, less_default, requirejs, compress, zip
 		      );
 // Drops clean all make sure it's covered in clean
 
@@ -65,4 +66,8 @@ function check_build_environment(cb) {
 
 function clean() {
     return src(['./build', './dist'], { allowEmpty: true }).pipe(gulp_clean());
+}
+
+function copy() {
+    return src(['./**', '!./build{,//*}', '!./dist{,/**}', '!./**/node_modules{,/**}']).pipe(dest('./build'));
 }
