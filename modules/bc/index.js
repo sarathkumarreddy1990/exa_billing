@@ -186,7 +186,7 @@ const bcModules = {
 
             let eligibilityResponse;
 
-            if (webServiceResponseJSON.Result == 'SUCCESS') {
+            if (webServiceResponseJSON.Result === 'SUCCESS') {
                 eligibilityResponse = {
                     results: [webServiceResponseJSON]
                 };
@@ -265,17 +265,20 @@ const bcModules = {
                 password: externalUrlBcPassword
             };
 
+            logger.debug(`Sign in to MSP portal.. ${JSON.stringify(enableSessionOptions)}`);
             let enableSessionResponse = await request(enableSessionOptions);
             let sessionResponse = await bcModules.convertToJson(enableSessionResponse.body);
 
-            if (sessionResponse.Result == 'SUCCESS') {
+            if (sessionResponse.Result === 'SUCCESS') {
                 let cookieMSP = enableSessionResponse.headers['set-cookie'];
+                logger.debug(`Requesting MSP portal for web service... ${JSON.stringify(requestOptions)}`);
                 //MSP Teleplan Web Service accessing
                 let webServiceResponse = await request({
                     ...requestOptions,
                     headers: { Cookie: cookieMSP }
                 });
 
+                logger.debug(`Response from MSP portal web service... ${JSON.stringify(webServiceResponse)}`);
                 let disableSessionOptions = {
                     method: 'POST',
                     uri: externalUrlBc,
@@ -288,10 +291,12 @@ const bcModules = {
                 };
 
                 //MSP Teleplan Web Service sign off
+                logger.debug(`Sign out from MSP portal... ${JSON.stringify(disableSessionOptions)}`);
                 let disableResponse = await request(disableSessionOptions);
                 disableResponse = bcModules.convertToJson(disableResponse.body);
+                logger.debug(`Received Success Response from MSP Portal... ${JSON.stringify(webServiceResponse)}`);
 
-                if (disableResponse.Result == 'SUCCESS') {
+                if (disableResponse.Result === 'SUCCESS') {
                     return { data: webServiceResponse };
                 }
 
@@ -300,6 +305,7 @@ const bcModules = {
 
             return { error: 'apiFailed' };
         } catch (err) {
+            logger.error(`Error occured while requesting MSP portal web service.. ${err}`);
             return { error: 'exceptionErrors' };
         }
     },
@@ -322,16 +328,17 @@ const bcModules = {
 
             return response;
         } catch (err) {
-            logger.error('Error in processing for the response', err);
+            logger.error('Error occured while processing the response', err);
             return { error: 'exceptionErrors' };
         }
     },
 
     /**
-     * convertToJson - Converting response from thirparty to json
+     * writeToFile - Writing file in filestore
      *
-     * @param  {String} args
-     * @param {String} time zone
+     * @param {Object} args
+     * @param {Array} companyFileStoreDetails
+     * @param {Object} encoderResult
      */
     writeToFile: async(args, companyFileStoreDetails, encoderResult) => {
         let {
@@ -349,6 +356,8 @@ const bcModules = {
 
             let claimIds = submissionFailedIds || args.claimIds;
 
+            logger.error(`Claim submission failed - ${JSON.stringify(errorData)}`);
+
             await bcController.updateClaimsStatus({
                 claimIds: claimIds,
                 statusCode: 'SF',
@@ -360,6 +369,7 @@ const bcModules = {
                 return { errorData: encoderResult.errorData };
             }
         } else if(args.isBatchEligibilityFile && !submittedClaim.length){
+            logger.info('No claims found for submission');
             return { responseCode: 'noRecord' };
         }
 
@@ -433,6 +443,7 @@ const bcModules = {
                             claimIds: submittedClaimIds
                         });
 
+                        logger.info(`Electronic Claims Submitted into filestore...${submittedClaimIds.join(',')}`);
                         await bcController.updateClaimsStatus({
                             claimIds: submittedClaimIds,
                             statusCode: 'SU',
@@ -481,10 +492,10 @@ const bcModules = {
                 } = row;
 
                 try {
-                    await statAsync(`${root_directory}/${file_path}/${uploaded_file_name}`);
-
-
                     let filePath = `${root_directory}/${file_path}/${uploaded_file_name}`;
+
+                    await statAsync(filePath);
+
                     let { can_bc_data_centre_sequence_number } = await bcController.getLastUpdatedSequence(billing_provider_id);
 
                     let sequenceMapping = {
@@ -601,6 +612,8 @@ const bcModules = {
                                     claimNote: 'MSP Validation Failed',
                                     userId: 1
                                 });
+
+                                logger.info(`MSP Validation failed for claims ${totalClaimNumber.join(',')}`);
 
                                 fileTransferResponse.push({ responseCode: 'ediFileFailed' });
                             }
@@ -737,6 +750,8 @@ const bcModules = {
 
             const fileName = params.isCron ? params.uploaded_file_name : params.file_id;
             let fullFilePath = path.join(dirPath, fileName);
+
+            logger.logInfo(`Decoding the file... ${fileName}`);
             let remittanceResponse = await bcModules.getFileContents(fullFilePath, params);
 
             logger.logInfo('File processing finished...');
@@ -769,17 +784,27 @@ const bcModules = {
             status = can_bc_process_remittance && can_bc_process_remittance.length && can_bc_process_remittance[0] !== null ? 'success' : 'failure';
 
             logger.logInfo('Applying payments finished...');
-            logger.logInfo('Payment application Result : ', can_bc_process_remittance);
+            logger.logInfo('Payment application Result : ', JSON.stringify(can_bc_process_remittance));
 
-            return await bcData.updateFileStatus({
+            await bcData.updateFileStatus({
                 fileId: params.file_id,
                 status
             });
 
+            logger.info(`Processing Remittance file ${params.file_id} completed with status ${status}`);
+            return {
+                can_bc_process_remittance,
+                fileId: params.file_id || null,
+                status
+            }
+
         }
         catch (err) {
             logger.error(err);
-            return err;
+            return {
+                error: true,
+                message: err
+            };
         }
     },
 
@@ -803,6 +828,14 @@ const bcModules = {
         } = params;
 
         let fileStoreDetails = await bcController.getCompanyFileStore(companyId);
+
+        if (!fileStoreDetails || !fileStoreDetails.length) {
+            return {
+                error: true,
+                responseCode: 'isFileStoreError'
+            };
+        }
+
         let {
             root_directory,
             time_zone
@@ -834,15 +867,25 @@ const bcModules = {
         logger.info('Establishing connectivity with MSP Portal');
         const {
             data = null,
-            error = null
+            error = null,
+            isDownTime
         } = await bcModules.doRequest(downloadParams, time_zone);
 
         //Error Validations in MSP portal connectivity
+        if (isDownTime) {
+            logger.error(`MSP Portal connection downtime`);
+            return {
+                error: true,
+                responseCode: 'isDownTime'
+            };
+        }
+
         if (error) {
             logger.error(`MSP Portal Response Error: ${error}`);
 
             return {
-                err: error
+                error: true,
+                message: error
             };
         }
 
@@ -858,7 +901,7 @@ const bcModules = {
 
                     return {
                         err: null,
-                        message: 'No file downloaded from msp portal'
+                        message: 'No file downloaded from MSP Portal'
                     };
                 }
 
@@ -867,7 +910,7 @@ const bcModules = {
                 const fileName = fileProperties.Filename;
 
                 //check for valid file content
-                let isInValidFileContent = bufferString.indexOf('M01') == -1 || bufferString.indexOf('VTC') == -1;
+                let isInValidFileContent = bufferString.indexOf('M01') === -1 || bufferString.indexOf('VTC') === -1;
                 let fileBuffer = bufferString.split('/n');
                 let isEmptyRemittance = !isInValidFileContent && fileBuffer.length <= 2;
 
@@ -875,7 +918,10 @@ const bcModules = {
                     logger.error(`Invalid Remittance File ${fileName}`);
 
                     return {
-                        status: 'INVALID_FILE'
+                        error: true,
+                        status: 'INVALID_FILE',
+                        message: 'Invalid Remittance File',
+                        response: {}
                     };
                 }
 
@@ -891,12 +937,14 @@ const bcModules = {
                 } = rows.length && rows[0];
 
                 if (!file_store_info.length) {
-                    return {
-                        file_store_status: 'FILE_STORE_NOT_EXISTS'
-                    };
+                    logger.error('File Store Not Configured');
+
+                    return [{
+                        error: true,
+                        responseCode: 'isFileStoreError'
+                    }];
                 }
 
-                const fileStorePath = file_store_info[0].root_directory;
                 const fileStoreId = file_store_info[0].file_store_id;
                 const fileExist = file_exists.length && file_exists[0];
                 const created_dt = moment().format('YYYY/MM/DD');
@@ -908,10 +956,11 @@ const bcModules = {
                 if (fileExist) {
                     logger.info(`Duplicate Remittance file: ${fileMd5}`);
 
-                    return {
+                    return [{
+                        error: true,
                         status: 'DUPLICATE_FILE',
                         duplicate_file: true
-                    };
+                    }];
                 }
 
                 logger.info(`Writing file in Disk - ${filePath}/${fileName}`);
@@ -919,7 +968,10 @@ const bcModules = {
                     await writeFileAsync(`${filePath}/${fileName}`, bufferString, 'utf8');
                 } catch (err) {
                     logger.error(`Error occurred on writing file into disk ${err}`);
-                    return err;
+                    return [{
+                        error: true,
+                        message: err
+                    }];
                 }
 
                 const statAfter = await statAsync(`${filePath}/${fileName}`);
@@ -940,14 +992,20 @@ const bcModules = {
 
                 } catch (err) {
                     logger.error(`Error occured on writing file into db: ${err}`);
-                    return err;
+                    return [{
+                        error: true,
+                        message: err
+                    }];
                 }
 
                 logger.info(`Remittance File ${fileName} downloaded successfully`);
-                return {
-                    status: `ok`,
-                    message: `Remittance File ${fileName} downloaded successfully`
-                };
+                return [{
+                    error: null,
+                    response: {
+                        status: `ok`,
+                        message: `Remittance File ${fileName} downloaded successfully`
+                    }
+                }];
             }
         }
     },

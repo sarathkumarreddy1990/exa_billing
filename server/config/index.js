@@ -35,7 +35,8 @@ module.exports = {
         ahsSFTPPublicKeyPassPhrase: 'ahsSFTPPublicKeyPassPhrase',
         externalUrlBc: 'externalUrlBc',
         externalUrlBcUserName: 'externalUrlBcUserName',
-        externalUrlBcPassword: 'externalUrlBcPassword'
+        externalUrlBcPassword: 'externalUrlBcPassword',
+        goLiveDate: 'goLiveDate'
     },
 
     paths: [

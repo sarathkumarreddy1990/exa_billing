@@ -607,13 +607,11 @@ define([
                     colModel: [
                         { name: '', index: 'id', key: true, hidden: true, search: false },
                         { name: 'claim_ids', hidden: true} ,
+                        { name: 'invoice_no', search: true, width: 100},
                         {
                             name: 'invoice_date', width: 200, searchFlag: 'date', formatter: function (cellvalue, options, rowObject) {
                                 return (commonjs.checkNotEmpty(rowObject.invoice_date) ? moment(rowObject.invoice_date).format('L') : '');
                             }
-                        },
-                        {
-                            name: 'invoice_date', search: true, formatter: self.dateFormatter, width: 150
                         },
                         {
                             name: 'invoice_bill_fee', search: true, width: 150
@@ -825,8 +823,8 @@ define([
                     gridelementid: '#tblCIClaimComments',
                     custompager: self.claimInquiryPager,
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['','', 'date','ClaimDate', '', 'code', '','payment.id', 'comment', 'Diag Ptr', 'charge', 'payment', 'adjustment', '', '', '', '',''],
-                    i18nNames: ['', '', 'billing.claims.date','billing.claims.claimDate', '', 'billing.COB.code', 'shared.fields.sequenceNumbers', 'billing.payments.paymentID', 'billing.payments.comment', 'billing.COB.diagptr',
+                    colNames: ['','', 'date','ClaimDate', 'code', 'sequence_number', '', 'payment.id', 'comment', 'Diag Ptr', 'charge', 'payment', 'adjustment', '', '', '', '',''],
+                    i18nNames: ['', '', 'billing.claims.date','billing.claims.claimDate', 'billing.COB.code', 'shared.fields.sequenceNumbers', '', 'billing.payments.paymentID', 'billing.payments.comment', 'billing.COB.diagptr',
                         'billing.payments.charge', 'billing.payments.payments', 'billing.fileInsurance.adjustments', '', '', '', '', 'billing.payments.printOnStatements'
                     ],
                     colModel: [
@@ -835,7 +833,7 @@ define([
                         { name: 'commented_dt', width: 40, search: false, sortable: false, formatter: self.commentDateFormatter },
                         { name: 'created_dt', width: 40, search: false, sortable: false, formatter: self.dateFormatter },
                         { name: 'code', hidden: true },
-                        { name: 'sequence_number', width: 40, search: false, sortable: false },
+                        { name: 'sequence_number', width: 40, search: false, sortable: false, hidden: app.billingRegionCode !== 'can_BC' },
                         { name: 'type', width: 40, search: false, sortable: false,
                             cellattr: function (rowId, tv, rowdata) {
                                 if(rowdata && rowdata.code == 'manual')

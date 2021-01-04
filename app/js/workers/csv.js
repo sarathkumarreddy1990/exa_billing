@@ -38,7 +38,9 @@ const claimColumns = {
     "Facility": "facility_name",
     "First Statement Date": "first_statement_dt",
     "AHS Claim Action": "claim_action",
-    "Reason Code": "reason_code"
+    "Reason Code": "reason_code",
+    "PHN": "phn_alt_account",
+    "Sequence Numbers": "billing.can_bc_get_claim_sequence_numbers(claims.id)"
 };
 
 const paymentsColumns = {
