@@ -2,6 +2,7 @@ var sessionManager = {
 
     activityInterval: 60000,
     sessionElapsed: 0,
+    hbIndex: 0,
 
     initialize: function () {
 
@@ -19,10 +20,6 @@ var sessionManager = {
             /// TODO: logout all tabs
         });
 
-        //$.jStorage.listenKeyChange("SESS_FLAG", function(key, action){
-        //    console.log(key + " has been " + action + ', Current Value: ' + $.jStorage.get('SESS_FLAG'));
-        //});
-
         $('body').bind('click keypress mouseup', function () {
             $.active = true;
             $.jStorage.publish("EMD_PACS_SESSION", "ACTIVE");
@@ -36,18 +33,18 @@ var sessionManager = {
 
         if ($.active) {
 
-            /// Resetting session
+            // Resetting session
             sessionManager.sessionElapsed = 0;
             $.active = false;
 
-            $.get('/session_heartbeat');
+            self.hbIndex = self.hbIndex >= 5 ? 0 : self.hbIndex;
+            $.get('/session_heartbeat?hbIndex=' + self.hbIndex);
         }
-
-        //console.log('Session Elapsed: ', sessionManager.sessionElapsed);
+        self.hbIndex++;
 
         if (sessionManager.sessionElapsed < timeout) {
-            sessionManager.sessionElapsed = sessionManager.sessionElapsed + interval;
 
+            sessionManager.sessionElapsed += interval;
             setTimeout(function () {
                 self.checkActivity(timeout, interval);
             }, interval);
@@ -66,17 +63,14 @@ var sessionManager = {
             user_name: app.userInfo.first_name + ' ' + app.userInfo.last_name,
             async: true
         });
-    
+
         var logoutInfo = '';
 
         if (errCode) {
             logoutInfo = '?err=' + errCode;
         }
 
-//        window.location = '/logout' + logoutInfo;
-//        return;
-
-        /// TODO: Handle any popups
+        // TODO: Handle any popups
         if (window.opener && !window.opener.closed) {
             window.close();
             if (window.config && window.config.childWin && window.config.childWin.length > 0) {
