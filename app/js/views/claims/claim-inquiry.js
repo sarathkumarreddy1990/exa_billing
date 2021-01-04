@@ -1652,7 +1652,9 @@ define([
 
             invoiceActivityStatement: function(claimId){
                 var urlParams = {
-                    claimId : claimId
+                    claimId: claimId,
+                    async: false,
+                    save: false
                 };
                 var options = {
                     'id': 'invoice-activity-statement',
