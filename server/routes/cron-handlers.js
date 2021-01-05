@@ -161,6 +161,6 @@ const clearingHouse = async (req, res) => {
 
 router.get('/acr/process', restrictAccess, autoCollectionsProcess);
 
-router.get('/edi/:action', clearingHouse);
+router.get('/edi/:action', restrictAccess, clearingHouse);
 
 module.exports = router;
