@@ -434,6 +434,7 @@ const bcModules = {
                         file_name,
                         file_md5,
                         file_size,
+                        file_type: args.isBatchEligibilityFile ? 'can_bc_be' : 'can_bc_submit',
                         companyId: args.companyId
                     });
 
@@ -760,6 +761,17 @@ const bcModules = {
                 status: 'in_progress',
                 fileId: params.file_id
             });
+
+            if (remittanceResponse && remittanceResponse.invalidRemittanceRecords.length) {
+                logger.info(`Unable to proceed remittance file process with following remittance records ${JSON.stringify(remittanceResponse.invalidRemittanceRecords)}`);
+
+                await bcController.updateFileStatus({
+                    status: 'failure',
+                    fileId: params.file_id
+                });
+
+                return;
+            }
 
             logger.info('Processing Eligibility Response...');
 
