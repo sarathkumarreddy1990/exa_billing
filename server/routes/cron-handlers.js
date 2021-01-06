@@ -97,7 +97,6 @@ const handleEvents = async (req, res) => {
         response = await ahs.events({
             ...params,
             ...query,
-            company_id,
             ip,
         });
     }
