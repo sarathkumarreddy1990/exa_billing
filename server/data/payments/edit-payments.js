@@ -610,7 +610,7 @@ module.exports = {
         }
 
         if (filter.facility_id && filter.facility_id > 0) {
-            filter.filterQuery += ` AND patients.facility_id = ${filter.facility_id} `;
+            filter.filterQuery += ` AND patient_facilities.facility_id = ${filter.facility_id} `;
         }
 
         if (f.lname) {

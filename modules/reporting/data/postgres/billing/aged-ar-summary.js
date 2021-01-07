@@ -254,7 +254,8 @@ aged_ar_summary_details AS(
             COALESCE(SUM(gcd.balance) FILTER(WHERE gcd.age > 120 ),0::MONEY) AS "120+ Sum",
         <% } %>
         SUM(gcd.balance) AS "Total Balance",
-        COUNT(gcd.balance) AS "Total Count"
+        COUNT(gcd.balance) AS "Total Count",
+        payer_type
     FROM billing.claims bc
     INNER JOIN get_claim_details gcd ON gcd.claim_id = bc.id
     INNER JOIN public.patients pp ON pp.id = bc.patient_id
@@ -286,6 +287,7 @@ aged_ar_summary_details AS(
           "Responsible Party"
         , "Payer Name"
         , pippt.description
+        , payer_type
   )
  SELECT
     "Facility",
@@ -468,6 +470,9 @@ aged_ar_summary_details AS(
         SUM("Total Count") AS "Total Count"
    FROM
       aged_ar_summary_details_p
+      <% if(insGroups != null  || insuranceIds != null) { %>
+            WHERE payer_type != 'patient'
+      <% } %>
  ORDER BY 1
 `);
 
