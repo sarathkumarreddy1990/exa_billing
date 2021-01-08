@@ -27,11 +27,13 @@ function get_build_version(version) {
         moment().tz(process.env.TZ || 'UTC').format('YYYYMMDDHHmm'),
     ]
           .filter(x => !!x)
-          .map(x => x.replace(/[\n\.\/]/g, function (m){
+          .map(x => x.replace(/([\n./_]|%2F)/g, function (m){
               return {
                   '\n': '',
                   '.': '-',
-                  '/': '--'
+                  '/': '--',
+		  '_': '-',
+		  '%2F': '--'
               }[m]
           })).join('.');
     const build_version = [version, build_meta].filter(x => !!x).join('+');
