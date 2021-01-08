@@ -27,15 +27,9 @@ function get_build_version(version) {
         moment().tz(process.env.TZ || 'UTC').format('YYYYMMDDHHmm'),
     ]
           .filter(x => !!x)
-          .map(x => x.replace(/([\n./_]|%2F)/g, function (m){
-              return {
-                  '\n': '',
-                  '.': '-',
-                  '/': '--',
-		  '_': '-',
-		  '%2F': '--'
-              }[m]
-          })).join('.');
+          .map(x => x.replace(/\r?\n|\r/g, ''))
+	  .map(x => decodeURIComponent(x)).map(x => x.replace(/[^0-9A-Za-z.-]/g, '-'))
+	  .join('.');
     const build_version = [version, build_meta].filter(x => !!x).join('+');
     if (!semver.valid(build_version)) {
         throw new Error(`Cannot parse build_version ${build_version}`);
