@@ -529,7 +529,7 @@ const acr = {
                     SELECT
                         SUM(cpl.claim_balance_total) AS patient_balance
                         ,p.id AS patient_id
-                        ,ARRAY_AGG(claims.id) FILTER ( WHERE claim_status_id != ${acr_claim_status_id} ) AS claim_ids
+                        ,ARRAY_AGG(claims.id) FILTER ( WHERE claim_status_id != ${acr_claim_status_id} AND cpl.claim_balance_total > 0::money ) AS claim_ids
                     FROM
                         billing.claims
 		            INNER JOIN claim_payment_lists cpl ON cpl.claim_id = claims.id
