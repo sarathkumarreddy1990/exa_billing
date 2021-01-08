@@ -36,7 +36,7 @@ function get_build_version(version) {
           })).join('.');
     const build_version = [version, build_meta].filter(x => !!x).join('+');
     if (!semver.valid(build_version)) {
-        throw new Error('Cannot parse build_version ${build_version}');
+        throw new Error(`Cannot parse build_version ${build_version}`);
     }
     return build_version;
 }
