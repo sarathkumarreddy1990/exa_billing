@@ -105,11 +105,11 @@ function less_dark() {
 }
 
 function requirejsBuild(cb) {
-    const { rjsConfig } = require('./app/js/main');
+    const { rjsConfig } = require('./build/app/js/main');
     const requirejsConfig = {
         ...rjsConfig,
         name: 'main',
-        baseUrl: './app/js',
+        baseUrl: './build/app/js',
         out: './build/app/js/main.js',
         optimize: 'uglify2',
         preserveLicenseComments: false,
