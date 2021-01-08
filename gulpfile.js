@@ -65,7 +65,7 @@ function check_build_environment(cb) {
 }
 
 function clean() {
-    return src(['./build', './dist'], { allowEmpty: true }).pipe(gulp_clean());
+    return src(['./build', './dist', 'app/node_modules'], { allowEmpty: true }).pipe(gulp_clean());
 }
 
 function copy() {
