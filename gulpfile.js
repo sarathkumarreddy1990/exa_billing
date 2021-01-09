@@ -27,16 +27,12 @@ function get_build_version(version) {
         moment().tz(process.env.TZ || 'UTC').format('YYYYMMDDHHmm'),
     ]
           .filter(x => !!x)
-          .map(x => x.replace(/[\n\.\/]/g, function (m){
-              return {
-                  '\n': '',
-                  '.': '-',
-                  '/': '--'
-              }[m]
-          })).join('.');
+          .map(x => x.replace(/\r?\n|\r/g, ''))
+	  .map(x => decodeURIComponent(x)).map(x => x.replace(/[^0-9A-Za-z.-]/g, '-'))
+	  .join('.');
     const build_version = [version, build_meta].filter(x => !!x).join('+');
     if (!semver.valid(build_version)) {
-        throw new Error('Cannot parse build_version ${build_version}');
+        throw new Error(`Cannot parse build_version ${build_version}`);
     }
     return build_version;
 }
@@ -69,7 +65,7 @@ function check_build_environment(cb) {
 }
 
 function clean() {
-    return src(['./build', './dist'], { allowEmpty: true }).pipe(gulp_clean());
+    return src(['./build', './dist', 'app/node_modules'], { allowEmpty: true }).pipe(gulp_clean());
 }
 
 function copy() {
@@ -109,11 +105,11 @@ function less_dark() {
 }
 
 function requirejsBuild(cb) {
-    const { rjsConfig } = require('./app/js/main');
+    const { rjsConfig } = require('./build/app/js/main');
     const requirejsConfig = {
         ...rjsConfig,
         name: 'main',
-        baseUrl: './app/js',
+        baseUrl: './build/app/js',
         out: './build/app/js/main.js',
         optimize: 'uglify2',
         preserveLicenseComments: false,
