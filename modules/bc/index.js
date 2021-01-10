@@ -356,7 +356,7 @@ const bcModules = {
 
             let claimIds = submissionFailedIds || args.claimIds;
 
-            logger.error(`Claim submission failed - ${JSON.stringify(errorData)}`);
+            logger.error(`Claim submission failed - ${JSON.stringify(encoderResult.errorData)}`);
 
             await bcController.updateClaimsStatus({
                 claimIds: claimIds,
@@ -497,7 +497,20 @@ const bcModules = {
 
                     await statAsync(filePath);
 
-                    let { can_bc_data_centre_sequence_number } = await bcController.getLastUpdatedSequence(billing_provider_id);
+                    let lastSequenceNumber;
+
+                    if (billing_provider_id) {
+                        let { can_bc_data_centre_sequence_number } = await bcController.getLastUpdatedSequence(billing_provider_id);
+                        lastSequenceNumber = can_bc_data_centre_sequence_number;
+                    } else if (uploaded_file_name) {
+                        can_bc_data_centre_number = uploaded_file_name.split('_')[0];
+                        let { can_bc_data_centre_sequence_number, id } = await bcController.getLastUpdatedSequenceByDataCenterNumber(can_bc_data_centre_number);
+                        billing_provider_id = id;
+                        lastSequenceNumber = can_bc_data_centre_sequence_number;
+                    } else {
+                        logger.error('Billing provider is not found.....');
+                        return { responseCode: 'exceptionErrors' };
+                    }
 
                     let sequenceMapping = {
                         VS1: [],
@@ -517,7 +530,7 @@ const bcModules = {
 
                     for (let i = 0; i < fileTextArray.length; i++) {
                         let record = fileTextArray[i];
-                        currentSequence = (((can_bc_data_centre_sequence_number + 1).toString()).padStart(7, '0')).slice(0, 7);
+                        currentSequence = (((lastSequenceNumber + 1).toString()).padStart(7, '0')).slice(0, 7);
                         let recordCode = record.substring(0, 3);
 
                         switch (recordCode) {
@@ -562,6 +575,7 @@ const bcModules = {
                             case 'B04': {
                                 isBatchEligibilityFile = true;
                                 let studyId = record.substring(54, 61);
+                                fileTextArray[i] = `${record.substring(0, 8)}${currentSequence}${record.substring(15)}`;
 
                                 sequenceMapping[recordCode].push({
                                     current_sequence: currentSequence,
@@ -574,7 +588,7 @@ const bcModules = {
                             }
                         }
 
-                        can_bc_data_centre_sequence_number++;
+                        lastSequenceNumber++;
                     }
 
                     await fse.outputFile(filePath, fileTextArray.join('\r\n'));
