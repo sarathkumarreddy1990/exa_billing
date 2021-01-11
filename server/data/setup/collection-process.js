@@ -193,7 +193,9 @@ const acr = {
                         billing.claims
                     INNER JOIN patients p ON p.id = claims.patient_id
                     INNER JOIN billing.claim_status cs ON cs.id = claims.claim_status_id
+                    INNER JOIN billing.get_claim_totals(claims.id) gct ON TRUE
                     WHERE cs.code = 'CIC'
+                    AND gct.claim_balance_total != 0::money
                     GROUP BY p.id
                     ORDER BY p.id DESC
                 )
