@@ -128,6 +128,13 @@ const ahsData = {
                 claim_notes                                  AS "claimNotes",
                 pp.first_name                                AS "patient_first_name",
                 pc_app.can_prid                          AS "service_provider_prid",
+                CASE 
+                    WHEN bc.referring_provider_contact_id IS NOT NULL AND pc_c.can_prid IS NULL 
+                    THEN null
+                    WHEN bc.referring_provider_contact_id IS NULL 
+                    THEN 'no_validation'
+                    ELSE  pc_c.can_prid
+                END AS "provider_prid",
                 COALESCE(pp.patient_info -> 'c1State', pp.patient_info -> 'c1Province', '') AS province_code,
                 (SELECT
                     charges_bill_fee_total
@@ -144,6 +151,7 @@ const ahsData = {
                 LEFT JOIN public.studies s ON s.id = bchs.study_id
                 LEFT JOIN public.study_transcriptions st ON st.study_id = s.id
                 LEFT JOIN public.provider_contacts pc_app ON pc_app.id = st.approving_provider_id
+                LEFT JOIN public.provider_contacts pc_c ON pc_c.id = bc.referring_provider_contact_id AND pc_c.is_primary
                 LEFT JOIN public.facilities f ON f.id = bc.facility_id
                 LEFT JOIN public.patient_insurances ppi  ON ppi.id = bc.primary_patient_insurance_id
                 LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
