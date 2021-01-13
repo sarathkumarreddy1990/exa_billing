@@ -540,7 +540,7 @@ const ahsData = {
 
                         ''                                           AS good_faith_indicator,
 
-                        bc.can_newborn_code                      AS newborn_code,
+                        bc.can_ahs_newborn_code                      AS newborn_code,
 
                         CASE
                             WHEN NULLIF(bc.can_ahs_emsaf_reason, '') IS NOT NULL

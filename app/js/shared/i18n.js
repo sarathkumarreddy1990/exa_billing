@@ -16,7 +16,7 @@ var i18n = {
 
     autoSetLang: function () {
         var browserLang = browserLocale.replace('-', '_').toLowerCase();
-        var currentCulture = _.find(this.config.cultures, function (culture) { return culture['isoCode'] === browserLang; });
+        var currentCulture = this.config.cultures.find(function (culture) { return culture['isoCode'] === browserLang; });
         this.currentLang = currentCulture ? currentCulture.name : this.defaultLang;
         if (!app) {
             app = {};
@@ -78,12 +78,12 @@ var i18n = {
         var province = this.rules && this.rules[provinceAlphaCode] || [];
 
         // Replace province-wide
-        _.each(province, function(rule) {
+        province.forEach(function(rule) {
             key = rule.default === key ? rule.replace : key;
         });
 
         // Replace country-wide
-        _.each(global, function(rule) {
+        global.forEach(function(rule) {
             key = rule.default === key ? rule.replace : key;
         });
 

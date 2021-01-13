@@ -272,22 +272,14 @@ module.exports = {
                             public.patient_insurances pi
                         INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id
                         LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id
-                        LEFT JOIN LATERAL (
-                            SELECT
-                                coverage_level,
-                                MIN(valid_to_date) as valid_to_date
-                            FROM
-                                public.patient_insurances
-                            WHERE
-                                patient_id = ${params.patient_id} AND (valid_to_date >= (${params.claim_date})::date  OR valid_to_date IS NULL)
-                                AND (valid_from_date <= (${params.claim_date})::date OR valid_from_date IS NULL)
-                                AND CASE WHEN EXISTS(SELECT patient_ins_id FROM order_level_beneficiary) THEN patient_insurances.id = ANY(SELECT UNNEST(patient_ins_id) FROM order_level_beneficiary) ELSE TRUE END
-                                GROUP BY coverage_level
-                        ) as expiry ON TRUE
-                        WHERE
-                            pi.patient_id = ${params.patient_id}  AND (expiry.valid_to_date = pi.valid_to_date OR expiry.valid_to_date IS NULL) AND expiry.coverage_level = pi.coverage_level
-                            AND CASE WHEN EXISTS(SELECT patient_ins_id FROM order_level_beneficiary) THEN pi.id = ANY(SELECT UNNEST(patient_ins_id) FROM order_level_beneficiary) ELSE TRUE END
-                            ORDER BY id ASC
+                        WHERE pi.patient_id = ${params.patient_id}
+                        AND EXISTS ( SELECT
+                                        1
+                                    FROM public.patient_insurances i_pi
+                                    WHERE (i_pi.valid_to_date >= (${params.claim_date})::DATE OR i_pi.valid_to_date IS NULL)
+                                    AND i_pi.id = pi.id)
+                        AND CASE WHEN EXISTS(SELECT patient_ins_id FROM order_level_beneficiary) THEN pi.id = ANY(SELECT UNNEST(patient_ins_id) FROM order_level_beneficiary) ELSE TRUE END
+                        ORDER BY id ASC
                 ),
                 existing_insurance as (
                         SELECT
@@ -333,7 +325,8 @@ module.exports = {
                         INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id
                         LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id
                         LEFT JOIN public.patients p ON p.id= pi.patient_id
-                        LEFT JOIN public.facilities f ON p.facility_id = f.id
+                        LEFT JOIN public.patient_facilities pf ON pf.patient_id = pi.patient_id
+                        LEFT JOIN public.facilities f ON f.id = pf.facility_id AND pf.is_default
                         WHERE
                             pi.patient_id = ${params.patient_id}
                         ORDER BY pi.id asc
@@ -689,6 +682,7 @@ module.exports = {
                             , ip.insurance_code
                             , ip.insurance_info->'partner_id' AS ins_partner_id
                             , pi.coverage_level
+                            , pi.valid_to_date
                         FROM public.patient_insurances pi
                         INNER JOIN public.insurance_providers ip ON ip.id = pi.insurance_provider_id
                         WHERE
@@ -850,7 +844,9 @@ module.exports = {
     getFolderPath: async (params) => {
 
         let sqlQry = SQL`
-        SELECT account_no, facility_info->'pokitdok_response' as filepath from public.patients p INNER JOIN public.facilities f on f.id = p.facility_id where p.id = ${params.patient_id} `;
+        SELECT account_no, facility_info->'pokitdok_response' as filepath from public.patients p 
+        INNER JOIN patient_facilities pf on pf.patient_id=p.id
+        INNER JOIN public.facilities f on f.id = pf.facility_id AND pf.is_default where p.id = ${params.patient_id} `;
 
         return await query(sqlQry);
     },
@@ -913,10 +909,11 @@ module.exports = {
                             ,f.place_of_service_id AS fac_place_of_service_id
                         FROM
                             patients p
-                        INNER JOIN facilities f ON f.id = p.facility_id
+                        INNER JOIN patient_facilities pfc ON pfc.patient_id = p.id
+                        INNER JOIN facilities f ON f.id = pfc.facility_id AND pfc.is_default
                         LEFT JOIN provider_contacts fac_prov_cont ON f.facility_info->'rendering_provider_id'::text = fac_prov_cont.id::text
                         LEFT JOIN providers fac_prov ON fac_prov.id = fac_prov_cont.provider_id
-                        LEFT JOIN billing.facility_settings fs ON fs.facility_id = p.facility_id
+                        LEFT JOIN billing.facility_settings fs ON fs.facility_id = pfc.facility_id AND pfc.is_default
                         WHERE p.id = ${id}
                     ) AS patient_default_details
             ) patient_info `;

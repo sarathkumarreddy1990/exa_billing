@@ -1392,7 +1392,7 @@ module.exports = {
                 SELECT
                     cp.patient_balance
                     , cp.patient_id
-                    , p.facility_id `;
+                    , pf.facility_id `;
 
             if(params.from === 'patients'){
                 sql.append(selectColumn);
@@ -1400,7 +1400,8 @@ module.exports = {
 
             sql.append(SQL` FROM
                                 claim_payments cp
-                            INNER JOIN patients p ON p.id = cp.patient_id `);
+                            INNER JOIN patients p ON p.id = cp.patient_id
+                            INNER JOIN patient_facilities pf ON pf.patient_id=p.id AND pf.is_default `);
 
             if (params.from === 'patients') {
                 sql.append(SQL` ORDER BY  `)
@@ -1487,7 +1488,6 @@ module.exports = {
                 SELECT
                     sum(cp.claim_balance_total) AS patient_balance
                     , p.id AS patient_id
-                    , p.facility_id AS facility_id
                 FROM
                     billing.claims
 		        INNER JOIN claim_payments_list cp ON cp.claim_id = claims.id
@@ -1516,17 +1516,17 @@ module.exports = {
                     )
                     SELECT
                         ${companyId} AS company_id
-                        , patient_id
+                        , cp.patient_id
                         , 0::money AS amount
                         , now()::date AS accounting_date
                         , ${userId} AS created_by
-                        , timezone(get_facility_tz(facility_id), now()::timestamp) AS payment_dt
+                        , timezone(get_facility_tz(pf.facility_id), now()::timestamp) AS payment_dt
                         , 'patient' AS payer_type
                         , 'Small Balance Write-Off is $' || ${writeOffAmount} AS notes
                         , 'adjustment' AS payment_mode
                         , ${defaultFacilityId}
-                    FROM
-                        claim_payments
+                    FROM claim_payments cp
+                    INNER JOIN patient_facilities pf ON pf.patient_id = cp.patient_id AND pf.is_default
                   RETURNING
                     id
                     , company_id

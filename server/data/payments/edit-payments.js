@@ -610,7 +610,7 @@ module.exports = {
         }
 
         if (filter.facility_id && filter.facility_id > 0) {
-            filter.filterQuery += ` AND patients.facility_id = ${filter.facility_id} `;
+            filter.filterQuery += ` AND patient_facilities.facility_id = ${filter.facility_id} `;
         }
 
         if (f.lname) {
@@ -702,7 +702,7 @@ module.exports = {
             SELECT
                 alt_account_no,
                 account_no,
-                facility_id,
+                pf.facility_id,
                 patients.id,
                 rcopia_id,
                 dicom_patient_id,
@@ -721,6 +721,7 @@ module.exports = {
                 SELECT
                     patients.id as patients_id
                 FROM patients
+                INNER JOIN patient_facilities pf ON pf.patient_id = patients.id AND pf.is_default
                 LEFT JOIN owners ON patients.owner_id = owners.id
                 LEFT JOIN studies on patients.id = studies.patient_id
                 ${filter.filterQuery}
@@ -740,7 +741,7 @@ module.exports = {
                     account_no,
                     alt_account_no,
                     gender,
-                    facility_id,
+                    pf.facility_id,
                     patients.id,
                     rcopia_id,
                     date_part('year',age(birth_date)) as age,
@@ -760,6 +761,7 @@ module.exports = {
                     to_char(patients.birth_date, 'YYYY-MM-DD') as birth_date,
                     COUNT(1) OVER (range unbounded preceding) as total_records                    
                 FROM patients
+                INNER JOIN patient_facilities pf ON pf.patient_id = patients.id AND pf.is_default
                 ${filter.filterQuery}
                 ORDER BY ${filter.sortField} ASC
                 LIMIT ${filter.pageSize}
@@ -771,7 +773,7 @@ module.exports = {
                     account_no,
                     alt_account_no,
                     gender,
-                    facility_id,
+                    pf.facility_id,
                     patients.id,
                     rcopia_id,
                     date_part('year',age(birth_date)) as age,
@@ -788,6 +790,7 @@ module.exports = {
                         distinct(patients.id) AS patients_id,
                         patients.last_name
                     FROM patients
+                    INNER JOIN patient_facilities pf ON pf.patient_id = patients.id AND pf.is_default
                     LEFT JOIN orders ON orders.patient_id = patients.id
                     LEFT JOIN studies on patients.id = studies.patient_id
                     ${filter.filterQuery}

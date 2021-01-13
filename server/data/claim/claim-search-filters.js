@@ -126,9 +126,9 @@ const colModel = [
         name: 'payer_name',
         searchFlag: '%',
         searchColumns: [`(  CASE payer_type
-                WHEN 'primary_insurance' THEN insurance_providers.insurance_name
-                WHEN 'secondary_insurance' THEN insurance_providers.insurance_name
-                WHEN 'tertiary_insurance' THEN insurance_providers.insurance_name
+                WHEN 'primary_insurance' THEN payer_insurance.insurance_name
+                WHEN 'secondary_insurance' THEN payer_insurance.insurance_name
+                WHEN 'tertiary_insurance' THEN payer_insurance.insurance_name
 	            WHEN 'ordering_facility' THEN provider_groups.group_name
 	            WHEN 'referring_provider' THEN ref_provider.full_name
 	            WHEN 'rendering_provider' THEN render_provider.full_name
@@ -141,7 +141,7 @@ const colModel = [
     },
     {
         name: 'edi_template',
-        searchColumns: [`insurance_providers.insurance_info->'edi_template'`],
+        searchColumns: [`payer_insurance.insurance_info->'edi_template'`],
         searchFlag: '%'
     },
     {
@@ -215,7 +215,7 @@ const colModel = [
     },
     {
         name: 'insurance_providers'
-        , searchColumns: [`insurance_providers.insurance_name`]
+        , searchColumns: [`ins_prov.insurance_name`]
         , searchFlag: '%'
     },
     {
@@ -308,9 +308,9 @@ const api = {
             case 'assigned_to': return 'users.username';
             case 'payer_name':
                 return `(  CASE payer_type
-                WHEN 'primary_insurance' THEN insurance_providers.insurance_name
-                WHEN 'secondary_insurance' THEN insurance_providers.insurance_name
-                WHEN 'tertiary_insurance' THEN insurance_providers.insurance_name
+                WHEN 'primary_insurance' THEN payer_insurance.insurance_name
+                WHEN 'secondary_insurance' THEN payer_insurance.insurance_name
+                WHEN 'tertiary_insurance' THEN payer_insurance.insurance_name
 	            WHEN 'ordering_facility' THEN provider_groups.group_name
 	            WHEN 'referring_provider' THEN ref_provider.full_name
 	            WHEN 'rendering_provider' THEN render_provider.full_name
@@ -328,7 +328,7 @@ const api = {
             case 'ins_provider_type': return 'insurance_provider_payer_types.description';
             case 'icd_description': return 'claim_icds.description';
             case 'claim_action': return 'claims.frequency';
-            case 'insurance_providers': return `insurance_providers.insurance_name`;
+            case 'insurance_providers': return `ins_prov.insurance_name`;
             case 'can_mhs_microfilm_no': return `claims.can_mhs_microfilm_no`;
             case 'pid_alt_account': return 'patient_alt_accounts.pid_alt_account';
             case 'phn_alt_account': return 'patient_alt_accounts.phn_alt_account';
@@ -438,17 +438,24 @@ const api = {
                     ON cas_reason_codes.id = claims.id `;
         }
 
-        if (tables.patient_insurances || tables.insurance_providers || tables.edi_clearinghouses) {
-            r += ' LEFT JOIN patient_insurances ON patient_insurances.id = primary_patient_insurance_id ';
-            r += ' LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id ';
-            r += ' LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id ';
-            r += ' LEFT JOIN   billing.edi_clearinghouses ON  billing.edi_clearinghouses.id=insurance_provider_details.clearing_house_id';
-        }
 
-        if (tables.insurance_provider_payer_types) {
+        if (tables.insurance_provider_payer_types || tables.ins_prov) {
             r += ` LEFT JOIN patient_insurances ins_prov_pat_ins ON ins_prov_pat_ins.id = primary_patient_insurance_id
                    LEFT JOIN insurance_providers ins_prov ON ins_prov.id = ins_prov_pat_ins.insurance_provider_id
                    LEFT JOIN insurance_provider_payer_types  ON insurance_provider_payer_types.id = ins_prov.provider_payer_type_id `;
+        }
+
+        if (tables.patient_insurances || tables.payer_insurance || tables.edi_clearinghouses) {
+            r += `
+                LEFT JOIN patient_insurances ON patient_insurances.id =
+                (  CASE payer_type
+                WHEN 'primary_insurance' THEN primary_patient_insurance_id
+                WHEN 'secondary_insurance' THEN secondary_patient_insurance_id
+                WHEN 'tertiary_insurance' THEN tertiary_patient_insurance_id
+                END)`;
+            r += ' LEFT JOIN insurance_providers payer_insurance ON patient_insurances.insurance_provider_id = payer_insurance.id ';
+            r += ' LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = payer_insurance.id ';
+            r += ' LEFT JOIN   billing.edi_clearinghouses ON  billing.edi_clearinghouses.id=insurance_provider_details.clearing_house_id';
         }
 
         if (tables.provider_groups) { r += '  LEFT JOIN provider_groups ON claims.ordering_facility_id = provider_groups.id '; }
@@ -544,12 +551,12 @@ const api = {
             'claims.payer_type',
             'claims.billing_method',
             `edi_clearinghouses.name as clearing_house`,
-            `insurance_providers.insurance_info->'edi_template'
+            `payer_insurance.insurance_info->'edi_template'
             as edi_template`,
             `(  CASE payer_type
-            WHEN 'primary_insurance' THEN insurance_providers.insurance_name
-            WHEN 'secondary_insurance' THEN insurance_providers.insurance_name
-            WHEN 'tertiary_insurance' THEN insurance_providers.insurance_name
+            WHEN 'primary_insurance' THEN payer_insurance.insurance_name
+            WHEN 'secondary_insurance' THEN payer_insurance.insurance_name
+            WHEN 'tertiary_insurance' THEN payer_insurance.insurance_name
             WHEN 'ordering_facility' THEN provider_groups.group_name
             WHEN 'referring_provider' THEN ref_provider.full_name
             WHEN 'rendering_provider' THEN render_provider.full_name
@@ -588,16 +595,7 @@ const api = {
                  WHEN (claims.frequency != 'corrected' OR claims.frequency IS NULL)
                  THEN 'new_claim'
               END) AS claim_action`,
-            `(
-                SELECT
-                    array_agg(insurance_name)
-                FROM
-                    insurance_providers ip
-                LEFT JOIN patient_insurances pi
-                    ON pi.insurance_provider_id = ip.id
-                WHERE
-                    pi.id = primary_patient_insurance_id
-            ) AS insurance_providers`,
+            `ins_prov.insurance_name AS insurance_providers`,
             `claims.can_mhs_microfilm_no`,
             `patient_alt_accounts.pid_alt_account`,
             `patient_alt_accounts.phn_alt_account`,

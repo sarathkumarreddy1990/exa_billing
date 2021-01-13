@@ -305,7 +305,7 @@ define([
                 var ifrDoc = $("ifrEobFileUpload").contents();
 
                 if (ifrDoc) {
-                    $(ifrDoc).find('#btnProcess_EOB, #btnPreview_EOB').css('display', 'block');
+                    $(ifrDoc).find('.eraProcessButton').css('display', 'block');
                 }
             },
 
@@ -356,7 +356,7 @@ define([
                             case 'can_BC':
                                 return self.processCanadaResponse(model);
                             default:
-                                return self.processUsaResponse(model);
+                                return self.processUsaResponse(file_id, model, gridData);
                         }
                     },
                     error: function (err, response) {
@@ -366,7 +366,7 @@ define([
                 });
             },
 
-            processUsaResponse: function(model) {
+            processUsaResponse: function(file_id, model, gridData) {
                 var self = this;
                 var array_to_object = function ($value) {
                     return isArray($value) ? array_to_object($value[0]) : $value;

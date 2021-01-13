@@ -109,10 +109,10 @@ const bcData = {
                             , pf.time_zone AS facility_time_zone
                         FROM
                         billing.claims c
-                        INNER JOIN public.provider_groups ppg ON ppg.id = c.ordering_facility_id
                         INNER JOIN public.patients pp  ON  pp.id = c.patient_id
                         INNER JOIN public.facilities pf ON pf.id = c.facility_id
                         LEFT JOIN billing.providers bp ON bp.id = c.billing_provider_id
+                        LEFT JOIN public.provider_groups ppg ON ppg.id = c.ordering_facility_id
                         LEFT JOIN public.places_of_service ppos ON ppos.id = ppg.place_of_service_id
                         LEFT JOIN public.provider_contacts ppc ON ppc.id = c.rendering_provider_contact_id
                         LEFT JOIN public.provider_contacts refp ON refp.id = c.referring_provider_contact_id
@@ -159,6 +159,7 @@ const bcData = {
             file_path,
             file_md5,
             file_size,
+            file_type,
         } = info;
 
         const sql = SQL`
@@ -181,7 +182,7 @@ const bcData = {
                         , ${file_path}
                         , ${file_size}
                         , ${file_md5}
-                        , 'can_bc_submit'
+                        , ${file_type}
                         , ${file_name}
                     RETURNING
                         id`;
@@ -338,6 +339,91 @@ const bcData = {
         `);
 
         return await query(sql.text, sql.values);
+    },
+
+    /**
+    * saveEligibilityResponse - save eligibility respose from MSP
+    * @param {object} args    {
+    *                             patient_id: BIGINT,
+    *                             patient_insurance_id: BIGINT,
+    *                             eligibilityResponse: OBJECT,
+    *                             eligibility_dt: DATE
+    *                         }
+    */
+    saveEligibilityResponse: async (args) => {
+        const {
+            patient_id,
+            patient_insurance_id,
+            eligibilityResponse,
+            eligibility_dt
+        } = args;
+
+        const sql = SQL`
+                INSERT INTO eligibility_log
+                        ( patient_id
+                        , patient_insurance_id
+                        , eligibility_response
+                        , eligibility_dt)
+                VALUES
+                        ( ${patient_id}
+                        , ${patient_insurance_id}
+                        , ${eligibilityResponse}
+                        , ${eligibility_dt}
+                        )
+            `;
+
+        return await query(sql);
+    },
+
+    /**
+    * getAllscheduledClaims - fetching tomorrows scheduled studies data
+    * @param {object} args    {
+    *                             companyId: BIGINT,
+    *                         }
+    */
+    getAllscheduledClaims: async (args) => {
+        const sql = SQL`
+                        SELECT 
+                            s.id AS study_id
+                            , f.time_zone
+                            , bp.can_bc_payee_number
+                            , bp.can_bc_data_centre_number
+                            , p.gender
+                            , p.first_name
+                            , p.middle_name
+                            , p.last_name
+                            , to_char(p.birth_date, 'YYYYMMDD') AS birth_date
+                            , phn->'alt_account_no' AS phn_alt_account_no
+                            , to_char(s.study_dt, 'YYYYMMDD') AS date_of_service
+                            , el.eligibility_response
+                            , el.eligibility_dt
+                        FROM studies s
+                        INNER JOIN orders o ON o.id = s.order_id
+                        INNER JOIN facilities f ON s.facility_id = f.id 
+                        INNER JOIN patients p ON p.id = s.patient_id
+                        INNER JOIN patient_insurances pi ON pi.id = o.primary_patient_insurance_id
+                        INNER JOIN insurance_providers ip ON ip.id = pi.insurance_provider_id
+                        INNER JOIN billing.facility_settings bfs ON bfs.facility_id = f.id
+                        INNER JOIN billing.providers bp ON bp.id = bfs.default_provider_id
+                        INNER JOIN public.get_issuer_details(p.id, 'uli_phn') phn ON true
+                        LEFT JOIN LATERAL (
+                            SELECT 
+                                eligibility_response
+                                , eligibility_dt 
+                            FROM eligibility_log 
+                            WHERE patient_id = s.patient_id AND patient_insurance_id = pi.id
+                            ORDER BY id DESC 
+                            LIMIT 1
+                        ) el ON true
+                        WHERE
+                            s.schedule_dt IS NOT NULL
+                            AND to_facility_date(s.facility_id, s.schedule_dt) = DATE 'tomorrow'
+                            AND f.company_id = ${args.companyId}
+                            AND bp.can_bc_data_centre_number IS NOT NULL
+                            AND ip.insurance_code = 'MSP'
+                        `;
+        
+        return await queryRows(sql);
     },
 
     /**
@@ -779,7 +865,7 @@ const bcData = {
                                 SELECT
                                     id
                                 FROM public.insurance_providers
-                                WHERE code ILIKE 'msp'
+                                WHERE insurance_code ILIKE 'msp'
                                 LIMIT 1
                             )
                             INSERT INTO eligibility_log
@@ -792,15 +878,16 @@ const bcData = {
                             SELECT
                                 s.patient_id
                               , pi.id
-                              , er.eligibility_date
+                              , er.eligibility_response
                               , er.service_eligibility_date::TIMESTAMPTZ
                             FROM eligibility_response er
-                            INNER JOIN billing.edi_file_charges befc ON befc.sequence_number = er.data_centre_sequence_number
-                                AND befc.data_centre_number = er.data_centre_number
-                            INNER JOIN billing.charges_studies bchs ON bchs.charge_id = befc.charge_id
-                            INNER JOIN studies s ON s.id = bchs.study_id
+                            INNER JOIN billing.edi_file_batch_eligibility befbe ON befbe.sequence_number = er.data_centre_sequence_number
+                                AND befbe.data_centre_number = er.data_centre_number
+                            INNER JOIN studies s ON s.id = befbe.study_id
                             INNER JOIN patient_insurances pi ON pi.patient_id = s.patient_id
-                            WHERE pi.insurance_provider_id = default_insurance_details.id`;
+                            INNER JOIN default_insurance_details dinsd ON TRUE
+                            WHERE pi.insurance_provider_id = dinsd.id`;
+
 
         return await query(sql);
 
