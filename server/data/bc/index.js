@@ -383,6 +383,15 @@ const bcData = {
     */
     getAllscheduledClaims: async (args) => {
         const sql = SQL`
+                        WITH cfg as(
+                            SELECT
+                                option AS current
+                            FROM
+                                sites,
+                                jsonb_array_elements(web_config :: JSONB) option
+                            ORDER BY
+                                option ->> 'id' ASC
+                        )
                         SELECT 
                             s.id AS study_id
                             , f.time_zone
@@ -397,6 +406,7 @@ const bcData = {
                             , to_char(s.study_dt, 'YYYYMMDD') AS date_of_service
                             , el.eligibility_response
                             , el.eligibility_dt
+                            , CASE WHEN COALESCE(cfg.current->>'value','')= '' THEN NULL ELSE to_char((cfg.current->>'value')::DATE, 'YYYYMMDD') END AS installation_date
                         FROM studies s
                         INNER JOIN orders o ON o.id = s.order_id
                         INNER JOIN facilities f ON s.facility_id = f.id 
@@ -415,6 +425,7 @@ const bcData = {
                             ORDER BY id DESC 
                             LIMIT 1
                         ) el ON true
+                        LEFT JOIN cfg ON cfg.current->>'id' = 'goLiveDate'
                         WHERE
                             s.schedule_dt IS NOT NULL
                             AND to_facility_date(s.facility_id, s.schedule_dt) = DATE 'tomorrow'
@@ -512,7 +523,20 @@ const bcData = {
                         LIMIT 1
                     ) billing_providers ON true
                     WHERE bef.status  = 'pending' AND bef.company_id = ${companyId} AND bef.file_type = 'can_bc_submit'
-                    ORDER BY bef.id DESC
+                    UNION ALL
+                    SELECT
+                        NULL AS billing_provider_id
+                        , NULL AS claim_id
+                        , NULL AS can_bc_data_centre_number
+                        , bef.id AS edi_file_id
+                        , fs.root_directory
+                        , bef.file_path
+                        , bef.uploaded_file_name
+                        , c.time_zone
+                    FROM  billing.edi_files bef
+                    INNER JOIN file_stores fs ON fs.id = bef.file_store_id
+                    INNER JOIN companies c ON c.id = ${companyId}
+                    WHERE bef.status  = 'pending' AND bef.company_id = ${companyId} AND bef.file_type = 'can_bc_batch'
         `;
 
         return await query(sql);
@@ -891,7 +915,23 @@ const bcData = {
 
         return await query(sql);
 
-    }
+    },
+          
+    /**
+    * getLastUpdatedSequenceByDataCenterNumber - Last sequence number of billing provider
+    * @param {string} can_bc_data_centre_number  - billing provider data centre number
+    *
+    *  @returns {Int} sequence number
+    */
+    getLastUpdatedSequenceByDataCenterNumber: async(can_bc_data_centre_number) => {
+        const sql = SQL`
+                    SELECT
+                        id,
+                        can_bc_data_centre_sequence_number
+                    FROM billing.providers
+                    WHERE can_bc_data_centre_number = ${can_bc_data_centre_number}`;
+        return (await queryRows(sql)).pop();
+    },
 };
 
 module.exports = bcData;

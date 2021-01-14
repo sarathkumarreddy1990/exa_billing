@@ -11,7 +11,7 @@ const moment = require('moment');
  * @returns {string}
  */
 const checkVaildICD = (icds, pointer) => {
-    return icds && pointer && icds[pointer - 1] && (icds[pointer - 1].replace(/[. / -]/g, '')).padStart(5, '0');
+    return icds && pointer && icds[pointer - 1] && (icds[pointer - 1].replace(/[. / -]/g, '')).padStart(5, ' ');
 };
 
 /**
@@ -318,7 +318,7 @@ const processResults = (args, service) => {
         service_indicator,
         new_indicator: service.modality === 'MG' ? '02' : '00',
         billed_fee_item: service.code,
-        billed_amount: bill_fee && bill_fee.replace(/[, .]/g, ''),
+        billed_amount: can_bc_is_alt_payment_program ? '0' : bill_fee && bill_fee.replace(/[, .]/g, ''),
         payment_mode: can_bc_is_alt_payment_program ? 'E' : '0',
         service_date: service_date && service_date.format('YYYYMMDD'),
         service_to_day,
