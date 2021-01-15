@@ -670,6 +670,7 @@ define(['jquery',
                             self.patientAddress = claimDetails.patient_info ? commonjs.hstoreParse(claimDetails.patient_info) : {};
                             self.paymentList = claimDetails.payment_details || [];
                             self.billing_method = claimDetails.billing_method;
+                            self.phn = claimDetails.phn_acc_no;
                             $('.claimProcess').prop('disabled', false);
                             $('#btnSaveClaim').prop('disabled', false);
                             /* Bind claim charge Details - start */
