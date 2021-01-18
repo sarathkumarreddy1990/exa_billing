@@ -295,13 +295,11 @@ const api = {
             filtersUsed.push({name: 'providerGroupList', label: 'Provider Group', value: 'All'});
         }
 
-        if(params.payerTypeList)  {
-            const payerType = _(lookups.payerTypeList).map(f => f.description).value();
-            filtersUsed.push({name: 'payerTypeList', label: 'Payer Type', value: payerType });
-        }
-        else {
-            filtersUsed.push({name: 'payerTypeList', label: 'Payer Type', value: 'All'});
-        }
+        filtersUsed.push({
+           name:  'payerTypeList',
+           label: 'Payer Type',
+           value: params.payerTypeList ? _(lookups.payerTypeList).map(f => f.description).value() : 'All'
+        });
 
         filtersUsed.push({ name: 'fromDate', label: 'Date From', value: moment(params.fromDate).format(params.dateFormat) });
         filtersUsed.push({ name: 'toDate', label: 'Date To', value: moment(params.toDate).format(params.dateFormat) });
