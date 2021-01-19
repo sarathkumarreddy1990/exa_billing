@@ -852,10 +852,14 @@
                         <label class="col-sm-5 col-form-label" id="lblPriPhoneNo"></label>
                 </div>
                 <div class="form-group row">
-                    <label for="txtPriPolicyNo" class="col-sm-3 col-form-label" i18n="shared.fields.policyNumber"></label>
-                    <div class="col-sm-5">
-                        <input type="text" class="form-control" id="txtPriPolicyNo" i18np="shared.fields.policyNumber">
-                    </div>
+                    <% if (country_alpha_3_code==="usa" ) { %>
+                        <label for="txtPriPolicyNo" class="col-sm-3 col-form-label field-required" i18n="shared.fields.policyNumber"></label>
+                    <% } else { %>
+                        <label for="txtPriPolicyNo" class="col-sm-3 col-form-label" i18n="shared.fields.policyNumber"></label>
+                    <% } %>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtPriPolicyNo" i18np="shared.fields.policyNumber">
+                        </div>
                 </div>
                 <div class="form-group row">
                     <label for="txtPriGroupNo" class="col-sm-3 col-form-label" i18n="patient.patientInsurance.groupNo"></label>
