@@ -393,9 +393,9 @@ function ($, _, Backbone, UI, MainTemplate) {
                 $('#ddlPayerTypeBox').hide();
                 $('#divListPayerType').hide();
                 $('#ulListInsuranceProvider').hide();
-                $('#ulListPayerType').empty();
+                $('#ulListInsuranceProvider').empty();
                 this.viewModel.payerTypeList = [];
-                $('#ulListPayerType').data('ids', []);
+                $('#ulListInsuranceProvider').data('ids', []);
             }
         },
 
