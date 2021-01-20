@@ -165,7 +165,7 @@ const api = {
             dataHelper.getBillingProviderInfo(initialReportData.report.params.companyId,initialReportData.report.params.billingProvider),
             dataHelper.getReferringPhysicianInfo(initialReportData.report.params.companyId,initialReportData.report.params.referringDocList),
             dataHelper.getProviderGroupInfo(initialReportData.report.params.companyId,initialReportData.report.params.refProviderGroupList),
-            dataHelper.getAdjustmentCodeInfo(initialReportData.report.params.companyId,initialReportData.report.params.payerTypeList),
+            dataHelper.getInsuranceGroupInfo(initialReportData.report.params.companyId,initialReportData.report.params.payerTypeList),
 
             api.createProcedureAnalysisInsuranceDataSet(initialReportData.report.params),
             // other data sets could be added here...
@@ -294,6 +294,12 @@ const api = {
         else {
             filtersUsed.push({name: 'providerGroupList', label: 'Provider Group', value: 'All'});
         }
+
+        filtersUsed.push({
+           name:  'payerTypeList',
+           label: 'Payer Type',
+           value: params.payerTypeList ? _(lookups.payerTypeList).map(f => f.description).value() : 'All'
+        });
 
         filtersUsed.push({ name: 'fromDate', label: 'Date From', value: moment(params.fromDate).format(params.dateFormat) });
         filtersUsed.push({ name: 'toDate', label: 'Date To', value: moment(params.toDate).format(params.dateFormat) });
