@@ -395,7 +395,10 @@ define([
                     $('#ulListUsers').empty();
                     this.viewModel.userNames = [];
                     this.viewModel.userIds = [];
-                    $('#ulListUsers').data('userIds', [])
+                    $('#ulListUsers').data('userIds', []);
+                    $('#ulListCPTCodeDetails').empty();
+                    this.viewModel.cptCodeLists = [];
+                    $('#ulListCPTCodeDetails').data('cptIds', []);
                 }
             },
 
