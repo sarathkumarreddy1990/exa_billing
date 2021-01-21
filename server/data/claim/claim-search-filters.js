@@ -35,7 +35,7 @@ const colModel = [
     {
         name: 'reason_code',
         searchColumns: ['cas_reason_codes.code'],
-        searchFlag: '%'
+        searchFlag: 'arrayString'
     },
     {
         name: 'birth_date',
@@ -409,19 +409,13 @@ const api = {
 
         if (tables.cas_reason_codes) {
             r += ` LEFT JOIN LATERAL (
-                        SELECT
-                            bc.id,
-                            TRIM ( LEADING '{' FROM
-                                TRIM ( TRAILING '}' FROM
-                                        ARRAY_AGG (
-                                            CASE
-                                                WHEN pa.created_dt IS NULL OR cc.created_dt >= pa.created_dt
-                                                THEN bcrc.code
-                                                ELSE bcr.code
-                                            END
-                                        )
-                                        FILTER (WHERE bcrc.code IS NOT NULL OR bcr.code IS NOT NULL)::TEXT
-                                )
+                       SELECT ARRAY(
+                           SELECT
+                                ( CASE
+                                    WHEN pa.created_dt IS NULL OR cc.created_dt >= pa.created_dt
+                                    THEN bcrc.code
+                                    ELSE bcr.code
+                                END
                             ) AS code
                         FROM billing.claims bc
                         INNER JOIN billing.claim_status bcs ON bcs.id = bc.claim_status_id
@@ -432,10 +426,11 @@ const api = {
                         LEFT JOIN billing.cas_reason_codes bcrc ON bcrc.id = cc.cas_reason_code_id
                         LEFT JOIN billing.cas_reason_codes bcr ON bcr.id = pa.cas_reason_code_id
                         WHERE (bcrc.code IS NOT NULL OR bcr.code IS NOT NULL) AND bcs.code NOT IN('PA', 'PP')
-                        GROUP BY bc.id, cc.created_dt, pa.created_dt, bcs.code
+                        AND bc.id = claims.id
                         ORDER BY cc.created_dt, pa.created_dt DESC
+                        )  AS code
                     ) AS cas_reason_codes
-                    ON cas_reason_codes.id = claims.id `;
+                    ON true `;
         }
 
 
