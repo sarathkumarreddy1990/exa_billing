@@ -280,6 +280,7 @@ const api = {
         switch (args) {
             case 'study_dt':
             case 'study_received_dt': return 'claims.claim_dt';
+            case 'created_dt': return 'claims.created_dt';
             case 'claim_status': return 'claim_status.description';
             case 'claim_id':
             case 'id': return 'claims.id';
