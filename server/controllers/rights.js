@@ -15,6 +15,7 @@ module.exports = {
             `/exa_modules/billing/ohip/validateHealthCard`,
             `/exa_modules/billing/ohip/applyRemittanceAdvice`,
             `/exa_modules/billing/ohip/downloadRemittanceAdvice`,
+            '/exa_modules/billing/era/download'
         ];
 
         let {
