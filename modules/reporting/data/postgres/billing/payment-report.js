@@ -130,7 +130,7 @@ const detailQueryTemplate = _.template(`
             bc.id  claim_id,
             SUM(CASE WHEN amount_type= 'payment' then bpa.amount  else 0::money end) AS applied_amount,
             SUM(CASE WHEN amount_type= 'adjustment' then bpa.amount  else 0::money end) AS adjustment,
-            bac.description AS description
+            ARRAY_REMOVE(ARRAY_AGG(bac.description),null) AS description
             <% if (userIds) { %> , MAX(users.username) AS user_name  <% } %>
         FROM
             billing.payments bp
@@ -167,18 +167,7 @@ const detailQueryTemplate = _.template(`
                     <% if (adjustmentCodeIds) { %> AND  <% print(adjustmentCodeIds); } %>
             ) have_adjustment ON have_adjustment.payment_id = bp.id and have_adjustment.charge_id = bpa.charge_id
         <% } %>
-        LEFT JOIN LATERAL (
-                SELECT
-                    i_bac.description
-                FROM
-                    billing.payment_applications i_bpa
-                INNER JOIN billing.adjustment_codes i_bac ON i_bac.id = i_bpa.adjustment_code_id
-                WHERE
-                    i_bpa.payment_id = bp.id
-                ORDER BY
-                    i_bpa.id
-                LIMIT 1
-        ) bac ON TRUE
+        LEFT JOIN billing.adjustment_codes bac ON bac.id = bpa.adjustment_code_id
         WHERE
             <%= claimDate %>
             <% if (facilityIds) { %>AND <% print(facilityIds); } %>
@@ -187,7 +176,7 @@ const detailQueryTemplate = _.template(`
             <% if (userIds) { %>AND <% print(userIds); } %>
             <% if (userRoleIds) { %>AND <% print(userRoleIds); } %>
         GROUP BY
-            bp.id, bc.id, bac.description
+            bp.id, bc.id
     )
     SELECT
         to_char(p.accounting_date, '<%= dateFormat %>')   AS "Accounting Date",
