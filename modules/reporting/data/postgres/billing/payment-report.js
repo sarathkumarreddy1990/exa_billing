@@ -130,7 +130,7 @@ const detailQueryTemplate = _.template(`
             bc.id  claim_id,
             SUM(CASE WHEN amount_type= 'payment' then bpa.amount  else 0::money end) AS applied_amount,
             SUM(CASE WHEN amount_type= 'adjustment' then bpa.amount  else 0::money end) AS adjustment,
-            ARRAY_REMOVE(ARRAY_AGG(bac.description),null) AS description
+            ARRAY_REMOVE(ARRAY_AGG(DISTINCT bac.description),null) AS description
             <% if (userIds) { %> , MAX(users.username) AS user_name  <% } %>
         FROM
             billing.payments bp
