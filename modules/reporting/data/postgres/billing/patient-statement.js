@@ -10,7 +10,8 @@ const _ = require('lodash')
 const patientStatementDataSetQueryTemplate = _.template(`
 WITH claim_data AS (
     SELECT
-        bc.id AS claim_id
+        bc.id AS claim_id,
+        bc.facility_id
     FROM billing.claims bc
     INNER JOIN billing.claim_status bcs ON bcs.id = bc.claim_status_id
     WHERE bc.payer_type = 'patient'
@@ -42,7 +43,7 @@ WITH claim_data AS (
     SELECT c.claim_id as id,
            'charge' as type,
            cc.short_description as comments,
-           c.charge_dt as commented_dt,
+           to_facility_date(cd.facility_id, c.charge_dt) as commented_dt,
            (c.bill_fee*c.units) as amount,
            u.username as commented_by,
            cc.display_code as code,
@@ -597,7 +598,7 @@ const api = {
         }
 
         filtersUsed.push({ name: 'payToProvider', label: 'Use address of Pay-To Provider', value: params.payToProvider ? 'Yes' : 'No' });
-        
+
         filtersUsed.push({
             name: 'logInClaimInquiry',
             label: 'Log in claim inquiry',
