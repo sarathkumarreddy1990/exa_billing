@@ -440,8 +440,8 @@ define([
                     gridelementid: '#tblPatientClaimsGrid',
                     custompager: this.claimsPager,
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['', '', '', 'Claim Number', 'Claim Date', 'Billing Fee', 'Total Adjustment','Total Insurance Payments', 'Total Patient Payments', 'Balance', 'Claim Status', 'Current responsibility'],
-                    i18nNames: ['', '', '', 'billing.fileInsurance.claimNo', 'billing.claims.claimDate', 'billing.COB.billingFee','billing.fileInsurance.totalAdjustment', 'billing.claims.totalInsurancePayments', 'billing.claims.totalPatientPayments', 'billing.claims.Balance', 'billing.claims.claimStatus', 'billing.claims.currentResponsibility'],
+                    colNames: ['', '', '', 'Claim Number', 'Study Date', 'Billing Fee', 'Total Adjustment','Total Insurance Payments', 'Total Patient Payments', 'Balance', 'Claim Status', 'Current responsibility'],
+                    i18nNames: ['', '', '', 'billing.fileInsurance.claimNo', 'billing.claims.studyDate', 'billing.COB.billingFee','billing.fileInsurance.totalAdjustment', 'billing.claims.totalInsurancePayments', 'billing.claims.totalPatientPayments', 'billing.claims.Balance', 'billing.claims.claimStatus', 'billing.claims.currentResponsibility'],
                     colModel: [
                         { name: '', index: 'claim_id', key: true, hidden: true, search: false },
                         { name: 'billing_provider_id', hidden: true, search: false },
@@ -823,8 +823,8 @@ define([
                     gridelementid: '#tblCIClaimComments',
                     custompager: self.claimInquiryPager,
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['','', 'date','ClaimDate', 'code', 'sequence_number', '', 'payment.id', 'comment', 'Diag Ptr', 'charge', 'payment', 'adjustment', '', '', '', '',''],
-                    i18nNames: ['', '', 'billing.claims.date','billing.claims.claimDate', 'billing.COB.code', 'shared.fields.sequenceNumbers', '', 'billing.payments.paymentID', 'billing.payments.comment', 'billing.COB.diagptr',
+                    colNames: ['','', 'Transaction date','Claim Date', 'code', 'sequence_number', '', 'payment.id', 'comment', 'Diag Ptr', 'charge', 'payment', 'adjustment', '', '', '', '',''],
+                    i18nNames: ['', '', 'billing.claims.transactionDate','billing.claims.claimDate', 'billing.COB.code', 'shared.fields.sequenceNumbers', '', 'billing.payments.paymentID', 'billing.payments.comment', 'billing.COB.diagptr',
                         'billing.payments.charge', 'billing.payments.payments', 'billing.fileInsurance.adjustments', '', '', '', '', 'billing.payments.printOnStatements'
                     ],
                     colModel: [

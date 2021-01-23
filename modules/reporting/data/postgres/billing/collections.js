@@ -368,7 +368,7 @@ const api = {
         }
 
         filtersUsed.push({ name: 'fromDate', label: 'Date From', value: commonIndex.getLocaleDate(params.fromDate, params.browserLocale) });
-        filtersUsed.push({ name: 'toDate', label: 'Date To', value: commonIndex.getLocaleDate(params.fromDate, params.browserLocale) });
+        filtersUsed.push({ name: 'toDate', label: 'Date To', value: commonIndex.getLocaleDate(params.toDate, params.browserLocale) });
         return filtersUsed;
     },
 

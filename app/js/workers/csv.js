@@ -34,6 +34,8 @@ const claimColumns = {
     "Date of Injury": "current_illness_date",
     "Charge Description":"charge_description",
     "Ins Provider Type": "ins_provider_type",
+    "Insurance Providers": "insurance_providers",
+    "ICD Description": "icd_description",
     "Ordering Facility": "ordering_facility_name",
     "Facility": "facility_name",
     "First Statement Date": "first_statement_dt",

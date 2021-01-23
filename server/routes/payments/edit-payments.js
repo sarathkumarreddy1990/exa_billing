@@ -30,7 +30,11 @@ router.get('/patient_search', async function (req, res) {
 });
 
 router.get('/patient_count', async function (req, res) {
-    const data = await paymentsController.getTotalPatients(req.query);
+    let params = {
+        ...req.query,
+        isCount: true
+    }
+    const data = await paymentsController.getTotalPatients(params);
     httpHandler.sendRows(req, res, data);
 });
 
