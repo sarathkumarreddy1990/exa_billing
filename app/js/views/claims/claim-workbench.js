@@ -568,10 +568,12 @@ define(['jquery',
                         billingRegionCode:app.billingRegionCode
                     }
                 } else {
+                    var insuranceProviders = [];
                     for (var i = 0; i < gridElement.length; i++) {
                         var rowId = gridElement[i].parentNode.parentNode.id;
                         var claimStatus = self.getGridCellData(filter, rowId, 'hidden_claim_status_code');
-                        var insuranceProvider = self.getGridCellData(filter, rowId, 'hidden_insurance_providers');
+                        var insProvider = self.getGridCellData(filter, rowId, 'hidden_insurance_providers');
+                        if (insProvider) { insuranceProviders.push(insProvider); }
                         if (claimStatus === "PV") {
                             commonjs.showWarning('messages.status.pleaseValidateClaims');
                             return false;
@@ -664,7 +666,7 @@ define(['jquery',
                         userId: app.userID
                     }
 
-                    if (insuranceProvider != '' && billingMethodFormat === "special_form") {
+                    if (insuranceProviders.length === gridElement.length && billingMethodFormat === "special_form") {
                         paperClaim.print('special_form', claimIds);
                         return;
                     } else {
