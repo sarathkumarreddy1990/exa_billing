@@ -26,7 +26,7 @@ module.exports = {
                 , SUM(ch.allowed_amount * ch.units) AS allowed_fee
                 , (SELECT SUM(claim_balance_total) FROM billing.get_claim_totals(bc.id)) AS claim_balance
                 , bc.billing_notes
-                , claim_dt
+                , (timezone(get_facility_tz(bc.facility_id::integer), bc.claim_dt)::date)::text AS claim_dt
                 , pos.description AS pos_name
                 , bpr.name AS billing_provider_name
             FROM billing.claims bc
@@ -167,7 +167,7 @@ module.exports = {
                         , 'charge' AS code
                         , cpt.display_code AS  type
                         , cpt.short_description AS comments
-                        , ch.charge_dt::text as commented_dt
+                        , (timezone(get_facility_tz(bc.facility_id::integer), ch.charge_dt)::date)::text AS commented_dt
                         , false AS is_internal
                         , (ch.units * ch.bill_fee) AS charge_amount
                         , ARRAY[COALESCE(pointer1, ''), COALESCE(pointer2, ''), COALESCE(pointer3, ''), COALESCE(pointer4, '')] AS charge_pointer
