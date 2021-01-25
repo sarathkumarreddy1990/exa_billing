@@ -570,8 +570,8 @@ define(['jquery',
                 } else {
                     for (var i = 0; i < gridElement.length; i++) {
                         var rowId = gridElement[i].parentNode.parentNode.id;
-                        var claimStatus = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_claim_status_code');
-
+                        var claimStatus = self.getGridCellData(filter, rowId, 'hidden_claim_status_code');
+                        var insuranceProvider = self.getGridCellData(filter, rowId, 'hidden_insurance_providers');
                         if (claimStatus === "PV") {
                             commonjs.showWarning('messages.status.pleaseValidateClaims');
                             return false;
@@ -615,7 +615,7 @@ define(['jquery',
                             }
                         }
 
-                        var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_billing_method');
+                        var billingMethod = self.getGridCellData(filter, rowId, 'hidden_billing_method');
 
                         var rowData = $(filter.options.gridelementid).jqGrid('getRowData', rowId);
                         var claimDt = moment(rowData.claim_dt).format('L');
@@ -642,7 +642,7 @@ define(['jquery',
                             existingBillingMethod = billingMethod;
                         }
 
-                        var clearingHouse = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_clearing_house');
+                        var clearingHouse =  self.getGridCellData(filter, rowId, 'hidden_clearing_house');
                         if (existingClearingHouse === '') existingClearingHouse = clearingHouse;
                         if (app.country_alpha_3_code !== "can" && existingClearingHouse !== clearingHouse && billingMethod === 'electronic_billing') {
                             commonjs.showWarning('messages.status.pleaseSelectClaimsWithSameTypeOfClearingHouseClaims');
@@ -651,10 +651,10 @@ define(['jquery',
                             existingClearingHouse = clearingHouse;
                         }
 
-                        var payerName = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'payer_name');
+                        var payerName = self.getGridCellData(filter, rowId, 'payer_name');
                         selectedPayerName.push(payerName)
 
-                        var invoice_no = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_invoice_no');
+                        var invoice_no = self.getGridCellData(filter, rowId, 'hidden_invoice_no');
                         invoiceNo.push(invoice_no);
                         claimIds.push(rowId);
                     }
@@ -664,9 +664,12 @@ define(['jquery',
                         userId: app.userID
                     }
 
-                    if (billingMethodFormat === "special_form") {
+                    if (insuranceProvider != '' && billingMethodFormat === "special_form") {
                         paperClaim.print('special_form', claimIds);
                         return;
+                    } else {
+                        commonjs.showWarning(gridElement.length === 1 ? 'messages.status.pleaseSelectClaimHavingInsurance' : 'messages.status.pleaseSelectClaimsHavingInsurance');
+                        return false;
                     }
 
                     if (existingBillingMethod === 'paper_claim') {
@@ -2862,7 +2865,9 @@ define(['jquery',
                     $("#" + divId).hide();
                 });
             },
-
+            getGridCellData: function (filter, rowId, cell) {
+                return $(filter.options.gridelementid).jqGrid('getCell', rowId, cell);
+            },
             validateClaim: function(){
                 var self=this;
                 var filterID = commonjs.currentStudyFilter;
@@ -2874,7 +2879,7 @@ define(['jquery',
 
                 for (var i = 0; i < selectedClaimsRows.length; i++) {
                     var rowId = selectedClaimsRows[i].parentNode.parentNode.id;
-                    var billingMethod = $(filter.options.gridelementid).jqGrid('getCell', rowId, 'hidden_billing_method');
+                    var billingMethod = self.getGridCellData(filter, rowId, 'hidden_billing_method');
 
                     if (app.country_alpha_3_code === 'can') {
                         if (!billingMethod) {
