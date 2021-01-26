@@ -29,8 +29,8 @@ router.get('/about', function (req, res) {
     });
 });
 
-router.post('/studyStatusChanged', async (req, res) => {
-    const abrResults = await autobillingData.executeAutobillingRules(req.body);
+router.get('/studyStatusChanged', async (req, res) => {
+    const abrResults = await autobillingData.executeAutobillingRules(req.query);
     httpHandler.send(req, res, abrResults);
 });
 
