@@ -572,7 +572,7 @@ const acr = {
                , insert_claim_comment_audit_cte as(
                     SELECT billing.create_audit(
                         ${auditDetails.company_id}
-                        , '${auditDetails.screen_name}'
+                        , 'claims'
                         , claim_id
                         , '${auditDetails.screen_name}'
                         , '${auditDetails.module_name}'
