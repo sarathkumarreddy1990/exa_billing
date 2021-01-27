@@ -573,7 +573,11 @@ define(['jquery',
                         var rowId = gridElement[i].parentNode.parentNode.id;
                         var claimStatus = self.getGridCellData(filter, rowId, 'hidden_claim_status_code');
                         var insProvider = self.getGridCellData(filter, rowId, 'hidden_insurance_providers');
-                        if (insProvider) { insuranceProviders.push(insProvider); }
+
+                        if (insProvider) {
+                            insuranceProviders.push(insProvider);
+                        }
+                        
                         if (claimStatus === "PV") {
                             commonjs.showWarning('messages.status.pleaseValidateClaims');
                             return false;
