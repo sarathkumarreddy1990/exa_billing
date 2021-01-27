@@ -669,13 +669,14 @@ define(['jquery',
                         claimIds: claimIds.toString(),
                         userId: app.userID
                     }
-
-                    if (insuranceProviders.length === gridElement.length && billingMethodFormat === "special_form") {
-                        paperClaim.print('special_form', claimIds);
-                        return;
-                    } else {
-                        commonjs.showWarning(gridElement.length === 1 ? 'messages.status.pleaseSelectClaimHavingInsurance' : 'messages.status.pleaseSelectClaimsHavingInsurance');
-                        return false;
+                    if (billingMethodFormat === "special_form") {
+                        if (insuranceProviders.length === gridElement.length) {
+                            paperClaim.print('special_form', claimIds);
+                            return;
+                        } else {
+                            commonjs.showWarning(gridElement.length === 1 ? 'messages.status.pleaseSelectClaimHavingInsurance' : 'messages.status.pleaseSelectClaimsHavingInsurance');
+                            return false;
+                        }
                     }
 
                     if (existingBillingMethod === 'paper_claim') {
