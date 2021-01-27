@@ -43,7 +43,7 @@ function get_branch() {
     return `${branch}`;
 }
 
-const less = parallel(less_default, less_dark);
+const less = parallel(less_default, less_dark, less_chat);
 exports.less = less;
 exports.clean = clean;
 exports.default = exports.build = series(check_build_environment, clean, copy, bump, npm_ci, less,
@@ -102,6 +102,12 @@ function less_dark() {
     return src(['./app/skins/dark/*.less'])
         .pipe(gulp_less({paths: [path.join(__dirname, 'app/skins/dark/index.less')]}))
         .pipe(dest('./build/app/skins/dark'))
+}
+
+function less_chat () {
+    return src([ './app/js/modules/multichat/stylesheets/chat.less' ])
+        .pipe(gulp_less({ paths: [ path.join(__dirname, 'app/js/modules/multichat/stylesheets/chat.less') ] }))
+        .pipe(dest('./build/app/js/modules/multichat/stylesheets'));
 }
 
 function requirejsBuild(cb) {
