@@ -142,7 +142,7 @@ const acr = {
 
         let auditDetails = {
             company_id: companyId,
-            screen_name: screenName,
+            screen_name: 'Payments',
             module_name: moduleName,
             client_ip: ip,
             user_id: parseInt(userId)
@@ -249,7 +249,7 @@ const acr = {
                 , insert_audit_cte AS(
                     SELECT billing.create_audit(
                         company_id
-                    , ${screenName}
+                    , ${auditDetails.screen_name}
                     , id
                     , ${screenName}
                     , ${moduleName}
@@ -573,7 +573,7 @@ const acr = {
                     SELECT billing.create_audit(
                         ${auditDetails.company_id}
                         , '${auditDetails.screen_name}'
-                        , id
+                        , claim_id
                         , '${auditDetails.screen_name}'
                         , '${auditDetails.module_name}'
                         , 'Claim Comments inserted AS Claim was sent to collections review'
