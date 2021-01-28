@@ -9,13 +9,13 @@ const commonIndex = require('../../../../../server/shared/index');
 const invoiceActivityStatementTemplate = _.template(`
 WITH get_payer_details AS(
     SELECT
-        bc.ordering_facility_id AS ordering_facility_id
+    <%= selectDetails %>
     FROM
         billing.claims bc
-    INNER JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id
+    <%= joinCondition %>
     WHERE
         bc.invoice_no IS NOT NULL
-        AND bc.id =  <%= claimId %>
+        AND bc.id = <%= claimId %>
 ),
 claim_details AS(
     SELECT
@@ -121,10 +121,12 @@ charge_details AS(
          ARRAY_AGG(bc.id) AS claim_id,
          bc.facility_id
     FROM billing.claims bc
-        INNER JOIN get_payer_details gpd ON gpd.ordering_facility_id = bc.ordering_facility_id
+        <%= joinQuery %>
         INNER JOIN LATERAL (SELECT * FROM billing.get_claim_totals(bc.id)) claim_totals ON true
     WHERE
         bc.invoice_no IS NOT NULL
+        AND bc.billing_method = 'direct_billing'
+        <%= whereQuery %>
     GROUP BY
         invoice_no,
         facility_id
@@ -138,10 +140,12 @@ invoice_payment_details AS(
         claim_totals.claim_balance_total AS balance
     FROM
         billing.claims bc
-    INNER JOIN get_payer_details gpd ON gpd.ordering_facility_id = bc.ordering_facility_id
+    <%= joinQuery %>
     INNER JOIN LATERAL (SELECT * FROM billing.get_claim_totals(bc.id)) claim_totals ON true
     WHERE
         bc.invoice_no IS NOT NULL
+        AND bc.billing_method = 'direct_billing'
+        <%= whereQuery %>
     GROUP BY
         submitted_dt,
         claim_totals.claim_balance_total
@@ -232,14 +236,63 @@ const api = {
 
     getinvoiceActivityDataSetQueryContext: (reportParams) => {
         const params = [];
+        let {
+            claimId = null,
+            payerType = null
+        } = reportParams;
         const filters = {
             browserDateFormat: null,
-            claimId: null
+            claimId,
+            payerType,
+            selectDetails: '',
+            joinCondition: '',
+            joinQuery: '',
+            whereQuery: ''
+
         };
 
         filters.browserDateFormat = commonIndex.getLocaleFormat(reportParams.browserLocale);
-
-        filters.claimId = reportParams.claimId;
+        switch (payerType) {
+            case 'ordering_facility':
+                filters.selectDetails = ' bc.ordering_facility_id AS ordering_facility_id, bc.payer_type ';
+                filters.joinCondition = 'INNER JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id';
+                filters.joinQuery = 'INNER JOIN get_payer_details gpd ON gpd.ordering_facility_id = bc.ordering_facility_id AND gpd.payer_type = bc.payer_type';
+                break;
+            case 'primary_insurance':
+                filters.selectDetails = ' ppi.insurance_provider_id AS insurance_provider_id, bc.payer_type ';
+                filters.joinQuery = ` INNER JOIN LATERAL (
+                            SELECT id
+                            FROM public.patient_insurances ppi
+                            INNER JOIN	get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id
+                          ) ppi ON TRUE `;
+                filters.joinCondition = 'INNER JOIN public.patient_insurances ppi ON ppi.id = bc.primary_patient_insurance_id';
+                break;
+            case 'secondary_insurance':
+                filters.selectDetails = ' ppi.insurance_provider_id AS insurance_provider_id, bc.payer_type ';
+                filters.joinQuery = ` INNER JOIN LATERAL (
+                            SELECT id
+                            FROM public.patient_insurances ppi
+                            INNER JOIN    get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id
+                          ) ppi ON TRUE `;
+                filters.whereQuery = ` AND bc.payer_type = 'secondary_insurance' AND bc.secondary_patient_insurance_id = ppi.id`;
+                filters.joinCondition = 'INNER JOIN public.patient_insurances ppi ON ppi.id = bc.secondary_patient_insurance_id';
+                break;
+            case 'tertiary_insurance':
+                filters.selectDetails = ' ppi.insurance_provider_id AS insurance_provider_id, bc.payer_type ';
+                filters.joinQuery = ` INNER JOIN LATERAL (
+                            SELECT id
+                            FROM public.patient_insurances ppi
+                            INNER JOIN    get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id
+                          ) ppi ON TRUE `;
+                filters.whereQuery = ` AND bc.payer_type = 'tertiary_insurance' AND  bc.tertiary_patient_insurance_id = ppi.id`;
+                filters.joinCondition = 'INNER JOIN public.patient_insurances ppi ON ppi.id = bc.tertiary_patient_insurance_id';
+                break;
+            case 'referring_provider':
+                filters.selectDetails = ' bc.referring_provider_contact_id AS referring_provider_contact_id, bc.payer_type ';
+                filters.joinCondition = 'INNER JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id';
+                filters.joinQuery = 'INNER JOIN get_payer_details gpd ON gpd.referring_provider_contact_id = bc.referring_provider_contact_id AND gpd.payer_type = bc.payer_type';
+                break;
+        }
 
         return {
             queryParams: params,
