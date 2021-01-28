@@ -222,7 +222,8 @@ module.exports = {
                 if (ediFileId > 0) {
                     await data.updateEDIFile({
                         status: ediStatus,
-                        ediFileId: ediFileId
+                        ediFileId: ediFileId,
+                        ...params
                     });
                 }
             }

@@ -145,7 +145,7 @@ module.exports = {
                             )
                             SELECT billing.create_audit(
                                   ${companyId}
-                                , ${entityName}
+                                , lower(${entityName})
                                 , uc.id
                                 , ${screenName}
                                 , ${moduleName}
@@ -959,20 +959,46 @@ module.exports = {
     },
 
     updateEDIFile: async (args) => {
-        const {
+        let {
             status,
-            ediFileId
+            userId,
+            clientIp,
+            ediFileId,
+            companyId,
+            screenName,
+            moduleName,
+            claimIds,
         } = args || {};
 
+        claimIds = claimIds.split(',').map(Number);
+
         const sql = SQL`
-            UPDATE
-                billing.edi_files ef
-            SET
-                status = ${status}
-            WHERE
-                ef.id = ${ediFileId}
-            RETURNING
-                id;`;
+            WITH update_cte AS (
+                UPDATE
+                    billing.edi_files ef
+                SET
+                    status = ${status}
+                WHERE
+                    ef.id = ${ediFileId}
+                RETURNING
+                id, '{}'::jsonb old_values
+            )
+            SELECT billing.create_audit(
+                      ${companyId}
+                    , 'claims'
+                    , c.id
+                    , ${screenName}
+                    , ${moduleName}
+                    , 'Electronic claim has been submitted and EDI file Id: ' || ${ediFileId}
+                    , ${clientIp}
+                    , json_build_object(
+                        'old_values', '{}',
+                        'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM update_cte LIMIT 1 ) temp_row)
+                        )::jsonb
+                    , ${userId}
+                    ) AS id
+                FROM unnest(${claimIds}::bigint[]) claim_id
+                INNER JOIN billing.claims c on c.id = claim_id `;
 
         return await query(sql.text, sql.values);
     }
