@@ -170,6 +170,7 @@ module.exports = {
             userId,
             isClaim,
             clientIp,
+            auditDesc,
             payerType,
             companyId,
             screenName,
@@ -299,11 +300,11 @@ module.exports = {
         let updateClaimAuditData =SQL`, update_claim_audit_cte AS(
                                         SELECT billing.create_audit (
                                             ${companyId},
-                                            ${entityName},
+                                            lower(${entityName}),
                                             us.id,
                                             ${screenName},
                                             ${moduleName},
-                                            ' Claim status has changed during claim process (Paper/EDI) ID :' || us.id,
+                                            ${auditDesc} || ' ID :' || us.id,
                                             ${clientIp},
                                             json_build_object(
                                                 'old_values', COALESCE(us.old_values, '{}'),
