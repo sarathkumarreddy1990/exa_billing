@@ -1042,7 +1042,7 @@ module.exports = {
         }
 
         if (created_dt) {
-            sql.append(` AND ((audit.created_dt)::date =('${created_dt}')::date) `);
+            sql.append(` AND ((audit.created_dt)::date = ('${created_dt}')) `);
         }
 
         sql.append(` UNION ALL
@@ -1070,7 +1070,7 @@ module.exports = {
         }
 
         if (created_dt) {
-            sql.append(` AND ((cc.created_dt)::date =('${created_dt}')::date) `);
+            sql.append(` AND ((cc.created_dt)::date = ('${created_dt}')) `);
         }
 
         sql.append(SQL` ORDER BY  `)
