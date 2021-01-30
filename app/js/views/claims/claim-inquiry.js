@@ -758,7 +758,7 @@ define([
                     container: self.el,
                     cmTemplate: { sortable: false },
                     customizeSort: false,
-                    sortname: "audit.id",
+                    sortname: "created_dt",
                     sortorder: "desc",
                     dblClickActionIndex: 1,
                     disablesearch: false,

@@ -974,7 +974,6 @@ module.exports = {
     },
 
     getclaimPatientLog: async function (params) {
-        let whereQuery = [];
         params.sortOrder = params.sortOrder || ' ASC';
         let {
             sortOrder,
@@ -985,24 +984,9 @@ module.exports = {
             username,
             screen_name,
             description,
-            created_dt
+            created_dt,
+            claimID
         } = params;
-
-        if (username) {
-            whereQuery.push(` users.username ILIKE '%${username}%'`);
-        }
-
-        if (screen_name) {
-            whereQuery.push(` audit.screen_name ILIKE '%${screen_name}%'`);
-        }
-
-        if (description) {
-            whereQuery.push(` audit.description ILIKE '%${description}%'`);
-        }
-
-        if (created_dt) {
-            whereQuery.push(` ((audit.created_dt)::date =('${created_dt}')::date) `);
-        }
 
         let sql = SQL`
                 SELECT DISTINCT
@@ -1032,12 +1016,50 @@ module.exports = {
                                         AND audit.entity_name = 'AutoCollectionReview' ) )
                     INNER JOIN users
                             ON users.id = audit.created_by
-                    WHERE  bc.patient_id=${patientId}
-                    `;
+                    WHERE  bc.patient_id=${patientId} `
 
-        if (whereQuery.length) {
-            sql.append(SQL` AND `)
-                .append(whereQuery.join(' AND '));
+        if (username) {
+            sql.append(` AND users.username ILIKE '%${username}%' `);
+        }
+
+        if (screen_name) {
+            sql.append(` AND audit.screen_name ILIKE '%${screen_name}%' `);
+        }
+
+        if (description) {
+            sql.append(` AND audit.description ILIKE '%${description}%' `);
+        }
+
+        if (created_dt) {
+            sql.append(` AND ((audit.created_dt)::date = ('${created_dt}')) `);
+        }
+
+        sql.append(` UNION ALL
+                    SELECT
+                        NULL,
+                        users.username,
+                        cc.created_dt,
+                        'Claims',
+                        cc.note,
+                        bc.facility_id
+                    FROM
+                        billing.claim_comments cc
+                    INNER JOIN users ON users.id = cc.created_by
+                    LEFT JOIN billing.claims bc ON bc.id = cc.claim_id
+                    WHERE
+                        claim_id = ${claimID}
+                        AND note ILIKE 'Paper claim (B&W) fax sent to %' `);
+
+        if (username) {
+            sql.append(` AND users.username ILIKE '%${username}%' `);
+        }
+
+        if (description) {
+            sql.append(` AND cc.note ILIKE '%${description}%' `);
+        }
+
+        if (created_dt) {
+            sql.append(` AND ((cc.created_dt)::date = ('${created_dt}')) `);
         }
 
         sql.append(SQL` ORDER BY  `)
