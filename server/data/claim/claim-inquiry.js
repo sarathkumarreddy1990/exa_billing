@@ -1016,7 +1016,8 @@ module.exports = {
         }
 
         let sql = SQL`
-                SELECT audit.id,
+                SELECT DISTINCT
+                    audit.id,
                     users.username,
                     audit.created_dt,
                     audit.screen_name,
@@ -1037,7 +1038,9 @@ module.exports = {
                                     OR ( audit.entity_key = bp.id
                                         AND audit.entity_name = 'Payments' )
                                     OR ( audit.entity_key = bpa.id
-                                        AND audit.entity_name = 'payment_applications' ) )
+                                        AND audit.entity_name = 'payment_applications' )
+                                    OR ( audit.entity_key = bc.id
+                                        AND audit.entity_name = 'AutoCollectionReview' ) )
                     INNER JOIN users
                             ON users.id = audit.created_by
                     WHERE  bc.patient_id=${patientId}

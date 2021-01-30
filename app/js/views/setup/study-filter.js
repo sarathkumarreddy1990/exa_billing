@@ -2317,6 +2317,7 @@ define([
                $('#lblSummaryStudyDescription').text('');
                $('#lblSummaryInsurance').text('');
 
+               $('#lblSummaryInsuranceGroup').text('');
                $('#lblSummaryStudyID').text('');
                 $('#txtAccession').val('');
                 $('#txtAttorney').val('');
@@ -2419,14 +2420,36 @@ define([
                 $('#lblSummaryStat').text('Stat :' + this.listBoxSelectedArray('listStat', 'State'));
                 $('#lblSummaryFlag').text('Flag :' + this.listBoxSelectedArray('listFlag', 'Flag'));
                 $('#lblSummaryAccession').text('Accession :' + ($.trim($('#txtAccession').val()).length > 0 ? $('input[name=Accession]:checked').val() + " " + $.trim($('#txtAccession').val()) : ""));
-                $('#lblSummaryAttorney').text('Attorney :' + ($.trim($('#txtAttorney').val()).length > 0 ? $('input[name=Attorney]:checked').val() + " " + $.trim($('#txtAttorney').val()) : ""));
-                $('#lblSummaryStudyDescription').text('Study Description :' + ($.trim($('#txtStudyDescription').val()).length > 0 ? $('input[name=StudyDescription]:checked').val() + " " + $.trim($('#txtStudyDescription').val()) : ""));
+                var attroney = this.ulListArray('ulListAttorneys');
+                if (attroney.length > 0) {
+                    $('#lblSummaryAttorney').text('Attorney: ' + $('input[name=Attorney]:checked').val() + ' ' + attroney);
+                }
+
+                var studyDesc = this.ulListArray('ulListStudyDescriptions');
+                if (studyDesc.length > 0) {
+                    $('#lblSummaryStudyDescription').text('Study Description :' + ($('input[name=StudyDescription]:checked').val() + " " + this.ulListArray('ulListStudyDescriptions')));
+                }
+
                 $('#lblSummaryStudyID').text('StudyID :' + ($.trim($('#txtStudyID').val()).length > 0 ? $('input[name=StudyID]:checked').val() + " " + $.trim($('#txtStudyID').val()) : ""));
                 if ($('#ddlBilledStatus').val().length > 0) {
                     $('#lblSummaryBilledStatus').text('BilledStatus : ' + (($('#ddlBilledStatus').val() == "billed") ? "Billed" : ($('#ddlBilledStatus').val() == "unbilled") ? "Unbilled" : ""));
                 }
                 this.removeEmpty();
                 this.hideSummaryLabel();
+            },
+
+            ulListArray: function (listID) {
+                var arrList = $('#' + listID)
+                    .find('li')
+                    .children('span')
+                    .map(function () {
+                        return $(this).text();
+                    })
+                    .get()
+                    .join(', ')
+                    .trim();
+
+                return arrList;
             },
 
             removeEmpty: function () {
@@ -2489,6 +2512,9 @@ define([
                             break;
                         case 'liInsurance':
                             ($('#lblSummaryInsurance').text().length > 11) ? $('#liInsurance').show() : $('#liInsurance').hide();
+                            break;
+                        case 'liInsuranceProvider':
+                            ($('#lblSummaryInsuranceGroup').text().length > 11) ? $('#liInsuranceProvider').show() : $('#liInsuranceProvider').hide();
                             break;
                         case 'liOrdFacility':
                             ($('#lblOrdFacility').text().length > 30) ? $('#liOrdFacility').show() : $('#liOrdFacility').hide();
