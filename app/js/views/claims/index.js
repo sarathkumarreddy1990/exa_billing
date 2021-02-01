@@ -3870,6 +3870,8 @@ define(['jquery',
 
                                             }
                                         }
+                                    } else {
+                                        $("#btnStudiesRefresh").click();
                                     }
 
                                 }, 200);
