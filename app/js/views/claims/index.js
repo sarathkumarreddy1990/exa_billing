@@ -3699,6 +3699,12 @@ define(['jquery',
                     return false;
                 }
 
+                if (!self.ACSelect.refPhy.contact_id && app.billingRegionCode === 'can_AB') {
+                    commonjs.showWarning("messages.warning.shared.selectReferringProvider");
+                    $('#ddlRenderingProvider').focus();
+                    return false;
+                }
+
                 if ( self.supportingTextRequired && app.country_alpha_3_code === 'can' && app.province_alpha_2_code === 'AB' && !$.trim($.trim($('#txtSupportingText').val()).replace(/\n/g, ' ')) ) {
                     commonjs.showWarning("messages.warning.shared.supportingTextRequired");
                     $('#txtSupportingText').focus();

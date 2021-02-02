@@ -128,13 +128,7 @@ const ahsData = {
                 claim_notes                                  AS "claimNotes",
                 pp.first_name                                AS "patient_first_name",
                 pc_app.can_prid                          AS "service_provider_prid",
-                CASE 
-                    WHEN bc.referring_provider_contact_id IS NOT NULL AND pc_c.can_prid IS NULL 
-                    THEN null
-                    WHEN bc.referring_provider_contact_id IS NULL 
-                    THEN 'no_validation'
-                    ELSE  pc_c.can_prid
-                END AS "provider_prid",
+                pc_c.can_prid AS "provider_prid",
                 COALESCE(pp.patient_info -> 'c1State', pp.patient_info -> 'c1Province', '') AS province_code,
                 (SELECT
                     charges_bill_fee_total
