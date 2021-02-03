@@ -3701,7 +3701,7 @@ define(['jquery',
 
                 if (!self.ACSelect.refPhy.contact_id && app.billingRegionCode === 'can_AB') {
                     commonjs.showWarning("messages.warning.shared.selectReferringProvider");
-                    $('#ddlRenderingProvider').focus();
+                    $('#ddlReferringProvider').focus();
                     return false;
                 }
 

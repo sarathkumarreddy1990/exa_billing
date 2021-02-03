@@ -101,7 +101,7 @@ const ahsmodule = {
         let invalidClaims = claimData.map((data) => !data.provider_prid && data.claim_id) || [];
 
         if (invalidClaims.length) {
-            validationResponse.validationMessages.push(`Claim ${_.uniq(invalidClaims).join(',')} does not have service provider prid`);
+            validationResponse.validationMessages.push(`Claim ${_.uniq(invalidClaims).join(',')} does not have practitioner id for referring provider`);
             return validationResponse;
         }
 
