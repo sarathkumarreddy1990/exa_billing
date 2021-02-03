@@ -238,7 +238,7 @@ module.exports = {
                     SELECT
                         claim_id,
                         ${type},
-                        note,
+                        COALESCE(note, ''),
                         ${userId},
                         now()
                     FROM
@@ -248,7 +248,10 @@ module.exports = {
                 SELECT
                     claim_id,
                     ${type},
-                    note ||' -- Invoice No ' || update_status.invoice_no ,
+                    CASE WHEN update_status.invoice_no IS NULL THEN
+                        COALESCE(note, ' ')
+                    ELSE
+                        COALESCE(note, ' ') ||' -- Invoice No ' || COALESCE(update_status.invoice_no, ' ') END,
                     ${userId},
                     now()
                 FROM

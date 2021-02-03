@@ -255,6 +255,10 @@ module.exports = {
             case 'patient_invoice':
                 notes = 'Patient Invoice  printed ';
                 break;
+            case 'special_form':
+                notes = 'Special Form to ';
+                params.auditDesc = 'Claim status has changed during claim process (Special Form)';
+                break;
         }
 
         _.map(claimIds, function (obj) {
