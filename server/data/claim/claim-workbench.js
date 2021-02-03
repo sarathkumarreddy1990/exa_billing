@@ -277,7 +277,7 @@ module.exports = {
                                     SET claim_status_id = (SELECT id FROM getStatus),
                                         invoice_no = (SELECT NEXTVAL('billing.invoice_no_seq')
                                         WHERE
-                                            bc.billing_method NOT IN ('patient_invoice', 'paper_claim', 'special_form')),
+                                            bc.billing_method IN ('direct_billing')),
                                         submitted_dt=timezone(get_facility_tz(bc.facility_id::int), now()::timestamp)
                                     WHERE bc.id = ANY(${success_claimID})
                                     RETURNING *,
