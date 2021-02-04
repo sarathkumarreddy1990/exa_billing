@@ -195,6 +195,8 @@ module.exports = {
         'claim_charge': 'ECLM', //delete Claim Rmenu
         'eob_pdf' : 'ERAI',
         'era_list': 'ERAI',
+        'eob_file_id' : 'ERAI',
+        'download' : 'ERAI',
         'upload': 'ERAI',
         'era_file_preview': 'ERAI',
         'process-file': 'ERAI',
