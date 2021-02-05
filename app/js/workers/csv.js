@@ -6,7 +6,7 @@ const claimColumns = {
 
     "Claim No": "claim_id",
     "Claim Created Dt": "created_dt",
-    "AHS Claim Num": "billing.can_ahs_get_claim_number(claims.id)",
+    "AHS Claim Num": "can_ahs_claim_no",
     "Claim Date": "claim_dt",
     "Patient Name": "patient_name",
     "Clearing House": "clearing_house",
