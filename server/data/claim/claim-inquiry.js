@@ -789,6 +789,7 @@ module.exports = {
                             FROM public.patient_insurances ppi
                             INNER JOIN	get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id
                           ) ppi ON TRUE `;
+                whereQuery = ` AND bc.payer_type = 'primary_insurance' AND bc.primary_patient_insurance_id = ppi.id`;
                 joinCondition = 'INNER JOIN public.patient_insurances ppi ON ppi.id = bc.primary_patient_insurance_id';
                 break;
             case 'secondary_insurance':
