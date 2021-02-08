@@ -98,10 +98,11 @@ const ahsmodule = {
         }
 
         
-        let invalidClaims = claimData.map((data) => !data.provider_prid && data.claim_id) || [];
+        let invalidClaims = claimData.filter((data) => !data.provider_prid && data.claim_id) || [];
 
         if (invalidClaims.length) {
-            validationResponse.validationMessages.push(`Claim ${_.uniq(invalidClaims).join(',')} does not have practitioner id for referring provider`);
+            let uniqueInvalidClaims = _.uniq(invlaidClaims.map(obj => obj.claim_id)) || [];
+            validationResponse.validationMessages.push(`Claim ${uniqueInvalidClaims.join(',')} does not have service provider prid`);
             return validationResponse;
         }
 
