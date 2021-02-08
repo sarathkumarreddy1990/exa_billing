@@ -380,8 +380,8 @@ const ahsData = {
                         inserted_efc.can_ahs_action_code             AS action_code,
                         comp.can_submitter_prefix                AS submitter_prefix,
                         inserted_efc.batch_number                    AS batch_number,
-                        TO_CHAR(bc.claim_dt, 'YY')                   AS year,
-                        TO_CHAR(bc.claim_dt, 'MM')                   AS source_code,
+                        TO_CHAR(CURRENT_DATE, 'YY')                   AS year,
+                        TO_CHAR(CURRENT_DATE, 'MM')                   AS source_code,
                         inserted_efc.sequence_number                 AS sequence_number,
                         public.get_can_ahs_mod10_for_claim_sequence_number(
                             inserted_efc.sequence_number :: INT8
