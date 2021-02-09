@@ -716,6 +716,7 @@ const bcModules = {
 
         try {
             contents = await readFileAsync(filePath, 'utf8');
+            logger.logInfo('Initiated File Processing ...')
             return parser.processFile(contents, params);
         }
         catch (e) {
@@ -776,7 +777,7 @@ const bcModules = {
                 fileId: params.file_id
             });
 
-            if (remittanceResponse && remittanceResponse.invalidRemittanceRecords.length) {
+            if (remittanceResponse && remittanceResponse.invalidRemittanceRecords && remittanceResponse.invalidRemittanceRecords.length) {
                 logger.info(`Unable to proceed remittance file process with following remittance records ${JSON.stringify(remittanceResponse.invalidRemittanceRecords)}`);
 
                 await bcController.updateFileStatus({
@@ -784,7 +785,10 @@ const bcModules = {
                     fileId: params.file_id
                 });
 
-                return;
+                return [{
+                    status: 'failure',
+                    fileId: params.file_id
+                }];
             }
 
             logger.info('Processing Eligibility Response...');
