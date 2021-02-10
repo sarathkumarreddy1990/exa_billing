@@ -824,19 +824,19 @@ const bcModules = {
             });
 
             logger.info(`Processing Remittance file ${params.file_id} completed with status ${status}`);
-            return {
+            return [{
                 can_bc_process_remittance,
                 fileId: params.file_id || null,
                 status
-            }
+            }];
 
         }
         catch (err) {
             logger.error(err);
-            return {
+            return [{
                 error: true,
                 message: err
-            };
+            }];
         }
     },
 
@@ -862,10 +862,10 @@ const bcModules = {
         let fileStoreDetails = await bcController.getCompanyFileStore(companyId);
 
         if (!fileStoreDetails || !fileStoreDetails.length) {
-            return {
+            return [{
                 error: true,
                 responseCode: 'isFileStoreError'
-            };
+            }];
         }
 
         let {
@@ -906,19 +906,19 @@ const bcModules = {
         //Error Validations in MSP portal connectivity
         if (isDownTime) {
             logger.error(`MSP Portal connection downtime`);
-            return {
+            return [{
                 error: true,
                 responseCode: 'isDownTime'
-            };
+            }];
         }
 
         if (error) {
             logger.error(`MSP Portal Response Error: ${error}`);
 
-            return {
+            return [{
                 error: true,
                 message: error
-            };
+            }];
         }
 
         if (data) {
@@ -931,10 +931,10 @@ const bcModules = {
                 if (fileProperties.Result !== 'SUCCESS') {
                     logger.error('No file downloaded from MSP Portal');
 
-                    return {
+                    return [{
                         err: null,
                         message: 'No file downloaded from MSP Portal'
-                    };
+                    }];
                 }
 
                 // Reading the file content after gets downloaded
@@ -949,12 +949,12 @@ const bcModules = {
                 if (isInValidFileContent) {
                     logger.error(`Invalid Remittance File ${fileName}`);
 
-                    return {
+                    return [{
                         error: true,
                         status: 'INVALID_FILE',
                         message: 'Invalid Remittance File',
                         response: {}
-                    };
+                    }];
                 }
 
                 let fileMd5 = crypto.createHash('MD5').update(bufferString, 'utf8').digest('hex');
