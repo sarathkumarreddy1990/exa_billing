@@ -785,10 +785,12 @@ const bcModules = {
                     fileId: params.file_id
                 });
 
-                return [{
-                    status: 'failure',
-                    fileId: params.file_id
-                }];
+                message.push({
+                    status: 100,
+                    message: 'Invalid Remittance Records found'
+                });
+
+                return message;
             }
 
             logger.info('Processing Eligibility Response...');
