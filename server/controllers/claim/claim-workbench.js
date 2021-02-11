@@ -261,6 +261,10 @@ module.exports = {
                 notes = 'Patient Invoice printed ';
                 params.auditDesc = 'Claim status has changed during claim process (Patient Invoice)';
                 break;
+            case 'special_form':
+                notes = 'Special Form to ';
+                params.auditDesc = 'Claim status has changed during claim process (Special Form)';
+                break;
         }
 
         _.map(claimIds, function (obj) {

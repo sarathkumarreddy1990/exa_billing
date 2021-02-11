@@ -239,7 +239,7 @@ module.exports = {
                     SELECT
                         claim_id,
                         ${type},
-                        note,
+                        COALESCE(note, ''),
                         ${userId},
                         now()
                     FROM
@@ -249,7 +249,10 @@ module.exports = {
                 SELECT
                     claim_id,
                     ${type},
-                    note ||' -- Invoice No ' || update_status.invoice_no ,
+                    CASE WHEN update_status.invoice_no IS NULL THEN
+                        COALESCE(note, ' ')
+                    ELSE
+                        COALESCE(note, ' ') ||' -- Invoice No ' || COALESCE(update_status.invoice_no, ' ') END,
                     ${userId},
                     now()
                 FROM
@@ -273,7 +276,9 @@ module.exports = {
                                     UPDATE
                                         billing.claims bc
                                     SET claim_status_id = (SELECT id FROM getStatus),
-                                        invoice_no = (SELECT NEXTVAL('billing.invoice_no_seq')),
+                                        invoice_no = (SELECT NEXTVAL('billing.invoice_no_seq')
+                                        WHERE
+                                            bc.billing_method IN ('direct_billing')),
                                         submitted_dt=timezone(get_facility_tz(bc.facility_id::int), now()::timestamp)
                                     WHERE bc.id = ANY(${success_claimID})
                                     RETURNING *,

@@ -99,7 +99,7 @@ define([
                             }
 
                             self.updateClaimStatus(processedIDs, templateType, options, function (err, response) {
-                                var invoiceNo = response.invoice_no;
+                                var invoiceNo = response && response.invoice_no || '';
                                 claimData[0].invoiceNo = invoiceNo;
                                 return self.preparePdfWorker(templateType, template, claimData);
                             });
