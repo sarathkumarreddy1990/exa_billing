@@ -28,8 +28,6 @@ const ahsController = {
             fileTypes: ['can_ahs_bbr', 'can_ahs_ard']
         };
 
-        const { ip } = args;
-
         let filesList = await ahsData.getFilesList(data);
 
         if ( !filesList.rows || !filesList.rows.length ) {
@@ -43,7 +41,28 @@ const ahsController = {
             };
         }
 
-        const promises = _.map(filesList.rows, async (file) => {
+        let ardFiles = [];
+        let bbrFiles = [];
+        
+        filesList.rows.map(obj => {
+            obj.file_type === 'can_ahs_ard' && ardFiles.push(obj);
+            obj.file_type === 'can_ahs_bbr' && bbrFiles.push(obj);
+        });
+
+        let processBBRFiles = await ahsController.processFileData(bbrFiles, args) || []; // To Process all BBR Files
+        let processARDFiles = await ahsController.processFileData(ardFiles, args) || []; // To Process all ARD Files 
+        
+        return [...processBBRFiles, ...processARDFiles] || [];
+    },
+
+    /**
+     * Function used to process the list of files with same type(ARD and BBR)
+     * @param {data} filesList 
+     */
+    processFileData: async (filesList, args) => {
+        const { ip } = args;
+
+        let promises = _.map(filesList, async (file) => {
             let {
                 root_directory,
                 file_path,
@@ -67,7 +86,7 @@ const ahsController = {
 
             logger.info(`Decoding the file ${file_id} - ${uploaded_file_name}`);
 
-            let fileData = ahsController.decode(file_type, fileContent, can_submitter_prefix);
+            let fileData = await ahsController.decode(file_type, fileContent, can_submitter_prefix);
 
             logger.info(`Decoding file ${file_id} - ${uploaded_file_name} Success!!`);
 
@@ -94,8 +113,8 @@ const ahsController = {
                     bbr_response = []
                 }] = processResult && processResult.rows || [{}];
                 status = bbr_response && bbr_response.length ? 'success' : 'failure';
-            }
-            else if(file_type == 'can_ahs_ard') {
+
+            } else if(file_type == 'can_ahs_ard') {
                 let [{
                     applied_payments = []
                 }] = processResult && processResult.rows || [{}];
@@ -110,7 +129,6 @@ const ahsController = {
         });
 
         return await Promise.all(promises);
-
     },
 
      /***
