@@ -114,7 +114,8 @@ const ahsController = {
                 }] = processResult && processResult.rows || [{}];
                 status = bbr_response && bbr_response.length ? 'success' : 'failure';
 
-            } else if(file_type == 'can_ahs_ard') {
+            } 
+            else if(file_type == 'can_ahs_ard') {
                 let [{
                     applied_payments = []
                 }] = processResult && processResult.rows || [{}];

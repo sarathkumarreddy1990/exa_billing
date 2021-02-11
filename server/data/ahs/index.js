@@ -1022,7 +1022,7 @@ const ahsData = {
                         INNER JOIN file_stores fs ON fs.id = ef.file_store_id
                         INNER JOIN companies comp ON comp.id = fs.company_id
                         WHERE ef.status = ${status} 
-                        AND ef.file_type = ANY(${fileTypes})
+                            AND ef.file_type = ANY(${fileTypes})
                         ORDER BY ef.file_type DESC, ef.id ASC LIMIT 10`;
 
         return await query(sql);
