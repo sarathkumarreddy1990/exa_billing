@@ -178,7 +178,8 @@ define('grid', [
                     invoice_no: _storeEle.invoice_no,
                     payer_type: _storeEle.payer_type,
                     claim_status_code: _storeEle.claim_status_code,
-                    billing_method: _storeEle.billing_method
+                    billing_method: _storeEle.billing_method,
+                    claim_resubmission_flag: _storeEle.claim_resubmission_flag
                 };
                 if (gridData.billed_status && gridData.billed_status.toLocaleLowerCase() == 'billed') {
                     isbilled_status = true;
@@ -233,6 +234,14 @@ define('grid', [
                     // Claim status updation
                     $.each(app.claim_status, function (index, claimStatus) {
                         if (claimStatus.code === 'P77') {
+                            return;
+                        }
+
+                        var resubmissionFlag = app.billingRegionCode === 'can_AB' 
+                                               && isClaimGrid 
+                                               && gridData.claim_resubmission_flag;
+
+                        if (resubmissionFlag && claimStatus.code !== 'PS') {
                             return;
                         }
 
@@ -892,11 +901,11 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 ('<input type="checkbox" i18nt="billing.payments.selectAllStudies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />'),
-                '','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', ''
+                '','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', '', ''
             ]);
 
             i18nName = i18nName.concat([
-                '','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'billing.claims.assignedTo', ''
+                '','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'billing.claims.assignedTo', '', ''
             ]);
 
             colModel = colModel.concat([
@@ -1387,6 +1396,10 @@ define('grid', [
                     formatter: function (cellvalue, options, rowObject) {
                         return rowObject.assigned_id || "";
                     }
+                },
+                {
+                    name: 'claim_resubmission_flag',
+                    hidden: true
                 }
             ]);
 
@@ -1863,7 +1876,11 @@ define('grid', [
                 if (gridData.hidden_billing_method === 'electronic_billing') {
                     $('#li_ul_change_claim_status').hide();
 
-                    if (['APP', 'AOP', 'PIF'].indexOf(gridData.hidden_claim_status_code) !== -1) {
+                    var resubmissionFlag = selectedStudies.length === selectedStudies.filter(function (e) {
+                        return isClaimGrid && e.claim_resubmission_flag;
+                    }).length;
+
+                    if (['APP', 'AOP', 'PIF'].indexOf(gridData.hidden_claim_status_code) !== -1 || resubmissionFlag) {
                         $('#li_ul_change_claim_status').show();
                     }
                 }
