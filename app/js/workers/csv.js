@@ -5,9 +5,9 @@ importScripts('/exa_modules/billing/static/node_modules/moment-timezone/builds/m
 const claimColumns = {
 
     "Claim No": "claim_id",
-    "Claim Created Dt": "created_dt",
+    "Claim Date": "created_dt",
     "AHS Claim Num": "can_ahs_claim_no",
-    "Claim Date": "claim_dt",
+    "Study Date": "claim_dt",
     "Patient Name": "patient_name",
     "Clearing House": "clearing_house",
     "Billing Method": "billing_method",
@@ -67,6 +67,7 @@ const dateColumnsWithTimeZoneConversion = [
     'Claim Date',
     'PAYMENT DATE',
     'Submitted Date',
+    'Study Date'
 ];
 
 const dateColumnsWithOutTimeZone = [
@@ -123,6 +124,12 @@ function generateCsvData(dbResponse, callback) {
     var columnHeader = dbResponse.columnHeader;
     var facilities = dbResponse.facilities;
     var companyTz = dbResponse.companyTz;
+
+    _.each(columnHeader, function (data, index) {
+        if (data == "Claim Created Dt") {
+            columnHeader[index] = "Study Date";
+        }
+    });
 
     if (countryCode == 'can') {
         claimColumns["Payment ID"] = "payment_id";
