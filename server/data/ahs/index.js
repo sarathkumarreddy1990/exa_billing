@@ -128,6 +128,7 @@ const ahsData = {
                 claim_notes                                  AS "claimNotes",
                 pp.first_name                                AS "patient_first_name",
                 pc_app.can_prid                          AS "service_provider_prid",
+                pc_c.can_prid AS "provider_prid",
                 COALESCE(pp.patient_info -> 'c1State', pp.patient_info -> 'c1Province', '') AS province_code,
                 (SELECT
                     charges_bill_fee_total
@@ -144,6 +145,7 @@ const ahsData = {
                 LEFT JOIN public.studies s ON s.id = bchs.study_id
                 LEFT JOIN public.study_transcriptions st ON st.study_id = s.id
                 LEFT JOIN public.provider_contacts pc_app ON pc_app.id = st.approving_provider_id
+                LEFT JOIN public.provider_contacts pc_c ON pc_c.id = bc.referring_provider_contact_id AND pc_c.is_primary
                 LEFT JOIN public.facilities f ON f.id = bc.facility_id
                 LEFT JOIN public.patient_insurances ppi  ON ppi.id = bc.primary_patient_insurance_id
                 LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
@@ -372,8 +374,8 @@ const ahsData = {
                         inserted_efc.can_ahs_action_code             AS action_code,
                         comp.can_submitter_prefix                AS submitter_prefix,
                         inserted_efc.batch_number                    AS batch_number,
-                        TO_CHAR(bc.claim_dt, 'YY')                   AS year,
-                        TO_CHAR(bc.claim_dt, 'MM')                   AS source_code,
+                        TO_CHAR(CURRENT_DATE, 'YY')                   AS year,
+                        TO_CHAR(CURRENT_DATE, 'MM')                   AS source_code,
                         inserted_efc.sequence_number                 AS sequence_number,
                         public.get_can_ahs_mod10_for_claim_sequence_number(
                             inserted_efc.sequence_number :: INT8

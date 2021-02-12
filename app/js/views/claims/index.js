@@ -815,21 +815,18 @@ define(['jquery',
                             $.each(existing_insurance, function (index, value) {
                                 var isDisplayInsurance = !value.valid_to_date || moment(claimDetails.claim_dt).isSameOrBefore(value.valid_to_date);
 
-                                switch (value.coverage_level) {
-                                    case 'primary':
-                                        if (isDisplayInsurance) {
+                                if (isDisplayInsurance) {
+                                    switch (value.coverage_level) {
+                                        case 'primary':
                                             existingPrimaryInsurance.push(value);
-                                        }
-                                        break;
-                                    case 'secondary':
-                                        if (isDisplayInsurance) {
+                                            break;
+                                        case 'secondary':
                                             existingSecondaryInsurance.push(value);
-                                        }
-                                        break;
-                                    case 'tertiary':
-                                        if (isDisplayInsurance) {
+                                            break;
+                                        case 'tertiary':
                                             existingTriInsurance.push(value);
-                                        }
+                                            break;
+                                    }
                                 }
                             });
                             self.bindExistingInsurance(existingPrimaryInsurance, 'ddlExistPriIns')
@@ -2998,23 +2995,21 @@ define(['jquery',
                             self.tradingPartnerId = existing_insurance.length && existing_insurance[0].ins_partner_id ? existing_insurance[0].ins_partner_id : '';
 
                             $.each(existing_insurance, function (index, value) {
-                                var isDiplayInsurance = !value.valid_to_date || moment(self.cur_study_date).isSameOrBefore(value.valid_to_date);
+                                var isDisplayInsurance = !value.valid_to_date || moment(self.cur_study_date).isSameOrBefore(value.valid_to_date);
 
-                                switch (value.coverage_level) {
-                                    case 'primary':
-                                        if (isDiplayInsurance) {
+                                if (isDisplayInsurance) {
+
+                                    switch (value.coverage_level) {
+                                        case 'primary':
                                             self.existingPrimaryInsurance.push(value);
-                                        }
-                                        break;
-                                    case 'secondary':
-                                        if (isDiplayInsurance) {
+                                            break;
+                                        case 'secondary':
                                             self.existingSecondaryInsurance.push(value);
-                                        }
-                                        break;
-                                    case 'tertiary':
-                                        if (isDiplayInsurance) {
+                                            break;
+                                        case 'tertiary':
                                             self.existingTriInsurance.push(value);
-                                        }
+                                            break;
+                                    }
                                 }
                             });
                             self.bindExistingInsurance(self.existingPrimaryInsurance, 'ddlExistPriIns')
@@ -3940,6 +3935,12 @@ define(['jquery',
                 if ( !self.ACSelect.readPhy.contact_id && app.country_alpha_3_code === 'can' && app.province_alpha_2_code !== 'AB' ) {
                     commonjs.showWarning("messages.warning.shared.selectRenderingProvider");
                     $('#ddlRenderingProvider').focus();
+                    return false;
+                }
+
+                if (!self.ACSelect.refPhy.contact_id && app.billingRegionCode === 'can_AB') {
+                    commonjs.showWarning("messages.warning.shared.selectReferringProvider");
+                    $('#ddlReferringProvider').focus();
                     return false;
                 }
 

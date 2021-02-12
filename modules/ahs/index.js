@@ -97,6 +97,15 @@ const ahsmodule = {
             return validationMessages;
         }
 
+        
+        let invalidClaims = claimData.filter((data) => !data.provider_prid && data.claim_id) || [];
+
+        if (invalidClaims.length) {
+            let uniqueInvalidClaims = _.uniq(invlaidClaims.map(obj => obj.claim_id)) || [];
+            validationResponse.validationMessages.push(`Claim ${uniqueInvalidClaims.join(',')} does not have service provider prid`);
+            return validationResponse;
+        }
+
         if (args.source === 'submit') {
             if (ahsClaimResults && !invalid_claims.length && unique_frequency.length === 1) {
                 if (unique_frequency[0].frequency === 'corrected') {
