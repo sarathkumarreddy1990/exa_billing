@@ -1826,7 +1826,7 @@ define(['jquery',
                                     });
                                 });
 
-                                if (app.country_alpha_3_code !== 'can' || (app.country_alpha_3_code === 'can' && app.province_alpha_2_code === 'AB')) {
+                                if (app.country_alpha_3_code !== 'can' || (['can_AB', 'can_BC'].indexOf(app.billingRegionCode) > -1)) {
                                     _.each(_diagnosisProblems, function (item) {
 
                                         if (_.findIndex(diagnosisCodes, { id: item.id }) == -1) {
