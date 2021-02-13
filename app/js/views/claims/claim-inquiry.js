@@ -715,7 +715,7 @@ define([
 
                 $('.inquiryActivity').off().click(_.debounce(function (){
                   if(self.claimInvoiceList && self.claimInvoiceList.length){
-                    self.invoiceActivityStatement(claimID);
+                    self.invoiceActivityStatement(claimID, payer_type);
                   } else {
                       commonjs.showWarning('messages.status.noRecordFound')
                   }
@@ -758,7 +758,7 @@ define([
                     container: self.el,
                     cmTemplate: { sortable: false },
                     customizeSort: false,
-                    sortname: "audit.id",
+                    sortname: "created_dt",
                     sortorder: "desc",
                     dblClickActionIndex: 1,
                     disablesearch: false,
@@ -1650,9 +1650,10 @@ define([
                 $('#divFaxReceipientPaperClaim').hide();
             },
 
-            invoiceActivityStatement: function(claimId){
+            invoiceActivityStatement: function(claimId, payerType){
                 var urlParams = {
-                    claimId: claimId,
+                    claimId: claimId, 
+                    payerType: payerType,
                     async: false,
                     save: false
                 };

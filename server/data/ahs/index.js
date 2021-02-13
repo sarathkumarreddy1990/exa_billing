@@ -128,13 +128,7 @@ const ahsData = {
                 claim_notes                                  AS "claimNotes",
                 pp.first_name                                AS "patient_first_name",
                 pc_app.can_prid                          AS "service_provider_prid",
-                CASE 
-                    WHEN bc.referring_provider_contact_id IS NOT NULL AND pc_c.can_prid IS NULL 
-                    THEN null
-                    WHEN bc.referring_provider_contact_id IS NULL 
-                    THEN 'no_validation'
-                    ELSE  pc_c.can_prid
-                END AS "provider_prid",
+                pc_c.can_prid AS "provider_prid",
                 COALESCE(pp.patient_info -> 'c1State', pp.patient_info -> 'c1Province', '') AS province_code,
                 (SELECT
                     charges_bill_fee_total
@@ -380,8 +374,8 @@ const ahsData = {
                         inserted_efc.can_ahs_action_code             AS action_code,
                         comp.can_submitter_prefix                AS submitter_prefix,
                         inserted_efc.batch_number                    AS batch_number,
-                        TO_CHAR(bc.claim_dt, 'YY')                   AS year,
-                        TO_CHAR(bc.claim_dt, 'MM')                   AS source_code,
+                        TO_CHAR(CURRENT_DATE, 'YY')                   AS year,
+                        TO_CHAR(CURRENT_DATE, 'MM')                   AS source_code,
                         inserted_efc.sequence_number                 AS sequence_number,
                         public.get_can_ahs_mod10_for_claim_sequence_number(
                             inserted_efc.sequence_number :: INT8

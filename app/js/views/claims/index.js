@@ -1826,7 +1826,7 @@ define(['jquery',
                                     });
                                 });
 
-                                if (app.country_alpha_3_code !== 'can' || (app.country_alpha_3_code === 'can' && app.province_alpha_2_code === 'AB')) {
+                                if (app.country_alpha_3_code !== 'can' || (['can_AB', 'can_BC'].indexOf(app.billingRegionCode) > -1)) {
                                     _.each(_diagnosisProblems, function (item) {
 
                                         if (_.findIndex(diagnosisCodes, { id: item.id }) == -1) {
@@ -3870,6 +3870,8 @@ define(['jquery',
 
                                             }
                                         }
+                                    } else {
+                                        $("#btnStudiesRefresh").click();
                                     }
 
                                 }, 200);
@@ -3936,6 +3938,12 @@ define(['jquery',
                 if ( !self.ACSelect.readPhy.contact_id && app.country_alpha_3_code === 'can' && app.province_alpha_2_code !== 'AB' ) {
                     commonjs.showWarning("messages.warning.shared.selectRenderingProvider");
                     $('#ddlRenderingProvider').focus();
+                    return false;
+                }
+
+                if (!self.ACSelect.refPhy.contact_id && app.billingRegionCode === 'can_AB') {
+                    commonjs.showWarning("messages.warning.shared.selectReferringProvider");
+                    $('#ddlReferringProvider').focus();
                     return false;
                 }
 

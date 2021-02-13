@@ -776,58 +776,47 @@ module.exports = {
         let whereQuery = '';
         let havingQuery = '';
 
-
-        if (payerType == 'ordering_facility') {
-            selectDetails = ' bc.ordering_facility_id AS ordering_facility_id ';
-            joinCondition = 'INNER JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id';
-            joinQuery = 'INNER JOIN get_payer_details gpd ON gpd.ordering_facility_id = bc.ordering_facility_id';
-        }
-        else if (payerType == 'referring_provider') {
-            selectDetails = ' bc.referring_provider_contact_id AS referring_provider_contact_id ';
-            joinCondition = 'INNER JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id';
-            joinQuery = 'INNER JOIN get_payer_details gpd ON gpd.referring_provider_contact_id = bc.referring_provider_contact_id';
-        }
-        else if (payerType == 'primary_insurance') {
-            selectDetails = ' ppi.insurance_provider_id AS insurance_provider_id ';
-            joinCondition = 'INNER JOIN public.patient_insurances ppi ON ppi.id = bc.primary_patient_insurance_id';
-
-            joinQuery = ` INNER 	JOIN LATERAL (
-                SELECT 	id
-                FROM	public.patient_insurances ppi
-                INNER 	JOIN	get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id
-            ) ppi 	ON TRUE  `;
-
-            whereQuery = `  AND bc.payer_type = ANY(ARRAY['primary_insurance', 'secondary_insurance', 'tertiary_insurance'])
-                            AND (bc.primary_patient_insurance_id = ppi.id or bc.secondary_patient_insurance_id = ppi.id or bc.tertiary_patient_insurance_id = ppi.id)`;
-
-        }
-        else if (payerType == 'secondary_insurance') {
-            selectDetails = ' ppi.insurance_provider_id AS insurance_provider_id ';
-            joinCondition = 'INNER JOIN public.patient_insurances ppi ON ppi.id = bc.secondary_patient_insurance_id';
-
-            joinQuery = ` INNER 	JOIN LATERAL (
-                SELECT 	id
-                FROM	public.patient_insurances ppi
-                INNER 	JOIN	get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id
-            ) ppi 	ON TRUE  `;
-
-            whereQuery = `  AND bc.payer_type = ANY(ARRAY['primary_insurance', 'secondary_insurance', 'tertiary_insurance'])
-                            AND (bc.primary_patient_insurance_id = ppi.id or bc.secondary_patient_insurance_id = ppi.id or bc.tertiary_patient_insurance_id = ppi.id)`;
-
-        }
-        else if (payerType == 'tertiary_insurance') {
-            selectDetails = ' ppi.insurance_provider_id AS insurance_provider_id ';
-            joinCondition = 'INNER JOIN public.patient_insurances ppi ON ppi.id = bc.tertiary_patient_insurance_id';
-
-            joinQuery = ` INNER 	JOIN LATERAL (
-                SELECT 	id
-                FROM	public.patient_insurances ppi
-                INNER 	JOIN	get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id
-            ) ppi 	ON TRUE  `;
-
-            whereQuery = `  AND bc.payer_type = ANY(ARRAY['primary_insurance', 'secondary_insurance', 'tertiary_insurance'])
-                            AND (bc.primary_patient_insurance_id = ppi.id or bc.secondary_patient_insurance_id = ppi.id or bc.tertiary_patient_insurance_id = ppi.id)`;
-
+        switch (payerType) {
+            case 'ordering_facility':
+                selectDetails = ' bc.ordering_facility_id AS ordering_facility_id, bc.payer_type ';
+                joinCondition = 'INNER JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id';
+                joinQuery = 'INNER JOIN get_payer_details gpd ON gpd.ordering_facility_id = bc.ordering_facility_id AND gpd.payer_type = bc.payer_type';
+                break;
+            case 'primary_insurance':
+                selectDetails = ' ppi.insurance_provider_id AS insurance_provider_id, bc.payer_type ';
+                joinQuery = ` INNER JOIN LATERAL (
+                            SELECT id
+                            FROM public.patient_insurances ppi
+                            INNER JOIN	get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id
+                          ) ppi ON TRUE `;
+                whereQuery = ` AND bc.payer_type = 'primary_insurance' AND bc.primary_patient_insurance_id = ppi.id`;
+                joinCondition = 'INNER JOIN public.patient_insurances ppi ON ppi.id = bc.primary_patient_insurance_id';
+                break;
+            case 'secondary_insurance':
+                selectDetails = ' ppi.insurance_provider_id AS insurance_provider_id, bc.payer_type ';
+                joinQuery = ` INNER JOIN LATERAL (
+                            SELECT id
+                            FROM public.patient_insurances ppi
+                            INNER JOIN    get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id
+                          ) ppi ON TRUE `;
+                whereQuery = ` AND bc.payer_type = 'secondary_insurance' AND bc.secondary_patient_insurance_id = ppi.id`;
+                joinCondition = 'INNER JOIN public.patient_insurances ppi ON ppi.id = bc.secondary_patient_insurance_id';
+                break;
+            case 'tertiary_insurance':
+                selectDetails = ' ppi.insurance_provider_id AS insurance_provider_id, bc.payer_type ';
+                joinQuery = ` INNER JOIN LATERAL (
+                            SELECT id
+                            FROM public.patient_insurances ppi
+                            INNER JOIN    get_payer_details gpd ON gpd.insurance_provider_id = ppi.insurance_provider_id
+                          ) ppi ON TRUE `;
+                whereQuery = ` AND bc.payer_type = 'tertiary_insurance' AND  bc.tertiary_patient_insurance_id = ppi.id`;
+                joinCondition = 'INNER JOIN public.patient_insurances ppi ON ppi.id = bc.tertiary_patient_insurance_id';
+                break;
+            case 'referring_provider':
+                selectDetails = ' bc.referring_provider_contact_id AS referring_provider_contact_id, bc.payer_type ';
+                joinCondition = 'INNER JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id';
+                joinQuery = 'INNER JOIN get_payer_details gpd ON gpd.referring_provider_contact_id = bc.referring_provider_contact_id AND gpd.payer_type = bc.payer_type';
+                break;
         }
 
         if (params.invoice_adjustment || params.invoice_bill_fee || params.invoice_balance || params.invoice_payment) {
@@ -919,6 +908,7 @@ module.exports = {
                 ${joinQuery}
                 INNER JOIN LATERAL (SELECT * FROM billing.get_claim_totals(bc.id)) claim_totals ON true
                 WHERE 	bc.invoice_no IS NOT NULL
+                AND bc.billing_method = 'direct_billing'
                 ${whereQuery})
                 SELECT
                     ROW_NUMBER () OVER (ORDER BY invoice_no) AS id
@@ -985,7 +975,6 @@ module.exports = {
     },
 
     getclaimPatientLog: async function (params) {
-        let whereQuery = [];
         params.sortOrder = params.sortOrder || ' ASC';
         let {
             sortOrder,
@@ -996,24 +985,9 @@ module.exports = {
             username,
             screen_name,
             description,
-            created_dt
+            created_dt,
+            claimID
         } = params;
-
-        if (username) {
-            whereQuery.push(` users.username ILIKE '%${username}%'`);
-        }
-
-        if (screen_name) {
-            whereQuery.push(` audit.screen_name ILIKE '%${screen_name}%'`);
-        }
-
-        if (description) {
-            whereQuery.push(` audit.description ILIKE '%${description}%'`);
-        }
-
-        if (created_dt) {
-            whereQuery.push(` ((audit.created_dt)::date =('${created_dt}')::date) `);
-        }
 
         let sql = SQL`
                 SELECT DISTINCT
@@ -1043,12 +1017,50 @@ module.exports = {
                                         AND audit.entity_name = 'AutoCollectionReview' ) )
                     INNER JOIN users
                             ON users.id = audit.created_by
-                    WHERE  bc.patient_id=${patientId}
-                    `;
+                    WHERE  bc.patient_id=${patientId} `
 
-        if (whereQuery.length) {
-            sql.append(SQL` AND `)
-                .append(whereQuery.join(' AND '));
+        if (username) {
+            sql.append(` AND users.username ILIKE '%${username}%' `);
+        }
+
+        if (screen_name) {
+            sql.append(` AND audit.screen_name ILIKE '%${screen_name}%' `);
+        }
+
+        if (description) {
+            sql.append(` AND audit.description ILIKE '%${description}%' `);
+        }
+
+        if (created_dt) {
+            sql.append(` AND ((audit.created_dt)::date = ('${created_dt}')) `);
+        }
+
+        sql.append(` UNION ALL
+                    SELECT
+                        NULL,
+                        users.username,
+                        cc.created_dt,
+                        'Claims',
+                        cc.note,
+                        bc.facility_id
+                    FROM
+                        billing.claim_comments cc
+                    INNER JOIN users ON users.id = cc.created_by
+                    LEFT JOIN billing.claims bc ON bc.id = cc.claim_id
+                    WHERE
+                        claim_id = ${claimID}
+                        AND note ILIKE 'Paper claim (B&W) fax sent to %' `);
+
+        if (username) {
+            sql.append(` AND users.username ILIKE '%${username}%' `);
+        }
+
+        if (description) {
+            sql.append(` AND cc.note ILIKE '%${description}%' `);
+        }
+
+        if (created_dt) {
+            sql.append(` AND ((cc.created_dt)::date = ('${created_dt}')) `);
         }
 
         sql.append(SQL` ORDER BY  `)

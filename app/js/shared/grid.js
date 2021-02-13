@@ -891,11 +891,11 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 ('<input type="checkbox" i18nt="billing.payments.selectAllStudies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />'),
-                '','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', ''
+                '','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', ''
             ]);
 
             i18nName = i18nName.concat([
-                '','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'billing.claims.assignedTo', ''
+                '','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'billing.claims.assignedTo', ''
             ]);
 
             colModel = colModel.concat([
@@ -1256,6 +1256,18 @@ define('grid', [
                     isIconCol: true,
                     formatter: function (cellvalue, options, rowObject) {
                         return rowObject.patient_name || "";
+                    }
+                },
+                {
+                    name: 'hidden_insurance_providers',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: true,
+                    isIconCol: true,
+                    formatter: function (cellvalue, options, rowObject) {
+                        return rowObject.insurance_providers || "";
                     }
                 },
                 {

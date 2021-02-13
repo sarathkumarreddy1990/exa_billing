@@ -213,6 +213,7 @@ module.exports = {
                     params.isClaim = true;
                     params.claimDetails = JSON.stringify(claimDetails);
                     ediStatus = 'success';
+                    params.auditDesc = 'Claim status has changed during claim process (Paper/EDI)';
                     await data.changeClaimStatus(params);
                 } else {
                     ediResponse.err = uploadRes.err;
@@ -222,7 +223,8 @@ module.exports = {
                 if (ediFileId > 0) {
                     await data.updateEDIFile({
                         status: ediStatus,
-                        ediFileId: ediFileId
+                        ediFileId: ediFileId,
+                        ...params
                     });
                 }
             }
@@ -245,15 +247,23 @@ module.exports = {
         switch (params.templateType) {
             case 'direct_invoice':
                 notes = 'Invoice claim to ';
+                params.auditDesc = 'Claim status has changed during claim process (Direct Invoice)';
                 break;
             case 'paper_claim_original':
                 notes = 'Paper claim (RED) to ';
+                params.auditDesc = 'Claim status has changed during claim process (Paper claim (RED))';
                 break;
             case 'paper_claim_full':
                 notes = 'Paper claim (B&W) to ';
+                params.auditDesc = 'Claim status has changed during claim process (Paper claim (B&W))';
                 break;
             case 'patient_invoice':
-                notes = 'Patient Invoice  printed ';
+                notes = 'Patient Invoice printed ';
+                params.auditDesc = 'Claim status has changed during claim process (Patient Invoice)';
+                break;
+            case 'special_form':
+                notes = 'Special Form to ';
+                params.auditDesc = 'Claim status has changed during claim process (Special Form)';
                 break;
         }
 
