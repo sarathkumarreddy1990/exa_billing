@@ -271,8 +271,6 @@
   "file_number": {
     "format": "A",
     "startPos": 177,
-    "paddingChar": "0",
-    "isLeftJustified": false,
     "length": 20,
     "segmentName": "P64"
   },
