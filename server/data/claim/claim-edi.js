@@ -679,8 +679,8 @@ module.exports = {
 					(allowed_amount*charges.units)::numeric::text  as "totalAllowedAmount",
 					charges.id as "chargeID",
 					display_description as "studyDescription",
-					additional_info->'ndc_code' as NDCCode,
-					additional_info->'ndc_measure' as NDCMeasure,
+					study_details.package_code AS NDCCode,
+					study_details.strength AS NDCMeasure,
 					bill_fee::numeric::text as "billFee",
 					(bill_fee*charges.units)::numeric::text  as "totalBillFee",
 					charges.units as "unit",
@@ -763,13 +763,20 @@ module.exports = {
 					LEFT JOIN modifiers AS modifier4 ON modifier4.id=modifier4_id
 					LEFT JOIN LATERAL (
                                         SELECT
-											s.accession_no,
-											s.body_part
+                                            s.accession_no,
+                                            s.body_part,
+                                            ndc.package_code,
+                                            ndc.strength
                                         FROM
                                             public.studies s
                                         INNER JOIN billing.charges_studies AS cs ON cs.study_id = s.id
+                                        LEFT JOIN study_cpt sc ON sc.cpt_code_id = cpt_codes.id AND sc.study_id = s.id
+                                        LEFT JOIN study_cpt_ndc scn ON scn.study_cpt_id = sc.id AND scn.is_billable
+                                        LEFT JOIN national_drug_codes ndc ON ndc.id = scn.ndc_id
                                         WHERE
                                             cs.charge_id = charges.id
+                                            AND scn.deleted_dt IS NULL
+                                            AND sc.deleted_dt IS NULL
                                         ORDER BY s.id
                                     ) AS study_details ON TRUE
 					WHERE claim_id=claims.id AND NOT charges.is_excluded ORDER BY charges.id ASC)
