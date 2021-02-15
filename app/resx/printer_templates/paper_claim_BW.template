@@ -145,36 +145,72 @@ function getWCValues(claimData, servicelineList) {
     let wc_values = [];
     cptvalues = servicelineList;
     for (let i = 0; i < 6; i++) {
-        if(cptvalues && cptvalues[i] && claimData.subscriber && claimData.subscriber[0] && claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode){
-            if (( claimData.subscriber[0].claimFilingCode.toString().toUpperCase() ) === 'WC') {
-                wc_values.push(
-                    [
-                        { text:'', fillColor: '#808080', border: [true, true, false, false]},
-                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
-                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
-                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
-                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
-                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
-                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
-                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
-                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
-                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
-                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
-                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
-                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
-                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
-                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
-                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
-                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
-                        { text:'', fillColor: '#808080', border: [false, false, false, false]},
-                        { text:'OB', fillColor: '#808080', border: [false, false, false, false]},
-                        { text: claimData.subscriber[0].claim[0].renderingProvider && claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo ? (claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo.toString().substring(0,12)) : '', fillColor: '#808080', border: [false, false, true, false]}
-                    ]
-                );
+        if(cptvalues && cptvalues[i]) {
+            let ndc= ( cptvalues[i].ndccode ?
+                (
+                    "N4"+getSubstring(cptvalues[i].ndccode, 11) + "\t"
+                    + ( cptvalues[i].ndcmeasure ? getSubstring(cptvalues[i].ndcmeasure, 3 ) + "\t" : ' ' )
+                    + ( cptvalues[i].unit ? '('+getKeyTrimValue(cptvalues[i], 'unit', 6)+'UN)\t' : ' ' )
+                    + ( cptvalues[i].studyDescription||'' )
+                ) : ' '
+            );
+            if(cptvalues && cptvalues[i] && claimData.subscriber && claimData.subscriber[0] && claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode){
+                if (( claimData.subscriber[0].claimFilingCode && claimData.subscriber[0].claimFilingCode.toString().toUpperCase() ) === 'WC') {
+                    wc_values.push(
+                        [
+                            { text:ndc, fillColor: '#808080', border: [true, true, false, false], colSpan:15},
+                            { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            { text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            { text:'OB', fillColor: '#808080', border: [false, false, false, false]},
+                            { text: claimData.subscriber[0].claim[0].renderingProvider && claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo ? (claimData.subscriber[0].claim[0].renderingProvider[0].licenseNo.toString().substring(0,12)) : '', fillColor: '#808080', border: [false, false, true, false]}
+                        ]
+                    );
+                } else {
+                    wc_values.push(
+                        [
+                            {text:ndc, fillColor: '#808080', border: [true, true, false, false], colSpan:15},
+                            {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            {text:'', fillColor: '#808080', border: [false, false, false, false]},
+                            {text:' ', fillColor: '#808080', border: [false, false, false, false]},
+                            {text:' ', fillColor: '#808080', border: [false, false, true, false]
+                            }
+                        ]
+                    );
+                }
             } else {
                 wc_values.push(
                     [
-                        {text:'', fillColor: '#808080', border: [true, true, false, false]},
+                        {text:ndc, fillColor: '#808080', border: [true, true, false, false], colSpan:15},
                         {text:'', fillColor: '#808080', border: [false, false, false, false]},
                         {text:'', fillColor: '#808080', border: [false, false, false, false]},
                         {text:'', fillColor: '#808080', border: [false, false, false, false]},
