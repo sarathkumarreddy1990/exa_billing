@@ -60,6 +60,8 @@ const bcController = {
     saveEligibilityResponse:  bcData.saveEligibilityResponse,
 
     getAllscheduledClaims:  bcData.getAllscheduledClaims,
+
+    getLastUpdatedSequenceByDataCenterNumber: bcData.getLastUpdatedSequenceByDataCenterNumber
 };
 
 module.exports = bcController;

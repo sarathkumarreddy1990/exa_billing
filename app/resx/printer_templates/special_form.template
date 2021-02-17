@@ -28,7 +28,7 @@ function bindContent(claimData) {
     let dd = today.getDate();
     let mm = today.getMonth() + 1; //January is 0!
     let yyyy = today.getFullYear();
-    let date = getDateFormat(mm.toString(), dd, yyyy);
+    let date = getDateFormat(mm.toString(), dd.toString(), yyyy);
     let subscriber = claimData.data && claimData.data[0].subscriber && claimData.data[0].subscriber[0] || {};
     let patient = subscriber && subscriber.patient && subscriber.patient[0] || {};
     let payer = subscriber && subscriber.payer || {};

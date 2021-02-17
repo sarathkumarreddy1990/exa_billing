@@ -440,8 +440,8 @@ define([
                     gridelementid: '#tblPatientClaimsGrid',
                     custompager: this.claimsPager,
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['', '', '', 'Claim Number', 'Claim Date', 'Billing Fee', 'Total Adjustment','Total Insurance Payments', 'Total Patient Payments', 'Balance', 'Claim Status', 'Current responsibility'],
-                    i18nNames: ['', '', '', 'billing.fileInsurance.claimNo', 'billing.claims.claimDate', 'billing.COB.billingFee','billing.fileInsurance.totalAdjustment', 'billing.claims.totalInsurancePayments', 'billing.claims.totalPatientPayments', 'billing.claims.Balance', 'billing.claims.claimStatus', 'billing.claims.currentResponsibility'],
+                    colNames: ['', '', '', 'Claim Number', 'Study Date', 'Billing Fee', 'Total Adjustment','Total Insurance Payments', 'Total Patient Payments', 'Balance', 'Claim Status', 'Current responsibility'],
+                    i18nNames: ['', '', '', 'billing.fileInsurance.claimNo', 'billing.claims.studyDate', 'billing.COB.billingFee','billing.fileInsurance.totalAdjustment', 'billing.claims.totalInsurancePayments', 'billing.claims.totalPatientPayments', 'billing.claims.Balance', 'billing.claims.claimStatus', 'billing.claims.currentResponsibility'],
                     colModel: [
                         { name: '', index: 'claim_id', key: true, hidden: true, search: false },
                         { name: 'billing_provider_id', hidden: true, search: false },
@@ -715,7 +715,7 @@ define([
 
                 $('.inquiryActivity').off().click(_.debounce(function (){
                   if(self.claimInvoiceList && self.claimInvoiceList.length){
-                    self.invoiceActivityStatement(claimID);
+                    self.invoiceActivityStatement(claimID, payer_type);
                   } else {
                       commonjs.showWarning('messages.status.noRecordFound')
                   }
@@ -758,7 +758,7 @@ define([
                     container: self.el,
                     cmTemplate: { sortable: false },
                     customizeSort: false,
-                    sortname: "audit.id",
+                    sortname: "created_dt",
                     sortorder: "desc",
                     dblClickActionIndex: 1,
                     disablesearch: false,
@@ -823,8 +823,8 @@ define([
                     gridelementid: '#tblCIClaimComments',
                     custompager: self.claimInquiryPager,
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
-                    colNames: ['','', 'date','ClaimDate', 'code', 'sequence_number', '', 'payment.id', 'comment', 'Diag Ptr', 'charge', 'payment', 'adjustment', '', '', '', '',''],
-                    i18nNames: ['', '', 'billing.claims.date','billing.claims.claimDate', 'billing.COB.code', 'shared.fields.sequenceNumbers', '', 'billing.payments.paymentID', 'billing.payments.comment', 'billing.COB.diagptr',
+                    colNames: ['','', 'Transaction date','Claim Date', 'code', 'sequence_number', '', 'payment.id', 'comment', 'Diag Ptr', 'charge', 'payment', 'adjustment', '', '', '', '',''],
+                    i18nNames: ['', '', 'billing.claims.transactionDate','billing.claims.claimDate', 'billing.COB.code', 'shared.fields.sequenceNumbers', '', 'billing.payments.paymentID', 'billing.payments.comment', 'billing.COB.diagptr',
                         'billing.payments.charge', 'billing.payments.payments', 'billing.fileInsurance.adjustments', '', '', '', '', 'billing.payments.printOnStatements'
                     ],
                     colModel: [
@@ -1650,9 +1650,12 @@ define([
                 $('#divFaxReceipientPaperClaim').hide();
             },
 
-            invoiceActivityStatement: function(claimId){
+            invoiceActivityStatement: function(claimId, payerType){
                 var urlParams = {
-                    claimId : claimId
+                    claimId: claimId, 
+                    payerType: payerType,
+                    async: false,
+                    save: false
                 };
                 var options = {
                     'id': 'invoice-activity-statement',

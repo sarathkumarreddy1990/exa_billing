@@ -127,9 +127,9 @@ const parser = {
                                 const code = parsedData.eob.slice(i, i + 2).trim();
                                 const validReasonCodes = _.filter(cas_reason_codes, {code: code});
 
-                                if (!validReasonCodes.length) {
+                                if (!validReasonCodes.length && code) {
                                     logger.debug(`Reason code ${code} missing in database`);
-                                    invalidRecords.push(parsedData);
+                                    invalidRemittanceRecords.push(parsedData);
                                     return;
                                 }
 
@@ -152,9 +152,9 @@ const parser = {
                             const adjustmentAmount = parsedData['adjustmentAmount_' + i] || 0.00;
                             const validAdjustmentCodes = _.filter(cas_reason_codes, {code: adjustmentCode});
 
-                            if (!validAdjustmentCodes.length) {
+                            if (!validAdjustmentCodes.length && adjustmentCode) {
                                 logger.debug(`Reason code ${adjustmentCode} missing in database`);
-                                invalidRecords.push(parsedData);
+                                invalidRemittanceRecords.push(parsedData);
                                 return;
                             }
 
@@ -217,7 +217,7 @@ const parser = {
 
         result.notes = notes;
         result.paymentDate = paymentDate;
-        result.invalidRemittanceRecords = invalidRemittanceRecords;
+        result.invalidRemittanceRecords = invalidRemittanceRecords || [];
 
         return result;
     }

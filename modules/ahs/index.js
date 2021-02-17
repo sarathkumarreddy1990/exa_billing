@@ -90,6 +90,10 @@ const ahsmodule = {
                 validations.push(`Claim ${claim.claim_id} has no billable charges`);
             }
 
+            if (claim.billing_method !== 'electronic_billing') {
+                validations.push('Please select valid billing method');
+            }
+
             return validations;
         }, []);
 

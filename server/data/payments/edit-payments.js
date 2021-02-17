@@ -610,7 +610,11 @@ module.exports = {
         }
 
         if (filter.facility_id && filter.facility_id > 0) {
-            filter.filterQuery += ` AND patients.facility_id = ${filter.facility_id} `;
+            filter.filterQuery += ` AND pf.facility_id = ${filter.facility_id} `;
+
+            if (filter.isCount) {
+                filter.joinQuery = ` INNER JOIN patient_facilities pf ON pf.patient_id = patients.id AND pf.is_default `;
+            }
         }
 
         if (f.lname) {

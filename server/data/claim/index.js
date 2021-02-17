@@ -193,6 +193,7 @@ module.exports = {
                                         INNER JOIN public.studies s ON s.order_id = o.id
                                         WHERE s.id = ANY(${studyIds})
                                         AND s.deleted_dt IS NULL
+                                        AND pi.deleted_dt IS NULL
                                         ORDER BY pi.order_no
                             )
                             SELECT  ( SELECT COALESCE(json_agg(row_to_json(charge)),'[]') charges

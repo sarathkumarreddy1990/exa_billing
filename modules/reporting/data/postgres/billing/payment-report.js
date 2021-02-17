@@ -130,7 +130,7 @@ const detailQueryTemplate = _.template(`
             bc.id  claim_id,
             SUM(CASE WHEN amount_type= 'payment' then bpa.amount  else 0::money end) AS applied_amount,
             SUM(CASE WHEN amount_type= 'adjustment' then bpa.amount  else 0::money end) AS adjustment,
-            bac.description AS description
+            ARRAY_REMOVE(ARRAY_AGG(DISTINCT bac.description),null) AS description
             <% if (userIds) { %> , MAX(users.username) AS user_name  <% } %>
         FROM
             billing.payments bp
@@ -167,18 +167,7 @@ const detailQueryTemplate = _.template(`
                     <% if (adjustmentCodeIds) { %> AND  <% print(adjustmentCodeIds); } %>
             ) have_adjustment ON have_adjustment.payment_id = bp.id and have_adjustment.charge_id = bpa.charge_id
         <% } %>
-        LEFT JOIN LATERAL (
-                SELECT
-                    i_bac.description
-                FROM
-                    billing.payment_applications i_bpa
-                INNER JOIN billing.adjustment_codes i_bac ON i_bac.id = i_bpa.adjustment_code_id
-                WHERE
-                    i_bpa.payment_id = bp.id
-                ORDER BY
-                    i_bpa.id
-                LIMIT 1
-        ) bac ON TRUE
+        LEFT JOIN billing.adjustment_codes bac ON bac.id = bpa.adjustment_code_id
         WHERE
             <%= claimDate %>
             <% if (facilityIds) { %>AND <% print(facilityIds); } %>
@@ -187,7 +176,7 @@ const detailQueryTemplate = _.template(`
             <% if (userIds) { %>AND <% print(userIds); } %>
             <% if (userRoleIds) { %>AND <% print(userRoleIds); } %>
         GROUP BY
-            bp.id, bc.id, bac.description
+            bp.id, bc.id
     )
     SELECT
         to_char(p.accounting_date, '<%= dateFormat %>')   AS "Accounting Date",
@@ -213,7 +202,7 @@ const detailQueryTemplate = _.template(`
                             p_pp.prefix_name,
                             p_pp.suffix_name)
             WHEN p.payer_type = 'insurance' THEN ip.insurance_name
-            WHEN p.payer_type = 'ordering_facility' THEN f.facility_name
+            WHEN p.payer_type = 'ordering_facility' THEN pg.group_name
             WHEN p.payer_type = 'ordering_provider' then pr.last_name ||','|| pr.first_name
         END AS "Payer Name",
         CASE
@@ -250,6 +239,7 @@ const detailQueryTemplate = _.template(`
     LEFT JOIN public.Providers pr ON pr.id = pc.provider_id
     LEFT JOIN public.patients pp ON pp.id = c.patient_id
     LEFT JOIN public.patients p_pp ON p_pp.id = p.patient_id
+    LEFT JOIN public.provider_groups pg ON pg.id = p.provider_group_id
     <% if(insGroups) { %>
        LEFT JOIN provider_groups ON p.provider_group_id  = provider_groups.id
        LEFT JOIN  insurance_provider_payer_types ippt ON ippt.id = ip.provider_payer_type_id

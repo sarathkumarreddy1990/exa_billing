@@ -38,7 +38,7 @@ const sftpService = {
             ediText
         } = claimInfo;
 
-        try {            
+        try {
 
             const fileSqlResponse = await data.getCompanyFileStore(companyId);
 
@@ -176,7 +176,11 @@ const sftpService = {
                 host: config.ftp_host,
                 user: config.ftp_user_name,
                 password: config.ftp_password,
-                port: config.ftp_port
+                port: config.ftp_port,
+
+                algorithms: {
+                    cipher: ['aes128-cbc']
+                }
             });
 
             let downloadDirPath = config.ftp_receive_folder || 'responses';
@@ -262,12 +266,13 @@ const sftpService = {
             };
         }
         catch (e) {
-            logger.error('Error occurred in files download', e);
-            return {
+            let errorResponse = {
                 error: true,
                 message: e.message.replace(/[^\w\s]/gi, ''),
                 response: {}
             };
+            logger.error(`Error occurred in files download ${JSON.stringify(errorResponse)}`);
+            return errorResponse;
         }
         finally {
             sftp.end();
@@ -289,18 +294,15 @@ const sftpService = {
         let sftpDetails = await data.getClearingHouseList(companyId) || {};
 
         if (!sftpDetails.length) {
-            logger.info('ERA sftp download | Clearing house not configured');
+            logger.info('ERA sftp download | SFTP not configured in clearing house');
             return {
                 error: true,
-                message: 'Clearing house not configured'
+                message: 'SFTP not configured in clearing house'
             };
         }
 
-        let requests = _.map(sftpDetails, (sftp, index) => {
-            return new Promise(async (resolve, reject) => {
-                const data = await sftpService.download(companyId, sftp);
-                resolve(data);
-            });
+        let requests = _.map(sftpDetails, async (sftp, index) => {
+            return await sftpService.download(companyId, sftp);
         });
 
         logger.info('ERA sftp download process started..');

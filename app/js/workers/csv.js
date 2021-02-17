@@ -5,8 +5,9 @@ importScripts('/exa_modules/billing/static/node_modules/moment-timezone/builds/m
 const claimColumns = {
 
     "Claim No": "claim_id",
+    "Claim Date": "created_dt",
     "AHS Claim Num": "can_ahs_claim_no",
-    "Claim Date": "claim_dt",
+    "Study Date": "claim_dt",
     "Patient Name": "patient_name",
     "Clearing House": "clearing_house",
     "Billing Method": "billing_method",
@@ -31,14 +32,17 @@ const claimColumns = {
     "Responsible Party": "payer_name",
     "Submitted Date": "submitted_dt",
     "Date of Injury": "current_illness_date",
-    "Charge Description":"charge_description",
+    "Charge Description": "charge_description",
     "Ins Provider Type": "ins_provider_type",
+    "Insurance Providers": "insurance_providers",
+    "ICD Description": "icd_description",
     "Ordering Facility": "ordering_facility_name",
     "Facility": "facility_name",
     "First Statement Date": "first_statement_dt",
     "AHS Claim Action": "claim_action",
     "Reason Code": "reason_code",
-    "PHN": "phn_alt_account"
+    "PHN": "phn_alt_account",
+    "Sequence Numbers": "billing.can_bc_get_claim_sequence_numbers(claims.id)"
 };
 
 const paymentsColumns = {
@@ -63,6 +67,7 @@ const dateColumnsWithTimeZoneConversion = [
     'Claim Date',
     'PAYMENT DATE',
     'Submitted Date',
+    'Study Date'
 ];
 
 const dateColumnsWithOutTimeZone = [
@@ -77,7 +82,7 @@ const dateColumnsWithTimeZone = [
 ];
 
 const auditColumns = {
-    "LOGGED DATE":"created_dt",
+    "LOGGED DATE": "created_dt",
     "SCREEN": "screen_name",
     "USER": "username",
     "LOG DESCRIPTION": "description"
@@ -119,6 +124,12 @@ function generateCsvData(dbResponse, callback) {
     var columnHeader = dbResponse.columnHeader;
     var facilities = dbResponse.facilities;
     var companyTz = dbResponse.companyTz;
+
+    _.each(columnHeader, function (data, index) {
+        if (data == "Claim Created Dt") {
+            columnHeader[index] = "Study Date";
+        }
+    });
 
     if (countryCode == 'can') {
         claimColumns["Payment ID"] = "payment_id";
@@ -174,7 +185,7 @@ function generateCsvData(dbResponse, callback) {
             var csvText = showLabel && rowIndex == 0 ? colName : dbRow[columnMap[colName]];
 
             if (rowIndex && dateColumnsWithTimeZoneConversion.indexOf(colName) > -1 && csvText) {
-                    csvText = facilityTimeZone.length ? moment(csvText).tz(facilityTimeZone[0].value).format('L') : moment(csvText).tz(companyTz).format('L');
+                csvText = facilityTimeZone.length ? moment(csvText).tz(facilityTimeZone[0].value).format('L') : moment(csvText).tz(companyTz).format('L');
             }
             csvText = csvText || '';
 

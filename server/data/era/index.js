@@ -817,7 +817,8 @@ module.exports = {
                         ) AS config
                     FROM billing.edi_clearinghouses
                     WHERE inactivated_dt IS NULL
-                    AND company_id = ${companyId}`;
+                    AND company_id = ${companyId}
+                    AND coalesce(communication_info->>'enable_ftp','false') = 'true' `;
 
         return await queryRows(sql);
     }

@@ -547,7 +547,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "custom_name": "Claim No",
                         "name": "claim_no",
                         "width": 75,
-                        "hidden": (app.country_alpha_3_code === 'can' && app.province_alpha_2_code === 'AB')
+                        "hidden": false
                     }
                 },
                 "AHS Claim Num": {

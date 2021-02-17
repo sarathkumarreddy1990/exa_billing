@@ -27,16 +27,12 @@ function get_build_version(version) {
         moment().tz(process.env.TZ || 'UTC').format('YYYYMMDDHHmm'),
     ]
           .filter(x => !!x)
-          .map(x => x.replace(/[\n\.\/]/g, function (m){
-              return {
-                  '\n': '',
-                  '.': '-',
-                  '/': '--'
-              }[m]
-          })).join('.');
+          .map(x => x.replace(/\r?\n|\r/g, ''))
+	  .map(x => decodeURIComponent(x)).map(x => x.replace(/[^0-9A-Za-z.-]/g, '-'))
+	  .join('.');
     const build_version = [version, build_meta].filter(x => !!x).join('+');
     if (!semver.valid(build_version)) {
-        throw new Error('Cannot parse build_version ${build_version}');
+        throw new Error(`Cannot parse build_version ${build_version}`);
     }
     return build_version;
 }
@@ -47,7 +43,7 @@ function get_branch() {
     return `${branch}`;
 }
 
-const less = parallel(less_default, less_dark);
+const less = parallel(less_default, less_dark, less_chat);
 exports.less = less;
 exports.clean = clean;
 exports.default = exports.build = series(check_build_environment, clean, copy, bump, npm_ci, less,
@@ -69,7 +65,7 @@ function check_build_environment(cb) {
 }
 
 function clean() {
-    return src(['./build', './dist'], { allowEmpty: true }).pipe(gulp_clean());
+    return src(['./build', './dist', 'app/node_modules'], { allowEmpty: true }).pipe(gulp_clean());
 }
 
 function copy() {
@@ -108,12 +104,18 @@ function less_dark() {
         .pipe(dest('./build/app/skins/dark'))
 }
 
+function less_chat () {
+    return src([ './app/js/modules/multichat/stylesheets/chat.less' ])
+        .pipe(gulp_less({ paths: [ path.join(__dirname, 'app/js/modules/multichat/stylesheets/chat.less') ] }))
+        .pipe(dest('./build/app/js/modules/multichat/stylesheets'));
+}
+
 function requirejsBuild(cb) {
-    const { rjsConfig } = require('./app/js/main');
+    const { rjsConfig } = require('./build/app/js/main');
     const requirejsConfig = {
         ...rjsConfig,
         name: 'main',
-        baseUrl: './app/js',
+        baseUrl: './build/app/js',
         out: './build/app/js/main.js',
         optimize: 'uglify2',
         preserveLicenseComments: false,

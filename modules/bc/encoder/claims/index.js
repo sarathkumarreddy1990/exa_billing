@@ -155,11 +155,11 @@ const encoder = (rows, isCron) => {
                 }
             });
 
-            if (row.submission_code === 'C' && !isN01) {
+            if (['C', 'X', 'E'].indexOf(row.submission_code) > -1 && !isN01) {
                 claimError = true;
                 let noteError = [{
                     fieldName: 'Note record(N01)',
-                    message: 'Submission code C required N01 record note information',
+                    message: `Submission code ${row.submission_code} required N01 record note information`,
                     segmentID: 'N01',
                     segmentName: 'P22'
                 }];

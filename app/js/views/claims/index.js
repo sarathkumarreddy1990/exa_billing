@@ -670,6 +670,7 @@ define(['jquery',
                             self.patientAddress = claimDetails.patient_info ? commonjs.hstoreParse(claimDetails.patient_info) : {};
                             self.paymentList = claimDetails.payment_details || [];
                             self.billing_method = claimDetails.billing_method;
+                            self.phn = claimDetails.phn_acc_no;
                             $('.claimProcess').prop('disabled', false);
                             $('#btnSaveClaim').prop('disabled', false);
                             /* Bind claim charge Details - start */
@@ -1825,7 +1826,7 @@ define(['jquery',
                                     });
                                 });
 
-                                if (app.country_alpha_3_code !== 'can' || (app.country_alpha_3_code === 'can' && app.province_alpha_2_code === 'AB')) {
+                                if (app.country_alpha_3_code !== 'can' || (['can_AB', 'can_BC'].indexOf(app.billingRegionCode) > -1)) {
                                     _.each(_diagnosisProblems, function (item) {
 
                                         if (_.findIndex(diagnosisCodes, { id: item.id }) == -1) {
@@ -3869,6 +3870,8 @@ define(['jquery',
 
                                             }
                                         }
+                                    } else {
+                                        $("#btnStudiesRefresh").click();
                                     }
 
                                 }, 200);

@@ -356,7 +356,7 @@ const bcModules = {
 
             let claimIds = submissionFailedIds || args.claimIds;
 
-            logger.error(`Claim submission failed - ${JSON.stringify(errorData)}`);
+            logger.error(`Claim submission failed - ${JSON.stringify(encoderResult.errorData)}`);
 
             await bcController.updateClaimsStatus({
                 claimIds: claimIds,
@@ -497,7 +497,20 @@ const bcModules = {
 
                     await statAsync(filePath);
 
-                    let { can_bc_data_centre_sequence_number } = await bcController.getLastUpdatedSequence(billing_provider_id);
+                    let lastSequenceNumber;
+
+                    if (billing_provider_id) {
+                        let { can_bc_data_centre_sequence_number } = await bcController.getLastUpdatedSequence(billing_provider_id);
+                        lastSequenceNumber = can_bc_data_centre_sequence_number;
+                    } else if (uploaded_file_name) {
+                        can_bc_data_centre_number = uploaded_file_name.split('_')[0];
+                        let { can_bc_data_centre_sequence_number, id } = await bcController.getLastUpdatedSequenceByDataCenterNumber(can_bc_data_centre_number);
+                        billing_provider_id = id;
+                        lastSequenceNumber = can_bc_data_centre_sequence_number;
+                    } else {
+                        logger.error('Billing provider is not found.....');
+                        return { responseCode: 'exceptionErrors' };
+                    }
 
                     let sequenceMapping = {
                         VS1: [],
@@ -517,7 +530,7 @@ const bcModules = {
 
                     for (let i = 0; i < fileTextArray.length; i++) {
                         let record = fileTextArray[i];
-                        currentSequence = (((can_bc_data_centre_sequence_number + 1).toString()).padStart(7, '0')).slice(0, 7);
+                        currentSequence = (((lastSequenceNumber + 1).toString()).padStart(7, '0')).slice(0, 7);
                         let recordCode = record.substring(0, 3);
 
                         switch (recordCode) {
@@ -562,6 +575,7 @@ const bcModules = {
                             case 'B04': {
                                 isBatchEligibilityFile = true;
                                 let studyId = record.substring(54, 61);
+                                fileTextArray[i] = `${record.substring(0, 8)}${currentSequence}${record.substring(15)}`;
 
                                 sequenceMapping[recordCode].push({
                                     current_sequence: currentSequence,
@@ -574,7 +588,7 @@ const bcModules = {
                             }
                         }
 
-                        can_bc_data_centre_sequence_number++;
+                        lastSequenceNumber++;
                     }
 
                     await fse.outputFile(filePath, fileTextArray.join('\r\n'));
@@ -702,6 +716,7 @@ const bcModules = {
 
         try {
             contents = await readFileAsync(filePath, 'utf8');
+            logger.logInfo('Initiated File Processing ...')
             return parser.processFile(contents, params);
         }
         catch (e) {
@@ -762,7 +777,7 @@ const bcModules = {
                 fileId: params.file_id
             });
 
-            if (remittanceResponse && remittanceResponse.invalidRemittanceRecords.length) {
+            if (remittanceResponse && remittanceResponse.invalidRemittanceRecords && remittanceResponse.invalidRemittanceRecords.length) {
                 logger.info(`Unable to proceed remittance file process with following remittance records ${JSON.stringify(remittanceResponse.invalidRemittanceRecords)}`);
 
                 await bcController.updateFileStatus({
@@ -770,7 +785,12 @@ const bcModules = {
                     fileId: params.file_id
                 });
 
-                return;
+                message.push({
+                    status: 100,
+                    message: 'Invalid Remittance Records found'
+                });
+
+                return message;
             }
 
             logger.info('Processing Eligibility Response...');
@@ -804,19 +824,19 @@ const bcModules = {
             });
 
             logger.info(`Processing Remittance file ${params.file_id} completed with status ${status}`);
-            return {
+            return [{
                 can_bc_process_remittance,
                 fileId: params.file_id || null,
                 status
-            }
+            }];
 
         }
         catch (err) {
             logger.error(err);
-            return {
+            return [{
                 error: true,
                 message: err
-            };
+            }];
         }
     },
 
@@ -842,10 +862,10 @@ const bcModules = {
         let fileStoreDetails = await bcController.getCompanyFileStore(companyId);
 
         if (!fileStoreDetails || !fileStoreDetails.length) {
-            return {
+            return [{
                 error: true,
                 responseCode: 'isFileStoreError'
-            };
+            }];
         }
 
         let {
@@ -886,19 +906,19 @@ const bcModules = {
         //Error Validations in MSP portal connectivity
         if (isDownTime) {
             logger.error(`MSP Portal connection downtime`);
-            return {
+            return [{
                 error: true,
                 responseCode: 'isDownTime'
-            };
+            }];
         }
 
         if (error) {
             logger.error(`MSP Portal Response Error: ${error}`);
 
-            return {
+            return [{
                 error: true,
                 message: error
-            };
+            }];
         }
 
         if (data) {
@@ -911,10 +931,10 @@ const bcModules = {
                 if (fileProperties.Result !== 'SUCCESS') {
                     logger.error('No file downloaded from MSP Portal');
 
-                    return {
+                    return [{
                         err: null,
                         message: 'No file downloaded from MSP Portal'
-                    };
+                    }];
                 }
 
                 // Reading the file content after gets downloaded
@@ -929,12 +949,12 @@ const bcModules = {
                 if (isInValidFileContent) {
                     logger.error(`Invalid Remittance File ${fileName}`);
 
-                    return {
+                    return [{
                         error: true,
                         status: 'INVALID_FILE',
                         message: 'Invalid Remittance File',
                         response: {}
-                    };
+                    }];
                 }
 
                 let fileMd5 = crypto.createHash('MD5').update(bufferString, 'utf8').digest('hex');

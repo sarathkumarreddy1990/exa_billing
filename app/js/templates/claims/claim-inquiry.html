@@ -1,7 +1,7 @@
 
     <style>
         .ui-jqgrid .ui-jqgrid-bdiv {
-            overflow-x: hidden;
+            overflow-x: visible;
         }
         .vs {
             overflow-y: scroll;
@@ -37,7 +37,7 @@
                         <label id="lblCIStatus" style="font-weight: bold;"></label>
                     </div>
                     <div class="col-md-4">
-                        <label i18n="billing.claims.claimDate"></label> :
+                        <label i18n="billing.claims.studyDate"></label> :
                         <label id="lblCIClaimDate" style="font-weight: bold;"></label>
                     </div>
                 </div>
@@ -201,7 +201,7 @@
                            <th>Adjustment</th>
                            <% if (billingRegionCode === 'can_BC') { %>
                             <th>MSP Internal control number</th>
-                            <% } %> 
+                            <% } %>
                        </tr>
                    </thead>
                    <tbody id="tBodyCIPayment"></tbody>

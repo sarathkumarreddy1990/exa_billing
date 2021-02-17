@@ -97,7 +97,6 @@ const handleEvents = async (req, res) => {
         response = await ahs.events({
             ...params,
             ...query,
-            company_id,
             ip,
         });
     }
@@ -161,6 +160,6 @@ const clearingHouse = async (req, res) => {
 
 router.get('/acr/process', restrictAccess, autoCollectionsProcess);
 
-router.get('/edi/files/:action', restrictAccess, clearingHouse);
+router.get('/edi/:action', restrictAccess, clearingHouse);
 
 module.exports = router;

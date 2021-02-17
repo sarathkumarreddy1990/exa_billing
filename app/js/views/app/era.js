@@ -305,7 +305,7 @@ define([
                 var ifrDoc = $("ifrEobFileUpload").contents();
 
                 if (ifrDoc) {
-                    $(ifrDoc).find('#btnProcess_EOB, #btnPreview_EOB').css('display', 'block');
+                    $(ifrDoc).find('.eraProcessButton').css('display', 'block');
                 }
             },
 

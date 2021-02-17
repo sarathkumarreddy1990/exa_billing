@@ -142,7 +142,7 @@ const acr = {
 
         let auditDetails = {
             company_id: companyId,
-            screen_name: screenName,
+            screen_name: 'Payments',
             module_name: moduleName,
             client_ip: ip,
             user_id: parseInt(userId)
@@ -193,7 +193,9 @@ const acr = {
                         billing.claims
                     INNER JOIN patients p ON p.id = claims.patient_id
                     INNER JOIN billing.claim_status cs ON cs.id = claims.claim_status_id
+                    INNER JOIN billing.get_claim_totals(claims.id) gct ON TRUE
                     WHERE cs.code = 'CIC'
+                    AND gct.claim_balance_total != 0::money
                     GROUP BY p.id
                     ORDER BY p.id DESC
                 )
@@ -247,7 +249,7 @@ const acr = {
                 , insert_audit_cte AS(
                     SELECT billing.create_audit(
                         company_id
-                    , ${screenName}
+                    , ${auditDetails.screen_name}
                     , id
                     , ${screenName}
                     , ${moduleName}
@@ -529,7 +531,7 @@ const acr = {
                     SELECT
                         SUM(cpl.claim_balance_total) AS patient_balance
                         ,p.id AS patient_id
-                        ,ARRAY_AGG(claims.id) FILTER ( WHERE claim_status_id != ${acr_claim_status_id} ) AS claim_ids
+                        ,ARRAY_AGG(claims.id) FILTER ( WHERE claim_status_id != ${acr_claim_status_id} AND cpl.claim_balance_total > 0::money ) AS claim_ids
                     FROM
                         billing.claims
 		            INNER JOIN claim_payment_lists cpl ON cpl.claim_id = claims.id
@@ -570,8 +572,8 @@ const acr = {
                , insert_claim_comment_audit_cte as(
                     SELECT billing.create_audit(
                         ${auditDetails.company_id}
-                        , '${auditDetails.screen_name}'
-                        , id
+                        , 'claims'
+                        , claim_id
                         , '${auditDetails.screen_name}'
                         , '${auditDetails.module_name}'
                         , 'Claim Comments inserted AS Claim was sent to collections review'
