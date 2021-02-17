@@ -1925,7 +1925,8 @@ define(['jquery',
                         ref_charge_id: null,
                         study_id: self.isEdit ? (rowData && rowData.study_id || null) : (self.cur_study_id || null),
                         accession_no: $('#tBodyCharge tr:first').length > 0 ? $('#tBodyCharge tr:first').find('.charges__accession-num').text().trim() : (self.pri_accession_no || null),
-                        data_row_id: parseInt(index) + 1
+                        data_row_id: parseInt(index) + 1,
+                        is_billable: true
                     }
                 } else {
                     var rowObj = $(e.target || e.srcElement).closest('tr');
@@ -1938,7 +1939,8 @@ define(['jquery',
                         ref_charge_id: null,
                         study_id: rowData.study_id,
                         accession_no: rowData.accession_no,
-                        data_row_id: parseInt(index) + 1
+                        data_row_id: parseInt(index) + 1,
+                        is_billable: true
                     }
                 }
 
