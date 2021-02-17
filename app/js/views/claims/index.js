@@ -1822,7 +1822,8 @@ define(['jquery',
                                         accession_no: item.accession_no,
                                         study_id: item.study_id,
                                         data_row_id: index,
-                                        cpt_id: item.cpt_id
+                                        cpt_id: item.cpt_id,
+                                        cpt_ndc_id: item.cpt_ndc_id
                                     });
                                 });
 
@@ -3736,7 +3737,8 @@ define(['jquery',
                         is_deleted: false,
                         isEdit: $('#txtBillFee_' + id).attr('edit'),
                         is_excluded: $('#checkExclude_' + id).is(':checked'),
-                        is_canada_billing: app.country_alpha_3_code === 'can'
+                        is_canada_billing: app.country_alpha_3_code === 'can',
+                        cpt_ndc_id: rowData.cpt_ndc_id || null
                     });
                     var charges = claim_model.charges[claim_model.charges.length - 1];
                     if(charges) {
