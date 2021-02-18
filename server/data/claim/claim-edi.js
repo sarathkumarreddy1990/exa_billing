@@ -680,7 +680,7 @@ module.exports = {
 					charges.id as "chargeID",
 					display_description as "studyDescription",
 					ndc.package_code AS NDCCode,
-					ndc.strength AS NDCMeasure,
+					ndc.unit_measure AS NDCMeasure,
 					bill_fee::numeric::text as "billFee",
 					(bill_fee*charges.units)::numeric::text  as "totalBillFee",
 					charges.units as "unit",
