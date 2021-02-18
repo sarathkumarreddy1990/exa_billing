@@ -69,6 +69,7 @@ html
 
     body(class="exportFrame" style="background-color: transparent !important;")
         form#eraFileUpload(name='formEraUpload', action='/exa_modules/billing/era/upload?_csrf=' + csrfToken, method='POST', style="float:right;", enctype="multipart/form-data")
+            input(type="hidden", name="_csrf", value='#{csrfToken}')
             button#btnDownload_EOB.eraProcessButton.btn.btn-primary.btn-sm(type="button", onClick="download(event);", style="background: #3c91f0; margin-top: 4px; margin-right: 5px;", i18n="shared.buttons.download")
             button#btnProcess_EOB.eraProcessButton.btn.btn-primary.btn-sm(type="button", onClick="fireUpload(event);", style="background: #3c91f0; margin-top: 4px; margin-right: 5px;", i18n="shared.fields.uploadProcessEOBFile")
             if ['can_MB', 'can_BC'].indexOf(billingRegionCode) == -1
