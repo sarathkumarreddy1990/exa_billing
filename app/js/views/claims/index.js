@@ -1233,6 +1233,7 @@ define(['jquery',
                     }
                 }
                 self.toggleWCBInjuryTypes();
+                self.toggleOtherClaimNumber();
                 self.disableElementsForProvince(claim_data);
                 /* Common Details end */
 
