@@ -92,6 +92,7 @@ define(['jquery',
             patientAddress: {},
             priInsCode : '',
             isProviderChiropractor: false,
+            isClaimStatusUpdated: false,
             elIDs: {
                 'primaryInsAddress1': '#txtPriSubPriAddr',
                 'primaryInsAddress2': '#txtPriSubSecAddr',
@@ -190,6 +191,7 @@ define(['jquery',
 
                 self.claimICDLists = [];
                 this.rendered = true;
+                self.isClaimStatusUpdated = false;
                 commonjs.showDialog({
                     header: 'Claim Creation',
                     i18nHeader: 'shared.fields.claimCreation',
@@ -212,6 +214,10 @@ define(['jquery',
 
                         if (window.reportWindow) {
                             window.reportWindow.close();
+                        }
+
+                        if(self.isClaimStatusUpdated){
+                            $("#btnClaimsRefresh").click();
                         }
                     },
                     html: this.claimCreationTemplate({
@@ -4504,6 +4510,7 @@ define(['jquery',
 
                                     if ($gridId) {
                                         $('#' + $gridId + ' tr#' + self.claim_Id, parent.document).find('td[aria-describedby=' + $gridId + '_claim_status]').text(pending_submission_status && pending_submission_status[0].description).css("background-color", color_code);
+                                        self.isClaimStatusUpdated =  true;
                                     } else if (pageSource !== 'patientSearch' && $gridId == '') {
                                         commonjs.showWarning(commonjs.geti18NString("messages.errors.gridIdNotExists"));
                                     }
