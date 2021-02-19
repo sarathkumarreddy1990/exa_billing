@@ -857,24 +857,17 @@ const OHIPDataAPI = {
                 ) AS "specialtyCodes",
                 33 AS "specialtyCode",  -- NOTE this is only meant to be a temporary workaround
                 (
-                SELECT json_agg(row_to_json(claim_details)) 
-                FROM (
-                WITH cte_insurance_details AS (
-                    SELECT (row_to_json(insuranceDetails)) AS "insuranceDetails"
-                    FROM 
-                        ( SELECT
-                            ppi.policy_number AS "healthNumber",
-                            ppi.group_number AS "versionCode",              
-                            pip.insurance_name AS "payerName",              
-                            pip.insurance_code AS "paymentProgram"                
-                        FROM public.patient_insurances ppi
-                        INNER JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
-                        WHERE ppi.id = bc.primary_patient_insurance_id
-                        ) AS insuranceDetails
-                )
-                
-                SELECT * FROM cte_insurance_details ) AS claim_details 
-                ) AS "insurance_details",
+                    SELECT row_to_json(insurance_details) FROM (
+                    SELECT
+                        ppi.policy_number AS "healthNumber",
+                        ppi.group_number AS "versionCode",              
+                        pip.insurance_name AS "payerName",              
+                        pip.insurance_code AS "paymentProgram"                
+                    FROM public.patient_insurances ppi
+                    INNER JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
+                    WHERE ppi.id = bc.primary_patient_insurance_id) insurance_details
+                ) insurance_details,
+                pp.full_name AS "patientName",
                 bc.id AS "accountingNumber",
                 pp.patient_info -> 'c1State' AS "provinceCode",               -- TODO this should be coming from the patient_insurances table
                 pp.patient_info->'c1AddressLine1' AS "patientAddress",
