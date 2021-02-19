@@ -1822,7 +1822,8 @@ define(['jquery',
                                         accession_no: item.accession_no,
                                         study_id: item.study_id,
                                         data_row_id: index,
-                                        cpt_id: item.cpt_id
+                                        cpt_id: item.cpt_id,
+                                        cpt_ndc_id: item.cpt_ndc_id
                                     });
                                 });
 
@@ -1924,7 +1925,8 @@ define(['jquery',
                         ref_charge_id: null,
                         study_id: self.isEdit ? (rowData && rowData.study_id || null) : (self.cur_study_id || null),
                         accession_no: $('#tBodyCharge tr:first').length > 0 ? $('#tBodyCharge tr:first').find('.charges__accession-num').text().trim() : (self.pri_accession_no || null),
-                        data_row_id: parseInt(index) + 1
+                        data_row_id: parseInt(index) + 1,
+                        is_billable: true
                     }
                 } else {
                     var rowObj = $(e.target || e.srcElement).closest('tr');
@@ -1937,7 +1939,8 @@ define(['jquery',
                         ref_charge_id: null,
                         study_id: rowData.study_id,
                         accession_no: rowData.accession_no,
-                        data_row_id: parseInt(index) + 1
+                        data_row_id: parseInt(index) + 1,
+                        is_billable: true
                     }
                 }
 
@@ -3736,7 +3739,8 @@ define(['jquery',
                         is_deleted: false,
                         isEdit: $('#txtBillFee_' + id).attr('edit'),
                         is_excluded: $('#checkExclude_' + id).is(':checked'),
-                        is_canada_billing: app.country_alpha_3_code === 'can'
+                        is_canada_billing: app.country_alpha_3_code === 'can',
+                        cpt_ndc_id: rowData.cpt_ndc_id || null
                     });
                     var charges = claim_model.charges[claim_model.charges.length - 1];
                     if(charges) {
