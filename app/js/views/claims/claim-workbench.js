@@ -2928,6 +2928,7 @@ define(['jquery',
 
                             if (pending77ClaimStatusFlag || updateAhsClaimStatusFlag || isValidClaimData) {
                                 commonjs.showStatus("messages.status.validatedSuccessfully");
+                                $("#btnClaimsRefresh").click();
                             }
 
                             if (isValidClaimData) {
