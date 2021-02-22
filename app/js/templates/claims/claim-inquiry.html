@@ -111,24 +111,24 @@
             <div class="col-md-6">
                 <div class="row">
                     <div class="col-md-2">
-                        <% if (country_alpha_3_code !== 'can' || (country_alpha_3_code === 'can' && province_alpha_2_code === 'AB')) { %>
+                        <% if (country_alpha_3_code !== 'can' || billingRegionCode !== 'can_ON') { %>
                             <label style="font-weight: bold" i18n="billing.fileInsurance.icd"></label>
                         <% } %>
                     </div>
                     <div class="col-md-3">
-                        <input type="button" id="btnPatientClaims" class="btn btn-primary ci-header-btn" i18n="setup.rightClickMenu.patientClaims">
+                        <input type="button" id="btnPatientClaims" class="btn btn-primary ci-header-btn line-ht-1" i18n="setup.rightClickMenu.patientClaims">
                     </div>
                     <div class="col-md-3">
-                        <input type="button" id="btnCISaveIsInternal" class=" btn btn-primary ci-header-btn" value="Save" i18n="shared.buttons.save">
-                        <% if (billingRegionCode === 'can_MB' || billingRegionCode === 'can_BC') { %>
-                        <input type="button" id="btnCISaveNotes" class=" btn btn-primary ci-header-btn" value="SaveNotes" i18n="shared.buttons.saveNotes">
+                        <input type="button" id="btnCISaveIsInternal" class=" btn btn-primary ci-header-btn line-ht-1" value="Save" i18n="shared.buttons.save">
+                        <% if (['can_MB', 'can_BC'].indexOf(billingRegionCode) !== -1) { %>
+                        <input type="button" id="btnCISaveNotes" class=" btn btn-primary ci-header-btn line-ht-1" value="SaveNotes" i18n="shared.buttons.saveNotes">
                         <% } %>
                     </div>
                     <div class="col-md-3">
-                        <button type="button" class="btn btn-primary" id="btnCIPrintInvoice" style="line-height: 1;" data-rformat="pdf"><span i18n="shared.buttons.printInvoice"></span><i class="fa fa-external-link"></i></button>
+                        <button type="button" class="btn btn-primary line-ht-1" id="btnCIPrintInvoice" data-rformat="pdf"><span i18n="shared.buttons.printInvoice"></span><i class="fa fa-external-link"></i></button>
                     </div>
                 </div>
-                <% if (country_alpha_3_code !== 'can' || (country_alpha_3_code === 'can' && province_alpha_2_code === 'AB')) { %>
+                <% if (country_alpha_3_code !== 'can' || billingRegionCode !== 'can_ON') { %>
                 <div class="row">
                     <div class="col-md-12"><legend class="viztekLegend" style="font-weight: bold;font-size: 15px"></legend></div>
                 </div>
