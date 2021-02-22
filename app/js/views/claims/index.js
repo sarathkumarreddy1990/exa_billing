@@ -171,8 +171,8 @@ define(['jquery',
                         break;
                     case 'can_ON':
                         return {
-                            pointers: [true, true, true, true],
-                            modifiers: [true, true, true, true]
+                            pointers: [false, false, false, false],
+                            modifiers: [false, false, false, false]
                         }
                         break;
                     default:
