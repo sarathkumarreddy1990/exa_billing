@@ -2992,6 +2992,7 @@ define(['jquery',
                     },
                     onHide: function () {
                         commonjs.previousValidationResults = null;
+                        $("#btnClaimsRefresh").click();
                     },
                     i18nHeader: 'billing.claims.validationResults',
                     width: '70%',
