@@ -155,7 +155,7 @@ const getFileStore = async (args) => {
  *                            absolutePath: String,   // full path including filename
  *                        }
  */
-const storeFile =  async (args) => {
+const storeFile = async (args) => {
 
     const {
         createdDate,
@@ -173,7 +173,7 @@ const storeFile =  async (args) => {
     // 20120331 - OHIP Conformance Testing Batch Edit sample batch date, seq: 0005
     // accounting number: "CST-PRIM" from Conformance Testing Error Report sample
 
-    const filestore =  await getFileStore(args);
+    const filestore = await getFileStore(args);
     const filePath = path.join((filestore.is_default ? 'OHIP' : ''), getDatePath());
     const dirPath = path.join(filestore.root_directory, filePath);
 
@@ -181,7 +181,7 @@ const storeFile =  async (args) => {
     mkdirp.sync(dirPath);
 
     let filename = originalFilename;
-    if ( appendFileSequence ) {
+    if (appendFileSequence) {
         try {
             const filenames = await readDirAsync(dirPath);
 
@@ -190,7 +190,7 @@ const storeFile =  async (args) => {
             // Use index as the final 4 chars (. + 3 numbers) in the filename
             filename += `.${index.padStart(3, '0')}`;
         }
-        catch ( e ) {
+        catch (e) {
             logger.error(`Could not get file count for directory ${dirPath}`, e);
         }
 
@@ -201,7 +201,7 @@ const storeFile =  async (args) => {
         absolutePath: path.join(dirPath, filename),
     };
 
-    await writeFileAsync(fileInfo.absolutePath, data, {encoding});
+    await writeFileAsync(fileInfo.absolutePath, data, { encoding });
 
     if (isTransient || !exaFileType) {
         // if we don't care about storing the file or the database
@@ -241,7 +241,7 @@ const storeFile =  async (args) => {
         RETURNING id
     `;
 
-    const  dbResults = (await query(sql, [])).rows;
+    const dbResults = (await query(sql, [])).rows;
 
     fileInfo.edi_file_id = dbResults[0].id;
 
@@ -309,7 +309,7 @@ const loadFile = async (args) => {
     } = (await query(sql.text, sql.values)).rows[0];
 
     const absolutePath = path.join(root_directory, file_path, uploaded_file_name);
-    const data = fs.existsSync(absolutePath) && fs.readFileSync(absolutePath, {encoding});
+    const data = fs.existsSync(absolutePath) && fs.readFileSync(absolutePath, { encoding });
 
     return {
         data,
@@ -409,7 +409,7 @@ const updateClaimStatus = async (args) => {
  * @param  {type} args description
  * @returns {type}      description
  */
-const applyClaimSubmission =  async (args) => {
+const applyClaimSubmission = async (args) => {
 
     const {
         edi_file_id,
@@ -842,6 +842,7 @@ const OHIPDataAPI = {
             SELECT
                 bc.id AS claim_id,
                 bc.billing_method,
+                bc.id AS "accountingNumber",
                 claim_notes AS "claimNotes",
                 npi_no AS "groupNumber",    -- this sucks
                 rend_pr.provider_info -> 'NPI' AS "providerNumber",
@@ -867,6 +868,19 @@ const OHIPDataAPI = {
                     INNER JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
                     WHERE ppi.id = bc.primary_patient_insurance_id) insurance_details
                 ) insurance_details,
+                (
+				   SELECT json_agg(row_to_json(items)) FROM (
+				   SELECT
+						pcc.display_code AS "serviceCode",
+						(bch.bill_fee * bch.units) AS "feeSubmitted",
+						1 AS "numberOfServices",
+						charge_dt AS "serviceDate",
+						billing.get_charge_icds (bch.id) AS diagnosticCodes
+						FROM billing.charges bch
+						INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
+						WHERE bch.claim_id = bc.id
+                   ) items
+				) items,
                 pp.full_name AS "patientName",
                 bc.id AS "accountingNumber",
                 pp.patient_info -> 'c1State' AS "provinceCode",               -- TODO this should be coming from the patient_insurances table
@@ -910,7 +924,7 @@ const OHIPDataAPI = {
 
     handlePayment: async (data, args) => {
 
-        let processedClaims =  await era_parser.processOHIPEraFile(data, args);
+        let processedClaims = await era_parser.processOHIPEraFile(data, args);
 
         return processedClaims;
     },

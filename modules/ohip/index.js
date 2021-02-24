@@ -9,7 +9,7 @@ const {
 
 const path = require('path');
 const logger = require('../../logger');
-const remittanceAdviceProcessor = path.join(__dirname,'/remittanceAdviceProcessor');
+const remittanceAdviceProcessor = path.join(__dirname, '/remittanceAdviceProcessor');
 const fork = require('child_process').fork;
 // this is the high-level business logic and algorithms for OHIP
 //  * use cases are defined here
@@ -95,7 +95,7 @@ const isTypeListResult = (service) => {
 
 const getDataPlucker = (service) => {
 
-    if (isDetailResult(service)|| isDownloadResult(service) || isTypeListResult(service)) {
+    if (isDetailResult(service) || isDownloadResult(service) || isTypeListResult(service)) {
         return (result) => {
             return result.data;
         }
@@ -183,7 +183,7 @@ const getNewResourceIDs = async (args, callback) => {
 
             }, []);
 
-            callback(null, {resourceIDs});
+            callback(null, { resourceIDs });
         }
     };
 
@@ -192,9 +192,9 @@ const getNewResourceIDs = async (args, callback) => {
 
         numPages = listResponse.results[0].resultSize;
 
-        for (let pageNo=2; pageNo <= numPages; pageNo++) {
+        for (let pageNo = 2; pageNo <= numPages; pageNo++) {
             // spin off a bunch of asynchronous service-calls and pass processListResults as the callback
-            ebs[EDT_LIST]({resourceType, pageNo}, processListResults);
+            ebs[EDT_LIST]({ resourceType, pageNo }, processListResults);
         }
 
         processListResults(listErr, listResponse);
@@ -222,13 +222,13 @@ const getNewResourceIDs = async (args, callback) => {
  */
 const downloadNew = (args, callback) => {
 
-    getNewResourceIDs(args, async (err, {resourceIDs}) => {
+    getNewResourceIDs(args, async (err, { resourceIDs }) => {
 
         const ohipConfig = await billingApi.getOHIPConfiguration();
         const ebs = new EBSConnector(ohipConfig.ebsConfig);
 
         if (resourceIDs.length) {
-            ebs[EDT_DOWNLOAD]({resourceIDs}, async (downloadErr, downloadResponse) => {
+            ebs[EDT_DOWNLOAD]({ resourceIDs }, async (downloadErr, downloadResponse) => {
 
                 if (downloadErr) {
                     return callback(downloadErr, null);
@@ -270,7 +270,7 @@ const downloadAckFile = (params, callback) => {
         applicator,
     } = params;
 
-    downloadNew({resourceType}, async (downloadErr, downloadResponse) => {
+    downloadNew({ resourceType }, async (downloadErr, downloadResponse) => {
 
         downloadResponse.forEach((download) => {
 
@@ -315,8 +315,8 @@ const createEncoderContext = async () => {
 
 
 
-const downloadRemittanceAdvice = async ( args, callback ) => {
-    downloadNew({ resourceType: REMITTANCE_ADVICE }, ( downloadErr, ediFiles ) => {
+const downloadRemittanceAdvice = async (args, callback) => {
+    downloadNew({ resourceType: REMITTANCE_ADVICE }, (downloadErr, ediFiles) => {
         return callback(downloadErr, ediFiles);
     });
 };
@@ -399,17 +399,16 @@ module.exports = {
         }
 
         // 1 - convert args.claimIds to claim data (getClaimsData)
-        const claimData = await billingApi.getClaimsData({claimIds});
+        const claimData = await billingApi.getClaimsData({ claimIds });
         const validationMessages = claimData.reduce((validations, claim) => {
-            const claimItems = claim.claims[0].items;
-            if (!claimItems || !claimItems.length) {
+            if (!claim.claim_totalCharge) {
                 validations.push(`Claim ${claim.claim_id} has no billable charges`);
             }
 
             return validations;
         }, []);
         if (validationMessages.length) {
-            return callback(null, {validationMessages});
+            return callback(null, { validationMessages });
         }
 
         // 2 - run claim data through encoder
@@ -485,7 +484,7 @@ module.exports = {
             results: [],
         };
         const ebs = new EBSConnector(ohipConfig.ebsConfig);
-        ebs[EDT_UPLOAD]({uploads}, async (uploadErr, uploadResponse) => {
+        ebs[EDT_UPLOAD]({ uploads }, async (uploadErr, uploadResponse) => {
 
             allSubmitClaimResults.faults = allSubmitClaimResults.faults.concat(uploadResponse.faults);
             allSubmitClaimResults.auditInfo = allSubmitClaimResults.auditInfo.concat(uploadResponse.auditInfo);
@@ -538,7 +537,7 @@ module.exports = {
 
 
             // // 7 - submit file to OHIP
-            return ebs[EDT_SUBMIT]({resourceIDs}, async (submitErr, submitResponse) => {
+            return ebs[EDT_SUBMIT]({ resourceIDs }, async (submitErr, submitResponse) => {
 
                 allSubmitClaimResults.faults = allSubmitClaimResults.faults.concat(submitResponse.faults);
                 allSubmitClaimResults.auditInfo = allSubmitClaimResults.auditInfo.concat(submitResponse.auditInfo);
@@ -584,7 +583,7 @@ module.exports = {
 
     fileManagement: async (args, callback) => {
         const fileData = await billingApi.getFileManagementData(args);
-        const remittanceAdviceFileType = billingApi.getFileType({resourceType:REMITTANCE_ADVICE});
+        const remittanceAdviceFileType = billingApi.getFileType({ resourceType: REMITTANCE_ADVICE });
 
         for (let i = 0; i < fileData.rows.length; i++) {
             let fileRow = fileData.rows[i];
@@ -606,7 +605,7 @@ module.exports = {
             } else {
                 fileRow.totalAmountPayable = null;
             }
-        }       
+        }
 
         return callback(null, fileData);
     },
@@ -650,7 +649,7 @@ module.exports = {
 
         if (isValid) {
             result.isValid = true
-            ebs[HCV_REAL_TIME]({hcvRequests}, (hcvErr, hcvResponse) => {
+            ebs[HCV_REAL_TIME]({ hcvRequests }, (hcvErr, hcvResponse) => {
                 args.eligibility_response = hcvResponse;
                 billingApi.saveEligibilityLog(args);
                 return callback(hcvErr, hcvResponse);
@@ -664,7 +663,7 @@ module.exports = {
                 auditInfo: [],
                 results: [],
                 err: [{
-                    errDescription : errMsg
+                    errDescription: errMsg
                 }]
             };
             billingApi.saveEligibilityLog(args);
@@ -674,7 +673,7 @@ module.exports = {
 
     applyRemittanceAdvice: async (args, callback) => {
         const f_c = await billingApi.loadFile(args);
-        if(f_c.data){
+        if (f_c.data) {
             const parser = new Parser(f_c.uploaded_file_name)
             f_c.ra_json = parser.parse(f_c.data);
 
@@ -689,8 +688,8 @@ module.exports = {
                 logger.info(`OHIP Payment process error: ${remittanceAdviceFork.pid}`, e);
 
                 return callback({
-                    status:'ERROR',
-                    message : `OHIP Payment process error: ${remittanceAdviceFork.pid}`,
+                    status: 'ERROR',
+                    message: `OHIP Payment process error: ${remittanceAdviceFork.pid}`,
                     err: e
                 });
             });
@@ -736,12 +735,12 @@ module.exports = {
         };
 
         if (service === EDT_UPLOAD) {
-            const filestore =  await billingApi.getFileStore({filename: ''});
+            const filestore = await billingApi.getFileStore({ filename: '' });
             const filePath = filestore.is_default ? 'OHIP' : '';
 
             const uploads = args.uploads.map((upload) => {
                 const filename = filenamesByFixtureId[upload.fixtureID];
-                const fullFixtureFilepath = path.join(filestore.root_directory, filePath, (filename === 'Custom') ? upload.description : filename );
+                const fullFixtureFilepath = path.join(filestore.root_directory, filePath, (filename === 'Custom') ? upload.description : filename);
                 return {
                     resourceType: upload.resourceType,
                     filename: fullFixtureFilepath,
@@ -751,7 +750,7 @@ module.exports = {
             args.uploads = uploads;
         }
         else if (service === EDT_UPDATE) {
-            const filestore =  await billingApi.getFileStore({filename: ''});
+            const filestore = await billingApi.getFileStore({ filename: '' });
             const filePath = filestore.is_default ? 'OHIP' : '';
 
             const updates = args.updates.map((update) => {
@@ -769,8 +768,8 @@ module.exports = {
         // we may add more functionality to EBS module one day,
         // no need to open ourselves up to vulnerabilities
         const validServices = [
-            EDT_UPLOAD,     EDT_INFO,   EDT_UPDATE,     EDT_DELETE,
-            EDT_SUBMIT,     EDT_LIST,   EDT_DOWNLOAD,   EDT_GET_TYPE_LIST,
+            EDT_UPLOAD, EDT_INFO, EDT_UPDATE, EDT_DELETE,
+            EDT_SUBMIT, EDT_LIST, EDT_DOWNLOAD, EDT_GET_TYPE_LIST,
             HCV_REAL_TIME,
         ];
         if (!validServices.includes(service)) {
@@ -785,7 +784,7 @@ module.exports = {
             });
         }
 
-        const ebs = new EBSConnector((await billingApi.getOHIPConfiguration({muid})).ebsConfig);
+        const ebs = new EBSConnector((await billingApi.getOHIPConfiguration({ muid })).ebsConfig);
         ebs[service](args, (ebsErr, ebsResponse) => {
             return callback(ebsErr, ebsResponse);
         });
