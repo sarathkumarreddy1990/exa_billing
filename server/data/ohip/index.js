@@ -871,15 +871,15 @@ const OHIPDataAPI = {
                 (
 				    SELECT json_agg(row_to_json(charge_items)) 
                     FROM (
-				        SELECT
+                        SELECT
                             pcc.display_code AS "serviceCode",
                             (bch.bill_fee * bch.units) AS "feeSubmitted",
                             1 AS "numberOfServices",
                             charge_dt AS "serviceDate",
                             billing.get_charge_icds (bch.id) AS diagnosticCodes
-						FROM billing.charges bch
-						INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
-						WHERE bch.claim_id = bc.id
+                        FROM billing.charges bch
+                        INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
+                        WHERE bch.claim_id = bc.id
                     ) charge_items
                 ) items,
                 pp.full_name AS "patientName",
