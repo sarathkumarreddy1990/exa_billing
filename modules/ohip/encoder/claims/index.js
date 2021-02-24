@@ -67,8 +67,8 @@ module.exports = function (options) {
         batchStr += batchHeader.encode(batch, context);
 
         batch.forEach((claim) => {
-
-            const header1 = claimHeader1.encode(claim.insurance_details, context);
+            claim = { ...claim, ...claim.insurance_details };
+            const header1 = claimHeader1.encode(claim, context);
             batchStr += header1;
             hCount++;
 
@@ -76,7 +76,7 @@ module.exports = function (options) {
                 batchStr += claimHeader2.encode(claim.insurance_details, context);
                 rCount++;
             }
-            
+
             claim.items.forEach((claimItem) => {
                 batchStr += item.encode(claimItem);
                 tCount++;
