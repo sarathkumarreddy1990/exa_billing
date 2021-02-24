@@ -869,7 +869,7 @@ const OHIPDataAPI = {
                     WHERE ppi.id = bc.primary_patient_insurance_id) insurance_details
                 ) insurance_details,
                 (
-				    SELECT json_agg(row_to_json(charge_items)) 
+                    SELECT json_agg(row_to_json(charge_items)) 
                     FROM (
                         SELECT
                             pcc.display_code AS "serviceCode",
