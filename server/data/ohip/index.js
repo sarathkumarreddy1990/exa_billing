@@ -913,7 +913,6 @@ const OHIPDataAPI = {
                 'HOP' AS "masterNumber",  
                 get_full_name(pp.last_name,pp.first_name) AS "patientName",   
                 'IHF' AS "serviceLocationIndicator",
-                '    ' AS "masterNumber"                                  -- TODO
             FROM billing.claims bc
             LEFT JOIN public.provider_groups pg ON pg.id = bc.ordering_facility_id
             INNER JOIN public.companies pc ON pc.id = bc.company_id
