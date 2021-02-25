@@ -9,7 +9,7 @@ const util = require('./../util');
  * @param  {type} options description
  * @return {type}         description
  */
-const ClaimHeader1Encoder = function(options) {
+const ClaimHeader1Encoder = function (options) {
 
     const getTransactionIdentifier = () => {
         // mandatory
@@ -46,7 +46,7 @@ const ClaimHeader1Encoder = function(options) {
         // mandatory
         // field length: 8
         // format: Date or Spaces
-        return util.formatDate(claimData.dateOfBirth);
+        return util.formatDate(claimData.patient_dob);
     };
 
     const getAccountingNumber = (claimData) => {

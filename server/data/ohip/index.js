@@ -883,7 +883,6 @@ const OHIPDataAPI = {
                     ) charge_items
                 ) items,
                 pp.full_name AS "patientName",
-                bc.id AS "accountingNumber",
                 pp.patient_info -> 'c1State' AS "provinceCode",               -- TODO this should be coming from the patient_insurances table
                 pp.patient_info->'c1AddressLine1' AS "patientAddress",
                 bp.address_line1 AS "billing_pro_addressLine1",
@@ -907,7 +906,14 @@ const OHIPDataAPI = {
                 pg.group_info->'City' AS "service_facility_city",
                 pg.group_name AS "service_facility_firstName",
                 pg.group_info->'State' AS "service_facility_state",
-                pg.group_info->'Zip' AS "service_facility_zip"
+                pg.group_info->'Zip' AS "service_facility_zip",
+                'HOP' AS "serviceLocationIndicator",
+                reff_pr.provider_info -> 'NPI' AS "referringProviderNumber",
+                'P' AS "payee",
+                'HOP' AS "masterNumber",  
+                get_full_name(pp.last_name,pp.first_name) AS "patientName",   
+                'IHF' AS "serviceLocationIndicator",
+                '    ' AS "masterNumber"                                  -- TODO
             FROM billing.claims bc
             LEFT JOIN public.provider_groups pg ON pg.id = bc.ordering_facility_id
             INNER JOIN public.companies pc ON pc.id = bc.company_id
