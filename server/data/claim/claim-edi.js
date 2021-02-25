@@ -680,7 +680,7 @@ module.exports = {
 					charges.id as "chargeID",
 					display_description as "studyDescription",
 					ndc.package_code AS NDCCode,
-					ndc.unit_measure AS NDCMeasure,
+					cn.unit_measure AS NDCMeasure,
 					bill_fee::numeric::text as "billFee",
 					(bill_fee*charges.units)::numeric::text  as "totalBillFee",
 					charges.units as "unit",
@@ -761,7 +761,8 @@ module.exports = {
 					LEFT JOIN modifiers AS modifier2 ON modifier2.id=modifier2_id
 					LEFT JOIN modifiers AS modifier3 ON modifier3.id=modifier3_id
 					LEFT JOIN modifiers AS modifier4 ON modifier4.id=modifier4_id
-					LEFT JOIN national_drug_codes ndc ON ndc.id = charges.ndc_id
+                    LEFT JOIN billing.charges_ndc AS cn ON cn.id=charges.id
+					LEFT JOIN national_drug_codes ndc ON ndc.id = cn.ndc_id
 					LEFT JOIN LATERAL (
                                         SELECT
                                             s.accession_no,
