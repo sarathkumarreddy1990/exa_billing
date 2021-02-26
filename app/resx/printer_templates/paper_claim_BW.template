@@ -150,7 +150,7 @@ function getWCValues(claimData, servicelineList) {
                 (
                     "N4"+getSubstring(cptvalues[i].ndccode, 11) + "\t"
                     + ( cptvalues[i].ndcmeasure ? getSubstring(cptvalues[i].ndcmeasure, 3 ) + "\t" : ' ' )
-                    + ( cptvalues[i].unit ? '('+getKeyTrimValue(cptvalues[i], 'unit', 6)+'UN)\t' : ' ' )
+                    + ( cptvalues[i].ndcunit ? '('+getKeyTrimValue(cptvalues[i], 'ndcunit', 6)+'UN)\t' : ' ' )
                     + ( cptvalues[i].studyDescription||'' )
                 ) : ' '
             );
