@@ -762,7 +762,7 @@ module.exports = {
 					LEFT JOIN modifiers AS modifier2 ON modifier2.id=modifier2_id
 					LEFT JOIN modifiers AS modifier3 ON modifier3.id=modifier3_id
 					LEFT JOIN modifiers AS modifier4 ON modifier4.id=modifier4_id
-                    LEFT JOIN billing.charges_ndc AS cn ON cn.charge_id=charges.id
+					LEFT JOIN billing.charges_ndc AS cn ON cn.charge_id=charges.id
 					LEFT JOIN national_drug_codes ndc ON ndc.id = cn.ndc_id
 					LEFT JOIN LATERAL (
                                         SELECT
