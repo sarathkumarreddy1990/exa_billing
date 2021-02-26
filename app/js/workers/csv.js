@@ -42,7 +42,7 @@ const claimColumns = {
     "AHS Claim Action": "claim_action",
     "Reason Code": "reason_code",
     "PHN": "phn_alt_account",
-    "Sequence Numbers": "billing.can_bc_get_claim_sequence_numbers(claims.id)"
+    "Sequence Numbers": "can_bc_claim_sequence_numbers"
 };
 
 const paymentsColumns = {
@@ -197,7 +197,7 @@ function generateCsvData(dbResponse, callback) {
                 csvText = facilityTimeZone.length ? moment(csvText).tz(facilityTimeZone[0].value).format('L LT z') : moment(csvText).tz(companyTz).format('L LT z');
             }
             if (csvText && _.isArray(csvText)) {
-                csvText = csvText.join();
+                csvText = csvText.join(', ');
             }
 
             return csvText ? csvText.replace(/"/g, '""') : '';

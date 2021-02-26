@@ -26,8 +26,8 @@ const getOption = (value, defaultValue, maxValue) => {
     }
     try {
         return maxValue
-             ? Math.min(parseInt(value || defaultValue), maxValue)
-             : parseInt(value || defaultValue);
+            ? Math.min(parseInt(value || defaultValue), maxValue)
+            : parseInt(value || defaultValue);
     }
     catch (e) {
         // TODO log info
@@ -35,7 +35,7 @@ const getOption = (value, defaultValue, maxValue) => {
     }
 };
 
-module.exports = function(options) {
+module.exports = function (options) {
 
     options = options || {};
 
@@ -66,16 +66,14 @@ module.exports = function(options) {
 
         batchStr += batchHeader.encode(batch, context);
 
-        batch.forEach((b) => {
-
-            const claim = b.claims[0];
-
-            const header1 = claimHeader1.encode(claim.insuranceDetails, context);
+        batch.forEach((claim) => {
+            claim = { ...claim, ...claim.insurance_details };
+            const header1 = claimHeader1.encode(claim, context);
             batchStr += header1;
             hCount++;
 
-            if (claim.insuranceDetails.paymentProgram === 'RMB') {
-                batchStr += claimHeader2.encode(claim.insuranceDetails, context);
+            if (claim.insurance_details.paymentProgram === 'RMB') {
+                batchStr += claimHeader2.encode(claim.insurance_details, context);
                 rCount++;
             }
 
@@ -142,7 +140,7 @@ module.exports = function(options) {
         encode: (claimData, context) => {
 
             // build and return a map of files keyed by group
-            return reduce(groupBy(claimData, 'groupNumber'), (groupResult, groupClaims, groupNumber)=> {
+            return reduce(groupBy(claimData, 'groupNumber'), (groupResult, groupClaims, groupNumber) => {
 
                 context.groupNumber = groupNumber;
                 groupResult[groupNumber] = []; // create an array for this group

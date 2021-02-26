@@ -4205,8 +4205,13 @@ var commonjs = {
         var study_id = options.study_id,
             order_id = options.order_id,
             patient_id = options.patient_id;
+        var url = '';
 
-        var url = '/exa#multipanel-billing-docs/' + btoa(study_id)  + '/' + btoa(patient_id) + '/' + btoa(order_id);
+        if (app.modules.multipanel && app.screens.includes('TRMP')) {
+             url = '/exa#multipanel-billing-docs/' + btoa(study_id) + '/' + btoa(patient_id) + '/' + btoa(order_id);
+        } else {
+             url = '/vieworder#patient/patientReport/all/' + btoa(patient_id) + '/' + btoa(order_id) + '/' + btoa(study_id);
+        }
         this.openWindow(url);
     },
 

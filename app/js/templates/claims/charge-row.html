@@ -86,6 +86,7 @@
         </td>
         <% } %>
         <td>
-            <input id="checkExclude_<%= row.data_row_id %>" type="checkbox">
+            <% var isExcluded = !row.is_billable ? 'checked' : '' %>
+            <input id="checkExclude_<%= row.data_row_id %>" type="checkbox" <%= isExcluded %>>
         </td>
     </tr>

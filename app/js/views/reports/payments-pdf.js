@@ -43,7 +43,7 @@ define([
                 UI.initializeReportingViewModel(options, this.viewModel);
                 UI.getReportSetting(this.viewModel, 'all', 'dateFormat'); // Get date format (and current country code) based on current country code saved in sites table(this.viewModel);
 
-                this.viewModel.dateFrom = commonjs.getFacilityCurrentDateTime(1);
+                this.viewModel.dateFrom = commonjs.getFacilityCurrentDateTime(app.facilityID);
                 this.viewModel.dateTo = this.viewModel.dateFrom.clone();
             },
 

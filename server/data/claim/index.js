@@ -75,10 +75,13 @@ module.exports = {
                                 , display_description
                                 , additional_info
                                 , sc.cpt_code_id AS cpt_id
+                                , sc.is_billable
+                                , scn.ndc_id AS cpt_ndc_id
                             FROM public.study_cpt sc
                             INNER JOIN public.studies s ON s.id = sc.study_id
                             INNER JOIN public.cpt_codes on sc.cpt_code_id = cpt_codes.id
                             INNER JOIN public.orders o on o.id = s.order_id
+                            LEFT JOIN public.study_cpt_ndc scn ON scn.study_cpt_id = sc.id
                             WHERE
                                 study_id = ANY(${studyIds}) AND sc.has_deleted = FALSE /* study_cpt.has_deleted */
                             ORDER BY sc.cpt_code ASC
