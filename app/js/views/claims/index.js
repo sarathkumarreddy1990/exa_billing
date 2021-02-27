@@ -1829,8 +1829,7 @@ define(['jquery',
                                         accession_no: item.accession_no,
                                         study_id: item.study_id,
                                         data_row_id: index,
-                                        cpt_id: item.cpt_id,
-                                        cpt_ndc_id: item.cpt_ndc_id
+                                        cpt_id: item.cpt_id
                                     });
                                 });
 
@@ -3747,7 +3746,7 @@ define(['jquery',
                         isEdit: $('#txtBillFee_' + id).attr('edit'),
                         is_excluded: $('#checkExclude_' + id).is(':checked'),
                         is_canada_billing: app.country_alpha_3_code === 'can',
-                        cpt_ndc_id: rowData.cpt_ndc_id || null
+                        study_cpt_id: rowData.ref_charge_id || null
                     });
                     var charges = claim_model.charges[claim_model.charges.length - 1];
                     if(charges) {
@@ -3787,7 +3786,8 @@ define(['jquery',
                     claims: claim_model.claims,
                     claim_icds: claim_model.claim_icds,
                     removed_charges: claim_model.removed_charges,
-                    is_alberta_billing: app.billingRegionCode === 'can_AB'
+                    is_alberta_billing: app.billingRegionCode === 'can_AB',
+                    study_cpt_id: claim_model.ref_charge_id || 0
                 });
 
             },
