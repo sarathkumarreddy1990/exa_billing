@@ -3509,6 +3509,26 @@ define(['jquery',
                 var currentPayer_type = $('#ddlClaimResponsible').val().split('_')[0];
                 var facility_id = $('#ddlFacility option:selected').val() != '' ? parseInt($('#ddlFacility option:selected').val()) : null;
                 var isCauseCode = $('#chkEmployment').prop('checked') || $('#chkAutoAccident').prop('checked') || $('#chkOtherAccident').prop('checked');
+                var submissionCodeId = parseInt($('#ddlSubmissionCode').val()) || null;
+                var isEmployed = $('#chkEmployment').prop('checked');
+                var autoAccident = $('#chkAutoAccident').prop('checked');
+                var claimSubmissionCodes = this.claimSubmissionCodes.toJSON();
+
+                if (!submissionCodeId) {
+                    var submissionCode = '0';
+
+                    if (isEmployed) {
+                        submissionCode = 'W';
+                    } else if (autoAccident) {
+                        submissionCode = 'I';
+                    }
+
+                    claimSubmissionCodes && claimSubmissionCodes.forEach(function (ele) {
+                        if (ele.code === submissionCode) {
+                            submissionCodeId = ele.id;
+                        }
+                    });
+                }
 
                 if (currentPayer_type == "PIP") {
                     billingMethod = currentResponsible.billing_method || null;
@@ -3647,7 +3667,7 @@ define(['jquery',
                     original_reference: $.trim($('#txtOriginalRef').val()),
                     authorization_no: $.trim($('#txtAuthorization').val()),
                     frequency: $('#ddlFrequencyCode option:selected').val() != '' ? $('#ddlFrequencyCode option:selected').val() : null,
-                    can_submission_code_id: parseInt($('#ddlSubmissionCode').val()) || null,
+                    can_submission_code_id: submissionCodeId,
                     is_auto_accident: $('#chkAutoAccident').prop('checked'),
                     is_other_accident: $('#chkOtherAccident').prop('checked'),
                     is_employed: $('#chkEmployment').prop('checked'),
