@@ -198,7 +198,7 @@ const ahsmodule = {
         } = args;
 
         const claimDeleteAccess = await ahs.getPendingTransactionCount(args);
-        let {
+        const {
             pending_transaction_count = 0,
             payment_entry_count = 0,
             claim_balance_amount = 0,
