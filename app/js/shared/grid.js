@@ -1185,13 +1185,27 @@ define('grid', [
                             var result = cellvalue && cellvalue.split('__')[0] || '';
                             var i18n = cellvalue && cellvalue.split('__')[1] || 'messages.status.healthNumberNotValidated';
 
+                            var defaultColour = app.billingRegionCode == 'can_BC' ? 'white' : 'red';
+                            
                             switch (result) {
-                                case 'valid':        color = 'green';    break;
-                                case 'future_date':  color = 'orange';   break;
-                                default:             color = 'red';      break;
-                            }
+                                case 'valid':
+                                    color = 'green';
+                                    break;
+                                case 'future_date':
+                                case 'no_data_found':
+                                    color = 'orange';
+                                    break;
+                                case 'invalid':
+                                    color = 'red'
+                                    break;
+                                case 'failed':
+                                    color = 'yellow'
+                                    break;
+                                default:
+                                    color = defaultColour;
+                            }        
 
-                            return "<i href='#' i18nt='" + i18n + "' class='icon-ic-status' data-value='" + cellvalue + "' style='color: " + color + ";text-shadow:0 0 " + color + ", 0 0 " + color + ", 0 0 " + color + ", 0 0 " + color + ", 0 0 " + color + "'></i>";
+                            return "<i href='#' title='"+ i18n + "' i18nt='" + i18n + "' class='icon-ic-status' data-value='" + cellvalue + "' style='color: " + color + ";text-shadow:0 0 " + color + ", 0 0 " + color + ", 0 0 " + color + ", 0 0 " + color + ", 0 0 " + color + "'></i>";
                         }
                     },
                     customAction: function (rowID, e, that) {
