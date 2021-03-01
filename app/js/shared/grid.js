@@ -2028,10 +2028,12 @@ define('grid', [
         // Province based validations are handled in this block and returns validation results.
         self.provinceBasedValidationResults = function (billingRegion, gridData) {
             var msg = '';
+            var claimStatus = gridData && gridData.hidden_claim_status_code || null;
+
             if (billingRegion === 'can_AB') {
                 if (gridData.hidden_billing_method === 'electronic_billing') {
 
-                    if (gridData.hidden_claim_status_code === 'ADP' || !commonjs.isValidClaimStatusToSubmit('delete', gridData.hidden_claim_status_code)) {
+                    if (claimStatus !== 'AD' && (claimStatus === 'ADP' || !commonjs.isValidClaimStatusToSubmit('delete', gridData.hidden_claim_status_code))) {
                         msg = 'billing.claims.canAhs.couldNotDeleteClaimAhsPending';
                     }
                 }
