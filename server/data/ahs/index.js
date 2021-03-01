@@ -936,15 +936,17 @@ const ahsData = {
         const sql = SQL` SELECT
                              COUNT(efc.id) AS pending_transaction_count
                            , COUNT(pa.id) AS payment_entry_count
-                           , bgct.charges_bill_fee_total AS claim_total_amount
-                           , bgct.claim_balance_total AS claim_balance_amount
+                           , bgct.charges_bill_fee_total::NUMERIC AS claim_total_amount
+                           , bgct.claim_balance_total::NUMERIC AS claim_balance_amount
+                           , bgct.payments_applied_total::NUMERIC as claim_applied
+                           , bgct.adjustments_applied_total::NUMERIC as claim_adjustment
                          FROM billing.claims AS bc
                          INNER JOIN billing.charges AS bch ON bch.claim_id = bc.id
                          LEFT JOIN billing.edi_file_claims AS efc ON efc.claim_id = bc.id
                          LEFT JOIN billing.payment_applications AS pa ON pa.charge_id = bch.id
                          LEFT JOIN billing.get_claim_totals(${targetId}) AS bgct ON TRUE
                          WHERE bc.id = ${targetId}
-                         GROUP BY bgct.claim_balance_total, bgct.charges_bill_fee_total `;
+                         GROUP BY bgct.claim_balance_total, bgct.charges_bill_fee_total, bgct.payments_applied_total, bgct.adjustments_applied_total `;
 
         return await query(sql);
     },
