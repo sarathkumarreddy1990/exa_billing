@@ -879,7 +879,7 @@ const OHIPDataAPI = {
                             billing.get_charge_icds (bch.id) AS diagnosticCodes
                         FROM billing.charges bch
                         INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
-                        WHERE bch.claim_id = bc.id
+                        WHERE bch.claim_id = bc.id AND NOT bch.is_excluded
                     ) charge_items
                 ) items,
                 pp.full_name AS "patientName",
