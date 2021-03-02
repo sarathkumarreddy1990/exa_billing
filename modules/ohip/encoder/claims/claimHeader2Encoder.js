@@ -45,7 +45,19 @@ const ClaimHeader2Encoder = function (options) {
         // required: mandatory
         // field length: 1
         // format: numeric
-        return util.formatAlphanumeric(claimData.patient_gender, 1);
+        let encodeChar = claimData.patient_gender || '';
+        let isRMBClaim = claimData.insuranceDetails && claimData.insurance_details.paymentProgram === 'RMB'
+        
+        switch (isRMBClaim && encodeChar) {
+            case 'M': encodeChar = '1';
+            break;
+            case 'F': encodeChar = '2';
+            break;
+            default:  encodeChar;
+            break;
+        }
+
+        return util.formatAlphanumeric(encodeChar, 1);
     };
 
     const getProvinceCode = (claimData) => {
