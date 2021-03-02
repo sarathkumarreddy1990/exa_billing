@@ -73,7 +73,7 @@ module.exports = function (options) {
             hCount++;
 
             if (claim.insurance_details.paymentProgram === 'RMB') {
-                batchStr += claimHeader2.encode(claim.insurance_details, context);
+                batchStr += claimHeader2.encode(claim, context);
                 rCount++;
             }
 
