@@ -718,13 +718,21 @@ const ahsData = {
                     FROM (
                         SELECT
                             info.claim_id,
-                            billing.can_ahs_get_claim_number(info.claim_id) AS claim_number,
+                            COALESCE(
+                                billing.can_ahs_get_claim_number(info.claim_id),
+                                (
+                                    info.submitter_prefix ||
+                                    info.year ||
+                                    info.source_code ||
+                                    info.sequence_number ||
+                                    info.check_digit
+                                )
+                            ) AS claim_number,
                             TRIM(LOWER(info.can_ahs_supporting_text))       AS supporting_text
                         FROM
                             claim_info info
                         WHERE
                             TRIM(COALESCE(info.can_ahs_supporting_text, '')) != ''
-                            AND billing.can_ahs_get_claim_number(info.claim_id) IS NOT NULL
                         ORDER BY
                             info.sequence_number
                     ) a
