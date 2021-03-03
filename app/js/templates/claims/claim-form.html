@@ -512,7 +512,6 @@
                 </div>
                 <% } %>
             </div>
-            <% if (billingRegionCode !== 'can_ON') { %>
             <div class="col-lg-6" id="diagnosticsCodes">
                 <div class="form-group row">
                     <label for="ddlMultipleDiagCodes" class="col-form-label" i18n="billing.claims.diagnosticsCodes"></label>
@@ -532,7 +531,6 @@
                     <input type="hidden" id="hdnDiagCodes" />
                 </div>
             </div>
-            <% } %>
             <% if (billingRegionCode === 'can_AB') { %>
             <div class="col-lg-6">
                 <div id="patientCharges" class="form-group col-sm-12">

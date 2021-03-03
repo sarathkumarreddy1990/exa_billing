@@ -171,7 +171,7 @@ define(['jquery',
                         break;
                     case 'can_ON':
                         return {
-                            pointers: [false, false, false, false],
+                            pointers: [true, true, true, true],
                             modifiers: [false, false, false, false]
                         }
                         break;
@@ -783,29 +783,28 @@ define(['jquery',
                             $(".allowedFee, .billFee").blur();
                             $(".diagCodes").blur();
 
-                            if (app.billingRegionCode !== 'can_ON') {
-                                /*Bind ICD List if not canadian billing*/
-                                claimDetails.claim_icd_data = claimDetails.claim_icd_data || [];
-                                self.claimICDLists = [];
-                                $('#ulSelectedDiagCodes').empty();
-                                $('#hdnDiagCodes').val('');
-                                $.each(claimDetails.claim_icd_data, function (index, obj) {
-                                    self.ICDID = obj.icd_id;
-                                    self.icd_code = obj.code;
-                                    self.icd_description = obj.description
+                            /*Bind ICD List if not canadian billing*/
+                            claimDetails.claim_icd_data = claimDetails.claim_icd_data || [];
+                            self.claimICDLists = [];
+                            $('#ulSelectedDiagCodes').empty();
+                            $('#hdnDiagCodes').val('');
+                            claimDetails.claim_icd_data.forEach(function (obj, index) {
+                                self.ICDID = obj.icd_id;
+                                self.icd_code = obj.code;
+                                self.icd_description = obj.description
 
-                                    self.claimICDLists.push({
-                                        id: obj.id,
-                                        icd_id: obj.icd_id,
-                                        claim_id: self.claim_Id || null,
-                                        is_deleted: false
-                                    });
-                                    self.addDiagCodes(false);
+                                self.claimICDLists.push({
+                                    id: obj.id,
+                                    icd_id: obj.icd_id,
+                                    claim_id: self.claim_Id || null,
+                                    is_deleted: false
                                 });
+                                self.addDiagCodes(false);
+                            });
 
-                                commonjs.enableModifiersOnbind('M'); // Modifier
-                                commonjs.enableModifiersOnbind('P'); // Diagnostic Pointer
-                            }
+                            commonjs.enableModifiersOnbind('M'); // Modifier
+                            commonjs.enableModifiersOnbind('P'); // Diagnostic Pointer
+
                             // clear icd details after bind
                             self.ICDID = self.icd_code = self.icd_description = '';
 
@@ -1833,7 +1832,7 @@ define(['jquery',
                                     });
                                 });
 
-                                if (app.country_alpha_3_code !== 'can' || (['can_AB', 'can_BC'].indexOf(app.billingRegionCode) > -1)) {
+                                if (app.country_alpha_3_code !== 'can' || (['can_AB', 'can_BC', 'can_ON'].indexOf(app.billingRegionCode) > -1)) {
                                     _.each(_diagnosisProblems, function (item) {
 
                                         if (_.findIndex(diagnosisCodes, { id: item.id }) == -1) {
