@@ -46,7 +46,7 @@ const ClaimHeader2Encoder = function (options) {
         // field length: 1
         // format: numeric
         let encodeChar = claimData.patient_gender || '';
-        let isRMBClaim = claimData.insuranceDetails && claimData.insurance_details.paymentProgram === 'RMB'
+        let isRMBClaim = claimData.insurance_details && claimData.insurance_details.paymentProgram === 'RMB'
         
         switch (isRMBClaim && encodeChar) {
             case 'M': encodeChar = '1';
