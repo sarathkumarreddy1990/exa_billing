@@ -106,7 +106,7 @@ const ClaimHeader1Encoder = function (options) {
         // conditional
         // field length: 1
         // format: ALPHA (blank or 'Y')
-        return util.formatAlphanumeric(claimData.manualReviewIndicator, 1);
+        return util.formatAlphanumeric(claimData.manualReviewIndicator ? 'Y' : ' ', 1);
     };
 
     const getServiceLocationIndicator = (claimData) => {

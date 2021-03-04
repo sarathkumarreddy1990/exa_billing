@@ -1114,6 +1114,7 @@ define(['jquery',
                 $('input[name="outSideLab"]').prop('checked', claim_data.service_by_outside_lab);
                 $('input[name="employment"]').prop('checked', claim_data.is_employed);
                 $('input[name="autoAccident"]').prop('checked', claim_data.is_auto_accident);
+                $('input[name="manualReviewIndicator"]').prop('checked', claim_data.manual_review_indicator);
                 $('input[name="otherAccident"]').prop('checked', claim_data.is_other_accident);
                 $('#txtOriginalRef').val(claim_data.original_reference || '');
                 $('#txtAuthorization').val(claim_data.authorization_no || '');
@@ -3663,6 +3664,7 @@ define(['jquery',
                     billing_method: billingMethod,
                     billing_notes: $.trim($('#txtClaimResponsibleNotes').val()),
                     claim_notes: $.trim($('#txtClaimNotes').val()),
+                    manual_review_indicator: $('#chkManualReviewIndicator').prop('checked'),
                     original_reference: $.trim($('#txtOriginalRef').val()),
                     authorization_no: $.trim($('#txtAuthorization').val()),
                     frequency: $('#ddlFrequencyCode option:selected').val() != '' ? $('#ddlFrequencyCode option:selected').val() : null,
