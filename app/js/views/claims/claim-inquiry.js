@@ -871,7 +871,7 @@ define([
                                 if (rowdata && rowdata.code == 'manual')
                                     return 'style="display:none;" ';
                             },
-                            hidden: (app.country_alpha_3_code === "can") ? true : false
+                            hidden: (app.country_alpha_3_code === "can" && app.province_alpha_2_code !== 'ON' ) ? true : false
                         },
                         { name: 'charge_amount', width: 20, search: false, sortable: false,
                             cellattr: function (rowId, tv, rowdata) {
