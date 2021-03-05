@@ -76,7 +76,6 @@ module.exports = {
                                 , additional_info
                                 , sc.cpt_code_id AS cpt_id
                                 , sc.is_billable
-                                , scn.ndc_id AS cpt_ndc_id
                             FROM public.study_cpt sc
                             INNER JOIN public.studies s ON s.id = sc.study_id
                             INNER JOIN public.cpt_codes on sc.cpt_code_id = cpt_codes.id
@@ -504,6 +503,7 @@ module.exports = {
                     , c.can_ahs_emsaf_reason
                     , c.can_ahs_paper_supporting_docs
                     , c.can_supporting_text
+                    , c.can_ohip_manual_review_indicator AS manual_review_indicator
                     , cst.code AS claim_status_code
                     , p.account_no AS patient_account_no
                     , p.birth_date::text AS patient_dob

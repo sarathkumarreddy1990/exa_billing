@@ -843,6 +843,7 @@ const OHIPDataAPI = {
                 bc.id AS claim_id,
                 bc.billing_method,
                 bc.id AS "accountingNumber",
+                bc.can_ohip_manual_review_indicator AS "manualReviewIndicator",
                 claim_notes AS "claimNotes",
                 npi_no AS "groupNumber",    -- this sucks
                 rend_pr.provider_info -> 'NPI' AS "providerNumber",
@@ -879,7 +880,7 @@ const OHIPDataAPI = {
                             billing.get_charge_icds (bch.id) AS diagnosticCodes
                         FROM billing.charges bch
                         INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
-                        WHERE bch.claim_id = bc.id
+                        WHERE bch.claim_id = bc.id AND NOT bch.is_excluded
                     ) charge_items
                 ) items,
                 pp.full_name AS "patientName",
@@ -912,12 +913,15 @@ const OHIPDataAPI = {
                 'P' AS "payee",
                 'HOP' AS "masterNumber",  
                 get_full_name(pp.last_name,pp.first_name) AS "patientName",   
-                'IHF' AS "serviceLocationIndicator"
+                'IHF' AS "serviceLocationIndicator",
+                ppos.code AS place_of_service
             FROM billing.claims bc
             LEFT JOIN public.provider_groups pg ON pg.id = bc.ordering_facility_id
             INNER JOIN public.companies pc ON pc.id = bc.company_id
             INNER JOIN public.patients pp ON pp.id = bc.patient_id
             INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
+            INNER JOIN public.facilities pf ON pf.id = bc.facility_id
+            LEFT JOIN public.places_of_service ppos ON ppos.id = pf.place_of_service_id
             LEFT JOIN public.provider_contacts rend_ppc ON rend_ppc.id = bc.rendering_provider_contact_id
             LEFT JOIN public.providers rend_pr ON rend_pr.id = rend_ppc.provider_id
             LEFT JOIN public.provider_contacts reff_ppc ON reff_ppc.id = bc.referring_provider_contact_id

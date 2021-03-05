@@ -106,14 +106,14 @@ const ClaimHeader1Encoder = function (options) {
         // conditional
         // field length: 1
         // format: ALPHA (blank or 'Y')
-        return util.formatAlphanumeric(claimData.manualReviewIndicator, 1);
+        return util.formatAlphanumeric(claimData.manualReviewIndicator ? 'Y' : ' ', 1);
     };
 
     const getServiceLocationIndicator = (claimData) => {
         // conditional
         // field length: 4
         // format: alphanumeric or spaces
-        return util.formatAlphanumeric(claimData.serviceLocationIndicator, 4, ' ', true);
+        return util.formatAlphanumeric(claimData.place_of_service, 4, ' ', true);
     };
 
     const getReservedForOOC = () => {
