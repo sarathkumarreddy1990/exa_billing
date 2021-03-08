@@ -158,7 +158,6 @@ const getFileStore = async (args) => {
 const storeFile = async (args) => {
 
     const {
-        createdDate,
         filename: originalFilename,
         data,
         isTransient,
@@ -229,7 +228,7 @@ const storeFile = async (args) => {
         VALUES(
             1
             ,${filestore.id}
-            ,'${moment(createdDate || new Date()).format("YYYY-MM-DD")}'::timestamptz
+            ,now()
             ,'pending'
             ,'${exaFileType}'
             ,'${filePath}'
