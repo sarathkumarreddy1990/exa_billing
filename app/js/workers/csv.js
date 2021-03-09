@@ -42,7 +42,8 @@ const claimColumns = {
     "AHS Claim Action": "claim_action",
     "Reason Code": "reason_code",
     "PHN": "phn_alt_account",
-    "Sequence Numbers": "can_bc_claim_sequence_numbers"
+    "Sequence Numbers": "can_bc_claim_sequence_numbers",
+    "Alt Account No": "pid_alt_account"
 };
 
 const paymentsColumns = {
