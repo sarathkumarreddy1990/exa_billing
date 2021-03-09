@@ -833,7 +833,14 @@ define([
                         { name: 'commented_dt', width: 40, search: false, sortable: false, formatter: self.commentDateFormatter },
                         { name: 'created_dt', width: 40, search: false, sortable: false, formatter: self.dateFormatter },
                         { name: 'code', hidden: true },
-                        { name: 'sequence_number', width: 40, search: false, sortable: false, hidden: app.billingRegionCode !== 'can_BC' },
+                        {
+                            name: 'sequence_number', width: 40, search: false, sortable: false, hidden: app.billingRegionCode !== 'can_BC',
+                            cellattr: function (rowId, tv, rowdata) {
+                                if (rowdata && rowdata.code == 'manual') {
+                                    return 'style="display:none;" ';
+                                }
+                            }
+                        },
                         { name: 'type', width: 40, search: false, sortable: false,
                             cellattr: function (rowId, tv, rowdata) {
                                 if(rowdata && rowdata.code == 'manual')
