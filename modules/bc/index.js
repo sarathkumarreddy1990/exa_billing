@@ -154,14 +154,10 @@ const bcModules = {
         try {
             let companyDetails = await bcController.getCompanyFileStore(companyId);
             let webServiceResponse = await bcModules.doRequest(options, companyDetails[0].time_zone);
-            let { data, error, isDownTime } = webServiceResponse;
+            let { data, error } = webServiceResponse;
 
             if (error) {
-                return {responseCode: 'error' };
-            }
-
-            if (isDownTime) {
-                return { responseCode: 'isDownTime' };
+                return { responseCode: error };
             }
 
             let webServiceResponseJSON = {};
