@@ -836,7 +836,7 @@ define([
                         {
                             name: 'sequence_number', width: 40, search: false, sortable: false, hidden: app.billingRegionCode !== 'can_BC',
                             cellattr: function (rowId, tv, rowdata) {
-                                if (rowdata && rowdata.code == 'manual') {
+                                if (rowdata && rowdata.code === 'manual') {
                                     return 'style="display:none;" ';
                                 }
                             }
