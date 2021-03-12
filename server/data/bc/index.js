@@ -697,14 +697,20 @@ const bcData = {
             file_id,
             company_id,
             clientIp,
-            userId
+            userId,
+            log_details
         } = params;
+        
+        let {
+            user_id
+        } = log_details || {};
+
         const audit_details = {
             'company_id': company_id,
             'screen_name': 'payments',
             'module_name': 'payments',
             'client_ip': clientIp,
-            'user_id': userId
+            'user_id': userId || user_id
         };
 
         const sql = SQL`

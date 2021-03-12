@@ -716,7 +716,7 @@ const bcModules = {
             return parser.processFile(contents, params);
         }
         catch (e) {
-            logger.error('Error in file Processing', e);
+            logger.error(`Error in file Processing... ${e}`);
             return e;
         }
     },
@@ -766,6 +766,20 @@ const bcModules = {
             logger.logInfo(`Decoding the file... ${fileName}`);
             let remittanceResponse = await bcModules.getFileContents(fullFilePath, params);
 
+            if (remittanceResponse instanceof Error) {
+                await bcController.updateFileStatus({
+                    status: 'failure',
+                    fileId: params.file_id
+                });
+                
+                message.push({
+                    status: 100,
+                    message: remittanceResponse.message
+                });
+
+                return message;
+            }
+
             logger.logInfo('File processing finished...');
 
             await bcController.updateFileStatus({
@@ -773,8 +787,12 @@ const bcModules = {
                 fileId: params.file_id
             });
 
-            if (remittanceResponse && remittanceResponse.invalidRemittanceRecords && remittanceResponse.invalidRemittanceRecords.length) {
-                logger.info(`Unable to proceed remittance file process with following remittance records ${JSON.stringify(remittanceResponse.invalidRemittanceRecords)}`);
+            let {
+                invalidRemittanceRecords = []
+            } = remittanceResponse;
+
+            if (invalidRemittanceRecords.length) {
+                logger.logInfo(`Unable to proceed remittance file process with following remittance records ${JSON.stringify(invalidRemittanceRecords)}`);
 
                 await bcController.updateFileStatus({
                     status: 'failure',
