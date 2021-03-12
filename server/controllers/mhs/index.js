@@ -116,6 +116,11 @@ const mhsController = {
             //Applying payments from the payment file
             processDetails = await mhsData.applyPayments(eraResponseJson, params);
 
+            let [{
+                applied_payments = []
+            }] = processDetails && processDetails.rows || [{}];
+            status = applied_payments && applied_payments.length ? 'success' : 'failure';          
+
             //Again we call to create payment application for unapplied charges from ERA claims
             await mhsData.unappliedChargePayments(params);
 

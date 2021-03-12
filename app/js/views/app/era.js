@@ -324,6 +324,10 @@ define([
                 return Math.round(rowObject.size / Math.pow(1024, i), 2) + ' ' + sizes[i];
             },
 
+            arrayToObject: function (inputArray) {
+                return isArray(inputArray) ? this.arrayToObject(inputArray[0]) : inputArray;
+            },
+
             processFile: function (file_id, gridData, currentStatus) {
                 var self = this
 
@@ -368,11 +372,8 @@ define([
 
             processUsaResponse: function(file_id, model, gridData) {
                 var self = this;
-                var array_to_object = function ($value) {
-                    return isArray($value) ? array_to_object($value[0]) : $value;
-                }
 
-                model = model && model.length ? array_to_object(model) : model;
+                model = model && model.length ? self.arrayToObject(model) : model;
 
                 if (model) {
 
@@ -417,15 +418,15 @@ define([
                 processPaymentBtn.prop('disabled', true);
                 commonjs.showLoading();
 
+                model = model && model.length ? self.arrayToObject(model) : model;
+
                 if (model && model.status == 100) {
-                    return commonjs.showWarning(model.message);
+                    commonjs.showWarning(model.message);
                 }
 
-                if (model && model.rows && model.rows.length) {
-                    commonjs.hideDialog();
-                    self.reloadERAFilesLocal();
-                    $('.modal-dialog .btn-secondary, .modal-dialog .close').removeClass('eraClose');
-                }
+                commonjs.hideDialog();
+                self.reloadERAFilesLocal();
+                $('.modal-dialog .btn-secondary, .modal-dialog .close').removeClass('eraClose');
                 processPaymentBtn.prop('disabled', false);
                 commonjs.hideLoading();
             },
