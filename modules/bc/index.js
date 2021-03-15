@@ -956,17 +956,37 @@ const bcModules = {
                 const fileName = fileProperties.Filename;
 
                 //check for valid file content
-                let isInValidFileContent = bufferString.indexOf('M01') === -1 || bufferString.indexOf('VTC') === -1;
-                let fileBuffer = bufferString.split('/n');
-                let isEmptyRemittance = !isInValidFileContent && fileBuffer.length <= 2;
+                let fileBuffer = bufferString.split('\r\n');
+                let remittanceSets = [];
+                let remittanceHeaderSets = [];
+                let validRemittanceHeaders = ['M01', 'VRC', 'VTC', 'X02'];
+                let validRemittanceElements = ['B14', 'C12', 'S00', 'S01', 'S02', 'S03', 'S04', 'S21', 'S22', 'S23', 'S24', 'S25'];
 
-                if (isInValidFileContent) {
+                fileBuffer.filter(function (record) {
+                    let recordHeader = record.substring(0,3);
+                    if (validRemittanceHeaders.includes(recordHeader)) {
+                        remittanceHeaderSets.push(record);
+                    }
+                    if (validRemittanceElements.includes(recordHeader)) {
+                        remittanceSets.push(record);
+                    }
+                });
+
+                if (!remittanceHeaderSets.length) {
                     logger.error(`Invalid Remittance File ${fileName}`);
 
                     return [{
                         error: true,
                         status: 'INVALID_FILE',
-                        message: 'Invalid Remittance File',
+                        message: `Invalid Remittance File`,
+                        response: {}
+                    }];
+                } else if (!remittanceSets.length) {
+                    logger.error(`No Payment data available in the Remittance File ${fileName}`);
+                    return [{
+                        error: true,
+                        status: 'NO_PAYMENT_AVAILABLE',
+                        message: `No Payment data available in the Remittance File`,
                         response: {}
                     }];
                 }

@@ -560,6 +560,12 @@ define([
                     fileUploadedObj.innerHTML = '';
                     fileStoreExist.innerHTML = '';
                     return false;
+                } else if (fileStatus && fileStatus.innerHTML == 'NO_PAYMENT_AVAILABLE') {
+                    commonjs.showWarning("messages.warning.era.noPaymentAvailable");
+                    fileStatus.innerHTML = '';
+                    fileUploadedObj.innerHTML = '';
+                    fileStoreExist.innerHTML = '';
+                    return false;
                 } else if (fileStoreExist && fileStoreExist.innerHTML != '') {
                     commonjs.showWarning(fileStoreExist.innerHTML);
                     fileDuplicateObj.innerHTML = '';
