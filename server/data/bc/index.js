@@ -698,6 +698,7 @@ const bcData = {
             company_id,
             clientIp,
             userId,
+			ip,
             log_details
         } = params;
         
@@ -709,7 +710,7 @@ const bcData = {
             'company_id': company_id,
             'screen_name': 'payments',
             'module_name': 'payments',
-            'client_ip': clientIp,
+            'client_ip': clientIp || ip,
             'user_id': userId || user_id
         };
 
@@ -752,7 +753,7 @@ const bcData = {
                             billing.create_payment_applications(
                                   uc.payment_id
                                 , null
-                                , ${userId}
+                                , ${userId || user_id}
                                 , jsonb_build_array(uc.jsonb_build_object)::jsonb
                                 , (${audit_details})::jsonb
                             )
@@ -770,14 +771,14 @@ const bcData = {
             userId,
             facility_id,
             clientIp,
-            log_details = {},
+            log_details,
             ip
         } = args;
 
         let {
             user_id = null,
             default_facility_id = null
-        } = log_details;
+        } = log_details || {};
 
         let auditDetails = {
             'company_id': company_id,
