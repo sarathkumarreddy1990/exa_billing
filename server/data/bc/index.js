@@ -428,10 +428,11 @@ const bcData = {
                         LEFT JOIN cfg ON cfg.current->>'id' = 'goLiveDate'
                         WHERE
                             s.schedule_dt IS NOT NULL
-                            AND to_facility_date(s.facility_id, s.schedule_dt) = DATE 'tomorrow'
+                            AND to_facility_date(s.facility_id, s.schedule_dt) = to_facility_date(s.facility_id, DATE 'tomorrow')
                             AND f.company_id = ${args.companyId}
                             AND bp.can_bc_data_centre_number IS NOT NULL
                             AND ip.insurance_code = 'MSP'
+                            AND (el.eligibility_dt <= to_facility_date(s.facility_id, CURRENT_DATE) OR el.eligibility_dt IS NULL)
                         `;
         
         return await queryRows(sql);
@@ -536,7 +537,7 @@ const bcData = {
                     FROM  billing.edi_files bef
                     INNER JOIN file_stores fs ON fs.id = bef.file_store_id
                     INNER JOIN companies c ON c.id = ${companyId}
-                    WHERE bef.status  = 'pending' AND bef.company_id = ${companyId} AND bef.file_type = 'can_bc_batch'
+                    WHERE bef.status  = 'pending' AND bef.company_id = ${companyId} AND bef.file_type = 'can_bc_be'
         `;
 
         return await query(sql);
