@@ -65,21 +65,54 @@ const createDir = function (fileStorePath, filePath) {
  * Function used to check the file is invalid
  * @param {String} fileString fileString,
  * @param {String} billingRegionCode billingRegionCode
- * @returns {Boolean} false if file is valid with fileString contains all the given substrings
- * @returns {Boolean} true if file is invalid with fileString missed any one of the given substrings
+ * @returns {Object} {
+ *                      invalid: true if file is invalid with fileString missed any one of the given substrings or doesn't contains any remittance data,
+ *                      errCode: warning/error code to be shown to the user
+ *                      errMsg: message to be logged
+ *                   } 
  */
 const isInvalidFile = (fileString, billingRegionCode) => {
+    let output = {
+        invalid: false,
+        errCode: 'INVALID_FILE',
+        errMsg: 'Invalid Remittance File'
+    };
 
-    switch(billingRegionCode) {
+    switch (billingRegionCode) {
         case 'can_ON':
-            return !(fileString.indexOf('HR1') !== -1 && fileString.indexOf('HR4') !== -1 && fileString.indexOf('HR7') !== -1);
+            output.invalid = !(fileString.indexOf('HR1') !== -1 && fileString.indexOf('HR4') !== -1 && fileString.indexOf('HR7') !== -1);
+            return output;
         case 'can_MB':
-            return false;
+            return output;
         case 'can_BC':
-            return !(fileString.indexOf('M01') !== -1 && fileString.indexOf('VTC') !== -1);
+            let fileBuffer = fileString.split('\r\n');
+            let remittanceSets = [];
+            let remittanceHeaderSets = [];
+            let validRemittanceHeaders = ['M01', 'VRC', 'VTC', 'X02'];
+            let validRemittanceElements = ['B14', 'C12', 'S00', 'S01', 'S02', 'S03', 'S04', 'S21', 'S22', 'S23', 'S24', 'S25'];
+
+            fileBuffer.filter(function (record) {
+                let recordHeader = record.substring(0, 3);
+                if (validRemittanceHeaders.includes(recordHeader)) {
+                    remittanceHeaderSets.push(record);
+                }
+
+                if (validRemittanceElements.includes(recordHeader)) {
+                    remittanceSets.push(record); // push the valid remittance/payment data
+                }
+            });
+
+            output.invalid = !remittanceHeaderSets.length || !remittanceSets.length;
+
+            if (remittanceHeaderSets.length && !remittanceSets.length) {
+                output.errCode = 'NO_PAYMENT_AVAILABLE';
+                output.errMsg = 'No Payment data available in the Remittance File'
+            }
+
+            return output;
         default:
-            return !(fileString.indexOf('ISA') !== -1 && fileString.indexOf('CLP') !== -1);
-    }
+            return output.invalid = !(fileString.indexOf('ISA') !== -1 && fileString.indexOf('CLP') !== -1);
+    };
 
 };
 
@@ -144,11 +177,12 @@ module.exports = {
         let bufferString = (['can_MB', 'can_BC'].indexOf(params.billingRegionCode) !== -1 && tempString) || tempString.replace(/(?:\r\n|\r|\n)/g, '');
 
         bufferString = bufferString.trim() || '';
+        let fileValidation = isInvalidFile(bufferString, 'can_BC');
 
-        if (!isEob && isInvalidFile(bufferString, params.billingRegionCode)) {
-            logger.error(`Invalid Remittance File ${fileName}`);
+        if (!isEob && fileValidation && fileValidation.invalid) {
+            logger.error(`${fileValidation.errMsg} ${fileName}`);
             return {
-                status: 'INVALID_FILE',
+                status: fileValidation.errCode,
             };
         }
 
