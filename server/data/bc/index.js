@@ -698,7 +698,7 @@ const bcData = {
             company_id,
             clientIp,
             userId,
-			ip,
+            ip,
             log_details
         } = params;
         
