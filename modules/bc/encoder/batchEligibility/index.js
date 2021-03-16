@@ -58,14 +58,12 @@ const encoder = (rows, isBatchEligibilityFile) => {
         encoderBatchArray.push(encodedResult.encodedData);
 
         batch.forEach((batchRow) => {
-            if (!batchRow.eligibility_response && !batchRow.eligibility_dt) {
-                let encodeResponse = encodeRecord(
-                    processors.B04(batchRow),
-                    descriptors.B04
-                );
+            let encodeResponse = encodeRecord(
+                processors.B04(batchRow),
+                descriptors.B04
+            );
 
-                encoderBatchArray.push(encodeResponse.encodedData);
-            }
+            encoderBatchArray.push(encodeResponse.encodedData);
         });
 
         if (encoderBatchArray.length > 1) {
