@@ -774,10 +774,12 @@ const bcModules = {
                     fileId: params.file_id
                 });
                 
-                message.push({
+                errorObj = {
                     status: 100,
                     message: remittanceResponse.message
-                });
+                };
+
+                message = params.isCron && message.push(errorObj) || errorObj;
 
                 return message;
             }
@@ -792,7 +794,7 @@ const bcModules = {
             let {
                 invalidRemittanceRecords = []
             } = remittanceResponse;
-
+ 
             if (invalidRemittanceRecords.length) {
                 logger.logInfo(`Unable to proceed remittance file process with following remittance records ${JSON.stringify(invalidRemittanceRecords)}`);
 
