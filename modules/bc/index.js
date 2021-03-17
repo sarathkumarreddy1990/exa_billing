@@ -733,6 +733,7 @@ const bcModules = {
         let filePath;
         let rootDir;
         let message = [];
+        let errorObj = {};
         const { rows = [] } = await bcData.getRemittanceFilePathById(params);
 
         if (rows.length) {
@@ -752,10 +753,11 @@ const bcModules = {
             let dirExists = await fse.pathExists(dirPath);
 
             if (!dirExists) {
-                message.push({
+                errorObj = {
                     status: 100,
                     message: 'Directory not found in file store'
-                });
+                };
+                message = params.isCron && message.push(errorObj) || errorObj;
 
                 return message;
             }
@@ -781,10 +783,12 @@ const bcModules = {
                     fileId: params.file_id
                 });
 
-                message.push({
+                errorObj = {
                     status: 100,
                     message: 'Invalid Remittance Records found'
-                });
+                };
+
+                message = params.isCron && message.push(errorObj) || errorObj;
 
                 return message;
             }

@@ -72,10 +72,10 @@ const mhsController = {
     *                      } 
     */
     processEraFile: async (params) => {
-        let processDetails,
-            eraPath,
-            rootDir,
-            message = [];
+        let processDetails = {};
+        let eraPath;
+        let rootDir;
+        let message = {};
         const eraFileDir = await mhsData.getERAFilePathById(params);
 
         if (eraFileDir && eraFileDir.rows && eraFileDir.rows.length) {
@@ -90,10 +90,10 @@ const mhsController = {
             let dirExists = fs.existsSync(eraPath);
 
             if (!dirExists) {
-                message.push({
+                message = {
                     status: 100,
                     message: 'Directory not found in file store'
-                });
+                };
 
                 return message;
             }
@@ -119,7 +119,7 @@ const mhsController = {
             let [{
                 applied_payments = []
             }] = processDetails && processDetails.rows || [{}];
-            status = applied_payments && applied_payments.length ? 'success' : 'failure';          
+            status = applied_payments && applied_payments.length ? 'success' : 'failure';
 
             //Again we call to create payment application for unapplied charges from ERA claims
             await mhsData.unappliedChargePayments(params);
@@ -128,7 +128,7 @@ const mhsController = {
 
             logger.logInfo('Applying payments finished...');
 
-            return processDetails;
+            return applied_payments;
         }
         catch (err) {
             logger.error(err);

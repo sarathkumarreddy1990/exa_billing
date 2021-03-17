@@ -324,10 +324,6 @@ define([
                 return Math.round(rowObject.size / Math.pow(1024, i), 2) + ' ' + sizes[i];
             },
 
-            arrayToObject: function (inputArray) {
-                return isArray(inputArray) ? this.arrayToObject(inputArray[0]) : inputArray;
-            },
-
             processFile: function (file_id, gridData, currentStatus) {
                 var self = this
 
@@ -373,8 +369,6 @@ define([
             processUsaResponse: function(file_id, model, gridData) {
                 var self = this;
 
-                model = model && model.length ? self.arrayToObject(model) : model;
-
                 if (model) {
 
                     if (model.status == 100) {
@@ -382,7 +376,7 @@ define([
                     } else if (model.payer_id || (model.type && model.type == 'none')) {
                         model.file_store_id = gridData.file_store_id;
                         self.showProgressDialog(file_id, model, 'initialize');
-                    } else if (model.rows && model.rows.length) {
+                    } else if (Array.isArray(model) && model.length) {
                         commonjs.hideDialog();
                         self.reloadERAFilesLocal();
                         $('.modal-dialog .btn-secondary, .modal-dialog  .close').removeClass('eraClose');
@@ -417,8 +411,6 @@ define([
                 var processPaymentBtn = $('#btnProcessPayment');
                 processPaymentBtn.prop('disabled', true);
                 commonjs.showLoading();
-
-                model = model && model.length ? self.arrayToObject(model) : model;
 
                 if (model && model.status == 100) {
                     commonjs.showWarning(model.message);
