@@ -4600,7 +4600,7 @@ define(['jquery',
                         // Bind Study date of the current claim for the patient
                         $('#patientStudyDate').text(self.studyDate || '');
 
-                        if (data && !data.length) {
+                        if (!data || !data.length) {
                             chargeRow = self.patientChargesTemplate({row: []});
                         } else {
                             var cpts_selected = _.map(selectedCharges, 'cpt_id');
