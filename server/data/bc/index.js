@@ -428,10 +428,11 @@ const bcData = {
                         LEFT JOIN cfg ON cfg.current->>'id' = 'goLiveDate'
                         WHERE
                             s.schedule_dt IS NOT NULL
-                            AND to_facility_date(s.facility_id, s.schedule_dt) = DATE 'tomorrow'
+                            AND to_facility_date(s.facility_id, s.schedule_dt) = to_facility_date(s.facility_id, DATE 'tomorrow')
                             AND f.company_id = ${args.companyId}
                             AND bp.can_bc_data_centre_number IS NOT NULL
                             AND ip.insurance_code = 'MSP'
+                            AND (el.eligibility_dt <= to_facility_date(s.facility_id, CURRENT_DATE) OR el.eligibility_dt IS NULL)
                         `;
         
         return await queryRows(sql);
@@ -536,7 +537,7 @@ const bcData = {
                     FROM  billing.edi_files bef
                     INNER JOIN file_stores fs ON fs.id = bef.file_store_id
                     INNER JOIN companies c ON c.id = ${companyId}
-                    WHERE bef.status  = 'pending' AND bef.company_id = ${companyId} AND bef.file_type = 'can_bc_batch'
+                    WHERE bef.status  = 'pending' AND bef.company_id = ${companyId} AND bef.file_type = 'can_bc_be'
         `;
 
         return await query(sql);
@@ -697,14 +698,21 @@ const bcData = {
             file_id,
             company_id,
             clientIp,
-            userId
+            userId,
+            ip,
+            log_details
         } = params;
+        
+        let {
+            user_id
+        } = log_details || {};
+
         const audit_details = {
             'company_id': company_id,
             'screen_name': 'payments',
             'module_name': 'payments',
-            'client_ip': clientIp,
-            'user_id': userId
+            'client_ip': clientIp || ip,
+            'user_id': userId || user_id
         };
 
         const sql = SQL`
@@ -746,7 +754,7 @@ const bcData = {
                             billing.create_payment_applications(
                                   uc.payment_id
                                 , null
-                                , ${userId}
+                                , ${userId || user_id}
                                 , jsonb_build_array(uc.jsonb_build_object)::jsonb
                                 , (${audit_details})::jsonb
                             )
@@ -764,14 +772,14 @@ const bcData = {
             userId,
             facility_id,
             clientIp,
-            log_details = {},
+            log_details,
             ip
         } = args;
 
         let {
             user_id = null,
             default_facility_id = null
-        } = log_details;
+        } = log_details || {};
 
         let auditDetails = {
             'company_id': company_id,

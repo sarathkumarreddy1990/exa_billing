@@ -153,7 +153,7 @@ define(['jquery',
                 switch (billingRegionCode) {
                     case 'can_AB':
                         return {
-                            pointers: [false, false, false, false],
+                            pointers: [true, true, true, false],
                             modifiers: [true, true, true, false]
                         }
                         break;
@@ -2165,7 +2165,19 @@ define(['jquery',
                             count = count ? count : self.icdCodeListLength;
                             var val = $(value).val() ? $(value).val() : 0;
                             var _id = $(value).attr('id');
-                            var maxIterator = app.billingRegionCode == 'can_MB' ? 1 : 4;
+                            var maxIterator;
+
+                            switch (app.billingRegionCode) {
+                                case 'can_MB':
+                                    maxIterator = 1;
+                                    break;
+                                case 'can_AB':
+                                    maxIterator = 3;
+                                    break;
+                                default:
+                                    maxIterator = 4;
+                            }
+
                             if (val != '') {
                                 if (val <= count && val != 0) {
                                     $('#' + _id).css('border-color', '')
