@@ -368,11 +368,6 @@ define([
 
             processUsaResponse: function(file_id, model, gridData) {
                 var self = this;
-                var array_to_object = function ($value) {
-                    return isArray($value) ? array_to_object($value[0]) : $value;
-                }
-
-                model = model && model.length ? array_to_object(model) : model;
 
                 if (model) {
 
@@ -381,7 +376,7 @@ define([
                     } else if (model.payer_id || (model.type && model.type == 'none')) {
                         model.file_store_id = gridData.file_store_id;
                         self.showProgressDialog(file_id, model, 'initialize');
-                    } else if (model.rows && model.rows.length) {
+                    } else if (Array.isArray(model) && model.length) {
                         commonjs.hideDialog();
                         self.reloadERAFilesLocal();
                         $('.modal-dialog .btn-secondary, .modal-dialog  .close').removeClass('eraClose');
@@ -418,14 +413,12 @@ define([
                 commonjs.showLoading();
 
                 if (model && model.status == 100) {
-                    return commonjs.showWarning(model.message);
+                    commonjs.showWarning(model.message);
                 }
 
-                if (model && model.rows && model.rows.length) {
-                    commonjs.hideDialog();
-                    self.reloadERAFilesLocal();
-                    $('.modal-dialog .btn-secondary, .modal-dialog .close').removeClass('eraClose');
-                }
+                commonjs.hideDialog();
+                self.reloadERAFilesLocal();
+                $('.modal-dialog .btn-secondary, .modal-dialog .close').removeClass('eraClose');
                 processPaymentBtn.prop('disabled', false);
                 commonjs.hideLoading();
             },

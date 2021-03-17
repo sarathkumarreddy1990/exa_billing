@@ -297,12 +297,11 @@ module.exports = {
     },
 
     processERAFile: async function (params) {
-        let self = this,
-            processDetails,
-            directoryPath,
-            rootDir;
-        let processDetailsArray = [];
-        let message = [];
+        let self = this;
+        let processDetails = {};
+        let directoryPath;
+        let rootDir;
+        let message = {};
 
         const eraFileDir = await data.getERAFilePathById(params);
 
@@ -317,10 +316,10 @@ module.exports = {
 
             if (!dirStat.isDirectory()) {
 
-                message.push({
+                message = {
                     status: 100,
                     message: 'Directory not found in file store'
-                });
+                };
 
                 return message;
 
@@ -348,10 +347,10 @@ module.exports = {
                 fileStat = await statAsync(filePath);
 
                 if (!fileStat.isFile()) {
-                    message.push({
+                    message = {
                         status: 100,
                         message: 'File not found in directory'
-                    });
+                    };
 
                     return message;
                 }
@@ -362,26 +361,24 @@ module.exports = {
             let templateName = await ediConnect.getDefaultEraTemplate();
 
             if (!templateName) {
-                message.push({
+                message = {
                     status: 100,
                     message: 'ERA template not found to process file'
-                });
+                };
 
                 return message;
             }
-
+            
             const eraResponseJson = await ediConnect.parseEra(templateName, eraRequestText);
 
             if (params.status != 'applypayments') {
                 processDetails = await self.checkExistInsurance(params, eraResponseJson);
-                processDetailsArray.push(processDetails);
             }
             else {
                 const start = Date.now();
                 logger.logInfo('ERA payment process | started');
 
                 processDetails = await self.applyERAPayments(eraResponseJson, params);
-                processDetailsArray.push(processDetails);
 
                 const finish = Date.now();
 
@@ -389,23 +386,23 @@ module.exports = {
 
             }
 
-            return processDetailsArray;
+            return processDetails;
 
         } catch (err) {
 
             if (err.message && err.message == 'Invalid template name') {
                 logger.error(err);
 
-                message.push({
+                message = {
                     status: 100,
                     message: 'Invalid template name'
-                });
+                };
             }
             else if (err.code == 'ENOENT') {
-                message.push({
+                message = {
                     status: 100,
                     message: err.message
-                });
+                };
             } else {
                 message = err;
             }
@@ -422,7 +419,13 @@ module.exports = {
 
         for (const eraObject of eraResponseJson) {
             let result = await self.processPayments(params, eraObject);
-            results.push(result);
+
+            if (result instanceof Error) {
+                return result;
+            }
+
+            // push the result of applied payments
+            results.push(...result.rows);
         }
 
         return results;
@@ -671,10 +674,10 @@ module.exports = {
             let dirExists = await statAsync(eraPath);
 
             if (!dirExists) {
-                message.push({
+                message = {
                     status: 100,
                     message: 'Directory not found in file store'
-                });
+                };
             }
 
             eraPath = path.join(eraPath, params.file_id);
