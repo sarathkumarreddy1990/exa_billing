@@ -378,7 +378,8 @@ const api = {
         if (tables.patients) { r += ' INNER JOIN patients ON claims.patient_id = patients.id '; }
 
         //  if (tables.facilities) { r += ' INNER JOIN facilities ON facilities.id=claims.facility_id '; }
-         if(tables.studies ){ r += ` INNER JOIN billing.charges ON billing.charges.claim_id = billing.claims.id
+        if (tables.studies) {
+            r += ` INNER JOIN billing.charges ON billing.charges.claim_id = billing.claims.id
          INNER JOIN billing.charges_studies ON billing.charges_studies.charge_id =  billing.claims.id
          INNER JOIN studies ON studies.id =  billing.charges_studies.study_id `}
 
