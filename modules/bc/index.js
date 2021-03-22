@@ -817,7 +817,7 @@ const bcModules = {
 
             const eligibilityResponse = await bcModules.processEligibilityResponse(remittanceResponse, params);
 
-            if (!(eligibilityResponse && eligibilityResponse.rows && eligibilityResponse.rows.length)) {
+            if (!eligibilityResponse || !eligibilityResponse.length) {
                 logger.info(`Eligibility Records not matched in file - ${fileName}`);
             }
 
@@ -833,7 +833,8 @@ const bcModules = {
             let {
                 can_bc_process_remittance = []
             } = processDetails && processDetails.rows && processDetails.rows.length && processDetails.rows[0] || {};
-            status = can_bc_process_remittance && can_bc_process_remittance.length && can_bc_process_remittance[0] !== null ? 'success' : 'failure';
+            status = (can_bc_process_remittance.length && can_bc_process_remittance[0] !== null) 
+                    || (eligibilityResponse && eligibilityResponse.length) ? 'success' : 'failure';
 
             logger.logInfo('Applying payments finished...');
             logger.logInfo('Payment application Result : ', JSON.stringify(can_bc_process_remittance));

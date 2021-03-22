@@ -837,7 +837,7 @@ const bcData = {
         return await query(sql);
     },
 
-    storeEligibilityResponse: async (data, {uploaded_file_name}) => {
+    storeEligibilityResponse: async (data) => {
         const sql = SQL` WITH
                             eligibility_response AS (
                                 SELECT
@@ -911,7 +911,7 @@ const bcData = {
                                 s.patient_id
                               , pi.id
                               , er.eligibility_response
-                              , er.service_eligibility_date::TIMESTAMPTZ
+                              , er.eligibility_date::TIMESTAMPTZ
                             FROM eligibility_response er
                             INNER JOIN billing.edi_file_batch_eligibility befbe ON befbe.sequence_number = er.data_centre_sequence_number
                                 AND befbe.data_centre_number = er.data_centre_number
@@ -920,8 +920,7 @@ const bcData = {
                             INNER JOIN default_insurance_details dinsd ON TRUE
                             WHERE pi.insurance_provider_id = dinsd.id`;
 
-
-        return await query(sql);
+        return await queryRows(sql);
 
     },
           
