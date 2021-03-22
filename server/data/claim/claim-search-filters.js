@@ -303,7 +303,7 @@ const api = {
             case 'billing_fee': return 'bgct.charges_bill_fee_total';
             case 'invoice_no': return 'claims.invoice_no';
             case 'billing_method': return 'claims.billing_method';
-            case 'modalities': return 'studies.modalites';
+            case 'modalities': return 'studies.modalities';
             case 'followup_date': return 'claim_followups.followup_date::text';
             case 'current_illness_date': return 'claims.current_illness_date::text';
             case 'claim_no': return 'claims.id';
