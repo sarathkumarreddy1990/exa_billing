@@ -13,6 +13,11 @@ const colModel = [
         searchFlag: 'daterange'
     },
     {
+        name: 'modalities',
+        searchColumns: ['studies.modalities'],
+        searchFlag: '%'
+    },
+    {
         name: 'created_dt',
         searchColumns: ['claims.created_dt'],
         searchFlag: 'daterange'
@@ -298,6 +303,7 @@ const api = {
             case 'billing_fee': return 'bgct.charges_bill_fee_total';
             case 'invoice_no': return 'claims.invoice_no';
             case 'billing_method': return 'claims.billing_method';
+            case 'modalities': return 'studies.modalites';
             case 'followup_date': return 'claim_followups.followup_date::text';
             case 'current_illness_date': return 'claims.current_illness_date::text';
             case 'claim_no': return 'claims.id';
@@ -372,6 +378,9 @@ const api = {
         if (tables.patients) { r += ' INNER JOIN patients ON claims.patient_id = patients.id '; }
 
         //  if (tables.facilities) { r += ' INNER JOIN facilities ON facilities.id=claims.facility_id '; }
+         if(tables.studies ){ r += ` INNER JOIN billing.charges ON billing.charges.claim_id = billing.claims.id
+         INNER JOIN billing.charges_studies ON billing.charges_studies.charge_id =  billing.claims.id
+         INNER JOIN studies ON studies.id =  billing.charges_studies.study_id `}
 
         if (tables.claim_status) { r += ' INNER JOIN billing.claim_status  ON claim_status.id=claims.claim_status_id'; }
 
@@ -518,7 +527,8 @@ const api = {
 
         // ADDING A NEW WORKLIST COLUMN <-- Search for this
         let stdcolumns = [
-            'claims.id',
+            'DISTINCT claims.id',
+            'studies.modalities',
             'claims.id as claim_id',
             'claims.claim_dt',
             'claims.created_dt',
@@ -677,7 +687,8 @@ const api = {
         let columns = api.getWLQueryColumns(args);
         let sql = `
             SELECT
-            ${columns}
+            ${columns},
+            FinalClaims.number
             FROM (${innerQuery}) as FinalClaims
             INNER JOIN billing.claims ON FinalClaims.claim_id = claims.id
             INNER JOIN facilities ON facilities.id = claims.facility_id

@@ -915,6 +915,22 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "hidden": app.billingRegionCode !== 'can_BC'
                     },
                     "field_code": "can_bc_claim_sequence_numbers"
+                },
+                "Modality": {
+                    "id": 76,
+                    "field_name": "Modality",
+                    "i18n_name": "setup.userSettings.modality",
+                    "field_info": {
+                        "custom_name": "Modality",
+                        "name": "modalities",
+                        "width": 150,
+                        "stype": "select",
+                        "searchoptions": {
+                            "value": modalityValue,
+                            "tempvalue": modalityValue
+                        }
+                    },
+                    "field_code": "modalities"
                 }
 
             });
