@@ -1401,6 +1401,35 @@
                             </div>
                         </div>
                     </div>
+                    <div class="form-group row col-md-12" id="divModality">
+                        <b><label for="claimModalityList" i18n="setup.studyFilters.modality"></label></b>
+                        <div class="col-form-label col-md-12 col-sm-12 form-inline">
+                            <div class="col-md-2 col-sm-2">
+                                <div class="form-group row">
+                                    <div class="form-list col-md-6 col-sm-6">
+                                        <input type="radio" id="rbtISModality" name="Modality" value="Is"
+                                            class="form-check-input clearField">
+                                        <label for="rbtISModality" class="form-check-label"
+                                            i18n="setup.studyFilters.is"></label>
+                                    </div>
+                                    <div class="form-list col-md-6 col-sm-6">
+                                        <input type="radio" id="rbtISNotModality" name="Modality" value="IsNot"
+                                            class="form-check-input clearField">
+                                        <label for="rbtISNotModality" class="form-check-label"
+                                            i18n="setup.studyFilters.isNot"></label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-8 col-sm-8">
+                                <div class="row">
+                                    <div class="col-form-label col-md-4 col-sm-4">
+                                        <select multiple="multiple" id="claimModalityList" class="form-control"
+                                            style="height:80px; width:220px"></select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="form-group row col-md-12" id="divPayerType">
                         <b><label for="txtInsurance" i18n="setup.claimFilter.payerType"></label></b>
                         <div class="col-form-label col-md-12 col-sm-12 form-inline">
