@@ -173,17 +173,25 @@ module.exports = {
         const fileSize = params.file.size;
         const fileName = params.file.originalname;
 
+        let fileStatus = !isEob && 'pending' || 'failure';
+
         let tempString = buffer.toString();
         let bufferString = (['can_MB', 'can_BC'].indexOf(params.billingRegionCode) !== -1 && tempString) || tempString.replace(/(?:\r\n|\r|\n)/g, '');
 
         bufferString = bufferString.trim() || '';
-        let fileValidation = isInvalidFile(bufferString, 'can_BC');
+        let fileValidation = isInvalidFile(bufferString, params.billingRegionCode);
 
         if (!isEob && fileValidation && fileValidation.invalid) {
             logger.error(`${fileValidation.errMsg} ${fileName}`);
-            return {
-                status: fileValidation.errCode,
-            };
+
+            // continue uploading a file with status success if remittance file has no payment available
+            if (fileValidation.errCode !== 'NO_PAYMENT_AVAILABLE') {
+                return {
+                    status: fileValidation.errCode,
+                };
+            }
+
+            fileStatus = 'success';
         }
 
         let fileMd5 = crypto.createHash('MD5').update(bufferString, 'utf8').digest('hex');
@@ -263,7 +271,7 @@ module.exports = {
         const dataResponse = await data.saveERAFile({
             file_store_id: fileStoreId,
             company_id: params.audit.companyId,
-            status: isEob ? 'success' : 'pending',
+            status: fileStatus,
             file_type: isEob ? 'EOB' : getProvinceBasedProperties(params.billingRegionCode),
             file_path: fileRootPath,
             file_size: fileSize,
