@@ -201,8 +201,13 @@ define([
                     },
                     ondblClickRow: function (rowID) {
                         var gridData = $('#tblEOBFileList').jqGrid('getRowData', rowID);
-                        if (['failure', 'success'].indexOf(gridData.current_status.toLowerCase()) == -1) {
+                        var fileStatus = gridData.current_status && gridData.current_status.toLowerCase() || '';
+                        
+                        if (['failure', 'success'].indexOf(fileStatus) == -1) {
                             self.processFile(rowID, gridData, null);
+                        }
+                        else if (app.billingRegionCode === 'can_BC' && fileStatus === 'success' && !gridData.payment_id) {
+                            commonjs.showWarning('messages.warning.era.noPaymentAvailable');
                         }
                         else {
                             commonjs.showWarning('messages.warning.era.fileAlreadyProcessed');
@@ -622,7 +627,8 @@ define([
                                 fileName = fileName.substr(0, fileName.lastIndexOf('.'));
 
                                 var ins = model.rows[0];
-                                ins.payer_details.payment_dt = moment(ins.payer_details.payment_dt).format('L');
+                                ins.payer_details = ins.payer_details || {};
+                                ins.payer_details.payment_dt = ins.payer_details.payment_dt && moment(ins.payer_details.payment_dt).format('L') || '';
 
                                 $('#eraResultTitle').html(commonjs.geti18NString("shared.fields.result") + ': ' + fileName);
                                 commonjs.showDialog({
