@@ -12,7 +12,8 @@
         "start": "npm-run-all lint dev",
         "build": "npm ci && gulp build",
         "start-production": "node ./bin/www-cluster",
-        "test": "mocha --recursive test/unit"
+        "test": "mocha --recursive test/unit",
+        "ci": "npm ci && npm ci --prefix ./app"
     },
     "dependencies": {
         "bluebird": "^3.5.5",
