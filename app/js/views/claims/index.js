@@ -1935,7 +1935,7 @@ define(['jquery',
                         accession_no: $('#tBodyCharge tr:first').length > 0 ? $('#tBodyCharge tr:first').find('.charges__accession-num').text().trim() : (self.pri_accession_no || null),
                         data_row_id: parseInt(index) + 1,
                         is_billable: true,
-                        is_custom_bill_fee: rowData && rowData.is_custom_bill_fee || false
+                        is_custom_bill_fee: false
                     }
                 } else {
                     var rowObj = $(e.target || e.srcElement).closest('tr');
@@ -1950,7 +1950,7 @@ define(['jquery',
                         accession_no: rowData.accession_no,
                         data_row_id: parseInt(index) + 1,
                         is_billable: true,
-                        is_custom_bill_fee: rowData && rowData.is_custom_bill_fee || false
+                        is_custom_bill_fee: false
                     }
                 }
 
@@ -2317,8 +2317,8 @@ define(['jquery',
                 // Enable bill_fee
                 $('span[id^="editBillFee"]').off().click(function (e) {
                     var index = $(e.target || e.srcElement).closest('tr').attr('data_row_id');
-                    $('#txtBillFee_' + index).attr({ disabled: false, edit: true }).focus();
-                    $('#txtAllowedFee_' + index).attr({ disabled: false, edit: true });
+                    $('#txtBillFee_' + index).attr({ disabled: false, "data-edit": true }).focus();
+                    $('#txtAllowedFee_' + index).attr({ disabled: false });
                 });
 
                 // changeFee details on keup
@@ -3768,7 +3768,7 @@ define(['jquery',
                         charge_dt: self.claim_dt_iso || null,
                         study_id: rowData.study_id || null,
                         is_deleted: false,
-                        is_custom_bill_fee: $('#txtBillFee_' + id).attr('edit'),
+                        is_custom_bill_fee: $('#txtBillFee_' + id).attr('data-edit'),
                         is_excluded: $('#checkExclude_' + id).is(':checked'),
                         is_canada_billing: app.country_alpha_3_code === 'can',
                         study_cpt_id: rowData.ref_charge_id || null
