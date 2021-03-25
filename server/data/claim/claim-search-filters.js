@@ -379,9 +379,16 @@ const api = {
 
         //  if (tables.facilities) { r += ' INNER JOIN facilities ON facilities.id=claims.facility_id '; }
         if (tables.studies) {
-            r += ` INNER JOIN billing.charges ON billing.charges.claim_id = billing.claims.id
-         INNER JOIN billing.charges_studies ON billing.charges_studies.charge_id =  billing.claims.id
-         INNER JOIN studies ON studies.id =  billing.charges_studies.study_id `}
+            r += `  LEFT JOIN LATERAL (
+                SELECT
+                    studies.modalities,
+                    billing.claims.id
+                FROM studies
+                INNER JOIN billing.charges ON charges.claim_id = claims.id
+                INNER JOIN billing.charges_studies ON charges_studies.charge_id = charges.id 
+                and studies.id = charges_studies.study_id
+                GROUP BY billing.claims.id, studies.modalities
+            ) studies ON TRUE `}
 
         if (tables.claim_status) { r += ' INNER JOIN billing.claim_status  ON claim_status.id=claims.claim_status_id'; }
 
@@ -528,7 +535,7 @@ const api = {
 
         // ADDING A NEW WORKLIST COLUMN <-- Search for this
         let stdcolumns = [
-            'DISTINCT claims.id',
+            'claims.id',
             'studies.modalities',
             'claims.id as claim_id',
             'claims.claim_dt',
