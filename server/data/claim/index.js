@@ -649,6 +649,7 @@ module.exports = {
                                 , pb.referral_code              AS can_ahs_referral_code
                                 , pb.support_documentation      AS can_ahs_supporting_text_required
                                 , (SELECT EXISTS (SELECT * FROM billing.payment_applications WHERE charge_id = ch.id )) as payment_exists
+                                , ch.is_custom_bill_fee
                             FROM billing.charges ch
                                 INNER JOIN public.cpt_codes cpt ON ch.cpt_id = cpt.id
                                 LEFT JOIN public.plan_benefits pb ON pb.cpt_id = cpt.id
