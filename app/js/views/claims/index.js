@@ -1266,7 +1266,7 @@ define(['jquery',
                             ? ''
                             : data.frequency;
                         var disableCorrected = isRejectedClaimStatus || !actionCode;
-                        var disableClaimStatus = self.priInsCode.toLowerCase() === 'ahs';
+                        var disableClaimStatus = self.priInsCode && self.priInsCode.toLowerCase() === 'ahs' || false;
                         var enableClaimStatus = disableClaimStatus && ['PIF', 'APP', 'AOP'].indexOf(data.claim_status_code) !== -1;
 
                         frequencyElement.find('option[value=""]').prop('disabled', !disableCorrected);
