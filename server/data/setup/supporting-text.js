@@ -58,10 +58,10 @@ module.exports = {
                 cpt_codes`;
 
         if (term) {
-            sql.append(` WHERE short_description ILIKE '%`)
-            sql.append(term)
-            sql.append(`%' OR display_code ILIKE '%`)
-            sql.append(term)
+            sql.append(` WHERE short_description ILIKE '%`);
+            sql.append(term);
+            sql.append(`%' OR display_code ILIKE '%`);
+            sql.append(term);
             sql.append(`%'`);
         }
 
@@ -132,16 +132,17 @@ module.exports = {
         sql.append(SQL` WHERE '0' = ANY (cpt_ids) `);
 
         if (cpts) {
-            for (var i = 0; i < cpts.length; i++) {
+            for (let i = 0; i < cpts.length; i++) {
                 sql.append(SQL` OR ${cpts[i]} = ANY (cpt_ids)  `);
             }
         }
 
         if (modifiers) {
-            for (var i = 0; i < modifiers.length; i++) {
+            for (let i = 0; i < modifiers.length; i++) {
                 sql.append(SQL` OR ${modifiers[i]} = ANY (modifier_ids)  `);
             }
         }
+
         return await query(sql);
     },
 

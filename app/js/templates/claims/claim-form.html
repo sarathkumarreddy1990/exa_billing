@@ -327,7 +327,7 @@
                                                 </td>
                                                 <% } %>
                                                 <td>
-                                                    <input disabled value="<%= row.bill_fee ? row.bill_fee : 0.00 %>" id="txtBillFee_<%= row.data_row_id %>" type="text" class="billFee form-control-med form-control maskFee floatbox d-inline-block w-auto" edit="false">
+                                                    <input disabled value="<%= row.bill_fee ? row.bill_fee : 0.00 %>" id="txtBillFee_<%= row.data_row_id %>" type="text" class="billFee form-control-med form-control maskFee floatbox d-inline-block w-auto" data-edit="<%= row.is_custom_bill_fee %>">
                                                     <span id="editBillFee_<%= row.data_row_id %>" class="editBillFee icon-ic-edit" style="margin-left: 4px;cursor:pointer;" i18nt="shared.buttons.edit"></span>
                                                 </td>
                                                 <td>
@@ -512,7 +512,6 @@
                 </div>
                 <% } %>
             </div>
-            <% if (billingRegionCode !== 'can_ON') { %>
             <div class="col-lg-6" id="diagnosticsCodes">
                 <div class="form-group row">
                     <label for="ddlMultipleDiagCodes" class="col-form-label" i18n="billing.claims.diagnosticsCodes"></label>
@@ -532,7 +531,6 @@
                     <input type="hidden" id="hdnDiagCodes" />
                 </div>
             </div>
-            <% } %>
             <% if (billingRegionCode === 'can_AB') { %>
             <div class="col-lg-6">
                 <div id="patientCharges" class="form-group col-sm-12">
@@ -1369,6 +1367,18 @@
                     </div>
                 </div>
                 <% } %>
+                <% if (["can_ON"].indexOf(billingRegionCode) > -1) { %>
+                    <div class="form-group row mt-15">
+                    <div class="col-sm-3"></div>
+                    <div class="col-sm-4">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="chkManualReviewIndicator" name="manualReviewIndicator">
+                            <label class="form-check-label" for="chkManualReviewIndicator" i18n="billing.claims.manualReviewIndicator"></label>
+                        </div>
+                    </div>
+                    </div>
+                <% } %>
+
             </div>
             <% } %>
 

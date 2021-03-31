@@ -1185,11 +1185,25 @@ define('grid', [
                             var result = cellvalue && cellvalue.split('__')[0] || '';
                             var i18n = cellvalue && cellvalue.split('__')[1] || 'messages.status.healthNumberNotValidated';
 
+                            var defaultColour = app.billingRegionCode == 'can_BC' ? 'white' : 'red';
+                            
                             switch (result) {
-                                case 'valid':        color = 'green';    break;
-                                case 'future_date':  color = 'orange';   break;
-                                default:             color = 'red';      break;
-                            }
+                                case 'valid':
+                                    color = 'green';
+                                    break;
+                                case 'future_date':
+                                case 'no_data_found':
+                                    color = 'orange';
+                                    break;
+                                case 'invalid':
+                                    color = 'red'
+                                    break;
+                                case 'failed':
+                                    color = 'yellow'
+                                    break;
+                                default:
+                                    color = defaultColour;
+                            }        
 
                             return "<i href='#' i18nt='" + i18n + "' class='icon-ic-status' data-value='" + cellvalue + "' style='color: " + color + ";text-shadow:0 0 " + color + ", 0 0 " + color + ", 0 0 " + color + ", 0 0 " + color + ", 0 0 " + color + "'></i>";
                         }
@@ -2039,10 +2053,12 @@ define('grid', [
         // Province based validations are handled in this block and returns validation results.
         self.provinceBasedValidationResults = function (billingRegion, gridData) {
             var msg = '';
+            var claimStatus = gridData && gridData.hidden_claim_status_code || null;
+
             if (billingRegion === 'can_AB') {
                 if (gridData.hidden_billing_method === 'electronic_billing') {
 
-                    if (gridData.hidden_claim_status_code === 'ADP' || !commonjs.isValidClaimStatusToSubmit('delete', gridData.hidden_claim_status_code)) {
+                    if (claimStatus !== 'AD' && (claimStatus === 'ADP' || !commonjs.isValidClaimStatusToSubmit('delete', gridData.hidden_claim_status_code))) {
                         msg = 'billing.claims.canAhs.couldNotDeleteClaimAhsPending';
                     }
                 }
