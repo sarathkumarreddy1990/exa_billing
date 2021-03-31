@@ -525,10 +525,17 @@ define(['jquery',
                     data: eligibilityData,
                     success: function (response) {
                         commonjs.hideLoading();
+                        var data = '';
+                        if (response.err) {
+                            data = response.err.error.data;
+                        } else {
+                            response = response.res;
+                            data = response.data || response.res;
+                        }
 
-                        var data = response.data;
                         $('#btnCheckEligibility' + ins).prop('disabled', false);
-                        if (data && data.errors) {
+
+                        if (data && (data.errors || data.transaction_set_syntax_errors)) {
                             return commonjs.showNestedDialog({
                                 header: 'Pokitdok Response',
                                 i18nHeader: 'shared.fields.pokitdokresponse',
@@ -537,7 +544,7 @@ define(['jquery',
                                 html: $(self.InsurancePokitdokTemplateForm({
                                     'InsuranceData': '',
                                     'InsuranceDatavalue': '',
-                                    'errors': data.errors
+                                    'errors': data.errors || data.transaction_set_syntax_errors
                                 }))
                             });
                         }
