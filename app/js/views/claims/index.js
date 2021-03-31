@@ -4474,8 +4474,8 @@ define(['jquery',
                         isNotEmpty = commonjs.isValidSearchLimit(_eleId, searchText);
 
                         if (!isNotEmpty) {
-                        return false;
-                    }
+                            return false;
+                        }
                     }
                 });
 
