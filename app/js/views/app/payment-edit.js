@@ -3508,7 +3508,7 @@ define(['jquery',
                     var currentClaimStatus = app.claim_status.find(function(obj) {
                         return obj.id === details.claim_status_id;
                     });
-                    var disableClaimStatus = details && details.primary_ins_provider_code.toLowerCase() === 'ahs';
+                    var disableClaimStatus = details && details.primary_ins_provider_code && details.primary_ins_provider_code.toLowerCase() === 'ahs' || false;
                     var enableClaimStatus = disableClaimStatus && ['PIF', 'APP', 'AOP'].indexOf(currentClaimStatus.code) !== -1;
 
                     $('#ddlClaimStatus').prop('disabled', disableClaimStatus && !enableClaimStatus);
