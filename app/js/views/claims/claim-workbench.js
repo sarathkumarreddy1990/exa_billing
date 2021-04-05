@@ -381,6 +381,20 @@ define(['jquery',
                             });
                         }
 
+                        if (app.billingRegionCode === "can_AB") {
+                            claimsFilters.push({
+                                assigned_users: null,
+                                display_as_tab: true,
+                                display_in_ddl: true,
+                                filter_id: "resubmission_claims",
+                                filter_info: null,
+                                filter_name: commonjs.geti18NString("billing.claims.canAhs.resubmissionClaims"),
+                                i18n_name: "billing.claims.canAhs.resubmissionClaims",
+                                filter_order: 0,
+                                id: "resubmission_claims"
+                            });
+                        }
+
                         claimsFilters.push({
                             assigned_users: null,
                             display_as_tab: true,

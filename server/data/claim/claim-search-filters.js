@@ -588,7 +588,8 @@ const api = {
             ) AS insurance_providers`,
             `claims.can_mhs_microfilm_no`,
             `patient_alt_accounts.pid_alt_account`,
-            `patient_alt_accounts.phn_alt_account`
+            `patient_alt_accounts.phn_alt_account`,
+            `AGE(CURRENT_DATE, submitted_dt) >= '3 days'::INTERVAL AND claim_status.code = 'PA' AS claim_resubmission_flag`
         ];
 
         if(args.customArgs.filter_id=='Follow_up_queue'){
@@ -807,6 +808,13 @@ const api = {
 
                         whereClause.permission_filter = AND(whereClause.permission_filter, ` claims.facility_id = ANY(ARRAY[${userSetting.userDetails.facilities}]) `);
                     }
+                }
+                
+                if (args.customArgs.filter_id === 'resubmission_claims') {
+                    // filter the claims whose submitted date is more than or equal to 72 hours[3 days] and claim status in 'PA'
+                    whereClause.permission_filter = AND( whereClause.permission_filter, ` claims.billing_method = 'electronic_billing'
+                                         AND AGE(CURRENT_DATE, submitted_dt) >= '3 days'::INTERVAL
+                                         AND claim_status.code IN ('PA', 'PS') `);
                 }
 
                 permission_query.append(whereClause.permission_filter);
