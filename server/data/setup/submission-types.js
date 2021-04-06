@@ -50,6 +50,7 @@ module.exports = {
             sql.append(SQL` WHERE `)
                 .append(whereQuery.join(' AND '));
         }
+
         sql.append(SQL` ORDER BY`)
             .append(` ${sortField}`)
             .append(` ${sortOrder}`)

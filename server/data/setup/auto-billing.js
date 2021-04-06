@@ -1,12 +1,9 @@
 const {
     SQL,
     query,
-    queryWithAudit
 } = require('../index');
-const moment = require('moment');
 
 const claimsData = require('../../data/claim/index');
-const logger = require('../../../logger');
 
 const COMPANY_ID = 1;
 const WILDCARD_ID = "0";
@@ -18,7 +15,7 @@ const DEFAULT_BILLING_CLASS_ID = null;
 const DEFAULT_BILLING_CODE_ID = null;
 const DEFAULT_BILLING_NOTES = "";
 const DEFAULT_CLAIM_NOTES = "";
-const DEFAILT_PAYER_TYPE = "primary_insurance"
+const DEFAILT_PAYER_TYPE = 'primary_insurance';
 const CLIENT_IP = '127.0.0.1';
 
 let _settings = null;
@@ -37,8 +34,9 @@ const getSettings = async () => {
                 sites.id=${SITE_ID}
         `)).rows[0];
     }
+
     return _settings;
-}
+};
 
 const getPointer = (problem) => {
     return (problem && problem.order_no) || null;
@@ -56,7 +54,7 @@ const getSaveClaimParams = async (params) => {
     const patientInsurances = (await claimsData.getPatientInsurances(params)).rows;
     const lineItems = (await claimsData.getLineItemsDetails(params)).rows;
 
-    const primary_insurance = patientInsurances[0].existing_insurance.find((insurance) => {return insurance.coverage_level === 'primary'});
+    const primary_insurance = patientInsurances[0].existing_insurance.find((insurance) => {return insurance.coverage_level === 'primary';});
 
     const settings = await getSettings();
 
@@ -123,7 +121,7 @@ const getSaveClaimParams = async (params) => {
                 icd_id: problem.id,
                 claim_id: null,
                 is_deleted: PROBLEM_IS_DELETED,
-            }
+            };
         }),
 
         auditDetails: {
@@ -165,10 +163,13 @@ module.exports = {
 
         if (autobilling_rule_description) {
             let term = autobilling_rule_description;
+
             if (term.length === 1) {
                 term = '%' + term;
             }
+
             term += '%';
+
             filterQuery.append(SQL`
                 AND cabr.description ILIKE ${term}
             `);
@@ -434,7 +435,6 @@ module.exports = {
             id,
             description,
             claim_status_id,
-            study_status,
             inactive,
 
             study_status_codes,
