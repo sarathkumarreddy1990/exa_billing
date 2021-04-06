@@ -489,20 +489,24 @@ const ahsData = {
                                 'last_name', p_ref.last_name,
                                 'birth_date', '',
                                 'gender_code', '',
-                                'address1', COALESCE(
-                                    ( SELECT group_name FROM provider_groups WHERE id = pc_ref.provider_group_id ),
-                                    TRIM(
-                                        regexp_replace(COALESCE(pc_ref.contact_info -> 'ADDR1', ''), '[#-]', '', 'g') || ' ' ||
-                                        regexp_replace(COALESCE(pc_ref.contact_info -> 'ADDR2', ''), '[#-]', '', 'g')
-                                    ),
-                                    ''
+                                'address1', (
+                                    CASE
+                                        WHEN pc_ref.provider_group_id IS NOT NULL
+                                        THEN ( SELECT group_name FROM provider_groups WHERE id = pc_ref.provider_group_id )
+                                        ELSE TRIM(
+                                            regexp_replace(COALESCE(pc_ref.contact_info -> 'ADDR1', ''), '[#-]', '', 'g') || ' ' ||
+                                            regexp_replace(COALESCE(pc_ref.contact_info -> 'ADDR2', ''), '[#-]', '', 'g')
+                                        )
+                                    END
                                 ),
                                 'address2', (
                                     CASE
-                                        WHEN pc_ref.provider_group_id IS NULL
-                                        THEN ''
-                                        ELSE TRIM(regexp_replace(COALESCE(pc_ref.contact_info -> 'ADDR1', ''), '[#-]', '', 'g') || ' ' ||
-                                                 regexp_replace(COALESCE(pc_ref.contact_info -> 'ADDR2', ''), '[#-]', '', 'g'))
+                                        WHEN pc_ref.provider_group_id IS NOT NULL
+                                        THEN TRIM(
+                                            regexp_replace(COALESCE(pc_ref.contact_info -> 'ADDR1', ''), '[#-]', '', 'g') || ' ' ||
+                                            regexp_replace(COALESCE(pc_ref.contact_info -> 'ADDR2', ''), '[#-]', '', 'g')
+                                        )
+                                        ELSE ''
                                     END
                                 ),
                                 'address3', '',
