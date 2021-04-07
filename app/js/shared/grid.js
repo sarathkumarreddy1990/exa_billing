@@ -178,7 +178,8 @@ define('grid', [
                     invoice_no: _storeEle.invoice_no,
                     payer_type: _storeEle.payer_type,
                     claim_status_code: _storeEle.claim_status_code,
-                    billing_method: _storeEle.billing_method
+                    billing_method: _storeEle.billing_method,
+                    claim_resubmission_flag: _storeEle.claim_resubmission_flag
                 };
                 if (gridData.billed_status && gridData.billed_status.toLocaleLowerCase() == 'billed') {
                     isbilled_status = true;
@@ -233,6 +234,14 @@ define('grid', [
                     // Claim status updation
                     $.each(app.claim_status, function (index, claimStatus) {
                         if ((app.billingRegionCode === 'can_MB' && claimStatus.code === 'P77') || (app.billingRegionCode === 'can_BC' && claimStatus.code === 'OH')) {
+                            return;
+                        }
+
+                        var resubmissionFlag = app.billingRegionCode === 'can_AB'
+                                               && isClaimGrid
+                                               && gridData.claim_resubmission_flag;
+
+                        if (resubmissionFlag && claimStatus.code !== 'PS') {
                             return;
                         }
 
@@ -891,11 +900,11 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 ('<input type="checkbox" i18nt="billing.payments.selectAllStudies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />'),
-                '','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', ''
+                '','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', '', ''
             ]);
 
             i18nName = i18nName.concat([
-                '','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'billing.claims.assignedTo', ''
+                '','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'billing.claims.assignedTo', '', ''
             ]);
 
             colModel = colModel.concat([
@@ -1185,10 +1194,24 @@ define('grid', [
                             var result = cellvalue && cellvalue.split('__')[0] || '';
                             var i18n = cellvalue && cellvalue.split('__')[1] || 'messages.status.healthNumberNotValidated';
 
+                            var defaultColour = app.billingRegionCode == 'can_BC' ? 'white' : 'red';
+
                             switch (result) {
-                                case 'valid':        color = 'green';    break;
-                                case 'future_date':  color = 'orange';   break;
-                                default:             color = 'red';      break;
+                                case 'valid':
+                                    color = 'green';
+                                    break;
+                                case 'future_date':
+                                case 'no_data_found':
+                                    color = 'orange';
+                                    break;
+                                case 'invalid':
+                                    color = 'red'
+                                    break;
+                                case 'failed':
+                                    color = 'yellow'
+                                    break;
+                                default:
+                                    color = defaultColour;
                             }
 
                             return "<i href='#' i18nt='" + i18n + "' class='icon-ic-status' data-value='" + cellvalue + "' style='color: " + color + ";text-shadow:0 0 " + color + ", 0 0 " + color + ", 0 0 " + color + ", 0 0 " + color + ", 0 0 " + color + "'></i>";
@@ -1398,6 +1421,10 @@ define('grid', [
                     formatter: function (cellvalue, options, rowObject) {
                         return rowObject.assigned_id || "";
                     }
+                },
+                {
+                    name: 'claim_resubmission_flag',
+                    hidden: true
                 }
             ]);
 
@@ -1861,7 +1888,7 @@ define('grid', [
                     if (elReassess.hasClass('disabled')) {
                         return false;
                     }
-                    
+
                     if (!commonjs.isValidClaimStatusToSubmit('reassessment', gridData.hidden_claim_status_code)) {
                         return commonjs.showWarning('billing.claims.canAhs.couldNotReassessClaim');
                     }
@@ -1874,7 +1901,11 @@ define('grid', [
                 if (gridData.hidden_billing_method === 'electronic_billing') {
                     $('#li_ul_change_claim_status').hide();
 
-                    if (['APP', 'AOP', 'PIF'].indexOf(gridData.hidden_claim_status_code) !== -1) {
+                    var resubmissionFlag = selectedStudies.length === selectedStudies.filter(function (e) {
+                        return isClaimGrid && e.claim_resubmission_flag;
+                    }).length;
+
+                    if (['APP', 'AOP', 'PIF'].indexOf(gridData.hidden_claim_status_code) !== -1 || resubmissionFlag) {
                         $('#li_ul_change_claim_status').show();
                     }
                 }
@@ -1945,7 +1976,7 @@ define('grid', [
             }
         },
 
-        //To handle claim delete response for alberta 
+        //To handle claim delete response for alberta
         self.ahsDeleteResponse = function(data) {
             data.err = data && (data.err || data.message || data[0]);
 
@@ -2039,10 +2070,12 @@ define('grid', [
         // Province based validations are handled in this block and returns validation results.
         self.provinceBasedValidationResults = function (billingRegion, gridData) {
             var msg = '';
+            var claimStatus = gridData && gridData.hidden_claim_status_code || null;
+
             if (billingRegion === 'can_AB') {
                 if (gridData.hidden_billing_method === 'electronic_billing') {
 
-                    if (gridData.hidden_claim_status_code === 'ADP' || !commonjs.isValidClaimStatusToSubmit('delete', gridData.hidden_claim_status_code)) {
+                    if (claimStatus !== 'AD' && (claimStatus === 'ADP' || !commonjs.isValidClaimStatusToSubmit('delete', gridData.hidden_claim_status_code))) {
                         msg = 'billing.claims.canAhs.couldNotDeleteClaimAhsPending';
                     }
                 }

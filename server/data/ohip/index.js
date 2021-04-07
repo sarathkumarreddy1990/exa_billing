@@ -155,10 +155,9 @@ const getFileStore = async (args) => {
  *                            absolutePath: String,   // full path including filename
  *                        }
  */
-const storeFile =  async (args) => {
+const storeFile = async (args) => {
 
     const {
-        createdDate,
         filename: originalFilename,
         data,
         isTransient,
@@ -173,7 +172,7 @@ const storeFile =  async (args) => {
     // 20120331 - OHIP Conformance Testing Batch Edit sample batch date, seq: 0005
     // accounting number: "CST-PRIM" from Conformance Testing Error Report sample
 
-    const filestore =  await getFileStore(args);
+    const filestore = await getFileStore(args);
     const filePath = path.join((filestore.is_default ? 'OHIP' : ''), getDatePath());
     const dirPath = path.join(filestore.root_directory, filePath);
 
@@ -181,7 +180,7 @@ const storeFile =  async (args) => {
     mkdirp.sync(dirPath);
 
     let filename = originalFilename;
-    if ( appendFileSequence ) {
+    if (appendFileSequence) {
         try {
             const filenames = await readDirAsync(dirPath);
 
@@ -190,7 +189,7 @@ const storeFile =  async (args) => {
             // Use index as the final 4 chars (. + 3 numbers) in the filename
             filename += `.${index.padStart(3, '0')}`;
         }
-        catch ( e ) {
+        catch (e) {
             logger.error(`Could not get file count for directory ${dirPath}`, e);
         }
 
@@ -201,7 +200,7 @@ const storeFile =  async (args) => {
         absolutePath: path.join(dirPath, filename),
     };
 
-    await writeFileAsync(fileInfo.absolutePath, data, {encoding});
+    await writeFileAsync(fileInfo.absolutePath, data, { encoding });
 
     if (isTransient || !exaFileType) {
         // if we don't care about storing the file or the database
@@ -229,7 +228,7 @@ const storeFile =  async (args) => {
         VALUES(
             1
             ,${filestore.id}
-            ,'${moment(createdDate || new Date()).format("YYYY-MM-DD")}'::timestamptz
+            ,now()
             ,'pending'
             ,'${exaFileType}'
             ,'${filePath}'
@@ -241,7 +240,7 @@ const storeFile =  async (args) => {
         RETURNING id
     `;
 
-    const  dbResults = (await query(sql, [])).rows;
+    const dbResults = (await query(sql, [])).rows;
 
     fileInfo.edi_file_id = dbResults[0].id;
 
@@ -309,7 +308,7 @@ const loadFile = async (args) => {
     } = (await query(sql.text, sql.values)).rows[0];
 
     const absolutePath = path.join(root_directory, file_path, uploaded_file_name);
-    const data = fs.existsSync(absolutePath) && fs.readFileSync(absolutePath, {encoding});
+    const data = fs.existsSync(absolutePath) && fs.readFileSync(absolutePath, { encoding });
 
     return {
         data,
@@ -409,7 +408,7 @@ const updateClaimStatus = async (args) => {
  * @param  {type} args description
  * @returns {type}      description
  */
-const applyClaimSubmission =  async (args) => {
+const applyClaimSubmission = async (args) => {
 
     const {
         edi_file_id,
@@ -842,6 +841,8 @@ const OHIPDataAPI = {
             SELECT
                 bc.id AS claim_id,
                 bc.billing_method,
+                bc.id AS "accountingNumber",
+                bc.can_ohip_manual_review_indicator AS "manualReviewIndicator",
                 claim_notes AS "claimNotes",
                 npi_no AS "groupNumber",    -- this sucks
                 rend_pr.provider_info -> 'NPI' AS "providerNumber",
@@ -857,25 +858,31 @@ const OHIPDataAPI = {
                 ) AS "specialtyCodes",
                 33 AS "specialtyCode",  -- NOTE this is only meant to be a temporary workaround
                 (
-                SELECT json_agg(row_to_json(claim_details)) 
-                FROM (
-                WITH cte_insurance_details AS (
-                    SELECT (row_to_json(insuranceDetails)) AS "insuranceDetails"
-                    FROM 
-                        ( SELECT
-                            ppi.policy_number AS "healthNumber",
-                            ppi.group_number AS "versionCode",              
-                            pip.insurance_name AS "payerName",              
-                            pip.insurance_code AS "paymentProgram"                
-                        FROM public.patient_insurances ppi
-                        INNER JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
-                        WHERE ppi.id = bc.primary_patient_insurance_id
-                        ) AS insuranceDetails
-                )
-                
-                SELECT * FROM cte_insurance_details ) AS claim_details 
-                ) AS "insurance_details",
-                bc.id AS "accountingNumber",
+                    SELECT row_to_json(insurance_details) FROM (
+                    SELECT
+                        ppi.policy_number AS "healthNumber",
+                        ppi.group_number AS "versionCode",              
+                        pip.insurance_name AS "payerName",              
+                        pip.insurance_code AS "paymentProgram"                
+                    FROM public.patient_insurances ppi
+                    INNER JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
+                    WHERE ppi.id = bc.primary_patient_insurance_id) insurance_details
+                ) insurance_details,
+                (
+                    SELECT json_agg(row_to_json(charge_items)) 
+                    FROM (
+                        SELECT
+                            pcc.display_code AS "serviceCode",
+                            (bch.bill_fee * bch.units) AS "feeSubmitted",
+                            1 AS "numberOfServices",
+                            charge_dt AS "serviceDate",
+                            billing.get_charge_icds (bch.id) AS diagnosticCodes
+                        FROM billing.charges bch
+                        INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
+                        WHERE bch.claim_id = bc.id AND NOT bch.is_excluded
+                    ) charge_items
+                ) items,
+                pp.full_name AS "patientName",
                 pp.patient_info -> 'c1State' AS "provinceCode",               -- TODO this should be coming from the patient_insurances table
                 pp.patient_info->'c1AddressLine1' AS "patientAddress",
                 bp.address_line1 AS "billing_pro_addressLine1",
@@ -899,12 +906,21 @@ const OHIPDataAPI = {
                 pg.group_info->'City' AS "service_facility_city",
                 pg.group_name AS "service_facility_firstName",
                 pg.group_info->'State' AS "service_facility_state",
-                pg.group_info->'Zip' AS "service_facility_zip"
+                pg.group_info->'Zip' AS "service_facility_zip",
+                'HOP' AS "serviceLocationIndicator",
+                reff_pr.provider_info -> 'NPI' AS "referringProviderNumber",
+                'P' AS "payee",
+                'HOP' AS "masterNumber",  
+                get_full_name(pp.last_name,pp.first_name) AS "patientName",   
+                'IHF' AS "serviceLocationIndicator",
+                ppos.code AS place_of_service
             FROM billing.claims bc
             LEFT JOIN public.provider_groups pg ON pg.id = bc.ordering_facility_id
             INNER JOIN public.companies pc ON pc.id = bc.company_id
             INNER JOIN public.patients pp ON pp.id = bc.patient_id
             INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
+            INNER JOIN public.facilities pf ON pf.id = bc.facility_id
+            LEFT JOIN public.places_of_service ppos ON ppos.id = pf.place_of_service_id
             LEFT JOIN public.provider_contacts rend_ppc ON rend_ppc.id = bc.rendering_provider_contact_id
             LEFT JOIN public.providers rend_pr ON rend_pr.id = rend_ppc.provider_id
             LEFT JOIN public.provider_contacts reff_ppc ON reff_ppc.id = bc.referring_provider_contact_id
@@ -917,7 +933,7 @@ const OHIPDataAPI = {
 
     handlePayment: async (data, args) => {
 
-        let processedClaims =  await era_parser.processOHIPEraFile(data, args);
+        let processedClaims = await era_parser.processOHIPEraFile(data, args);
 
         return processedClaims;
     },

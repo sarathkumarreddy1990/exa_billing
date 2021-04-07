@@ -3,7 +3,7 @@ const constants = require('./../../constants').encoder;
 const util = require('./../util');
 
 
-const ClaimHeader2Encoder = function(options) {
+const ClaimHeader2Encoder = function (options) {
 
     const getTransactionIdentifier = () => {
         // mandatory
@@ -23,14 +23,14 @@ const ClaimHeader2Encoder = function(options) {
         // required: mandatory
         // field length: 12
         // format: alphanumeric
-        return util.formatAlphanumeric(claimData.registrationNumber, 12, ' ', true);
+        return util.formatAlphanumeric(claimData.healthNumber, 12, ' ', true);
     };
 
     const getPatientLastName = (claimData) => {
         // required: mandatory
         // field length: 9
         // format: ALPHA
-        return util.formatAlphanumeric(claimData.patientLastName, 9, ' ', true);
+        return util.formatAlphanumeric(claimData.patient_lastName, 9, ' ', true);
     };
 
 
@@ -38,21 +38,33 @@ const ClaimHeader2Encoder = function(options) {
         // required: mandatory
         // field length: 5
         // format: ALPHA
-        return util.formatAlphanumeric(claimData.patientFirstName, 5, ' ', true);
+        return util.formatAlphanumeric(claimData.patient_firstName, 5, ' ', true);
     };
 
     const getPatientSex = (claimData) => {
         // required: mandatory
         // field length: 1
         // format: numeric
-        return util.formatAlphanumeric(claimData.patientSex, 1);
+        let encodeChar = claimData.patient_gender || '';
+        let isRMBClaim = claimData.insurance_details && claimData.insurance_details.paymentProgram === 'RMB'
+        
+        switch (isRMBClaim && encodeChar) {
+            case 'M': encodeChar = '1';
+            break;
+            case 'F': encodeChar = '2';
+            break;
+            default:  encodeChar;
+            break;
+        }
+
+        return util.formatAlphanumeric(encodeChar, 1);
     };
 
     const getProvinceCode = (claimData) => {
         // required: mandatory
         // field length: 2
         // format: ALPHA
-        return util.formatAlphanumeric(claimData.provinceCode, 2);
+        return util.formatAlphanumeric(claimData.patient_province, 2);
     };
 
     const getReservedForMOHUse = () => {

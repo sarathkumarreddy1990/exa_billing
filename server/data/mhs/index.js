@@ -282,7 +282,7 @@ const mhsData = {
                           , ${file_id}::BIGINT
                           , ${JSON.stringify(fileData)}::JSONB
                           , ${JSON.stringify(auditDetails)}::JSONB
-                        )`;
+                        ) AS applied_payments`;
 
         return await query(sql);
     },

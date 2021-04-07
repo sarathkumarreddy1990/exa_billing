@@ -300,8 +300,19 @@ const processResults = (args, service) => {
         gender = '';
     }
 
+    if( submission_code === 'E') {
+        CO2recordDescription.file_number = {
+            ...CO2recordDescription.file_number,
+            validationRequired:  true,
+            constraints: ['^.{5}((?!0000000).)*.{8}$'],
+            name: 'File number',
+            customMessage: 'Debit Request submission cannot be done for a new claim'
+        };
+    }
+
     let bill_fee = shared.roundFee(service.bill_fee);
     let service_date = convertToFacilityDate(service.service_start_dt, facility_time_zone);
+    let file_number = submission_code === 'E' ? `${can_bc_data_centre_number}${(((service.last_sequence && service.last_sequence.toString()) || '').padStart(7, '0')).slice(0, 7)}` : '0';
 
     return {
         record_code: record_code_C02,
@@ -342,7 +353,7 @@ const processResults = (args, service) => {
         comments: !isNO1required ? can_supporting_text : '',
         mva_claim_code: is_auto_accident ? 'Y' : 'N',
         icbc_claim_number: submission_code === 'I' ? original_reference : dob_icbc_claim_number,
-        file_number: submission_code === 'E' ? `${can_bc_data_centre_number}${(((service.last_sequence && service.last_sequence.toString()) || '').padStart(7, '0')).slice(0, 7)}` : '0',
+        file_number: file_number.padEnd(20, '0'),
         facility_number: can_facility_number,
         insurer_code,
         facility_sub_number,

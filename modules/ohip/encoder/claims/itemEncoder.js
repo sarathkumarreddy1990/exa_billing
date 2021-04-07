@@ -52,7 +52,9 @@ const ItemEncoder = function(options) {
         // required: conditionally
         // field length: 4
         // format: alphanumeric
-        return util.formatAlphanumeric(itemData.diagnosticCode, 4);
+
+        let diagnosticCode = itemData.diagnosticcodes && itemData.diagnosticcodes[0] && itemData.diagnosticcodes[0].replace('.', '');
+        return util.formatAlphanumeric(diagnosticCode, 4, '', true);
     };
     const getReservedForOOC = () => {
         // required: MUST BE SPACES unless authorized

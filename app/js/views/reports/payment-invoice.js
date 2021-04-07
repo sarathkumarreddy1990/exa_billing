@@ -40,7 +40,7 @@ define([
                 this.$el.html(this.mainTemplate(this.viewModel));               
                 UI.initializeReportingViewModel(options, this.viewModel);
 
-                this.viewModel.dateFrom = commonjs.getFacilityCurrentDateTime(1);
+                this.viewModel.dateFrom = commonjs.getFacilityCurrentDateTime(app.facilityID);
                 this.viewModel.dateTo = this.viewModel.dateFrom.clone();
             },
 

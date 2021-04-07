@@ -84,7 +84,7 @@ const Parser = {
             );
         });
 
-        batchInfo.segments.push(segment);
+        batchInfo && batchInfo.segments.push(segment);
     },
 
     /***

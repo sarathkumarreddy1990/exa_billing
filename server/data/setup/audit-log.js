@@ -62,9 +62,10 @@ module.exports = {
             .append(sortOrder);
 
         if (!disablePaging) {
-            sql.append(SQL` LIMIT ${pageSize}`)
+            sql.append(SQL` LIMIT ${pageSize}`);
             sql.append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
         }
+
         return await query(sql);
     },
 
