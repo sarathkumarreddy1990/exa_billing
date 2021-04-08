@@ -66,7 +66,7 @@ const api= {
 
     getData: async (params) => { return await data.getClaimData(params); },
 
-    refreshToken: async  (model) =>{
+    refreshToken: async (model) => {
         try {
             const combinedOptions = {
                 db: 0,
@@ -74,12 +74,13 @@ const api= {
             };
 
             let chcPokitdokAccessToken = new Redis(combinedOptions);
-            chcPokitdokAccessToken.multi();
             chcPokitdokAccessToken.hdel(`accessToken`, model.userId);
         } catch (err) {
             const message = `Cannot Access token delete in chcPokitdok (${model.userId})`;
             logger.logError(message, err);
-            return {err};
+            return {
+                err
+            };
         }
 
         model.refreshToken = true;
@@ -97,7 +98,6 @@ const api= {
         };
 
         let chcPokitdokAccessToken = new Redis(combinedOptions);
-        const multi = chcPokitdokAccessToken.multi();
 
         if (!model.refreshToken) {
             accessTokenList = await chcPokitdokAccessToken.hmget('accessToken', model.userId);
@@ -136,7 +136,7 @@ const api= {
 
             try {
                 model.refreshToken = false;
-                multi.hmset(`accessToken`, model.userId, JSON.stringify(res));
+                chcPokitdokAccessToken.hmset(`accessToken`, model.userId, JSON.stringify(res));
                 accessToken = res.access_token;
             }
             catch (e) {
