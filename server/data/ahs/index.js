@@ -610,7 +610,7 @@ const ahsData = {
                     LEFT JOIN public.providers p_app
                         ON p_app.id = pc_app.provider_id
                     LEFT JOIN public.provider_contacts pc_ref
-                        ON pc_ref.id = s.referring_physician_id
+                        ON pc_ref.id = bc.referring_provider_contact_id
                     LEFT JOIN public.providers p_ref
                         ON p_ref.id = pc_ref.provider_id
                     LEFT JOIN public.skill_codes sc
