@@ -83,13 +83,11 @@ const claimTransactionHeader = ( row ) => {
 };
 
 function* processSupportingText ( text ) {
-    let textSegments = text.length % 73;
-
-    while ( text.length > 0 && textSegments > 0 ) {
+    while ( text.length > 0 ) {
         yield {
-            'supporting_text_1': (textSegments--, text.slice(0, 73)),
-            'supporting_text_2': (textSegments--, text.slice(73, 73)),
-            'supporting_text_3': (textSegments--, text.slice(146, 73)),
+            'supporting_text_1': text.slice(0, 73),
+            'supporting_text_2': text.slice(73, 146),
+            'supporting_text_3': text.slice(146, 219),
         };
 
         text = text.slice(219);
