@@ -58,7 +58,7 @@ const getPokitdokAccessToken = async (args) => {
 
 };
 
-const apiRequest = async (options) =>{
+const apiRequest = async (options) => {
     options.url = options.baseUrl + options.path;
 
     // apply the auth magic
@@ -68,50 +68,57 @@ const apiRequest = async (options) =>{
         'Accept': 'application/json'
     };
 
-    return await request(options.url, {
-        method: 'POST',
-        headers: options.headers,
-        json: options.json
-    })
-        .then((res, body) => {
-            if (!options.json && typeof body == 'string' && body.indexOf('{') === 0) {
-                body = JSON.parse(body);
-                res.body = JSON.parse(res.body);
-            }
-
-            // if a 401 is returned, hit the refresh token process
-
-            // all other error codes get sent to the caller
-            if (res.statusCode != 200 || res.statusCode == 401 || (res.statusCode == 400 && !body.meta)) {
-                return {
-                    err: null,
-                    res: res
-                };
-            }
-
-            if (res instanceof Error) {
-                return {
-                    res: null,
-                    err: Error
-                };
-            }
-
-            res = typeof res === `string` ?
-                JSON.parse(res) :
-                res || {};
-
-            return {
-                res: res,
-                err: null
-            };
-        })
-        .catch(function (err) {
-            return {
-                res: null,
-                err: err
-            };
+    try {
+        const result = await request(options.url, {
+            method: 'POST',
+            headers: options.headers,
+            json: options.json
         });
 
+        let {
+            res,
+            body
+        } = result;
+
+
+
+        if (!options.json && typeof body == 'string' && body.indexOf('{') === 0) {
+            body = JSON.parse(body);
+            res.body = JSON.parse(res.body);
+        }
+
+        // if a 401 is returned, hit the refresh token process
+
+        // all other error codes get sent to the caller
+        if (res.statusCode != 200 || res.statusCode == 401 || (res.statusCode == 400 && !body.meta)) {
+            return {
+                err: null,
+                res: res
+            };
+        }
+
+        if (res instanceof Error) {
+            return {
+                res: null,
+                err: Error
+            };
+        }
+
+        res = typeof res === `string` ?
+            JSON.parse(res) :
+            res || {};
+
+        return {
+            res: res,
+            err: null
+        };
+    } catch (err) {
+        return {
+            res: null,
+            err: err
+        };
+
+    }
 };
 
 const eligibility = async (userId, configValues, options) => {
