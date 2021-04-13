@@ -686,18 +686,27 @@ module.exports = {
             let claimData = currentClaim;
 
             if (claimData) {
+                let skipValidation = claimData.oop_referral_indicator === 'Y';
                 _.each(valdationClaimJson, (fieldValue, field) => {
                     if (fieldValue) {
                         if (typeof fieldValue === 'object') {
                             if (claimData[field]) {
                                 _.each(fieldValue, (data, dataField) => {
                                     if (data) {
-                                        !claimData[dataField] || !claimData[dataField].length ? errorMessages.push(` Claim - ${dataField} does not exists`) : null;
+                                        dataField === 'provider_prid' && skipValidation
+                                            ? null
+                                            : !claimData[dataField] || !claimData[dataField].length
+                                                ? errorMessages.push(` Claim - ${dataField} does not exists`)
+                                                : null;
                                     }
                                 });
                             }
                         } else {
-                            !claimData[field] || !claimData[field].length ? errorMessages.push(` Claim - ${field} does not exists`) : null;
+                            field === 'provider_prid' && skipValidation
+                                ? null
+                                : !claimData[field] || !claimData[field].length 
+                                    ? errorMessages.push(` Claim - ${field} does not exists`) 
+                                    : null;
                         }
                     }
                 });

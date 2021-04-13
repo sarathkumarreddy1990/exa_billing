@@ -129,6 +129,15 @@ const ahsData = {
                 pp.first_name                                AS "patient_first_name",
                 pc_app.can_prid                          AS "service_provider_prid",
                 pc_c.can_prid AS "provider_prid",
+                CASE
+                            WHEN LOWER(COALESCE(
+                                pc_c.contact_info -> 'STATE',
+                                pc_c.contact_info -> 'STATE_NAME',
+                                ''
+                            )) NOT IN ( 'ab', 'alberta' )
+                            THEN 'Y'
+                            ELSE ''
+                        END AS oop_referral_indicator,
                 COALESCE(pp.patient_info -> 'c1State', pp.patient_info -> 'c1Province', '') AS province_code,
                 (SELECT
                     charges_bill_fee_total
