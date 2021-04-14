@@ -35,7 +35,7 @@
                 <input id="ddlPointer3_<%= row.data_row_id %>" class="form-control inputModifiers typeahead diagCodes" data-type="P3" data-value="<%= row.data_row_id %>"
                        type="text">
             </td>
-        <% } if (chargeField.pointers[3]) { %> 
+        <% } if (chargeField.pointers[3]) { %>
             <td>
                 <input id="ddlPointer4_<%= row.data_row_id %>" class="form-control inputModifiers typeahead diagCodes" data-type="P4" data-value="<%= row.data_row_id %>"
                        type="text">
@@ -68,7 +68,7 @@
             </td>
         <% }  %>
         <td>
-            <input disabled value="<%= row.bill_fee ? row.bill_fee : 0.00 %>" id="txtBillFee_<%= row.data_row_id %>" type="text" class="billFee form-control-med form-control maskFee floatbox w-auto d-inline-block" edit="<%= row.is_custom_bill_fee %>">
+            <input disabled value="<%= row.bill_fee ? row.bill_fee : 0.00 %>" id="txtBillFee_<%= row.data_row_id %>" type="text" class="billFee form-control-med form-control maskFee floatbox w-auto d-inline-block" data-edit="<%= row.is_custom_bill_fee %>">
             <span id="editBillFee_<%= row.data_row_id %>" class="icon-ic-edit" style="margin-left: 4px;cursor:pointer;" i18nt="shared.buttons.edit"></span>
         </td>
         <td>

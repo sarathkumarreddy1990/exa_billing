@@ -414,7 +414,6 @@ module.exports = {
     getProviderGroupDetail: async function (params) {
         let {
             q,
-            companyId,
             sortField,
             sortOrder,
             pageSize,

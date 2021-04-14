@@ -6,7 +6,8 @@
 * ``` "dbConnectionBilling": "tcp://[user]:[pwd]@192.168.1.1:5434/[db_name]" ```
 
 ### Install dependencies
-* ``` npm run install-node_modules ```
+* ``` npm run ci ```
+* This call is different than `npm ci` because it also installs dependencies in the `app` directory
 
 ### Debugging
 * ``` npm run start ```

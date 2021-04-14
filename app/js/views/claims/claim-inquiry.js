@@ -197,6 +197,7 @@ define([
 
                                 claim_data = claim_data[0];
                                 //binding the values from data base
+                                $('#claimInquiryOrderNumber').text(claim_data.order_no)
                                 $('#lblCIBillProv').text(claim_data.billing_provider_name)
                                 $('#lblCIReadPhy').text(claim_data.rend_provider_name);
                                 $('#lblCIRefPhy').text(claim_data.ref_provider_name);
@@ -1659,7 +1660,7 @@ define([
 
             invoiceActivityStatement: function(claimId, payerType){
                 var urlParams = {
-                    claimId: claimId, 
+                    claimId: claimId,
                     payerType: payerType,
                     async: false,
                     save: false

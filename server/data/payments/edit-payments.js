@@ -113,6 +113,7 @@ module.exports = {
                 .append(sortOrder)
                 .append(SQL` LIMIT ${pageSize}`)
                 .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
+
             return await query(sql);
         }
         else if ((params.customArgs && (params.customArgs.claimIdToSearch || params.customArgs.invoiceNoToSearch)) || isFromClaim && paymentID == 0) {
@@ -205,11 +206,11 @@ module.exports = {
         }
 
         if (countFlag == 'true') {
-            const sql =  SQL`SELECT 
+            const sql =  SQL`SELECT
                                 COUNT(1) AS total_records
                             FROM billing.claims bc
                             INNER JOIN billing.get_claim_totals(bc.id) AS claim_totals ON true
-                            INNER JOIN public.patients pp on pp.id = bc.patient_id 
+                            INNER JOIN public.patients pp on pp.id = bc.patient_id
                             INNER JOIN public.provider_groups pg on pg.id = bc.ordering_facility_id`;
 
             sql.append(joinQuery)
@@ -763,7 +764,7 @@ module.exports = {
                     owner_id,
                     patient_info as more_info,
                     to_char(patients.birth_date, 'YYYY-MM-DD') as birth_date,
-                    COUNT(1) OVER (range unbounded preceding) as total_records                    
+                    COUNT(1) OVER (range unbounded preceding) as total_records
                 FROM patients
                 INNER JOIN patient_facilities pf ON pf.patient_id = patients.id AND pf.is_default
                 ${filter.filterQuery}
