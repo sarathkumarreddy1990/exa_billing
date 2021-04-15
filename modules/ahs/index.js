@@ -102,7 +102,7 @@ const ahsmodule = {
         }
 
         
-        let invalidClaims = claimData.filter((data) => data.oop_referral_indicator === '' && !data.provider_prid && data.claim_id) || [];
+        let invalidClaims = claimData.filter((data) => ((data.oop_referral_indicator === '' && !data.provider_prid) || !data.service_provider_prid) && data.claim_id) || [];
 
         console.log('invalidClaims =>>', invalidClaims);
 

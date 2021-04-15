@@ -704,8 +704,8 @@ module.exports = {
                         } else {
                             field === 'provider_prid' && skipValidation
                                 ? null
-                                : !claimData[field] || !claimData[field].length 
-                                    ? errorMessages.push(` Claim - ${field} does not exists`) 
+                                : !claimData[field] || !claimData[field].length
+                                    ? errorMessages.push(` Claim - ${field} does not exists`)
                                     : null;
                         }
                     }
