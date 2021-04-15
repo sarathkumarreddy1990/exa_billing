@@ -104,8 +104,6 @@ const ahsmodule = {
         
         let invalidClaims = claimData.filter((data) => ((data.oop_referral_indicator === '' && !data.provider_prid) || !data.service_provider_prid) && data.claim_id) || [];
 
-        console.log('invalidClaims =>>', invalidClaims);
-
         if (invalidClaims.length) {
             let uniqueInvalidClaims = _.uniq(invalidClaims.map(obj => obj.claim_id)) || [];
             validationResponse.validationMessages.push(`Claim ${uniqueInvalidClaims.join(',')} does not have service provider prid`);
