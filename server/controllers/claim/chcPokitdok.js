@@ -90,13 +90,6 @@ const apiRequest = async (options) => {
             };
         }
 
-        if (res instanceof Error) {
-            return {
-                res: null,
-                err: Error
-            };
-        }
-
         res = typeof res === `string` ?
             JSON.parse(res) :
             res || {};
