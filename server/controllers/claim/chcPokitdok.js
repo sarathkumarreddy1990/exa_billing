@@ -33,13 +33,6 @@ const getPokitdokAccessToken = async (args) => {
 
     return await request(url, options)
         .then((result) => {
-            if (result instanceof Error) {
-                return {
-                    res: null,
-                    err: Error
-                };
-            }
-
             result = typeof result === `string` ?
                 JSON.parse(result) :
                 result || {};
