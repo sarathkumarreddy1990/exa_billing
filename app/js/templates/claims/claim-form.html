@@ -443,7 +443,6 @@
                         </select>
                     </div>
                 </div>
-                <% if ( billingRegionCode !== 'can_AB') { %>
                 <div class="form-group row">
                     <label for="ddlRenderingProvider" class="col-sm-3 col-form-label <% if (country_alpha_3_code === 'can') { print('field-required') } %>" i18n="billing.claims.renderingProvider"></label>
                     <div class="col-sm-5">
@@ -451,7 +450,6 @@
                         </select>
                     </div>
                 </div>
-                <% } %>
                 <div class="form-group row">
                     <label for="ddlReferringProvider" class="col-sm-3 col-form-label <% if (billingRegionCode === 'can_AB') { print('field-required') } %>" i18n="billing.claims.referringProvider"></label>
                     <div class="col-sm-5">
