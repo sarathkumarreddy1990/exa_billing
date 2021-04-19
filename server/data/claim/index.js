@@ -6,7 +6,7 @@ module.exports = {
         const sql = SQL`SELECT * FROM
          (
              SELECT json_array_elements(web_config) AS info from sites)AS info_tab
-            WHERE info->>'id' IN('insPokitdok' , 'pokitdok_client_id' , 'pokitdok_client_secret') `;
+            WHERE info->>'id' IN('insPokitdok' , 'pokitdok_client_id' , 'pokitdok_client_secret', 'CHCPokitdokBaseURL' ,'CHCPokitdokAccessTokenURL') `;
 
         return await query(sql);
     },
@@ -849,7 +849,7 @@ module.exports = {
     getFolderPath: async (params) => {
 
         let sqlQry = SQL`
-        SELECT account_no, facility_info->'pokitdok_response' as filepath from public.patients p 
+        SELECT account_no, facility_info->'pokitdok_response' as filepath from public.patients p
         INNER JOIN patient_facilities pf on pf.patient_id=p.id
         INNER JOIN public.facilities f on f.id = pf.facility_id AND pf.is_default where p.id = ${params.patient_id} `;
 
