@@ -11,7 +11,7 @@ const getMoney = (moneyStr) => {
 };
 
 const getFormattedValue = (code, regExp) => {
-    let trimmedCode = `${code}`.trim() || '';
+    let trimmedCode = `${code}`.trim();
 
     if (regExp && regExp.pattern && regExp.replaceChar) {
         return `${trimmedCode.replace(new RegExp(`${regExp.pattern}`), regExp.replaceChar)}`;
