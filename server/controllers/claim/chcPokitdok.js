@@ -62,28 +62,15 @@ const apiRequest = async (options) => {
     };
 
     try {
-        const result = await request(options.url, {
+        let res = await request(options.url, {
             method: 'POST',
             headers: options.headers,
             json: options.json
         });
 
-        let {
-            res,
-            body
-        } = result;
-
-
-
-        if (!options.json && typeof body == 'string' && body.indexOf('{') === 0) {
-            body = JSON.parse(body);
-            res.body = JSON.parse(res.body);
-        }
-
-        // if a 401 is returned, hit the refresh token process
 
         // all other error codes get sent to the caller
-        if (res.statusCode != 200 || res.statusCode == 401 || (res.statusCode == 400 && !body.meta)) {
+        if (res.statusCode != 200 || res.statusCode == 401 || (res.statusCode == 400)) {
             return {
                 err: null,
                 res: res
