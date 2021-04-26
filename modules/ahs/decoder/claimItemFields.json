@@ -95,7 +95,11 @@
   },
   "serviceCode": {
     "startPos": 224,
-    "fieldLength": 7
+    "fieldLength": 7,
+    "regExp": {
+        "pattern": "[,+^*!@#$%&()\\|/ ]",
+        "replaceChar": ".?"
+    }
   },
   "payToCode": {
     "startPos": 231,
