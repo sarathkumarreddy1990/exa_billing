@@ -29,10 +29,14 @@ module.exports = {
                 , (timezone(get_facility_tz(bc.facility_id::integer), bc.claim_dt)::date)::text AS claim_dt
                 , pos.description AS pos_name
                 , bpr.name AS billing_provider_name
+                , orders.order_no
             FROM billing.claims bc
             INNER JOIN billing.claim_status st ON st.id = bc.claim_status_id
             INNER JOIN public.facilities f ON f.id = bc.facility_id
             INNER JOIN billing.charges ch ON ch.claim_id = bc.id
+            INNER JOIN billing.charges_studies chs on chs.charge_id = ch.id
+            INNER JOIN public.studies on studies.id = chs.study_id
+            INNER JOIN public.orders on orders.id = studies.order_id
             INNER JOIN billing.providers bpr ON bpr.id = bc.billing_provider_id
             LEFT JOIN public.provider_contacts ref_pc ON ref_pc.id = bc.referring_provider_contact_id
             LEFT JOIN public.provider_contacts rend_pc ON rend_pc.id = bc.rendering_provider_contact_id
@@ -52,6 +56,7 @@ module.exports = {
                 , pg.group_name
                 , pos.description
                 , bpr.name
+                , orders.order_no
             ) AS encounter
         )
     , patient_details AS
