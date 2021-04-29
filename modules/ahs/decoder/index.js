@@ -22,13 +22,13 @@ const Parser = {
                  * Don't include the header, trailer or empty rows
                  */
                 let value = recordStr.trim();
-                if ( value && !/(HEADER|TRAILER)\s*$/i.test(value) && value.length === 234 ) {
+                if (value && !/(HEADER|TRAILER)\s*$/i.test(value) && value.length === 234) {
                     const ardRecord = RemittanceAdviceParser.parseRecord(recordStr, RemittanceAdviceFields);
                     const codes = new Set();
-                    if ( ardRecord.explanationCodes ) {
-                        for ( let i = 0; i < ardRecord.explanationCodes.length; i += 5 ) {
+                    if (ardRecord.explanationCodes) {
+                        for (let i = 0; i < ardRecord.explanationCodes.length; i += 5) {
                             const code = ardRecord.explanationCodes.slice(i, i + 5).trim();
-                            if ( code ) {
+                            if (code) {
                                 codes.add(code);
                             }
                         }
@@ -36,11 +36,11 @@ const Parser = {
 
                     ardRecord.explanationCodes = Array.from(codes).map(code => ({ code, "amount": 0 }));
 
-                    if ( ardRecord.feeModifiers ) {
+                    if (ardRecord.feeModifiers) {
                         const mods = [];
-                        for ( let i = 0; i < ardRecord.feeModifiers.length; i += 6 ) {
+                        for (let i = 0; i < ardRecord.feeModifiers.length; i += 6) {
                             const mod = ardRecord.feeModifiers.slice(i, i + 6);
-                            if ( mod ) {
+                            if (mod) {
                                 mods.push(mod);
                             }
                         }
@@ -80,7 +80,7 @@ const Parser = {
             } = _ele;
 
             return (startSubmitterPrefix == submitterPrefix &&
-                (sequenceNumber >= startSequenceNumber && sequenceNumber <= endSequenceNumber)
+                (Number(sequenceNumber) >= startSequenceNumber && sequenceNumber <= endSequenceNumber)
             );
         });
 
