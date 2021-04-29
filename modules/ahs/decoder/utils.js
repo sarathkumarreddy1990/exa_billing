@@ -10,6 +10,16 @@ const getMoney = (moneyStr) => {
     return getNumeric(moneyStr) / 100;
 };
 
+const getFormattedValue = (code, regExp) => {
+    let trimmedCode = `${code}`.trim();
+
+    if (regExp && regExp.pattern && regExp.replaceChar) {
+        return `${trimmedCode.replace(new RegExp(`${regExp.pattern}`), regExp.replaceChar)}`;
+    }
+
+    return trimmedCode;
+};
+
 const fieldParsers = {
     'generic': getText,
     'M': getMoney,
@@ -34,7 +44,8 @@ const util = {
      */
     getValue: (field, recordStr) => {
         let fieldStr = field.constant || recordStr.substr(field.startPos - 1, field.fieldLength);
-        return fieldParsers[field.format || 'generic'](fieldStr);
+        let value = fieldParsers[field.format || 'generic'](fieldStr);
+        return getFormattedValue(value, field.regExp);
     },
 
     /**

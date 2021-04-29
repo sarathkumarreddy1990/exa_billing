@@ -32,7 +32,7 @@ const claimColumns = {
     "Responsible Party": "payer_name",
     "Submitted Date": "submitted_dt",
     "Date of Injury": "current_illness_date",
-    "Charge Description":"charge_description",
+    "Charge Description": "charge_description",
     "Ins Provider Type": "ins_provider_type",
     "Insurance Providers": "insurance_providers",
     "ICD Description": "icd_description",
@@ -83,7 +83,7 @@ const dateColumnsWithTimeZone = [
 ];
 
 const auditColumns = {
-    "LOGGED DATE":"created_dt",
+    "LOGGED DATE": "created_dt",
     "SCREEN": "screen_name",
     "USER": "username",
     "LOG DESCRIPTION": "description"
@@ -186,7 +186,7 @@ function generateCsvData(dbResponse, callback) {
             var csvText = showLabel && rowIndex == 0 ? colName : dbRow[columnMap[colName]];
 
             if (rowIndex && dateColumnsWithTimeZoneConversion.indexOf(colName) > -1 && csvText) {
-                    csvText = facilityTimeZone.length ? moment(csvText).tz(facilityTimeZone[0].value).format('L') : moment(csvText).tz(companyTz).format('L');
+                csvText = facilityTimeZone.length ? moment(csvText).tz(facilityTimeZone[0].value).format('L') : moment(csvText).tz(companyTz).format('L');
             }
             csvText = csvText || '';
 
