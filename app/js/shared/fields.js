@@ -93,7 +93,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         });
 
         var priorityValue = commonjs.makeValue(commonjs.bindArray(app.priorities, false), ":All;");
-        var modalityValue = commonjs.makeValue(app.modalities, ":All;", "modality_code", "modality_code");
+        var modalityValue = commonjs.makeValue(_.sortBy(app.modalities, 'modality_code'), ":All;", "modality_code", "modality_code");
 
         // filter inactive and no show study facilities
         var facilities = [];
