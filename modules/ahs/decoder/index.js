@@ -79,8 +79,9 @@ const Parser = {
                 endSequenceNumber
             } = _ele;
 
+            sequenceNumber = Number(sequenceNumber);
             return (startSubmitterPrefix == submitterPrefix &&
-                (Number(sequenceNumber) >= startSequenceNumber && sequenceNumber <= endSequenceNumber)
+                (sequenceNumber >= startSequenceNumber && sequenceNumber <= endSequenceNumber)
             );
         });
 
