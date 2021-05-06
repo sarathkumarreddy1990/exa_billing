@@ -57,7 +57,7 @@ ws.Mtom.prototype.send = function(ctx, callback) {
         file.elem.firstChild.setAttribute('href', `cid: ${id}`);
     }
 
-    const docString = doc.toString();
+    const docString = doc.toString().replace(`<o:SecurityTokenReference xmlns:o="">`, `<o:SecurityTokenReference>`);
     if ( parts.length > 1 ) {
         let count = 1;
         const docStringNew = docString.replace(/<content>[A-Za-z0-9=\/\\]*\s*<\/content>/gim, ( text ) => {
