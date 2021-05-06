@@ -30,7 +30,8 @@ module.exports = {
                                         facility_code,
                                         facility_name,
                                         time_zone,
-                                        file_store_id
+                                        file_store_id,
+                                        is_active
                                     FROM   facilities
                                     WHERE  company_id=${companyID}
                                     AND    deleted_dt IS NULL
@@ -297,7 +298,8 @@ module.exports = {
                                                 facility_code,
                                                 facility_name,
                                                 time_zone,
-                                                file_store_id
+                                                file_store_id,
+                                                facilities.is_active
                                             FROM   facilities
                                             INNER JOIN users ON users.id=${userID}
                                             WHERE  facilities.company_id=${companyID}

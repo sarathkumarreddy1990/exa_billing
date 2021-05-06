@@ -158,7 +158,7 @@ define(['jquery',
                 this.paymentStatusList = new modelCollection(paymentStatus);
 
                 app.adjustmentCodes = [];
-                this.paidlocation = new modelCollection(app.facilities);
+                this.paidlocation = new modelCollection(commonjs.getActiveFacilities());
                 this.facilityAdd = new modelCollection(commonjs.bindArray([app.facilities], true, true, false));
                 var facilities = (app.userInfo.user_type == "SU") ? app.facilities : app.userFacilities;
                 var adjustment_codes = jQuery.grep(app.adjustmentCodes, function (obj, i) {
@@ -266,7 +266,7 @@ define(['jquery',
                     $("#divAccountingDate span").off().on('click',function(){
                         commonjs.showWarning('messages.errors.accessdenied');
                     });
-                } 
+                }
             },
 
             showPaymentsGrid: function () {
@@ -645,7 +645,7 @@ define(['jquery',
             },
 
             resetPatSearch: function () {
-                
+
                 if (!this.payment_id) {
                     this.payer_id = 0;
                 }
@@ -2493,7 +2493,7 @@ define(['jquery',
 
                     if (!self.overPaymentValidation(source)) {
                         return false;
-                    } 
+                    }
 
                     /**
                     *  Condition : If payment_payer_type === 'patient' && claim_status !== Pending Validation/Submission
@@ -3476,7 +3476,7 @@ define(['jquery',
                     i18nHeader: "billing.payments.eob"
                 });
             },
-            
+
             uploadPDF: function(e) {
                 var self = this;
                 $('.btnEobPaymentUpload').attr('id', self.ediFileId)
@@ -3512,7 +3512,7 @@ define(['jquery',
                     }
                 }
             },
-            
+
             closePayment: function (e) {
                 if (layout.currentModule == 'Claims' || layout.currentScreen == 'Studies') {
                     $('#siteModalNested .close').trigger('click');
@@ -3589,7 +3589,7 @@ define(['jquery',
             },
 
             /**
-            * addCAS - Add addtional CAS 
+            * addCAS - Add addtional CAS
             *
             * @param  {Array} cas_group_codes CAS group codes
             * @param  {Array} cas_reason_codes CAS reason codes
