@@ -261,6 +261,29 @@ const util = {
                     }
                 }
 
+                if (filterObj.ClaimInformation.modality) {
+                    const obj = filterObj.ClaimInformation.modality;
+                    const l = obj.list.length;
+                    let billingMethodQuery = '';
+
+                    if (l > 0) {
+                        for (let i = 0; i < l; i++) {
+                            if (i == 0) {
+                                billingMethodQuery += 'studies.modalities' + util.getConditionalOperator(obj.condition, obj.list[i].text, false, `studies.modalites`);
+                            } else {
+                                billingMethodQuery += util.getConditionalRelationOperator(obj.condition) + 'studies.modalities' + util.getConditionalOperator(obj.condition, obj.list[i].text, false, `studies.modalites`);
+                            }
+                        }
+
+                        if (obj.condition == 'IsNot') {
+                            billingMethodQuery += ' OR studies.modalities IS NULL';
+                        }
+
+                        query += util.getRelationOperator(query) + (l == 1 && !obj.condition ? billingMethodQuery : '(' + billingMethodQuery + ')');
+
+                    }
+                }
+
                 if (filterObj.ClaimInformation.billingCode) {
                     let obj = filterObj.ClaimInformation.billingCode;
                     let l = obj.list.length;

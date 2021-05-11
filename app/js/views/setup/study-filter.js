@@ -1103,6 +1103,16 @@ define([
                                         });
                                     }
 
+                                    var modalityJson = response.filter_info.ClaimInformation.modality;
+                                    $("input:radio[name=Modality][value=" + modalityJson.condition + "]").prop('checked', true);
+                                    for (var j = 0; j < modalityJson.list.length; j++) {
+                                        $('#claimModalityList option').each(function (i, selected) {
+                                            if (modalityJson.list[j].id == $(selected).val()) {
+                                                document.getElementById('claimModalityList').options[i].selected = true;
+                                            }
+                                        });
+                                    }
+                                    
                                     var payerTypeJson = response.filter_info.ClaimInformation.payerType;
                                     $("input:radio[name=PayerType][value=" + payerTypeJson.condition + "]").prop('checked', true);
                                     for (var j = 0; j < payerTypeJson.list.length; j++) {
@@ -1321,6 +1331,17 @@ define([
                     billingMethod.push(jsonlistbillingMethod);
                 });
                 if (billingMethod.length > 0 && !self.validateRadioButton('BillingMethod', 'BillingMethod')) {
+                    return;
+                }
+
+                var modalityList = [];
+                $('#claimModalityList option:selected').each(function (i, selected) {
+                    var jsonModality = {};
+                    jsonModality.id = $(selected).val();
+                    jsonModality.text = $(selected).text();
+                    modalityList.push(jsonModality);
+                });
+                if (modalityList.length > 0 && !self.validateRadioButton('Modality', 'Modality')) {
                     return;
                 }
 
@@ -1735,6 +1756,10 @@ define([
                                 condition: $('input[name=BillingMethod]:checked').val(),
                                 list: billingMethod
                             },
+                            modality: {
+                                condition: $('input[name=Modality]:checked').val(),
+                                list: modalityList
+                            },
                             payerType: {
                                 condition: $('input[name=PayerType]:checked').val(),
                                 list: payerType
@@ -2108,6 +2133,7 @@ define([
                 else {
                     setupList('listClaimInfo', app.claim_status, 'description', 'id');
                     setupList('listBillingMethod', defaultBillingMethod, 'desc', 'code');
+                    setupList('claimModalityList', app.modalities, 'modality_code');
                     setupList('listPayerType', defaultPayerType, 'desc', 'code');
                     setupList('listBalance', app.balance, 'balance');
                     setupList('listClaimFacility', facilities, 'facility_name');
@@ -2334,6 +2360,7 @@ define([
 
                 $('#listPayerType option').remove();
                 $('#listBillingMethod option').remove();
+                $('#claimModalityList option').remove();
                 $('#listClaimInfo option').remove();
                 $('#listBalance').val('');
                 $('#listBillingCode option').remove();
