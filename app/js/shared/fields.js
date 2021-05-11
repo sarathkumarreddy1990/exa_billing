@@ -93,7 +93,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         });
 
         var priorityValue = commonjs.makeValue(commonjs.bindArray(app.priorities, false), ":All;");
-        var modalityValue = commonjs.makeValue(app.modalities, ":All;", "modality_code", "modality_code");
+        var modalityValue = commonjs.makeValue(_.sortBy(app.modalities, 'modality_code'), ":All;", "modality_code", "modality_code");
 
         // filter inactive and no show study facilities
         var facilities = [];
@@ -915,6 +915,22 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "hidden": app.billingRegionCode !== 'can_BC'
                     },
                     "field_code": "can_bc_claim_sequence_numbers"
+                },
+                "Modality": {
+                    "id": 76,
+                    "field_name": "Modality",
+                    "i18n_name": "setup.userSettings.modality",
+                    "field_info": {
+                        "custom_name": "Modality",
+                        "name": "modalities",
+                        "width": 150,
+                        "stype": "select",
+                        "searchoptions": {
+                            "value": modalityValue,
+                            "tempvalue": modalityValue
+                        }
+                    },
+                    "field_code": "modalities"
                 }
 
             });

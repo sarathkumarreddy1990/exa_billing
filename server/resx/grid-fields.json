@@ -529,6 +529,18 @@
                 "defaultValue": ""
             },
             "field_code": "can_bc_claim_sequence_numbers"
+        },
+        {
+            "id": 76,
+            "field_name": "Modality",
+            "i18n_name": "setup.userSettings.modality",
+            "field_info": {
+                "custom_name": "Modality",
+                "name": "modalities",
+                "width": 150,
+                "stype": "select"
+            },
+            "field_code": "modalities"
         }
 
     ],
@@ -1332,17 +1344,14 @@
             "field_code": "icd_description"
         },
         {
-            "id": 72,
-            "field_name": "Alt Account No",
-            "i18n_name": "patient.advancedSearch.altAccountNo",
+            "field_code": "reason_code",
+            "field_name": "Reason Code",
+            "i18n_name": "setup.userSettings.reasonCode",
             "field_info": {
-                "custom_name": "Alt Account No",
-                "name": "pid_alt_account",
-                "width": 250,
-                "searchFlag": "%",
-                "defaultValue": ""
-            },
-            "field_code": "pid_alt_account"
+                "name": "reason_code",
+                "width": 170,
+                "searchFlag": "%"
+            }
         },
         {
             "id": 73,
