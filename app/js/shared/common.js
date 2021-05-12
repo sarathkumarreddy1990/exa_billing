@@ -4999,7 +4999,7 @@ var commonjs = {
      * @param {boolean} showStudiesFlag - if true returns facilities where is_active true and show_studies is enabled
     */
     getActiveFacilities: function (showStudiesFlag) {
-        facilities = app.userInfo.user_type === "SU"
+        var facilities = app.userInfo.user_type === "SU"
             ? app.facilities
             : app.userFacilities;
         if (showStudiesFlag) {

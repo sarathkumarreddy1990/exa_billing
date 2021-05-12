@@ -226,7 +226,7 @@ define(['jquery',
                 });
 
                 var payment_mode = { "": "All", "Cash": "Cash", "Card": "Card", "Check": "Check", "EFT": "EFT", "Adjustment": "Adjustments" };
-                var facilities = commonjs.makeValue(commonjs.getCurrentUsersFacilitiesFromAppSettings(), ":All;", "id", "facility_name");
+                var facilities = commonjs.makeValue(commonjs.getActiveFacilities(), ":All;", "id", "facility_name");
                 payment_mode.Check = app.country_alpha_3_code === 'can' ? 'Cheque' : payment_mode.Check;
 
                 $('#liPendingPayments').removeClass('active');
