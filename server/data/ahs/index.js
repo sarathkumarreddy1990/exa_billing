@@ -153,7 +153,7 @@ const ahsData = {
                 LEFT JOIN billing.charges_studies bchs ON bchs.charge_id = bch.id
                 LEFT JOIN public.studies s ON s.id = bchs.study_id
                 LEFT JOIN public.study_transcriptions st ON st.study_id = s.id
-                LEFT JOIN public.provider_contacts pc_app ON pc_app.id = st.approving_provider_id
+                LEFT JOIN public.provider_contacts pc_app ON pc_app.id = bc.rendering_provider_contact_id
                 LEFT JOIN public.provider_contacts pc_c ON pc_c.id = bc.referring_provider_contact_id
                 LEFT JOIN public.facilities f ON f.id = bc.facility_id
                 LEFT JOIN public.patient_insurances ppi  ON ppi.id = bc.primary_patient_insurance_id
@@ -615,7 +615,7 @@ const ahsData = {
                     LEFT JOIN public.companies comp
                         ON comp.id = s.company_id
                     LEFT JOIN public.provider_contacts pc_app
-                        ON pc_app.id = st.approving_provider_id
+                        ON pc_app.id = bc.rendering_provider_contact_id
                     LEFT JOIN public.providers p_app
                         ON p_app.id = pc_app.provider_id
                     LEFT JOIN public.provider_contacts pc_ref
@@ -794,7 +794,7 @@ const ahsData = {
         };
     },
 
-     /**
+    /**
      * {@param} company_id
      * {@response} Returns file store for configured company
      */
@@ -883,7 +883,7 @@ const ahsData = {
         return await query(sql);
     },
 
-         /**
+    /**
     * Handle incoming Batch Balance report file
     *
     * @param  {object} args    {
@@ -907,7 +907,7 @@ const ahsData = {
             company_id,
             user_id,
             default_facility_id
-        } = args.log_details
+        } = args.log_details;
 
         let auditDetails = {
             'company_id': company_id,
@@ -1011,7 +1011,7 @@ const ahsData = {
 
         return await query(sql);
     },
-     /**
+    /**
      * Get Files list from edi_files table based on status
      * @param {args} JSON
      */
