@@ -850,7 +850,6 @@ const ahsData = {
                     THEN 'duplicate'
                     ELSE 'pending'
                 END,
-
                 ${file_type},
                 ${file_path},
                 ${file_size},
