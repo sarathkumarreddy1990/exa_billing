@@ -841,7 +841,16 @@ const ahsData = {
                 ${companyId},
                 ${file_store_id},
                 ${created_dt},
-                'pending',
+                CASE 
+                    WHEN EXISTS (
+                            SELECT 1
+                            FROM billing.edi_files
+                            WHERE file_md5 = ${file_md5}
+                        ) 
+                    THEN 'duplicate'
+                    ELSE 'pending'
+                END,
+
                 ${file_type},
                 ${file_path},
                 ${file_size},
