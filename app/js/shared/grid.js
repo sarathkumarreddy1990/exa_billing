@@ -16,7 +16,8 @@ define('grid', [
     'views/claims/followup',
     'views/claims/reassessClaim',
     'text!templates/claims/validations.html',
-], function (jQuery, _, initChangeGrid, utils, Pager, StudyFields, Studies, claimWorkbench, claimsView, UserSettingsView, StudyFilterView, studyFilterGrid, claimInquiryView, splitClaimView, followUpView, claimReassessView, validationTemplate) {
+    'text!templates/claims/adjustPaidInFull.html'
+], function (jQuery, _, initChangeGrid, utils, Pager, StudyFields, Studies, claimWorkbench, claimsView, UserSettingsView, StudyFilterView, studyFilterGrid, claimInquiryView, splitClaimView, followUpView, claimReassessView, validationTemplate, adjustPaidInFullTemplate) {
     var $ = jQuery;
     var isTrue = utils.isTrue;
     var isFalse = utils.isFalse;
@@ -179,7 +180,9 @@ define('grid', [
                     payer_type: _storeEle.payer_type,
                     claim_status_code: _storeEle.claim_status_code,
                     billing_method: _storeEle.billing_method,
-                    claim_resubmission_flag: _storeEle.claim_resubmission_flag
+                    claim_resubmission_flag: _storeEle.claim_resubmission_flag,
+                    claim_balance: _storeEle.claim_balance,
+                    claim_dt: gridData.claim_dt
                 };
                 if (gridData.billed_status && gridData.billed_status.toLocaleLowerCase() == 'billed') {
                     isbilled_status = true;
@@ -448,6 +451,58 @@ define('grid', [
                         order_id: order_id,
                         grid_id: gridID
                     });
+                });
+                
+                // Adjustment paid in fill section
+                var liQuickAdjustPaidFull = commonjs.getRightClickMenu('anc_quick_adjust', 'billing.claims.adjustFull', false, 'Adjust paid in full', false);
+                if (selectedStudies.length === 1 && (app.screens.includes('ADPF') || app.userInfo.user_type === 'SU') && selectedStudies[0].claim_balance != '$0.00') {
+                    $divObj.append(liQuickAdjustPaidFull);
+                }
+
+                self.checkRights('anc_quick_adjust');
+
+                $('#anc_quick_adjust').off().click(function () {
+                    var paidInFullTemplate = _.template(adjustPaidInFullTemplate);
+                    commonjs.showDialog({
+                        i18nHeader: 'billing.claims.adjustFull',
+                        width: '40%',
+                        height: '25%',
+                        needShrink: true,
+                        html: paidInFullTemplate({
+                            adjustment_code_list: app.adjustment_code_list,
+                            patient_name: selectedStudies[0].patient_name,
+                            patient_dob: selectedStudies[0].patient_dob,
+                            claim_balance: selectedStudies[0].claim_balance,
+                            claim_dt: selectedStudies[0].claim_dt,
+                            age: commonjs.getAge(selectedStudies[0].patient_dob)
+                        })
+                    });
+
+                    $('#btnPayInFull').off().click(function () {
+                        var adjustmentCode = $('#adjustmentCode').val();
+
+                        if (!adjustmentCode) {
+                            return commonjs.showWarning('messages.warning.payments.pleaseSelectAdjustment');
+                        }
+
+                        $.ajax({
+                            url: '/exa_modules/billing/payments/process_write_off_payments/' + selectedStudies[0].claim_id,
+                            type: 'POST',
+                            data: {
+                                adjustmentCodeId: adjustmentCode
+                            },
+                            success: function (response) {
+                                if (response) {
+                                    commonjs.hideDialog();
+                                    commonjs.showStatus('messages.status.tosSuccessfullyCompleted');
+                                    $("#btnClaimsRefresh").click();
+                                }
+                            }, error: function (err, response) {
+                                commonjs.handleXhrError(err, response);
+                            }
+                        });
+                    });
+                    commonjs.processPostRender();
                 });
 
                 if (studyArray.length === 1 && statusIndex < 0) {

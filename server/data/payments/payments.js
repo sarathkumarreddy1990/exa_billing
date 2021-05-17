@@ -1693,6 +1693,212 @@ module.exports = {
         return await query(sql);
     },
 
+    processWriteOffPaymentForClaim: async (params) => {
+        const {
+            id,
+            userId,
+            clientIp,
+            companyId,
+            screenName,
+            moduleName,
+            adjustmentCodeId
+        } = params;
+
+        let auditDetails = {
+            company_id: companyId,
+            screen_name: screenName,
+            module_name: moduleName,
+            client_ip: clientIp,
+            user_id: parseInt(userId)
+        };
+
+        const sql =SQL`WITH
+            -- --------------------------------------------------------------------------------------------------------------
+            -- Calculate total balance for claim.
+            -- --------------------------------------------------------------------------------------------------------------
+            claim_balance AS (
+                SELECT
+                    bgct.claim_balance_total AS claim_balance_total
+					, c.claim_id
+					, cl.patient_id
+                    , clock_timestamp() AS applied_dt
+                FROM
+                    billing.charges AS c
+                INNER JOIN billing.claims AS cl ON c.claim_id = cl.id
+                INNER join billing.get_claim_totals(cl.id) bgct ON TRUE	
+                WHERE c.claim_id = ${id}
+                GROUP BY c.claim_id,cl.patient_id, bgct.claim_balance_total
+             )
+             , insert_payment AS (
+                INSERT INTO billing.payments
+                    (   company_id
+                        , patient_id
+                        , amount
+                        , accounting_date
+                        , created_by
+                        , payment_dt
+                        , payer_type
+                        , notes
+                        , mode
+                        , facility_id
+                    )
+                    SELECT
+                        ${companyId} AS company_id
+                        , cb.patient_id
+                        , 0::money AS amount
+                        , now()::date AS accounting_date
+                        , ${userId} AS created_by
+                        , timezone(get_facility_tz(pf.facility_id), now()::timestamp) AS payment_dt
+                        , 'patient' AS payer_type
+                        , 'Small Balance Write-Off is $' || cb.claim_balance_total AS notes
+                        , 'adjustment' AS payment_mode
+                        , 1
+                    FROM claim_balance cb
+                    INNER JOIN patient_facilities pf ON pf.patient_id = cb.patient_id AND pf.is_default
+                    RETURNING
+                        id
+                        , company_id
+                        , patient_id
+                        , amount
+                        , accounting_date
+                        , created_by
+                        , payment_dt
+                        , payer_type
+                        , notes
+                        , mode
+                        , facility_id
+                        , '{}'::jsonb old_values
+            )
+            -- --------------------------------------------------------------------------------------------------------------
+            -- Audit log for payment creation
+            -- --------------------------------------------------------------------------------------------------------------
+            , insert_audit_cte AS(
+                SELECT billing.create_audit(
+                    company_id
+                  , ${screenName}
+                  , id
+                  , ${screenName}
+                  , ${moduleName}
+                  , 'Created Payment with ' || amount ||' Payment Id as a ' || id
+                  , ${clientIp}
+                  , json_build_object(
+                      'old_values', COALESCE(old_values, '{}'),
+                      'new_values', (   json_build_object(
+                                            'company_id',company_id,
+                                            'patient_id',patient_id,
+                                            'amount', amount ,
+                                            'accounting_date', accounting_date,
+                                            'payer_type', payer_type,
+                                            'notes', notes,
+                                            'mode', mode,
+                                            'payment_dt', payment_dt,
+                                            'created_by', created_by,
+                                            'facility_id', facility_id
+                                        )::jsonb - 'old_values'::text
+                                    )
+                    )::jsonb
+                  , ${userId}
+                ) AS id
+                FROM
+                    insert_payment
+                WHERE id IS NOT NULL
+            )
+            -- --------------------------------------------------------------------------------------------------------------
+            -- Formatting charge lineItems for create payment application records
+            -- --------------------------------------------------------------------------------------------------------------
+            , claim_charges AS (
+                SELECT
+                    bc.id AS claim_id
+                    , bc.patient_id
+                    , ip.id AS payment_id
+                    , cs.code AS claim_status_code
+                    , bch.id AS charge_id
+                    , 0::money AS payment
+                    , ((bch.bill_fee * bch.units) - ( bgct.other_payment + bgct.other_adjustment )) AS adjustment
+                    , '[]'::jsonb AS cas_details
+                    , cb.claim_balance_total
+                    , COALESCE (((bch.bill_fee * bch.units) - ( bgct.other_payment + bgct.other_adjustment )) < 0::money, false) AS is_debit_adjustment
+					, cb.applied_dt
+                FROM
+                    billing.claims bc
+                INNER JOIN insert_payment ip ON ip.patient_id = bc.patient_id
+                INNER JOIN billing.claim_status cs ON cs.id = bc.claim_status_id
+                INNER JOIN claim_balance cb ON cb.claim_id = bc.id
+                INNER JOIN billing.charges bch ON bch.claim_id = bc.id
+                INNER JOIN public.cpt_codes pcc on pcc.id = bch.cpt_id
+                INNER JOIN LATERAL billing.get_charge_other_payment_adjustment(bch.id) bgct ON TRUE
+                WHERE bc.id = ${id} AND cb.claim_balance_total != 0::money 
+            )
+            -- --------------------------------------------------------------------------------------------------------------
+            -- Formatting charge lineItems for credit adjustment. Create payment application
+            -- --------------------------------------------------------------------------------------------------------------
+	        , credit_adjustment_charges AS (
+                SELECT
+                    billing.create_payment_applications(
+                        payment_id
+                        , charge_id
+                        , payment
+                        , ( CASE WHEN adjustment > 0::money THEN adjustment ELSE 0::money END )
+                        , ${adjustmentCodeId}
+                        , ${userId}
+                        , cas_details
+                        , (${JSON.stringify(auditDetails)})::JSONB
+                        , now()
+                    )  AS details
+	        	FROM
+                    claim_charges
+                WHERE claim_balance_total > 0::money
+            )
+            -- --------------------------------------------------------------------------------------------------------------
+            -- Formatting charge lineItems for debit adjustment. Create payment application
+            -- --------------------------------------------------------------------------------------------------------------
+	        , debit_adjustment_charges AS (
+                SELECT 
+                    billing.create_payment_applications(
+                        payment_id
+                        , charge_id
+                        , payment
+                        , ( CASE WHEN adjustment < 0::money THEN adjustment ELSE 0::money END )
+                        , ${adjustmentCodeId}
+                        , ${userId}
+                        , cas_details
+                        , (${JSON.stringify(auditDetails)})::jsonb
+                        , claim_charges.applied_dt
+                    ) AS details
+		        FROM
+                    claim_charges
+                WHERE (claim_balance_total < 0::money OR is_debit_adjustment)
+	        )
+            -- --------------------------------------------------------------------------------------------------------------
+            -- It will update responsible party, claim status for given claim.
+            -- --------------------------------------------------------------------------------------------------------------
+            , change_responsible_party AS (
+                SELECT
+                    billing.update_claim_responsible_party(
+                        claim_id
+                        , 0
+                        , ${companyId}
+                        , null
+                        , 0
+                        , false
+                        , 0
+                    ) AS result
+                FROM
+                    claim_charges
+                WHERE claim_status_code NOT IN ('PV','PS')
+                GROUP BY claim_charges.claim_id
+            )
+        SELECT NULL,id,NULL FROM insert_audit_cte
+        UNION ALL
+        SELECT details,NULL,NULL FROM credit_adjustment_charges
+	    UNION ALL
+        SELECT details,NULL,NULL FROM debit_adjustment_charges
+        UNION ALL
+        SELECT NULL,NULL,result::text FROM change_responsible_party
+    `;
+        return await query(sql);
+    },
+
     canDeletePayment: async function ({ paymentId }) {
         let sql = SQL`SELECT
                          CASE WHEN
