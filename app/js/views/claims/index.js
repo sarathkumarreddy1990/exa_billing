@@ -4605,8 +4605,11 @@ define(['jquery',
                         current_date: moment(self.studyDate, 'L').format('YYYY-MM-DD')
                     },
                     success: function (data, response) {
-
-                        if (data && data.length) {
+                        // Bind Study date of the current claim for the patient
+                        $('#patientStudyDate').text(self.studyDate || '');
+                        if (!data || !data.length) {
+                            chargeRow = self.patientChargesTemplate({row: []});
+                        } else {
                             var cpts_selected = _.map(selectedCharges, 'cpt_id');
 
                             _.each(data, function (obj, index) {
@@ -4618,11 +4621,9 @@ define(['jquery',
                                 row: data,
                                 selected_charges: selectedCharges
                             });
-                            $('#patientChargesBody').empty().append(chargeRow);
-                        } else {
-                            chargeRow = self.patientChargesTemplate({row: []});
-                            $('#patientChargesBody').empty().append(chargeRow);
                         }
+
+                        $('#patientChargesBody').empty().append(chargeRow);
                         commonjs.updateCulture(app.current_culture, commonjs.beautifyMe);
                     },
                     error: function (err, response) {
@@ -5248,7 +5249,7 @@ define(['jquery',
                 self.toggleWCBInjuryTypes();
 
                 //EXA-18273 - Bind Charges created on current date for a patient.
-                if (app.billingRegionCode === 'can_AB') {
+                if (app.billingRegionCode === 'can_AB'  && self.studyDate) {
                     self.getPatientCharges(patient_details.patient_id);
                 }
 
