@@ -4596,7 +4596,7 @@ define(['jquery',
             //EXA-18273 - Getting charges created for a patient on current date will be displayed for alberta billing
             getPatientCharges: function (id, selectedCharges) {
                 var self = this;
-                var chargeRow;
+                
                 $.ajax({
                     url: '/exa_modules/billing/claims/claim/get_patient_charges',
                     type: 'GET',
@@ -4605,6 +4605,7 @@ define(['jquery',
                         current_date: moment(self.studyDate, 'L').format('YYYY-MM-DD')
                     },
                     success: function (data, response) {
+                        var chargeRow;
                         // Bind Study date of the current claim for the patient
                         $('#patientStudyDate').text(self.studyDate || '');
                         if (!data || !data.length) {
