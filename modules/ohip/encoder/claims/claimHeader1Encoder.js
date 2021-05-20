@@ -30,7 +30,7 @@ const ClaimHeader1Encoder = function (options) {
         // not required for RMB claims
         // field length: 10
         // format: numeric or spaces
-        let healthNumber = claimData.paymentProgram !== 'RMB' && claimData.healthNumber || '';
+        let healthNumber = claimData.paymentProgram !== 'RMB' ? claimData.healthNumber : '';
         return util.formatAlphanumeric(healthNumber, 10);
     };
 
@@ -39,7 +39,7 @@ const ClaimHeader1Encoder = function (options) {
         // not required for RMB claims
         // field length: 2
         // format: Alpha or spaces
-        let versionCode = claimData.paymentProgram !== 'RMB' && claimData.healthNumber || '';
+        let versionCode = claimData.paymentProgram !== 'RMB' ? claimData.healthNumber : '';
         return util.formatAlphanumeric(versionCode, 2);
     };
 
