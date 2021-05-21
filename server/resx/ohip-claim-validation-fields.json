@@ -1,9 +1,17 @@
 {
 	"default": {
-		"healthNumber": true,
-		"versionCode": true,
-		"patientAddress": true,
-		"provinceCode": true
+        "hcp": {
+            "healthNumber": true,
+            "versionCode": true,
+            "patientAddress": true,
+            "provinceCode": true
+        },
+        "rmb": {
+            "rmbRegistrationNumber": true,
+            "patientAddress": true,
+            "provinceCode": true
+        }
+        
 	},
 	"patient_payment": {
 		"billing_pro_addressLine1": true,

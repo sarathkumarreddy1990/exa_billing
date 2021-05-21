@@ -601,7 +601,11 @@ module.exports = {
         if (claimDetails[0].billing_method == 'patient_payment' || claimDetails[0].billing_method == 'direct_billing') {
             valdationClaimJson = valdationClaimJson.patient_payment;
         } else {
-            valdationClaimJson = valdationClaimJson.default;
+            let {
+                paymentProgram = null
+            } = claimDetails[0].insurance_details || {};
+
+            valdationClaimJson = valdationClaimJson.default[paymentProgram && paymentProgram.toLowerCase() || ''];
         }
 
         let validation_result = {

@@ -862,8 +862,9 @@ const OHIPDataAPI = {
                     SELECT row_to_json(insurance_details) FROM (
                     SELECT
                         ppi.policy_number AS "healthNumber",
-                        ppi.group_number AS "versionCode",              
-                        pip.insurance_name AS "payerName",              
+                        ppi.policy_number AS "rmbRegistrationNumber",
+                        ppi.group_number AS "versionCode",
+                        pip.insurance_name AS "payerName",
                         pip.insurance_code AS "paymentProgram"                
                     FROM public.patient_insurances ppi
                     INNER JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
