@@ -154,14 +154,10 @@ const bcModules = {
         try {
             let companyDetails = await bcController.getCompanyFileStore(companyId);
             let webServiceResponse = await bcModules.doRequest(options, companyDetails[0].time_zone);
-            let { data, error, isDownTime } = webServiceResponse;
+            let { data, error } = webServiceResponse;
 
             if (error) {
-                return {responseCode: 'error' };
-            }
-
-            if (isDownTime) {
-                return { responseCode: 'isDownTime' };
+                return { responseCode: error };
             }
 
             let webServiceResponseJSON = {};
@@ -720,7 +716,7 @@ const bcModules = {
             return parser.processFile(contents, params);
         }
         catch (e) {
-            logger.error('Error in file Processing', e);
+            logger.error(`Error in file Processing... ${e}`);
             return e;
         }
     },
@@ -737,6 +733,7 @@ const bcModules = {
         let filePath;
         let rootDir;
         let message = [];
+        let errorObj = {};
         const { rows = [] } = await bcData.getRemittanceFilePathById(params);
 
         if (rows.length) {
@@ -756,10 +753,11 @@ const bcModules = {
             let dirExists = await fse.pathExists(dirPath);
 
             if (!dirExists) {
-                message.push({
+                errorObj = {
                     status: 100,
                     message: 'Directory not found in file store'
-                });
+                };
+                message = params.isCron && message.push(errorObj) || errorObj;
 
                 return message;
             }
@@ -770,6 +768,22 @@ const bcModules = {
             logger.logInfo(`Decoding the file... ${fileName}`);
             let remittanceResponse = await bcModules.getFileContents(fullFilePath, params);
 
+            if (remittanceResponse instanceof Error) {
+                await bcController.updateFileStatus({
+                    status: 'failure',
+                    fileId: params.file_id
+                });
+                
+                errorObj = {
+                    status: 100,
+                    message: remittanceResponse.message
+                };
+
+                message = params.isCron && message.push(errorObj) || errorObj;
+
+                return message;
+            }
+
             logger.logInfo('File processing finished...');
 
             await bcController.updateFileStatus({
@@ -777,18 +791,24 @@ const bcModules = {
                 fileId: params.file_id
             });
 
-            if (remittanceResponse && remittanceResponse.invalidRemittanceRecords && remittanceResponse.invalidRemittanceRecords.length) {
-                logger.info(`Unable to proceed remittance file process with following remittance records ${JSON.stringify(remittanceResponse.invalidRemittanceRecords)}`);
+            let {
+                invalidRemittanceRecords = []
+            } = remittanceResponse;
+ 
+            if (invalidRemittanceRecords.length) {
+                logger.logInfo(`Unable to proceed remittance file process with following remittance records ${JSON.stringify(invalidRemittanceRecords)}`);
 
                 await bcController.updateFileStatus({
                     status: 'failure',
                     fileId: params.file_id
                 });
 
-                message.push({
+                errorObj = {
                     status: 100,
                     message: 'Invalid Remittance Records found'
-                });
+                };
+
+                message = params.isCron && message.push(errorObj) || errorObj;
 
                 return message;
             }
@@ -797,7 +817,7 @@ const bcModules = {
 
             const eligibilityResponse = await bcModules.processEligibilityResponse(remittanceResponse, params);
 
-            if (!(eligibilityResponse && eligibilityResponse.rows && eligibilityResponse.rows.length)) {
+            if (!eligibilityResponse || !eligibilityResponse.length) {
                 logger.info(`Eligibility Records not matched in file - ${fileName}`);
             }
 
@@ -813,7 +833,8 @@ const bcModules = {
             let {
                 can_bc_process_remittance = []
             } = processDetails && processDetails.rows && processDetails.rows.length && processDetails.rows[0] || {};
-            status = can_bc_process_remittance && can_bc_process_remittance.length && can_bc_process_remittance[0] !== null ? 'success' : 'failure';
+            status = (can_bc_process_remittance.length && can_bc_process_remittance[0] !== null) 
+                    || (eligibilityResponse && eligibilityResponse.length) ? 'success' : 'failure';
 
             logger.logInfo('Applying payments finished...');
             logger.logInfo('Payment application Result : ', JSON.stringify(can_bc_process_remittance));
@@ -942,17 +963,37 @@ const bcModules = {
                 const fileName = fileProperties.Filename;
 
                 //check for valid file content
-                let isInValidFileContent = bufferString.indexOf('M01') === -1 || bufferString.indexOf('VTC') === -1;
-                let fileBuffer = bufferString.split('/n');
-                let isEmptyRemittance = !isInValidFileContent && fileBuffer.length <= 2;
+                let fileBuffer = bufferString.split('\r\n');
+                let remittanceSets = [];
+                let remittanceHeaderSets = [];
+                let validRemittanceHeaders = ['M01', 'VRC', 'VTC', 'X02'];
+                let validRemittanceElements = ['B14', 'C12', 'S00', 'S01', 'S02', 'S03', 'S04', 'S21', 'S22', 'S23', 'S24', 'S25'];
 
-                if (isInValidFileContent) {
+                fileBuffer.filter(function (record) {
+                    let recordHeader = record.substring(0,3);
+                    if (validRemittanceHeaders.includes(recordHeader)) {
+                        remittanceHeaderSets.push(record);
+                    }
+                    if (validRemittanceElements.includes(recordHeader)) {
+                        remittanceSets.push(record);
+                    }
+                });
+
+                if (!remittanceHeaderSets.length) {
                     logger.error(`Invalid Remittance File ${fileName}`);
 
                     return [{
                         error: true,
                         status: 'INVALID_FILE',
-                        message: 'Invalid Remittance File',
+                        message: `Invalid Remittance File`,
+                        response: {}
+                    }];
+                } else if (!remittanceSets.length) {
+                    logger.error(`No Payment data available in the Remittance File ${fileName}`);
+                    return [{
+                        error: true,
+                        status: 'NO_PAYMENT_AVAILABLE',
+                        message: `No Payment data available in the Remittance File`,
                         response: {}
                     }];
                 }

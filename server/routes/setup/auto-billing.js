@@ -4,8 +4,6 @@ const router = new Router();
 const autobillingData = require('../../data/setup/auto-billing');
 const httpHandler = require('../../shared/http');
 
-const logger = require('../../../logger');
-
 router.get('/', async (req, res) => {
     const data = await autobillingData.getAutobillingRules(req.query);
 

@@ -13,6 +13,11 @@ const colModel = [
         searchFlag: 'daterange'
     },
     {
+        name: 'modalities',
+        searchColumns: ['studies.modalities'],
+        searchFlag: '%'
+    },
+    {
         name: 'created_dt',
         searchColumns: ['claims.created_dt'],
         searchFlag: 'daterange'
@@ -298,6 +303,7 @@ const api = {
             case 'billing_fee': return 'bgct.charges_bill_fee_total';
             case 'invoice_no': return 'claims.invoice_no';
             case 'billing_method': return 'claims.billing_method';
+            case 'modalities': return 'studies.modalities';
             case 'followup_date': return 'claim_followups.followup_date::text';
             case 'current_illness_date': return 'claims.current_illness_date::text';
             case 'claim_no': return 'claims.id';
@@ -372,6 +378,17 @@ const api = {
         if (tables.patients) { r += ' INNER JOIN patients ON claims.patient_id = patients.id '; }
 
         //  if (tables.facilities) { r += ' INNER JOIN facilities ON facilities.id=claims.facility_id '; }
+        if (tables.studies) {
+            r += `  LEFT JOIN LATERAL (
+                SELECT
+                    studies.modalities,
+                    billing.claims.id
+                FROM studies
+                INNER JOIN billing.charges ON charges.claim_id = claims.id
+                INNER JOIN billing.charges_studies ON charges_studies.charge_id = charges.id 
+                and studies.id = charges_studies.study_id
+                GROUP BY billing.claims.id, studies.modalities
+            ) studies ON TRUE `}
 
         if (tables.claim_status) { r += ' INNER JOIN billing.claim_status  ON claim_status.id=claims.claim_status_id'; }
 
@@ -519,6 +536,7 @@ const api = {
         // ADDING A NEW WORKLIST COLUMN <-- Search for this
         let stdcolumns = [
             'claims.id',
+            'studies.modalities',
             'claims.id as claim_id',
             'claims.claim_dt',
             'claims.created_dt',
@@ -595,7 +613,8 @@ const api = {
             `claims.can_mhs_microfilm_no`,
             `patient_alt_accounts.pid_alt_account`,
             `patient_alt_accounts.phn_alt_account`,
-            `billing.can_bc_get_claim_sequence_numbers(claims.id) AS can_bc_claim_sequence_numbers`
+            `billing.can_bc_get_claim_sequence_numbers(claims.id) AS can_bc_claim_sequence_numbers`,
+            `AGE(CURRENT_DATE, submitted_dt) >= '3 days'::INTERVAL AND claim_status.code = 'PA' AS claim_resubmission_flag`
         ];
 
         if(args.customArgs.filter_id=='Follow_up_queue'){
@@ -676,7 +695,8 @@ const api = {
         let columns = api.getWLQueryColumns(args);
         let sql = `
             SELECT
-            ${columns}
+            ${columns},
+            FinalClaims.number
             FROM (${innerQuery}) as FinalClaims
             INNER JOIN billing.claims ON FinalClaims.claim_id = claims.id
             INNER JOIN facilities ON facilities.id = claims.facility_id
@@ -814,6 +834,13 @@ const api = {
 
                         whereClause.permission_filter = AND(whereClause.permission_filter, ` claims.facility_id = ANY(ARRAY[${userSetting.userDetails.facilities}]) `);
                     }
+                }
+
+                if (args.customArgs.filter_id === 'resubmission_claims') {
+                    // filter the claims whose submitted date is more than or equal to 72 hours[3 days] and claim status in 'PA'
+                    whereClause.permission_filter = AND( whereClause.permission_filter, ` claims.billing_method = 'electronic_billing'
+                                         AND AGE(CURRENT_DATE, submitted_dt) >= '3 days'::INTERVAL
+                                         AND claim_status.code IN ('PA', 'PS') `);
                 }
 
                 permission_query.append(whereClause.permission_filter);

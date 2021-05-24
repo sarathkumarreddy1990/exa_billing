@@ -1,9 +1,12 @@
 const data = require('../../data/claim/index');
 const Promise = require('bluebird');
-const PokitDok = require('pokitdok-nodejs');
+const PokitDok = require('./chcPokitdok');
+const Redis = require('ioredis');
+const config = require('../../config/index');
+const logger = require('../../../logger');
 const moment = require('moment');
-
-module.exports = {
+const redisInfo = config.get(config.keys.RedisStore);
+const api= {
 
     getLineItemsDetails: async (params) => { return await data.getLineItemsDetails(params); },
 
@@ -64,6 +67,131 @@ module.exports = {
 
     getData: async (params) => { return await data.getClaimData(params); },
 
+    refreshToken: async (model) => {
+
+        try {
+            const combinedOptions = {
+                db: 0,
+                keyPrefix: `${String(model.companyId).padStart(10, '0')}:web:chcPokitdokAccessToken:`
+            };
+
+            let chcPokitdokAccessToken = new Redis({
+                ...combinedOptions,
+                host: redisInfo.host,
+                port: redisInfo.port
+            });
+            chcPokitdokAccessToken.hdel(`accessToken`, model.userId);
+        } catch (err) {
+            const message = `Cannot Access token delete in chcPokitdok (${model.userId})`;
+            logger.logError(message, err);
+            return {
+                err
+            };
+        }
+
+        model.refreshToken = true;
+        return await api.getEligibility(model);
+    },
+
+    getEligibility: async (model) => {
+
+        // build the default url for the requests
+        let accessToken = null;
+        let accessTokenList = null;
+        const combinedOptions = {
+            db: 0,
+            keyPrefix: `${String(model.companyId).padStart(10, '0')}:web:chcPokitdokAccessToken:`
+        };
+
+        let chcPokitdokAccessToken = new Redis({
+            ...combinedOptions,
+            host: redisInfo.host,
+            port: redisInfo.port
+        });
+
+        if (!model.refreshToken) {
+            accessTokenList = await chcPokitdokAccessToken.hmget('accessToken', model.userId);
+            accessToken = accessTokenList && accessTokenList[0] && JSON.parse(accessTokenList[0]).access_token;
+        }
+
+        const baseUrl = model.CHCPokitdokBaseURL;
+        const accessUrl = model.CHCPokitdokAccessTokenURL;
+
+        if (!baseUrl || !accessUrl) {
+            return {
+                error: 'CHC pokitdok base url/access token url is not configure'
+            };
+        }
+
+        if (!accessToken) {
+            let result =  await PokitDok.getPokitdokAccessToken({
+                clientId:model.pokitdok_client_id,
+                clientSecret:model.pokitdok_client_secret,
+                accessUrl:accessUrl,
+                baseUrl:baseUrl,
+            });
+            const {
+                err,
+                res
+            } = result;
+
+            if (err) {
+                return {
+                    err,
+                    res
+                };
+            }
+
+            model.eligibility_response = err ? JSON.stringify(err) : JSON.stringify(res);
+
+            try {
+                model.refreshToken = false;
+                chcPokitdokAccessToken.hmset(`accessToken`, model.userId, JSON.stringify(res));
+                accessToken = res.access_token;
+            }
+            catch (e) {
+                logger.error(`CHC Pokitdok AccessToken failure - could not write to redis`, e);
+                return {
+                    e,
+                    res
+                };
+            }
+        }
+
+        const result = await PokitDok.eligibility(model.userId, {
+            accessToken:accessToken,
+            baseUrl: model.CHCPokitdokBaseURL
+        }, {
+            member: {
+                birth_date: moment(model.birthDate).format('YYYY-MM-DD'),
+                first_name: model.firstName,
+                last_name: model.lastName,
+                id: model.policyNo
+            },
+            provider: {
+                organization_name:  model.payerInfo.name,
+                npi: model.payerInfo.npi_no
+            },
+            payer: {
+                id: model.payerInfo.trading_partner_id
+            },
+            service_types: model.serviceTypes, // ['health_benefit_plan_coverage'],    // service type Foramt : ['health_benefit_plan_coverage']
+
+            correlation_id: "ELIGIBILITYID"
+
+        });
+
+        if(result.res){
+            result.res.insPokitdok = model.insEligibility;
+        }
+
+        return {
+            err:result.err,
+            res: result.res
+        };
+    },
+
+
     /// TODO: have to include benefitOnDate & relationshipCode
     eligibility: async (params) => {
         const payerInfoResponse = await data.getProviderInfo(params.billingProviderId, params.insuranceProviderId);
@@ -72,62 +200,63 @@ module.exports = {
             throw new Error('Unknown provider..');
         }
 
-        const payerInfo = payerInfoResponse && payerInfoResponse.length && payerInfoResponse[0] || {};
+        params.payerInfo = payerInfoResponse && payerInfoResponse.length && payerInfoResponse[0] || {};
 
         /// TODO: need to rescratch
         let pokitdokSecretKey = await data.getKeys();
         let pokitdokResponse = pokitdokSecretKey && pokitdokSecretKey.rows || [];
-        let insEligibility = false;
-        let pokitdok_client_id = '';
-        let pokitdok_client_secret = '';
+        params.insEligibility = false;
+
 
         pokitdokResponse.forEach(function (data) {
-            
+
             if (data.info) {
                 if (data.info.id === "pokitdok_client_id") {
-                    pokitdok_client_id = data.info.value;
+                    params.pokitdok_client_id = data.info.value;
                 }
                 else if (data.info.id === "pokitdok_client_secret") {
-                    pokitdok_client_secret = data.info.value;
+                    params.pokitdok_client_secret = data.info.value;
                 }
                 else if (data.info.id === "insPokitdok") {
-                    insEligibility = data.info.value;
+                    params.insEligibility = data.info.value;
+                }
+                else if (data.info.id === "CHCPokitdokBaseURL") {
+                    params.CHCPokitdokBaseURL = data.info.value;
+                }
+                else if (data.info.id === "CHCPokitdokAccessTokenURL") {
+                    params.CHCPokitdokAccessTokenURL = data.info.value;
                 }
             }
         });
 
-        let pokitdok = new PokitDok(pokitdok_client_id, pokitdok_client_secret);
-        let birthDate = params.birthDate;
+        const result = await api.getEligibility(params);
 
-        return await new Promise((resolve, reject) => {
+        let {
+            err,
+            res
+        } = result;
 
-            pokitdok.eligibility({
-                member: {
-                    birth_date: moment(birthDate).format('YYYY-MM-DD'),
-                    first_name: params.firstName,
-                    last_name: params.lastName,
-                    id: params.policyNo
-                },
-                provider: {
-                    organization_name: payerInfo.name,
-                    npi: payerInfo.npi_no
-                },
-                service_types: params.serviceTypes,
-                trading_partner_id: payerInfo.trading_partner_id
-            }, function (err, res) {
-                res.insPokitdok = insEligibility;
-                let eligibility_response = res;
+        if (err && err.error && ['invalid_access_token', 'access_token_expired'].indexOf(err.error.error) === -1) {
 
-                if (err) {
-                    eligibility_response = err;
-                    reject(eligibility_response);
-                }
+            return {
+                err,
+                res
+            };
+        }
 
-                resolve(eligibility_response);
-            });
-        }).catch(function (result) {
-            return result;
-        });
+
+        if (err && (err.statusCode === 401 || (err.statusCode === 400 && !err.meta))) {
+            let result = await api.refreshToken(params);
+            return {
+                err: result.err,
+                res: result.res
+            };
+        }
+
+        return {
+            err,
+            res
+        };
     },
 
     getStudiesByPatientId: async (params) => { return await data.getStudiesByPatientId(params); },
@@ -193,3 +322,5 @@ module.exports = {
 
     getChargesByPatientId: data.getChargesByPatientId
 };
+
+module.exports = api;

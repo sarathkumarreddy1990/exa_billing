@@ -205,7 +205,6 @@ define(['jquery',
 
                 $('#divSubmissionTypesGrid').hide();
                 $('#divSubmissionTypesForm').show();
-                commonjs.processPostRender();
             },
 
             bindForm: function (countryCode) {
@@ -227,6 +226,7 @@ define(['jquery',
                 $('#subTypesProvinceSelect').html(this.provinceSelectTemplate({
                     provinces: this.getProvinces(countryCode)
                 }));
+                commonjs.processPostRender();
             },
 
             onChangeCountryGrid: function (value) {

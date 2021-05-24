@@ -197,6 +197,7 @@ define([
 
                                 claim_data = claim_data[0];
                                 //binding the values from data base
+                                $('#claimInquiryOrderNumber').text(claim_data.order_no)
                                 $('#lblCIBillProv').text(claim_data.billing_provider_name)
                                 $('#lblCIReadPhy').text(claim_data.rend_provider_name);
                                 $('#lblCIRefPhy').text(claim_data.ref_provider_name);
@@ -833,7 +834,14 @@ define([
                         { name: 'commented_dt', width: 40, search: false, sortable: false, formatter: self.commentDateFormatter },
                         { name: 'created_dt', width: 40, search: false, sortable: false, formatter: self.dateFormatter },
                         { name: 'code', hidden: true },
-                        { name: 'sequence_number', width: 40, search: false, sortable: false, hidden: app.billingRegionCode !== 'can_BC' },
+                        {
+                            name: 'sequence_number', width: 40, search: false, sortable: false, hidden: app.billingRegionCode !== 'can_BC',
+                            cellattr: function (rowId, tv, rowdata) {
+                                if (rowdata && rowdata.code === 'manual') {
+                                    return 'style="display:none;" ';
+                                }
+                            }
+                        },
                         { name: 'type', width: 40, search: false, sortable: false,
                             cellattr: function (rowId, tv, rowdata) {
                                 if(rowdata && rowdata.code == 'manual')
@@ -871,7 +879,7 @@ define([
                                 if (rowdata && rowdata.code == 'manual')
                                     return 'style="display:none;" ';
                             },
-                            hidden: (app.country_alpha_3_code === "can") ? true : false
+                            hidden: (app.country_alpha_3_code === "can" && app.province_alpha_2_code !== 'ON' ) ? true : false
                         },
                         { name: 'charge_amount', width: 20, search: false, sortable: false,
                             cellattr: function (rowId, tv, rowdata) {
@@ -1652,7 +1660,7 @@ define([
 
             invoiceActivityStatement: function(claimId, payerType){
                 var urlParams = {
-                    claimId: claimId, 
+                    claimId: claimId,
                     payerType: payerType,
                     async: false,
                     save: false

@@ -9,7 +9,7 @@ const util = require('./../util');
  * @param  {type} options description
  * @return {type}         description
  */
-const ClaimHeader1Encoder = function(options) {
+const ClaimHeader1Encoder = function (options) {
 
     const getTransactionIdentifier = () => {
         // mandatory
@@ -30,7 +30,8 @@ const ClaimHeader1Encoder = function(options) {
         // not required for RMB claims
         // field length: 10
         // format: numeric or spaces
-        return util.formatAlphanumeric(claimData.healthNumber, 10);
+        let healthNumber = claimData.paymentProgram !== 'RMB' ? claimData.healthNumber : '';
+        return util.formatAlphanumeric(healthNumber, 10);
     };
 
     const getVersionCode = (claimData) => {
@@ -38,7 +39,8 @@ const ClaimHeader1Encoder = function(options) {
         // not required for RMB claims
         // field length: 2
         // format: Alpha or spaces
-        return util.formatAlphanumeric(claimData.versionCode, 2);
+        let versionCode = claimData.paymentProgram !== 'RMB' ? claimData.healthNumber : '';
+        return util.formatAlphanumeric(versionCode, 2);
     };
 
 
@@ -46,7 +48,7 @@ const ClaimHeader1Encoder = function(options) {
         // mandatory
         // field length: 8
         // format: Date or Spaces
-        return util.formatDate(claimData.dateOfBirth);
+        return util.formatDate(claimData.patient_dob);
     };
 
     const getAccountingNumber = (claimData) => {
@@ -106,14 +108,14 @@ const ClaimHeader1Encoder = function(options) {
         // conditional
         // field length: 1
         // format: ALPHA (blank or 'Y')
-        return util.formatAlphanumeric(claimData.manualReviewIndicator, 1);
+        return util.formatAlphanumeric(claimData.manualReviewIndicator ? 'Y' : ' ', 1);
     };
 
     const getServiceLocationIndicator = (claimData) => {
         // conditional
         // field length: 4
         // format: alphanumeric or spaces
-        return util.formatAlphanumeric(claimData.serviceLocationIndicator, 4, ' ', true);
+        return util.formatAlphanumeric(claimData.place_of_service, 4, ' ', true);
     };
 
     const getReservedForOOC = () => {

@@ -48,7 +48,7 @@
                 <li class="nav-item">
                     <a class="nav-link" id="aStatusColorCodes" href="#setup/status_color_codes/list" i18n="shared.screens.setup.statusColorCodes"></a>
                 </li>
-                <% if (billingRegionCode === 'can_AB') { %>
+                <% if (['can_AB', 'can_BC'].indexOf(billingRegionCode) > -1) { %>
                 <li class="nav-item">
                     <a class="nav-link" id="aSupportingText" href="#setup/supporting_text/list" i18n="shared.screens.setup.supportingText"></a>
                 </li>

@@ -29,11 +29,13 @@ const macAddr = {
 
         const total = nicNames.length;
         let a = 0;
+
         for ( ; a < total; ++a ) {
             const name = nicNames[ a ];
             const nicArray = nics[ name ];
             const total = nicArray.length;
             let i = 0;
+
             for ( ; i < total; ++i ) {
                 const {
                     mac
@@ -78,8 +80,8 @@ module.exports = {
     },
 
     'getUID': function () {
-        var currentClock = 0;
-        var datestring = moment().format('YYYYMMDDHHmmss');
+        const datestring = moment().format('YYYYMMDDHHmmss');
+        let currentClock = 0;
 
         if ( datestring == this.uidState.lastUIDTime ) {
             currentClock = this.uidState.lastClock + 1;
@@ -186,15 +188,15 @@ module.exports = {
     insuranceStudyProviderName: () => {
         return ` array_remove((
             SELECT
-               array_agg(insp.insurance_name) AS insurance_name 
+               array_agg(insp.insurance_name) AS insurance_name
             FROM
-               patient_insurances AS pat_ins 
+               patient_insurances AS pat_ins
                LEFT JOIN
-                  insurance_providers AS insp 
-                  ON pat_ins.insurance_provider_id = insp.id 
+                  insurance_providers AS insp
+                  ON pat_ins.insurance_provider_id = insp.id
             WHERE
-               pat_ins.id = orders.primary_patient_insurance_id 
-               OR pat_ins.id = orders.secondary_patient_insurance_id 
+               pat_ins.id = orders.primary_patient_insurance_id
+               OR pat_ins.id = orders.secondary_patient_insurance_id
                OR pat_ins.id = orders.tertiary_patient_insurance_id
                AND insp.insurance_name IS NOT NULL LIMIT 1 ), null) `;
     },
@@ -202,15 +204,15 @@ module.exports = {
     insuranceClaimProviderName: () => {
         return ` array_remove((
             SELECT
-               array_agg(insp.insurance_name) AS insurance_name 
+               array_agg(insp.insurance_name) AS insurance_name
             FROM
-               patient_insurances AS pat_ins 
+               patient_insurances AS pat_ins
                LEFT JOIN
-                  insurance_providers AS insp 
-                  ON pat_ins.insurance_provider_id = insp.id 
+                  insurance_providers AS insp
+                  ON pat_ins.insurance_provider_id = insp.id
             WHERE
-               pat_ins.id = primary_patient_insurance_id 
-               OR pat_ins.id = secondary_patient_insurance_id 
+               pat_ins.id = primary_patient_insurance_id
+               OR pat_ins.id = secondary_patient_insurance_id
                OR pat_ins.id = tertiary_patient_insurance_id
                AND insp.insurance_name IS NOT NULL LIMIT 1 ), null) `;
     },
@@ -220,9 +222,11 @@ module.exports = {
     },
 
     getLocaleDate: function (date, locale) {
-        if (!date)
+        if (!date) {
             return null;
-        let localeFomat = this.getLocaleFormat(locale)
+        }
+
+        let localeFomat = this.getLocaleFormat(locale);
         return moment(date).locale(locale).format(localeFomat);
     },
 

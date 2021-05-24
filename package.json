@@ -1,6 +1,6 @@
 {
     "name": "exa-billing",
-    "version": "1.4.1",
+    "version": "1.4.5",
     "private": true,
     "description": "EXA Billing Module",
     "main": "server/app.js",
@@ -10,9 +10,10 @@
         "dev:log": "node ./bin/www | node ./modules/logger/file-transport.js",
         "less": "cd app/skins/default && lessc index.less > index.css && cd ../dark && lessc index.less > index.css && cd ../../js/modules/multichat/stylesheets/ && lessc chat.less > chat.css",
         "start": "npm-run-all lint dev",
-        "build": "npm ci && gulp build",
+        "build": "npm run ci && gulp build",
         "start-production": "node ./bin/www-cluster",
-        "test": "mocha --recursive test/unit"
+        "test": "mocha --recursive test/unit",
+        "ci": "npm ci && npm ci --prefix ./app"
     },
     "dependencies": {
         "bluebird": "^3.5.5",

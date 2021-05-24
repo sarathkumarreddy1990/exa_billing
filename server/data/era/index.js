@@ -669,7 +669,8 @@ module.exports = {
                                         'in_progress'
                                 END
                             )
-                        WHERE id = ${params.file_id} `;
+                        WHERE id = ${params.file_id}
+                        RETURNING id, status `;
 
         return await query(sql);
 

@@ -201,8 +201,13 @@ define([
                     },
                     ondblClickRow: function (rowID) {
                         var gridData = $('#tblEOBFileList').jqGrid('getRowData', rowID);
-                        if (['failure', 'success'].indexOf(gridData.current_status.toLowerCase()) == -1) {
+                        var fileStatus = gridData.current_status && gridData.current_status.toLowerCase() || '';
+                        
+                        if (['failure', 'success'].indexOf(fileStatus) == -1) {
                             self.processFile(rowID, gridData, null);
+                        }
+                        else if (app.billingRegionCode === 'can_BC' && fileStatus === 'success' && !gridData.payment_id) {
+                            commonjs.showWarning('messages.warning.era.noPaymentAvailable');
                         }
                         else {
                             commonjs.showWarning('messages.warning.era.fileAlreadyProcessed');
@@ -368,11 +373,6 @@ define([
 
             processUsaResponse: function(file_id, model, gridData) {
                 var self = this;
-                var array_to_object = function ($value) {
-                    return isArray($value) ? array_to_object($value[0]) : $value;
-                }
-
-                model = model && model.length ? array_to_object(model) : model;
 
                 if (model) {
 
@@ -381,7 +381,7 @@ define([
                     } else if (model.payer_id || (model.type && model.type == 'none')) {
                         model.file_store_id = gridData.file_store_id;
                         self.showProgressDialog(file_id, model, 'initialize');
-                    } else if (model.rows && model.rows.length) {
+                    } else if (Array.isArray(model) && model.length) {
                         commonjs.hideDialog();
                         self.reloadERAFilesLocal();
                         $('.modal-dialog .btn-secondary, .modal-dialog  .close').removeClass('eraClose');
@@ -418,14 +418,12 @@ define([
                 commonjs.showLoading();
 
                 if (model && model.status == 100) {
-                    return commonjs.showWarning(model.message);
+                    commonjs.showWarning(model.message);
                 }
 
-                if (model && model.rows && model.rows.length) {
-                    commonjs.hideDialog();
-                    self.reloadERAFilesLocal();
-                    $('.modal-dialog .btn-secondary, .modal-dialog .close').removeClass('eraClose');
-                }
+                commonjs.hideDialog();
+                self.reloadERAFilesLocal();
+                $('.modal-dialog .btn-secondary, .modal-dialog .close').removeClass('eraClose');
                 processPaymentBtn.prop('disabled', false);
                 commonjs.hideLoading();
             },
@@ -560,6 +558,12 @@ define([
                     fileUploadedObj.innerHTML = '';
                     fileStoreExist.innerHTML = '';
                     return false;
+                } else if (fileStatus && fileStatus.innerHTML == 'NO_PAYMENT_AVAILABLE') {
+                    commonjs.showWarning("messages.warning.era.noPaymentAvailable");
+                    fileStatus.innerHTML = '';
+                    fileUploadedObj.innerHTML = '';
+                    fileStoreExist.innerHTML = '';
+                    return false;
                 } else if (fileStoreExist && fileStoreExist.innerHTML != '') {
                     commonjs.showWarning(fileStoreExist.innerHTML);
                     fileDuplicateObj.innerHTML = '';
@@ -623,7 +627,8 @@ define([
                                 fileName = fileName.substr(0, fileName.lastIndexOf('.'));
 
                                 var ins = model.rows[0];
-                                ins.payer_details.payment_dt = moment(ins.payer_details.payment_dt).format('L');
+                                ins.payer_details = ins.payer_details || {};
+                                ins.payer_details.payment_dt = ins.payer_details.payment_dt && moment(ins.payer_details.payment_dt).format('L') || '';
 
                                 $('#eraResultTitle').html(commonjs.geti18NString("shared.fields.result") + ': ' + fileName);
                                 commonjs.showDialog({

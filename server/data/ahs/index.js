@@ -129,6 +129,15 @@ const ahsData = {
                 pp.first_name                                AS "patient_first_name",
                 pc_app.can_prid                          AS "service_provider_prid",
                 pc_c.can_prid AS "provider_prid",
+                CASE
+                    WHEN LOWER(COALESCE(
+                        pc_c.contact_info -> 'STATE',
+                        pc_c.contact_info -> 'STATE_NAME',
+                        ''
+                    )) NOT IN ( 'ab', 'alberta' )
+                    THEN 'Y'
+                    ELSE ''
+                END AS oop_referral_indicator,
                 COALESCE(pp.patient_info -> 'c1State', pp.patient_info -> 'c1Province', '') AS province_code,
                 (SELECT
                     charges_bill_fee_total
@@ -144,8 +153,8 @@ const ahsData = {
                 LEFT JOIN billing.charges_studies bchs ON bchs.charge_id = bch.id
                 LEFT JOIN public.studies s ON s.id = bchs.study_id
                 LEFT JOIN public.study_transcriptions st ON st.study_id = s.id
-                LEFT JOIN public.provider_contacts pc_app ON pc_app.id = st.approving_provider_id
-                LEFT JOIN public.provider_contacts pc_c ON pc_c.id = bc.referring_provider_contact_id AND pc_c.is_primary
+                LEFT JOIN public.provider_contacts pc_app ON pc_app.id = bc.rendering_provider_contact_id
+                LEFT JOIN public.provider_contacts pc_c ON pc_c.id = bc.referring_provider_contact_id
                 LEFT JOIN public.facilities f ON f.id = bc.facility_id
                 LEFT JOIN public.patient_insurances ppi  ON ppi.id = bc.primary_patient_insurance_id
                 LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
@@ -489,20 +498,24 @@ const ahsData = {
                                 'last_name', p_ref.last_name,
                                 'birth_date', '',
                                 'gender_code', '',
-                                'address1', COALESCE(
-                                    ( SELECT group_name FROM provider_groups WHERE id = pc_ref.provider_group_id ),
-                                    TRIM(
-                                        regexp_replace(COALESCE(pc_ref.contact_info -> 'ADDR1', ''), '[#-]', '', 'g') || ' ' ||
-                                        regexp_replace(COALESCE(pc_ref.contact_info -> 'ADDR2', ''), '[#-]', '', 'g')
-                                    ),
-                                    ''
+                                'address1', (
+                                    CASE
+                                        WHEN pc_ref.provider_group_id IS NOT NULL
+                                        THEN ( SELECT group_name FROM provider_groups WHERE id = pc_ref.provider_group_id )
+                                        ELSE TRIM(
+                                            regexp_replace(COALESCE(pc_ref.contact_info -> 'ADDR1', ''), '[#-]', '', 'g') || ' ' ||
+                                            regexp_replace(COALESCE(pc_ref.contact_info -> 'ADDR2', ''), '[#-]', '', 'g')
+                                        )
+                                    END
                                 ),
                                 'address2', (
                                     CASE
-                                        WHEN pc_ref.provider_group_id IS NULL
-                                        THEN ''
-                                        ELSE TRIM(regexp_replace(COALESCE(pc_ref.contact_info -> 'ADDR1', ''), '[#-]', '', 'g') || ' ' ||
-                                                 regexp_replace(COALESCE(pc_ref.contact_info -> 'ADDR2', ''), '[#-]', '', 'g'))
+                                        WHEN pc_ref.provider_group_id IS NOT NULL
+                                        THEN TRIM(
+                                            regexp_replace(COALESCE(pc_ref.contact_info -> 'ADDR1', ''), '[#-]', '', 'g') || ' ' ||
+                                            regexp_replace(COALESCE(pc_ref.contact_info -> 'ADDR2', ''), '[#-]', '', 'g')
+                                        )
+                                        ELSE ''
                                     END
                                 ),
                                 'address3', '',
@@ -602,11 +615,11 @@ const ahsData = {
                     LEFT JOIN public.companies comp
                         ON comp.id = s.company_id
                     LEFT JOIN public.provider_contacts pc_app
-                        ON pc_app.id = st.approving_provider_id
+                        ON pc_app.id = bc.rendering_provider_contact_id
                     LEFT JOIN public.providers p_app
                         ON p_app.id = pc_app.provider_id
                     LEFT JOIN public.provider_contacts pc_ref
-                        ON pc_ref.id = s.referring_physician_id
+                        ON pc_ref.id = bc.referring_provider_contact_id
                     LEFT JOIN public.providers p_ref
                         ON p_ref.id = pc_ref.provider_id
                     LEFT JOIN public.skill_codes sc
@@ -718,13 +731,21 @@ const ahsData = {
                     FROM (
                         SELECT
                             info.claim_id,
-                            billing.can_ahs_get_claim_number(info.claim_id) AS claim_number,
+                            COALESCE(
+                                billing.can_ahs_get_claim_number(info.claim_id),
+                                (
+                                    info.submitter_prefix ||
+                                    info.year ||
+                                    info.source_code ||
+                                    info.sequence_number ||
+                                    info.check_digit
+                                )
+                            ) AS claim_number,
                             TRIM(LOWER(info.can_supporting_text))       AS supporting_text
                         FROM
                             claim_info info
                         WHERE
                             TRIM(COALESCE(info.can_supporting_text, '')) != ''
-                            AND billing.can_ahs_get_claim_number(info.claim_id) IS NOT NULL
                         ORDER BY
                             info.sequence_number
                     ) a
@@ -773,7 +794,7 @@ const ahsData = {
         };
     },
 
-     /**
+    /**
      * {@param} company_id
      * {@response} Returns file store for configured company
      */
@@ -820,7 +841,15 @@ const ahsData = {
                 ${companyId},
                 ${file_store_id},
                 ${created_dt},
-                'pending',
+                CASE 
+                    WHEN EXISTS (
+                            SELECT 1
+                            FROM billing.edi_files
+                            WHERE file_md5 = ${file_md5}
+                        ) 
+                    THEN 'duplicate'
+                    ELSE 'pending'
+                END,
                 ${file_type},
                 ${file_path},
                 ${file_size},
@@ -862,7 +891,7 @@ const ahsData = {
         return await query(sql);
     },
 
-         /**
+    /**
     * Handle incoming Batch Balance report file
     *
     * @param  {object} args    {
@@ -886,7 +915,7 @@ const ahsData = {
             company_id,
             user_id,
             default_facility_id
-        } = args.log_details
+        } = args.log_details;
 
         let auditDetails = {
             'company_id': company_id,
@@ -936,15 +965,17 @@ const ahsData = {
         const sql = SQL` SELECT
                              COUNT(efc.id) AS pending_transaction_count
                            , COUNT(pa.id) AS payment_entry_count
-                           , bgct.charges_bill_fee_total AS claim_total_amount
-                           , bgct.claim_balance_total AS claim_balance_amount
+                           , bgct.charges_bill_fee_total::NUMERIC AS claim_total_amount
+                           , bgct.claim_balance_total::NUMERIC AS claim_balance_amount
+                           , bgct.payments_applied_total::NUMERIC as claim_applied
+                           , bgct.adjustments_applied_total::NUMERIC as claim_adjustment
                          FROM billing.claims AS bc
                          INNER JOIN billing.charges AS bch ON bch.claim_id = bc.id
                          LEFT JOIN billing.edi_file_claims AS efc ON efc.claim_id = bc.id
                          LEFT JOIN billing.payment_applications AS pa ON pa.charge_id = bch.id
                          LEFT JOIN billing.get_claim_totals(${targetId}) AS bgct ON TRUE
                          WHERE bc.id = ${targetId}
-                         GROUP BY bgct.claim_balance_total, bgct.charges_bill_fee_total `;
+                         GROUP BY bgct.claim_balance_total, bgct.charges_bill_fee_total, bgct.payments_applied_total, bgct.adjustments_applied_total `;
 
         return await query(sql);
     },
@@ -988,7 +1019,7 @@ const ahsData = {
 
         return await query(sql);
     },
-     /**
+    /**
      * Get Files list from edi_files table based on status
      * @param {args} JSON
      */
@@ -1018,11 +1049,12 @@ const ahsData = {
                             ef.id file_id,
                             comp.can_submitter_prefix,
                             (SELECT row_to_json(_) FROM (SELECT * FROM user_data) AS _) AS log_details
-                         FROM billing.edi_files ef
-                         INNER JOIN file_stores fs ON fs.id = ef.file_store_id
-                         INNER JOIN companies comp ON comp.id = fs.company_id
-                         WHERE ef.status = ${status}
-                               AND ef.file_type = ANY(${fileTypes}) LIMIT 10`;
+                        FROM billing.edi_files ef
+                        INNER JOIN file_stores fs ON fs.id = ef.file_store_id
+                        INNER JOIN companies comp ON comp.id = fs.company_id
+                        WHERE ef.status = ${status}
+                            AND ef.file_type = ANY(${fileTypes})
+                        ORDER BY ef.file_type DESC, ef.id ASC LIMIT 10`;
 
         return await query(sql);
     },

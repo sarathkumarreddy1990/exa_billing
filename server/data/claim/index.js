@@ -6,7 +6,7 @@ module.exports = {
         const sql = SQL`SELECT * FROM
          (
              SELECT json_array_elements(web_config) AS info from sites)AS info_tab
-            WHERE info->>'id' IN('insPokitdok' , 'pokitdok_client_id' , 'pokitdok_client_secret') `;
+            WHERE info->>'id' IN('insPokitdok' , 'pokitdok_client_id' , 'pokitdok_client_secret', 'CHCPokitdokBaseURL' ,'CHCPokitdokAccessTokenURL') `;
 
         return await query(sql);
     },
@@ -75,10 +75,12 @@ module.exports = {
                                 , display_description
                                 , additional_info
                                 , sc.cpt_code_id AS cpt_id
+                                , sc.is_billable
                             FROM public.study_cpt sc
                             INNER JOIN public.studies s ON s.id = sc.study_id
                             INNER JOIN public.cpt_codes on sc.cpt_code_id = cpt_codes.id
                             INNER JOIN public.orders o on o.id = s.order_id
+                            LEFT JOIN public.study_cpt_ndc scn ON scn.study_cpt_id = sc.id
                             WHERE
                                 study_id = ANY(${studyIds}) AND sc.has_deleted = FALSE /* study_cpt.has_deleted */
                             ORDER BY sc.cpt_code ASC
@@ -501,6 +503,7 @@ module.exports = {
                     , c.can_ahs_emsaf_reason
                     , c.can_ahs_paper_supporting_docs
                     , c.can_supporting_text
+                    , c.can_ohip_manual_review_indicator AS manual_review_indicator
                     , cst.code AS claim_status_code
                     , p.account_no AS patient_account_no
                     , p.birth_date::text AS patient_dob
@@ -646,6 +649,7 @@ module.exports = {
                                 , pb.referral_code              AS can_ahs_referral_code
                                 , pb.support_documentation      AS can_ahs_supporting_text_required
                                 , (SELECT EXISTS (SELECT * FROM billing.payment_applications WHERE charge_id = ch.id )) as payment_exists
+                                , ch.is_custom_bill_fee
                             FROM billing.charges ch
                                 INNER JOIN public.cpt_codes cpt ON ch.cpt_id = cpt.id
                                 LEFT JOIN public.plan_benefits pb ON pb.cpt_id = cpt.id
@@ -845,7 +849,7 @@ module.exports = {
     getFolderPath: async (params) => {
 
         let sqlQry = SQL`
-        SELECT account_no, facility_info->'pokitdok_response' as filepath from public.patients p 
+        SELECT account_no, facility_info->'pokitdok_response' as filepath from public.patients p
         INNER JOIN patient_facilities pf on pf.patient_id=p.id
         INNER JOIN public.facilities f on f.id = pf.facility_id AND pf.is_default where p.id = ${params.patient_id} `;
 

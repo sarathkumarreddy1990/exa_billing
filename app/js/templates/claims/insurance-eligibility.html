@@ -101,6 +101,14 @@
                                     <% } %>
                         </div>
                     </div>
+                    <% if (InsuranceData && InsuranceData.reject_reason) { %>
+                        <div class="form-group row">
+                            <label class="col-sm-5 col-form-label"i18n="patient.patientInsurance.rejectReason">Reject Reason</label>
+                            <div class="col-form-label">
+                            <label class="logFields1"> <%= InsuranceData.reject_reason %></label>
+                            </div>
+                        </div>
+                    <% } %>
                 </div>
                 <div class="col-xs-6" id="divCoPayDetails" style=" margin-left: 2%; overflow-y: auto; overflow-x: hidden;">
                     <br/>
