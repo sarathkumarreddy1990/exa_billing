@@ -207,13 +207,14 @@ define('grid', [
             }
 
             var studyIds = studyArray.join();
+            var firstSelectedStudy = selectedStudies[0];
 
             if (isClaimGrid) {
                 var statusIndex = _.findIndex(selectedStudies, function (item) {
                     return (item.claim_status_code === 'P77' && app.billingRegionCode === 'can_MB') || (item.claim_status_code === 'OH' && app.billingRegionCode === 'can_BC');
                 });
 
-                commonjs.getClaimStudy(selectedStudies[0].study_id, function (result) {
+                commonjs.getClaimStudy(firstSelectedStudy.study_id, function (result) {
                     if (result) {
                         study_id = result.study_id;
                         order_id = result.order_id;
@@ -446,8 +447,8 @@ define('grid', [
                     return initializeEditForm({
                         studyIds: studyIds,
                         study_id: study_id,
-                        patient_name: selectedStudies[0].patient_name,
-                        patient_id: selectedStudies[0].patient_id,
+                        patient_name: firstSelectedStudy.patient_name,
+                        patient_id: firstSelectedStudy.patient_id,
                         order_id: order_id,
                         grid_id: gridID
                     });
@@ -455,7 +456,7 @@ define('grid', [
                 
                 // Adjustment paid in fill section
                 var liQuickAdjustPaidFull = commonjs.getRightClickMenu('anc_quick_adjust', 'billing.claims.adjustFull', false, 'Adjust paid in full', false);
-                if (selectedStudies.length === 1 && (app.screens.includes('ADPF') || app.userInfo.user_type === 'SU') && selectedStudies[0].claim_balance != '$0.00') {
+                if (selectedStudies.length === 1 && (app.screens.includes('ADPF') || app.userInfo.user_type === 'SU') && firstSelectedStudy.claim_balance != '$0.00') {
                     $divObj.append(liQuickAdjustPaidFull);
                 }
 
@@ -470,11 +471,11 @@ define('grid', [
                         needShrink: true,
                         html: paidInFullTemplate({
                             adjustment_code_list: app.adjustment_code_list,
-                            patient_name: selectedStudies[0].patient_name,
-                            patient_dob: selectedStudies[0].patient_dob,
-                            claim_balance: selectedStudies[0].claim_balance,
-                            claim_dt: selectedStudies[0].claim_dt,
-                            age: commonjs.getAge(selectedStudies[0].patient_dob)
+                            patient_name: firstSelectedStudy.patient_name,
+                            patient_dob: firstSelectedStudy.patient_dob,
+                            claim_balance: firstSelectedStudy.claim_balance,
+                            claim_dt: firstSelectedStudy.claim_dt,
+                            age: commonjs.getAge(firstSelectedStudy.patient_dob)
                         })
                     });
 
@@ -486,7 +487,7 @@ define('grid', [
                         }
 
                         $.ajax({
-                            url: '/exa_modules/billing/payments/process_write_off_payments/' + selectedStudies[0].claim_id,
+                            url: '/exa_modules/billing/payments/process_write_off_payments/' + firstSelectedStudy.claim_id,
                             type: 'POST',
                             data: {
                                 adjustmentCodeId: adjustmentCode
@@ -562,7 +563,7 @@ define('grid', [
                     self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
                     self.claimInquiryView.render({
                         'claim_id': studyIds,
-                        'patient_id': selectedStudies[0].patient_id,
+                        'patient_id': firstSelectedStudy.patient_id,
                         'grid_id': gridID,
                         'source': 'claims'
                     });
@@ -579,12 +580,12 @@ define('grid', [
                     }
 
                 self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
-                self.claimInquiryView.patientInquiryForm(studyIds, selectedStudies[0].patient_id, selectedStudies[0].patient_name, gridID, true);
+                self.claimInquiryView.patientInquiryForm(studyIds, firstSelectedStudy.patient_id, firstSelectedStudy.patient_name, gridID, true);
                 });
 
 
                 var liInvoiceInquiry = commonjs.getRightClickMenu('anc_invoice_inquiry','setup.rightClickMenu.directBillingInquiry',false,'Direct Billing Inquiry',false);
-                if (studyArray.length == 1 && selectedStudies[0].billing_method == "direct_billing")
+                if (studyArray.length == 1 && firstSelectedStudy.billing_method == "direct_billing")
                     $divObj.append(liInvoiceInquiry);
                 self.checkRights('anc_invoice_inquiry');
                 $('#anc_invoice_inquiry').click(function () {
@@ -598,7 +599,7 @@ define('grid', [
                         'needShrink': true
                     });
                 self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
-                self.claimInquiryView.invoiceInquiry(studyIds,selectedStudies[0].patient_id,selectedStudies[0].payer_type); //selectedStudies[0].invoice_no
+                self.claimInquiryView.invoiceInquiry(studyIds,firstSelectedStudy.patient_id,firstSelectedStudy.payer_type); //firstSelectedStudy.invoice_no
                 });
 
                 var liPatientClaimLog = commonjs.getRightClickMenu('anc_patient_claim_log','setup.rightClickMenu.patientClaimLog',false,'Patient Claim Log',false);
@@ -618,7 +619,7 @@ define('grid', [
                         'needShrink': true
                     });
                 self.claimInquiryView = new claimInquiryView({ el: $('#modal_div_container') });
-                self.claimInquiryView.patientInquiryLog(studyIds, selectedStudies[0].patient_id, selectedStudies[0].patient_name);
+                self.claimInquiryView.patientInquiryLog(studyIds, firstSelectedStudy.patient_id, firstSelectedStudy.patient_name);
                 });
 
                 if (studyArray.length === 1 && statusIndex < 0) {
@@ -649,7 +650,7 @@ define('grid', [
                             i18nHeader: 'setup.rightClickMenu.patientDocuments',
                             width: '95%',
                             height: '75%',
-                            url: '/vieworder#order/document/' + btoa(order_id) + '/' + btoa(selectedStudies[0].patient_id) + '/' + btoa(study_id) + '/encounter'
+                            url: '/vieworder#order/document/' + btoa(order_id) + '/' + btoa(firstSelectedStudy.patient_id) + '/' + btoa(study_id) + '/encounter'
                         });
                     });
 
@@ -714,7 +715,7 @@ define('grid', [
 
                 if (options.filterid != 'Follow_up_queue') {
                     var liEditClaim = commonjs.getRightClickMenu('anc_reset_invoice_no','setup.rightClickMenu.resetInvoice',false,'Reset Invoice Number',false);
-                    if(studyArray.length == 1 && selectedStudies[0].invoice_no != null && selectedStudies[0].invoice_no != '')
+                    if(studyArray.length == 1 && firstSelectedStudy.invoice_no != null && firstSelectedStudy.invoice_no != '')
                         $divObj.append(liEditClaim);
                     self.checkRights('anc_reset_invoice_no');
 
@@ -722,7 +723,7 @@ define('grid', [
                         if ($('#anc_reset_invoice_no').hasClass('disabled')) {
                             return false;
                         }
-                        self.resetInvoiceNumber(selectedStudies[0].invoice_no);
+                        self.resetInvoiceNumber(firstSelectedStudy.invoice_no);
                     });
                 }
                 self.bindProvinceBasedMenus($divObj, studyArray, gridData, isClaimGrid, selectedStudies, $target);
@@ -738,7 +739,7 @@ define('grid', [
                             return false;
                         }
                             window.localStorage.setItem('selected_studies', null);
-                            window.localStorage.setItem('primary_study_details', JSON.stringify(selectedStudies[0]));
+                            window.localStorage.setItem('primary_study_details', JSON.stringify(firstSelectedStudy));
                             window.localStorage.setItem('selected_studies', JSON.stringify(studyIds));
                             window.localStorage.setItem('selected_orders', JSON.stringify(orderIds));
 
@@ -754,10 +755,10 @@ define('grid', [
                     self.checkRights('anc_edit_claim');
                     $('#anc_edit_claim').off().click(function () {
                         return initializeEditForm({
-                            studyIds: selectedStudies[0].claim_id,
-                            study_id: selectedStudies[0].study_id,
-                            patient_name: selectedStudies[0].patient_name,
-                            patient_id: selectedStudies[0].patient_id,
+                            studyIds: firstSelectedStudy.claim_id,
+                            study_id: firstSelectedStudy.study_id,
+                            patient_name: firstSelectedStudy.patient_name,
+                            patient_id: firstSelectedStudy.patient_id,
                             order_id: order_id,
                             grid_id: gridID
                         });
