@@ -876,7 +876,7 @@ const OHIPDataAPI = {
                         SELECT
                             pcc.display_code AS "serviceCode",
                             (bch.bill_fee * bch.units) AS "feeSubmitted",
-                            1 AS "numberOfServices",
+                            bch.units AS "numberOfServices",
                             charge_dt AS "serviceDate",
                             billing.get_charge_icds (bch.id) AS diagnosticCodes
                         FROM billing.charges bch
