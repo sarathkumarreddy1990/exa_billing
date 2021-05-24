@@ -2766,6 +2766,7 @@ define(['jquery',
                     self.icd_code = res.code;
                     self.icd_description = res.description;
                     $('#ddlMultipleDiagCodes').find('option').remove();
+                    $('#select2-ddlMultipleDiagCodes-container').html(res.code);
                     return res.code;
                 });
             },

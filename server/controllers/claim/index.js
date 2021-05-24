@@ -2,9 +2,10 @@ const data = require('../../data/claim/index');
 const Promise = require('bluebird');
 const PokitDok = require('./chcPokitdok');
 const Redis = require('ioredis');
+const config = require('../../config/index');
 const logger = require('../../../logger');
 const moment = require('moment');
-
+const redisInfo = config.get(config.keys.RedisStore);
 const api= {
 
     getLineItemsDetails: async (params) => { return await data.getLineItemsDetails(params); },
@@ -67,13 +68,18 @@ const api= {
     getData: async (params) => { return await data.getClaimData(params); },
 
     refreshToken: async (model) => {
+
         try {
             const combinedOptions = {
                 db: 0,
                 keyPrefix: `${String(model.companyId).padStart(10, '0')}:web:chcPokitdokAccessToken:`
             };
 
-            let chcPokitdokAccessToken = new Redis(combinedOptions);
+            let chcPokitdokAccessToken = new Redis({
+                ...combinedOptions,
+                host: redisInfo.host,
+                port: redisInfo.port
+            });
             chcPokitdokAccessToken.hdel(`accessToken`, model.userId);
         } catch (err) {
             const message = `Cannot Access token delete in chcPokitdok (${model.userId})`;
@@ -97,7 +103,11 @@ const api= {
             keyPrefix: `${String(model.companyId).padStart(10, '0')}:web:chcPokitdokAccessToken:`
         };
 
-        let chcPokitdokAccessToken = new Redis(combinedOptions);
+        let chcPokitdokAccessToken = new Redis({
+            ...combinedOptions,
+            host: redisInfo.host,
+            port: redisInfo.port
+        });
 
         if (!model.refreshToken) {
             accessTokenList = await chcPokitdokAccessToken.hmget('accessToken', model.userId);
