@@ -14,7 +14,7 @@ const getFormattedValue = (code, regExp) => {
     let trimmedCode = `${code}`.trim();
 
     if (regExp && regExp.pattern && regExp.replaceChar) {
-        return `${trimmedCode.replace(new RegExp(`${regExp.pattern}`), regExp.replaceChar)}`;
+        return `${trimmedCode.replace(new RegExp(`${regExp.pattern}`, 'g'), regExp.replaceChar)}`;
     }
 
     return trimmedCode;
