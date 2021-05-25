@@ -11,7 +11,7 @@ const claimActivityDataSetQueryTemplate = _.template(`
 WITH agg_claim AS(
     SELECT
          pippt.description AS provider_type
-	    , pof.ordering_facility_name as facility_name
+	    , pof.ordering_facility_name AS facility_name
     	, f.id as facility_id
         , bc.id AS claim_id
         , payer_type
@@ -178,7 +178,7 @@ patient_payment AS(
 )
 SELECT
     provider_type  AS "Ins Class"
-    , COALESCE(agg_claim.facility_name, '─ TOTAL ─')  AS "Service Facility"
+    , COALESCE(agg_claim.facility_name, '')  AS "Service Facility"
     , SUM(charge_details.total_bill_fee) AS "Charges"
     , SUM(COALESCE(pri_ins_payment.pri_adjustment,0::money)) AS "Adjustments"
     , SUM(agg_claim.claim_balance) AS "Balance"
@@ -199,7 +199,12 @@ LEFT JOIN total_credit ON agg_claim.claim_id = total_credit.claim_id
 LEFT JOIN charge_details ON agg_claim.claim_id = charge_details.claim_id
 LEFT JOIN patient_payment ON agg_claim.claim_id = patient_payment.claim_id
 GROUP BY GROUPING SETS(
-    ( "Ins Class"), ("Ins Class",agg_claim.facility_name))
+    <% if (groupByField == 'InsuranceClass') { %> 
+        ("Ins Class"), ("Ins Class", agg_claim.facility_name)
+    <% } else { %>
+        (agg_claim.facility_name), (agg_claim.facility_name, "Ins Class")
+    <% } %>
+    )
     UNION ALL
         SELECT
             null::TEXT  AS "Ins Class"
@@ -222,8 +227,7 @@ LEFT JOIN sec_ins_payment ON  agg_claim.claim_id = sec_ins_payment.claim_id
 LEFT JOIN ter_ins_payment ON agg_claim.claim_id = ter_ins_payment.claim_id
 LEFT JOIN total_credit ON agg_claim.claim_id = total_credit.claim_id
 LEFT JOIN charge_details ON agg_claim.claim_id = charge_details.claim_id
-LEFT JOIN patient_payment ON agg_claim.claim_id = patient_payment.claim_id
-    ORDER BY "Ins Class", "Service Facility" DESC
+LEFT JOIN patient_payment ON agg_claim.claim_id = patient_payment.claim_id    
 `);
 
 const api = {
@@ -298,6 +302,7 @@ const api = {
 
         filtersUsed.push({ name: 'fromDate', label: 'Date From', value: params.fromDate });
         filtersUsed.push({ name: 'toDate', label: 'Date To', value: params.toDate });
+        filtersUsed.push({ name: 'groupBy', label: 'Group By', value: params.groupByField});
         return filtersUsed;
     },
 
@@ -322,8 +327,8 @@ const api = {
             companyId: null,
             claimDate: null,
             facilityIds: null,
-            billingProID: null
-
+            billingProID: null,
+            groupByField: null
         };
 
         // company id
@@ -351,6 +356,8 @@ const api = {
             params.push(reportParams.billingProvider);
             filters.billingProID = queryBuilder.whereIn('bp.id', [params.length]);
         }
+
+        filters.groupByField = reportParams.groupByField;
 
         return {
             queryParams: params,

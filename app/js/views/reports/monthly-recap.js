@@ -26,7 +26,8 @@ define([
                 reportFormat: null,
                 reportDate: null,
                 billingProvider: null,
-                allBillingProvider: false
+                allBillingProvider: false,
+                groupByFilter: null
             },
             selectedFacilityListDetail: [],
             defaultyFacilityId: null,
@@ -89,6 +90,7 @@ define([
                 var btnClicked = e && e.target ? $(e.target) : null;
                 this.getSelectedFacility();
                 this.getBillingProvider();
+                this.getGroupbyFacility();
                 if (btnClicked && btnClicked.prop('tagName') === 'I') {
                     btnClicked = btnClicked.parent(); // in case FA icon 'inside'' button was clicked...
                 }
@@ -138,6 +140,11 @@ define([
                 this.viewModel.allBillingProvider = this.selectedBillingProList && this.selectedBillingProList.length === $("#ddlBillingProvider option").length;
             },
 
+            getGroupbyFacility: function (e) {
+                var selected = $('#ddlGroupingName option:selected').val();
+                this.groupingNameValue = selected;
+            },
+
             getReportParams: function () {
                 return urlParams = {
                     'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
@@ -147,6 +154,7 @@ define([
                     'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
                     'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
                     'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
+                    'groupByField': this.groupingNameValue || 'InsuranceClass'
                 };
             }
         });
