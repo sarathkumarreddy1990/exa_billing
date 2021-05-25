@@ -385,6 +385,8 @@ module.exports = {
 
     processWriteOffPayment: data.createWriteOffPayment,
 
+    processWriteOffPaymentForClaim: data.processWriteOffPaymentForClaim,
+
     canDeletePayment: data.canDeletePayment,
 
     updateNotes: data.updateNotes
