@@ -11,7 +11,7 @@ const claimActivityDataSetQueryTemplate = _.template(`
 WITH agg_claim AS(
     SELECT
          pippt.description AS provider_type
-	    , f.facility_name as facility_name
+	    , pof.ordering_facility_name as facility_name
     	, f.id as facility_id
         , bc.id AS claim_id
         , payer_type
@@ -25,6 +25,8 @@ WITH agg_claim AS(
     LEFT JOIN public.patient_insurances ppi ON ppi.id = bc.primary_patient_insurance_id
     LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
     LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
+    LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = bc.ordering_facility_contact_id
+    LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
     <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
      WHERE 1 = 1
      AND <%= companyId %>
@@ -176,7 +178,7 @@ patient_payment AS(
 )
 SELECT
     provider_type  AS "Ins Class"
-    , COALESCE(agg_claim.facility_name, '─ TOTAL ─')  AS "Facility Name"
+    , COALESCE(agg_claim.facility_name, '─ TOTAL ─')  AS "Service Facility"
     , SUM(charge_details.total_bill_fee) AS "Charges"
     , SUM(COALESCE(pri_ins_payment.pri_adjustment,0::money)) AS "Adjustments"
     , SUM(agg_claim.claim_balance) AS "Balance"
@@ -201,7 +203,7 @@ GROUP BY GROUPING SETS(
     UNION ALL
         SELECT
             null::TEXT  AS "Ins Class"
-        ,   '─ GRAND TOTAL ─'::TEXT AS "Facility Name"
+        ,   '─ GRAND TOTAL ─'::TEXT AS "Service Facility"
     ,    SUM(charge_details.total_bill_fee) AS "Charges"
     , SUM(COALESCE(pri_ins_payment.pri_adjustment,0::money)) AS "Adjustments"
     , SUM(agg_claim.claim_balance) AS "Balance"
@@ -221,7 +223,7 @@ LEFT JOIN ter_ins_payment ON agg_claim.claim_id = ter_ins_payment.claim_id
 LEFT JOIN total_credit ON agg_claim.claim_id = total_credit.claim_id
 LEFT JOIN charge_details ON agg_claim.claim_id = charge_details.claim_id
 LEFT JOIN patient_payment ON agg_claim.claim_id = patient_payment.claim_id
-    ORDER BY "Ins Class", "Facility Name" DESC
+    ORDER BY "Ins Class", "Service Facility" DESC
 `);
 
 const api = {
@@ -331,7 +333,7 @@ const api = {
         //claim facilities
         if (!reportParams.allFacilities && reportParams.facilityIds) {
             params.push(reportParams.facilityIds);
-            filters.facilityIds = queryBuilder.whereIn('bc.facility_id', [params.length]);
+            filters.facilityIds = queryBuilder.whereIn('pof.id', [params.length]);
         }
 
         // //  Claim Date

@@ -59,8 +59,7 @@ define([
             render: function () {
                 var modelCollection = Backbone.Collection.extend({
                     model: Backbone.Model.extend({})
-                });
-                this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings());
+                });               
                 this.$el.html(this.mainTemplate(this.viewModel));
                 // bind DRP and initialize it
                 this.bindDateRangePicker();
@@ -68,13 +67,7 @@ define([
                 this.drpStudyDt.setEndDate(this.viewModel.dateTo);
 
                 UI.bindBillingProvider();
-                $('#ddlFacilityFilter').multiselect({
-                    maxHeight: 200,
-                    buttonWidth: '200px',
-                    enableFiltering: true,
-                    includeSelectAllOption: true,
-                    enableCaseInsensitiveFiltering: true
-                });
+                UI.bindServiceFacilities();
             },
 
             bindDateRangePicker: function () {
@@ -125,13 +118,13 @@ define([
 
             // multi select facilities - worked
             getSelectedFacility: function (e) {
-                var selected = $("#ddlFacilityFilter option:selected");
+                var selected = $("#ddlOrderingFacilityFilter option:selected");
                 var facilities = [];
                 selected.each(function () {
                     facilities.push($(this).val());
                 });
                 this.selectedFacilityList = facilities
-                this.viewModel.allFacilities = this.selectedFacilityList && this.selectedFacilityList.length === $("#ddlFacilityFilter option").length;
+                this.viewModel.allFacilities = this.selectedFacilityList && this.selectedFacilityList.length === $("#ddlOrderingFacilityFilter option").length;
             },
 
             // multi select billing provider - worked

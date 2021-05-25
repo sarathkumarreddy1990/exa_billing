@@ -512,5 +512,95 @@ module.exports = {
             .append(SQL` OFFSET ${((page - 1) * pageSize)}`);
 
         return await query(wcb_code_sql);
+    },
+
+    getOrderingFacilities: async (args) => {
+        let {
+            company_id,
+            sortField,
+            sortOrder,
+            pageSize,
+            page,
+            q
+        } = args;
+        const sql = SQL`
+                        SELECT
+                            id
+                            , ordering_facility_code
+                            , ordering_facility_name
+                            , inactivated_dt
+                            , company_id
+                        FROM ordering_facilities
+                        WHERE deleted_dt IS NULL 
+                            AND inactivated_dt IS NULL 
+                            AND company_id = ${company_id} `;
+
+        if (q) {
+            sql.append(` AND (ordering_facility_code ILIKE '%${q}%' OR ordering_facility_name ILIKE '%${q}%' ) `);
+        }
+
+        sql.append(`
+                    ORDER BY
+                        ${sortField} ${sortOrder}
+                    LIMIT
+                        ${pageSize}
+                    OFFSET
+                        ${(page - 1) * pageSize} `);
+
+        return await query(sql);
+    },
+
+    getOrderingFacilityContacts: async (args) => {
+        let {
+            company_id,
+            sortField,
+            sortOrder,
+            pageSize,
+            page,
+            q
+        } = args;
+        const sql = SQL`SELECT
+                            DISTINCT(pofc.location)
+                            , pofc.id
+                            , pofc.phone_number
+                            , pofc.fax_number
+                            , pof.ordering_facility_code
+                            , pof.ordering_facility_name
+                        FROM public.ordering_facility_contacts pofc
+                        INNER JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id AND pof.deleted_dt IS NULL
+                        WHERE pofc.inactivated_dt IS NULL 
+                            AND pof.company_id = ${company_id}
+                        `;
+
+        if (q) {
+            sql.append(` AND (pofc.location ILIKE '%${q}%') `);
+        }
+
+        sql.append(`
+                    ORDER BY
+                        ${sortField || 'pofc.location'} ${sortOrder || 'ASC'}
+                    LIMIT
+                        ${pageSize}
+                    OFFSET
+                        ${(page - 1) * pageSize} `);
+    },
+
+    getServiceFacilities: async (args) => {
+        let {
+            company_id
+        } = args;
+
+        const sql = SQL `SELECT                           
+                              pofc.id
+                            , pofc.phone_number
+                            , pofc.fax_number
+                            , pof.ordering_facility_code
+                            , pof.ordering_facility_name
+                        FROM public.ordering_facility_contacts pofc
+                        INNER JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id AND pof.deleted_dt IS NULL
+                        WHERE pofc.inactivated_dt IS NULL 
+                            AND pof.company_id = ${company_id}
+                        `;
+        return await query(sql);
     }
 };
