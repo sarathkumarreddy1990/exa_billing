@@ -26,9 +26,9 @@
         <label class="col-sm-3 col-form-label" i18n="shared.fields.adjustmentCodes"></label>
         <select class="col-sm-6" id="adjustmentCode">
             <option value=''>Select</option>
-            <% _.each(adjustment_code_list, function(codes) { %>
-            <option value='<%= codes.id %>'>
-                <%= codes.code + ' - ' + codes.description %>
+            <% _.each(adjustment_code_list, function(code) { %>
+            <option value='<%= code.id %>'>
+                <%= code.code + ' - ' + code.description %>
             </option>
             <% }); %>
         </select>
