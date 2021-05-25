@@ -1,0 +1,36 @@
+<div class="paymentMethod h-100 w-100">
+    <div class="d-flex">
+        <div class="w-80">
+            <div class="ohip-claim d-flex">
+                <span>
+                    <%= patient_name %>, <%= patient_dob %>, <%= age %>
+                </span>
+            </div>
+            <div class="ohip-claim">
+                <label i18n="report.reportFilter.dateOfService"></label>
+                <span>
+                    <%= claim_dt %>
+                </span>
+            </div>
+            <div class="ohip-claim">
+                <label i18n="setup.collectionsProcess.claimBalance"></label>
+                <span>
+                    <%= claim_balance %>
+                </span>
+            </div>
+        </div>
+        <div class="w-20"> <button type="button" class="new-menu-right btn top-buffer" id="btnPayInFull"
+                i18n="shared.buttons.save"></button></div>
+    </div>
+    <div class="ohip-claim d-flex m-5">
+        <label class="col-sm-3 col-form-label" i18n="shared.fields.adjustmentCodes"></label>
+        <select class="col-sm-6" id="adjustmentCode">
+            <option value=''>Select</option>
+            <% _.each(adjustment_code_list, function(codes) { %>
+            <option value='<%= codes.id %>'>
+                <%= codes.code + ' - ' + codes.description %>
+            </option>
+            <% }); %>
+        </select>
+    </div>
+</div>
