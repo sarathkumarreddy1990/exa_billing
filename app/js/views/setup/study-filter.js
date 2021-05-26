@@ -2517,7 +2517,7 @@ define([
                             ($('#lblSummaryInsuranceGroup').text().length > 11) ? $('#liInsuranceProvider').show() : $('#liInsuranceProvider').hide();
                             break;
                         case 'liOrdFacility':
-                            ($('#lblOrdFacility').text().length > 3) ? $('#liOrdFacility').show() : $('#liOrdFacility').hide();
+                            ($('#lblOrdFacility').text().length > 0) ? $('#liOrdFacility').show() : $('#liOrdFacility').hide();
                             break;
                     }
                 });
