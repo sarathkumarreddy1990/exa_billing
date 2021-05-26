@@ -2412,7 +2412,7 @@ define([
                     })
                 }
 
-                $('#lblOrdFacility').text('Ordering Facility : ' + (ordFacList && ordFacList.length ?  $('input[name=studyOrdFacility]:checked').val() + ' ' +  ordFacList : ''));
+                $('#lblOrdFacility').text((ordFacList && ordFacList.length ?  'Ordering Facility : ' + $('input[name=studyOrdFacility]:checked').val() + ' ' +  ordFacList : ''));
                 $('#lblSummaryModality').text('Modality :' + this.listBoxSelectedArray('listModality', 'Modality'));
                 $('#lblSummaryStatus').text('Status :' + this.listBoxSelectedArray('listStatus', 'Status'));
                 $('#lblSummaryVehicle').text('Vehicle :' + this.listBoxSelectedArray('listVehicle', 'Vehicle'));
@@ -2517,7 +2517,7 @@ define([
                             ($('#lblSummaryInsuranceGroup').text().length > 11) ? $('#liInsuranceProvider').show() : $('#liInsuranceProvider').hide();
                             break;
                         case 'liOrdFacility':
-                            ($('#lblOrdFacility').text().length > 30) ? $('#liOrdFacility').show() : $('#liOrdFacility').hide();
+                            ($('#lblOrdFacility').text().length > 3) ? $('#liOrdFacility').show() : $('#liOrdFacility').hide();
                             break;
                     }
                 });
