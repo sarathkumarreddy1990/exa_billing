@@ -53,8 +53,8 @@ module.exports = {
 									, 'payer_address1', p_ip.insurance_info->'Address1'
 									, 'payer_city', p_ip.insurance_info->'City'
 									, 'payer_state', p_ip.insurance_info->'State'
-                                    , 'payer_zip_code', p_ip.insurance_info->'ZipCode'
-                                    , 'payer_zip_code_plus', p_ip.insurance_info->'ZipPlus'
+									, 'payer_zip_code', p_ip.insurance_info->'ZipCode'
+									, 'payer_zip_code_plus', p_ip.insurance_info->'ZipPlus'
 									, 'claimClearingHouse', p_edi_clearinghouse.receiver_name
 									, 'edi_request_templates_id', p_edi_clearinghouse.edi_template_id
 									)
@@ -63,8 +63,8 @@ module.exports = {
 									, 'payer_address1', s_ip.insurance_info->'Address1'
 									, 'payer_city', s_ip.insurance_info->'City'
 									, 'payer_state', s_ip.insurance_info->'State'
-                                    , 'payer_zip_code', s_ip.insurance_info->'ZipCode'
-                                    , 'payer_zip_code_plus', s_ip.insurance_info->'ZipPlus'
+									, 'payer_zip_code', s_ip.insurance_info->'ZipCode'
+									, 'payer_zip_code_plus', s_ip.insurance_info->'ZipPlus'
 									, 'claimClearingHouse',  s_edi_clearinghouse.receiver_name
 									, 'edi_request_templates_id',  s_edi_clearinghouse.edi_template_id
 									)
@@ -73,8 +73,8 @@ module.exports = {
 									, 'payer_address1', t_ip.insurance_info->'Address1'
 									, 'payer_city', t_ip.insurance_info->'City'
 									, 'payer_state', t_ip.insurance_info->'State'
-                                    , 'payer_zip_code', t_ip.insurance_info->'ZipCode'
-                                    , 'payer_zip_code_plus', t_ip.insurance_info->'ZipPlus'
+									, 'payer_zip_code', t_ip.insurance_info->'ZipCode'
+									, 'payer_zip_code_plus', t_ip.insurance_info->'ZipPlus'
 									, 'claimClearingHouse', t_edi_clearinghouse.receiver_name
                                     , 'edi_request_templates_id', t_edi_clearinghouse.edi_template_id
                                     )
@@ -102,24 +102,24 @@ module.exports = {
 									, p_ip.insurance_info->'City' AS "p_insurance_pro_city"
 									, p_ip.insurance_info->'PayerID' AS "p_insurance_pro_payerID"
 									, p_ip.insurance_info->'State' AS "p_insurance_pro_state"
-                                    , p_ip.insurance_info->'ZipCode' AS "p_insurance_pro_zipCode"
-                                    , p_ip.insurance_info->'ZipPlus' AS "p_insurance_pro_zipPlus"
+									, p_ip.insurance_info->'ZipCode' AS "p_insurance_pro_zipCode"
+									, p_ip.insurance_info->'ZipPlus' AS "p_insurance_pro_zipPlus"
 									, p_ip.insurance_name AS "p_insurance_pro_companyName"
 									, bc.secondary_patient_insurance_id
 									, s_ip.insurance_info->'Address1' AS "s_insurance_pro_address1"
 									, s_ip.insurance_info->'City' AS "s_insurance_pro_city"
 									, s_ip.insurance_info->'PayerID' AS "s_insurance_pro_payerID"
 									, s_ip.insurance_info->'State' AS "s_insurance_pro_state"
-                                    , s_ip.insurance_info->'ZipCode' AS "s_insurance_pro_zipCode"
-                                    , s_ip.insurance_info->'ZipPlus' AS "s_insurance_pro_zipPlus"
+									, s_ip.insurance_info->'ZipCode' AS "s_insurance_pro_zipCode"
+									, s_ip.insurance_info->'ZipPlus' AS "s_insurance_pro_zipPlus"
 									, s_ip.insurance_name AS "s_insurance_pro_companyName"
 									, bc.tertiary_patient_insurance_id
 									, t_ip.insurance_info->'Address1' AS "t_insurance_pro_address1"
 									, t_ip.insurance_info->'City' AS "t_insurance_pro_city"
 									, t_ip.insurance_info->'PayerID' AS "t_insurance_pro_payerID"
 									, t_ip.insurance_info->'State' AS "t_insurance_pro_state"
-                                    , t_ip.insurance_info->'ZipCode' AS "t_insurance_pro_zipCode"
-                                    , t_ip.insurance_info->'ZipPlus' AS "t_insurance_pro_zipPlus"
+									, t_ip.insurance_info->'ZipCode' AS "t_insurance_pro_zipCode"
+									, t_ip.insurance_info->'ZipPlus' AS "t_insurance_pro_zipPlus"
 									, t_ip.insurance_name AS "t_insurance_pro_companyName"
 
 									, COALESCE (NULLIF(p_pi.subscriber_address_line1,'Migration Address'),'') AS "p_subscriber_addressLine1"
@@ -131,8 +131,8 @@ module.exports = {
 									, COALESCE (NULLIF(p_pi.subscriber_lastname, ''), '') AS "p_subscriber_lastName"
 									, COALESCE (NULLIF(p_pi.subscriber_gender, 'Migration Gender'), '') AS "p_subscriber_gender"
 									, COALESCE (NULLIF(p_pi.subscriber_state,'Migration State'), '') AS "p_subscriber_state"
-                                    , COALESCE (NULLIF(p_pi.subscriber_zipcode, 'Migration ZipCode'), '') AS "p_subscriber_zipCode"
-                                    , COALESCE (NULLIF(p_pi.subscriber_zipcode_plus, 'Migration ZipPlus'), '') AS "p_subscriber_zipcode_plus"
+									, COALESCE (NULLIF(p_pi.subscriber_zipcode, 'Migration ZipCode'), '') AS "p_subscriber_zipCode"
+									, COALESCE (NULLIF(p_pi.subscriber_zipcode_plus, 'Migration ZipPlus'), '') AS "p_subscriber_zipcode_plus"
 
 									, COALESCE (NULLIF(s_pi.subscriber_address_line1 , 'Migration Address'), '') AS "s_subscriber_addressLine1"
 									, COALESCE (NULLIF(s_pi.subscriber_city , 'Migration City'), '') AS "s_subscriber_city"
@@ -143,8 +143,8 @@ module.exports = {
 									, COALESCE (NULLIF(s_pi.subscriber_lastname, ''), '') AS "s_subscriber_lastName"
 									, COALESCE (NULLIF(s_pi.subscriber_gender, 'Migration Gender'), '') AS "s_subscriber_gender"
 									, COALESCE (NULLIF(s_pi.subscriber_state,'Migration State') , '') AS "s_subscriber_state"
-                                    , COALESCE (NULLIF(s_pi.subscriber_zipcode , 'Migration ZipCode'),'') AS "s_subscriber_zipCode"
-                                    , COALESCE (NULLIF(s_pi.subscriber_zipcode_plus , 'Migration ZipPlus'),'') AS "s_subscriber_zipPlus"
+									, COALESCE (NULLIF(s_pi.subscriber_zipcode , 'Migration ZipCode'),'') AS "s_subscriber_zipCode"
+									, COALESCE (NULLIF(s_pi.subscriber_zipcode_plus , 'Migration ZipPlus'),'') AS "s_subscriber_zipPlus"
 
 									, COALESCE (NULLIF(t_pi.subscriber_address_line1, 'Migration Address'),'') AS "t_subscriber_addressLine1"
 									, COALESCE (NULLIF(t_pi.subscriber_city, 'Migration City'),'') AS "t_subscriber_city"
@@ -155,8 +155,8 @@ module.exports = {
 									, COALESCE (NULLIF(t_pi.subscriber_lastname, ''), '') AS "t_subscriber_lastName"
 									, COALESCE (NULLIF(t_pi.subscriber_gender, 'Migration Gender'), '') AS "t_subscriber_gender"
 									, COALESCE (NULLIF(t_pi.subscriber_state , 'Migration State'), '') AS "t_subscriber_state"
-                                    , COALESCE (NULLIF(t_pi.subscriber_zipcode , 'Migration ZipCode'), '') AS "t_subscriber_zipCode"
-                                    , COALESCE (NULLIF(t_pi.subscriber_zipcode_plus , 'Migration ZipPlus'), '') AS "t_subscriber_zipPlus"
+									, COALESCE (NULLIF(t_pi.subscriber_zipcode , 'Migration ZipCode'), '') AS "t_subscriber_zipCode"
+									, COALESCE (NULLIF(t_pi.subscriber_zipcode_plus , 'Migration ZipPlus'), '') AS "t_subscriber_zipPlus"
 									, (SELECT array_agg(row_to_json(pointer)) AS charge_pointer FROM (
 										SELECT ch.id, pointer1, claim_id, cpt.ref_code, cpt.display_description FROM billing.charges ch INNER JOIN public.cpt_codes cpt ON ch.cpt_id = cpt.id WHERE ch.claim_id = bc.id
 														 ) pointer) AS charge_pointer
