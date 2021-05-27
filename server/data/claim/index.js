@@ -269,6 +269,7 @@ module.exports = {
                             , pi.subscriber_city
                             , pi.subscriber_state
                             , pi.subscriber_zipcode
+                            , pi.subscriber_zipcode_plus
                             , pi.assign_benefits_to_patient
                             , ipd.billing_method
                         FROM
@@ -319,6 +320,7 @@ module.exports = {
                             , pi.subscriber_city
                             , pi.subscriber_state
                             , pi.subscriber_zipcode
+                            , pi.subscriber_zipcode_plus
                             , pi.assign_benefits_to_patient
                             , f.facility_info -> 'npino' as npi_no
                             , f.facility_info -> 'federal_tax_id' as federal_tax_id
@@ -401,6 +403,7 @@ module.exports = {
                             , pi.subscriber_city
                             , pi.subscriber_state
                             , pi.subscriber_zipcode
+                            , pi.subscriber_zipcode_plus
                             , pi.assign_benefits_to_patient
                             , ipd.billing_method
                            FROM public.patient_insurances pi
@@ -535,6 +538,7 @@ module.exports = {
                     , (SELECT billing_method as p_billing_method FROM billing.insurance_provider_details WHERE insurance_provider_id = ipp.id)
                     , cpi.insurance_provider_id AS p_insurance_provider_id
                     , cpi.subscriber_zipcode AS p_subscriber_zipcode
+                    , cpi.subscriber_zipcode_plus AS p_subscriber_zipcode_plus
                     , cpi.subscriber_relationship_id AS p_subscriber_relationship_id
                     , cpi.coverage_level AS p_coverage_level
                     , cpi.policy_number AS p_policy_number
@@ -564,6 +568,7 @@ module.exports = {
                     , (SELECT billing_method as s_billing_method FROM billing.insurance_provider_details WHERE insurance_provider_id = ips.id)
                     , csi.insurance_provider_id AS s_insurance_provider_id
                     , csi.subscriber_zipcode AS s_subscriber_zipcode
+                    , csi.subscriber_zipcode_plus AS s_subscriber_zipcode_plus
                     , csi.subscriber_relationship_id AS s_subscriber_relationship_id
                     , csi.coverage_level AS s_coverage_level
                     , csi.policy_number AS s_policy_number
@@ -593,6 +598,7 @@ module.exports = {
                     , (SELECT billing_method as t_billing_method FROM billing.insurance_provider_details WHERE insurance_provider_id = ipt.id)
                     , cti.insurance_provider_id AS t_insurance_provider_id
                     , cti.subscriber_zipcode AS t_subscriber_zipcode
+                    , cti.subscriber_zipcode_plus AS t_subscriber_zipcode_plus
                     , cti.subscriber_relationship_id AS t_subscriber_relationship_id
                     , cti.coverage_level AS t_coverage_level
                     , cti.policy_number AS t_policy_number
