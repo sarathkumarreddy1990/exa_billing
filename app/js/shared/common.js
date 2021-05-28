@@ -3630,6 +3630,21 @@ var commonjs = {
     },
 
     /**
+     * Use a checkbox to select all checkboxes in census screen
+     *
+     * @param {object} e The click event object of the 'select all' checkbox
+     */
+     checkMultipleCensus: function (e) {
+        e.stopPropagation ? e.stopPropagation() : e.cancelBubble = true;
+        if ($('#' + (e.target || e.srcElement).id).is(':checked')) {
+            $("#btnSelectAllCensus").click();
+        }
+        else {
+            $("#btnClearAllCensus").click();
+        }
+    },
+
+    /**
      * Use a checkbox to select all checkboxes in a given element
      *
      * @param {object} e The click event object of the 'select all' checkbox

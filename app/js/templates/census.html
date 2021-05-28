@@ -1,0 +1,46 @@
+<nav class="top-nav">
+    <div id="divTabsContainer" class="float-left">
+        <div>
+            <ul id="censusTab" class="nav tn-menu">
+                <li class="nav-item active">
+                    <a href="#billing/census/list" class="nav-link active show" i18n="shared.buttons.processing"></a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div class="tab-pane h-98 census-header" id='divCensus'>
+    <div id='censusHeaders' class="ohip-claim">
+        <div class="ohip-claim display-flex">
+            <div class="col-lg-6 display-flex">
+                <label for="ddlOrdFacility" class="col-sm-3 col-form-label padding-left-10"
+                    i18n="order.newOrder.orderingFacility"></label>
+                <div class="col-sm-3 col-form-content">
+                    <select class="form-control select-box" id="ddlOrdFacility">
+                    </select>
+                </div>
+            </div>
+            <div class="col-lg-6"></div>
+        </div>
+        <div class="ohip-claim ordering-facility-notes display-flex">
+            <div class="col-lg-6">
+                <div class="form-group">
+                        <label i18n="billing.payments.orderingFacilityNotes"></label>
+                </div>
+                <div class="form-group form-inline">
+                        <textarea id="txtNotesEditor" class="editor"></textarea>
+                </div>
+            </div>
+            <div class="col-lg-6 position:relative;">
+                <button type="button" class="btn btn-primary position-absolute btm-0-lft-0" id="btnSaveNotes" i18n="shared.buttons.saveNotes"></button>
+                <button type="button" class="btn btn-primary position-absolute btm-0-rgt-15" id="btnUpdate" i18n="shared.buttons.update"></button>
+                <button class="btn btn-primary hideProp" id="btnClearAllCensus"></button>
+                <button class="btn btn-primary hideProp" id="btnSelectAllCensus"></button>
+            </div>
+        </div>
+    </div>
+    <div class='Grid' id='divGridCensus'>
+        <table id="tblGridCensus"></table>
+        <div id="gridPager_census"></div>
+    </div>
+</div>

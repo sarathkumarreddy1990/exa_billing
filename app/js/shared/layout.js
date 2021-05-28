@@ -17,6 +17,7 @@ var layout = {
         'Studies': '#aStudies',
         'EOB': '#aEob',
         'Log': '#aLog',
+        'Census': '#aCensus'
     },
 
     moduleHeaders: {
@@ -28,6 +29,7 @@ var layout = {
         'Studies': 'Studies',
         'EOB': 'EOB',
         'Log': 'Log',
+        'Census': 'Census'
     },
 
     screenLinkIds: {
@@ -201,6 +203,10 @@ var layout = {
             case 'Era':
                 module = 'EOB';
                 break;
+            case 'Census':
+                module = 'Census';
+                break;
+    
         }
 
         if (module == 'Setup') {
