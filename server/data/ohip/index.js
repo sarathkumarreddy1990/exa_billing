@@ -861,8 +861,9 @@ const OHIPDataAPI = {
                     SELECT row_to_json(insurance_details) FROM (
                     SELECT
                         ppi.policy_number AS "healthNumber",
-                        ppi.group_number AS "versionCode",              
-                        pip.insurance_name AS "payerName",              
+                        ppi.policy_number AS "rmbRegistrationNumber",
+                        ppi.group_number AS "versionCode",
+                        pip.insurance_name AS "payerName",
                         pip.insurance_code AS "paymentProgram"                
                     FROM public.patient_insurances ppi
                     INNER JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
@@ -874,7 +875,7 @@ const OHIPDataAPI = {
                         SELECT
                             pcc.display_code AS "serviceCode",
                             (bch.bill_fee * bch.units) AS "feeSubmitted",
-                            1 AS "numberOfServices",
+                            bch.units AS "numberOfServices",
                             charge_dt AS "serviceDate",
                             billing.get_charge_icds (bch.id) AS diagnosticCodes
                         FROM billing.charges bch

@@ -2388,9 +2388,9 @@ var commonjs = {
     },
 
     showLoadingMessage: function (msg) {
-        $('#divLoading').css('display', 'block');
-        $('#divLoadingMsg').css('display', 'block');
-        $('#divLoadingMsg').html(msg);
+        $('#divLoading').css('display', 'flex');
+        $('#divLoadingMsg').css('display', 'flex');
+        $('#divLoadingMsg').text(msg);
     },
 
     docClick: function (e) {
