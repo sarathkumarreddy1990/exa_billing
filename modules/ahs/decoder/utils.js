@@ -1,3 +1,5 @@
+const moment = require('moment');
+
 const getText = (alphanumericStr) => {
     return `${alphanumericStr}`.trim();
 };
@@ -8,6 +10,11 @@ const getNumeric = (numericStr) => {
 
 const getMoney = (moneyStr) => {
     return getNumeric(moneyStr) / 100;
+};
+
+const getDate = (dateStr) => {
+    const dateVal = dateStr && moment(dateStr).format('YYYY-MM-DD') || 'Invalid date';
+    return dateVal === 'Invalid date' ? null : dateVal;
 };
 
 const getFormattedValue = (code, regExp) => {
@@ -23,7 +30,8 @@ const getFormattedValue = (code, regExp) => {
 const fieldParsers = {
     'generic': getText,
     'M': getMoney,
-    'N': getNumeric
+    'N': getNumeric,
+    'D': getDate
 };
 
 const util = {
