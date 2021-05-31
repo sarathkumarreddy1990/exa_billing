@@ -52,6 +52,7 @@ class Logger {
         }
 
         this.loggerInstance = pino({
+            prettyPrint: process.env.NODE_ENV !== 'production' && process.env.ENABLE_PRETTY_PRINT,
             level: this.logLevel,
             crlf: true,
             enabled: !this.disableLogging,
