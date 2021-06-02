@@ -3653,7 +3653,12 @@ define(['jquery',
                 var claim_status_id = ~~$('#ddlClaimStatus').val() || null;
                 var claim_Study_date = $('#txtClaimDate').val(); 
                 var facilityTimeZone;
-                app.facilities.forEach((val) => { if (val.id === app.default_facility_id) { facilityTimeZone = val.time_zone } });
+                
+                app.facilities.forEach(function (val) {
+                    if (val.id === app.default_facility_id) {
+                        facilityTimeZone = val.time_zone
+                    }
+                });
 
                 claim_model.claims = {
                     claim_id: self.claim_Id,
