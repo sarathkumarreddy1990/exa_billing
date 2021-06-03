@@ -3652,9 +3652,6 @@ define(['jquery',
                 var can_ahs_pay_to_code = $('#ddlPayToCode').val();
                 var claim_status_id = ~~$('#ddlClaimStatus').val() || null;
                 var claim_Study_date = $('#txtClaimDate').val();
-                var defaultFacility = app.facilities.find(function (val) {
-                    return val.id === app.default_facility_id
-                });
 
                 claim_model.claims = {
                     claim_id: self.claim_Id,
@@ -3669,7 +3666,7 @@ define(['jquery',
                     billing_code_id: $('#ddlBillingCode option:selected').val() != '' ? parseInt($('#ddlBillingCode option:selected').val()) : null,
                     billing_class_id: $('#ddlBillingClass option:selected').val() != '' ? parseInt($('#ddlBillingClass option:selected').val()) : null,
                     created_by: app.userID,
-                    claim_dt: $("#txtClaimDate").prop('disabled') ? self.claim_dt_iso :  moment.tz(claim_Study_date, defaultFacility.time_zone).format('YYYY-MM-DD LT z') || null,
+                    claim_dt: $("#txtClaimDate").prop('disabled') ? self.claim_dt_iso : commonjs.shiftToFacilityTimeZone(facility_id, claim_Study_date).format('YYYY-MM-DD LT z'),
                     current_illness_date: $('#txtDate').val() != '' ? commonjs.getISODateString($('#txtDate').val()) : null,
                     same_illness_first_date: $('#txtOtherDate').val() != '' ? commonjs.getISODateString($('#txtOtherDate').val()) : null,
                     unable_to_work_from_date: $('#txtWCF').val() != '' ? commonjs.getISODateString($('#txtWCF').val()) : null,
