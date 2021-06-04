@@ -349,7 +349,7 @@ module.exports = {
                            UPDATE billing.payments
                             SET
                                 amount = ( SELECT COALESCE(sum(payment),'0')::numeric FROM matched_claims ),
-                                notes =  notes || E'\n' || 'Amount received for matching orders : ' || ( SELECT COALESCE(sum(payment),'0')::numeric FROM matched_claims ) || E'\n\n' || ${paymentDetails.uploaded_file_name} || E'\n\n\n' || ${paymentDetails.messageText}
+                                notes =  notes || E'\n' || 'Amount received for matching orders : ' || ( SELECT COALESCE(sum(payment),'0')::numeric FROM matched_claims ) || E'\n\n' || ${paymentDetails.messageText}
                             WHERE id = ${paymentDetails.id}
                             AND ${paymentDetails.from} IN ('EOB', 'OHIP_EOB')
                         )
