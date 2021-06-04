@@ -649,9 +649,28 @@ module.exports = {
 
         if (isValid) {
             result.isValid = true
-            ebs[HCV_REAL_TIME]({ hcvRequests }, (hcvErr, hcvResponse) => {
+            ebs[HCV_REAL_TIME]({ hcvRequests }, async (hcvErr, hcvResponse) => {
                 args.eligibility_response = hcvResponse;
+                let {
+                    results = [],
+                    err = null,
+                    faults = []
+                } = hcvResponse || {};
                 billingApi.saveEligibilityLog(args);
+                
+                if (!err && results.length) {
+                    let {
+                        responseID = null
+                    } = results[0] || {};
+
+                    if (responseID !== 'IS_IN_DISTRIBUTED_STATUS') {
+                        await billingApi.updatePatientInsDetails({
+                            ...args,
+                            ...results[0] || {}
+                        });
+                    }
+                }
+
                 return callback(hcvErr, hcvResponse);
             });
         }
