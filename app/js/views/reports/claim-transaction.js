@@ -167,13 +167,9 @@ define([
                     buttonWidth: '200px'
                 });
 
-                var selectedLabel = this.viewModel.i18nColumnHeaderCpt + 'Selected';
-                var selectLabel = this.viewModel.i18nColumnHeaderCpt + 'Select';
-                var cptLabel = this.viewModel.i18nColumnHeaderCpt;
-
-                $("#selectedLabel").attr("i18n", selectedLabel);
-                $("#selectLabel").attr("i18n", selectLabel);
-                $("#cptLabel").attr("i18n", cptLabel);
+                $("#selectedLabel").attr("i18n", 'shared.fields.cptCodeSelected');
+                $("#selectLabel").attr("i18n", 'shared.fields.cptCodeSelect');
+                $("#cptLabel").attr("i18n", 'shared.fields.cptCode');
 
                 commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe());
             },
