@@ -108,7 +108,8 @@ module.exports = {
         update_grid_settings: 'user_settings',
         submitClaims: 'submitClaims',
         fileManagement: 'fileManagement',
-        submission_types:'submission_types'
+        submission_types:'submission_types',
+        claim_charge: 'delete_charge'
     },
 
     permissionsMap: {
