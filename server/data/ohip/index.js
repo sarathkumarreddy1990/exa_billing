@@ -1074,6 +1074,84 @@ const OHIPDataAPI = {
         `;
 
         return await query(sql);
+    },
+
+    updatePatientInsDetails: async (args) => {
+        const {
+            patient_id,
+            patient_insurance_id,
+            firstName = null,
+            secondName = null,
+            lastName = null,
+            gender = null,
+            dateOfBirth = null,
+            expiryDate = null,
+            userId = 1,
+            companyId = 1
+        } = args;
+
+        const sql = SQL`
+        WITH update_patient_details AS (
+            UPDATE patients p
+            SET
+                first_name = COALESCE(NULLIF(${firstName}, ''), p.first_name)
+                , middle_name = COALESCE(NULLIF(${secondName}, ''), p.middle_name)
+                , last_name = COALESCE(NULLIF(${lastName}, ''), p.last_name)
+                , gender = COALESCE(NULLIF(${gender}, ''), p.gender)
+                , birth_date = COALESCE(NULLIF(${dateOfBirth}, '')::DATE, p.birth_date)
+                , full_name = get_full_name(
+                                COALESCE(NULLIF(${lastName}, ''), p.last_name)
+                                , COALESCE(NULLIF(${firstName}, ''), p.first_name)
+                                , COALESCE(NULLIF(${secondName}, ''), p.middle_name)
+                                , p.prefix_name
+                                , p.suffix_name
+                              )
+
+            WHERE id = ${patient_id}
+            RETURNING
+                id
+                , row_to_json(p.*) AS new_values
+                , ( SELECT row_to_json(old_row)
+                    FROM ( SELECT
+                                first_name
+                                , middle_name
+                                , last_name
+                                , gender
+                                , birth_date
+                                , full_name
+                              FROM public.patients
+                              WHERE id = ${patient_id}) AS old_row) AS old_values
+
+        )
+        , update_patient_insurance_details AS (
+            UPDATE patient_insurances pi
+            SET valid_to_date = COALESCE(NULLIF(${expiryDate}, '')::DATE, pi.valid_to_date)
+            WHERE patient_id = ${patient_id}
+            AND id = ${patient_insurance_id}
+            RETURNING pi.* AS old_values
+        )
+        SELECT create_audit (
+            ${userId}
+            , ${patient_id}
+            , null
+            , null
+            , 'Health Card Validation'
+            , 'Patient'
+            , 'Update: Patient Information Updated by MOHLTC for patient id: ' || ${patient_id}
+            , null
+            , jsonb_build_object(
+                'old_values', upd.old_values,
+                'new_values', upd.new_values
+            )::JSON
+            , null
+            , null
+            , ${companyId}
+        ) AS id
+        FROM update_patient_details upd
+        WHERE upd.id IS NOT NULL
+        `;
+
+        return await query(sql.text, sql.values);
     }
 
 };
