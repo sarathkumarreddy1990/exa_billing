@@ -54,6 +54,8 @@ module.exports = {
     getOHIPLineItemsAndClaims: async (ohipJson, params) => {
 
         let lineItems = [];
+        let cas_reason_group_details = await data.getcasReasonGroupCodes(params);
+        cas_reason_group_details = cas_reason_group_details.rows && cas_reason_group_details.rows.length ? cas_reason_group_details.rows[0] : {};
 
         ohipJson.claims.forEach((claim, claim_index) => {
             if (claim.accountingNumber && !isNaN(claim.accountingNumber)) {
@@ -88,13 +90,25 @@ module.exports = {
                         adjustment_code = 'ERAREC';
                     }
 
+                    let groupCode = _.find(cas_reason_group_details.cas_group_codes, { code: 'OHIP_EOB' });
+                    let reasonCode = _.find(cas_reason_group_details.cas_reason_codes, { code: serviceLine.explanatoryCode });
+                    let cas_details = [];
+
+                    if (serviceLine.explanatoryCode && groupCode && reasonCode) {
+                        cas_details.push({
+                            group_code_id: groupCode.id,
+                            reason_code_id: reasonCode.id,
+                            amount: 0
+                        });
+                    }
+
                     let item = {
                         claim_number: parseInt(claim.accountingNumber),
                         cpt_code: serviceLine.serviceCode,
                         denied_value: serviceLine.explanatoryCode !== '' && amountPaid === 0 ? 1 : 0, // Set 1 when cpts payment = zero and the explanatoryCode should not be empty
                         payment: amountPaid || 0.00,
                         adjustment: 0.00,
-                        cas_details: [],
+                        cas_details,
                         charge_id: 0,
                         service_date: serviceLine.serviceDate || null,
                         patient_fname: claim.patientFirstName || '',
