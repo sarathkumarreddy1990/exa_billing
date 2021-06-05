@@ -90,14 +90,14 @@ module.exports = {
                         adjustment_code = 'ERAREC';
                     }
 
-                    let groupCode = _.filter(cas_reason_group_details.cas_group_codes, { code: 'OHIP_EOB' });
-                    let reasonCode = _.filter(cas_reason_group_details.cas_reason_codes, { code: serviceLine.explanatoryCode });
+                    let groupCode = _.find(cas_reason_group_details.cas_group_codes, { code: 'OHIP_EOB' });
+                    let reasonCode = _.find(cas_reason_group_details.cas_reason_codes, { code: serviceLine.explanatoryCode });
                     let cas_details = [];
 
-                    if (serviceLine.explanatoryCode && groupCode.length && reasonCode.length) {
+                    if (serviceLine.explanatoryCode && groupCode && reasonCode) {
                         cas_details.push({
-                            group_code_id: groupCode[0].id,
-                            reason_code_id: reasonCode[0].id,
+                            group_code_id: groupCode.id,
+                            reason_code_id: reasonCode.id,
                             amount: 0
                         });
                     }
