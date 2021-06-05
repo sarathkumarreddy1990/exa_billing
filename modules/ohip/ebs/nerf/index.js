@@ -529,9 +529,7 @@ module.exports = {
             });
         }, []);
 
-        let lastProcessedRecords = resources.length > 2 ? resources.slice(Math.max(resources.length - 2, 1)) : resources;
-
-        updateRemittanceAdvice(lastProcessedRecords).forEach((resource) => {
+        updateRemittanceAdvice(resources).forEach((resource) => {
             resources.push({
                 resourceID: global.nextResourceID++,
                 ...resource,
