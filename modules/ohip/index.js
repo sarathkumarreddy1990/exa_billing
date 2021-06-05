@@ -56,6 +56,12 @@ const claimWorkBenchController = require('../../server/controllers/claim/claim-w
 const _ = require('lodash');
 
 
+const config = require('../../server/config');
+/**
+ * Global value declared for edi file resource_no
+ */
+global.nextResourceID = 60000;
+
 /**
  * const getClaimSubmissionFilename - description
  *
@@ -370,6 +376,18 @@ module.exports = {
 
         if (params.isAllClaims) {
             params.claimIds = await claimWorkBenchController.getClaimsForEDI(params);
+        }
+
+        /** Nerf engine throws constraint error when billing service restarted ,
+         * to avoid this issue when global data is not available getting latest resource number from edi files
+         * TO-DO: This is temp workaround later we can overwrite using redis cache memory or with real db data */
+        if (global.nextResourceID === 60000 && !config.get('ebsProduction')) {
+            let result = await claimWorkBenchController.getLatestResourceNumberForEDI(params);
+            let {
+                resource_no = null
+            } = result && result.length && result[0] || {};
+
+            resource_no ? global.nextResourceID = parseInt(resource_no) + 1 : '';
         }
 
         let claimIds = params.claimIds.split(',');
