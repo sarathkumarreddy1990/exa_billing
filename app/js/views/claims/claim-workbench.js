@@ -832,21 +832,31 @@ define(['jquery',
 
 
             ohipResponse: function(data) {
+                var errData = null;
+
+                if (data.results && data.results.length && !data.error && !data.faults.length) {
+                    return commonjs.showStatus('Claims submitted successfully');
+                }
                 if (data.validationMessages && data.validationMessages.length) {
-                    data.validationMessages.forEach(function(validationMessage) {
-                        commonjs.showWarning(validationMessage);
-                    });
+                    errData = data.validationMessages;
+                } else if (data.error && data.error.length) {
+                    errData = {
+                        error: data.error,
+                        content: data.results,
+                        faults: data.faults
+                    }
                 }
-                else if (data.faults && data.faults.length) {
-                    data.faults.forEach(function(fault) {
-                        commonjs.showWarning((fault.code + '/' + fault.message)
-                            || (fault.faultcode + '/' + fault.faultstring)
-                            || 'Unable to communicate with OHIP EBS');
-                    });
-                }
-                else if (data.results && data.results.length) {
-                    commonjs.showStatus('Claims submitted successfully');
-                }
+        
+                var errorContent = '<div style="width:100%;height:100%" id="divError"><textarea style="width:100%;height:100%" id="txtAreaErrorData">' + JSON.stringify(errData, undefined, 4) + '</textarea></div>';
+
+                commonjs.showDialog({
+                    header: 'OHIP  Submission Error',
+                    i18nHeader: 'shared.moduleheader.ohipClaims',
+                    width: '50%',
+                    height: '50%',
+                    html: errorContent
+                });      
+
             },
 
 
@@ -2255,6 +2265,8 @@ define(['jquery',
                                                 return i18n.get('billing.claims.uploaded');
                                             case 'success':
                                                 return i18n.get('billing.claims.submitted');
+                                            case 'failure':
+                                                return i18n.get('billing.claims.failure');    
                                             case 'pending':
                                             default:
                                                 return i18n.get('billing.claims.created');

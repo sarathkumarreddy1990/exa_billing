@@ -489,6 +489,7 @@ module.exports = {
                 resourceType: CLAIMS,
                 filename: storedFile.absolutePath,
                 description: getResourceFilename(storedFile.absolutePath),
+                edi_file_id: storedFile.edi_file_id
             });
             return result;
         }, []);
@@ -515,16 +516,37 @@ module.exports = {
                 auditInfo,
             } = uploadResponse;
 
+            let uploadFiles = auditInfo.length && auditInfo[0].eventDetail && auditInfo[0].eventDetail.upload && auditInfo[0].eventDetail.upload.uploads || [];
+
             billingApi.auditTransaction(auditInfo);
 
             if (uploadErr) {
-                // billingApi.updateFileStatus({edi_file_id, status: 'failure'});
+                // when OHIP file upload failure updating edi file status also failure 
+                await billingApi.updateFileStatus({
+                    files: uploadFiles,
+                    status: 'failure'
+                });
+
+                uploadResponse.error = "Error in File upload";
+
                 return callback(uploadErr, null);
             }
 
-            if (faults.length) {
-                // TODO note various CT scenarios
-                return callback(null, uploadResponse);
+            //OHIP data error getting in response , so finding that using Eror codes 
+            let err_matches = _.filter(
+                ['ECLAM0003'],
+                ( s ) => { return JSON.stringify(uploadResponse).indexOf( s ) > -1; }
+            );
+
+            if (faults.length || err_matches.length ) {
+                // when OHIP file upload failure updating edi file status also failure 
+                await billingApi.updateFileStatus({
+                    files: uploadFiles,
+                    status: 'failure'
+                });
+
+                uploadResponse.error = "Error in File upload";
+                return callback(uploadResponse, null);
             }
 
             const separatedUploadResults = separateResults(uploadResponse, EDT_UPLOAD, responseCodes.SUCCESS);
