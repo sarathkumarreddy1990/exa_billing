@@ -754,6 +754,10 @@ const api = {
                   ) claim_sequence_numbers ON TRUE`;
         }
 
+        if(tables.ordering_facility_contacts){
+            r += ' LEFT JOIN ordering_facility_contacts ON ordering_facility_contacts.id = studies.ordering_facility_contact_id ';
+        }
+
         return r;
     },
 
@@ -903,7 +907,8 @@ const api = {
             `icd_codes.description AS icd_description`,
             `patient_alt_accounts.pid_alt_account`,
             `patient_alt_accounts.phn_alt_account`,
-            `claim_sequence_numbers.can_bc_claim_sequence_numbers`
+            `claim_sequence_numbers.can_bc_claim_sequence_numbers`,
+            'ordering_facility_contacts.billing_type'
         ];
 
         return stdcolumns.concat(

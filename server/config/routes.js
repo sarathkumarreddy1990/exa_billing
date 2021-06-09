@@ -23,6 +23,8 @@ const studyFilterRouter = require('../routes/setup/study-filter');
 const eraRouter = require('../routes/era');
 const splitClaimRouter = require('../routes/claim/split-claim');
 const cronRoutes = require('../routes/cron-handlers');
+const censusRouter = require('../routes/census');
+
 const router = function (app) {
 
     app.use('/exa_modules/billing/cron', cronRoutes);
@@ -53,6 +55,7 @@ const router = function (app) {
     app.use('/exa_modules/billing/patient', patientRouter);
     app.use('/exa_modules/billing/setup/study_filters', studyFilterRouter);
     app.use('/exa_modules/billing/era', eraRouter);
+    app.use('/exa_modules/billing/census', censusRouter);
 };
 
 module.exports = router;
