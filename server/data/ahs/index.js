@@ -737,7 +737,7 @@ const ahsData = {
                                     info.submitter_prefix ||
                                     info.year ||
                                     info.source_code ||
-                                    info.sequence_number ||
+                                    LPAD(info.sequence_number::TEXT, 7, '0') ||
                                     info.check_digit
                                 )
                             ) AS claim_number,

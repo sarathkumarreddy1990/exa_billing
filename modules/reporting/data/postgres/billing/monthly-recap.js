@@ -146,7 +146,7 @@ ter_ins_payment AS (
 payment_details AS (
 	SELECT
     	SUM(CASE WHEN amount_type = 'payment' THEN bpa.amount ELSE 0::money END) payment,
-        SUM(CASE WHEN amount_type = 'adjustment' and accounting_entry_type != 'refund_debit'  THEN bpa.amount ELSE 0::money END) adjustment ,
+        SUM(CASE WHEN amount_type = 'adjustment' THEN bpa.amount ELSE 0::MONEY END) adjustment,
         sum(CASE when amount_type = 'adjustment' and accounting_entry_type = 'refund_debit' then bpa.amount else 0::money end ) as refund_amount,
     	agg_claim.claim_id
     FROM agg_claim

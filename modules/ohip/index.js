@@ -592,9 +592,16 @@ module.exports = {
                 const loadFileData = await billingApi.loadFile({ edi_files_id: fileRow.id });
 
                 if (loadFileData.data) {
-                    const parsedResponseFile = new Parser(loadFileData.uploaded_file_name).parse(loadFileData.data);
-                    fileRow.totalAmountPayable = parsedResponseFile.totalAmountPayable;
-                    fileRow.accountingTransactions = parsedResponseFile.accountingTransactions;
+                    try {
+                        const parsedResponseFile = new Parser(loadFileData.uploaded_file_name).parse(loadFileData.data);
+                        fileRow.totalAmountPayable = parsedResponseFile.totalAmountPayable;
+                        fileRow.accountingTransactions = parsedResponseFile.accountingTransactions;
+                    }
+                    catch(e) {
+                        logger.error('Payment file does not have transaction details', e);
+                        fileRow.totalAmountPayable = null;
+                        fileRow.accountingTransactions = [];
+                    }
                 }
                 else {
                     // TODO either attempt to self-heal or remove the file from the results
@@ -649,9 +656,28 @@ module.exports = {
 
         if (isValid) {
             result.isValid = true
-            ebs[HCV_REAL_TIME]({ hcvRequests }, (hcvErr, hcvResponse) => {
+            ebs[HCV_REAL_TIME]({ hcvRequests }, async (hcvErr, hcvResponse) => {
                 args.eligibility_response = hcvResponse;
+                let {
+                    results = [],
+                    err = null,
+                    faults = []
+                } = hcvResponse || {};
                 billingApi.saveEligibilityLog(args);
+                
+                if (!err && results.length) {
+                    let {
+                        responseID = null
+                    } = results[0] || {};
+
+                    if (responseID !== 'IS_IN_DISTRIBUTED_STATUS') {
+                        await billingApi.updatePatientInsDetails({
+                            ...args,
+                            ...results[0] || {}
+                        });
+                    }
+                }
+
                 return callback(hcvErr, hcvResponse);
             });
         }

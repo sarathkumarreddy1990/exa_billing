@@ -110,7 +110,7 @@ ws.Mtom.prototype.receive = (ctx, callback) => {
 
     ctx.data = {};  // NOTE
 
-    for (let i in parts) {
+    for (let i = 0; i < parts.length; ++i) {
         const part = parts[i];
         const id = utils.extractContentId(part.headers["content-id"] );
         ctx.data[id] = part.data.toString("base64"); // NOTE
@@ -166,7 +166,7 @@ const decrypt = (encryptedKey, encryptedContent, pemfile) => {
         throw new Error('padding length invalid');
     }
 
-    return Buffer.from(decryptedContent, 'binary').toString('utf8');
+    return Buffer.from(decryptedContent, 'binary');
 };
 
 
@@ -178,7 +178,10 @@ ws.Xenc.prototype.send = function(ctx, callback) {
     const pemfile = this.config.pemfile;
     this.next.send(ctx, function(ctx) {
 
-        const doc = new dom().parseFromString(ctx.response.toString());
+        const responseString = typeof ctx.response === `string`
+            ? ctx.response
+            : ctx.response.toString();
+        const doc = new dom().parseFromString(responseString);
         const bodyNode = select("//*[local-name(.)='Body']", doc)[0];
 
         try {
@@ -189,7 +192,7 @@ ws.Xenc.prototype.send = function(ctx, callback) {
 
             encryptedKeyNodes.splice(0, 1);
 
-            const newNode = new dom().parseFromString(decryptedData);
+            const newNode = new dom().parseFromString(decryptedData.toString('utf8'));
 
             bodyNode.firstChild.replaceChild(
                 newNode,
@@ -209,11 +212,11 @@ ws.Xenc.prototype.send = function(ctx, callback) {
                 const encryptedKeyValue = select("*[local-name(.)='CipherData']/*[local-name(.)='CipherValue']/text()", encryptedKeyNode)[0].nodeValue;
 
                 // contentURI has 'cid:' at the beginning so pop it off
-                const decryptedContent = decrypt(encryptedKeyValue, ctx.data[contentURI.slice(4)], pemfile).toString('binary');
+                const decryptedContent = decrypt(encryptedKeyValue, ctx.data[contentURI.slice(4)], pemfile);
 
                 const contentNode = select(`//*[@href='${contentURI}']//parent::*`, bodyNode)[0];
                 contentNode.removeChild(contentNode.firstChild);
-                utils.setElementValue(doc, contentNode, decryptedContent);
+                utils.setElementValue(doc, contentNode, decryptedContent.toString(`base64`));
 
             }
 
