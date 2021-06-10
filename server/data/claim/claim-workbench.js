@@ -1,5 +1,5 @@
 const SearchFilter = require('./claim-search-filters');
-const { SQL, query, queryWithAudit } = require('../index');
+const { SQL, query, queryWithAudit, queryRows } = require('../index');
 const filterValidator = require('./../filter-validator')();
 
 module.exports = {
@@ -1007,5 +1007,20 @@ module.exports = {
                 INNER JOIN billing.claims c on c.id = claim_id `;
 
         return await query(sql.text, sql.values);
+    },
+
+    getLatestResourceNumberForEDI: async () => {
+        const sql = SQL` SELECT
+                            resource_no::bigint
+                         FROM billing.edi_files
+                         WHERE resource_no IS NOT NULL
+                         ORDER BY resource_no DESC LIMIT 1`;
+        try {
+            return await queryRows(sql);
+        }
+        catch (e) {
+            console.error(e);
+            return [];
+        }
     }
 };
