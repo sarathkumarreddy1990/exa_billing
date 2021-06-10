@@ -41,7 +41,8 @@
   },
   "expectedPayDate": {
     "startPos": 71,
-    "fieldLength": 8
+    "fieldLength": 8,
+    "format": "D"
   },
   "assessmentDate": {
     "startPos": 79,

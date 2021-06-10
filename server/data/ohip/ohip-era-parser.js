@@ -158,7 +158,7 @@ module.exports = {
         let ohipPaymentResults = {};
         let eraObject = f_data.ra_json;
         let totalAmountPayable = eraObject.totalAmountPayable ? Math.round(eraObject.totalAmountPayable * 100) / 10000 : 0.00;
-        let notes = 'Amount shown in EOB:$' + totalAmountPayable;
+        let notes = `File Name: ${f_data.uploaded_file_name || ''} \nAmount shown in EOB: $${totalAmountPayable}`;
         let payerDetails = {
             amount       : 0,
             notes        : notes,
@@ -192,7 +192,7 @@ module.exports = {
             paymentResult.file_id =  payerDetails.file_id; // imported ERA file id
             paymentResult.created_by = payerDetails.created_by;
             paymentResult.company_id = payerDetails.company_id;
-            paymentResult.uploaded_file_name =  payerDetails.uploaded_file_name;
+            paymentResult.uploaded_file_name =  f_data.uploaded_file_name || '';
             paymentResult.payer_type = payerDetails.payer_type;
             paymentResult.messageText = eraObject.messageText || '';
             paymentResult.code = 'ERA';

@@ -3681,6 +3681,7 @@ define(['jquery',
 
                 var can_ahs_pay_to_code = $('#ddlPayToCode').val();
                 var claim_status_id = ~~$('#ddlClaimStatus').val() || null;
+                var claim_Study_date = $('#txtClaimDate').val();
 
                 claim_model.claims = {
                     claim_id: self.claim_Id,
@@ -3695,7 +3696,7 @@ define(['jquery',
                     billing_code_id: $('#ddlBillingCode option:selected').val() != '' ? parseInt($('#ddlBillingCode option:selected').val()) : null,
                     billing_class_id: $('#ddlBillingClass option:selected').val() != '' ? parseInt($('#ddlBillingClass option:selected').val()) : null,
                     created_by: app.userID,
-                    claim_dt: self.claim_dt_iso || null,
+                    claim_dt: $("#txtClaimDate").prop('disabled') ? self.claim_dt_iso : commonjs.shiftToFacilityTimeZone(facility_id, claim_Study_date).format('YYYY-MM-DD LT z'),
                     current_illness_date: $('#txtDate').val() != '' ? commonjs.getISODateString($('#txtDate').val()) : null,
                     same_illness_first_date: $('#txtOtherDate').val() != '' ? commonjs.getISODateString($('#txtOtherDate').val()) : null,
                     unable_to_work_from_date: $('#txtWCF').val() != '' ? commonjs.getISODateString($('#txtWCF').val()) : null,
@@ -4632,7 +4633,7 @@ define(['jquery',
             //EXA-18273 - Getting charges created for a patient on current date will be displayed for alberta billing
             getPatientCharges: function (id, selectedCharges) {
                 var self = this;
-                var chargeRow;
+
                 $.ajax({
                     url: '/exa_modules/billing/claims/claim/get_patient_charges',
                     type: 'GET',
@@ -4641,9 +4642,9 @@ define(['jquery',
                         current_date: moment(self.studyDate, 'L').format('YYYY-MM-DD')
                     },
                     success: function (data, response) {
+                        var chargeRow;
                         // Bind Study date of the current claim for the patient
                         $('#patientStudyDate').text(self.studyDate || '');
-
                         if (!data || !data.length) {
                             chargeRow = self.patientChargesTemplate({row: []});
                         } else {
