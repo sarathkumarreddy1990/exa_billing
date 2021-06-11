@@ -130,10 +130,9 @@ const {
 const fs = require('fs');
 
 const resources = [];
-let nextResourceID = 60000;
 
 // this is really crummy and should be reconsidered
-const REMITTANCE_ADVICE_RESOURCE_ID = nextResourceID++;
+const REMITTANCE_ADVICE_RESOURCE_ID = global.nextResourceID++;
 
 
 // matches service codes beginning with 'X' -- used to determine if an entire Claims File should be rejected
@@ -318,7 +317,7 @@ const addResources = (newResources) => {
     while (newResources.length) {
         resources.push({
             ...(newResources.pop()),
-            resourceID: nextResourceID++,
+            resourceID: global.nextResourceID++,
         });
     }
 };
@@ -477,7 +476,7 @@ module.exports = {
 
             // Create a new resource
             const resource = {
-                resourceID: nextResourceID++,
+                resourceID: global.nextResourceID++,
                 status: 'UPLOADED',
                 filename,
                 description,
@@ -532,7 +531,7 @@ module.exports = {
 
         updateRemittanceAdvice(resources).forEach((resource) => {
             resources.push({
-                resourceID: nextResourceID++,
+                resourceID: global.nextResourceID++,
                 ...resource,
             });
         });

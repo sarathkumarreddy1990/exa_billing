@@ -565,6 +565,7 @@ const applyBatchEditReport = async (args) => {
                 AND ef.status = 'success'
                 AND ef.created_dt::date = ${batchCreateDate}
                 AND efc.batch_number = ${parsedResponseFile[0].batchSequenceNumber}
+                ORDER BY ef.id DESC
         ),
         insert_related_file_cte AS (
             INSERT INTO billing.edi_related_files (
@@ -864,13 +865,13 @@ const OHIPDataAPI = {
                         ppi.policy_number AS "rmbRegistrationNumber",
                         ppi.group_number AS "versionCode",
                         pip.insurance_name AS "payerName",
-                        pip.insurance_code AS "paymentProgram"                
+                        pip.insurance_code AS "paymentProgram"
                     FROM public.patient_insurances ppi
                     INNER JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
                     WHERE ppi.id = bc.primary_patient_insurance_id) insurance_details
                 ) insurance_details,
                 (
-                    SELECT json_agg(row_to_json(charge_items)) 
+                    SELECT json_agg(row_to_json(charge_items))
                     FROM (
                         SELECT
                             pcc.display_code AS "serviceCode",
@@ -911,8 +912,8 @@ const OHIPDataAPI = {
                 'HOP' AS "serviceLocationIndicator",
                 reff_pr.provider_info -> 'NPI' AS "referringProviderNumber",
                 'P' AS "payee",
-                'HOP' AS "masterNumber",  
-                get_full_name(pp.last_name,pp.first_name) AS "patientName",   
+                'HOP' AS "masterNumber",
+                get_full_name(pp.last_name,pp.first_name) AS "patientName",
                 'IHF' AS "serviceLocationIndicator",
                 ppos.code AS place_of_service
             FROM billing.claims bc
