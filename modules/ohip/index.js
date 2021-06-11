@@ -56,6 +56,12 @@ const claimWorkBenchController = require('../../server/controllers/claim/claim-w
 const _ = require('lodash');
 
 
+const config = require('../../server/config');
+/**
+ * Global value declared for edi file resource_no
+ */
+global.nextResourceID = 60000;
+
 /**
  * const getClaimSubmissionFilename - description
  *
@@ -372,6 +378,18 @@ module.exports = {
             params.claimIds = await claimWorkBenchController.getClaimsForEDI(params);
         }
 
+        /** Nerf engine throws constraint error when billing service restarted ,
+         * to avoid this issue when global data is not available getting latest resource number from edi files
+         * TO-DO: This is temp workaround later we can overwrite using redis cache memory or with real db data */
+        if (global.nextResourceID === 60000 && !config.get('ebsProduction')) {
+            let result = await claimWorkBenchController.getLatestResourceNumberForEDI(params);
+            let {
+                resource_no = null
+            } = result && result.length && result[0] || {};
+
+            resource_no ? global.nextResourceID = parseInt(resource_no) + 1 : '';
+        }
+
         let claimIds = params.claimIds.split(',');
         let validationData = await validateClaimsData.validateEDIClaimCreation(claimIds);
         validationData = validationData && validationData.rows && validationData.rows.length && validationData.rows[0] || [];
@@ -471,6 +489,7 @@ module.exports = {
                 resourceType: CLAIMS,
                 filename: storedFile.absolutePath,
                 description: getResourceFilename(storedFile.absolutePath),
+                edi_file_id: storedFile.edi_file_id
             });
             return result;
         }, []);
@@ -497,16 +516,37 @@ module.exports = {
                 auditInfo,
             } = uploadResponse;
 
+            let uploadFiles = auditInfo.length && auditInfo[0].eventDetail && auditInfo[0].eventDetail.upload && auditInfo[0].eventDetail.upload.uploads || [];
+
             billingApi.auditTransaction(auditInfo);
 
             if (uploadErr) {
-                // billingApi.updateFileStatus({edi_file_id, status: 'failure'});
+                // when OHIP file upload failure updating edi file status also failure 
+                await billingApi.updateFileStatus({
+                    files: uploadFiles,
+                    status: 'failure'
+                });
+
+                uploadResponse.error = "Error in File upload";
+
                 return callback(uploadErr, null);
             }
 
-            if (faults.length) {
-                // TODO note various CT scenarios
-                return callback(null, uploadResponse);
+            //OHIP data error getting in response , so finding that using Eror codes 
+            let err_matches = _.filter(
+                ['ECLAM0003'],
+                ( s ) => { return JSON.stringify(uploadResponse).indexOf( s ) > -1; }
+            );
+
+            if (faults.length || err_matches.length ) {
+                // when OHIP file upload failure updating edi file status also failure 
+                await billingApi.updateFileStatus({
+                    files: uploadFiles,
+                    status: 'failure'
+                });
+
+                uploadResponse.error = "Error in File upload";
+                return callback(uploadResponse, null);
             }
 
             const separatedUploadResults = separateResults(uploadResponse, EDT_UPLOAD, responseCodes.SUCCESS);
@@ -592,9 +632,16 @@ module.exports = {
                 const loadFileData = await billingApi.loadFile({ edi_files_id: fileRow.id });
 
                 if (loadFileData.data) {
-                    const parsedResponseFile = new Parser(loadFileData.uploaded_file_name).parse(loadFileData.data);
-                    fileRow.totalAmountPayable = parsedResponseFile.totalAmountPayable;
-                    fileRow.accountingTransactions = parsedResponseFile.accountingTransactions;
+                    try {
+                        const parsedResponseFile = new Parser(loadFileData.uploaded_file_name).parse(loadFileData.data);
+                        fileRow.totalAmountPayable = parsedResponseFile.totalAmountPayable;
+                        fileRow.accountingTransactions = parsedResponseFile.accountingTransactions;
+                    }
+                    catch(e) {
+                        logger.error('Payment file does not have transaction details', e);
+                        fileRow.totalAmountPayable = null;
+                        fileRow.accountingTransactions = [];
+                    }
                 }
                 else {
                     // TODO either attempt to self-heal or remove the file from the results
@@ -649,9 +696,28 @@ module.exports = {
 
         if (isValid) {
             result.isValid = true
-            ebs[HCV_REAL_TIME]({ hcvRequests }, (hcvErr, hcvResponse) => {
+            ebs[HCV_REAL_TIME]({ hcvRequests }, async (hcvErr, hcvResponse) => {
                 args.eligibility_response = hcvResponse;
+                let {
+                    results = [],
+                    err = null,
+                    faults = []
+                } = hcvResponse || {};
                 billingApi.saveEligibilityLog(args);
+                
+                if (!err && results.length) {
+                    let {
+                        responseID = null
+                    } = results[0] || {};
+
+                    if (responseID !== 'IS_IN_DISTRIBUTED_STATUS') {
+                        await billingApi.updatePatientInsDetails({
+                            ...args,
+                            ...results[0] || {}
+                        });
+                    }
+                }
+
                 return callback(hcvErr, hcvResponse);
             });
         }

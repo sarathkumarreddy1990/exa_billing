@@ -73,7 +73,7 @@ const claimInquiryDataSetQueryTemplate = _.template(`
                 NULLIF(ip.insurance_info->'ZipPlus','') AS zip_plus,
                 NULLIF(ip.insurance_info->'PhoneNo','') AS phone_no,
                 NULLIF(ip.insurance_info->'FaxNo','') AS fax_no,
-                to_char(timezone(get_facility_tz(bc.facility_id::integer), bc.claim_dt)::DATE, 'MM/DD/YYYY'),
+                to_char(timezone(get_facility_tz(bc.facility_id::integer), bc.claim_dt)::DATE, '<%= dateFormat %>'),
                 CASE
                   WHEN bc.payer_type = 'primary_insurance' OR bc.payer_type = 'secondary_insurance' OR bc.payer_type = 'tertiary_insurance' THEN ip.insurance_name
                   WHEN bc.payer_type = 'patient'  THEN p.full_name
@@ -157,19 +157,19 @@ const claimInquiryDataSetQueryTemplate = _.template(`
                     json_build_array(
                             p_pi.coverage_level,
                             p_ip.insurance_name,
-                            to_char(p_pi.valid_to_date,'MM/DD/YYYY'),
+                            to_char(p_pi.valid_to_date,'<%= dateFormat %>'),
                             p_pi.policy_number,p_pi.group_number
                     ) AS primary_coverage_level,
                     json_build_array(
                             s_pi.coverage_level,
                             s_ip.insurance_name,
-                            to_char(s_pi.valid_to_date,'MM/DD/YYYY'),
+                            to_char(s_pi.valid_to_date,'<%= dateFormat %>'),
                             s_pi.policy_number,s_pi.group_number
                     ) AS secondary_coverage_level,
                     json_build_array(
                             t_pi.coverage_level,
                             t_ip.insurance_name,
-                            to_char(t_pi.valid_to_date,'MM/DD/YYYY'),
+                            to_char(t_pi.valid_to_date,'<%= dateFormat %>'),
                             t_pi.policy_number,t_pi.group_number
                     ) AS tertiary_coverage_level
                 FROM
@@ -317,7 +317,7 @@ const claimInquiryDataSetQueryTemplate1 = _.template(`
                 c.claim_id AS id,
                 'charge' AS type,
                 cc.short_description AS comments,
-                to_char(timezone(get_facility_tz(cd.facility_id::integer), c.charge_dt)::DATE, 'MM/DD/YYYY') AS commented_dt,
+                to_char(timezone(get_facility_tz(cd.facility_id::integer), c.charge_dt)::DATE, '<%= dateFormat %>') AS commented_dt,
                 (c.bill_fee*c.units) AS amount,
                 u.username AS commented_by,
                 cc.display_code AS code,

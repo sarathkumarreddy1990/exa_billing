@@ -54,6 +54,8 @@ module.exports = {
     getOHIPLineItemsAndClaims: async (ohipJson, params) => {
 
         let lineItems = [];
+        let cas_reason_group_details = await data.getcasReasonGroupCodes(params);
+        cas_reason_group_details = cas_reason_group_details.rows && cas_reason_group_details.rows.length ? cas_reason_group_details.rows[0] : {};
 
         ohipJson.claims.forEach((claim, claim_index) => {
             if (claim.accountingNumber && !isNaN(claim.accountingNumber)) {
@@ -88,13 +90,25 @@ module.exports = {
                         adjustment_code = 'ERAREC';
                     }
 
+                    let groupCode = _.find(cas_reason_group_details.cas_group_codes, { code: 'OHIP_EOB' });
+                    let reasonCode = _.find(cas_reason_group_details.cas_reason_codes, { code: serviceLine.explanatoryCode });
+                    let cas_details = [];
+
+                    if (serviceLine.explanatoryCode && groupCode && reasonCode) {
+                        cas_details.push({
+                            group_code_id: groupCode.id,
+                            reason_code_id: reasonCode.id,
+                            amount: 0
+                        });
+                    }
+
                     let item = {
                         claim_number: parseInt(claim.accountingNumber),
                         cpt_code: serviceLine.serviceCode,
                         denied_value: serviceLine.explanatoryCode !== '' && amountPaid === 0 ? 1 : 0, // Set 1 when cpts payment = zero and the explanatoryCode should not be empty
                         payment: amountPaid || 0.00,
                         adjustment: 0.00,
-                        cas_details: [],
+                        cas_details,
                         charge_id: 0,
                         service_date: serviceLine.serviceDate || null,
                         patient_fname: claim.patientFirstName || '',
@@ -158,7 +172,7 @@ module.exports = {
         let ohipPaymentResults = {};
         let eraObject = f_data.ra_json;
         let totalAmountPayable = eraObject.totalAmountPayable ? Math.round(eraObject.totalAmountPayable * 100) / 10000 : 0.00;
-        let notes = 'Amount shown in EOB:$' + totalAmountPayable;
+        let notes = `File Name: ${f_data.uploaded_file_name || ''} \nAmount shown in EOB: $${totalAmountPayable}`;
         let payerDetails = {
             amount       : 0,
             notes        : notes,
@@ -192,7 +206,7 @@ module.exports = {
             paymentResult.file_id =  payerDetails.file_id; // imported ERA file id
             paymentResult.created_by = payerDetails.created_by;
             paymentResult.company_id = payerDetails.company_id;
-            paymentResult.uploaded_file_name =  payerDetails.uploaded_file_name;
+            paymentResult.uploaded_file_name =  f_data.uploaded_file_name || '';
             paymentResult.payer_type = payerDetails.payer_type;
             paymentResult.messageText = eraObject.messageText || '';
             paymentResult.code = 'ERA';

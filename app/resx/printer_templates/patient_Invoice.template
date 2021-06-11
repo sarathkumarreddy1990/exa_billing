@@ -106,7 +106,7 @@ function bindHead(claimNo, data, columns, value) {
                     } else if (key === 'facility_address1') {
                         dataRow.push(data[i]["facility_name"] ? data[i]["facility_name"] + '\n' + data[i][value][key] + ' \n' + (data[i][value]['facility_address2'] ? data[i][value]['facility_address2'] : "") : '');
                     } else if (key === 'facility_city') {
-                        dataRow.push(data[i][value][key] ? data[i][value][key] + '  ' + (data[i][value]['facility_state'] ? data[i][value]['facility_state'] : "") + '  ' + (data[i][value]['facility_zip'] ? +data[i][value]['facility_zip'] : "") : '');
+                        dataRow.push(data[i][value][key] ? data[i][value][key] + '  ' + (data[i][value]['facility_state'] ? data[i][value]['facility_state'] : "") + '  ' + (data[i][value]['facility_zip'] ? data[i][value]['facility_zip'] : "") : '');
                     } else if (key === 'patient_address1') {
                         dataRow.push(data[i]["patient_name"] ? data[i]["patient_name"] + "\n" + data[i][value][key] + (data[i][value]['patient_address2'] ? ("\n" + data[i][value]['patient_address2']) : "") : '');
                     } else if (key === 'patient_city') {

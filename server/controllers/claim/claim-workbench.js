@@ -661,7 +661,7 @@ module.exports = {
 
         return validation_result;
     },
-    
+
     ahsClaimValidation: async function (params) {
 
         let claimDetails = await ahsData.getClaimsData({ claimIds: params.claim_ids });
@@ -784,5 +784,7 @@ module.exports = {
         return pdfDoc;
     },
 
-    getClaimsForEDI:getClaimsForEDI
+    getClaimsForEDI:getClaimsForEDI,
+    getLatestResourceNumberForEDI: data.getLatestResourceNumberForEDI
+
 };

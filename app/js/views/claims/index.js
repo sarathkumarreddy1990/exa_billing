@@ -681,6 +681,7 @@ define(['jquery',
                             self.facilityId = claimDetails.facility_id; // claim facility_date
                             self.studyDate = commonjs.getConvertedFacilityTime(claimDetails.claim_dt, '', 'L', claimDetails.facility_id);
                             self.patientAddress = claimDetails.patient_info ? commonjs.hstoreParse(claimDetails.patient_info) : {};
+                            app.country_alpha_3_code = self.patientAddress.c1country || app.country_alpha_3_code;
                             self.paymentList = claimDetails.payment_details || [];
                             self.billing_method = claimDetails.billing_method;
                             self.phn = claimDetails.phn_acc_no;
@@ -1448,6 +1449,8 @@ define(['jquery',
                     document.querySelector('#txtPriStartDate').value = claimData.p_valid_from_date ? moment(claimData.p_valid_from_date).format('L') : '';
                     document.querySelector('#txtPriExpDate').value = claimData.p_valid_to_date ? moment(claimData.p_valid_to_date).format('L') : '';
 
+                    var relationShip = $.trim($('#ddlPriRelationShip option:selected').text().toLowerCase());
+                    relationShip === "self" && app.country_alpha_3_code === "usa" ? $('#txtPriZipPlus').show() : $('#txtPriZipPlus').val('').hide();
                     // append to ResponsibleList
                     self.updateResponsibleList({
                         payer_type: 'PIP_P',
@@ -1486,6 +1489,7 @@ define(['jquery',
                     $('#txtSecCity').val(claimData.s_subscriber_city);
                     //$('#ddlSecState').val(claimData.s_subscriber_state);
                     $('#txtSecZipCode').val(claimData.s_subscriber_zipcode);
+                    $('#txtSecZipPlus').val(claimData.s_subscriber_zipcode_plus);
 
                     if (self.states.indexOf(claimData.s_subscriber_state) > -1) {
                         $('#ddlSecState').val(claimData.s_subscriber_state);
@@ -1496,6 +1500,9 @@ define(['jquery',
                     document.querySelector('#txtSecStartDate').value = claimData.s_valid_from_date ? moment(claimData.s_valid_from_date).format('L') : '';
                     document.querySelector('#txtSecExpDate').value = claimData.s_valid_to_date ? moment(claimData.s_valid_to_date).format('L') : '';
 
+
+                    var relationShip = $.trim($('#ddlSecRelationShip option:selected').text().toLowerCase());
+                    relationShip === "self" ? $('#txtSecZipPlus').show() : $('#txtSecZipPlus').val('').hide();
                     // append to ResponsibleList
                     self.updateResponsibleList({
                         payer_type: 'PIP_S',
@@ -1531,6 +1538,7 @@ define(['jquery',
                     $('#txtTerCity').val(claimData.t_subscriber_city);
                     //$('#ddlTerState').val(claimData.t_subscriber_state);
                     $('#txtTerZipCode').val(claimData.t_subscriber_zipcode);
+                    $('#txtTerZipPlus').val(claimData.t_subscriber_zipcode_plus);
 
                     if (self.states.indexOf(claimData.t_subscriber_state) > -1) {
                         $('#ddlTerState').val(claimData.t_subscriber_state);
@@ -1541,6 +1549,8 @@ define(['jquery',
                     document.querySelector('#txtTerStartDate').value = claimData.t_valid_from_date ? moment(claimData.t_valid_from_date).format('L') : '';
                     document.querySelector('#txtTerExpDate').value = claimData.t_valid_to_date ? moment(claimData.t_valid_to_date).format('L') : '';
 
+                    var relationShip = $.trim($('#ddlTerRelationShip option:selected').text().toLowerCase());
+                    relationShip === "self" ? $('#txtTerZipPlus').show() : $('#txtTerZipPlus').val('').hide();
                     // append to ResponsibleList
                     self.updateResponsibleList({
                         payer_type: 'PIP_T',
@@ -3023,6 +3033,7 @@ define(['jquery',
                             var existing_insurance = response[0].existing_insurance || [];
                             var beneficiary_details = response[0].beneficiary_details || [];
                             self.patientAddress = response[0].patient_info ? response[0].patient_info : self.patientAddress;
+                            app.country_alpha_3_code = self.patientAddress.c1country || app.country_alpha_3_code;
                             self.npiNo = existing_insurance.length && existing_insurance[0].npi_no ? existing_insurance[0].npi_no : '';
                             self.federalTaxId = existing_insurance.length && existing_insurance[0].federal_tax_id ? existing_insurance[0].federal_tax_id : '';
                             self.enableInsuranceEligibility = existing_insurance.length && existing_insurance[0].enable_insurance_eligibility ? existing_insurance[0].enable_insurance_eligibility : '';
@@ -3465,6 +3476,10 @@ define(['jquery',
                         zipCode: {
                             domId: 'txt' + flag + 'ZipCode',
                             infoKey: 'subscriber_zipcode'
+                        },
+                        zipCodePlus: {
+                            domId: 'txt' + flag + 'ZipPlus',
+                            infoKey: 'subscriber_zipcode_plus'
                         }
                     }
                     self.bindCityStateZipTemplate(result, AddressInfoMap, flag);
@@ -3586,6 +3601,7 @@ define(['jquery',
                     subscriber_city: $('#txtPriCity').val(),
                     subscriber_state: $('#ddlPriState option:selected').val() || null,
                     subscriber_zipcode: $('#txtPriZipCode').val() != '' ? $('#txtPriZipCode').val() : null,
+                    subscriber_zipcode_plus: $.trim($('#ddlPriRelationShip option:selected').text().toLowerCase()) === "self" && app.country_alpha_3_code === "usa" ? $.trim($('#txtPriZipPlus').val()) : null,
                     assign_benefits_to_patient: $('#chkPriAcptAsmt').prop("checked"),
                     medicare_insurance_type_code: null,
                     valid_from_date: $('#txtPriStartDate').val() != '' ? commonjs.getISODateString($('#txtPriStartDate').val()) : null,
@@ -3612,6 +3628,7 @@ define(['jquery',
                     subscriber_address_line2: $('#txtSecSubSecAddr').val(),
                     subscriber_city: $('#txtSecCity').val(),
                     subscriber_zipcode: $('#txtSecZipCode').val() != '' ? $('#txtSecZipCode').val() : null,
+                    subscriber_zipcode_plus: $.trim($('#ddlSecRelationShip option:selected').text().toLowerCase()) === "self" && app.country_alpha_3_code === "usa" ? $.trim($('#txtSecZipPlus').val()) : null,
                     subscriber_state: $('#ddlSecState option:selected').val() || null,
                     assign_benefits_to_patient: $('#chkSecAcptAsmt').prop("checked"),
                     subscriber_dob: $('#txtSecDOB').val() != '' ? commonjs.getISODateString($('#txtSecDOB').val()) : null,
@@ -3640,6 +3657,7 @@ define(['jquery',
                     subscriber_address_line2: $('#txtTerSubSecAddr').val(),
                     subscriber_city: $('#txtTerCity').val(),
                     subscriber_zipcode: $('#txtTerZipCode').val() != '' ? $('#txtTerZipCode').val() : null,
+                    subscriber_zipcode_plus: $.trim($('#ddlTerRelationShip option:selected').text().toLowerCase()) === "self" && app.country_alpha_3_code === "usa" ? $.trim($('#txtTerZipPlus').val()) : null,
                     subscriber_state: $('#ddlTerState option:selected').val() || null,
                     assign_benefits_to_patient: $('#chkTerAcptAsmt').prop("checked"),
                     subscriber_dob: $('#txtTerDOB').val() != '' ? commonjs.getISODateString($('#txtTerDOB').val()) : null,
@@ -3663,6 +3681,7 @@ define(['jquery',
 
                 var can_ahs_pay_to_code = $('#ddlPayToCode').val();
                 var claim_status_id = ~~$('#ddlClaimStatus').val() || null;
+                var claim_Study_date = $('#txtClaimDate').val();
 
                 claim_model.claims = {
                     claim_id: self.claim_Id,
@@ -3677,7 +3696,7 @@ define(['jquery',
                     billing_code_id: $('#ddlBillingCode option:selected').val() != '' ? parseInt($('#ddlBillingCode option:selected').val()) : null,
                     billing_class_id: $('#ddlBillingClass option:selected').val() != '' ? parseInt($('#ddlBillingClass option:selected').val()) : null,
                     created_by: app.userID,
-                    claim_dt: self.claim_dt_iso || null,
+                    claim_dt: $("#txtClaimDate").prop('disabled') ? self.claim_dt_iso : commonjs.shiftToFacilityTimeZone(facility_id, claim_Study_date).format('YYYY-MM-DD LT z'),
                     current_illness_date: $('#txtDate').val() != '' ? commonjs.getISODateString($('#txtDate').val()) : null,
                     same_illness_first_date: $('#txtOtherDate').val() != '' ? commonjs.getISODateString($('#txtOtherDate').val()) : null,
                     unable_to_work_from_date: $('#txtWCF').val() != '' ? commonjs.getISODateString($('#txtWCF').val()) : null,
@@ -4069,17 +4088,17 @@ define(['jquery',
                     );
 
                     mandatory_fields.secondaryfields = [
-                        $('#txtSecPolicyNo').val().trim(),
-                        $('#ddlSecRelationShip option:selected').val().trim() || '',
-                        $('#txtSecSubFirstName').val().trim(),
-                        $('#txtSecSubLastName').val().trim(),
-                        $('#ddlSecGender').val() ? $('#ddlSecGender').val().trim() : '',
-                        $('#txtSecDOB').val().trim(),
-                        $('#txtSecSubPriAddr').val().trim(),
-                        $('#txtSecCity').val().trim(),
-                        $('#ddlSecState option:selected').val().trim() || '',
-                        $('#txtSecZipCode').val().trim(),
-                        $('#select2-ddlSecInsurance-container').text().trim() || ''
+                        $.trim($('#txtSecPolicyNo').val()),
+                        $.trim($('#ddlSecRelationShip option:selected').val()),
+                        $.trim($('#txtSecSubFirstName').val()),
+                        $.trim($('#txtSecSubLastName').val()),
+                        $.trim($('#ddlSecGender').val()),
+                        $.trim($('#txtSecDOB').val()),
+                        $.trim($('#txtSecSubPriAddr').val()),
+                        $.trim($('#txtSecCity').val()),
+                        $.trim($('#ddlSecState option:selected').val()),
+                        $.trim($('#txtSecZipCode').val()),
+                        $.trim($('#select2-ddlSecInsurance-container').text())
                     ];
                     mandatory_fields.secondaryfieldObjs = [
                         { obj: $('#txtSecPolicyNo'), msg: 'messages.warning.claims.selectPolicySecondaryInsurance' },
@@ -4095,17 +4114,17 @@ define(['jquery',
                         { obj: $('#ddlSecInsurance'), msg: 'messages.warning.claims.selectCarrierSecondaryInsurance' }
                     ];
                     mandatory_fields.tertiaryfields = [
-                        $('#txtTerPolicyNo').val().trim(),
-                        $('#ddlTerRelationShip option:selected').val().trim() || '',
-                        $('#txtTerSubFirstName').val().trim(),
-                        $('#txtTerSubLastName').val().trim(),
-                        $('#ddlTerGender').val() ? $('#ddlTerGender').val().trim() : '',
-                        $('#txtTerDOB').val().trim(),
-                        $('#txtTerSubPriAddr').val().trim(),
-                        $('#txtTerCity').val().trim(),
-                        $('#ddlTerState option:selected').val().trim() || '',
-                        $('#txtTerZipCode').val().trim(),
-                        $('#select2-ddlTerInsurance-container').text().trim() || ''
+                        $.trim($('#txtTerPolicyNo').val()),
+                        $.trim($('#ddlTerRelationShip option:selected').val()),
+                        $.trim($('#txtTerSubFirstName').val()),
+                        $.trim($('#txtTerSubLastName').val()),
+                        $.trim($('#ddlTerGender').val()),
+                        $.trim($('#txtTerDOB').val()),
+                        $.trim($('#txtTerSubPriAddr').val()),
+                        $.trim($('#txtTerCity').val()),
+                        $.trim($('#ddlTerState option:selected').val()),
+                        $.trim($('#txtTerZipCode').val()),
+                        $.trim($('#select2-ddlTerInsurance-container').text())
                     ];
                     mandatory_fields.tertiaryfieldObjs = [
                         { obj: $('#txtTerPolicyNo'), msg: 'messages.warning.claims.selectPolicyTertiaryInsurance' },
@@ -4332,6 +4351,7 @@ define(['jquery',
                                 self.city = contactInfo.c1City;
                                 self.state = contactInfo.c1State;
                                 self.zipCode = contactInfo.c1Zip;
+                                self.zipCodePlus = contactInfo.c1ZipPlus;
                                 document.querySelector('#txt' + _targetFlag + 'DOB').value = response.birth_date ? moment(response.birth_date).format('L') : '';
                                 self.homePhone = contactInfo.c1HomePhone;
                                 self.workPhone = contactInfo.c1WorkPhone;
@@ -4362,12 +4382,14 @@ define(['jquery',
 
             bindSubscriber: function (flag) {
                 var self = this;
-                var relationalShip = $.trim($('#ddl' + flag + 'RelationShip option:selected').text());
+                var relationShip = $.trim($('#ddl' + flag + 'RelationShip option:selected').text().toLowerCase());
                 $('#txt' + flag + 'SubFirstName').val('');
                 $('#txt' + flag + 'SubLastName').val('');
                 $('#txt' + flag + 'SubMiName').val('');
                 $('#txt' + flag + 'SubSuffix').val('');
                 $('#ddl' + flag + 'Gender').val('');
+                relationShip === "self" ? $('#txt' + flag + 'ZipPlus').show() : $('#txt' + flag + 'ZipPlus').hide();
+
                 if (self.checkAddressDetails(flag)) {
                     var msg = commonjs.geti18NString("messages.confirm.billing.changeAddressDetails")
                     if (confirm(msg)) {
@@ -4376,6 +4398,7 @@ define(['jquery',
                         $('#txt' + flag + 'City').val('');
                         $('#ddl' + flag + 'State').val('');
                         $('#txt' + flag + 'ZipCode').val('');
+                        $('#txt' + flag + 'ZipPlus').val('');
                     }
                 }
                 else {
@@ -4385,12 +4408,13 @@ define(['jquery',
                     $('#ddl' + flag + 'State').val(self.state);
                     $('#txt' + flag + 'ZipCode').val(self.zipCode);
                 }
-                if (relationalShip.toLowerCase() == "self") {
+                if (relationShip == "self") {
                     $('#txt' + flag + 'SubFirstName').val(self.firstName);
                     $('#txt' + flag + 'SubLastName').val(self.lastName);
                     $('#txt' + flag + 'SubMiName').val(self.mi);
                     $('#txt' + flag + 'SubSuffix').val(self.suffix);
                     $('#ddl' + flag + 'Gender').val(self.gender);
+                    $('#txt' + flag + 'ZipPlus').val(self.zipCodePlus);
                 }
                 else
                     document.querySelector('#txt' + flag + 'DOB').value = ""
@@ -4465,6 +4489,7 @@ define(['jquery',
                     $('#txt' + flag + 'City').val('');
                     $('#ddl' + flag + 'State').val('');
                     $('#txt' + flag + 'ZipCode').val('');
+                    $('#txt' + flag + 'ZipPlus').val('');
 
                     document.querySelector('#txt' + flag + 'DOB').value = '';
                     document.querySelector('#txt' + flag + 'StartDate').value = '';
@@ -4608,7 +4633,7 @@ define(['jquery',
             //EXA-18273 - Getting charges created for a patient on current date will be displayed for alberta billing
             getPatientCharges: function (id, selectedCharges) {
                 var self = this;
-                var chargeRow;
+
                 $.ajax({
                     url: '/exa_modules/billing/claims/claim/get_patient_charges',
                     type: 'GET',
@@ -4617,9 +4642,9 @@ define(['jquery',
                         current_date: moment(self.studyDate, 'L').format('YYYY-MM-DD')
                     },
                     success: function (data, response) {
+                        var chargeRow;
                         // Bind Study date of the current claim for the patient
                         $('#patientStudyDate').text(self.studyDate || '');
-
                         if (!data || !data.length) {
                             chargeRow = self.patientChargesTemplate({row: []});
                         } else {
@@ -4930,6 +4955,7 @@ define(['jquery',
                     patientList.address1 = (patient_info.c1AddressLine1) ? patient_info.c1AddressLine1 : '';
                     patientList.address2 = (patient_info.c1AddressLine2) ? patient_info.c1AddressLine2 : '';
                     patientList.zip = (patient_info.c1Zip) ? patient_info.c1Zip : '';
+                    patientList.zipplus = patient_info.c1ZipPlus || '';
                     patientList.city = (patient_info.c1City) ? patient_info.c1City : '';
                     patientList.state = (patient_info.c1State) ? patient_info.c1State : '';
                     patientList.home = (patient_info.c1HomePhone) ? patient_info.c1HomePhone : '';
@@ -5227,6 +5253,7 @@ define(['jquery',
                     $('#ddl' + flag[i] + 'Insurance').find('option').remove();
                     $('#ddl' + flag[i] + 'State option:contains("Select")').prop("selected", true);
                     $('#txt' + flag[i] + 'ZipCode').val('');
+                    $('#txt' + flag[i] + 'ZipPlus').val('');
                 });
                 $("input[id*='txtBenefitOnDate']").val('');
 
@@ -5966,6 +5993,11 @@ define(['jquery',
                     zipCode: {
                         domId: 'txt' + id + 'ZipCode',
                         infoKey: (key && key + '_subscriber_zipcode') || 'zip'
+
+                    },
+                    zipCodePlus: {
+                        domId: 'txt' + id + 'ZipPlus',
+                        infoKey: (key && key + '_subscriber_zipcode_plus') || 'zipplus'
                     }
                 }
                 this.bindCityStateZipTemplate(data || {}, AddressInfoMap, id);

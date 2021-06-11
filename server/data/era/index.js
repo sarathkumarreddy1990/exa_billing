@@ -349,7 +349,7 @@ module.exports = {
                            UPDATE billing.payments
                             SET
                                 amount = ( SELECT COALESCE(sum(payment),'0')::numeric FROM matched_claims ),
-                                notes =  notes || E'\n' || 'Amount received for matching orders : ' || ( SELECT COALESCE(sum(payment),'0')::numeric FROM matched_claims ) || E'\n\n' || ${paymentDetails.uploaded_file_name} || E'\n\n\n' || ${paymentDetails.messageText}
+                                notes =  notes || E'\n' || 'Amount received for matching orders : ' || ( SELECT COALESCE(sum(payment),'0')::numeric FROM matched_claims ) || E'\n\n' || ${paymentDetails.messageText}
                             WHERE id = ${paymentDetails.id}
                             AND ${paymentDetails.from} IN ('EOB', 'OHIP_EOB')
                         )
@@ -402,7 +402,7 @@ module.exports = {
 				                        WHEN claim_details.claim_balance_total < 0::money
 					                        THEN ( SELECT COALESCE(id, mc.claim_status_id ) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'OP' AND inactivated_dt IS NULL )
 				                        WHEN claim_details.claim_balance_total > 0::money
-					                        THEN ( SELECT COALESCE(id, mc.claim_status_id ) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'PP' AND inactivated_dt IS NULL )
+					                        THEN ( SELECT COALESCE(id, mc.claim_status_id ) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'PAP' AND inactivated_dt IS NULL )
 				                    ELSE
 				                        mc.claim_status_id
                                     END
