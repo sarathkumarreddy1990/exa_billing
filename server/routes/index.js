@@ -5,6 +5,7 @@ const httpHandler = require('../shared/http');
 const pkg = require('../../package.json');
 const { staticAssetsRoot } = require('../shared/constants');
 const autobillingData = require('../data/setup/auto-billing');
+const siteConfig = require('../../server/config');
 
 router.get('/', function (req, res) {
     let currentTheme = 'default';
@@ -19,7 +20,8 @@ router.get('/', function (req, res) {
         billingRegionCode: billingRegionCode,
         currentTheme: currentTheme,
         csrfToken: req.csrfToken(),
-        staticAssetsRoot
+        staticAssetsRoot,
+        enableCensus: (siteConfig.get('enableMobileBilling') && (req.session.user_type === 'SU' || (req.session.screens && req.session.screens.indexOf('CENS') > 1))&& ['can_AB', 'can_BC', 'can_MB', 'can_ON'].indexOf(billingRegionCode) === -1)
     });
 });
 

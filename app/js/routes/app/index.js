@@ -45,7 +45,7 @@ define([
             },
 
             startCensus: function () {
-                if (this.checkLicense('Census') && !this.censusRouter) {
+                if (this.checkLicense('Census') && !this.censusRouter&& (app.screens.indexOf('CENS') > -1 || app.userInfo.user_type ==='SU')) {
                     this.defaultArgs.routePrefix = 'billing/census/';
                     this.censusRouter = new CensusRoute(this.defaultArgs.routePrefix, this.defaultArgs);
                 } else {
