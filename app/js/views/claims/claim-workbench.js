@@ -2934,11 +2934,7 @@ define(['jquery',
                     var rowId = selectedClaimsRows[i].parentNode.parentNode.id;
                     var billingMethod = self.getGridCellData(filter, rowId, 'hidden_billing_method');
 
-                    if (app.country_alpha_3_code === 'can') {
-
-                        if(!$('#gs_rendering_provider').val()){
-                            return commonjs.showWarning('Claims of multiple rendering providers cannot be submitted at once. Please select claims belonging to the same rendering provider.', 'largewarning');
-                        }
+                    if (app.country_alpha_3_code === 'can') {                      
 
                         if (!billingMethod) {
                             return commonjs.showWarning('messages.status.pleaseSelectValidClaimsMethod');
