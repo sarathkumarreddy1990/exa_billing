@@ -456,7 +456,7 @@ module.exports = {
                     SELECT  coalesce(JSON_AGG(ROW_TO_JSON(rendering_provider)), '[]') "rendering_provider"
                         FROM (
                             SELECT
-	                            DISTINCT p.full_name,
+                                DISTINCT p.full_name,
                                 p.provider_code
                         FROM public.providers p
                         INNER JOIN provider_contacts pc ON pc.provider_id = p.id
@@ -466,7 +466,7 @@ module.exports = {
                             AND p.is_active 
                             AND p.provider_type = 'PR'
                             AND NOT p.sys_provider
-				        ORDER BY p.full_name asc
+                        ORDER BY p.full_name asc
                     )  AS rendering_provider
                 )
 
