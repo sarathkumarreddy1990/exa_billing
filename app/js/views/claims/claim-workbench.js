@@ -522,7 +522,7 @@ define(['jquery',
                 var existingRenderingProvider = null;
                 var selectedClaimsRows = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked');
 
-                if (isCanada) {
+                if (isCanada && app.province_alpha_2_code == 'ON') {
                     for (var i = 0; i < selectedClaimsRows.length; i++) {
                         var rowId = selectedClaimsRows[i].parentNode.parentNode.id;
                         var renderingProvider = self.getGridCellData(filter, rowId, 'rendering_provider');

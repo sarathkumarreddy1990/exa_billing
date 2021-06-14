@@ -455,14 +455,19 @@ module.exports = {
                 cte_rendering_provider AS (
                     SELECT  coalesce(JSON_AGG(ROW_TO_JSON(rendering_provider)), '[]') "rendering_provider"
                         FROM (
-                            SELECT                                
-                                DISTINCT render_provider.full_name AS "full_name"
-                                from billing.claims claims
-                                LEFT JOIN provider_contacts as rendering_pro_contact ON rendering_pro_contact.id=claims.rendering_provider_contact_id
-                                LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.provider_id
-                                where render_provider.full_name is not null
-                                order by render_provider.full_name ASC
-                        )  AS rendering_provider
+                            SELECT
+	                            DISTINCT p.full_name,
+                                p.provider_code
+                        FROM public.providers p
+                        INNER JOIN provider_contacts pc ON pc.provider_id = p.id
+                        WHERE
+                            p.deleted_dt IS NULL
+                            AND pc.deleted_dt IS NULL
+                            AND p.is_active 
+                            AND p.provider_type = 'PR'
+                            AND NOT p.sys_provider
+				        ORDER BY p.full_name asc
+                    )  AS rendering_provider
                 )
 
                SELECT *
