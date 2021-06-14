@@ -21,7 +21,7 @@ router.get('/', function (req, res) {
         currentTheme: currentTheme,
         csrfToken: req.csrfToken(),
         staticAssetsRoot,
-        enableCensus: (siteConfig.get('enableMobileBilling') && (req.session.user_type === 'SU' || (req.session.screens && req.session.screens.indexOf('CENS') > 1))&& ['can_AB', 'can_BC', 'can_MB', 'can_ON'].indexOf(billingRegionCode) === -1)
+        enableCensus: (siteConfig.get('enableMobileBilling') && (req.session.user_type === 'SU' || (req.session.screens && req.session.screens.indexOf('CENS') > 1)) && ['can_AB', 'can_BC', 'can_MB', 'can_ON'].indexOf(billingRegionCode) === -1)
     });
 });
 
