@@ -517,13 +517,26 @@ define(['jquery',
                 var self = this;
                 var billingMethodFormat = '';
                 var isCanada = app.country_alpha_3_code === 'can';
+                var filterID = commonjs.currentStudyFilter;
+                var filter = commonjs.loadedStudyFilters.get(filterID);
+                var existingRenderingProvider = null;
+                var selectedClaimsRows = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked');
 
                 if (isCanada) {
-                    if (!$('#gs_rendering_provider').val()) {
-                        return commonjs.showWarning('Claims of multiple rendering providers cannot be submitted at once. Please select claims belonging to the same rendering provider.', 'largewarning');
+                    for (var i = 0; i < selectedClaimsRows.length; i++) {
+                        var rowId = selectedClaimsRows[i].parentNode.parentNode.id;
+                        var renderingProvider = self.getGridCellData(filter, rowId, 'rendering_provider');
+
+                        if (!existingRenderingProvider) {
+                            existingRenderingProvider = renderingProvider;
+                        }
+
+                        if (renderingProvider != existingRenderingProvider) {
+                            return commonjs.showWarning('messages.status.multipleRenderingProviders');
+                        }
                     }
                 }
-                
+
                 if (e.target) {
                     if ($(e.target).closest('li') && $(e.target).closest('li').hasClass('disabled')) {
                         return false;
