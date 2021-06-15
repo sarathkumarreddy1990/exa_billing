@@ -521,8 +521,9 @@ define(['jquery',
                 var filter = commonjs.loadedStudyFilters.get(filterID);
                 var existingRenderingProvider = null;
                 var selectedClaimsRows = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked');
+                var billingMethod = self.getGridCellData(filter, rowId, 'hidden_billing_method');
 
-                if (isCanada && app.province_alpha_2_code == 'ON') {
+                if (isCanada && app.province_alpha_2_code == 'ON' && billingMethod == 'electronic_billing') {
                     for (var i = 0; i < selectedClaimsRows.length; i++) {
                         var rowId = selectedClaimsRows[i].parentNode.parentNode.id;
                         var renderingProvider = self.getGridCellData(filter, rowId, 'rendering_provider');
