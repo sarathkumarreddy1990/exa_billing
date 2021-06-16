@@ -326,10 +326,15 @@ define(['jquery',
             },
 
             clearPayemntForm: function () {
+                var facilityID = this.paidlocation.get(app.facilityID);
+
+                if (!facilityID) {
+                    facilityID = this.paidlocation.at(0) && this.paidlocation.at(0).id;
+                }
                 this.payer_id = 0;
                 $('#PaymentForm input[type=radio]').prop('ckecked', false);
                 $('#ddlpaymentReason').val('');
-                $('#ddlPaidLocation').val(app.facilityID || 0);
+                $('#ddlPaidLocation').val(facilityID);
                 $('#selectPaymentMode').val(0);
                 $('#PaymentForm input[type=text]').val('');
                 $('.payerFields').hide();
@@ -1162,6 +1167,10 @@ define(['jquery',
 
                 if (!moment(accountingDate).isBetween(startDate, endDate) && accountingDate) {
                     return confirm(commonjs.geti18NString("messages.confirm.payments.overwriteAccountingDate"));
+                }
+
+                if ($('#ddlPaidLocation').val() == '0') {
+                    return commonjs.showWarning("messages.warning.payments.selectPaidLocation");
                 }
 
                 if ($('#selectPayerType').val() === '0') {
