@@ -86,6 +86,9 @@ module.exports = {
                             ORDER BY sc.cpt_code ASC
 
                         )
+                        , order_ids AS (
+                            SELECT order_id FROM public.studies s WHERE s.id = ${firstStudyId}
+                        )
                         ,claim_details AS (
                                     SELECT
                                         orders.facility_id,
@@ -106,28 +109,14 @@ module.exports = {
                                         referring_provider.ref_prov_full_name,
                                         referring_provider.referring_provider_contact_id,
                                         referring_provider.specialities,
-                                        (   SELECT
-                                                    studies.study_info->'refDescription'
-                                            FROM
-                                                    studies
-                                            WHERE
-                                                studies.order_id IN (SELECT order_id FROM public.studies s WHERE s.id = ${firstStudyId})
-                                            ORDER BY studies.order_id DESC LIMIT 1 ) AS
-                                        referring_pro_study_desc,
+                                        studies_details.referring_pro_study_desc,
                                         studies_details.rendering_provider_contact_id,
                                         studies_details.reading_phy_full_name,
                                         providers.id as fac_rendering_provider_contact_id,
                                         providers.full_name as fac_reading_phy_full_name,
                                         facility_info->'service_facility_id' as service_facility_id,
                                         facility_info->'service_facility_name' as service_facility_name,
-                                        (
-                                            SELECT
-                                                default_provider_id
-                                            FROM
-                                                billing.facility_settings
-                                            WHERE
-                                                facility_id = orders.facility_id
-                                        ) AS fac_billing_provider_id,
+                                        bfs.default_provider_id AS fac_billing_provider_id,
                                         order_info -> 'ordering_facility_id' AS ordering_facility_id,
                                         order_info -> 'ordering_facility' AS ordering_facility_name,
                                         orders.order_status AS order_status,
@@ -141,12 +130,14 @@ module.exports = {
                                         p.patient_info,
                                         facilities.can_ahs_business_arrangement AS can_ahs_business_arrangement_facility,
                                         studies_details.can_ahs_locum_arrangement_provider,
-                                        (SELECT nature_of_injury_code_id FROM studies WHERE id=${firstStudyId}),
-                                        (SELECT area_of_injury_code_id FROM studies WHERE id=${firstStudyId})
+                                        studies_details.nature_of_injury_code_id,
+                                        studies_details.area_of_injury_code_id
                                     FROM
                                         orders
+                                        INNER JOIN order_ids oi ON oi.order_id = orders.id
                                         INNER JOIN facilities ON  facilities.id= orders.facility_id
                                         INNER JOIN patients p ON p.id= orders.patient_id
+                                        LEFT JOIN billing.facility_settings bfs ON bfs.facility_id = facilities.id
                                         LEFT JOIN LATERAL (
                                             SELECT pc.id, p.full_name FROM provider_contacts pc
                                                 INNER JOIN providers p ON p.id = pc.provider_id
@@ -171,7 +162,10 @@ module.exports = {
                                             SELECT
                                                 p.full_name AS reading_phy_full_name,
                                                 pc.id AS rendering_provider_contact_id,
-                                                pc.can_locum_arrangement AS can_ahs_locum_arrangement_provider
+                                                pc.can_locum_arrangement AS can_ahs_locum_arrangement_provider,
+                                                nature_of_injury_code_id,
+                                                area_of_injury_code_id,
+                                                s.study_info->'refDescription' AS referring_pro_study_desc
                                             FROM
                                                 public.studies s
                                                 LEFT JOIN public.study_transcriptions st ON st.study_id = s.id
@@ -181,7 +175,6 @@ module.exports = {
                                                 WHERE s.id = ${firstStudyId}
                                                 ORDER BY cpt.id ASC LIMIT 1
                                         ) as studies_details ON TRUE
-                                    WHERE orders.id IN (SELECT order_id FROM public.studies s WHERE s.id = ${firstStudyId})
                             )
                             ,claim_problems AS (
                                         SELECT
