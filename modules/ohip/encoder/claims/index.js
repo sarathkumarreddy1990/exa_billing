@@ -140,13 +140,13 @@ module.exports = function (options) {
         encode: (claimData, context) => {
 
             // build and return a map of files keyed by group
-            return reduce(groupBy(claimData, 'groupNumber'), (groupResult, groupClaims, groupNumber) => {
+            return reduce(groupBy(claimData, 'providerNumber'), (providerResult, providerClaims, providerNumber) => {
 
-                context.groupNumber = groupNumber;
-                groupResult[groupNumber] = []; // create an array for this group
+                // context.groupNumber = groupNumber;
+                providerResult[providerNumber] = []; // create an array for this group
 
                 // get all the files for this billing number (group + provider number)
-                const groupProviderFiles = reduce(groupBy(groupClaims, 'providerNumber'), (providerResult, providerClaims, providerNumber) => {
+                // const groupProviderFiles = reduce(groupBy(groupClaims, 'providerNumber'), (providerResult, providerClaims, providerNumber) => {
 
                     context.providerNumber = providerNumber;
 
@@ -182,12 +182,12 @@ module.exports = function (options) {
                     }, []);
 
                     // add the encoded Claims Files for the current Provider to the array of Claims Files for the current Group
-                    return providerResult.concat(providerSpecialtyFiles);
-                }, []);
+                    // providerResult.concat(providerSpecialtyFiles);
+                // }, []);
 
                 // add the provider files to the group files
-                groupResult[groupNumber] = groupResult[groupNumber].concat(groupProviderFiles);
-                return groupResult;
+                providerResult[providerNumber] = providerResult[providerNumber].concat(providerSpecialtyFiles);
+                return providerResult;
             }, {});
         },
     };

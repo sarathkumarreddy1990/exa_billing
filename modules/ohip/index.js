@@ -71,10 +71,10 @@ global.nextResourceID = 60000;
 const getClaimSubmissionFilename = (args) => {
 
     const {
-        groupNumber,
+        providerNumber,
     } = args;
 
-    return `H${getMonthCode(new Date())}${groupNumber}`;
+    return `H${getMonthCode(new Date())}${providerNumber}`;
 };
 
 
@@ -443,13 +443,14 @@ module.exports = {
         //
         // in: {'AZ12':[submission...], 'BY23':[submission...], ...}
         // out: [{data:String, filename:String,batches:[batchSequenceNumber,claimIds:[Number]]}]
-        const allFiles = reduce(submissionsByGroup, (result, groupSubmissions, groupNumber) => {
+        const allFiles = reduce(submissionsByGroup, (result, groupSubmissions, providerNumber) => {
 
             // in: [{batches:[], data:String}]
             // out: [{batches:[], data:String, filename:String}]
             const groupFiles = groupSubmissions.map((file, fileSequenceOffset) => {
                 return {
-                    filename: getClaimSubmissionFilename({ groupNumber }),
+                    filename: getClaimSubmissionFilename({ providerNumber }),
+                    providerNumber: providerNumber,
                     fileSequenceOffset,
                     ...file,
                 };
@@ -489,7 +490,8 @@ module.exports = {
                 resourceType: CLAIMS,
                 filename: storedFile.absolutePath,
                 description: getResourceFilename(storedFile.absolutePath),
-                edi_file_id: storedFile.edi_file_id
+                edi_file_id: storedFile.edi_file_id,
+                providerNumber: storedFile.providerNumber
             });
             return result;
         }, []);
@@ -520,7 +522,7 @@ module.exports = {
 
             billingApi.auditTransaction(auditInfo);
 
-            if (uploadErr) {
+            if (uploadErr || !uploadFiles.length) {
                 // when OHIP file upload failure updating edi file status also failure 
                 await billingApi.updateFileStatus({
                     files: uploadFiles,
@@ -577,7 +579,7 @@ module.exports = {
 
 
             // // 7 - submit file to OHIP
-            return ebs[EDT_SUBMIT]({ resourceIDs }, async (submitErr, submitResponse) => {
+            return ebs[EDT_SUBMIT]({ resourceIDs, providerNumber: uploadFiles[0].providerNumber }, async (submitErr, submitResponse) => {
 
                 allSubmitClaimResults.faults = allSubmitClaimResults.faults.concat(submitResponse.faults);
                 allSubmitClaimResults.auditInfo = allSubmitClaimResults.auditInfo.concat(submitResponse.auditInfo);
