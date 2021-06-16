@@ -120,7 +120,7 @@ const EBSConnector = function(config) {
 
         const isHCV = (service === HCV_REAL_TIME);
 
-        const serviceUserMUID = config.serviceUserMUID;
+        const serviceUserMUID = serviceParams.providerNumber || config.serviceUserMUID;
 
         const url = isHCV ? hcvServiceEndpoint : edtServiceEndpoint;
         logger.debug('EBS request context url', url);
@@ -176,7 +176,7 @@ const EBSConnector = function(config) {
 
             chunk(uploads, chunkSize).forEach((chunk, chunkIndex, chunks) => {
 
-                const ctx = createContext(EDT_UPLOAD, {uploads: chunk});
+                const ctx = createContext(EDT_UPLOAD, {uploads: chunk, providerNumber: chunk[0].providerNumber});
 
                 chunk.forEach((upload, uploadIndex) => {
                     ws.addAttachment(
@@ -218,6 +218,7 @@ const EBSConnector = function(config) {
 
             const {
                 resourceIDs,
+                providerNumber
             } = args;
 
             const auditInfo = [];
@@ -226,8 +227,8 @@ const EBSConnector = function(config) {
 
             chunk(resourceIDs, SUBMIT_MAX).forEach((chunk, index, chunks) => {
 
-                const ctx = createContext(EDT_SUBMIT, {resourceIDs: chunk});
-
+                const ctx = createContext(EDT_SUBMIT, {resourceIDs: chunk, providerNumber});
+                
                 return ws.send(handlers, ctx, (ctx) => {
 
                     const {
