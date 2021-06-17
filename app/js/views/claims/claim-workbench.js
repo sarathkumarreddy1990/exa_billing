@@ -517,6 +517,13 @@ define(['jquery',
                 var self = this;
                 var billingMethodFormat = '';
                 var isCanada = app.country_alpha_3_code === 'can';
+
+                if (isCanada) {
+                    if (!$('#gs_rendering_provider').val()) {
+                        return commonjs.showWarning('Claims of multiple rendering providers cannot be submitted at once. Please select claims belonging to the same rendering provider.', 'largewarning');
+                    }
+                }
+                
                 if (e.target) {
                     if ($(e.target).closest('li') && $(e.target).closest('li').hasClass('disabled')) {
                         return false;
@@ -2915,6 +2922,11 @@ define(['jquery',
                     var billingMethod = self.getGridCellData(filter, rowId, 'hidden_billing_method');
 
                     if (app.country_alpha_3_code === 'can') {
+
+                        if(!$('#gs_rendering_provider').val()){
+                            return commonjs.showWarning('Claims of multiple rendering providers cannot be submitted at once. Please select claims belonging to the same rendering provider.', 'largewarning');
+                        }
+
                         if (!billingMethod) {
                             return commonjs.showWarning('messages.status.pleaseSelectValidClaimsMethod');
                         }

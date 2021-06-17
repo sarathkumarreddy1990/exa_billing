@@ -450,6 +450,19 @@ module.exports = {
                             FROM public.can_wcb_injury_codes
                             WHERE injury_code_type = 'a'
                         )  AS wcb_area_code
+                ),
+
+                cte_rendering_provider AS (
+                    SELECT  coalesce(JSON_AGG(ROW_TO_JSON(rendering_provider)), '[]') "rendering_provider"
+                        FROM (
+                            SELECT                                
+                                DISTINCT render_provider.full_name AS "full_name"
+                                from billing.claims claims
+                                LEFT JOIN provider_contacts as rendering_pro_contact ON rendering_pro_contact.id=claims.rendering_provider_contact_id
+                                LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.provider_id
+                                where render_provider.full_name is not null
+                                order by render_provider.full_name ASC
+                        )  AS rendering_provider
                 )
 
                SELECT *
@@ -490,7 +503,8 @@ module.exports = {
                       cte_grid_filter,
                       cte_claim_submission_codes,
                       cte_wcb_injury_nature,
-                      cte_wcb_injury_area
+                      cte_wcb_injury_area,
+                      cte_rendering_provider
                `;
 
         return await query(sql);
