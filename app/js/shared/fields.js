@@ -114,6 +114,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         var gender = commonjs.makeValue(commonjs.bindArray(app.gender, false), ":All;");
         var isNoneExist = false;
         var claimAction = ':All;corrected_claim:Corrected claim;new_claim:New claim';
+        var renderingProvider = commonjs.makeValue(app.rendering_provider, ":All;", "full_name", "full_name");
 
         for ( var i = 0; i < studyFlagArray.length; i++ ) {
             if ( studyFlagArray[ i ].description.toUpperCase() == 'NONE' ) {
@@ -359,7 +360,12 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "field_info": {
                         "custom_name": "Rendering Providers",
                         "name": "rendering_provider",
-                        "width": 200
+                        "width": 200,
+                        "stype": "select",
+                        "searchoptions": {
+                            "value": renderingProvider,
+                            "tempvalue": renderingProvider
+                        }
                     }
                 },
                 "Billing Fee": {

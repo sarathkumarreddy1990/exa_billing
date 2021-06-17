@@ -517,6 +517,27 @@ define(['jquery',
                 var self = this;
                 var billingMethodFormat = '';
                 var isCanada = app.country_alpha_3_code === 'can';
+                var filterID = commonjs.currentStudyFilter;
+                var filter = commonjs.loadedStudyFilters.get(filterID);
+                var existingRenderingProvider = null;
+                var selectedClaimsRows = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked');
+                var billingMethod = $(e.target).attr('data-method');
+
+                if (app.billingRegionCode == 'can_ON' && billingMethod == 'electronic_billing') {
+                    for (var i = 0; i < selectedClaimsRows.length; i++) {
+                        var rowId = selectedClaimsRows[i].parentNode.parentNode.id;
+                        var renderingProvider = self.getGridCellData(filter, rowId, 'rendering_provider');
+
+                        if (!existingRenderingProvider) {
+                            existingRenderingProvider = renderingProvider;
+                        }
+
+                        if (renderingProvider != existingRenderingProvider) {
+                            return commonjs.showWarning('messages.status.multipleRenderingProviders');
+                        }
+                    }
+                }
+
                 if (e.target) {
                     if ($(e.target).closest('li') && $(e.target).closest('li').hasClass('disabled')) {
                         return false;
@@ -2915,6 +2936,7 @@ define(['jquery',
                     var billingMethod = self.getGridCellData(filter, rowId, 'hidden_billing_method');
 
                     if (app.country_alpha_3_code === 'can') {
+
                         if (!billingMethod) {
                             return commonjs.showWarning('messages.status.pleaseSelectValidClaimsMethod');
                         }
