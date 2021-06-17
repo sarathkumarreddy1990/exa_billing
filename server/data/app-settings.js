@@ -453,7 +453,7 @@ module.exports = {
                 ),
 
                 cte_rendering_provider AS (
-                    SELECT  coalesce(JSON_AGG(ROW_TO_JSON(rendering_provider)), '[]') "rendering_provider"
+                    SELECT  COALESCE(JSON_AGG(ROW_TO_JSON(rendering_provider)), '[]') "rendering_provider"
                         FROM (
                             SELECT
                                 DISTINCT p.full_name,

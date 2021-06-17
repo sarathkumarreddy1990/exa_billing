@@ -2935,7 +2935,7 @@ define(['jquery',
                     var rowId = selectedClaimsRows[i].parentNode.parentNode.id;
                     var billingMethod = self.getGridCellData(filter, rowId, 'hidden_billing_method');
 
-                    if (app.country_alpha_3_code === 'can') {                      
+                    if (app.country_alpha_3_code === 'can') {
 
                         if (!billingMethod) {
                             return commonjs.showWarning('messages.status.pleaseSelectValidClaimsMethod');
