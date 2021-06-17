@@ -521,7 +521,7 @@ define(['jquery',
                 var filter = commonjs.loadedStudyFilters.get(filterID);
                 var existingRenderingProvider = null;
                 var selectedClaimsRows = $(filter.options.gridelementid, parent.document).find('input[name=chkStudy]:checked');
-                var billingMethod = self.getGridCellData(filter, rowId, 'hidden_billing_method');
+                var billingMethod = $(e.target).attr('data-method');
 
                 if (app.billingRegionCode == 'can_ON' && billingMethod == 'electronic_billing') {
                     for (var i = 0; i < selectedClaimsRows.length; i++) {
