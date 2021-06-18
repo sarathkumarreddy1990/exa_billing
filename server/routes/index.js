@@ -10,7 +10,7 @@ const siteConfig = require('../../server/config');
 router.get('/', function (req, res) {
     let currentTheme = 'default';
     let billingRegionCode= (req.session && req.session.billingRegionCode) || '';
-    let censusRights = (req.session?.user_type === 'SU' || req.session?.screens.indexOf('CENS') > 1);
+    let hasCensusRights = req.session?.user_type === 'SU' || req.session?.screens.indexOf('CENS') > 1;
 
     if (req.session && req.session.currentTheme && ['default', 'dark'].indexOf(req.session.currentTheme) > -1) {
         currentTheme = req.session.currentTheme;
@@ -22,7 +22,7 @@ router.get('/', function (req, res) {
         currentTheme: currentTheme,
         csrfToken: req.csrfToken(),
         staticAssetsRoot,
-        enableCensus: (siteConfig.get('enableMobileBilling') && censusRights && req.session.country_alpha_3_code === 'usa')
+        enableCensus: siteConfig.get('enableMobileBilling') && hasCensusRights && req.session.country_alpha_3_code === 'usa'
     });
 });
 
