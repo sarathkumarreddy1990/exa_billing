@@ -15,8 +15,9 @@ block content
             span.navbar-toggler-icon
         #navbarNavAltMarkup.collapse.navbar-collapse
             ul.navbar-nav.ml-auto
-                li.nav-item
-                    a#aCensus.nav-link.active(href='#billing/census/list', i18n='shared.moduleheader.census')
+                if (enableCensus)
+                    li.nav-item
+                        a#aCensus.nav-link.active(href='#billing/census/list', i18n='shared.moduleheader.census')
                 li.nav-item
                     a#aStudies.nav-link.active(href='#billing/studies/list', i18n='shared.moduleheader.studies')
                 li.nav-item
