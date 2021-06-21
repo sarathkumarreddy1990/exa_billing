@@ -49,12 +49,12 @@ const runJob = ( req, res ) => {
         endpoint,
     } = req.params;
 
-    ohip[ `${endpoint}Refresh` ](null, error => {
+    ohip[ `${endpoint}Refresh` ](req.query, error => {
         ohip[ `${endpoint}InProgress` ] = false;
 
         if ( error ) {
-            logger.e(`Failed to retrieve OHIP ${endpoint}`);
-            logger.e(error);
+            logger.error(`Failed to retrieve OHIP ${endpoint}`);
+            logger.error(error);
             return res.send({
                 'successful': false,
                 'inProgress': false,
