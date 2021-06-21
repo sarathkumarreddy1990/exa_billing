@@ -8,6 +8,7 @@ const {
 } = require('lodash');
 
 const path = require('path');
+const ohipData = require('./../../server/data/ohip/index');;
 const logger = require('../../logger');
 const remittanceAdviceProcessor = path.join(__dirname, '/remittanceAdviceProcessor');
 const fork = require('child_process').fork;
@@ -15,6 +16,7 @@ const fork = require('child_process').fork;
 //  * use cases are defined here
 
 const EBSConnector = require('./ebs');
+const shared = require('./../../server/shared');
 const {
     responseCodes,
     resourceTypes: {
@@ -151,9 +153,10 @@ const getNewResourceIDs = async (args, callback) => {
 
     const {
         resourceType,
+        providerNumber
     } = args;
 
-    const ohipConfig = await billingApi.getOHIPConfiguration();
+    const ohipConfig = await billingApi.getOHIPConfiguration(args);
     const ebs = new EBSConnector(ohipConfig.ebsConfig);
 
     const existingResourceIDs = await billingApi.getResourceIDs(args);
@@ -163,8 +166,15 @@ const getNewResourceIDs = async (args, callback) => {
 
     const processListResults = (err, results) => {
 
+        let {
+            faults = []
+        } = results || {};
+
+        err = err || (faults.length && faults[0]) || null;
+
         if (err) {
-            logger.error('getNewResourceIDs: processListResults', err);
+            logger.error(`getNewResourceIDs: processListResults ${JSON.stringify(err)}`);
+            return callback(err, []);
         }
         else {
             pages.push(results);
@@ -196,11 +206,11 @@ const getNewResourceIDs = async (args, callback) => {
     ebs[EDT_LIST](args, async (listErr, listResponse) => {
         // provides number of pages and first batch of downloadable resourceIDs
 
-        numPages = listResponse.results[0].resultSize;
+        numPages = listResponse.results[0] && listResponse.results[0].resultSize || 0;
 
         for (let pageNo = 2; pageNo <= numPages; pageNo++) {
             // spin off a bunch of asynchronous service-calls and pass processListResults as the callback
-            ebs[EDT_LIST]({ resourceType, pageNo }, processListResults);
+            ebs[EDT_LIST]({ providerNumber, resourceType, pageNo }, processListResults);
         }
 
         processListResults(listErr, listResponse);
@@ -229,12 +239,19 @@ const getNewResourceIDs = async (args, callback) => {
 const downloadNew = (args, callback) => {
 
     getNewResourceIDs(args, async (err, { resourceIDs }) => {
+        let {
+            providerNumber = ''
+        } = args;
 
-        const ohipConfig = await billingApi.getOHIPConfiguration();
+        if (err) {
+            return callback(err, []);
+        }
+
+        const ohipConfig = await billingApi.getOHIPConfiguration(args); 
         const ebs = new EBSConnector(ohipConfig.ebsConfig);
 
-        if (resourceIDs.length) {
-            ebs[EDT_DOWNLOAD]({ resourceIDs }, async (downloadErr, downloadResponse) => {
+        if (resourceIDs && resourceIDs.length) {
+            ebs[EDT_DOWNLOAD]({providerNumber, resourceIDs }, async (downloadErr, downloadResponse) => {
 
                 if (downloadErr) {
                     return callback(downloadErr, null);
@@ -244,7 +261,8 @@ const downloadNew = (args, callback) => {
 
                 const ediFiles = separatedDownloadResults[responseCodes.SUCCESS].map(async (result) => {
 
-                    const data = result.content;
+                    const data = shared.base64Decode(result.content);
+                    // need to decode the content using base64 decoding before storing the file
                     const filename = result.description;
                     const resource_id = result.resourceID;
                     const file = await billingApi.storeFile({
@@ -269,14 +287,19 @@ const downloadNew = (args, callback) => {
     });
 };
 
-const downloadAckFile = (params, callback) => {
+const downloadAckFile = async (params, callback) => {
 
-    const {
+    let {
+        providerNumber = '',
         resourceType,
         applicator,
     } = params;
 
-    downloadNew({ resourceType }, async (downloadErr, downloadResponse) => {
+    downloadNew({ providerNumber, resourceType }, async (downloadErr, downloadResponse) => {
+
+        if (downloadErr) {
+            return callback(downloadErr, []);
+        }
 
         downloadResponse.forEach((download) => {
 
@@ -294,8 +317,6 @@ const downloadAckFile = (params, callback) => {
                 parsedResponseFile,
             });
         });
-
-        return callback(null, downloadResponse);
     });
 };
 
@@ -322,9 +343,15 @@ const createEncoderContext = async () => {
 
 
 const downloadRemittanceAdvice = async (args, callback) => {
-    downloadNew({ resourceType: REMITTANCE_ADVICE }, (downloadErr, ediFiles) => {
-        return callback(downloadErr, ediFiles);
-    });
+    let {
+         providerNumber = ''
+    } = args || {};
+    downloadNew({ 
+            providerNumber,
+            resourceType: REMITTANCE_ADVICE
+        }, (downloadErr, ediFiles) => {
+            return callback(downloadErr, ediFiles);
+        });
 };
 
 const downloadAndProcessResponseFiles = async (args, callback) => {
@@ -343,17 +370,23 @@ const downloadAndProcessResponseFiles = async (args, callback) => {
         }
     }
 
+    logger.logInfo('Downloading claims file reject message....');
     downloadAckFile({
+        ...args,
         resourceType: CLAIMS_MAIL_FILE_REJECT_MESSAGE,
         applicator: billingApi.applyRejectMessage
     }, downloadHandler);
 
+    logger.logInfo('Downloading batch edit reports....');
     downloadAckFile({
+        ...args,
         resourceType: BATCH_EDIT,
         applicator: billingApi.applyBatchEditReport
     }, downloadHandler);
 
+    logger.logInfo('Downloading Error reports....');
     downloadAckFile({
+        ...args,
         resourceType: ERROR_REPORTS,
         applicator: billingApi.applyErrorReport
     }, downloadHandler);

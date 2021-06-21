@@ -180,7 +180,7 @@ ws.Xenc.prototype.send = function(ctx, callback) {
 
         const responseString = typeof ctx.response === `string`
             ? ctx.response
-            : ctx.response.toString();
+            : ctx.response && ctx.response.toString() || '';
         const doc = new dom().parseFromString(responseString);
         const bodyNode = select("//*[local-name(.)='Body']", doc)[0];
 
