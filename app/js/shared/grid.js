@@ -982,7 +982,8 @@ define('grid', [
                     formatter: function (cellvalue, option, rowObject) {
                         if (['ABRT', 'CAN', 'NOS'].indexOf(rowObject.study_status) > -1 || rowObject.has_deleted || (app.isMobileBillingEnabled && rowObject.billing_type === 'census')) {
                             return "";
-                        } else {
+                        }
+                        else {
                             return '<input type="checkbox" name="chkStudy" id="chk' + gridID.slice(1) + '_' + (options.isClaimGrid ? rowObject.id : rowObject.study_id) + '" />'
                         }
 

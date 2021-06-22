@@ -121,7 +121,6 @@ define(['jquery',
             checkAll: function () {
                 $('#tblGridCensus').find('input:checkbox').each(function () {
                     this.checked = true;
-                    var id = $(this).closest('tr').attr('id');
                     $(this).closest('tr').addClass('customRowSelect');
                 });
                 $('#chkAllCensus').prop('checked', true);
