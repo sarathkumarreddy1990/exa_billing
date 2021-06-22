@@ -11,6 +11,7 @@ const ahsData = require('../../data/ahs');
 const mhsalData = require('../../data/mhs');
 const claimPrintData = require('../../data/claim/claim-print');
 const ediConnect = require('../../../modules/edi');
+const censusController = require('../census');
 
 const studiesController = require('../../controllers/studies');
 
@@ -546,8 +547,8 @@ module.exports = {
         params.auditDetails = auditDetails;
         params.created_by = parseInt(params.userId);
 
-        if (params.isAllStudies == 'true') {
-            const studyData = await studiesController.getData(params);
+        if (params.isAllStudies == 'true'  || params.isAllCensus === 'true') {
+            const studyData = await(params.isAllCensus === 'true' ?  censusController.getData(params) : studiesController.getData(params));
             let studyDetails = [];
 
             _.map(studyData.rows, (study) => {

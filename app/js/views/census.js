@@ -23,7 +23,8 @@ define(['jquery',
             pager: null,
             model: null,
             template: null,
-            selectedRows: [],
+            pagerData: null,
+            gridI18nText: ['','', '', '', 'billing.payments.orderingFacilityLocation', 'billing.payments.mrn','shared.fields.accessionNumber', 'billing.fileInsurance.patientNameGrid', 'report.reportFilter.dateOfService', 'home.sendStudies.studyDesc', 'shared.fields.censusType'],
             censusType: [
                 { value: '', text: 'shared.options.select' },
                 { value: 'global', text: 'shared.fields.global' },
@@ -35,7 +36,7 @@ define(['jquery',
                 'click #btnClearAllCensus': 'clearAllChk',
                 'change #ddlOrdFacility': 'loadOrderingFacilityNotes',
                 'click #btnSaveNotes': 'saveOrderingFacilityNotes',
-                'click #btnUpdate': 'updateBillingType'
+                'click #btnCreateClaim': 'updateBillingType'
             },
 
             initialize: function (options) {
@@ -45,18 +46,18 @@ define(['jquery',
                 this.censusPager = new Pager();
                 self.routePrefix = '#billing/census/list';
                 $(window).on("resize", this.resize.bind(this));
-                this.loadTinyMc();
-                this.selectedRows = [];
             },
 
             render: function () {
                 var self = this;
                 self.template = _.template(censusHTML);
                 self.$el.html(self.template());
-                setTimeout(function () {
-                    //initializing tinymce editor
-                    self.initializeEditor();
-                }, 200)
+                var censusHeaders = $('#censusHeaders');
+                var censusListTab = $('#censusListTab');
+                censusListTab.addClass('active');
+                censusHeaders.show();
+                //initializing tinymce editor
+                self.initializeEditor();
                 $('#btnSaveNotes').attr({ 'disabled': true });
                 self.setOrderingFacilityAutoComplete();
                 self.showCensusGrid();
@@ -72,10 +73,10 @@ define(['jquery',
                         delay: 250,
                         data: function (params) {
                             return {
-                                pageNo: params.page || 1,
+                                page: params.page || 1,
                                 q: params.term || '',
                                 pageSize: 10,
-                                sortField: "ordering_facility_name",
+                                sortField: "name",
                                 sortOrder: "ASC",
                                 company_id: app.companyID
                             };
@@ -120,6 +121,7 @@ define(['jquery',
             checkAll: function () {
                 $('#tblGridCensus').find('input:checkbox').each(function () {
                     this.checked = true;
+                    var id = $(this).closest('tr').attr('id');
                     $(this).closest('tr').addClass('customRowSelect');
                 });
                 $('#chkAllCensus').prop('checked', true);
@@ -142,7 +144,7 @@ define(['jquery',
 
                 // Defaulting billing type options
                 self.censusType.map(function (data) {
-                    censusTypeSelect += '<option value="' + data.value + '" i18n= ' + data.text + '></option>';
+                    censusTypeSelect += '<option class="selCensusType" value="' + data.value + '" i18n= ' + data.text + '></option>';
                 });
 
                 self.censusTable = new customGrid();
@@ -150,11 +152,15 @@ define(['jquery',
                     gridelementid: '#tblGridCensus',
                     emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     custompager: new Pager(),
-                    colNames: ['', '<input type="checkbox" id="chkAllCensus"  onclick="commonjs.checkMultipleCensus(event)" />', '', '', '', '', '', ''],
-                    i18nNames: ['', '', 'order.newOrder.locations', 'billing.payments.mrn', 'billing.fileInsurance.patientNameGrid', 'report.reportFilter.dateOfService', 'home.sendStudies.studyDesc', 'shared.fields.censusType'],
+                    colNames: ['','','', '<input type="checkbox" id="chkAllCensus"  onclick="commonjs.checkMultipleCensus(event)" />', '', '','', '', '', '', ''],
+                    i18nNames: self.gridI18nText,
                     colModel: [
                         {
                             name: 'id', hidden: true,
+                        },{
+                            name: 'patient_id', hidden: true,
+                        },{
+                            name: 'order_id', hidden: true,
                         },
                         {
                             name: 'as_chk',
@@ -177,6 +183,8 @@ define(['jquery',
                         { name: 'location', },
                         {
                             name: 'account_no', search: true,
+                        },  {
+                            name: 'accession_no', search: true,
                         },
                         {
                             name: 'full_name', search: true,
@@ -188,13 +196,13 @@ define(['jquery',
                             name: 'study_description', search: true,
                         },
                         {
-                            name: 'censusType', editable: true, sortable: true,
+                            name: 'censusType', editable: true, sortable: false,
                             align: 'center',
                             editable: true,
                             cellEdit: true,
                             search: false,
                             formatter: function (cellvalue, option, rowObject) {
-                                return '<select class=" ui-state-hover selCensusType" id="censusType_' + rowObject.id + '">' + censusTypeSelect + "</select>";
+                                return '<select class="ui-state-hover selCensusType" id="censusType_' + rowObject.id + '">' + censusTypeSelect + "</select>";
                             }
                         }
                     ],
@@ -216,22 +224,31 @@ define(['jquery',
                     pagerApiUrl: '/exa_modules/billing/census/count',
                     pager: '#gridPager_census',
                     customargs: {
-                        facilityId: orderingFacilityId
+                        orderingFacilityId: orderingFacilityId
                     },
                     beforeSelectRow: function (id, e) {
-                        if (!$(e.target || e.srcElement).hasClass('chkCensus')) {
+                        var targetElement = $(e.target || e.srcElement);
+                        var  chkAllCensus = $('#chkAllCensus');
+                        if (!targetElement.hasClass('chkCensus') && !targetElement.hasClass('selCensusType')) {
                             var isChecked = $('#chkCensus_' + id).prop('checked');
                             if (isChecked) {
-                                $('#chkAllCensus').prop('checked', false);
-                                self.selectedRows = _.without(self.selectedRows, id);
-                            } else {
-                                self.selectedRows.push(id);
+                                chkAllCensus.prop('checked', false);
                             }
                             $('#chkCensus_' + id).prop('checked', !isChecked);
+                        } else if(targetElement.hasClass('selCensusType')) {
+                            $('#chkCensus_' + id).prop('checked', true); 
+                        }
+
+                        if ($('.chkCensus:checked').length == $('.chkCensus').length) {
+                            chkAllCensus.prop('checked', true);
+                        } else {
+                            chkAllCensus.prop('checked', false);
                         }
                     },
                     onaftergridbind: function (model, gridObj) {
                         self.bindDateRangeOnSearchBox(gridObj);
+                        $('#chkAllCensus').prop('checked', false);
+                        self.pagerData = gridObj.pager;
                     }
                 });
                 self.resize();
@@ -258,17 +275,6 @@ define(['jquery',
                 });
             },
 
-            loadTinyMc: function () {
-               
-                if (typeof window.scriptFlag === 'undefined') {
-                    var script = document.createElement('script');
-                    script.type = "text/javascript";
-                    script.src = " /tinymce/tinymce.min.js";
-                    document.body.appendChild(script);
-                    window.scriptFlag = true;
-                }
-            },
-
             /**
              * resize - resizing the grid on window resize
              */
@@ -279,7 +285,8 @@ define(['jquery',
                 dataContainer.height(window.innerHeight - (25 + $('.navbar').outerHeight() + $('#divPageHeaderButtons').outerHeight()));
                 divCensus.outerWidth(window.innerWidth).outerHeight(dataContainer.outerHeight() - $('.top-nav').outerHeight());
                 tblGridCensus.setGridWidth(dataContainer.width() - 20);
-                tblGridCensus.setGridHeight((divCensus.height() - $('#censusHeaders').outerHeight()) - 100);
+                var censusHeight = (divCensus.height() - $('#censusHeaders').outerHeight()) - 100;
+                tblGridCensus.setGridHeight(censusHeight);
             },
 
             loadOrderingFacilityNotes: function () {
@@ -287,16 +294,18 @@ define(['jquery',
                 var orderingFacilityId = $('#ddlOrdFacility').val();
                 if (orderingFacilityId) {
                     $.ajax({
-                        url: '/providerGroup',
+                        url: '/orderingFacility/notes',
                         type: 'GET',
-                        data: { id: $('#ddlOrdFacility').val() },
+                        data: { id: orderingFacilityId },
                         success: function (response) {
                             if (response.status == 'ok') {
                                 $('#btnSaveNotes').attr({ 'disabled': false });
                                 var editor = tinymce.get('txtNotesEditor');
-                                editor.setContent(response.result.note || '');
+                                editor.setContent((response.result[0] && response.result[0].note) || '');
                                 editor.setDirty(false);
                                 self.showCensusGrid(orderingFacilityId);
+                            } else {
+                                editor.setContent('');
                             }
                         },
                         error: function (err, response) {
@@ -311,10 +320,10 @@ define(['jquery',
             saveOrderingFacilityNotes: function () {
                 var editor = tinymce.get('txtNotesEditor');
                 $.ajax({
-                    url: '/orderingFacilityNotes',
+                    url: '/orderingFacility/notes',
                     type: 'PUT',
                     data: {
-                        provider_group_id: $('#ddlOrdFacility').val(),
+                        id: $('#ddlOrdFacility').val(),
                         note: editor.getContent()
                     },
                     success: function (response) {
@@ -330,12 +339,58 @@ define(['jquery',
             },
 
             updateBillingType: function () {
-                //TO-DO update the billing type to studies 
-                this.selectedRows.every(function (rowId) {
-                    if ($('#censusType_' + rowId).val() === '') {
-                        commonjs.showWarning('messages.warning.validCensusType');
-                        return false;
-                    } return true;
+                var self = this;
+                var selectStudies = [];
+                var isInvalidCensusType = false;
+                var checkedStudies = $("input:checkbox[name=chkCensus]:checked");
+
+                if(!checkedStudies || !checkedStudies.length){
+                    return commonjs.showWarning('messages.warning.oneStudyRequired');
+                }
+
+                checkedStudies.each(function () {
+                    var id = $(this).attr("id").split('_')[1];
+                    var gridData = $('#tblGridCensus').jqGrid('getRowData', id);
+                    var censusType = $('#censusType_' + id).val();
+
+                    if (censusType === '') {
+                        isInvalidCensusType = true;
+                    }
+
+                    selectStudies.push({
+                        study_id: id,
+                        patient_id: gridData.patient_id,
+                        order_id: gridData.order_id,
+                        billing_type: censusType
+                    });
+                });
+
+                if (isInvalidCensusType) {
+                    return commonjs.showWarning('messages.warning.validCensusType');
+                }
+                commonjs.showLoading();
+
+                $.ajax({
+                    url: '/exa_modules/billing/claim_workbench/claims/batch',
+                    type: 'POST',
+                    data: {
+                        studyDetails: JSON.stringify(selectStudies),
+                        company_id: app.companyID,
+                        screenName: 'Census',
+                        isAllCensus: false,
+                        isAllStudies: false,
+                        isMobileBillingEnabled: app.isMobileBillingEnabled
+                    },
+                    success: function (data) {
+                        commonjs.hideLoading();
+                        if (data && data.length && (data[0].create_claim_charge)) {
+                            commonjs.showStatus("messages.status.successfullyCompleted");
+                            self.showCensusGrid($('#ddlOrdFacility').val());
+                        }
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
                 });
             },
 
@@ -374,6 +429,6 @@ define(['jquery',
                         gridObj.refresh();
                     });
                 });
-            },
+            }
         });
     });

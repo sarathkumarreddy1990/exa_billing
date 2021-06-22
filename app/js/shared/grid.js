@@ -792,6 +792,11 @@ define('grid', [
                 var rowId = $checkedInputs[r].parentNode.parentNode.id;
                 var gridData = $(gridID).jqGrid('getRowData', rowId);
 
+                if (gridData.hidden_billing_type === 'census') {
+                    commonjs.showWarning("messages.warning.validBillingType");
+                    return false;
+                }
+
                 if (!gridData.hidden_study_cpt_id) {
                     commonjs.showWarning("messages.warning.claims.selectChargesRecordForBatchClaim");
                     return false;
@@ -825,19 +830,22 @@ define('grid', [
                         user_id: app.userID,
                         pageNo: 1,
                         pageSize: 100,
+                        isAllCensus: false,
                         isAllStudies: true,
                         isDatePickerClear: isDatePickerClear,
                         customArgs: {
                             filter_id: filterID,
                             isClaimGrid: false
                         },
-                        isBatchClaim: true
+                        isBatchClaim: true,
+                        isCensusEnabled: app.isMobileBillingEnabled
                     }
                 } else {
                     param = {
                         studyDetails: selectedIds,
                         company_id: app.companyID,
-                        isAllStudies: false
+                        isAllStudies: false,
+                        isAllCensus: false
                     }
                 }
                     $.ajax({
@@ -956,11 +964,11 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 ('<input type="checkbox" i18nt="billing.payments.selectAllStudies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />'),
-                '','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', '', ''
+                '','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', '', ''
             ]);
 
             i18nName = i18nName.concat([
-                '','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'billing.claims.assignedTo', '', ''
+                '','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '','', 'billing.claims.assignedTo', '', ''
             ]);
 
             colModel = colModel.concat([
@@ -972,9 +980,11 @@ define('grid', [
                     search: false,
                     isIconCol: true,
                     formatter: function (cellvalue, option, rowObject) {
-                        if(['ABRT','CAN','NOS'].indexOf(rowObject.study_status)>-1||rowObject.has_deleted)
+                        if (['ABRT', 'CAN', 'NOS'].indexOf(rowObject.study_status) > -1 || rowObject.has_deleted || (app.isMobileBillingEnabled && rowObject.billing_type === 'census')) {
                             return "";
-                        else  return '<input type="checkbox" name="chkStudy" id="chk'+gridID.slice(1)+'_' + (options.isClaimGrid?rowObject.id:rowObject.study_id )+ '" />'
+                        } else {
+                            return '<input type="checkbox" name="chkStudy" id="chk' + gridID.slice(1) + '_' + (options.isClaimGrid ? rowObject.id : rowObject.study_id) + '" />'
+                        }
 
                     },
                     customAction: function (rowID, e, that) {
@@ -1479,6 +1489,13 @@ define('grid', [
                     }
                 },
                 {
+                    name: 'hidden_billing_type',
+                    hidden: true,
+                    formatter: function (cellvalue, options, rowObject) {
+                        return rowObject.billing_type || "";
+                    }
+                },
+                {
                     name: 'claim_resubmission_flag',
                     hidden: true
                 }
@@ -1682,7 +1699,7 @@ define('grid', [
                 container: options.container,
                 multiselect: true,
                 ondblClickRow: function (rowID, irow, icol, event) {
-                    if (screenCode.indexOf('ECLM') > -1)
+                    if (screenCode.indexOf('ECLM') > -1 || (app.isMobileBillingEnabled && gridData.billing_type === 'census'))
                         return false;
                     var gridData = getData(rowID, studyStore, gridID);
                     var study_id = 0;
@@ -1770,7 +1787,7 @@ define('grid', [
 
                 onRightClickRow: function (rowID, iRow, iCell, event, options) {
                     var gridData = $('#' + event.currentTarget.id).jqGrid('getRowData', rowID);
-                    if (['Aborted', 'Cancelled', 'Canceled', 'No Shows'].indexOf(gridData.study_status) > -1 || gridData.has_deleted == "Yes") {
+                    if (['Aborted', 'Cancelled', 'Canceled', 'No Shows'].indexOf(gridData.study_status) > -1 || gridData.has_deleted == "Yes" || gridData.hidden_billing_type === 'census') {
                         event.stopPropagation();
                     } else if (disableRightClick()) {
                         var _selectEle = $(event.currentTarget).find('#' + rowID).find('input:checkbox');

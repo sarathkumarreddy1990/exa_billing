@@ -888,9 +888,11 @@ module.exports = {
                                 ,study_status
                                 ,study_dt
                                 ,facilities.facility_name
+                                ,ofc.billing_type
                             FROM studies
                                 LEFT JOIN orders ON orders.id=studies.order_id
                                 INNER JOIN facilities ON studies.facility_id=facilities.id
+                                LEFT JOIN ordering_facility_contacts ofc ON ofc.id = studies.ordering_facility_contact_id
                             WHERE
                                 studies.deleted_dt IS NULL
                                 AND study_dt IS NOT NULL
