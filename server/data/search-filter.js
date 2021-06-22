@@ -1197,6 +1197,10 @@ const api = {
                 whereClause.query += ` AND ${whereClause.studyFilter} `;
             }
 
+            if (args.isBatchClaim === 'true' && args.isCensusEnabled === 'true') {
+                whereClause.query += ` AND  ordering_facility_contacts.billing_type != 'census' `;
+            }
+
             const query_options = {
                 defaultwherefilter: whereClause.query,
                 statusCode: args.customArgs && args.customArgs.statusCode ? args.customArgs.statusCode : [],

@@ -5117,8 +5117,9 @@ define(['jquery',
                                 _.each(charges, function (study) {
                                     study.study_description = study.study_description ? study.study_description : '--';
                                     study.accession_no = study.accession_no ? study.accession_no : '--';
+                                    study.billing_type = app.isMobileBillingEnabled && study.billing_type ? study.billing_type : 'global';
                                     var study_date = commonjs.getConvertedFacilityTime(study.study_dt, app.currentdate, 'L', app.facility_id);
-                                    $list.append('<li><input class="processStudy" id="studyChk_' + study.id + '" type="checkbox" name="chkStudy" data-study_dt="' + study.study_dt + '" data-accession_no="' + study.accession_no + '" />'+
+                                    $list.append('<li><input class="processStudy" id="studyChk_' + study.id + '" type="checkbox" name="chkStudy" data-study_dt="' + study.study_dt + '" data-accession_no="' + study.accession_no + '" data-billing_type="' + study.billing_type + '" />'+
                                     '<label style="font-weight: bold;overflow-wrap: break-word;"  for="studyChk_' + study.id + '" >' + study.study_description
                                     + ' ( Accession# : ' + study.accession_no + ' , Study.Date: ' + study_date + ')</label></li>');
                                 });
@@ -5149,6 +5150,11 @@ define(['jquery',
                                                 var studyId = $checkedInputs[r] && $checkedInputs[r].id ? $checkedInputs[r].id.split('_')[1] : 0;
                                                 var study_dt = $checkedInputs[r] && $checkedInputs[r].dataset ? $checkedInputs[r].dataset.study_dt : null;
                                                 var accession_no = $checkedInputs[r] && $checkedInputs[r].dataset ? $checkedInputs[r].dataset.accession_no : null;
+                                                var billing_type = $checkedInputs[r] && $checkedInputs[r].dataset ? $checkedInputs[r].dataset.billing_type : null;
+
+                                                if (app.isMobileBillingEnabled && billing_type === 'census') {
+                                                    return commonjs.showWarning("messages.warning.validBillingType");
+                                                }
 
                                                 var study = {
                                                     study_id: studyId,
