@@ -807,7 +807,7 @@ module.exports = {
                             LEFT JOIN
                                 studies s ON s.id = chs.study_id
                             LEFT JOIN
-                                provider_contacts pc ON pc.id = s.ordering_physician_id
+                                provider_contacts pc ON pc.id = s.ordering_provider_contact_id
                             LEFT JOIN
                                 providers p ON pc.provider_id = p.id
                             WHERE
