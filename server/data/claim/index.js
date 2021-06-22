@@ -793,6 +793,26 @@ module.exports = {
                             ORDER BY p.id ASC
                         ) payment_details
                     ) AS payment_details
+                    , ( SELECT
+                        json_agg(row_to_json(orderPhyDetail)) "ordering_physician"
+                        FROM (
+                            SELECT
+                                pc.id AS ordering_provider_contact_id
+                                , p.full_name AS ord_prov_full_name
+                                , p.provider_code AS ord_prov_code
+                            FROM
+                                billing.charges ch
+                            LEFT JOIN
+                                billing.charges_studies chs ON chs.charge_id = ch.id
+                            LEFT JOIN
+                                studies s ON s.id = chs.study_id
+                            LEFT JOIN
+                                provider_contacts pc ON pc.id = s.ordering_physician_id
+                            LEFT JOIN
+                                providers p ON pc.provider_id = p.id
+                            WHERE
+                                ch.claim_id = ${id}
+                        ) AS orderPhyDetail) ordering_physician
                     , c.area_of_injury_code_id
                     , c.nature_of_injury_code_id
                     FROM
