@@ -1015,7 +1015,7 @@ define(['jquery',
                     self.ACSelect.readPhy.contact_id = claim_data.fac_rendering_provider_contact_id || claim_data.rendering_provider_contact_id || null;
                 }
 
-                if (claim_data.ordering_physician?.length) {
+                if (claim_data.ordering_physician && claim_data.ordering_physician.length > 0) {
                     var phyDetails = claim_data.ordering_physician[0];
                     self.ACSelect.refPhy.contact_id = phyDetails.ordering_provider_contact_id || null;
                     self.ACSelect.refPhy.Code = phyDetails.ord_prov_code || null;
