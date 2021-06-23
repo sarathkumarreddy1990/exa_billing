@@ -134,7 +134,7 @@ const colModel = [
                 WHEN 'primary_insurance' THEN payer_insurance.insurance_name
                 WHEN 'secondary_insurance' THEN payer_insurance.insurance_name
                 WHEN 'tertiary_insurance' THEN payer_insurance.insurance_name
-	            WHEN 'ordering_facility' THEN provider_groups.group_name
+	            WHEN 'ordering_facility' THEN ordering_facilities.name
 	            WHEN 'referring_provider' THEN ref_provider.full_name
 	            WHEN 'rendering_provider' THEN render_provider.full_name
 	            WHEN 'patient' THEN patients.full_name        END) `]
@@ -191,7 +191,7 @@ const colModel = [
     },
     {
         name: 'ordering_facility_name',
-        searchColumns: ['provider_groups.group_name'],
+        searchColumns: ['ordering_facilities.name'],
         searchFlag: '%'
     },
     {
@@ -298,7 +298,7 @@ const api = {
             case 'place_of_service': return 'places_of_service.description';
             case 'referring_providers': return 'ref_provider.full_name';
             case 'rendering_provider': return 'render_provider.full_name';
-            case 'ordering_facility_name': return 'provider_groups.group_name';
+            case 'ordering_facility_name': return 'ordering_facilities.name';
             case 'facility_name': return 'facilities.facility_name';
             case 'billing_fee': return 'bgct.charges_bill_fee_total';
             case 'invoice_no': return 'claims.invoice_no';
@@ -318,7 +318,7 @@ const api = {
                 WHEN 'primary_insurance' THEN payer_insurance.insurance_name
                 WHEN 'secondary_insurance' THEN payer_insurance.insurance_name
                 WHEN 'tertiary_insurance' THEN payer_insurance.insurance_name
-	            WHEN 'ordering_facility' THEN provider_groups.group_name
+	            WHEN 'ordering_facility' THEN ordering_facilities.name
 	            WHEN 'referring_provider' THEN ref_provider.full_name
 	            WHEN 'rendering_provider' THEN render_provider.full_name
 	            WHEN 'patient' THEN patients.full_name        END)
@@ -468,11 +468,14 @@ const api = {
                 END)`;
             r += ' LEFT JOIN insurance_providers payer_insurance ON patient_insurances.insurance_provider_id = payer_insurance.id ';
             r += ' LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = payer_insurance.id ';
-            r += ' LEFT JOIN   billing.edi_clearinghouses ON  billing.edi_clearinghouses.id=insurance_provider_details.clearing_house_id';
+            r += ' LEFT JOIN  billing.edi_clearinghouses ON  billing.edi_clearinghouses.id=insurance_provider_details.clearing_house_id';
         }
 
-        if (tables.provider_groups) { r += '  LEFT JOIN provider_groups ON claims.ordering_facility_id = provider_groups.id '; }
 
+        if (tables.ordering_facilities || tables.ordering_facility_contacts) {
+            r += ` LEFT JOIN ordering_facility_contacts ON ordering_facility_contacts.id = claims.ordering_facility_contact_id 
+                   LEFT JOIN ordering_facilities ON ordering_facilities.id = ordering_facility_contacts.ordering_facility_id`;
+        }
         if (tables.billing_codes) { r += '  LEFT JOIN billing.billing_codes ON claims.billing_code_id = billing_codes.id '; }
 
         if (tables.billing_classes) { r += '  LEFT JOIN billing.billing_classes ON claims.billing_class_id = billing_classes.id '; }
@@ -554,7 +557,7 @@ const api = {
             'places_of_service.description AS place_of_service',
             'ref_provider.full_name as   referring_providers',
             'render_provider.full_name as   rendering_provider',
-            'provider_groups.group_name as   ordering_facility_name',
+            'ordering_facilities.name AS ordering_facility_name',
             'facilities.facility_name as facility_name',
             'bgct.charges_bill_fee_total as billing_fee',
             'claims.current_illness_date::text as current_illness_date',
@@ -571,7 +574,7 @@ const api = {
             WHEN 'primary_insurance' THEN payer_insurance.insurance_name
             WHEN 'secondary_insurance' THEN payer_insurance.insurance_name
             WHEN 'tertiary_insurance' THEN payer_insurance.insurance_name
-            WHEN 'ordering_facility' THEN provider_groups.group_name
+            WHEN 'ordering_facility' THEN ordering_facilities.name
             WHEN 'referring_provider' THEN ref_provider.full_name
             WHEN 'rendering_provider' THEN render_provider.full_name
             WHEN 'patient' THEN patients.full_name        END) as payer_name`,

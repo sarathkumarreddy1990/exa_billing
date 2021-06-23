@@ -48,5 +48,9 @@ module.exports = {
 
     getWCBCodes: (params) => {
         return data.getWCBCodes(params);
-    }
+    },
+
+    getOrderingFacilities: data.getOrderingFacilities,
+
+    getOrderingFacilityContacts: data.getOrderingFacilityContacts,
 };

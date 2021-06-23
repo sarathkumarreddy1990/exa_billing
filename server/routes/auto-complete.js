@@ -78,4 +78,15 @@ router.get('/wcb_codes', async function (req, res) {
     const data = await autoCompleteController.getWCBCodes(req.query);
     httpHandler.sendRows(req, res, data);
 })
+
+router.get('/ordering_facilities', async function (req, res) {
+    const data = await autoCompleteController.getOrderingFacilities(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
+router.get('/ordering_facility_contacts', async function (req, res) {
+    const data = await autoCompleteController.getOrderingFacilityContacts(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
 module.exports = router;

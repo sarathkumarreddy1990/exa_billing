@@ -512,5 +512,108 @@ module.exports = {
             .append(SQL` OFFSET ${((page - 1) * pageSize)}`);
 
         return await query(wcb_code_sql);
+    },
+
+    getOrderingFacilities: async (args) => {
+        let {
+            company_id,
+            sortField,
+            sortOrder,
+            pageSize,
+            page,
+            q
+        } = args;
+        let whereQuery = '';
+
+        if (q) {
+            whereQuery += ` AND (code ILIKE '%${q}%' OR name ILIKE '%${q}%' ) `;
+        }
+
+        const sql = SQL`
+            WITH get_ordering_facility_count AS (
+                SELECT
+                    COUNT(1) AS total_records
+                FROM ordering_facilities
+                WHERE deleted_dt IS NULL
+                AND inactivated_dt IS NULL
+                AND company_id = ${company_id}`
+            .append(whereQuery)
+            .append(`
+            )
+            SELECT
+                id
+                , code AS ordering_facility_code
+                , name AS ordering_facility_name
+                , inactivated_dt
+                , company_id
+                , gofc.total_records
+            FROM ordering_facilities
+            INNER JOIN get_ordering_facility_count gofc ON TRUE
+            WHERE deleted_dt IS NULL
+            AND inactivated_dt IS NULL
+            AND company_id = ${company_id}
+            ${whereQuery} `);
+
+        sql.append(`
+                    ORDER BY
+                        ${sortField} ${sortOrder}
+                    LIMIT
+                        ${pageSize}
+                    OFFSET
+                        ${(page - 1) * pageSize} `);
+
+        return await query(sql);
+    },
+
+    getOrderingFacilityContacts: async (args) => {
+        let {
+            company_id,
+            sortField,
+            sortOrder,
+            pageSize,
+            page,
+            q
+        } = args;
+        let whereQuery = '';
+
+        if (q) {
+            whereQuery += ` AND (pofc.location ILIKE '%${q}%') `;
+        }
+
+        const sql = SQL`
+            WITH get_ordering_facility_contacts_count AS (
+                SELECT
+                    COUNT(1) AS total_records
+                FROM public.ordering_facility_contacts pofc
+                INNER JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id AND pof.deleted_dt IS NULL
+                WHERE pofc.inactivated_dt IS NULL
+                    AND pof.company_id = ${company_id}`
+            .append(whereQuery)
+            .append(`
+            )
+            SELECT
+                DISTINCT(pofc.location)
+                , pofc.id
+                , pofc.phone_number
+                , pofc.fax_number
+                , pof.code AS ordering_facility_code
+                , pof.name AS ordering_facility_name
+                , gofc.total_records
+            FROM public.ordering_facility_contacts pofc
+            INNER JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id AND pof.deleted_dt IS NULL
+            INNER JOIN get_ordering_facility_contacts_count gofc ON TRUE
+            WHERE pofc.inactivated_dt IS NULL
+                AND pof.company_id = ${company_id}
+                ${whereQuery}`);
+
+        sql.append(`
+                    ORDER BY
+                        ${sortField || 'pofc.location'} ${sortOrder || 'ASC'}
+                    LIMIT
+                        ${pageSize}
+                    OFFSET
+                        ${(page - 1) * pageSize} `);
+
+        return await query(sql);
     }
 };

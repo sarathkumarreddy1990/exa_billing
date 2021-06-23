@@ -2150,7 +2150,7 @@ define([
                 var $orderingFacility = self.opener == "studies" ? $("#ddlOrdFacility") : $("#ddlClaimOrdFacility");
                 $orderingFacility.select2({
                     ajax: {
-                        url: "/exa_modules/billing/autoCompleteRouter/provider_group",
+                        url: "/exa_modules/billing/autoCompleteRouter/ordering_facilities",
                         dataType: 'json',
                         delay: 250,
                         data: function (params) {
@@ -2158,7 +2158,7 @@ define([
                                 page: params.page || 1,
                                 q: params.term || '',
                                 pageSize: 10,
-                                sortField: "group_name",
+                                sortField: "name",
                                 sortOrder: "ASC",
                                 groupType: 'OF',
                                 company_id: app.companyID
@@ -2180,17 +2180,17 @@ define([
                         return repo.text;
                     }
                     var markup = "<table class='ref-result' style='width: 100%'><tr>";
-                    markup += "<td data-id='" + repo.id +"' title='" + repo.group_name + "class='movie-info'><div class='movie-title'><b>" + repo.group_name + "</b></div>";
+                    markup += "<td data-id='" + repo.id +"' title='" + repo.ordering_facility_name + "'><div><b>" + repo.ordering_facility_name + "</b></div>";
                     markup += "</td></tr></table>";
                     return markup;
                 }
                 function formatRepoSelection(res) {
-                    self.group_name = res.group_name;
-                    self.group_id = res.provider_group_id;
+                    self.ordering_facility_name = res.ordering_facility_name;
+                    self.ordering_facility_id = res.id
                     if (res && res.id) {
                         if(self.opener == "studies") $('#btnAddOrdFacility').attr("data-id", res.id);
                         else $('#btnAddClaimOrdFacility').attr("data-id", res.id);
-                        return res.group_name;
+                        return res.ordering_facility_name;
                     }
 
                 }
