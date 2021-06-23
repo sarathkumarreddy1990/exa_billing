@@ -84,6 +84,7 @@ module.exports = {
                                 , is_other_accident
                                 , is_employed
                                 , service_by_outside_lab
+                                , billing_type
                             )
                             SELECT
                                 company_id
@@ -121,6 +122,7 @@ module.exports = {
                                 , is_other_accident
                                 , is_employed
                                 , service_by_outside_lab
+                                , billing_type
                             FROM billing.claims bc
                             WHERE bc.id = ${claim_id}
                             RETURNING *, '{}'::jsonb old_values

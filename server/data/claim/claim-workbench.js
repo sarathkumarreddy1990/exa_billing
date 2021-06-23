@@ -382,11 +382,19 @@ module.exports = {
                         CASE
                             WHEN studies.study_status = 'APP' THEN 1
                             ELSE 2
-                        END  AS status_index
+                        END  AS status_index,
+                        split_claims.split_claim_ids
                     FROM
                         billing.charges_studies
                     INNER JOIN billing.charges ON billing.charges.id = billing.charges_studies.charge_id
                     INNER JOIN public.studies ON public.studies.id = billing.charges_studies.study_id
+                    LEFT JOIN LATERAL (
+                        SELECT
+                            ARRAY_AGG(DISTINCT(bch.claim_id)) AS split_claim_ids
+                        FROM billing.charges_studies  bcs
+                        INNER JOIN billing.charges bch ON bch.id = bcs.charge_id
+                        WHERE bcs.study_id = public.studies.id AND bch.claim_id != ${claim_id}
+                    ) split_claims ON TRUE
                     WHERE   billing.charges.claim_id = ${claim_id}
                     ORDER BY status_index ,study_id
                     LIMIT 1`;
@@ -595,28 +603,28 @@ module.exports = {
         const sql = SQL`
                     WITH batch_claim_details AS (
                         SELECT
-		                    patient_id, study_id, order_id
+		                    patient_id, study_id, order_id, billing_type
 	                    FROM
 	                        json_to_recordset(${studyDetails}) AS study_ids
 		                    (
 		                        patient_id bigint,
                                 study_id bigint,
-                                order_id bigint
+                                order_id bigint,
+                                billing_type text
                             )
                     ), details AS (
                         SELECT bcd.study_id, d.*
                         FROM
                            batch_claim_details bcd
-                        LEFT JOIN LATERAL (select * from billing.get_batch_claim_details(bcd.study_id, ${params.created_by}, bcd.patient_id, bcd.order_id)) d ON true
+                        LEFT JOIN LATERAL (select * from billing.get_batch_claim_details(bcd.study_id, ${params.created_by}, bcd.patient_id, bcd.order_id, bcd.billing_type)) d ON true
                       )
                       SELECT `
             .append(createClaimFunction)
             .append(`(
-                    details.claims,
+                    jsonb_array_elements(details.claims),
                     details.insurances,
                     details.claim_icds,
-                    ('${JSON.stringify(auditDetails) }'):: jsonb,
-                    details.charges) FROM details`);
+                    ('${JSON.stringify(auditDetails) }'):: jsonb) FROM details`);
 
         return await query(sql);
     },

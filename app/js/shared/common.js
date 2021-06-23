@@ -4206,6 +4206,7 @@ var commonjs = {
                 if (data && data.length > 0) {
                     result.study_id = data[0].study_id;
                     result.order_id = data[0].order_id;
+                    result.split_claim_id = data[0].split_claim_ids;
                 }
 
                 callback(result);
@@ -5365,8 +5366,17 @@ var commonjs = {
         }
 
         return isValidSearch;
-    }
+    },
 
+    tinyMceLoad: function(){
+        if (typeof window.scriptFlag === 'undefined') {
+            var script = document.createElement('script');
+            script.type = "text/javascript";
+            script.src = "../../../tinymce/tinymce.min.js";
+            document.body.appendChild(script);
+            window.scriptFlag = true;
+        }
+    }
 };
 
 

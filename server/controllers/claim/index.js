@@ -33,7 +33,85 @@ const api= {
             user_id: params.userId
         };
         params.auditDetails = auditDetails;
-        return await data.save(params);
+        let {
+            claims
+            , insurances
+            , claim_icds
+            , charges
+            , is_alberta_billing
+        } = params;
+
+        let newClaim = [];
+
+        if(claims.is_split_claim) {
+            let {professional_modifier_id, technical_modifier_id} = (await data.getTechnicalAndProfessionalModifier()).pop();
+
+            newClaim.push({
+                ...claims, 
+                claim_charges: charges
+            });
+
+            // creating a technical claim since it is split claim 
+            let newCharges = [];
+            
+            await Promise.all(charges.map(async (charge, index) => {
+               
+                let modifier1 = charge.modifier1_id == professional_modifier_id ? technical_modifier_id : charge.modifier1_id;
+                let modifier2 = charge.modifier2_id == professional_modifier_id ? technical_modifier_id : charge.modifier2_id;
+                let modifier3 = charge.modifier3_id == professional_modifier_id ? technical_modifier_id : charge.modifier3_id;
+                let modifier4 = charge.modifier4_id == professional_modifier_id ? technical_modifier_id : charge.modifier4_id;
+
+                // recalculate bill fee allowed amount again only if charges contains professional modifier
+                let { bill_fee, allowed_amount } = await data.getTechnicalBillFeeAmounts({
+                    cpt_id: charge.cpt_id,
+                    modifier1,
+                    modifier2,
+                    modifier3,
+                    modifier4,
+                    beneficiary_id: claims.beneficiary_id,
+                    facility_id: claims.facility_id,
+                    order_id: claims.order_id
+                });
+
+                newCharges.push({
+                    ...charges[index],
+                    modifier1_id: modifier1,
+                    modifier2_id: modifier2,
+                    modifier3_id: modifier3,
+                    modifier4_id: modifier4,
+                    bill_fee,
+                    allowed_amount
+                });
+            }));
+
+            // EXA-22773 | For technical claim responsible must be ordering facility 
+            newClaim.push({
+                ...claims,
+                billing_method: 'direct_billing',
+                payer_type: 'ordering_facility',
+                claim_charges: newCharges
+            });
+
+            return await data.save({
+                claims: newClaim
+                , insurances
+                , claim_icds
+                , auditDetails
+                , is_alberta_billing
+            });
+
+        } 
+
+        return await data.save({
+            claims: [{
+                ...claims,
+                claim_charges: charges
+            }]
+            , insurances
+            , claim_icds
+            , auditDetails
+            , is_alberta_billing
+        });
     },
 
     update: async (params) => {

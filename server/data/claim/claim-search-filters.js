@@ -242,6 +242,11 @@ const colModel = [
         name: 'can_bc_claim_sequence_numbers',
         searchColumns: ['billing.can_bc_get_claim_sequence_numbers(claims.id)'],
         searchFlag: 'arrayString'
+    },
+    {
+        name: 'billing_type',
+        searchColumns: ['ordering_facility_contacts.billing_type'],
+        searchFlag: '%'
     }
 ];
 
@@ -473,6 +478,11 @@ const api = {
 
         if (tables.provider_groups) { r += '  LEFT JOIN provider_groups ON claims.ordering_facility_id = provider_groups.id '; }
 
+        if (tables.ordering_facility_contacts) {
+            r += ` LEFT JOIN ordering_facility_contacts ON ordering_facility_contacts.id = claims.ordering_facility_contact_id 
+                   LEFT JOIN ordering_facilities ON ordering_facilities.id = ordering_facility_contacts.ordering_facility_id`;
+        }
+
         if (tables.billing_codes) { r += '  LEFT JOIN billing.billing_codes ON claims.billing_code_id = billing_codes.id '; }
 
         if (tables.billing_classes) { r += '  LEFT JOIN billing.billing_classes ON claims.billing_class_id = billing_classes.id '; }
@@ -614,7 +624,8 @@ const api = {
             `patient_alt_accounts.pid_alt_account`,
             `patient_alt_accounts.phn_alt_account`,
             `billing.can_bc_get_claim_sequence_numbers(claims.id) AS can_bc_claim_sequence_numbers`,
-            `AGE(CURRENT_DATE, submitted_dt) >= '3 days'::INTERVAL AND claim_status.code = 'PA' AS claim_resubmission_flag`
+            `AGE(CURRENT_DATE, submitted_dt) >= '3 days'::INTERVAL AND claim_status.code = 'PA' AS claim_resubmission_flag`,
+            'ordering_facility_contacts.billing_type'
         ];
 
         if(args.customArgs.filter_id=='Follow_up_queue'){

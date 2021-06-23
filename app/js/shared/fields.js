@@ -114,6 +114,7 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
         var gender = commonjs.makeValue(commonjs.bindArray(app.gender, false), ":All;");
         var isNoneExist = false;
         var claimAction = ':All;corrected_claim:Corrected claim;new_claim:New claim';
+        var billingType = ':All;census:Census;global:Global;facility:Facility;split:Split';
 
         for ( var i = 0; i < studyFlagArray.length; i++ ) {
             if ( studyFlagArray[ i ].description.toUpperCase() == 'NONE' ) {
@@ -931,7 +932,23 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         }
                     },
                     "field_code": "modalities"
-                }
+                },
+                "Billing type": {
+                    "id": 77,
+                    "field_name": "Billing type",
+                    "i18n_name": "shared.fields.billing_type",
+                    "field_info": {
+                        "custom_name": "Billing type",
+                        "name": "billing_type",
+                        "width": 150,
+                        "stype": "select",
+                            "searchoptions": {
+                                "value": billingType,
+                                "tempvalue": billingType
+                            },
+                    },
+                    "field_code": "billing_type"
+            }
 
             });
         }else{
@@ -2169,7 +2186,24 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "hidden": app.billingRegionCode !== 'can_BC'
                     },
                     "field_code": "can_bc_claim_sequence_numbers"
-            }
+            },
+            "Billing type": {
+                "id": 75,
+                "field_name": "Billing type",
+                "i18n_name": "shared.fields.billing_type",
+                "field_info": {
+                    "custom_name": "Billing type",
+                    "name": "billing_type",
+                    "width": 150,
+                    "stype": "select",
+                        "searchoptions": {
+                            "value": billingType,
+                            "tempvalue": billingType
+                        },
+                },
+                "field_code": "billing_type"
+        }
+
         });
 
     }

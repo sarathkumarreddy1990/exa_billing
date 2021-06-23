@@ -78,6 +78,7 @@ define('grid', [
                 commonjs.getClaimStudy(studyInfo.studyIds, function (result) {
                     studyInfo.study_id = (result && result.study_id && gridName != 'studies') ? result.study_id : studyInfo.study_id;
                     studyInfo.order_id = (result && result.order_id) ? result.order_id : 0;
+                    studyInfo.split_claim_id = (result && result.split_claim_id && result.split_claim_id.length) ? result.split_claim_id[0] : 0;
                     claimView.showEditClaimForm(studyInfo.studyIds, gridName, studyInfo);
                 });
             }
@@ -792,7 +793,7 @@ define('grid', [
                 var rowId = $checkedInputs[r].parentNode.parentNode.id;
                 var gridData = $(gridID).jqGrid('getRowData', rowId);
 
-                if (gridData.hidden_billing_type === 'census') {
+                if (gridData.billing_type === 'census') {
                     commonjs.showWarning("messages.warning.validBillingType");
                     return false;
                 }
@@ -810,7 +811,8 @@ define('grid', [
                 batchClaimArray.push({
                     patient_id: gridData.hidden_patient_id,
                     study_id: gridData.hidden_study_id,
-                    order_id: gridData.hidden_order_id
+                    order_id: gridData.hidden_order_id,
+                    billing_type: app.isMobileBillingEnabled && gridData.billing_type ? gridData.billing_type : 'global'
                 });
             }
 
@@ -838,7 +840,7 @@ define('grid', [
                             isClaimGrid: false
                         },
                         isBatchClaim: true,
-                        isCensusEnabled: app.isMobileBillingEnabled
+                        isMobileBillingEnabled: app.isMobileBillingEnabled
                     }
                 } else {
                     param = {
@@ -1788,7 +1790,7 @@ define('grid', [
 
                 onRightClickRow: function (rowID, iRow, iCell, event, options) {
                     var gridData = $('#' + event.currentTarget.id).jqGrid('getRowData', rowID);
-                    if (['Aborted', 'Cancelled', 'Canceled', 'No Shows'].indexOf(gridData.study_status) > -1 || gridData.has_deleted == "Yes" || gridData.hidden_billing_type === 'census') {
+                    if (['Aborted', 'Cancelled', 'Canceled', 'No Shows'].indexOf(gridData.study_status) > -1 || gridData.has_deleted == "Yes" || gridData.billing_type === 'census') {
                         event.stopPropagation();
                     } else if (disableRightClick()) {
                         var _selectEle = $(event.currentTarget).find('#' + rowID).find('input:checkbox');
