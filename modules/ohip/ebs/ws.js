@@ -1,8 +1,8 @@
 const ws = require('../ws.js/index.js');
 const _ = require('lodash');
-const utils = require('ws.js/lib/utils');
-const writer = require('ws.js/lib/handlers/client/mtom/mime-writer.js');
-const reader = require('ws.js/lib/handlers/client/mtom/mime-reader.js');
+const utils = require('../ws.js/lib/utils');
+const writer = require('../ws.js/lib/handlers/client/mtom/mime-writer.js');
+const reader = require('../ws.js/lib/handlers/client/mtom/mime-reader.js');
 const {
     select,
 } = require('xpath');
