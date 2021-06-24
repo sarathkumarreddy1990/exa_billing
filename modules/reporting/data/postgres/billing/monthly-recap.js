@@ -11,7 +11,7 @@ const claimActivityDataSetQueryTemplate = _.template(`
 WITH agg_claim AS(
     SELECT
          pippt.description AS provider_type
-	    , pof.ordering_facility_name AS facility_name
+	    , pof.name AS facility_name
     	, f.id as facility_id
         , bc.id AS claim_id
         , payer_type

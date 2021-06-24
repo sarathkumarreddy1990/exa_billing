@@ -849,7 +849,7 @@ define([
                         for (var listIndex = 0; listIndex < serviceFacilityList.length; listIndex++) {
                             $ddlOrderingFacilityFilter.append($('<option/>', {
                                 value: serviceFacilityList[listIndex].id,
-                                text: serviceFacilityList[listIndex].ordering_facility_name
+                                text: serviceFacilityList[listIndex].name
                             }));
                         }
 
