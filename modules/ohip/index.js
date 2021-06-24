@@ -8,7 +8,6 @@ const {
 } = require('lodash');
 
 const path = require('path');
-const ohipData = require('./../../server/data/ohip/index');;
 const logger = require('../../logger');
 const remittanceAdviceProcessor = path.join(__dirname, '/remittanceAdviceProcessor');
 const fork = require('child_process').fork;
@@ -247,7 +246,7 @@ const downloadNew = (args, callback) => {
             return callback(err, []);
         }
 
-        const ohipConfig = await billingApi.getOHIPConfiguration(args); 
+        const ohipConfig = await billingApi.getOHIPConfiguration(args);
         const ebs = new EBSConnector(ohipConfig.ebsConfig);
 
         if (resourceIDs && resourceIDs.length) {
@@ -346,7 +345,7 @@ const downloadRemittanceAdvice = async (args, callback) => {
     let {
          providerNumber = ''
     } = args || {};
-    downloadNew({ 
+    downloadNew({
             providerNumber,
             resourceType: REMITTANCE_ADVICE
         }, (downloadErr, ediFiles) => {
@@ -556,7 +555,7 @@ module.exports = {
             billingApi.auditTransaction(auditInfo);
 
             if (uploadErr || !uploadFiles.length) {
-                // when OHIP file upload failure updating edi file status also failure 
+                // when OHIP file upload failure updating edi file status also failure
                 await billingApi.updateFileStatus({
                     files: uploadFiles,
                     status: 'failure'
@@ -567,14 +566,14 @@ module.exports = {
                 return callback(uploadErr, null);
             }
 
-            //OHIP data error getting in response , so finding that using Eror codes 
+            //OHIP data error getting in response , so finding that using Eror codes
             let err_matches = _.filter(
                 ['ECLAM0003'],
                 ( s ) => { return JSON.stringify(uploadResponse).indexOf( s ) > -1; }
             );
 
             if (faults.length || err_matches.length ) {
-                // when OHIP file upload failure updating edi file status also failure 
+                // when OHIP file upload failure updating edi file status also failure
                 await billingApi.updateFileStatus({
                     files: uploadFiles,
                     status: 'failure'
@@ -739,7 +738,7 @@ module.exports = {
                     faults = []
                 } = hcvResponse || {};
                 billingApi.saveEligibilityLog(args);
-                
+
                 if (!err && results.length) {
                     let {
                         responseID = null
