@@ -832,6 +832,42 @@ define([
                 });
             },
 
+            bindServiceFacilities: function () {
+                $.ajax({
+                    url: '/exa_modules/billing/autoCompleteRouter/serviceFacilities',
+                    type: 'GET',
+                    async: false,
+                    data: {
+                        isFrom: 'reportAutoComplete',
+                        company_id: app.companyID,
+                    },
+                    success: function (data, response) {
+                        var serviceFacilityList = (data && data.length) ? data : [];
+                        var $ddlOrderingFacilityFilter = $('#ddlOrderingFacilityFilter');
+
+                        $ddlOrderingFacilityFilter.empty();
+                        for (var listIndex = 0; listIndex < serviceFacilityList.length; listIndex++) {
+                            $ddlOrderingFacilityFilter.append($('<option/>', {
+                                value: serviceFacilityList[listIndex].id,
+                                text: serviceFacilityList[listIndex].name
+                            }));
+                        }
+
+                        // For Multi Select drop down
+                        $ddlOrderingFacilityFilter.multiselect({
+                            maxHeight: '200',
+                            buttonWidth: '250px',
+                            enableFiltering: true,
+                            includeSelectAllOption: true,
+                            enableCaseInsensitiveFiltering: true
+                        });
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
+            },
+
             hideShowBox: function (ddl) {
                 if ($('#' + ddl + 'Option').val() !== 'S') {
                     $('#' + ddl + 'Add').hide();
