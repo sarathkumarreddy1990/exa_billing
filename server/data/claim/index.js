@@ -461,7 +461,6 @@ module.exports = {
                     , c.primary_patient_insurance_id
                     , c.secondary_patient_insurance_id
                     , c.tertiary_patient_insurance_id
-                    , c.ordering_facility_id
                     , c.place_of_service_id
                     , c.billing_code_id
                     , c.billing_class_id
@@ -491,7 +490,6 @@ module.exports = {
                     , c.primary_patient_insurance_id
                     , c.secondary_patient_insurance_id
                     , c.tertiary_patient_insurance_id
-                    , c.ordering_facility_id
                     , c.xmin as claim_row_version
                     , c.can_ahs_pay_to_code
                     , c.can_ahs_pay_to_uli
