@@ -697,7 +697,7 @@ define(['jquery',
                         return repo.text;
                     }
                     var markup = "<table><tr>";
-                    markup += "<td title='" + repo.ordering_facility_name  + "(" + repo.ordering_facility_code  + ")'> <div>" + repo.ordering_facility_name  + "(" + repo.ordering_facility_code  + ")" + "</div>";
+                    markup += "<td title='" + repo.ordering_facility_name + "(" + repo.ordering_facility_code + ")'> <div>" + repo.ordering_facility_name + "(" + repo.ordering_facility_code + ")" + "</div>";
                     markup += "</td></tr></table>";
                     return markup;
 
