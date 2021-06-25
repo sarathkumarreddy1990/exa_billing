@@ -1017,9 +1017,9 @@ define(['jquery',
                 self.ACSelect.refPhy.contact_id = claim_data.referring_provider_contact_id || null;
                 self.ACSelect.refPhy.Code = claim_data.ref_prov_code || null;
                 self.ACSelect.refPhy.Desc = referringProvider;
-                self.ordering_facility_id = claim_data.ordering_facility_id || claim_data.service_facility_id || null;	
-                self.ordering_facility_name = orderingFacility;	
-                self.ordering_facility_contact_id = claim_data.ordering_facility_contact_id || claim_data.service_facility_contact_id || null;	
+                self.ordering_facility_id = claim_data.ordering_facility_id || claim_data.service_facility_id || null;
+                self.ordering_facility_name = orderingFacility;
+                self.ordering_facility_contact_id = claim_data.ordering_facility_contact_id || claim_data.service_facility_contact_id || null;
 
                 $('#ddlBillingProvider').val(claim_data.fac_billing_provider_id || claim_data.billing_provider_id || '');
                 $('#ddlFacility').val(claim_data.facility_id || '');
@@ -1188,7 +1188,7 @@ define(['jquery',
                 if (self.ordering_facility_contact_id) {
                     self.updateResponsibleList({
                         payer_type: 'POF',
-                        payer_id: self.ordering_facility_contact_id,	
+                        payer_id: self.ordering_facility_contact_id,
                         payer_name: self.ordering_facility_name + '(Service Facility)'
                     }, null);
                 }
@@ -3137,7 +3137,7 @@ define(['jquery',
                         return repo.text;
                     }
                     var markup = "<table class='ref-result' style='width: 100%'><tr>";
-                    markup += "<td title='" + repo.ordering_facility_code + "(" + repo.ordering_facility_name + ")'> <div>" + repo.ordering_facility_name + "</div> "
+                    markup += "<td title='" + repo.ordering_facility_code + "(" + repo.ordering_facility_name + ")'><div>" + repo.ordering_facility_name + "</div>"
                     markup += "<div> Location: " + repo.location + "</div>";
                     markup += "<div> Phone: " + (repo.phone_number || '') + "</div>"
                     markup += "<div> Fax: " + (repo.fax_number || '') + "</div>";
@@ -3152,7 +3152,7 @@ define(['jquery',
                     if (res && res.id) {
                         self.updateResponsibleList({
                             payer_type: 'POF',
-                            payer_id: res.ordering_facility_contact_id,	
+                            payer_id: res.ordering_facility_contact_id,
                             payer_name: res.ordering_facility_name + '(Service Facility)'
                         }, null);
                     }
@@ -5323,9 +5323,9 @@ define(['jquery',
                 var renderingProvider = patient_details.rendering_provider_full_name || self.usermessage.selectStudyReadPhysician;
                 var service_facility_name = patient_details.service_facility_name || self.usermessage.selectOrdFacility;
                 self.ACSelect.readPhy.contact_id = patient_details.rendering_provider_contact_id || patient_details.rendering_provider_contact_id || null;
-                self.ordering_facility_id = patient_details.service_facility_id || null;	
-                self.ordering_facility_name = service_facility_name;	
-                self.ordering_facility_contact_id = patient_details.service_facility_contact_id || null;	
+                self.ordering_facility_id = patient_details.service_facility_id || null;
+                self.ordering_facility_name = service_facility_name;
+                self.ordering_facility_contact_id = patient_details.service_facility_contact_id || null;
 
                 $('#ddlPOSType').val(["can_AB", "can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && patient_details.fac_place_of_service_id || '');
                 $('#ddlBillingProvider').val(patient_details.billing_provider_id || '');

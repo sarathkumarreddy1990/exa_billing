@@ -385,7 +385,7 @@ const api = {
                     billing.claims.id
                 FROM studies
                 INNER JOIN billing.charges ON charges.claim_id = claims.id
-                INNER JOIN billing.charges_studies ON charges_studies.charge_id = charges.id 
+                INNER JOIN billing.charges_studies ON charges_studies.charge_id = charges.id
                 and studies.id = charges_studies.study_id
                 GROUP BY billing.claims.id, studies.modalities
             ) studies ON TRUE `}
@@ -468,12 +468,12 @@ const api = {
                 END)`;
             r += ' LEFT JOIN insurance_providers payer_insurance ON patient_insurances.insurance_provider_id = payer_insurance.id ';
             r += ' LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = payer_insurance.id ';
-            r += ' LEFT JOIN  billing.edi_clearinghouses ON  billing.edi_clearinghouses.id=insurance_provider_details.clearing_house_id';
+            r += ' LEFT JOIN billing.edi_clearinghouses ON  billing.edi_clearinghouses.id=insurance_provider_details.clearing_house_id';
         }
 
 
         if (tables.ordering_facilities || tables.ordering_facility_contacts) {
-            r += ` LEFT JOIN ordering_facility_contacts ON ordering_facility_contacts.id = claims.ordering_facility_contact_id 
+            r += ` LEFT JOIN ordering_facility_contacts ON ordering_facility_contacts.id = claims.ordering_facility_contact_id
                    LEFT JOIN ordering_facilities ON ordering_facilities.id = ordering_facility_contacts.ordering_facility_id`;
         }
         if (tables.billing_codes) { r += '  LEFT JOIN billing.billing_codes ON claims.billing_code_id = billing_codes.id '; }

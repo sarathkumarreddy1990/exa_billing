@@ -613,7 +613,7 @@ module.exports = {
                         ${pageSize}
                     OFFSET
                         ${(page - 1) * pageSize} `);
-                        
+
         return await query(sql);
     },
 
