@@ -89,4 +89,9 @@ router.get('/ordering_facility_contacts', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
+router.get('/serviceFacilities', async function (req, res) {
+    const data = await autoCompleteController.getServiceFacilities(req.query);
+    httpHandler.sendRows(req, res, data);
+});
+
 module.exports = router;

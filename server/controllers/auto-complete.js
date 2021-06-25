@@ -53,4 +53,6 @@ module.exports = {
     getOrderingFacilities: data.getOrderingFacilities,
 
     getOrderingFacilityContacts: data.getOrderingFacilityContacts,
+
+    getServiceFacilities: data.getServiceFacilities,
 };
