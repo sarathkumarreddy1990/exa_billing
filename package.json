@@ -17,6 +17,7 @@
     "dependencies": {
         "bluebird": "^3.5.5",
         "body-parser": "^1.19.0",
+        "bufferjs": "^3.0.1",
         "connect-flash": "^0.1.1",
         "connect-redis": "^3.4.1",
         "cookie-parser": "^1.4.4",
@@ -25,6 +26,7 @@
         "express": "^4.17.1",
         "express-promise-router": "^3.0.2",
         "express-session": "^1.16.1",
+        "formidable": "^1.2.2",
         "fs-extra": "^8.1.0",
         "helmet": "^4.1.1",
         "http-errors": "~1.6.2",
@@ -55,6 +57,7 @@
         "ssh2-sftp-client": "^4.2.1",
         "through2": "^4.0.2",
         "uuid": "^3.3.2",
+        "xml-crypto": "^2.1.2",
         "xmldom": "^0.1.27",
         "xpath": "0.0.27"
     },
