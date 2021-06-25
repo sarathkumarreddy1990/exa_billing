@@ -855,30 +855,22 @@ define('grid', [
                                 var claimsTable = new customGrid(studyDataStore, gridID);
                                 claimsTable.options = { gridelementid: gridID }
                                 var changeGrid = initChangeGrid(claimsTable);
-                                var cells = [];
-
-                                if (!isAlbertaBilling) {
-                                    cells = cells.concat(changeGrid.getClaimId(claim_id))
-                                        .concat(changeGrid.getBillingStatus('Billed'))
-                                        .concat(changeGrid.setEditIcon());
-                                }
 
                                 for (var r = 0; r < batchClaimArray.length; r++) {
                                     var rowId = batchClaimArray[r].study_id;
                                     var $row = $tblGrid.find('#' + rowId);
+                                    var cells = [];
+                                    var currentStudyDetails = data.find(function (row) { return row.study_id == rowId });
+                                    var claimId = isAlbertaBilling ? currentStudyDetails.can_ahs_create_claim_per_charge : currentStudyDetails.create_claim_charge;
+
+                                    cells = cells.concat(changeGrid.getClaimId(claimId))
+                                    .concat(changeGrid.getBillingStatus('Billed'))
+                                    .concat(changeGrid.setEditIcon());
 
                                     //Upon POST of new batch claim, place claim ID inside hidden cell specificed below
-                                    $row.find("[aria-describedby='tblGridAll_Studies_hidden_claim_id']").text(claim_id);
+                                    $row.find("[aria-describedby='tblGridAll_Studies_hidden_claim_id']").text(claimId);
 
                                     var setCell = changeGrid.setCell($row);
-
-                                    //EXA-18272 - Bind multiple claim ids for Alberta biling batch claim
-                                    if (isAlbertaBilling) {
-                                        claim_id = _.map(data, 'can_ahs_create_claim_per_charge');
-                                        cells = cells.concat(changeGrid.getClaimId(claim_id[r]))
-                                            .concat(changeGrid.getBillingStatus('Billed'))
-                                            .concat(changeGrid.setEditIcon());
-                                    }
 
                                     setCell(cells);
                                     // In user filter Billed Status selected as unbilled means, After claim creation hide from grid.
