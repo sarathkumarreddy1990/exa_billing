@@ -1014,9 +1014,17 @@ define(['jquery',
                 else {
                     self.ACSelect.readPhy.contact_id = claim_data.fac_rendering_provider_contact_id || claim_data.rendering_provider_contact_id || null;
                 }
-                self.ACSelect.refPhy.contact_id = claim_data.referring_provider_contact_id || null;
-                self.ACSelect.refPhy.Code = claim_data.ref_prov_code || null;
-                self.ACSelect.refPhy.Desc = referringProvider;
+
+                if (claim_data.ordering_physician && claim_data.ordering_physician.length > 0) {
+                    var phyDetails = claim_data.ordering_physician[0];
+                    self.ACSelect.refPhy.contact_id = phyDetails.ordering_provider_contact_id || null;
+                    self.ACSelect.refPhy.Code = phyDetails.ord_prov_code || null;
+                    self.ACSelect.refPhy.Desc = phyDetails.ord_prov_full_name || self.usermessage.selectStudyRefProvider;
+                } else {
+                    self.ACSelect.refPhy.contact_id = claim_data.referring_provider_contact_id || null;
+                    self.ACSelect.refPhy.Code = claim_data.ref_prov_code || null;
+                    self.ACSelect.refPhy.Desc = referringProvider;
+                }
                 self.ordering_facility_id = claim_data.ordering_facility_id || claim_data.service_facility_id || null;
                 self.ordering_facility_name = orderingFacility;
                 self.ordering_facility_contact_id = claim_data.ordering_facility_contact_id || claim_data.service_facility_contact_id || null;
@@ -1024,7 +1032,7 @@ define(['jquery',
                 $('#ddlBillingProvider').val(claim_data.fac_billing_provider_id || claim_data.billing_provider_id || '');
                 $('#ddlFacility').val(claim_data.facility_id || '');
                 $('#select2-ddlRenderingProvider-container').html(renderingProvider);
-                $('#select2-ddlReferringProvider-container').html(referringProvider);
+                $('#select2-ddlReferringProvider-container').html(self.ACSelect.refPhy.Desc);
                 $('#select2-ddlOrdFacility-container').html(self.ordering_facility_name);
 
                 // Alberta
