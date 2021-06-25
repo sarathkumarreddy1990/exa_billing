@@ -5368,13 +5368,16 @@ var commonjs = {
         return isValidSearch;
     },
 
-    tinyMceLoad: function(){
+    tinyMceLoad: function(callback){
         if (typeof window.scriptFlag === 'undefined') {
             var script = document.createElement('script');
             script.type = "text/javascript";
             script.src = "../../../tinymce/tinymce.min.js";
+            script.onload = callback
             document.body.appendChild(script);
             window.scriptFlag = true;
+        } else {
+            callback();
         }
     }
 };

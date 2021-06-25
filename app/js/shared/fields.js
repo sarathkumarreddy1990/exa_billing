@@ -2196,10 +2196,10 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "name": "billing_type",
                     "width": 150,
                     "stype": "select",
-                        "searchoptions": {
-                            "value": billingType,
-                            "tempvalue": billingType
-                        },
+                    "searchoptions": {
+                        "value": billingType,
+                        "tempvalue": billingType
+                    },
                 },
                 "field_code": "billing_type"
         }

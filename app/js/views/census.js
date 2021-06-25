@@ -40,7 +40,6 @@ define(['jquery',
             },
 
             initialize: function (options) {
-                commonjs.tinyMceLoad();
                 this.options = options;
                 var self = this;
                 this.censusCollectionList = new censusCollection();
@@ -57,10 +56,7 @@ define(['jquery',
                 var censusListTab = $('#censusListTab');
                 censusListTab.addClass('active');
                 censusHeaders.show();
-                setTimeout(function () {
-                    //initializing tinymce editor
-                    self.initializeEditor();
-                }, 500);
+                commonjs.tinyMceLoad(this.initializeEditor.bind(this));
                 $('#btnSaveNotes').attr({ 'disabled': true });
                 self.setOrderingFacilityAutoComplete();
                 self.showCensusGrid();
