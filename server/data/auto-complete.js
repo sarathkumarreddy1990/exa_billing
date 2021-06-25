@@ -72,6 +72,7 @@ module.exports = {
                 , p.full_name
                 , p.provider_code
                 , p.specialities
+                , p.provider_info->'NPI' AS npi_no
                 , hstore_to_json(contact_info) AS contact_info
                 , COUNT(1) OVER (range unbounded preceding) AS total_records
             FROM public.providers p
