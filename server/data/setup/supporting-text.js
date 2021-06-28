@@ -133,7 +133,7 @@ module.exports = {
             if (cpts) {
                 sql.append(selSql)
                 .append(SQL`WHERE ${cpts} :: BIGINT[] && (get_supporting_text_template_cpt_code_ids(id))`)
-                .append(modifiers ? ` UNION ALL` : ``);
+                .append(modifiers ? ` UNION` : ``);
             }
 
             if (modifiers) {
