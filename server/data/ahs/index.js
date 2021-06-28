@@ -434,7 +434,7 @@ const ahsData = {
                                 THEN TO_CHAR(timezone(f.time_zone, s.study_dt)::date, 'YYYYMMDD')
                                 ELSE TO_CHAR(s.hospital_admission_dt, 'YYYYMMDD')
                         END                                          AS service_start_date,
-                        (row_number() OVER (ENCOUNTER_WINDOW))::INT  AS encounter_number,
+                        1::INT  AS encounter_number,
                         icd.codes[1]                                 AS diagnosis_code_1,
                         icd.codes[2]                                 AS diagnosis_code_2,
                         icd.codes[3]                                 AS diagnosis_code_3,
@@ -712,16 +712,6 @@ const ahsData = {
                     --             sort_order
                     --     ) mods
                     -- ) fee_mod ON TRUE
-
-                    WINDOW ENCOUNTER_WINDOW AS (
-                        PARTITION BY
-                            pc_app.can_prid,
-                            p.id,
-                            s.study_dt :: DATE
-                        ORDER BY
-                            s.study_dt,
-                            s.id
-                    )
                 ),
                 supporting_texts AS (
                     SELECT
