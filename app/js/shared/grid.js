@@ -866,8 +866,8 @@ define('grid', [
                                         : currentStudyDetails.create_claim_charge;
 
                                     cells = cells.concat(changeGrid.getClaimId(claimId))
-                                        .concat(changeGrid.getBillingStatus('Billed'))
-                                        .concat(changeGrid.setEditIcon());
+                                                .concat(changeGrid.getBillingStatus('Billed'))
+                                                .concat(changeGrid.setEditIcon());
 
                                     //Upon POST of new batch claim, place claim ID inside hidden cell specificed below
                                     $row.find("[aria-describedby='tblGridAll_Studies_hidden_claim_id']").text(claimId);
