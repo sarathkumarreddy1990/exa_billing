@@ -1008,7 +1008,7 @@ define(['jquery',
                 var referringProviderFullName = claim_data.ref_prov_full_name
 
                 if (renderingProviderFullName && claim_data.rendering_prov_npi_no) {
-                    renderingProviderFullName = renderingProviderFullName + ' ' + claim_data.rendering_prov_npi_no;
+                    renderingProviderFullName +=  ' ' + claim_data.rendering_prov_npi_no;
                 }
 
                 if (referringProviderFullName && claim_data.referring_prov_npi_no) {
