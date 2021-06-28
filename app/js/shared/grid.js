@@ -860,12 +860,14 @@ define('grid', [
                                     var rowId = batchClaimArray[r].study_id;
                                     var $row = $tblGrid.find('#' + rowId);
                                     var cells = [];
-                                    var currentStudyDetails = data.find(function (row) { return row.study_id == rowId });
-                                    var claimId = isAlbertaBilling ? currentStudyDetails.can_ahs_create_claim_per_charge : currentStudyDetails.create_claim_charge;
+                                    var currentStudyDetails = data.filter(function (row) { return row.study_id == rowId })[0];
+                                    var claimId = isAlbertaBilling 
+                                        ? currentStudyDetails.can_ahs_create_claim_per_charge 
+                                        : currentStudyDetails.create_claim_charge;
 
                                     cells = cells.concat(changeGrid.getClaimId(claimId))
-                                    .concat(changeGrid.getBillingStatus('Billed'))
-                                    .concat(changeGrid.setEditIcon());
+                                        .concat(changeGrid.getBillingStatus('Billed'))
+                                        .concat(changeGrid.setEditIcon());
 
                                     //Upon POST of new batch claim, place claim ID inside hidden cell specificed below
                                     $row.find("[aria-describedby='tblGridAll_Studies_hidden_claim_id']").text(claimId);
