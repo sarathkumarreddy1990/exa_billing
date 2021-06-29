@@ -175,7 +175,7 @@ const colModel = [
     },
     {
         name: 'ordering_facility',
-        searchColumns: ["provider_groups.group_name"],
+        searchColumns: ["ordering_facilities.name"],
         searchFlag: '%'
     },
     {
@@ -487,7 +487,7 @@ const api = {
             case 'requesting_date': return `to_timestamp(orders.order_info->'requestingDate', 'MM/DD/YYYY')`;
             case 'days_count': return `studies.study_info->'preOrderDays'`;
             case 'days_left': return `studies.study_info->'preOrderDays'`;
-            case 'ordering_facility': return `provider_groups.group_name`;
+            case 'ordering_facility': return `ordering_facilities.name`;
             case 'technologist_name': return 'providers.full_name';
             case 'claim_status': return `orders.order_info->'claim_status'`;
             case 'check_indate': return `to_isots(studies.study_info->'Check-InDt')`;             // optimization! use sutom immutable function (instead of timestamptz) and corresponding index to improve query time
@@ -543,11 +543,11 @@ const api = {
 
 
 
-        if (args.customArgs && args.customArgs.isOrdingFacility == 'true' && args.customArgs.provider_group_id && args.customArgs.provider_group_id > 0) {
+        if (args.customArgs && args.customArgs.isOrdingFacility == 'true' && args.customArgs.ordering_facility_id) {
 
-            args.filterQuery += ` AND studies.provider_group_id = $${params.length + 1} AND `;
+            args.filterQuery += ` AND studies.ordering_facility_contact_id = $${params.length + 1} AND `;
 
-            params.push(args.customArgs.provider_group_id);
+            params.push(args.customArgs.ordering_facility_id);
 
             if (args.customArgs.currentFlag == 'scheduled_appointments'){
                 args.filterQuery += ' (orders.vehicle_id > 0 OR orders.technologist_id > 0) '; // TODO: why not null
@@ -760,9 +760,9 @@ const api = {
                   ) claim_sequence_numbers ON TRUE`;
         }
 
-        if (tables.ordering_facility_contacts || tables.billing_type) {
+        if (tables.ordering_facilities || tables.ordering_facility_contacts || tables.billing_type) {
             r += ` LEFT JOIN public.ordering_facility_contacts ON ordering_facility_contacts.id = studies.ordering_facility_contact_id
-                  LEFT JOIN public.ordering_facilities ON ordering_facilities.id = ordering_facility_contacts.ordering_facility_id`;
+                   LEFT JOIN public.ordering_facilities ON ordering_facilities.id = ordering_facility_contacts.ordering_facility_id`;
         }
 
         return r;
@@ -848,7 +848,7 @@ const api = {
                             ), '') AS manually_verified_by`,
             `timezone(facilities.time_zone, COALESCE(orders.order_info->'manually_verified_dt', NULL)::timestamp)::text
                 AS manually_verified_dt`,
-            `provider_groups.group_name
+            `ordering_facilities.name
                 AS ordering_facility`,
             `orders.order_info-> 'requestingDate'
                 AS requesting_date`,
@@ -1177,8 +1177,8 @@ const api = {
                     )
                     `;
 
-            if (args.customArgs && args.customArgs.isOrdingFacility == 'true' && args.customArgs.provider_group_id > 0) {
-                args.customArgs.provider_group_id = args.linked_ordering_facility_id ? args.linked_ordering_facility_id : args.customArgs.provider_group_id;
+            if (args.customArgs && args.customArgs.isOrdingFacility == 'true' && args.customArgs.ordering_faciltiy_id) {
+                args.customArgs.ordering_facility_id = args.linked_ordering_facility_id || args.customArgs.ordering_facility_id;
                 let from = moment(args.customArgs.fromDate, 'YYYY-MM-DD');
                 let to = moment(args.customArgs.toDate, 'YYYY-MM-DD');
 

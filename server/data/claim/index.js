@@ -566,7 +566,6 @@ module.exports = {
                     , c.primary_patient_insurance_id
                     , c.secondary_patient_insurance_id
                     , c.tertiary_patient_insurance_id
-                    , c.ordering_facility_id
                     , c.place_of_service_id
                     , c.billing_code_id
                     , c.billing_class_id
@@ -596,7 +595,6 @@ module.exports = {
                     , c.primary_patient_insurance_id
                     , c.secondary_patient_insurance_id
                     , c.tertiary_patient_insurance_id
-                    , c.ordering_facility_id
                     , c.xmin as claim_row_version
                     , c.can_ahs_pay_to_code
                     , c.can_ahs_pay_to_uli
@@ -626,12 +624,12 @@ module.exports = {
                     , ref_pr.specialities
                     , rend_pr.full_name AS reading_phy_full_name
                     , rend_pr.provider_info->'NPI' AS rendering_prov_npi_no
-                    , pg.group_info->'AddressLine1' AS service_facility_addressLine1
-                    , pg.group_info->'City' AS ordering_facility_city
-                    , pg.group_name AS ordering_facility_name
-                    , pg.group_info->'npi_no' AS ordering_facility_npi_no
-                    , pg.group_info->'State' AS ordering_facility_state
-                    , pg.group_info->'Zip' AS ordering_facility_zip
+                    , pof.address_line_1 AS service_facility_addressLine1
+                    , pof.city AS ordering_facility_city
+                    , pof.name AS ordering_facility_name
+                    , pof.npi_number AS ordering_facility_npi_no
+                    , pof.state AS ordering_facility_state
+                    , pof.zip_code AS ordering_facility_zip
                     , ipp.insurance_info->'Address1' AS p_address1
                     , ipp.insurance_info->'PayerID' AS p_payer_id
                     , ipp.insurance_info->'City' AS p_city
@@ -874,9 +872,9 @@ module.exports = {
                                             )
                                         WHEN p1.payer_type = 'ordering_facility' THEN
                                             json_build_object(
-                                                'payer_name',provider_groups.group_name ,
-                                                'payer_id',provider_groups.id,
-                                                'payer_type_name',p1.payer_type
+                                                'payer_name', ordering_facilities.name,
+                                                'payer_id', ordering_facilities.id,
+                                                'payer_type_name', p1.payer_type
                                             )
                                         WHEN p1.payer_type = 'ordering_provider' THEN
                                             json_build_object(
@@ -893,11 +891,31 @@ module.exports = {
                                         LEFT JOIN patients pat ON pat.id = p1.patient_id
                                         LEFT JOIN provider_contacts pro_cont ON pro_cont.id= p1.provider_contact_id
                                         LEFT JOIN providers ON providers.id= pro_cont.provider_id
-                                        LEFT JOIN provider_groups ON provider_groups.id= p1.provider_group_id
+                                        LEFT JOIN ordering_facilities ON ordering_facilities.id = p1.ordering_facility_id
                                 ) AS payer_details ON payer_details.id = p.id
                             ORDER BY p.id ASC
                         ) payment_details
                     ) AS payment_details
+                    , ( SELECT
+                        json_agg(row_to_json(orderPhyDetail)) "ordering_physician"
+                        FROM (
+                            SELECT
+                                pc.id AS ordering_provider_contact_id
+                                , p.full_name AS ord_prov_full_name
+                                , p.provider_code AS ord_prov_code
+                            FROM
+                                billing.charges ch
+                            LEFT JOIN
+                                billing.charges_studies chs ON chs.charge_id = ch.id
+                            LEFT JOIN
+                                studies s ON s.id = chs.study_id
+                            LEFT JOIN
+                                provider_contacts pc ON pc.id = s.ordering_provider_contact_id
+                            LEFT JOIN
+                                providers p ON pc.provider_id = p.id
+                            WHERE
+                                ch.claim_id = ${id}
+                        ) AS orderPhyDetail) ordering_physician
                     , c.area_of_injury_code_id
                     , c.nature_of_injury_code_id
                     FROM
@@ -913,7 +931,8 @@ module.exports = {
                         LEFT JOIN public.providers ref_pr ON ref_pc.provider_id = ref_pr.id
                         LEFT JOIN public.provider_contacts rend_pc ON rend_pc.id = c.rendering_provider_contact_id
                         LEFT JOIN public.providers rend_pr ON rend_pc.provider_id = rend_pr.id
-                        LEFT JOIN public.provider_groups pg ON pg.id = c.ordering_facility_id
+                        LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = c.ordering_facility_contact_id
+                        LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
                         LEFT JOIN public.facilities f ON c.facility_id = f.id
                         LEFT JOIN billing.claim_status cst ON cst.id = c.claim_status_id
                     WHERE
@@ -1020,6 +1039,7 @@ module.exports = {
                             ,f.id AS facility_id
                             ,fs.default_provider_id AS billing_provider_id
                             ,COALESCE(NULLIF(f.facility_info->'service_facility_id',''),'0')::numeric AS service_facility_id
+                            ,pofc.id AS service_facility_contact_id
                             ,COALESCE(NULLIF(f.facility_info->'rendering_provider_id',''),'0')::numeric AS rendering_provider_id
                             ,facility_info->'service_facility_name' as service_facility_name
                             ,fac_prov_cont.id AS rendering_provider_contact_id
@@ -1029,6 +1049,8 @@ module.exports = {
                             patients p
                         INNER JOIN patient_facilities pfc ON pfc.patient_id = p.id
                         INNER JOIN facilities f ON f.id = pfc.facility_id AND pfc.is_default
+                        INNER JOIN public.ordering_facilities pof ON pof.id = p.ordering_facility_id
+                        INNER JOIN public.ordering_facility_contacts pofc ON pofc.ordering_facility_id = pof.id AND pofc.is_default IS TRUE
                         LEFT JOIN provider_contacts fac_prov_cont ON f.facility_info->'rendering_provider_id'::text = fac_prov_cont.id::text
                         LEFT JOIN providers fac_prov ON fac_prov.id = fac_prov_cont.provider_id
                         LEFT JOIN billing.facility_settings fs ON fs.facility_id = pfc.facility_id AND pfc.is_default
@@ -1236,9 +1258,9 @@ module.exports = {
                                         )
                                     WHEN p1.payer_type = 'ordering_facility' THEN
                                         json_build_object(
-                                            'payer_name',provider_groups.group_name ,
-                                            'payer_id',provider_groups.id,
-                                            'payer_type_name',p1.payer_type
+                                            'payer_name', ordering_facilities.name,
+                                            'payer_id', ordering_facilities.id,
+                                            'payer_type_name', p1.payer_type
                                         )
                                     WHEN p1.payer_type = 'ordering_provider' THEN
                                         json_build_object(
@@ -1255,7 +1277,7 @@ module.exports = {
                                     LEFT JOIN patients pat ON pat.id = p1.patient_id
                                     LEFT JOIN provider_contacts pro_cont ON pro_cont.id= p1.provider_contact_id
                                     LEFT JOIN providers ON providers.id= pro_cont.provider_id
-                                    LEFT JOIN provider_groups ON provider_groups.id= p1.provider_group_id
+                                    LEFT JOIN ordering_facilities ON ordering_facilities.id = p1.ordering_facility_id
                             ) AS payer_details ON payer_details.id = p.id
                             LEFT JOIN LATERAL (
                                 SELECT

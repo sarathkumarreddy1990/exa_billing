@@ -302,7 +302,8 @@ define([
                 "click #btnAddPayerType": "addItemToList",
                 "click #btnRemovePayerType": "removeItemFromList",
                 "click #btnAddBalance": "addItemToList",
-                "click #btnRemoveBalance": "removeItemFromList"
+                "click #btnRemoveBalance": "removeItemFromList",
+                "submit #formAddClaimInsurance": "addItemToClaimInsurance"
             },
 
             initialize: function () {
@@ -468,7 +469,7 @@ define([
                                                 $('#btnStudiesCompleteRefresh').click();
                                             } else if (self.opener == "claims") {
                                                 $('#btnClaimsCompleteRefresh').click();
-                                            }   
+                                            }
                                         },
                                         error: function (model, response) {
                                         }
@@ -551,7 +552,7 @@ define([
                     self.bindInsuranceGroupAutocomplete('#listStudyInsuranceProvider', {
                         ddlElement: '#txtStudyInsuranceProviderName',
                         btnAddElement: '#btnAddStudyInsuranceProvider'
-                    });  
+                    });
                 }
                 else {
                     $('#ddlDatePreformatted option:contains("last 90 days")').prop("selected",true);
@@ -662,7 +663,7 @@ define([
 
                     });
                      /* Bind add button for Study Insurance Group - SMH */
-                     var $btnStudyIns =   $('#btnAddStudyInsuranceProvider');          
+                     var $btnStudyIns =   $('#btnAddStudyInsuranceProvider');
                      $btnStudyIns.off('click').on('click', function (e) {
                       var opt = document.createElement('option');
                       var $studyContainerId = $('#txtStudyInsuranceProviderName');
@@ -772,7 +773,7 @@ define([
                     /* Bind add button for referring provider - SMH */
                     $('#btnAddClaimReadingProvider').off('click').on('click', function (e) {
                         var select2_claimReadingProvider = $('#select2-ddlClaimReadingProvider-container');
-                        
+
                         if (select2_claimReadingProvider.text() === '') {
                             return false;
                         };
@@ -807,7 +808,7 @@ define([
                             var new_value = $btnClaimInsp.attr('data-id');
 
                             if ($('#listClaimInsuranceProvider option[value="' + new_value + '"]').length) {
-                                return commonjs.showError("billing.payments.alreadySelectedIG");                                
+                                return commonjs.showError("billing.payments.alreadySelectedIG");
                             }
                             $('#listClaimInsuranceProvider').append(opt);
                             $claimContainerId.val('');
@@ -1072,7 +1073,7 @@ define([
                                             }
                                         });
                                     }
-                                    
+
                                     var billingCodeJson = response.filter_info.ClaimInformation.billingCode;
                                     $("input:radio[name=BillingCode][value=" + billingCodeJson.condition + "]").prop('checked', true);
                                     for (var j = 0; j < billingCodeJson.list.length; j++) {
@@ -1112,7 +1113,7 @@ define([
                                             }
                                         });
                                     }
-                                    
+
                                     var payerTypeJson = response.filter_info.ClaimInformation.payerType;
                                     $("input:radio[name=PayerType][value=" + payerTypeJson.condition + "]").prop('checked', true);
                                     for (var j = 0; j < payerTypeJson.list.length; j++) {
@@ -1550,7 +1551,7 @@ define([
                     arrClaimReferringProvider.push(jsonFlag);
                 });
                 var arrClaimReadingProvider = [];
-                
+
                 $('#ulListClaimReadingProvider li').each(function (i, selected) {
                     var jsonFlag = {
                         id: selected.id,
@@ -1986,7 +1987,7 @@ define([
                         if ($('#listPatientName option:selected').length > 0) {
                             $('#listPatientName option:selected').remove();
                         } else {
-                            commonjs.showWarning('messages.warning.setup.selectitemstodelete');
+                            commonjs.showWarning('messages.warning.setup.selectItemsToDelete');
                         }
                         break;
                     case "btnRemovePatientID":
@@ -1994,7 +1995,7 @@ define([
                             $('#listPatientID option:selected').remove();
                         }
                         else {
-                            commonjs.showWarning('messages.warning.setup.selectitemstodelete');
+                            commonjs.showWarning('messages.warning.setup.selectItemsToDelete');
                         }
                         break;
                     case "btnRemoveReadPhy":
@@ -2002,7 +2003,7 @@ define([
                             $('#listReadPhy option:selected').remove();
                         }
                         else {
-                            commonjs.showWarning('messages.warning.setup.selectitemstodelete');
+                            commonjs.showWarning('messages.warning.setup.selectItemsToDelete');
                         }
                         break;
                     case "btnRemoveRefPhy":
@@ -2010,7 +2011,7 @@ define([
                             $('#listRefPhy option:selected').remove();
                         }
                         else {
-                            commonjs.showWarning('messages.warning.setup.selectitemstodelete');
+                            commonjs.showWarning('messages.warning.setup.selectItemsToDelete');
                         }
                         break;
                     case "btnRemoveInsurance":
@@ -2018,7 +2019,7 @@ define([
                             $('#listInsurance option:selected').remove();
                         }
                         else {
-                            commonjs.showWarning('messages.warning.setup.selectitemstodelete');
+                            commonjs.showWarning('messages.warning.setup.selectItemsToDelete');
                         }
                         break;
                     }
@@ -2030,41 +2031,41 @@ define([
                 removeItemFromStudyList: function (e) {
                     var IdName = e.target.nodeName == 'I' ? $(e.target).closest('button') : $(e.target);
                     var $listStudyIns = $('#listStudyInsuranceProvider option:selected')
-    
+
                     if ($listStudyIns.length > 0) {
                         $listStudyIns.remove();
                     } else {
-                        commonjs.showWarning('messages.warning.setup.selectitemstodelete');
+                        commonjs.showWarning('messages.warning.setup.selectItemsToDelete');
                     }
-    
+
                     e.stopImmediatePropagation();
                     return false;
                 },
-    
+
                 removeItemFromClaimList: function (e) {
                     var IdName = e.target.nodeName == 'I' ? $(e.target).closest('button') : $(e.target);
-                    
+
                     var $listClaimInsp = $('#listClaimInsuranceProvider option:selected')
 
                     if ($listClaimInsp.length > 0) {
                         $listClaimInsp.remove();
                     } else {
-                        commonjs.showWarning('messages.warning.setup.selectitemstodelete');
+                        commonjs.showWarning('messages.warning.setup.selectItemsToDelete');
                     }
 
                     e.stopImmediatePropagation();
                     return false;
                 },
-    
+
                 removeItemFromClaimInsurance: function (e) {
                     var $listClaimIns = $('#listClaimInsurance option:selected');
-                    
+
                     if ($listClaimIns.length > 0) {
                         $listClaimIns.remove();
                     } else {
-                        commonjs.showWarning('messages.warning.setup.selectitemstodelete');
+                        commonjs.showWarning('messages.warning.setup.selectItemsToDelete');
                     }
-                e.stopImmediatePropagation(); 
+                e.stopImmediatePropagation();
                 return false;
             },
 
@@ -2103,7 +2104,7 @@ define([
                     $('#listInstitution option:selected').remove();
                 }
                 else {
-                    commonjs.showWarning("messages.warning.setup.selectitemstodelete");
+                    commonjs.showWarning("messages.warning.setup.selectItemsToDelete");
                 }
                 return false;
             },
@@ -2150,7 +2151,7 @@ define([
                 var $orderingFacility = self.opener == "studies" ? $("#ddlOrdFacility") : $("#ddlClaimOrdFacility");
                 $orderingFacility.select2({
                     ajax: {
-                        url: "/exa_modules/billing/autoCompleteRouter/provider_group",
+                        url: "/exa_modules/billing/autoCompleteRouter/ordering_facilities",
                         dataType: 'json',
                         delay: 250,
                         data: function (params) {
@@ -2158,7 +2159,7 @@ define([
                                 page: params.page || 1,
                                 q: params.term || '',
                                 pageSize: 10,
-                                sortField: "group_name",
+                                sortField: "name",
                                 sortOrder: "ASC",
                                 groupType: 'OF',
                                 company_id: app.companyID
@@ -2180,17 +2181,17 @@ define([
                         return repo.text;
                     }
                     var markup = "<table class='ref-result' style='width: 100%'><tr>";
-                    markup += "<td data-id='" + repo.id +"' title='" + repo.group_name + "class='movie-info'><div class='movie-title'><b>" + repo.group_name + "</b></div>";
+                    markup += "<td data-id='" + repo.id +"' title='" + repo.ordering_facility_name + "'><div><b>" + repo.ordering_facility_name + "</b></div>";
                     markup += "</td></tr></table>";
                     return markup;
                 }
                 function formatRepoSelection(res) {
-                    self.group_name = res.group_name;
-                    self.group_id = res.provider_group_id;
+                    self.ordering_facility_name = res.ordering_facility_name;
+                    self.ordering_facility_id = res.id
                     if (res && res.id) {
                         if(self.opener == "studies") $('#btnAddOrdFacility').attr("data-id", res.id);
                         else $('#btnAddClaimOrdFacility').attr("data-id", res.id);
-                        return res.group_name;
+                        return res.ordering_facility_name;
                     }
 
                 }

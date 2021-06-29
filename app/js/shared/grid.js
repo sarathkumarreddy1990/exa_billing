@@ -379,8 +379,8 @@ define('grid', [
                                 if (billingPayers.tertiary_patient_insurance_id) {
                                     liPayerTypeArray.push($(commonjs.getRightClickMenu('ancTertiaryIns_' + billingPayers.tertiary_patient_insurance_id, '', true, billingPayers.t_insurance_name + '( Tertiary Insurance )', false)));
                                 }
-                                if (billingPayers.ordering_facility_id) {
-                                    liPayerTypeArray.push($(commonjs.getRightClickMenu('ancOrderingFacility_' + billingPayers.ordering_facility_id, '', true, billingPayers.ordering_facility_name + '( Service Facility )', false)));
+                                if (billingPayers.ordering_facility_contact_id) {
+                                    liPayerTypeArray.push($(commonjs.getRightClickMenu('ancOrderingFacility_' + billingPayers.ordering_facility_contact_id, '', true, billingPayers.ordering_facility_name + '( Service Facility )', false)));
                                 }
                                 if (billingPayers.referring_provider_contact_id) {
                                     liPayerTypeArray.push($(commonjs.getRightClickMenu('ancRenderingProvider_' + billingPayers.referring_provider_contact_id, '', true, billingPayers.ref_prov_full_name + '( Referring Provider )', false)));
