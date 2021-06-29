@@ -106,6 +106,7 @@ module.exports = {
                                         referring_provider.ref_prov_full_name,
                                         referring_provider.referring_provider_contact_id,
                                         referring_provider.specialities,
+                                        referring_provider.referring_prov_npi_no, 
                                         (   SELECT
                                                     studies.study_info->'refDescription'
                                             FROM
@@ -118,6 +119,7 @@ module.exports = {
                                         studies_details.reading_phy_full_name,
                                         providers.id as fac_rendering_provider_contact_id,
                                         providers.full_name as fac_reading_phy_full_name,
+                                        providers.rendering_prov_npi_no,
                                         facility_info->'service_facility_id' as service_facility_id,
                                         facility_info->'service_facility_name' as service_facility_name,
                                         (
@@ -148,7 +150,7 @@ module.exports = {
                                         INNER JOIN facilities ON  facilities.id= orders.facility_id
                                         INNER JOIN patients p ON p.id= orders.patient_id
                                         LEFT JOIN LATERAL (
-                                            SELECT pc.id, p.full_name FROM provider_contacts pc
+                                            SELECT pc.id, p.full_name, p.provider_info->'NPI' AS rendering_prov_npi_no FROM provider_contacts pc
                                                 INNER JOIN providers p ON p.id = pc.provider_id
                                             WHERE	pc.id = nullif(facility_info->'rendering_provider_id', '')::integer limit 1
                                         ) providers ON true
@@ -156,7 +158,8 @@ module.exports = {
                                             SELECT
                                                 pc.id AS referring_provider_contact_id,
                                                 p.full_name AS ref_prov_full_name,
-                                                p.specialities
+                                                p.specialities,
+                                                p.provider_info->'NPI' AS referring_prov_npi_no
                                             FROM
                                                 providers p
                                             INNER JOIN provider_contacts pc ON pc.provider_id = p.id
@@ -793,6 +796,26 @@ module.exports = {
                             ORDER BY p.id ASC
                         ) payment_details
                     ) AS payment_details
+                    , ( SELECT
+                        json_agg(row_to_json(orderPhyDetail)) "ordering_physician"
+                        FROM (
+                            SELECT
+                                pc.id AS ordering_provider_contact_id
+                                , p.full_name AS ord_prov_full_name
+                                , p.provider_code AS ord_prov_code
+                            FROM
+                                billing.charges ch
+                            LEFT JOIN
+                                billing.charges_studies chs ON chs.charge_id = ch.id
+                            LEFT JOIN
+                                studies s ON s.id = chs.study_id
+                            LEFT JOIN
+                                provider_contacts pc ON pc.id = s.ordering_provider_contact_id
+                            LEFT JOIN
+                                providers p ON pc.provider_id = p.id
+                            WHERE
+                                ch.claim_id = ${id}
+                        ) AS orderPhyDetail) ordering_physician
                     , c.area_of_injury_code_id
                     , c.nature_of_injury_code_id
                     FROM

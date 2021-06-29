@@ -1004,8 +1004,18 @@ define(['jquery',
 
                 /* Claim section start*/
 
-                var renderingProvider = claim_data.fac_reading_phy_full_name || claim_data.reading_phy_full_name || self.usermessage.selectStudyReadPhysician;
-                var referringProvider = claim_data.ref_prov_full_name || self.usermessage.selectStudyRefProvider;
+                var renderingProviderFullName = claim_data.fac_reading_phy_full_name || claim_data.reading_phy_full_name;
+                var referringProviderFullName = claim_data.ref_prov_full_name
+
+                if (renderingProviderFullName && claim_data.rendering_prov_npi_no) {
+                    renderingProviderFullName +=  ' ' + claim_data.rendering_prov_npi_no;
+                }
+
+                if (referringProviderFullName && claim_data.referring_prov_npi_no) {
+                    referringProviderFullName = referringProviderFullName + ' ' + claim_data.referring_prov_npi_no;
+                }
+                var renderingProvider = renderingProviderFullName || self.usermessage.selectStudyReadPhysician;
+                var referringProvider = referringProviderFullName || self.usermessage.selectStudyRefProvider;
                 var orderingFacility = claim_data.ordering_facility_name || claim_data.service_facility_name || self.usermessage.selectOrdFacility;
 
                 if ( app.country_alpha_3_code === "can" && app.province_alpha_2_code === "AB" ) {
@@ -1014,16 +1024,24 @@ define(['jquery',
                 else {
                     self.ACSelect.readPhy.contact_id = claim_data.fac_rendering_provider_contact_id || claim_data.rendering_provider_contact_id || null;
                 }
-                self.ACSelect.refPhy.contact_id = claim_data.referring_provider_contact_id || null;
-                self.ACSelect.refPhy.Code = claim_data.ref_prov_code || null;
-                self.ACSelect.refPhy.Desc = referringProvider;
+
+                if (claim_data.ordering_physician && claim_data.ordering_physician.length > 0) {
+                    var phyDetails = claim_data.ordering_physician[0];
+                    self.ACSelect.refPhy.contact_id = phyDetails.ordering_provider_contact_id || null;
+                    self.ACSelect.refPhy.Code = phyDetails.ord_prov_code || null;
+                    self.ACSelect.refPhy.Desc = phyDetails.ord_prov_full_name || self.usermessage.selectStudyRefProvider;
+                } else {
+                    self.ACSelect.refPhy.contact_id = claim_data.referring_provider_contact_id || null;
+                    self.ACSelect.refPhy.Code = claim_data.ref_prov_code || null;
+                    self.ACSelect.refPhy.Desc = referringProvider;
+                }
                 self.group_id = parseInt(claim_data.ordering_facility_id) || parseInt(claim_data.service_facility_id) || null;
                 self.group_name = orderingFacility;
 
                 $('#ddlBillingProvider').val(claim_data.fac_billing_provider_id || claim_data.billing_provider_id || '');
                 $('#ddlFacility').val(claim_data.facility_id || '');
                 $('#select2-ddlRenderingProvider-container').html(renderingProvider);
-                $('#select2-ddlReferringProvider-container').html(referringProvider);
+                $('#select2-ddlReferringProvider-container').html(self.ACSelect.refPhy.Desc);
                 $('#select2-ddlOrdFacility-container').html(orderingFacility);
 
                 // Alberta
@@ -2674,7 +2692,7 @@ define(['jquery',
                     var contactInfo = commonjs.hstoreParse(repo.contact_info);
                     if (!repo.is_active) {
                         var markup1 = "<table class='ref-result' style='width: 100%'><tr class='inActiveRow'>";
-                        markup1 += "<td><div><b>" + repo.full_name + "</b><b>" + '(' + repo.provider_code + ')' + "</b></div>";
+                        markup1 += "<td><div><b>" + repo.full_name + "</b><b>" + '(' + repo.provider_code + ') ' + repo.npi_no + "</b></div>";
                         markup1 += "<div>" + contactInfo.ADDR1 == undefined ? "" : contactInfo.ADDR1 + contactInfo.ADDR2 == undefined ? "" : ", " + contactInfo.ADDR2 + "</div>";
                         markup1 += "<div>" + contactInfo.CITY == undefined ? "" : contactInfo.CITY + ", " + contactInfo.STATE + contactInfo.ZIP == undefined ? "" : ", " + contactInfo.ZIP + contactInfo.MOBNO == undefined ? "" : ", " + contactInfo.MOBNO + "</div>";
                         markup1 += "</td></tr></table>";
@@ -2682,7 +2700,7 @@ define(['jquery',
                     }
                     else {
                         var markup = "<table class='ref-result' style='width: 100%'><tr>";
-                        markup += "<td><div><b>" + repo.full_name + "</b><b>" + '(' + repo.provider_code + ')' + "</b></div>";
+                        markup += "<td><div><b>" + repo.full_name + "</b><b>" + '(' + repo.provider_code + ') ' + repo.npi_no + "</b></div>";
                         markup += "<div>" + (contactInfo.ADDR1 == undefined ? "" : contactInfo.ADDR1) + ", " + (contactInfo.ADDR2 == undefined ? "" : contactInfo.ADDR2) + "</div>";
                         markup += "<div>" + (contactInfo.CITY == undefined ? "" : contactInfo.CITY) + ", " + contactInfo.STATE + (contactInfo.ZIP == undefined ? "" : ", " + contactInfo.ZIP) + (contactInfo.MOBNO == undefined ? "" : ", " + contactInfo.MOBNO) + "</div>";
                         markup += "</td></tr></table>"
@@ -2708,7 +2726,7 @@ define(['jquery',
                             }, null);
                         }
                     }
-                    return res.full_name;
+                    return res.full_name + ' ' + res.npi_no;
                 }
             },
 
