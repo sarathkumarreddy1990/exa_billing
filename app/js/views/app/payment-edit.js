@@ -326,15 +326,15 @@ define(['jquery',
             },
 
             clearPayemntForm: function () {
-                var facilityID = this.paidlocation.get(app.facilityID);
+                var facility = this.paidlocation.get(app.facilityID);
 
-                if (!facilityID) {
-                    facilityID = this.paidlocation.at(0) && this.paidlocation.at(0).id;
+                if (!facility) {
+                    facility = this.paidlocation.at(0);
                 }
                 this.payer_id = 0;
                 $('#PaymentForm input[type=radio]').prop('ckecked', false);
                 $('#ddlpaymentReason').val('');
-                $('#ddlPaidLocation').val(facilityID);
+                $('#ddlPaidLocation').val(facility);
                 $('#selectPaymentMode').val(0);
                 $('#PaymentForm input[type=text]').val('');
                 $('.payerFields').hide();
