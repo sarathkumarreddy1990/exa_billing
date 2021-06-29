@@ -113,7 +113,7 @@ define(['jquery',
                 var modelCollection = Backbone.Collection.extend({
                     model: Backbone.Model.extend({})
                 });
-                this.facilities = new modelCollection(commonjs.bindArray(app.facilities, true, true));
+                this.facilities = new modelCollection(commonjs.bindArray(commonjs.getActiveFacilities(), true, true));
 
                 var country = address.getCountryByAlpha3Code(app.country_alpha_3_code);
 
