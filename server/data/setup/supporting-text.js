@@ -259,7 +259,7 @@ module.exports = {
         return await queryCteWithAudit(sql, {
             ...params,
             logDescription: `Add: Supporting text tempate (${templateName}) created containing text: ${supportingText}`
-        });;
+        });
     },
 
     update: async (params) => {
