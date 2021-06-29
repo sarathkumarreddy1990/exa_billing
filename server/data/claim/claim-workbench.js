@@ -616,7 +616,9 @@ module.exports = {
                     details.insurances,
                     details.claim_icds,
                     ('${JSON.stringify(auditDetails) }'):: jsonb,
-                    details.charges) FROM details`);
+                    details.charges),
+                    details.study_id
+                    FROM details`);
 
         return await query(sql);
     },
