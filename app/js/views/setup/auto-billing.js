@@ -91,6 +91,18 @@ define(['jquery',
         };
 
 
+        var setAutoBillingValues = function (id, values) {
+            id.append(createOptionElement(
+                values.id,
+                values.text
+            ));
+            values = null;
+        }
+
+        var removeAutoBillingValues = function(id) {
+             id.find('option:selected').remove();
+        }
+
 
 
 
@@ -373,16 +385,11 @@ define(['jquery',
                 // ***************** BEGIN Studies SECTION *********************
                 var $ddlAutoBillingStudyStatuses = $('#ddlAutoBillingStudyStatuses');
                 var $listAutoBillingStudyStatuses = $('#listAutoBillingStudyStatuses');
-                $('#btnAddAutoBillingStudyStatus').off().click(function() {
-                    $listAutoBillingStudyStatuses.append(createOptionElement(
-                        self.pendingAutoBillingStudyStatus.id,
-                        self.pendingAutoBillingStudyStatus.text
-                    ));
-                    // $ddlAutoBillingStudyStatuses.empty();
-                    self.pendingAutoBillingStudyStatus = null;
+                $('#btnAddAutoBillingStudyStatus').off().click(function () {
+                    setAutoBillingValues($listAutoBillingStudyStatuses, self.pendingAutoBillingStudyStatus);
                 });
                 $('#btnRemoveAutoBillingStudyStatus').off().click(function() {
-                    $listAutoBillingStudyStatuses.find('option:selected').remove();
+                    removeAutoBillingValues($listAutoBillingStudyStatuses);
                 });
                 // ******************* END Studies SECTION *********************
 
@@ -390,30 +397,21 @@ define(['jquery',
                 var $ddlAutoBillingFacility = $('#ddlAutoBillingFacility');
                 var $listAutoBillingFacilities = $('#listAutoBillingFacilities');
                 $('#btnAddAutoBillingFacility').off().click(function() {
-                    $listAutoBillingFacilities.append(createOptionElement(
-                        self.pendingAutoBillingFacility.id,
-                        self.pendingAutoBillingFacility.text
-                    ));
-                    // $ddlAutoBillingFacility.empty();
-                    self.pendingAutoBillingFacility = null;
+                    setAutoBillingValues($listAutoBillingFacilities, self.pendingAutoBillingFacility);
                 });
                 $('#btnRemoveAutoBillingFacility').off().click(function() {
-                    $listAutoBillingFacilities.find('option:selected').remove();
+                    removeAutoBillingValues($listAutoBillingFacilities);
                 });
                 // **************** END Facilities SECTION *********************
 
                 // *************** BEGIN Ordering Facilities SECTION *********************
                 var $ddlAutoBillingOrderingFacility = $('#ddlAutoBillingOrderingFacility');
                 var $listAutoBillingOrderingFacilities = $('#listAutoBillingOrderingFacilities');
-                $('#btnAddAutoBillingOrderingFacility').off().click(function() {
-                    $listAutoBillingOrderingFacilities.append(createOptionElement(
-                        self.pendingAutoBillingOrderingFacility.id,
-                        self.pendingAutoBillingOrderingFacility.text
-                    ));
-                    self.pendingAutoBillingOrderingFacility = null;
+                $('#btnAddAutoBillingOrderingFacility').off().click(function () {
+                    setAutoBillingValues($listAutoBillingOrderingFacilities, self.pendingAutoBillingOrderingFacility);
                 });
-                $('#btnRemoveAutoBillingOrderingFacility').off().click(function() {
-                    $listAutoBillingOrderingFacilities.find('option:selected').remove();
+                $('#btnRemoveAutoBillingOrderingFacility').off().click(function () {
+                    removeAutoBillingValues($listAutoBillingOrderingFacilities);
                 });
                 // **************** END Ordering Facilities SECTION *********************
 
@@ -421,17 +419,12 @@ define(['jquery',
                 // ************** BEGIN Modalities SECTION *********************
                 var $ddlAutoBillingModality = $('#ddlAutoBillingModality');
                 var $listAutoBillingModalities = $('#listAutoBillingModalities');
-                $('#btnAddAutoBillingModality').off().click(function() {
-                    $listAutoBillingModalities.append(createOptionElement(
-                        self.pendingAutoBillingModality.id,
-                        self.pendingAutoBillingModality.text
-                    ));
-                    self.pendingAutoBillingModality = null;
-                    // $ddlAutoBillingModality.empty();
+                $('#btnAddAutoBillingModality').off().click(function () {
+                    setAutoBillingValues($listAutoBillingModalities, self.pendingAutoBillingModality);
                     modalitiesChanged();
                 });
                 $('#btnRemoveAutoBillingModality').off().click(function() {
-                    $listAutoBillingModalities.find('option:selected').remove();
+                    removeAutoBillingValues($listAutoBillingModalities);
                     modalitiesChanged();
                 });
                 // *************** END Modalities SECTION *********************

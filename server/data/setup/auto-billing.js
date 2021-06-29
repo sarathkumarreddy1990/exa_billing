@@ -598,8 +598,12 @@ module.exports = {
                      ${exclude_ordering_facilities},
                      ofs.of_id
                     FROM UNNEST(${ordering_facility_ids}::BIGINT[]) ofs(of_id)
-                    WHERE NOT EXISTS (SELECT 1 FROM billing.autobilling_ordering_facility_rules WHERE ordering_facility_id = ofs.of_id AND autobilling_rule_id = ${id})
-                 )
+                    WHERE NOT EXISTS (
+                        SELECT 1
+                        FROM billing.autobilling_ordering_facility_rules
+                        WHERE ordering_facility_id = ofs.of_id
+                        AND autobilling_rule_id = ${id})
+                    )
             UPDATE billing.autobilling_rules
             SET
                 description = ${description}
@@ -660,7 +664,7 @@ module.exports = {
                     billing.autobilling_rules abr
                     LEFT JOIN billing.autobilling_study_status_rules abssr                      ON abr.id = abssr.autobilling_rule_id
                     LEFT JOIN billing.autobilling_facility_rules abfr                           ON abr.id = abfr.autobilling_rule_id
-                    LEFT JOIN billing.autobilling_ordering_facility_rules abofr                           ON abr.id = abofr.autobilling_rule_id
+                    LEFT JOIN billing.autobilling_ordering_facility_rules abofr                 ON abr.id = abofr.autobilling_rule_id
                     LEFT JOIN billing.autobilling_modality_rules abmr                           ON abr.id = abmr.autobilling_rule_id
                     LEFT JOIN billing.autobilling_cpt_code_rules abcptr                         ON abr.id = abcptr.autobilling_rule_id
                     LEFT JOIN billing.autobilling_insurance_provider_payer_type_rules abipptr   ON abr.id = abipptr.autobilling_rule_id
