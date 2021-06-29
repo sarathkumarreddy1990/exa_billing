@@ -1025,14 +1025,15 @@ define(['jquery',
                     self.ACSelect.refPhy.Code = claim_data.ref_prov_code || null;
                     self.ACSelect.refPhy.Desc = referringProvider;
                 }
-                self.group_id = parseInt(claim_data.ordering_facility_id) || parseInt(claim_data.service_facility_id) || null;
-                self.group_name = orderingFacility;
+                self.ordering_facility_id = claim_data.ordering_facility_id || claim_data.service_facility_id || null;
+                self.ordering_facility_name = orderingFacility;
+                self.ordering_facility_contact_id = claim_data.ordering_facility_contact_id || claim_data.service_facility_contact_id || null;
 
                 $('#ddlBillingProvider').val(claim_data.fac_billing_provider_id || claim_data.billing_provider_id || '');
                 $('#ddlFacility').val(claim_data.facility_id || '');
                 $('#select2-ddlRenderingProvider-container').html(renderingProvider);
                 $('#select2-ddlReferringProvider-container').html(self.ACSelect.refPhy.Desc);
-                $('#select2-ddlOrdFacility-container').html(orderingFacility);
+                $('#select2-ddlOrdFacility-container').html(self.ordering_facility_name);
 
                 // Alberta
                 if ( claim_data.can_ahs_pay_to_code ) {
@@ -1192,11 +1193,11 @@ define(['jquery',
                     payer_id: self.cur_patient_id
                 }, null);
 
-                if (self.group_id || null) {
+                if (self.ordering_facility_contact_id) {
                     self.updateResponsibleList({
                         payer_type: 'POF',
-                        payer_id: self.group_id,
-                        payer_name: self.group_name + '(Service Facility)'
+                        payer_id: self.ordering_facility_contact_id,
+                        payer_name: self.ordering_facility_name + '(Service Facility)'
                     }, null);
                 }
 
@@ -3114,7 +3115,7 @@ define(['jquery',
                 var self = this;
                 $("#ddlOrdFacility").select2({
                     ajax: {
-                        url: "/exa_modules/billing/autoCompleteRouter/provider_group",
+                        url: "/exa_modules/billing/autoCompleteRouter/ordering_facility_contacts",
                         dataType: 'json',
                         delay: 250,
                         data: function (params) {
@@ -3122,7 +3123,7 @@ define(['jquery',
                                 page: params.page || 1,
                                 q: params.term || '',
                                 pageSize: 10,
-                                sortField: "group_name",
+                                sortField: "location",
                                 sortOrder: "ASC",
                                 groupType: 'OF',
                                 company_id: app.companyID
@@ -3144,22 +3145,26 @@ define(['jquery',
                         return repo.text;
                     }
                     var markup = "<table class='ref-result' style='width: 100%'><tr>";
-                    markup += "<td class='movie-info'><div class='movie-title'><b>" + repo.group_name + "</b></div>";
+                    markup += "<td title='" + repo.ordering_facility_code + "(" + repo.ordering_facility_name + ")'><div>" + repo.ordering_facility_name + "</div>"
+                    markup += "<div> Location: " + repo.location + "</div>";
+                    markup += "<div> Phone: " + (repo.phone_number || '') + "</div>"
+                    markup += "<div> Fax: " + (repo.fax_number || '') + "</div>";
                     markup += "</td></tr></table>";
                     return markup;
 
                 }
                 function formatRepoSelection(res) {
-                    self.group_name = res.group_name;
-                    self.group_id = res.provider_group_id;
+                    self.ordering_facility_name = res.ordering_facility_name;
+                    self.ordering_facility_id = res.ordering_facility_id;
+                    self.ordering_facility_contact_id = res.id || null;
                     if (res && res.id) {
                         self.updateResponsibleList({
                             payer_type: 'POF',
-                            payer_id: res.provider_group_id,
-                            payer_name: res.group_name + '(Service Facility)'
+                            payer_id: res.ordering_facility_contact_id,
+                            payer_name: res.ordering_facility_name + '(Service Facility)'
                         }, null);
                     }
-                    return res.group_name;
+                    return res.ordering_facility_name;
                 }
             },
 
@@ -3699,7 +3704,7 @@ define(['jquery',
                     billing_provider_id: $('#ddlBillingProvider option:selected').val() != '' ? parseInt($('#ddlBillingProvider option:selected').val()) : null,
                     rendering_provider_contact_id: self.ACSelect && self.ACSelect.readPhy ? self.ACSelect.readPhy.contact_id : null,
                     referring_provider_contact_id: self.ACSelect && self.ACSelect.refPhy ? self.ACSelect.refPhy.contact_id : null,
-                    ordering_facility_id: self.group_id ? parseInt(self.group_id) : null,
+                    ordering_facility_contact_id: self.ordering_facility_contact_id || null,
                     place_of_service_id: ["can_AB", "can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && $('#ddlPOSType option:selected').val() != '' ? parseInt($('#ddlPOSType option:selected').val()) : null,
                     billing_code_id: $('#ddlBillingCode option:selected').val() != '' ? parseInt($('#ddlBillingCode option:selected').val()) : null,
                     billing_class_id: $('#ddlBillingClass option:selected').val() != '' ? parseInt($('#ddlBillingClass option:selected').val()) : null,
@@ -5326,8 +5331,9 @@ define(['jquery',
                 var renderingProvider = patient_details.rendering_provider_full_name || self.usermessage.selectStudyReadPhysician;
                 var service_facility_name = patient_details.service_facility_name || self.usermessage.selectOrdFacility;
                 self.ACSelect.readPhy.contact_id = patient_details.rendering_provider_contact_id || patient_details.rendering_provider_contact_id || null;
-                self.group_id = patient_details.service_facility_id ? parseInt(patient_details.service_facility_id) : null;
-                self.group_name = service_facility_name;
+                self.ordering_facility_id = patient_details.service_facility_id || null;
+                self.ordering_facility_name = service_facility_name;
+                self.ordering_facility_contact_id = patient_details.service_facility_contact_id || null;
 
                 $('#ddlPOSType').val(["can_AB", "can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && patient_details.fac_place_of_service_id || '');
                 $('#ddlBillingProvider').val(patient_details.billing_provider_id || '');
