@@ -40,11 +40,13 @@ module.exports = {
                     , cte_ordering_facilities AS (
                             SELECT Json_agg(Row_to_json(ordering_facilities)) ordering_facilities
                             FROM (
-                                    SELECT id,
-                                    code AS ordering_faciltiy_code, name AS ordering_facility_name
-                                    FROM   ordering_facilities
-                                    WHERE  company_id=${companyID}
-                                    AND    deleted_dt IS NULL
+                                    SELECT 
+                                         id,
+                                         code AS ordering_faciltiy_code,
+                                         name AS ordering_facility_name
+                                    FROM ordering_facilities
+                                    WHERE company_id=${companyID}
+                                    AND deleted_dt IS NULL
                                     ORDER BY
                                     name )AS ordering_facilities 
                     )               
