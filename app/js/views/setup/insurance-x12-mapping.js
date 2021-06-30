@@ -56,7 +56,8 @@ define(['jquery',
                     { 'value': 'X', 'text': '<option i18n="setup.insurance.xChampus"></option>' },
                     { 'value': 'Y', 'text': '<option i18n="setup.insurance.yFacility"></option>' },
                     { 'value': 'M', 'text': '<option i18n="setup.insurance.mDMERC"></option>' },
-                    { 'value': 'AM', 'text': '<option i18n="setup.insurance.autoMobile"></option>' }
+                    { 'value': 'AM', 'text': '<option i18n="setup.insurance.autoMobile"></option>' },
+                    { 'value': 'MR', 'text': '<option i18n="setup.insurance.hmoMedicalRisk"></option>' }
                 ];
             },
 
@@ -399,6 +400,9 @@ define(['jquery',
                     case 'AM':
                         ediVal = '<option i18n="setup.insurance.autoMobile"></option>'
                         break;
+                    case 'MR':
+                        ediVal = '<option i18n="setup.insurance.hmoMedicalRisk"></option>'
+                        break;
                 }
                 return ediVal;
             },
@@ -439,6 +443,9 @@ define(['jquery',
                         break;
                     case 'AM':
                         ediVal = 'AM'
+                        break;
+                    case 'MR':
+                        ediVal = '16'
                         break;
                     case 'default':
                         ediVal = ''
