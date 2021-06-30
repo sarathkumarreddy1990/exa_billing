@@ -289,9 +289,12 @@ module.exports = {
                  ) tmp) as facilities
                  , exclude_facilities
                  , (SELECT array_to_json(array_agg(tmp)) FROM (
-                    SELECT id, name as ordering_facility_name, code as ordering_facility_code
+                    SELECT
+                         id
+                         , name AS ordering_facility_name
+                         , code AS ordering_facility_code
                     FROM ordering_facilities INNER JOIN base ON ordering_facilities.id = ANY(base.ordering_facility_ids)
-               ) tmp) as ordering_facilities
+               ) tmp) AS ordering_facilities
                , exclude_ordering_facilities
                  , (SELECT array_to_json(array_agg(tmp)) FROM (
                       SELECT id, display_description, display_code
@@ -594,9 +597,9 @@ module.exports = {
                      ordering_facility_id
                     )
                     SELECT 
-                     ${id},
-                     ${exclude_ordering_facilities},
-                     ofs.of_id
+                          ${id},
+                          ${exclude_ordering_facilities},
+                          ofs.of_id
                     FROM UNNEST(${ordering_facility_ids}::BIGINT[]) ofs(of_id)
                     WHERE NOT EXISTS (
                         SELECT 1

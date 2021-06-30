@@ -45,7 +45,7 @@ module.exports = {
                                          code AS ordering_faciltiy_code,
                                          name AS ordering_facility_name
                                     FROM ordering_facilities
-                                    WHERE company_id=${companyID}
+                                    WHERE company_id = ${companyID}
                                     AND deleted_dt IS NULL
                                     ORDER BY
                                     name )AS ordering_facilities 
