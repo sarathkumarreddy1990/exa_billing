@@ -2359,8 +2359,6 @@ var commonjs = {
                 }
             }, 300);
         } else {
-            return self.showLoadingMessage(msg);
-
             tickTimer = setTimeout(function () {
                 clearTimeout(tickTimer);
                 self.showLoadingMessage(msg + '(' + self.loadingTime + ')');
@@ -2373,6 +2371,7 @@ var commonjs = {
                 }
             }, 1000);
         }
+        return self.showLoadingMessage(msg);
     },
 
     hideLoading: function () {
