@@ -36,7 +36,8 @@ module.exports = {
         externalUrlBc: 'externalUrlBc',
         externalUrlBcUserName: 'externalUrlBcUserName',
         externalUrlBcPassword: 'externalUrlBcPassword',
-        goLiveDate: 'goLiveDate'
+        goLiveDate: 'goLiveDate',
+        enableMobileBilling: 'enableMobileBilling'
     },
 
     paths: [

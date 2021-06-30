@@ -87,5 +87,14 @@
                 <label class="form-check-label" for="chkPrintBillingProviderAddress" i18n="setup.insurance.printBillingProviderAddress"></label>
             </div>
         </div>
+        <% if (isMobileBillingEnabled) { %>
+            <div class="form-group row mt-15" id="splitClaimDiv">
+                <label class="switch" i18nt='messages.common.splitClaim'>
+                    <input type="checkbox" id="chkSplitClaim">
+                    <span class="slider round"></span>
+                </label>
+                <label class="form-check-label paymentMethod" for="chkSplitClaim"  i18n="shared.fields.createSplitClaim"></label>
+            </div>
+        <% } %>    
     </div>
 </div>
