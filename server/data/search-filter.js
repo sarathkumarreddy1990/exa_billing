@@ -330,6 +330,11 @@ const colModel = [
         name: 'can_bc_claim_sequence_numbers',
         searchColumns:[`claim_sequence_numbers.can_bc_claim_sequence_numbers`],
         searchFlag: 'arrayString'
+    },
+    {
+        name: 'billing_type',
+        searchColumns: [`ordering_facility_contacts.billing_type`],
+        searchFlag: '%'
     }
 ];
 
@@ -515,6 +520,7 @@ const api = {
             case 'pid_alt_account': return 'patient_alt_accounts.pid_alt_account';
             case 'phn_alt_account': return 'patient_alt_accounts.phn_alt_account';
             case 'can_bc_claim_sequence_numbers': return `claim_sequence_numbers.can_bc_claim_sequence_numbers`;
+            case 'billing_type': return 'ordering_facility_contacts.billing_type';
         }
 
         return args;
@@ -754,7 +760,7 @@ const api = {
                   ) claim_sequence_numbers ON TRUE`;
         }
 
-        if (tables.ordering_facilities || tables.ordering_facility_contacts) {
+        if (tables.ordering_facilities || tables.ordering_facility_contacts || tables.billing_type) {
             r += ` LEFT JOIN public.ordering_facility_contacts ON ordering_facility_contacts.id = studies.ordering_facility_contact_id
                    LEFT JOIN public.ordering_facilities ON ordering_facilities.id = ordering_facility_contacts.ordering_facility_id`;
         }

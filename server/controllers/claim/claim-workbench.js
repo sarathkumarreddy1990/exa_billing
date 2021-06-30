@@ -551,13 +551,25 @@ module.exports = {
             const studyData = await(params.isAllCensus === 'true' ?  censusController.getData(params) : studiesController.getData(params));
             let studyDetails = [];
 
-            _.map(studyData.rows, (study) => {
-                studyDetails.push({
-                    patient_id: study.patient_id,
-                    study_id: study.study_id,
-                    order_id: study.order_id
+            if (params.isMobileBillingEnabled) {
+                _.map(studyData.rows, (study) => {
+                    studyDetails.push({
+                        patient_id: study.patient_id,
+                        study_id: study.study_id,
+                        order_id: study.order_id,
+                        billing_type: study.billing_type
+                    });
                 });
-            });
+            } else {
+                _.map(studyData.rows, (study) => {
+                    studyDetails.push({
+                        patient_id: study.patient_id,
+                        study_id: study.study_id,
+                        order_id: study.order_id,
+                        billing_type: 'global'
+                    });
+                });
+            }
 
             let validCharges = await data.validateBatchClaimCharge(JSON.stringify(studyDetails));
 

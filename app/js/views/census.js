@@ -56,8 +56,7 @@ define(['jquery',
                 var censusListTab = $('#censusListTab');
                 censusListTab.addClass('active');
                 censusHeaders.show();
-                //initializing tinymce editor
-                self.initializeEditor();
+                commonjs.tinyMceLoad(this.initializeEditor.bind(this));
                 $('#btnSaveNotes').attr({ 'disabled': true });
                 self.setOrderingFacilityAutoComplete();
                 self.showCensusGrid();

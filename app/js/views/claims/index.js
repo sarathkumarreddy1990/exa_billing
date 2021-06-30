@@ -243,7 +243,8 @@ define(['jquery',
                         currentDate: self.studyDate === undefined && self.cur_study_date || self.studyDate,
                         chargeField : self.getClaimChargeFieldDetails(app.billingRegionCode || ''),
                         wcbAreaCode: app.wcb_area_code,
-                        wcbNatureCode: app.wcb_nature_code
+                        wcbNatureCode: app.wcb_nature_code,
+                        isSplitClaim: app.isMobileBillingEnabled
                     })
                 });
 
@@ -253,6 +254,19 @@ define(['jquery',
 
                 if (app.billingRegionCode === 'can_ON') {
                     $('#txtPriGroupNo').attr('maxlength', 2);
+                }
+
+                var nextSplitClaimSpan = $('.nextSplitClaimSpan');
+
+                if (app.isMobileBillingEnabled && self.options && self.options.split_claim_id) {
+                    var msg = commonjs.geti18NString('billing.claims.splitClaim');
+                    msg = msg.replace('$CLAIM_ID', '<a class="hidden" href="javascript: void(0)" id="nextSplitClaim"></a>')
+                    nextSplitClaimSpan.removeClass('hidden').append(msg);
+                    $('#nextSplitClaim').removeClass('hidden').text(self.options.split_claim_id).off().click(function(){
+                        self.openSplitClaim();
+                    });
+                } else {
+                    nextSplitClaimSpan.addClass('hidden');
                 }
 
                 $('#txtClaimResponsibleNotes').prop('disabled', !(app.billingRegionCode === 'can_MB' || app.billingRegionCode === 'can_BC' || app.country_alpha_3_code === 'usa'));
@@ -1028,6 +1042,7 @@ define(['jquery',
                 self.ordering_facility_id = claim_data.ordering_facility_id || claim_data.service_facility_id || null;
                 self.ordering_facility_name = orderingFacility;
                 self.ordering_facility_contact_id = claim_data.ordering_facility_contact_id || claim_data.service_facility_contact_id || null;
+                self.billing_type = claim_data.billing_type || 'global';
 
                 $('#ddlBillingProvider').val(claim_data.fac_billing_provider_id || claim_data.billing_provider_id || '');
                 $('#ddlFacility').val(claim_data.facility_id || '');
@@ -1222,10 +1237,16 @@ define(['jquery',
                     document.querySelector('#txtClaimDate').value = claim_data.claim_dt ? self.convertToTimeZone(claim_data.facility_id, claim_data.claim_dt).format('L') : '';
                     $('#txtClaimCreatedDt').val(claim_data.created_dt ? self.convertToTimeZone(claim_data.facility_id, claim_data.created_dt).format('L') : '');
                 } else {
-                    var responsibleIndex = _.find(self.responsible_list, function (item) { return item.payer_type == 'PIP_P'; });
-                    if (responsibleIndex && responsibleIndex.payer_id) {
-                        $('#ddlClaimResponsible').val('PIP_P');
-                    }else{
+                    var responsibleIndex = _.find(self.responsible_list, function (item) {
+                        if (app.isMobileBillingEnabled && claim_data.billing_type == 'facility') {
+                            return item.payer_type == 'POF';
+                        } else {
+                            return item.payer_type == 'PIP_P';
+                        }
+                    });
+                    if (responsibleIndex && responsibleIndex.payer_id && responsibleIndex.payer_type) {
+                        $('#ddlClaimResponsible').val(responsibleIndex.payer_type);
+                    } else {
                         $('#ddlClaimResponsible').val('PPP');
                     }
                     $('#ddlClaimStatus').val($("option[data-desc = 'PV']").val());
@@ -1811,6 +1832,7 @@ define(['jquery',
                             from: 'claimCreation',
                             study_ids: selectedStudyIds,
                             patient_id: self.cur_patient_id || 0,
+                            isMobileBillingEnabled: app.isMobileBillingEnabled
                         },
                         success: function (model, response) {
                             self.claimICDLists =[];
@@ -1837,6 +1859,10 @@ define(['jquery',
                                 self.studyDate = self.claim_dt_iso ? self.claim_dt_iso.format('L') : self.studyDate;
                                 $('#txtClaimDate').val(self.studyDate || '');
                                 self.claim_dt_iso = self.claim_dt_iso.format('YYYY-MM-DD LT z');
+                                self.is_split_claim = _defaultDetails.is_split_claim;
+                                if(app.isMobileBillingEnabled && _defaultDetails.is_split_claim) {
+                                    $('.splitNotification').removeClass('hidden');
+                                }
 
                                 //EXA-18273 - Bind Charges created on current date for a patient - Alberta billing specification.
                                 if(app.billingRegionCode === 'can_AB'){
@@ -3747,7 +3773,10 @@ define(['jquery',
                     can_supporting_text: $.trim($.trim($('#txtSupportingText').val()).replace(/\n/g, ' ')),
                     can_wcb_rejected: $("#chkwcbRejected").prop('checked') || false,
                     wcb_injury_area_code: self.wcbAreaCodeId || null,
-                    wcb_injury_nature_code: self.wcbNatureCodeId || null
+                    wcb_injury_nature_code: self.wcbNatureCodeId || null,
+                    billing_type: app.isMobileBillingEnabled ? self.billing_type : 'global',
+                    is_split_claim: app.isMobileBillingEnabled && self.is_split_claim,
+                    order_id: self.options && self.options.order_id
                 };
 
                 // Pay-to Details are only saved when Pay-to Code is Other
@@ -3864,6 +3893,7 @@ define(['jquery',
                     claim_icds: claim_model.claim_icds,
                     removed_charges: claim_model.removed_charges,
                     is_alberta_billing: app.billingRegionCode === 'can_AB',
+                    isMobileBillingEnabled: app.isMobileBillingEnabled,
                     study_cpt_id: claim_model.ref_charge_id || 0
                 });
 
@@ -3974,13 +4004,15 @@ define(['jquery',
                                         commonjs.getClaimStudy(self.claim_Id, function (result) {
                                             self.rendered = false;
                                             self.clearDependentVariables();
+                                            var split_claim_id = (result && result.split_claim_id && result.split_claim_id.length && result.split_claim_id[0]) || 0;
                                             self.showEditClaimForm(self.claim_Id, 'reload', {
                                                 'study_id': result && result.study_id ? result.study_id : 0,
                                                 'patient_name': self.cur_patient_name,
                                                 'patient_id': self.cur_patient_id,
                                                 'order_id': result && result.order_id ? result.order_id : 0,
                                                 'grid_id': self.options && self.options.grid_id || null,
-                                                'from': self.options && self.options.from || self.openedFrom || null
+                                                'from': self.options && self.options.from || self.openedFrom || null,
+                                                split_claim_id: split_claim_id
                                             });
                                         });
                                     }
@@ -4752,12 +4784,14 @@ define(['jquery',
                                 var study_id = result && result.study_id ? result.study_id : 0;
                                 var patient_id = data.hidden_patient_id;
                                 var order_id = result && result.order_id ? result.order_id : 0;
+                                var split_claim_id = (result && result.split_claim_id && result.split_claim_id.length && result.split_claim_id[0]) || 0;
                                 self.showEditClaimForm(rowId, null, {
                                     'study_id': self.openedFrom === 'studies' ? data.hidden_study_id : study_id,
                                     'patient_name': data.patient_name,
                                     'patient_id': patient_id,
                                     'order_id': order_id,
-                                    'grid_id': self.options.grid_id || null
+                                    'grid_id': self.options.grid_id || null,
+                                    split_claim_id: split_claim_id
                                 });
 
                                 self.updateReportURL(patient_id, order_id, study_id);
@@ -6139,6 +6173,26 @@ define(['jquery',
                 });
             },
 
+            openSplitClaim: function (){
+                var self = this;
+                if (!commonjs.hasModalClosed()) {
+                    var prevClaimID = self.claim_Id;
+                    self.claim_Id = self.options.split_claim_id;
+                    commonjs.getClaimStudy(self.claim_Id, function (result) {
+                        self.rendered = false;
+                        self.clearDependentVariables();
+                        self.showEditClaimForm(self.claim_Id, 'reload', {
+                            study_id: self.options && self.options.study_id || 0,
+                            patient_name: self.options && self.options.patient_name,
+                            patient_id: self.options && self.options.patient_id,
+                            order_id: self.options && self.options.order_id,
+                            grid_id: self.options && self.options.grid_id || null,
+                            from: self.options && self.options.from || self.openedFrom || null,
+                            split_claim_id: prevClaimID
+                        });
+                    });
+                }
+            }
 
         });
 
