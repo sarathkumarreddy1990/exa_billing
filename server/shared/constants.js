@@ -235,5 +235,6 @@ module.exports = {
         'submission_types': 'SUBT',
         'collections_process': 'COLL',
         'send-claims-to-collections': 'SCTC',
+        'census': 'CENS'
     }
 };

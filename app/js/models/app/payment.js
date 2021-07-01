@@ -12,7 +12,7 @@ define(['backbone'], function (Backbone) {
             accounting_date: null,
             patient_id: null,
             provider_contact_id: null,
-            provider_group_id: null,
+            ordering_facility_id: null,
             insurance_provider_id: null,
             credit_card_number: null,
             credit_card_name: null,

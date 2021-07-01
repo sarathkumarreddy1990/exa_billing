@@ -558,13 +558,13 @@ define(['jquery',
 
             saveOFGrid: function (e) {
                 if (orderingFacilityArray && orderingFacilityArray.length > 0 && orderingFacilityArray[0].group_name) {
-                    this.payer_id = parseInt(orderingFacilityArray[0].provider_group_id) || 0;
-                    this.provider_group_id = this.payer_id;
+                    this.payer_id = parseInt(orderingFacilityArray[0].ordering_facility_id) || 0;
+                    this.ordering_facility_id = this.payer_id;
                     this.payerCode = orderingFacilityArray[0].group_code || '';
                     this.payerName = orderingFacilityArray[0].group_name;
                     this.payerType = 'ordering_facility';
                     coverage_level = 'Odering Facility';
-                    $("#hdnPayerID").val(orderingFacilityArray[0].provider_group_id);
+                    $("#hdnPayerID").val(orderingFacilityArray[0].ordering_facility_id);
                     $('#select2-txtautoPayerPOF-container').html(orderingFacilityArray[0].group_name);
                 } else
                     $('#select2-txtautoPayerPOF-container').html(this.usermessage.selectOrderingFacility);
@@ -670,7 +670,7 @@ define(['jquery',
                 $('#s2id_txtautoPayerPOF a span').html('Select ordering facility');
                 $txtautoPayerPOF.select2({
                     ajax: {
-                        url: "/exa_modules/billing/autoCompleteRouter/provider_group",
+                        url: "/exa_modules/billing/autoCompleteRouter/ordering_facilities",
                         dataType: 'json',
                         delay: 250,
                         data: function (params) {
@@ -680,7 +680,7 @@ define(['jquery',
                                 page: params.page || 1,
                                 q: params.term || '',
                                 pageSize: 10,
-                                sortField: "group_name",
+                                sortField: "ordering_facility_name",
                                 sortOrder: "ASC",
                                 groupType: 'OF',
                                 company_id: app.companyID
@@ -702,7 +702,7 @@ define(['jquery',
                         return repo.text;
                     }
                     var markup = "<table><tr>";
-                    markup += "<td title='" + repo.group_name + "(" + repo.group_code + ")'> <div>" + repo.group_name + "(" + repo.group_code + ")" + "</div>";
+                    markup += "<td title='" + repo.ordering_facility_name + "(" + repo.ordering_facility_code + ")'> <div>" + repo.ordering_facility_name + "(" + repo.ordering_facility_code + ")" + "</div>";
                     markup += "</td></tr></table>";
                     return markup;
 
@@ -710,7 +710,7 @@ define(['jquery',
                 function formatRepoSelection(res) {
                     if (res && res.id)
                         self.bindOfDetails(res);
-                    return res.group_name;
+                    return res.ordering_facility_name;
                 }
                 $select2Container = $('#select2-txtautoPayerPOF-container');
                 $select2Container.html(placeHolder);
@@ -819,7 +819,7 @@ define(['jquery',
             bindOfDetails: function (res) {
                 var self = this, payer_type, coverage_level;
                 self.payer_id = res.id;
-                self.provider_group_id = res.id;
+                self.ordering_facility_id = res.id;
                 self.payerCode = res.group_code;
                 self.payerName = res.group_name;
                 self.payerType = 'ordering_facility';
@@ -895,7 +895,7 @@ define(['jquery',
                 } else {
                     $('#btnPrintReceipt').hide();
                     if (response.payer_type === "ordering_facility")
-                        self.payer_id = response.provider_group_id;
+                        self.payer_id = response.ordering_facility_id;
                     else if (response.payer_type === "insurance")
                         self.payer_id = response.insurance_provider_id;
                     else if (response.payer_type === "ordering_provider")
@@ -924,7 +924,7 @@ define(['jquery',
                 self.patient_id = response.patient_id;
                 // self.payer_id = response.patient_id || response.provider_contact_id || response.provider_group_id || response.insurance_provider_id;
                 self.provider_id = response.provider_contact_id;
-                self.provider_group_id = response.provider_group_id;
+                self.ordering_facility_id = response.ordering_facility_id;
                 self.insurance_provider_id = response.insurance_provider_id;
                 // self.showAppliedByPaymentsGrid(paymentID, response.payer_type, self.payer_id);
                 if (!self.casCodesLoaded)
@@ -1269,7 +1269,7 @@ define(['jquery',
                     invoice_no: $('#txtInvoice').is(':visible') ? $('#txtInvoice').val() : null,
                     patient_id: self.patient_id,
                     provider_contact_id: self.provider_id,
-                    provider_group_id: self.provider_group_id,
+                    ordering_facility_id: self.ordering_facility_id,
                     insurance_provider_id: self.insurance_provider_id,
                     credit_card_number: $("#txtCheque").val() || null,
                     credit_card_name: $("#txtCardName").val() || null,
@@ -1300,7 +1300,7 @@ define(['jquery',
                     paymentObj.facility_id = self.claimPaymentObj.facility_id;
                     paymentObj.payment_mode = self.claimPaymentObj.payment_mode;
                     paymentObj.accounting_date = self.claimPaymentObj.accounting_date;
-                    paymentObj.provider_group_id = self.claimPaymentObj.provider_group_id;
+                    paymentObj.ordering_facility_id = self.claimPaymentObj.ordering_facility_id;
                     paymentObj.credit_card_number = self.claimPaymentObj.credit_card_number;
                     paymentObj.provider_contact_id = self.claimPaymentObj.provider_contact_id;
                     paymentObj.insurance_provider_id = self.claimPaymentObj.insurance_provider_id;
@@ -2662,7 +2662,7 @@ define(['jquery',
             },
 
             clearPayerFields: function () {
-                this.patient_id = this.provider_id = this.provider_group_id = this.insurance_provider_id = null;
+                this.patient_id = this.provider_id = this.ordering_facility_id = this.insurance_provider_id = null;
             },
 
             goBackToPayments: function () {

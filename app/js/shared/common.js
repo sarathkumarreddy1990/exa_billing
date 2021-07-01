@@ -2359,8 +2359,6 @@ var commonjs = {
                 }
             }, 300);
         } else {
-            return self.showLoadingMessage(msg);
-
             tickTimer = setTimeout(function () {
                 clearTimeout(tickTimer);
                 self.showLoadingMessage(msg + '(' + self.loadingTime + ')');
@@ -2373,6 +2371,7 @@ var commonjs = {
                 }
             }, 1000);
         }
+        return self.showLoadingMessage(msg);
     },
 
     hideLoading: function () {
@@ -3630,6 +3629,21 @@ var commonjs = {
     },
 
     /**
+     * Use a checkbox to select all checkboxes in census screen
+     *
+     * @param {object} e The click event object of the 'select all' checkbox
+     */
+     checkMultipleCensus: function (e) {
+        e.stopPropagation ? e.stopPropagation() : e.cancelBubble = true;
+        if ($('#' + (e.target || e.srcElement).id).is(':checked')) {
+            $("#btnSelectAllCensus").click();
+        }
+        else {
+            $("#btnClearAllCensus").click();
+        }
+    },
+
+    /**
      * Use a checkbox to select all checkboxes in a given element
      *
      * @param {object} e The click event object of the 'select all' checkbox
@@ -4191,6 +4205,7 @@ var commonjs = {
                 if (data && data.length > 0) {
                     result.study_id = data[0].study_id;
                     result.order_id = data[0].order_id;
+                    result.split_claim_id = data[0].split_claim_ids;
                 }
 
                 callback(result);
@@ -5350,8 +5365,20 @@ var commonjs = {
         }
 
         return isValidSearch;
-    }
+    },
 
+    tinyMceLoad: function(callback){
+        if (typeof window.scriptFlag === 'undefined') {
+            var script = document.createElement('script');
+            script.type = "text/javascript";
+            script.src = "../../../tinymce/tinymce.min.js";
+            script.onload = callback
+            document.body.appendChild(script);
+            window.scriptFlag = true;
+        } else {
+            callback();
+        }
+    }
 };
 
 
