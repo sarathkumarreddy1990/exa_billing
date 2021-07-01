@@ -64,6 +64,23 @@ const getSaveClaimParams = async (params) => {
     const problems = lineItems[0].problems;
     const claim_details = lineItems[0].claim_details[0];
 
+    const charge_details = lineItems[0].charges.map((charge) => {
+        charge.allowed_amount = charge.allowed_fee;
+        charge.modifier1_id = charge.m1;
+        charge.modifier2_id = charge.m2;
+        charge.modifier3_id = charge.m3;
+        charge.modifier4_id = charge.m4;
+        charge.charge_dt = charge.study_dt;
+        charge.created_by = userId;
+        charge.pointer1 = getPointer(problems[0]);
+        charge.pointer2 = getPointer(problems[1]);
+        charge.pointer3 = getPointer(problems[2]);
+        charge.pointer4 = getPointer(problems[3]);
+        charge.is_excluded = CHARGE_IS_EXCLUDED;
+        charge.is_canada_billing = isCanadaBilling;
+        charge.is_custom_bill_fee = false;
+        return charge;
+    });
 
     const saveClaimParams = {
         removed_charges: [],
@@ -84,7 +101,7 @@ const getSaveClaimParams = async (params) => {
             payer_type: DEFAILT_PAYER_TYPE,
             patient_id,
             place_of_service_id: isCanadaBilling ? null : claim_details.fac_place_of_service_id,
-
+            claim_charges: charge_details,
             ...claim_details,
             accident_state: claim_details.accident_state || null,
             service_facility_id: parseInt(claim_details.service_facility_id) || null,
@@ -96,24 +113,6 @@ const getSaveClaimParams = async (params) => {
             insurance.is_update_patient_info = false;
             insurance.patient_id = patient_id;
             return insurance;
-        }),
-
-        charges: lineItems[0].charges.map((charge) => {
-            charge.allowed_amount = charge.allowed_fee;
-            charge.modifier1_id = charge.m1;
-            charge.modifier2_id = charge.m2;
-            charge.modifier3_id = charge.m3;
-            charge.modifier4_id = charge.m4;
-            charge.charge_dt = charge.study_dt;
-            charge.created_by = userId;
-            charge.pointer1 = getPointer(problems[0]);
-            charge.pointer2 = getPointer(problems[1]);
-            charge.pointer3 = getPointer(problems[2]);
-            charge.pointer4 = getPointer(problems[3]);
-            charge.is_excluded = CHARGE_IS_EXCLUDED;
-            charge.is_canada_billing = isCanadaBilling;
-            charge.is_custom_bill_fee = false;
-            return charge;
         }),
 
         claim_icds: problems.map((problem) => {
@@ -142,7 +141,8 @@ const getSaveClaimParams = async (params) => {
         saveClaimParams.claims.can_ahs_pay_to_code = 'BAPY';
         saveClaimParams.claims.can_ahs_business_arrangement = saveClaimParams.claims.can_ahs_business_arrangement_facility || null;
     }
-
+    
+    saveClaimParams.claims = [saveClaimParams.claims];
     return saveClaimParams;
 };
 
@@ -241,6 +241,8 @@ module.exports = {
                     , abssr.excludes                              AS exclude_study_status
                     , array_agg(facility_id)                      AS facility_ids
                     , abfr.excludes                               AS exclude_facilities
+                    , array_agg(abofr.ordering_facility_id)       AS ordering_facility_ids
+                    , abofr.excludes                              AS exclude_ordering_facilities
                     , array_agg(modality_id)                      AS modality_ids
                     , abmr.excludes                               AS exclude_modalities
                     , array_agg(cpt_code_id)                      AS cpt_code_ids
@@ -254,6 +256,7 @@ module.exports = {
                       billing.autobilling_rules abr
                       LEFT JOIN billing.autobilling_study_status_rules abssr                        ON abr.id = abssr.autobilling_rule_id
                       LEFT JOIN billing.autobilling_facility_rules abfr                             ON abr.id = abfr.autobilling_rule_id
+                      LEFT JOIN billing.autobilling_ordering_facility_rules abofr                  ON abr.id = abofr.autobilling_rule_id
                       LEFT JOIN billing.autobilling_modality_rules abmr                             ON abr.id = abmr.autobilling_rule_id
                       LEFT JOIN billing.autobilling_cpt_code_rules abcptr                           ON abr.id = abcptr.autobilling_rule_id
                       LEFT JOIN billing.autobilling_insurance_provider_payer_type_rules abipptr     ON abr.id = abipptr.autobilling_rule_id
@@ -264,6 +267,7 @@ module.exports = {
                       abr.id
                       , abssr.excludes
                       , abfr.excludes
+                      , abofr.excludes
                       , abmr.excludes
                       , abcptr.excludes
                       , abipptr.excludes
@@ -284,6 +288,14 @@ module.exports = {
                       FROM facilities INNER JOIN base ON facilities.id = ANY(base.facility_ids)
                  ) tmp) as facilities
                  , exclude_facilities
+                 , (SELECT array_to_json(array_agg(tmp)) FROM (
+                    SELECT
+                         id
+                         , name AS ordering_facility_name
+                         , code AS ordering_facility_code
+                    FROM ordering_facilities INNER JOIN base ON ordering_facilities.id = ANY(base.ordering_facility_ids)
+               ) tmp) AS ordering_facilities
+               , exclude_ordering_facilities
                  , (SELECT array_to_json(array_agg(tmp)) FROM (
                       SELECT id, display_description, display_code
                       FROM cpt_codes INNER JOIN base ON cpt_codes.id = ANY(base.cpt_code_ids)
@@ -323,6 +335,9 @@ module.exports = {
 
             facility_ids,
             exclude_facilities,
+
+            ordering_facility_ids,
+            exclude_ordering_facilities,
 
             modality_ids,
             exclude_modalities,
@@ -375,6 +390,18 @@ module.exports = {
                     (SELECT id FROM abrInsert)
                     , UNNEST(${facility_ids}::int[])
                     , ${exclude_facilities}
+                )
+            )
+            , orderingFacilitiesInsert AS (
+                INSERT INTO billing.autobilling_ordering_facility_rules (
+                    autobilling_rule_id
+                    , ordering_facility_id
+                    , excludes
+                )
+                VALUES(
+                    (SELECT id FROM abrInsert)
+                    , UNNEST(${ordering_facility_ids}::int[])
+                    , ${exclude_ordering_facilities}
                 )
             )
             , modalitiesInsert AS (
@@ -444,6 +471,8 @@ module.exports = {
             facility_ids,
             exclude_facilities,
 
+            ordering_facility_ids,
+            exclude_ordering_facilities,
 
             modality_ids,
             exclude_modalities,
@@ -552,6 +581,32 @@ module.exports = {
                         , ${exclude_insurance_providers}
                     )
                 )
+                , updateExcludesOrderingFacilities AS (
+                    UPDATE billing.autobilling_ordering_facility_rules SET excludes = ${exclude_ordering_facilities} 
+                    WHERE autobilling_rule_id = ${id}
+                 )
+                , deleteOrderingFacilityRules AS (
+                    DELETE FROM billing.autobilling_ordering_facility_rules
+                    WHERE autobilling_rule_id = ${id}
+                    AND ordering_facility_id != ALL(${ordering_facility_ids}::BIGINT[])
+                )
+                , insertOrderingFacilityRules AS (
+                    INSERT INTO billing.autobilling_ordering_facility_rules (
+                     autobilling_rule_id,
+                     excludes,
+                     ordering_facility_id
+                    )
+                    SELECT 
+                          ${id},
+                          ${exclude_ordering_facilities},
+                          ofs.of_id
+                    FROM UNNEST(${ordering_facility_ids}::BIGINT[]) ofs(of_id)
+                    WHERE NOT EXISTS (
+                        SELECT 1
+                        FROM billing.autobilling_ordering_facility_rules
+                        WHERE ordering_facility_id = ofs.of_id
+                        AND autobilling_rule_id = ${id})
+                    )
             UPDATE billing.autobilling_rules
             SET
                 description = ${description}
@@ -597,6 +652,8 @@ module.exports = {
                     , abssr.excludes                                AS exclude_study_status
                     , array_agg(facility_id)                        AS facility_ids
                     , abfr.excludes                                 AS exclude_facilities
+                    , array_agg(abofr.ordering_facility_id)         AS ordering_facility_ids
+                    , abofr.excludes                                AS exclude_ordering_facilities
                     , array_agg(modality_id)                        AS modality_ids
                     , abmr.excludes                                 AS exclude_modalities
                     , array_agg(cpt_code_id)                        AS cpt_code_ids
@@ -610,6 +667,7 @@ module.exports = {
                     billing.autobilling_rules abr
                     LEFT JOIN billing.autobilling_study_status_rules abssr                      ON abr.id = abssr.autobilling_rule_id
                     LEFT JOIN billing.autobilling_facility_rules abfr                           ON abr.id = abfr.autobilling_rule_id
+                    LEFT JOIN billing.autobilling_ordering_facility_rules abofr                 ON abr.id = abofr.autobilling_rule_id
                     LEFT JOIN billing.autobilling_modality_rules abmr                           ON abr.id = abmr.autobilling_rule_id
                     LEFT JOIN billing.autobilling_cpt_code_rules abcptr                         ON abr.id = abcptr.autobilling_rule_id
                     LEFT JOIN billing.autobilling_insurance_provider_payer_type_rules abipptr   ON abr.id = abipptr.autobilling_rule_id
@@ -622,6 +680,7 @@ module.exports = {
                     abr.id
                     , abssr.excludes
                     , abfr.excludes
+                    , abofr.excludes
                     , abmr.excludes
                     , abcptr.excludes
                     , abipptr.excludes
@@ -635,11 +694,13 @@ module.exports = {
                     , array_agg(study_cpt.cpt_code_id)              AS cpt_code_ids
                     , insurance_providers.provider_payer_type_id    AS insurance_provider_payer_type_id
                     , insurance_providers.id                        AS insurance_provider_id
+                    , pofc.ordering_facility_id
                 FROM
                     studies
                     LEFT JOIN study_cpt             ON study_cpt.study_id = studies.id
                     LEFT JOIN patient_insurances    ON patient_insurances.patient_id = studies.patient_id
                     LEFT JOIN insurance_providers   ON insurance_providers.id = patient_insurances.insurance_provider_id
+                    LEFT JOIN ordering_facility_contacts pofc ON pofc.id = studies.ordering_facility_contact_id
 
                 WHERE
                     studies.id = ${studyId}
@@ -661,6 +722,7 @@ module.exports = {
                     , insurance_providers.provider_payer_type_id
                     , insurance_providers.id
                     , studies.study_dt
+                    , pofc.ordering_facility_id
             )
             SELECT
             *
@@ -668,6 +730,8 @@ module.exports = {
             cteAutoBillingRules
             INNER JOIN context ON
                 (exclude_facilities IS null OR NOT exclude_facilities = (context.facility_id = ANY(facility_ids)))
+                AND
+                (exclude_ordering_facilities IS NULL OR NOT exclude_ordering_facilities = (context.ordering_facility_id = ANY(cteAutoBillingRules.ordering_facility_ids)))
                 AND
                 (exclude_modalities IS null OR NOT exclude_modalities = (context.modality_id = ANY(modality_ids)))
                 AND

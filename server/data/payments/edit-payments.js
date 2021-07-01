@@ -53,7 +53,7 @@ module.exports = {
         }
 
         if (ordering_facility_name) {
-            whereQuery.push(`pg.group_name ILIKE '%${ordering_facility_name}%' `);
+            whereQuery.push(`of.name ILIKE '%${ordering_facility_name}%' `);
         }
 
         if ((params.customArgs && params.customArgs.patientId && params.customArgs.patientId > 0) || params.customArgs && (params.customArgs.claimIdToSearch || params.customArgs.invoiceNoToSearch)) {
@@ -185,7 +185,7 @@ module.exports = {
         AND (claim_totals.charges_bill_fee_total - (claim_totals.payments_applied_total + claim_totals.adjustments_applied_total + refund_amount)) > 0::money  `;
 
         paymentWhereQuery = params.customArgs.payerType == 'patient' ? paymentWhereQuery + ` AND bc.patient_id = ${params.customArgs.payerId} ` : paymentWhereQuery;
-        paymentWhereQuery = params.customArgs.payerType == 'ordering_facility' ? paymentWhereQuery + ` AND bc.ordering_facility_id = ${params.customArgs.payerId}  AND bc.payer_type = 'ordering_facility'` : paymentWhereQuery;
+        paymentWhereQuery = params.customArgs.payerType == 'ordering_facility' ? paymentWhereQuery + ` AND of.id = ${params.customArgs.payerId}  AND bc.payer_type = 'ordering_facility'` : paymentWhereQuery;
         paymentWhereQuery = params.customArgs.payerType == 'ordering_provider' ? paymentWhereQuery + ` AND bc.referring_provider_contact_id = ${params.customArgs.payerId}  AND bc.payer_type = 'referring_provider'` : paymentWhereQuery;
 
 
@@ -211,7 +211,8 @@ module.exports = {
                             FROM billing.claims bc
                             INNER JOIN billing.get_claim_totals(bc.id) AS claim_totals ON true
                             INNER JOIN public.patients pp on pp.id = bc.patient_id
-                            INNER JOIN public.provider_groups pg on pg.id = bc.ordering_facility_id`;
+                            LEFT JOIN ordering_facility_contacts ofc on ofc.id = bc.ordering_facility_contact_id
+                            LEFT JOIN public.ordering_facilities of on of.id = ofc.ordering_facility_id`;
 
             sql.append(joinQuery)
                 .append(paymentWhereQuery);
@@ -238,12 +239,13 @@ module.exports = {
                     claim_totals.claim_cpt_description AS display_description,
                     claim_totals.charges_bill_fee_total as billing_fee,
                     claim_totals.charges_bill_fee_total - (claim_totals.payments_applied_total + claim_totals.adjustments_applied_total + refund_amount) AS balance,
-                    pg.group_name AS ordering_facility_name
+                    of.name AS ordering_facility_name
 
                 FROM billing.claims bc
                 INNER JOIN billing.get_claim_totals(bc.id) AS claim_totals ON true
                 INNER JOIN public.patients pp on pp.id = bc.patient_id
-                INNER JOIN public.provider_groups pg on pg.id = bc.ordering_facility_id`;
+                LEFT JOIN ordering_facility_contacts ofc on ofc.id = bc.ordering_facility_contact_id
+                LEFT JOIN public.ordering_facilities of on of.id = ofc.ordering_facility_id`;
 
         sql.append(joinQuery);
         sql.append(paymentWhereQuery);
@@ -456,7 +458,7 @@ module.exports = {
                             bc.secondary_patient_insurance_id AS secondary,
                             bc.tertiary_patient_insurance_id AS tertiary,
 
-                            bc.ordering_facility_id AS order_facility_id,
+                            of.id AS order_facility_id,
                             bc.referring_provider_contact_id,
                             payer_type ,
                             patients.full_name AS patient_name,
@@ -471,7 +473,7 @@ module.exports = {
                             tips.insurance_name AS tertiary_ins_provider_name,
                             tips.insurance_code AS tertiary_ins_provider_code,
 
-                            provider_groups.group_name AS ordering_facility_name,
+                            of.name AS ordering_facility_name,
                             providers.full_name AS provider_name,
                             bc.claim_status_id
                     FROM billing.claims bc
@@ -486,7 +488,8 @@ module.exports = {
                         LEFT JOIN public.insurance_providers sips ON sips.id = sip.insurance_provider_id
                         LEFT JOIN public.insurance_providers tips ON tips.id = tip.insurance_provider_id
 
-                        LEFT JOIN provider_groups ON provider_groups.id = bc.ordering_facility_id
+                        LEFT JOIN ordering_facility_contacts ofc on ofc.id = bc.ordering_facility_contact_id
+                        LEFT JOIN public.ordering_facilities of on of.id = ofc.ordering_facility_id
                         LEFT JOIN public.providers ON providers.id = bc.referring_provider_contact_id
                     WHERE bc.id =  ${params.claimId}
                         )

@@ -138,6 +138,56 @@
             </div>
             <!-- END Facilities SECTION -->
 
+            <!-- BEGIN Ordering Facilities SECTION -->
+            <div class="row" class="margin-top-10" id="divAutoBillingOrderingFacilities">
+
+                <div class="col-lg-12">
+                    <div class="row">
+                        <legend class="width-98">
+                            <h5 class="facilities-label">
+                                <label i18n="setup.autoBilling.orderingFacilities"></label>
+                            </h5>
+                        </legend>
+                    </div>
+
+                    <!-- BEGIN Ordering Facilities FIELDS -->
+                    <div class="form-group row">
+                        <div class="col-lg-2">
+
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="chkAutoBillingOrderingFacility" value="is">
+                                <label i18n="setup.common.is"></label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="chkAutoBillingOrderingFacility" value="isNOT">
+                                <label i18n="setup.common.isNot"></label>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <div class="form-group row">
+                                <div class="col-sm-10">
+                                    <select id="ddlAutoBillingOrderingFacility" class="form-control select-box"></select>
+                                </div>
+                                <button type="button" id="btnAddAutoBillingOrderingFacility" class="btn btn-primary col-sm-2" name="button">
+                                    <i class="icon-ic-plus"></i>
+                                </button>
+                            </div>
+
+                        </div>
+                        <div class="col-lg-5">
+                            <select id="listAutoBillingOrderingFacilities" multiple="multiple" size="5" class="h-80"></select>
+                        </div>
+                        <div class="col-lg-1">
+                            <button type="button" id="btnRemoveAutoBillingOrderingFacility" class="btn btn-primary"><i class="icon-ic-delete"></i></button>
+                        </div>
+                    </div>
+                    <!-- END Ordering Facilities FIELDS -->
+
+                </div>
+            </div>
+            <!-- END Ordering Facilities SECTION -->
+
             <!-- BEGIN Modalities SECTION -->
             <div class="row" style="margin-top:10px;" id="divAutoBillingModalities">
 

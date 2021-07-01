@@ -7,7 +7,8 @@ define([
     'routes/app/claims',
     'routes/app/payments',
     'routes/app/era',
-    'routes/app/claim-inquiry'
+    'routes/app/claim-inquiry',
+    'routes/app/census',
 ], function (
     Backbone,
     BackboneSubroute,
@@ -17,10 +18,12 @@ define([
     ClaimWorkBenchRoute,
     PaymentsRoute,
     EraRoute,
-    ClaimInquiryRoute
+    ClaimInquiryRoute,
+    CensusRoute
 ) {
         return Backbone.SubRoute.extend({
             routes: {
+                "census/*subroute": "startCensus",
                 "studies/*subroute": "startStudies",
                 "claim_workbench/*subroute": "startClaimWorkbench",
                 "payments/*subroute": "startPayments",
@@ -39,6 +42,15 @@ define([
                 var self = this;
                 $("#data_container").html(self.accessDeniedTemplate);
                 $("#divPageHeaderButtons").html("");
+            },
+
+            startCensus: function () {
+                if (this.checkLicense('Census') && !this.censusRouter && (app.screens.indexOf('CENS') > -1 || app.userInfo.user_type ==='SU')) {
+                    this.defaultArgs.routePrefix = 'billing/census/';
+                    this.censusRouter = new CensusRoute(this.defaultArgs.routePrefix, this.defaultArgs);
+                } else {
+                    this.accessDenied();
+                }
             },
 
             startStudies: function (subroute) {

@@ -26,7 +26,8 @@ define([
                 reportFormat: null,
                 reportDate: null,
                 billingProvider: null,
-                allBillingProvider: false
+                allBillingProvider: false,
+                groupByFilter: null
             },
             selectedFacilityListDetail: [],
             defaultyFacilityId: null,
@@ -59,8 +60,7 @@ define([
             render: function () {
                 var modelCollection = Backbone.Collection.extend({
                     model: Backbone.Model.extend({})
-                });
-                this.viewModel.facilities = new modelCollection(commonjs.getCurrentUsersFacilitiesFromAppSettings());
+                });               
                 this.$el.html(this.mainTemplate(this.viewModel));
                 // bind DRP and initialize it
                 this.bindDateRangePicker();
@@ -68,13 +68,7 @@ define([
                 this.drpStudyDt.setEndDate(this.viewModel.dateTo);
 
                 UI.bindBillingProvider();
-                $('#ddlFacilityFilter').multiselect({
-                    maxHeight: 200,
-                    buttonWidth: '200px',
-                    enableFiltering: true,
-                    includeSelectAllOption: true,
-                    enableCaseInsensitiveFiltering: true
-                });
+                UI.bindServiceFacilities();
             },
 
             bindDateRangePicker: function () {
@@ -96,6 +90,7 @@ define([
                 var btnClicked = e && e.target ? $(e.target) : null;
                 this.getSelectedFacility();
                 this.getBillingProvider();
+                this.getGroupbyFacility();
                 if (btnClicked && btnClicked.prop('tagName') === 'I') {
                     btnClicked = btnClicked.parent(); // in case FA icon 'inside'' button was clicked...
                 }
@@ -125,13 +120,13 @@ define([
 
             // multi select facilities - worked
             getSelectedFacility: function (e) {
-                var selected = $("#ddlFacilityFilter option:selected");
+                var selected = $("#ddlOrderingFacilityFilter option:selected");
                 var facilities = [];
                 selected.each(function () {
                     facilities.push($(this).val());
                 });
                 this.selectedFacilityList = facilities
-                this.viewModel.allFacilities = this.selectedFacilityList && this.selectedFacilityList.length === $("#ddlFacilityFilter option").length;
+                this.viewModel.allFacilities = this.selectedFacilityList && this.selectedFacilityList.length === $("#ddlOrderingFacilityFilter option").length;
             },
 
             // multi select billing provider - worked
@@ -145,6 +140,11 @@ define([
                 this.viewModel.allBillingProvider = this.selectedBillingProList && this.selectedBillingProList.length === $("#ddlBillingProvider option").length;
             },
 
+            getGroupbyFacility: function (e) {
+                var selected = $('#ddlGroupingName option:selected').val();
+                this.groupingNameValue = selected;
+            },
+
             getReportParams: function () {
                 return urlParams = {
                     'facilityIds': this.selectedFacilityList ? this.selectedFacilityList : [],
@@ -154,6 +154,7 @@ define([
                     'billingProvider': this.selectedBillingProList ? this.selectedBillingProList : [],
                     'allBillingProvider': this.viewModel.allBillingProvider ? this.viewModel.allBillingProvider : '',
                     'billingProFlag': this.viewModel.allBillingProvider == 'true' ? true : false,
+                    'groupByField': this.groupingNameValue || 'InsuranceClass'
                 };
             }
         });
