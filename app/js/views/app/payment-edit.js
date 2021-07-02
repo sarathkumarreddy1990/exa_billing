@@ -2551,11 +2551,11 @@ define(['jquery',
                             adjustmentId: adjustmentType,
                             paymentStatus: paymentStatus,
                             casDeleted: JSON.stringify(self.casDeleted),
-                            claimStatusID: claimStatusIndex > -1 && !isClaimStatusChanged && paymentPayerType === 'patient' ? self.received_claim_status_id : claimStatusID,
+                            claimStatusID: self.currentResponsible === 'primary_insurance' && claimStatusIndex > -1 && !isClaimStatusChanged && paymentPayerType === 'patient' ? self.received_claim_status_id : claimStatusID,
                             is_payerChanged: isPayerChanged,
                             is_claimDenied: isClaimDenied,
                             isFromClaim: self.isFromClaim,
-                            changeResponsibleParty : paymentPayerType === 'patient' && claimStatusIndex > -1 && isPayerChanged === 'false' && !isClaimStatusChanged
+                            changeResponsibleParty : self.currentResponsible === 'primary_insurance' && paymentPayerType === 'patient' && claimStatusIndex > -1 && isPayerChanged === 'false' && !isClaimStatusChanged
                         },
                         success: function (model, response) {
                             var msg = self.isFromClaim ? commonjs.geti18NString('messages.status.tosSuccessfullyCompleted') :
