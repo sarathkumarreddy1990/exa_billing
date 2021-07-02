@@ -119,6 +119,7 @@ module.exports = function (options) {
 
             result.push({
                 batchSequenceNumber: context.batchSequenceNumber,
+                providerNumber: context.providerNumber,
                 claimIds: batch.map((claim) => {
                     return claim.claim_id;
                 }),
@@ -140,19 +141,17 @@ module.exports = function (options) {
         encode: (claimData, context) => {
 
             // build and return a map of files keyed by group
-            return reduce(groupBy(claimData, 'providerNumber'), (providerResult, providerClaims, providerNumber) => {
+            return reduce(groupBy(claimData, 'groupNumber'), (groupResult, groupClaims, groupNumber) => {
 
-                // context.groupNumber = groupNumber;
-                providerResult[providerNumber] = []; // create an array for this group
+                context.groupNumber = groupNumber;
+                groupResult[groupNumber] = []; // create an array for this group
 
                 // get all the files for this billing number (group + provider number)
                 // const groupProviderFiles = reduce(groupBy(groupClaims, 'providerNumber'), (providerResult, providerClaims, providerNumber) => {
 
-                    context.providerNumber = providerNumber;
-
                     // TODO use less files when possible (if claimsPerFile > providerClaims.length ...)
 
-                    const claimsBySpecialtyCode = groupBy(providerClaims, 'specialtyCode');
+                    const claimsBySpecialtyCode = groupBy(groupClaims, 'specialtyCode');
 
                     // get all the files for this license# (provider number + specialty code)
                     const providerSpecialtyFiles = reduce(claimsBySpecialtyCode, (specialtyResult, specialtyClaims, specialtyCode) => {
@@ -173,6 +172,7 @@ module.exports = function (options) {
 
                         // reset batchSequenceNumber
                         context.batchSequenceNumber = batchSequenceNumberStart;
+                        context.providerNumber = specialtyClaims[0].providerNumber;
 
                         // add the encoded Claims Files for this specialty to the the array of Claims Files for the current Provider
                         return specialtyResult.concat(fileChunks.map((fileChunk) => {
@@ -186,8 +186,8 @@ module.exports = function (options) {
                 // }, []);
 
                 // add the provider files to the group files
-                providerResult[providerNumber] = providerResult[providerNumber].concat(providerSpecialtyFiles);
-                return providerResult;
+                groupResult[groupNumber] = groupResult[groupNumber].concat(providerSpecialtyFiles);
+                return groupResult;
             }, {});
         },
     };

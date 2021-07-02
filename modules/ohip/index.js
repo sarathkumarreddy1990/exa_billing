@@ -72,10 +72,10 @@ global.nextResourceID = 60000;
 const getClaimSubmissionFilename = (args) => {
 
     const {
-        providerNumber,
+        groupNumber,
     } = args;
 
-    return `H${getMonthCode(new Date())}${providerNumber}`;
+    return `H${getMonthCode(new Date())}${groupNumber}`;
 };
 
 
@@ -475,14 +475,14 @@ module.exports = {
         //
         // in: {'AZ12':[submission...], 'BY23':[submission...], ...}
         // out: [{data:String, filename:String,batches:[batchSequenceNumber,claimIds:[Number]]}]
-        const allFiles = reduce(submissionsByGroup, (result, groupSubmissions, providerNumber) => {
+        const allFiles = reduce(submissionsByGroup, (result, groupSubmissions, groupNumber) => {
 
             // in: [{batches:[], data:String}]
             // out: [{batches:[], data:String, filename:String}]
             const groupFiles = groupSubmissions.map((file, fileSequenceOffset) => {
                 return {
-                    filename: getClaimSubmissionFilename({ providerNumber }),
-                    providerNumber: providerNumber,
+                    filename: getClaimSubmissionFilename({ groupNumber }),
+                    providerNumber: file.batches[0].providerNumber,
                     fileSequenceOffset,
                     ...file,
                 };

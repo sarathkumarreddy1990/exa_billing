@@ -846,7 +846,7 @@ const OHIPDataAPI = {
                 bc.id AS "accountingNumber",
                 bc.can_ohip_manual_review_indicator AS "manualReviewIndicator",
                 claim_notes AS "claimNotes",
-                npi_no AS "groupNumber",    -- this sucks
+                pf.facility_info->'npino' AS "groupNumber",    -- this sucks
                 rend_pr.provider_info -> 'NPI' AS "providerNumber",
                 (
                     SELECT json_agg(item)
