@@ -135,6 +135,41 @@ const pgData = {
         return await pgData.query(sql);
     },
 
+    queryCteWithAudit: async function (query, args) {
+        let {
+            userId,
+            entityName,
+            screenName,
+            moduleName,
+            logDescription,
+            clientIp,
+            companyId
+        } = args;
+
+        let sql = SQL``;
+        sql.append(query)
+        .append(SQL
+            `
+            SELECT billing.create_audit(
+                ${companyId},
+                ${entityName || screenName},
+                cte.id,
+                ${screenName},
+                ${moduleName},
+                ${logDescription},
+                ${clientIp || '127.0.0.1'},
+                json_build_object(
+                    'old_values', (SELECT COALESCE(old_values, '{}') FROM cte),
+                    'new_values', (SELECT row_to_json(temp_row)::jsonb - 'old_values'::text FROM (SELECT * FROM cte) temp_row)
+                )::jsonb,
+                ${userId || 0}
+            ) AS id
+            FROM cte
+            `);
+
+        return await pgData.query(sql);
+    },
+
     createAudit: async function (args) {
         let {
             userId,

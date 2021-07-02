@@ -431,7 +431,11 @@ define(['jquery',
                 this.model.save({
                 }, {
                     success: function (model, response) {
-                        if(response) {
+                        if (response.length === 0) {
+                            return commonjs.showWarning('setup.supportingText.templateExists');
+                        }
+
+                        if (response) {
                             commonjs.showStatus('messages.status.savedSuccessfully');
                             location.href = "#setup/supporting_text/list";
                         }
