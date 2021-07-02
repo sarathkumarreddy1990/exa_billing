@@ -885,11 +885,6 @@ define(['jquery',
                     this.showPendingPaymentsGrid(this.payment_id, response.payer_type, response.patient_id, response.patient_id);
                 }
 
-                // Alberta Fields
-                $('#lblClaimNumber').text(response.can_ahs_claim_number);
-                $('#lblChartNumber').text(response.claim_id);
-                $('#lblFinancialRequestNumber').text(response.can_ahs_financial_request_number);
-
                 if (response.payer_type === "patient") {
                     self.payer_id = response.patient_id;
                 } else {

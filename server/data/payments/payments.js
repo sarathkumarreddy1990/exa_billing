@@ -315,26 +315,22 @@ module.exports = {
                 , payments.alternate_payment_id
                 , payments.payer_type
                 , payments.notes
-                , payments.can_ahs_claim_number
-                , payments.can_ahs_financial_request_number
                 , payments.mode AS payment_mode
                 , payments.card_name
                 , payments.card_number
                 , get_full_name(users.last_name, users.first_name) as user_full_name
                 , facilities.facility_name
                 , payments.amount
-                , (select payment_balance_total from billing.get_payment_totals(payments.id)) AS available_balance
-                , (select payments_applied_total from billing.get_payment_totals(payments.id)) AS applied
-                , (select adjustments_applied_total from billing.get_payment_totals(payments.id)) AS adjustment_amount
-                , (select payment_status from billing.get_payment_totals(payments.id)) AS current_status
+                , bgpt.payment_balance_total AS available_balance
+                , bgpt.payments_applied_total AS applied
+                , bgpt.adjustments_applied_total AS adjustment_amount
+                , bgpt.payment_status AS current_status
                 , billing.payments.XMIN as payment_row_version
                 , era_payment.edi_file_id
                 , era_pdf.id AS eob_file_id
-                , charges.claim_id AS claim_id
-            FROM
-                billing.payments
-            INNER JOIN
-                public.users ON users.id = payments.created_by
+            FROM billing.payments
+            INNER JOIN billing.get_payment_totals(payments.id) AS bgpt ON TRUE
+            INNER JOIN public.users ON users.id = payments.created_by
             LEFT JOIN
                 public.patients ON patients.id = payments.patient_id
             LEFT JOIN
@@ -347,10 +343,6 @@ module.exports = {
                 public.provider_contacts ON provider_contacts.id = payments.provider_contact_id
             LEFT JOIN
                 public.providers ref_provider ON provider_contacts.provider_id = ref_provider.id
-            LEFT JOIN
-                billing.payment_applications ON payments.id = payment_applications.payment_id
-            LEFT JOIN
-                billing.charges ON payment_applications.charge_id = charges.id
             LEFT JOIN LATERAL(
                 SELECT
                     edi_file_id
