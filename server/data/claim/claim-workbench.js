@@ -414,6 +414,7 @@ module.exports = {
                             , c.tertiary_patient_insurance_id
                             , c.ordering_facility_contact_id
                             , pof.name AS ordering_facility_name
+                            , pofc.location
                             , ipp.insurance_name AS p_insurance_name
                             , ips.insurance_name AS s_insurance_name
                             , ipt.insurance_name AS t_insurance_name
@@ -598,7 +599,8 @@ module.exports = {
         let {
             studyDetails,
             auditDetails,
-            is_alberta_billing
+            is_alberta_billing,
+            isMobileBillingEnabled
         } = params;
         let createClaimFunction = is_alberta_billing ? 'billing.can_ahs_create_claim_per_charge' : 'billing.create_claim_charge';
 
@@ -618,7 +620,10 @@ module.exports = {
                         SELECT bcd.study_id, d.*
                         FROM
                            batch_claim_details bcd
-                        LEFT JOIN LATERAL (select * from billing.get_batch_claim_details(bcd.study_id, ${params.created_by}, bcd.patient_id, bcd.order_id, bcd.billing_type)) d ON true
+                        LEFT JOIN LATERAL (
+                            SELECT *
+                            FROM billing.get_batch_claim_details(bcd.study_id, ${params.created_by}, bcd.patient_id, bcd.order_id, bcd.billing_type, ${isMobileBillingEnabled})
+                        ) d ON true
                       )
                       SELECT `
             .append(createClaimFunction)
@@ -745,13 +750,29 @@ module.exports = {
                             (
                                 study_id bigint
                             )
-                    )
-                    SELECT
-                        COUNT(DISTINCT s.id)
-                    FROM public.studies s
-                    INNER JOIN public.study_cpt cpt ON cpt.study_id = s.id
-                    INNER JOIN public.cpt_codes codes ON codes.id = cpt.cpt_code_id
-                    WHERE s.id = ANY(SELECT * FROM batch_claim_details)`;
+                    ), invalid_charges_details AS (
+                        SELECT
+                            COUNT(DISTINCT s.id) AS charges_count
+                        FROM public.studies s
+                        INNER JOIN public.study_cpt cpt ON cpt.study_id = s.id
+                        INNER JOIN public.cpt_codes codes ON codes.id = cpt.cpt_code_id
+                        WHERE s.id = ANY(SELECT study_id FROM batch_claim_details)
+                    ), invalid_split_claim_details AS(
+                        SELECT
+                            COUNT(1) AS invalid_split_claim_count
+                        FROM public.studies s
+                        INNER JOIN orders ON orders.id = s.order_id
+                        INNER JOIN public.patient_insurances ppi ON ppi.id = orders.primary_patient_insurance_id
+                        INNER JOIN public.insurance_providers ip ON ip.id= ppi.insurance_provider_id
+                        INNER JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id
+                        WHERE s.id = ANY(SELECT study_id FROM batch_claim_details)
+                        AND s.ordering_facility_contact_id IS NULL
+                        AND (ppi.valid_to_date >= COALESCE(s.study_dt, now())::DATE OR ppi.valid_to_date IS NULL)
+                        AND ipd.is_split_claim_enabled IS TRUE
+                    ) SELECT
+                        (SELECT invalid_split_claim_count FROM invalid_split_claim_details)
+                        , (SELECT charges_count FROM invalid_charges_details)
+                    `;
         return await query(sql.text, sql.values);
     },
 

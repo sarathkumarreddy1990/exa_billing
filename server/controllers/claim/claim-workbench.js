@@ -535,6 +535,49 @@ module.exports = {
         return await data.updateFollowUp(params);
     },
 
+    validateBatchClaims: (studyDetails) => {
+        return new Promise(async (resolve, reject) => {
+            let validCharges = await data.validateBatchClaimCharge(JSON.stringify(studyDetails));
+            let errorData;
+
+            if (studyDetails.length !== parseInt(validCharges.rows[0].charges_count)) {
+                errorData = {
+                    code: '55802'
+                    , message: 'No charge in claim'
+                    , name: 'error'
+                    , Error: 'No charge in claim'
+                    , severity: 'Error'
+                };
+
+                resolve({
+                    err: errorData,
+                    result: false
+                });
+            }
+
+            if (parseInt(validCharges.rows[0].invalid_split_claim_count)) {
+                errorData = {
+                    code: '23156'
+                    , message: 'No ordering facility in claim'
+                    , name: 'error'
+                    , Error: 'No ordering facility in claim'
+                    , severity: 'Error'
+                };
+
+                resolve({
+                    err: errorData,
+                    result: false
+                });
+            }
+
+            resolve({
+                err: null,
+                result: true
+            });
+        });
+
+    },
+
     createBatchClaims: async function (params) {
         let auditDetails = {
             company_id: params.company_id,
@@ -571,21 +614,19 @@ module.exports = {
                 });
             }
 
-            let validCharges = await data.validateBatchClaimCharge(JSON.stringify(studyDetails));
+            let result = await this.validateBatchClaims(studyDetails);
 
-            if(studyDetails.length !== parseInt(validCharges.rows[0].count)) {
-                let responseData = {
-                    code:'55802'
-                    , message: 'No charge in claim'
-                    , name: 'error'
-                    , Error: 'No charge in claim'
-                    , severity: 'Error'
-                };
-
-                return await responseData;
+            if (result.err) {
+                return result.err;
             }
 
             params.studyDetails = JSON.stringify(studyDetails);
+        } else if (params.isMobileBillingEnabled === 'true') {
+            let result = await this.validateBatchClaims(JSON.parse(params.studyDetails));
+
+            if (result.err) {
+                return result.err;
+            }
         }
 
         return await data.createBatchClaims(params);
