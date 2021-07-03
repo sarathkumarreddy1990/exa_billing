@@ -26,27 +26,27 @@ const mhsData = {
                                     , 'modifers', modifiers
                                     , 'pointer1', bc.pointer1
                                 )) AS health_services
-                            FROM billing.claims c 
-                            INNER JOIN billing.charges bc ON bc.claim_id = c.id 
+                            FROM billing.claims c
+                            INNER JOIN billing.charges bc ON bc.claim_id = c.id
                             INNER JOIN public.cpt_codes cc ON cc.id = bc.cpt_id
                             LEFT JOIN LATERAL  (
                                 SELECT ARRAY(SELECT code FROM modifiers WHERE id IN (bc.modifier1_id, bc.modifier2_id, bc.modifier3_id, bc.modifier4_id)) AS modifier_ids
                             ) modifiers  ON TRUE
-                            WHERE cc.display_code != 'I001' AND NOT is_excluded AND bc.claim_id = ANY(${claimIds}) 
-                            GROUP BY c.id	
+                            WHERE cc.display_code != 'I001' AND NOT is_excluded AND bc.claim_id = ANY(${claimIds})
+                            GROUP BY c.id
                         ),
                         claim_icds AS (
-                            SELECT 
+                            SELECT
                                 c.id
                                 , array_agg(icd.code) AS icds
                             FROM
-                                billing.claims c 
+                                billing.claims c
                             INNER JOIN billing.claim_icds ci  ON ci.claim_id =  c.id
                             INNER JOIN public.icd_codes icd ON icd.id = ci.icd_id
-                            WHERE c.id = ANY(${claimIds}) 
+                            WHERE c.id = ANY(${claimIds})
                             GROUP BY c.id
                         )
-                        SELECT 
+                        SELECT
                             c.id                                                                        AS claim_number
                             , f.can_facility_number                                                     AS facility_number
                             , c.claim_notes                                                             AS remarks
@@ -69,7 +69,7 @@ const mhsData = {
                             , JSON_BUILD_OBJECT(
                                 'phn_details', phn.*
                                 , 'last_name', p.last_name
-                                , 'registration_number_details', res.* 
+                                , 'registration_number_details', res.*
                                 , 'patient_id', p.id
                                 , 'sur_name', prefix_name
                                 , 'first_name', p.first_name
@@ -104,12 +104,12 @@ const mhsData = {
                                 , 'state', refp.contact_info->'STATE'
                                 , 'city' , refp.contact_info->'CITY'
                             ) AS referring_provider
-                            , CASE 
-                                WHEN phn->>'province_alpha_2_code' = 'MB' 
+                            , CASE
+                                WHEN phn->>'province_alpha_2_code' = 'MB'
                                 THEN  res->>'prid'
                                 ELSE '0000'
                               END  AS register_number
-                            , CASE 
+                            , CASE
                                 WHEN refp.can_prid IS NOT NULL AND refp.contact_info->'STATE' != 'MB'
                                 THEN JSON_BUILD_OBJECT(
                                         'prid', '04000',
@@ -120,13 +120,13 @@ const mhsData = {
                                         'prid', '04500',
                                         'remarks', refp_pro.full_name
                                     )
-                                ELSE 
+                                ELSE
                                 JSON_BUILD_OBJECT(
                                     'remarks', refp_pro.full_name
                                 )
                               END AS referring_provider_remarks
-                        FROM 
-                        billing.claims c	
+                        FROM
+                        billing.claims c
                         INNER JOIN public.facilities f ON f.id = c.facility_id
                         LEFT JOIN public.provider_contacts prac ON prac.id = f.can_mb_medical_director_provider_id
                         LEFT JOIN public.providers prac_pro ON prac_pro.id = prac.provider_id
@@ -135,12 +135,13 @@ const mhsData = {
                         LEFT JOIN public.provider_contacts refp ON refp.id = c.referring_provider_contact_id
                         LEFT JOIN public.providers refp_pro ON refp_pro.id = refp.provider_id
                         INNER JOIN public.patients p  ON  p.id = c.patient_id
-                        LEFT JOIN public.get_issuer_details(p.id, 'registration_number') res ON TRUE 
+                        LEFT JOIN public.get_issuer_details(p.id, 'registration_number') res ON TRUE
                         LEFT JOIN public.get_issuer_details(p.id, 'uli_phn') phn ON true
                         LEFT JOIN claim_icds ci on ci.id = c.id
                         LEFT JOIN charges ch ON ch.id = c.id
-                        LEFT JOIN public.provider_groups pg ON pg.id = c.ordering_facility_id
-                        LEFT JOIN public.places_of_service pos ON pos.id = COALESCE(f.place_of_service_id, pg.place_of_service_id)
+                        LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = c.ordering_facility_contact_id
+                        LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
+                        LEFT JOIN public.places_of_service pos ON pos.id = COALESCE(f.place_of_service_id, pof.place_of_service_id)
                         WHERE c.id = ANY(${claimIds});`;
 
         return await queryRows(sql);
@@ -159,7 +160,7 @@ const mhsData = {
                                 , c.can_submitter_prefix
                                 , company_name
                             FROM file_stores fs
-                            INNER JOIN companies c ON c.file_store_id = fs.id 
+                            INNER JOIN companies c ON c.file_store_id = fs.id
                             WHERE c.id = ${company_id}`;
 
         return await queryRows(fileSql);
@@ -245,7 +246,7 @@ const mhsData = {
                 SELECT
                     ${ediFileId},
                     UNNEST(${claimIds}::INT[])`;
-                        
+
         return await query(sql.text, sql.values);
     },
 
@@ -289,7 +290,7 @@ const mhsData = {
 
     /**
      *  Get Files list from edi_files table based on status
-     * @param {args} JSON 
+     * @param {args} JSON
      */
     getERAFilePathById: async function (params) {
         let {
@@ -312,7 +313,7 @@ const mhsData = {
     },
 
     /**
-     * Update File status 
+     * Update File status
      * @param  {object} args    {
      *                             FileId: Number
      *                          }
@@ -323,8 +324,8 @@ const mhsData = {
             status
         } = args;
 
-        const sql = SQL`UPDATE 
-                            billing.edi_files 
+        const sql = SQL`UPDATE
+                            billing.edi_files
                         SET status = ${status}
                         WHERE id = ${fileId}`;
 
@@ -400,7 +401,7 @@ const mhsData = {
                         ORDER BY pa.applied_dt DESC
                     )
                     , unapplied_charges AS (
-                        SELECT 
+                        SELECT
                               cp.payment_id
                             , json_build_object(
                                   'charge_id', ch.id
@@ -412,8 +413,8 @@ const mhsData = {
                         FROM billing.charges ch
                         INNER JOIN billing.claims AS c ON ch.claim_id = c.id
                         INNER JOIN claim_payment AS cp ON cp.claim_id = c.id
-                        WHERE ch.id NOT IN ( SELECT charge_id 
-                                             FROM  billing.payment_applications pa 
+                        WHERE ch.id NOT IN ( SELECT charge_id
+                                             FROM  billing.payment_applications pa
                                              WHERE pa.charge_id = ch.id
                                              AND pa.payment_id = cp.payment_id
                                              AND pa.applied_dt = cp.applied_dt

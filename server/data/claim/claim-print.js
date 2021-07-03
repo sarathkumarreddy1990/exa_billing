@@ -32,8 +32,8 @@ module.exports = {
                     'patient_address2', pp.patient_info->'c1AddressLine2',
                     'patient_city',  pp.patient_info->'c1City',
                     'patient_state' ,pp.patient_info->'c1State',
-                    'patient_zip', pp.patient_info->'c1Zip', 
-                    'patient_phone', pp.patient_info->'c1HomePhone' 
+                    'patient_zip', pp.patient_info->'c1Zip',
+                    'patient_phone', pp.patient_info->'c1HomePhone'
                     ) as patient_adrress_details,
                     (SELECT claim_balance_total FROM billing.get_claim_totals(bc.id)) as claim_balance,
                     bc.claim_dt,
@@ -46,7 +46,7 @@ module.exports = {
                     'facility_state' ,facility_info->'facility_state',
                     'facility_zip',facility_info->'facility_zip'
                     ) as facility_adrress_details,
-                    com.billing_info->'tax_id' AS company_tax_id, 
+                    com.billing_info->'tax_id' AS company_tax_id,
                     bc.id as claim_no,
                     get_full_name(pp.last_name, pp.first_name) as patient_name,
                     bc.facility_id as facility_id,
@@ -56,20 +56,21 @@ module.exports = {
                     WHEN payer_type = 'tertiary_insurance' THEN json_build_object('name',pip.insurance_name,'address',pip.insurance_info->'Address1','address2',pip.insurance_info->'Address2','city',pip.insurance_info->'City','state',pip.insurance_info->'State','zip_code',pip.insurance_info->'ZipCode','phone_no',pip.insurance_info->'PhoneNo')
                     WHEN payer_type = 'referring_provider' THEN json_build_object('name',ppr.full_name,'address',ppc.contact_info->'ADDR1','address2',ppc.contact_info->'ADDR2', 'city',ppc.contact_info->'CITY','state',ppc.contact_info->'c1State','zip_code',ppc.contact_info->'c1Zip','phone_no',ppc.contact_info->'PHNO')
                     WHEN payer_type = 'patient' THEN json_build_object('name',get_full_name(pp.last_name,pp.first_name),'address',pp.patient_info->'c1AddressLine1','address2',pp.patient_info->'c1AddressLine2','city',pp.patient_info->'c1City','state',pp.patient_info->'STATE','zip_code',pp.patient_info->'ZIP','phone_no',pp.patient_info->'c1HomePhone')
-                    WHEN payer_type = 'ordering_facility' THEN json_build_object('name',ppg.group_name,'address',ppg.group_info->'AddressLine1','address2',ppg.group_info->'AddressLine2','city',ppg.group_info->'City','state',ppg.group_info->'State','zip_code',ppg.group_info->'Zip','phone_no',ppg.group_info->'Phone')
+                    WHEN payer_type = 'ordering_facility' THEN json_build_object('name',pof.name,'address',pof.address_line_1,'address2',pof.address_line_2,'city',pof.city,'state',pof.state,'zip_code',pof.zip_code,'phone_no',pof.phone_number)
                     END AS responsinble_party_address,
                     json_build_object('name',bp.name,'address',bp.address_line1,'address2',bp.address_line2,'city',bp.city,'state',bp.state,'zip_code',bp.zip_code,'phone_no',bp.phone_number) AS billing_provider_details
                 FROM billing.claims bc
                 INNER JOIN public.facilities f ON f.id = bc.facility_id
                 INNER JOIN public.patients pp ON pp.id = bc.patient_id
                 INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
-                INNER JOIN public.companies com ON com.id = bc.company_id 
+                INNER JOIN public.companies com ON com.id = bc.company_id
                 LEFT JOIN public.patient_insurances ppi ON ppi.id = CASE WHEN payer_type = 'primary_insurance' THEN primary_patient_insurance_id
                                                                 WHEN payer_type = 'secondary_insurance' THEN secondary_patient_insurance_id
                                                                 WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id
                                                             END
                 LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
-                LEFT JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id
+                LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = bc.ordering_facility_contact_id
+                LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
                 LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
                 LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
                 WHERE  bc.id = ANY(${params.claimIds})
@@ -89,7 +90,7 @@ module.exports = {
 					modifier3.code as "modifier3",
 					modifier4.code as "modifier4",
                     bch.units,
-                    (bch.units * bch.bill_fee) AS bill_fee, 
+                    (bch.units * bch.bill_fee) AS bill_fee,
                     (bch.units * bch.allowed_amount) AS allowed_fee
                 FROM  billing.charges bch
                 INNER JOIN  public.cpt_codes pcc ON pcc.id = bch.cpt_id
@@ -107,7 +108,7 @@ module.exports = {
                             WHEN 'insurance' THEN
                                 pip.insurance_name
                             WHEN 'ordering_facility' THEN
-                                ppg.group_name
+                                pof.name
                             WHEN 'ordering_provider' THEN
                                 ppr.full_name
                             WHEN 'patient' THEN
@@ -133,7 +134,7 @@ module.exports = {
                 INNER JOIN billing.charges ch ON ch.id = bpa.charge_id
                 LEFT JOIN public.patients ON patients.id = bp.patient_id
                 LEFT JOIN public.insurance_providers pip ON pip.id = bp.insurance_provider_id
-                LEFT JOIN public.provider_groups ppg ON ppg.id = bp.provider_group_id
+                LEFT JOIN public.ordering_facilities pof ON pof.id = bp.ordering_facility_id
                 LEFT JOIN public.provider_contacts ppc ON ppc.id = bp.provider_contact_id
                 LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
                 LEFT JOIN billing.adjustment_codes adj ON adj.id = bpa.adjustment_code_id
@@ -151,18 +152,18 @@ module.exports = {
                     ,adj.accounting_entry_type
             ),
             icd_details AS(
-                SELECT 
-                    ci.claim_id AS claim_no, 
-                    icd_id, 
-                    code AS icd_code, 
+                SELECT
+                    ci.claim_id AS claim_no,
+                    icd_id,
+                    code AS icd_code,
                     description AS icd_description
-                FROM billing.claim_icds ci 
-                INNER JOIN icd_codes ON icd_codes.id = ci.icd_id  
+                FROM billing.claim_icds ci
+                INNER JOIN icd_codes ON icd_codes.id = ci.icd_id
                 WHERE ci.claim_id = ANY(${params.claimIds})
             )
 			SELECT (SELECT json_agg(row_to_json(claim_details)) AS claim_details FROM (SELECT * FROM claim_details) AS claim_details),
                     (SELECT json_agg(row_to_json(charge_details)) AS charge_details FROM (SELECT * FROM charge_details) AS charge_details),
-                    (SELECT json_agg(row_to_json(payment_details)) AS payment_details FROM (SELECT * FROM payment_details) AS payment_details), 
+                    (SELECT json_agg(row_to_json(payment_details)) AS payment_details FROM (SELECT * FROM payment_details) AS payment_details),
                     (SELECT json_agg(row_to_json(icd_details)) AS icd_details FROM (SELECT * FROM icd_details) AS icd_details)
         `);
 

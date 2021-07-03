@@ -904,11 +904,11 @@ const OHIPDataAPI = {
                 pp.patient_info->'c1Zip' AS "patient_zipCode",
                 rend_pr.first_name AS "reading_physician_full_name",
                 reff_pr.first_name AS "ref_full_name",
-                pg.group_info->'AddressLine1' AS "service_facility_addressLine1",
-                pg.group_info->'City' AS "service_facility_city",
-                pg.group_name AS "service_facility_firstName",
-                pg.group_info->'State' AS "service_facility_state",
-                pg.group_info->'Zip' AS "service_facility_zip",
+                pof.address_line_1 AS "service_facility_addressLine1",
+                pof.city AS "service_facility_city",
+                pof.name AS "service_facility_firstName",
+                pof.state AS "service_facility_state",
+                pof.zip_code AS "service_facility_zip",
                 'HOP' AS "serviceLocationIndicator",
                 reff_pr.provider_info -> 'NPI' AS "referringProviderNumber",
                 'P' AS "payee",
@@ -917,7 +917,8 @@ const OHIPDataAPI = {
                 'IHF' AS "serviceLocationIndicator",
                 ppos.code AS place_of_service
             FROM billing.claims bc
-            LEFT JOIN public.provider_groups pg ON pg.id = bc.ordering_facility_id
+            LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = bc.ordering_facility_contact_id
+            LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
             INNER JOIN public.companies pc ON pc.id = bc.company_id
             INNER JOIN public.patients pp ON pp.id = bc.patient_id
             INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
