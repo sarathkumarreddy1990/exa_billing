@@ -631,8 +631,7 @@ module.exports = {
                     jsonb_array_elements(details.claims),
                     details.insurances,
                     details.claim_icds,
-                    ('${JSON.stringify(auditDetails) }'):: jsonb,
-                    details.charges),
+                    ('${JSON.stringify(auditDetails)}'):: jsonb),
                     details.study_id
                     FROM details`);
 
