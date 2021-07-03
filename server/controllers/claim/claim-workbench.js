@@ -535,46 +535,44 @@ module.exports = {
         return await data.updateFollowUp(params);
     },
 
-    validateBatchClaims: (studyDetails) => {
-        return new Promise(async (resolve, reject) => {
-            let validCharges = await data.validateBatchClaimCharge(JSON.stringify(studyDetails));
-            let errorData;
+    validateBatchClaims: async (studyDetails) => {
+        let validCharges = await data.validateBatchClaimCharge(JSON.stringify(studyDetails));
+        let errorData;
 
-            if (studyDetails.length !== parseInt(validCharges.rows[0].charges_count)) {
-                errorData = {
-                    code: '55802'
-                    , message: 'No charge in claim'
-                    , name: 'error'
-                    , Error: 'No charge in claim'
-                    , severity: 'Error'
-                };
+        if (studyDetails.length !== parseInt(validCharges.rows[0].charges_count)) {
+            errorData = {
+                code: '55802'
+                , message: 'No charge in claim'
+                , name: 'error'
+                , Error: 'No charge in claim'
+                , severity: 'Error'
+            };
 
-                resolve({
-                    err: errorData,
-                    result: false
-                });
-            }
+            return {
+                err: errorData,
+                result: false
+            };
+        }
 
-            if (parseInt(validCharges.rows[0].invalid_split_claim_count)) {
-                errorData = {
-                    code: '23156'
-                    , message: 'No ordering facility in claim'
-                    , name: 'error'
-                    , Error: 'No ordering facility in claim'
-                    , severity: 'Error'
-                };
+        if (parseInt(validCharges.rows[0].invalid_split_claim_count)) {
+            errorData = {
+                code: '23156'
+                , message: 'No ordering facility in claim'
+                , name: 'error'
+                , Error: 'No ordering facility in claim'
+                , severity: 'Error'
+            };
 
-                resolve({
-                    err: errorData,
-                    result: false
-                });
-            }
+            return {
+                err: errorData,
+                result: false
+            };
+        }
 
-            resolve({
-                err: null,
-                result: true
-            });
-        });
+        return {
+            err: null,
+            result: true
+        };
 
     },
 
