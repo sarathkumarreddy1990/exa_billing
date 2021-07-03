@@ -91,6 +91,15 @@ const auditColumns = {
     "LOG DESCRIPTION": "description"
 };
 
+const censusColumn = {
+    'ORDERING FACILITY LOCATION':'location',
+    'MRN':'account_no',
+    'ACCESSION NUMBER' : 'accession_no',
+    'PATIENT NAME':'full_name',
+    'DATE OF SERVICE':'study_dt',
+    'STUDY DESCRIPTION':'study_description'
+};
+
 onmessage = function (req) {
     console.log('Request received from client');
 
@@ -158,6 +167,9 @@ function generateCsvData(dbResponse, callback) {
             break
         case 'AUDITLOG':
             columnMap = auditColumns;
+            break;
+        case 'CENSUS':
+            columnMap = censusColumn;
             break;
     }
 

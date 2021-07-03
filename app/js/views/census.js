@@ -36,7 +36,8 @@ define(['jquery',
                 'click #btnClearAllCensus': 'clearAllChk',
                 'change #ddlOrdFacility': 'loadOrderingFacilityNotes',
                 'click #btnSaveNotes': 'saveOrderingFacilityNotes',
-                'click #btnCreateClaim': 'updateBillingType'
+                'click #btnCreateClaim': 'updateBillingType',
+                'click #btnValidateExport': 'exportCensus'
             },
 
             initialize: function (options) {
@@ -234,7 +235,7 @@ define(['jquery',
                             }
                             $('#chkCensus_' + id).prop('checked', !isChecked);
                         } else if(targetElement.hasClass('selCensusType')) {
-                            $('#chkCensus_' + id).prop('checked', true); 
+                            $('#chkCensus_' + id).prop('checked', true);
                         }
 
                         if ($('.chkCensus:checked').length == $('.chkCensus').length) {
@@ -427,6 +428,53 @@ define(['jquery',
                         gridObj.refresh();
                     });
                 });
+            },
+
+            exportCensus: function () {
+                var self = this;
+                var filterCol = self.pagerData.get('FilterCol') || [];
+                var filterData = self.pagerData.get('FilterData') || [];
+                var colHeader = [];
+
+                self.gridI18nText.forEach(function (val) {
+                    if (val) {
+                        colHeader.push(commonjs.geti18NString(val));
+                    }
+                });
+
+                var params = {
+                    "pageNo": self.pagerData.get('PageNo'),
+                    "pageSize": self.pagerData.get('PageSize'),
+                    "filterData": JSON.stringify(filterData),
+                    "filterCol": JSON.stringify(filterCol),
+                    "sortField": self.pagerData.get('SortField'),
+                    "sortOrder": self.pagerData.get('SortOrder'),
+                    "customArgs": {}
+                };
+
+                $.ajax({
+                    url: '/exa_modules/billing/census',
+                    type: 'GET',
+                    data: params,
+                    success: function (data, response) {
+                        commonjs.prepareCsvWorker({
+                            data: data,
+                            reportName: 'CENSUS',
+                            fileName: 'Census',
+                            columnHeader: colHeader,
+                            countryCode: app.country_alpha_3_code,
+                            companyTz: app.company.time_zone
+                        }, {
+                            afterDownload: function () {
+                                $('#btnValidateExport').css('display', 'inline');
+                            }
+                        });
+
+                    }, error: function (e) {
+                        commonjs.handleXhrError(e);
+                    }
+                });
+
             }
         });
     });

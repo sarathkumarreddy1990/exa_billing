@@ -454,7 +454,7 @@ define('grid', [
                         grid_id: gridID
                     });
                 });
-                
+
                 // Adjustment paid in fill section
                 var liQuickAdjustPaidFull = commonjs.getRightClickMenu('anc_quick_adjust', 'billing.claims.adjustFull', false, 'Adjust paid in full', false);
                 if (selectedStudies.length === 1 && (app.screens.includes('ADPF') || app.userInfo.user_type === 'SU') && firstSelectedStudy.claim_balance != '$0.00') {
@@ -871,8 +871,8 @@ define('grid', [
                                     var $row = $tblGrid.find('#' + rowId);
                                     var cells = [];
                                     var currentStudyDetails = data.filter(function (row) { return row.study_id == rowId })[0];
-                                    var claimId = isAlbertaBilling 
-                                        ? currentStudyDetails.can_ahs_create_claim_per_charge 
+                                    var claimId = isAlbertaBilling
+                                        ? currentStudyDetails.can_ahs_create_claim_per_charge
                                         : currentStudyDetails.create_claim_charge;
 
                                     cells = cells.concat(changeGrid.getClaimId(claimId))
@@ -976,7 +976,7 @@ define('grid', [
                     search: false,
                     isIconCol: true,
                     formatter: function (cellvalue, option, rowObject) {
-                        if (['ABRT', 'CAN', 'NOS'].indexOf(rowObject.study_status) > -1 || rowObject.has_deleted || (app.isMobileBillingEnabled && rowObject.billing_type === 'census')) {
+                        if (['ABRT', 'CAN', 'NOS'].indexOf(rowObject.study_status) > -1 || rowObject.has_deleted || (!options.isClaimGrid && app.isMobileBillingEnabled && rowObject.billing_type === 'census')) {
                             return "";
                         }
                         else {
@@ -1697,7 +1697,7 @@ define('grid', [
                 multiselect: true,
                 ondblClickRow: function (rowID, irow, icol, event) {
                     var gridData = getData(rowID, studyStore, gridID);
-                    if (screenCode.indexOf('ECLM') > -1 || (app.isMobileBillingEnabled && gridData.billing_type === 'census'))
+                    if (screenCode.indexOf('ECLM') > -1 || (!options.isClaimGrid && app.isMobileBillingEnabled && gridData.billing_type === 'census'))
                         return false;
                     var study_id = 0;
                     var order_id = 0;
@@ -1784,7 +1784,7 @@ define('grid', [
 
                 onRightClickRow: function (rowID, iRow, iCell, event, options) {
                     var gridData = $('#' + event.currentTarget.id).jqGrid('getRowData', rowID);
-                    if (['Aborted', 'Cancelled', 'Canceled', 'No Shows'].indexOf(gridData.study_status) > -1 || gridData.has_deleted == "Yes" || gridData.billing_type === 'census') {
+                    if (['Aborted', 'Cancelled', 'Canceled', 'No Shows'].indexOf(gridData.study_status) > -1 || gridData.has_deleted == "Yes" || (!options.isClaimGrid && app.isMobileBillingEnabled && gridData.billing_type === 'census')) {
                         event.stopPropagation();
                     } else if (disableRightClick()) {
                         var _selectEle = $(event.currentTarget).find('#' + rowID).find('input:checkbox');
