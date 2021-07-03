@@ -4098,11 +4098,11 @@ define(['jquery',
                     }
                 }
 
-                if(app.isMobileBillingEnabled && self.is_split_claim && !self.ordering_facility_contact_id){
-                    let msg = commonjs.geti18NString("messages.confirm.splitClaim").replace('$ACCESSION_NO', self.pri_accession_no);
-                    
-                    if(!confirm(msg)){
-                        return false;  
+                if (app.isMobileBillingEnabled && self.is_split_claim && !self.ordering_facility_contact_id) {
+                    var msg = commonjs.geti18NString("messages.confirm.splitClaim").replace('$ACCESSION_NO', self.pri_accession_no);
+
+                    if (!confirm(msg)) {
+                        return false;
                     }
                     self.is_split_claim = false;
                 }
