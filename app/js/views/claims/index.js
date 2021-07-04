@@ -1221,7 +1221,7 @@ define(['jquery',
                 if (self.ordering_facility_contact_id) {
                     self.updateResponsibleList({
                         payer_type: 'POF',
-                        payer_id: self.ordering_facility_contact_id,
+                        payer_id: self.ordering_facility_id,
                         payer_name: self.ordering_facility_name + '(Service Facility)'
                     }, null);
                 }
@@ -3196,7 +3196,7 @@ define(['jquery',
                     if (res && res.id) {
                         self.updateResponsibleList({
                             payer_type: 'POF',
-                            payer_id: res.ordering_facility_contact_id,
+                            payer_id: res.ordering_facility_id,
                             payer_name: res.ordering_facility_name + '(Service Facility)'
                         }, null);
                     }

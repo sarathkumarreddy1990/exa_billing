@@ -110,9 +110,9 @@ module.exports = {
                                 WHERE  ins.rank = 1
                         ),
                         census_fee_charges_details AS (
-                            SELECT (CASE 
+                            SELECT (CASE
                                 WHEN (${params.isMobileBillingEnabled} = 'true' AND (
-                                    SELECT 
+                                    SELECT
                                         is_split_claim_enabled
                                     FROM insurances
                                     WHERE coverage_level = 'primary' AND is_split_claim_enabled IS TRUE)
@@ -158,19 +158,19 @@ module.exports = {
                                 SELECT UNNEST(census_fee_charges_details.split_types) AS split_type FROM census_fee_charges_details
                             ) AS split ON TRUE
                             LEFT JOIN LATERAL (
-                                SELECT ( CASE 
-                                            WHEN split.split_type = 'insurance' AND sc.modifier1_id IS NULL AND professional_modifier.id IS DISTINCT FROM sc.modifier2_id AND professional_modifier.id IS DISTINCT FROM  sc.modifier3_id AND professional_modifier.id IS DISTINCT FROM sc.modifier4_id 
+                                SELECT ( CASE
+                                            WHEN split.split_type = 'insurance' AND sc.modifier1_id IS NULL AND professional_modifier.id IS DISTINCT FROM sc.modifier2_id AND professional_modifier.id IS DISTINCT FROM  sc.modifier3_id AND professional_modifier.id IS DISTINCT FROM sc.modifier4_id
                                             THEN (SELECT id FROM modifiers WHERE code = '26')
                                             ELSE sc.modifier1_id END) AS modifier1_id
-                                    , ( CASE 
-                                            WHEN split.split_type = 'insurance' AND sc.modifier1_id IS NOT NULL AND sc.modifier2_id IS NULL AND professional_modifier.id IS DISTINCT FROM  sc.modifier3_id AND professional_modifier.id IS DISTINCT FROM sc.modifier4_id 
+                                    , ( CASE
+                                            WHEN split.split_type = 'insurance' AND sc.modifier1_id IS NOT NULL AND sc.modifier2_id IS NULL AND professional_modifier.id IS DISTINCT FROM  sc.modifier3_id AND professional_modifier.id IS DISTINCT FROM sc.modifier4_id
                                             THEN (SELECT id FROM modifiers WHERE code = '26')
                                             ELSE sc.modifier2_id END)  AS modifier2_id
-                                    , ( CASE 
-                                            WHEN split.split_type = 'insurance' AND sc.modifier1_id IS NOT NULL AND sc.modifier2_id IS NOT NULL AND sc.modifier3_id IS NULL AND professional_modifier.id IS DISTINCT FROM sc.modifier2_id AND professional_modifier.id IS DISTINCT FROM sc.modifier4_id  
+                                    , ( CASE
+                                            WHEN split.split_type = 'insurance' AND sc.modifier1_id IS NOT NULL AND sc.modifier2_id IS NOT NULL AND sc.modifier3_id IS NULL AND professional_modifier.id IS DISTINCT FROM sc.modifier2_id AND professional_modifier.id IS DISTINCT FROM sc.modifier4_id
                                             THEN (SELECT id FROM modifiers WHERE code = '26')
                                             ELSE sc.modifier3_id END)  AS modifier3_id
-                                    , ( CASE 
+                                    , ( CASE
                                             WHEN split.split_type = 'insurance' AND sc.modifier1_id IS NOT NULL AND sc.modifier2_id IS NOT NULL AND sc.modifier3_id IS NOT NULL
                                             THEN (SELECT id FROM modifiers WHERE code = '26')
                                             ELSE sc.modifier4_id END)  AS modifier4_id
@@ -199,7 +199,7 @@ module.exports = {
                                         referring_provider.ref_prov_full_name,
                                         referring_provider.referring_provider_contact_id,
                                         referring_provider.specialities,
-                                        referring_provider.referring_prov_npi_no, 
+                                        referring_provider.referring_prov_npi_no,
                                         (   SELECT
                                                     studies.study_info->'refDescription'
                                             FROM
@@ -223,7 +223,8 @@ module.exports = {
                                             WHERE
                                                 facility_id = orders.facility_id
                                         ) AS fac_billing_provider_id,
-                                        (SELECT ordering_facility_contact_id FROM studies WHERE id=${firstStudyId}),
+                                        ordering_facility.ordering_facility_contact_id,
+                                        ordering_facility.id AS ordering_facility_id,
                                         ordering_facility.ordering_facility_name,
                                         ordering_facility.location,
                                         ordering_facility.billing_type,
@@ -246,12 +247,14 @@ module.exports = {
                                         INNER JOIN facilities ON  facilities.id= orders.facility_id
                                         INNER JOIN patients p ON p.id= orders.patient_id
                                         LEFT JOIN LATERAL (
-                                            SELECT 
-                                                ofc.location,    
+                                            SELECT
+                                                ofc.id AS ordering_facility_contact_id
+                                                ofc.location,
                                                 ofc.billing_type,
-                                                of.name AS ordering_facility_name
-                                            FROM studies 
-                                            INNER JOIN ordering_facility_contacts ofc ON ofc.id = studies.ordering_facility_contact_id 
+                                                of.name AS ordering_facility_name,
+                                                of.id
+                                            FROM studies
+                                            INNER JOIN ordering_facility_contacts ofc ON ofc.id = studies.ordering_facility_contact_id
                                             INNER JOIN ordering_facilities of ON of.id = ofc.ordering_facility_id
                                             WHERE studies.id = ${firstStudyId}
                                         ) ordering_facility  ON TRUE
@@ -628,6 +631,7 @@ module.exports = {
                     , rend_pr.full_name AS reading_phy_full_name
                     , rend_pr.provider_info->'NPI' AS rendering_prov_npi_no
                     , pof.address_line_1 AS service_facility_addressLine1
+                    , pof.id AS ordering_facility_id
                     , pof.city AS ordering_facility_city
                     , pof.name AS ordering_facility_name
                     , pof.npi_number AS ordering_facility_npi_no
@@ -1383,7 +1387,7 @@ module.exports = {
     getTechnicalAndProfessionalModifier: async () => {
 
         let sql = SQL`
-                    SELECT 
+                    SELECT
                         (SELECT id FROM modifiers WHERE code = '26') AS professional_modifier_id
                         , (SELECT id FROM modifiers WHERE code = 'TC') AS technical_modifier_id`;
 
@@ -1402,11 +1406,11 @@ module.exports = {
         } = args;
 
         let sql = SQL`
-                    SELECT    
+                    SELECT
                         (billing.get_computed_bill_fee(null,${cpt_id},${modifier1},${modifier2},${modifier3},${modifier4},'billing','ordering_facility',${order_id},${facility_id})::NUMERIC) as bill_fee
                         , (billing.get_computed_bill_fee(null,${cpt_id},${modifier1},${modifier2},${modifier3},${modifier4},'allowed','ordering_facility',${order_id},${facility_id})::NUMERIC) as allowed_amount`;
 
-        return (await queryRows(sql)).pop(); 
+        return (await queryRows(sql)).pop();
     }
 
 };

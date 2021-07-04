@@ -557,15 +557,15 @@ define(['jquery',
             },
 
             saveOFGrid: function (e) {
-                if (orderingFacilityArray && orderingFacilityArray.length > 0 && orderingFacilityArray[0].group_name) {
+                if (orderingFacilityArray && orderingFacilityArray.length > 0 && orderingFacilityArray[0].ordering_facility_name) {
                     this.payer_id = parseInt(orderingFacilityArray[0].ordering_facility_id) || 0;
                     this.ordering_facility_id = this.payer_id;
-                    this.payerCode = orderingFacilityArray[0].group_code || '';
-                    this.payerName = orderingFacilityArray[0].group_name;
+                    this.payerCode = orderingFacilityArray[0].ordering_facility_code  || '';
+                    this.payerName = orderingFacilityArray[0].ordering_facility_name;
                     this.payerType = 'ordering_facility';
-                    coverage_level = 'Odering Facility';
+                    coverage_level = 'Ordering Facility';
                     $("#hdnPayerID").val(orderingFacilityArray[0].ordering_facility_id);
-                    $('#select2-txtautoPayerPOF-container').html(orderingFacilityArray[0].group_name);
+                    $('#select2-txtautoPayerPOF-container').html(orderingFacilityArray[0].ordering_facility_name);
                 } else
                     $('#select2-txtautoPayerPOF-container').html(this.usermessage.selectOrderingFacility);
                 $('#siteModal').modal('hide');
@@ -820,10 +820,10 @@ define(['jquery',
                 var self = this, payer_type, coverage_level;
                 self.payer_id = res.id;
                 self.ordering_facility_id = res.id;
-                self.payerCode = res.group_code;
-                self.payerName = res.group_name;
+                self.payerCode = res.ordering_facility_code;
+                self.payerName = res.ordering_facility_name;
                 self.payerType = 'ordering_facility';
-                coverage_level = 'Odering Facility';
+                coverage_level = 'Ordering Facility';
             },
 
             bindProviderDetails: function (res) {
