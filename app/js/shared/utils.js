@@ -87,7 +87,7 @@ define([ 'jquery', 'underscore' ], function ( jQuery, _ ) {
             $menu.addClass('dropdown-context-left');
         } else {
             x = { "left": mouseX };
-               $menu.addClass('dropdown-context');
+            $menu.addClass('dropdown-context');
         }
 
         // Display submenu on the left if it would go off the right side of the screen
