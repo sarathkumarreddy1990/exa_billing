@@ -188,7 +188,7 @@ module.exports = {
                     WHEN 'primary_insurance' THEN insurance_providers.insurance_name
                     WHEN 'secondary_insurance' THEN insurance_providers.insurance_name
                     WHEN 'tertiary_insurance' THEN insurance_providers.insurance_name
-                    WHEN 'ordering_facility' THEN provider_groups.group_name
+                    WHEN 'ordering_facility' THEN ordering_facilities.name
                     WHEN 'referring_provider' THEN ref_provider.full_name
                     WHEN 'rendering_provider' THEN render_provider.full_name
                     WHEN 'patient' THEN patients.full_name        END)   || '(' || COALESCE(${payerType}, payer_type) ||')' as note
@@ -205,7 +205,8 @@ module.exports = {
                 LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id
                 LEFT JOIN provider_contacts  ON provider_contacts.id=claims.referring_provider_contact_id
                 LEFT JOIN providers as ref_provider ON ref_provider.id=provider_contacts.provider_id
-                LEFT JOIN provider_groups ON claims.ordering_facility_id = provider_groups.id
+                LEFT JOIN ordering_facility_contacts ON claims.ordering_facility_contact_id = ordering_facility_contacts.id
+                LEFT JOIN ordering_facilities ON ordering_facilities.id = ordering_facility_contacts.ordering_facility_id
                 LEFT JOIN provider_contacts as rendering_pro_contact ON rendering_pro_contact.id=claims.rendering_provider_contact_id
                 LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.provider_id
 
@@ -382,11 +383,19 @@ module.exports = {
                         CASE
                             WHEN studies.study_status = 'APP' THEN 1
                             ELSE 2
-                        END  AS status_index
+                        END  AS status_index,
+                        split_claims.split_claim_ids
                     FROM
                         billing.charges_studies
                     INNER JOIN billing.charges ON billing.charges.id = billing.charges_studies.charge_id
                     INNER JOIN public.studies ON public.studies.id = billing.charges_studies.study_id
+                    LEFT JOIN LATERAL (
+                        SELECT
+                            ARRAY_AGG(DISTINCT(bch.claim_id)) AS split_claim_ids
+                        FROM billing.charges_studies  bcs
+                        INNER JOIN billing.charges bch ON bch.id = bcs.charge_id
+                        WHERE bcs.study_id = public.studies.id AND bch.claim_id != ${claim_id}
+                    ) split_claims ON TRUE
                     WHERE   billing.charges.claim_id = ${claim_id}
                     ORDER BY status_index ,study_id
                     LIMIT 1`;
@@ -403,8 +412,9 @@ module.exports = {
                             , c.primary_patient_insurance_id
                             , c.secondary_patient_insurance_id
                             , c.tertiary_patient_insurance_id
-                            , c.ordering_facility_id
-                            , pg.group_name AS ordering_facility_name
+                            , c.ordering_facility_contact_id
+                            , pof.name AS ordering_facility_name
+                            , pofc.location
                             , ipp.insurance_name AS p_insurance_name
                             , ips.insurance_name AS s_insurance_name
                             , ipt.insurance_name AS t_insurance_name
@@ -423,7 +433,8 @@ module.exports = {
                         LEFT JOIN public.provider_contacts ref_pc ON ref_pc.id = c.referring_provider_contact_id
                         LEFT JOIN public.providers ref_pr ON ref_pc.provider_id = ref_pr.id
                         LEFT JOIN public.provider_contacts rend_pc ON rend_pc.id = c.rendering_provider_contact_id
-                        LEFT JOIN public.provider_groups pg ON pg.id = c.ordering_facility_id
+                        LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = c.ordering_facility_contact_id
+                        LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
                         LEFT JOIN public.facilities f ON f.id = c.facility_id
                         WHERE
                             c.id = ${params.id}`;
@@ -588,35 +599,39 @@ module.exports = {
         let {
             studyDetails,
             auditDetails,
-            is_alberta_billing
+            is_alberta_billing,
+            isMobileBillingEnabled
         } = params;
         let createClaimFunction = is_alberta_billing ? 'billing.can_ahs_create_claim_per_charge' : 'billing.create_claim_charge';
 
         const sql = SQL`
                     WITH batch_claim_details AS (
                         SELECT
-		                    patient_id, study_id, order_id
+		                    patient_id, study_id, order_id, billing_type
 	                    FROM
 	                        json_to_recordset(${studyDetails}) AS study_ids
 		                    (
 		                        patient_id bigint,
                                 study_id bigint,
-                                order_id bigint
+                                order_id bigint,
+                                billing_type text
                             )
                     ), details AS (
                         SELECT bcd.study_id, d.*
                         FROM
                            batch_claim_details bcd
-                        LEFT JOIN LATERAL (select * from billing.get_batch_claim_details(bcd.study_id, ${params.created_by}, bcd.patient_id, bcd.order_id)) d ON true
+                        LEFT JOIN LATERAL (
+                            SELECT *
+                            FROM billing.get_batch_claim_details(bcd.study_id, ${params.created_by}, bcd.patient_id, bcd.order_id, bcd.billing_type, ${isMobileBillingEnabled})
+                        ) d ON true
                       )
                       SELECT `
             .append(createClaimFunction)
             .append(`(
-                    details.claims,
+                    jsonb_array_elements(details.claims),
                     details.insurances,
                     details.claim_icds,
-                    ('${JSON.stringify(auditDetails) }'):: jsonb,
-                    details.charges),
+                    ('${JSON.stringify(auditDetails)}'):: jsonb),
                     details.study_id
                     FROM details`);
 
@@ -638,7 +653,7 @@ module.exports = {
                                 WHEN bc.payer_type = 'tertiary_insurance' THEN
                                         tip.insurance_name
                                 WHEN bc.payer_type = 'ordering_facility' THEN
-                                        pg.group_name
+                                        pof.name
                                 WHEN bc.payer_type = 'referring_provider' THEN
                                         pr.full_name
                                 END as payer_name
@@ -665,7 +680,8 @@ module.exports = {
                     LEFT JOIN public.insurance_providers sip on sip.id = spi.insurance_provider_id
                     LEFT JOIN public.patient_insurances tpi ON tpi.id = bc.tertiary_patient_insurance_id
                     LEFT JOIN public.insurance_providers tip on tip.id = tpi.insurance_provider_id
-                    LEFT JOIN public.provider_groups  pg on pg.id = bc.ordering_facility_id
+                    LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = bc.ordering_facility_contact_id
+                    LEFT JOIN public.ordering_facilities pof ON pof.id = poc.ordering_facility_id
                     LEFT JOIN public.provider_contacts  pc on pc.id = bc.referring_provider_contact_id
                     LEFT JOIN public.providers pr on pr.id = pc.provider_id
                     WHERE bc.id = ANY(${claimIDs})
@@ -733,13 +749,29 @@ module.exports = {
                             (
                                 study_id bigint
                             )
-                    )
-                    SELECT
-                        COUNT(DISTINCT s.id)
-                    FROM public.studies s
-                    INNER JOIN public.study_cpt cpt ON cpt.study_id = s.id
-                    INNER JOIN public.cpt_codes codes ON codes.id = cpt.cpt_code_id
-                    WHERE s.id = ANY(SELECT * FROM batch_claim_details)`;
+                    ), invalid_charges_details AS (
+                        SELECT
+                            COUNT(DISTINCT s.id) AS charges_count
+                        FROM public.studies s
+                        INNER JOIN public.study_cpt cpt ON cpt.study_id = s.id
+                        INNER JOIN public.cpt_codes codes ON codes.id = cpt.cpt_code_id
+                        WHERE s.id = ANY(SELECT study_id FROM batch_claim_details)
+                    ), invalid_split_claim_details AS(
+                        SELECT
+                            COUNT(1) AS invalid_split_claim_count
+                        FROM public.studies s
+                        INNER JOIN orders ON orders.id = s.order_id
+                        INNER JOIN public.patient_insurances ppi ON ppi.id = orders.primary_patient_insurance_id
+                        INNER JOIN public.insurance_providers ip ON ip.id= ppi.insurance_provider_id
+                        INNER JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id
+                        WHERE s.id = ANY(SELECT study_id FROM batch_claim_details)
+                        AND s.ordering_facility_contact_id IS NULL
+                        AND (ppi.valid_to_date >= COALESCE(s.study_dt, now())::DATE OR ppi.valid_to_date IS NULL)
+                        AND ipd.is_split_claim_enabled IS TRUE
+                    ) SELECT
+                        (SELECT invalid_split_claim_count FROM invalid_split_claim_details)
+                        , (SELECT charges_count FROM invalid_charges_details)
+                    `;
         return await query(sql.text, sql.values);
     },
 

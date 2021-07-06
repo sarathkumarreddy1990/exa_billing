@@ -11,6 +11,7 @@ const ahsData = require('../../data/ahs');
 const mhsalData = require('../../data/mhs');
 const claimPrintData = require('../../data/claim/claim-print');
 const ediConnect = require('../../../modules/edi');
+const censusController = require('../census');
 
 const studiesController = require('../../controllers/studies');
 
@@ -534,6 +535,47 @@ module.exports = {
         return await data.updateFollowUp(params);
     },
 
+    validateBatchClaims: async (studyDetails) => {
+        let validCharges = await data.validateBatchClaimCharge(JSON.stringify(studyDetails));
+        let errorData;
+
+        if (studyDetails.length !== parseInt(validCharges.rows[0].charges_count)) {
+            errorData = {
+                code: '55802'
+                , message: 'No charge in claim'
+                , name: 'error'
+                , Error: 'No charge in claim'
+                , severity: 'Error'
+            };
+
+            return {
+                err: errorData,
+                result: false
+            };
+        }
+
+        if (parseInt(validCharges.rows[0].invalid_split_claim_count)) {
+            errorData = {
+                code: '23156'
+                , message: 'No ordering facility in claim'
+                , name: 'error'
+                , Error: 'No ordering facility in claim'
+                , severity: 'Error'
+            };
+
+            return {
+                err: errorData,
+                result: false
+            };
+        }
+
+        return {
+            err: null,
+            result: true
+        };
+
+    },
+
     createBatchClaims: async function (params) {
         let auditDetails = {
             company_id: params.company_id,
@@ -546,33 +588,43 @@ module.exports = {
         params.auditDetails = auditDetails;
         params.created_by = parseInt(params.userId);
 
-        if (params.isAllStudies == 'true') {
-            const studyData = await studiesController.getData(params);
+        if (params.isAllStudies == 'true'  || params.isAllCensus === 'true') {
+            const studyData = await(params.isAllCensus === 'true' ?  censusController.getData(params) : studiesController.getData(params));
             let studyDetails = [];
 
-            _.map(studyData.rows, (study) => {
-                studyDetails.push({
-                    patient_id: study.patient_id,
-                    study_id: study.study_id,
-                    order_id: study.order_id
+            if (params.isMobileBillingEnabled) {
+                _.map(studyData.rows, (study) => {
+                    studyDetails.push({
+                        patient_id: study.patient_id,
+                        study_id: study.study_id,
+                        order_id: study.order_id,
+                        billing_type: study.billing_type
+                    });
                 });
-            });
+            } else {
+                _.map(studyData.rows, (study) => {
+                    studyDetails.push({
+                        patient_id: study.patient_id,
+                        study_id: study.study_id,
+                        order_id: study.order_id,
+                        billing_type: 'global'
+                    });
+                });
+            }
 
-            let validCharges = await data.validateBatchClaimCharge(JSON.stringify(studyDetails));
+            let result = await this.validateBatchClaims(studyDetails);
 
-            if(studyDetails.length !== parseInt(validCharges.rows[0].count)) {
-                let responseData = {
-                    code:'55802'
-                    , message: 'No charge in claim'
-                    , name: 'error'
-                    , Error: 'No charge in claim'
-                    , severity: 'Error'
-                };
-
-                return await responseData;
+            if (result.err) {
+                return result.err;
             }
 
             params.studyDetails = JSON.stringify(studyDetails);
+        } else if (params.isMobileBillingEnabled === 'true') {
+            let result = await this.validateBatchClaims(JSON.parse(params.studyDetails));
+
+            if (result.err) {
+                return result.err;
+            }
         }
 
         return await data.createBatchClaims(params);

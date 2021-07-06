@@ -378,6 +378,10 @@
                                     </tr>
                                 </tfoot>
                             </table>
+                            <div id="splitClaimDiv">
+                                <span class="splitNotification hidden" i18n="billing.claims.splitClaimNotification"></span>
+                                <span class="nextSplitClaimSpan hidden split-icon"><span class="icon-ic-info"></span></span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -461,7 +465,7 @@
                 </div>
                 <% if (billingRegionCode !== 'can_AB') { %>
                 <div class="form-group row">
-                    <label for="ddlOrdFacility" class="col-sm-3 col-form-label" i18n="billing.claims.serviceFacitlity"></label>
+                    <label for="ddlOrdFacility" class="col-sm-3 col-form-label" i18n="billing.claims.serviceFacilityLocation"></label>
                     <div class="col-sm-5">
                         <select class="form-control select-box" id="ddlOrdFacility">
                         </select>

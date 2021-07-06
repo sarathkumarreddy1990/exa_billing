@@ -22,7 +22,7 @@ module.exports = {
                 , st.description AS claim_status
                 , st.code AS claim_status_code
                 , SUM(ch.bill_fee * ch.units) AS bill_fee
-                , pg.group_name
+                , pof.name AS ordering_facility_name
                 , SUM(ch.allowed_amount * ch.units) AS allowed_fee
                 , (SELECT SUM(claim_balance_total) FROM billing.get_claim_totals(bc.id)) AS claim_balance
                 , bc.billing_notes
@@ -42,7 +42,8 @@ module.exports = {
             LEFT JOIN public.provider_contacts rend_pc ON rend_pc.id = bc.rendering_provider_contact_id
             LEFT JOIN public.providers ref_pr ON ref_pr.id = ref_pc.provider_id
             LEFT JOIN public.providers rend_pr ON rend_pr.id = rend_pc.provider_id
-            LEFT JOIN public.provider_groups pg ON pg.id = bc.ordering_facility_id
+            LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = bc.ordering_facility_contact_id
+            LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
             LEFT JOIN public.places_of_service pos ON pos.id = bc.place_of_service_id
             WHERE
                 bc.id = ${claim_id}
@@ -53,7 +54,7 @@ module.exports = {
                 , f.facility_name
                 , st.code
                 , st.description
-                , pg.group_name
+                , pof.name
                 , pos.description
                 , bpr.name
                 , orders.order_no
@@ -188,7 +189,7 @@ module.exports = {
                             befc.sequence_number
                         FROM billing.edi_file_charges befc
                         WHERE befc.charge_id = ch.id
-                        ORDER BY id DESC 
+                        ORDER BY id DESC
                         LIMIT 1
                     ) AS seq ON TRUE
                     WHERE ch.claim_id = ${claim_id}
@@ -209,10 +210,10 @@ module.exports = {
                         , befbn.sequence_number
                     FROM
                         billing.edi_file_billing_notes befbn
-                        INNER JOIN billing.edi_file_claims befc ON befc.id = befbn.edi_file_claim_id 
+                        INNER JOIN billing.edi_file_claims befc ON befc.id = befbn.edi_file_claim_id
                         INNER JOIN billing.claims bc ON bc.id = befc.claim_id
                     WHERE befc.claim_id = ${claim_id}
-                    ORDER BY befc.id DESC 
+                    ORDER BY befc.id DESC
                     LIMIT 1)
                     UNION ALL
                     SELECT
@@ -235,7 +236,7 @@ module.exports = {
                             WHEN bp.payer_type = 'insurance' THEN
                                     pip.insurance_name
                             WHEN bp.payer_type = 'ordering_facility' THEN
-                                    pg.group_name
+                                    pof.name
                             WHEN bp.payer_type = 'ordering_provider' THEN
                                     p.full_name
                             END as comments
@@ -253,7 +254,7 @@ module.exports = {
                     INNER JOIN billing.claims bc ON bc.id = ch.claim_id
                     LEFT JOIN public.patients pp on pp.id = bp.patient_id
                     LEFT JOIN public.insurance_providers pip on pip.id = bp.insurance_provider_id
-                    LEFT JOIN public.provider_groups  pg on pg.id = bp.provider_group_id
+                    LEFT JOIN public.ordering_facilities pof on pof.id = bp.ordering_facility_id
                     LEFT JOIN public.provider_contacts  pc on pc.id = bp.provider_contact_id
                     LEFT JOIN public.providers p on p.id = pc.provider_id
                     LEFT JOIN billing.adjustment_codes adj ON adj.id = pa.adjustment_code_id
@@ -721,11 +722,11 @@ module.exports = {
         let sql = SQL`
                     SELECT
                         claims.id as claim_id
-                        ,(CASE 
-                            WHEN (payer_type = 'primary_insurance') OR 
-                                (payer_type  = 'secondary_insurance') OR 
+                        ,(CASE
+                            WHEN (payer_type = 'primary_insurance') OR
+                                (payer_type  = 'secondary_insurance') OR
                                 (payer_type  = 'tertiary_insurance') THEN insurance_providers.insurance_name
-                            WHEN payer_type  = 'ordering_facility' THEN provider_groups.group_name
+                            WHEN payer_type  = 'ordering_facility' THEN pof.name
                             WHEN payer_type  = 'referring_provider' THEN ref_provider.full_name
                             WHEN payer_type  = 'rendering_provider' THEN render_provider.full_name
                             WHEN payer_type  = 'patient' THEN patients.full_name        END) AS payer_name
@@ -755,7 +756,8 @@ module.exports = {
                         WHEN 'tertiary_insurance' THEN tertiary_patient_insurance_id
                         END)
                     LEFT JOIN insurance_providers ON patient_insurances.insurance_provider_id = insurance_providers.id
-                    LEFT JOIN provider_groups ON claims.ordering_facility_id = provider_groups.id
+                    LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = claims.ordering_facility_contact_id
+                    LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
                     LEFT JOIN billing.claim_status  ON claim_status.id=claims.claim_status_id
                     WHERE patients.id = ${patientId}
                     `;
@@ -783,9 +785,12 @@ module.exports = {
 
         switch (payerType) {
             case 'ordering_facility':
-                selectDetails = ' bc.ordering_facility_id AS ordering_facility_id, bc.payer_type ';
-                joinCondition = 'INNER JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id';
-                joinQuery = 'INNER JOIN get_payer_details gpd ON gpd.ordering_facility_id = bc.ordering_facility_id AND gpd.payer_type = bc.payer_type';
+                selectDetails = ' bc.ordering_facility_contact_id, bc.payer_type';
+
+                joinCondition = `LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = bc.ordering_facility_contact_id
+                    LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id`;
+
+                joinQuery = 'INNER JOIN get_payer_details gpd ON gpd.ordering_facility_contact_id = bc.ordering_facility_contact_id AND gpd.payer_type = bc.payer_type';
                 break;
             case 'primary_insurance':
                 selectDetails = ' ppi.insurance_provider_id AS insurance_provider_id, bc.payer_type ';

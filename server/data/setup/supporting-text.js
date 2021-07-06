@@ -1,11 +1,11 @@
 const {
     SQL,
     query,
-    queryWithAudit
+    queryWithAudit,
+    queryCteWithAudit
 } = require('../index');
 
 module.exports = {
-
     labelCpts: async (params) => {
         const { cpt_ids } = params;
         const sql = SQL`
@@ -112,38 +112,39 @@ module.exports = {
     },
 
     findRelevantTemplates: async function (params) {
-        params.sortOrder = params.sortOrder || ' ASC';
-
         let {
             cpts,
             modifiers
         } = params;
 
-        const sql = SQL`
-            SELECT
-                id,
-                template_name,
-                supporting_text,
-                cpt_ids,
-                modifier_ids
-            FROM
-                billing.supporting_text_templates`;
+        if (cpts || modifiers) {
+            const sql = SQL``;
+            const selSql = `
+                SELECT
+                    id,
+                    template_name,
+                    supporting_text,
+                    get_supporting_text_template_cpt_code_ids(id) AS cpt_ids,
+                    get_supporting_text_template_modifier_ids(id) AS modifier_ids
+                FROM
+                    billing.supporting_text_templates
+                `;
 
-        sql.append(SQL` WHERE '0' = ANY (cpt_ids) `);
-
-        if (cpts) {
-            for (let i = 0; i < cpts.length; i++) {
-                sql.append(SQL` OR ${cpts[i]} = ANY (cpt_ids)  `);
+            if (cpts) {
+                sql.append(selSql)
+                .append(SQL`WHERE ${cpts} :: BIGINT[] && (get_supporting_text_template_cpt_code_ids(id))`)
+                .append(modifiers ? ` UNION` : ``);
             }
-        }
 
-        if (modifiers) {
-            for (let i = 0; i < modifiers.length; i++) {
-                sql.append(SQL` OR ${modifiers[i]} = ANY (modifier_ids)  `);
+            if (modifiers) {
+                sql.append(selSql)
+                .append(SQL`WHERE ${modifiers} :: BIGINT[] && (get_supporting_text_template_modifier_ids(id))`);
             }
-        }
 
-        return await query(sql);
+            return await query(sql);
+        } else {
+            return { rows: [] };
+        }
     },
 
     getDataById: async (params) => {
@@ -153,8 +154,8 @@ module.exports = {
                 id,
                 template_name,
                 supporting_text,
-                COALESCE(cpt_ids, ARRAY[]::integer[]) as cpt_ids,
-                COALESCE(modifier_ids, ARRAY[]::integer[]) as modifier_ids
+                get_supporting_text_template_cpt_code_ids(id) AS cpt_ids,
+                get_supporting_text_template_modifier_ids(id) AS modifier_ids
             FROM
                 billing.supporting_text_templates
             WHERE
@@ -216,33 +217,52 @@ module.exports = {
         } = params;
 
         const sql = SQL`
-            INSERT INTO billing.supporting_text_templates
-            (
-                company_id,
-                template_name,
-                supporting_text,
-                cpt_ids,
-                modifier_ids
-            )
-            VALUES
-            (
-                ${companyId},
-                ${templateName},
-                ${supportingText},
-                ${associatedCptsIds},
-                ${associatedModifiersIds}
-            )
-            RETURNING *,
-                '{}'::jsonb old_values`;
+            WITH cte AS (
+                INSERT INTO billing.supporting_text_templates
+                (
+                    company_id,
+                    template_name,
+                    supporting_text
+                )
+                SELECT
+                    ${companyId},
+                    ${templateName},
+                    ${supportingText}
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM
+                        billing.supporting_text_templates
+                    WHERE
+                        Lower(Trim(template_name, e'\t\r\n ')) = Lower(Trim(${templateName}, e'\t\r\n '))
+                )
+                RETURNING *,
+                    '{}'::jsonb old_values
+            ),
 
-        return await queryWithAudit(sql, {
+            insert_cpts_cte AS (
+                INSERT INTO billing.supporting_text_template_cpt_codes(supporting_text_template_id, cpt_code_id)
+                SELECT id, cpt_code_id
+                FROM UNNEST((${associatedCptsIds})::BIGINT[]) AS cpt_code_id
+                JOIN cte ON TRUE
+                ON CONFLICT DO NOTHING
+            ),
+
+            insert_modifiers_cte AS (
+                INSERT INTO billing.supporting_text_template_modifiers(supporting_text_template_id, modifier_id)
+                SELECT id, modifier_id
+                FROM UNNEST((${associatedModifiersIds})::BIGINT[]) AS modifier_id
+                JOIN cte ON TRUE
+                ON CONFLICT DO NOTHING
+            )
+        `;
+
+        return await queryCteWithAudit(sql, {
             ...params,
             logDescription: `Add: Supporting text tempate (${templateName}) created containing text: ${supportingText}`
         });
     },
 
     update: async (params) => {
-
         let {
             id,
             templateName,
@@ -253,25 +273,65 @@ module.exports = {
         } = params;
 
         const sql = SQL`
+        WITH cte AS (
             UPDATE
                 billing.supporting_text_templates
             SET
                 template_name = ${templateName},
-                supporting_text = ${supportingText},
-                cpt_ids = ${associatedCptsIds},
-                modifier_ids = ${associatedModifiersIds}
+                supporting_text = ${supportingText}
             WHERE
                 id = ${id}
-                AND company_id = ${companyId}
+            AND company_id = ${companyId}
+            AND NOT EXISTS (
+                SELECT 1
+                FROM
+                    billing.supporting_text_templates
+                WHERE
+                    Lower(Trim(template_name, e'\t\r\n ')) = Lower(Trim(${templateName}, e'\t\r\n '))
+                AND id != ${id}
+            )
             RETURNING *,
                 (
                     SELECT row_to_json(old_row)
                     FROM   (SELECT *
                             FROM   billing.supporting_text_templates
                             WHERE  id = ${id}) old_row
-                ) old_values`;
+                ) old_values
+        ),
 
-        return await queryWithAudit(sql, {
+        delete_cpts AS (
+            DELETE FROM billing.supporting_text_template_cpt_codes
+            USING cte AS c
+            WHERE supporting_text_template_id = c.id
+            AND NOT (cpt_code_id = ANY ((${associatedCptsIds})::BIGINT[]))
+        ),
+
+        insert_cpts AS (
+            INSERT INTO billing.supporting_text_template_cpt_codes(supporting_text_template_id, cpt_code_id)
+            SELECT id, cpt_code_id
+            FROM UNNEST((${associatedCptsIds})::BIGINT[]) AS cpt_code_id
+            JOIN cte ON TRUE
+            ON CONFLICT DO NOTHING
+        ),
+
+        delete_modifiers AS (
+            DELETE FROM billing.supporting_text_template_modifiers
+            USING cte AS c
+            WHERE supporting_text_template_id = c.id
+            AND NOT (modifier_id = ANY ((${associatedModifiersIds})::BIGINT[]))
+        ),
+
+        insert_modifiers AS (
+            INSERT INTO billing.supporting_text_template_modifiers(supporting_text_template_id, modifier_id)
+            SELECT id, modifier_id
+            FROM UNNEST((${associatedModifiersIds})::BIGINT[]) AS modifier_id
+            JOIN cte ON TRUE
+            ON CONFLICT DO NOTHING
+        )
+
+        `;
+
+        return await queryCteWithAudit(sql, {
             ...params,
             logDescription: `Updated supporting text template: ${templateName}.`
         });
@@ -285,17 +345,30 @@ module.exports = {
         } = params;
 
         const sql = SQL`
+        WITH delete_cpts AS (
+            DELETE FROM billing.supporting_text_template_cpt_codes
+            WHERE supporting_text_template_id = ${id}
+        ),
+
+        delete_modifiers AS (
+            DELETE FROM billing.supporting_text_template_modifiers
+            WHERE supporting_text_template_id = ${id}
+        ),
+
+        cte AS (
             DELETE FROM
                 billing.supporting_text_templates
             WHERE
                 id = ${id}
             RETURNING *,
-                '{}'::jsonb old_values`;
+                '{}'::jsonb old_values
+        )
+        `;
 
 
-        return await queryWithAudit(sql, {
+        return await queryCteWithAudit(sql, {
             ...params,
             logDescription: `Deleted supporting text template: ${templateName}.`
         });
-    },
+    }
 };

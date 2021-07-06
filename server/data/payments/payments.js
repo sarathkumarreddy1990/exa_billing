@@ -88,7 +88,7 @@ module.exports = {
         if (payer_name) {
             whereQuery.push(`  (  CASE payer_type
                 WHEN 'insurance' THEN insurance_providers.insurance_name
-                WHEN 'ordering_facility' THEN provider_groups.group_name
+                WHEN 'ordering_facility' THEN ordering_facilities.name
                 WHEN 'ordering_provider' THEN ref_provider.full_name
                 WHEN 'patient' THEN patients.full_name        END)  ILIKE '%${payer_name}%' `);
         }
@@ -147,7 +147,7 @@ module.exports = {
             INNER JOIN public.users ON users.id = payments.created_by
             INNER JOIN billing.get_payment_totals(payments.id) payment_totals ON true
             LEFT JOIN public.patients ON patients.id = payments.patient_id AND payer_type = 'patient'
-            LEFT JOIN public.provider_groups ON provider_groups.id = payments.provider_group_id
+            LEFT JOIN public.ordering_facilities ON ordering_facilities.id = payments.ordering_facility_id
             LEFT JOIN public.provider_contacts ON provider_contacts.id = payments.provider_contact_id
             LEFT JOIN public.providers ref_provider ON provider_contacts.provider_id = ref_provider.id
             LEFT JOIN public.insurance_providers  ON insurance_providers.id = payments.insurance_provider_id
@@ -210,7 +210,7 @@ module.exports = {
                     , alternate_payment_id AS display_id
                     , (  CASE payer_type
                             WHEN 'insurance' THEN insurance_providers.insurance_name
-                            WHEN 'ordering_facility' THEN provider_groups.group_name
+                            WHEN 'ordering_facility' THEN ordering_facilities.name
                             WHEN 'ordering_provider' THEN ref_provider.full_name
                             WHEN 'patient' THEN patients.full_name        END) AS payer_name
                     , payment_dt
@@ -295,14 +295,14 @@ module.exports = {
                 , payments.patient_id
                 , ref_provider.full_name AS provider_full_name
                 , insurance_name AS insurance_name
-                , provider_groups.group_name AS ordering_facility_name
+                , ordering_facilities.name AS ordering_facility_name
                 , patients.full_name as patient_name
                 , patients.first_name
                 , patients.last_name
                 , patients.birth_date::text
                 , patients.account_no
                 , payments.insurance_provider_id
-                , payments.provider_group_id
+                , payments.ordering_facility_id
                 , payments.provider_contact_id
                 , payments.payment_reason_id
                 , payments.amount MONEY
@@ -315,26 +315,22 @@ module.exports = {
                 , payments.alternate_payment_id
                 , payments.payer_type
                 , payments.notes
-                , payments.can_ahs_claim_number
-                , payments.can_ahs_financial_request_number
                 , payments.mode AS payment_mode
                 , payments.card_name
                 , payments.card_number
                 , get_full_name(users.last_name, users.first_name) as user_full_name
                 , facilities.facility_name
                 , payments.amount
-                , (select payment_balance_total from billing.get_payment_totals(payments.id)) AS available_balance
-                , (select payments_applied_total from billing.get_payment_totals(payments.id)) AS applied
-                , (select adjustments_applied_total from billing.get_payment_totals(payments.id)) AS adjustment_amount
-                , (select payment_status from billing.get_payment_totals(payments.id)) AS current_status
+                , bgpt.payment_balance_total AS available_balance
+                , bgpt.payments_applied_total AS applied
+                , bgpt.adjustments_applied_total AS adjustment_amount
+                , bgpt.payment_status AS current_status
                 , billing.payments.XMIN as payment_row_version
                 , era_payment.edi_file_id
                 , era_pdf.id AS eob_file_id
-                , charges.claim_id AS claim_id
-            FROM
-                billing.payments
-            INNER JOIN
-                public.users ON users.id = payments.created_by
+            FROM billing.payments
+            INNER JOIN billing.get_payment_totals(payments.id) AS bgpt ON TRUE
+            INNER JOIN public.users ON users.id = payments.created_by
             LEFT JOIN
                 public.patients ON patients.id = payments.patient_id
             LEFT JOIN
@@ -342,15 +338,11 @@ module.exports = {
             LEFT JOIN
                 public.insurance_providers ON insurance_providers.id = payments.insurance_provider_id
             LEFT JOIN
-                provider_groups ON provider_groups.id = payments.provider_group_id
+                public.ordering_facilities ON ordering_facilities.id = payments.ordering_facility_id
             LEFT JOIN
                 public.provider_contacts ON provider_contacts.id = payments.provider_contact_id
             LEFT JOIN
                 public.providers ref_provider ON provider_contacts.provider_id = ref_provider.id
-            LEFT JOIN
-                billing.payment_applications ON payments.id = payment_applications.payment_id
-            LEFT JOIN
-                billing.charges ON payment_applications.charge_id = charges.id
             LEFT JOIN LATERAL(
                 SELECT
                     edi_file_id
@@ -382,7 +374,7 @@ module.exports = {
             facility_id,
             patient_id,
             insurance_provider_id,
-            provider_group_id,
+            ordering_facility_id,
             provider_contact_id,
             payment_reason_id,
             amount,
@@ -417,7 +409,7 @@ module.exports = {
                                 , facility_id
                                 , patient_id
                                 , insurance_provider_id
-                                , provider_group_id
+                                , ordering_facility_id
                                 , provider_contact_id
                                 , payment_reason_id
                                 , amount
@@ -436,7 +428,7 @@ module.exports = {
                                 , ${facility_id}
                                 , ${patient_id}
                                 , ${insurance_provider_id}
-                                , ${provider_group_id}
+                                , ${ordering_facility_id}
                                 , ${provider_contact_id}
                                 , ${payment_reason_id}
                                 , ${amount}
@@ -456,7 +448,7 @@ module.exports = {
                                 facility_id = ${facility_id}
                                 , patient_id = ${patient_id}
                                 , insurance_provider_id = ${insurance_provider_id}
-                                , provider_group_id = ${provider_group_id}
+                                , ordering_facility_id = ${ordering_facility_id}
                                 , provider_contact_id = ${provider_contact_id}
                                 , amount = ${amount}::money
                                 , accounting_date = ${accounting_date}

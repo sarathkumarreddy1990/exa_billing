@@ -40,12 +40,12 @@ module.exports = {
 						, rend_pr.provider_info->'NPI' AS "reading_pro_npiNo"
 						, CASE WHEN (SELECT charges_bill_fee_total FROM billing.get_claim_totals(bc.id)) > 0::money
 							THEN (SELECT charges_bill_fee_total FROM billing.get_claim_totals(bc.id)) ELSE null END AS "claim_totalCharge"
-						, pg.group_info->'AddressLine1' AS "service_facility_addressLine1"
-						, pg.group_info->'City' AS "service_facility_city"
-						, pg.group_name AS "service_facility_firstName"
-						, pg.group_info->'npi_no' AS "service_facility_npiNo"
-						, pg.group_info->'State' AS "service_facility_state"
-						, pg.group_info->'Zip' AS "service_facility_zip"
+                        , pof.address_line_1 AS "service_facility_addressLine1"
+                        , pof.city AS "service_facility_city"
+                        , pof.name AS "service_facility_firstName"
+                        , pof.npi_number AS "service_facility_npiNo"
+                        , pof.state AS "service_facility_state"
+                        , pof.zip_code AS "service_facility_zipCode"
 						, pos.id AS "claim_place_of_service_code"
 						, claim_icd.icd_id AS "claim_icd_code1"
 						, CASE  WHEN bc.payer_type = 'primary_insurance' THEN
@@ -80,11 +80,11 @@ module.exports = {
                                     )
 								WHEN bc.payer_type = 'ordering_facility' THEN
 								json_build_object(
-									'payer_name',  pg.group_name
-									, 'payer_address1', pg.group_info->'AddressLine1'
-									, 'payer_city', pg.group_info->'City'
-									, 'payer_state', pg.group_info->'State'
-									, 'payer_zip_code', pg.group_info->'Zip' )
+									'payer_name',  pof.name
+									, 'payer_address1', pof.address_line_1
+									, 'payer_city', pof.city
+									, 'payer_state', pof.state
+									, 'payer_zip_code', pof.zip_code)
 								WHEN bc.payer_type = 'referring_provider' THEN
 									json_build_object( 'payer_name',  ref_pr.last_name
 									, 'payer_address1', ref_pc.contact_info->'ADDR1'
@@ -180,7 +180,7 @@ module.exports = {
 					LEFT JOIN public.providers ref_pr ON ref_pr.id = ref_pc.provider_id
 					LEFT JOIN public.providers rend_pr ON rend_pr.id = rend_pc.provider_id
 					LEFT JOIN public.places_of_service pos ON pos.id = bc.place_of_service_id
-					LEFT JOIN public.provider_groups pg ON pg.id = bc.ordering_facility_id
+					LEFT JOIN public.ordering_facilities pof ON pof.id = bp.ordering_facility_id
 					LEFT JOIN public.patient_insurances p_pi on p_pi.id = bc.primary_patient_insurance_id
 					LEFT JOIN public.patient_insurances s_pi on s_pi.id = bc.secondary_patient_insurance_id
 					LEFT JOIN public.patient_insurances t_pi on t_pi.id = bc.tertiary_patient_insurance_id
@@ -545,28 +545,27 @@ module.exports = {
 
 							,(SELECT Json_agg(Row_to_json(servicefacility)) "servicefacility"
 									FROM
-										(SELECT
-											provider_groups.group_name as "lastName",
-											provider_groups.group_name as "firstName",
-											provider_groups.group_name as "middleName",
-											provider_groups.group_name as "suffix",
-											'' as "prefix",
-											group_info->'npi_no' as "NPINO",
-											group_info->'federal_tax_id' as "federalTaxId",
-											group_info->'Fax' as "fax",
-											group_info->'taxonomy_code' as "taxonomyCode",
-											group_info->'AddressLine1' as "addressLine1",
-											group_info->'AddressLine2' as "addressLine2",
-											group_info->'City' as "city",
-											group_info->'State' as "state",
-											group_info->'Zip' as "zip",
-											group_info->'ZipPlus' as "zipPlus",
-											group_info->'Phone' as "phone",
-											group_info->'Email' as "email",
-											group_info->'stateLicenseNo' as "stateLicenseNo",
-											group_info->'cliaNumber' as "cliaNumber"
-											)
-										as servicefacility)
+                                        (SELECT
+                                            pof.name AS "lastName",
+                                            pof.name AS "firstName",
+                                            pof.name AS "middleName",
+                                            pof.name AS "suffix",
+                                            '' as "prefix",
+                                            pof.npi_number AS "NPINO",
+                                            pof.federal_tax_id AS "federalTaxId",
+                                            pof.fax_number AS "fax",
+                                            pof.taxonomy_code AS "taxonomyCode",
+                                            pof.address_line_1 AS "addressLine1",
+                                            pof.address_line_2 AS "addressLine2",
+                                            pof.city AS "city",
+                                            pof.state AS "state",
+                                            pof.zip_code AS "zip",
+                                            pof.zip_plus AS "zipPlus",
+                                            pof.phone_number AS "phone",
+                                            pof.email AS "email",
+                                            pof.state_license_number AS "stateLicenseNo",
+                                            pof.clia_number AS "cliaNumber"
+                                        ) AS servicefacility)
 
 							,(SELECT Json_agg(Row_to_json(referringProvider)) "referringProvider"
 									FROM
@@ -705,7 +704,7 @@ module.exports = {
 					pointer2 as "pointer2",
 					pointer3 as "pointer3",
 					pointer4 as "pointer4",
-					group_info->'cliaNumber' as "cliaNumber",
+					pof.clia_number AS "cliaNumber",
 					study_details.accession_no as "accessionNumber",
 					study_details.body_part,
 					(SELECT Json_agg(Row_to_json(lineAdjudication)) "lineAdjudication"
@@ -816,7 +815,8 @@ module.exports = {
                                             LEFT JOIN billing.insurance_provider_details ON insurance_provider_details.insurance_provider_id = insurance_providers.id
                                             LEFT JOIN relationship_status ON  subscriber_relationship_id =relationship_status.id
                                             LEFT JOIN public.insurance_provider_payer_types  ON insurance_provider_payer_types.id = insurance_providers.provider_payer_type_id
-                                            LEFT JOIN provider_groups  ON  claims.ordering_facility_id = provider_groups.id
+                                            LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = claims.ordering_facility_contact_id
+                                            LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
                                             LEFT JOIN LATERAL (
                                                 SELECT
                                                     bch.authorization_no AS service_line_auth_no

@@ -44,7 +44,8 @@ const claimColumns = {
     "PHN": "phn_alt_account",
     "Sequence Numbers": "can_bc_claim_sequence_numbers",
     "Alt Account No": "pid_alt_account",
-    "Modality": "modalities"
+    "Modality": "modalities",
+    "billing type": 'billing_type'
 };
 
 const paymentsColumns = {
@@ -88,6 +89,15 @@ const auditColumns = {
     "SCREEN": "screen_name",
     "USER": "username",
     "LOG DESCRIPTION": "description"
+};
+
+const censusColumn = {
+    'ORDERING FACILITY LOCATION':'location',
+    'MRN':'account_no',
+    'ACCESSION NUMBER' : 'accession_no',
+    'PATIENT NAME':'full_name',
+    'DATE OF SERVICE':'study_dt',
+    'STUDY DESCRIPTION':'study_description'
 };
 
 onmessage = function (req) {
@@ -157,6 +167,9 @@ function generateCsvData(dbResponse, callback) {
             break
         case 'AUDITLOG':
             columnMap = auditColumns;
+            break;
+        case 'CENSUS':
+            columnMap = censusColumn;
             break;
     }
 

@@ -83,6 +83,7 @@ module.exports = {
                             , is_name_required 
                             , is_signature_required
                             , is_print_billing_provider_address
+                            , is_split_claim_enabled
                         FROM
                             public.insurance_providers ip
                         LEFT JOIN billing.insurance_provider_details bip ON bip.insurance_provider_id  = ip.id
@@ -109,7 +110,8 @@ module.exports = {
             is_default_payer,           
             is_name_required, 
             is_signature_required,
-            is_print_billing_provider_address
+            is_print_billing_provider_address,
+            is_split_claim_enabled
 
         } = params;
 
@@ -144,6 +146,7 @@ module.exports = {
                                 , is_name_required 
                                 , is_signature_required
                                 , is_print_billing_provider_address
+                                , is_split_claim_enabled
                             )
                             SELECT
                                   ${id}
@@ -155,6 +158,7 @@ module.exports = {
                                 , ${is_name_required}
                                 , ${is_signature_required}
                                 , ${is_print_billing_provider_address}
+                                , ${is_split_claim_enabled}
                             WHERE NOT EXISTS (SELECT 1 FROM billing.insurance_provider_details WHERE insurance_provider_id = ${id})
                             RETURNING *, '{}'::jsonb old_values
                         )
@@ -170,6 +174,7 @@ module.exports = {
                                     , is_name_required = ${is_name_required} 
                                     , is_signature_required = ${is_signature_required}
                                     , is_print_billing_provider_address = ${is_print_billing_provider_address}
+                                    , is_split_claim_enabled = ${is_split_claim_enabled}
                                 WHERE
                                     insurance_provider_id = ${id}
                                     AND NOT EXISTS (SELECT 1 FROM insert_house)

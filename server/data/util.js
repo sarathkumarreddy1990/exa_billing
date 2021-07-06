@@ -405,10 +405,10 @@ const util = {
 
                     if (obj && obj.list && obj.list.length) {
                         let orderingFacilityArray = _.map(obj.list, (x) => x.id);
-                        orderingFacilityQuery = util.getConditionalOperator(obj.condition, `ANY(ARRAY[` + orderingFacilityArray + `])`, true, 'array', ` claims.ordering_facility_id `);
+                        orderingFacilityQuery = util.getConditionalOperator(obj.condition, `ANY(ARRAY[` + orderingFacilityArray + `])`, true, 'array', ` ordering_facilities.id `);
 
                         if (obj.condition == 'IsNot') {
-                            orderingFacilityQuery += ' OR claims.ordering_facility_id IS NULL';
+                            orderingFacilityQuery += ' OR claims.ordering_facility_contact_id IS NULL';
                         }
 
                         query += util.getRelationOperator(query) + '(' + orderingFacilityQuery + ')';
@@ -755,17 +755,17 @@ const util = {
 
                             if (i == 0) {
 
-                                facilityQuery += ' studies.provider_group_id' + util.getConditionalOperator(obj.condition, obj.list[i].id, false, '');
+                                facilityQuery += ' ordering_facilities.id' + util.getConditionalOperator(obj.condition, obj.list[i].id, false, '');
 
                             } else {
-                                facilityQuery += util.getConditionalRelationOperator(obj.condition) + ' studies.provider_group_id ' + util.getConditionalOperator(obj.condition, obj.list[i].id, false, '');
+                                facilityQuery += util.getConditionalRelationOperator(obj.condition) + ' ordering_facilities.id ' + util.getConditionalOperator(obj.condition, obj.list[i].id, false, '');
 
                             }
 
                         }
 
                         if (obj.condition == 'IsNot') {
-                            facilityQuery += ' OR studies.provider_group_id IS NULL';
+                            facilityQuery += ' OR studies.ordering_facility_contact_id IS NULL';
                         }
 
                         query += util.getRelationOperator(query) + '(' + facilityQuery + ')';

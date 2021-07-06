@@ -195,7 +195,8 @@ define(['jquery',
                     country_alpha_3_code: app.country_alpha_3_code,
                     province_alpha_2_code: app.province_alpha_2_code,
                     billing_region_code: app.billingRegionCode,
-                    ediClearingHouseList: self.ediClearingHouses
+                    ediClearingHouseList: self.ediClearingHouses,
+                    isMobileBillingEnabled: app.isMobileBillingEnabled
                 }));
                 if(id > 0) {
                     this.model.set({id: id});
@@ -216,6 +217,7 @@ define(['jquery',
                                     $('#chkNameInClaimForm').prop('checked', data.is_new || data.is_name_required);
                                     $('#chkPrintSignature').prop('checked', data.is_new || data.is_signature_required);
                                     $('#chkPrintBillingProviderAddress').prop('checked', data.is_new || data.is_print_billing_provider_address);
+                                    $('#chkSplitClaim').prop('checked', data.is_split_claim_enabled);
                                     if (data.billing_method == 'electronic_billing') {
                                         $('#clearingHouse').show();
                                         $('#defaultPayerDiv').show();
@@ -316,7 +318,8 @@ define(['jquery',
                     "is_default_payer": (app.country_alpha_3_code === "can" && isElectronicBilling) ? $('input:checkbox[name=defaultPayer]').prop('checked') : false,
                     "is_name_required": $('#chkNameInClaimForm').prop('checked'),
                     "is_signature_required": $('#chkPrintSignature').prop('checked'),
-                    "is_print_billing_provider_address": $('#chkPrintBillingProviderAddress').is(':checked')
+                    "is_print_billing_provider_address": $('#chkPrintBillingProviderAddress').is(':checked'),
+                    is_split_claim_enabled: $('#chkSplitClaim').is(':checked')
                 });
                 this.model.save({
                 }, {

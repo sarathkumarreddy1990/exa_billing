@@ -74,8 +74,8 @@ const bcData = {
                             c.id AS claim_number
                             , c.facility_id
                             , bp.can_bc_data_centre_number
-                            , ppg.can_facility_number
-                            , ppg.can_bc_service_clr_code
+                            , pof.can_facility_number
+                            , pof.can_bc_service_clr_code
                             , c.rendering_provider_contact_id
                             , ci.icds
                             , ch.health_services
@@ -112,8 +112,9 @@ const bcData = {
                         INNER JOIN public.patients pp  ON  pp.id = c.patient_id
                         INNER JOIN public.facilities pf ON pf.id = c.facility_id
                         LEFT JOIN billing.providers bp ON bp.id = c.billing_provider_id
-                        LEFT JOIN public.provider_groups ppg ON ppg.id = c.ordering_facility_id
-                        LEFT JOIN public.places_of_service ppos ON ppos.id = ppg.place_of_service_id
+                        LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = c.ordering_facility_contact_id
+                        LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
+                        LEFT JOIN public.places_of_service ppos ON ppos.id = pofc.place_of_service_id
                         LEFT JOIN public.provider_contacts ppc ON ppc.id = c.rendering_provider_contact_id
                         LEFT JOIN public.provider_contacts refp ON refp.id = c.referring_provider_contact_id
                         LEFT JOIN public.get_issuer_details(pp.id, 'uli_phn') phn ON true
@@ -392,7 +393,7 @@ const bcData = {
                             ORDER BY
                                 option ->> 'id' ASC
                         )
-                        SELECT 
+                        SELECT
                             s.id AS study_id
                             , f.time_zone
                             , bp.can_bc_payee_number
@@ -409,7 +410,7 @@ const bcData = {
                             , CASE WHEN COALESCE(cfg.current->>'value','')= '' THEN NULL ELSE to_char((cfg.current->>'value')::DATE, 'YYYYMMDD') END AS installation_date
                         FROM studies s
                         INNER JOIN orders o ON o.id = s.order_id
-                        INNER JOIN facilities f ON s.facility_id = f.id 
+                        INNER JOIN facilities f ON s.facility_id = f.id
                         INNER JOIN patients p ON p.id = s.patient_id
                         INNER JOIN patient_insurances pi ON pi.id = o.primary_patient_insurance_id
                         INNER JOIN insurance_providers ip ON ip.id = pi.insurance_provider_id
@@ -417,12 +418,12 @@ const bcData = {
                         INNER JOIN billing.providers bp ON bp.id = bfs.default_provider_id
                         INNER JOIN public.get_issuer_details(p.id, 'uli_phn') phn ON true
                         LEFT JOIN LATERAL (
-                            SELECT 
+                            SELECT
                                 eligibility_response
-                                , eligibility_dt 
-                            FROM eligibility_log 
+                                , eligibility_dt
+                            FROM eligibility_log
                             WHERE patient_id = s.patient_id AND patient_insurance_id = pi.id
-                            ORDER BY id DESC 
+                            ORDER BY id DESC
                             LIMIT 1
                         ) el ON true
                         LEFT JOIN cfg ON cfg.current->>'id' = 'goLiveDate'
@@ -434,7 +435,7 @@ const bcData = {
                             AND ip.insurance_code = 'MSP'
                             AND (el.eligibility_dt <= to_facility_date(s.facility_id, CURRENT_DATE) OR el.eligibility_dt IS NULL)
                         `;
-        
+
         return await queryRows(sql);
     },
 
@@ -702,7 +703,7 @@ const bcData = {
             ip,
             log_details
         } = params;
-        
+
         let {
             user_id
         } = log_details || {};
@@ -923,7 +924,7 @@ const bcData = {
         return await queryRows(sql);
 
     },
-          
+
     /**
     * getLastUpdatedSequenceByDataCenterNumber - Last sequence number of billing provider
     * @param {string} can_bc_data_centre_number  - billing provider data centre number
