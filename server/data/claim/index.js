@@ -569,6 +569,7 @@ module.exports = {
                     , c.billing_provider_id
                     , c.rendering_provider_contact_id
                     , c.referring_provider_contact_id
+                    , c.ordering_facility_contact_id
                     , c.primary_patient_insurance_id
                     , c.secondary_patient_insurance_id
                     , c.tertiary_patient_insurance_id
