@@ -50,11 +50,10 @@ const getSaveClaimParams = async (params) => {
         userId,
         claim_dt,
     } = params;
+    params.claim_date = params.claim_dt;
 
     const patientInsurances = (await claimsData.getPatientInsurances(params)).rows;
     const lineItems = (await claimsData.getLineItemsDetails(params)).rows;
-
-    const primary_insurance = patientInsurances[0].existing_insurance.find((insurance) => {return insurance.coverage_level === 'primary';});
 
     const settings = await getSettings();
 
@@ -63,6 +62,17 @@ const getSaveClaimParams = async (params) => {
 
     const problems = lineItems[0].problems;
     const claim_details = lineItems[0].claim_details[0];
+    let patBeneficiaryInsurances = patientInsurances[0].beneficiary_details || [];
+
+    patBeneficiaryInsurances = patBeneficiaryInsurances.length && patBeneficiaryInsurances.reduce((acc, value) => {
+        // Group initialization
+        if (!acc[value.coverage_level]) {
+            acc[value.coverage_level] = [];
+        }
+
+        acc[value.coverage_level].push(value);
+        return acc;
+    }, {}) || [];
 
     const charge_details = lineItems[0].charges.map((charge) => {
         charge.allowed_amount = charge.allowed_fee;
@@ -82,6 +92,15 @@ const getSaveClaimParams = async (params) => {
         return charge;
     });
 
+    let insurances = Object.keys(patBeneficiaryInsurances).map((val) => {
+        let insurance = val.length ? patBeneficiaryInsurances[val].sort((data) => { return data.id - data.id; })[0] : {};
+        insurance.claim_patient_insurance_id = insurance.id;
+        insurance.is_update_patient_info = false;
+        insurance.patient_id = patient_id;
+        return insurance;
+    });
+
+    const primary_insurance = insurances.find((val)=> {return val.coverage_level === 'primary';});
     const saveClaimParams = {
         removed_charges: [],
 
@@ -91,14 +110,14 @@ const getSaveClaimParams = async (params) => {
             company_id: companyId,
             billing_class_id: DEFAULT_BILLING_CLASS_ID,
             billing_code_id: DEFAULT_BILLING_CODE_ID,
-            billing_method: primary_insurance.billing_method,
+            billing_method: primary_insurance ? primary_insurance.billing_method : 'patient_payment',
             billing_notes: DEFAULT_BILLING_NOTES,
             billing_provider_id: settings.default_provider_id,
             claim_dt,
             claim_notes: DEFAULT_CLAIM_NOTES,
             claim_status_id: params.claim_status_id,
             created_by: userId,
-            payer_type: DEFAILT_PAYER_TYPE,
+            payer_type: primary_insurance ? DEFAILT_PAYER_TYPE : 'patient',
             patient_id,
             place_of_service_id: isCanadaBilling ? null : claim_details.fac_place_of_service_id,
             claim_charges: charge_details,
@@ -106,14 +125,12 @@ const getSaveClaimParams = async (params) => {
             accident_state: claim_details.accident_state || null,
             service_facility_id: parseInt(claim_details.service_facility_id) || null,
             ordering_facility_id: parseInt(claim_details.ordering_facility_id) || null,
+            can_confidential: false,
+            can_wcb_rejected: false,
+            billing_type: claim_details.billing_type || 'global'
         },
 
-        insurances: patientInsurances[0].existing_insurance.map((insurance) => {
-            insurance.claim_patient_insurance_id = insurance.id;
-            insurance.is_update_patient_info = false;
-            insurance.patient_id = patient_id;
-            return insurance;
-        }),
+        insurances,
 
         claim_icds: problems.map((problem) => {
             return {
@@ -704,7 +721,6 @@ module.exports = {
 
                 WHERE
                     studies.id = ${studyId}
-                    AND patient_insurances.coverage_level = 'primary'
                     AND NOT EXISTS (
                         SELECT 1
                         FROM billing.claims bc
