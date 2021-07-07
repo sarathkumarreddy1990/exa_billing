@@ -239,9 +239,9 @@ define('grid', [
 
                         var resubmissionFlag = app.billingRegionCode === 'can_AB'
                                                && isClaimGrid
-                                               && gridData.claim_resubmission_flag;
+                                               && gridData.claim_resubmission_flag === 'true';
 
-                        if (resubmissionFlag && claimStatus.code !== 'PS') {
+                        if (resubmissionFlag && gridData.hidden_billing_method === 'electronic_billing' && claimStatus.code !== 'PS') {
                             return;
                         }
 
