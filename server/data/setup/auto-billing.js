@@ -100,7 +100,7 @@ const getSaveClaimParams = async (params) => {
         return insurance;
     });
 
-    const primary_insurance = insurances.filter((val)=> {return val.coverage_level === 'primary';})[0];
+    const primary_insurance = insurances.find((val)=> {return val.coverage_level === 'primary';});
     const saveClaimParams = {
         removed_charges: [],
 
