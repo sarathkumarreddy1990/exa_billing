@@ -51,41 +51,51 @@ define([ 'jquery', 'underscore' ], function ( jQuery, _ ) {
     };
 
     var setRightMenuPosition = function ( divObj, e ) {
-        var mouseX = e.clientX
-            , mouseY = e.clientY
-            , $divObj = $(document.getElementById(divObj))
-            , indexHeaderHeight = $(document.getElementById('indexHeader')).height()
-            , boundsX = $window.width()
-            , boundsY = $window.height()
-            , menuWidth = $divObj.outerWidth()
-            , menuHeight = $divObj.outerHeight()
-            , css = {
-            'left': mouseX,
-            'top': mouseY
-        }
-            , classes = [];
+        var $menu = $(document.getElementById(divObj));
+        if (!$menu.children().length) { return; }
 
-        if ( mouseY + menuHeight + 70 > boundsY ) {
-            var cTop = mouseY - menuHeight;
-            if ( cTop < indexHeaderHeight ) {
-                cTop = indexHeaderHeight;
-            }
-            css.top = cTop;
-            classes.push('dropdown-context-up');
+        var mouseX = e.clientX;
+        var mouseY = e.clientY;
+        var boundsX = $(window).width();
+        var boundsY = $(window).height();
+        var menuWidth = $menu.outerWidth();
+        var menuHeight = $menu.outerHeight();
+        var menuOffLeft = (mouseX - menuWidth) < 0;
+        var menuOffRight = (mouseX + menuWidth) > boundsX;
+        var submenuOffRight = (mouseX + menuWidth * 3) > boundsX;
+        var x;
+        var y;
+
+        $menu
+            .show()
+            .removeClass('dropdown-context')
+            .removeClass('dropdown-context-up')
+            .removeClass('dropdown-context-left');
+
+        // Menu Top
+        if (mouseY + menuHeight > boundsY) {
+            var cTop = Math.max(mouseY - menuHeight, ~~$('#indexHeader').height());
+            y = { "top": cTop };
+            $menu.addClass('dropdown-context-up');
+        } else {
+            y = { "top": mouseY };
         }
 
-        if ( mouseX + menuWidth > boundsX && (mouseX - menuWidth) > 0 ) {
-            css.left = mouseX - menuWidth;
-            classes.push('dropdown-context-left');
-        }
-        else {
-            classes.push('dropdown-context');
+        // Menu Left
+        if (menuOffRight && !menuOffLeft) {
+            x = { "left": mouseX - menuWidth };
+            $menu.addClass('dropdown-context-left');
+        } else {
+            x = { "left": mouseX };
+            $menu.addClass('dropdown-context');
         }
 
-        $divObj
-            .removeClass('dropdown-context dropdown-context-up dropdown-context-left')
-            .addClass(classes.join(' '))
-            .css(css);
+        // Display submenu on the left if it would go off the right side of the screen
+        if (submenuOffRight) {
+            $menu.find(".dropdown-submenu").addClass("pull-left");
+        }
+
+        $menu.css($.extend(y, x));
     };
 
     var updateCollection = function ( dataset, something, pager ) {
