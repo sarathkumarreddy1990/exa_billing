@@ -507,8 +507,8 @@ module.exports = {
 										to_char(hospitalization_to_date, 'YYYYMMDD')  as "hospitailizationFromDateFormat",
 										hospitalization_to_date::text as "hospitailizationToDate",
 										to_char(unable_to_work_to_date, 'YYYYMMDD')  as "hospitailizationToDateFormat",
-										group_info->'stateLicenseNo' as "stateLicenseNo",
-                                        group_info->'cliaNumber' as "cliaNumber",
+										pof.state_license_number as "stateLicenseNo",
+										pof.clia_number as "cliaNumber",
                                         (CASE coverage_level
                                             WHEN 'primary' THEN 'P'
                                             WHEN 'secondary' THEN 'S'

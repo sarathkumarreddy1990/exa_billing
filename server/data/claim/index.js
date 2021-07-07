@@ -248,7 +248,7 @@ module.exports = {
                                         INNER JOIN patients p ON p.id= orders.patient_id
                                         LEFT JOIN LATERAL (
                                             SELECT
-                                                ofc.id AS ordering_facility_contact_id
+                                                ofc.id AS ordering_facility_contact_id,
                                                 ofc.location,
                                                 ofc.billing_type,
                                                 of.name AS ordering_facility_name,
