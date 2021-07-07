@@ -45,7 +45,7 @@ module.exports = {
                         , pof.name AS "service_facility_firstName"
                         , pof.npi_number AS "service_facility_npiNo"
                         , pof.state AS "service_facility_state"
-                        , pof.zip_code AS "service_facility_zipCode"
+                        , pof.zip_code AS "service_facility_zip"
 						, pos.id AS "claim_place_of_service_code"
 						, claim_icd.icd_id AS "claim_icd_code1"
 						, CASE  WHEN bc.payer_type = 'primary_insurance' THEN
@@ -180,7 +180,8 @@ module.exports = {
 					LEFT JOIN public.providers ref_pr ON ref_pr.id = ref_pc.provider_id
 					LEFT JOIN public.providers rend_pr ON rend_pr.id = rend_pc.provider_id
 					LEFT JOIN public.places_of_service pos ON pos.id = bc.place_of_service_id
-					LEFT JOIN public.ordering_facilities pof ON pof.id = bp.ordering_facility_id
+					LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = bc.ordering_facility_contact_id
+					LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
 					LEFT JOIN public.patient_insurances p_pi on p_pi.id = bc.primary_patient_insurance_id
 					LEFT JOIN public.patient_insurances s_pi on s_pi.id = bc.secondary_patient_insurance_id
 					LEFT JOIN public.patient_insurances t_pi on t_pi.id = bc.tertiary_patient_insurance_id
