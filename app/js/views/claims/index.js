@@ -5727,7 +5727,7 @@ define(['jquery',
                                     gridData.newPaymentObj.patient_id = _payerIndex.payer_id || paymentRowData.payer_info.payer_id;
                                 } else if (_payerIndex.payer_type === 'POF' || paymentRowData.payer_type === 'ordering_facility') {
                                     gridData.newPaymentObj.payer_type = 'ordering_facility';
-                                    gridData.newPaymentObj.provider_group_id = _payerIndex.payer_id || paymentRowData.payer_info.payer_id;
+                                    gridData.newPaymentObj.ordering_facility_id = _payerIndex.payer_id || paymentRowData.payer_info.payer_id;
                                 } else if (_payerIndex.payer_type === 'RF' || paymentRowData.payer_type === 'ordering_provider') {
                                     gridData.newPaymentObj.payer_type = 'ordering_provider';
                                     gridData.newPaymentObj.provider_contact_id = _payerIndex.payer_id || paymentRowData.payer_info.payer_id;

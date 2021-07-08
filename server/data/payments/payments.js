@@ -203,7 +203,7 @@ module.exports = {
                     , payments.facility_id
                     , patient_id
                     , insurance_provider_id
-                    , payments.provider_group_id
+                    , payments.ordering_facility_id
                     , provider_contact_id
                     , payment_reason_id
                     , amount MONEY
