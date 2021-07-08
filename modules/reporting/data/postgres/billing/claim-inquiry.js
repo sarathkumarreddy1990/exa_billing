@@ -77,7 +77,7 @@ const claimInquiryDataSetQueryTemplate = _.template(`
                 CASE
                   WHEN bc.payer_type = 'primary_insurance' OR bc.payer_type = 'secondary_insurance' OR bc.payer_type = 'tertiary_insurance' THEN ip.insurance_name
                   WHEN bc.payer_type = 'patient'  THEN p.full_name
-                  WHEN bc.payer_type = 'ordering_facility' THEN pg.group_name
+                  WHEN bc.payer_type = 'ordering_facility' THEN pof.name
                   WHEN bc.payer_type = 'referring_provider' THEN pr.full_name
                   ELSE  NULL
                 END AS carrier,
@@ -189,7 +189,7 @@ const claimInquiryDataSetQueryTemplate = _.template(`
             LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = ip.provider_payer_type_id
             LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
             LEFT JOIN public.providers pr ON  pr.id = ppc.provider_id
-            LEFT JOIN public.provider_groups pg ON pg.id = bc.ordering_facility_id
+            LEFT JOIN public.ordering_facilities pof ON pof.id = bc.ordering_facility_contact_id
             WHERE <%= companyId %>
                 <% if(claimDate) { %> AND <%=claimDate%> <%}%>
                 <% if(commentedDt) { %> AND <%=commentedDt%> <%}%>
@@ -337,7 +337,7 @@ const claimInquiryDataSetQueryTemplate1 = _.template(`
                     WHEN bp.payer_type = 'insurance' THEN
                        pip.insurance_name
                     WHEN bp.payer_type = 'ordering_facility' THEN
-                       pg.group_name
+                       pof.name
                     WHEN bp.payer_type = 'ordering_provider' THEN
                        p.full_name
                 END AS comments,
@@ -362,7 +362,7 @@ const claimInquiryDataSetQueryTemplate1 = _.template(`
             INNER JOIN users u on u.id = bp.created_by
             LEFT JOIN public.patients pp on pp.id = bp.patient_id
             LEFT JOIN public.insurance_providers pip on pip.id = bp.insurance_provider_id
-            LEFT JOIN public.provider_groups  pg on pg.id = bp.provider_group_id
+            LEFT JOIN public.ordering_facilities pof ON pof.id = bp.ordering_facility_id
             LEFT JOIN public.provider_contacts  pc on pc.id = bp.provider_contact_id
             LEFT JOIN public.providers p on p.id = pc.provider_id
             GROUP BY

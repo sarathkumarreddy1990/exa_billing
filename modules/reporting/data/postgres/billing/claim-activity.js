@@ -17,7 +17,7 @@ SELECT
     timezone(get_facility_tz(bc.facility_id::integer), bc.claim_dt)::DATE AS claim_date,
     get_full_name(ppref.last_name, ppref.first_name, ppref.middle_initial, null, ppref.suffix) AS referring_physician,
     get_full_name(ppren.last_name, ppren.first_name, ppren.middle_initial, null, ppren.suffix) AS reading_physician,
-    pof.ordering_facility_name AS ordering_facility,
+    pof.name AS ordering_facility,
     f.time_zone AS facility_timezone,
     f.facility_code AS facility_code,
     ordering_facility_contact_id
@@ -29,7 +29,7 @@ FROM
    LEFT JOIN public.providers ppref on ppref.id =pcref.provider_id
    LEFT JOIN public.provider_contacts pcren on pcren.id = bc.rendering_provider_contact_id
    LEFT JOIN public.providers ppren on ppren.id = pcren.provider_id
-   LEFT JOIN public.provider_groups pg on pg.id = bc.ordering_facility_id
+   LEFT JOIN public.ordering_facilities pof ON pof.id = bc.ordering_facility_contact_id
    LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = bc.ordering_facility_contact_id
    LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
    <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
@@ -95,7 +95,7 @@ SELECT
      WHEN bp.payer_type = 'insurance' THEN
            pip.insurance_name
      WHEN bp.payer_type = 'ordering_facility' THEN
-            pof.ordering_facility_name
+           pof.name
      WHEN bp.payer_type = 'ordering_provider' THEN
            p.full_name
     END AS description, --Payment description is payer
@@ -111,7 +111,7 @@ FROM claim_details cd
      INNER JOIN public.users u on u.id = bp.created_by
      LEFT JOIN public.patients pp on pp.id = bp.patient_id
      LEFT JOIN public.insurance_providers pip on pip.id = bp.insurance_provider_id
-     LEFT JOIN public.provider_groups  pg on pg.id = bp.provider_group_id
+     LEFT JOIN public.ordering_facilities pof ON pof.id = bp.ordering_facility_id
      LEFT JOIN public.provider_contacts  pc on pc.id = bp.provider_contact_id
      LEFT JOIN public.providers p on p.id = pc.provider_id
      LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = cd.ordering_facility_contact_id

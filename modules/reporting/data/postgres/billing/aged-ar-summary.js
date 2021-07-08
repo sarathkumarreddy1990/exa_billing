@@ -73,7 +73,7 @@ aged_ar_summary_details AS(
                 WHEN payer_type = 'tertiary_insurance' THEN pip.insurance_name
                 WHEN payer_type = 'referring_provider' THEN  ppr.full_name
                 WHEN payer_type = 'patient' THEN get_full_name(pp.last_name,pp.first_name)
-                WHEN payer_type = 'ordering_facility' THEN ppg.group_name
+                WHEN payer_type = 'ordering_facility' THEN pof.name
             END
        END AS "Payer Name",
     <%} else {%>
@@ -83,7 +83,7 @@ aged_ar_summary_details AS(
           WHEN payer_type = 'tertiary_insurance' THEN pip.insurance_name
           WHEN payer_type = 'referring_provider' THEN  ppr.full_name
           WHEN payer_type = 'patient' THEN get_full_name(pp.last_name,pp.first_name)
-          WHEN payer_type = 'ordering_facility' THEN ppg.group_name
+          WHEN payer_type = 'ordering_facility' THEN pof.name
        END AS "Payer Name",
     <% } %>
     pippt.description AS "Provider Type",
@@ -157,8 +157,8 @@ aged_ar_summary_details AS(
         END
  <% } %>
  LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
- LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
- LEFT JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id
+ LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id 
+ LEFT JOIN public.ordering_facilities pof ON pof.id = bc.ordering_facility_contact_id
  LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
  LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
   <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
@@ -198,7 +198,7 @@ aged_ar_summary_details AS(
              WHEN payer_type = 'tertiary_insurance' THEN pip.insurance_name
              WHEN payer_type = 'referring_provider' THEN  ppr.full_name
              WHEN payer_type = 'patient' THEN get_full_name(pp.last_name,pp.first_name)
-             WHEN payer_type = 'ordering_facility' THEN ppg.group_name
+             WHEN payer_type = 'ordering_facility' THEN pof.name
           END AS "Payer Name",
         pippt.description AS "Provider Type",
         CASE
@@ -272,7 +272,7 @@ aged_ar_summary_details AS(
      <% } %>
     LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
     LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
-    LEFT JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id
+    LEFT JOIN public.ordering_facilities pof ON pof.id = bc.ordering_facility_contact_id
     LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
     LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
     <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>
@@ -406,7 +406,7 @@ aged_ar_summary_details AS(
          <% } %>
         LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
         LEFT JOIN public.insurance_provider_payer_types pippt ON pippt.id = pip.provider_payer_type_id
-        LEFT JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id
+        LEFT JOIN public.ordering_facilities pof ON pof.id = bc.ordering_facility_contact_id
         LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
         LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
         <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>

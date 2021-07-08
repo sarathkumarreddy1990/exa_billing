@@ -90,7 +90,7 @@ charge_details AS (
                             WHEN bp.payer_type = 'insurance' THEN
                                     pip.insurance_name
                             WHEN bp.payer_type = 'ordering_facility' THEN
-                                    pg.group_name
+                                    pof.name
                             WHEN bp.payer_type = 'ordering_provider' THEN
                                     p.full_name
                             END  as payer
@@ -138,7 +138,7 @@ charge_details AS (
                          INNER JOIN billing.get_claim_payments(claim_info.claim_id,false) bgcp ON TRUE
                          LEFT JOIN public.patients pp on pp.id = bp.patient_id
                          LEFT JOIN public.insurance_providers pip on pip.id = bp.insurance_provider_id
-                         LEFT JOIN public.provider_groups  pg on pg.id = bp.provider_group_id
+                         LEFT JOIN public.ordering_facilities pof ON pof.id = bp.ordering_facility_id
                          LEFT JOIN public.provider_contacts  pc on pc.id = bp.provider_contact_id
                          LEFT JOIN public.providers p on p.id = pc.provider_id
                          LEFT JOIN billing.adjustment_codes adj ON adj.id = pa.adjustment_code_id
@@ -156,10 +156,14 @@ charge_details AS (
                         --AND (accounting_entry_type != 'refund_debit' OR adjustment_code_id IS NULL)
                     GROUP BY
                         pa.applied_dt,
-                        bp.id ,
+                        bp.id,
                         pp.account_no,
                         get_full_name(pp.last_name, pp.first_name),
-                        claim_info.claim_id, pp.full_name, pip.insurance_name, pg.group_name, p.full_name,
+                        claim_info.claim_id, 
+                        pp.full_name, 
+                        pip.insurance_name, 
+                        pof.name, 
+                        p.full_name,
                         bgcp.payments_applied_total
 )
 

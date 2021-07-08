@@ -68,7 +68,7 @@ claim_details AS(
                     'phone_no',pp.patient_info->'c1HomePhone')
             WHEN payer_type = 'ordering_facility' THEN
                 json_build_object(
-                    'name',ppg.group_name,
+                    'name',pof.name,
                     'address',ppg.group_info->'AddressLine1',
                     'address2',ppg.group_info->'AddressLine2',
                     'city',ppg.group_info->'City',
@@ -104,7 +104,7 @@ claim_details AS(
                             WHEN payer_type = 'tertiary_insurance' THEN tertiary_patient_insurance_id
                           END
     LEFT JOIN public.insurance_providers pip ON pip.id = ppi.insurance_provider_id
-    LEFT JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id
+    LEFT JOIN public.ordering_facilities pof ON pof.id = bc.ordering_facility_contact_id
     LEFT JOIN public.provider_contacts ppc ON ppc.id = bc.referring_provider_contact_id
     LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
     WHERE
@@ -255,7 +255,7 @@ const api = {
         switch (payerType) {
             case 'ordering_facility':
                 filters.selectDetails = ' bc.ordering_facility_id AS ordering_facility_id, bc.payer_type ';
-                filters.joinCondition = 'INNER JOIN public.provider_groups ppg ON ppg.id = bc.ordering_facility_id';
+                filters.joinCondition = ' INNER public.ordering_facilities pof ON pof.id = bc.ordering_facility_contact_id ';
                 filters.joinQuery = 'INNER JOIN get_payer_details gpd ON gpd.ordering_facility_id = bc.ordering_facility_id AND gpd.payer_type = bc.payer_type';
                 break;
             case 'primary_insurance':
