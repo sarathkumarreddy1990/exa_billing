@@ -19,8 +19,6 @@ SELECT
     get_full_name(ppren.last_name, ppren.first_name, ppren.middle_initial, null, ppren.suffix) AS reading_physician,
     pof.name AS ordering_facility,
     f.time_zone AS facility_timezone,
-    f.facility_code AS facility_code,
-    ordering_facility_contact_id
 FROM
    billing.claims bc
    INNER JOIN public.patients p on p.id = bc.patient_id
@@ -29,7 +27,8 @@ FROM
    LEFT JOIN public.providers ppref on ppref.id =pcref.provider_id
    LEFT JOIN public.provider_contacts pcren on pcren.id = bc.rendering_provider_contact_id
    LEFT JOIN public.providers ppren on ppren.id = pcren.provider_id
-   LEFT JOIN public.ordering_facilities pof ON pof.id = bc.ordering_facility_contact_id
+   LEFT JOIN public.ordering_facility_contacts ofc ON ofc.id = bc.ordering_facility_contact_id
+   LEFT JOIN public.ordering_facilities pof ON pof.id = ofc.ordering_facility_id
    LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = bc.ordering_facility_contact_id
    LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
    <% if (billingProID) { %> INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id <% } %>

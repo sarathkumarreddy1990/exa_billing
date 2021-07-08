@@ -95,7 +95,8 @@ const paymentRealizationRateAnalysisQueryTemplate = _.template(`
           LEFT JOIN providers AS render_provider ON render_provider.id=rendering_pro_contact.id
           LEFT JOIN patient_insurances ON patient_insurances.id = bc.primary_patient_insurance_id
           LEFT JOIN insurance_providers ON insurance_providers.id = patient_insurances.insurance_provider_id
-          LEFT JOIN public.ordering_facilities pof ON pof.id = bc.ordering_facility_contact_id
+          LEFT JOIN public.ordering_facility_contacts ofc ON ofc.id = bc.ordering_facility_contact_id
+          LEFT JOIN public.ordering_facilities pof ON pof.id = ofc.ordering_facility_id
           LEFT JOIN insurance_provider_payer_types ippt ON ippt.id = insurance_providers.provider_payer_type_id
     WHERE
         bgch.charges_bill_fee_total - (
