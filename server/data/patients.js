@@ -39,7 +39,6 @@ module.exports = {
                             patients.rcopia_id,
                             patients.portal_info,
                             patients.portal_activated_dt,
-                            patients.ordering_facilities,
                             vital_signs.more_info->'heightinInches' AS vital_height,
                             vital_signs.more_info->'weightinPounds' AS vital_weight
                         FROM patients

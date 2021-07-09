@@ -131,35 +131,7 @@ module.exports = {
 
         return await query(icd_sql);
     },
-    getProviderGroups: async function (params) {
 
-        let provider_group_q = ` AND (group_code ILIKE '%${params.q}%' OR group_name ILIKE '%${params.q}%' ) `;
-
-        const provider_group_sql = SQL`SELECT
-                                     id
-                                     ,id As provider_group_id
-                                     ,group_code
-                                     ,group_name
-                                     ,group_info
-                                     ,is_active /* provider_groups.is_active */
-                                     ,company_id
-                                     ,COUNT(1) OVER (range unbounded preceding) AS total_records
-                                FROM provider_groups
-                                WHERE
-                                    NOT provider_groups.has_deleted AND (provider_groups.group_type = ${params.groupType}  OR provider_groups.group_type IS NULL)
-                                    AND provider_groups.company_id = ${params.company_id} AND is_active `; // provider_groups.is_active
-
-        if (params.q != '') {
-            provider_group_sql.append(provider_group_q);
-        }
-
-        provider_group_sql.append(SQL` ORDER BY  ${params.sortField} `)
-            .append(params.sortOrder)
-            .append(SQL` LIMIT ${params.pageSize}`)
-            .append(SQL` OFFSET ${((params.page - 1) * params.pageSize)}`);
-
-        return await query(provider_group_sql);
-    },
     getInsurances: async function (params) {
 
         let insurance_q = ` AND (insurance_name ILIKE '%${params.q}%' OR insurance_code ILIKE '%${params.q}%' ) `;
@@ -253,44 +225,6 @@ module.exports = {
             .append(SQL` OFFSET ${((params.page - 1) * params.pageSize)}`);
 
         return await query(sql_patient);
-    },
-
-    getOrderingFacility: async function (params) {
-
-        let facility_q = ` AND (group_code ILIKE '%${params.q}%' OR group_name ILIKE '%${params.q}%' ) `;
-
-        const sqlOrderingFacility = SQL`
-            SELECT
-                id
-                ,id As provider_group_id
-                ,group_code
-                ,group_name
-                ,group_info
-                ,is_active /*provider_groups.is_active  */
-                ,company_id
-                ,(SELECT COUNT(1) FROM provider_groups
-                WHERE
-                    provider_groups.has_deleted = false
-                    AND (provider_groups.group_type = 'OF'  OR provider_groups.group_type IS NULL)
-                    AND provider_groups.company_id = 1 AND is_active = TRUE /* provider_groups.is_active */
-                ) AS total_records
-
-            FROM provider_groups
-            WHERE
-                provider_groups.has_deleted = false
-                AND (provider_groups.group_type = 'OF'  OR provider_groups.group_type IS NULL)
-                AND provider_groups.company_id = 1 AND is_active = TRUE `; // provider_groups.is_active
-
-        if (params.q != '') {
-            sqlOrderingFacility.append(facility_q);
-        }
-
-        sqlOrderingFacility.append(SQL` ORDER BY group_name `)
-            .append(params.sortOrder)
-            .append(SQL` LIMIT ${params.pageSize}`)
-            .append(SQL` OFFSET ${((params.page - 1) * params.pageSize)}`);
-
-        return await query(sqlOrderingFacility);
     },
 
     getUsers: async function (params) {

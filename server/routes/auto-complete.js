@@ -24,11 +24,6 @@ router.get('/icd_codes', async function (req, res) {
     httpHandler.sendRows(req, res, data);
 });
 
-router.get('/provider_group', async function (req, res) {
-    const data = await autoCompleteController.getProviderGroups(req.query);
-    httpHandler.sendRows(req, res, data);
-});
-
 router.get('/insurances', async function (req, res) {
     const data = await autoCompleteController.getInsurances(req.query);
     httpHandler.sendRows(req, res, data);
@@ -36,11 +31,6 @@ router.get('/insurances', async function (req, res) {
 
 router.get('/patients', async function (req, res) {
     const data = await autoCompleteController.getPatients(req.query);
-    httpHandler.sendRows(req, res, data);
-});
-
-router.get('/orderingFacility', async function (req, res) {
-    const data = await autoCompleteController.getOrderingFacility(req.query);
     httpHandler.sendRows(req, res, data);
 });
 

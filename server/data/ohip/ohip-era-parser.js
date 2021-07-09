@@ -192,7 +192,7 @@ module.exports = {
             isERAPayment : true,
             payment_mode : 'eft',
             credit_card_name    : null,
-            provider_group_id   : null,
+            ordering_facility_id : null,
             provider_contact_id : null,
             payment_reason_id   : null,
             logDescription      : 'Payment created via ERA',
