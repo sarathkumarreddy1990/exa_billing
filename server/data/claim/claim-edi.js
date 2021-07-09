@@ -487,7 +487,8 @@ module.exports = {
 										accident_state as  "autoAccidentState",
 										current_illness_date::date as "illnessDate",
 										service_by_outside_lab as "outSideLab",
-                                        account_no as "accountNumber",
+										account_no as "accountNumber",
+										claims.billing_type as "billingType",
                                         (SELECT display_description FROM billing.charges
                                             inner join cpt_codes on cpt_codes.id=cpt_id
                                             WHERE claims.id=charges.claim_id AND display_description ILIKE '%MAMMO%' LIMIT 1) as "mammoStudyDescription",
@@ -538,7 +539,14 @@ module.exports = {
 											provider_info->'NPI' as "NPINO",
 											provider_info->'LicenseNo' as "licenseNo",
 											insurance_provider_details.claim_filing_indicator_code as "claimFilingCode",
-											insurance_name as "payerName"
+											insurance_name as "payerName",
+											rendering_pro_contact.contact_info->'NAME' as "contactName",
+											rendering_pro_contact.contact_info->'ADDR1' as "addressLine1",
+											rendering_pro_contact.contact_info->'ADDR2' as "addressLine2",
+											rendering_pro_contact.contact_info->'CITY' as "city",
+											rendering_pro_contact.contact_info->'STATE' as "state",
+											rendering_pro_contact.contact_info->'ZIP' as "zip",
+											rendering_pro_contact.contact_info->'ZIPPLUS' as "zipPlus"
 											FROM provider_contacts   rendering_pro_contact
 											LEFT JOIN providers as render_provider ON render_provider.id=rendering_pro_contact.provider_id
 											WHERE  rendering_pro_contact.id=claims.rendering_provider_contact_id)

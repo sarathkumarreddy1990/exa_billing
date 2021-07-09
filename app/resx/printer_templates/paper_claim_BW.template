@@ -10,6 +10,8 @@ let claimDet;
 let subscriberDet;
 let serviceFac;
 let patientDet;
+let billType;
+let serviceFacNPI;
 
 function getImage(needCheck) {
     return needCheck ? 'tickImage' : 'clearDot';
@@ -763,11 +765,18 @@ function formatSingleClaim(claimData, servicelineList) {
     patientDet = subscriberDet && subscriberDet.patient && subscriberDet.patient[0] || "";
     claimDet = subscriberDet && subscriberDet.claim && subscriberDet.claim[0] || "";
     serviceFac =  claimDet && claimDet.servicefacility && claimDet.servicefacility[0] || "";
+    renderingProv = claimDet && claimDet.renderingProvider && claimDet.renderingProvider[0] || "";
+    serviceFacNPI = serviceFac && serviceFac.NPINO || "";
     pos = claimDet && claimDet.POS || "";
+    billType = claimDet && claimDet.billingType || "";
 
     if (pos === "12") {
         patientDet.fullName = "PRIVATE HOME" ;
         ServiceFacDet = getAddressDetails(patientDet);
+    } else if (billType.toString().toUpperCase() === "SPLIT") {
+        renderingProv.fullName = renderingProv.lastName+', '+renderingProv.firstName;
+        ServiceFacDet = getAddressDetails(renderingProv);
+        serviceFacNPI = renderingProv && renderingProv.NPINO || "";
     } else {
         ServiceFacDet = getAddressDetails(serviceFac);
     }
@@ -1763,8 +1772,8 @@ function formatSingleClaim(claimData, servicelineList) {
                                 widths:[ 30, 35, 60, 45 ],
                                 body: [
                                     [
-                                        {image: getImage(claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].outSideLab.toString() && claimData.subscriber[0].claim[0].outSideLab.toString().toUpperCase() === "TRUE"), fit: [8, 8]},
-                                        {image: getImage(claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].outSideLab.toString() && claimData.subscriber[0].claim[0].outSideLab.toString().toUpperCase() === "FALSE"), fit: [8, 8]},
+                                        {image: getImage((claimDet.outSideLab.toString() && claimDet.outSideLab.toString().toUpperCase() === "TRUE") || (billType.toString().toUpperCase() === "SPLIT")), fit: [8, 8]},
+                                        {image: getImage((claimDet.outSideLab.toString() && claimDet.outSideLab.toString().toUpperCase() === "FALSE") && (billType.toString().toUpperCase() !== "SPLIT")), fit: [8, 8]},
                                         { text:"", alignment:"center"},
                                         { text:"" , alignment:"center"}
                                     ]
@@ -1944,7 +1953,7 @@ function formatSingleClaim(claimData, servicelineList) {
                                 ]
                             },layout: 'noBorders'
                         },
-                        { text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].servicefacility ? getKeyTrimValue(claimData.subscriber[0].claim[0].servicefacility[0], 'NPINO', 10) : '', margin:[0,-12, 0 ,0] },
+                        { text: getSubstring(serviceFacNPI, 10), margin:[0,-12, 0 ,0] },
                         { text:"", margin:[5, -12,0,0] },
                         { text: claimData.billingProvider && claimData.billingProvider.npiNo ? getKeyTrimValue(claimData.billingProvider, 'npiNo', 10) : '', margin:[10,-12, 0 ,0] },
                         { text: claimData.billingProvider && claimData.billingProvider.payerAssignedProviderID ? getKeyTrimValue(claimData.billingProvider, 'payerAssignedProviderID', 14) : '', margin:[7,-12, 0 ,0], colSpan:2 }, {}

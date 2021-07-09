@@ -11,6 +11,8 @@ let subscriberDet;
 let serviceFacDet = [];
 let serviceFac;
 let patientDet;
+let billType;
+let serviceFacNPI;
 
 function getTick(data, code, fromOthers) {
     if (fromOthers && data && data.subscriber && data.subscriber[0].claimFilingCode !== 'MB' && data.subscriber[0].claimFilingCode !== 'MC' &&
@@ -328,11 +330,18 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
     patientDet = subscriberDet && subscriberDet.patient && subscriberDet.patient[0] || "";
     claimDet = subscriberDet && subscriberDet.claim && subscriberDet.claim[0] || "";
     serviceFac =  claimDet && claimDet.servicefacility && claimDet.servicefacility[0] || "";
+    renderingProv = claimDet && claimDet.renderingProvider && claimDet.renderingProvider[0] || "";
+    serviceFacNPI = serviceFac && serviceFac.NPINO || "";
     pos = claimDet && claimDet.POS || "";
+    billType = claimDet && claimDet.billingType || "";
 
     if (pos === "12") {
         patientDet.fullName = "PRIVATE HOME" ;
-        serviceFacDet = getAddressDetails(patientDet);
+        serviceFacDet = getAddressDetails(patientDet); 
+    } else if (billType.toString().toUpperCase() === "SPLIT") {
+        renderingProv.fullName = renderingProv.lastName+', '+renderingProv.firstName;
+        serviceFacDet = getAddressDetails(renderingProv);
+        serviceFacNPI = renderingProv && renderingProv.NPINO || "";
     } else {
         serviceFacDet = getAddressDetails(serviceFac);
     }
@@ -748,12 +757,10 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                         { text: '', colSpan: 9 },
                         {}, {}, {}, {}, {}, {}, {}, {},
                         {
-                            text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].outSideLab &&
-                                claimData.subscriber[0].claim[0].outSideLab.toString().toUpperCase() === 'TRUE' ? '√' : ' ', alignment: 'center', margin:[-3,0,0,0]
+                            text: ((claimDet.outSideLab && claimDet.outSideLab.toString().toUpperCase() === 'TRUE') || (billType.toString().toUpperCase() === "SPLIT")) ? '√' : ' ', alignment: 'center', margin:[-3,0,0,0]
                         }, {},
                         {
-                            text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].outSideLab.toString() &&
-                            claimData.subscriber[0].claim[0].outSideLab.toString().toUpperCase() === 'FALSE' ? '√' : ' ', alignment: 'center', margin:[-12,0,0,0] },
+                            text: ((claimDet.outSideLab && claimDet.outSideLab.toString().toUpperCase() === 'FALSE') && (billType.toString().toUpperCase() !== "SPLIT")) ? '√' : ' ', alignment: 'center', margin:[-12,0,0,0] },
                         { text: '', colSpan: 3, alignment: 'right' }, {}, {},
                         { text: '', alignment: 'left', colSpan: 2 }, {}
                     ],
@@ -926,10 +933,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
                             (((claimData.subscriber[0].claim[0].claimDate).toString().substring(4,6))+ ' ' +
                                 ((claimData.subscriber[0].claim[0].claimDate).toString().substring(6,8)) + ' ' +
                                 ((claimData.subscriber[0].claim[0].claimDate).toString().substring(2,4))) : '') ,margin:[-30,-10,0,0]},
-                        {
-                            text: claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0] && claimData.subscriber[0].claim[0].servicefacility
-                                && claimData.subscriber[0].claim[0].servicefacility[0].NPINO ? getSubstring(claimData.subscriber[0].claim[0].servicefacility[0].NPINO, 10) : ''
-                        },
+                        { text: getSubstring(serviceFacNPI, 10) },
                         { text: '' },
                         { text: claimData.billingProvider && claimData.billingProvider.npiNo ? getSubstring(claimData.billingProvider.npiNo, 10) : '' },
                         { text: claimData.billingProvider && claimData.billingProvider.payerAssignedProviderID ? getSubstring(claimData.billingProvider.payerAssignedProviderID, 14) : '' }
