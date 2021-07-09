@@ -985,7 +985,7 @@ define([
                                         }
                                     }
 
-                                    $("input:radio[name=Modality][value=" + studyInfoJson.modality.condition + "]").prop('checked', true);
+                                    $("input:radio[name=Modality][id=rbt" + studyInfoJson.modality.condition + "Modality]").prop('checked', true);
                                     for (var j = 0; j < studyInfoJson.modality.list.length; j++) {
                                         $('#listModality option').each(function (i, selected) {
                                             if (studyInfoJson.modality.list[j].id == $(selected).val()) {
