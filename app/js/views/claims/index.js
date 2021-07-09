@@ -3786,7 +3786,7 @@ define(['jquery',
                     can_wcb_rejected: $("#chkwcbRejected").prop('checked') || false,
                     wcb_injury_area_code: self.wcbAreaCodeId || null,
                     wcb_injury_nature_code: self.wcbNatureCodeId || null,
-                    billing_type: app.isMobileBillingEnabled ? self.billing_type : 'global',
+                    billing_type: (app.isMobileBillingEnabled && self.billing_type) || 'global',
                     is_split_claim: app.isMobileBillingEnabled && self.is_split_claim,
                     order_id: self.options && self.options.order_id
                 };
