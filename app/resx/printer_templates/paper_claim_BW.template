@@ -776,7 +776,7 @@ function formatSingleClaim(claimData, servicelineList) {
     } else if (billType.toString().toUpperCase() === "SPLIT") {
         renderingProv.fullName = renderingProv.lastName+', '+renderingProv.firstName;
         ServiceFacDet = getAddressDetails(renderingProv);
-        serviceFacNPI = renderingProv && renderingProv.NPINO||"";
+        serviceFacNPI = renderingProv && renderingProv.NPINO || "";
     } else {
         ServiceFacDet = getAddressDetails(serviceFac);
     }

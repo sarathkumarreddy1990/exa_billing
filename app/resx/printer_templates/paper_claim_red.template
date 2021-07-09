@@ -333,7 +333,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
     renderingProv = claimDet && claimDet.renderingProvider && claimDet.renderingProvider[0] || "";
     serviceFacNPI = serviceFac && serviceFac.NPINO || "";
     pos = claimDet && claimDet.POS || "";
-    billType = claimDet && claimDet.billingType||"";
+    billType = claimDet && claimDet.billingType || "";
 
     if (pos === "12") {
         patientDet.fullName = "PRIVATE HOME" ;
@@ -341,7 +341,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
     } else if (billType.toString().toUpperCase() === "SPLIT") {
         renderingProv.fullName = renderingProv.lastName+', '+renderingProv.firstName;
         serviceFacDet = getAddressDetails(renderingProv);
-        serviceFacNPI = renderingProv && renderingProv.NPINO||"";
+        serviceFacNPI = renderingProv && renderingProv.NPINO || "";
     } else {
         serviceFacDet = getAddressDetails(serviceFac);
     }
