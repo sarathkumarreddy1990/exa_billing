@@ -584,10 +584,6 @@ const api = {
 
         if (tables.orders || imp_orders){ r += ' INNER JOIN orders ON studies.order_id = orders.id ';}
 
-        if (tables.provider_groups) {
-            r += 'LEFT JOIN public.provider_groups ON provider_groups.id = studies.provider_group_id ';
-        }
-
         if (tables.billing_codes || tables.billing_classes) {
             r += ` LEFT JOIN (
                         SELECT
