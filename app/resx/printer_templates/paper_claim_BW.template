@@ -768,7 +768,7 @@ function formatSingleClaim(claimData, servicelineList) {
     renderingProv = claimDet && claimDet.renderingProvider && claimDet.renderingProvider[0] || "";
     serviceFacNPI = serviceFac && serviceFac.NPINO || "";
     pos = claimDet && claimDet.POS || "";
-    billType = claimDet && claimDet.billingType||"";
+    billType = claimDet && claimDet.billingType || "";
 
     if (pos === "12") {
         patientDet.fullName = "PRIVATE HOME" ;

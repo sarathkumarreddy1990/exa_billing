@@ -539,7 +539,7 @@ module.exports = {
 											provider_info->'NPI' as "NPINO",
 											provider_info->'LicenseNo' as "licenseNo",
 											insurance_provider_details.claim_filing_indicator_code as "claimFilingCode",
-											insurance_name as "payerName"
+											insurance_name as "payerName",
 											rendering_pro_contact.contact_info->'NAME' as "contactName",
 											rendering_pro_contact.contact_info->'ADDR1' as "addressLine1",
 											rendering_pro_contact.contact_info->'ADDR2' as "addressLine2",
