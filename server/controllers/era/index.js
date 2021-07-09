@@ -69,7 +69,7 @@ const createDir = function (fileStorePath, filePath) {
  *                      invalid: true if file is invalid with fileString missed any one of the given substrings or doesn't contains any remittance data,
  *                      errCode: warning/error code to be shown to the user
  *                      errMsg: message to be logged
- *                   } 
+ *                   }
  */
 const isInvalidFile = (fileString, billingRegionCode) => {
     let output = {
@@ -376,7 +376,7 @@ module.exports = {
 
                 return message;
             }
-            
+
             const eraResponseJson = await ediConnect.parseEra(templateName, eraRequestText);
 
             if (params.status != 'applypayments') {
@@ -486,7 +486,7 @@ module.exports = {
         payerDetails.facility_id = params.facility_id;
         payerDetails.patient_id = null;
         payerDetails.insurance_provider_id = payerDetails.payer_id;
-        payerDetails.provider_group_id = null;
+        payerDetails.ordering_facility_id = null;
         payerDetails.provider_contact_id = null;
         payerDetails.payment_reason_id = null;
         payerDetails.amount = 0;
@@ -620,7 +620,7 @@ module.exports = {
         payerDetails.created_by = params.created_by || null;
         payerDetails.patient_id = null;
         payerDetails.insurance_provider_id = params.insurance_provider_id || null;  // ToDo:: params from UI
-        payerDetails.provider_group_id = null;
+        payerDetails.ordering_facility_id = null;
         payerDetails.provider_contact_id = null;
         payerDetails.payment_reason_id = null;
         payerDetails.amount = 0;
