@@ -1057,8 +1057,8 @@ module.exports = {
                             patients p
                         INNER JOIN patient_facilities pfc ON pfc.patient_id = p.id
                         INNER JOIN facilities f ON f.id = pfc.facility_id AND pfc.is_default
-                        INNER JOIN public.ordering_facilities pof ON pof.id = p.ordering_facility_id
-                        INNER JOIN public.ordering_facility_contacts pofc ON pofc.ordering_facility_id = pof.id AND pofc.is_default IS TRUE
+                        LEFT JOIN public.ordering_facilities pof ON pof.id = p.default_ordering_facility_id
+                        LEFT JOIN public.ordering_facility_contacts pofc ON pofc.ordering_facility_id = pof.id AND pofc.is_primary IS TRUE
                         LEFT JOIN provider_contacts fac_prov_cont ON f.facility_info->'rendering_provider_id'::text = fac_prov_cont.id::text
                         LEFT JOIN providers fac_prov ON fac_prov.id = fac_prov_cont.provider_id
                         LEFT JOIN billing.facility_settings fs ON fs.facility_id = pfc.facility_id AND pfc.is_default
