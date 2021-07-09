@@ -1808,10 +1808,10 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                             var authorized = false;
                             var i = 0;
                             for ( ; i < authorizations.length; i++ ) {
-                                if ( authorizations[ i ].status === "NeedAuthorization" ) {
+                                if ( authorizations[ i ].status === "needAuthorization" ) {
                                     needsAuth = true;
                                 }
-                                if ( authorizations[ i ].status === "Authorized" ) {
+                                if ( authorizations[ i ].status === "authorized" ) {
                                     authorized = true;
                                 }
 
