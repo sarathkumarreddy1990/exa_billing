@@ -227,7 +227,11 @@ module.exports = {
                                         ordering_facility.id AS ordering_facility_id,
                                         ordering_facility.ordering_facility_name,
                                         ordering_facility.location,
-                                        ordering_facility.billing_type,
+                                        (CASE 
+                                            WHEN (SELECT split_types IS NOT NULL FROM census_fee_charges_details) 
+                                            THEN 'split' 
+                                            ELSE ordering_facility.billing_type 
+                                        END) AS billing_type,
                                         orders.order_status AS order_status,
                                         order_info -> 'pos_type_code' AS pos_type_code,
                                         facilities.place_of_service_id AS fac_place_of_service_id,
