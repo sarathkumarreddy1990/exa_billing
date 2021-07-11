@@ -1772,8 +1772,8 @@ function formatSingleClaim(claimData, servicelineList) {
                                 widths:[ 30, 35, 60, 45 ],
                                 body: [
                                     [
-                                        {image: getImage((claimDet.outSideLab.toString() && claimDet.outSideLab.toString().toUpperCase() === "TRUE") || (billType.toString().toUpperCase() === "SPLIT")), fit: [8, 8]},
-                                        {image: getImage((claimDet.outSideLab.toString() && claimDet.outSideLab.toString().toUpperCase() === "FALSE") && (billType.toString().toUpperCase() !== "SPLIT")), fit: [8, 8]},
+                                        {image: getImage((claimDet.outSideLab && claimDet.outSideLab.toString().toUpperCase() === "TRUE") || (billType.toString().toUpperCase() === "SPLIT")), fit: [8, 8]},
+                                        {image: getImage((claimDet.outSideLab && claimDet.outSideLab.toString().toUpperCase() === "FALSE") && (billType.toString().toUpperCase() !== "SPLIT")), fit: [8, 8]},
                                         { text:"", alignment:"center"},
                                         { text:"" , alignment:"center"}
                                     ]
