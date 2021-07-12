@@ -290,9 +290,8 @@ module.exports = {
                                                 pc.can_locum_arrangement AS can_ahs_locum_arrangement_provider
                                             FROM
                                                 public.studies s
-                                                LEFT JOIN public.study_transcriptions st ON st.study_id = s.id
                                                 LEFT JOIN public.study_cpt cpt ON cpt.study_id = s.id
-                                                LEFT JOIN provider_contacts pc ON pc.id = st.approving_provider_id
+                                                LEFT JOIN provider_contacts pc ON pc.id = s.reading_physician_id
                                                 LEFT JOIN providers p ON p.id = pc.provider_id
                                                 WHERE s.id = ${firstStudyId}
                                                 ORDER BY cpt.id ASC LIMIT 1
