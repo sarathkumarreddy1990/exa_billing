@@ -52,27 +52,27 @@ const BatchHeaderEncoder = function(options) {
         return util.formatFill(' ', 6);
     };
 
-    const getGroupNumber = (data, context) => {
+    const getGroupNumber = (data) => {
         // mandatory
         // field length: 4
         // format: alphanumeric
         // returns the Group, Laboratory Licence, or Independent Health Facility Number
         // '0000' for solo Health Care Provider/Private Physiotherapy Facility
-        return util.formatAlphanumeric(context.groupNumber, 4);
+        return util.formatAlphanumeric(data.derivedGroupNumber, 4);
     };
-    const getProviderNumber = (data, context) => {
+    const getProviderNumber = (data) => {
         // mandatory
         // field length: 6
         // format: numeric
-        return util.formatAlphanumeric(context.providerNumber, 6);
+        return util.formatAlphanumeric(data.providerNumber, 6);
     };
-    const getSpecialtyCode = (data, context) => {
+    const getSpecialtyCode = (data) => {
         // mandatory
         // field length: 2
         // format: numeric
         // TODO what to do with '10', '11', '14', '21', '25', '32', '36-40',
         // '42, '43', '45', '65-69', '72-74', '77-79', '82-84', '86-89', '90-99'
-        return util.formatAlphanumeric(context.specialtyCode, 2);
+        return util.formatAlphanumeric(data.specialtyCode, 2);
     };
     const getReservedForMOHUse = () => {
         // mandatory
@@ -83,18 +83,18 @@ const BatchHeaderEncoder = function(options) {
 
 
     return {
-        encode: (batchData, context) => {
+        encode: (batchData, context, batchHeader) => {
             let batchHeaderRecord = '';
 
             batchHeaderRecord += getTransactionIdentifier();
             batchHeaderRecord += getRecordIdentification();
             batchHeaderRecord += getTechSpecReleaseIdentifier();
             batchHeaderRecord += getMOHOfficeCode('U');
-            batchHeaderRecord += getBatchIdentification(context);
+            batchHeaderRecord += getBatchIdentification(batchHeader);
             batchHeaderRecord += getOperatorNumber();
-            batchHeaderRecord += getGroupNumber(batchData, context);
-            batchHeaderRecord += getProviderNumber(batchData, context);
-            batchHeaderRecord += getSpecialtyCode(batchData, context);
+            batchHeaderRecord += getGroupNumber(batchHeader);
+            batchHeaderRecord += getProviderNumber(batchHeader);
+            batchHeaderRecord += getSpecialtyCode(batchHeader);
             batchHeaderRecord += getReservedForMOHUse();
 
             return batchHeaderRecord + constants.endOfRecord;
