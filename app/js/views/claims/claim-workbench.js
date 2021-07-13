@@ -855,7 +855,7 @@ define(['jquery',
             ohipResponse: function(data) {
                 var errData = null;
 
-                if (data.results && data.results.length && !data.error && !data.faults.length) {
+                if (data.results && data.results.length && !data.error && !data.faults) {
                     return commonjs.showStatus('Claims submitted successfully');
                 }
                 if (data.validationMessages && data.validationMessages.length) {
