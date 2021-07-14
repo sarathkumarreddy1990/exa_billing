@@ -400,6 +400,71 @@ module.exports = {
     sandbox: (args, callback) => {
         getNewResourceIDs(args, callback);
     },
+    /**
+     * Change status of claims to claim submission queue after validation got success
+     * @param {object} req
+     * @param {function} callback
+     * @returns rows of claims which got updated
+     */
+    submitClaimsToQueue: async (req, callback) => {
+        let params = req.body;
+
+        if (params.isAllClaims) {
+            params.claimIds = await claimWorkBenchController.getClaimsForEDI(params);
+        }
+
+        let claimIds = params.claimIds.split(',');
+        let validationData = await validateClaimsData.validateEDIClaimCreation(claimIds);
+        validationData = _.get(validationData, 'rows[0]', {});
+
+        let excludeClaimStatus = ['PS', 'SUBF'];
+        let claimStatus = _.difference(_.uniq(validationData.claim_status), excludeClaimStatus); // (Pending Submission - PS) removed to check for other claim status availability
+        // Claim validation
+        if (validationData) {
+
+            const validationResponse = {
+                validationMessages: [],
+            };
+            if (claimStatus.length) {
+                validationResponse.validationMessages.push('All claims must be validated before submission');
+            }
+            if (validationData.unique_billing_method_count > 1) {
+                validationResponse.validationMessages.push('Please select claims with same type of billing method');
+            }
+            if (validationData.invalid_claim_count > 0) {
+                validationResponse.validationMessages.push('Claim date should not be greater than the current date');
+            }
+
+            if (validationResponse.validationMessages.length) {
+                return callback(null, validationResponse);
+            }
+        }
+
+        // 1 - convert args.claimIds to claim data (getClaimsData)
+        const claimData = await billingApi.getClaimsData({ claimIds });
+        const validationMessages = claimData.reduce((validations, claim) => {
+            if (!claim.claim_totalCharge) {
+                validations.push(`Claim ${claim.claim_id} has no billable charges`);
+            }
+
+            return validations;
+        }, []);
+
+        if (validationMessages.length) {
+            return callback(null, { validationMessages });
+        }
+
+        // updating the claims status to submission queue
+        let {rows = []} = await billingApi.updateClaimStatus({
+            claimIds: claimIds,
+            claimStatusCode: 'CQ',
+            claimNote: 'Electronically submitted through MCEDT-EBS',
+            userId: params.userId,
+        });
+
+        return callback(null, {results: rows});
+
+    },
 
     // takes an array of Claim IDs
     submitClaims: async (req, callback) => {

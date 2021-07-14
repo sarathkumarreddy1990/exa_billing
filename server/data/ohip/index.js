@@ -398,6 +398,8 @@ const updateClaimStatus = async (args) => {
             submitted_dt = (SELECT * FROM submissionDate)
         WHERE
             id = ANY(ARRAY[${claimIds}::int[]])
+        RETURNING id
+            , claim_status_id
     `;
 
     return (await query(sql.text, sql.values));

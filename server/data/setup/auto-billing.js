@@ -59,6 +59,7 @@ const getSaveClaimParams = async (params) => {
 
     const isCanadaBilling = settings.country_alpha_3_code === 'can';
     const isAlbertaBilling = isCanadaBilling && settings.province_alpha_2_code === 'AB';
+    const isOhipBilling = isCanadaBilling && settings.province_alpha_2_code === 'ON';
 
     const problems = lineItems[0].problems;
     const claim_details = lineItems[0].claim_details[0];
@@ -73,7 +74,7 @@ const getSaveClaimParams = async (params) => {
         acc[value.coverage_level].push(value);
         return acc;
     }, {}) || [];
-    
+
     let insurances = Object.keys(patBeneficiaryInsurances).map((val) => {
         let insurance = val.length ? patBeneficiaryInsurances[val].sort((data) => { return data.id - data.id; })[0] : {};
         insurance.claim_patient_insurance_id = insurance.id;
@@ -88,6 +89,7 @@ const getSaveClaimParams = async (params) => {
         removed_charges: [],
 
         is_alberta_billing: isAlbertaBilling,
+        is_ohip_billing: isOhipBilling,
 
         claims: {
             company_id: companyId,
