@@ -21,8 +21,7 @@ class AckDownloads {
                 providerNumber: providerNumber
             }, function (err, res) {
                 logger.logInfo(err || res);                
-            })
-
+            });
         } catch (error) {
             logger.logError(`Error connecting OHIP Endpoint for provider ${providerNumber} - ${JSON.stringify(error)}`);
             return false;
