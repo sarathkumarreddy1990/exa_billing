@@ -31,9 +31,7 @@ class AckDownloads {
     async start() {
         logger.info(`Initialized ${SERVICE_NAME} service`);
 
-        let company_id = 0;
-
-        company_id = await shared.getCompanyId();
+        let company_id = await shared.getCompanyId();
 
         if (!company_id) {
             logger.logError(`[${SERVICE_NAME}] - No company_id to use for connection to billing - `, e);
@@ -51,8 +49,7 @@ class AckDownloads {
             this.cronTicks = 0;
             logger.info('Started Fetching Details....');
 
-            let providerNumbersList = [];
-            providerNumbersList = await shared.getProviderNumbers(company_id);
+            let providerNumbersList = await shared.getProviderNumbers(company_id);
 
             if (!providerNumbersList.length) {
                 logger.logError(`[${SERVICE_NAME}] - No Provider Numbers available for the providers to continue...`);
