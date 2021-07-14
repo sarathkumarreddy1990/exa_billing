@@ -6,6 +6,7 @@ const {
 } = require('./constants');
 const config = require('../config');
 const moment = require('moment');
+const { query, SQL } = require('../../server/data/index');
 
 const {
     networkInterfaces
@@ -248,5 +249,65 @@ module.exports = {
         }
 
         return user_options.split('~')[index] ||  '';
+    },
+
+    getProviderNumbers: async (companyId) => {
+        const sql = SQL`
+            SELECT
+                DISTINCT(
+                    COALESCE(TRIM(prov_rad.provider_info -> 'NPI'), '')
+                ) AS "providerNumber"
+            FROM public.providers prov_rad
+            WHERE prov_rad.provider_type = 'PR'
+            AND NULLIF(TRIM(prov_rad.provider_info -> 'NPI'), '') IS NOT NULL
+            AND company_id = ${companyId}
+            AND prov_rad.deleted_dt IS NULL
+            AND prov_rad.is_active
+            UNION
+            SELECT
+                DISTINCT(
+                    COALESCE(TRIM(f.facility_info -> 'npino'), '')
+                ) AS "providerNumber"
+            FROM public.facilities f
+            WHERE NULLIF(TRIM(f.facility_info -> 'npino'), '') IS NOT NULL
+            AND company_id = ${companyId}
+            AND f.deleted_dt IS NULL
+            AND f.is_active
+            UNION
+            SELECT
+                DISTINCT(
+                    COALESCE(TRIM(f.facility_info -> 'professionalGroupNumber'), '')
+                ) AS "providerNumber"
+            FROM public.facilities f
+            WHERE NULLIF(TRIM(f.facility_info -> 'professionalGroupNumber'), '') IS NOT NULL
+            AND company_id = ${companyId}
+            AND f.deleted_dt IS NULL
+            AND f.is_active`;
+
+        let { rows = [] } = await query(sql.text, sql.values);
+
+        return rows;
+    },
+
+    getCompanyId: async () => {
+
+        const sql = SQL`
+            SELECT
+                id
+            FROM
+                companies
+            WHERE
+                companies.deleted_dt IS NULL
+        `;
+
+        const redisConfig = config.get(config.keys.RedisStore);
+
+        if (redisConfig.companyCode) {
+            sql.append(SQL` AND trim(lower(company_code)) = ${redisConfig.companyCode.toLowerCase().trim()} `);
+        }
+
+        let { rows: [{ id } = {}] } = await query(sql.text, sql.values);
+
+        return id;
     }
 };
