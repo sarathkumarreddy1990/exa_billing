@@ -66,7 +66,11 @@
     },
     "editMessage": {
         "startPos": 82,
-        "fieldLength": 40
+        "fieldLength": 39
+    },
+    "batchStatus": {
+        "startPos": 121,
+        "fieldLength": 1
     },
     "mohReserved": {
         "startPos": 122,
