@@ -20,22 +20,24 @@
             <div class="col">
                 <div class="form-group form-inline">
                     <div class="col-form-label">
-                        <label class="control-label field-required" for="txtDateRange" i18n="report.reportFilter.arCutoffDate" />
+                        <label class="control-label field-required" for="txtDateRange" i18n="report.reportFilter.arCutoffDate"></label>
                     </div>
                     <div>
                         <div id="divFromDate" class="input-group">
-                            <input type="text" id="txtFromDate" class="form-control maskDateLocale" required="required" name="fromDate" i18np="dateFormat">
+                            <input type="text" id="txtFromDate" class="form-control maskDateLocale" required="required" name="fromDate" i18np="dateFormat"/>
                             <span class="input-group-addon add-on datePickerSpanReport">
                                 <i class="fa fa-calendar"></i>
                             </span>
                         </div>
                     </div>
                 </div>
-                <div class="pt-2 ml-3">
-                    <label class="checkbox-inline" for="incPat">
-                        <input type="checkbox" id="incPat" value="IncludePatient" style="display: inline">
-                        <span i18n="report.reportFilter.reportByPrimaryPayer"> </span>
-                    </label>
+                <div class="form-group form-inline">
+                    <div class="pt-3">
+                        <label class="checkbox-inline" for="incPat">
+                            <input type="checkbox" id="incPat" value="IncludePatient" style="display: inline"/>
+                            <span class="pl-2" i18n="report.reportFilter.reportByPrimaryPayer"> </span>
+                        </label>
+                    </div>
                 </div>
             </div>
             <div class="col">
@@ -52,11 +54,13 @@
                         </select>
                     </div>
                 </div>
-                <div class="pt-2 ml-3">
-                    <label class="checkbox-inline" for="excCreBal">
-                        <input type="checkbox" id="excCreBal" value="ExcludeCreditBalance" style="display: inline">
-                        <span i18n="report.reportFilter.excludeCreditBalance"> </span>
-                    </label>
+                <div class="form-group form-inline">
+                    <div class="pt-3">
+                        <label class="checkbox-inline" for="excCreBal">
+                            <input type="checkbox" id="excCreBal" value="ExcludeCreditBalance" style="display: inline"/>
+                            <span class="pl-2" i18n="report.reportFilter.excludeCreditBalance"> </span>
+                        </label>
+                    </div>
                 </div>
             </div>
             <div class="col">
@@ -64,14 +68,14 @@
                     <div class="col-form-label" class="multiselect">
                         <label class="control-label" i18n="report.reportFilter.billingProvider">
                         </label>
-                        <select id="ddlBillingProvider" multiple="multiple" />
+                        <select id="ddlBillingProvider" multiple="multiple"></select>
                     </div>
                 </div>
             </div>
             <div class="col">
                 <div class="form-group form-inline">
                     <div>
-                        <label class="control-label" i18n="report.reportFilter.selectInsurance" />
+                        <label class="control-label" i18n="report.reportFilter.selectInsurance"></label>
                         <div class="input-group">
                             <select id="ddlInsuranceOption" class="form-control form-control-lg">
                                 <option value="All">All Insurance</option>

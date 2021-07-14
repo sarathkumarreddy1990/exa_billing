@@ -37,9 +37,9 @@
         <div class="col">
             <div class="form-group form-inline">
                 <div class="col-form-content">
-                    <label class="control-label field-required" for="txtDateRangeFromTo" i18n="report.reportFilter.accountingDate" />
+                    <label class="control-label field-required" for="txtDateRangeFromTo" i18n="report.reportFilter.accountingDate"></label>
                     <div class="input-group">
-                        <input type="text" id="txtDateRangeFromTo" class="form-control" required="required" name="dateRange">
+                        <input type="text" id="txtDateRangeFromTo" class="form-control" required="required" name="dateRange"/>
                         <span class="input-group-addon add-on datePickerSpanReport">
                             <i class="fa fa-calendar"></i>
                         </span>
@@ -52,7 +52,7 @@
         <div class="col">
             <div class="form-group form-inline">
                 <div class="col-form-content" class="multiselect">
-                    <label class="control-label" i18n="billing.payments.paidLocation" />
+                    <label class="control-label" i18n="billing.payments.paidLocation"></label>
                     <div class="input-group">
                         <select id="ddlFacilityFilter" multiple="multiple">
                             <% _.each(facilities.toJSON(), function(facility) { %>
@@ -68,7 +68,7 @@
         <div class="col">
             <div class="form-group form-inline">
                 <div class="col-form-content" class="multiselect">
-                    <label class="control-label" i18n="report.reportFilter.facilities" />
+                    <label class="control-label" i18n="report.reportFilter.facilities"></label>
                     <div class="input-group">
                         <select id="ddlFacilityLocationFilter" multiple="multiple">
                             <% _.each(facilities.toJSON(), function(facility) { %>
@@ -84,9 +84,9 @@
         <div class="col">
             <div class="form-group form-inline">
                 <div class="col-form-content" class="multiselect">
-                    <label class="control-label" i18n="report.reportFilter.billingProvider" />
+                    <label class="control-label" i18n="report.reportFilter.billingProvider"></label>
                     <div id="divReportDate" class="input-group">
-                        <select id="ddlBillingProvider" multiple="multiple" />
+                        <select id="ddlBillingProvider" multiple="multiple"></select>
                     </div>
                 </div>
             </div>
@@ -181,7 +181,7 @@
         <div class="col">
             <div class="form-group form-inline">
                 <div class="col-form-content">
-                    <label class="inline field-chk" i18n="report.reportFilter.adjustmentCode" />
+                    <label class="inline field-chk" i18n="report.reportFilter.adjustmentCode"></label>
                     <div class="input-group">
                         <select id="ddlAdjustmentCodeOption" class="form-control form-control-lg">
                             <option value="All" i18n="report.reportFilter.allPayments">All Payments</option>
