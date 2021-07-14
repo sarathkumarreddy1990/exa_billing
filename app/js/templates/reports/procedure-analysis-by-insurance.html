@@ -46,7 +46,7 @@
         <div class="col-3">
             <div class="form-group form-inline">
                 <div class="col-form-label" class="multiselect">
-                    <label class="control-label" i18n="report.reportFilter.facilities" />
+                    <label class="control-label" i18n="report.reportFilter.facilities"></label>
                     <select id="ddlFacilityFilter" multiple="multiple">
                         <% _.each(facilities.toJSON(), function(facility) { %>
                             <option value='<%= facility.id %>'>
@@ -62,16 +62,16 @@
             <div class="form-group form-inline">
 
                 <div class="col-form-label" class="multiselect">
-                    <label class="control-label" i18n="report.reportFilter.billingProvider" />
+                    <label class="control-label" i18n="report.reportFilter.billingProvider">
                     </label>
-                    <select id="ddlBillingProvider" multiple="multiple" />
+                    <select id="ddlBillingProvider" multiple="multiple"></select>
                 </div>
             </div>
         </div>
 
         <div class="col-2">
             <div class="form-group form-inline">
-                <label class="control-label" i18n="report.reportFilter.procedureBy" />
+                <label class="control-label" i18n="report.reportFilter.procedureBy">
                 </label>
                 <div class="selectBox ddl" id='showBillingProCheckboxes'>
                     <select id="ddlProcedureBySelectBoxes">
@@ -120,7 +120,7 @@
             </div>
             <div class="form-group form-inline" id="procedureByCPTCodes">
                 <div class="col-form-label" style="max-width: 110px">
-                    <label id="cptLabel" class="inline field-chk" i18n="shared.fields.cptCodes" />
+                    <label id="cptLabel" class="inline field-chk" i18n="shared.fields.cptCodes"></label>
                 </div>
                 <div class="form-content">
                     <div class="input-group" class="divListBox">

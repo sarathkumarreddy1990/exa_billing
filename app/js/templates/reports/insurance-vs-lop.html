@@ -6,7 +6,7 @@
         <div class="col">
             <div class="form-group form-inline">
                 <div class="col-form-label">
-                    <label class="control-label field-required" for="txtDateRange" i18n="billing.claims.claimDate" />
+                    <label class="control-label field-required" for="txtDateRange" i18n="billing.claims.claimDate"></label>
                 </div>
                 <div>
                     <div id="divReportDate" class="input-group">
@@ -22,7 +22,7 @@
         <div class="col">
             <div class="form-group form-inline">
                 <div class="col-form-label" class="multiselect">
-                    <label class="control-label" i18n="report.reportFilter.facilities" />
+                    <label class="control-label" i18n="report.reportFilter.facilities"></label>
                     <select id="ddlFacilityFilter" multiple="multiple">
                         <% _.each(facilities.toJSON(), function(facility) { %>
                             <option value='<%= facility.id %>'>
@@ -36,16 +36,16 @@
         <div class="col">
             <div class="form-group form-inline">
                 <div class="col-form-label" class="multiselect">
-                    <label class="control-label" i18n="report.reportFilter.billingProvider" />
-                    <select id="ddlBillingProvider" multiple="multiple" />
+                    <label class="control-label" i18n="report.reportFilter.billingProvider"></label>
+                    <select id="ddlBillingProvider" multiple="multiple"></select>
                 </div>
             </div>
         </div>
         <div class="col">
             <div class="form-group form-inline">
                 <div class="col-form-label" class="multiselect">
-                    <label class="control-label" i18n="report.reportFilter.studyStatus" />
-                    <select id="ddlStudyStatus" multiple="multiple" />
+                    <label class="control-label" i18n="report.reportFilter.studyStatus"></label>
+                    <select id="ddlStudyStatus" multiple="multiple"></select>
                 </div>
             </div>
         </div>
