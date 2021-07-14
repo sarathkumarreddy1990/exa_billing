@@ -3,7 +3,7 @@ const cronJob = require('cron').CronJob;
 const ohip = require('./index');
 const shared = require('../../server/shared');
 
-const SERVICE_NAME = `OHIP Response Files`;
+const SERVICE_NAME = process.env.SERVICE_NAME || `OHIP Response Files`;
 
 class AckDownloads {
 
@@ -30,7 +30,7 @@ class AckDownloads {
     };
 
     async start() {
-        logger.info(` Initialized ${process.env.SERVICE_NAME} service`);
+        logger.info(`Initialized ${SERVICE_NAME} service`);
 
         let company_id = 0;
 
@@ -43,15 +43,8 @@ class AckDownloads {
 
         new cronJob(this.cronExpression, async () => {
             if (this.inProgress) {
-                this.cronTicks++;
 
-                if (this.cronTicks >= this.forceRestartTicks) {
-                    logger.info(`Exceeding idle time. Restarting service..`);
-                    this.inProgress = false;
-                    this.cronTicks = 0;
-                    process.exit();
-                }
-
+                logger.logInfo(`${SERVICE_NAME} Initiated download process...`);
                 return;
             }
 
@@ -64,7 +57,7 @@ class AckDownloads {
 
             if (!providerNumbersList.length) {
                 logger.logError(`[${SERVICE_NAME}] - No Provider Numbers available for the providers to continue...`);
-                inProgress = false;
+                this.inProgress = false;
                 return false;
             }
   
@@ -72,10 +65,7 @@ class AckDownloads {
                 await this.startProcess(details.providerNumber);
             }
 
-            const sleepTimer = setInterval(() => {
-                clearInterval(sleepTimer);
-                this.inProgress = false;
-            }, this.restartInterval);
+            this.inProgress = false;
 
         }, null, true);
     }
