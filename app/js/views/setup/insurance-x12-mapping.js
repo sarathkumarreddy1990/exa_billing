@@ -141,6 +141,7 @@ define(['jquery',
                         },
                         {
                             name: 'payer_edi_code',
+                            hidden: app.country_alpha_3_code === "can",
                             "stype": "select",
                             searchoptions: { value: payerEDICode },
                             formatter: self.changePayerEDICode

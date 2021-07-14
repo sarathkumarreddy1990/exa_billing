@@ -3906,6 +3906,7 @@ define(['jquery',
                     removed_charges: claim_model.removed_charges,
                     is_alberta_billing: app.billingRegionCode === 'can_AB',
                     isMobileBillingEnabled: app.isMobileBillingEnabled,
+                    is_ohip_billing: app.billingRegionCode === 'can_ON',
                     study_cpt_id: claim_model.ref_charge_id || 0
                 });
 

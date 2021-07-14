@@ -75,6 +75,7 @@ module.exports = {
     CLAIM_STATUS_REJECTED_DEFAULT: 'R',
     CLAIM_STATUS_PENDING_PAYMENT_DEFAULT: 'PP',
     CLAIM_STATUS_DENIED_DEFAULT: 'D',
+    CLAIM_STATUS_BATCH_REJECTED_DEFAULT: 'BR',
 
     MONTH_CODE_JANUARY: 65, // 'January' as a processing cycle month code
 

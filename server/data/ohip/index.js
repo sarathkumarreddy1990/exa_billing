@@ -27,6 +27,7 @@ const {
     CLAIM_STATUS_REJECTED_DEFAULT,
     CLAIM_STATUS_PENDING_PAYMENT_DEFAULT,
     CLAIM_STATUS_DENIED_DEFAULT,
+    CLAIM_STATUS_BATCH_REJECTED_DEFAULT
 
 } = require('./../../../modules/ohip/constants');
 
@@ -49,6 +50,8 @@ const getDatePath = () => {
     return path.join(...moment().format('YYYY/MM/DD').split('/'));
 };
 
+const queryMakers = require('./../query-maker-map');
+const generator = queryMakers.get('datetime');
 /**
  * const getFileType - determines a value for the file_type field of a
  * record in the edi_files table based on a filename or OHIP resource type.
@@ -157,15 +160,21 @@ const getFileStore = async (args) => {
  */
 const storeFile = async (args) => {
 
-    const {
+    let {
         filename: originalFilename,
-        data,
+        file_data,
         isTransient,
         appendFileSequence,
         fileSequenceOffset,
-        resource_id,
+        resource_id = null,
+        groupNumber,
+        providerNumber,
+        providerSpeciality,
+        batchSequenceNumber,
+        derivedGroupNumber
     } = args;
 
+    let data = file_data.length && file_data[0].data || '';
     const exaFileType = getFileType(args);
 
 
@@ -210,41 +219,63 @@ const storeFile = async (args) => {
     }
 
     const stats = fs.statSync(fileInfo.absolutePath);
+
     const md5Hash = crypto.createHash('MD5').update(data, 'utf8').digest('hex');
 
-    const sql = `
-        INSERT INTO billing.edi_files (
-            company_id,
-            file_store_id,
-            created_dt,
-            status,
-            file_type,
-            file_path,
-            file_size,
-            file_md5,
-            uploaded_file_name,
-            resource_no
-        )
-        VALUES(
-            1
-            ,${filestore.id}
-            ,now()
-            ,'pending'
-            ,'${exaFileType}'
-            ,'${filePath}'
-            ,${stats.size}
-            ,'${md5Hash}'
-            ,'${filename}'
-            ,nullif('${resource_id}', 'undefined')
-        )
-        RETURNING id
-    `;
+    // inserting the data into edi files table
+    const sql = SQL`
+                        WITH files AS (
+                            INSERT INTO billing.edi_files (
+                                company_id,
+                                file_store_id,
+                                created_dt,
+                                status,
+                                file_type,
+                                file_path,
+                                file_size,
+                                file_md5,
+                                uploaded_file_name,
+                                resource_no
+                            )
+                            VALUES(
+                                1
+                                ,${filestore.id}
+                                ,now()
+                                ,'pending'
+                                ,${exaFileType}::TEXT
+                                ,${filePath}::TEXT
+                                ,${stats.size}::BIGINT
+                                ,${md5Hash}::TEXT
+                                ,${filename}::TEXT
+                                ,nullif(${resource_id}, 'undefined')
+                            )
+                            RETURNING id
+                            )
+                            
+                            INSERT INTO billing.edi_file_batches  (
+                                edi_file_id,
+                                provider_number,
+                                group_number,
+                                sequence_number,
+                                speciality_code,
+                                error_data
+                            ) SELECT
+                                id
+                                , ${providerNumber}
+                                , ${derivedGroupNumber}
+                                , ${batchSequenceNumber}
+                                , ${providerSpeciality}
+                                , '{}'::JSONB
+                            FROM files
+                            RETURNING id, edi_file_id
+                        `;
 
-    const dbResults = (await query(sql, [])).rows;
+    const dbResults = (await query(sql.text, sql.values)).rows;
 
-    fileInfo.edi_file_id = dbResults[0].id;
-
+    fileInfo.edi_file_id = dbResults[0].edi_file_id;
+    fileInfo.edi_file_batch_id = dbResults[0].id;
     return fileInfo;
+
 };
 
 const getResourceIDs = async (args) => {
@@ -316,7 +347,7 @@ const loadFile = async (args) => {
         root_directory,
         file_path,
         uploaded_file_name
-    }
+    };
 };
 
 
@@ -324,6 +355,7 @@ const updateFileStatus = async (args) => {
     const {
         files,
         status,
+        errors = []
     } = args;
 
     const fileIds = files.map((file) => {
@@ -345,6 +377,7 @@ const updateFileStatus = async (args) => {
         SET
             status=${status}
             , resource_no=(select coalesce (ef.resource_no, tempTbl.resource_id))  -- we never update resourceIDs
+            , error_data = ${JSON.stringify(errors)}::JSONB
         FROM
             tempTbl
         WHERE
@@ -397,6 +430,8 @@ const updateClaimStatus = async (args) => {
             submitted_dt = (SELECT * FROM submissionDate)
         WHERE
             id = ANY(ARRAY[${claimIds}::int[]])
+        RETURNING id
+            , claim_status_id
     `;
 
     return (await query(sql.text, sql.values));
@@ -412,8 +447,11 @@ const applyClaimSubmission = async (args) => {
 
     const {
         edi_file_id,
-        batches,    // an array of objects: {claimIds:[Number], batchSequenceNumber:Number}
+        edi_file_batch_id,
+        file_data,    // an array of objects: {claimIds:[Number], batchSequenceNumber:Number}
     } = args;
+
+    let batches = file_data[0].batches || [];
 
     batches.forEach(async (batch) => {
         const {
@@ -425,12 +463,14 @@ const applyClaimSubmission = async (args) => {
             INSERT INTO billing.edi_file_claims (
                 edi_file_id,
                 claim_id,
-                batch_number
+                batch_number,
+                edi_file_batch_id
             )
             SELECT
                 ${edi_file_id},
                 UNNEST(${claimIds}::int[]),
-                ${sprintf(`%'04s`, batchSequenceNumber)}
+                ${sprintf(`%'04s`, batchSequenceNumber)},
+                ${edi_file_batch_id}
             RETURNING id
         `;
 
@@ -551,7 +591,16 @@ const applyBatchEditReport = async (args) => {
         parsedResponseFile,
     } = args;
 
-    const batchCreateDate = moment(parsedResponseFile[0].batchCreateDate, 'YYYYMMDD').format('YYYY-MM-DD');
+    const {
+        batchCreateDate,
+        batchStatus,
+        batchSequenceNumber,
+        providerNumber,
+        groupNumber
+    } = parsedResponseFile[0] || {};
+
+    const createdDate = moment(batchCreateDate, 'YYYYMMDD').format('YYYY-MM-DD');
+    const claimStatus = (batchStatus === 'R') ? CLAIM_STATUS_BATCH_REJECTED_DEFAULT : CLAIM_STATUS_PENDING_PAYMENT_DEFAULT;
 
     const sql = SQL`
         WITH related_submission_files AS (
@@ -560,11 +609,15 @@ const applyBatchEditReport = async (args) => {
                 efc.claim_id AS claim_id
             FROM billing.edi_files ef
             INNER JOIN billing.edi_file_claims efc ON ef.id = efc.edi_file_id
+            INNER JOIN billing.edi_file_batches efb ON efb.edi_file_id = ef.id
             WHERE
                 ef.file_type = 'can_ohip_h'
                 AND ef.status = 'success'
-                AND ef.created_dt::date = ${batchCreateDate}
-                AND efc.batch_number = ${parsedResponseFile[0].batchSequenceNumber}
+                AND ef.created_dt::date = ${createdDate}
+                AND efb.sequence_number = ${batchSequenceNumber}
+                AND efb.provider_number = ${providerNumber}
+                AND efb.group_number = ${groupNumber}
+                AND NOT did_not_process
                 ORDER BY ef.id DESC
         ),
         insert_related_file_cte AS (
@@ -589,7 +642,7 @@ const applyBatchEditReport = async (args) => {
 
     if (dbResults && dbResults.length) {
         await updateClaimStatus({
-            claimStatusCode: CLAIM_STATUS_PENDING_PAYMENT_DEFAULT,  // Pending Payment
+            claimStatusCode: claimStatus,  // Batch Rejected or Pending Payment
             claimIds: dbResults.map((claim_file) => {
                 return claim_file.claim_id;
             }),
@@ -617,7 +670,7 @@ const applyErrorReport = async (args) => {
     } = args;
 
 
-    const deniedStatus = CLAIM_STATUS_DENIED_DEFAULT;
+    const deniedStatus = CLAIM_STATUS_REJECTED_DEFAULT;
     const processDate = new Date();
 
     const claimIds = parsedResponseFile.reduce((prfResults, prf) => {
@@ -709,6 +762,20 @@ const applyErrorReport = async (args) => {
                 null
             RETURNING
                 *
+        ), update_process AS (
+            -- update process status to check whether the claim processed or not
+            UPDATE
+                billing.edi_file_claims efc
+            SET
+                did_not_process = true
+            WHERE
+                efc.edi_file_id = ${responseFileId}
+            AND
+                efc.claim_id = ANY(SELECT id FROM claim)
+            AND
+                NOT efc.did_not_process
+            RETURNING
+                id
         )
         SELECT
             original_file.id as submission_file_id
@@ -752,7 +819,6 @@ const OHIPDataAPI = {
     getResourceIDs,
 
     getOHIPConfiguration: async (args) => {
-
         const {
             muid,
         } = args || {};
@@ -764,6 +830,7 @@ const OHIPDataAPI = {
                 const paramParts = param.split('=');
                 ohipConfig[paramParts[0].trim()] = paramParts[1].trim();
             }
+
             return ohipConfig;
         }, {
             //
@@ -828,25 +895,68 @@ const OHIPDataAPI = {
         return;
     },
 
-    getClaimsData: async (args) => {
+    getSequenceNumber: async (providerNumber, groupNumber, specialityCode) => {
+        const sql = SQL`
+            (
+                SELECT
+                    COALESCE((NULLIF(befb.sequence_number, '')::BIGINT + 1), '0') AS sequence_number
+                FROM billing.edi_files bef
+                LEFT JOIN billing.edi_file_batches befb ON befb.edi_file_id = bef.id
+                WHERE befb.provider_number = ${providerNumber}
+                AND befb.group_number = ${groupNumber}
+                AND befb.speciality_code = ${specialityCode}
+                AND bef.created_dt::DATE = CURRENT_DATE
+                ORDER BY befb.id DESC
+            )
+            UNION ALL
+            SELECT '0'::BIGINT AS sequence_number
+            LIMIT 1
+        `;
 
+        let rows = (await query(sql.text, sql.values)).rows || [];
+        return rows.length && rows[0] || {'sequence_number': 0};
+
+    },
+
+    getClaimsData: async (args) => {
         const {
-            claimIds,
+            claimIds = [],
+            submissionLimit,
         } = args;
+
         let file_path = path.join(__dirname, '../../resx/speciality_codes.json');
         let speciality_codes = fs.readFileSync(file_path, 'utf8');
+        let whereQuery = '';
+        let limitQuery = '';
+
+        if (claimIds.length) {
+            whereQuery = SQL` bc.id = ANY (${claimIds}) `;
+        } else {
+            whereQuery = SQL` bc.rendering_provider_contact_id IS NOT NULL
+                   AND bc.billing_method = 'electronic_billing'
+                   AND claim_types.charge_type IS NOT NULL
+                   AND bcs.code = 'CQ' `;
+
+            limitQuery = SQL`LIMIT ${submissionLimit || 100}`;
+        }
+
         const sql = SQL`
             WITH speciality_codes AS (
                 SELECT * FROM json_each_text(${JSON.parse(speciality_codes)})
             )
             SELECT
                 bc.id AS claim_id,
+                bc.facility_id AS claim_facility_id,
                 bc.billing_method,
+                bc.can_ohip_manual_review_indicator AS "manualReviewIndicator",
                 bc.id AS "accountingNumber",
                 bc.can_ohip_manual_review_indicator AS "manualReviewIndicator",
                 claim_notes AS "claimNotes",
-                npi_no AS "groupNumber",    -- this sucks
-                rend_pr.provider_info -> 'NPI' AS "providerNumber",
+                bc.rendering_provider_contact_id,
+                NULLIF((pf.facility_info->'npino'), '') AS "groupNumber",
+                NULLIF((pf.facility_info->'professionalGroupNumber'), '') AS "professionalGroupNumber",
+                NULLIF((rend_pr.provider_info -> 'NPI'), '') AS "providerNumber",
+                rend_pr.specialities AS rendering_provider_specialities,
                 (
                     SELECT json_agg(item)
                     FROM (
@@ -857,7 +967,7 @@ const OHIPDataAPI = {
                     WHERE value = ANY(rend_pr.specialities)
                     ) item
                 ) AS "specialtyCodes",
-                33 AS "specialtyCode",  -- NOTE this is only meant to be a temporary workaround
+                33 AS "defaultSpecialtyCode",  -- NOTE this is only meant to be a temporary workaround
                 (
                     SELECT row_to_json(insurance_details) FROM (
                     SELECT
@@ -878,12 +988,14 @@ const OHIPDataAPI = {
                             (bch.bill_fee * bch.units) AS "feeSubmitted",
                             bch.units AS "numberOfServices",
                             charge_dt AS "serviceDate",
-                            billing.get_charge_icds (bch.id) AS diagnosticCodes
+                            billing.get_charge_icds (bch.id) AS diagnosticCodes,
+                            pcc.charge_type
                         FROM billing.charges bch
                         INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
                         WHERE bch.claim_id = bc.id AND NOT bch.is_excluded
                     ) charge_items
                 ) items,
+                claim_types.charge_type AS claim_type,
                 pp.full_name AS "patientName",
                 pp.patient_info -> 'c1State' AS "provinceCode",               -- TODO this should be coming from the patient_insurances table
                 pp.patient_info->'c1AddressLine1' AS "patientAddress",
@@ -892,8 +1004,7 @@ const OHIPDataAPI = {
                 bp.name AS "billing_pro_firstName",
                 bp.state AS "billing_pro_state",
                 bp.zip_code AS "billing_pro_zip",
-                CASE WHEN (SELECT charges_bill_fee_total FROM billing.get_claim_totals(bc.id)) > 0::money
-                    THEN (SELECT charges_bill_fee_total FROM billing.get_claim_totals(bc.id)) ELSE null END AS "claim_totalCharge",
+                NULLIF(bgct.charges_bill_fee_total, 0::MONEY) AS "claim_totalCharge",
                 pp.patient_info->'c1AddressLine1' AS "patient_address1",
                 pp.patient_info->'c1City' AS "patient_city",
                 pp.birth_date::text AS "patient_dob",
@@ -912,24 +1023,36 @@ const OHIPDataAPI = {
                 'HOP' AS "serviceLocationIndicator",
                 reff_pr.provider_info -> 'NPI' AS "referringProviderNumber",
                 'P' AS "payee",
-                'HOP' AS "masterNumber",
+                '' AS "masterNumber",
                 get_full_name(pp.last_name,pp.first_name) AS "patientName",
                 'IHF' AS "serviceLocationIndicator",
                 ppos.code AS place_of_service
             FROM billing.claims bc
+            INNER JOIN billing.claim_status bcs ON bcs.id = bc.claim_status_id
             LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = bc.ordering_facility_contact_id
             LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
             INNER JOIN public.companies pc ON pc.id = bc.company_id
             INNER JOIN public.patients pp ON pp.id = bc.patient_id
             INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
             INNER JOIN public.facilities pf ON pf.id = bc.facility_id
+            INNER JOIN billing.get_claim_totals(bc.id) bgct ON TRUE
             LEFT JOIN public.places_of_service ppos ON ppos.id = pf.place_of_service_id
+            LEFT JOIN public.provider_groups pg ON pg.id = bc.ordering_facility_id
             LEFT JOIN public.provider_contacts rend_ppc ON rend_ppc.id = bc.rendering_provider_contact_id
             LEFT JOIN public.providers rend_pr ON rend_pr.id = rend_ppc.provider_id
             LEFT JOIN public.provider_contacts reff_ppc ON reff_ppc.id = bc.referring_provider_contact_id
             LEFT JOIN public.providers reff_pr ON reff_pr.id = reff_ppc.provider_id
-            WHERE bc.id = ANY (${claimIds})
-            ORDER BY bc.id DESC`;
+            LEFT JOIN LATERAL(
+                SELECT
+                    pcc.charge_type
+                FROM billing.charges bch
+                INNER JOIN public.cpt_codes pcc ON pcc.id = bch.cpt_id
+                WHERE bch.claim_id = bc.id AND NOT bch.is_excluded
+                ORDER BY bch.id DESC LIMIT 1
+            ) claim_types ON TRUE
+            WHERE`.append(whereQuery)
+            .append(SQL` ORDER BY bc.id DESC `)
+            .append(limitQuery);
 
         return (await query(sql.text, sql.values)).rows;
     },
@@ -946,6 +1069,7 @@ const OHIPDataAPI = {
         let whereQuery = [];
         let filterCondition = '';
         let paymentIds = [];
+        let dateArgs = { options: { isCompanyBase: true} };
         params.sortOrder = params.sortOrder || ' ASC';
         params.sortField = params.sortField == 'id' ? ' ef.id ' : params.sortField;
         let {
@@ -958,7 +1082,9 @@ const OHIPDataAPI = {
             pageNo,
             pageSize,
             uploaded_file_name,
-            payment_id
+            payment_id,
+            file_name,
+            file_type
         } = params;
 
         whereQuery.push(` ef.file_type != 'EOB' `);
@@ -967,8 +1093,12 @@ const OHIPDataAPI = {
             whereQuery.push(` ef.id = ${id} `);
         }
 
-        if (uploaded_file_name) {
-            whereQuery.push(` ef.uploaded_file_name ILIKE '%${uploaded_file_name}%' `);
+        if (file_name) {
+            whereQuery.push(` ef.uploaded_file_name ILIKE '%${file_name}%' `);
+        }
+
+        if (file_type) {
+            whereQuery.push(` ef.file_type ILIKE '%${file_type}%' `);
         }
 
         if (size) {
@@ -976,7 +1106,11 @@ const OHIPDataAPI = {
         }
 
         if (updated_date_time) {
-            whereQuery.push(` ef.created_dt::date = '${updated_date_time}'::date`);
+            const statusDateFilter = generator('ef.created_dt', updated_date_time, dateArgs);
+
+            if (statusDateFilter) {
+                whereQuery.push(statusDateFilter);
+            }
         }
 
         if (current_status) {
@@ -1009,6 +1143,7 @@ const OHIPDataAPI = {
                     COUNT(1) OVER (range unbounded preceding) AS total_records
                 FROM
                     billing.edi_files ef
+                    LEFT JOIN companies ON companies.id = ef.company_id
                     LEFT JOIN LATERAL (
                         SELECT
                             array_agg(efp.payment_id) as payment_id
@@ -1050,7 +1185,6 @@ const OHIPDataAPI = {
             .append(SQL` OFFSET ${((pageNo * pageSize) - pageSize)}`);
 
         return await query(sql);
-
     },
 
     saveEligibilityLog: async (params) => {

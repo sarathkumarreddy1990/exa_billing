@@ -1,8 +1,8 @@
-const ws = require('ws.js');
+const ws = require('../ws.js/index.js');
 const _ = require('lodash');
-const utils = require('ws.js/lib/utils');
-const writer = require('ws.js/lib/handlers/client/mtom/mime-writer.js');
-const reader = require('ws.js/lib/handlers/client/mtom/mime-reader.js');
+const utils = require('../ws.js/lib/utils');
+const writer = require('../ws.js/lib/handlers/client/mtom/mime-writer.js');
+const reader = require('../ws.js/lib/handlers/client/mtom/mime-reader.js');
 const {
     select,
 } = require('xpath');
@@ -180,7 +180,7 @@ ws.Xenc.prototype.send = function(ctx, callback) {
 
         const responseString = typeof ctx.response === `string`
             ? ctx.response
-            : ctx.response.toString();
+            : ctx.response && ctx.response.toString() || '';
         const doc = new dom().parseFromString(responseString);
         const bodyNode = select("//*[local-name(.)='Body']", doc)[0];
 

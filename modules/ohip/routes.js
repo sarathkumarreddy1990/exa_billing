@@ -25,7 +25,7 @@ module.exports = function () {
         // req.body.user_id = req.body.userId;
         // const data = await claimWorkbenchController.getData(req.body);
         // req.body.claimIds = _.map(data.rows, 'claim_id');
-        ohip.submitClaims(req, (submitErr, submitResponse) => {
+        ohip.submitClaimsToQueue(req, (submitErr, submitResponse) => {
             return httpHandler.send(req, res, submitErr || submitResponse);
         });
     });

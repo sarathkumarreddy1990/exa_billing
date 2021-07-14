@@ -59,6 +59,7 @@ const getSaveClaimParams = async (params) => {
 
     const isCanadaBilling = settings.country_alpha_3_code === 'can';
     const isAlbertaBilling = isCanadaBilling && settings.province_alpha_2_code === 'AB';
+    const isOhipBilling = isCanadaBilling && settings.province_alpha_2_code === 'ON';
 
     const problems = lineItems[0].problems;
     const claim_details = lineItems[0].claim_details[0];
@@ -105,6 +106,7 @@ const getSaveClaimParams = async (params) => {
         removed_charges: [],
 
         is_alberta_billing: isAlbertaBilling,
+        is_ohip_billing: isOhipBilling,
 
         claims: {
             company_id: companyId,
@@ -132,6 +134,24 @@ const getSaveClaimParams = async (params) => {
 
         insurances,
 
+        charges: lineItems[0].charges.map((charge) => {
+            charge.allowed_amount = charge.allowed_fee;
+            charge.modifier1_id = charge.m1;
+            charge.modifier2_id = charge.m2;
+            charge.modifier3_id = charge.m3;
+            charge.modifier4_id = charge.m4;
+            charge.charge_dt = charge.study_dt;
+            charge.created_by = userId;
+            charge.pointer1 = getPointer(problems[0]);
+            charge.pointer2 = getPointer(problems[1]);
+            charge.pointer3 = getPointer(problems[2]);
+            charge.pointer4 = getPointer(problems[3]);
+            charge.is_excluded = CHARGE_IS_EXCLUDED;
+            charge.is_canada_billing = isCanadaBilling;
+            charge.is_custom_bill_fee = false;
+            return charge;
+        }),
+
         claim_icds: problems.map((problem) => {
             return {
                 id: null,
@@ -158,7 +178,7 @@ const getSaveClaimParams = async (params) => {
         saveClaimParams.claims.can_ahs_pay_to_code = 'BAPY';
         saveClaimParams.claims.can_ahs_business_arrangement = saveClaimParams.claims.can_ahs_business_arrangement_facility || null;
     }
-    
+
     saveClaimParams.claims = [saveClaimParams.claims];
     return saveClaimParams;
 };

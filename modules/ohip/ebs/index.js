@@ -120,7 +120,7 @@ const EBSConnector = function(config) {
 
         const isHCV = (service === HCV_REAL_TIME);
 
-        const serviceUserMUID = config.serviceUserMUID;
+        const serviceUserMUID = serviceParams.providerNumber || config.serviceUserMUID;
 
         const url = isHCV ? hcvServiceEndpoint : edtServiceEndpoint;
         logger.debug('EBS request context url', url);
@@ -176,7 +176,7 @@ const EBSConnector = function(config) {
 
             chunk(uploads, chunkSize).forEach((chunk, chunkIndex, chunks) => {
 
-                const ctx = createContext(EDT_UPLOAD, {uploads: chunk});
+                const ctx = createContext(EDT_UPLOAD, {uploads: chunk, providerNumber: chunk[0].providerNumber});
 
                 chunk.forEach((upload, uploadIndex) => {
                     ws.addAttachment(
@@ -218,6 +218,7 @@ const EBSConnector = function(config) {
 
             const {
                 resourceIDs,
+                providerNumber
             } = args;
 
             const auditInfo = [];
@@ -226,8 +227,8 @@ const EBSConnector = function(config) {
 
             chunk(resourceIDs, SUBMIT_MAX).forEach((chunk, index, chunks) => {
 
-                const ctx = createContext(EDT_SUBMIT, {resourceIDs: chunk});
-
+                const ctx = createContext(EDT_SUBMIT, {resourceIDs: chunk, providerNumber});
+                
                 return ws.send(handlers, ctx, (ctx) => {
 
                     const {
@@ -257,6 +258,7 @@ const EBSConnector = function(config) {
         [EDT_INFO]: (args, callback) => {
             const {
                 resourceIDs,
+                providerNumber,
             } = args;
 
             const faults = [];
@@ -267,7 +269,7 @@ const EBSConnector = function(config) {
 
                 // TODO remove this cludgy hack after Conformance Testing is over
 
-                const ctx = createContext(EDT_INFO, {resourceIDs: (chunk[0] === '-1') ? [] : chunk});
+                const ctx = createContext(EDT_INFO, {resourceIDs: (chunk[0] === '-1') ? [] : chunk, providerNumber});
 
                 return ws.send(handlers, ctx, (ctx) => {
 
@@ -297,12 +299,13 @@ const EBSConnector = function(config) {
         },
 
         [EDT_LIST]: (args, callback) => {
-            const {
+            let {
                 resourceType,
                 status,
                 pageNo,
+                providerNumber,
             } = args;
-            const ctx = createContext(EDT_LIST, {resourceType, status, pageNo});
+            const ctx = createContext(EDT_LIST, {resourceType, status, pageNo, providerNumber});
 
             const auditInfo = [];
             const results = [];
@@ -332,9 +335,10 @@ const EBSConnector = function(config) {
         },
 
         [EDT_DOWNLOAD]: (args, callback) => {
-            const {
+            let {
                 resourceIDs,
                 unsafe,
+                providerNumber,
             } = args;
 
             const auditInfo = [];
@@ -345,7 +349,7 @@ const EBSConnector = function(config) {
 
             chunk(resourceIDs, chunkSize).forEach((chunk, chunkIndex, chunks) => {
 
-                const ctx = createContext(EDT_DOWNLOAD, {resourceIDs: chunk});
+                const ctx = createContext(EDT_DOWNLOAD, {resourceIDs: chunk, providerNumber});
 
                 return ws.send(handlers, ctx, (ctx) => {
 

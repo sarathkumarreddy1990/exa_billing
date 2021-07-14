@@ -1231,21 +1231,9 @@ define(['jquery',
             *  DESC : Check payment & adjustment amount is should be equal with order balance and payer_type === 'patient' for Canadian config.
             */
 
-            overPaymentValidation: function (source) {
+            overPaymentValidation: function () {
                 var self = this;
-                var orderBalance = $('#lblBalanceNew').text() || '0.00';
-                var currentBalance = parseFloat(orderBalance.replace(/[,()$'"]/g, '')) || 0;
-
                 self.payer_type = self.isFromClaim ? self.claimPaymentObj.payer_type : self.payer_type;
-
-                if (currentBalance !== 0
-                    && app.country_alpha_3_code === 'can'
-                    && self.payer_type === 'patient'
-                    && source !== 'PaidInFull') {
-                    commonjs.showWarning('messages.warning.payments.amountValidation');
-                    commonjs.hideLoading();
-                    return false;
-                }
                 return true;
             },
 
@@ -2495,7 +2483,7 @@ define(['jquery',
                     var totalPayment = _.reduce(line_items,function(m,x) { return m + x.payment; }, 0);
                     var totalAdjustment = _.reduce(line_items,function(m,x) { return m + x.adjustment; }, 0);
 
-                    if (!self.overPaymentValidation(source)) {
+                    if (!self.overPaymentValidation()) {
                         return false;
                     }
 
