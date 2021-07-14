@@ -26,16 +26,20 @@ class Submissions {
             this.inProgress = true;
             this.cronTicks = 0;
             logger.info('Started Fetching Details....');
+            try {
+                await submitClaims((err, res) => {
+                    if (err) {
+                        logger.error(`Error in claim submission ${err}`);
+                    }
 
-            await submitClaims((err, res) => {
-                if (err) {
-                    logger.error(`Error in claim submission ${err}`);
-                }
+                    logger.logInfo(`${process.env.SERVICE_NAME} service successful`);
 
-                logger.logInfo(`${process.env.SERVICE_NAME} service successful`);
-
+                    this.inProgress = false;
+                });
+            } catch (e) {
+                logger.error(`Error in claim submission ${e}`);
                 this.inProgress = false;
-            });
+            }
 
         }, null, true);
     }
