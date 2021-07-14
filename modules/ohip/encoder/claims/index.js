@@ -7,7 +7,7 @@ const {
 const constants = require('./../../constants').encoder;
 const util = require('./../util');
 const data = require('../../../../server/data/ohip');
-const logger = require('../../../logger');
+const logger = require('../../../../logger');
 
 const BatchHeaderEncoder = require('./batchHeaderEncoder');
 const ClaimHeader1Encoder = require('./claimHeader1Encoder');
@@ -157,7 +157,7 @@ module.exports = function (options) {
                 return sequence_number;
             }
             catch (e) {
-                logger.error('Error occurred while fetching sequence number', e);
+                logger.logError(`Error occurred while fetching sequence number ${e}`);
             }
         }
     };
@@ -174,18 +174,18 @@ module.exports = function (options) {
 
                 return await reduce(groupBy(claimData, 'claim_type'), async (groupResult, groupClaims, claim_type) => {
 
-                    logger.debug('claim type received...', claim_type);
+                    logger.logInfo('claim type received...', claim_type);
 
                     await reduce(groupBy(groupClaims, 'rendering_provider_contact_id'), async (providerResult, providerClaims, rendering_provider_contact_id) => {
 
-                        logger.debug('Provider contact id received...', rendering_provider_contact_id);
+                        logger.logInfo('Provider contact id received...', rendering_provider_contact_id);
 
                         let providerNumber = providerClaims && providerClaims[0].providerNumber;
                         let providerSpeciality = specilityMapping[providerNumber] || providerClaims[0].defaultSpecialtyCode;
 
                         await reduce(groupBy(providerClaims, 'claim_facility_id'), async (facilityResult, facilityClaims, claim_facility_id) => {
 
-                            logger.debug('Received claims of facility...', claim_facility_id);
+                            logger.logInfo('Received claims of facility...', claim_facility_id);
 
                             let groupNumber = facilityClaims && facilityClaims[0].groupNumber;
                             let professionalGroupNumber = facilityClaims && facilityClaims[0].professionalGroupNumber;
@@ -204,7 +204,7 @@ module.exports = function (options) {
                             }
                             else if (claim_type == 'professional') {
                                 if (['27', '76', '85', '90'].includes(providerSpeciality)) {
-                                    derivedGroupNumber = '0000';
+                                    derivedGroupNumber = '0000' || groupNumber;
                                     derivedMOHId = professionalGroupNumber;
                                 }
                                 else {
@@ -213,7 +213,7 @@ module.exports = function (options) {
                                 }
                             }
 
-                            const sequence_number = await getSequenceNumber(sequenceNumberRef, providerNumber, groupNumber, providerSpeciality)
+                            const sequence_number = await getSequenceNumber(sequenceNumberRef, providerNumber, derivedGroupNumber, providerSpeciality)
 
                             let claimIds = facilityClaims.map((claim) => {
                                 return claim.claim_id
@@ -251,7 +251,7 @@ module.exports = function (options) {
                 }, {});
             }
             catch (e) {
-                logger.error('Error occured while file/claim encoding', e);
+                logger.logError('Error occured while file/claim encoding', e);
             }
         },
 

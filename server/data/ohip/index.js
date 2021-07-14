@@ -171,6 +171,7 @@ const storeFile = async (args) => {
         providerNumber,
         providerSpeciality,
         batchSequenceNumber,
+        derivedGroupNumber
     } = args;
 
     let data = file_data.length && file_data[0].data || '';
@@ -195,6 +196,7 @@ const storeFile = async (args) => {
             const index = String(filenames.length + fileSequenceOffset);
 
             // Use index as the final 4 chars (. + 3 numbers) in the filename
+            filename += `.${index.padStart(3, '0')}`;
         }
         catch (e) {
             logger.error(`Could not get file count for directory ${dirPath}`, e);
@@ -218,11 +220,10 @@ const storeFile = async (args) => {
 
     const stats = fs.statSync(fileInfo.absolutePath);
 
-    try {
-        const md5Hash = crypto.createHash('MD5').update(data, 'utf8').digest('hex');
+    const md5Hash = crypto.createHash('MD5').update(data, 'utf8').digest('hex');
 
-        // inserting the data into edi files table
-        const sql = SQL`
+    // inserting the data into edi files table
+    const sql = SQL`
                         WITH files AS (
                             INSERT INTO billing.edi_files (
                                 company_id,
@@ -261,22 +262,20 @@ const storeFile = async (args) => {
                             ) SELECT
                                 id
                                 , ${providerNumber}
-                                , ${groupNumber}
+                                , ${derivedGroupNumber}
                                 , ${batchSequenceNumber}
                                 , ${providerSpeciality}
                                 , '{}'::JSONB
                             FROM files
-                            RETURNING edi_file_id AS id
+                            RETURNING id, edi_file_id
                         `;
 
-        const dbResults = (await query(sql.text, sql.values)).rows;
+    const dbResults = (await query(sql.text, sql.values)).rows;
 
-        fileInfo.edi_file_id = dbResults[0].id;
-
-        return fileInfo;
-    } catch (e) {
-        logger.error(`Error occurred ${e}`);
-    }
+    fileInfo.edi_file_id = dbResults[0].edi_file_id;
+    fileInfo.edi_file_batch_id = dbResults[0].id;
+    return fileInfo;
+  
 };
 
 const getResourceIDs = async (args) => {
@@ -448,6 +447,7 @@ const applyClaimSubmission = async (args) => {
 
     const {
         edi_file_id,
+        edi_file_batch_id,
         file_data,    // an array of objects: {claimIds:[Number], batchSequenceNumber:Number}
     } = args;
 
@@ -463,12 +463,14 @@ const applyClaimSubmission = async (args) => {
             INSERT INTO billing.edi_file_claims (
                 edi_file_id,
                 claim_id,
-                batch_number
+                batch_number,
+                edi_file_batch_id
             )
             SELECT
                 ${edi_file_id},
                 UNNEST(${claimIds}::int[]),
-                ${sprintf(`%'04s`, batchSequenceNumber)}
+                ${sprintf(`%'04s`, batchSequenceNumber)},
+                ${edi_file_batch_id}
             RETURNING id
         `;
 
@@ -911,14 +913,8 @@ const OHIPDataAPI = {
             LIMIT 1
         `;
 
-        try {
-            let rows = (await query(sql.text, sql.values)).rows || [];
-            return rows.length && rows[0] || {'sequence_number': 0};
-        }
-        catch (e) {
-            logger.error('Error occured at fetching sequence number', e);
-            return {};
-        }
+        let rows = (await query(sql.text, sql.values)).rows || [];
+        return rows.length && rows[0] || {'sequence_number': 0};
 
     },
 

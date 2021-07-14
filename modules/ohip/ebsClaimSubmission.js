@@ -54,7 +54,7 @@ const fetchErrors = (claimData) => {
 
     claimData.forEach((claim) => {
         let validations = [];
-        if (!claim.claim_total_charge) {
+        if (!claim.claim_totalCharge) {
             validations.push({
                 error: `Claim ${claim.claim_id} has no billable charges`
             });
@@ -70,9 +70,15 @@ const fetchErrors = (claimData) => {
             validations.push({ error: `Rendering Provider of claim ${claim.claim_id} does not have provider Number` });
         }
 
-        validations.length ?
-            validationsResult.validClaims.push(claim) :
-            validationsResult.errorClaims[claim.claim_id].push(validations);
+        if (validations.length) {
+            if (!validationsResult.errorClaims[claim.claim_id]) {
+                validationsResult.errorClaims[claim.claim_id] = [];
+            }
+            validationsResult.errorClaims[claim.claim_id].push(validations)
+        } else {
+            validationsResult.validClaims.push(claim);
+        }
+            
     });
 
     return validationsResult;
@@ -146,17 +152,18 @@ const getClaimSubmissionFilename = (args) => {
     let fileName = ''
 
     if (claim_type == 'technical') {
-        fileName = `${groupNumber}.${batchSequenceNumber}`;
+        fileName = `${groupNumber}`;
     }
     else if (claim_type == 'professional') {
         if (['27', '76', '85', '90'].includes(providerSpeciality))
-            fileName = `${providerNumber}.${batchSequenceNumber}`;
+            fileName = `${providerNumber}`;
         else
-            fileName = `${professionalGroupNumber && professionalGroupNumber || providerNumber}.${batchSequenceNumber}`;
+            fileName = `${professionalGroupNumber || providerNumber}`;
     }
 
     return `H${getMonthCode(new Date())}${fileName}`;
 };
+
 
 const submitClaims = async (callback) => {
 
@@ -172,8 +179,8 @@ const submitClaims = async (callback) => {
     if (errorClaimIds.length) {
         ohipData.updateClaimStatus({
             claimIds: errorClaimIds,
-            claimStatusCode: 'PV',
-            claimNote: 'Electronic claim submission failed through MCEDT-EBS',
+            claimStatusCode: 'SUBF',
+            claimNote: 'Electronic claim submission failed due to errors in claim data',
             userId: 1,
         });
     }
@@ -408,16 +415,16 @@ const submitClaims = async (callback) => {
                             }),
                         });
 
-                        const claimStatusCode = ohipConfig.pendAckCode || CLAIM_STATUS_PENDING_ACKNOWLEDGMENT_DEFAULT;
-
                         storedFiles.forEach(async (storedFile) => {
+                            const claimStatusCode = storedFile.resource_id > 0 && ohipConfig.pendAckCode || 'SUBF';
+                            const claimNote = storedFile.resource_id > 0 && 'Electronically submitted in MCEDT-EBS file submission' || 'Electronically submission failed in MCEDT-EBS file submission';
+
                             await ohipData.updateClaimStatus({
-                                claimIds: batch.claimIds,
+                                claimIds: storedFile.claimIds,
                                 claimStatusCode,
-                                claimNote: 'Electronically submitted through MCEDT-EBS',
+                                claimNote: claimNote,
                                 userId: 1,
                             });
-
                         });
 
                        return resolve(null, allSubmitClaimResults);
@@ -433,7 +440,7 @@ const submitClaims = async (callback) => {
         });
     }
     catch (e) {
-        logger.error('Error occured at claim submission...', e);
+        logger.logError(`Error occured at claim submission... ${e}`);
     }
 
 }
