@@ -213,40 +213,34 @@ module.exports = function (options) {
                                 }
                             }
 
-                            try {
-                                const sequence_number = await getSequenceNumber(sequenceNumberRef, providerNumber, groupNumber, providerSpeciality)
+                            const sequence_number = await getSequenceNumber(sequenceNumberRef, providerNumber, groupNumber, providerSpeciality)
 
-                                let claimIds = facilityClaims.map((claim) => {
-                                    return claim.claim_id
-                                });
+                            let claimIds = facilityClaims.map((claim) => {
+                                return claim.claim_id
+                            });
 
-                                let batchHeader = {
-                                    claim_type,
-                                    claim_facility_id,
-                                    rendering_provider_contact_id,
-                                    providerNumber,
-                                    derivedGroupNumber,
-                                    groupNumber,
-                                    professionalGroupNumber,
-                                    providerSpeciality,
-                                    batchSequenceNumber: util.formatAlphanumeric(sequence_number, 4, '0'),
-                                    derivedMOHId,
-                                    claimIds
-                                }
-
-                                let file_data = fileChunks.map((fileChunk) => {
-                                    return encodeClaimFile(fileChunk, context, batchHeader);
-                                });
-
-                                encodedData.push({
-                                    file_data,
-                                    ...batchHeader
-                                })
-
+                            let batchHeader = {
+                                claim_type,
+                                claim_facility_id,
+                                rendering_provider_contact_id,
+                                providerNumber,
+                                derivedGroupNumber,
+                                groupNumber,
+                                professionalGroupNumber,
+                                providerSpeciality,
+                                batchSequenceNumber: util.formatAlphanumeric(sequence_number, 4, '0'),
+                                derivedMOHId,
+                                claimIds
                             }
-                            catch (e) {
-                                logger.error('Error occurred while fetching sequence number', e);
-                            }
+
+                            let file_data = fileChunks.map((fileChunk) => {
+                                return encodeClaimFile(fileChunk, context, batchHeader);
+                            });
+
+                            encodedData.push({
+                                file_data,
+                                ...batchHeader
+                            })
 
                         }, []);
 
