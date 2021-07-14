@@ -186,8 +186,11 @@ const getNewResourceIDs = async (args, callback) => {
                 return currentPage.results.reduce((results, result) => {
 
                     return result.data.reduce((dataResults, currentData) => {
+                        let {
+                            resourceID
+                        } = currentData || {};
 
-                        if (!existingResourceIDs.includes(currentData.resourceID.toString())) {
+                        if (!existingResourceIDs.includes(resourceID)) {
                             dataResults.push(currentData.resourceID);
                         }
                         return dataResults;
@@ -202,8 +205,26 @@ const getNewResourceIDs = async (args, callback) => {
         }
     };
 
+    logger.info(`Fetching Files list for provider number: ${providerNumber}`);
     ebs[EDT_LIST](args, async (listErr, listResponse) => {
         // provides number of pages and first batch of downloadable resourceIDs
+        let {
+            providerNumber = '',
+            resourceType
+        } = args || {};
+
+        let {
+            faults = [],
+            auditInfo,
+            results = []
+        } = listResponse || {};
+
+        listErr = listErr || faults.length && faults[0] || null;
+
+        if (listErr) {
+            logger.error(`Error occured while fetching files list for provider number ${providerNumber}: ${listErr.code} - ${listErr.message}`);
+            return callback(listErr, []);
+        }
 
         numPages = listResponse.results[0] && listResponse.results[0].resultSize || 0;
 
@@ -249,8 +270,10 @@ const downloadNew = (args, callback) => {
         const ohipConfig = await billingApi.getOHIPConfiguration(args);
         const ebs = new EBSConnector(ohipConfig.ebsConfig);
 
-        if (resourceIDs && resourceIDs.length) {
-            ebs[EDT_DOWNLOAD]({providerNumber, resourceIDs }, async (downloadErr, downloadResponse) => {
+        if (resourceIDs && resourceIDs.length && resourceIDs[0]) {
+
+            logger.info(`Downloading Ack Files for provider number ${providerNumber}...`);
+            ebs[EDT_DOWNLOAD]({ providerNumber, resourceIDs }, async (downloadErr, downloadResponse) => {
 
                 if (downloadErr) {
                     return callback(downloadErr, null);
@@ -260,7 +283,9 @@ const downloadNew = (args, callback) => {
 
                 const ediFiles = separatedDownloadResults[responseCodes.SUCCESS].map(async (result) => {
 
-                    const data = shared.base64Decode(result.content);
+                    let base64regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
+                    const data = base64regex.test(result.content) ? shared.base64Decode(result.content) : result.content;
+
                     // need to decode the content using base64 decoding before storing the file
                     const filename = result.description;
                     const resource_id = result.resourceID;
@@ -281,7 +306,10 @@ const downloadNew = (args, callback) => {
             });
         }
         else {
-            callback(null, []);
+            let errMsg = `No Resource Ids found to files download for provider number: ${providerNumber}`;
+
+            logger.error(errMsg);
+            callback({ error: errMsg }, null);
         }
     });
 };
@@ -297,6 +325,7 @@ const downloadAckFile = async (params, callback) => {
     downloadNew({ providerNumber, resourceType }, async (downloadErr, downloadResponse) => {
 
         if (downloadErr) {
+            logger.error(`Error occured while downloading resource ${resourceType} for provider number: ${providerNumber}`);
             return callback(downloadErr, []);
         }
 
@@ -354,40 +383,47 @@ const downloadRemittanceAdvice = async (args, callback) => {
 };
 
 const downloadAndProcessResponseFiles = async (args, callback) => {
+    
+    let {
+        providerNumber = ''
+    } = args || {};
+
     const downloadResults = [];
     const downloadHandler = (err, results) => {
+
         if (err) {
-            logger.error('OHIP downloadAndProcessResponseFiles', err);
+            logger.error(`OHIP downloadAndProcessResponseFiles ${JSON.stringify(err)}`);
         }
 
         downloadResults.push({
             err,
             results,
         });
+
         if (downloadResults.length === 3) {
             callback(null, downloadResults);
         }
     }
 
-    logger.logInfo('Downloading claims file reject message....');
+    logger.logInfo(`Initializing claims file reject message download for provider Number ${providerNumber}....`);
     downloadAckFile({
         ...args,
         resourceType: CLAIMS_MAIL_FILE_REJECT_MESSAGE,
         applicator: billingApi.applyRejectMessage
     }, downloadHandler);
 
-    logger.logInfo('Downloading batch edit reports....');
-    downloadAckFile({
-        ...args,
-        resourceType: BATCH_EDIT,
-        applicator: billingApi.applyBatchEditReport
-    }, downloadHandler);
-
-    logger.logInfo('Downloading Error reports....');
+    logger.logInfo(`Initializing error reports download for provider Number ${providerNumber}`);
     downloadAckFile({
         ...args,
         resourceType: ERROR_REPORTS,
         applicator: billingApi.applyErrorReport
+    }, downloadHandler);
+
+    logger.logInfo(`Initializing batch edit reports download for provider Number ${providerNumber}`);
+    downloadAckFile({
+        ...args,
+        resourceType: BATCH_EDIT,
+        applicator: billingApi.applyBatchEditReport
     }, downloadHandler);
 };
 
