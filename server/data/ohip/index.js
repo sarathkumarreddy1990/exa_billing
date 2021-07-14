@@ -607,7 +607,7 @@ const applyBatchEditReport = async (args) => {
                 efc.claim_id AS claim_id
             FROM billing.edi_files ef
             INNER JOIN billing.edi_file_claims efc ON ef.id = efc.edi_file_id
-            INNER JOIN billing.edi_file_batches efb ON efb.file_id = ef.id
+            INNER JOIN billing.edi_file_batches efb ON efb.edi_file_id = ef.id
             WHERE
                 ef.file_type = 'can_ohip_h'
                 AND ef.status = 'success'
