@@ -37,7 +37,7 @@ define(['jquery',
                 'change #ddlOrdFacility': 'loadOrderingFacilityNotes',
                 'click #btnSaveNotes': 'saveOrderingFacilityNotes',
                 'click #btnCreateClaim': 'updateBillingType',
-                'click #btnValidateExport': 'exportCensus'
+                'click #btnValidateExportCensus': 'exportCensus'
             },
 
             initialize: function (options) {
@@ -449,7 +449,9 @@ define(['jquery',
                     "filterCol": JSON.stringify(filterCol),
                     "sortField": self.pagerData.get('SortField'),
                     "sortOrder": self.pagerData.get('SortOrder'),
-                    "customArgs": {}
+                    "customArgs": {
+                        orderingFacilityId: $('#ddlOrdFacility').val()
+                    }
                 };
 
                 $.ajax({
@@ -466,7 +468,7 @@ define(['jquery',
                             companyTz: app.company.time_zone
                         }, {
                             afterDownload: function () {
-                                $('#btnValidateExport').css('display', 'inline');
+                                $('#btnValidateExportCensus').css('display', 'inline');
                             }
                         });
 
