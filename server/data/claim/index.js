@@ -421,7 +421,7 @@ module.exports = {
         if (is_alberta_billing) {
             createClaimFunction = 'billing.can_ahs_create_claim_per_charge';
         } else if (is_ohip_billing) {
-            createClaimFunction = 'billing.create_ohip_claim_split_charge';
+            createClaimFunction = 'billing.can_ohip_create_claim_split_charge';
         }
 
         const sql = SQL`SELECT `
