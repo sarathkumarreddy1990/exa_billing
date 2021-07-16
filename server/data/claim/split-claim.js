@@ -58,7 +58,7 @@ module.exports = {
                                 , primary_patient_insurance_id
                                 , secondary_patient_insurance_id
                                 , tertiary_patient_insurance_id
-                                , ordering_facility_id
+                                , ordering_facility_contact_id
                                 , place_of_service_id
                                 , claim_status_id
                                 , billing_code_id
@@ -96,7 +96,7 @@ module.exports = {
                                 , primary_patient_insurance_id
                                 , secondary_patient_insurance_id
                                 , tertiary_patient_insurance_id
-                                , ordering_facility_id
+                                , ordering_facility_contact_id
                                 , place_of_service_id
                                 , (SELECT id FROM billing.claim_status WHERE code = 'PV')
                                 , billing_code_id
