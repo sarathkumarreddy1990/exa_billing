@@ -1357,14 +1357,17 @@
             "field_code": "icd_description"
         },
         {
-            "field_code": "reason_code",
-            "field_name": "Reason Code",
-            "i18n_name": "setup.userSettings.reasonCode",
+            "id": 72,
+            "field_name": "Alt Account No",
+            "i18n_name": "patient.advancedSearch.altAccountNo",
             "field_info": {
-                "name": "reason_code",
-                "width": 170,
-                "searchFlag": "%"
-            }
+                "custom_name": "Alt Account No",
+                "name": "pid_alt_account",
+                "width": 250,
+                "searchFlag": "%",
+                "defaultValue": ""
+            },
+            "field_code": "pid_alt_account"
         },
         {
             "id": 73,
