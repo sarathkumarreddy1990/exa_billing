@@ -5639,8 +5639,9 @@ define(['jquery',
                     'border-bottom': '1px solid white'
                 };
 
-                $(parent.document).find('#spanModalHeader')
-                    .append($('<a/>', { href: "javascript:void(0)" }).attr({ 'i18n': 'menuTitles.patient.patientChart' })
+                var modalHeader = $(parent.document).find('#spanModalHeader');
+
+                modalHeader.append($('<a/>', { href: "javascript:void(0)" }).attr({ 'i18n': 'menuTitles.patient.patientChart' })
                         .css(cssObj)
                         .click(function () {
                             var url = '/exa#patient/info/edit/' + btoa(self.cur_patient_id);
@@ -5650,9 +5651,15 @@ define(['jquery',
                                 window.patientChartWindow = window.open("about:blank");
                                 window.patientChartWindow.location.href = url;
                             }
-                        }))
-                        .append($('<span>').attr({'i18n': 'patient.advancedSearch.phn', class: 'pl-3'}))
-                        .append(':' +  (patient_details && patient_details.phn_acc_no && patient_details.phn_acc_no.alt_account_no || ''));
+                        }));
+
+                if (app.country_alpha_3_code === 'can') {
+                    modalHeader.append($('<span>').attr({'i18n': 'patient.advancedSearch.phn', class: 'pl-3'}))
+                        .append(':' +  (app.billingRegionCode === 'can_ON' ?
+                            (patient_details.p_policy_number || '') :
+                            (patient_details && patient_details.phn_acc_no && patient_details.phn_acc_no.alt_account_no || '')));
+                }
+
             },
 
             bindClaimPaymentEvent: function () {
