@@ -862,7 +862,7 @@ define('grid', [
                             var claim_id = claimDetails && (
                                 claimDetails.create_claim_charge
                                 || claimDetails.can_ahs_create_claim_per_charge
-                                || claimDetails.create_ohip_claim_split_charge
+                                || claimDetails.can_ohip_create_claim_split_charge
                             ) || null;
 
                             // Change grid values after claim creation instead of refreshing studies grid
@@ -879,7 +879,7 @@ define('grid', [
                                     var currentStudyDetails = data.find(function (row) { return row.study_id == rowId });
 
                                     var claimId = isAlbertaBilling ? currentStudyDetails.can_ahs_create_claim_per_charge : isOhipBilling
-                                        ? currentStudyDetails.create_ohip_claim_split_charge : currentStudyDetails.create_claim_charge;
+                                        ? currentStudyDetails.can_ohip_create_claim_split_charge : currentStudyDetails.create_claim_charge;
 
                                     cells = cells.concat(changeGrid.getClaimId(claimId))
                                         .concat(changeGrid.getBillingStatus('Billed'))
