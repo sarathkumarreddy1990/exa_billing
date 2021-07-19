@@ -558,14 +558,12 @@ module.exports = {
         } = args;
 
         const sql = SQL `SELECT
-                              pofc.id
-                            , pofc.phone_number
-                            , pofc.fax_number
+                              pof.id
                             , pof.code
                             , pof.name
-                        FROM public.ordering_facility_contacts pofc
-                        INNER JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id AND pof.deleted_dt IS NULL
-                        WHERE pofc.inactivated_dt IS NULL
+                        FROM public.ordering_facilities pof
+                        WHERE
+                            pof.deleted_dt IS NULL
                             AND pof.company_id = ${company_id}
                         `;
         return await query(sql);
