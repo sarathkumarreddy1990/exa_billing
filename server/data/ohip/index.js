@@ -251,7 +251,7 @@ const storeFile = async (args) => {
                             )
                             RETURNING id
                             )
-                            
+
                             INSERT INTO billing.edi_file_batches  (
                                 edi_file_id,
                                 provider_number,
@@ -1029,15 +1029,14 @@ const OHIPDataAPI = {
                 ppos.code AS place_of_service
             FROM billing.claims bc
             INNER JOIN billing.claim_status bcs ON bcs.id = bc.claim_status_id
-            LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = bc.ordering_facility_contact_id
-            LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
             INNER JOIN public.companies pc ON pc.id = bc.company_id
             INNER JOIN public.patients pp ON pp.id = bc.patient_id
             INNER JOIN billing.providers bp ON bp.id = bc.billing_provider_id
             INNER JOIN public.facilities pf ON pf.id = bc.facility_id
             INNER JOIN billing.get_claim_totals(bc.id) bgct ON TRUE
+            LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = bc.ordering_facility_contact_id
+            LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
             LEFT JOIN public.places_of_service ppos ON ppos.id = pf.place_of_service_id
-            LEFT JOIN public.provider_groups pg ON pg.id = bc.ordering_facility_id
             LEFT JOIN public.provider_contacts rend_ppc ON rend_ppc.id = bc.rendering_provider_contact_id
             LEFT JOIN public.providers rend_pr ON rend_pr.id = rend_ppc.provider_id
             LEFT JOIN public.provider_contacts reff_ppc ON reff_ppc.id = bc.referring_provider_contact_id
