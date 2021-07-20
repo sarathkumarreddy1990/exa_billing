@@ -27,7 +27,7 @@ WITH payment_details AS(
         , to_char(bp.payment_dt, '<%= browserDateFormat %>') AS payment_dt
         , (CASE payer_type
                 WHEN 'insurance' THEN insurance_providers.insurance_name
-	            WHEN 'ordering_facility' THEN provider_groups.group_name
+	            WHEN 'ordering_facility' THEN pof.name
 	            WHEN 'ordering_provider' THEN ref_provider.full_name
                 WHEN 'patient' THEN patients.full_name
           END) AS payer_name
@@ -36,7 +36,7 @@ WITH payment_details AS(
     INNER JOIN billing.get_payment_totals(bp.id) ON true
     INNER JOIN billing.payment_applications bpa ON  bpa.payment_id = bp.id
     LEFT JOIN public.patients ON patients.id = bp.patient_id
-    LEFT JOIN public.provider_groups ON provider_groups.id = bp.provider_group_id
+    LEFT JOIN public.ordering_facilities pof ON pof.id = bp.ordering_facility_id
     LEFT JOIN public.provider_contacts ON provider_contacts.id = bp.provider_contact_id
     LEFT JOIN public.providers ref_provider ON provider_contacts.provider_id = ref_provider.id
     LEFT JOIN public.insurance_providers  ON insurance_providers.id = bp.insurance_provider_id
