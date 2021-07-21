@@ -2212,7 +2212,6 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "tempvalue": billingType
                     },
                 },
-                
                 "field_code": "billing_type"
         }
 
