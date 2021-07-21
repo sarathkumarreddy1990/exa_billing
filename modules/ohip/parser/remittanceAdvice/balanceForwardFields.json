@@ -1,0 +1,52 @@
+{
+    "transactionIdentifier": {
+        "startPos": 1,
+        "fieldLength": 2,
+        "constant": "HR"
+    },
+    "recordType": {
+        "startPos": 3,
+        "fieldLength": 1,
+        "constant": "6"
+    },
+    "claimsAdjustment": {
+        "startPos": 4,
+        "fieldLength": 9
+    },
+    "claimsAdjustmentSign": {
+        "startPos": 13,
+        "fieldLength": 1,
+        "enumerated": [" ", "-"]
+    },
+    "advances": {
+        "startPos": 14,
+        "fieldLength": 9
+    },
+    "advancesSign": {
+        "startPos": 23,
+        "fieldLength": 1,
+        "enumerated": [" ", "-"]
+    },
+    "reductions": {
+        "startPos": 24,
+        "fieldLength": 9
+    },
+    "reductionsSign": {
+        "startPos": 33,
+        "fieldLength": 1,
+        "enumerated": [" ", "-"]
+    },
+    "otherDeductions": {
+        "startPos": 34,
+        "fieldLength": 9
+    },
+    "otherDeductionsSign": {
+        "startPos": 43,
+        "fieldLength": 1,
+        "enumerated": [" "]
+    },
+    "mohReserved": {
+        "startPos": 44,
+        "fieldLength": 36
+    }
+}

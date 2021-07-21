@@ -1,57 +1,58 @@
-const createError = require('http-errors');
+'use strict';
+
+const SQL = require('sql-template-strings');
 const express = require('express');
-const path = require('path');
-const cookieParser = require('cookie-parser');
-const responseTime = require('response-time');
-const logger = require('../logger');
-
-const config = require('./config');
-
 const app = express();
 
-config.initialize();
+const logger = require('../logger');
+const config = require('./config');
+const ediConnect = require('../modules/edi');
 
+const initializeWeb = async function () {
+    logger.info('Initializing web..');
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'pug');
+    await config.initialize();
+    ediConnect.init(config.get('ediServerUrl') || 'http://localhost:5581/edi/api');
 
-app.use(responseTime());
+    const {
+        query,
+    } = require('./data');
 
-if (process.env.NODE_ENV != 'production') {
-    //app.use(logger(':date[iso] :remote-addr :method :url', {immediate: true}));
-    logger.info('Starting LESS middleware');
+    async function getCompanyId ( companyCode ) {
+        const sql = SQL`
+            SELECT
+                id
+            FROM
+                companies
+            WHERE
+                deleted_dt IS NULL    
+        `;
 
-    const lessMiddleware = require('less-middleware');
-    app.use(lessMiddleware(path.join(__dirname, '/../app/'), {
-        debug: true,
-        render: {compress: true}
-    }));
-}
+        if ( companyCode ) {
+            sql.append(SQL` AND trim(lower(company_code)) = ${companyCode.toLowerCase().trim()} `);
+        }
 
-//app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, '../app')));
+        try {
+            const response = await query(sql.text, sql.values);
+            const row = response.rows[ 0 ];
+            const { id } = row;
+            return `${id}`;
+        }
+        catch ( e ) {
+            logger.error(`No company ID for this installation.  Quitting.`);
+            process.exit(1);
+        }
+    }
 
-require('./config/routes')(app);
+    const {
+        companyCode,
+    } = config.get(config.keys.RedisStore);
 
-// catch 404 and forward to error handler
-app.use(function (req, res, next) {
-    next(createError(404));
-});
+    const companyId = await getCompanyId(companyCode);
 
-// error handler
-app.use(function (err, req, res) {
-    // set locals, only providing error in development
-    res.locals.message = err.message;
-    res.locals.error = req.app.get('env') === 'development' ? err : {};
+    require('./config/express')(app, express, companyId);
 
-    // render the error page
-    res.status(err.status || 500);
-    res.render('error');
-});
+    return app;
+};
 
-
-module.exports = app;
+module.exports = initializeWeb;

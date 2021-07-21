@@ -312,26 +312,11 @@ define('change-grid', [ 'jquery' ], function ( jQuery ) {
             return [];
         };
 
-        var getLocked = function ( locked_by ) {
-            var html = locked_by ?
-                       "<i class='fa fa-lock' style='color: red; font-weight: bold;' title='Locked by " + locked_by + "'></i>" :
-                       "";
-            return [
-                {
-                    'field': 'as_locked_by',
-                    'data': html
-                }, {
-                    'field': 'locked_by',
-                    'data': locked_by
-                }
-            ];
-        };
-
         var getAuthorizations = function ( value ) {
             var createEl = function ( cellvalue ) {
                 var authorizations = cellvalue;
 
-                if (authorizations.length > 0 && typeof authorizations === 'string') {
+                if (authorizations&&authorizations.length > 0 && typeof authorizations === 'string') {
                     authorizations = JSON.parse(authorizations);
                 }
 
@@ -833,6 +818,42 @@ define('change-grid', [ 'jquery' ], function ( jQuery ) {
             ];
         };
 
+        var getClaimId = function (value) {
+
+            return [
+                {
+                    'field': 'claim_id',
+                    'data': value
+                }
+            ];
+        };
+
+        var getBillingStatus = function ( value ) {
+
+            var colorCodeDetails = commonjs.getClaimColorCodeForStatus('billed', 'study');
+            var color_code = colorCodeDetails && colorCodeDetails.length && colorCodeDetails[0].color_code || 'transparent';
+
+            return [
+                {
+                    'field': 'billed_status',
+                    'data': value,
+                    'css': {
+                        "backgroundColor": color_code
+                    }
+                }
+            ];
+        };
+
+        var setEditIcon = function () {
+
+            return [
+                {
+                    'field': 'as_edit',
+                    'data': "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>"
+                }
+            ];
+        };
+
         return {
             getRow: getRow,
             setCell: setCell,
@@ -849,7 +870,6 @@ define('change-grid', [ 'jquery' ], function ( jQuery ) {
             getTempStudyStatus: getTempStudyStatus,
             getLinkStudy: getLinkStudy,
             getUnlinkStudy: getUnlinkStudy,
-            getLocked: getLocked,
             getAuthorizations: getAuthorizations,
             getNotes: getNotes,
             getOrderNotes: getOrderNotes,
@@ -867,7 +887,10 @@ define('change-grid', [ 'jquery' ], function ( jQuery ) {
             getOrderType: getOrderType,
             getResponsible: getResponsible,
             setFinalStatus: setFinalStatus,
-            getClaimNo: getClaimNo
+            getClaimNo: getClaimNo,
+            getClaimId: getClaimId,
+            getBillingStatus: getBillingStatus,
+            setEditIcon: setEditIcon
         };
     };
 });

@@ -1,0 +1,75 @@
+/**
+ * Layout
+ */
+.screen-container {
+	width: @container_width;
+	min-width: @container_min_width;
+	//overflow-x: auto;
+}
+
+.page {
+	background: @page-bg;
+	padding: 0 @wrapper_left_pudding @wrapper_left_pudding;
+}
+
+.visible-main-menu {
+	.screen-container {
+		padding-left: @profile-panel-width;
+	}
+	.profile-panel {
+		display: block;
+		left: 0;
+	}
+	
+	.page {
+		padding-left: @wrapper_left_pudding;
+	}
+}
+
+.page-grids {
+	padding-left: 0;
+	padding-right: 0;
+	
+	.panel {
+		padding: 0 @wrapper_left_pudding;
+	}
+}
+//html, body{
+//	height: 100%;
+//}
+.holder{
+	width: 100%;
+	//min-height: 100%;
+	background: @page-bg;
+}
+body{
+	min-width: @container_min_width;
+	&.dashboard_bg{
+		.holder{
+			background: @dashboard-bg;
+			.packery{
+				.item{
+					background: #fff;
+				}
+			}
+		}
+	}
+}
+main{
+	&.main{
+		//padding-bottom: 48px;
+		width: 100%;
+		overflow-y: auto;
+		overflow-x: hidden;
+	}
+}
+footer{
+	&.main_footer{
+		background: @footer_bg;
+		width: 100%;
+		padding-top: 12px;
+		padding-bottom: 12px;
+		position: relative;
+		//margin: -24px 0 0;
+	}
+}

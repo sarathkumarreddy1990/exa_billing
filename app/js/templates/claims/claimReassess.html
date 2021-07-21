@@ -1,0 +1,33 @@
+<form class="form-horizontal form-list mt-25">
+
+    <!-- Supporting Text -->
+    <div class="form-group form-inline">
+        <div class="col-sm-4">
+            <div id='btnAddSupportingText' class='btn btn-primary' i18n="shared.screens.setup.insertSupportingText"></div>
+        </div>
+        <div class="col-sm-8">
+            <select class="form-control select-box" id="ddlSupportingTextOptions_claimReassess" style="height:32px;">
+                <option disabled i18n='billing.claims.canAhs.noApplicableTemplates' value=""></option>
+            </select>
+        </div>
+    </div>
+    <hr/>
+
+    <!-- Reassessment Reason -->
+    <div class="form-group form-inline">
+        <div class="col-sm-4">
+            <label for="claimReassessment" class="control-label" i18n="billing.claims.canAhs.reassessmentReason"></label>
+        </div>
+        <div class="col-sm-8">
+            <textarea id="claimReassessment" name="claimReassessment" style="width: 100%"class="form-control form-control-lg" maxlength="365000"></textarea>
+        </div>
+    </div>
+
+    <!-- Submit Button -->
+    <div class="form-group form-inline">
+        <div class="col-sm-12 text-right">
+            <input type="button" id="saveSupportText" class="btn btn-default btn-primary mt-3" i18n="shared.buttons.submit">
+        </div>
+    </div>
+
+</form>

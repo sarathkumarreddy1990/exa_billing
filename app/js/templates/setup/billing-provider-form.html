@@ -1,0 +1,285 @@
+<div class="form-group row">
+    <div class="col-lg-12">
+        <form id="formBillingProviders" class="form-horizontals">
+            <div class="row" id="providerInfo">
+                <div class="col">
+                    <div class="form-group row">
+                        <label for="txtName" class="col-sm-3 col-form-label field-required" i18n="setup.common.name"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtName" name="providerName">
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="chkIsActive">
+                            <label class="form-check-label" for="chkIsActive" i18n="shared.fields.inactive"></label>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtCode" class="col-sm-3 col-form-label field-required" i18n="setup.common.code"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtCode" name="providerCode">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtShortDesc" class="col-sm-3 col-form-label field-required" i18n="setup.billingProvider.shortdescription"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtShortDesc" name="shortDescription">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtFederalTaxID" class="col-sm-3 col-form-label field-required" i18n="setup.billingProvider.federaltaxid"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtFederalTaxID" name="federalTaxID">
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <% if (["can_AB","can_MB","can_BC"].indexOf(billingRegionCode) === -1) { %>
+                    <div class="form-group row">
+                        <label for="txtNpi" class="col-sm-3 col-form-label field-required" i18n="shared.fields.billingProviderNPI"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtNpi" name="npiNo">
+                        </div>
+                    </div>
+                    <% } %>
+                    <% if (country_alpha_3_code === "usa") { %>
+                    <div class="form-group row">
+                        <label for="txtTaxonomy" class="col-sm-3 col-form-label field-required" i18n="setup.providers.taxonomyCode"></label>
+                        <div class="col-sm-5">
+                            <input type="text" minlength="10" maxlength="10" class="form-control text-uppercase" id="txtTaxonomy" name="taxonomy">
+                        </div>
+                    </div>
+                    <% } %>
+                    <% if (billingRegionCode === "can_BC") { %>
+                        <div class="form-group row">
+                            <label for="txtPayeeNumber" class="col-sm-3 col-form-label" i18n="setup.clearingHouse.payeeNumber"></label>
+                            <div class="col-sm-5">
+                                <input type="text" class="form-control integerbox" id="txtPayeeNumber" name="payeeNumber" maxlength="5">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="chkAltPay" class="col-sm-3 col-form-label" i18n="setup.billingProvider.alternatePaymentPrograms"></label>
+                            <div class="col-sm-5">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="chkAltPay">
+                                </div>
+                        </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="txtDataCentreNumber" class="col-sm-3 col-form-label field-required" i18n="setup.billingProvider.dataCentreNumber"></label>
+                            <div class="col-sm-5">
+                                <input type="text" class="form-control" id="txtDataCentreNumber" name="DataCentreNumber" maxlength="5">
+                            </div>
+                        </div>
+                        <% } %>
+                </div>
+            </div>
+            
+            <!-- Address info's -->
+
+            <div class="row" id="providerAddressInfo" style="margin-top:10px;">
+                <div class="col">
+                    <div class="form-group row">
+                        <legend style="width:98%;">
+                            <h5 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
+                                <label i18n="setup.billingProvider.addressinfo"></label>
+                            </h5>
+                        </legend>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtContactName" class="col-sm-3 col-form-label field-required" i18n="setup.billingProvider.contactname"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtContactName" name="contactPersonName">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtAddressLine1" class="col-sm-3 col-form-label field-required" i18n="setup.billingProvider.addresslinel"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtAddressLine1" name="addressLine1">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtAddressLine2" class="col-sm-3 col-form-label" i18n="setup.billingProvider.addressline2"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtAddressLine2" name="addressLine2">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-12" id="divAddressInfo">
+                            <label for="txtCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingProvider.cityStateZip"></label>
+                            <div class="col-sm-3">
+                                <input type="text" class="form-control" id="txtCity" name="city" i18np="shared.fields.city">
+                            </div>
+                            <div class="col-sm-2" style="padding-left:0px;">
+                                <select id="ddlState" class="form-control" style="height:32px;" name="state">
+                                    <option selected>Select</option>
+                                    <% _.each(states, function(state) { %>
+                                    <option value="<%= state %>">
+                                        <%= state %>
+                                    </option>
+                                    <% }); %>
+                                </select>
+                            </div>
+                            <div class="col-sm-2" style="padding-left:0px;">
+                                <input type="text" class="form-control integerbox" id="txtZip" name="zip" i18np="shared.fields.zip"
+                                    maxlength="5">
+                            </div>
+                            <div class="col-sm-2" style="padding-left:0px;">
+                                <input type="text" class="form-control integerbox" id="txtZipPlus" name="zipPlus" i18np="shared.fields.zipPlus"
+                                    maxlength="4">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtBillProPhoneNo" class="col-sm-3 col-form-label field-required" i18n="setup.billingProvider.phoneno"></label>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control form-control-med maskPhone" id="txtBillProPhoneNo" name="phoneNo">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtFaxNo" class="col-sm-3 col-form-label field-required" i18n="setup.billingProvider.fax"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control maskPhone" id="txtFaxNo" name="faxNo">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtEmail" class="col-sm-3 col-form-label" i18n="setup.billingProvider.email"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtEmail" name="email">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtWebURL" class="col-sm-3 col-form-label" i18n="setup.billingProvider.weburl"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtWebURL" name="webURL">
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group row">
+                        <legend style="width:98%;">
+                            <h5 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
+                                <label i18n="setup.billingProvider.paytoaddress"></label>
+                            </h5>
+                        </legend>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtPayAddressLine1" class="col-sm-3 col-form-label" i18n="setup.billingProvider.addresslinel"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtPayAddressLine1" name="payAddressLine1">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtPayAddressLine2" class="col-sm-3 col-form-label" i18n="setup.billingProvider.addressline2"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtPayAddressLine2" name="payAddressLine2">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-12" id="divPayToAddress">
+                            <label for="txtPayCity" class="col-sm-3 col-form-label" i18n="setup.billingProvider.cityStateZip"></label>
+                            <div class="col-sm-3">
+                                <input type="text" class="form-control" id="txtPayCity" name="payCity" i18np="shared.fields.city">
+                            </div>
+                            <div class="col-sm-2" style="padding-left:0px;">
+                                <select id="ddlPayState" class="form-control" style="height:32px;" name="payState">
+                                    <option selected>Select</option>
+                                    <% _.each(states, function(state) { %>
+                                    <option value="<%= state %>">
+                                        <%= state %>
+                                    </option>
+                                    <% }); %>
+                                </select>
+                            </div>
+                            <div class="col-sm-2" style="padding-left:0px;">
+                                <input type="text" class="form-control integerbox" id="txtPayZip" name="payZip" i18np="shared.fields.zip"
+                                    maxlength="5">
+                            </div>
+                            <div class="col-sm-2" style="padding-left:0px;">
+                                <input type="text" class="form-control integerbox" id="txtPayZipPlus" name="payZipPlus" i18np="shared.fields.zipPlus"
+                                    maxlength="4">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtPayBillProPhoneNo" class="col-sm-3 col-form-label" i18n="setup.billingProvider.phoneno"></label>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control maskPhone" id="txtPayBillProPhoneNo" name="payPhoneNo">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtPayFaxNo" class="col-sm-3 col-form-label" i18n="setup.billingProvider.fax"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control maskPhone" id="txtPayFaxNo" name="payFaxNo">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="txtPayEmail" class="col-sm-3 col-form-label" i18n="setup.billingProvider.email"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtPayEmail" name="payEmail">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="col-lg-12">
+        <!-- ID Codes -->
+        <div class="row" id="divIDCodesGrid" style="margin-top:10px;">
+            <div class="col-lg-12">
+                <div class="form-group row">
+                    <legend>
+                        <h5 style="font-weight:bold;border-bottom:1px solid #3c91f0;">
+                            <label i18n="setup.billingProvider.idcodes"></label>
+                        </h5>
+                    </legend>
+                </div>
+            </div>
+            <div class="col-lg-12">
+                <div class="form-group row" style="float:right;">
+                    <button id="btnAddNewProviderCodes" type="submit" class="btn btn-primary" i18n="shared.buttons.add"></button>
+                    <button id="btnRefreshProviderCodes" type="submit" class="btn btn-primary" i18n="shared.buttons.reload"></button>
+                </div>
+            </div>
+            <div class="col-lg-12">
+                <div id="divCodesGrid">
+                    <table id="tblProviderIDCodesGrid"></table>
+                    <div id="gridPager_BillingProviderIdCodes"></div>
+                </div>
+            </div>
+        </div>
+        <div class="row" id="divIDCodesForm" style="margin-top:50px;">
+            <div class="col-lg-6">
+                <div class="form-group row">
+                    <label for="txtPayerAssProId" class="col-sm-3 col-form-label" i18n="setup.billingProvider.payerassignedproviderid"></label>
+                    <div class="col-sm-5">
+                        <input type="text" class="form-control" id="txtPayerAssProId" name="payerAssignedProviderID">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="ddlIdCodeQualifier" class="col-sm-3 col-form-label" i18n="setup.billingProvider.codequalifier"></label>
+                    <div class="col-sm-5">
+                        <select id="ddlIdCodeQualifier" class="form-control valid" style="width: 70%" name="codeQualifier">
+                            <option value="" i18n="shared.buttons.select"></option>
+                            <% _.each(qualifierCodes, function(qualifiers) { %>
+                            <option value='<%= qualifiers.id %>'>
+                                <%=qualifiers.description%>
+                            </option>
+                            <% }); %>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtInsurnaceProvidre" class="col-sm-3 col-form-label" i18n="setup.billingProvider.insuranceprovider"></label>
+                    <div class="col-sm-5">
+                        <select id="ddlInsuranceProvider" style="width: 250px" name="insuranceProvider">
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row" style="float:right;">
+                    <button id="btnSaveICDCode" type="submit" class="btn btn-primary" i18n="setup.billingProvider.saveIdCode"></button>
+                    <button id="btnCancel" type="submit" class="btn btn-primary" i18n="shared.buttons.cancel"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

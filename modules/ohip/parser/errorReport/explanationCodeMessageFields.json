@@ -1,0 +1,25 @@
+{
+    "transactionIdentifier": {
+        "startPos": 1,
+        "fieldLength": 2,
+        "constant": "HX"
+    },
+    "recordIdentifier": {
+        "startPos": 3,
+        "fieldLength": 1,
+        "constant": "8"
+    },
+    "explanatoryCode": {
+        "startPos": 4,
+        "fieldLength": 2,
+        "i18n": "ohip.errorReport.explanatory"
+    },
+    "explanatoryDescription": {
+        "startPos": 6,
+        "fieldLength": 55
+    },
+    "mohReserved": {
+        "startPos": 61,
+        "fieldLength": 19
+    }
+}

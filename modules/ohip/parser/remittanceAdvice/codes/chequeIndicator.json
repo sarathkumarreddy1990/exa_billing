@@ -1,0 +1,5 @@
+{
+    "M": "Manual Cheque issued",
+    "C": "Computer Cheque issued",
+    "I": "Interim payment Cheque/Direct Bank Deposit issued"
+}

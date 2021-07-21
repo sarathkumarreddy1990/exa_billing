@@ -1,12 +1,25 @@
-# EXA Billing 1.5 #
+# EXA Billing
 
-This README would normally document whatever steps are necessary to get your application up and running.
+## How do I get set up?
 
-### How do I get set up? ###
+### Add new connection string in web.json
+* ``` "dbConnectionBilling": "tcp://[user]:[pwd]@192.168.1.1:5434/[db_name]" ```
 
-* To be filled
+### Install dependencies
+* ``` npm run ci ```
+* This call is different than `npm ci` because it also installs dependencies in the `app` directory
 
-### Who do I talk to? ###
+### Debugging
+* ``` npm run start ```
 
-* Repo owner or admin
-* Other community or team contact
+### Production deployment
+* ``` npm run start-production ```
+
+### Test
+* ``` npm run test ```
+
+### Build
+* ``` npm run build ```
+
+### Build - FTP Deployment
+* ``` npm run deploy ```

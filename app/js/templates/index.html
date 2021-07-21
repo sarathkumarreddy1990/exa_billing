@@ -1,0 +1,390 @@
+<header class="header">
+</header>
+<style>
+    #divStatusSearch {
+        position: fixed;
+        display: none;
+        max-height: 400px;
+        max-width: 420px;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    .statusMenu {
+        height: auto;
+        border: 2px #d4d4d4 solid;
+        background-color: #F6F6F6;
+        z-index: 110000;
+        position: absolute;
+        font-size: 1em !important;
+    }
+
+    .header-status {
+        background-color: #5A5A5A !important;
+        color: #FFFFFF !important;
+        line-height: 25px;
+    }
+
+    .statusList li {
+        padding: 0px;
+    }
+
+    .statusList li label {
+        font-size: 0.8em !important;
+    }
+
+    .statusList {
+        margin-left: 0px !important;
+        margin-bottom: 4px !important;
+    }
+
+    .statusList .inline {
+        padding-top: 0px !important;
+    }
+
+    div.multiStudyColumnList input[type=checkbox] {
+        display: block;
+    }
+
+    .multiStudyColumnList {
+        column-count: 3;
+        -moz-column-count: 3;
+        /* Firefox */
+        -webkit-column-count: 3;
+        /* Safari and Chrome */
+        padding: 0px;
+    }
+    .dropdown-menu li a{
+        color:black;
+    }
+
+    .claimMenu {
+        width:200px!important;
+        padding-left:5px!important;
+        text-align: left!important;
+    }
+
+</style>
+
+<div class="controls" style="float:left;">
+</div>
+<nav class="top-nav">
+    <div id="divTabsContainer" style="float:left;">
+        <div>
+            <ul id="studyTabs" class="nav tn-menu"></ul>
+            <ul id="claimsTabs" class="nav tn-menu"></ul>
+        </div>
+    </div>
+    <div style="float:right;" id="divTabActions">
+        <form class="small_dd tn-menu">
+            <ul class="tn-menu-right">
+                <li class="studyBtnPadding">
+                    <a>
+                        <i class="icon-ic-expand" id="btnTabNavLeft" i18nt="shared.fields.moveAllTabBarByleftSide"></i>
+                    </a>
+                </li>
+                <li class="studyBtnPadding">
+                    <a>
+                        <i class="icon-ic-expand-flipped" id="btnTabNavRight" i18nt="shared.fields.moveAllTabBarByRightSide"></i>
+                    </a>
+                </li>
+                <li class="dropdown active studyBtnPadding" style="padding-top: 11px;">
+                    <i id="btnShowTabItems" class="icon-chevron-down" data-toggle="dropdown" i18nt="shared.fields.showAllTabByList"></i>
+                    <ul id="ulTabCollection" class="dropdown-menu" style="overflow:auto!important;max-height:400px;margin-top:8px!important;"
+                        role="menu" aria-labelledby="btnShowTabItems">
+                    </ul>
+                </li>
+                <li>
+                    <a>
+                        <i i18nt="shared.fields.refresh" id="btnClaimsRefresh" class="icon-ic-reset"></i>
+                        <i i18nt="shared.fields.refresh" id="btnStudiesCompleteRefresh"  style="display:none;" ></i>
+                        <i i18nt="shared.fields.refresh" id="btnStudiesRefresh" class="icon-ic-reset"></i>
+                        <i i18nt="shared.fields.refresh" id="btnClaimsCompleteRefresh"  style="display:none;" ></i>
+                    </a>
+                </li>
+                <li>
+                    <a>
+                        <i i18nt="shared.fields.refreshAll" id="btnClaimRefreshAll" class="icon-ic-loop"></i>
+                        <i i18nt="shared.fields.refreshAll" id="btnStudiesRefreshAll" class="icon-ic-loop"></i>
+                    </a>
+                </li>
+                <li>
+                    <a>
+                        <i i18nt="shared.fields.settings" id="mySettings" class="icon-ic-actions"></i>
+                    </a>
+                </li>
+                <li>
+                    <a>
+                        <i i18nt="shared.fields.filters" id="btnStudyFilter" class="icon-ic-filter"></i>
+                    </a>
+                </li>
+                <li style="margin-right: 15px;">
+                    <a>
+                        <i i18nt="shared.fields.export" id="btnValidateExport" class="fa fa-download"></i>
+                    </a>
+                </li>
+                <li class="worklist-menu-right">
+                        <input type="button" value="Validate" id="btnValidateOrder" class="btn btn-primary" i18n="shared.buttons.validate">
+                </li>
+                <li class="worklist-menu-right">
+                        <!-- <input type="button" value="Claim" id="btnInsuranceClaim" class="btn btn-primary"  i18n="billing.fileInsurance.claim"> -->
+                        <div class="btn-group small_dd"  id="btnInsuranceClaim">
+                            <button type="button" class="btn btn-primary" data-method='electronic_billing' id="btnClaimFormat"></button>
+                            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+                              <span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu" role="menu" >
+                                    <li id="liEC"><a class="claimMenu" id="btnElectronicClaim" data-method="electronic_billing" data-value='Electronic Claim (EDI)' i18n="billing.payments.electronicClaim"></a></li>
+                                    <% if (billing_region_code !== "can_ON") { %>
+                                        <li id="liPCBW"><a class="claimMenu" id="btnPaperClaimBW" data-format='FULL'   data-method="paper_claim" data-value='Paper Claim (B & W)' i18n="billing.payments.paperClaimBW"></a></li>
+                                        <li id="liSF"><a class="claimMenu" id="btnSpecialForm" data-format='SPECIALFORM'   data-method="special_form" data-value='Special Form' i18n="billing.payments.specialForm"></a></li>
+                                        <li id="liPCRED"><a class="claimMenu" id="btnPaperClaimRed" data-format='ORIGINAL'  data-method="paper_claim" data-value='Paper Claim (RED)' i18n="billing.payments.paperClaimRed"></a></li>
+                                    <% } %>
+                                    <li id="liINSD"><a class="claimMenu" id="btnInvoiceServiceDate"  data-format='SERVICEDATE' data-method="direct_billing" data-value='Invoice (Service Date)' i18n="billing.payments.invoiceServiceDate"></a></li>
+                                    <li id="liINPN"><a class="claimMenu" id="btnInvoicePatientName" data-format='PATIENTNAME' data-method="direct_billing" data-value='Invoice (Patient Name)' i18n="billing.payments.invoicePatientName"></a></li>
+                                    <li id="liPP"><a class="claimMenu" id="btnPatientPayemnt" data-method="patient_payment" data-value='Patient Payment' i18n="billing.payments.patientPayment"></a></li>
+                                    <% if (country_alpha_3_code === "can") { %>
+                                    <%if (typeof showConformanceTesting !== 'undefined' && showConformanceTesting) { %>
+                                    <hr />
+                                    <li id="liCT"><a class="claimMenu" id="btnEdtEbs" data-value='EDT Conformance Testing'>EDT Conformance Testing</a></li>
+                                    <li id="liCT"><a class="claimMenu" id="btnHcvEbs" data-value='HCV Conformance Testing'>HCV Conformance Testing</a></li>
+                                    <% } %>
+                                    <% } %>
+                            </ul>
+                        </div>
+                </li>
+                <li class="worklist-menu-right createNewClaim">
+                    <input type="button" id="btnCreateNew" class="btn btn-primary" i18n="shared.buttons.createNewClaim">
+                </li>
+                <li class="worklist-menu-right batchClaim">
+                    <input type="button" id="btnbatchClaim" class="btn btn-primary" i18n="shared.buttons.batchClaim">
+                </li>
+            </ul>
+        </form>
+    </div>
+</nav>
+<div class="tabbable" id="diveHomeIndex" style="display:none;">
+    <div class="row" id="divStudyHeader" style="float: left; display: none; width:100%;">
+        <i class="icon-ic-calendar icon-ic-large"></i>
+        <span style="padding-left: 10px;"></span>
+        <b class="caret pull-right" style="margin-top: 8px;"></b>
+    </div>
+</div>
+
+<div class="tab-content bgColorGadgetLight example" id="data_container_home">
+    <div class="tab-pane " style="height: auto!important" id="Summary">
+        <div id="divGadgetSummary" style="display: none">
+        </div>
+        <div id="divGadgetSummaryNew" style="position: absolute; top: 90px; bottom: 10px; left: 10px; right: 10px; overflow: auto;">
+        </div>
+    </div>
+</div>
+
+<div class="col-xs-7 col-md-7 col-lg-7" style="margin-top: 5px !important;">
+
+
+    <div class="statusMenu" id="divStatusSearch">
+        <div class="header-status">
+            <label style="padding-left: 25px !important;" class="checkbox">
+                <input id="chkAppointmentStatus" type="checkbox" class="form-check-input">
+                <span i18n="home.worklist.appointmentStatus"></span>
+            </label>
+        </div>
+        <div class="multiStudyColumnList">
+            <ul id="ulAppointmentStatus" style="list-style: none;" class='statusList'>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="SCHEDULED" type="checkbox" value="SCH">
+                        <span i18n="home.worklist.scheduled">SCHEDULED</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="RESCHEDULED" type="checkbox" value="RSCH">
+                        <span i18n="home.worklist.rescheduled">RESCHEDULED</span>
+                    </label>
+                </li>
+
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="CONFIRMED" type="checkbox" value="CON">
+                        <span i18n="home.worklist.confirmed">CONFIRMED</span>
+                    </label>
+                </li>
+
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="CHECKEDIN" type="checkbox" value="CHI">
+                        <span i18n="home.worklist.checkedin">CHECKEDIN</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="CHECKEDOUT" type="checkbox" value="CHO">
+                        <span i18n="home.worklist.checkedout">CHECKEDOUT</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="CANCELED" type="checkbox" value="CAN">
+                        <span i18n="home.worklist.cancelled">CANCELED</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="ABORTED" type="checkbox" value="ABRT">
+                        <span i18n="home.worklist.aborted">ABORTED</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="NOSHOWS" type="checkbox" value="NOS">
+                        <span i18n="home.worklist.noshows">NOSHOWS</span>
+                    </label>
+
+                </li>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="PRECHECKIN" type="checkbox" value="PR">
+                        <span i18n="home.worklist.precheckin">PRECHECKIN</span>
+                    </label>
+                </li>
+                <% _.each(customOrderStatus, function(ordersStatus) { %>
+                    <li>
+                        <label class="checkbox-inline">
+                        <input class="status" data-value="<%= ordersStatus.status_desc %>" type="checkbox" value="<%= ordersStatus.status_code %>"><%=ordersStatus.status_desc.toUpperCase() %></label>
+                    </li>
+                    <% }); %>
+            </ul>
+        </div>
+
+
+        <div class="header-status">
+            <label style="padding-left: 25px !important;" class="checkbox">
+                <input id="chkStudyProgress" type="checkbox" class="form-check-input">
+                <span i18n="home.worklist.studyProgress"></span>
+            </label>
+        </div>
+        <div class="multiStudyColumnList">
+            <ul id="ulStudyProgress" style="list-style: none;" class='statusList'>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="START" type="checkbox" value="TS">
+                        <span i18n="home.worklist.start">START</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="END" type="checkbox" value="TE">
+                        <span i18n="home.worklist.end">END</span>
+                    </label>
+                </li>
+            </ul>
+        </div>
+
+
+        <div class="header-status">
+            <label style="padding-left: 25px !important;" class="checkbox">
+                <input id="chkRadStatus" type="checkbox" class="form-check-input">
+                <span i18n="home.worklist.radStatus"></span>
+            </label>
+        </div>
+        <div class="multiStudyColumnList">
+            <ul id="ulRadStatus" style="list-style: none;" class='statusList'>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="INCOMPLETE" type="checkbox" value="INC">
+                        <span i18n="home.worklist.incomplete">INCOMPLETE</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="UNREAD" type="checkbox" value="UNR">
+                        <span i18n="home.worklist.unread">UNREAD</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="READ" type="checkbox" value="RE">
+                        <span i18n="home.worklist.read">READ</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="DICTATED" type="checkbox" value="DIC">
+                        <span i18n="home.worklist.dictated">DICTATED</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="DRAFT" type="checkbox" value="DRFT">
+                        <span i18n="home.worklist.draft">DRAFT</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="TRANSCRIBED" type="checkbox" value="TRAN">
+                        <span i18n= "home.worklist.transcribed">TRANSCRIBED</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="checkbox-inline">
+                        <input class="status" data-value="APPROVED" type="checkbox" value="APP">
+                        <span i18n="home.worklist.approved">APPROVED</span>
+                    </label>
+                </li>
+                <% _.each(customStudyStatus, function(studyStatus) { %>
+                    <li>
+                        <label class="checkbox-inline">
+                        <input class="status" data-value="<%= studyStatus.status_desc %>" type="checkbox" value="<%= studyStatus.status_code %>"><%=studyStatus.status_desc.toUpperCase() %></label>
+                    </li>
+                    <% }); %>
+            </ul>
+        </div>
+
+        <table class="table" style="width: 100%;margin-bottom:0px !important;">
+            <tbody>
+                <tr>
+                    <td>
+                        <input id="chkAllStatus" type="checkbox">
+                        <label for="chkAllStatus" class="checkbox-inline" i18n="shared.fields.all"></label>
+                    </td>
+                    <td style="text-align: right;">
+                        <button type="button" class="btn btn-primary" id="btnCancelStatusSearch" i18n="shared.buttons.cancel"></button>
+                        <button id="btnStatusApply" class="btn btn-primary" type="button" i18n="shared.buttons.applyFilter"></button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <button class="btn btn-primary" id="btnClearAllStudy" title="Deselect all" i18n="shared.buttons.none" style="display: none;"></button>
+    <button class="btn btn-primary" id="btnSelectAllStudy" title="Select all studies" i18n="setup.dbTotals.all" style="display: none;"></button>
+</div>
+
+<div id="divPager" class="recordPagerDiv">
+    <span id="spanPagerSpan" class="pull-right ml-4 mr-4">
+        <span i18n="home.inbox.showing"></span>
+        <span id="spnTotalPage">
+            <i class="fa fa-spinner loading-spinner"></i>
+        </span>
+        <span i18n="home.inbox.of"></span>
+        <span id="spnTotalRecords">
+            <i class="fa fa-spinner loading-spinner"></i>
+        </span>
+    </span>
+    <span id="spanTotalBalance" class="pull-right ml-4 mr-4 d-none">
+        <span i18n="home.common.totalClaimBalance"></span> :
+        <span id="spnTotalBalance">
+            <i class="fa fa-spinner loading-spinner"></i>
+        </span>
+    </span>
+    <span id="spanTotalBillingFee" class="pull-right ml-4 mr-4 d-none">
+        <span i18n="home.common.totalBillingFee" ></span> :
+        <span id="spnTotalBillingFee">
+            <i class="fa fa-spinner loading-spinner"></i>
+        </span>
+    </span>
+</div>
+
+<ul class="dropdown-menu rightmenu" id="studyRightMenu" data-toggle="context" data-target="#context-menu">
+</ul>

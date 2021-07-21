@@ -1,0 +1,1963 @@
+<style>
+    div.topbar,
+    div.top-nav {
+        display: none;
+    }
+    .charges__cpt-code div{
+        width: 85px !important;
+        overflow:hidden !important;
+    }
+    .charges__cpt-description div {
+        width: 300px !important;
+        overflow:hidden !important;
+    }
+    .multiselect-container>li>a>label>input[type=checkbox] {
+        margin-top: 8px !important;
+        margin-bottom: 0 !important;
+        margin-right: 5px !important;
+    }
+    #divPokidokResponse{
+        display: none;
+        position: absolute;
+        z-index:10001;
+        left: 10%;
+        height: 75%;
+        width: 75%;
+        text-align: center;
+        top: 9%;
+        overflow:scroll;
+    }
+    .table__width {
+        width: 80% !important;
+    }
+    .filter_width {
+        width: 98%;
+        margin: auto;
+    }
+</style>
+<div class="row woClaimRelated" id="headerContainer">
+    <nav id="newClaimNav" class="top-nav">
+        <ul id="tab_menu" class="tn-menu">
+            <li class="active">
+                <a id="newClaimNavCharge" title="Alt+C" href="#tab_1" i18n="shared.screens.setup.charges" ></a>
+            </li>
+            <li>
+                <a id="newClaimNavClaims" title="Alt+Shift+C" href="#tab_2" i18n="shared.screens.setup.claims" ></a>
+            </li>
+            <li>
+                <a id="newClaimNavIns" title="Alt+I" href="#tab_3" i18n="shared.screens.setup.insurance"></a>
+            </li>
+            <li>
+                <a id="newClaimNavAddInfo" title="Alt+A" href="#tab_4" i18n="shared.screens.setup.additionalInfo"></a>
+            </li>
+            <li>
+                <a id="newClaimNavBillSummary" title="Alt+B" href="#tab_5" i18n="shared.screens.setup.billingSummary"></a>
+            </li>
+            <li class="editClaimRelated">
+                <a id="newClaimNavPayments" title="Alt+P" href="#tab_6" i18n="billing.payments.payments"></a>
+            </li>
+        </ul>
+        <ul class="new-menu-right">
+            <li>
+                <button type="button" class="btn top-buffer claimProcess" id="btnPrevClaim" title="Alt+Shift+P" i18n="shared.buttons.prev"></button>
+                <button type="button" class="btn top-buffer claimProcess" id="btnNextClaim" title="Alt+Shift+N" i18n="shared.buttons.next"></button>
+            </li>
+            <li>
+                <button type="button" class="btn top-buffer" id="btnPatientNotes" title="Alt+N" i18n="shared.buttons.notes"></button>
+            </li>
+            <li>
+                <button type="button" class="btn top-buffer" id="btPatientDocuemnt" title="Alt+D" i18n="shared.buttons.documentReports"></button>
+            </li>
+            <li class="editClaimRelated" >
+                <button type="button" class="btn top-buffer " id="btnValidateClaim" title="Alt+V" i18n="shared.buttons.validate"></button>
+            </li>
+            <li class="saveAll">
+                <button type="button" class="btn top-buffer" id="btnSaveClaim" title="Alt+S" i18n="shared.buttons.saveAll"></button>
+            </li>
+            <% if (billingRegionCode === 'can_MB' || billingRegionCode === 'can_BC' ) { %>
+            <li class="saveAll">
+                <input type="button" class="btn top-buffer" id="btnSaveClaimNotes" title="Alt+S" i18n="shared.buttons.saveNotes" />
+            </li>
+            <% } %>
+        </ul>
+    </nav>
+</div>
+<div id="divPatient" class="filter_width">
+    <div id="divGrid">
+        <div class="row" id="searchForm">
+            <div id="divPatientInputs">
+                    <div class="col-xs-12">
+                        <div class="form-group form-inline">
+                            <select id="ddlSearchType" class="form-control">
+                                <option value="start" i18n="billing.payments.startsWith"></option>
+                                <option value="end" i18n="billing.payments.endsWith"></option>
+                                <option value="contain" i18n="billing.payments.contains"></option>
+                            </select>
+                            <select id="ddlFacilitySearch" class="form-control">
+                                <option value="-1">All</option>
+                                <% _.each(facilities, function(facility) { %>
+                                <option value="<%= facility.id %>">
+                                    <%= facility.text %>
+                                </option>
+                                <% }); %>
+                            </select>
+                            <input type="checkbox" class="ml-2" checked="checked" id="chk_isActiveNeeded">
+                            <label for="chk_isActiveNeeded" class="field-chk" i18n="billing.payments.showInactive"></label>
+                        </div>
+                    </div>
+                <div class="col-xs-12 search-field__container">
+                    <div class="form-group form-inline">
+                        <div class="fc-inline" id="searchPatient" style="width: 100%;">
+                            <input type="text" id="lname" class="form-control search-field" i18np="billing.payments.lastName">
+                            <input type="text" id="fname" class="form-control search-field" i18np="billing.payments.firstName">
+                            <input type="text" id="mrn" class="form-control search-field" i18np="billing.payments.mrn">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12 mt-1">
+                <div class="patient-search__header">
+                    <span class="patient-search__header-text" i18n="billing.payments.patientSearchResults"></span>
+                </div>
+                <div class="patient-search__container mt-0" style="height: 495px; overflow: auto;">
+                    <div id="divNoPatients" class="noRecords" style="display:none;">
+                        <h4>
+                            <span i18n="billing.payments.YourSearch"></span> -
+                            <em id="em_SearchValue">---</em> -
+                            <span i18n="billing.payments.didNotMatchAnyPatients"></span>
+                        </h4>
+                        <div class="mt-3">
+                            <h4>
+                                <span i18n="billing.payments.Suggestions"></span>
+                            </h4>
+                        </div>
+                        <ul class="ml-3">
+                            <li>
+                                <h4>
+                                    <span i18n="billing.payments.tryDifferentKeywords"></span>
+                                </h4>
+                            </li>
+                        </ul>
+                    </div>
+                    <div id="divPatientSearchResults" class="results-on" style="overflow: auto;"></div>
+                </div>
+            </div>
+        </div>
+        <div id="divEmptySearch" style="display:none;">
+            <p style="padding-top:.33em"></p>
+            <h4>
+                <span i18n="billing.payments.pleaseEnterAtleast"></span>
+                <em id="em_SearchLetters"></em>
+                <span i18n="billing.payments.charactersToSsearch"></span>
+            </h4>
+            <p></p>
+        </div>
+        <div id="divPatientPaging" class="custompage mt-2" style="display: none; width: 100%;">
+            <div class="pull-left" style="width: 46%;">
+                <span i18n="billing.payments.totalRecords">Total Records :&nbsp;</span>
+                <span id="spnPatientTotalRecords">36</span>
+            </div>
+            <div style="display: inline;">
+                <span i18n="billing.payments.page">Page</span>
+                <span id="spnPatientCurrentPage">1</span>
+                <span i18n="billing.payments.of">of</span>
+                <span id="spnPatientTotalPage">4</span>
+            </div>
+            <div class="pagination pagination-right pull-right">
+                <ul>
+                    <li id="li_first" class="disabled" disabled="disabled">
+                        <a title="Go to first page" href="javascript:void(0);" id="anc_first" data-container="first_gridPager">
+                            <i class="icon-ic-first"></i>
+                        </a>
+                    </li>
+                    <li id="li_previous" class="disabled" disabled="disabled">
+                        <a title="Go to previous page" href="javascript:void(0);" id="anc_previous" data-container="prev_gridPager">
+                            <i class="icon-ic-backward"></i>
+                        </a>
+                    </li>
+                    <li id="li_next">
+                        <a title="Go to next page" href="javascript:void(0);" id="anc_next" data-container="next_gridPager">
+                            <i class="icon-ic-forward"></i>
+                        </a>
+                    </li>
+                    <li id="li_last">
+                        <a title="Go to last page" href="javascript:void(0);" id="anc_last" data-container="last_gridPager">
+                            <i class="icon-ic-last"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<main class="container-fluid woClaimRelated" id="mainContainer">
+    <section id="tab_1">
+        <div class="panel mt-4">
+            <div class="row">
+                <div class="col-xs-12">
+                    <div id="divParent">
+                        <header class="panel-header">
+                            <legend>
+                                <h5 class="border-bottom border-primary">
+                                    <label class="font-weight-bold" i18n="shared.screens.setup.charges"></label>
+                                </h5>
+                            </legend>
+                        </header>
+                        <!--charge table-->
+                        <div id="divCharge">
+                            <table class="table table-bordered <% if(country_alpha_3_code === 'can') { %> table__width <% } %>" id="tblCharge" >
+                                <thead id="tHeadCharge">
+                                    <tr>
+                                        <th class="addCharge"></th>
+                                        <th class="removeCharge"></th>
+                                        <th i18n="shared.fields.date"></th>
+                                        <th i18n="shared.fields.accession"></th>
+                                        <th i18n="shared.fields.cptCode"></th>
+                                        <th i18n="shared.fields.cptDescription"></th>
+                                        <% if (chargeField.pointers[0]) { %>
+                                        <th i18n="shared.fields.p1"></th>
+                                        <% } if (chargeField.pointers[1]) { %>
+                                        <th i18n="shared.fields.p2"></th>
+                                        <% } if (chargeField.pointers[2]) { %>
+                                        <th i18n="shared.fields.p3"></th>
+                                        <% } if (chargeField.pointers[3]) { %>
+                                        <th i18n="shared.fields.p4"></th>
+                                        <% } if (chargeField.modifiers[0]) { %>
+                                        <th i18n="shared.fields.m1"></th>
+                                        <% } if (chargeField.modifiers[1]) { %>
+                                        <th i18n="shared.fields.m2"></th>
+                                        <% } if (chargeField.modifiers[2]) { %>
+                                        <th i18n="shared.fields.m3"></th>
+                                        <% } if (chargeField.modifiers[3]) { %>
+                                        <th i18n="shared.fields.m4"></th>
+                                        <% } %>
+                                        <th i18n="shared.fields.units"></th>
+                                        <th i18n="shared.fields.billFee"></th>
+                                        <th i18n="shared.fields.totalBillFee"></th>
+                                        <% if (billingRegionCode !== 'can_ON') { %>
+                                        <th i18n="shared.fields.allowed"></th>
+                                        <th i18n="shared.fields.totalAllowed"></th>
+                                        <th i18n="shared.fields.authNo"></th>
+                                        <% } %>
+                                        <th i18n="shared.fields.exclude"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tBodyCharge">
+                                    <% _.each(chargeList, function(row) { %>
+                                        <tr data_row_id="<%= row.data_row_id %>">
+                                                <td>
+                                                    <span id="spAddCharge_<%= row.data_row_id %>" class="icon icon-ic-plus addChargeLine"></span>
+                                                </td>
+                                                <td>
+                                                    <span id="spDeleteCharge_<%= row.data_row_id %>" class="icon  icon-ic-close removecharge"></span>
+                                                </td>
+                                                <td>
+                                                    <span class="scheduleDate" id="spScheduleDate_<%= row.data_row_id %>">
+                                                        <%= row.charge_dt %>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <span class="charges__accession-num" id="spAccessionNo_<%= row.data_row_id %>">
+                                                        <%= row.accession_no %>
+                                                    </span>
+                                                </td>
+                                                <td class="charges__cpt-code align-top">
+                                                    <div id="divChargeCpt_<%= row.data_row_id %>"></div>
+                                                </td>
+                                                <td class="charges__cpt-description">
+                                                    <div id="divChargeCptDesc_<%= row.data_row_id %>"></div>
+                                                </td>
+                                               <% if (chargeField.pointers[0]) { %>
+                                                <td>
+                                                    <input id="ddlPointer1_<%= row.data_row_id %>" value="<%= row.pointer1 ? row.pointer1 : '' %>"
+                                                        class="form-control inputModifiers typeahead diagCodes" data-type="P1" data-value="<%= row.data_row_id %>"
+                                                        type="text">
+                                                </td>
+                                                <% } if (chargeField.pointers[1]) { %>
+                                                <td>
+                                                    <input id="ddlPointer2_<%= row.data_row_id %>" value="<%= row.pointer2 ? row.pointer2 : '' %>"
+                                                        class="form-control inputModifiers typeahead diagCodes" data-type="P2" data-value="<%= row.data_row_id %>"
+                                                        type="text">
+                                                </td>
+                                                <% } if (chargeField.pointers[2]) { %>
+                                                <td>
+                                                    <input id="ddlPointer3_<%= row.data_row_id %>" value="<%= row.pointer3 ? row.pointer3 : '' %>"
+                                                        class="form-control inputModifiers typeahead diagCodes" data-type="P3" data-value="<%= row.data_row_id %>"
+                                                        type="text">
+                                                </td>
+                                                <% } if (chargeField.pointers[3]) { %>
+                                                <td>
+                                                    <input id="ddlPointer4_<%= row.data_row_id %>" value="<%= row.pointer4 ? row.pointer4 : '' %>"
+                                                        class="form-control inputModifiers typeahead diagCodes" data-type="P4" data-value="<%= row.data_row_id %>"
+                                                        type="text">
+                                                </td>
+                                                <% } if (chargeField.modifiers[0]) { %>
+                                                <td>
+                                                    <input type="text" id="txtModifier1_<%= row.data_row_id %>" class="form-control inputModifiers modifiers"
+                                                        data-type="M1" data-value="<%= row.data_row_id %>">
+                                                </td>
+                                                <% } if (chargeField.modifiers[1]) { %>
+                                                <td>
+                                                    <input type="text" id="txtModifier2_<%= row.data_row_id %>" class="form-control inputModifiers modifiers"
+                                                        data-type="M2" data-value="<%= row.data_row_id %>">
+                                                </td>
+                                                <% } if (chargeField.modifiers[2]) { %>
+                                                <td>
+                                                    <input type="text" id="txtModifier3_<%= row.data_row_id %>" class="form-control inputModifiers modifiers"
+                                                        data-type="M3" data-value="<%= row.data_row_id %>">
+                                                </td>
+                                                <% } if (chargeField.modifiers[3]) { %>
+                                                <td>
+                                                    <input type="text" id="txtModifier4_<%= row.data_row_id %>" class="form-control inputModifiers modifiers"
+                                                        data-type="M4" data-value="<%= row.data_row_id %>">
+                                                </td>
+                                                <% } %>
+                                                <% if (billingRegionCode === 'can_AB' || billingRegionCode === 'can_ON') { %>
+                                                <td>
+                                                    <input value="<%= row.units ? row.units : 1 %>" id="txtUnits_<%= row.data_row_id %>" type="text"
+                                                    class="form-control integerbox units width-75 text-right" maxlength="2">
+                                                </td>
+                                                <% } else { %>
+                                                <td>
+                                                    <input value="<%= row.units ? row.units : 1.000 %>" id="txtUnits_<%= row.data_row_id %>" type="text"
+                                                        class="form-control maskUnits units floatbox width-75" maxlength="7">
+                                                </td>
+                                                <% } %>
+                                                <td>
+                                                    <input disabled value="<%= row.bill_fee ? row.bill_fee : 0.00 %>" id="txtBillFee_<%= row.data_row_id %>" type="text" class="billFee form-control-med form-control maskFee floatbox d-inline-block w-auto" data-edit="<%= row.is_custom_bill_fee %>">
+                                                    <span id="editBillFee_<%= row.data_row_id %>" class="editBillFee icon-ic-edit" style="margin-left: 4px;cursor:pointer;" i18nt="shared.buttons.edit"></span>
+                                                </td>
+                                                <td>
+                                                    <input disabled value="<%= row.total_bill_fee ? row.total_bill_fee : 0.00 %>" id="txtTotalBillFee_<%= row.data_row_id %>" type="text" class="totalbill form-control floatbox text-right">
+                                                </td>
+                                                <% if (billingRegionCode != 'can_ON') { %>
+                                                <td>
+                                                    <input disabled value="<%= row.allowed_fee ? row.allowed_fee : 0.00 %>" id="txtAllowedFee_<%= row.data_row_id %>" type="text" class="maskFee allowedFee form-control floatbox">
+                                                </td>
+                                                <td>
+                                                    <input disabled value="<%= row.total_allowed_fee ? row.total_allowed_fee : 0.00 %>" id="txtTotalAllowedFee_<%= row.data_row_id %>" type="text" class="totalallowed form-control floatbox text-right">
+                                                </td>
+                                                <td>
+                                                    <input id="txtAuthInfo_<%= row.data_row_id %>" type="text" class="form-control " value="<%= row.authorization_no %>">
+                                                </td>
+                                                <% } %>
+                                                <td>
+                                                    <% var isExcluded = !row.is_billable ? 'checked' : '' %>
+                                                    <input id="checkExclude_<%= row.data_row_id %>" type="checkbox" <%= isExcluded %>>
+                                                </td>
+                                            </tr>
+                                    <% }); %>
+                                </tbody>
+                                <tfoot>
+                                    <tr style="border: none">
+                                        <td colspan="<% if(billingRegionCode == 'can_ON') { %> 5 <% } else if(billingRegionCode == 'can_AB') {%> 10 <% } else if(billingRegionCode == 'can_MB'){ %> 13 <% } else { %> 12 <% } %>" style="border: 0">
+                                            <button type="button" class="btn pull-left" id="createNewCharge" i18n="shared.buttons.newCharge"></button>
+                                            <span id="divPatientBalance" class="patientPaid" style="text-decoration: blink; margin-right: 60px; display: none;">
+                                                <span> Patient Balance </span> :
+                                                <span id="spnPatientBalance" style="font-weight: bold;"></span>
+                                            </span>
+                                        </td>
+                                        <td style="text-align: left;border: 0">
+                                            <span class="patientPaid" style="font-weight: bold;text-decoration: blink" id="spToBePaid"></span>
+                                        </td>
+                                        <td colspan="3" style="text-align: right;border: 0">
+                                            <span id="spTotalBillFee" i18n="shared.fields.totalBillFee"></span>:
+                                            <span class="font-weight-bold" id="spTotalBillFeeValue"></span>
+                                        </td>
+                                        <td class="extra-span" style="border: 0"></td>
+                                        <% if (country_alpha_3_code !== 'can') { %>
+                                        <td style="text-align: right;border: 0">
+                                            <span id="spTotalAllowedFee" i18n="shared.fields.totalAllowed"></span>:
+                                            <span class="font-weight-bold" id="spTotalAllowedFeeValue"></span>
+                                        </td>
+                                        <td style="text-align: left;border: 0" colspan="3"></td>
+                                        <% } %>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                            <div id="splitClaimDiv">
+                                <span class="splitNotification hidden" i18n="billing.claims.splitClaimNotification"></span>
+                                <span class="nextSplitClaimSpan hidden split-icon"><span class="icon-ic-info"></span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section id="tab_2" class="mt-3">
+        <div class="form-group row">
+            <div class="col-lg-12">
+                <div class="form-group row">
+                    <legend>
+                        <% if (billingRegionCode !== 'can_AB') { %>
+                        <h5 class="border-bottom border-primary">
+                            <label class="font-weight-bold" i18n="billing.claims.claims"></label>
+                        </h5>
+                        <% } else { %>
+                        <h5 class="border-bottom border-primary row">
+                            <label class="font-weight-bold col-lg-6" i18n="billing.claims.claims">claims</label>
+                            <div class="font-weight-bold col-lg-6">
+                                <label i18n="shared.fields.patientChargesOn" class="text-center"></label>
+                                <label id="patientStudyDate"><%= currentDate %></label>
+                            </div>
+                        </h5>
+                        <% } %>
+                    </legend>
+                </div>
+            </div>
+            <div class="col-lg-6" id="claimSection">
+                <div class="form-group row">
+                    <label for="txtClaimDate" class="col-sm-3 col-form-label field-required" i18n="billing.claims.studyDate"></label>
+                    <div class="col-sm-3">
+                        <input type="text" id="txtClaimDate" class="form-control form-control-date maskDateLocale" name="ClaimDate" i18np="dateFormat">
+                    </div>
+                </div>
+                <div class="form-group row" id="divClaimDate">
+                    <label for="txtClaimCreatedDt" class="col-sm-3 col-form-label field-required" i18n="billing.claims.ClaimDate"></label>
+                    <div class="col-sm-3">
+                        <input type="text" id="txtClaimCreatedDt" class="form-control form-control-date maskDateLocale" name="ClaimCreatedDt" i18np="dateFormat">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="ddlFacility" class="col-sm-3 col-form-label field-required" i18n="billing.claims.facilityName"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlFacility" style="height:32px;">
+                            <% _.each(facilities, function(facility) { %>
+                                <option value='<%= facility.id %>'>
+                                    <%= facility.text %>
+                                </option>
+                                <% }); %>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="ddlBillingProvider" class="col-sm-3 col-form-label field-required" i18n="billing.claims.billingProvider"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlBillingProvider" style="height:32px;">
+                            <option value=''>Select</option>
+                            <% _.each(billingProviderList, function(provider) { %>
+                                <option value='<%= provider.id %>'>
+                                    <%= provider.full_name %>
+                                </option>
+                                <% }); %>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="ddlRenderingProvider" class="col-sm-3 col-form-label <% if (country_alpha_3_code === 'can') { print('field-required') } %>" i18n="billing.claims.renderingProvider"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlRenderingProvider">
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="ddlReferringProvider" class="col-sm-3 col-form-label <% if (billingRegionCode === 'can_AB') { print('field-required') } %>" i18n="billing.claims.referringProvider"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlReferringProvider">
+                        </select>
+                        <br />
+                        <div id="referralCodeText" style="color: red;"></div>
+                    </div>
+                </div>
+                <% if (billingRegionCode !== 'can_AB') { %>
+                <div class="form-group row">
+                    <label for="ddlOrdFacility" class="col-sm-3 col-form-label" i18n="billing.fileInsurance.serviceFacilityLocation"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlOrdFacility">
+                        </select>
+                    </div>
+                </div>
+                <% } %>
+                <% if (billingRegionCode === 'can_MB') { %>
+                    <div class="form-group row">
+                        <label class="col-sm-3 col-form-label" for="microFilmNumber" i18n="billing.claims.canMhs.microFilmNumber"></label>
+                        <div class="col-sm-5">
+                            <input class="form-control text-dark bg-white" type="text" id="microFilmNumber" name="microFilmNumber" readonly>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-3 col-form-label" for="receiptDate" i18n="billing.claims.canMhs.receiptDate"></label>
+                        <div class="col-sm-5">
+                            <input class="form-control text-dark bg-white" type="text" id="receiptDate" name="receiptDate" readonly>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                            <label class="col-sm-3 col-form-label" i18n="billing.claims.wcbRejected" for ="chkwcbRejected"></label>
+                        <div class = "form-check form-check-inline ml-3">
+                            <input class="form-check-input" type="checkbox" id="chkwcbRejected" name="wcb">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                            <label class="col-sm-3 col-form-label" for="chkConfidential" i18n="billing.claims.canAhs.confidential"></label>
+                        <div class = "form-check form-check-inline ml-3">
+                            <input class="form-check-input" type="checkbox" id="chkConfidential" name="Confidential">
+                        </div>
+                    </div>
+                <% } %>
+                <% if (["can_AB", "can_MB", "can_ON"].indexOf(billingRegionCode) === -1) { %>
+                <div class="form-group row">
+                    <label for="ddlPOSType" class="col-sm-3 col-form-label" i18n="billing.claims.posType"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlPOSType" style="height:32px;">
+                            <option value=''>Select</option>
+                            <% _.each(posList, function(pos) { %>
+                            <option value='<%= pos.id %>' data-code='<%= pos.code %>'>
+                                <%= pos.code %> (<%= pos.description %>)
+                            </option>
+                            <% }); %>
+                        </select>
+                    </div>
+                </div>
+                <% } %>
+            </div>
+            <div class="col-lg-6" id="diagnosticsCodes">
+                <div class="form-group row">
+                    <label for="ddlMultipleDiagCodes" class="col-form-label" i18n="billing.claims.diagnosticsCodes"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlMultipleDiagCodes">
+                            <option value=''>Select</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-2">
+                        <button type="button" class="btn" id="btnAddDiagCode">
+                            <span>+</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="row">
+                    <ul id="ulSelectedDiagCodes" class="icdTagList"></ul>
+                    <input type="hidden" id="hdnDiagCodes" />
+                </div>
+            </div>
+            <% if (billingRegionCode === 'can_AB') { %>
+            <div class="col-lg-6">
+                <div id="patientCharges" class="form-group col-sm-12">
+                    <div id="patientChargeHeader" class="charge_header">
+                        <div class="charge_row font-weight-bold">
+                            <div class="details_div charge_time">
+                                <span i18n="shared.fields.studyTime"></span>
+                            </div>
+                            <div class="chargeSeparator"> | </div>
+                            <div class="details_div cpt_code">
+                                <span i18n="shared.fields.cptCode"></span>
+                            </div>
+                            <div class="chargeSeparator "> | </div>
+                            <div class="details_div cpt_desc">
+                                <span i18n="shared.fields.cptDescription"></span>
+                            </div>
+                            <div class="chargeSeparator"> | </div>
+                            <div class="details_div modifier">
+                                <span i18n="shared.fields.m1"></span>
+                            </div>
+                            <div class="chargeSeparator"> | </div>
+                            <div class="details_div modifier" >
+                                <span i18n="shared.fields.m2"></span>
+                            </div>
+                            <div class="chargeSeparator"> | </div>
+                            <div class="details_div modifier" >
+                                <span i18n="shared.fields.m3"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="patientChargesBody" class="charge_header border-top-none">
+                    </div>
+                </div>
+            </div>
+            <%}%>
+        </div>
+        <% if (billingRegionCode === 'can_AB') { %>
+        <!--  Alberta Only Section  -->
+        <div class="form-group row">
+            <div class="col-lg-12" style="padding-bottom: 15px;">
+                <div class="form-group row border-bottom border-primary">
+                </div>
+            </div>
+
+            <!--  Alberta - Left column  -->
+            <div class="col-lg-6">
+                <div class="form-group row">
+                    <!-- Pay-to Code -->
+                    <label for="ddlPayToCode" class="col-sm-3 col-form-label field-required" i18n="billing.claims.canAhs.payToCode"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlPayToCode" style="height:32px;" >
+                            <option value="BAPY" i18n="setup.billingProvider.can_ahs_business_arrangement" selected></option>
+                            <option value="CONT" i18n="billing.claims.canAhs.contractHolder"></option>
+                            <option value="RECP" i18n="billing.claims.canAhs.serviceRecipient"></option>
+                            <option value="PRVD" i18n="billing.claims.canAhs.serviceProvider"></option>
+                            <option value="OTHR" i18n="shared.fields.other"></option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <!-- Locum Payment Type -->
+                    <label class="col-sm-3 col-form-label" i18n="billing.claims.canAhs.locumPaymentType"></label>
+                    <div class="col-sm-5" style="padding-top: 10px;">
+                        <span class="check-mark form-check-input fa fa-check"></span>
+                        <input class="form-check-input" type="radio" id="chkPayToPracticePractice" name="BusinessArrangement" value="LOC_PP">
+                        <label class="form-check-label" for="chkPayToPracticePractice" i18n="billing.claims.canAhs.payToPracticePractice"></label>
+                    </div>
+                    <div class="col-sm-5 offset-sm-3">
+                        <span class="check-mark form-check-input fa fa-check"></span>
+                        <input class="form-check-input" type="radio" id="chkPayToPracticeLocum" name="BusinessArrangement" value="LOC_PL">
+                        <label class="form-check-label" for="chkPayToPracticeLocum" i18n="billing.claims.canAhs.payToPracticeLocum"></label>
+                    </div>
+                    <div class="col-sm-5 offset-sm-3">
+                        <span class="check-mark form-check-input fa fa-check"></span>
+                        <input class="form-check-input" type="radio" id="chkPayToLocumLocum" name="BusinessArrangement" value="LOC_LL">
+                        <label class="form-check-label" for="chkPayToLocumLocum" i18n="billing.claims.canAhs.payToLocumLocum"></label>
+                    </div>
+                    <div class="col-sm-5 offset-sm-3">
+                        <span class="check-mark form-check-input fa fa-check"></span>
+                        <input class="form-check-input" type="radio" id="chkPayToLocumPractice" name="BusinessArrangement" value="LOC_LP">
+                        <label class="form-check-label" for="chkPayToLocumPractice" i18n="billing.claims.canAhs.payToLocumPractice"></label>
+                    </div>
+                </div>
+                <div class="form-group row" style="padding-bottom: 10px;">
+                    <!-- Claimed Amount Indicator -->
+                    <label class="col-sm-3 col-form-label" i18n="billing.claims.canAhs.options"></label>
+                    <div class="col-sm-5" style="padding-top: 10px;">
+                        <input class="form-check-input" type="checkbox" id="chkClaimedAmountIndicator" name="ClaimedAmountIndicator">
+                        <label class="form-check-label" for="chkClaimedAmountIndicator" i18n="billing.claims.canAhs.claimedAmountIndicator" i18nt="billing.claims.canAhs.claimingLessThanStandard"></label>
+                    </div>
+                    <!-- Confidential -->
+                    <div class="col-sm-5 offset-sm-3">
+                        <input class="form-check-input" type="checkbox" id="chkConfidential" name="Confidential">
+                        <label class="form-check-label" for="chkConfidential" i18n="billing.claims.canAhs.confidential"></label>
+                    </div>
+                    <!-- Sending paper supporting documentation separately -->
+                    <div class="col-sm-5 offset-sm-3">
+                        <input class="form-check-input" type="checkbox" id="chkSupportingDocumentationSeparate" name="SupportingDocumentationSeparate">
+                        <label class="form-check-label" for="chkSupportingDocumentationSeparate" i18n="billing.claims.canAhs.supportingDocumentationSeparate"></label>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <!-- Newborn Code -->
+                    <label for="ddlNewbornCode" class="col-sm-3 col-form-label" i18n="billing.claims.canAhs.newbornCode"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlNewbornCode" style="height:32px;">
+                            <option value="" i18n="shared.buttons.select"></option>
+                            <option value="ADOP" i18n="billing.claims.canAhs.adoption"></option>
+                            <option value="LVBR" i18n="billing.claims.canAhs.liveBirth"></option>
+                            <option value="MULT" i18n="billing.claims.canAhs.multipleBirth"></option>
+                            <option value="STBN" i18n="billing.claims.canAhs.stillBorn"></option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <!-- Reason for Additional Compensation / EMSAF -->
+                    <label for="txtReasonAdditionalCompensation" class="col-sm-3 col-form-label" i18n="billing.claims.canAhs.reasonAdditionalCompensation"></label>
+                    <div class="col-sm-5">
+                        <textarea id="txtReasonAdditionalCompensation" name="ReasonAdditionalCompensation" class="form-control form-control-lg" i18nt="billing.claims.canAhs.reasonAdditionalCompensationJustify"></textarea>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <!-- Supporting Text -->
+                    <label id="lblSupportingText" for="txtSupportingText" class="col-sm-3 col-form-label" i18n="billing.claims.supportingText"></label>
+                    <div class="col-sm-5">
+                        <textarea id="txtSupportingText" name="SupportingText" class="form-control form-control-lg" maxlength="36500"></textarea>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <!-- Supporting Text -->
+                    <label class="col-sm-3 col-form-label"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlSupportingTextOptions" style="height:32px;">
+                            <option value="" i18n="shared.buttons.select"></option>
+                        </select>
+                    </div>
+                    <div class="col-sm-2">
+                        <div id='btnAddSupportingText' class='btn btn-primary' i18n="shared.screens.setup.insertSupportingText"></div>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <!-- Chart Number -->
+                    <label for="spChartNumber" class="col-sm-3 col-form-label" i18n="billing.payments.chartNumber"></label>
+                    <div class="col-sm-5">
+                        <span id="spChartNumber" class="control-label w70"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!--  Alberta - Right column  -->
+            <div id="divPayToDetails" class="col-lg-6" style="display: none;">
+                <div class="form-group row">
+                    <!-- Pay-to ULI -->
+                    <label for="txtPayToUli" class="col-sm-3 col-form-label" i18n="billing.claims.canAhs.payToUli"></label>
+                    <div class="col-sm-3">
+                        <input type="text" id="txtPayToUli" class="form-control" name="PayToUli" i18np="billing.claims.canAhs.payToUli" maxlength="9">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-12 text-center">
+                        <hr />
+                    </div>
+                </div>
+                <div id="divPayToDetailsNoUli" style="display: none;">
+                    <!--  Pay-to Details  -->
+                    <div class="form-group row">
+                        <!-- Person Type -->
+                        <label for="ddlPayToDetailsPersonType" class="col-sm-3 col-form-label" i18n="billing.claims.canAhs.personType"></label>
+                        <div class="col-sm-5">
+                            <select class="form-control select-box" id="ddlPayToDetailsPersonType" style="height:32px;">
+                                <option value="" i18n="shared.buttons.select"></option>
+                                <option value="RECP" i18n="billing.claims.canAhs.serviceRecipient"></option>
+                                <option value="PYST" i18n="billing.claims.canAhs.payee"></option>
+                                <option value="RFRC" i18n="billing.claims.canAhs.oopReferringProvider"></option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <!-- Name -->
+                        <label for="txtPayToDetailsFirstName" class="col-sm-3 col-form-label" i18n="shared.fields.name"></label>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control" id="txtPayToDetailsFirstName" name="PayToDetailsFirstName" i18np="billing.payments.firstName">
+                        </div>
+                        <div class="col-sm-2" style="padding-left:0px;">
+                            <input type="text" class="form-control" id="txtPayToDetailsMiddleName" name="PayToDetailsMiddleName" i18np="billing.payments.middleName">
+                        </div>
+                        <div class="col-sm-3" style="padding-left:0px;">
+                            <input type="text" class="form-control" id="txtPayToDetailsLastName" name="PayToDetailsLastName" i18np="billing.payments.lastName">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <!-- Date of Birth -->
+                        <label for="txtPayToDetailsDOB" class="col-sm-3 col-form-label" i18n="billing.claims.dob"></label>
+                        <div class="col-sm-3 input-group" id="divPayToDetailsDOB">
+                            <input type="text" id="txtPayToDetailsDOB" class="form-control form-control-date maskDateLocale" name="PayToDetailsDOB" i18np="dateFormat">
+                            <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px;">
+                                <i class="icon-ic-schedule"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <!-- Gender -->
+                        <label for="ddlPayToDetailsGender" class="col-sm-3 col-form-label" i18n="billing.claims.gender"></label>
+                        <div class="col-sm-5">
+                            <select class="form-control select-box" id="ddlPayToDetailsGender" style="height:32px;">
+                                <% _.each(genders, function(obj) { %>
+                                <option value='<%= obj.id %>'>
+                                    <%= obj.text %>
+                                </option>
+                                <% }); %>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <!-- Address 1 -->
+                        <label for="txtPayToDetailsAddr1" class="col-sm-3 col-form-label" i18n="billing.claims.addressline1"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtPayToDetailsAddr1" i18np="billing.claims.addressline1">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <!-- Address 2 -->
+                        <label for="txtPayToDetailsAddr2" class="col-sm-3 col-form-label" i18n="billing.claims.addressline2"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtPayToDetailsAddr2" i18np="billing.claims.addressline2">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <!-- Address 3 -->
+                        <label for="txtPayToDetailsAddr3" class="col-sm-3 col-form-label" i18n="billing.claims.addressline3"></label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtPayToDetailsAddr3" i18np="billing.claims.addressline3">
+                        </div>
+                    </div>
+                    <div class="form-group row" id="divPayToDetailsSecAddressInfo">
+                        <!-- City / Province / Zip -->
+                        <label for="txtPayToDetailsCity" class="col-sm-3 col-form-label" i18n="setup.billingprovider.cityStateZip"></label>
+                        <div class="col-sm-3">
+                            <input type="text" class="form-control" id="txtPayToDetailsCity" i18np="billing.claims.city">
+                        </div>
+                        <div class="col-sm-2" style="padding-left:0px;">
+                            <select id="ddlPayToDetailsProvince" class="form-control" style="height:32px;">
+                                <% _.each(states, function(obj) { %>
+                                <option value='<%= obj.id %>'>
+                                    <%= obj.text %>
+                                </option>
+                                <% }); %>
+                            </select>
+                        </div>
+                        <div class="col-sm-2" style="padding-left:0px;">
+                            <input type="text" class="form-control" id="txtPayToDetailsPostalCode" i18np="shared.fields.zip">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <!-- Country -->
+                        <label for="ddlPayToDetailsCountryCode" class="col-sm-3 col-form-label" i18n="billing.claims.canAhs.countryCode"></label>
+                        <div class="col-sm-3">
+                            <select id="ddlPayToDetailsCountryCode" class="form-control" i18np="billing.claims.canAhs.countryCode" style="height:32px;">
+                                <option value="" i18n="shared.buttons.select"></option>
+                                <% _.each(countries, function(obj) { %>
+                                <option value='<%= obj.alpha_3_code %>'>
+                                    <%= obj.display_name %>
+                                </option>
+                                <% }); %>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <!--  End Pay-to Details  -->
+            </div>
+        </div>
+        <% } %>
+    </section>
+    <section id="tab_3">
+        <div class="row mt-2" id="divInsurances">
+            <div class="col-lg-6">
+                <div class="form-group row">
+                    <legend style="width:98%;">
+                        <h5 class="border-bottom border-primary">
+                            <label class="font-weight-bold" i18n="billing.claims.primaryInsurance"></label>
+                            <input type="button" id="btnResetPriInsurance" value="CLEAR" class="btn btn-primary" i18n="shared.buttons.clear">
+                        </h5>
+                    </legend>
+                </div>
+                <div class="form-group row">
+                    <label for="ddlExistPriIns" class="col-sm-3 col-form-label" i18n="billing.claims.existingInsurances"></label>
+                    <div class="col-sm-4">
+                        <select class="form-control select-box" id="ddlExistPriIns" style="height:32px;">
+                            <option value=''>Select</option>
+                        </select>
+                    </div>
+                    <% if (country_alpha_3_code === "usa") { %>
+                    <div class="col-sm-4">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="chkPriAcptAsmt">
+                            <label class="form-check-label" for="chkPriAcptAsmt" i18n="billing.claims.acceptAssignment"></label>
+                        </div>
+                    </div>
+                    <% } %>
+                </div>
+                <div class="form-group row">
+                    <label for="ddlPriInsurance" class="col-sm-3 col-form-label" i18n="billing.claims.carrier"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlPriInsurance" name="priInsurance">
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3 col-form-label" i18n="billing.claims.address"></label>
+                    <label class="col-sm-5 col-form-label" id="lblPriInsPriAddr"></label>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3 col-form-label" i18n="setup.billingprovider.cityStateZip"></label>
+                    <label class="col-sm-5 col-form-label" id="lblPriInsCityStateZip"></label>
+                </div>
+                <div class="form-group row">
+                        <label class="col-sm-3 col-form-label" i18n="setup.billingProvider.phoneno"></label>
+                        <label class="col-sm-5 col-form-label" id="lblPriPhoneNo"></label>
+                </div>
+                <div class="form-group row">
+                    <% if (country_alpha_3_code === "usa" ) { %>
+                        <label for="txtPriPolicyNo" class="col-sm-3 col-form-label field-required" i18n="shared.fields.policyNumber"></label>
+                    <% } else { %>
+                        <label for="txtPriPolicyNo" class="col-sm-3 col-form-label" i18n="shared.fields.policyNumber"></label>
+                    <% } %>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" id="txtPriPolicyNo" i18np="shared.fields.policyNumber">
+                        </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtPriGroupNo" class="col-sm-3 col-form-label" i18n="patient.patientInsurance.groupNo"></label>
+                    <div class="col-sm-5">
+                        <input type="text" class="form-control" id="txtPriGroupNo" i18np="patient.patientInsurance.groupNo">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3 col-form-label" i18n="billing.claims.insuranceStartExpiryDate"></label>
+                    <div class="col-sm-2">
+                        <input type="text" class="form-control maskDateLocale" i18np="dateFormat" id="txtPriStartDate" disabled>
+                    </div>
+                    <div class="col-sm-2">
+                        <input type="text" class="form-control maskDateLocale" i18np="dateFormat" id="txtPriExpDate" disabled>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="ddlPriRelationShip" class="col-sm-3 col-form-label field-required" i18n="billing.claims.relationShip"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlPriRelationShip">
+                            <option value=''>Select</option>
+                            <% _.each(relationshipList, function(relationShip) { %>
+                                <option value='<%= relationShip.id %>'>
+                                    <%= relationShip.description %>
+                                </option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div class="col-sm-3 form-check form-check-inline" id="showPriSelf">
+                        <input class="form-check-input" type="checkbox" id="chkPriSelf" name="self">
+                        <label class="form-check-label" for="chkPriSelf" i18n="billing.fileInsurance.self"></label>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtPriSubFirstName" class="col-sm-3 col-form-label field-required" i18n="billing.claims.subscriberName"></label>
+                    <div class="col-sm-3">
+                        <input type="text" class="form-control" id="txtPriSubFirstName" name="SubsFirstName" i18np="billing.payments.firstName">
+                    </div>
+                    <div class="col-sm-1" style="padding-left:0px;">
+                        <input type="text" class="form-control" id="txtPriSubMiName" name="SubsMiName" i18np="billing.payments.mi">
+                    </div>
+                    <div class="col-sm-3" style="padding-left:0px;">
+                        <input type="text" class="form-control" id="txtPriSubLastName" name="SubsLastName" i18np="billing.payments.lastName">
+                    </div>
+                    <div class="col-sm-2" style="padding-left:0px;">
+                        <input type="text" class="form-control" id="txtPriSubSuffix" i18np="billing.claims.suffix">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtPriDOB" class="col-sm-3 col-form-label field-required" i18n="billing.claims.dob"></label>
+                    <div class="col-sm-3 input-group" id="divPriDOB">
+                        <input type="text" id="txtPriDOB" class="form-control form-control-date maskDateLocale" name="dob1" i18np="dateFormat">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="ddlPriGender" class="col-sm-3 col-form-label field-required" i18n="billing.claims.gender"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlPriGender" style="height:32px;">
+                            <% _.each(genders, function(obj) { %>
+                                <option value='<%= obj.id %>'>
+                                    <%= obj.text %>
+                                </option>
+                                <% }); %>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtPriSubPriAddr" class="col-sm-3 col-form-label field-required" i18n="billing.claims.addressline1"></label>
+                    <div class="col-sm-5">
+                        <input type="text" class="form-control" id="txtPriSubPriAddr" i18np="billing.claims.addressline1">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtPriSubSecAddr" class="col-sm-3 col-form-label" i18n="billing.claims.addressline2"></label>
+                    <div class="col-sm-5">
+                        <input type="text" class="form-control" id="txtPriSubSecAddr"i18np="billing.claims.addressline2">
+                    </div>
+                </div>
+                <div class="form-group row" id="divPriAddressInfo">
+                    <label for="txtPriCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.cityStateZip"></label>
+                    <div class="col-sm-3">
+                        <input type="text" class="form-control" id="txtPriCity" name="payCity" i18np="billing.claims.city">
+                    </div>
+                    <div class="col-sm-2" style="padding-left:0px;">
+                        <select id="ddlPriState" class="form-control" style="height:32px;">
+                            <% _.each(states, function(obj) { %>
+                            <option value='<%= obj.id %>'>
+                                <%= obj.text %>
+                            </option>
+                            <% }); %>
+                        </select>
+                        </select>
+                    </div>
+                    <div class="col-sm-2" style="padding-left:0px;">
+                        <input type="text" class="form-control" id="txtPriZipCode" i18np="shared.fields.zip">
+                    </div>
+                    <% if(country_alpha_3_code === 'usa') { %>
+                    <div class="col-sm-2 pl-0">
+                        <input type="text" class="form-control" id="txtPriZipPlus" i18np="shared.fields.zipPlus">
+                    </div>
+                    <% } %>
+                </div>
+                <% if(country_alpha_3_code !== 'can') { %>
+                <div class="form-group row editClaimRelated">
+                    <label for="ddlServiceType" class="col-sm-3 col-form-label" i18n="billing.claims.serviceType"></label>
+                    <div class="col-sm-5">
+                        <select id="ddlServiceType" class="selectpicker" style="width: 250px;" multiple="multiple"></select>
+                    </div>
+                </div>
+                <% } %>
+                <div class="form-group row editClaimRelated">
+                    <label for="txtBenefitOnDate" class="col-sm-3 col-form-label field-required" i18n="billing.claims.benefitOnDate"></label>
+                    <div class="col-sm-4 input-group" id="divBOD1">
+                        <input type="text" id="txtBenefitOnDate" class="form-control form-control-date maskDateLocale" name="BenefitOnDate" i18np="dateFormat">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
+                    </div>
+                    <div class="col-sm-3">
+                        <button id="btnCheckEligibility" class="btn btn-success checkEligibility" i18n="shared.fields.checkEligibility"></button>
+                    </div>
+                    <div class="col-sm-2">
+                        <button id="btnViewReport" class="btn btn-success" i18n="billing.claims.viewReport" style="display:none"></button>
+                    </div>
+                </div>
+            </div>
+            <% if(country_alpha_3_code !== 'can') { %>
+            <div class="col-lg-6">
+                <div class="form-group row">
+                    <legend style="width:98%;">
+                        <h5 class="border-bottom border-primary">
+                            <label class="font-weight-bold" i18n="billing.claims.secondaryInsurance"></label>
+                            <input type="button" id="btnResetSecInsurance" value="CLEAR" class="btn" i18n="shared.buttons.clear">
+                        </h5>
+                    </legend>
+                </div>
+                <div class="form-group row">
+                    <label for="ddlExistSecIns" class="col-sm-3 col-form-label" i18n="billing.claims.existingInsurances"></label>
+                    <div class="col-sm-4">
+                        <select class="form-control select-box" id="ddlExistSecIns" style="height:32px;">
+                            <option value=''>Select</option>
+                        </select>
+                    </div>
+                    <% if (country_alpha_3_code === "usa") { %>
+                    <div class="col-sm-4">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="chkSecAcptAsmt">
+                            <label class="form-check-label" for="chkSecAcptAsmt" i18n="billing.claims.acceptAssignment"></label>
+                        </div>
+                    </div>
+                    <% } %>
+                </div>
+                <% if (country_alpha_3_code === "usa") { %>
+                <div class="form-group row">
+                    <label class="col-sm-3 col-form-label"></label>
+                    <div class="col-sm-5">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="chkSecMedicarePayer">
+                            <label class="form-check-label" for="chkSecMedicarePayer" i18n="billing.claims.medicarePayer"></label>
+                        </div>
+                        <select class="form-control select-box" id="selectMedicalPayer" style="height:32px;display:none;">
+                            <option value="" i18n="shared.buttons.select">Select</option>
+                            <option value="12" i18n="billing.COB.medicare12" />
+                            <option value="13" i18n="billing.COB.medicare13" />
+                            <option value="14" i18n="billing.COB.medicare14" />
+                            <option value="15" i18n="billing.COB.medicare15" />
+                            <option value="16" i18n="billing.COB.medicare16" />
+                            <option value="41" i18n="billing.COB.medicare41" />
+                            <option value="42" i18n="billing.COB.medicare42" />
+                            <option value="43" i18n="billing.COB.medicare43" />
+                            <option value="47" i18n="billing.COB.medicare47" />
+                        </select>
+                    </div>
+                </div>
+                <% } %>
+                <div class="form-group row">
+                    <label for="ddlSecInsurance" class="col-sm-3 col-form-label" i18n="billing.claims.carrier"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlSecInsurance" name="secInsurance" style="height:32px;">
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3 col-form-label" i18n="billing.claims.address"></label>
+                    <label class="col-sm-5 col-form-label" id="lblSecInsPriAddr"></label>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3 col-form-label" i18n="setup.billingprovider.cityStateZip"></label>
+                    <label class="col-sm-5 col-form-label" id="lblSecInsCityStateZip"></label>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3 col-form-label" i18n="billing.claims.phone"></label>
+                    <label class="col-sm-5 col-form-label" id="lblSecPhoneNo"></label>
+                </div>
+                <div class="form-group row">
+                    <label for="txtSecPolicyNo" class="col-sm-3 col-form-label field-required" i18n="shared.fields.policyNumber"></label>
+                    <div class="col-sm-5">
+                        <input type="text" class="form-control" id="txtSecPolicyNo" i18np="shared.fields.policyNumber">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtSecGroupNo" class="col-sm-3 col-form-label" i18n="patient.patientInsurance.groupNo"></label>
+                    <div class="col-sm-5">
+                        <input type="text" class="form-control" id="txtSecGroupNo" i18np="patient.patientInsurance.groupNo">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3 col-form-label" i18n="billing.claims.insuranceStartExpiryDate"></label>
+                    <div class="col-sm-2">
+                        <input type="text" class="form-control maskDateLocale" i18np="dateFormat" id="txtSecStartDate" disabled>
+                    </div>
+                    <div class="col-sm-2">
+                        <input type="text" class="form-control maskDateLocale" i18np="dateFormat" id="txtSecExpDate" disabled>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="ddlSecRelationShip" class="col-sm-3 col-form-label field-required" i18n="billing.claims.relationShip"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlSecRelationShip">
+                            <option value=''>Select</option>
+                            <% _.each(relationshipList, function(relationShip) { %>
+                                <option value='<%= relationShip.id %>'>
+                                    <%= relationShip.description %>
+                                </option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div class="col-sm-3 form-check form-check-inline" id="showSecSelf">
+                        <input class="form-check-input" type="checkbox" id="chkSecSelf" name="self">
+                        <label class="form-check-label" for="chkSecSelf" i18n="billing.fileInsurance.self"></label>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtSecSubFirstName" class="col-sm-3 col-form-label field-required" i18n="billing.claims.subscriberName"></label>
+                    <div class="col-sm-3">
+                        <input type="text" class="form-control" id="txtSecSubFirstName" name="SubsFirstName" i18np="billing.payments.firstName">
+                    </div>
+                    <div class="col-sm-1" style="padding-left:0px;">
+                        <input type="text" class="form-control" id="txtSecSubMiName" name="SubsMiName" i18np="billing.payments.mi">
+                    </div>
+                    <div class="col-sm-3" style="padding-left:0px;">
+                        <input type="text" class="form-control" id="txtSecSubLastName" name="SubsLastName" placeholder="Last Name">
+                    </div>
+                    <div class="col-sm-2" style="padding-left:0px;">
+                        <input type="text" class="form-control" id="txtSecSubSuffix" i18np="billing.claims.suffix">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtSecDOB" class="col-sm-3 col-form-label field-required" i18n="billing.claims.dob"></label>
+                    <div class="col-sm-3 input-group" id="divSecDOB">
+                        <input type="text" id="txtSecDOB" class="form-control form-control-date maskDateLocale" name="dob2" i18np="dateFormat">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="ddlSecGender" class="col-sm-3 col-form-label field-required" i18n="billing.claims.gender"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlSecGender" style="height:32px;">
+                            <% _.each(genders, function(obj) { %>
+                                <option value='<%= obj.id %>'>
+                                    <%= obj.text %>
+                                </option>
+                                <% }); %>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtSecSubPriAddr" class="col-sm-3 col-form-label field-required" i18n="billing.claims.addressline1"></label>
+                    <div class="col-sm-5">
+                        <input type="text" class="form-control" id="txtSecSubPriAddr" i18np="billing.claims.addressline1">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtSecSubSecAddr" class="col-sm-3 col-form-label" i18n="billing.claims.addressline2"></label>
+                    <div class="col-sm-5">
+                        <input type="text" class="form-control" id="txtSecSubSecAddr" i18np="billing.claims.addressline2">
+                    </div>
+                </div>
+                <div class="form-group row" id="divSecAddressInfo">
+                    <label for="txtSecCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.cityStateZip"></label>
+                    <div class="col-sm-3">
+                        <input type="text" class="form-control" id="txtSecCity" name="payCity" i18np="billing.claims.city">
+                    </div>
+                    <div class="col-sm-2" style="padding-left:0px;">
+                        <select id="ddlSecState" class="form-control" style="height:32px;">
+                            <% _.each(states, function(obj) { %>
+                                <option value='<%= obj.id %>'>
+                                    <%= obj.text %>
+                                </option>
+                                <% }); %>
+                        </select>
+                        </select>
+                    </div>
+                    <div class="col-sm-2" style="padding-left:0px;">
+                        <input type="text" class="form-control" id="txtSecZipCode" i18np="shared.fields.zip">
+                    </div>
+                    <% if(country_alpha_3_code === 'usa') { %>
+                    <div class="col-sm-2 pl-0">
+                        <input type="text" class="form-control" id="txtSecZipPlus" i18np="shared.fields.zipPlus">
+                    </div>
+                    <% } %>
+                </div>
+                <% if(country_alpha_3_code !== 'can') { %>
+                <div class="form-group row editClaimRelated">
+                    <label for="ddlServiceType2" class="col-sm-3 col-form-label" i18n="billing.claims.serviceType"></label>
+                    <div class="col-sm-5">
+                        <select id="ddlServiceType2"  class="selectpicker" style="width: 250px;" multiple="multiple"></select>
+                    </div>
+                </div>
+                <% } %>
+                <div class="form-group row editClaimRelated">
+                    <label for="txtBenefitOnDate" class="col-sm-3 col-form-label field-required" i18n="billing.claims.benefitOnDate"></label>
+                    <div class="col-sm-4 input-group" id="divBOD2">
+                            <input type="text" id="txtBenefitOnDate2" class="form-control form-control-date maskDateLocale" name="BenefitOnDate" i18np="dateFormat">
+                            <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
+                    </div>
+                    <div class="col-sm-3">
+                        <button id="btnCheckEligibility2" class="btn btn-success checkEligibility" i18n="shared.fields.checkEligibility"></button>
+                    </div>
+                    <div class="col-sm-2">
+                        <button id="btnViewReport2" class="btn btn-success" i18n="billing.claims.viewReport" style="display:none"></button>
+                    </div>
+                </div>
+            </div>
+            <% } else if(country_alpha_3_code === 'can') { %>
+            <div class="col-lg-6" id="tab_4">
+                    <div class="col-lg-12">
+                        <div class="form-group row">
+                            <legend>
+                                <h5 class="border-bottom border-primary">
+                                    <label class="font-weight-bold" i18n="billing.claims.additionalInfo"></label>
+                                </h5>
+                            </legend>
+                        </div>
+                    </div>
+                <div class="form-group row">
+                    <label class="col-sm-3 col-form-label "></label>
+                    <div class="col-sm-5">
+                        <label class="col-form-label" i18n="billing.claims.patientConditionRelatedTo"></label>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3 col-form-label "></label>
+                    <div class="col-sm-3">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="chkEmployment" name="employment">
+                            <label class="form-check-label" for="chkEmployment" i18n="billing.claims.employment"></label>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="chkAutoAccident" name="autoAccident">
+                            <label class="form-check-label" for="chkAutoAccident" i18n="billing.claims.autoAccident"></label>
+                        </div>
+                    </div>
+                    <div class="col-sm-3" style="padding-left: 3px;">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="chkOtherAccident" name="otherAccident">
+                            <label class="form-check-label" for="chkOtherAccident" i18n="billing.claims.otherAccident"></label>
+                        </div>
+                    </div>
+                </div>
+                <% if(billingRegionCode === 'can_BC') { %>
+                <div class="form-group row wcb_injury" id="natureOfInjuryDiv">
+                    <label for="wcbNatureOfInjury" class="col-sm-3 col-form-label" i18n="order.additionalInfo.natureOfInjury"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="wcbNatureOfInjury" name="wcbNatureOfInjury" style="height:32px;">
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row wcb_injury" id="areaOfInjuryDiv">
+                    <label for="wcbAreaOfInjury" class="col-sm-3 col-form-label" i18n="order.additionalInfo.areaOfInjury"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="wcbAreaOfInjury" name="wcbAreaOfInjury" style="height:32px;">
+                        </select>
+                    </div>
+                </div>
+                <% } %>
+                <div class="form-group row mt-2">
+                    <label for="selAccidentState" class="col-sm-3 col-form-label" i18n="order.additionalInfo.accidentState"></label>
+                    <div class="col-sm-2 col-md-2">
+                        <select name="states" id="selAccidentState" class="form-control" disabled>
+                            <% _.each(states, function(state) { %>
+                            <option value="<%= state.id %>"><%= state.text %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row" style="padding-left: 3px;">
+                    <label class="col-sm-3 col-form-label "></label>
+                    <div class="col-sm-5">
+                        <label class="col-form-label" i18n="billing.claims.illness"></label>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtDate" class="col-sm-3 col-form-label" i18n="billing.claims.date"></label>
+                    <div class="col-sm-3 input-group" id="divInjuryDate">
+                        <input type="text" id="txtDate" class="form-control form-control-date maskDateLocale" i18np="dateFormat">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; ">
+                            <i class="icon-ic-schedule"></i>
+                        </span>
+                    </div>
+                    <div class="col-sm-2">
+                        <label for="txtOtherDate" class="col-form-label" i18n="billing.claims.otherDate"></label>
+                    </div>
+                    <div class="col-sm-3 input-group" id="divOtherDate">
+                        <input type="text" id="txtOtherDate" class="form-control form-control-date maskDateLocale" i18np="dateFormat">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; ">
+                            <i class="icon-ic-schedule"></i>
+                        </span>
+                    </div>
+                </div>
+                <div class="form-group row mt-2">
+                    <label class="col-sm-3 col-form-label "></label>
+                    <div class="col-sm-8">
+                        <label class="col-form-label" i18n="billing.claims.datesPatientUnableToWorkCurrentOccupation"></label>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-3">
+                        <label for="txtWCF" class="col-form-label" i18n="billing.claims.fromDate"></label>
+                    </div>
+                    <div class="col-sm-3 input-group" id="divWCF">
+                        <input type="text" id="txtWCF" class="form-control form-control-date maskDateLocale" i18np="dateFormat">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
+                    </div>
+                    <div class="col-sm-2">
+                        <label for="txtWCT" class="col-form-label" i18n="billing.claims.toDate"></label>
+                    </div>
+                    <div class="col-sm-3 input-group" id="divWCT">
+                        <input type="text" id="txtWCT" class="form-control form-control-date maskDateLocale" i18np="dateFormat">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
+                    </div>
+                </div>
+                <div class="form-group row mt-2">
+                    <label class="col-sm-3 col-form-label "></label>
+                    <div class="col-sm-8">
+                        <label class="col-form-label" i18n="billing.claims.hosipitalizationPatientRelatedToCurrentServices"></label>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtHCF" class="col-sm-3 col-form-label" i18n="billing.claims.fromDate"></label>
+                    <div class="col-sm-3 input-group" id="divHCF">
+                        <input type="text" id="txtHCF" class="form-control form-control-date maskDateLocale" i18np="dateFormat">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
+                    </div>
+                    <label for="txtHCT" class="col-sm-2 col-form-label" i18n="billing.claims.toDate"></label>
+                    <div class="col-sm-3 input-group" id="divHCT">
+                        <input type="text" id="txtHCT" class="form-control form-control-date maskDateLocale" i18np="dateFormat">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
+                    </div>
+                </div>
+                <% if (["can_AB","can_BC"].indexOf(billingRegionCode) === -1) { %>
+                <div class="form-group row">
+                    <label for="txtClaimNotes" class="col-sm-3 col-form-label" i18n="billing.claims.claimNotes"></label>
+                    <div class="col-sm-5">
+                        <textarea id="txtClaimNotes" name="claimNotes" class="form-control form-control-lg"></textarea>
+                    </div>
+                </div>
+                <% } %>
+                <% if (billingRegionCode === 'can_BC') { %>
+                <div class="form-group row">
+                    <!-- Supporting Text -->
+                    <label id="lblSupportingText" for="txtSupportingText" class="col-sm-3 col-form-label"
+                        i18n="billing.claims.supportingText"></label>
+                    <div class="col-sm-5">
+                        <textarea id="txtSupportingText" name="SupportingText" class="form-control form-control-lg"
+                            maxlength="400"></textarea>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <!-- Supporting Text -->
+                    <label class="col-sm-3 col-form-label"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlSupportingTextOptions">
+                            <option value="" i18n="shared.buttons.select"></option>
+                        </select>
+                    </div>
+                    <div class="col-sm-2">
+                        <div id='btnAddSupportingText' class='btn btn-primary' i18n="shared.screens.setup.insertSupportingText"></div>
+                    </div>
+                </div>
+                <% } %>
+                <div class="form-group row">
+                    <label for="txtOriginalRef" id="lblOriginalRef" class="col-sm-3 col-form-label" i18n="billing.claims.originalRef"></label>
+                    <div class="col-sm-5">
+                        <input type="text" class="form-control" id="txtOriginalRef" i18np="billing.claims.originalRef">
+                    </div>
+                </div>
+                <% if (billingRegionCode === 'can_BC') { %>
+                <div class="form-group row">
+                    <label for="ddlSubmissionCode" class="col-sm-3 col-form-label" i18n="billing.claims.submissionCode"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlSubmissionCode">
+                            <option value="" i18n="shared.buttons.select"></option>
+                            <% _.each(submissionCodes, function(obj) { %>
+                                <option value="<%= obj.id %>"><%= obj.code %> - <%= obj.description %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                </div>
+                <% } else { %>
+                <div class="form-group row">
+                    <label for="ddlFrequencyCode" class="col-sm-3 col-form-label" i18n="billing.claims.frequencyCode"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlFrequencyCode" style="height:32px;">
+                            <% if (billingRegionCode !== 'can_AB') { %>
+                            <option value="" i18n="shared.buttons.select">Select</option>
+                            <option value="original" i18n="billing.claims.original"></option>
+                            <option value="corrected" i18n="billing.claims.corrected"></option>
+                            <option value="void" i18n="billing.claims.void"></option>
+                            <% } else { %>
+                            <option value="" i18n="billing.claims.actionCodeAuto"></option>
+                            <option value="corrected" i18n="billing.claims.actionCodeChange"></option>
+                            <% } %>
+                        </select>
+                    </div>
+                </div>
+                <% } %>
+                <% if (["can_ON"].indexOf(billingRegionCode) > -1) { %>
+                    <div class="form-group row mt-15">
+                    <div class="col-sm-3"></div>
+                    <div class="col-sm-4">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="chkManualReviewIndicator" name="manualReviewIndicator">
+                            <label class="form-check-label" for="chkManualReviewIndicator" i18n="billing.claims.manualReviewIndicator"></label>
+                        </div>
+                    </div>
+                    </div>
+                <% } %>
+
+            </div>
+            <% } %>
+
+        </div>
+        <% if(country_alpha_3_code !== 'can') { %>
+        <div class="row mt-2" id="divTeritaryInsurances">
+            <div class="col-lg-6">
+            <div class="col-lg-12">
+                    <div class="form-group row">
+                        <legend>
+                            <h5 class="border-bottom border-primary">
+                                <label class="font-weight-bold" i18n="billing.claims.teritaryInsurance"></label>
+                                <input type="button" id="btnResetTerInsurance" value="CLEAR" class="btn" i18n="shared.buttons.clear">
+                            </h5>
+                        </legend>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="ddlExistTerIns" class="col-sm-3 col-form-label" i18n="billing.claims.existingInsurances"></label>
+                    <div class="col-sm-4">
+                        <select class="form-control select-box" id="ddlExistTerIns" style="height:32px;">
+                            <option value=''>Select</option>
+                        </select>
+                    </div>
+                    <% if (country_alpha_3_code === "usa") { %>
+                    <div class="col-sm-4">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="chkTerAcptAsmt">
+                            <label class="form-check-label" for="chkTerAcptAsmt" i18n="billing.claims.acceptAssignment"></label>
+                        </div>
+                    </div>
+                    <% } %>
+                </div>
+                <div class="form-group row">
+                    <label for="ddlTerInsurance" class="col-sm-3 col-form-label" i18n="billing.claims.carrier"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlTerInsurance" name="priInsurance">
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3 col-form-label" i18n="billing.claims.address"></label>
+                    <label class="col-sm-5 col-form-label" id="lblTerInsPriAddr"></label>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3 col-form-label" i18n="setup.billingprovider.cityStateZip"></label>
+                    <label class="col-sm-5 col-form-label" id="lblTerInsCityStateZip"></label>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3 col-form-label" i18n="billing.claims.phone"></label>
+                    <label class="col-sm-5 col-form-label" id="lblTerPhoneNo"></label>
+                </div>
+                <div class="form-group row">
+                    <label for="txtTerPolicyNo" class="col-sm-3 col-form-label field-required" i18n="shared.fields.policyNumber"></label>
+                    <div class="col-sm-5">
+                        <input type="text" class="form-control" id="txtTerPolicyNo" i18np="shared.fields.policyNumber">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtTerGroupNo" class="col-sm-3 col-form-label" i18n="patient.patientInsurance.groupNo"></label>
+                    <div class="col-sm-5">
+                        <input type="text" class="form-control" id="txtTerGroupNo" i18np="patient.patientInsurance.groupNo">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3 col-form-label" i18n="billing.claims.insuranceStartExpiryDate"></label>
+                    <div class="col-sm-2">
+                        <input type="text" class="form-control maskDateLocale" i18np="dateFormat" id="txtTerStartDate" disabled>
+                    </div>
+                    <div class="col-sm-2">
+                        <input type="text" class="form-control maskDateLocale" i18np="dateFormat" id="txtTerExpDate" disabled>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="ddlTerRelationShip" class="col-sm-3 col-form-label field-required" i18n="billing.claims.relationShip"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlTerRelationShip">
+                            <option value=''>Select</option>
+                            <% _.each(relationshipList, function(relationShip) { %>
+                                <option value='<%= relationShip.id %>'>
+                                    <%= relationShip.description %>
+                                </option>
+                            <% }); %>
+                        </select>
+                    </div>
+                    <div class="col-sm-3 form-check form-check-inline" id="showTerSelf">
+                        <input class="form-check-input" type="checkbox" id="chkTerSelf" name="self">
+                        <label class="form-check-label" for="chkTerSelf" i18n="billing.fileInsurance.self"></label>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtTerSubFirstName" class="col-sm-3 col-form-label field-required" i18n="billing.claims.subscriberName"></label>
+                    <div class="col-sm-3">
+                        <input type="text" class="form-control" id="txtTerSubFirstName" name="SubsFirstName3" i18np="billing.payments.firstName">
+                    </div>
+                    <div class="col-sm-1" style="padding-left:0px;">
+                        <input type="text" class="form-control" id="txtTerSubMiName" name="SubsMiName" i18np="billing.payments.mi">
+                    </div>
+                    <div class="col-sm-3" style="padding-left:0px;">
+                        <input type="text" class="form-control" id="txtTerSubLastName" name="SubsLastName3" i18np="billing.payments.lastName">
+                    </div>
+                    <div class="col-sm-2" style="padding-left:0px;">
+                        <input type="text" class="form-control" id="txtTerSubSuffix" i18np="billing.claims.suffix">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtTerDOB" class="col-sm-3 col-form-label field-required" i18n="billing.claims.dob"></label>
+                    <div class="col-sm-3 input-group" id="divTerDOB">
+                        <input type="text" id="txtTerDOB" class="form-control form-control-date maskDateLocale" name="dob3" i18np="dateFormat">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="ddlTerGender" class="col-sm-3 col-form-label field-required" i18n="billing.claims.gender"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlTerGender" style="height:32px;">
+                            <% _.each(genders, function(obj) { %>
+                                <option value='<%= obj.id %>'>
+                                    <%= obj.text %>
+                                </option>
+                                <% }); %>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtTerSubPriAddr" class="col-sm-3 col-form-label field-required" i18n="billing.claims.addressline1"></label>
+                    <div class="col-sm-5">
+                        <input type="text" class="form-control" id="txtTerSubPriAddr" i18np="billing.claims.addressline1">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtTerSubSecAddr" class="col-sm-3 col-form-label" i18n="billing.claims.addressline2"></label>
+                    <div class="col-sm-5">
+                        <input type="text" class="form-control" id="txtTerSubSecAddr" i18np="billing.claims.addressline2">
+                    </div>
+                </div>
+                <div class="form-group row" id="divTerAddressInfo">
+                    <label for="txtTerCity" class="col-sm-3 col-form-label field-required" i18n="setup.billingprovider.cityStateZip"></label>
+                    <div class="col-sm-3">
+                        <input type="text" class="form-control" id="txtTerCity" name="payCity" i18np="billing.claims.city">
+                    </div>
+                    <div class="col-sm-2" style="padding-left:0px;">
+                        <select id="ddlTerState" class="form-control" style="height:32px;">
+                            <% _.each(states, function(obj) { %>
+                                <option value='<%= obj.id %>'>
+                                    <%= obj.text %>
+                                </option>
+                                <% }); %>
+                        </select>
+                        </select>
+                    </div>
+                    <div class="col-sm-2" style="padding-left:0px;">
+                        <input type="text" class="form-control" id="txtTerZipCode" i18np="shared.fields.zip">
+                    </div>
+                    <% if(country_alpha_3_code === 'usa') { %>
+                    <div class="col-sm-2 pl-0">
+                        <input type="text" class="form-control" id="txtTerZipPlus" i18np="shared.fields.zipPlus">
+                    </div>
+                    <% } %>
+                </div>
+                <% if(country_alpha_3_code !== 'can') { %>
+                <div class="form-group row editClaimRelated">
+                    <label for="ddlServiceType3" class="col-sm-3 col-form-label" i18n="billing.claims.serviceType"></label>
+                    <div class="col-sm-5">
+                        <select id="ddlServiceType3"  class="selectpicker" style="width: 250px;" multiple="multiple"></select>
+                    </div>
+                </div>
+                <% } %>
+                <div class="form-group row editClaimRelated">
+                    <label for="txtBenefitOnDate" class="col-sm-3 col-form-label field-required" i18n="billing.claims.benefitOnDate"></label>
+                    <div class="col-sm-4 input-group" id="divBOD3">
+                        <input type="text" id="txtBenefitOnDate3" class="form-control form-control-date maskDateLocale" name="BenefitOnDate" i18np="dateFormat">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
+                    </div>
+                    <div class="col-sm-3">
+                        <button id="btnCheckEligibility3" class="btn btn-success checkEligibility" i18n="shared.fields.checkEligibility"></button>
+                    </div>
+                    <div class="col-sm-2">
+                        <button id="btnViewReport3" class="btn btn-success" i18n="billing.claims.viewReport" style="display:none"></button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6" id="tab_4">
+                    <div class="col-lg-12">
+                        <div class="form-group row">
+                            <legend>
+                                <h5 class="border-bottom border-primary">
+                                    <label class="font-weight-bold" i18n="billing.claims.additionalInfo"></label>
+                                </h5>
+                            </legend>
+                        </div>
+                    </div>
+                <div class="form-group row">
+                    <label class="col-sm-3 col-form-label "></label>
+                    <div class="col-sm-5">
+                        <label class="col-form-label" i18n="billing.claims.patientConditionRelatedTo"></label>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-3 col-form-label "></label>
+                    <div class="col-sm-3">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="chkEmployment" name="employment">
+                            <label class="form-check-label" for="chkEmployment" i18n="billing.claims.employment"></label>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="chkAutoAccident" name="autoAccident">
+                            <label class="form-check-label" for="chkAutoAccident" i18n="billing.claims.autoAccident"></label>
+                        </div>
+                    </div>
+                    <div class="col-sm-3 pl-1">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="chkOtherAccident" name="otherAccident">
+                            <label class="form-check-label" for="chkOtherAccident" i18n="billing.claims.otherAccident"></label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group row mt-2">
+                    <label for="selAccidentState" class="col-sm-3 col-form-label" i18n="order.additionalInfo.accidentState"></label>
+                    <div class="col-sm-2 col-md-2">
+                        <select name="states" id="selAccidentState" class="form-control" disabled>
+                            <% _.each(states, function(state) { %>
+                            <option value="<%= state.id %>"><%= state.text %></option>
+                            <% }); %>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row pl-1">
+                    <label class="col-sm-3 col-form-label "></label>
+                    <div class="col-sm-5">
+                        <label class="col-form-label" i18n="billing.claims.illness"></label>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtDate" class="col-sm-3 col-form-label" i18n="billing.claims.date"></label>
+                    <div class="col-sm-3 input-group" id="divInjuryDate">
+                        <input type="text" id="txtDate" class="form-control form-control-date">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; ">
+                            <i class="icon-ic-schedule"></i>
+                        </span>
+                    </div>
+                    <div class="col-sm-2">
+                        <label for="txtOtherDate" class="col-form-label" i18n="billing.claims.otherDate"></label>
+                    </div>
+                    <div class="col-sm-3 input-group" id="divOtherDate">
+                        <input type="text" id="txtOtherDate" class="form-control form-control-date" i18np="dateFormat">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; ">
+                            <i class="icon-ic-schedule"></i>
+                        </span>
+                    </div>
+                </div>
+                <div class="form-group row mt-2">
+                    <label class="col-sm-3 col-form-label "></label>
+                    <div class="col-sm-8">
+                        <label class="col-form-label" i18n="billing.claims.datesPatientUnableToWorkCurrentOccupation"></label>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <div class="col-sm-3">
+                        <label for="txtWCF" class="col-form-label" i18n="billing.claims.fromDate"></label>
+                    </div>
+                    <div class="col-sm-3 input-group" id="divWCF">
+                        <input type="text" id="txtWCF" class="form-control form-control-date">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
+                    </div>
+                    <div class="col-sm-2">
+                        <label for="txtWCT" class="col-form-label" i18n="billing.claims.toDate"></label>
+                    </div>
+                    <div class="col-sm-3 input-group" id="divWCT">
+                        <input type="text" id="txtWCT" class="form-control form-control-date">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
+                    </div>
+                </div>
+                <div class="form-group row mt-2">
+                    <label class="col-sm-3 col-form-label "></label>
+                    <div class="col-sm-8">
+                        <label class="col-form-label" i18n="billing.claims.hosipitalizationPatientRelatedToCurrentServices"></label>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtHCF" class="col-sm-3 col-form-label" i18n="billing.claims.fromDate"></label>
+                    <div class="col-sm-3 input-group" id="divHCF">
+                        <input type="text" id="txtHCF" class="form-control form-control-date">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
+                    </div>
+                    <label for="txtHCT" class="col-sm-2 col-form-label" i18n="billing.claims.toDate"></label>
+                    <div class="col-sm-3 input-group" id="divHCT">
+                        <input type="text" id="txtHCT" class="form-control form-control-date">
+                        <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px; height: 32px; "> <i class="icon-ic-schedule"></i></span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtClaimNotes" class="col-sm-3 col-form-label" i18n="billing.claims.claimNotes"></label>
+                    <div class="col-sm-5">
+                        <textarea id="txtClaimNotes" name="claimNotes" class="form-control form-control-lg"></textarea>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="chkOutSideLab" name="outSideLab">
+                            <label class="form-check-label" for="chkOutSideLab" i18n="billing.claims.outsideLab"></label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtOriginalRef" class="col-sm-3 col-form-label" i18n="billing.claims.originalRef"></label>
+                    <div class="col-sm-5">
+                        <input type="text" class="form-control" id="txtOriginalRef" i18np="billing.claims.originalRef">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtAuthorization" class="col-sm-3 col-form-label" i18n="billing.claims.authNo"></label>
+                    <div class="col-sm-5">
+                        <input type="text" class="form-control" id="txtAuthorization" i18np="billing.claims.authNo">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="ddlFrequencyCode" class="col-sm-3 col-form-label" i18n="billing.claims.frequencyCode"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlFrequencyCode" style="height:32px;">
+                            <% if (billingRegionCode !== 'can_AB') { %>
+                            <option value="" i18n="shared.buttons.select">Select</option>
+                            <option value="original" i18n="billing.claims.original"></option>
+                            <option value="corrected" i18n="billing.claims.corrected"></option>
+                            <option value="void" i18n="billing.claims.void"></option>
+                            <% } else { %>
+                            <option value="" i18n="billing.claims.actionCodeAuto"></option>
+                            <option value="corrected" i18n="billing.claims.actionCodeChange"></option>
+                            <% } %>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <% } %>
+    </section>
+    <section id="tab_5" class="mt-2">
+        <div class="col-lg-12">
+            <div class="form-group row">
+                <legend>
+                    <h5 class="border-bottom border-primary">
+                        <label class="font-weight-bold" i18n="billing.claims.billingSummary"></label>
+                    </h5>
+                </legend>
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="col-lg-6">
+                <div class="form-group row">
+                    <label for="spBillFee" class="col-sm-3 col-form-label" i18n="billing.claims.billFee"></label>
+                    <div class="col-sm-5">
+                        <span id="spBillFee" class="control-label w70"></span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="spPatientPaid" class="col-sm-3 col-form-label" i18n="billing.claims.patientPaid"></label>
+                    <div class="col-sm-5">
+                        <span id="spPatientPaid" class="control-label w70"></span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="spAdjustment" class="col-sm-3 col-form-label" i18n="billing.claims.adjustment"></label>
+                    <div class="col-sm-5">
+                        <span id="spAdjustment" class="control-label w70"></span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="spBalance" class="col-sm-3 col-form-label" i18n="billing.claims.balance"></label>
+                    <div class="col-sm-5">
+                        <span id="spBalance" class="control-label w70"></span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="ddlClaimStatus" class="col-sm-3 col-form-label field-required" i18n="billing.claims.claimStatus"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlClaimStatus" style="height:32px;">
+                            <option value="">Select</option>
+                            <% _.each(claimStatusList, function(claimStatus) { %>
+                                <option value='<%= claimStatus.id %>' data-desc='<%= claimStatus.code %>'>
+                                    <%= claimStatus.description %>
+                                </option>
+                                <% }); %>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="txtClaimResponsibleNotes" class="col-sm-3 col-form-label" i18n="billing.claims.billingNotes"></label>
+                    <div class="col-sm-5">
+                        <textarea id="txtClaimResponsibleNotes" class="form-control form-control-lg" rows="2" <%= country_alpha_3_code === 'can' ? 'disabled' : '' %> ></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <% if(country_alpha_3_code !== 'can') { %>
+                <div class="form-group row">
+                    <label for="spAllowed" class="col-sm-3 col-form-label" i18n="billing.claims.allowed"></label>
+                    <div class="col-sm-5">
+                        <span id="spAllowed" class="control-label w70"></span>
+                    </div>
+                </div>
+                <% } %>
+                <div class="form-group row">
+                    <label for="spOthersPaid" class="col-sm-3 col-form-label" i18n="billing.claims.othersPaid"></label>
+                    <div class="col-sm-5">
+                        <span id="spOthersPaid" class="control-label w70"></span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="spRefund" class="col-sm-3 col-form-label" i18n="billing.claims.refund"></label>
+                    <div class="col-sm-5">
+                        <span id="spRefund" class="control-label w70"></span>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="ddlBillingCode" class="col-sm-3 col-form-label" i18n="billing.claims.billingCodes"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlBillingCode" style="height:32px;">
+                            <option value="">Select</option>
+                            <% _.each(billingCodesList, function(billingCode) { %>
+                                <option value='<%= billingCode.id %>' data-desc='<%= billingCode.code %>'>
+                                    <%= billingCode.description %>
+                                </option>
+                                <% }); %>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="ddlBillingClass" class="col-sm-3 col-form-label" i18n="billing.claims.billingClass"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlBillingClass" style="height:32px;">
+                            <option value="">Select</option>
+                            <% _.each(billingClassList, function(billingClass) { %>
+                                <option value='<%= billingClass.id %>' data-desc='<%= billingClass.code %>'>
+                                    <%= billingClass.description %>
+                                </option>
+                                <% }); %>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="ddlClaimResponsible" class="col-sm-3 col-form-label field-required" i18n="billing.claims.responsible"></label>
+                    <div class="col-sm-5">
+                        <select class="form-control select-box" id="ddlClaimResponsible">
+                            <option value="">Select</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section id="tab_6" class="mt-2 editClaimRelated">
+        <div class="row">
+            <div class="col-xs-12">
+                <div id="divParent">
+                    <header class="panel-header">
+                        <legend>
+                            <h5 class="border-bottom border-primary">
+                                <label class="font-weight-bold" i18n="billing.payments.payments" ></label>
+                            </h5>
+                        </legend>
+                    </header>
+                    <!--payment table-->
+                    <div id="divPayment">
+                        <table class="table table-bordered" id="tblPayment">
+                            <thead id="tHeadPayment">
+                                <tr>
+                                    <th></th>
+                                    <th i18n="billing.payments.accountingDate"></th>
+                                    <th i18n="billing.payments.payerName"></th>
+                                    <th i18n="order.chargePayment.payMode"></th>
+                                    <th i18n="order.chargePayment.checkCardNo"></th>
+                                    <th></th>
+                                    <th i18n="shared.fields.thisPayment"></th>
+                                    <th i18n="shared.fields.thisAdjustment"></th>
+                                    <th i18n="billing.payments.paymentID"></th>
+
+                                </tr>
+                            </thead>
+                            <tbody id="tBodyPayment">
+                                <%  _.each(paymentList, function(row) { %>
+                                <tr data_payment_id="<%= row.id %>" data_row_id="<%= row.row_index %>" data_payment_application_id="<%= row.payment_application_id %>" >
+                                    <td style="width:2%;vertical-align: middle;">
+                                        <span id="spAddPayment_<%= row.id %>" class="icon icon-ic-plus addPaymentLine" i18nt="shared.fields.addPayment"></span>
+                                    </td>
+                                    <td class='w-space' style="width:9%;vertical-align: middle;">
+                                        <div id="divAccountingDate_<%= row.row_index %>" class="input-group">
+                                            <input type="text" value="<%= row.accounting_date %>" data-format="MM/DD/YYYY" id="txtAccountingDate_<%= row.row_index %>"
+                                                class="form-control form-control-date maskDateLocale" style="min-width:90px;" i18np="dateFormat">
+                                            <span class="input-group-addon add-on pr-0 text-center" style="border: 1px solid #ced7db;width: 30px;line-height: 30px;height: 32px;">
+                                                <i class="icon-ic-schedule icon-ic-calendar"></i>
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td style="width:25%;vertical-align: middle;">
+                                        <select class="form-control select-box" id="ddlPayerName_<%= row.row_index %>" style="height: 32px;" disabled>
+                                            <option value="" i18n="shared.buttons.select"></option>
+                                        </select>
+                                    </td>
+                                    <td style="width:10%;vertical-align: middle;">
+                                        <select class="form-control select-box select-payment-mode" id="ddlPaymentMode_<%= row.row_index %>" style="height: 32px;">
+                                            <option value="" i18n="shared.buttons.select"></option>
+                                            <option value="cash" i18n="billing.payments.cash"></option>
+                                            <option value="check" i18n="billing.payments.cheque"></option>
+                                            <option value="card" i18n="billing.payments.card"></option>
+                                            <option value="eft" i18n="billing.payments.eft"></option>
+                                            <option value="adjustment" i18n="billing.payments.adjustments"></option>
+                                        </select>
+                                    </td>
+                                    <td style="width:10%;vertical-align: middle;">
+                                        <input id="txtCheckCardNo_<%= row.row_index %>" type="text" value="<%= row.card_number %>" class="checkcardno form-control integerbox">
+                                    </td>
+                                    <td style="width: 5%;vertical-align: middle;">
+                                        <input type="button" value="APPLY" id="btnApplyPayment_<%= row.row_index %>" i18n="report.reportFilter.apply" class="pl-3 pr-3 btn pull-left paymentApply">
+                                    </td>
+                                    <td style="width:8%;vertical-align: middle;">
+                                        <span class="form-control floatbox" id="spThisPay_<%= row.row_index %>" style="background-color: transparent;"><%= row.payment_applied %></span>
+                                    </td>
+                                    <td style="width:8%;vertical-align: middle;">
+                                        <span class="form-control floatbox" id="spThisAdj_<%= row.row_index %>" style="background-color: transparent;"><%= row.adjustment_applied %></span>
+                                    </td>
+
+                                    <td style="display:none;vertical-align: middle;">
+                                        <input id="ddlAdjustmentCode_<%= row.row_index %>" value="<%= row.pointer2 ? row.pointer2 : '' %>" class="form-control inputModifiers typeahead "
+                                            data-value="<%= row.id %>" type="text">
+                                    </td>
+
+                                    <td style="width:7%;vertical-align: middle;">
+                                        <span class="paymentid form-control" id="spPaymentID_<%= row.row_index %>" style="background-color: transparent;"><%= row.id %></span>
+                                    </td>
+                                </tr>
+                                <% }); %>
+                            </tbody>
+                            <tfoot>
+                                <tr style="border: none">
+                                    <td colspan="5" style="border: 0">
+                                        <input type="button" id="btnNewPayment" i18n="order.chargePayment.newPayment" title="Alt+(+)" class="btn pull-left mr-2">
+                                    </td>
+                                    <td style="border: 0"></td>
+                                    <td style="border: 0"></td>
+                                    <td style="border: 0"></td>
+                                    <td style="border: 0"></td>
+                                    <td style="border: 0"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+<div id="divPokidokResponse" class="bg-white rounded border border-dark p-3 form-horizontal form-list">
+</div>
+<div id="divPokitdokError" class="divDispatchingOrdersBackground form-horizontal form-list commonBorder d-none">
+    <div class="col-xs-12 mb-20">
+        <div class="row">
+            <div id="divErrors" class="failedOrdersTable lightColor commonBorder table-bordered ml-4 w-75">
+                <table class="table table-bordered mb-0 border-top">
+                    <thead>
+                        <tr>
+                            <th><b><span i18n="patient.patientInsurance.field"></span></b></th>
+                            <th><b><span i18n="patient.patientInsurance.failedReason"></span></b></th>
+                        </tr>
+                    </thead>
+                    <tbody id="bodyFailedReasons" class="table-hover slotsTable">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

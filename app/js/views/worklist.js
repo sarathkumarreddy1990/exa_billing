@@ -33,7 +33,7 @@ define([
                 this.testTable.render({
                     gridelementid: '#tblGridTest',
                     custompager: this.pager,
-                    emptyMessage: 'No Record found',
+                    emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
                     colNames: ['', ''],
                     i18nNames: ['setup.facility.code', 'shared.fields.name'],
                     colModel: [

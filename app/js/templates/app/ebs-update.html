@@ -1,0 +1,21 @@
+
+<div class="modal_div_container_nested">
+
+    <table>
+        <tr>
+            <th>Resource ID</th>
+            <th>Fixture Data</th>
+        </tr>
+    <% _.each(resourceIDs, function(resourceID) { %>
+        <tr class="ebs-update">
+            <td><input class="ebs-resource" type="text" value="<%= resourceID %>"></td>
+            <td><%= ddlFixtures %></td>
+        </tr>
+    <% }); %>
+
+    </table>
+
+    <div>
+        <button id="btnEBSUpdate">Submit</button>
+    </div>
+</div>

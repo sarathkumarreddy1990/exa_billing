@@ -1,0 +1,39 @@
+<style>
+    #root {
+        margin-top: 60px;
+    }
+    .eobMargin{
+        float: right;
+        margin-top: 3px;
+        margin-left: 3px !important;
+    }
+    #ifrEobFileUpload {
+        width: 500px;
+        border: none;
+        height: 38px !important;
+        float:right;
+    }
+</style>
+<div class="form-horizontals">
+    <div class="row">
+        <div class="col">
+            <span id="spScreenName" style="font-weight: bold; margin-left: 5px !important;font-size: large;vertical-align: -webkit-baseline-middle; display: none;">EOB</span>
+        </div>
+        <div class="col">
+            <button type="button" class="btn btn-primary eobMargin" id="btnReloadERA" style="display: none;"
+                i18n="shared.buttons.reload"></button>
+            <input type="button" id="btnReloadERALocal" class="btn btn-primary eobMargin"
+                i18n="shared.buttons.reload">
+            <button type="button" class="btn btn-primary eobMargin" id="btnImportERA" style="display: none;"
+                i18n="shared.buttons.import"></button>
+            <iframe id="ifrEobFileUpload" frameborder="0" scrolling="no" src="/exa_modules/billing/era/upload">
+                </iframe>
+        </div>
+    </div>
+</div>
+<div class="col-xs-12" style="margin-left: 0px !important;">
+    <div class='Grid' id='divGrid_EOBFileList' style="margin-top: 1%">
+        <table id="tblEOBFileList"></table>
+        <div id="gridPager_EOBFileList"></div>
+    </div>
+</div>

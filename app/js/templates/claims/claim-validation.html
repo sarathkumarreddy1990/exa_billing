@@ -1,0 +1,58 @@
+<div id="divValidateSchClaim">
+        <% if(response_data.length) { %>
+        <input type="button" id="revalidateClaim" class="btn btn-primary float-right" value="revalidate">
+        <% _.each(response_data, function(data) { %>
+
+        <table class="w-90 ml-4 mt-3" >
+            <tr>
+                <td class="moreLightbgColor summmaryBorder w-20">
+                    <label class="logFields" i18n="billing.fileInsurance.patientName"></label>
+
+                <td class="summmaryBorder">
+                    <label class="__right-labels" id="validate_patientName_<%= data.id %>"></label><%= data.patient_name %></td>
+            </tr>
+            <tr>
+                <td class="moreLightbgColor summmaryBorder w-20">
+                    <label class="logFields" i18n="billing.fileInsurance.payerName"></label>
+                </td>
+                <td class="summmaryBorder">
+                    <label class="__right-labels"  id="validate_payerName_<%= data.id %>"><%= data.payer_name %></label>
+                </td>
+            </tr>
+            <tr>
+                <td class="moreLightbgColor summmaryBorder w-20">
+                    <label class="logFields" i18n="billing.fileInsurance.claimNotes"></label>
+                </td>
+                <td class="summmaryBorder">
+                    <label class="__right-labels"  id="validate_claim_notes_<%= data.id %>"><%= data.claim_notes %></label>
+                </td>
+            </tr>
+            <tr>
+            <tr>
+                <td class="moreLightbgColor summmaryBorder w-20">
+                    <label class="logFields" i18n="billing.fileInsurance.claimNo"></label>
+                </td>
+                <td class="summmaryBorder">
+                    <label class="__right-labels processClaimEdit" id="<%= data.id %>"><%= data.id %></label>
+                </td>
+            </tr>
+            <tr>
+                <td class="moreLightbgColor summmaryBorder w-20">
+                    <label class="logFields" i18n="billing.fileInsurance.errorMessage"></label>
+                </td>
+                <td class="summmaryBorder">
+                    <div class="__right-labels" id="divValidateErrorMsg_<%= data.id %>" style="overflow: auto;">
+                        <% _.each(data.errorMessages, function(message){%>
+                            <label><%= message %></label>
+                            <br/>
+                        <%});%>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+        <% });
+        } else { %>
+            <div class="text-center" i18n="messages.errors.norecordfound"> </div>
+        <% } %>
+    </div>

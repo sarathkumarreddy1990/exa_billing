@@ -1,0 +1,134 @@
+<div>
+    <input type="button" id="reclaimEDI" data-method="electronic_billing" class="btn btn-default btn-primary ediButton" i18n="billing.payments.electronicClaim" value="electronicClaim">
+    <input type="button" id="aDownloadEDI" class="downloadEDI btn btn-default btn-primary ediButton" i18nt="billing.claims.downloadResponseXml" i18n="billing.fileInsurance.download" value="Download">
+</div>
+<ul class="nav tn-menu tn-menu-a" id="tabsEDIResponses" style="margin-bottom: 5px !important;position: fixed;width: 98%;">
+    <li id="liErrorMessages" class="active" >
+        <a id="aEDIErrorMsgs" href="#divErrorMsgs" data-toggle="tab" class="nav-link" i18n="billing.fileInsurance.warningMessages">
+        </a>
+    </li>
+    <li id="liEDI">
+        <a id="aEDIResp" href="#divEDIResult" data-toggle="tab" class="nav-link" i18n="billing.fileInsurance.EDIResponse"></a>
+    </li>
+</ul>
+<div class="tab-content" style="margin-top: 50px;">
+    <div id="divErrorMsgs" class="tab-pane" style="visibility: visible !important;">
+        <div id="divEDIErrorMsgs">
+            <% if(result){ %>
+
+            <div id="divWarningMsg">
+                <table class="table table-bordered table-hover ohip-claim">
+                    <tr>
+                        <td class="ediTableRowData pb-0 font-weight-bold" i18n="billing.fileInsurance.SegmentID"></td>
+                        <td class="ediTableRowData pb-0 font-weight-bold" i18n="billing.fileInsurance.SegmentName"></td>
+                        <td class="ediTableRowData pb-0 font-weight-bold" i18n="billing.fileInsurance.Name"></td>
+                        <td colspan='2' class="font-weight-bold ohip-claim border-right-0 pb-0" i18n="billing.fileInsurance.Message"></td>
+                    </tr>
+                    <% if(commonResult && commonResult.length){ %>
+                    <tr>
+                        <td colspan='5'>
+                            <span class="font-weight-bold ediErrorText" i18n="billing.fileInsurance.genericError">
+                            </span>
+                        </td>
+                    </tr>
+                    <% _.each(commonResult,function(segment){ %>
+                    <tr>
+                        <td class="ediTableRowData pb-0">
+                            <%=segment.segmentID || ''%>
+                        </td>
+                        <td class="ediTableRowData pb-0">
+                            <%=segment.segmentName || ''%>
+                        </td>
+                        <td class="ediTableRowData pb-0">
+                            <%=segment.fieldName || ''%>
+                        </td>
+                        <td colspan='2' class="ohip-claim border-right-0 pb-0">
+                            <%=segment.message || ''%>
+                        </td>
+                    </tr>
+                    <%})%>
+                    <% } %>
+                    <% _.each(result,function(obj,index){ %>
+                    <tr>
+                        <td colspan='5'>
+                            <span class="ediErrorText font-weight-bold" i18n="billing.fileInsurance.claimNo">
+            
+                            </span>
+                            <label class="paymentMethod font-weight-bold processClaimEdit" id="<%= index %>">
+                                <%= index %>
+                            </label>
+                        </td>
+                    </tr>
+                    <% _.each(obj,function(segment){ %>
+                    <tr>
+                        <td class="ediTableRowData pb-0">
+                            <%=segment.segmentID || ''%>
+                        </td>
+                        <td class="ediTableRowData pb-0">
+                            <%=segment.segmentName || ''%>
+                        </td>
+                        <td class="ediTableRowData pb-0">
+                            <%=segment.fieldName || ''%>
+                        </td>
+                        <td colspan='2' class="ohip-claim border-right-0 pb-0">
+                            <%=segment.message || ''%>
+                        </td>
+                    </tr>
+                    <%})%>
+                    <%})%>
+                    <%}%>
+
+                </table>
+            </div>
+        </div>
+    </div>
+    <div id="divEDIResult">
+        <table id="tblEDIResp" class="table table-bordered">
+            <% _.each(ediText,function(val,index){ %>
+                <% if (val != '')  { %>
+                    <% if (typeof val == 'object') { %>
+                        <tr>
+                            <td style='width: 20px; padding: 5px;'>
+                                <%= index > 0 ? index - 1 : index %>
+                            </td>
+                            <td style='width: 20px; padding: 5px;'>
+                                    <% var fieldName = ""; %>
+                                    <% _.each(val.v,function(v,index1){ %>
+                                        <% if (fieldName == '') { %>
+                                            <% fieldName +=(  (v.fieldName ? v.fieldName +'-' :'') + v.message )  %>
+                                        <% }else {  %>
+                                            <% fieldName +=('\n'+((v.fieldName ? v.fieldName +'-' :'') + v.message ))  %>
+                                        <% }  %>
+                                    <%})%>
+                                <span class="popoverWarning" data-toggle="popover" data-placement="top"  title='<%=val.v[0].segmentName%>' data-content="<%=fieldName%>">
+                                    <i class="icon-ic-warning" style="color:blue;"></i></span>
+                                </div>
+                            </td>
+                            <td style='padding: 5px; border-right: none;'>
+                                    <% if (index == 0) { %>
+                                        <%=(val.e).replace(/ /g,'&nbsp;')%>
+                                    <% } else{ %>
+                                        <%=(val.e)%>
+                                    <%}%>
+                            </td>
+                        </tr>
+                        <% }else {  %>
+                            <tr>
+                                <td style='width: 20px; padding: 5px;'>
+                                    <%= index > 0 ? index - 1 : index %>
+                                </td>
+                                <td style='width: 20px; padding: 5px;'></td>
+                                <td style='padding: 5px; border-right: none;'>
+                                    <% if (index == 0) { %>
+                                        <%=val.replace(/ /g, '&nbsp;')%>
+                                    <% } else{ %>
+                                        <%=(val)%>
+                                    <%}%>
+                                </td>
+                            </tr>
+                    <%} %>
+                <%} %>
+            <%}); %>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,24 @@
+<div id='divInvoiceClaim'>
+        <% _.each(response_data, function(data) { %>
+        <div style='margin-top: 5px'>
+            <div class="commonBorder selectionpatient result-part col-md-12 form-inline">
+                <div class="col-md-4" style=" font-weight:bold">
+                    <label class="lblInvoiceInsName" id="lblInvoiceIns_name_<%= data.claimids %>"><%= data.payer_name %></label>
+                </div>
+                <div class="col-md-6" style="font-weight:bold">
+                    <label id="lblInvoiceClaimNo_<%= data.claimids %>"> <%= data.claim_count %> Claim</label>
+                    <label id="lblInvoiceTotalFee_<%= data.claimids %>" i18n = 'billing.fileInsurance.totalFee'></label>
+                    <label> <%= data.tot_bill_fee %> </label>
+                    <hidden id="hdnInvoiceTotalFee"></hidden>
+                    <!-- <hidden id='claimIDS'><%= data.claimids %></hidden> -->
+                    <br>
+                    <label id="lblInvoicePayer_type_<%= data.claimids %>" i18n = 'billing.payments.payer'></label> 
+                    <label><%= data.payer %></label>
+                </div>
+                <div class="col-md-2 span1" style="text-align: center;margin-top: 15px;"> 
+                        <span class="icon-ic-print spnInvoicePrint" title="Print Claim" id="spnInvoicePrint_<%= data.claimids %>" style="font-size: 2em; cursor:pointer;"></span>
+                </div>
+            </div>
+        </div>
+    <% }); %>
+</div>

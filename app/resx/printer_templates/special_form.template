@@ -1,0 +1,593 @@
+
+function splitDate(date) {
+    let value = date && date.split('-');
+    return value;
+}
+
+function getDateFormat(mm, dd, yyyy) {
+    if (dd < 10 && dd.length === 1) {
+        dd = `0${dd}`;
+    }
+
+    if (mm < 10 && mm.length === 1) {
+        mm = `0${mm}`;
+    }
+
+    return `${mm}/${dd}/${yyyy}`;
+}
+
+function getSubstring(str, len) {
+    str = str && str.toString() || ' ';
+    return str && str.substring(0, len) || ' ';
+}
+
+
+function bindContent(claimData) {
+    let body = [];
+    let today = new Date();
+    let dd = today.getDate();
+    let mm = today.getMonth() + 1; //January is 0!
+    let yyyy = today.getFullYear();
+    let date = getDateFormat(mm.toString(), dd.toString(), yyyy);
+    let subscriber = claimData.data && claimData.data[0].subscriber && claimData.data[0].subscriber[0] || {};
+    let patient = subscriber && subscriber.patient && subscriber.patient[0] || {};
+    let payer = subscriber && subscriber.payer || {};
+    let claim = subscriber && subscriber.claim && subscriber.claim[0] || {};
+    let servicefacility = claim && claim.servicefacility && claim.servicefacility[0] || {};
+    let serviceLine = claim.serviceLine || {};
+    body.push(
+        [
+            {
+                table: {
+                    widths: ['*'],
+                    body: [
+                        [
+                            [
+                                bindDateAppeal(claim, date),
+                                bindClaiminformation(claim, payer),
+                                bindPatientinformation(patient),
+                                bindProviderInformation(servicefacility),
+                                bindDocumentInformation(),
+                                bindPostServiceAppeal(claim, serviceLine),
+                                bindSignature(date)
+                            ]
+                        ]
+                    ]
+                }
+            }
+        ]
+    );
+    return body;
+}
+
+function bindDateAppeal(claim, date) {
+    let body = [];
+    body.push(
+        [
+            {
+                style: 'formContent',
+                table: {
+                    widths: ['*', 'auto', 'auto'],
+                    body: [
+                        [{ colSpan: 3, style: 'formTitle', text: 'NEW JERSEY PIP POST-SERVICE APPEAL FORM' }, {}, {}],
+                        [
+                            { text: `TYPE OR PRINT LEGIBLY AND KEEP WITHIN THE LINES OF THE SPACE PROVIDED` },
+                            [{ text: `1. DATE APPEAL SUBMITTED` }, {style: 'answer', text: `${date}` }],
+                            [{ text: `2. RECEIPT DATE OF ADVERSE DECISION` }, {style: 'answer', text: `${claim && claim.sameIllnessFirstDate || ' '}` }]
+                        ]
+                    ]
+                },
+                margin: [-4, -2, -4, -2]
+            }
+        ]
+    )
+    return body;
+}
+
+function bindClaiminformation(claim, payer) {
+    let body = [];
+    body.push(
+        [
+            {
+                table: {
+                    widths: ['*'],
+                    body:
+                        [
+                            [{ text: `CLAIM INFORMATION`, style: 'formHeading' }],
+                            [
+                                {
+                                    style: 'formContent',
+                                    table: {
+                                        widths: ['*', '*', '*'],
+                                        body:
+                                            [
+                                                [
+                                                    [{ text: `3. INSURANCE COMPANY` }, {style: 'answer', text: `${payer && getSubstring(payer.payerName, 30) || ' '}` }],
+                                                    [{ text: `4. CLAIM #  ` }, {style: 'answer', text: `${claim && getSubstring(claim.claimNumber, 30) || ' '}` }],
+                                                    [{ text: `5. DATE OF LOSS ` }, {style: 'answer', text: `${claim && getSubstring(claim.illnessDate, 30) || ' '}` }]
+                                                ]
+                                            ]
+                                    },
+                                    margin: [-4, -4, -4, -4]
+                                }
+                            ]
+                        ]
+                },
+                layout: 'noBorders'
+            }
+        ]
+    );
+    return body;
+}
+function bindPatientinformation(patient) {
+    let body = [];
+    let splitedDate = splitDate(patient && patient.dob) || null;
+    let formatedBirthDate = splitedDate && getDateFormat(splitedDate[1], splitedDate[2], splitedDate[0]) || ' ';
+    body.push(
+        [
+            {
+                table: {
+                    widths: ['*'],
+                    body:
+                        [
+                            [{ text: `PATIENT INFORMATION`, style: 'formHeading' }],
+                            [
+                                {
+                                    style: 'formContent',
+                                    table: {
+                                        widths: ['*', '*', '*', '*'],
+                                        body:
+                                            [
+                                                [
+                                                    [{ text: `6. LAST NAME ` }, {style: 'answer', text: `${patient && getSubstring(patient.lastName, 30) || ' '}` }],
+                                                    [{ text: `7. FIRST NAME ` }, {style: 'answer', text: `${patient && getSubstring(patient.firstName, 30) || ' '}` }],
+                                                    [{ text: `8. MIDDLE INITIAL ` }, {style: 'answer', text: `${patient && getSubstring(patient.middleName, 30) || ' '}` }],
+                                                    [{ text: `9. DATE OF BIRTH ` }, {style: 'answer', text: `${formatedBirthDate}` }]
+                                                ],
+                                                [
+                                                    [{ text: `10. ADDRESS (No. Street)` }, {style: 'answer', text: `${patient && getSubstring(patient.addressLine1, 30) || ' '}` }],
+                                                    [{ text: `11. CITY ` }, {style: 'answer', text: `${patient && getSubstring(patient.city, 30) || ' '}` }],
+                                                    [{ text: `12. STATE` }, {style: 'answer', text: `${patient && getSubstring(patient.state, 30) || ' '}` }],
+                                                    [{ text: `13. ZIP` }, {style: 'answer', text: `${patient && getSubstring(patient.zipCode, 30) || ' '}` }]
+                                                ]
+                                            ]
+                                    },
+                                    margin: [-4, -4, -4, -4]
+                                }
+                            ]
+                        ]
+                },
+                layout: 'noBorders'
+            }
+        ]
+    );
+    return body;
+}
+
+function bindProviderInformation(servicefacility) {
+    let body = [];
+    body.push(
+        [
+            {
+                table: {
+                    widths: ['*'],
+                    body:
+                        [
+                            [{ text: `PROVIDER/FACILITY INFORMATION`, style: 'formHeading' }],
+                            [
+                                {
+                                    style: 'formContent',
+                                    table: {
+                                        widths: ['*', '*', '*', '*'],
+                                        body:
+                                            [
+                                                [
+                                                    [{ text: `14. LAST NAME` }, {style: 'answer', text: `${' '}` }],
+                                                    [{ text: `15. FIRST NAME` }, {style: 'answer', text: `${' '}` }],
+                                                    [{ colSpan: 2, text: `16. FACILITY-OFFICE NAME` }, {style: 'answer', text: `${servicefacility && getSubstring(servicefacility.lastName, 30) || ' '} ` }],
+                                                    {}
+                                                ],
+                                                [
+                                                    [{ text: `17. SPECIALTY` }, {style: 'answer', text: `Radiology` }],
+                                                    [{ text: `18. TAX ID #` }, {style: 'answer', text: `${servicefacility && getSubstring(servicefacility.federalTaxId, 30) || ' '}` }],
+                                                    [{ colSpan: 2, text: `19. NPI # ` }, {style: 'answer', text: `${servicefacility && getSubstring(servicefacility.NPINO, 30) || ' '}` }],
+                                                    {}
+                                                ],
+                                                [
+                                                    [{ text: `20. ADDRESS (No. Street)` }, {style: 'answer', text: `${servicefacility && getSubstring(servicefacility.addressLine1, 30) || ' '}` }],
+                                                    [{ text: `21. CITY` }, {style: 'answer', text: `${servicefacility && getSubstring(servicefacility.city, 30) || ' '}` }],
+                                                    [{ text: `22. STATE` }, {style: 'answer', text: ` ${servicefacility && getSubstring(servicefacility.state, 30) || ' '}` }],
+                                                    [{ text: `23. ZIP` }, {style: 'answer', text: `${servicefacility && getSubstring(servicefacility.zip, 30) || ' '}` }]
+                                                ],
+                                                [
+                                                    [{ text: `24. TELEPHONE # (Include Area Code)` }, {style: 'answer', text: `${servicefacility && getSubstring(servicefacility.phone, 30) || ' '}` }],
+                                                    [{ text: `25. FAX # (Include Area Code)` }, {style: 'answer', text: `${servicefacility && getSubstring(servicefacility.fax, 30) || ' '}` }],
+                                                    [{ colSpan: 2, text: `26. EMAIL ADDRESS` }, {style: 'answer', text: `${servicefacility && getSubstring(servicefacility.email, 30) || ' '}` }],
+                                                    {}
+                                                ],
+                                                [
+                                                    {
+                                                        colSpan: 2,
+                                                        table: {
+                                                            widths: ['*', '*', '*', '*', '*'],
+                                                            body: [
+                                                                [
+                                                                    { text: `27. PROVIDER AVAILABILITY DAYS OF WEEK:`, colSpan: 5, alignment: 'center', border: [false, false, false, false] }, {}, {}, {}, {}
+                                                                ],
+                                                                [
+                                                                    { text: `MONDAY`, alignment: 'center', border: [false, false, true, false] },
+                                                                    { text: `TUESDAY`, alignment: 'center', border: [false, false, true, false] },
+                                                                    { text: `WEDNESDAY`, alignment: 'center', border: [false, false, true, false] },
+                                                                    { text: `THURSDAY`, alignment: 'center', border: [false, false, true, false] },
+                                                                    { text: `FRIDAY`, alignment: 'center', border: [false, false, false, false] }
+                                                                ],
+                                                                [
+                                                                    { image: 'tickImage', fit: [10, 10], alignment: 'center', border: [false, false, true, false] },
+                                                                    { image: 'tickImage', fit: [10, 10], alignment: 'center', border: [false, false, true, false] },
+                                                                    { image: 'tickImage', fit: [10, 10], alignment: 'center', border: [false, false, true, false] },
+                                                                    { image: 'tickImage', fit: [10, 10], alignment: 'center', border: [false, false, true, false] },
+                                                                    { image: 'tickImage', fit: [10, 10], alignment: 'center', border: [false, false, false, false] }
+                                                                ]
+                                                            ]
+                                                        }
+                                                    },
+                                                    {},
+                                                    {
+                                                        colSpan: 2,
+                                                        table: {
+                                                            widths: ['*', '*'],
+                                                            body: [
+                                                                [
+                                                                    { text: '28. PROVIDER AVAILABILITY TIME OF DAY:', colSpan: 2, alignment: 'center', border: [false, false, false, false] }, {}
+                                                                ],
+                                                                [
+                                                                    { text: 'FROM', alignment: 'center', border: [false, false, true, false] },
+                                                                    { text: 'TO', alignment: 'center', border: [false, false, false, false] }
+                                                                ],
+                                                                [
+                                                                    { text: '8.00 AM', style: 'answer', border: [false, false, true, false] },
+                                                                    { text: '6.00 PM', style: 'answer', border: [false, false, false, false] }
+                                                                ]
+                                                            ]
+                                                        }
+                                                    },
+                                                    {}
+                                                ]
+                                            ]
+                                    },
+                                    margin: [-4, -4, -4, -4]
+                                }
+                            ]
+                        ]
+                },
+                layout: 'noBorders'
+            }
+        ]
+    );
+    return body;
+}
+
+function bindDocumentInformation() {
+    let body = [];
+    body.push(
+        [
+            {
+                table: {
+                    widths: ['*'],
+                    body:
+                        [
+                            [{ text: 'DOCUMENTS INCLUDED', style: 'formHeading' }],
+                            [
+                                {
+                                    style: 'formContent',
+                                    table: {
+                                        widths: [0, '*', 0, '*', 0, '*'],
+                                        body:
+                                            [
+
+                                                [
+                                                    { colSpan: 6, text: '29. CHECK THOSE APPLICABLE BELOW (Include Proof of Receipt if Applicable)' },
+                                                    {}, {}, {}, {}, {}
+                                                ],
+                                                [
+                                                    { image: 'checkboxImage', fit: [10, 10] },
+                                                    { text: '*ORIGINAL BILL (HCFA/UB)', margin: [7, 0, 0, 0] },
+                                                    { image: 'checkboxImage', fit: [10, 10] },
+                                                    { text: '*EXPLANATION OF BENEFIT/PAYMENT', margin: [7, 0, 0, 0] },
+                                                    { image: 'checkboxImage', fit: [10, 10] },
+                                                    { text: '*APPEAL RATIONALE NARRATIVE', margin: [7, 0, 0, 0] },
+                                                ],
+                                                [
+                                                    { image: 'checkboxImage', fit: [10, 10] },
+                                                    { text: 'APTP DECISION/RESPONSE', margin: [7, 0, 0, 0] },
+                                                    { image: 'checkboxImage', fit: [10, 10] },
+                                                    { text: 'INDEPENDENT MEDICAL EXAM REPORT', margin: [7, 0, 0, 0] },
+                                                    { image: 'checkboxImage', fit: [10, 10] },
+                                                    { text: 'PEER REVIEW REPORT', margin: [7, 0, 0, 0] },
+                                                ],
+                                                [
+                                                    { image: 'checkboxImage', fit: [10, 10] },
+                                                    { text: 'AUDIT REPORT', margin: [7, 0, 0, 0] },
+                                                    { image: 'checkboxImage', fit: [10, 10] },
+                                                    { text: 'NETWORK TERMINATION DOCUMENT', margin: [7, 0, 0, 0] },
+                                                    { image: 'checkboxImage', fit: [10, 10] },
+                                                    { text: 'PPO CONTRACT', margin: [7, 0, 0, 0] },
+                                                ],
+                                                [
+                                                    { image: 'checkboxImage', fit: [10, 10] },
+                                                    { text: 'OTHER SUPPORTING DOCUMENTS (Describe):', margin: [7, 0, 0, 0] },
+                                                    {
+                                                        colSpan: 4,
+                                                        widths: '*',
+                                                        table: {
+                                                            body: [
+                                                                [{ text: '________________________________________________________________________________________________________________', alignment: 'right' }],
+                                                            ]
+                                                        },
+                                                        layout: 'noBorders'
+
+                                                    }, {}, {}, {}
+                                                ],
+                                                [
+                                                    {},
+                                                    {
+                                                        colSpan: 5,
+                                                        widths: '*',
+                                                        table: {
+                                                            body: [
+                                                                [{ text: '____________________________________________________________________________________________________________________________________________________' }],
+                                                            ]
+                                                        },
+                                                        layout: 'noBorders'
+                                                    }, {}, {}, {}, {}
+                                                ]
+                                            ]
+                                    },
+                                    layout: 'noBorders'
+                                }]
+                        ]
+                },
+                layout: 'noBorders',
+                margin: [0, 0, 0, -4]
+            }
+        ]
+    );
+    return body;
+}
+
+function bindPostServiceAppeal(claim, serviceLine) {
+    let body = [];
+    let serviceData = [
+        [
+            { text: `30. EOB ID \n` },
+            { text: `31. TOTAL BILL REIMBURSEMENT \n ` },
+            { text: `32. EXPECTED BILL REIMBURSEMENT \n` },
+            { colSpan: 2, text: `33. **BILL LEVEL APPEAL CODE(S) 1-10 \n` },
+            {}
+        ],
+        [
+            {
+                table: {
+                    widths: ['*', '*', '*', '*', '*', '*'],
+                    body: [
+                        [{ colSpan: 6, text: `34. DATE(S) OF SERVICE`, border: [false, false, false, false] }, {}, {}, {}, {}, {}],
+                        [
+                            { colSpan: 3, text: `FROM`, alignment: 'center', border: [false, false, true, true] }, {}, {},
+                            { colSpan: 3, text: `TO`, alignment: 'center', border: [false, false, false, true] }, {}, {}
+
+                        ],
+                        [
+                            { text: `DD`, alignment: 'center', border: [false, false, true, false] },
+                            { text: `MM`, alignment: 'center', border: [false, false, true, false] },
+                            { text: `YY`, alignment: 'center', border: [false, false, true, false] },
+                            { text: `DD`, alignment: 'center', border: [false, false, true, false] },
+                            { text: `MM`, alignment: 'center', border: [false, false, true, false] },
+                            { text: `YY`, alignment: 'center', border: [false, false, false, false] }
+                        ]
+                    ]
+                }
+
+            },
+            { text: '35. CPT, HCPCS, NDC' },
+            { text: '36. LINE LEVEL REIMBURSE' },
+            { text: '37. LINE LEVEL EXPECTED' },
+            { text: '38. **LINE LEVEL APPEALC' }
+        ]
+    ]
+
+    for (i = 0; i < 11; i++) {
+        if (serviceLine && serviceLine.length > i) {
+            serviceData.push([
+                {
+                    style: 'answer',
+                    table: {
+                        widths: ['*', '*', '*', '*', '*', '*'],
+                        body: [
+                            [
+                                { text: serviceLine[i].studyDt && splitDate(serviceLine[i].studyDt)[2] || ' ', border: [false, false, true, false] },
+                                { text: serviceLine[i].studyDt && splitDate(serviceLine[i].studyDt)[1] || ' ', border: [false, false, true, false] },
+                                { text: serviceLine[i].studyDt && splitDate(serviceLine[i].studyDt)[0] || ' ', border: [false, false, true, false] },
+                                { text: serviceLine[i].studyDt && splitDate(serviceLine[i].studyDt)[2] || ' ', border: [false, false, true, false] },
+                                { text: serviceLine[i].studyDt && splitDate(serviceLine[i].studyDt)[1] || ' ', border: [false, false, true, false] },
+                                { text: serviceLine[i].studyDt && splitDate(serviceLine[i].studyDt)[0] || ' ', border: [false, false, false, false] }
+                            ]
+                        ]
+                    }
+                },
+                { style: 'answer', text: serviceLine && getSubstring(serviceLine[i].examCpt, 30) || ' '},
+                {}, {}, {}])
+        } else {
+            serviceData.push([
+                {
+                    table: {
+                        widths: ['*', '*', '*', '*', '*', '*'],
+                        body: [
+                            [
+                                { text: ` `, border: [false, false, true, false] },
+                                { text: ` `, border: [false, false, true, false] },
+                                { text: ` `, border: [false, false, true, false] },
+                                { text: ` `, border: [false, false, true, false] },
+                                { text: ` `, border: [false, false, true, false] },
+                                { text: ` `, border: [false, false, false, false] }
+                            ]
+                        ]
+                    }
+                }, {}, {}, {}, {}]);
+        }
+    }
+
+    body.push(
+        [
+            {
+                table: {
+                    widths: ['*'],
+                    body:
+                        [
+                            [{ text: 'POST-SERVICE APPEAL ISSUES', style: 'formHeading' }],
+                            [
+                                {
+                                    style: 'formContent',
+                                    table: {
+                                        heights: ['*', '*', 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
+                                        widths: ['*', 'auto', 'auto', 'auto', 'auto'],
+                                        body: serviceData
+                                    },
+                                    margin: [-4, -4, -4, -4]
+                                }
+                            ]
+                        ]
+                },
+                layout: 'noBorders'
+            }
+        ]
+    );
+    return body;
+}
+
+function bindSignature(date) {
+    let body = [];
+
+    body.push(
+        [
+            {
+                text: '*Indicates minimum documents required that must be included with the submission of this form with ADDITIONAL/NEW supporting records only\n', style: 'formContent'
+            },
+            {
+                text: '** Indicates sections that should be completed using the letter(s)/number(s) that correspond to the reason codes on the back of this form\n', style: 'formContent'
+            },
+            {
+                text: '\nFRAUD PREVENTION-NEW JERSEY WARNING\n', style: 'formSubHeading'
+            },
+            {
+                text: 'ANY PERSON WHO KNOWINGLY FILES A STATEMENT OF CLAIM CONTAINING ANY FALSE OR MISLEADING INFORMATION IS SUBJECT TO CRIMINAL AND CIVIL PENALTIES\n', style: 'formSubContent'
+            },
+            {
+                text: 'PROVIDER STATEMENT\n', style: 'formSubHeading'
+            },
+            {
+                text: 'I HAVE PERSONALLY COMPLETED OR REVIEWED THIS FORM. THE INFORMATION IS TRUE AND CORRECT TO THE BEST OF MY KNOWLEDGE AND BELIEF.\n\n', style: 'formSubContent'
+            },
+            {
+                style: 'formSubHeading',
+                table: {
+                    widths: ['*', '*'],
+                    body: [
+                        [{text:'\n__________________________________________________'}, {style:'answer',text:`${date} \n ___________________________________________________________________`}],
+                        [{text:'39. SIGNATURE OF PROVIDER'}, {text:'40. DATE'}]
+                    ]
+                },
+                layout: 'noBorders',
+                margin: [-4, -4, -4, -4]
+            }
+        ]
+    );
+    return body;
+}
+
+function specialForm(claimData, pgBreak) {
+    let body = [];
+    let content = bindContent(claimData);
+    body.push(
+        [
+            {
+                table: {
+                    body: [
+                        [content]
+                    ]
+                },
+                alignment: 'center',
+                pageBreak: pgBreak
+            }
+        ]
+    );
+    return body;
+}
+
+function claimTable(claims) {
+    let blocks = [];
+    claims.forEach(function (claim, index) {
+        let isLastClaim = (index === (claims.length - 1));
+        pageBrk = isLastClaim || isLastClaim === 'undefined' ? 'none' : 'after';
+        blocks = blocks.concat(specialForm(claim, pageBrk));
+    });
+    return blocks;
+}
+
+let allBlocks = [];
+
+if (typeof claimData !== 'undefined') {
+    allBlocks = claimTable(claimData);
+} else {
+    allBlocks = specialForm([
+        { data: [{}] },
+        { data: [{}] }
+    ]);
+}
+
+var dd = {
+    content: [
+        allBlocks
+    ],
+    styles: {
+        formTitle: {
+            fontSize: 12,
+            alignment: 'center',
+            bold: true
+        },
+        formHeading: {
+            color: 'white',
+            fontSize: 8,
+            alignment: 'center',
+            bold: true,
+            fillColor: 'black'
+        },
+        formSubHeading: {
+            fontSize: 7,
+            alignment: 'center',
+            bold: true
+        },
+        formSubContent: {
+            fontSize: 7,
+            alignment: 'center'
+        },
+        formContent: {
+            fontSize: 7,
+            alignment: 'left'
+        },
+        answer: {
+            bold: true,
+            alignment: 'center'
+        }
+    },
+    images: {
+        tickImage: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEwAACxMBAJqcGAAAAMNJREFUOI3VzjEOgjAYhuGvH4mJE57A5C/pqIscQXad3byBq7fSSeMRXOAA3KGOLuDSEkWlMBn/pWnT92mBvxut9VREZn7PgXGqlCpI5iKyGQS4+AJgAoAkd72BVoyqqu5KqT0ARP5SkiSLOI5H1tpbKCa5Ksvy3PxARLYArlEU5VrrtEd88neUe70AMHdntq7rDABCcQOIyJLkEcDYI27tjBvAIRnJwxOCUPwCfEJC8RvQQhSAdVf8dYwx2hijB4c/mQeKAVWWFc2OCAAAAABJRU5ErkJggg==',
+        checkboxImage: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAABBdEVYdENvbW1lbnQAQ1JFQVRPUjogZ2QtanBlZyB2MS4wICh1c2luZyBJSkcgSlBFRyB2ODApLCBxdWFsaXR5ID0gOTAKfVTa3QAAAENJREFUOE9jYGZm/m9gYPBfXV2dKAxSC9LDAGKQCkB6GECmkApAesjXqKGhAeUSD0B6RjXiAJRpJDseyU5y5CVy5v8A6/aIwdZjSaUAAAAASUVORK5CYII="
+    },
+    pageSize: {
+        width: 612,
+        height: 792
+    },
+    pageOrientation: 'portrait',
+    pageMargins: [12, 30, 12, 0]
+
+}

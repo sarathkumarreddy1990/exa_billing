@@ -1,0 +1,27 @@
+<style>
+    .modal-body {
+        padding-top: 0 !important;
+    }
+</style>
+<div id="divLoadIcdCodes" class="col-xs-12">
+    <button type="button" class="btn btn-default" id="btnSaveSelectedIcd" value="Save" i18n="shared.buttons.save" style="float: right;margin: 5px;"></button>
+    <table class="table table-bordered">
+        <thead>
+        <th style="width: 4%;"></th>
+        <th style="width: 15%;" i18n="patient.advancedSearch.icdCode"></th>
+        <th i18n="patient.advancedSearch.icdDescription"></th>
+        </thead>
+        <tbody>
+
+        <% for(var icd = 0; icd < icds.length; icd++) { %>
+        <tr data-code="<%= icds[icd].code %>" data-description="<%= icds[icd].description %>">
+            <td><input type="radio" name="icdCode" style="display: block;" id=chk_<%= icds[icd].description %>"></td>
+            <td><%= icds[icd].code %>
+            </td>
+            <td><%= icds[icd].description %>
+            </td>
+        </tr>
+        <% } %>
+        </tbody>
+    </table>
+</div>

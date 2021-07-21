@@ -1,0 +1,197 @@
+<style>
+    #divResponseSection .table td,
+    .table th {
+        padding: 8px !important;
+    }
+
+    #payerDetails .form-group {
+        margin-bottom: -5px !important;
+    }
+
+    #payerDetails .control-label {
+        padding: 0px !important;
+        /* font-weight: bold; */
+    }
+
+    .topMargin {
+        margin: 5px 0 5px 0;
+    }
+
+    /* .txtAlignRight {
+        text-align: right;
+    } */
+</style>
+<div id="divEraResult" class="eramodal" tabindex="-1">
+    <div id="divEraResponse">
+        <div class="tabbable">
+            <ul id="claimsTabs" class="nav tn-menu tn-menu-a">
+                <li id="liEobProcessed" class="nav-item">
+                    <a href="#divEobProcessed" class="nav-link active show" i18n="shared.fields.eobProcessed" data-toggle="tab"></a>
+                </li>
+                <% if (['can_MB', 'can_BC'].indexOf(billingRegionCode) == -1) { %>
+                    <li id="liEobOriginal" class="nav-item">
+                        <a href="#div-era-processed-preview" class="nav-link" i18n="billing.COB.original" data-toggle="tab"></a>
+                    </li>
+                <% } %>
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane active" id="divEobProcessed" style="margin-top: 10px;">
+                    <div>
+                        <div class="row" id="payerDetails" style="margin: auto;padding: 0.5em;">
+                            <div class="col">
+                                <div class="form-group form-inline">
+                                    <label id="lblInsPRoviderName" for="auditFromDate" i18n="setup.userSettings.insuranceProviders" class="control-label"></label>
+                                    <label class="control-label"> :
+                                        <b>
+                                            <%= ins.payer_details.insurance_name %>
+                                        </b>
+                                    </label>
+                                </div>
+                                <div class="form-group form-inline">
+                                    <label id="lblPayerId" for="auditFromDate" i18n="billing.payments.payerID" class="control-label"></label>
+                                    <label class="control-label"> :
+                                        <b>
+                                            <%= ins.payer_details.payer_id %>
+                                        </b>
+                                    </label>
+                                </div>
+                                <div class="form-group form-inline">
+                                    <label id="paymentDate" for="auditFromDate" i18n="billing.payments.paymentDate" class="control-label"></label>
+                                    <label class="control-label"> :
+                                        <b>
+                                            <%= ins.payer_details.payment_dt ? ins.payer_details.payment_dt : '' %>
+                                        </b>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-group form-inline">
+                                    <label id="lblInsProviderAddress" for="auditFromDate" i18n="billing.claims.address" class="control-label"></label>
+                                    <label class="control-label"> :
+                                        <b>
+                                            <%= ins.payer_details.address1 %>
+                                            <%= ins.payer_details.address2 ? '/'+ ins.payer_details.address2 : '' %>
+                                        </b>
+                                    </label>
+                                </div>
+                                <div class="form-group form-inline">
+                                    <label id="lblInsProviderCityState" for="auditFromDate" i18n="setup.billingprovider.cityStateZip" class="control-label"></label>
+                                    <label class="control-label"> :
+                                        <b>
+                                            <%= ins.payer_details.city %>/
+                                            <%= ins.payer_details.state || '--' %>/
+                                            <%= ins.payer_details.zip || '--' %>
+                                        </b>
+                                    </label>
+                                </div>
+                                <div class="form-group form-inline">
+                                    <label id="lblInsProviderPhoneNo" for="auditFromDate" i18n="billing.claims.phone" class="control-label"></label>
+                                    <label class="control-label"> :
+                                        <b>
+                                            <%= ins.payer_details.phone_no %>
+                                        </b>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="divResponseSection" class="text-nowrap row margin-auto">
+                            <% if (claims && claims.length ) { %>
+                                <% _.each(claims, function(claim, key){ %>
+                                    <div class="col-md-12 form-group form-inline border-top" id="divClaimDetails_<%= key %>">
+                                        <div class="col-md-6 float-left mt-2">
+                                            <label i18n="shared.fields.paymentId"></label>
+                                            <label class="control-label"> :
+                                                <%= claim.payment_id %>
+                                            </label>
+                                        </div>
+                                        <div class="col-md-6 float-left mt-2">
+                                            <label i18n="billing.fileInsurance.patientName"></label>
+                                            <label class="control-label">
+                                                <%= claim.pat_name %>
+                                            </label>
+                                        </div>
+                                        <div class="col-md-6 float-left mt-2">
+                                            <label i18n="billing.fileInsurance.claimNo"></label>
+                                            <label class="control-label"> :
+                                                <%= claim.claim_id %>
+                                            </label>
+                                        </div>
+                                        <div class="col-md-6 float-left mt-2">
+                                            <label i18n="billing.COB.noOfCharges"></label>
+                                            <label class="control-label"> :
+                                                <%= claim.charges.length ? claim.charges.length: 0 %>
+                                            </label>
+                                        </div>
+                                        <div class="col-md-6 float-left mt-2">
+                                            <label i18n="billing.COB.account"></label>
+                                            <label class="control-label"> :
+                                                <%= claim.account_no %>
+                                            </label>
+                                        </div>
+                                        <% if(claim.charges){ %>
+                                            <table class="table table-bordered table-striped">
+                                                <thead>
+                                                    <th i18n ="billing.claims.date">Date</th>
+                                                    <th i18n ="shared.fields.cptCode">CPT Code</th>
+                                                    <th class="txtAlignRight" i18n="shared.fields.billFee">Bill Fee</th>
+                                                    <th class="txtAlignRight" i18n="shared.fields.Amount">Amount</th>
+                                                    <th class="txtAlignRight" i18n="billing.payments.adjustments">Adjustment</th>
+                                                </thead>
+                                                <tbody>
+                                                    <% _.each(claim.charges, function(charge, key){ %>
+                                                        <tr>
+                                                            <td>
+                                                                <%= moment(charge.applied_dt).format('L') %>
+                                                            </td>
+                                                            <td>
+                                                                <%= charge.cpt_decsription %>
+                                                            </td>
+                                                            <td class="txtAlignRight">
+                                                                <%= charge.bill_fee %>
+                                                            </td>
+                                                            <td class="txtAlignRight">
+                                                            <% if (charge.payments_applied) { %>
+                                                                <%= charge.payments_applied %>
+                                                            <%}%>
+                                                            </td>
+                                                            <td class="txtAlignRight">
+                                                            <% if (charge.adjustments_applied) { %>
+                                                                <%= charge.adjustments_applied %>
+                                                            <% } %>
+
+                                                            </td>
+                                                        </tr>
+                                                        <% }); %>
+                                                            <tr>
+                                                                <td> </td>
+                                                                <td></td>
+                                                                <td class="txtAlignRight"> Total : <%= claim.tot_bill_fee || 0.00 %>
+                                                                </td>
+                                                                <td class="txtAlignRight"> Total : <%= claim.tot_payments_applied || 0.00 %>
+                                                                </td>
+                                                                <td class="txtAlignRight"> Total : <%= claim.tot_adjustments_applied || 0.00 %>
+                                                                </td>
+                                                            </tr>
+                                                </tbody>
+                                            </table>
+                                    </div>
+                                    <% }  %>
+                                        <% }); %>
+                                            <% } else { %>
+                                                <div>
+                                                    <span style="color:#000;position: absolute; margin-right:-50px; top: 50%; right: 50%; color:inherit;">No charges found</span>
+                                                </div>
+                                                <% } %>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane" id="div-era-processed-preview">
+                    <div class="row" class="tab-pane" id="era-processed-preview" style="margin: auto; overflow: auto;">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>

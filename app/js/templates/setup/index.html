@@ -1,0 +1,104 @@
+<div class="container-fluid page-bg">
+    <div class="row">
+        <div class="col-2 settings-nav exa-left-nav">
+            <ul class="nav nav-pills flex-column" id="ulLogNav">
+                <li class="nav-item">
+                    <a class="nav-link" id="aAuditLog" href="#setup/audit_log/list" i18n="menuTitles.setup.auditLog"></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="aUserLog" href="#setup/user_log/list" i18n="menuTitles.setup.userLog"></a>
+                </li>
+            </ul>
+            <ul class="nav nav-pills flex-column" id="ulSetupNav">
+                <li class="nav-item">
+                    <a class="nav-link" id="aAdjustmentCodes" href="#setup/adjustment_codes/list" i18n="shared.fields.adjustmentCodes"></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="aBillingCodes" href="#setup/billing_codes/list" i18n="shared.screens.setup.billingCodes"></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="aBillingClasses" href="#setup/billing_classes/list" i18n="shared.screens.setup.billingClasses"></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="aClaimStatus" href="#setup/claim_status/list" i18n="shared.screens.setup.claimStatus"></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="aCollectionsProcess" href="#setup/collections_process/all" i18n="shared.screens.setup.collectionsProcess"></a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" id="aBillingProviders" href="#setup/billing_providers/list" i18n="shared.screens.setup.billingProvider"></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="aProviderIdCodeQualifiers" href="#setup/provider_id_code_qualifiers/list" i18n="shared.screens.setup.providerIDCodeQualifiers"></a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" id="aBillingMessages" href="#setup/billing_messages/list" i18n="shared.screens.setup.billingMessages"></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="aPaymentReasons" href="#setup/payment_reasons/list" i18n="shared.screens.setup.paymentReasons"></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="aCasGroupCodes" href="#setup/cas_group_codes/list" i18n="shared.screens.setup.casGroupCodes"></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="aCasReasonCodes" href="#setup/cas_reason_codes/list" i18n="shared.screens.setup.casReasonCodes"></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="aStatusColorCodes" href="#setup/status_color_codes/list" i18n="shared.screens.setup.statusColorCodes"></a>
+                </li>
+                <% if (['can_AB', 'can_BC'].indexOf(billingRegionCode) > -1) { %>
+                <li class="nav-item">
+                    <a class="nav-link" id="aSupportingText" href="#setup/supporting_text/list" i18n="shared.screens.setup.supportingText"></a>
+                </li>
+                <% } %>
+                <li class="nav-item">
+                    <a class="nav-link" id="aBillingValidations" href="#setup/validations/all" i18n="shared.screens.setup.billingValidations"></a>
+                </li>
+                <% if (billingRegionCode !== 'can_AB') { %>
+                <li class="nav-item">
+                    <a class="nav-link" id="aEDITemplate" href="#setup/edi_templates/all" i18n="shared.screens.setup.ediTemplates"></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="aEDIClearingHouses" href="#setup/edi_clearinghouses/list" i18n="shared.screens.setup.ediClearingHouses"></a>
+                </li>
+                <% } %>
+                <li class="nav-item">
+                    <a class="nav-link" id="aInsuranceX12Mapping" href="#setup/insurance_x12_mapping/list" i18n="shared.screens.setup.insuranceMapping"></a>
+                </li>
+                <!-- Provider Level Codes screen available in RIS also
+                <li class="nav-item">
+                    <a class="nav-link" id="aProviderLevelCodes" href="#setup/provider_level_codes/list">Provider Level Codes</a>
+                </li>
+                -->
+                <li class="nav-item">
+                    <a class="nav-link" id="aPrinterTemplate" href="#setup/printer_templates/list" i18n="shared.screens.setup.printerTemplates"></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="aAutoBilling" href="#setup/auto_billing/list" i18n="shared.screens.setup.autoBilling"></a>
+                </li>
+                <% if (billingRegionCode === 'can_BC') { %>
+                <li class="nav-item">
+                    <a class="nav-link" id="aSubmissionTypes" href="#setup/submission_types/list" i18n="shared.screens.setup.submissionTypes"></a>
+                </li>
+                <% } %>
+            </ul>
+        </div>
+        <div class="col-10">
+            <div id="divPageHeaderButtons" class="float-right">
+            </div>
+            <div id="divValidationBlock" style="display: none;">
+                <br />
+                <h4 i18n="menuTitles.customer.validations"></h4>
+                <div class="error" id="validationSummary">
+                    <ul></ul>
+                </div>
+            </div>
+            <br />
+            <br />
+            <div id="data_container">
+            </div>
+        </div>
+    </div>
+</div>

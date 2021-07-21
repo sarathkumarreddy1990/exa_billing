@@ -1,0 +1,46 @@
+<style>
+    #divEncounterFeeInfo,
+    #tableExamAuth table td,
+    th {
+        text-align: right !important;
+    }
+
+    #tableExamAuth thead th span {
+        font-weight: 400;
+        text-transform: uppercase;
+    }
+</style>
+<table id="tableExamAuth" class="table table-bordered table-hover">
+    <thead>
+        <tr>
+            <th class="ui-state-default ui-th-column ui-th-ltr">
+                <span i18n="billing.claims.current">Current</span>
+            </th>
+            <th class="ui-state-default ui-th-column ui-th-ltr">
+                <span i18n="billing.claims.30days">30days</span>
+            </th>
+            <th class="ui-state-default ui-th-column ui-th-ltr">
+                <span i18n="billing.claims.60days">60days</span>
+            </th>
+            <th class="ui-state-default ui-th-column ui-th-ltr">
+                <span i18n="billing.claims.90days">90days</span>
+            </th>
+            <th class="ui-state-default ui-th-column ui-th-ltr">
+                <span i18n="billing.claims.120days">120days</span>
+            </th>
+            <th class="ui-state-default ui-th-column ui-th-ltr">
+                <span i18n="billing.claims.total">Total</span>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr id="trPatResponsible">
+            <td id="tdPtCurrent"></td>
+            <td id="tdPtAge30"></td>
+            <td id="tdPtAge60"></td>
+            <td id="tdPtAge90"></td>
+            <td id="tdPtAge120"></td>
+            <td id="tdPtAgeTotal"></td>
+        </tr>       
+    </tbody>
+</table>

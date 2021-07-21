@@ -1,0 +1,164 @@
+.chat-room-list {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.chat-item {
+    width: 100%;
+    padding: 5px 10px 5px 5px;
+    order: 2;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    height: 50px;
+    position: relative;
+
+    &:hover {
+        cursor: pointer;
+        background: @gray-200;
+
+        .chat-user-avatar-wrap-status::after,
+        .chat-item__badge {
+            border-color: @gray-200;
+        }
+    }
+
+    &_favorite {
+        order: 1;
+    }
+
+    &--active {
+        background: @gray-600 !important;
+
+        .chat-item-cont__title,
+        .chat-item-cont__date {
+            color: @listColor;
+        }
+    }
+
+    &__name {
+        padding: 0 7px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+        width: 140px;
+        font-size: 16px;
+    }
+
+    &-cont {
+        color: @gray-700;
+        margin-left: 5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        &__title {
+            width: 110px;
+            font-weight: 500;
+            line-height: 1.2;
+            max-height: 34px;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+        &__date {
+            width: 65px;
+            font-size: 12px;
+            text-align: center;
+        }
+    }
+
+    &_department .chat-item__icon:before {
+        border-color: #f99500;
+    }
+
+    &_group .chat-item__icon:before {
+        border-color: #a66bbe;
+    }
+
+    &_adhok .chat-item__icon:before {
+        border-color: #61c436;
+    }
+
+    &_privat .chat-item__icon:before {
+        border-color: #009cff;
+    }
+
+    &__badge {
+        position: absolute;
+        z-index: 3;
+        width: 20px;
+        height: 20px;
+        display: block;
+        top: -5px;
+        right: -3px;
+        border-radius: 50%;
+        background: @red-500;
+        color: @listColor;
+        font-size: 0.6em;
+        text-align: center;
+        line-height: 16px;
+        border: 2px solid @gray-100;
+    }
+
+    &__icon-favorite {
+        position: absolute!important;
+        right: .3em;
+        top: .3em!important;
+    }
+
+    &[disabled] {
+        pointer-events: none;
+        opacity: 0.5;
+    }
+}
+
+// in default theme there are no styles
+.theme-default {}
+
+//=========== DARK THEME =============
+
+.theme-dark {
+    .chat-item {
+        &:hover {
+            background: @green-500;
+
+            .chat-user-avatar-wrap-status::after,
+            .chat-item__badge {
+                border-color: @green;
+            }
+        }
+
+        &--active {
+            background: @green-900 !important;
+        }
+
+        &-cont {
+            color: @gray-200;
+        }
+
+        &_department .chat-item__icon:before {
+            border-color: #f99500;
+        }
+
+        &_group .chat-item__icon:before {
+            border-color: #a66bbe;
+        }
+
+        &_adhok .chat-item__icon:before {
+            border-color: #61c436;
+        }
+
+        &_privat .chat-item__icon:before {
+            border-color: #009cff;
+        }
+
+        &__badge {
+            border: 2px solid @green-600;
+        }
+    }
+}
+

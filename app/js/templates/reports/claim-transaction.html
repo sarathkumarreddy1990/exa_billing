@@ -1,0 +1,305 @@
+<form class="form-horizonta form-list claimInquiry" novalidate="" _lpchecked="1" style="margin-top:10px;">
+    <!-- row: form elements -->
+    <div class="row">
+        <div class="col" style="max-width: 420px;">
+            <!--  Service Date -->
+            <div class="form-group form-inline">
+                <div class="col-form-label">
+                    <input type="radio" id="workedBy" name="workedByRadio" value="workedBy" style="padding-right:1px;">
+                    <label for="workedBy" class="inline field-chk field-required" style="padding-right:1px;" i18n="report.reportFilter.workedBy"></label>
+                </div>
+                <div class="col-form-content" id="facilityDiv" style="display:none">
+                    <input type="radio" id="facilityChk" name="facilityBillingPro" value="facilityChk">
+                    <label for="facilityChk" class="inline field-chk facilityAndBillingProChk" i18n="report.reportFilter.facilities"> </label>
+                </div>
+            </div>
+            <div class="form-group form-inline">
+                <div class="col-form-label">
+                    <input type="radio" id="workedByAll" name="workedByRadio" value="workedByAll" style="padding-right:1px;">
+                    <label for="workedByAll" class="inline field-chk" style="padding-right:1px;" i18n="report.reportFilter.workedByAll"></label>
+                </div>
+                <div class="col-form-content" id="billingProviderDiv" style="display:none;">
+                    <input type="radio" id="billingProChk" name="facilityBillingPro" value="billingProChk">
+                    <label for="billingProChk" class="inline field-chk facilityAndBillingProChk" i18n="report.reportFilter.billingProvider"> </label>
+                </div>
+            </div>
+            <!--  Comment Date -->
+        </div>
+        <div class="col" style="max-width: 320px;">
+            <div class="form-group form-inline ddl" style="display: none" id="billingProDropdown">
+                <div class="selectBox ddl">
+                    <div class="col-form-label">
+                        <select id="ddlBillingProvider" multiple="multiple"></select>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group form-inline" style="display: none" id="facilityDropDown" class="multiselect">
+                <div class="col-form-label">
+                    <select id="ddlFacilityFilter" multiple="multiple">
+                        <% _.each(facilities.toJSON(), function(facility) { %>
+                            <option value='<%= facility.id %>'>
+                                <%=facility.facility_name%>
+                            </option>
+                            <% }); %>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="form-group form-inline">
+                <div>
+                    <label class="control-label" i18n="report.reportFilter.selectInsurance"></label>
+                    <div class="input-group">
+                        <select id="ddlInsuranceOption" class="form-control form-control-lg">
+                            <option value="All">All Insurance</option>
+                            <option value="S">Insurances</option>
+                            <option value="G">Insurance Group</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="ddlOptionBox" class="form-group form-inline" style="display:none">
+                    <div style="max-width: 200px;">
+                        <label class="control-label" i18n="report.reportFilter.insurances"></label>
+                        <a class="btn btn-primary" id="btnAddInsurance" title="Add Insurance">
+                            <i class="icon-ic-plus"></i>
+                        </a>
+                        <select id="txtInsuranceName" style="width: 250px; border:1px solid;"> </select>
+
+                    </div>
+                </div>
+                <div id="ddlInsuranceGroupBox" class="ddl form-group form-inline" style="display: none; max-width: 200px;">
+                    <label class="control-label" i18n="report.reportFilter.insuranceProvider"></label>
+                    <a class="btn btn-primary" id="btnAddInsuranceProvider" title="Add Insurance">
+                            <i class="icon-ic-plus"></i>
+                        </a>
+                    <select id="txtInsuranceProviderName" style="width: 250px; border:1px solid;"> </select>
+                </div>
+                <div id="ddlOptionBoxList" style="display:none; padding-left: 15px;">
+                    <div id="divListInsurance">
+                        <ul id="ulListInsurance" class="ulSelectionList tagList" style="overflow: auto;width: 330px;height:50px; border: 1px solid;">
+                        </ul>
+                    </div>
+                </div>
+
+                <div id="ddlInsuranceGroupBoxList" style="display:none; padding-left: 15px;">
+                    <div id="divListInsuranceProvider">
+                        <ul id="ulListInsuranceProvider" class="ulSelectionList tagList" style="overflow: auto;width: 330px;height:50px; border: 1px solid;">
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <!-- Date filter colomn-->
+        <!-- 1st column -->
+        <div class="col" style="max-width: 420px;">
+            <!--  Service Date -->
+            <div class="form-group form-inline">
+                <div>
+                    <input id="chkServiceDateBill" type="checkbox" value="chkServiceDateBill" name="serviceDate">
+                    <label for="chkServiceDateBill" class="field-chk" i18n="billing.claims.claimDate"> </label>
+                    <div class="input-group">
+                        <input type="text" id="serviceDateBill" class="form-control" required="required" name="dateRange">
+                        <span class="input-group-addon add-on datePickerSpanReport">
+                                <i class="fa fa-calendar"> </i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--  Pay Date( payment/accounting) -->
+
+
+        <div class="col" style="max-width: 320px;">
+            <div class="form-group form-inline">
+                <label class="inline field-chk field-required"  i18n="report.reportFilter.claim" > </label>
+                <select id="ddlClaimSelectBoxes" multiple="multiple">
+                    <option value="InsPaid" selected>Insurance Paid</option>
+                    <option value="PatPaid">Patient Paid</option>
+                    <option value="UnPaid">UnPaid</option>
+                </select>
+            </div>
+        </div>
+        <div class="col">
+            <div class="form-group form-inline">
+                <div>
+                    <label class="inline field-chk" i18n="report.reportFilter.selectRefPhy"></label>
+                    <div class="input-group">
+                        <select id="ddlReferringPhysicianOption" class="form-control form-control-lg">
+                            <option value="All">ALL</option>
+                            <option value="S">Selected</option>
+                        </select>
+                    </div>
+                </div>
+
+
+                <div id="ddlReferringPhysicianBox" class="form-group form-inline" style="display:none;">
+                    <div style="max-width: 200px;">
+                        <label class="control-label" i18n="report.reportFilter.referingphysician"></label>
+                        <a class="btn btn-primary" id="btnAddReferringPhysician" title="Add Ref. Phy.">
+                            <i class="icon-ic-plus"></i>
+                        </a>
+                        <select id="txtReferringPhysician"> </select>
+
+                    </div>
+                </div>
+                <div id="divReferringPhysician" style="display: none; padding-left: 15px;">
+                    <label class="inline field-chk" i18n="report.reportFilter.refPhysician"></label>
+                    <div>
+                        <ul id="ulListReferringPhysicians" class="ulSelectionList tagList" style="overflow: auto;width: 330px;height:50px; border: 1px solid;">
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col" style="max-width: 420px;">
+            <div class="form-group form-inline">
+                <div>
+                    <input id="chkServicePayDateCPT" type="checkbox" value="Service Pay Date" name="servicePayDate">
+                    <label for="chkServicePayDateCPT" class="field-chk" i18n="report.reportFilter.payDate"></label>
+                    <div class="input-group">
+                        <input type="text" id="serviceDateBillCPT" class="form-control" name="dateRange">
+                        <span class="input-group-addon add-on datePickerSpanReport">
+                            <i class="fa fa-calendar"> </i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col" id="divAccountingDate" style="visibility: hidden; max-width: 320px;">
+            <div class="form-group form-inline">
+                <div class="col-form-label" id='accountingAndActualPaymentInfo'>
+                    <div class="col-form-label">
+                        <input type="radio" class="cptDateOption" id="accountingDate" name="accountingAndActualPayment" value="accounting_date" style="padding-right:1px;">
+                        <label for="accountingDate" class="inline field-chk" i18n="report.reportFilter.accountingDate"></label>
+                    </div>
+                </div>
+                <div class="col-form-label" id='accountingAndActualPaymentInfo'>
+                    <div class="col-form-label">
+                        <input type="radio" class="cptDateOption" id="paymentDate" name="accountingAndActualPayment" value="payment_dt">
+                        <label for="paymentDate" class="inline field-chk" style="padding-right:1px;" i18n="billing.payments.paymentDate"></label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <!--Todo : From setup Have to find dynamically -->
+            <div class="form-group form-inline">
+                <div>
+                    <label id="selectLabel" class="inline field-chk" i18n="report.reportFilter.selectCPT"></label>
+                    <div class="input-group">
+                        <select id="ddlUsersOption" class="form-control form-control-lg">
+                            <option value="All">ALL</option>
+                            <option value="S">Selected</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="ddlUsersBox" class="form-group form-inline" style="display: none;">
+                    <div style="max-width:200px;">
+                        <label id="cptLabel" class="control-label" i18n="report.reportFilter.cpt"></label>
+                        <a class="btn btn-primary" id="btnCPTCode" title="Add">
+                            <i class="icon-ic-plus"></i>
+                        </a>
+                        <select id="txtCPTCode" style="width:250px; border:1px solid;"> </select>
+                    </div>
+                </div>
+                <div id="divUsers" style="display: none; padding-left: 15px;">
+                    <label id="selectedLabel" class="inline field-chk" i18n="report.reportFilter.cptsSelected"></label>
+                    <ul id="ulListCPTCodeDetails" class="ulSelectionList tagList" style="overflow: auto;width: 330px;height:50px; border: 1px solid;"></ul>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <!-- Insurance Group code ends-->
+
+    </div>
+    <div class="row">
+        <div class="col" style="max-width: 420px;">
+            <div class="form-group form-inline">
+                <div>
+                    <input id="billCreatedDate" type="checkbox" value="billCreatedDate" name="billCreatedDate">
+                    <label for="billCreatedDate" class="field-chk" i18n="report.reportFilter.billCreatedDate"></label>
+                    <div class="input-group">
+                        <input type="text" id="serviceDateBillCreated" class="form-control" name="dateRange">
+                        <span class="input-group-addon add-on datePickerSpanReport">
+                                <i class="fa fa-calendar"> </i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col" style="max-width: 320px;">
+
+            <div class="form-group form-inline">
+                <div>
+                    <label class="inline field-chk" style="min-width : 10px;" i18n="report.reportFilter.enterClaim"></label>
+                    <div class="input-group">
+                        <input id="claimIdFrom" type="text" class="claimSearch integerbox valid" i18np="setup.studyFilters.from" style="width: 100px;">
+                        <input id="claimIdTo" type="text" class="claimSearch integerbox valid" i18np="setup.studyFilters.to" style="width: 100px; margin-left: 5px;">
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="col" style=" max-width: 200px;">
+            <div class="form-group form-inline">
+                <label class="inline field-chk" i18n="report.reportFilter.reportFilterBy"></label>
+                <div class="input-group">
+                    <select id="ddlOrderBySelection" class="form-control" style="height: 100%; width: 135px">
+                        <option value="claimId" i18n="billing.fileInsurance.claim">Claim #</option>
+                        <option value="serviceDate" i18n="billing.claims.claimDate">Claim Date</option>
+                        <option value="commentDate" i18n="billing.claims.paidDate">Paid Date</option>
+                        <option value="lastName" i18n="setup.dicomReceiverRules.patientLastname">Patient Last Name</option>
+                        <option value="firstName" i18n="setup.dicomReceiverRules.patientFirstname">Patient First Name</option>
+                        <option value="insName" i18n="setup.insurance.insuramceName">Insurance Name</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+
+        </div>
+    </div>
+
+
+
+    <div class="row">
+        <div class="btn-toolbar" role="toolbar" style="margin-left: 15px;">
+            <div class="btn-group">
+                <button type="button" class="btn btn-primary" id="btnViewReport" data-rformat="html">
+                    <i class="fa fa-file"></i> View
+                </button>
+                <button type="button" class="btn btn-primary" id="btnViewReportNewTabClaimTransaction" data-rformat="html">
+                    <i class="fa fa-external-link"></i>
+                </button>
+            </div>
+            <div class="btn-group">
+                <button type="button" class="btn btn-primary" id="btnPdfReport" data-rformat="pdf">
+                    <i class="fa fa-file-pdf-o"></i> PDF
+                </button>
+                <button type="button" class="btn btn-primary" id="btnExcelReport" data-rformat="xlsx">
+                    <i class="fa fa-file-excel-o"></i> Excel
+                </button>
+                <button type="button" class="btn btn-primary" id="btnCsvReport" data-rformat="csv">
+                    <i class="fa fa-file-text-o"></i> CSV
+                </button>
+                <button type="button" class="btn btn-primary" id="btnXmlReport" data-rformat="xml">
+                    <i class="fa fa-file-code-o"></i> XML
+                </button>
+            </div>
+        </div>
+
+    </div>
+</form>
+
+<!-- row: iframe -->
+<div class="col-xs-12 form-top-padding" id="divReportFrame" style="overflow: auto; text-align: center">
+    <iframe id="reportFrame" frameBorder="0" style="width: 100%; min-height:100px"></iframe>
+</div>
+<!-- /row: iframe -->

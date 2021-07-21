@@ -1,0 +1,129 @@
+{
+    "recordCode": {
+        "startPos": 1,
+        "fieldLength": 3
+    },
+    "dataCentreNumber": {
+        "startPos": 4,
+        "fieldLength": 5
+    },
+    "dataCentreSequenceNumber": {
+        "startPos": 9,
+        "fieldLength": 7
+    },
+    "paymentDate": {
+        "startPos": 16,
+        "fieldLength": 8,
+        "format": "D"
+    },
+    "lineCode": {
+        "startPos": 24,
+        "fieldLength": 1
+    },
+    "payeeNumber": {
+        "startPos": 25,
+        "fieldLength": 5
+    },
+    "mspControlNumber": {
+        "startPos": 30,
+        "fieldLength": 6
+    },
+    "practitionerNumber": {
+        "startPos": 36,
+        "fieldLength": 5
+    },
+    "adjustmentCode_1": {
+        "startPos": 41,
+        "fieldLength": 2
+    },
+    "adjustmentAmount_1": {
+        "startPos": 43,
+        "fieldLength": 7,
+        "format": "M"
+    },
+    "adjustmentCode_2": {
+        "startPos": 50,
+        "fieldLength": 2
+    },
+    "adjustmentAmount_2": {
+        "startPos": 52,
+        "fieldLength": 7,
+        "format": "M"
+    },
+    "adjustmentCode_3": {
+        "startPos": 59,
+        "fieldLength": 2
+    },
+    "adjustmentAmount_3": {
+        "startPos": 61,
+        "fieldLength": 7,
+        "format": "M"
+    },
+    "adjustmentCode_4": {
+        "startPos": 68,
+        "fieldLength": 2
+    },
+    "adjustmentAmount_4": {
+        "startPos": 70,
+        "fieldLength": 7,
+        "format": "M"
+    },
+    "adjustmentCode_5": {
+        "startPos": 77,
+        "fieldLength": 2
+    },
+    "adjustmentAmount_5": {
+        "startPos": 79,
+        "fieldLength": 7,
+        "format": "M"
+    },
+    "adjustmentCode_6": {
+        "startPos": 86,
+        "fieldLength": 2
+    },
+    "adjustmentAmount_6": {
+        "startPos": 88,
+        "fieldLength": 7,
+        "format": "M"
+    },
+    "adjustmentCode_7": {
+        "startPos": 95,
+        "fieldLength": 2
+    },
+    "adjustmentAmount_7": {
+        "startPos": 97,
+        "fieldLength": 7,
+        "format": "M"
+    },
+    "officeFolioClaimNumber": {
+        "startPos": 104,
+        "fieldLength": 7
+    },
+    "paidAmount": {
+        "startPos": 111,
+        "fieldLength": 7,
+        "format": "M"
+    },
+    "mspReceivedDate": {
+        "startPos": 118,
+        "fieldLength": 8,
+        "format": "D"
+    },
+    "paidRateOnFileIndicator": {
+        "startPos": 126,
+        "fieldLength": 2
+    },
+    "icbcWsbcNumber": {
+        "startPos": 128,
+        "fieldLength": 8
+    },
+    "insurerCodeResponse": {
+        "startPos": 136,
+        "fieldLength": 2,
+        "format": "insurerCode"
+    },
+    "filler": {
+        "startPos": 138,
+        "fieldLength": 29
+    }
+}

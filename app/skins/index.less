@@ -1,0 +1,201 @@
+body {
+    font-size: 14px;
+    cursor: default;
+    background: @page-bg;
+}
+
+* {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+tr td {
+    -webkit-touch-callout: text;
+    -webkit-user-select: text;
+    -khtml-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+}
+
+.page-bg {
+    background: @page-bg;
+}
+
+.settings-nav {
+    padding-top: 55px;
+    border-right: 4px solid @nav-right-border;
+    text-transform: uppercase;
+}
+
+#navbarNavAltMarkup ul {
+    margin-right: 40px;
+    font-size: 1.1em;
+}
+
+#divTabsContainer {
+    overflow: hidden;
+}
+
+#data_container .Grid {
+    padding: 0px 10px;
+}
+
+#data_container .form-group {
+    padding-left: 10px;
+}
+
+#data_container .form-group:first-child {
+    //margin-top: 70px;
+}
+
+#divPageHeaderButtons {
+    // text-align: right;
+    // z-index: 170;
+}
+
+.bg-primary {
+	background: @header_bg !important;
+}
+
+.ui-jqgrid .ui-jqgrid-bdiv {
+    //overflow: hidden;
+}
+
+#root {
+    margin-top: 50px;
+}
+
+.form-group {
+    margin-bottom: 3px !important;
+}
+
+.form-group .control-label {
+  text-align: left !important;
+  justify-content: left !important;
+  padding-bottom: 3px;
+  padding-top: 0px !important;
+}
+
+input[type="text"], select {
+    .form-control();
+}
+
+input[type="text"] {
+    &[disabled] {
+        cursor: not-allowed;
+        background-color: @input-bg-disabled;
+        opacity: 1;
+    }
+}
+.modal-footer {
+	background: @header_bg;
+}
+
+.validateTags{
+  height: 50px;
+  width: 100px;
+  float: left;
+  text-align: center;
+  line-height: 47px;
+}
+
+.validateInfoSpace{
+  position: relative;
+  float: left;
+  width: 100%;
+}
+
+.activeValTag{
+  background: #007bff;
+}
+
+#divPageHeaderButtons {
+    padding: 10px;
+}
+
+.customRowSelect:hover,
+.ui-jqgrid-btable tbody tr:hover {
+  background: @blue-900 !important;
+  color: @blue-50 !important;
+}
+
+#auditFilterdiv{
+  height: 60px;
+}
+
+.dpAuditFilter{
+  float: left;
+  width: 300px;
+}
+
+.moreLightbgColor {
+  background-color: #F3F3F3 !important;
+  text-align: right;
+}
+
+.dropdown-item {
+    font-size: 0.9em;
+    max-width: 270px;
+    overflow: hidden;
+}
+
+.summmaryBorder {
+    border-bottom: 1px solid @SummaryBorder !important;
+}
+
+.summmaryBorder label {
+    margin: 4px;
+}
+
+.daterangepicker .drp-buttons{
+    text-align: left;
+    display: block;
+}
+
+.daterangepicker .drp-selected{
+    display: none;
+}
+
+.show-calendar .drp-selected{
+    display: inline;
+}
+
+.exa-left-nav {
+    background-color: @nav-left-background;
+}
+
+.exa-left-nav .nav-link.active {
+    background: @header_bg;
+}
+
+.datePickerSpan {
+    padding-right: 0px;
+    border: 1px solid #ced7db;
+    width: 30px;
+    text-align: center;
+    line-height: 30px;
+    height: 32px
+}
+
+.datePickerSpanReport {
+    padding-right: 0px;
+    border: 1px solid #ced7db;
+    width: 30px;
+    text-align: center;
+    line-height: 30px;
+    height: 32px;
+    background-color: #DCDCDC
+}
+
+.dropdown-submenu>a:after {
+    margin-top: 10px !important;
+}
+
+li.select2-results__option.select2-results__option--load-more { // hiding lode more.. when only one search result occur.
+    display: none;
+}

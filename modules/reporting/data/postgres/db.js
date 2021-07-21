@@ -1,6 +1,7 @@
 const config = require('../../../../server/config')
     , logger = require('../../../../logger')
-    , dbConnString = config.get(config.keys.dbConnection)
+    , dbConnString = config.get(config.keys.dbConnectionBilling)
+    , dbConnectionPoolingEnabled = config.get(config.keys.dbConnectionPoolingEnabled)
     , pgConnStrngParser = require('pg-connection-string').parse
     , pg = require('pg')
     , pgTypes = require('pg').types   //https://github.com/brianc/node-pg-types
@@ -38,9 +39,18 @@ const config = require('../../../../server/config')
 const pgPoolConfig = pgConnStrngParser(dbConnString);
 pgPoolConfig.max = 4;
 pgPoolConfig.min = 2;
-pgPoolConfig.idleTimeoutMillis = 60000;
-pgPoolConfig.application_name = 'exa_web_reporting';
+pgPoolConfig.idleTimeoutMillis = 600000;
+pgPoolConfig.application_name = 'exa_billing_reporting';
 pgPoolConfig.Promise = require('bluebird');
+
+if (dbConnectionPoolingEnabled === false) {
+    // disable DB pooling when using dedicated connection pooling middleware (pgpool-II, Heimdall Data, pgBouncer, etc, etc)
+    pgPoolConfig.min = Infinity;
+    pgPoolConfig.max = Infinity;
+    pgPoolConfig.idleTimeoutMillis = 1;
+    pgPoolConfig.evictionRunIntervalMillis = 1;
+    logger.info(`PID: ${process.pid}, PG POOL (${pgPoolConfig.application_name}): Connection pooling is disabled`);
+}
 
 // create the pool somewhere globally so its lifetime lasts for as long as your app is running
 const pool = new pg.Pool(pgPoolConfig);
@@ -53,11 +63,23 @@ pool.on('error', function (err, client) {
     // this is a rare occurrence but can happen if there is a network partition
     // between your application and the database, the database restarts, etc.
     // and so you might want to handle it and at least log it out
-    logger.logInfo('PG POOL: on.error: ' + err.message);
-    console.error('PG POOL: on.error', err.message, err.stack)
+    logger.error(`PID: ${process.pid}, PG POOL (${pgPoolConfig.application_name}): on.error - ${err.message}`, err);
 });
 
+// uncomment to debug DB pool usage
+/*
+pool.on('connect', function (client) {
+    logger.info(`PID: ${process.pid}, PG POOL (${pgPoolConfig.application_name}): on.connect - totalCount: ${pool.totalCount}, idleCount: ${pool.idleCount}, waitingCount: ${pool.waitingCount}`);
+});
 
+pool.on('acquire', function (client) {
+    logger.info(`PID: ${process.pid}, PG POOL (${pgPoolConfig.application_name}): on.aquire - totalCount: ${pool.totalCount}, idleCount: ${pool.idleCount}, waitingCount: ${pool.waitingCount}`);
+});
+
+pool.on('remove', function (client) {
+    logger.info(`PID: ${process.pid}, PG POOL (${pgPoolConfig.application_name}): on.remove - totalCount: ${pool.totalCount}, idleCount: ${pool.idleCount}, waitingCount: ${pool.waitingCount}`);
+});
+*/
 
 const api = {
     //pool: pool, // direct pool export should not be used, unless absolutely necessarry!!!

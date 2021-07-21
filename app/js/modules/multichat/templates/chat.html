@@ -1,0 +1,24 @@
+<div class="chat js_chat chat--full ignoreCommonClick">
+    <div class="chat-column-wrap js_chat-panel">
+        <div class="chat-column-header">
+            <button class="btn__plus js_btn__plus glyphicon glyphicon-plus hidden"></button>
+            <p class="chat-item__name">
+                <%= userFullName %>
+            </p>
+            <select class="user-status js_user-status user-status--online">
+                <option class="user-status__option--online" value="online" i18n="chat.status.online">Online</option>
+                <option class="user-status__option--busy" value="busy" i18n="chat.status.busy">Busy</option>
+                <option class="user-status__option--dnd" value="dnd" i18n="chat.status.dnd">DND</option>
+            </select>
+            <button class="btn__resize js_btn__resize glyphicon glyphicon-chevron-down"></button>
+        </div>
+        <%= templateContactList() %>
+    </div>
+    <ul id="rooms" class="chat-room-wrap js_chat-room-wrap"></ul>
+    <div class="js_modals_placeholder"></div>
+</div>
+<div class="chat chat--minimized js_chat--minimized hidden">
+    <i class="glyphicon glyphicon-chevron-up"></i>
+</div>
+
+

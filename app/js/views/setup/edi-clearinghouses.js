@@ -1,0 +1,444 @@
+define(['jquery',
+    'immutable',
+    'underscore',
+    'backbone',
+    'jqgrid',
+    'jqgridlocale',
+    'text!templates/setup/edi-clearinghouses-grid.html',
+    'text!templates/setup/edi-clearinghouses-form.html',
+    'collections/setup/edi-clearinghouses',
+    'models/setup/edi-clearinghouses',
+    'models/pager'
+],
+    function ($,
+        Immutable,
+        _,
+        Backbone,
+        JGrid,
+        JGridLocale,
+        EDIClearingHousesGrid,
+        EDIClearingHousesForm,
+        EDIClearingHousesCollections,
+        EDIClearingHousesModel,
+        Pager
+    ) {
+        var EDIClearingHousesView = Backbone.View.extend({
+            ediClearingHousesGridTemplate: _.template(EDIClearingHousesGrid),
+            ediClearingHousesFormTemplate: _.template(EDIClearingHousesForm),
+            ediClearingHousesList: [],
+            model: null,
+            ediClearingHousesTable: null,
+            pager: null,
+            events: {
+                'change #ddlXmlTemplateSyntax' : 'changeXmlTemplateSyntax',
+                'keyup #txtSubElementDelimiter': 'checkValidSubDelimiter',
+                'keyup #txtElementDelimiter': 'checkValidDelimiter',
+                'change #chkEnableFTP': 'showFTPDetails'
+            },
+
+            initialize: function (options) {
+                var self = this;
+                this.options = options;
+                this.model = new EDIClearingHousesModel();
+                this.pager = new Pager();
+                this.ediClearingHousesList = new EDIClearingHousesCollections();
+                $(this.el).html(this.ediClearingHousesGridTemplate());
+            },
+
+            render: function () {
+                var self = this;
+                var confirmDelete = commonjs.geti18NString("messages.status.areYouSureWantToDelete");
+                $('#divEDIClearingHousesGrid').show();
+                $('#divEDIClearingHousesForm').hide();
+                this.ediClearingHousesTable = new customGrid();
+                this.ediClearingHousesTable.render({
+                    gridelementid: '#tblEDIClearingHousesGrid',
+                    custompager: new Pager(),
+                    emptyMessage: commonjs.geti18NString("messages.status.noRecordFound"),
+                    colNames: ['', '', '', '', '', ''],
+                    i18nNames: ['', '', '', 'setup.ediClearingHouses.name', 'setup.ediClearingHouses.receiverName', 'is_active'],
+                    colModel: [
+                        {
+                            name: 'id',
+                            index: 'id',
+                            key: true,
+                            hidden: true,
+                            search: false
+                        },
+                        {
+                            name: 'edit',
+                            width: 10,
+                            sortable: false,
+                            search: false,
+                            className: 'icon-ic-edit',
+                            route: '#setup/edi_clearinghouses/edit/',
+                            formatter: function (e, model, data) {
+                                return "<i class='icon-ic-edit' i18nt='shared.buttons.edit'></i>"
+                            }
+                        },
+                        {
+                            name: 'del', width: 10, sortable: false, search: false,
+                            className: 'icon-ic-delete',
+                            customAction: function (rowID) {
+                                if (confirm(confirmDelete)) {
+                                    var gridData = $('#tblEDIClearingHousesGrid').jqGrid('getRowData', rowID);
+                                    self.model.set({ "id": rowID });
+                                    self.model.destroy({
+                                        data: $.param({name: gridData.name, receiverName:gridData.receiver_name}),
+                                        success: function (model, response) {
+                                            self.ediClearingHousesTable.refreshAll();
+                                            commonjs.showStatus("messages.status.deletedSuccessfully");
+                                        },
+                                        error: function (model, response) {
+                                            commonjs.handleXhrError(model, response);
+                                        }
+                                    });
+                                }
+                            },
+                            formatter: function (e, model, data) {
+                                return "<i class='icon-ic-delete' i18nt='messages.status.clickHereToDelete'></i>"
+                            }
+                        },
+                        {
+                            name: 'name',
+                            searchFlag: '%'
+                        },
+                        {
+                            name: 'receiver_name',
+                            searchFlag: '%'
+                        },
+                        {
+                            name:'inactivated_dt',
+                            hidden: true
+                        }
+                    ],
+                    afterInsertRow: function (rowid, rowdata) {
+                        if (rowdata.inactivated_dt) {
+                            var $row = $('#tblEDIClearingHousesGrid').find('#' + rowid);
+                            $row.css('text-decoration', 'line-through');
+                        }
+                    },
+                    datastore: self.ediClearingHousesList,
+                    container: self.el,
+                    customizeSort: true,
+                    offsetHeight: 01,
+                    sortname: "ech.id",
+                    sortorder: "desc",
+                    sortable: {
+                        exclude: '#jqgh_tblEDIClearingHousesGrid,#jqgh_tblEDIClearingHousesGrid_edit,#jqgh_tblEDIClearingHousesGrid_del'
+                    },
+                    dblClickActionIndex: 1,
+                    disablesearch: false,
+                    disablesort: false,
+                    disablepaging: false,
+                    showcaption: false,
+                    disableadd: true,
+                    disablereload: true,
+                    pager: '#gridPager_EDIClearingHouses'
+                });
+
+                commonjs.initializeScreen({header: {screen: 'EDIClearingHouses', ext: 'ediClearingHouses'}, grid: {id: '#tblEDIClearingHousesGrid'}, buttons: [
+                    {value: 'Add', class: 'btn btn-danger', i18n: 'shared.buttons.add', clickEvent: function () {
+                        Backbone.history.navigate('#setup/edi_clearinghouses/new', true);
+                    }},
+                    {value: 'Reload', class: 'btn', i18n: 'shared.buttons.reload', clickEvent: function () {
+                        self.pager.set({"PageNo": 1});
+                        self.ediClearingHousesTable.refreshAll();
+                        commonjs.showStatus("messages.status.reloadedSuccessfully");
+                    }}
+                ]});
+            },
+            showGrid: function () {
+                this.render();
+            },
+
+            showForm: function (id) {
+                var self = this;
+                this.renderForm(id);
+            },
+
+            renderForm: function (id) {
+                var self=this;
+                var ediTemplates = self.getEDITemplates();
+                $('#divEDIClearingHousesForm').html(this.ediClearingHousesFormTemplate({ediTemplates: ediTemplates}));
+                if (id > 0) {
+                    this.model.set({ id: id });
+                    this.model.fetch({
+                        success: function (model, response) {
+                            if (response && response.length > 0) {
+                                var data = response[0];
+                                if (data) {
+                                    var info = data.communication_info;
+                                    $('#txtName').val(data.name ? data.name : '');
+                                    $('#txtCode').val(data.code ? data.code : '');
+                                    $('#txtReceiverName').val(data.receiver_name ? data.receiver_name : '');
+                                    $('#txtReceiverID').val(data.receiver_id ? data.receiver_id : '');
+                                    $('#txtEdiTemplateName').val(data.edi_template_name ? data.edi_template_name : '0');
+                                    $('#chkIsActive').prop('checked', data.inactivated_dt ? true : false);
+                                    $('#txtAuthInfo').val(info.authorizationInformation ? info.authorizationInformation : '');
+                                    $('#txtAuthInfoQualifier').val(info.authorizationInformationQualifier ? info.authorizationInformationQualifier : '');
+                                    $('#txtSecurityInfo').val(info.securityInformation ? info.securityInformation : '');
+                                    $('#txtSecurityAuthQualifier').val(info.securityInformationQualifier ? info.securityInformationQualifier : '');
+                                    $('#txtSenderID').val(info.interchangeSenderId ? info.interchangeSenderId : '');
+                                    $('#txtSenderIDQualifier').val(info.interchangeSenderIdQualifier ? info.interchangeSenderIdQualifier : '');
+                                    $('#txtIReceiverID').val(info.interchangeReceiverId ? info.interchangeReceiverId : '');
+                                    $('#txtIReceiverIDQualifier').val(info.interchangeReceiverIdQualifier ? info.interchangeReceiverIdQualifier : '');
+                                    $('#txtInterCtrlStandID').val(info.interchangeControlStandardsIdentifier ? info.interchangeControlStandardsIdentifier : '');
+                                    $('#txtInterCtrlVersionNo').val(info.interchangeControlVersionNumber ? info.interchangeControlVersionNumber : '');
+                                    $('#txtRepetitionSeperator').val(info.repetitionSeparator ? info.repetitionSeparator : '');
+                                    $('#txtElementDelimiter').val(info.elementDelimiter ? info.elementDelimiter : '');
+                                    $('#txtSubElementDelimiter').val(info.segmentDelimiter ? info.segmentDelimiter : '');
+                                    $('#txtSegmentTerminator').val(info.segmentTerminator ? info.segmentTerminator : '');
+                                    $('#chkAckReq').prop('checked', info.acknowledgementRequested ? true : false);
+                                    $('input[value=' + info.usageIndicator + ']').prop('checked', true);
+                                    $('#txtAppSenderCode').val(info.applicationSenderCode ? info.applicationSenderCode : '');
+                                    $('#txtResAgencyCode').val(info.responsibleAgencyCode ? info.responsibleAgencyCode : '');
+                                    $('#txtAppReceiverCode').val(info.applicationReceiverCode ? info.applicationReceiverCode : '');
+                                    $('#txtVerRelIndIDCode').val(info.verRelIndIdCode ? info.verRelIndIdCode : '');
+                                    $('#txtImplConventionReference').val(info.implementationConventionRef ? info.implementationConventionRef : '');
+                                    $('#txtRequestUrl').val(info.requestURL ? info.requestURL : '');
+                                    $('#txtBackupRootFolder').val(info.backupRootFolder ? info.backupRootFolder : '');
+                                    $('#chkEnableB2B').prop('checked', info.isB2bEnabled ? true : false);
+                                    $('#ddlXmlTemplateSyntax').val(info.xmlSyntaxTag ? info.xmlSyntaxTag : "");
+                                    if (info.xmlSyntaxTag != '1' && info.xmlSyntaxTag != '') {
+                                        $('.xmlTemplateSyntaxAuth').show();
+                                        $('#txtProviderOfficeNo').val(info.providerOfficeNumber ? info.providerOfficeNumber : '');
+                                        $('#txtUserName').val(info.userID ? info.userID : '');
+                                        $('#txtPassword').val(info.password ? info.password : '');
+                                    }
+
+                                    $('#chkEnableFTP').prop('checked', !!info.enable_ftp);
+                                    $('#txtHostName').val(info.ftp_host || '');
+                                    $('#txtPort').val(info.ftp_port || '');
+                                    $('#txtFtpUserName').val(info.ftp_user_name || '');
+                                    $('#txtFtpPassword').val(info.ftp_password || '');
+                                    $('#ddlFtpType').val(info.ftp_type || '');
+                                    $('#txtSentFolder').val(info.ftp_sent_folder || '');
+                                    $('#txtReceiveFolder').val(info.ftp_receive_folder || '');
+                                    $('#txtIdentityFilePath').val(info.ftp_identity_file || '');
+                                }
+
+                                self.showFTPDetails();
+                            }
+                        }
+                    });
+                } else {
+                    this.model = new EDIClearingHousesModel();
+
+                }
+                commonjs.initializeScreen({header: {screen: 'EDIClearingHouses', ext: 'ediClearingHouses'}, buttons: [
+                    {value: 'Save', type: 'submit', class: 'btn btn-primary', i18n: 'shared.buttons.save', clickEvent: function () {
+                        $("#txtCode").val($.trim($('#txtCode').val()) || null);
+                        $("#txtName").val($.trim($('#txtName').val()) || null);
+                        $("#txtReceiverName").val($.trim($('#txtReceiverName').val()) || null);
+                        $("#txtReceiverID").val($.trim($('#txtReceiverID').val()) || null);
+                        $("#txtEdiTemplateName").val($.trim($('#txtEdiTemplateName').val()) || null);
+                        $("#txtAuthInfoQualifier").val($.trim($('#txtAuthInfoQualifier').val()) || null);
+                        $("#txtSecurityAuthQualifier").val($('#txtSecurityAuthQualifier').val() || null);
+                        $("#txtSenderID").val($('#txtSenderID').val() || null);
+                        $("#txtSenderIDQualifier").val($('#txtSenderIDQualifier').val() || null);
+                        $("#txtIReceiverID").val($('#txtIReceiverID').val() || null);
+                        $("#txtIReceiverIDQualifier").val($('#txtIReceiverIDQualifier').val() || null);
+                        $("#txtInterCtrlStandID").val($.trim($('#txtInterCtrlStandID').val()) || null);
+                        $("#txtAppSenderCode").val($('#txtAppSenderCode').val() || null);
+                        $("#txtResAgencyCode").val($.trim($('#txtResAgencyCode').val()) || null);
+                        $("#txtAppReceiverCode").val($('#txtAppReceiverCode').val() || null);
+                        self.saveEDIClearingHouses();
+                    }},
+                    {value: 'Back', class: 'btn', i18n: 'shared.buttons.back', clickEvent: function () {
+                        Backbone.history.navigate('#setup/edi_clearinghouses/list', true);
+                    }}
+                ]});
+                $('#divEDIClearingHousesGrid').hide();
+                $('#divEDIClearingHousesForm').show();
+                $('#divFTPDetails').hide();
+                commonjs.processPostRender();
+            },
+            saveEDIClearingHouses : function() {
+                var self = this;
+                var rules = {
+                    name: { required: true },
+                    code: { required: true },
+                    receiverName: { required: true },
+                    receiverID: { required: true },
+                    authInfoQualifier: { required: true },
+                    securityAuthInfoQualifier: {required: true},
+                    senderIDQualifier: {required: true},
+                    senderID: {required: true},
+                    iReceiverIDQualifier: {required: true},
+                    iRecevierID: {required: true},
+                    ctrlStandID: {required: true},
+                    radUsage: {required: true},
+                    appSenderCode: {required: true},
+                    responsibleAgencyCode: {required: true},
+                    appReceiverCode: {required: true},
+                    providerOfficeNo: {required: true}
+                }
+                if ($('#ddlXmlTempSyn').val() != 1) {
+                    rules.username = { required: true }
+                    rules.password = { required: true }
+                }
+
+                var messages = {
+                    name: commonjs.getMessage("e", "Clearing House Name"),
+                    code: commonjs.getMessage("e", "Code"),
+                    receiverName: commonjs.getMessage("e", "Receiver Name"),
+                    receiverID: commonjs.getMessage("e", "Receiver ID"),
+                    authInfoQualifier: commonjs.getMessage("e", "Authorization Information Qualifier"),
+                    authInfo: commonjs.getMessage("e", "Authorization Information"),
+                    securityAuthInfoQualifier: commonjs.getMessage("e", "Security Information Qualifier"),
+                    securityAuthInfo: commonjs.getMessage("e", "Security Information"),
+                    senderIDQualifier: commonjs.getMessage("e", "Interchange Sender ID Qualifier"),
+                    senderID: commonjs.getMessage("e", "Interchange Sender ID"),
+                    iReceiverIDQualifier: commonjs.getMessage("e", "Interchange Receiver ID Qualifier"),
+                    iRecevierID: commonjs.getMessage("e", "Interchange Receiver ID"),
+                    ctrlStandID: commonjs.getMessage("e", "Interchange Control Standards Identifier"),
+                    radUsage: commonjs.getMessage("*", "Usage"),
+                    appSenderCode: commonjs.getMessage("e", "Application Sender Code"),
+                    responsibleAgencyCode: commonjs.getMessage("e", "Responsible Agency Code"),
+                    appReceiverCode: commonjs.getMessage("e", "Application Receiver Code"),
+                    providerOfficeNo: commonjs.getMessage("e", "Provider Office No"),
+                    username: commonjs.getMessage("e", "Username"),
+                    password: commonjs.getMessage("e", "Password")
+                }
+
+                if ($('#chkEnableFTP').prop('checked')) {
+                    rules.hostname = { required: true };
+                    rules.ftpUsername = { required: true };
+                    rules.ftpPassword = { required: true };
+                    rules.port = { required: true };
+                    rules.sentFolder = { required: true };
+                    rules.receiveFolder = { required: true };
+                    messages.hostname = commonjs.getMessage("e", "FTP Host Name");
+                    messages.ftpUsername = commonjs.getMessage("e", "FTP User Name");
+                    messages.ftpPassword = commonjs.getMessage("e", "FTP Passord");
+                    messages.port = commonjs.getMessage("e", "FTP Port");
+                    messages.sentFolder = commonjs.getMessage("e", "FTP Sent Folder");
+                    messages.receiveFolder = commonjs.getMessage("e", "FTP Receive Folder");
+                }
+
+                commonjs.validateForm({
+                    rules: rules,
+                    messages: messages,
+                    submitHandler: function () {
+                        self.save();
+                    },
+                    formID: '#formEDIClearingHouses'
+                });
+                $('#formEDIClearingHouses').submit();
+            },
+
+            save: function () {
+                var isFtpEnabled = $('#chkEnableFTP').prop('checked');
+                var communication_info = {
+                    authorizationInformation: $('#txtAuthInfo').val(),
+                    authorizationInformationQualifier: $('#txtAuthInfoQualifier').val(),
+                    securityInformation: $('#txtSecurityInfo').val(),
+                    securityInformationQualifier: $('#txtSecurityAuthQualifier').val(),
+                    interchangeSenderId: $('#txtSenderID').val(),
+                    interchangeSenderIdQualifier: $('#txtSenderIDQualifier').val(),
+                    interchangeReceiverId: $('#txtIReceiverID').val(),
+                    interchangeReceiverIdQualifier: $('#txtIReceiverIDQualifier').val(),
+                    interchangeControlStandardsIdentifier: $('#txtInterCtrlStandID').val(),
+                    interchangeControlVersionNumber: $('#txtInterCtrlVersionNo').val(),
+                    repetitionSeparator: $('#txtRepetitionSeperator').val(),
+                    elementDelimiter: $('#txtElementDelimiter').val(),
+                    segmentDelimiter: $('#txtSubElementDelimiter').val(),
+                    segmentTerminator: $('#txtSegmentTerminator').val(),
+                    acknowledgementRequested: $('#chkAckReq').prop('checked'),
+                    usageIndicator: $('input[name="radUsage"]:checked').val(),
+                    applicationSenderCode: $('#txtAppSenderCode').val(),
+                    responsibleAgencyCode: $('#txtResAgencyCode').val(),
+                    applicationReceiverCode: $('#txtAppReceiverCode').val(),
+                    verRelIndIdCode: $('#txtVerRelIndIDCode').val(),
+                    implementationConventionRef: $('#txtImplConventionReference').val(),
+                    requestURL: $('#txtRequestUrl').val(),
+                    backupRootFolder: $('#txtBackupRootFolder').val(),
+                    isB2bEnabled: $('#chkEnableB2B').prop('checked'),
+                    xmlSyntaxTag: $('#ddlXmlTemplateSyntax').val(),
+                    userID: $('#txtUserName').val(),
+                    password: $('#txtPassword').val(),
+                    providerOfficeNumber: $('#txtProviderOfficeNo').val(),
+                    enable_ftp: isFtpEnabled,
+                    ftp_host: isFtpEnabled ? $('#txtHostName').val() : "",
+                    ftp_port: isFtpEnabled ? $('#txtPort').val() : "",
+                    ftp_user_name: isFtpEnabled ? $('#txtFtpUserName').val() : "",
+                    ftp_password: isFtpEnabled ? $('#txtFtpPassword').val() : "",
+                    ftp_type: isFtpEnabled ? $('#ddlFtpType').val() : "",
+                    ftp_sent_folder: isFtpEnabled ? $('#txtSentFolder').val() : "",
+                    ftp_receive_folder: isFtpEnabled ? $('#txtReceiveFolder').val() : "",
+                    ftp_identity_file: isFtpEnabled ? $('#txtIdentityFilePath').val() : ""
+                }
+                this.model.set({
+                    "name": $('#txtName').val(),
+                    "code": $('#txtCode').val(),
+                    "receiverName": $('#txtReceiverName').val(),
+                    "receiverId": $('#txtReceiverID').val(),
+                    "ediTemplateName": $('#txtEdiTemplateName').val() != '0' ? $('#txtEdiTemplateName').val() : null ,
+                    "company_id": app.companyID,
+                    "isActive": !$('#chkIsActive').prop('checked'),
+                    "communicationInfo": JSON.stringify(communication_info)
+                });
+                this.model.save({
+                }, {
+                        success: function (model, response) {
+                            if (response) {
+                                commonjs.showStatus('messages.status.savedSuccessfully');
+                                location.href = "#setup/edi_clearinghouses/list";
+                            }
+                        },
+                        error: function (model, response) {
+                            commonjs.handleXhrError(model, response);
+                        }
+                    });
+            },
+
+            changeXmlTemplateSyntax: function(e) {
+                var templateSyntaxValue = $('#ddlXmlTemplateSyntax').val();
+                if(templateSyntaxValue == 1) {
+                    $('.xmlTemplateSyntaxAuth').hide();
+                } else {
+                    $('.xmlTemplateSyntaxAuth').show();
+                }
+             },
+
+            checkValidSubDelimiter: function (e) {
+                var val = $('#txtElementDelimiter').val().trim();
+                if (val && e.key == val)$('#txtSubElementDelimiter').val('');
+            },
+
+            checkValidDelimiter: function (e) {
+                var val = $('#txtSubElementDelimiter').val().trim();
+                if (val && e.key == val)$('#txtElementDelimiter').val('');
+            },
+
+            getEDITemplates: function() {
+                var templates = [];
+                $.ajax({
+                    url: '/exa_modules/billing/autoCompleteRouter/edi_templates',
+                    type: 'GET',
+                    async: false,
+                    success: function (data, response) {
+                        templates = data && data.length > 0 ? data : [];
+                    },
+                    error: function (err, response) {
+                        commonjs.handleXhrError(err, response);
+                    }
+                });
+
+                return templates;
+            },
+
+            showFTPDetails: function () {
+                if ($('#chkEnableFTP').prop('checked')) {
+                    $('#divFTPDetails').show();
+                } else {
+                    $('#divFTPDetails').hide();
+                }
+            }
+        });
+        return EDIClearingHousesView;
+    });
+
+
+

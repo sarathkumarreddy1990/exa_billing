@@ -40,6 +40,7 @@ function customGrid ( datastore, gridID ) {
         if ( self.datastore === null ) {
             self.datastore = options.datastore;
         }
+        self.datastore.off();
         self.getData = getData(self.datastore, options.gridelementid);
         self.fromDate = options.fromDate || null;
         self.toDate = options.toDate || null;
@@ -124,7 +125,7 @@ function customGrid ( datastore, gridID ) {
             beforeSelectRow: function ( rowid, e ) {
                 var regScreenFrom = /report|familyHistory|newOrder|editOrder/;
                 var regGridID = /tableProvider|tbl(?:GridCpt|InsuranceProvidersGrid|ProviderGroups|VehicleRegionGrid)/;
-                var $chkSendStudy = $tblGrid.find('#chkSendStudy_' + rowid);
+                var $chkSendStudy = $tblGrid.find('#chk'+self.options.gridelementid.slice(1)+'_'+ rowid);
                 self.options.colModel = $tblGrid.jqGrid('getGridParam', 'colModel');
                 var rowObj = $(e.target).closest("tr");
                 var eitherTarget = $(e.target || e.srcElement);
@@ -147,53 +148,10 @@ function customGrid ( datastore, gridID ) {
                     $chkSendStudy.prop('checked', !$chkSendStudy.is(':checked'));
                 }
 
-                if ($tblGrid.find('#chkFileInsurance_' + rowid).length > 0 && ((e.target || e.srcElement).type != 'checkbox')) {
-                    $tblGrid.find('#chkFileInsurance_' + rowid).prop('checked', !($tblGrid.find('#chkFileInsurance_' + rowid).is(':checked')));
-                    var allChecked = true;
-                    $('#divGrid_fileInsurance').find('.fileInsuranceChk').each(function (index, element) {
-                        if (!element.checked) {
-                            allChecked = false;
-                            return false;
-                        }
-                    });
-                    $('#divGrid_fileInsurance').find('.selectToFile').attr('checked', allChecked);
-                }
-
-                if ($tblGrid.find('#chkReadyToValidate_' + rowid).length > 0 && ((e.target || e.srcElement).type != 'checkbox')) {
-                    $tblGrid.find('#chkReadyToValidate_' + rowid).prop('checked', !($tblGrid.find('#chkReadyToValidate_' + rowid).is(':checked')));
-                    var allChecked = true;
-                    $('#divGrid_ReadyToValidate').find('.studyChk').each(function (index, element) {
-                        if (!element.checked) {
-                            allChecked = false;
-                            return false;
-                        }
-                    });
-                    $('#validateMenu').hide();
-                    $('#divGrid_ReadyToValidate').find('.selectAllToValidate').attr('checked', allChecked);
-                }
-
-                if ($tblGrid.find('#chkSubmitStudy_' + rowid).length > 0 && ((e.target || e.srcElement).type != 'checkbox')) {
-                    $tblGrid.find('#chkSubmitStudy_' + rowid).prop('checked', !($tblGrid.find('#chkSubmitStudy_' + rowid).is(':checked')));
-                    var allChecked = true;
-                    $('#divGrid_submitted').find('.studyChk').each(function (index, element) {
-                        if (!element.checked) {
-                            allChecked = false;
-                            return false;
-                        }
-                    });
-                    $('#divGrid_submitted').find('.selectAllToSubmit').attr('checked', allChecked);
-                }
-
-                if ($tblGrid.find('#chkfollowup_' + rowid).length > 0 && ((e.target || e.srcElement).type != 'checkbox')) {
-                    $tblGrid.find('#chkfollowup_' + rowid).prop('checked', !($tblGrid.find('#chkfollowup_' + rowid).is(':checked')));
-                    var allChecked = true;
-                    $('#divGrid_followup').find('.studyChk').each(function (index, element) {
-                        if (!element.checked) {
-                            allChecked = false;
-                            return false;
-                        }
-                    });
-                    $('#divGrid_followup').find('.selectAllToValidate').attr('checked', allChecked);
+                if ($tblGrid.find('input[name=chkStudy]:checked').length === $tblGrid.find('input[name=chkStudy]').length) {
+                    $('#chkStudyHeader_' + self.options.filterid).prop('checked', true);
+                } else {
+                    $('#chkStudyHeader_' + self.options.filterid).prop('checked', false);
                 }
 
                 if ( typeof self.options.beforeSelectRow === "undefined" ) {
@@ -209,52 +167,14 @@ function customGrid ( datastore, gridID ) {
                                     $chkSendStudy.prop('checked', true);
                                 }
                             }
-                            if ($tblGrid.find('#chkFileInsurance_' + rowid)) {
-                                if ($tblGrid.find('#chkFileInsurance_' + rowid).length > 0 && ((e.target || e.srcElement).type != 'checkbox')) {
-                                    $tblGrid.find('#chkFileInsurance_' + rowid).prop('checked', true);
-                                }
-                            }
-                        } else if (self.options.colModel[i].className == 'icon-ic-delete') {
-
                         } else {
                             if (!($tblGrid.find('#' + rowid).find('.linkSpan').length > 0)) {
                                 Backbone.history.navigate(self.options.colModel[i].route + rowid, true);
                             }
                         }
                     }
-
-                    if ($tblGrid.find('input[name=chkStudy]:checked').length == $tblGrid.find('input[name=chkStudy]').length) {
-                        $('#chkStudyHeader_' + self.options.filterid).prop('checked', true);
-                    } else {
-                        $('#chkStudyHeader_' + self.options.filterid).prop('checked', false);
-                    }
-                    if ($tblGrid.find('input[name=chkFileInsurance]:checked').length == $tblGrid.find('input[name=chkFileInsurance]').length) {
-                        $('#chkAllToToFile').prop('checked', true);
-                    } else {
-                        $('#chkAllToToFile').prop('checked', false);
-                    }
-                    if ($tblGrid.find('input[name=chkSubmittedStudy]:checked').length == $tblGrid.find('input[name=chkSubmittedStudy]').length) {
-                        $('#chkAllToToSubmit').prop('checked', true);
-                    }
-                    else {
-                        $('#chkAllToToSubmit').prop('checked', false);
-                    }
-                    if ($tblGrid.find('input[name=studyValidateChk]:checked').length == $tblGrid.find('input[name=studyValidateChk]').length) {
-                        $('#chkAllToToValidate').prop('checked', true);
-                    }
-                    else {
-                        $('#chkAllToToValidate').prop('checked', false);
-                    }
                 } else {
                     self.options.beforeSelectRow(rowid, e, self.options);
-                }
-
-                if ((self.options.gridelementid == "#tblReadingPhysicianRR" || self.options.gridelementid == "#tblReferringProviderFieldRR") && $tblGrid.find('#' + rowid).length > 0 && $tblGrid.find('#' + rowid).find('.checkboxRR').length > 0 && ((e.target || e.srcElement).type != 'checkbox')) {
-                    $tblGrid.find('#' + rowid).find('.checkboxRR').prop('checked', !$tblGrid.find('#' + rowid).find('.checkboxRR').is(':checked'));
-                }
-                if (self.options.gridelementid == "#tblUnassignedOrders") {
-                    $('#tblUnassignedOrders tr').removeClass('customRowSelect');
-                    $tblGrid.find('#' + rowid).addClass('customRowSelect')
                 }
             },
 
@@ -312,9 +232,9 @@ function customGrid ( datastore, gridID ) {
                 var rowObj = $(tr);
                 rowObj.addClass('customRowSelect');
 
-                if ($tblGrid.find('#chkSendStudy_' + rowid).length > 0) {
-                    $tblGrid.find('#chkSendStudy_' + rowid).attr('checked',true);
-                }
+                // if ($tblGrid.find('#chkSendStudy_' + rowid).length > 0) {
+                //     $tblGrid.find('#chkSendStudy_' + rowid).attr('checked',true);
+                // }
 
                 if (self.options.dblClickActionIndex == -2) {
                     e.stopPropagation();
@@ -473,7 +393,7 @@ function customGrid ( datastore, gridID ) {
             // EXA-9228 scroll event firing for previous tab grid before loading current grid , so the paging not working . Avoid based on study filter ID
             if (self.options && self.options.customargs && self.options.customargs.flag == 'home_study') {
                 var grid_element_id = $(e.currentTarget).find('table').attr('id');
-                grid_element_id = grid_element_id.split('tblGrid')[1];
+                grid_element_id =  self.options.isClaimGrid?grid_element_id.split('tblClaimGrid')[1]:grid_element_id.split('tblGrid')[1];
                 is_valid_event = grid_element_id == commonjs.currentStudyFilter;
             }
             if (is_valid_event) {
@@ -499,6 +419,10 @@ function customGrid ( datastore, gridID ) {
                     }
                     commonjs.scrollLeft = $bdiv.scrollLeft();
                     self.fetchGrid(true);
+                }
+                // Hide claim summary popover on scroll
+                if (self.options.isClaimGrid) {
+                    $('.claim-summary').remove();
                 }
                 e.stopPropagation();
             }
@@ -601,7 +525,11 @@ function customGrid ( datastore, gridID ) {
         var $loading = $(document.getElementById('divPageLoading'));
         var $tblGrid = $(self.options.gridelementid);
         $loading.show();
+        commonjs.showLoading()
         self.setSearchQuery();
+        if (self.options.gridelementid === "#tblpaymentsGrid") {
+            commonjs.paymentFilterFields = [];
+        }
         var customArgs = null;
         var params = $tblGrid.jqGrid("getGridParam");
         if ( params && params.customargs ) {
@@ -616,14 +544,23 @@ function customGrid ( datastore, gridID ) {
         /*if ( !isScroll || typeof isScroll === 'function' ) {
             self.datastore.reset();
         }*/
-
+        $("#chkStudyHeader_"+self.options.filterid ).prop('checked',false);
         var nextIndex = self.datastore.length;
-        var filterData = self.pager.get('FilterData');
-        var filterCol = self.pager.get('FilterCol');
+        var filterData = self.pager.get('FilterData') || [];
+        var filterCol = self.pager.get('FilterCol') || [];
         var SearchFlag=self.pager.get('searchFlag');
         // Added fromDate/toDate
         var _fromDate = (self.fromDate && $(self.fromDate).length)? $(self.fromDate).val() : null;
         var _toDate = (self.toDate && $(self.toDate).length)? $(self.toDate).val() : null;
+
+        for (var i = 0; i < filterData.length; i++) {
+            var isNotEmpty = commonjs.isValidSearchLimit(filterCol[i], filterData[i]);
+
+            if (!isNotEmpty) {
+                commonjs.hideLoading();
+                return isNotEmpty;
+            }
+        }
 
         var _data = {
             "pageNo": self.pager.get('PageNo'),
@@ -637,6 +574,10 @@ function customGrid ( datastore, gridID ) {
             }) : customArgs,
             "SearchFlag":SearchFlag
         };
+
+        if(typeof self.options.setCustomData === 'function'){
+            _data.customArgs = Object.assign({}, customArgs , self.options.setCustomData());
+        }
 
         // Added fromDate/toDate
         if (_fromDate && _fromDate.length) {
@@ -665,7 +606,8 @@ function customGrid ( datastore, gridID ) {
                 if ( commonjs.isValidResponse(response) ) {
                     // console.log('datastore.fetch, url: %s, data: %O', self.datastore.url ? self.datastore.url: "---", _data);
                     // console.log('datastore.fetch, response: %O', response);
-                    app.workListStudiesData = response.result;
+                    //app.workListStudiesData = response.result;
+
                     if ( typeof isScroll === 'function' ) {
                         isScroll(self);
                     }
@@ -740,12 +682,24 @@ function customGrid ( datastore, gridID ) {
         }
     };
 
+    var getPaymentHeaderValues = function (elementID) {
+        var paymentFilterValues='';
+        if (commonjs.paymentFilterFields) {
+            paymentFilterValues =  $.grep(commonjs.paymentFilterFields, function (obj) {
+                    return obj && (obj.split('~')[0] == elementID)
+            });
+            return paymentFilterValues[0].split('~')[1];
+        }else return '';
+
+    };
+
     this.setSearchQuery = function () {
         var filterData = [];
         var filterRegData = [];
         var filterCol = [];
         var searchFlagArr=[];
         var $toolBar = $('#gview_' + self.options.gridelementid.replace('#', '')).find('.ui-search-toolbar');
+
         var elements = $toolBar.find('.ui-th-column')
             .filter(function() {
                 var element = $(this);
@@ -753,7 +707,6 @@ function customGrid ( datastore, gridID ) {
                 // must check display === none, not :visible pseudo selector, else you will get false positives
                 // since we are switching between tabs where the tab data is not visible at time of setting search query
                 if(element.css('display') === 'none') {
-                    element.remove();
                     return false;
                 }
 
@@ -762,6 +715,33 @@ function customGrid ( datastore, gridID ) {
             .find('select, input');
 
         $.each(elements, function (index, element) {
+            if(self.options.gridelementid === "#tblpaymentsGrid") {
+                if(self.options.customargs.from === 'ris') {
+                    $('#gs_payer_type').val('patient');
+                    $("#gs_payer_type").attr('disabled', true);
+                }
+            }
+
+            if (element && element.id == 'gs_assigned_to' && !$(element).val() && self.options.isClaimGrid) {
+                if (app.userInfo && app.userInfo.user_settings && (app.userInfo.user_settings.assignClaimsToFollowUpQueue == "true" || app.userInfo.user_type == 'SU')) {
+                    $("#gs_assigned_to").removeAttr('disabled');
+
+                }
+                else $("#gs_assigned_to").attr('disabled', 'disabled');
+            }
+
+            if (commonjs.paymentFilterFields && commonjs.paymentFilterFields.length && self.options.gridelementid === "#tblpaymentsGrid") {
+                var paymentValue = getPaymentHeaderValues(element.id);
+                if (paymentValue) {
+                    $("#" + element.id).val(paymentValue);
+                }
+            }
+
+            if (element && element.id == 'gs_billing_method' && $(element).val() == '' && self.options.isClaimGrid) {
+                $("#btnPaperClaim").hide();
+                if (self.options.filterid != "Follow_up_queue")
+                    $("#btnInsuranceClaim").show();
+            }
             if (commonjs.checkNotEmpty($(element).val())) {
 
                 try {
@@ -777,6 +757,8 @@ function customGrid ( datastore, gridID ) {
                 var searchColumns = [];
                 var searchCondition = ' AND ';
                 var searchoptionsalt = null;
+                var validateMoney = null;
+                var paymentIDFormatter = null;
                 for (var i = 0; i < self.options.colModel.length; i++) {
                     if (!self.options.colModel[i].hidden && element.name == self.options.colModel[i].name) {
                         searchFlag = self.options.colModel[i].searchFlag;
@@ -793,13 +775,24 @@ function customGrid ( datastore, gridID ) {
                         if (typeof(self.options.colModel[i].searchoptionsalt) != 'undefined')
                             searchoptionsalt = self.options.colModel[i].searchoptionsalt;
 
+                        if (typeof (self.options.colModel[i].validateMoney) != 'undefined')
+                            validateMoney = self.options.colModel[i].validateMoney;
+
+                        if (typeof (self.options.colModel[i].paymentIDFormatter) != 'undefined')
+                            paymentIDFormatter = self.options.colModel[i].paymentIDFormatter;
+
                         break;
                     }
                 }
 
-                var filterValue = self.getFilterValue(element.name, defaultValue, searchoptionsalt);
+                var filterValue = self.getFilterValue(element.name, defaultValue, searchoptionsalt, validateMoney, paymentIDFormatter);
 
-                if ( /mu_last_updated|check_indate|(.*_(dt|date)$)/.test(element.name) ) {
+                if (element.name === 'payment_id' && $(element).val()) {
+                    filterValue = filterValue.replace(/[^0-9,]/g, '');
+                    $('#' + element.id).val(filterValue);
+                }
+
+                if ( /mu_last_updated|check_indate|(.*_(dt|date|date_time)$)/.test(element.name) ) {
                     var dates = getDates(filterValue);
                     filterData.push(dates);
                     filterRegData.push(new Data(element.name, dates));
@@ -814,6 +807,59 @@ function customGrid ( datastore, gridID ) {
             }
         });
 
+        var filterDataValue = filterData;
+
+        if (self.options.isClaimGrid) {
+            if (this.options.filterid == 'Follow_up_queue') {
+                $("#btnInsuranceClaim").hide();
+            } else if (filterCol.indexOf('billing_method') > -1) {
+                var claimFormat = $("#btnClaimFormat");
+                if (filterDataValue.indexOf('paper\\_claim') > -1) {
+                    self.disableTemplate(["#liEC", "#liINSD", "#liINPN", "#liPP"]);
+                    self.enableTemplate(["#liPCBW", "#liSF", "#liPCRED"]);
+                    claimFormat.attr('data-method', 'paper_claim');
+
+                    if (localStorage.getItem('default_paperclaim')) {
+                        claimFormat.text(localStorage.getItem('default_paperclaim'));
+                        claimFormat.attr('data-format', localStorage.getItem('default_paperclaim_format'));
+                        claimFormat.attr('data-value', localStorage.getItem('default_paperclaim'));
+                    } else {
+                        claimFormat.text($("#liPCBW").find('a').attr('data-value'));
+                        claimFormat.attr('data-format', $("#liPCBW").find('a').attr('data-format'));
+                        claimFormat.attr('data-value', $("#liPCBW").find('a').attr('data-value'));
+                    }
+                } else if (filterDataValue.indexOf('electronic\\_billing') > -1) {
+                    self.disableTemplate(["#liPCBW", "#liSF", "#liPCRED", "#liINSD", "#liINPN", "#liPP"]);
+                    self.enableTemplate(["#liEC"]);
+                    claimFormat.attr('data-method', 'electronic_billing');
+                    claimFormat.text($("#liEC").find('a').attr('data-value'));
+                    claimFormat.attr('data-value', $("#liEC").find('a').attr('data-value'));
+                } else if (filterDataValue.indexOf('direct\\_billing') > -1) {
+                    self.disableTemplate(["#liEC", "#liPCBW", "#liPCRED", "#liPP"]);
+                    self.enableTemplate(["#liSF", "#liINSD", "#liINPN"]);
+                    claimFormat.attr('data-method', 'direct_billing');
+
+                    if (localStorage.getItem('default_directbilling')) {
+                        claimFormat.text(localStorage.getItem('default_directbilling'));
+                        claimFormat.attr('data-value', localStorage.getItem('default_directbilling'));
+                        claimFormat.attr('data-format', (localStorage.getItem('default_directbilling_format')));
+                    } else {
+                        claimFormat.text($("#liINSD").find('a').attr('data-value'));
+                        claimFormat.attr('data-value', $("#liINSD").find('a').attr('data-value'));
+                        claimFormat.attr('data-format', $("#liINSD").find('a').attr('data-format'));
+                    }
+                } else if (filterDataValue.indexOf('patient\\_payment') > -1) {
+                    self.disableTemplate(["#liEC", "#liPCBW", "#liPCRED", "#liINSD", "#liINPN"]);
+                    self.enableTemplate(["#liSF", "#liPP"]);
+                    claimFormat.attr('data-method', 'patient_payment');
+                    claimFormat.text($("#liPP").find('a').attr('data-value'));
+                } else {
+                    self.enableTemplate(["#liEC", "#liPCBW", "#liPCRED", "#liINSD", "#liINPN", "#liSF", "#liPP"]);
+                }
+            } else {
+                self.enableTemplate(["#liEC", "#liPCBW", "#liPCRED", "#liINSD", "#liINPN", "#liSF", "#liPP"]);
+            }
+        }
         self.pager.set({
             "DefaultFilterQuery": "",
             "FilterQuery": "",
@@ -824,6 +870,16 @@ function customGrid ( datastore, gridID ) {
         });
     };
 
+    this.disableTemplate = function (templateList) {
+        templateList.map(function (eachTemplate) {
+            $(eachTemplate).addClass('disabled');
+        });
+    };
+    this.enableTemplate = function (templateList) {
+        templateList.map(function (eachTemplate) {
+            $(eachTemplate).removeClass('disabled');
+        });
+    };
     var getIDKey = function ( row ) {
         return row.idAttribute ||
             row.id && 'id' ||
@@ -866,7 +922,7 @@ function customGrid ( datastore, gridID ) {
         });
 
         if ( dataset.length < 1 ) {
-            $tblGrid.append('<tr id="tr-no-records"><td colspan="100" style="text-align: center;font-size:14px;"> No Records Found</td></tr>');
+            $tblGrid.append('<tr id="tr-no-records"><td colspan="100" style="text-align: center;font-size:14px;">' + commonjs.geti18NString("messages.status.noRecordFound") + '</td></tr>');
 
             var gridTop = ($tblGrid.closest('.ui-jqgrid-bdiv').height() / 2);
             var pagerID = self.options.pager ?
@@ -918,7 +974,7 @@ function customGrid ( datastore, gridID ) {
         $tblGrid
             .closest('.ui-jqgrid')
             .find('.ui-paging-info')
-            .html("Showing " + endIndex + " of " + self.pager.get('TotalRecords'));
+            .html(self.getPagination(endIndex, self.pager.get('TotalRecords')));
 
         var pgTables = $tblGrid.closest('.ui-jqgrid').find('.ui-jqgrid-pager').find('.ui-pg-table');
         var pagingFooter = pgTables.eq(1).find('td');
@@ -927,7 +983,7 @@ function customGrid ( datastore, gridID ) {
             pagingFooter.eq(1).removeClass('ui-state-disabled');
             pagingFooter.eq(5).removeClass('ui-state-disabled');
             pagingFooter.eq(6).removeClass('ui-state-disabled');
-            pagingFooter.eq(3).html("&nbsp;Showing " + endIndex + " of " + self.pager.get('TotalRecords'));
+            pagingFooter.eq(3).html("&nbsp;" + self.getPagination(endIndex, self.pager.get('TotalRecords')));
         }
 
         if ( typeof self.options.onaftergridbind === 'function' ) {
@@ -1007,7 +1063,7 @@ function customGrid ( datastore, gridID ) {
             });
 
             // SMH - Added to retain grid scrolling ability
-            $tblGrid.append('<tr id="tr-no-records"><td colspan="100" style="text-align: center;font-size:14px;">No Records Found</td></tr>');
+            $tblGrid.append('<tr id="tr-no-records"><td colspan="100" style="text-align: center;font-size:14px;">' + commonjs.geti18NString('messages.status.noRecordFound') + '</td></tr>');
 
         }
         else {
@@ -1049,7 +1105,7 @@ function customGrid ( datastore, gridID ) {
         $tblGrid
             .closest('.ui-jqgrid')
             .find('.ui-paging-info')
-            .html("Showing " + endIndex + " of " + total);
+            .html(self.getPagination(endIndex, total));
 
         var pgTables = $tblGrid.closest('.ui-jqgrid').find('.ui-jqgrid-pager').find('.ui-pg-table');
         var pagingFooter = $(pgTables[ 1 ]).find('td');
@@ -1060,7 +1116,7 @@ function customGrid ( datastore, gridID ) {
             pagingFooter.eq(6).removeClass('ui-state-disabled');
 
             pagingFooter.eq(3).html('&nbsp;Page ' + self.pager.get('PageNo') + ' of ' + reader.total() + '&nbsp;');
-            pagingFooter.eq(3).html("&nbsp;Showing " + endIndex + " of " + total);
+            pagingFooter.eq(3).html('&nbsp;' + self.getPagination(endIndex, total));
 
             if ( reader.total() > 0 ) {
                 if ( self.pager.get('PageNo') == 1 ) {
@@ -1104,7 +1160,7 @@ function customGrid ( datastore, gridID ) {
     this.updateDelayedPager = function (filterObj, pagerApi) {
         var customArgs = filterObj.options.customargs;
         customArgs.countFlag = true;
-        filterObj.customGridTable.closest('.ui-jqgrid').find('.ui-paging-info').html('Showing <i class="fa fa-spinner loading-spinner"></i> of <i class="fa fa-spinner loading-spinner"></i>')
+        filterObj.customGridTable.closest('.ui-jqgrid').find('.ui-paging-info').html(self.getPagination('<i class="fa fa-spinner loading-spinner"></i>', '<i class="fa fa-spinner loading-spinner"></i>'));
         jQuery.ajax({
             url: pagerApi,
             type: "GET",
@@ -1115,11 +1171,8 @@ function customGrid ( datastore, gridID ) {
                 SearchFlag:filterObj.pager.get('searchFlag')
             },
             success: function (data, textStatus, jqXHR) {
-                if (data && data.result) {
-                    if (self.options.pagerFlag && self.options.pagerFlag == 'ordering_facility_pager')
-                        filterObj.pager.set({"TotalRecords": data.result.total_records});
-                    else
-                        filterObj.pager.set({"TotalRecords": data.result[0].total_records});
+                if (data && data.length) {
+                    filterObj.pager.set({ "TotalRecords": data[0].total_records });
                     filterObj.setPagerInfos();
 
                     filterObj.pager.set({"LastPageNo": Math.ceil(filterObj.pager.get('TotalRecords') / filterObj.pager.get('PageSize'))});
@@ -1143,7 +1196,7 @@ function customGrid ( datastore, gridID ) {
                     var startIndex = ((filterObj.pager.get('PageNo') - 1) * pageSize) + 1;
                     var endIndex = ((startIndex + pageSize - 1) > filterObj.pager.get('TotalRecords')) ? filterObj.pager.get('TotalRecords') : (startIndex + pageSize - 1);
 
-                    filterObj.customGridTable.closest('.ui-jqgrid').find('.ui-paging-info').html("Showing " + endIndex + " of " + filterObj.pager.get('TotalRecords'));
+                    filterObj.customGridTable.closest('.ui-jqgrid').find('.ui-paging-info').html(self.getPagination(endIndex, filterObj.pager.get('TotalRecords')));
                 }
             },
             error: function (err) {
@@ -1208,22 +1261,37 @@ function customGrid ( datastore, gridID ) {
         this.fetchGrid();
     };
 
-    this.getFilterValue = function (uiFieldID, defaultValue, searchoptionsalt) {
+    this.getFilterValue = function (uiFieldID, defaultValue, searchoptionsalt, validateMoney, paymentIDFormatter) {
         var fieldValue = $.trim($('#gview_' + this.options.gridelementid.replace('#', '') + ' #gs_' + uiFieldID).val());
         if (searchoptionsalt) {
             searchoptionsalt = searchoptionsalt.value;
             fieldValue = searchoptionsalt[fieldValue];
         }
 
+        if (validateMoney) {
+            var regExpr = /[0-9]+(\.[0-9]+)?/;
+            if (!regExpr.test(fieldValue))
+                return '';
+        }
+
         if (typeof fieldValue == 'undefined' || fieldValue == "" || fieldValue == "Select") {
             return '';
+        }
+
+        if (paymentIDFormatter) {
+            fieldValue = fieldValue && fieldValue.replace(/[^0-9,]/g, '') || '';
         }
 
         return fieldValue.replace(/'/g, "''").replace(/_/g, '\\_');
     };
 
-    this.getRowCount = function () {      
+    this.getRowCount = function () {
         return (typeof app.currentrowsToDisplay == 'undefined' || !app.currentrowsToDisplay ) ? 25 : app.currentrowsToDisplay;
     };
 
+    this.getPagination = function (endIndex, total) {
+            commonjs.updateCulture(app.currentCulture, commonjs.beautifyMe);
+            var msg = commonjs.geti18NString("home.inbox.pagination");
+            return msg.replace('$END_INDEX', endIndex).replace('$TOTAL_RECORDS', total);
+    }
 }

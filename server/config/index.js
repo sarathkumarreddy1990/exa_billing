@@ -3,13 +3,41 @@ const path = require('path');
 const nconf = require('nconf');
 const logger = require('../../logger');
 
+const siteID = 1;
+
 module.exports = {
 
     keys: {
         dbConnection: 'dbConnection',
+        dbConnectionBilling: 'dbConnectionBilling',
+        dbConnectionPoolingEnabled: "dbConnectionPoolingEnabled",
         RedisStore: 'RedisStore',
         dbCacheEnabled: 'dbCacheEnabled',
-        dbCacheTtl: 'dbCacheTtl'
+        dbCacheTtl: 'dbCacheTtl',
+
+        edtSoftwareConformanceKey: 'edtSoftwareConformanceKey',
+        ebsCertPath: 'ebsCertPath',
+        hcvSoftwareConformanceKey: 'hcvSoftwareConformanceKey',
+        serviceUserMUID: 'serviceUserMUID',
+        ebsUsername: 'ebsUsername',
+        ebsPassword: 'ebsPassword',
+        edtServiceEndpoint: 'edtServiceEndpoint',
+        hcvServiceEndpoint: 'hcvServiceEndpoint',
+        jsreport: 'jsreport',
+        ahsSFTPAddress: 'ahsSFTPAddress',
+        ahsSFTPPort: 'ahsSFTPPort',
+        ahsSFTPPublicKeyPath: 'ahsSFTPPublicKeyPath',
+        ahsSFTPPrivateKeyPath: 'ahsSFTPPrivateKeyPath',
+        ahsSFTPUser: 'ahsSFTPUser',
+        ahsSFTPPassword: 'ahsSFTPPassword',
+        ahsSFTPSendFolder: 'ahsSFTPSendFolder',
+        ahsSFTPDownloadFolder: 'ahsSFTPDownloadFolder',
+        ahsSFTPPublicKeyPassPhrase: 'ahsSFTPPublicKeyPassPhrase',
+        externalUrlBc: 'externalUrlBc',
+        externalUrlBcUserName: 'externalUrlBcUserName',
+        externalUrlBcPassword: 'externalUrlBcPassword',
+        goLiveDate: 'goLiveDate',
+        enableMobileBilling: 'enableMobileBilling'
     },
 
     paths: [
@@ -30,9 +58,9 @@ module.exports = {
                 if (Object.keys(nconf.stores.file.store || {}).length === 0) {
                     logger.info(`Failed to load config from: ${_path}`);
                     return reject('Failed to load config');
-                } else {
-                    return resolve(this);
                 }
+
+                return resolve(this);
             }
 
             return reject('No cfg files found');
@@ -41,6 +69,50 @@ module.exports = {
 
     initialize: async function () {
         await this.loadConfigFile();
+
+        const configData = require('../data/config-data');
+
+        const rows = await configData.read(siteID);
+
+        if (rows && rows.constructor.name === 'Error') {
+            logger.error('Failed to load web_config - ensure update_db has been run successfully');
+            return;
+        }
+
+        const options = rows[0].web_config;
+        this.setKeys(options);
+        this.setOptions(options);
+
+        // Display a warning if jsReport section is missing
+        if ( !this.get(this.keys.jsreport) ) {
+            logger.logInfo("WARNING: jsreport section not found in web.json");
+        }
+
+        return true;
+    },
+
+    setKeys: function (options) {
+        Object.assign(this.keys, options.reduce((keys, obj) => {
+            keys[obj.id] = obj.id;
+            return keys;
+        }, {}));
+    },
+
+    setOptions: function (options) {
+        const total = options.length;
+
+        for (let i = 0; i < total; ++i) {
+            const option = options[i];
+            const current = this.get(option.id);
+
+            if (current != null) {
+                option.value = current;
+            } else {
+                this.set(option.id, option.value);
+            }
+        }
+
+        return options;
     },
 
     set: function (key, value, callback) {

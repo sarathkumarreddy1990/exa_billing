@@ -1,13 +1,34 @@
-const logger = require('../../../logger')
-    , responseHandler = require('../../../server/shared/http')
-    , dataHelper = require('../data/postgres/dataHelper')
-    , _ = require('lodash')
-    , moment = require('moment-timezone')
-    , DEBUG_ENABLED = false
-    ;
-
-const jsReportClient = require("jsreport-client")('http://localhost/reporting/', 'jsradmin', 'JSR1q2w3e4r5t');
+const logger = require('../../../logger');
+const responseHandler = require('../../../server/shared/http');
+const dataHelper = require('../data/postgres/dataHelper');
+const config = require('../../../server/config');
+const _ = require('lodash');
+const moment = require('moment-timezone');
+const DEBUG_ENABLED = false;
+const commonIndex = require('../../../server/shared/index');
+const jsReportConfig = config.get(config.keys.jsreport) || {};
+const jsReportClient = require("jsreport-client")(jsReportConfig.url, jsReportConfig.username, jsReportConfig.password);
 let reqNum = 0;
+
+const lengthExceedsTemplate = `
+          <style>
+               .lengthExceeds {
+                  width: 100%;
+                  text-align: center;
+                  margin: 10% 0;
+                  min-height: 200px;
+                  color:red;
+            }
+          </style>
+          <div class="lengthExceeds">
+             <h3>Too many records for VIEW/PDF mode. Switch to non VIEW/PDF output.</h3>
+          </div>
+`;
+
+const recordLimits = {
+     'aged-ar-details': 10000,
+     'procedure-analysis-by-insurance': 10000
+};
 
 const api = {
 
@@ -17,6 +38,7 @@ const api = {
         // ============================================================================================================
         // normalize & validate report parameters
         const reportParams = api.getReportParams(req, res);
+        reportParams.browserLocale = (req.headers[`accept-language`] || `en-US`).split(/;/)[0].split(/,/)[0].toLowerCase();
         if (!reportParams.valid) {
             return responseHandler.sendHtml(req, res, null, '<h1>Invalid Report Parameters</h1><p><pre>' + JSON.stringify(reportParams, null, 2) + '</pre></p>');
         }
@@ -54,6 +76,15 @@ const api = {
             // ========================================================================================================
             // STAGE 3 - transform entire report
             .then((rawReportData) => {
+                 const totalDataCount = rawReportData.dataSets[0].rowCount;
+                 if (reportParams.reportFormat == 'html' || reportParams.reportFormat == 'pdf') {
+                     if (recordLimits[reportParams.reportId] && totalDataCount > recordLimits[reportParams.reportId]) {
+                         req.data = {
+                             code: 'LENGTH_EXCEEDS'
+                         };
+                         throw new Error('LENGTH EXCEED ERROR...');
+                     }
+                 }
                 console.timeEnd(`${repInfo} s2___data`);
                 console.time(`${repInfo} s3___transform`);
                 return dataHandler.transformReportData(rawReportData);
@@ -74,6 +105,7 @@ const api = {
             // STAGE 5 - rendering of report and jsreport mechanics
             .then((reportData) => {
                 console.timeEnd(`${repInfo} s4___postprocess`);
+                reportParams.reportTitle = !_.isEmpty(reportData.report.title) ? reportData.report.title :  '';
                 const defaultJsReportOptions = api.getDefaultJsReportOptions(reportParams);
                 const reportJsReportOptions = dataHandler.getJsReportOptions(reportParams, reportDefinition);
                 const jsReportOptions = _.merge({}, defaultJsReportOptions, reportJsReportOptions);  // report specific options can add or overwrite default ones
@@ -95,39 +127,84 @@ const api = {
 
                 api.logJsReportOptions(jsReportOptions);
                 console.time(`${repInfo} s5___jsreport`);
-                jsReportClient.render(jsReportOptions, { timeout: 600000 /* ms */, time: true }, (err, response) => {
-                    console.timeEnd(`${repInfo} s5___jsreport`);
-                    if (err) {
-                        //return next(err);
-                        logger.logError(`${reqId}EXA Reporting - jsreport client error while rendering report!`, err);
+                jsReportClient.render(jsReportOptions, { timeout: 6000000 /* ms */, time: true })
+                    .then( response => {
+                        console.timeEnd(`${repInfo} s5___jsreport`);
+                        // adjust response header for downloadable content
+                        if (jsReportOptions.template.contentDisposition) {
+                            res.setHeader('Content-Disposition', jsReportOptions.template.contentDisposition);
+                        }
+
+                        console.timeEnd(`${repInfo} total`);
+                        const duration = moment().diff(start, 'seconds', true);
+                        logger.logInfo(`${repInfo} finished in ${duration} seconds`);
+
+                        if (reportParams.async === 'false') {
+
+                            if(reportParams.reportFormat === 'pdf') {
+                                res.setHeader('content-type', 'application/pdf');
+                            }
+                            return response
+                                .pipe(res)
+                                .on('finish', () => {
+                                    console.timeEnd(`${repInfo} response`);
+                                    console.timeEnd(`${repInfo} total`);
+
+                                    const finish = moment();
+                                    const duration = finish.diff(start, 'seconds', true);
+
+                                    logger.logInfo(`${repInfo} finished in ${duration} seconds`);
+                                    dataHelper.addReportAuditRecord(reportData); // "fire and forget"
+                                });
+                        }
+
+                        dataHelper.addReportAuditRecord(reportData); // "fire and forget"
+
+                        const id = api.getReportId(response.headers.location);
+                        const obj = {
+                            location: response.headers.location,
+                            id
+                        };
+
+                        return responseHandler.sendJson(req, res, null, obj);
+                    })
+                    .catch(err => {
+                        logger.error(`${reqId}EXA Reporting - jsreport client error while rendering report!`, err);
                         return responseHandler.sendError(req, res);
-                    }
-                    // adjust response header for downloadable content
-                    if (jsReportOptions.template.contentDisposition) {
-                        res.setHeader('Content-Disposition', jsReportOptions.template.contentDisposition);
-                    }
-                    // pipe the js report output directly to Express response
-                    console.time(`${repInfo} response`);
-                    return response
-                        .pipe(res)
-                        .on('finish', () => {
-                            console.timeEnd(`${repInfo} response`);
-                            console.timeEnd(`${repInfo} total`);
-                            const finish = moment();
-                            const duration = finish.diff(start, 'seconds', true);
-                            logger.logInfo(`${repInfo} finished in ${duration} seconds`);
-                            dataHelper.addReportAuditRecord(reportData); // "fire and forget"
-                        });
-                });
+                    })
             })
             .catch((err) => {
-                logger.logError(`${reqId}EXA Reporting - error while processing report!`, err);
-                console.trace();
+             //   logger.error(`${reqId}EXA Reporting - error while processing report!`, err);
+              //  console.trace();
                 //res.writeHead(500, { 'content-type': 'text/plain' });
                 //res.end('An error occurred');
                 //return next(err);
-                return responseHandler.sendError(req, res);
+
+                 if(req.data && req.data.code === 'LENGTH_EXCEEDS') {
+                     return responseHandler.sendHtml(req, res, null, lengthExceedsTemplate);
+                 }
+
+                return responseHandler.sendError(req, res, req.data);
             });
+    },
+
+
+    /**
+     * getReportId - get the jsreport report id out of the "location" response header set by jsreport
+     *
+     * @param {string} locationString
+     * @returns {string}
+     */
+    getReportId: (locationString) => {
+        let id = '';
+        const regex = "reports\\/([\\S]*)\\/status";
+        const re = locationString.match(regex);
+
+        if (re) {
+            id = re[1];
+        }
+
+        return id;
     },
 
     /**
@@ -152,14 +229,15 @@ const api = {
      */
     getReportParams: (req) => {
         const initialReportParams = {
-            companyId: req.query.company_id,      // there is also req.query.companyid ??? both are injected automatically into req...
-            userId: req.query.user_id,            // there is also req.query.userid ??? both are injected automatically into req...
+            companyId: req.body.company_id,
+            userId: req.body.user_id,
             userIpAddress: req.query.user_ip,     // injected automatically into req...
             valid: true                           // flag to toggle if any of minimum required params are not valid
-        }
+        };
+
         const reportParams = _(initialReportParams)
-            // merge all params from URL and query string...
-            .assign(req.params, req.query)
+        // merge all params from URL and query string...
+            .assign(req.params, req.body, req.query)
             // remove duplicate/unnecessary params...
             .omit(['company_id', 'companyid', 'user_id', 'userid', 'session_provider_id'])
             .value();
@@ -206,9 +284,14 @@ const api = {
                 'debug': {
                     //'logsToResponse': true,
                     //'logsToResponseHeader': true
-                }
+                },
+                "reports": {
+                    "save": reportParams.save !== 'false',
+                    "async": reportParams.async !== 'false'
+                },
+                "reportName": reportParams.reportTitle + '---' + reportParams.userId,
             }
-        }
+        };
         // set the name of the download file
         if (_.includes(['xlsx', 'csv', 'xml'], reportParams.reportFormat)) {
             const fname = `${reportParams.reportId}.${reportParams.reportFormat}`;
@@ -217,6 +300,7 @@ const api = {
         }
         return jsReportClientOptions;
     },
+
 
     logReportParams: (reportParams) => {
         if (DEBUG_ENABLED) {

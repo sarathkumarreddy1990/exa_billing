@@ -1,0 +1,13 @@
+{
+	"default": {
+        "province_code": true,
+        "pay_to_code":true,
+        "submitter_prefix":true,
+        "claim_totalCharge": true,
+        "service_provider_prid":true,
+        "business_arrangement":true,
+        "facility_number":true,
+        "patient_first_name": true,
+        "provider_prid": true
+    }
+}

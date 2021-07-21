@@ -1,0 +1,124 @@
+<style>
+    #divPatientClaimsGrid .ui-search-toolbar {
+        display: none;
+    }
+    #divPatientClaimsGrid .ui-jqgrid-bdiv{
+        overflow-x: hidden;
+    }
+</style>
+<div id="divPatientClaimsGrid" style="text-align: right">
+    <div class="row">
+        <div class="col-md-12">
+            <input type="button" i18n="billing.fileInsurance.previous" id="btnPrevPatientClaim" value="previous" class=" btn btn-primary patientClaimProcess pull-left">
+            <input type="button" i18n="billing.fileInsurance.next" id="btnNextPatientClaim" value="next" class=" btn btn-primary patientClaimProcess pull-right">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-3">
+            <div class="col-form-label" style="text-align: left; padding: 0;">
+                <label i18n="report.reportFilter.billingProvider"></label>
+            </div>
+            <div class="form-group form-inline">
+                <select id="ddlBillingProvider"></select>
+            </div>
+        </div>
+        <div class="col-2">
+            <div class="col-form-label" style="text-align: left;">
+                <div>
+                    <label i18n="billing.payments.unappliedPay"></label>
+                    <i class='fa fa-search' rel='tooltip' title='View UnApplied Payments' style='padding-left:10px' id='paymentSearch'></i>
+                </div>
+                <div class="form-group form-inline">
+                    <span id="spUnapplied" style="margin-left: 20%;"> </span>
+                </div>
+            </div>
+        </div>
+        <div class="col-2">
+            <div class="col-form-label" style="text-align: left;">
+                <span class="radio-inline" for="radActivityAllStatus">
+                    <input id="radActivityAllStatus" type="radio" name="patientActivity" style="margin-top: 3px;">
+                    <label for="radActivityAllStatus" class="field-chk" style="min-width: 20px!important; margin: 0 0 10px 0px;" i18n="billing.payments.allActivity"></label>
+                </span>
+                <div class="form-group form-inline">
+                    <span class="radio-inline" for="radioActivityStatus">
+                        <input id="radioActivityStatus" type="radio" name="patientActivity" style="margin-top: 3px;">
+                        <label for="radioActivityStatus" class="field-chk" style="min-width: 20px!important; margin: 0 0 10px 0px;" i18n="billing.payments.activityByDate"></label>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="col-3" id="divFromDate">
+            <div id="activityDetails">
+                <div class="form-group form-inline">
+                    <div class="col-form-label" style="padding: 0;">
+                        <label for="txtDate" i18n="billing.claims.fromDate" class="col-form-label"></label>
+                    </div>
+                    <div class="col-form-content" style="text-align: right;">
+                        <div id="divFDate" class="input-group">
+                            <input type="text" id="txtDate" class="form-control form-control-date maskDateLocale" i18np="dateFormat">
+                            <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px;">
+                                <i class="icon-ic-schedule"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <!--  To Date -->
+                <div class="form-group form-inline">
+                    <div class="col-form-label" style="padding: 0;">
+                        <label for="txtOtherDate" i18n="billing.claims.toDate" class="col-form-label" style="width: 65px;"></label>
+                    </div>
+                    <div class="col-form-content" style="text-align: right;">
+                        <div id="divTDate" class="input-group">
+                            <input type="text" id="txtOtherDate" class="form-control form-control-date maskDateLocale" i18np="dateFormat">
+                            <span class="input-group-addon add-on" style="padding-right: 0px;border: 1px solid #ced7db;width: 30px;text-align: center;line-height: 30px;">
+                                <i class="icon-ic-schedule"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-2">
+            <div class="col-form-label" style="text-align: left;">
+                <input type="checkbox" id="bindAddressTaxNpi" class="btn btn-default bindAddressTaxNpi" i18n="billing.payments.addressTaxNpi"></br>
+                <label for="bindAddressTaxNpi" i18n="billing.payments.addressTaxNpi"></label></br>
+                <input type="checkbox" id="bindComments" class="btn btn-default bindComments" i18n="billing.payments.comment">
+                <label for="bindComments" i18n="billing.payments.comment"></label>
+                <div class="form-group form-inline">
+                    <input type="button" id="btnPatientActivity" class="btn btn-default patientActivity" i18n="shared.buttons.print" data-rformat="pdf">
+                    <input type="button" id="btnFaxPatientActivity" class="btn btn-default patientActivity" i18n="setup.billingprovider.fax" data-rformat="pdf" style="margin-left: 5px;">
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="divFaxRecipient" class="row" style="display: none;">
+        <div class="col-12 form-group form-inline">
+            <div class="col-form-label col-right-label">
+                <label class="control-label" for="txtOtherFaxName" i18n="shared.fields.faxReceiverName"></label>
+            </div>
+            <div class="col-form-content">
+                <input type="text" id="txtOtherFaxName" class="form-control mr-2" />
+            </div>
+
+            <div class="col-form-label col-right-label ml-2">
+                <label class="control-label" for="txtOtherFaxNumber" i18n="shared.fields.faxReceiverNumber"></label>
+            </div>
+            <div class="col-form-content">
+                <input type="text" id="txtOtherFaxNumber" class="form-control maskPhone m-2" />
+            </div>
+
+            <div class="pull-right">
+                <input type="button" id="btnSendFax" class="btn btn-primary" i18n="shared.buttons.sendFax"/>
+                <input type="button" id="btnFaxCancel" class="btn btn-primary" i18n="shared.buttons.cancel"/>
+            </div>
+        </div>
+
+    </div>
+    <div class="row" style="margin: auto;">
+        <table id="tblPatientClaimsGrid"></table>
+        <div id="gridPager_PatientClaim"></div>
+    </div>
+    <div id="divAgeSummary" style="margin:20px;"></div>
+</div>
+<div id="divUnappliedPayment">
+</div>

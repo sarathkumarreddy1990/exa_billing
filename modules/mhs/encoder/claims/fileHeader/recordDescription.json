@@ -1,0 +1,29 @@
+{
+  "record_type": {
+    "format": "N",
+    "startPos": 1,
+    "length": 1
+  },
+  "user_site_number": {
+    "format": "A",
+    "startPos": 2,
+    "length": 5
+  },
+  "user_site_name": {
+    "format": "A",
+    "startPos": 7,
+    "length": 40
+  },
+  "empty": {
+    "format": "A",
+    "startPos": 47,
+    "length": 25
+  },
+  "first_claim_number": {
+    "format": "A",
+    "startPos": 72,
+    "length": 9,
+    "paddingChar": "0",
+    "isLeftJustified": false
+  }
+}

@@ -1,2 +1,13 @@
 node_modules/
 *.css
+build/
+dist/
+yarn.lock
+build2/
+
+app/package-lock.json
+
+# ignore project files
+.idea
+*.code-workspace
+.vscode/

@@ -1,0 +1,38 @@
+{
+    "default": {
+        "practioner_number": true,
+        "register_number": false,
+        "phn": true,
+        "rendering_provider_number": true,
+        "referring_provider_number": true,
+        "patient_first_name": true,
+        "patient_last_name": true,
+        "patient_gender": true,
+        "claim_total_charge": true,
+        "patient_address_line_1": true,
+        "patient_city": true,
+        "patient_province": true,
+        "patient_postal_code": true,
+        "patient_country": true,
+        "icds": true,
+        "facility_number": true
+    },
+    "paper_claim": {
+        "practioner_number": true,
+        "register_number": false,
+        "phn": true,
+        "rendering_provider_number": true,
+        "referring_provider_number": true,
+        "patient_first_name": true,
+        "patient_last_name": true,
+        "patient_gender": true,
+        "claim_total_charge": true,
+        "patient_address_line_1": true,
+        "patient_city": true,
+        "patient_province": true,
+        "patient_postal_code": true,
+        "patient_country": true,
+        "icds": true,
+        "facility_number": true
+    }
+}

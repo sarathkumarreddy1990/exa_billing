@@ -1,0 +1,369 @@
+{
+  "record_code": {
+    "format": "A",
+    "startPos": 1,
+    "length": 3,
+    "segmentName": "P00"
+  },
+  "data_centre_number": {
+    "format": "A",
+    "startPos": 4,
+    "length": 5,
+    "segmentName": "P02"
+  },
+  "data_center_sequence": {
+    "format": "A",
+    "startPos": 9,
+    "length": 7,
+    "segmentName": "P04"
+  },
+  "payee_number": {
+    "format": "N",
+    "startPos": 16,
+    "length": 5,
+    "validationRequired": true,
+    "isMandatory": true,
+    "segmentName": "P06",
+    "name": "Payee number"
+  },
+  "pratitioner_number": {
+    "format": "N",
+    "startPos": 21,
+    "length": 5,
+    "paddingChar": "0",
+    "isLeftJustified": false,
+    "validationRequired": true,
+    "isMandatory": true,
+    "segmentName": "P08",
+    "name": "Practitioner number"
+  },
+  "phn": {
+    "format": "N",
+    "startPos": 26,
+    "length": 10,
+    "paddingChar": "0",
+    "isLeftJustified": false,
+    "validationRequired": true,
+    "isMandatory": true,
+    "segmentName": "P14",
+    "name": "PHN number"
+  },
+  "patient_name": {
+    "format": "A",
+    "startPos": 36,
+    "length": 4,
+    "segmentName": "P16"
+  },
+  "dependent_number": {
+    "format": "N",
+    "startPos": 40,
+    "length": 2,
+    "validationRequired": true,
+    "segmentName": "P18",
+    "name": "Dependent number"
+  },
+  "billed_units": {
+    "format": "N",
+    "startPos": 42,
+    "length": 3,
+    "paddingChar": "0",
+    "isLeftJustified": false,
+    "validationRequired": true,
+    "isMandatory": true,
+    "segmentName": "P20",
+    "name": "Billing unit"
+  },
+  "SCC": {
+    "format": "A",
+    "startPos": 45,
+    "length": 2,
+    "segmentName": "P22",
+    "validationRequired": true,
+    "name": "SCC",
+    "validLength": "2"
+  },
+  "service_anatomical_area": {
+    "format": "A",
+    "startPos": 47,
+    "length": 2,
+    "segmentName": "P23"
+  },
+  "service_indicator": {
+    "format": "A",
+    "startPos": 49,
+    "length": 1,
+    "segmentName": "P24"
+  },
+  "new_indicator": {
+    "format": "A",
+    "startPos": 50,
+    "length": 2,
+    "segmentName": "P25"
+  },
+  "billed_fee_item": {
+    "format": "N",
+    "startPos": 52,
+    "length": 5,
+    "paddingChar": "0",
+    "isLeftJustified": false,
+    "segmentName": "P26"
+  },
+  "billed_amount": {
+    "format": "N",
+    "startPos": 57,
+    "length": 7,
+    "paddingChar": "0",
+    "validationRequired": true,
+    "isLeftJustified": false,
+    "segmentName": "P27",
+    "name": "Billed amount"
+  },
+  "payment_mode": {
+    "format": "A",
+    "startPos": 64,
+    "length": 1,
+    "segmentName": "P28"
+  },
+  "service_date": {
+    "format": "A",
+    "startPos": 65,
+    "length": 8,
+    "segmentName": "P30"
+  },
+  "service_to_day": {
+    "format": "A",
+    "startPos": 73,
+    "length": 2,
+    "segmentName": "P32"
+  },
+  "submission_code": {
+    "format": "A",
+    "startPos": 75,
+    "length": 1,
+    "segmentName": "P34"
+  },
+  "extension_submission_code": {
+    "format": "A",
+    "startPos": 76,
+    "length": 1,
+    "segmentName": "P35"
+  },
+  "icd_1": {
+    "format": "A",
+    "startPos": 77,
+    "length": 5,
+    "segmentName": "P36"
+  },
+  "icd_2": {
+    "format": "A",
+    "startPos": 82,
+    "length": 5,
+    "segmentName": "P37"
+  },
+  "icd_3": {
+    "format": "A",
+    "startPos": 87,
+    "length": 5,
+    "segmentName": "P38"
+  },
+  "diagnostic_expansion": {
+    "format": "A",
+    "startPos": 92,
+    "length": 15,
+    "segmentName": "P39"
+  },
+  "service_location": {
+    "format": "A",
+    "startPos": 107,
+    "length": 1,
+    "validationRequired": true,
+    "isMandatory": true,
+    "segmentName": "P40",
+    "name": "Service Location"
+  },
+  "ref_practitioner_1_cd": {
+    "format": "A",
+    "startPos": 108,
+    "length": 1,
+    "segmentName": "P41"
+  },
+  "ref_practitioner_1": {
+    "format": "N",
+    "startPos": 109,
+    "length": 5,
+    "paddingChar": "0",
+    "isLeftJustified": false,
+    "validationRequired": true,
+    "segmentName": "P42",
+    "name": "Referring practitioner 1"
+  },
+  "ref_practitioner_2_cd": {
+    "format": "A",
+    "startPos": 114,
+    "length": 1,
+    "segmentName": "P44"
+  },
+  "ref_practitioner_2": {
+    "format": "N",
+    "startPos": 115,
+    "length": 5,
+    "segmentName": "P46"
+  },
+  "time_call": {
+    "format": "A",
+    "startPos": 120,
+    "length": 4,
+    "segmentName": "P47"
+  },
+  "start_time": {
+    "format": "N",
+    "startPos": 124,
+    "length": 4,
+    "segmentName": "P48"
+  },
+  "end_time": {
+    "format": "N",
+    "startPos": 128,
+    "length": 4,
+    "segmentName": "P50"
+  },
+  "dob": {
+    "format": "A",
+    "startPos": 132,
+    "length": 8,
+    "segmentName": "P52"
+  },
+  "foloi_number": {
+    "format": "A",
+    "startPos": 140,
+    "length": 7,
+    "paddingChar": "0",
+    "isLeftJustified": false,
+    "segmentName": "P54"
+  },
+  "corresponding_code": {
+    "format": "A",
+    "startPos": 147,
+    "length": 1,
+    "segmentName": "P56"
+  },
+  "comments": {
+    "format": "A",
+    "startPos": 148,
+    "length": 20,
+    "segmentName": "P58"
+  },
+  "mva_claim_code": {
+    "format": "A",
+    "startPos": 168,
+    "length": 1,
+    "segmentName": "P60"
+  },
+  "icbc_claim_number": {
+    "format": "A",
+    "startPos": 169,
+    "length": 8,
+    "isMandatory": true,
+    "validationRequired": true,
+    "segmentName": "P62",
+    "name": "ICBC claim number"
+  },
+  "file_number": {
+    "format": "A",
+    "startPos": 177,
+    "length": 20,
+    "segmentName": "P64"
+  },
+  "facility_number": {
+    "format": "A",
+    "startPos": 197,
+    "length": 5,
+    "paddingChar": "0",
+    "isLeftJustified": false,
+    "segmentName": "P70"
+  },
+  "facility_sub_number": {
+    "format": "A",
+    "startPos": 202,
+    "length": 5,
+    "segmentName": "P72"
+  },
+  "filler": {
+    "format": "A",
+    "startPos": 207,
+    "length": 58,
+    "segmentName": "P80"
+  },
+  "insurer_code": {
+    "format": "A",
+    "startPos": 265,
+    "length": 2,
+    "segmentName": "P100"
+  },
+  "registration_number": {
+    "format": "A",
+    "startPos": 267,
+    "length": 12,
+    "segmentName": "P102"
+  },
+  "oin_birthday": {
+    "format": "A",
+    "startPos": 279,
+    "length": 8,
+    "segmentName": "P104"
+  },
+  "first_name": {
+    "format": "A",
+    "startPos": 287,
+    "length": 12,
+    "segmentName": "P106"
+  },
+  "middle_name": {
+    "format": "A",
+    "startPos": 299,
+    "length": 1,
+    "segmentName": "P108"
+  },
+  "last_name": {
+    "format": "A",
+    "startPos": 300,
+    "length": 18,
+    "segmentName": "P110"
+  },
+  "gender": {
+    "format": "A",
+    "startPos": 318,
+    "length": 1,
+    "segmentName": "P112"
+  },
+  "add1_wsbc_data": {
+    "format": "A",
+    "startPos": 319,
+    "length": 25,
+    "segmentName": "P114"
+  },
+  "add2_wsbc_area_of_injury_anatomical_position": {
+    "format": "A",
+    "startPos": 344,
+    "length": 25,
+    "segmentName": "P116"
+  },
+  "add3_wsbc_nature_of_injury": {
+    "format": "A",
+    "startPos": 369,
+    "length": 25,
+    "segmentName": "P118"
+  },
+  "add4_wsbc_claim_number": {
+    "format": "A",
+    "startPos": 394,
+    "length": 25,
+    "segmentName": "P120"
+  },
+  "postal_code": {
+    "format": "A",
+    "startPos": 419,
+    "length": 6,
+    "segmentName": "P122"
+  }
+}

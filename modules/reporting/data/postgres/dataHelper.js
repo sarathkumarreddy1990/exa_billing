@@ -1,5 +1,4 @@
 const logger = require('../../../../logger')
-    , bcrypt = require('../../../../node_modules/bcrypt-nodejs/bCrypt')
     , db = require('.//db')
     , Promise = require('bluebird')
     , _ = require('lodash')
@@ -92,51 +91,54 @@ const api = {
 
     addReportAuditRecord: (reportData) => {
         const auditInfo = `"username"=>"${reportData.lookups.user.lastName}, ${reportData.lookups.user.firstName}", "user_level"=>"user"`; //hstore
-        const logMessage = `Query: Report "${reportData.report.title}" generated (id: "${reportData.report.id}", category: "${reportData.report.category}", format: "${reportData.report.format}")`;
-        const salt = bcrypt.genSaltSync(8);
-        const hash = bcrypt.hashSync(logMessage, salt);
+        const logMessage = `Query: Report ${reportData.report.title} generated (id: ${reportData.report.id}, category: ${reportData.report.category}, format: ${reportData.report.format})`;
+
         // audit log viewer displays flat list of 'old values' when report is viewed...
         // in order to keep the entry compatible, detailed_info has to be in a certain 'flattened' format...
         const detailedInfo = {
-            oldValues: {
+            old_values: {
                 Report_Id: reportData.report.id,
                 Report_Category: reportData.report.category,
                 Report_Format: reportData.report.format,
                 Report_Title: reportData.report.title
             },
-            newValues: {}
+            new_values: {}
         }
-        _.forEach(reportData.filters, (filter) => {
-            detailedInfo.oldValues[`Filters_${filter.name}`] = _.isArray(filter.value) ? filter.value.join(',') : filter.value;
-        })
-        const auditRecord = {
-            user_id: reportData.lookups.user.id,
-            patient_id: 0,
-            order_id: 0,
-            study_id: 0,
-            screen_name: 'Reports',
-            module_name: 'Patient', // should it be Reporting?
-            log_description: logMessage,
-            client_ip: reportData.lookups.user.clientIpAddress,
-            detailed_info: JSON.stringify(detailedInfo),
-            sa_id: 0,
-            hash_value: hash,
-            hash_salt: salt,
-            audit_info: auditInfo, // hstore
-            company_id: reportData.lookups.company.id
+        // _.forEach(reportData.filters, (filter) => {
+        //     detailedInfo.oldValues[`Filters_${filter.name}`] = _.isArray(filter.value) ? filter.value.join(',') : filter.value;
+        // })
+        const params = {
+            companyId: reportData.lookups.company.id,
+            entityName :'reports',
+            entitykey: 1,
+            screenName:  reportData.report.title,
+            moduleName: 'reports',
+            clientIp: reportData.lookups.user.clientIpAddress || '127.0.0.1',
+            logDescriptions: logMessage,
+            detailedInfo: JSON.stringify(detailedInfo),
+            userId: reportData.lookups.user.id
         }
-        const auditQuery = `
-            INSERT INTO audit_log (user_id, patient_id, order_id, study_id, screen_name, module_name, log_description, client_ip, detailed_info, logged_dt, sa_id, hash_value, hash_salt, audit_info, company_id)
-                          VALUES  ($1     , $2        , $3      , $4      , $5         , $6         , $7             , $8       , $9           , now()    , $10  , $11       , $12      , $13       , $14       )
-        `;
-        return db.query(auditQuery, [auditRecord.user_id, auditRecord.patient_id, auditRecord.order_id, auditRecord.study_id, auditRecord.screen_name
-            , auditRecord.module_name, auditRecord.log_description, auditRecord.client_ip, auditRecord.detailed_info, auditRecord.sa_id
-            , auditRecord.hash_value, auditRecord.hash_salt, auditRecord.audit_info, auditRecord.company_id])
+
+        let sql = SQL`
+        SELECT billing.create_audit(
+            ${params.companyId}
+          , ${params.entityName}
+          , ${params.entitykey}
+          , ${params.screenName}
+          , ${params.moduleName}
+          , ${params.logDescriptions}
+          , ${params.clientIp}
+          , ${JSON.stringify(detailedInfo)}::jsonb
+          , ${params.userId}
+          )
+        `
+
+        return db.query(sql.text, sql.values)
             .then((pgResult) => {
                 return true;
             })
             .catch((err) => {
-                logger.logError('EXA Reporting - error while adding auditing record!', err);
+                logger.error('EXA Reporting - error while adding auditing record!', err);
                 return false;
             });
     },
@@ -185,7 +187,7 @@ const api = {
                     }
                     return resolve(providerGroupInfo);
                 })
-                .catch(error => logger.logError('EXA Reporting - Error on selecting provider group info!', error));
+                .catch(error => logger.error('EXA Reporting - Error on selecting provider group info!', error));
         });
     },
 
@@ -199,7 +201,7 @@ const api = {
                         AND id = any ($2)
                         AND NOT has_deleted
                         ORDER BY short_description
-                        `;
+                        `; // cpt_codes.has_deleted
             const params = [
                 companyId,
                 cptCodeIds
@@ -218,7 +220,7 @@ const api = {
                     }
                     return resolve(cptInfo);
                 })
-                .catch(error => logger.logError('EXA Reporting - Error on selecting cpt codes info!', error));
+                .catch(error => logger.error('EXA Reporting - Error on selecting cpt codes info!', error));
         });
     },
 
@@ -250,7 +252,7 @@ const api = {
                     }
                     return resolve(insuranceProvidersInfo);
                 })
-                .catch(error => logger.logError('EXA Reporting - Error on selecting insurance providers info!', error));
+                .catch(error => logger.error('EXA Reporting - Error on selecting insurance providers info!', error));
         });
     },
 
@@ -279,7 +281,7 @@ const api = {
                     }
                     return resolve(statusInfo);
                 })
-                .catch(error => logger.logError('EXA Reporting - Error on selecting study statuses info!', error));
+                .catch(error => logger.error('EXA Reporting - Error on selecting study statuses info!', error));
         });
     },
 
@@ -306,7 +308,7 @@ const api = {
                         });
                     }
                     return resolve(flagInfo);
-                }).catch(error => logger.logError('EXA Reporting - Error on selecting study flag info!', error));
+                }).catch(error => logger.error('EXA Reporting - Error on selecting study flag info!', error));
         });
     },
 
@@ -366,7 +368,7 @@ const api = {
                     }
                     return resolve(referringPhysicianInfo);
                 })
-                .catch(error => logger.logError('EXA Reporting - Error on selecting referring physicians info!', error));
+                .catch(error => logger.error('EXA Reporting - Error on selecting referring physicians info!', error));
         });
     },
 
@@ -406,7 +408,7 @@ const api = {
                     }
                     return resolve(patientInfo);
                 })
-                .catch(error => logger.logError('EXA Reporting - Error on selecting patients info!', error));
+                .catch(error => logger.error('EXA Reporting - Error on selecting patients info!', error));
         });
     },
 
@@ -421,8 +423,8 @@ const api = {
     getBillingProviderInfo: (companyId, billingProviderIds) => {
         return new Promise((resolve, reject) => {
             const sql = `
-                SELECT id, code, full_name
-                FROM billing_providers
+                SELECT id, code, name as full_name
+                FROM billing.providers
                 WHERE
                     company_id = $1
                 AND id = any($2)
@@ -446,7 +448,7 @@ const api = {
                     }
                     return resolve(providerInfo);
                 })
-                .catch(error => logger.logError('EXA Reporting - Error on selecting billing providers info!', error));
+                .catch(error => logger.error('EXA Reporting - Error on selecting billing providers info!', error));
         });
     },
 
@@ -460,12 +462,12 @@ const api = {
                 LEFT JOIN facilities      AS f ON f.id = s.facility_id
                 WHERE
                     ( s.company_id = ${companyId} )
-                AND NOT s.has_deleted
+                AND s.deleted_dt is null
                 AND ((timezone(f.time_zone, s.study_dt))::date = current_date)
                 )
-        
-                SELECT 
-                    ',' || string_agg('"' || f.facility_name || '" int', ',') AS cross_tab, 
+
+                SELECT
+                    ',' || string_agg('"' || f.facility_name || '" int', ',') AS cross_tab,
                     ',' || string_agg('"' || f.facility_name || '"', ',') AS sel_col,
                     ',' || string_agg('sum("' || f.facility_name || '")', ',') AS sel_sum,
                     ',' || string_agg('coalesce("' || f.facility_name || '",0) AS "' || f.facility_name || '"', ',') AS sel_coalesce
@@ -486,7 +488,7 @@ const api = {
                         "selCoalesce": selCoalesce
                     });
                 })
-                .catch(error => logger.logError('EXA Reporting - Error on facilities info!', error));
+                .catch(error => logger.error('EXA Reporting - Error on facilities info!', error));
         });
     },
 
@@ -526,7 +528,7 @@ const api = {
                     }
                     return resolve(providerInfo);
                 })
-                .catch(error => logger.logError('EXA Reporting - Error on selecting providers info!', error));
+                .catch(error => logger.error('EXA Reporting - Error on selecting providers info!', error));
         });
     },
 
@@ -534,7 +536,7 @@ const api = {
         return new Promise((resolve, reject) => {
             const sql = `
                 SELECT id, code, description AS name
-                FROM adjustment_codes
+                FROM billing.adjustment_codes
                 WHERE
                     company_id = $1
                 AND id = any ($2)
@@ -558,7 +560,7 @@ const api = {
                     }
                     return resolve(adjustmentCodeInfo);
                 })
-                .catch(error => logger.logError('EXA Reporting - Error on selecting adjustment_code info!', error));
+                .catch(error => logger.error('EXA Reporting - Error on selecting adjustment_code info!', error));
         });
     },
 
@@ -593,7 +595,7 @@ const api = {
                     }
                     return resolve(reportInfo);
                 })
-                .catch(error => logger.logError(`EXA Reporting - Error on selecting ${args.tableName} info!`, error));
+                .catch(error => logger.error(`EXA Reporting - Error on selecting ${args.tableName} info!`, error));
         });
     },
 
@@ -617,6 +619,78 @@ const api = {
             retAmount = `(${retAmount})`;
 
         return retAmount;
+    },
+
+    getStudyInfo: (companyId, studyIds) => {
+        return new Promise((resolve, reject) => {
+            const sql = `
+                SELECT
+                    id
+                  , accession_no
+                  , study_description
+                FROM
+                    public.studies
+                WHERE
+                    company_id = $1
+                AND id = any ($2)
+                ORDER BY accession_no
+            `;
+            const params = [
+                companyId,
+                studyIds
+            ];
+            db.query(sql, params)
+                .then((pgResult) => {
+                    const studyInfo = [];
+                    if (pgResult.rows && pgResult.rows.length > 0) {
+                        _.forEach(pgResult.rows, (val) => {
+                            studyInfo.push({
+                                id: val.id,
+                                accession_no: val.accession_no,
+                                study_description: val.study_description,
+                            });
+                        });
+                    }
+                    return resolve(studyInfo);
+                })
+                .catch(error => logger.logError('EXA Reporting - Error on selecting studey info!', error));
+        });
+    },
+
+   getInsuranceGroupInfo: (companyId, insuranceGroupIds) => {
+       return new Promise((resolve, reject) => {
+           const sql = `
+               SELECT
+                   id
+                 , code
+                 , description
+               FROM
+                   public.insurance_provider_payer_types
+               WHERE
+                   company_id = $1
+               AND id = any ($2)
+               ORDER BY code
+           `;
+           const params = [
+               companyId,
+               insuranceGroupIds
+           ];
+           db.query(sql, params)
+               .then((pgResult) => {
+                   const insuranceGroupInfo = [];
+                   if (pgResult.rows && pgResult.rows.length > 0) {
+                       _.forEach(pgResult.rows, (val) => {
+                           insuranceGroupInfo.push({
+                               id: val.id,
+                               code: val.code,
+                               description: val.description,
+                           });
+                       });
+                   }
+                   return resolve(insuranceGroupInfo);
+               })
+               .catch(error => logger.logError('EXA Reporting - Error on selecting Insurance Group Info!', error));
+       });
     }
 };
 
