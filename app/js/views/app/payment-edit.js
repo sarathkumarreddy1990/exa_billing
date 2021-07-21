@@ -334,7 +334,7 @@ define(['jquery',
                 this.payer_id = 0;
                 $('#PaymentForm input[type=radio]').prop('ckecked', false);
                 $('#ddlpaymentReason').val('');
-                $('#ddlPaidLocation').val(facility);
+                $('#ddlPaidLocation').val(facility.id);
                 $('#selectPaymentMode').val(0);
                 $('#PaymentForm input[type=text]').val('');
                 $('.payerFields').hide();
@@ -1161,11 +1161,14 @@ define(['jquery',
                 var endDate = self.paymentDateObj ? moment(self.paymentDateObj).add(30, 'days').startOf('day') : moment().add(30, 'days').startOf('day');
 
                 if (!moment(accountingDate).isBetween(startDate, endDate) && accountingDate) {
-                    return confirm(commonjs.geti18NString("messages.confirm.payments.overwriteAccountingDate"));
+                    confirm(commonjs.geti18NString("messages.confirm.payments.overwriteAccountingDate"));
+                    return false;
                 }
 
-                if ($('#ddlPaidLocation').val() == '0') {
-                    return commonjs.showWarning("messages.warning.payments.selectPaidLocation");
+                if (!$('#ddlPaidLocation').val()) {
+                    commonjs.showWarning("messages.warning.payments.selectPaidLocation");
+                    $('#ddlPaidLocation').focus();
+                    return false;
                 }
 
                 if ($('#selectPayerType').val() === '0') {
