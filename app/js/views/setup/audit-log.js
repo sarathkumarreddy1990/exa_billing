@@ -248,9 +248,9 @@ define([
                     url: "/exa_modules/billing/setup/audit_log",
                     type: "GET",
                     data: {
-                        username: filterObj.username,
-                        screen_name: filterObj.screen_name,
-                        description: filterObj.description,
+                        username: $.trim(filterObj.username),
+                        screen_name: $.trim(filterObj.screen_name),
+                        description: $.trim(filterObj.description),
                         sortField: filterObj.sidx,
                         sortOrder: filterObj.sord,
                         from_date: self.dtpFrom && self.dtpFrom.date() ? self.dtpFrom.date().format() : "",
