@@ -947,6 +947,10 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                         "custom_name": "Billing type",
                         "name": "billing_type",
                         "width": 150,
+                        formatter: function ( cellvalue ) {
+                            return cellvalue ? cellvalue.split('_')[0] : 'global';
+                        },
+                        "hidden": app.country_alpha_3_code === 'can',
                         "stype": "select",
                             "searchoptions": {
                                 "value": billingType,
@@ -2202,11 +2206,13 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "name": "billing_type",
                     "width": 150,
                     "stype": "select",
+                    "hidden": app.country_alpha_3_code === 'can',
                     "searchoptions": {
                         "value": billingType,
                         "tempvalue": billingType
                     },
                 },
+                
                 "field_code": "billing_type"
         }
 

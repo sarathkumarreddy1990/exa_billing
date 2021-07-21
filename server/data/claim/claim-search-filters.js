@@ -245,7 +245,7 @@ const colModel = [
     },
     {
         name: 'billing_type',
-        searchColumns: ['ordering_facility_contacts.billing_type'],
+        searchColumns: ['claims.billing_type'],
         searchFlag: '%'
     }
 ];
@@ -345,6 +345,7 @@ const api = {
             case 'pid_alt_account': return 'patient_alt_accounts.pid_alt_account';
             case 'phn_alt_account': return 'patient_alt_accounts.phn_alt_account';
             case 'can_bc_claim_sequence_numbers': return 'billing.can_bc_get_claim_sequence_numbers(claims.id)';
+            case 'billing_type': return 'claims.billing_type';
         }
 
         return args;
@@ -623,7 +624,7 @@ const api = {
             `patient_alt_accounts.phn_alt_account`,
             `billing.can_bc_get_claim_sequence_numbers(claims.id) AS can_bc_claim_sequence_numbers`,
             `AGE(CURRENT_DATE, submitted_dt) >= '3 days'::INTERVAL AND claim_status.code = 'PA' AS claim_resubmission_flag`,
-            'ordering_facility_contacts.billing_type'
+            'claims.billing_type'
         ];
 
         if(args.customArgs.filter_id=='Follow_up_queue'){
