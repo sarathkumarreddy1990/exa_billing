@@ -209,8 +209,7 @@ define([
                         if (self.gridFilterName == 'studies')
                             self.billingDisplayFields = result.study_fields;
                         if (app.country_alpha_3_code === "can") {
-                            self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && (field.field_code == "clearing_house" ||
-                            field.field_code == "patient_ssn" || field.field_code == "place_of_service" )) }) || [];
+                            self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && (['clearing_house', 'billing_type', 'patient_ssn', 'place_of_service'].indexOf(field.field_code) > -1)) }) || [];
                         } else {
                             self.billingDisplayFields = _.reject(self.billingDisplayFields, function (field) { return (field && field.field_code == "payment_id" || field.field_code == "phn_alt_account" || field.field_code == "pid_alt_account" ) }) || [];
                         }
