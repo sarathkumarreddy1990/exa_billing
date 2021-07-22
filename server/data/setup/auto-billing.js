@@ -275,7 +275,7 @@ module.exports = {
                         ELSE false
                         END                                         is_active
                     , array_agg(DISTINCT study_status_code)       AS study_status_codes
-                    , abssr.excludes                              AS exclude_study_status
+                    , abssr.excludes                              AS exclude_study_statuses
                     , array_agg(facility_id)                      AS facility_ids
                     , abfr.excludes                               AS exclude_facilities
                     , array_agg(abofr.ordering_facility_id)       AS ordering_facility_ids
@@ -319,7 +319,7 @@ module.exports = {
                       SELECT DISTINCT ON (status_code) id, status_desc, status_code
                       FROM study_status INNER JOIN base ON study_status.status_code = ANY(base.study_status_codes)
                  ) tmp) as study_statuses
-                 , exclude_study_status
+                 , exclude_study_statuses
                  , (SELECT array_to_json(array_agg(tmp)) FROM (
                       SELECT id, facility_name, facility_code
                       FROM facilities INNER JOIN base ON facilities.id = ANY(base.facility_ids)
@@ -686,7 +686,8 @@ module.exports = {
                 SELECT
                     abr.id
                     , claim_status_id
-                    , abssr.excludes                                AS exclude_study_status
+                    , array_agg(abssr.study_status_code)            AS study_status_codes
+                    , abssr.excludes                                AS exclude_study_statuses
                     , array_agg(facility_id)                        AS facility_ids
                     , abfr.excludes                                 AS exclude_facilities
                     , array_agg(abofr.ordering_facility_id)         AS ordering_facility_ids
@@ -710,8 +711,7 @@ module.exports = {
                     LEFT JOIN billing.autobilling_insurance_provider_payer_type_rules abipptr   ON abr.id = abipptr.autobilling_rule_id
                     LEFT JOIN billing.autobilling_insurance_provider_rules abipr                ON abr.id = abipr.autobilling_rule_id
                 WHERE
-                    study_status_code = ${studyStatus}
-                    AND inactivated_dt IS NULL
+                    inactivated_dt IS NULL
                     AND deleted_dt IS NULL
                 GROUP BY
                     abr.id
@@ -765,6 +765,8 @@ module.exports = {
             FROM
             cteAutoBillingRules
             INNER JOIN context ON
+                (NOT exclude_study_statuses = (${studyStatus} = ANY(study_status_codes)))
+                AND
                 (exclude_facilities IS null OR NOT exclude_facilities = (context.facility_id = ANY(facility_ids)))
                 AND
                 (exclude_ordering_facilities IS NULL OR NOT exclude_ordering_facilities = (context.ordering_facility_id = ANY(cteAutoBillingRules.ordering_facility_ids)))
