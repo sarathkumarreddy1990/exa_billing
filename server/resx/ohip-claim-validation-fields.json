@@ -2,7 +2,6 @@
 	"default": {
         "hcp": {
             "healthNumber": true,
-            "versionCode": true,
             "patientAddress": true,
             "provinceCode": true
         },
@@ -11,7 +10,7 @@
             "patientAddress": true,
             "provinceCode": true
         }
-        
+
 	},
 	"patient_payment": {
 		"billing_pro_addressLine1": true,

@@ -239,9 +239,9 @@ define('grid', [
 
                         var resubmissionFlag = app.billingRegionCode === 'can_AB'
                                                && isClaimGrid
-                                               && gridData.claim_resubmission_flag;
+                                               && gridData.claim_resubmission_flag === 'true';
 
-                        if (resubmissionFlag && claimStatus.code !== 'PS') {
+                        if (resubmissionFlag && gridData.hidden_billing_method === 'electronic_billing' && claimStatus.code !== 'PS') {
                             return;
                         }
 
@@ -730,6 +730,7 @@ define('grid', [
             filterCol = JSON.stringify(filterContent.pager.get('FilterCol'));
             var isDatePickerClear = filterCol.indexOf('study_dt') === -1;
             var isAlbertaBilling = app.billingRegionCode === 'can_AB';
+            var isOhipBilling = app.billingRegionCode === 'can_ON';
 
             batchClaimArray = [];
             for (var r = 0; r < selectedCount; r++) {
@@ -791,7 +792,12 @@ define('grid', [
                         success: function (data, response) {
                             commonjs.showStatus('messages.status.batchClaimCompleted');
                             commonjs.hideLoading();
-                            var claim_id = data && data.length && (data[0].create_claim_charge || data[0].can_ahs_create_claim_per_charge) || null;
+                            var claimDetails = _.get(data, '0');
+                            var claim_id = claimDetails && (
+                                claimDetails.create_claim_charge
+                                || claimDetails.can_ahs_create_claim_per_charge
+                                || claimDetails.can_ohip_create_claim_split_charge
+                            ) || null;
 
                             // Change grid values after claim creation instead of refreshing studies grid
                             if (claim_id) {
@@ -799,31 +805,24 @@ define('grid', [
                                 var claimsTable = new customGrid(studyDataStore, gridID);
                                 claimsTable.options = { gridelementid: gridID }
                                 var changeGrid = initChangeGrid(claimsTable);
-                                var cells = [];
-
-                                if (!isAlbertaBilling) {
-                                    cells = cells.concat(changeGrid.getClaimId(claim_id))
-                                        .concat(changeGrid.getBillingStatus('Billed'))
-                                        .concat(changeGrid.setEditIcon());
-                                }
 
                                 for (var r = 0; r < batchClaimArray.length; r++) {
                                     var rowId = batchClaimArray[r].study_id;
                                     var $row = $tblGrid.find('#' + rowId);
+                                    var cells = [];
+                                    var currentStudyDetails = data.find(function (row) { return row.study_id == rowId });
+
+                                    var claimId = isAlbertaBilling ? currentStudyDetails.can_ahs_create_claim_per_charge : isOhipBilling
+                                        ? currentStudyDetails.can_ohip_create_claim_split_charge : currentStudyDetails.create_claim_charge;
+
+                                    cells = cells.concat(changeGrid.getClaimId(claimId))
+                                        .concat(changeGrid.getBillingStatus('Billed'))
+                                        .concat(changeGrid.setEditIcon());
 
                                     //Upon POST of new batch claim, place claim ID inside hidden cell specificed below
-                                    $row.find("[aria-describedby='tblGridAll_Studies_hidden_claim_id']").text(claim_id);
+                                    $row.find("[aria-describedby='tblGridAll_Studies_hidden_claim_id']").text(claimId);
 
                                     var setCell = changeGrid.setCell($row);
-
-                                    //EXA-18272 - Bind multiple claim ids for Alberta biling batch claim
-                                    if (isAlbertaBilling) {
-                                        claim_id = _.map(data, 'can_ahs_create_claim_per_charge');
-                                        cells = cells.concat(changeGrid.getClaimId(claim_id[r]))
-                                            .concat(changeGrid.getBillingStatus('Billed'))
-                                            .concat(changeGrid.setEditIcon());
-                                    }
-
                                     setCell(cells);
                                     // In user filter Billed Status selected as unbilled means, After claim creation hide from grid.
                                     var isBilledStatus = currentFilter.filter_info && currentFilter.filter_info.studyInformation && currentFilter.filter_info.studyInformation.billedstatus === 'unbilled' || false;

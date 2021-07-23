@@ -168,9 +168,8 @@ module.exports = {
                                                 s.study_info->'refDescription' AS referring_pro_study_desc
                                             FROM
                                                 public.studies s
-                                                LEFT JOIN public.study_transcriptions st ON st.study_id = s.id
                                                 LEFT JOIN public.study_cpt cpt ON cpt.study_id = s.id
-                                                LEFT JOIN provider_contacts pc ON pc.id = st.approving_provider_id
+                                                LEFT JOIN provider_contacts pc ON pc.id = s.reading_physician_id
                                                 LEFT JOIN providers p ON p.id = pc.provider_id
                                                 WHERE s.id = ${firstStudyId}
                                                 ORDER BY cpt.id ASC LIMIT 1
@@ -414,14 +413,19 @@ module.exports = {
             , charges
             , auditDetails
             , is_alberta_billing
+            , is_ohip_billing
         } = params;
 
-        const claimCreateFunction = is_alberta_billing
-            ? `billing.can_ahs_create_claim_per_charge`
-            : `billing.create_claim_charge`;
+        let createClaimFunction = 'billing.create_claim_charge';
+
+        if (is_alberta_billing) {
+            createClaimFunction = 'billing.can_ahs_create_claim_per_charge';
+        } else if (is_ohip_billing) {
+            createClaimFunction = 'billing.can_ohip_create_claim_split_charge';
+        }
 
         const sql = SQL`SELECT `
-            .append(claimCreateFunction)
+            .append(createClaimFunction)
             .append(SQL`(
                 (${JSON.stringify(claims)})::jsonb,
                 (${JSON.stringify(insurances)})::jsonb,

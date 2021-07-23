@@ -588,9 +588,16 @@ module.exports = {
         let {
             studyDetails,
             auditDetails,
-            is_alberta_billing
+            is_alberta_billing,
+            is_ohip_billing
         } = params;
-        let createClaimFunction = is_alberta_billing ? 'billing.can_ahs_create_claim_per_charge' : 'billing.create_claim_charge';
+        let createClaimFunction = 'billing.create_claim_charge';
+
+        if (is_alberta_billing) {
+            createClaimFunction = 'billing.can_ahs_create_claim_per_charge';
+        } else if (is_ohip_billing) {
+            createClaimFunction = 'billing.can_ohip_create_claim_split_charge';
+        }
 
         const sql = SQL`
                     WITH batch_claim_details AS (
@@ -616,7 +623,9 @@ module.exports = {
                     details.insurances,
                     details.claim_icds,
                     ('${JSON.stringify(auditDetails) }'):: jsonb,
-                    details.charges) FROM details`);
+                    details.charges),
+                    details.study_id
+                FROM details`);
 
         return await query(sql);
     },

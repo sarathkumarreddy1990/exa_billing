@@ -243,7 +243,7 @@ module.exports = {
                 FROM billing.claims bc
                 INNER JOIN billing.get_claim_totals(bc.id) AS claim_totals ON true
                 INNER JOIN public.patients pp on pp.id = bc.patient_id
-                INNER JOIN public.provider_groups pg on pg.id = bc.ordering_facility_id`;
+                LEFT JOIN public.provider_groups pg on pg.id = bc.ordering_facility_id`;
 
         sql.append(joinQuery);
         sql.append(paymentWhereQuery);

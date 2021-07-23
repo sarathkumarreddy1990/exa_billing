@@ -1763,8 +1763,8 @@ function formatSingleClaim(claimData, servicelineList) {
                                 widths:[ 30, 35, 60, 45 ],
                                 body: [
                                     [
-                                        {image: getImage(claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].outSideLab.toString() && claimData.subscriber[0].claim[0].outSideLab.toString().toUpperCase() === "TRUE"), fit: [8, 8]},
-                                        {image: getImage(claimData.subscriber && claimData.subscriber[0].claim && claimData.subscriber[0].claim[0].outSideLab.toString() && claimData.subscriber[0].claim[0].outSideLab.toString().toUpperCase() === "FALSE"), fit: [8, 8]},
+                                        {image: getImage((claimDet.outSideLab != null) && claimDet.outSideLab), fit: [8, 8]},
+                                        {image: getImage((claimDet.outSideLab != null) && !claimDet.outSideLab), fit: [8, 8]},
                                         { text:"", alignment:"center"},
                                         { text:"" , alignment:"center"}
                                     ]

@@ -3821,6 +3821,7 @@ define(['jquery',
                     claim_icds: claim_model.claim_icds,
                     removed_charges: claim_model.removed_charges,
                     is_alberta_billing: app.billingRegionCode === 'can_AB',
+                    is_ohip_billing: app.billingRegionCode === 'can_ON',
                     study_cpt_id: claim_model.ref_charge_id || 0
                 });
 
@@ -4597,7 +4598,7 @@ define(['jquery',
             //EXA-18273 - Getting charges created for a patient on current date will be displayed for alberta billing
             getPatientCharges: function (id, selectedCharges) {
                 var self = this;
-                
+
                 $.ajax({
                     url: '/exa_modules/billing/claims/claim/get_patient_charges',
                     type: 'GET',

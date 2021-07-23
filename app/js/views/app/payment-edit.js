@@ -266,7 +266,7 @@ define(['jquery',
                     $("#divAccountingDate span").off().on('click',function(){
                         commonjs.showWarning('messages.errors.accessdenied');
                     });
-                } 
+                }
             },
 
             showPaymentsGrid: function () {
@@ -645,7 +645,7 @@ define(['jquery',
             },
 
             resetPatSearch: function () {
-                
+
                 if (!this.payment_id) {
                     this.payer_id = 0;
                 }
@@ -879,11 +879,6 @@ define(['jquery',
                     $('#spnPatInfo').text(response.patient_name + ' (' + response.account_no + ') ');
                     this.showPendingPaymentsGrid(this.payment_id, response.payer_type, response.patient_id, response.patient_id);
                 }
-
-                // Alberta Fields
-                $('#lblClaimNumber').text(response.can_ahs_claim_number);
-                $('#lblChartNumber').text(response.claim_id);
-                $('#lblFinancialRequestNumber').text(response.can_ahs_financial_request_number);
 
                 if (response.payer_type === "patient") {
                     self.payer_id = response.patient_id;
@@ -1227,21 +1222,9 @@ define(['jquery',
             *  DESC : Check payment & adjustment amount is should be equal with order balance and payer_type === 'patient' for Canadian config.
             */
 
-            overPaymentValidation: function (source) {
+            overPaymentValidation: function () {
                 var self = this;
-                var orderBalance = $('#lblBalanceNew').text() || '0.00';
-                var currentBalance = parseFloat(orderBalance.replace(/[,()$'"]/g, '')) || 0;
-
                 self.payer_type = self.isFromClaim ? self.claimPaymentObj.payer_type : self.payer_type;
-
-                if (currentBalance !== 0
-                    && app.country_alpha_3_code === 'can'
-                    && self.payer_type === 'patient'
-                    && source !== 'PaidInFull') {
-                    commonjs.showWarning('messages.warning.payments.amountValidation');
-                    commonjs.hideLoading();
-                    return false;
-                }
                 return true;
             },
 
@@ -2491,9 +2474,9 @@ define(['jquery',
                     var totalPayment = _.reduce(line_items,function(m,x) { return m + x.payment; }, 0);
                     var totalAdjustment = _.reduce(line_items,function(m,x) { return m + x.adjustment; }, 0);
 
-                    if (!self.overPaymentValidation(source)) {
+                    if (!self.overPaymentValidation()) {
                         return false;
-                    } 
+                    }
 
                     /**
                     *  Condition : If payment_payer_type === 'patient' && claim_status !== Pending Validation/Submission
@@ -2542,11 +2525,11 @@ define(['jquery',
                             adjustmentId: adjustmentType,
                             paymentStatus: paymentStatus,
                             casDeleted: JSON.stringify(self.casDeleted),
-                            claimStatusID: claimStatusIndex > -1 && !isClaimStatusChanged && paymentPayerType === 'patient' ? self.received_claim_status_id : claimStatusID,
+                            claimStatusID: self.currentResponsible === 'primary_insurance' && claimStatusIndex > -1 && !isClaimStatusChanged && paymentPayerType === 'patient' ? self.received_claim_status_id : claimStatusID,
                             is_payerChanged: isPayerChanged,
                             is_claimDenied: isClaimDenied,
                             isFromClaim: self.isFromClaim,
-                            changeResponsibleParty : paymentPayerType === 'patient' && claimStatusIndex > -1 && isPayerChanged === 'false' && !isClaimStatusChanged
+                            changeResponsibleParty : self.currentResponsible === 'primary_insurance' && paymentPayerType === 'patient' && claimStatusIndex > -1 && isPayerChanged === 'false' && !isClaimStatusChanged
                         },
                         success: function (model, response) {
                             var msg = self.isFromClaim ? commonjs.geti18NString('messages.status.tosSuccessfullyCompleted') :
@@ -3476,7 +3459,7 @@ define(['jquery',
                     i18nHeader: "billing.payments.eob"
                 });
             },
-            
+
             uploadPDF: function(e) {
                 var self = this;
                 $('.btnEobPaymentUpload').attr('id', self.ediFileId)
@@ -3512,7 +3495,7 @@ define(['jquery',
                     }
                 }
             },
-            
+
             closePayment: function (e) {
                 if (layout.currentModule == 'Claims' || layout.currentScreen == 'Studies') {
                     $('#siteModalNested .close').trigger('click');
@@ -3589,7 +3572,7 @@ define(['jquery',
             },
 
             /**
-            * addCAS - Add addtional CAS 
+            * addCAS - Add addtional CAS
             *
             * @param  {Array} cas_group_codes CAS group codes
             * @param  {Array} cas_reason_codes CAS reason codes

@@ -8,7 +8,6 @@ const {
 } = require('lodash');
 
 const path = require('path');
-const ohipData = require('./../../server/data/ohip/index');;
 const logger = require('../../logger');
 const remittanceAdviceProcessor = path.join(__dirname, '/remittanceAdviceProcessor');
 const fork = require('child_process').fork;
@@ -73,10 +72,10 @@ global.nextResourceID = 60000;
 const getClaimSubmissionFilename = (args) => {
 
     const {
-        providerNumber,
+        groupNumber,
     } = args;
 
-    return `H${getMonthCode(new Date())}${providerNumber}`;
+    return `H${getMonthCode(new Date())}${groupNumber}`;
 };
 
 
@@ -187,8 +186,11 @@ const getNewResourceIDs = async (args, callback) => {
                 return currentPage.results.reduce((results, result) => {
 
                     return result.data.reduce((dataResults, currentData) => {
+                        let {
+                            resourceID
+                        } = currentData || {};
 
-                        if (!existingResourceIDs.includes(currentData.resourceID.toString())) {
+                        if (!existingResourceIDs.includes(resourceID)) {
                             dataResults.push(currentData.resourceID);
                         }
                         return dataResults;
@@ -203,8 +205,26 @@ const getNewResourceIDs = async (args, callback) => {
         }
     };
 
+    logger.info(`Fetching Files list for provider number: ${providerNumber}`);
     ebs[EDT_LIST](args, async (listErr, listResponse) => {
         // provides number of pages and first batch of downloadable resourceIDs
+        let {
+            providerNumber = '',
+            resourceType
+        } = args || {};
+
+        let {
+            faults = [],
+            auditInfo,
+            results = []
+        } = listResponse || {};
+
+        listErr = listErr || faults.length && faults[0] || null;
+
+        if (listErr) {
+            logger.error(`Error occured while fetching files list for provider number ${providerNumber}: ${listErr.code} - ${listErr.message}`);
+            return callback(listErr, []);
+        }
 
         numPages = listResponse.results[0] && listResponse.results[0].resultSize || 0;
 
@@ -247,11 +267,13 @@ const downloadNew = (args, callback) => {
             return callback(err, []);
         }
 
-        const ohipConfig = await billingApi.getOHIPConfiguration(args); 
+        const ohipConfig = await billingApi.getOHIPConfiguration(args);
         const ebs = new EBSConnector(ohipConfig.ebsConfig);
 
-        if (resourceIDs && resourceIDs.length) {
-            ebs[EDT_DOWNLOAD]({providerNumber, resourceIDs }, async (downloadErr, downloadResponse) => {
+        if (resourceIDs && resourceIDs.length && resourceIDs[0]) {
+
+            logger.info(`Downloading Ack Files for provider number ${providerNumber}...`);
+            ebs[EDT_DOWNLOAD]({ providerNumber, resourceIDs }, async (downloadErr, downloadResponse) => {
 
                 if (downloadErr) {
                     return callback(downloadErr, null);
@@ -261,7 +283,9 @@ const downloadNew = (args, callback) => {
 
                 const ediFiles = separatedDownloadResults[responseCodes.SUCCESS].map(async (result) => {
 
-                    const data = shared.base64Decode(result.content);
+                    let base64regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
+                    const data = base64regex.test(result.content) ? shared.base64Decode(result.content) : result.content;
+
                     // need to decode the content using base64 decoding before storing the file
                     const filename = result.description;
                     const resource_id = result.resourceID;
@@ -282,7 +306,10 @@ const downloadNew = (args, callback) => {
             });
         }
         else {
-            callback(null, []);
+            let errMsg = `No Resource Ids found to files download for provider number: ${providerNumber}`;
+
+            logger.error(errMsg);
+            callback({ error: errMsg }, null);
         }
     });
 };
@@ -298,6 +325,7 @@ const downloadAckFile = async (params, callback) => {
     downloadNew({ providerNumber, resourceType }, async (downloadErr, downloadResponse) => {
 
         if (downloadErr) {
+            logger.error(`Error occured while downloading resource ${resourceType} for provider number: ${providerNumber}`);
             return callback(downloadErr, []);
         }
 
@@ -346,7 +374,7 @@ const downloadRemittanceAdvice = async (args, callback) => {
     let {
          providerNumber = ''
     } = args || {};
-    downloadNew({ 
+    downloadNew({
             providerNumber,
             resourceType: REMITTANCE_ADVICE
         }, (downloadErr, ediFiles) => {
@@ -355,40 +383,47 @@ const downloadRemittanceAdvice = async (args, callback) => {
 };
 
 const downloadAndProcessResponseFiles = async (args, callback) => {
+    
+    let {
+        providerNumber = ''
+    } = args || {};
+
     const downloadResults = [];
     const downloadHandler = (err, results) => {
+
         if (err) {
-            logger.error('OHIP downloadAndProcessResponseFiles', err);
+            logger.error(`OHIP downloadAndProcessResponseFiles ${JSON.stringify(err)}`);
         }
 
         downloadResults.push({
             err,
             results,
         });
+
         if (downloadResults.length === 3) {
             callback(null, downloadResults);
         }
     }
 
-    logger.logInfo('Downloading claims file reject message....');
+    logger.logInfo(`Initializing claims file reject message download for provider Number ${providerNumber}....`);
     downloadAckFile({
         ...args,
         resourceType: CLAIMS_MAIL_FILE_REJECT_MESSAGE,
         applicator: billingApi.applyRejectMessage
     }, downloadHandler);
 
-    logger.logInfo('Downloading batch edit reports....');
-    downloadAckFile({
-        ...args,
-        resourceType: BATCH_EDIT,
-        applicator: billingApi.applyBatchEditReport
-    }, downloadHandler);
-
-    logger.logInfo('Downloading Error reports....');
+    logger.logInfo(`Initializing error reports download for provider Number ${providerNumber}`);
     downloadAckFile({
         ...args,
         resourceType: ERROR_REPORTS,
         applicator: billingApi.applyErrorReport
+    }, downloadHandler);
+
+    logger.logInfo(`Initializing batch edit reports download for provider Number ${providerNumber}`);
+    downloadAckFile({
+        ...args,
+        resourceType: BATCH_EDIT,
+        applicator: billingApi.applyBatchEditReport
     }, downloadHandler);
 };
 
@@ -400,6 +435,71 @@ module.exports = {
 
     sandbox: (args, callback) => {
         getNewResourceIDs(args, callback);
+    },
+    /**
+     * Change status of claims to claim submission queue after validation got success
+     * @param {object} req
+     * @param {function} callback
+     * @returns rows of claims which got updated
+     */
+    submitClaimsToQueue: async (req, callback) => {
+        let params = req.body;
+
+        if (params.isAllClaims) {
+            params.claimIds = await claimWorkBenchController.getClaimsForEDI(params);
+        }
+
+        let claimIds = params.claimIds.split(',');
+        let validationData = await validateClaimsData.validateEDIClaimCreation(claimIds);
+        validationData = _.get(validationData, 'rows[0]', {});
+
+        let excludeClaimStatus = ['PS', 'SUBF'];
+        let claimStatus = _.difference(_.uniq(validationData.claim_status), excludeClaimStatus); // (Pending Submission - PS) removed to check for other claim status availability
+        // Claim validation
+        if (validationData) {
+
+            const validationResponse = {
+                validationMessages: [],
+            };
+            if (claimStatus.length) {
+                validationResponse.validationMessages.push('All claims must be validated before submission');
+            }
+            if (validationData.unique_billing_method_count > 1) {
+                validationResponse.validationMessages.push('Please select claims with same type of billing method');
+            }
+            if (validationData.invalid_claim_count > 0) {
+                validationResponse.validationMessages.push('Claim date should not be greater than the current date');
+            }
+
+            if (validationResponse.validationMessages.length) {
+                return callback(null, validationResponse);
+            }
+        }
+
+        // 1 - convert args.claimIds to claim data (getClaimsData)
+        const claimData = await billingApi.getClaimsData({ claimIds });
+        const validationMessages = claimData.reduce((validations, claim) => {
+            if (!claim.claim_totalCharge) {
+                validations.push(`Claim ${claim.claim_id} has no billable charges`);
+            }
+
+            return validations;
+        }, []);
+
+        if (validationMessages.length) {
+            return callback(null, { validationMessages });
+        }
+
+        // updating the claims status to submission queue
+        let {rows = []} = await billingApi.updateClaimStatus({
+            claimIds: claimIds,
+            claimStatusCode: 'CQ',
+            claimNote: 'Electronically submitted through MCEDT-EBS',
+            userId: params.userId,
+        });
+
+        return callback(null, {results: rows});
+
     },
 
     // takes an array of Claim IDs
@@ -476,14 +576,14 @@ module.exports = {
         //
         // in: {'AZ12':[submission...], 'BY23':[submission...], ...}
         // out: [{data:String, filename:String,batches:[batchSequenceNumber,claimIds:[Number]]}]
-        const allFiles = reduce(submissionsByGroup, (result, groupSubmissions, providerNumber) => {
+        const allFiles = reduce(submissionsByGroup, (result, groupSubmissions, groupNumber) => {
 
             // in: [{batches:[], data:String}]
             // out: [{batches:[], data:String, filename:String}]
             const groupFiles = groupSubmissions.map((file, fileSequenceOffset) => {
                 return {
-                    filename: getClaimSubmissionFilename({ providerNumber }),
-                    providerNumber: providerNumber,
+                    filename: getClaimSubmissionFilename({ groupNumber }),
+                    providerNumber: file.batches[0].providerNumber,
                     fileSequenceOffset,
                     ...file,
                 };
@@ -556,7 +656,7 @@ module.exports = {
             billingApi.auditTransaction(auditInfo);
 
             if (uploadErr || !uploadFiles.length) {
-                // when OHIP file upload failure updating edi file status also failure 
+                // when OHIP file upload failure updating edi file status also failure
                 await billingApi.updateFileStatus({
                     files: uploadFiles,
                     status: 'failure'
@@ -567,14 +667,14 @@ module.exports = {
                 return callback(uploadErr, null);
             }
 
-            //OHIP data error getting in response , so finding that using Eror codes 
+            //OHIP data error getting in response , so finding that using Eror codes
             let err_matches = _.filter(
                 ['ECLAM0003'],
                 ( s ) => { return JSON.stringify(uploadResponse).indexOf( s ) > -1; }
             );
 
             if (faults.length || err_matches.length ) {
-                // when OHIP file upload failure updating edi file status also failure 
+                // when OHIP file upload failure updating edi file status also failure
                 await billingApi.updateFileStatus({
                     files: uploadFiles,
                     status: 'failure'
@@ -739,7 +839,7 @@ module.exports = {
                     faults = []
                 } = hcvResponse || {};
                 billingApi.saveEligibilityLog(args);
-                
+
                 if (!err && results.length) {
                     let {
                         responseID = null
