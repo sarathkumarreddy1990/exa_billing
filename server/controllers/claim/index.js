@@ -48,7 +48,8 @@ const api= {
 
             newClaim.push({
                 ...claims, 
-                claim_charges: charges
+                claim_charges: charges,
+                billing_type: 'split_p'
             });
 
             // creating a technical claim since it is split claim 
@@ -89,7 +90,8 @@ const api= {
                 ...claims,
                 billing_method: 'direct_billing',
                 payer_type: 'ordering_facility',
-                claim_charges: newCharges
+                claim_charges: newCharges,
+                billing_type: 'split_t'
             });
 
             return await data.save({
