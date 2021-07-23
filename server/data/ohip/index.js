@@ -1237,7 +1237,7 @@ const OHIPDataAPI = {
                                             bc.id,
                                             bc.invoice_no
                                         FROM billing.claims bc
-                                        WHERE (bc.id::TEXT = application_details.claim_number OR bc.invoice_no = 		application_details.claim_number)
+                                        WHERE (bc.id::TEXT = application_details.claim_number OR bc.invoice_no = application_details.claim_number)
                                         ORDER BY bc.id DESC LIMIT 1
                                     ) claims ON claims.id = bc.claim_id
                                     INNER JOIN public.cpt_codes cc ON cc.id = bc.cpt_id
