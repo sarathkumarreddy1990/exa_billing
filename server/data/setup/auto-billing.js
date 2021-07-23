@@ -577,7 +577,7 @@ module.exports = {
                 , inactivated_dt = ${inactive ? "now()": null}
             WHERE
                 id = ${id}
-            RETURNING ${id}
+            RETURNING id
         `;
 
         return await query(sql);
