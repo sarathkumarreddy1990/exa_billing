@@ -1373,7 +1373,7 @@ const OHIPDataAPI = {
                                 (
                                     CASE
                                         WHEN claim_details.claim_balance_total = 0::money
-					                        THEN ( SELECT COALESCE(id, mc.claim_status_id ) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'PIF' AND inactivated_dt IS NULL )
+                                            THEN ( SELECT COALESCE(id, mc.claim_status_id ) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'PIF' AND inactivated_dt IS NULL )
                                         WHEN claim_details.claim_balance_total < 0::money
                                             THEN ( SELECT COALESCE(id, mc.claim_status_id ) FROM billing.claim_status WHERE company_id = ${paymentDetails.company_id} AND code = 'OP' AND inactivated_dt IS NULL )
                                         WHEN '0'::MONEY IN (SELECT payment FROM matched_claims mc WHERE mc.claim_id = billing.claims.id)
@@ -1417,7 +1417,6 @@ const OHIPDataAPI = {
             created_by,
             code
         } = params;
-
 
         const sql = SQL`
                     WITH claim_payment AS (
