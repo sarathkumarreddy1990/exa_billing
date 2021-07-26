@@ -1904,7 +1904,9 @@ define('grid', [
                         return isClaimGrid && e.claim_resubmission_flag;
                     }).length;
 
-                    if (['APP', 'AOP', 'PIF'].indexOf(gridData.hidden_claim_status_code) !== -1 || resubmissionFlag) {
+                    var validClaimStatusArray = ['APP', 'AOP', 'PIF', 'R', 'D', 'BR', 'AD', 'ADP', 'ARP', 'OH', 'PA', 'PS', 'PP'];
+
+                    if (validClaimStatusArray.indexOf(gridData.hidden_claim_status_code) !== -1 || resubmissionFlag) {
                         $('#li_ul_change_claim_status').show();
                     }
                 }
