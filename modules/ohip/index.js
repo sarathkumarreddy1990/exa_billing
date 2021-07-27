@@ -283,7 +283,7 @@ const downloadNew = (args, callback) => {
 
                 const ediFiles = separatedDownloadResults[responseCodes.SUCCESS] || [];
                 let edifileList = [];
-                
+
                 for (const result of ediFiles) {
 
                     let base64regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
@@ -309,7 +309,7 @@ const downloadNew = (args, callback) => {
                     callback(null, (await Promise.all(edifileList)));
                 } else {
                     callback(null, []);
-                }                
+                }
             });
         }
         else {
@@ -366,14 +366,14 @@ const downloadResponseForProvider = (providerNumber, applicator, resourceType) =
         }, (err, res) => {
             logger.logInfo(err || res);
             logger.logInfo(`Completed downloading ${resourceType} files for MOH ID: ${providerNumber}...`);
-       
+
             return resolve({
                 err,
                 res
             })
         });
     });
-   
+
 }
 
 const downloadSubmittedFiles = async (providerNumbersList, callback) => {
@@ -388,7 +388,7 @@ const downloadSubmittedFiles = async (providerNumbersList, callback) => {
         resourceType: BATCH_EDIT,
         applicator: billingApi.applyBatchEditReport
     }];
-    
+
     for (let j = 0; j < downloadResourceTypes.length; j++) {
 
         let downloadFileResults = [];
@@ -444,7 +444,7 @@ const downloadRemittanceAdvice = async (args, callback) => {
 };
 
 const downloadAndProcessResponseFiles = async (args, callback) => {
-    
+
     let {
         providerNumber = '',
         applicator,

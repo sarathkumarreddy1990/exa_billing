@@ -268,7 +268,7 @@ const storeFile = async (args) => {
                             ON CONFLICT (resource_no) WHERE resource_no IS NOT NULL
                             DO NOTHING
                             RETURNING id
-                        ), insert_batch_files_cte AS (                            
+                        ), insert_batch_files_cte AS (
                             INSERT INTO billing.edi_file_batches  (
                                 edi_file_id,
                                 provider_number,
@@ -303,7 +303,7 @@ const storeFile = async (args) => {
     }
     catch (e) {
         logger.error(`Error storing file ${filename} into database.. ${e}`);
-    }  
+    }
 };
 
 const getResourceIDs = async (args) => {
@@ -677,8 +677,8 @@ const applyBatchEditReport = async (args) => {
             WHERE
                 id = ${responseFileId}
                 AND EXISTS (
-                        SELECT 
-                            1 
+                        SELECT
+                            1
                         FROM related_submission_files
                     )
             RETURNING
@@ -857,7 +857,7 @@ const applyErrorReport = async (args) => {
 
     if (dbResults.rows && dbResults.rows.length) {
         logger.info('updating claim status for IDs: ', claimIds);
-        
+
         await updateClaimStatus({
             claimStatusCode: deniedStatus,  // Pending Payment
             claimIds,

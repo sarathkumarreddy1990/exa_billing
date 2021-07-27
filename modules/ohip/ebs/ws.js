@@ -186,7 +186,7 @@ ws.Xenc.prototype.send = function(ctx, callback) {
         const responseString = typeof ctx.response === `string`
             ? ctx.response
             : ctx.response && ctx.response.toString() || '';
-            
+
         const doc = responseString ? new dom().parseFromString(responseString) : null;
 
         if(!doc) {
@@ -315,7 +315,6 @@ ws.Audit.prototype.send = function(ctx, callback) {
             logger.warn(`Audit Warning${e}`)
         }
     });
-
 };
 
 
