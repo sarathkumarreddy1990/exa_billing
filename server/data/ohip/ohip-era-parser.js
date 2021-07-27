@@ -1,4 +1,5 @@
 const data = require('../../data/era/index');
+const ohipData = require('../ohip');
 const paymentController = require('../payments/payments');
 const logger = require('../../../logger');
 const _ = require('lodash');
@@ -9,12 +10,9 @@ module.exports = {
     processOHIPEraFile: async function (payment_data, params) {
         const self = this;
 
-        //ToDo:: Get parsed era file info
-        // const era_json = {};
-
         try {
 
-            logger.info('Initializing payment creation with OHIP file');
+            logger.info('Initializing payment apply process with OHIP file');
             let default_payer = await data.getDefaultPayer();
             const startTime = new Date().getTime();
 
@@ -25,20 +23,37 @@ module.exports = {
 
             params.insurance_provider_id = default_payer.rows[0].insurance_provider_id;
 
+            logger.info('Payment creation process started - OHIP');
+
             let paymentDetails = await self.createPayment(payment_data, params);
+
+            logger.info('Payment creation process ended - OHIP');
 
             params.created_by = params.userId || 0;
             params.company_id = params.companyId || 0;
+
+            logger.info('Grouping claim process started - OHIP');
             let lineItemsAndClaimLists = await self.getOHIPLineItemsAndClaims(payment_data.ra_json, params);
-            let processedClaims = await data.createPaymentApplication(lineItemsAndClaimLists, paymentDetails);
+            logger.info('Grouping claim process ended - OHIP');
+
+            logger.info('Applying claim process started - OHIP');
+            let processedClaims = await ohipData.createPaymentApplication(lineItemsAndClaimLists, paymentDetails);
+            logger.info('Applying claim process ended - OHIP');
+
+            logger.info('again we call to create payment application for unapplied charges form ERA claims - started');
 
             // again we call to create payment application for unapplied charges form ERA claims
-            await data.applyPaymentApplication(lineItemsAndClaimLists.audit_details, paymentDetails);
+            await ohipData.applyPaymentApplication(lineItemsAndClaimLists.audit_details, paymentDetails);
+            logger.info('again we call to create payment application for unapplied charges form ERA claims - ended');
 
-            await data.updateERAFileStatus(paymentDetails);
+
+            logger.info('updating era file status started - OHIP');
+            await ohipData.updateERAFileStatus(paymentDetails);
+            logger.info('updating era file status ended - OHIP');
+
             const endTime = new Date().getTime();
 
-            logger.info('Payment creation process done - OHIP');
+            logger.info('Payment apply process done - OHIP');
             logger.info(`Time taken for OHIP Payment creation: ${endTime - startTime}ms`);
 
             return processedClaims;
@@ -58,7 +73,7 @@ module.exports = {
         cas_reason_group_details = cas_reason_group_details.rows && cas_reason_group_details.rows.length ? cas_reason_group_details.rows[0] : {};
 
         ohipJson.claims.forEach((claim, claim_index) => {
-            if (claim.accountingNumber && !isNaN(claim.accountingNumber)) {
+            if (claim.accountingNumber) {
                 claim.items.forEach((serviceLine) => {
 
                     let index = 1;
@@ -102,8 +117,10 @@ module.exports = {
                         });
                     }
 
+                    amountPaid = isDebit && (amountPaid * -1) || amountPaid;
+
                     let item = {
-                        claim_number: parseInt(claim.accountingNumber),
+                        claim_number: claim.accountingNumber.replace(/^0+|0+$/g, ""),
                         cpt_code: serviceLine.serviceCode,
                         denied_value: serviceLine.explanatoryCode !== '' && amountPaid === 0 ? 1 : 0, // Set 1 when cpts payment = zero and the explanatoryCode should not be empty
                         payment: amountPaid || 0.00,
@@ -222,6 +239,9 @@ module.exports = {
                 };
 
                 await data.createEdiPayment(ohipPaymentResults);
+            }
+            else {
+                ohipPaymentResults = { ...paymentResult, ...params };
             }
 
             return ohipPaymentResults;
