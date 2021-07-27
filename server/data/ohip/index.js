@@ -121,9 +121,9 @@ const getFileStore = async (args) => {
     `;
 
     if (description) {
-        sql = sql.append(SQL`
-            OR (file_store_name = ${description} AND NOT has_deleted)
-        `); //file_stores.has_deleted
+        sql = sql.append(`
+            OR (file_store_name = '${description}' AND NOT has_deleted)
+        `);
     }
 
     const dbResults = (await query(sql.text, sql.values)).rows;
@@ -184,7 +184,7 @@ const storeFile = async (args) => {
     // accounting number: "CST-PRIM" from Conformance Testing Error Report sample
 
     const filestore = await getFileStore(args) || {};
-    const filePath = path.join((filestore.is_default ? 'OHIP' : ''), moment().format('YYYY/MM/DD'));
+    const filePath = path.join((filestore.is_default ? 'OHIP' : ''), getDatePath());
     const dirPath = path.join(filestore.root_directory || '', filePath);
 
     // Create dir if missing
@@ -209,7 +209,7 @@ const storeFile = async (args) => {
 
     const fileInfo = {
         file_store_id: filestore.id,
-        absolutePath: path.join(dirPath, filename),
+        absolutePath: path.join(dirPath || '', filename || ''),
     };
 
     if (isTransient || !exaFileType) {
@@ -551,7 +551,7 @@ const applyRejectMessage = async (args) => {
             WHERE
                 file_type = 'can_ohip_h'
                 AND status = 'success'
-                AND created_dt::date = ${moment(mailFileDate, 'YYYYMMDD').format('YYYY-MM-DD')}::date
+                AND created_dt::date = NULLIF(${mailFileDate}, 'Invalid date')::DATE
                 AND uploaded_file_name = ${providerFileName}
         ), reject_file AS (
 
@@ -561,7 +561,7 @@ const applyRejectMessage = async (args) => {
                 billing.edi_files
             SET
                 status = 'success',
-                processed_dt = ${moment(processDate, 'YYYYMMDD').format('YYYY-MM-DD')}
+                processed_dt = NULLIF(${processDate}, 'Invalid date')::DATE
             WHERE
                 id = ${responseFileId}
             RETURNING
@@ -647,7 +647,7 @@ const applyBatchEditReport = async (args) => {
             WHERE
                 ef.file_type = 'can_ohip_h'
                 AND ef.status = 'success'
-                AND ef.created_dt::date = ${createdDate}
+                AND ef.created_dt::date = NULLIF(${createdDate}, 'Invalid date')::DATE
                 AND efb.sequence_number = ${batchSequenceNumber}
                 AND efb.provider_number = ${providerNumber}
                 AND efb.group_number = ${groupNumber}

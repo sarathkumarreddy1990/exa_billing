@@ -312,7 +312,7 @@ ws.Audit.prototype.send = function(ctx, callback) {
 
             callback(ctx);
         } catch (e) {
-            logger.warn(`Audit Warning${e}`)
+            logger.warn(`Audit Warning ${e}`)
         }
     });
 };
