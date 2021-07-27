@@ -18,6 +18,7 @@ const logger = require('../../../logger');
 const config = require('../../config');
 const errorDescriptionsByCode = require('../../resx/ohip/errorReport/error');
 const explanatoryDescriptionsByCode = require('../../resx/ohip/errorReport/explanatory');
+const eraData = require('../../data/era');
 
 const {
     encoding,
@@ -162,7 +163,8 @@ const storeFile = async (args) => {
 
     let {
         filename: originalFilename,
-        file_data,
+        file_data = [],
+        data,
         isTransient,
         appendFileSequence,
         fileSequenceOffset,
@@ -174,21 +176,22 @@ const storeFile = async (args) => {
         derivedGroupNumber
     } = args;
 
-    let data = file_data.length && file_data[0].data || '';
+    data = data || (file_data.length && file_data[0].data) || '';
     const exaFileType = getFileType(args);
 
 
     // 20120331 - OHIP Conformance Testing Batch Edit sample batch date, seq: 0005
     // accounting number: "CST-PRIM" from Conformance Testing Error Report sample
 
-    const filestore = await getFileStore(args);
-    const filePath = path.join((filestore.is_default ? 'OHIP' : ''), getDatePath());
-    const dirPath = path.join(filestore.root_directory, filePath);
+    const filestore = await getFileStore(args) || {};
+    const filePath = path.join((filestore.is_default ? 'OHIP' : ''), moment().format('YYYY/MM/DD'));
+    const dirPath = path.join(filestore.root_directory || '', filePath);
 
     // Create dir if missing
     mkdirp.sync(dirPath);
 
     let filename = originalFilename;
+
     if (appendFileSequence) {
         try {
             const filenames = await readDirAsync(dirPath);
@@ -209,21 +212,34 @@ const storeFile = async (args) => {
         absolutePath: path.join(dirPath, filename),
     };
 
-    await writeFileAsync(fileInfo.absolutePath, data, { encoding });
-
     if (isTransient || !exaFileType) {
         // if we don't care about storing the file or the database
         // will freak out if we try, then our work is done, here
-
+        fileInfo.edi_file_id = 0;
         return fileInfo;
     }
 
-    const stats = fs.statSync(fileInfo.absolutePath);
+    try {
 
-    const md5Hash = crypto.createHash('MD5').update(data, 'utf8').digest('hex');
+        const md5Hash = crypto.createHash('MD5').update(data, 'utf8').digest('hex');
 
-    // inserting the data into edi files table
-    const sql = SQL`
+        const { rows = [] } = await eraData.isProcessed(md5Hash, 1);
+
+        if (rows.length && rows[0] && rows[0].file_exists && rows[0].file_exists[0]) {
+            logger.debug(`File name ${filename} already downloaded into EXA`);
+            fileInfo.edi_file_id = 0;
+            return fileInfo;
+        }
+
+        logger.debug(`Writing file ${filename} into filestore...`);
+        await writeFileAsync(fileInfo.absolutePath, data, { encoding });
+
+        const stats = fs.statSync(fileInfo.absolutePath);
+
+        logger.debug(`Storing file ${filename} into database...`);
+
+        // inserting the data into edi files table
+        const sql = SQL`
                         WITH files AS (
                             INSERT INTO billing.edi_files (
                                 company_id,
@@ -249,9 +265,10 @@ const storeFile = async (args) => {
                                 ,${filename}::TEXT
                                 ,nullif(${resource_id}, 'undefined')
                             )
+                            ON CONFLICT (resource_no) WHERE resource_no IS NOT NULL
+                            DO NOTHING
                             RETURNING id
-                            )
-                            
+                        ), insert_batch_files_cte AS (                            
                             INSERT INTO billing.edi_file_batches  (
                                 edi_file_id,
                                 provider_number,
@@ -267,15 +284,26 @@ const storeFile = async (args) => {
                                 , ${providerSpeciality}
                                 , '{}'::JSONB
                             FROM files
-                            RETURNING id, edi_file_id
-                        `;
+                            WHERE ${exaFileType}::TEXT = 'can_ohip_h'
+                            RETURNING id
+                        )
+                        SELECT
+                            files.id AS edi_file_id
+                            , insert_batch_files_cte.id
+                        FROM files
+                        LEFT JOIN insert_batch_files_cte ON TRUE
+                    `;
 
-    const dbResults = (await query(sql.text, sql.values)).rows;
+        const dbResults = (await query(sql.text, sql.values)).rows || [];
 
-    fileInfo.edi_file_id = dbResults[0].edi_file_id;
-    fileInfo.edi_file_batch_id = dbResults[0].id;
-    return fileInfo;
-  
+        fileInfo.edi_file_id = dbResults.length && dbResults[0].edi_file_id || null;
+        fileInfo.edi_file_batch_id = dbResults.length && dbResults[0].id || null;
+
+        return fileInfo;
+    }
+    catch (e) {
+        logger.error(`Error storing file ${filename} into database.. ${e}`);
+    }  
 };
 
 const getResourceIDs = async (args) => {
@@ -289,9 +317,10 @@ const getResourceIDs = async (args) => {
         WHERE file_type=${getFileType(args)}
     `;
 
-    return (await query(sql.text, sql.values)).rows.map((edi_file) => {
+    let resourceIDs = (await query(sql.text, sql.values)).rows || [];
+    return resourceIDs.map((edi_file) => {
         return edi_file.resource_no;
-    });
+    }) || [];
 };
 
 
@@ -410,13 +439,15 @@ const updateClaimStatus = async (args) => {
                 , created_by
                 , created_dt
             )
-            VALUES (
+            SELECT
                   ${claimNote}
                 , 'auto'
-                , UNNEST(${claimIds}::int[])
+                , claims.id
                 , ${userId}
                 , now()
-            ) RETURNING *
+            FROM billing.claims
+            WHERE claims.id = ANY(${claimIds}::int[])
+            RETURNING *
         )
 
         UPDATE billing.claims claims
@@ -484,7 +515,7 @@ const applyRejectMessage = async (args) => {
         parsedResponseFile,
     } = args;
 
-    const {
+    let {
         rejectMessageRecord1: {
             messageType,
             messageReason,
@@ -504,6 +535,9 @@ const applyRejectMessage = async (args) => {
     ].join(`;`);
 
     const rejectStatus = CLAIM_STATUS_REJECTED_DEFAULT;
+
+    mailFileDate = moment(mailFileDate, 'YYYYMMDD').format('YYYY-MM-DD');
+    processDate = moment(processDate, 'YYYYMMDD').format('YYYY-MM-DD');
 
     const sql = SQL`
         WITH original_file AS (
@@ -573,7 +607,7 @@ const applyRejectMessage = async (args) => {
             id;
     `;
 
-    await query(sql.text, sql.values);
+    return responseFileId && await query(sql.text, sql.values) || { rows: [] };
 };
 
 
@@ -632,13 +666,30 @@ const applyBatchEditReport = async (args) => {
             LIMIT 1
             RETURNING
                 submission_file_id
+        ),
+        update_status AS (
+            -- status of 'success' just means file was obtained
+            UPDATE
+                billing.edi_files
+            SET
+                status = 'success',
+                processed_dt = now()
+            WHERE
+                id = ${responseFileId}
+                AND EXISTS (
+                        SELECT 
+                            1 
+                        FROM related_submission_files
+                    )
+            RETURNING
+                *
         )
         SELECT *
         FROM insert_related_file_cte
         INNER JOIN billing.edi_file_claims efc ON efc.edi_file_id = insert_related_file_cte.submission_file_id
     `;
 
-    const dbResults = (await query(sql.text, sql.values)).rows;
+    const dbResults = responseFileId && (await query(sql.text, sql.values)).rows || { rows: [] };
 
     if (dbResults && dbResults.length) {
         await updateClaimStatus({
@@ -675,22 +726,32 @@ const applyErrorReport = async (args) => {
 
     const claimIds = parsedResponseFile.reduce((prfResults, prf) => {
         return prf.claims.reduce((claimResults, claim) => {
-            claimResults.push(claim.accountingNumber);
+            if (!isNaN(claim.accountingNumber)) {
+                claimResults.push(claim.accountingNumber);
+            }
+
             return claimResults;
         }, prfResults);
     }, []);
 
     const billingNotesByClaimId = parsedResponseFile.reduce((prfResults, prf) => {
         return prf.claims.reduce((claimResults, claim) => {
-            claimResults[claim.accountingNumber] = claim.items.reduce((billingNotes, item) => {
-                if (item.explanatoryCode) {
-                    billingNotes.push(`${item.explanatoryCode} - ${explanatoryDescriptionsByCode[item.explanatoryCode]}`);
-                }
-                return billingNotes.concat(toBillingNotes(item));
-            }, toBillingNotes(claim)).join('\n');
+            if (!isNaN(claim.accountingNumber)) {
+                claimResults[claim.accountingNumber] = claim.items.reduce((billingNotes, item) => {
+                    if (item.explanatoryCode) {
+                        billingNotes.push(`${item.explanatoryCode} - ${explanatoryDescriptionsByCode[item.explanatoryCode]}`);
+                    }
+
+                    return billingNotes.concat(toBillingNotes(item));
+                }, toBillingNotes(claim)).join('\n');
+            }
+
             return claimResults;
         }, prfResults);
     }, {});
+
+    const fileStatus = (parsedResponseFile[0].claims.length === claimIds.length) ? 'success' : 'partial';
+    const processedDate = moment(processDate, 'YYYYMMDD').format('YYYY-MM-DD');
 
     const sql = SQL`
         WITH claim AS (
@@ -743,8 +804,8 @@ const applyErrorReport = async (args) => {
             UPDATE
                 billing.edi_files
             SET
-                status = 'success',
-                processed_dt = ${moment(processDate, 'YYYYMMDD').format('YYYY-MM-DD')}
+                status = ${fileStatus},
+                processed_dt = NULLIF(${processedDate}, 'Invalid date')::DATE
             WHERE
                 id = ${responseFileId}
             RETURNING
@@ -758,9 +819,15 @@ const applyErrorReport = async (args) => {
             )
             SELECT
                 ( SELECT original_file.id FROM original_file ),
-                ( SELECT id FROM error_file ),
+                id,
                 null
-            RETURNING
+            FROM
+                error_file
+            WHERE
+                error_file.status = 'success'
+            ON CONFLICT ON CONSTRAINT edi_related_files_submission_file_id_response_file_id_uc
+            DO NOTHING
+			RETURNING
                 *
         ), update_process AS (
             -- update process status to check whether the claim processed or not
@@ -786,10 +853,11 @@ const applyErrorReport = async (args) => {
     `;
 
 
-    const dbResults = (await query(sql.text, sql.values));
+    const dbResults = responseFileId && (await query(sql.text, sql.values)) || { rows: [] };
 
     if (dbResults.rows && dbResults.rows.length) {
-        console.log('updating claim status for IDs: ', claimIds);
+        logger.info('updating claim status for IDs: ', claimIds);
+        
         await updateClaimStatus({
             claimStatusCode: deniedStatus,  // Pending Payment
             claimIds,

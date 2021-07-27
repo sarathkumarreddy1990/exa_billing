@@ -9,24 +9,10 @@ class AckDownloads {
 
     constructor(config) {
         config = config || {};
-        this.cronExpression = config.cron || '*/1 * * * * *';
+        this.cronExpression = config.cron || '*/2 * * * *';
         this.inProgress = false;
         this.restartInterval = config.interval || 60000; /// in milliseconds
     }
-
-    async startProcess(providerNumber) {
-
-        try {
-            await ohip.downloadAndProcessResponseFiles({ 
-                providerNumber: providerNumber
-            }, function (err, res) {
-                logger.logInfo(err || res);                
-            });
-        } catch (error) {
-            logger.logError(`Error connecting OHIP Endpoint for provider ${providerNumber} - ${JSON.stringify(error)}`);
-            return false;
-        }
-    };
 
     async start() {
         logger.info(`Initialized ${SERVICE_NAME} service`);
@@ -36,12 +22,12 @@ class AckDownloads {
         if (!company_id) {
             logger.logError(`[${SERVICE_NAME}] - No company_id to use for connection to billing - `, e);
             return false;
-        }        
+        }
 
         new cronJob(this.cronExpression, async () => {
             if (this.inProgress) {
 
-                logger.logInfo(`${SERVICE_NAME} Initiated download process...`);
+                logger.logInfo(`${SERVICE_NAME} still running for downloading response files of old batch of providers!`);
                 return;
             }
 
@@ -56,12 +42,20 @@ class AckDownloads {
                 this.inProgress = false;
                 return false;
             }
-  
-            for (const details of providerNumbersList) {
-                await this.startProcess(details.providerNumber);
-            }
 
-            this.inProgress = false;
+            try {
+                await ohip.downloadSubmittedFiles(providerNumbersList, (err, res) => {
+                    if (err) {
+                        logger.error(`Error in downloading ack files ${err}`);
+                    }
+
+                    logger.logInfo(`${process.env.SERVICE_NAME} service completed downloading response files`);
+                    this.inProgress = false;
+                });
+            } catch (e) {
+                logger.error(`Error occured in downloading ack files ${e}`);
+                this.inProgress = false;
+            }
 
         }, null, true);
     }

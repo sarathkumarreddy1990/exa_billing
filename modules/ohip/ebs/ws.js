@@ -106,7 +106,12 @@ ws.Mtom.prototype.receive = (ctx, callback) => {
         return;
     }
 
-    const doc = new dom().parseFromString(parts[0].data.toString());
+    let dataPart = parts[0].data;
+    const doc = dataPart ? new dom().parseFromString(dataPart.toString()) : null;
+
+    if(!doc) {
+        return callback(ctx);
+    }
 
     ctx.data = {};  // NOTE
 
@@ -116,7 +121,7 @@ ws.Mtom.prototype.receive = (ctx, callback) => {
         ctx.data[id] = part.data.toString("base64"); // NOTE
     }
 
-    ctx.response = doc.toString();
+    ctx.response = doc && doc.toString() || '';
     callback(ctx);
 };
 
@@ -181,10 +186,15 @@ ws.Xenc.prototype.send = function(ctx, callback) {
         const responseString = typeof ctx.response === `string`
             ? ctx.response
             : ctx.response && ctx.response.toString() || '';
-        const doc = new dom().parseFromString(responseString);
-        const bodyNode = select("//*[local-name(.)='Body']", doc)[0];
+            
+        const doc = responseString ? new dom().parseFromString(responseString) : null;
+
+        if(!doc) {
+            return callback(ctx);
+        }
 
         try {
+            const bodyNode = select("//*[local-name(.)='Body']", doc)[0];
             const encryptedKeyNodes = select("//*[local-name(.)='EncryptedKey']", doc);
             const encryptedKeyValueNodes = select("//*[local-name(.)='CipherData']/*[local-name(.)='CipherValue']/text()", encryptedKeyNodes[0]);
             const encryptedBodyDataNode = select("//*[local-name(.)='EncryptedData']/*[local-name(.)='CipherData']/*[local-name(.)='CipherValue']/text()", bodyNode)[0];
@@ -260,43 +270,52 @@ ws.Audit.prototype.send = function(ctx, callback) {
         // duration
         auditInfo.duration = (new Date()).getTime() - auditInfo.dateTime.getTime();
 
+        if (!ctx.response) {
+            return callback(ctx);
+        }
+
         const doc = new dom().parseFromString(ctx.response);
-        const auditIDNode = select("//*[local-name(.)='auditID']/text()", doc)[0];
-        const auditUIDNode = select("//*[local-name(.)='auditUID']/text()", doc)[0];
-        const parseObj = auditIDNode || auditUIDNode;
+        try {
+            const auditIDNode = select("//*[local-name(.)='auditID']/text()", doc)[0];
+            const auditUIDNode = select("//*[local-name(.)='auditUID']/text()", doc)[0];
+            const parseObj = auditIDNode || auditUIDNode;
 
-        auditInfo.responseAuditID = parseObj ? parseObj.nodeValue : '';
+            auditInfo.responseAuditID = parseObj ? parseObj.nodeValue : '';
 
-        auditInfo.successful = true;   // assume true ...
-        auditInfo.exitInfo = [];
-        auditInfo.errorMessages = [];
+            auditInfo.successful = true;   // assume true ...
+            auditInfo.exitInfo = [];
+            auditInfo.errorMessages = [];
 
-        const faultNode = select("//*[local-name(.)='Fault']", doc)[0];
-        if (faultNode) {
-            auditInfo.successful = false;   // ... until proven otherwise
-            const fault = xml.parseEBSFault(ctx.response);
+            const faultNode = select("//*[local-name(.)='Fault']", doc)[0];
+            if (faultNode) {
+                auditInfo.successful = false;   // ... until proven otherwise
+                const fault = xml.parseEBSFault(ctx.response);
 
-            auditInfo.exitInfo.push(`${fault.faultcode}/${fault.code}`);
-            auditInfo.errorMessages.push(`${fault.faultstring}/${fault.message}`);
+                auditInfo.exitInfo.push(`${fault.faultcode}/${fault.code}`);
+                auditInfo.errorMessages.push(`${fault.faultstring}/${fault.message}`);
+            }
+            else {
+                const commonResultNode = select("//*[local-name(.)='result']", doc);
+                auditInfo.exitInfo = _.uniqBy(commonResultNode.map((resultNode) => {
+                    return {
+                        code: select("*[local-name(.)='code']/text()", resultNode)[0].nodeValue,
+                        message: select("*[local-name(.)='msg']/text()", resultNode)[0].nodeValue,
+                    };
+                }), 'code').reduce((exitInfo, info) => {
+                    exitInfo.push(`${info.code}/${info.message}`);
+                    return exitInfo;
+                }, []);
+            }
+
+            ctx.auditInfo = auditInfo;
+            logger.info(`EBS audit info`, auditInfo);
+
+            callback(ctx);
+        } catch (e) {
+            logger.warn(`Audit Warning${e}`)
         }
-        else {
-            const commonResultNode = select("//*[local-name(.)='result']", doc);
-            auditInfo.exitInfo = _.uniqBy(commonResultNode.map((resultNode) => {
-                return {
-                    code: select("*[local-name(.)='code']/text()", resultNode)[0].nodeValue,
-                    message: select("*[local-name(.)='msg']/text()", resultNode)[0].nodeValue,
-                };
-            }), 'code').reduce((exitInfo, info) => {
-                exitInfo.push(`${info.code}/${info.message}`);
-                return exitInfo;
-            }, []);
-        }
-
-        ctx.auditInfo = auditInfo;
-        logger.info(`EBS audit info`, auditInfo);
-
-        callback(ctx);
     });
+
 };
 
 
