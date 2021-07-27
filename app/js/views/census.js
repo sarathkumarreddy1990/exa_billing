@@ -137,7 +137,14 @@ define(['jquery',
                 $('#chkAllCensus').prop('checked', false);
             },
 
-            showCensusGrid: function (orderingFacilityId) {
+            setCustomArgs: function () {
+                var self = this;
+                $('#tblGridCensus').jqGrid("setGridParam", {customargs: {
+                    orderingFacilityId: $('#ddlOrdFacility').val()
+                }});
+            },
+
+            showCensusGrid: function () {
                 var self = this;
                 var censusTypeSelect = "";
 
@@ -223,7 +230,10 @@ define(['jquery',
                     pagerApiUrl: '/exa_modules/billing/census/count',
                     pager: '#gridPager_census',
                     customargs: {
-                        orderingFacilityId: orderingFacilityId
+                        orderingFacilityId: $('#ddlOrdFacility').val(),
+                    },
+                    beforeSearch: function () {
+                        self.setCustomArgs();
                     },
                     beforeSelectRow: function (id, e) {
                         var targetElement = $(e.target || e.srcElement);
@@ -302,7 +312,7 @@ define(['jquery',
                                 var editor = tinymce.get('txtNotesEditor');
                                 editor.setContent((response.result[0] && response.result[0].note) || '');
                                 editor.setDirty(false);
-                                self.showCensusGrid(orderingFacilityId);
+                                self.showCensusGrid();
                             } else {
                                 editor.setContent('');
                             }
@@ -384,7 +394,7 @@ define(['jquery',
                         commonjs.hideLoading();
                         if (data && data.length && (data[0].create_claim_charge)) {
                             commonjs.showStatus("messages.status.successfullyCompleted");
-                            self.showCensusGrid($('#ddlOrdFacility').val());
+                            self.showCensusGrid();
                         }
                     },
                     error: function (err, response) {
