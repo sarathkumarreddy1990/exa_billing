@@ -4,6 +4,8 @@ const uuid = require('uuid/v1');
 const logger = require('../../../logger');
 const {
     chunk,
+    padStart,
+    groupBy
 } = require('lodash');
 
 const ws = require('./ws'); // NOTE this is the local adapter for ws.js
@@ -120,16 +122,26 @@ const EBSConnector = function(config) {
 
         const isHCV = (service === HCV_REAL_TIME);
 
-        const serviceUserMUID = serviceParams.providerNumber || config.serviceUserMUID;
+        let serviceUserMUID = serviceParams.providerNumber || config.serviceUserMUID;
+
+        if (!serviceUserMUID) {
+            return {
+                error: `Service User MUID ${serviceUserMUID} is not valid`
+            };
+        }
+
+        let padCount = serviceUserMUID && serviceUserMUID.length == 4 ? 5 : 6;
+        serviceUserMUID = padStart(serviceUserMUID, padCount, 0);
+        logger.debug(`Service User MUID passed: ${serviceUserMUID}`);
 
         const url = isHCV ? hcvServiceEndpoint : edtServiceEndpoint;
-        logger.debug('EBS request context url', url);
+        logger.debug(`EBS request context url ${url}`, url);
 
         const auditID = uuid();
-        logger.debug('EBS request context auditID', auditID);
+        logger.debug(`EBS request context auditID ${auditID}`, auditID);
 
         const serviceXML = (serviceTemplate[service](serviceParams));
-        logger.debug('EBS request XML', serviceXML);
+        logger.debug(`EBS request XML`, serviceXML);
 
         return {
             // these are required by ws.js
@@ -166,6 +178,7 @@ const EBSConnector = function(config) {
             const {
                 uploads,
                 unsafe,
+                MOHId
             } = args;
 
             const faults = [];
@@ -176,7 +189,15 @@ const EBSConnector = function(config) {
 
             chunk(uploads, chunkSize).forEach((chunk, chunkIndex, chunks) => {
 
-                const ctx = createContext(EDT_UPLOAD, {uploads: chunk, providerNumber: chunk[0].providerNumber});
+                const ctx = createContext(EDT_UPLOAD, {uploads: chunk, providerNumber: MOHId});
+
+                if (ctx && ctx.error) {
+                    return callback(ctx, {
+                        faults,
+                        results,
+                        auditInfo
+                    });
+                }
 
                 chunk.forEach((upload, uploadIndex) => {
                     ws.addAttachment(
@@ -228,7 +249,15 @@ const EBSConnector = function(config) {
             chunk(resourceIDs, SUBMIT_MAX).forEach((chunk, index, chunks) => {
 
                 const ctx = createContext(EDT_SUBMIT, {resourceIDs: chunk, providerNumber});
-                
+
+                if (ctx && ctx.error) {
+                    return callback(ctx, {
+                        faults,
+                        auditInfo,
+                        results
+                    });
+                }
+
                 return ws.send(handlers, ctx, (ctx) => {
 
                     const {
@@ -271,17 +300,28 @@ const EBSConnector = function(config) {
 
                 const ctx = createContext(EDT_INFO, {resourceIDs: (chunk[0] === '-1') ? [] : chunk, providerNumber});
 
+                if (ctx && ctx.error) {
+                    faults.push(ctx);
+                    return callback(ctx, {
+                        faults,
+                        auditInfo,
+                        results
+                    });
+                }
+
                 return ws.send(handlers, ctx, (ctx) => {
 
                     const {
                         response,
                     } = ctx;
 
-                    try {
-                        results.push(xml.parseInfoResponse(response));
-                    }
-                    catch (e) {
-                        faults.push(xml.parseEBSFault(response));
+                    if (response) {
+                        try {
+                            results.push(xml.parseInfoResponse(response));
+                        }
+                        catch (e) {
+                            faults.push(xml.parseEBSFault(response));
+                        }
                     }
 
                     auditInfo.push(ctx.auditInfo);
@@ -311,17 +351,27 @@ const EBSConnector = function(config) {
             const results = [];
             const faults = [];
 
+            if (ctx && ctx.error) {
+                return callback(null, {
+                    faults,
+                    auditInfo,
+                    results
+                });
+            }
+
             return ws.send(handlers, ctx, (ctx) => {
 
                 const {
                     response,
                 } = ctx;
 
-                try {
-                    results.push(xml.parseListResponse(response));
-                }
-                catch (e) {
-                    faults.push(xml.parseEBSFault(response));
+                if (response) {
+                    try {
+                        results.push(xml.parseListResponse(response));
+                    }
+                    catch (e) {
+                        faults.push(xml.parseEBSFault(response));
+                    }
                 }
 
                 auditInfo.push(ctx.auditInfo);
@@ -351,17 +401,27 @@ const EBSConnector = function(config) {
 
                 const ctx = createContext(EDT_DOWNLOAD, {resourceIDs: chunk, providerNumber});
 
+                if (ctx && ctx.error) {
+                    return callback(ctx, {
+                        faults,
+                        auditInfo,
+                        results
+                    });
+                }
+
                 return ws.send(handlers, ctx, (ctx) => {
 
                     const {
                         response,
                     } = ctx;
 
-                    try {
-                        results.push(xml.parseDownloadResponse(response));
-                    }
-                    catch (e) {
-                        faults.push(xml.parseEBSFault(response));
+                    if (response) {
+                        try {
+                            results.push(xml.parseDownloadResponse(response));
+                        }
+                        catch (e) {
+                            faults.push(xml.parseEBSFault(response));
+                        }
                     }
 
                     auditInfo.push(ctx.auditInfo);
@@ -393,6 +453,14 @@ const EBSConnector = function(config) {
 
                 const ctx = createContext(EDT_DELETE, {resourceIDs: chunk});
 
+                if (ctx && ctx.error) {
+                    return callback(ctx, {
+                        faults,
+                        auditInfo,
+                        results
+                    });
+                }
+
                 return ws.send(handlers, ctx, (ctx) => {
 
                     const {
@@ -410,7 +478,7 @@ const EBSConnector = function(config) {
 
                     if (auditInfo.length === chunks.length) {
                         // TODO pass errors
-                        return callback(null, {
+                        return callback(ctx, {
                             faults,
                             auditInfo,
                             results,
@@ -435,6 +503,14 @@ const EBSConnector = function(config) {
             chunk(updates, chunkSize).forEach((chunk, chunkIndex, chunks) => {
 
                 const ctx = createContext(EDT_UPDATE, {updates:chunk});
+
+                if (ctx && ctx.error) {
+                    return callback(ctx, {
+                        faults,
+                        auditInfo,
+                        results
+                    });
+                }
 
                 chunk.forEach((update, updateIndex) => {
 
@@ -481,6 +557,14 @@ const EBSConnector = function(config) {
             const auditInfo = [];
             const results = [];
             const faults = [];
+
+            if (ctx && ctx.error) {
+                return callback(ctx, {
+                    faults,
+                    auditInfo,
+                    results
+                });
+            }
 
             return ws.send(handlers, ctx, (ctx) => {
 
