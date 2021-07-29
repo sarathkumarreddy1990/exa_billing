@@ -512,7 +512,10 @@ module.exports = {
         let whereQuery = '';
 
         if (q) {
-            whereQuery += ` AND (pofc.location ILIKE '%${q}%' OR pof.name ILIKE '%${q}%') `;
+            whereQuery += ` AND (
+                pofc.location ILIKE '%' || '${q}' || '%' OR
+                pof.name ILIKE '%' || '${q}' || '%'
+            ) `;
         }
 
         const sql = SQL`
