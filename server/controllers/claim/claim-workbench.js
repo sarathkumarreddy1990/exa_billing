@@ -594,12 +594,15 @@ module.exports = {
 
             if (params.isMobileBillingEnabled) {
                 _.map(studyData.rows, (study) => {
-                    studyDetails.push({
-                        patient_id: study.patient_id,
-                        study_id: study.study_id,
-                        order_id: study.order_id,
-                        billing_type: study.billing_type || 'global'
-                    });
+
+                    if (study.billing_type !== 'census') {
+                        studyDetails.push({
+                            patient_id: study.patient_id,
+                            study_id: study.study_id,
+                            order_id: study.order_id,
+                            billing_type: study.billing_type || 'global'
+                        });
+                    }
                 });
             } else {
                 _.map(studyData.rows, (study) => {
