@@ -695,7 +695,6 @@ define(['jquery',
                             self.facilityId = claimDetails.facility_id; // claim facility_date
                             self.studyDate = commonjs.getConvertedFacilityTime(claimDetails.claim_dt, '', 'L', claimDetails.facility_id);
                             self.patientAddress = claimDetails.patient_info ? commonjs.hstoreParse(claimDetails.patient_info) : {};
-                            app.country_alpha_3_code = self.patientAddress.c1country || app.country_alpha_3_code;
                             self.paymentList = claimDetails.payment_details || [];
                             self.billing_method = claimDetails.billing_method;
                             self.phn = claimDetails.phn_acc_no;
@@ -1267,10 +1266,15 @@ define(['jquery',
                         var code = _.find(frequency, function (item) { return item.code == parseInt(claim_data.frequency); });
                         $('#ddlFrequencyCode').val(code.desc || '');
                     }
-                    if (["can_AB", "can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && claim_data.pos_type_code && claim_data.pos_type_code != '') {
-                        $('#ddlPOSType').val($('option[data-code = ' + claim_data.pos_type_code.trim() + ']').val());
+
+                    var ddlPOSType = $('#ddlPOSType');
+
+                    if (app.isMobileBillingEnabled && ['facility', 'global'].indexOf(claim_data.billing_type) > -1) {
+                        ddlPOSType.val(ord_fac_place_of_service || '');
+                    } else if (["can_AB", "can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && claim_data.pos_type_code && claim_data.pos_type_code != '') {
+                        ddlPOSType.val($('option[data-code = ' + claim_data.pos_type_code.trim() + ']').val());
                     } else if (app.country_alpha_3_code !== 'can') {
-                        $('#ddlPOSType').val(claim_data.fac_place_of_service_id || '');
+                        ddlPOSType.val(claim_data.fac_place_of_service_id || '');
                     }
                     var currentDate = new Date();
                     var defaultStudyDate = moment(currentDate).format('L');
@@ -3080,7 +3084,6 @@ define(['jquery',
                             var existing_insurance = response[0].existing_insurance || [];
                             var beneficiary_details = response[0].beneficiary_details || [];
                             self.patientAddress = response[0].patient_info ? response[0].patient_info : self.patientAddress;
-                            app.country_alpha_3_code = self.patientAddress.c1country || app.country_alpha_3_code;
                             self.npiNo = existing_insurance.length && existing_insurance[0].npi_no ? existing_insurance[0].npi_no : '';
                             self.federalTaxId = existing_insurance.length && existing_insurance[0].federal_tax_id ? existing_insurance[0].federal_tax_id : '';
                             self.enableInsuranceEligibility = existing_insurance.length && existing_insurance[0].enable_insurance_eligibility ? existing_insurance[0].enable_insurance_eligibility : '';
