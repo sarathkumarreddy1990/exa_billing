@@ -216,6 +216,7 @@ module.exports = {
                                         ordering_facility.id AS ordering_facility_id,
                                         ordering_facility.ordering_facility_name,
                                         ordering_facility.location,
+                                        ordering_facility.place_of_service_id AS ord_fac_place_of_service,
                                         (CASE 
                                             WHEN (SELECT split_types IS NOT NULL FROM census_fee_charges_details) 
                                             THEN 'split' 
@@ -248,7 +249,8 @@ module.exports = {
                                                 ofc.location,
                                                 ofc.billing_type,
                                                 of.name AS ordering_facility_name,
-                                                of.id
+                                                of.id,
+                                                ofc.place_of_service_id
                                             FROM studies
                                             INNER JOIN ordering_facility_contacts ofc ON ofc.id = studies.ordering_facility_contact_id
                                             INNER JOIN ordering_facilities of ON of.id = ofc.ordering_facility_id
