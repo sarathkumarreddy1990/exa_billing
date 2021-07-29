@@ -1266,10 +1266,15 @@ define(['jquery',
                         var code = _.find(frequency, function (item) { return item.code == parseInt(claim_data.frequency); });
                         $('#ddlFrequencyCode').val(code.desc || '');
                     }
-                    if (["can_AB", "can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && claim_data.pos_type_code && claim_data.pos_type_code != '') {
-                        $('#ddlPOSType').val($('option[data-code = ' + claim_data.pos_type_code.trim() + ']').val());
+
+                    var ddlPOSType = $('#ddlPOSType');
+
+                    if (app.isMobileBillingEnabled && ['facility', 'global'].indexOf(claim_data.billing_type) > -1) {
+                        ddlPOSType.val(ord_fac_place_of_service || '');
+                    } else if (["can_AB", "can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && claim_data.pos_type_code && claim_data.pos_type_code != '') {
+                        ddlPOSType.val($('option[data-code = ' + claim_data.pos_type_code.trim() + ']').val());
                     } else if (app.country_alpha_3_code !== 'can') {
-                        $('#ddlPOSType').val(claim_data.fac_place_of_service_id || '');
+                        ddlPOSType.val(claim_data.fac_place_of_service_id || '');
                     }
                     var currentDate = new Date();
                     var defaultStudyDate = moment(currentDate).format('L');
