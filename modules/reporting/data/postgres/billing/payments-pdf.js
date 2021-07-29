@@ -204,11 +204,14 @@ const api = {
      */
     transformReportData: (rawReportData) => {
         return new Promise((resolve, reject) => {
+            const columns = rawReportData.dataSets[0].columns;
             const rowIndexes = {
-                paymentAmount: _.findIndex(rawReportData.dataSets[0].columns, ['name', 'Payment'])
+                paymentAmount: _.findIndex(columns, ['name', 'Payment']),
+                note: _.findIndex(columns, ['name', 'Note'])
             }
 
-            rawReportData.dataSets[0].columns[rowIndexes.paymentAmount].cssClass = 'text-right';
+            columns[rowIndexes.paymentAmount].cssClass = 'text-right';
+            columns[rowIndexes.note].cssClass = 'text-break';
             return resolve(rawReportData);
         });
     },
