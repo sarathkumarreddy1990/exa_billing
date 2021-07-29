@@ -1,0 +1,46 @@
+image: node:14.16.1
+clone:
+  depth: full # SonarCloud scanner needs the full history to assign issues properly
+definitions:
+  services:
+    docker:
+      memory: 7128
+  caches:
+    sonar: ~/.sonar/cache # Caching SonarCloud artifacts will speed up your build
+  steps:
+    - step: &step_analyze-with-sonar
+        name: SonarQube Static Code Analysis
+        size: 2x
+        caches:
+          - node
+          - sonar
+        services:
+          - docker
+        script:
+          - pipe: sonarsource/sonarcloud-scan:latest
+            variables:
+              SONAR_TOKEN: $KMHA_SONARCLOUD_TOKEN
+              EXTRA_ARGS: "-Dsonar.organization=kmha -Dsonar.projectKey=exa-billing -Dsonar.sources=. -Dsonar.javascript.node.maxspace=4096 -Dsonar.inclusions=sonar.inclusions=app/**/*.js,bin/**/*,lib/**/*.js,logger/**/*.js,modules/**/*.js,server/**/*.js -Dsonar.exclusions=**/node_modules/**,test/**/*"
+              SONAR_SCANNER_OPTS: -Xmx2048m
+              DEBUG: "false"
+    - step: &step_lint-with-eslint
+        name: Perform ESLint on codebase
+        caches:
+          - node
+        artifacts: # defining the artifacts to be passed to each future step.
+          - test-reports/**
+        script:
+          - npm ci
+          # lint JSON files
+          - npx eslint --plugin "json" --ext ".json" --format "junit" --output-file "./test-reports/eslint-json.junit.xml" "."
+          # lint using included settings
+          - npx eslint --format "junit" --output-file "./test-reports/eslint.junit.xml" "."
+pipelines:
+  #branches:
+  #  development:
+  #    - step: *step_test-slack-notifier
+  custom:
+    analyze-with-sonar:
+      - step: *step_analyze-with-sonar
+    lint-with-eslint:
+      - step: *step_lint-with-eslint
