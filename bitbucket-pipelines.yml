@@ -9,7 +9,7 @@ definitions:
     sonar: ~/.sonar/cache # Caching SonarCloud artifacts will speed up your build
   steps:
     - step: &step_analyze-with-sonar
-        name: SonarQube Static Code Analysis
+        name: SonarQube Code Analysis
         size: 2x
         caches:
           - node
@@ -17,14 +17,14 @@ definitions:
         services:
           - docker
         script:
-          - pipe: sonarsource/sonarcloud-scan:latest
+          - pipe: sonarsource/sonarcloud-scan:1.2.2
             variables:
               SONAR_TOKEN: $KMHA_SONARCLOUD_TOKEN
               EXTRA_ARGS: "-Dsonar.organization=kmha -Dsonar.projectKey=exa-billing -Dsonar.sources=. -Dsonar.javascript.node.maxspace=4096 -Dsonar.inclusions=sonar.inclusions=app/**/*.js,bin/**/*,lib/**/*.js,logger/**/*.js,modules/**/*.js,server/**/*.js -Dsonar.exclusions=**/node_modules/**,test/**/*"
               SONAR_SCANNER_OPTS: -Xmx2048m
               DEBUG: "false"
     - step: &step_lint-with-eslint
-        name: Perform ESLint on codebase
+        name: ESLint Code Analysis
         caches:
           - node
         artifacts: # defining the artifacts to be passed to each future step.
