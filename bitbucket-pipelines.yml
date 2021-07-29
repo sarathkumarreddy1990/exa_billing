@@ -17,10 +17,11 @@ definitions:
         services:
           - docker
         script:
+          #- echo "running SonarQube analysis. project [$BITBUCKET_PROJECT_KEY], repo [$BITBUCKET_REPO_SLUG]..."
           - pipe: sonarsource/sonarcloud-scan:1.2.2
             variables:
               SONAR_TOKEN: $KMHA_SONARCLOUD_TOKEN
-              EXTRA_ARGS: "-Dsonar.organization=kmha -Dsonar.projectKey=exa-billing -Dsonar.sources=. -Dsonar.javascript.node.maxspace=4096 -Dsonar.inclusions=sonar.inclusions=app/**/*.js,bin/**/*,lib/**/*.js,logger/**/*.js,modules/**/*.js,server/**/*.js -Dsonar.exclusions=**/node_modules/**,test/**/*"
+              EXTRA_ARGS: "-Dsonar.organization=kmha -Dsonar.projectKey=$BITBUCKET_REPO_SLUG -Dsonar.sources=. -Dsonar.javascript.node.maxspace=4096 -Dsonar.inclusions=sonar.inclusions=app/**/*.js,bin/**/*,lib/**/*.js,logger/**/*.js,modules/**/*.js,server/**/*.js -Dsonar.exclusions=**/node_modules/**,test/**/*"
               SONAR_SCANNER_OPTS: -Xmx2048m
               DEBUG: "false"
     - step: &step_lint-with-eslint
