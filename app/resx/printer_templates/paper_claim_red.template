@@ -337,7 +337,7 @@ function formatRedForm(claimData, servicelineList, pageBrk) {
 
     if (pos === "12") {
         patientDet.fullName = "PRIVATE HOME" ;
-        serviceFacDet = getAddressDetails(patientDet); 
+        serviceFacDet = getAddressDetails(patientDet);
     } else if (billType.toString().toUpperCase() === "SPLIT_P") {
         renderingProv.fullName = renderingProv.lastName+', '+renderingProv.firstName;
         serviceFacDet = getAddressDetails(renderingProv);
