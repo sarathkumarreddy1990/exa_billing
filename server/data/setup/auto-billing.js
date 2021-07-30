@@ -4,7 +4,7 @@ const {
 } = require('../index');
 
 const claimsData = require('../../data/claim/index');
-
+const config = require('../../config');
 const COMPANY_ID = 1;
 const WILDCARD_ID = "0";
 const RADMIN_USER_ID = 1;
@@ -16,6 +16,7 @@ const DEFAULT_BILLING_CODE_ID = null;
 const DEFAULT_BILLING_NOTES = "";
 const DEFAULT_CLAIM_NOTES = "";
 const DEFAILT_PAYER_TYPE = 'primary_insurance';
+const DEFAULT_BILLING_TYPE = 'global';
 const CLIENT_IP = '127.0.0.1';
 
 let _settings = null;
@@ -102,6 +103,10 @@ const getSaveClaimParams = async (params) => {
     });
 
     const primary_insurance = insurances.find((val)=> {return val.coverage_level === 'primary';});
+    const billing_type = config.get('enableMobileBilling') && !isCanadaBilling ?
+        claim_details.billing_type || DEFAULT_BILLING_TYPE
+        : DEFAULT_BILLING_TYPE;
+
     const saveClaimParams = {
         removed_charges: [],
 
@@ -129,28 +134,10 @@ const getSaveClaimParams = async (params) => {
             ordering_facility_id: parseInt(claim_details.ordering_facility_id) || null,
             can_confidential: false,
             can_wcb_rejected: false,
-            billing_type: claim_details.billing_type || 'global'
+            billing_type
         },
 
         insurances,
-
-        charges: lineItems[0].charges.map((charge) => {
-            charge.allowed_amount = charge.allowed_fee;
-            charge.modifier1_id = charge.m1;
-            charge.modifier2_id = charge.m2;
-            charge.modifier3_id = charge.m3;
-            charge.modifier4_id = charge.m4;
-            charge.charge_dt = charge.study_dt;
-            charge.created_by = userId;
-            charge.pointer1 = getPointer(problems[0]);
-            charge.pointer2 = getPointer(problems[1]);
-            charge.pointer3 = getPointer(problems[2]);
-            charge.pointer4 = getPointer(problems[3]);
-            charge.is_excluded = CHARGE_IS_EXCLUDED;
-            charge.is_canada_billing = isCanadaBilling;
-            charge.is_custom_bill_fee = false;
-            return charge;
-        }),
 
         claim_icds: problems.map((problem) => {
             return {
@@ -802,7 +789,26 @@ module.exports = {
             };
 
             const saveClaimParams = await getSaveClaimParams(baseParams);
-            await claimsData.save(saveClaimParams);
+            let filteredClaims = [];
+            let claims = saveClaimParams.claims || [];
+
+            claims.forEach((claim) => {
+
+                if (claim.billing_type === 'split' && !claim.ordering_facility_contact_id) {
+                    filteredClaims.push({
+                        ...claim,
+                        billing_type: DEFAULT_BILLING_TYPE
+                    });
+                }
+                else if (claim.billing_type !== 'census') {
+                    filteredClaims.push(claim);
+                }
+            });
+
+            if (filteredClaims.length) {
+                saveClaimParams.claims = filteredClaims;
+                await claimsData.save(saveClaimParams);
+            }
         }
 
         return rows;
