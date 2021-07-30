@@ -103,9 +103,7 @@ const getSaveClaimParams = async (params) => {
     });
 
     const primary_insurance = insurances.find((val)=> {return val.coverage_level === 'primary';});
-    const billing_type = config.get('enableMobileBilling') && !isCanadaBilling ?
-        claim_details.billing_type || DEFAULT_BILLING_TYPE
-        : DEFAULT_BILLING_TYPE;
+    const billing_type = (config.get('enableMobileBilling') && !isCanadaBilling  && claim_details.billing_type) || DEFAULT_BILLING_TYPE;
 
     const saveClaimParams = {
         removed_charges: [],
