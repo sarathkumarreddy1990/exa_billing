@@ -1270,7 +1270,7 @@ define(['jquery',
                     var ddlPOSType = $('#ddlPOSType');
 
                     if (app.isMobileBillingEnabled && ['facility', 'global'].indexOf(claim_data.billing_type) > -1) {
-                        ddlPOSType.val(ord_fac_place_of_service || '');
+                        ddlPOSType.val(claim_data.ord_fac_place_of_service || '');
                     } else if (["can_AB", "can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && claim_data.pos_type_code && claim_data.pos_type_code != '') {
                         ddlPOSType.val($('option[data-code = ' + claim_data.pos_type_code.trim() + ']').val());
                     } else if (app.country_alpha_3_code !== 'can') {

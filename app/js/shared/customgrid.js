@@ -1232,6 +1232,10 @@ function customGrid ( datastore, gridID ) {
             this.pager.set("PageSize", 100);
             this.pager.set('PageNo', 1);
             this.fetchGrid(callback);
+
+            if (typeof (this.options.beforeSearch) != 'undefined') {
+                this.options.beforeSearch();
+            }
         }
     };
 
