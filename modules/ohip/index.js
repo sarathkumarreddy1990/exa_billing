@@ -272,8 +272,8 @@ const downloadNew = (args, callback) => {
 
         if (resourceIDs && resourceIDs.length && resourceIDs[0]) {
 
-            logger.info(`Downloading Ack Files for  MOH ID ${providerNumber}...`);
-            ebs[EDT_DOWNLOAD]({ providerNumber, resourceIDs }, async (downloadErr, downloadResponse) => {
+            logger.info(`Downloading Ack/RA Files for MOH ID ${providerNumber}...`);
+            await ebs[EDT_DOWNLOAD]({ providerNumber, resourceIDs }, async (downloadErr, downloadResponse) => {
 
                 if (downloadErr) {
                     return callback(downloadErr, null);
@@ -376,6 +376,41 @@ const downloadResponseForProvider = (providerNumber, applicator, resourceType) =
 
 }
 
+const downloadRemittanceForProvider = (providerNumber, resourceType) => {
+    return new Promise((reject, resolve) => {
+        downloadRemittanceAdvice({
+            providerNumber: providerNumber,
+            resourceType: resourceType
+        }, (err, res) => {
+            logger.logInfo(err || res);
+            logger.logInfo(`Completed downloading ${resourceType} files for MOH ID: ${providerNumber}...`);
+
+            return resolve({
+                err,
+                res
+            })
+        });
+    });
+}
+
+const downloadRemittanceFiles = async (providerNumbersList, callback) => {
+    let downloadResults = [];
+
+    for (let i = 0; i < providerNumbersList.length; i++) {
+        logger.logInfo(`Fetching Remittance Advice files for MOH ID: ${providerNumbersList[i].providerNumber}...`);
+
+        try {
+            let response = await downloadRemittanceForProvider(providerNumbersList[i].providerNumber, REMITTANCE_ADVICE);
+            downloadResults.push(response);
+
+        } catch (error) {
+            logger.logError(`Error connecting OHIP Endpoint for MOH ID ${providerNumbersList[i].providerNumber} - ${JSON.stringify(error)}`);
+        }
+    }
+
+    return callback(null, downloadResults);
+}
+
 const downloadSubmittedFiles = async (providerNumbersList, callback) => {
 
     let downloadResourceTypes = [{
@@ -430,7 +465,7 @@ const downloadRemittanceAdvice = async (args, callback) => {
     let {
          providerNumber = ''
     } = args || {};
-    downloadNew({
+    await downloadNew({
             providerNumber,
             resourceType: REMITTANCE_ADVICE
         }, (downloadErr, ediFiles) => {
@@ -439,6 +474,8 @@ const downloadRemittanceAdvice = async (args, callback) => {
                 logger.error(`Error occurred while downloading resource ${REMITTANCE_ADVICE} for  MOH ID: ${providerNumber}`);
                 return callback(downloadErr, []);
             }
+
+            logger.logInfo(`Completed downloading ${REMITTANCE_ADVICE} files for MOH ID: ${providerNumber}...`);
             return callback(downloadErr, ediFiles);
         });
 };
@@ -836,6 +873,8 @@ module.exports = {
     downloadAndProcessResponseFiles,
 
     downloadSubmittedFiles,
+
+    downloadRemittanceFiles,
 
     validateHealthCard: async (args, callback) => {
         const ebs = new EBSConnector((await billingApi.getOHIPConfiguration()).ebsConfig);
