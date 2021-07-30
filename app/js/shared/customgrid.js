@@ -1231,6 +1231,10 @@ function customGrid ( datastore, gridID ) {
         } else {
             this.pager.set("PageSize", 100);
             this.pager.set('PageNo', 1);
+
+            if (typeof this.options.beforeSearch === 'function') {
+                this.options.beforeSearch();
+            }
             this.fetchGrid(callback);
         }
     };
