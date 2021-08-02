@@ -53,14 +53,16 @@ const getSaveClaimParams = async (params) => {
     } = params;
     params.claim_date = params.claim_dt;
 
-    const patientInsurances = (await claimsData.getPatientInsurances(params)).rows;
-    const lineItems = (await claimsData.getLineItemsDetails(params)).rows;
-
     const settings = await getSettings();
 
     const isCanadaBilling = settings.country_alpha_3_code === 'can';
     const isAlbertaBilling = isCanadaBilling && settings.province_alpha_2_code === 'AB';
     const isOhipBilling = isCanadaBilling && settings.province_alpha_2_code === 'ON';
+    const isMobileBillingEnabled = settings.country_alpha_3_code === 'usa' && config.get('enableMobileBilling');
+    params.isMobileBillingEnabled = isMobileBillingEnabled;
+
+    const patientInsurances = (await claimsData.getPatientInsurances(params)).rows;
+    const lineItems = (await claimsData.getLineItemsDetails(params)).rows;
 
     const problems = lineItems[0].problems;
     const claim_details = lineItems[0].claim_details[0];
@@ -110,7 +112,7 @@ const getSaveClaimParams = async (params) => {
 
         is_alberta_billing: isAlbertaBilling,
         is_ohip_billing: isOhipBilling,
-
+        isMobileBillingEnabled,
         claims: {
             company_id: companyId,
             billing_class_id: DEFAULT_BILLING_CLASS_ID,
@@ -805,7 +807,63 @@ module.exports = {
 
             if (filteredClaims.length) {
                 saveClaimParams.claims = filteredClaims;
-                await claimsData.save(saveClaimParams);
+                let claim = filteredClaims[0];
+
+                if(claim.is_split_claim) {
+                    let {professional_modifier_id, technical_modifier_id} = (await claimsData.getTechnicalAndProfessionalModifier()).pop();
+                    saveClaimParams.claims = [];
+
+                    saveClaimParams.claims.push({
+                        ...claim, 
+                        claim_charges: claim.claim_charges,
+                        billing_type: 'split_p'
+                    });
+        
+                    // creating a technical claim since it is split claim 
+                    let newCharges = [];
+                    
+                    await Promise.all(claim.claim_charges.map(async (charge, index) => {
+                       
+                        let modifier1 = charge.modifier1_id == professional_modifier_id ? technical_modifier_id : charge.modifier1_id;
+                        let modifier2 = charge.modifier2_id == professional_modifier_id ? technical_modifier_id : charge.modifier2_id;
+                        let modifier3 = charge.modifier3_id == professional_modifier_id ? technical_modifier_id : charge.modifier3_id;
+                        let modifier4 = charge.modifier4_id == professional_modifier_id ? technical_modifier_id : charge.modifier4_id;
+        
+                        // recalculate bill fee allowed amount again only if charges contains professional modifier
+                        let { bill_fee, allowed_amount } = await claimsData.getTechnicalBillFeeAmounts({
+                            cpt_id: charge.cpt_id,
+                            modifier1,
+                            modifier2,
+                            modifier3,
+                            modifier4,
+                            beneficiary_id: claim.beneficiary_id,
+                            facility_id: claim.facility_id,
+                            order_id: claim.order_id
+                        });
+        
+                        newCharges.push({
+                            ...claim.claim_charges[index],
+                            modifier1_id: modifier1,
+                            modifier2_id: modifier2,
+                            modifier3_id: modifier3,
+                            modifier4_id: modifier4,
+                            bill_fee,
+                            allowed_amount
+                        });
+                    }));
+        
+                    // EXA-22773 | For technical claim responsible must be ordering facility 
+                    saveClaimParams.claims.push({
+                        ...claim,
+                        billing_method: 'direct_billing',
+                        payer_type: 'ordering_facility',
+                        claim_charges: newCharges,
+                        billing_type: 'split_t'
+                    });
+        
+                } else {
+                    saveClaimParams.claims = filteredClaims;
+                }
             }
         }
 
