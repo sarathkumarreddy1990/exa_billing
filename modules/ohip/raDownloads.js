@@ -8,7 +8,7 @@ class RaDownloads {
 
     constructor(config) {
         config = config || {};
-        this.cronExpression = config.cron || '*/10 * * * *';
+        this.cronExpression = config.cron || '00 */10 * * * *';
         this.inProgress = false;
         this.restartInterval = config.interval || 60000; /// in milliseconds
     }
@@ -54,7 +54,7 @@ class RaDownloads {
                 });
 
             } catch (error) {
-                logger.logError(`Error occured in downloading ack files ${error}`);
+                logger.logError(`Error occured in downloading ack files ${JSON.stringify(error)}`);
                 this.inProgress = false;
                 return false;
             }

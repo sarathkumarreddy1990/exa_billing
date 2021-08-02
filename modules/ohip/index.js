@@ -385,8 +385,13 @@ const downloadRemittanceForProvider = (providerNumber, resourceType) => {
             logger.logInfo(err || res);
             logger.logInfo(`Completed downloading ${resourceType} files for MOH ID: ${providerNumber}...`);
 
+            if (err) {
+                return reject({
+                    error: err
+                });
+            }
+
             return resolve({
-                err,
                 res
             })
         });
