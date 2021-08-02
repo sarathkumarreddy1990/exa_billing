@@ -216,6 +216,7 @@ module.exports = {
                                         ordering_facility.id AS ordering_facility_id,
                                         ordering_facility.ordering_facility_name,
                                         ordering_facility.location,
+                                        ordering_facility.place_of_service_id AS ord_fac_place_of_service,
                                         (CASE 
                                             WHEN (SELECT split_types IS NOT NULL FROM census_fee_charges_details) 
                                             THEN 'split' 
@@ -248,7 +249,8 @@ module.exports = {
                                                 ofc.location,
                                                 ofc.billing_type,
                                                 of.name AS ordering_facility_name,
-                                                of.id
+                                                of.id,
+                                                ofc.place_of_service_id
                                             FROM studies
                                             INNER JOIN ordering_facility_contacts ofc ON ofc.id = studies.ordering_facility_contact_id
                                             INNER JOIN ordering_facilities of ON of.id = ofc.ordering_facility_id
@@ -1059,7 +1061,7 @@ module.exports = {
                             patients p
                         INNER JOIN patient_facilities pfc ON pfc.patient_id = p.id
                         INNER JOIN facilities f ON f.id = pfc.facility_id AND pfc.is_default
-                        LEFT JOIN public.ordering_facilities pof ON pof.id = p.default_ordering_facility_id
+                        LEFT JOIN public.ordering_facilities pof ON pof.id = NULLIF(f.facility_info->'service_facility_id', '')::BIGINT
                         LEFT JOIN public.ordering_facility_contacts pofc ON pofc.ordering_facility_id = pof.id AND pofc.is_primary IS TRUE
                         LEFT JOIN provider_contacts fac_prov_cont ON f.facility_info->'rendering_provider_id'::text = fac_prov_cont.id::text
                         LEFT JOIN providers fac_prov ON fac_prov.id = fac_prov_cont.provider_id
