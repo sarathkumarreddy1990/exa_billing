@@ -1242,11 +1242,14 @@ define(['jquery',
 
             savePayment: function (e, claimId, paymentId, paymentStatus, paymentApplicationId) {
                 var self = this;
+                var $target = $(e.target);
                 if ((!self.isFromClaim && !self.validatepayments()) || (self.isFromClaim && !self.validatePayerDetails())) {
                     return false;
                 }
 
                 $('#btnPaymentSave').attr('disabled', true);
+                $target.prop('disabled', true);
+
                 commonjs.showLoading('messages.loadingMsg.default')
                 var paymentObj = {
                     paymentId: self.payment_id,
@@ -1267,6 +1270,7 @@ define(['jquery',
 
                 if (self.isFromClaim && self.claimPaymentObj) {
                     if (!self.overPaymentValidation()) {
+                        $target.prop('disabled', false);
                         return false;
                     }
 
@@ -1311,6 +1315,7 @@ define(['jquery',
 
                             if (self.isFromClaim && response && response.length === 0) {
                                 commonjs.hideLoading();
+                                $target.prop('disabled', false);
                                 return false;
                             } else if (self.isFromClaim && response && response.length) {
                                 commonjs.showStatus(msg);
