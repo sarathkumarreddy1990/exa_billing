@@ -207,9 +207,10 @@ module.exports = {
                                         studies_details.referring_pro_study_desc,
                                         studies_details.rendering_provider_contact_id,
                                         studies_details.reading_phy_full_name,
+                                        studies_details.rendering_prov_npi_no,
                                         providers.id as fac_rendering_provider_contact_id,
                                         providers.full_name as fac_reading_phy_full_name,
-                                        providers.rendering_prov_npi_no,
+                                        providers.fac_rendering_prov_npi_no,
                                         facility_info->'service_facility_id' as service_facility_id,
                                         facility_info->'service_facility_name' as service_facility_name,
                                         ordering_facility.ordering_facility_contact_id,
@@ -257,9 +258,14 @@ module.exports = {
                                             WHERE studies.id = ${firstStudyId}
                                         ) ordering_facility  ON TRUE
                                         LEFT JOIN LATERAL (
-                                            SELECT pc.id, p.full_name, p.provider_info->'NPI' AS rendering_prov_npi_no FROM provider_contacts pc
-                                                INNER JOIN providers p ON p.id = pc.provider_id
-                                            WHERE	pc.id = nullif(facility_info->'rendering_provider_id', '')::integer limit 1
+                                            SELECT
+                                                pc.id,
+                                                p.full_name,
+                                                p.provider_info->'NPI' AS fac_rendering_prov_npi_no
+                                            FROM provider_contacts pc
+                                            INNER JOIN providers p ON p.id = pc.provider_id
+                                            WHERE pc.id = NULLIF(facility_info->'rendering_provider_id', '')::INT
+                                            LIMIT 1
                                         ) providers ON true
                                         LEFT JOIN LATERAL (
                                             SELECT
@@ -280,6 +286,7 @@ module.exports = {
                                         JOIN LATERAL (
                                             SELECT
                                                 p.full_name AS reading_phy_full_name,
+                                                p.provider_info->'NPI' AS rendering_prov_npi_no,
                                                 pc.id AS rendering_provider_contact_id,
                                                 pc.can_locum_arrangement AS can_ahs_locum_arrangement_provider,
                                                 nature_of_injury_code_id,

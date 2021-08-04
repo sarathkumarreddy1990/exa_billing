@@ -1018,10 +1018,14 @@ define(['jquery',
                 /* Claim section start*/
 
                 var renderingProviderFullName = claim_data.fac_reading_phy_full_name || claim_data.reading_phy_full_name;
-                var referringProviderFullName = claim_data.ref_prov_full_name
+                var renderingProviderNpi = claim_data.fac_reading_phy_full_name
+                        ? claim_data.fac_rendering_prov_npi_no
+                        : claim_data.rendering_prov_npi_no;
 
-                if (renderingProviderFullName && claim_data.rendering_prov_npi_no) {
-                    renderingProviderFullName +=  ' ' + claim_data.rendering_prov_npi_no;
+                var referringProviderFullName = claim_data.ref_prov_full_name;
+
+                if (renderingProviderFullName && renderingProviderNpi) {
+                    renderingProviderFullName +=  ' ' + renderingProviderNpi;
                 }
 
                 if (referringProviderFullName && claim_data.referring_prov_npi_no) {
@@ -1058,7 +1062,7 @@ define(['jquery',
                 $('#ddlBillingProvider').val(claim_data.fac_billing_provider_id || claim_data.billing_provider_id || '');
                 $('#ddlFacility').val(claim_data.facility_id || '');
                 $('#select2-ddlRenderingProvider-container').html(renderingProvider);
-                $('#select2-ddlReferringProvider-container').html(self.ACSelect.refPhy.Desc);
+                $('#select2-ddlReferringProvider-container').html(referringProvider);
                 $('#select2-ddlOrdFacility-container').html(self.ordering_facility_name);
 
                 // Alberta
