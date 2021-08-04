@@ -557,17 +557,21 @@ define(['jquery',
             },
 
             saveOFGrid: function (e) {
-                if (orderingFacilityArray && orderingFacilityArray.length > 0 && orderingFacilityArray[0].ordering_facility_name) {
-                    this.payer_id = parseInt(orderingFacilityArray[0].ordering_facility_id) || 0;
+                var $txtautoPayerPOF = $('#select2-txtautoPayerPOF-container');
+                var orderingFacility = (orderingFacilityArray && orderingFacilityArray.length > 0 && orderingFacilityArray[0]) || {};
+                var orderingFacilityName = orderingFacility.name;
+                var orderingFacilityId = orderingFacility.id;
+                if (orderingFacilityName) {
+                    this.payer_id = parseInt(orderingFacilityId) || 0;
                     this.ordering_facility_id = this.payer_id;
-                    this.payerCode = orderingFacilityArray[0].ordering_facility_code  || '';
-                    this.payerName = orderingFacilityArray[0].ordering_facility_name;
+                    this.payerCode = orderingFacility.code  || '';
+                    this.payerName = orderingFacilityName;
                     this.payerType = 'ordering_facility';
                     coverage_level = 'Ordering Facility';
-                    $("#hdnPayerID").val(orderingFacilityArray[0].ordering_facility_id);
-                    $('#select2-txtautoPayerPOF-container').html(orderingFacilityArray[0].ordering_facility_name);
+                    $("#hdnPayerID").val(orderingFacilityId);
+                    $txtautoPayerPOF.html(orderingFacilityName);
                 } else
-                    $('#select2-txtautoPayerPOF-container').html(this.usermessage.selectOrderingFacility);
+                    $txtautoPayerPOF.html(this.usermessage.selectOrderingFacility);
                 $('#siteModal').modal('hide');
             },
 
