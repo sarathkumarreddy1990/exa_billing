@@ -240,8 +240,7 @@ const detailQueryTemplate = _.template(`
     LEFT JOIN public.Providers pr ON pr.id = pc.provider_id
     LEFT JOIN public.patients pp ON pp.id = c.patient_id
     LEFT JOIN public.patients p_pp ON p_pp.id = p.patient_id
-    LEFT JOIN public.ordering_facility_contacts pofc ON pofc.ordering_facility_id = pd.ordering_facility_id
-    LEFT JOIN public.ordering_facilities pofs ON pofs.id = pofc.ordering_facility_id
+    LEFT JOIN public.ordering_facilities pofs ON pofs.id = pd.ordering_facility_id
     <% if(insGroups) { %>
        LEFT JOIN  insurance_provider_payer_types ippt ON ippt.id = ip.provider_payer_type_id
     <% } %>
