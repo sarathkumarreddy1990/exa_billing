@@ -592,7 +592,7 @@ module.exports = {
             const studyData = await(params.isAllCensus === 'true' ?  censusController.getData(params) : studiesController.getData(params));
             let studyDetails = [];
 
-            if (params.isMobileBillingEnabled) {
+            if (params.isMobileBillingEnabled  === 'true') {
                 _.map(studyData.rows, (study) => {
 
                     if (study.billing_type !== 'census') {
