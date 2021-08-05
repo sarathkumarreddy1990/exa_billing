@@ -132,7 +132,6 @@ const detailQueryTemplate = _.template(`
             SUM(CASE WHEN amount_type= 'adjustment' then bpa.amount  else 0::money end) AS adjustment,
             ARRAY_REMOVE(ARRAY_AGG(DISTINCT bac.description),null) AS description
             <% if (userIds) { %> , MAX(users.username) AS user_name  <% } %>
-            , bc.ordering_facility_contact_id
         FROM
             billing.payments bp
         LEFT JOIN billing.payment_applications bpa ON bpa.payment_id = bp.id
@@ -203,7 +202,7 @@ const detailQueryTemplate = _.template(`
                             p_pp.prefix_name,
                             p_pp.suffix_name)
             WHEN p.payer_type = 'insurance' THEN ip.insurance_name
-            WHEN p.payer_type = 'ordering_facility' THEN pof.name
+            WHEN p.payer_type = 'ordering_facility' THEN pofs.name
             WHEN p.payer_type = 'ordering_provider' then pr.last_name ||','|| pr.first_name
         END AS "Payer Name",
         CASE
@@ -240,10 +239,8 @@ const detailQueryTemplate = _.template(`
     LEFT JOIN public.Providers pr ON pr.id = pc.provider_id
     LEFT JOIN public.patients pp ON pp.id = c.patient_id
     LEFT JOIN public.patients p_pp ON p_pp.id = p.patient_id
-    LEFT JOIN public.ordering_facility_contacts pofc ON pofc.id = pd.ordering_facility_contact_id
-    LEFT JOIN public.ordering_facilities pof ON pof.id = pofc.ordering_facility_id
+    LEFT JOIN public.ordering_facilities pofs ON pofs.id = p.ordering_facility_id
     <% if(insGroups) { %>
-       LEFT JOIN public.ordering_facilities pofs ON pofs.id = p.ordering_facility_id
        LEFT JOIN  insurance_provider_payer_types ippt ON ippt.id = ip.provider_payer_type_id
     <% } %>
     WHERE TRUE
