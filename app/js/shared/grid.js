@@ -794,7 +794,7 @@ define('grid', [
                 var rowId = $checkedInputs[r].parentNode.parentNode.id;
                 var gridData = $(gridID).jqGrid('getRowData', rowId);
 
-                if (gridData.billing_type === 'census') {
+                if (app.isMobileBillingEnabled && gridData.billing_type === 'census') {
                     commonjs.showWarning("messages.warning.validBillingType");
                     return false;
                 }
