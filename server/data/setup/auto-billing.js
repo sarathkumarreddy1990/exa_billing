@@ -15,7 +15,7 @@ const DEFAULT_BILLING_CLASS_ID = null;
 const DEFAULT_BILLING_CODE_ID = null;
 const DEFAULT_BILLING_NOTES = "";
 const DEFAULT_CLAIM_NOTES = "";
-const DEFAILT_PAYER_TYPE = 'primary_insurance';
+const DEFAULT_PAYER_TYPE = 'patient';
 const DEFAULT_BILLING_TYPE = 'global';
 const CLIENT_IP = '127.0.0.1';
 
@@ -96,6 +96,7 @@ const getSaveClaimParams = async (params) => {
         return charge;
     });
 
+    let payer_type;
     let insurances = Object.keys(patBeneficiaryInsurances).map((val) => {
         let insurance = val.length ? patBeneficiaryInsurances[val].sort((data) => { return data.id - data.id; })[0] : {};
         insurance.claim_patient_insurance_id = insurance.id;
@@ -106,6 +107,14 @@ const getSaveClaimParams = async (params) => {
 
     const primary_insurance = insurances.find((val)=> {return val.coverage_level === 'primary';});
     const billing_type = (config.get('enableMobileBilling') && !isCanadaBilling  && claim_details.billing_type) || DEFAULT_BILLING_TYPE;
+
+    if (billing_type == 'facility') {
+        payer_type = 'ordering_facility';
+    } else if (primary_insurance) {
+        payer_type = 'primary_insurance';
+    } else {
+        payer_type = DEFAULT_PAYER_TYPE;
+    }
 
     const saveClaimParams = {
         removed_charges: [],
@@ -124,7 +133,7 @@ const getSaveClaimParams = async (params) => {
             claim_notes: DEFAULT_CLAIM_NOTES,
             claim_status_id: params.claim_status_id,
             created_by: userId,
-            payer_type: primary_insurance ? DEFAILT_PAYER_TYPE : 'patient',
+            payer_type,
             patient_id,
             place_of_service_id: isCanadaBilling ? null : claim_details.fac_place_of_service_id,
             claim_charges: charge_details,
@@ -864,6 +873,8 @@ module.exports = {
                 } else {
                     saveClaimParams.claims = filteredClaims;
                 }
+
+                await claimsData.save(saveClaimParams);
             }
         }
 
