@@ -83,7 +83,7 @@ define(['jquery',
                 selectStudyReadPhysician: 'Select Read. Provider',
                 selectDiagnosticCode: 'Select Code',
                 selectOrdFacility: 'Select Ordering Facility',
-                selectCarrier: 'Search Carrier',
+                selectCarrier: '',
                 selectcptcode: "Select Cpt Code",
                 selectcptdescription: "Select Cpt Description"
             },
@@ -4219,11 +4219,6 @@ define(['jquery',
                         mandatory_fields.primaryfieldObjs[mandatory_fields.primaryfields.indexOf('')].obj.focus();
                         return false;
                     }
-                    if ($('#ddlPriInsurance').val() == '') {
-                        commonjs.showWarning("messages.warning.claims.selectPriInsurance");
-                        $('#ddlPriInsurance').focus();
-                        return false;
-                    }
                     else
                         self.is_primary_available = true;
                 }
@@ -4239,11 +4234,6 @@ define(['jquery',
                             commonjs.showWarning(mandatory_fields.secondaryfieldObjs[mandatory_fields.secondaryfields.indexOf('')].msg);
                             mandatory_fields.secondaryfieldObjs[mandatory_fields.secondaryfields.indexOf('')].obj.focus();
                             // commonjs.showWarning("messages.warning.shared.secInsValidation");
-                            return false;
-                        }
-                        if ($('#s2id_txtSecInsurance a span').html() == 'Search Carrier' || $('#s2id_txtSecInsurance a span').html() == '') {
-
-                            commonjs.showWarning("messages.warning.claims.selectSecInsurance");
                             return false;
                         }
                         else
@@ -4263,11 +4253,6 @@ define(['jquery',
                             commonjs.showWarning(mandatory_fields.tertiaryfieldObjs[mandatory_fields.tertiaryfields.indexOf('')].msg);
                             mandatory_fields.tertiaryfieldObjs[mandatory_fields.tertiaryfields.indexOf('')].obj.focus();
 
-                            return false;
-                        }
-                        if ($('#s2id_txtTerInsurance a span').html() == 'Search Carrier' || $('#s2id_txtTerInsurance a span').html() == '') {
-
-                            commonjs.showWarning("messages.warning.claims.selectSecInsurance");
                             return false;
                         }
                         else
