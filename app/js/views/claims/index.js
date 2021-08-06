@@ -1022,18 +1022,33 @@ define(['jquery',
                         ? claim_data.fac_rendering_prov_npi_no
                         : claim_data.rendering_prov_npi_no;
 
-                var referringProviderFullName = claim_data.ref_prov_full_name;
-
                 if (renderingProviderFullName && renderingProviderNpi) {
                     renderingProviderFullName +=  ' ' + renderingProviderNpi;
                 }
 
-                if (referringProviderFullName && claim_data.referring_prov_npi_no) {
-                    referringProviderFullName = referringProviderFullName + ' ' + claim_data.referring_prov_npi_no;
-                }
                 var renderingProvider = renderingProviderFullName || self.usermessage.selectStudyReadPhysician;
-                var referringProvider = referringProviderFullName || self.usermessage.selectStudyRefProvider;
                 var orderingFacility = claim_data.ordering_facility_name || claim_data.service_facility_name || self.usermessage.selectOrdFacility;
+                var referringProviderNpi;
+
+                if (claim_data.ordering_provider_contact_id) {
+                    self.ACSelect.refPhy.contact_id = claim_data.ordering_provider_contact_id || null;
+                    self.ACSelect.refPhy.Code = claim_data.ord_prov_code || null;
+                    self.ACSelect.refPhy.Desc = claim_data.ord_prov_full_name;
+                    referringProviderNpi = claim_data.ordering_prov_npi_no;
+                } else {
+                    self.ACSelect.refPhy.contact_id = claim_data.referring_provider_contact_id || null;
+                    self.ACSelect.refPhy.Code = claim_data.ref_prov_code || null;
+                    self.ACSelect.refPhy.Desc = claim_data.ref_prov_full_name;
+                    referringProviderNpi = claim_data.referring_prov_npi_no;
+                }
+
+                var referringProviderFullName = self.ACSelect.refPhy.Desc;
+
+                if (referringProviderFullName && referringProviderNpi) {
+                    referringProviderFullName = referringProviderFullName + ' ' + referringProviderNpi;
+                }
+
+                var referringProvider = referringProviderFullName || self.usermessage.selectStudyRefProvider;
 
                 if ( app.country_alpha_3_code === "can" && app.province_alpha_2_code === "AB" ) {
                     self.ACSelect.readPhy.contact_id = claim_data.rendering_provider_contact_id || null;
@@ -1042,18 +1057,6 @@ define(['jquery',
                     self.ACSelect.readPhy.contact_id = claim_data.fac_rendering_provider_contact_id || claim_data.rendering_provider_contact_id || null;
                 }
 
-                if (claim_data.ordering_physician
-                    && claim_data.ordering_physician.length
-                    && claim_data.ordering_physician[0].ordering_provider_contact_id) {
-                    var phyDetails = claim_data.ordering_physician[0];
-                    self.ACSelect.refPhy.contact_id = phyDetails.ordering_provider_contact_id || null;
-                    self.ACSelect.refPhy.Code = phyDetails.ord_prov_code || null;
-                    self.ACSelect.refPhy.Desc = phyDetails.ord_prov_full_name || self.usermessage.selectStudyRefProvider;
-                } else {
-                    self.ACSelect.refPhy.contact_id = claim_data.referring_provider_contact_id || null;
-                    self.ACSelect.refPhy.Code = claim_data.ref_prov_code || null;
-                    self.ACSelect.refPhy.Desc = referringProvider;
-                }
                 self.ordering_facility_id = claim_data.ordering_facility_id || claim_data.service_facility_id || null;
                 self.ordering_facility_name = orderingFacility;
                 self.ordering_facility_contact_id = claim_data.ordering_facility_contact_id || claim_data.service_facility_contact_id || null;
