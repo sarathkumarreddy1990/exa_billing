@@ -809,6 +809,12 @@ define('grid', [
                     return false;
                 }
 
+                if (app.isMobileBillingEnabled && (gridData.hidden_is_split_enabled_primary_insurance === 'true' || gridData.billing_type === 'split') && gridData.hidden_ordering_facility === 'null') {
+                    commonjs.showWarning(commonjs.geti18NString("messages.confirm.batchSplitClaim").replace('$ACCESSION_NO', gridData.accession_no));
+                    return false;
+                }
+
+
                 batchClaimArray.push({
                     patient_id: gridData.hidden_patient_id,
                     study_id: gridData.hidden_study_id,
@@ -848,7 +854,8 @@ define('grid', [
                         studyDetails: selectedIds,
                         company_id: app.companyID,
                         isAllStudies: false,
-                        isAllCensus: false
+                        isAllCensus: false,
+                        isMobileBillingEnabled: app.isMobileBillingEnabled
                     }
                 }
                     $.ajax({
@@ -965,11 +972,11 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 ('<input type="checkbox" i18nt="billing.payments.selectAllStudies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />'),
-                '','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', '', ''
+                '','','','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', '', ''
             ]);
 
             i18nName = i18nName.concat([
-                '','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '','', 'billing.claims.assignedTo', '', ''
+                '','','','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '','', 'billing.claims.assignedTo', '', ''
             ]);
 
             colModel = colModel.concat([
@@ -1433,6 +1440,30 @@ define('grid', [
                     isIconCol: true,
                     formatter: function (cellvalue, options, rowObject) {
                         return rowObject.study_cpt_id || "";
+                    }
+                },
+                {
+                    name: 'hidden_ordering_facility',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: true,
+                    isIconCol: true,
+                    formatter: function (cellvalue, options, rowObject) {
+                        return rowObject.ordering_facility || null;
+                    }
+                },
+                {
+                    name: 'hidden_is_split_enabled_primary_insurance',
+                    width: 20,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: true,
+                    isIconCol: true,
+                    formatter: function (cellvalue, options, rowObject) {
+                        return rowObject.is_split_claim_enabled || "";
                     }
                 },
                 {
