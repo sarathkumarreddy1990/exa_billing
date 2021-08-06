@@ -1017,10 +1017,10 @@ define(['jquery',
 
                 /* Claim section start*/
 
-                var renderingProviderFullName = claim_data.fac_reading_phy_full_name || claim_data.reading_phy_full_name;
-                var renderingProviderNpi = claim_data.fac_reading_phy_full_name
-                        ? claim_data.fac_rendering_prov_npi_no
-                        : claim_data.rendering_prov_npi_no;
+                var renderingProviderFullName = claim_data.reading_phy_full_name || claim_data.fac_reading_phy_full_name;
+                var renderingProviderNpi = claim_data.reading_phy_full_name
+                        ? claim_data.rendering_prov_npi_no
+                        : claim_data.fac_rendering_prov_npi_no;
 
                 if (renderingProviderFullName && renderingProviderNpi) {
                     renderingProviderFullName +=  ' ' + renderingProviderNpi;
@@ -1050,12 +1050,7 @@ define(['jquery',
 
                 var referringProvider = referringProviderFullName || self.usermessage.selectStudyRefProvider;
 
-                if ( app.country_alpha_3_code === "can" && app.province_alpha_2_code === "AB" ) {
-                    self.ACSelect.readPhy.contact_id = claim_data.rendering_provider_contact_id || null;
-                }
-                else {
-                    self.ACSelect.readPhy.contact_id = claim_data.fac_rendering_provider_contact_id || claim_data.rendering_provider_contact_id || null;
-                }
+                self.ACSelect.readPhy.contact_id = claim_data.rendering_provider_contact_id || claim_data.fac_rendering_provider_contact_id || null;
 
                 self.ordering_facility_id = claim_data.ordering_facility_id || claim_data.service_facility_id || null;
                 self.ordering_facility_name = orderingFacility;
@@ -1856,7 +1851,8 @@ define(['jquery',
                             from: 'claimCreation',
                             study_ids: selectedStudyIds,
                             patient_id: self.cur_patient_id || 0,
-                            isMobileBillingEnabled: app.isMobileBillingEnabled
+                            isMobileBillingEnabled: app.isMobileBillingEnabled,
+                            billingRegionCode: app.billingRegionCode,
                         },
                         success: function (model, response) {
                             self.claimICDLists =[];
@@ -4083,7 +4079,7 @@ define(['jquery',
                     return false;
                 }
 
-                if ( !self.ACSelect.readPhy.contact_id && app.country_alpha_3_code === 'can') {
+                if ( !self.ACSelect.readPhy.contact_id && app.billingRegionCode === 'can_AB') {
                     commonjs.showWarning("messages.warning.shared.selectRenderingProvider");
                     $('#ddlRenderingProvider').focus();
                     return false;

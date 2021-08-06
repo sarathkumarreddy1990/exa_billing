@@ -14,6 +14,7 @@ module.exports = {
     getLineItemsDetails: async function (params) {
 
         const studyIds = params.study_ids.split(',').map(Number);
+        const isAlbertaBilling = params.billingRegionCode === 'can_AB';
 
         const firstStudyId = studyIds.length > 0 ? studyIds[0] : null;
 
@@ -314,8 +315,13 @@ module.exports = {
                                                 s.study_info->'refDescription' AS referring_pro_study_desc
                                             FROM
                                                 public.studies s
+                                                LEFT JOIN public.study_transcriptions st ON st.study_id = s.id
                                                 LEFT JOIN public.study_cpt cpt ON cpt.study_id = s.id
-                                                LEFT JOIN provider_contacts pc ON pc.id = s.reading_physician_id
+                                                LEFT JOIN provider_contacts pc ON pc.id = (CASE
+                                                                                                WHEN ${isAlbertaBilling}
+                                                                                                THEN st.approving_provider_id
+                                                                                                ELSE s.reading_physician_id
+                                                                                            END)
                                                 LEFT JOIN providers p ON p.id = pc.provider_id
                                                 WHERE s.id = ${firstStudyId}
                                                 ORDER BY cpt.id ASC LIMIT 1
