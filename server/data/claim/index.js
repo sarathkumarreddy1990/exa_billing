@@ -204,6 +204,10 @@ module.exports = {
                                         referring_provider.referring_provider_contact_id,
                                         referring_provider.specialities,
                                         referring_provider.referring_prov_npi_no,
+                                        ordering_provider.ord_prov_full_name,
+                                        ordering_provider.ordering_provider_contact_id,
+                                        ordering_provider.specialities,
+                                        ordering_provider.ordering_prov_npi_no,
                                         studies_details.referring_pro_study_desc,
                                         studies_details.rendering_provider_contact_id,
                                         studies_details.reading_phy_full_name,
@@ -218,10 +222,10 @@ module.exports = {
                                         ordering_facility.ordering_facility_name,
                                         ordering_facility.location,
                                         ordering_facility.place_of_service_id AS ord_fac_place_of_service,
-                                        (CASE 
-                                            WHEN (SELECT split_types IS NOT NULL FROM census_fee_charges_details) 
-                                            THEN 'split' 
-                                            ELSE ordering_facility.billing_type 
+                                        (CASE
+                                            WHEN (SELECT split_types IS NOT NULL FROM census_fee_charges_details)
+                                            THEN 'split'
+                                            ELSE ordering_facility.billing_type
                                         END) AS billing_type,
                                         bfs.default_provider_id AS fac_billing_provider_id,
                                         orders.order_status AS order_status,
@@ -283,6 +287,22 @@ module.exports = {
                                             AND pc.deleted_dt IS NULL
                                             AND p.provider_type = 'RF'
                                         ) referring_provider ON true
+                                        LEFT JOIN LATERAL (
+                                            SELECT
+                                                pc.id AS ordering_provider_contact_id,
+                                                p.full_name AS ord_prov_full_name,
+                                                p.specialities,
+                                                p.provider_info->'NPI' AS ordering_prov_npi_no
+                                            FROM
+                                                providers p
+                                            INNER JOIN provider_contacts pc ON pc.provider_id = p.id
+                                            INNER JOIN studies s ON s.order_id = orders.id
+                                            WHERE s.id = ${firstStudyId}
+                                            AND pc.id = s.ordering_provider_contact_id
+                                            AND p.deleted_dt IS NULL
+                                            AND pc.deleted_dt IS NULL
+                                            AND p.provider_type = 'RF'
+                                        ) ordering_provider ON true
                                         JOIN LATERAL (
                                             SELECT
                                                 p.full_name AS reading_phy_full_name,
@@ -915,26 +935,6 @@ module.exports = {
                             ORDER BY p.id ASC
                         ) payment_details
                     ) AS payment_details
-                    , ( SELECT
-                        json_agg(row_to_json(orderPhyDetail)) "ordering_physician"
-                        FROM (
-                            SELECT
-                                pc.id AS ordering_provider_contact_id
-                                , p.full_name AS ord_prov_full_name
-                                , p.provider_code AS ord_prov_code
-                            FROM
-                                billing.charges ch
-                            LEFT JOIN
-                                billing.charges_studies chs ON chs.charge_id = ch.id
-                            LEFT JOIN
-                                studies s ON s.id = chs.study_id
-                            LEFT JOIN
-                                provider_contacts pc ON pc.id = s.ordering_provider_contact_id
-                            LEFT JOIN
-                                providers p ON pc.provider_id = p.id
-                            WHERE
-                                ch.claim_id = ${id}
-                        ) AS orderPhyDetail) ordering_physician
                     , c.area_of_injury_code_id
                     , c.nature_of_injury_code_id
                     FROM
