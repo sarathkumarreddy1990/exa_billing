@@ -96,7 +96,7 @@ const getSaveClaimParams = async (params) => {
         return charge;
     });
 
-    let payer_type;
+    let payer_type = DEFAULT_PAYER_TYPE;
     let insurances = Object.keys(patBeneficiaryInsurances).map((val) => {
         let insurance = val.length ? patBeneficiaryInsurances[val].sort((data) => { return data.id - data.id; })[0] : {};
         insurance.claim_patient_insurance_id = insurance.id;
@@ -110,10 +110,9 @@ const getSaveClaimParams = async (params) => {
 
     if (billing_type == 'facility') {
         payer_type = 'ordering_facility';
-    } else if (primary_insurance) {
+    }
+    else if (primary_insurance) {
         payer_type = 'primary_insurance';
-    } else {
-        payer_type = DEFAULT_PAYER_TYPE;
     }
 
     const saveClaimParams = {
