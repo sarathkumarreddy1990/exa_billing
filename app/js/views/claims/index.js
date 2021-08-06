@@ -3555,7 +3555,11 @@ define(['jquery',
 
                             if (app.billingRegionCode === 'can_BC' && self.isProviderChiropractor && (!self.priInsCode || self.priInsCode.toLowerCase() === 'msp')) {
                                 responsibleEle.val('PPP');
-                            } else {
+                            }
+                            else if (self.ordering_facility_contact_id && self.isClaimWOStudy) {
+                                responsibleEle.val('POF');
+                            }
+                            else {
                                 responsibleEle.val(val);
                             }
                         }
@@ -5370,7 +5374,21 @@ define(['jquery',
 
                 $('#ddlFacility').val(app.facilityID || '');
                 $('#ddlClaimStatus').val($("option[data-desc = 'PV']").val());
-                $('#ddlClaimResponsible').val('PPP');
+
+                if (patient_details.service_facility_contact_id) {
+                    self.updateResponsibleList({
+                        payer_type: 'POF',
+                        payer_id: patient_details.service_facility_id,
+                        payer_name: patient_details.service_facility_name + '(Service Facility)'
+                    }, null);
+                }
+                var claimResponsibleEle = $('#ddlClaimResponsible');
+                if (patient_details.service_facility_name) {
+                    claimResponsibleEle.val('POF');
+                }
+                else {
+                    claimResponsibleEle.val('PPP');
+                }
 
                 self.claim_dt_iso = commonjs.convertToFacilityTimeZone(app.facilityID, app.currentdate).format('YYYY-MM-DD LT z');
                 self.studyDate = commonjs.getConvertedFacilityTime(app.currentdate, '', 'L', app.facilityID);
@@ -5383,6 +5401,7 @@ define(['jquery',
                 self.ordering_facility_id = patient_details.service_facility_id || null;
                 self.ordering_facility_name = service_facility_name;
                 self.ordering_facility_contact_id = patient_details.service_facility_contact_id || null;
+                self.isClaimWOStudy = true;
 
                 $('#ddlPOSType').val(["can_AB", "can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && patient_details.fac_place_of_service_id || '');
                 $('#ddlBillingProvider').val(patient_details.billing_provider_id || '');
