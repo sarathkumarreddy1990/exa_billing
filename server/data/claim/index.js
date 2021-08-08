@@ -154,7 +154,10 @@ module.exports = {
                             INNER JOIN public.cpt_codes on sc.cpt_code_id = cpt_codes.id
                             INNER JOIN public.orders o on o.id = s.order_id
                             LEFT JOIN public.study_cpt_ndc scn ON scn.study_cpt_id = sc.id
-                            LEFT JOIN public.study_cpt_authorizations sca ON sca.study_cpt_id = sc.id
+                            LEFT JOIN public.study_cpt_authorizations sca ON (
+                                sca.study_cpt_id = sc.id
+                                AND sca.authorization_type = 'primary'
+                            )
 			                LEFT JOIN professional_modifier ON TRUE
                             LEFT JOIN LATERAL (
                                 SELECT UNNEST(census_fee_charges_details.split_types) AS split_type FROM census_fee_charges_details
@@ -179,9 +182,7 @@ module.exports = {
                                 ) modifiers ON TRUE
                             WHERE
                                 study_id = ANY(${studyIds}) AND sc.deleted_dt IS NULL
-                            ORDER BY
-                                sc.cpt_code ASC,
-                                sca.authorization_type ASC NULLS LAST
+                            ORDER BY sc.cpt_code ASC
 
                         )
                         , order_ids AS (
@@ -321,7 +322,10 @@ module.exports = {
                                                 public.studies s
                                                 LEFT JOIN public.study_transcriptions st ON st.study_id = s.id
                                                 LEFT JOIN public.study_cpt cpt ON cpt.study_id = s.id
-                                                LEFT JOIN public.study_cpt_authorizations sca ON sca.study_cpt_id = cpt.id
+                                                LEFT JOIN public.study_cpt_authorizations sca ON (
+                                                    sca.study_cpt_id = cpt.id
+                                                    AND sca.authorization_type = 'primary'
+                                                )
                                                 LEFT JOIN provider_contacts pc ON pc.id = (CASE
                                                                                                 WHEN ${isAlbertaBilling}
                                                                                                 THEN st.approving_provider_id
@@ -329,9 +333,8 @@ module.exports = {
                                                                                             END)
                                                 LEFT JOIN providers p ON p.id = pc.provider_id
                                                 WHERE s.id = ${firstStudyId}
-                                                ORDER BY 
-                                                    cpt.id ASC,
-                                                    sca.authorization_type ASC NULLS LAST
+                                                ORDER BY
+                                                    cpt.id ASC
                                                 LIMIT 1
                                         ) as studies_details ON TRUE
                             )
