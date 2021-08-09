@@ -39,6 +39,7 @@ const api= {
             , claim_icds
             , charges
             , is_alberta_billing
+            , is_ohip_billing
         } = params;
 
         let newClaim = [];
@@ -47,16 +48,16 @@ const api= {
             let {professional_modifier_id, technical_modifier_id} = (await data.getTechnicalAndProfessionalModifier()).pop();
 
             newClaim.push({
-                ...claims, 
+                ...claims,
                 claim_charges: charges,
                 billing_type: 'split_p'
             });
 
-            // creating a technical claim since it is split claim 
+            // creating a technical claim since it is split claim
             let newCharges = [];
-            
+
             await Promise.all(charges.map(async (charge, index) => {
-               
+
                 let modifier1 = charge.modifier1_id == professional_modifier_id ? technical_modifier_id : charge.modifier1_id;
                 let modifier2 = charge.modifier2_id == professional_modifier_id ? technical_modifier_id : charge.modifier2_id;
                 let modifier3 = charge.modifier3_id == professional_modifier_id ? technical_modifier_id : charge.modifier3_id;
@@ -85,7 +86,7 @@ const api= {
                 });
             }));
 
-            // EXA-22773 | For technical claim responsible must be ordering facility 
+            // EXA-22773 | For technical claim responsible must be ordering facility
             newClaim.push({
                 ...claims,
                 billing_method: 'direct_billing',
@@ -100,9 +101,10 @@ const api= {
                 , claim_icds
                 , auditDetails
                 , is_alberta_billing
+                , is_ohip_billing
             });
 
-        } 
+        }
 
         return await data.save({
             claims: [{
@@ -113,6 +115,7 @@ const api= {
             , claim_icds
             , auditDetails
             , is_alberta_billing
+            , is_ohip_billing
         });
     },
 
