@@ -144,7 +144,7 @@ module.exports = {
                                     billing.get_computed_bill_fee(null,cpt_codes.id,modifiers.modifier1_id,modifiers.modifier2_id,modifiers.modifier3_id,modifiers.modifier4_id,'allowed','patient',${params.patient_id},o.facility_id)::NUMERIC
                                   END) as allowed_fee
                                 , COALESCE(sc.units,'1')::NUMERIC AS units
-                                , COALESCE ( NULLIF(sc.authorization_info->'Primary', '')::json->'authorization_no', 'null') AS authorization_no
+                                , sca.authorization_no AS authorization_no
                                 , display_description
                                 , additional_info
                                 , sc.cpt_code_id AS cpt_id
@@ -154,6 +154,10 @@ module.exports = {
                             INNER JOIN public.cpt_codes on sc.cpt_code_id = cpt_codes.id
                             INNER JOIN public.orders o on o.id = s.order_id
                             LEFT JOIN public.study_cpt_ndc scn ON scn.study_cpt_id = sc.id
+                            LEFT JOIN public.study_cpt_authorizations sca ON (
+                                sca.study_cpt_id = sc.id
+                                AND sca.authorization_type = 'primary'
+                            )
 			                LEFT JOIN professional_modifier ON TRUE
                             LEFT JOIN LATERAL (
                                 SELECT UNNEST(census_fee_charges_details.split_types) AS split_type FROM census_fee_charges_details
@@ -195,7 +199,7 @@ module.exports = {
                                         NULLIF(order_info->'hFrom','')::DATE AS hospitalization_from_date,
                                         COALESCE(NULLIF(order_info->'outsideLab',''), 'false')::boolean AS service_by_outside_lab,
                                         order_info->'original_ref' AS original_reference,
-                                        order_info->'authorization_no' AS authorization_no,
+                                        studies_details.authorization_no AS authorization_no,
                                         order_info->'frequency_code' AS frequency,
                                         COALESCE(NULLIF(order_info->'oa',''), 'false')::boolean AS is_other_accident,
                                         COALESCE(NULLIF(order_info->'aa',''), 'false')::boolean AS is_auto_accident,
@@ -312,11 +316,16 @@ module.exports = {
                                                 pc.can_locum_arrangement AS can_ahs_locum_arrangement_provider,
                                                 nature_of_injury_code_id,
                                                 area_of_injury_code_id,
+                                                sca.authorization_no,
                                                 s.study_info->'refDescription' AS referring_pro_study_desc
                                             FROM
                                                 public.studies s
                                                 LEFT JOIN public.study_transcriptions st ON st.study_id = s.id
                                                 LEFT JOIN public.study_cpt cpt ON cpt.study_id = s.id
+                                                LEFT JOIN public.study_cpt_authorizations sca ON (
+                                                    sca.study_cpt_id = cpt.id
+                                                    AND sca.authorization_type = 'primary'
+                                                )
                                                 LEFT JOIN provider_contacts pc ON pc.id = (CASE
                                                                                                 WHEN ${isAlbertaBilling}
                                                                                                 THEN st.approving_provider_id
@@ -324,7 +333,9 @@ module.exports = {
                                                                                             END)
                                                 LEFT JOIN providers p ON p.id = pc.provider_id
                                                 WHERE s.id = ${firstStudyId}
-                                                ORDER BY cpt.id ASC LIMIT 1
+                                                ORDER BY
+                                                    cpt.id ASC
+                                                LIMIT 1
                                         ) as studies_details ON TRUE
                             )
                             ,claim_problems AS (
