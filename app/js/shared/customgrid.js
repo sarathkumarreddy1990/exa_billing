@@ -95,6 +95,7 @@ function customGrid ( datastore, gridID ) {
             sortorder: options.sortorder,
             gridview: true,
             altRows: true,
+            autoencode: true,
             subGrid: this.options.subGrid,
             pgbuttons: false,
             viewrecords: !options.disablepaging,
