@@ -771,7 +771,11 @@ const api = {
                         LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id
                         WHERE
                             pi.patient_id = studies.patient_id 
-                            AND ((studies.study_dt IS NOT NULL AND valid_to_date >= studies.study_dt) OR (studies.study_dt IS NULL AND valid_to_date >= now()) OR valid_to_date IS NULL)
+                            AND ((studies.study_dt IS NOT NULL
+                                    AND valid_to_date >= studies.study_dt)
+                                OR (studies.study_dt IS NULL
+                                    AND valid_to_date >= now())
+                                OR valid_to_date IS NULL)
                             AND pi.coverage_level = 'primary'
                         ORDER BY pi.valid_to_date ASC
                         LIMIT 1

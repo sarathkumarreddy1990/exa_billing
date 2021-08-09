@@ -809,8 +809,10 @@ define('grid', [
                     return false;
                 }
 
-                if (app.isMobileBillingEnabled && (gridData.hidden_is_split_enabled_primary_insurance === 'true' || gridData.billing_type === 'split') && gridData.hidden_ordering_facility === 'null') {
-                    commonjs.showWarning(commonjs.geti18NString("messages.confirm.batchSplitClaim").replace('$ACCESSION_NO', gridData.accession_no));
+                if (app.isMobileBillingEnabled
+                    && (gridData.hidden_is_split_enabled_primary_insurance === 'true' || gridData.billing_type === 'split')
+                    && gridData.hidden_ordering_facility === 'null') {
+                    commonjs.showWarning(commonjs.geti18NString("messages.confirm.batchSplitClaim").replace('$ACCESSION_NO$', gridData.accession_no));
                     return false;
                 }
 
