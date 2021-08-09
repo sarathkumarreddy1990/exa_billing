@@ -761,6 +761,28 @@ const api = {
                    LEFT JOIN public.ordering_facilities ON ordering_facilities.id = ordering_facility_contacts.ordering_facility_id`;
         }
 
+        if (tables.primary_insurance) {
+            r += ` 
+                    LEFT JOIN LATERAL(
+                        SELECT  
+                            ipd.is_split_claim_enabled
+                        FROM public.patient_insurances pi
+                        INNER JOIN public.insurance_providers ip ON ip.id= pi.insurance_provider_id
+                        LEFT JOIN billing.insurance_provider_details ipd on ipd.insurance_provider_id = ip.id
+                        WHERE
+                            pi.patient_id = studies.patient_id 
+                            AND ((studies.study_dt IS NOT NULL
+                                    AND valid_to_date >= studies.study_dt)
+                                OR (studies.study_dt IS NULL
+                                    AND valid_to_date >= now())
+                                OR valid_to_date IS NULL)
+                            AND pi.coverage_level = 'primary'
+                        ORDER BY pi.valid_to_date ASC
+                        LIMIT 1
+                    ) AS primary_insurance ON TRUE
+            `;
+        }
+
         return r;
     },
 
@@ -911,7 +933,8 @@ const api = {
             `patient_alt_accounts.pid_alt_account`,
             `patient_alt_accounts.phn_alt_account`,
             `claim_sequence_numbers.can_bc_claim_sequence_numbers`,
-            'ordering_facility_contacts.billing_type'
+            'ordering_facility_contacts.billing_type',
+            'primary_insurance.is_split_claim_enabled'
         ];
 
         return stdcolumns.concat(
