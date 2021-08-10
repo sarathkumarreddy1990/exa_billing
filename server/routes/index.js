@@ -10,7 +10,7 @@ const siteConfig = require('../../server/config');
 router.get('/', function (req, res) {
     let currentTheme = 'default';
     let billingRegionCode= (req.session && req.session.billingRegionCode) || '';
-    let hasCensusRights = req.session?.user_type === 'SU' || req.session?.screens.indexOf('CENS') > 1;
+    let hasCensusRights = req.session?.user_type === 'SU' || req.session?.screens?.indexOf('CENS') > -1;
 
     if (req.session && req.session.currentTheme && ['default', 'dark'].indexOf(req.session.currentTheme) > -1) {
         currentTheme = req.session.currentTheme;
