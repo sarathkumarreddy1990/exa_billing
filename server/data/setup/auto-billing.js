@@ -802,13 +802,13 @@ module.exports = {
 
             claims.forEach((claim) => {
 
-                if (claim.billing_type === 'split' && !claim.ordering_facility_contact_id) {
+                if (claim.billing_type === 'split' && claim.ordering_facility_contact_id) {
                     filteredClaims.push({
                         ...claim,
                         billing_type: DEFAULT_BILLING_TYPE
                     });
                 }
-                else if (claim.billing_type !== 'census') {
+                else if (['census', 'split'].indexOf(claim.billing_type) === -1) {
                     filteredClaims.push(claim);
                 }
             });
