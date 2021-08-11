@@ -48,7 +48,6 @@ AS (
         , s_ppi.group_number AS secondary_subscriber_group_policy_num
         , t_ppi.group_number AS tertiary_subscriber_group_policy_num
         , claim_status_id
-        , SUM(bgct.claim_balance_total) AS claim_balance
     FROM
         billing.claims bc
     INNER JOIN billing.get_claim_totals(bc.id) bgct ON TRUE
@@ -220,7 +219,7 @@ AS (
             , patient_last_name AS "Patient Last Name"
             , patient_first_name AS "Patient First Name"
             , patient_dob AS "DOB"
-            , claim_balance AS "Account Balance"
+            , patient_current_balance AS "Account Balance"
             , claim_date AS "Service Date"
             FROM
                 collections)
