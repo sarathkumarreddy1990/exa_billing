@@ -48,7 +48,7 @@ AS (
         , s_ppi.group_number AS secondary_subscriber_group_policy_num
         , t_ppi.group_number AS tertiary_subscriber_group_policy_num
         , claim_status_id
-        , bgct.claim_balance_total AS claim_balance
+        , SUM(bgct.claim_balance_total) AS claim_balance
     FROM
         billing.claims bc
     INNER JOIN billing.get_claim_totals(bc.id) bgct ON TRUE
