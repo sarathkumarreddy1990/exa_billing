@@ -207,7 +207,8 @@ const submitClaims = async (callback) => {
             providerSpeciality,
             professionalGroupNumber,
             claim_type,
-            batchSequenceNumber
+            batchSequenceNumber,
+            derivedMOHId
         } = groupSubmissions
 
         try {
@@ -225,7 +226,9 @@ const submitClaims = async (callback) => {
                 providerNumber: providerNumber,
                 fileSequenceOffset: index,
                 ...groupSubmissions,
-                errorData: {} //claimSubmissionFailures
+                errorData: {}, //claimSubmissionFailures
+                derivedGroupNumber,
+                derivedMOHId
             };
         }
         catch (e) {

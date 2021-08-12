@@ -173,7 +173,8 @@ const storeFile = async (args) => {
         providerNumber,
         providerSpeciality,
         batchSequenceNumber,
-        derivedGroupNumber
+        derivedGroupNumber,
+        derivedMOHId
     } = args;
 
     data = data || (file_data.length && file_data[0].data) || '';
@@ -251,7 +252,8 @@ const storeFile = async (args) => {
                                 file_size,
                                 file_md5,
                                 uploaded_file_name,
-                                resource_no
+                                resource_no,
+                                can_ohip_moh_id
                             )
                             VALUES(
                                 1
@@ -264,6 +266,7 @@ const storeFile = async (args) => {
                                 ,${md5Hash}::TEXT
                                 ,${filename}::TEXT
                                 ,nullif(${resource_id}, 'undefined')
+                                ,${derivedMOHId}
                             )
                             ON CONFLICT (resource_no) WHERE resource_no IS NOT NULL
                             DO NOTHING
