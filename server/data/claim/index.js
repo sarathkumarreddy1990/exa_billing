@@ -338,7 +338,10 @@ module.exports = {
                                                     cpt.id ASC
                                                 LIMIT 1
                                         ) as studies_details ON TRUE
-                                        LEFT JOIN ordering_facility_contacts ofc ON ofc.ordering_facility_id = NULLIF((facilities.facility_info->'service_facility_id'), '')::BIGINT AND ofc.is_primary
+                                        LEFT JOIN ordering_facility_contacts ofc ON (
+                                            ofc.ordering_facility_id = NULLIF((facilities.facility_info->'service_facility_id'), '')::BIGINT
+                                            AND ofc.is_primary
+                                        )
                             )
                             ,claim_problems AS (
                                         SELECT
