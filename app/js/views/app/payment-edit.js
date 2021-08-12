@@ -1169,7 +1169,7 @@ define(['jquery',
                     return false;
                 }
 
-                if (!$('#ddlPaidLocation').val()) {
+                if ($('#ddlPaidLocation').val() === '0') {
                     commonjs.showWarning("messages.warning.payments.selectPaidLocation");
                     $('#ddlPaidLocation').focus();
                     return false;
