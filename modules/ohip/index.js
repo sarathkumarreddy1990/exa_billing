@@ -296,6 +296,7 @@ const downloadNew = (args, callback) => {
                         data,
                         filename,
                         resource_id,
+                        derivedMOHId: providerNumber
                     });
 
                     edifileList.push({
