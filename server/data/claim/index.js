@@ -222,7 +222,7 @@ module.exports = {
                                         providers.fac_rendering_prov_npi_no,
                                         facility_info->'service_facility_id' as service_facility_id,
                                         facility_info->'service_facility_name' as service_facility_name,
-                                        service_facility.service_facility_contact_id,
+                                        ofc.id AS service_facility_contact_id,
                                         ordering_facility.ordering_facility_contact_id,
                                         ordering_facility.id AS ordering_facility_id,
                                         ordering_facility.ordering_facility_name,
@@ -267,13 +267,6 @@ module.exports = {
                                             INNER JOIN ordering_facilities of ON of.id = ofc.ordering_facility_id
                                             WHERE studies.id = ${firstStudyId}
                                         ) ordering_facility  ON TRUE
-                                        LEFT JOIN LATERAL (
-                                            SELECT
-                                                ofc.id AS service_facility_contact_id
-                                            FROM ordering_facility_contacts ofc
-                                            WHERE ofc.ordering_facility_id = NULLIF((facilities.facility_info->'service_facility_id'), '')::BIGINT
-                                            AND ofc.is_primary
-                                        ) service_facility ON TRUE
                                         LEFT JOIN LATERAL (
                                             SELECT
                                                 pc.id,
@@ -345,6 +338,7 @@ module.exports = {
                                                     cpt.id ASC
                                                 LIMIT 1
                                         ) as studies_details ON TRUE
+                                        LEFT JOIN ordering_facility_contacts ofc ON ofc.ordering_facility_id = NULLIF((facilities.facility_info->'service_facility_id'), '')::BIGINT AND ofc.is_primary
                             )
                             ,claim_problems AS (
                                         SELECT
