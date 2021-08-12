@@ -899,12 +899,11 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 ('<input type="checkbox" i18nt="billing.payments.selectAllStudies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />'),
-                '','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', '', ''
+                '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', '', ''
             ]);
 
             i18nName = i18nName.concat([
-                '','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'billing.claims.assignedTo', '', ''
-            ]);
+                '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'billing.claims.assignedTo', '', '']);
 
             colModel = colModel.concat([
                 {
@@ -1217,6 +1216,32 @@ define('grid', [
                         }
                     },
                     customAction: function (rowID, e, that) {
+                    }
+                },
+                {
+                    name: 'as_claim_submission_status',
+                    width: 40,
+                    sortable: false,
+                    resizable: false,
+                    search: false,
+                    hidden: app.country_alpha_3_code !== 'can',
+                    isIconCol: true,
+                    formatter: function (cellvalue, options, rowObject) {
+                        return rowObject.error_data && rowObject.error_data.length && "<i class='icon-ic-warning' i18nt='billing.claims.claimError'></i>" || '';
+
+                    },
+                    customAction: function (rowID, e, that) {
+                        var gridData = getData(rowID, studyStore, gridID);
+                        var errorContent = '<div style="width:100%;height:100%" id="divError"><textarea style="width:100%;height:100%" id="txtAreaErrorData">' + JSON.stringify(gridData.error_data, undefined, 4) + '</textarea></div>';
+
+                        commonjs.showDialog({
+                            header: 'OHIP  Submission Error',
+                            i18nHeader: 'shared.moduleheader.ohipClaims',
+                            width: '50%',
+                            height: '50%',
+                            html: errorContent
+                        });
+
                     }
                 },
                 {
