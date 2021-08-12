@@ -8,13 +8,10 @@ const httpHandler = require('../../shared/http');
 router.get('/', async function (req, res) {
     req.query.company_id = req.query.companyId;
     req.query.user_id = req.query.userId;
+    req.query.billingRegionCode = req.session.billingRegionCode;
 
-    //try {
     const data = await claimWorkbenchController.getData(req.query);
     httpHandler.sendRows(req, res, data);
-    // } catch (err) {
-    //     httpHandler.sendError(req, res, err);
-    // }
 });
 
 
