@@ -404,7 +404,21 @@ const submitClaims = async (callback) => {
                         const separatedSubmitResults = separateResults(submitResponse, EDT_SUBMIT, responseCodes.SUCCESS);
                         const successfulSubmitResults = separatedSubmitResults[responseCodes.SUCCESS];
                         if (submitErr) {
-                           return reject(submitErr, allSubmitClaimResults);
+
+                            await ohipData.updateFileStatus({
+                                files: uploadFiles,
+                                errors: submitErr || [],
+                                status: 'failure'
+                            });
+
+                            await ohipData.updateClaimStatus({
+                                claimIds: claimIds,
+                                claimStatusCode: 'SUBF',
+                                claimNote: 'Submission failed in MCEDT file Submit',
+                                userId: 1,
+                            });
+
+                            return reject(submitErr, allSubmitClaimResults);
                         }
 
 
