@@ -11,6 +11,7 @@ SELECT
     row_to_json(companyInfo) AS company
   , facilityInfo.facilities  AS facilities
   , row_to_json(userInfo)    AS user
+  , serviceFacilityInfo.serviceFacilities AS serviceFacilities
 FROM
 -- company info
 (
@@ -27,7 +28,21 @@ FROM
 -- current user info
 (
   SELECT u.id, u.username, u.first_name AS "firstName", u.last_name AS "lastName", u.middle_initial AS "middleInitial" FROM users AS u WHERE u.id = $2 LIMIT 1
-) AS userInfo
+) AS userInfo,
+-- service facilities info
+(
+    SELECT json_agg(row_to_json(serviceFacilityInfoAgg)) AS serviceFacilities
+    FROM
+    (
+        SELECT 
+            sf.id
+            , sf.code
+            , sf.name
+        FROM public.ordering_facilities AS sf
+        WHERE sf.company_id = $1
+        AND sf.deleted_dt IS NULL
+    ) AS serviceFacilityInfoAgg
+) AS serviceFacilityInfo
 `;
 
 const api = {
