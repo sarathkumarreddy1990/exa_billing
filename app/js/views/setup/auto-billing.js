@@ -754,6 +754,7 @@ define(['jquery',
                     commonjs.showWarning('setup.autoBilling.selectStudyStatusCondition');
                     return;
                 }
+                $('#btnSaveautoBilling').prop('disabled', true);
                 autoBillingModelData.study_status_codes = study_status_codes;
                 autoBillingModelData.exclude_study_statuses = exclude_study_statuses === "isNOT";
 
@@ -797,6 +798,7 @@ define(['jquery',
                     success: function (model, response) {
                         if (response) {
                             commonjs.showStatus('messages.status.savedSuccessfully');
+                            $('#btnSaveautoBilling').prop('disabled', false);
                             if (options.closeOnSuccess) {
                                 Backbone.history.navigate('#setup/auto_billing/list', true);
                             }
