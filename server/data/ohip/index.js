@@ -839,11 +839,18 @@ const applyErrorReport = async (args) => {
             SET
                 did_not_process = true
             WHERE
-                efc.edi_file_id = ${responseFileId}
-            AND
                 efc.claim_id = ANY(SELECT id FROM claim)
             AND
                 NOT efc.did_not_process
+            AND
+                efc.id = ANY(
+                    SELECT
+                        MAX(id)
+                    FROM
+                        billing.edi_file_claims
+                    WHERE claim_id = efc.claim_id
+                    GROUP BY claim_id
+                )
             RETURNING
                 id
         )
