@@ -154,7 +154,7 @@ const getClaimSubmissionFilename = (args) => {
     if (claim_type == 'technical') {
         fileName = `${groupNumber}`;
     }
-    else if (claim_type == 'professional') {
+    else if (['professional_facility', 'professional_provider'].indexOf(claim_type) > -1) {
         if (['27', '76', '85', '90'].includes(providerSpeciality))
             fileName = `${providerNumber}`;
         else
