@@ -117,6 +117,7 @@ module.exports = {
                                         is_split_claim_enabled
                                     FROM insurances
                                     WHERE coverage_level = 'primary' AND is_split_claim_enabled IS TRUE)
+                                    AND (SELECT billing_type from get_study_date) != 'facility'
                                 ) THEN ARRAY_AGG(ARRAY['insurance'])
                                 WHEN (${params.isMobileBillingEnabled} = 'true' AND  (SELECT billing_type from get_study_date) = 'split') THEN ARRAY_AGG(ARRAY['insurance']) ELSE NULL END) AS split_types
                         ),
