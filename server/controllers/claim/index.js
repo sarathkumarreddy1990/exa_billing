@@ -89,6 +89,7 @@ const api= {
             // EXA-22773 | For technical claim responsible must be ordering facility
             newClaim.push({
                 ...claims,
+                place_of_service_id: claims.technical_place_of_service || null,
                 billing_method: 'direct_billing',
                 payer_type: 'ordering_facility',
                 claim_charges: newCharges,

@@ -1873,6 +1873,7 @@ define(['jquery',
                                 self.showAlertBadge();
                                 /* Patient Alert data Bind Ended */
 
+                                self.technicalPlaceOfService = _defaultDetails.ord_fac_place_of_service;
                                 self.claim_dt_iso = modelDetails && commonjs.checkNotEmpty(modelDetails.study_dt)
                                         ? commonjs.convertToFacilityTimeZone(self.facilityId, modelDetails.study_dt)
                                         : commonjs.convertToFacilityTimeZone(app.facilityID, app.currentdate);
@@ -3755,6 +3756,7 @@ define(['jquery',
                     referring_provider_contact_id: self.ACSelect && self.ACSelect.refPhy ? self.ACSelect.refPhy.contact_id : null,
                     ordering_facility_contact_id: self.ordering_facility_contact_id || null,
                     place_of_service_id: ["can_AB", "can_MB", "can_ON"].indexOf(app.billingRegionCode) === -1 && $('#ddlPOSType option:selected').val() != '' ? parseInt($('#ddlPOSType option:selected').val()) : null,
+                    technical_place_of_service: app.isMobileBillingEnabled && self.is_split_claim && self.technicalPlaceOfService || '',
                     billing_code_id: $('#ddlBillingCode option:selected').val() != '' ? parseInt($('#ddlBillingCode option:selected').val()) : null,
                     billing_class_id: $('#ddlBillingClass option:selected').val() != '' ? parseInt($('#ddlBillingClass option:selected').val()) : null,
                     created_by: app.userID,
