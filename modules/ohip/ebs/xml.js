@@ -300,10 +300,11 @@ module.exports = {
     parseEBSFault: (docStr) => {
 
         const doc = new dom().parseFromString(docStr);
-        const faultNode = select("//*[local-name(.)='Fault']", doc)[0];
+        const faultNode = doc && select("//*[local-name(.)='Fault']", doc)[0] || '';
+        const faultCode = select("*[local-name(.)='faultcode']/text()", faultNode)[0] || null;
 
         const basicFault = {
-            faultcode: select("*[local-name(.)='faultcode']/text()", faultNode)[0].nodeValue,
+            faultcode: faultCode && faultCode.nodeValue || '',
             faultstring: parseOptionalValue(faultNode, 'faultstring'),
         };
 

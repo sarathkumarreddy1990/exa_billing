@@ -1096,6 +1096,7 @@ const OHIPDataAPI = {
                 '' AS "masterNumber",
                 get_full_name(pp.last_name,pp.first_name) AS "patientName",
                 'IHF' AS "serviceLocationIndicator",
+                pspos.code AS "professional_sli",
                 ppos.code AS place_of_service
             FROM billing.claims bc
             INNER JOIN billing.claim_status bcs ON bcs.id = bc.claim_status_id
@@ -1118,6 +1119,7 @@ const OHIPDataAPI = {
                 WHERE bch.claim_id = bc.id AND NOT bch.is_excluded
                 ORDER BY bch.id DESC LIMIT 1
             ) claim_types ON TRUE
+            LEFT JOIN public.places_of_service pspos ON ppos.id = NULLIF((pf.facility_info->'ohipProfSLI'), '')::BIGINT
             WHERE`.append(whereQuery)
             .append(SQL` ORDER BY bc.id DESC `)
             .append(limitQuery);

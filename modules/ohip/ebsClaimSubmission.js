@@ -304,7 +304,7 @@ const submitClaims = async (callback) => {
                         auditInfo,
                     } = uploadResponse;
 
-                    let uploadFiles = auditInfo.length && auditInfo[0].eventDetail && auditInfo[0].eventDetail.upload && auditInfo[0].eventDetail.upload.uploads || [];
+                    let uploadFiles = auditInfo.length && auditInfo[0] && auditInfo[0].eventDetail && auditInfo[0].eventDetail.upload && auditInfo[0].eventDetail.upload.uploads || [];
 
                     ohipData.auditTransaction(auditInfo);
 
@@ -435,6 +435,14 @@ const submitClaims = async (callback) => {
                         storedFiles.forEach(async (storedFile) => {
                             const claimStatusCode = storedFile.resource_id > 0 && ohipConfig.pendAckCode || 'SUBF';
                             const claimNote = storedFile.resource_id > 0 && 'Electronically submitted in MCEDT-EBS file submission' || 'Electronically submission failed in MCEDT-EBS file submission';
+
+                            if (claimStatusCode === 'SUBF') {
+                                await ohipData.updateFileStatus({
+                                    files: [storedFile],
+                                    errors: [{'error': 'Resource number not available'}],
+                                    status: 'failure'
+                                });
+                            }
 
                             await ohipData.updateClaimStatus({
                                 claimIds: storedFile.claimIds,

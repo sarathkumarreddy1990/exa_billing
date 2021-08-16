@@ -76,6 +76,11 @@ const services = {
     // HCV_OVERNIGHT: 'obec',
 };
 
+// Include CPTs in this array for fetching professional SLI from facility
+const ohipProfProcedureCodes = [
+
+];
+
 module.exports = {
 
     services,
@@ -97,4 +102,6 @@ module.exports = {
     SUBMIT_MAX: 100,
 
     INFO_MAX: 100,
+
+    ohipProfProcedureCodes,
 };
