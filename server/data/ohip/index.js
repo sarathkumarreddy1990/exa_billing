@@ -843,7 +843,7 @@ const applyErrorReport = async (args) => {
             AND
                 NOT efc.did_not_process
             AND
-                efc.id = ANY(
+                efc.id = (
                     SELECT
                         MAX(id)
                     FROM
@@ -1437,7 +1437,7 @@ const OHIPDataAPI = {
                                 WHERE cc.display_code = application_details.cpt_code
                                 ORDER BY cc.id ASC LIMIT 1
                             ) cpt ON true
-                            WHERE 
+                            WHERE
                                 claims.invoice_no IS NOT NULL
                                 AND application_details.cpt_code NOT IN (
                                     SELECT
@@ -1504,7 +1504,7 @@ const OHIPDataAPI = {
             				) charges ON TRUE
 							WHERE
 							  charges.charge_id IS NOT NULL
-                        )                       
+                        )
                         ,matched_claims AS (
                             SELECT
                                 fcc.claim_id,
