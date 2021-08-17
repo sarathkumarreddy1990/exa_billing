@@ -46,6 +46,15 @@ const startService = async () => {
             break;
         }
 
+        case 'ohip-ra-process': {
+            const ApplyRemittanceAdvice = require('../../modules/ohip/processRemittanceFiles');
+            const applyRAFiles = new ApplyRemittanceAdvice({
+                //cron:  need to get from config
+            });
+            applyRAFiles.start();
+            break;
+        }
+
         default: {
             logger.logError(' Service not supplied through environment ');
             process.exit();

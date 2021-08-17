@@ -16,21 +16,23 @@ module.exports = {
             let default_payer = await data.getDefaultPayer();
             const startTime = new Date().getTime();
 
-            if(!default_payer.rows.length){
-                return {status: '23156',
-                    message: 'Default Payer Not available'};
+            if (!default_payer.rows.length){
+                return {
+                    status: '23156',
+                    message: 'Default Payer Not available'
+                };
             }
 
             params.insurance_provider_id = default_payer.rows[0].insurance_provider_id;
 
             logger.info('Payment creation process started - OHIP');
 
+            params.created_by = params.userId || 1;
+            params.company_id = params.companyId || 1;
+
             let paymentDetails = await self.createPayment(payment_data, params);
 
             logger.info('Payment creation process ended - OHIP');
-
-            params.created_by = params.userId || 0;
-            params.company_id = params.companyId || 0;
 
             logger.info('Grouping claim process started - OHIP');
             let lineItemsAndClaimLists = await self.getOHIPLineItemsAndClaims(payment_data.ra_json, params);
@@ -146,12 +148,12 @@ module.exports = {
         });
 
         let auditDetails = {
-            screen_name: params.screenName,
-            module_name: params.moduleName,
-            entity_name: params.entityName,
-            client_ip: params.clientIp,
-            company_id: params.companyId,
-            user_id: params.userId
+            screen_name: params.screenName || 'Payments',
+            module_name: params.moduleName || 'era',
+            entity_name: params.entityName || 'Payments',
+            client_ip: params.clientIp || '127.0.0.1',
+            company_id: params.companyId || 1,
+            user_id: params.userId || 1
         };
 
         /**
@@ -195,7 +197,7 @@ module.exports = {
             notes        : notes,
             user_id      : params.user_id || 1,
             file_id      : params.edi_files_id || 0,
-            clientIp     : params.clientIp,
+            clientIp     : params.clientIp || '127.0.0.1',
             payer_type   : 'insurance',
             paymentId    : params.payment_id || null,
             company_id   : params.company_id || 1,
@@ -203,8 +205,8 @@ module.exports = {
             invoice_no   : '',
             display_id   : null,  // alternate_payment_id
             created_by   : params.created_by || 1,
-            screenName   : params.screenName,
-            moduleName   : params.moduleName,
+            screenName   : params.screenName || 'Payments',
+            moduleName   : params.moduleName || 'era',
             facility_id  : params.facility_id || 1,
             isERAPayment : true,
             payment_mode : 'eft',

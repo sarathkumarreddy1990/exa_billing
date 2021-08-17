@@ -10,6 +10,7 @@ const {
 const path = require('path');
 const logger = require('../../logger');
 const remittanceAdviceProcessor = path.join(__dirname, '/remittanceAdviceProcessor');
+const eraParser = require('./../../server/data/ohip/ohip-era-parser');
 const fork = require('child_process').fork;
 // this is the high-level business logic and algorithms for OHIP
 //  * use cases are defined here
@@ -375,7 +376,7 @@ const downloadResponseForProvider = (providerNumber, applicator, resourceType) =
         });
     });
 
-}
+};
 
 const downloadRemittanceForProvider = (providerNumber, resourceType) => {
     return new Promise((reject, resolve) => {
@@ -397,7 +398,7 @@ const downloadRemittanceForProvider = (providerNumber, resourceType) => {
             })
         });
     });
-}
+};
 
 const downloadRemittanceFiles = async (providerNumbersList, callback) => {
     let downloadResults = [];
@@ -415,7 +416,7 @@ const downloadRemittanceFiles = async (providerNumbersList, callback) => {
     }
 
     return callback(null, downloadResults);
-}
+};
 
 const downloadSubmittedFiles = async (providerNumbersList, callback) => {
 
@@ -450,6 +451,7 @@ const downloadSubmittedFiles = async (providerNumbersList, callback) => {
 
     return callback(null, []);
 };
+
 
 /**
  * const createEncoderContext - description
@@ -500,6 +502,59 @@ const downloadAndProcessResponseFiles = async (args, callback) => {
         resourceType,
         applicator
     }, callback);
+};
+
+const processRemittanceAdviceFiles = async (filesList, callback) => {
+
+    const promises = _.map(filesList, async (file) => {
+        let {
+            edi_file_id
+        } = file;
+
+        const fileData = await billingApi.loadFile({
+            edi_files_id: edi_file_id
+        });
+
+        let processedResult = null;
+
+        if (fileData.data) {
+            logger.logInfo(`Decoding remittance advice file ${fileData.uploaded_file_name}`);
+            const parser = new Parser(fileData.uploaded_file_name);
+            fileData.ra_json = await parser.parse(fileData.data);
+
+            logger.logInfo(`Decoding remittance advice file ${fileData.uploaded_file_name} completed...`);
+
+            logger.logInfo(`Initiated file processing... ${edi_file_id} - ${fileData.uploaded_file_name}`);
+
+            processedResult = await eraParser.processOHIPEraFile(fileData, {
+                companyId: fileData.company_id,
+                edi_files_id: edi_file_id,
+				moduleName: 'era',
+				screenName: 'Payments',
+				entityName: 'Payments',
+				company_id: fileData.company_id,
+            });
+
+            if (processedResult && processedResult.status === '23156') {
+                return callback(processedResult, null);
+            }
+
+            logger.logInfo(`File Processing completed for ${edi_file_id} - ${fileData.uploaded_file_name}...`);
+        } else {
+            logger.error(`Unable to read file data ${fileData.uploaded_file_name}`);
+
+            processedResult = {
+                error: `Unable to read file data ${fileData.uploaded_file_name}`
+            };
+        }
+
+        return processedResult;
+    });
+
+    let results = await Promise.all(promises);
+
+    callback(null, [...results]);
+
 };
 
 //
@@ -880,7 +935,7 @@ module.exports = {
 
     downloadSubmittedFiles,
 
-    downloadRemittanceFiles,
+	downloadRemittanceFiles,
 
     validateHealthCard: async (args, callback) => {
         const ebs = new EBSConnector((await billingApi.getOHIPConfiguration()).ebsConfig);
@@ -1073,4 +1128,6 @@ module.exports = {
     remittanceAdviceFilesRefresh: downloadRemittanceAdvice,
 
     responseFilesRefresh: downloadAndProcessResponseFiles,
+
+    processRemittanceFiles: processRemittanceAdviceFiles,
 };
