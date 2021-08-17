@@ -10,7 +10,7 @@ const {
 const path = require('path');
 const logger = require('../../logger');
 const remittanceAdviceProcessor = path.join(__dirname, '/remittanceAdviceProcessor');
-const eraParser = require('./../../server/data/ohip/ohip-era-parser');
+const eraParser = require('../../server/data/ohip/ohip-era-parser');
 const fork = require('child_process').fork;
 // this is the high-level business logic and algorithms for OHIP
 //  * use cases are defined here
@@ -451,7 +451,6 @@ const downloadSubmittedFiles = async (providerNumbersList, callback) => {
 
     return callback(null, []);
 };
-
 
 /**
  * const createEncoderContext - description
