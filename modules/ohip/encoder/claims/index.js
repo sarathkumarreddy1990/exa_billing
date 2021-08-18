@@ -202,7 +202,7 @@ module.exports = function (options) {
                                 derivedGroupNumber = groupNumber;
                                 derivedMOHId = providerNumber;
                             }
-                            else if (claim_type == 'professional') {
+                            else if (claim_type == 'professional_provider') {
                                 if (['27', '76', '85', '90'].includes(providerSpeciality)) {
                                     derivedGroupNumber = '0000' || groupNumber;
                                     derivedMOHId = professionalGroupNumber;
@@ -210,6 +210,16 @@ module.exports = function (options) {
                                 else {
                                     derivedGroupNumber = professionalGroupNumber || '0000';
                                     derivedMOHId = providerNumber;
+                                }
+                            }
+                            else if (claim_type == 'professional_facility') {
+                                if (['27', '76', '85', '90'].includes(providerSpeciality)) {
+                                    derivedGroupNumber = '0000' || groupNumber;
+                                    derivedMOHId = professionalGroupNumber;
+                                }
+                                else {
+                                    derivedGroupNumber = professionalGroupNumber || '0000';
+                                    derivedMOHId = professionalGroupNumber || providerNumber;
                                 }
                             }
 

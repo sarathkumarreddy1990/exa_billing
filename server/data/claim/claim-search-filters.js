@@ -368,11 +368,11 @@ const api = {
                 billing.claims
                 INNER JOIN facilities ON facilities.id=claims.facility_id
             ${permissionQuery}
-            ${api.getWLQueryJoin(tables, true, args.customArgs.filter_id, args.user_id, args.isCount) + args.filterQuery}
+            ${api.getWLQueryJoin(tables, true, args.customArgs.filter_id, args.user_id, args.isCount, args) + args.filterQuery}
             `;
         return query;
     },
-    getWLQueryJoin: function (columns, isInnerQuery, filterID, userID, isCount) {
+    getWLQueryJoin: function (columns, isInnerQuery, filterID, userID, isCount, args) {
         let tables = isInnerQuery ? columns : api.getTables(columns);
 
         let r = '';
@@ -537,6 +537,19 @@ const api = {
                 ) AS claim_icds ON TRUE `;
         }
 
+        if (args && args.billingRegionCode == 'can_ON') {
+            r += `
+                LEFT JOIN LATERAL (
+                    SELECT
+                        ef.error_data
+                    FROM billing.edi_files ef
+                    INNER JOIN billing.edi_file_claims efc ON ef.id = efc.edi_file_id                    
+                    WHERE efc.claim_id = claims.id
+                    ORDER BY efc.id DESC LIMIT 1
+                ) AS claim_errors ON TRUE
+            `
+        }
+
         return r;
     },
 
@@ -643,6 +656,10 @@ const api = {
 
         }
 
+        if (['can_ON'].indexOf(args.billingRegionCode) > -1) {
+            stdcolumns.push('claim_errors.error_data');
+        }
+
         return stdcolumns;
 
     },
@@ -710,7 +727,7 @@ const api = {
             FROM (${innerQuery}) as FinalClaims
             INNER JOIN billing.claims ON FinalClaims.claim_id = claims.id
             INNER JOIN facilities ON facilities.id = claims.facility_id
-            ${api.getWLQueryJoin(columns, '', args.customArgs.filter_id, args.user_id, args.isCount)}
+            ${api.getWLQueryJoin(columns, '', args.customArgs.filter_id, args.user_id, args.isCount, args)}
             ORDER BY FinalClaims.number
             `
             ;
