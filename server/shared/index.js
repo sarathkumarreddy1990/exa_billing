@@ -289,6 +289,23 @@ module.exports = {
         return rows;
     },
 
+    getRemittanceFiles: async (companyId) => {
+        const sql = SQL`
+            SELECT
+                bef.id AS edi_file_id
+            FROM billing.edi_files bef
+            WHERE bef.file_type = 'can_ohip_p'
+            AND company_id = ${companyId}
+            AND status = 'pending'
+        `;
+
+        let {
+            rows = []
+        } = await query(sql.text, sql.values);
+
+        return rows;
+    },
+
     getCompanyId: async () => {
 
         const sql = SQL`

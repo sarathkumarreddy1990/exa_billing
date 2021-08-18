@@ -351,6 +351,7 @@ const loadFile = async (args) => {
         SELECT
             fs.id as file_store_id,
             fs.root_directory as root_directory,
+            fs.company_id,
             ef.file_path as file_path,
             ef.id as file_id,
             ef.resource_no as resource_id,
