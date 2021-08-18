@@ -538,7 +538,7 @@ const processRemittanceAdviceFiles = async (filesList, callback) => {
                 return callback(processedResult, null);
             }
 
-            logger.logInfo(`File Processing completed for ${edi_file_id} - ${fileData.uploaded_file_name}...`);
+            logger.logInfo(`File processing completed for ${edi_file_id} - ${fileData.uploaded_file_name}...`);
         } else {
             logger.error(`Unable to read file data ${fileData.uploaded_file_name}`);
 

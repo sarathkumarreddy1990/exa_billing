@@ -39,7 +39,7 @@ class ProcessRAFiles {
             let remittanceFilesList = await shared.getRemittanceFiles(company_id);
 
             if (!remittanceFilesList.length) {
-                logger.logInfo(`[${SERVICE_NAME}] - No Pending Remittance Advice files to process...`);
+                logger.logInfo(`[${SERVICE_NAME}] - No pending remittance advice files to process...`);
                 this.inProgress = false;
                 return false;
             }
