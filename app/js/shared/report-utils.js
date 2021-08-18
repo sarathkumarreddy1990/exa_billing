@@ -372,7 +372,7 @@ define([
                         return false;
                     }
                     if ($('#ulListProviderGroup li a[data-id="' + $('#txtProviderGroupName').select2('data')[0].id + '"]').length) {
-                        commonjs.showWarning("Ref. Physician is already selected");
+                        commonjs.showWarning("messages.warning.shared.providerGroupsExist");
                         return false;
                     }
 
