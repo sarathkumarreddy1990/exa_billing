@@ -22,7 +22,7 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
                 WHEN 'insurance' THEN pip.insurance_name
                 WHEN 'ordering_provider' THEN ppr.full_name
                 WHEN 'ordering_facility' THEN pof.name END AS payer_name
-            , render_provider.name
+            , render_provider.group_name
             , COALESCE(pplc.reading_provider_percent_level,0) AS reading_provider_percent_level
             , to_char(bc.claim_dt, '<%= dateFormat %>') as claim_dt
         FROM billing.claims bc
@@ -36,7 +36,7 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
         LEFT JOIN public.providers ppr ON ppr.id = ppc.provider_id
         LEFT JOIN public.ordering_facilities pof ON pof.id = bp.ordering_facility_id
         LEFT JOIN public.provider_contacts as rendering_pro_contact ON rendering_pro_contact.id=bc.rendering_provider_contact_id
-        LEFT JOIN public.ordering_facilities render_provider ON render_provider.id = rendering_pro_contact.provider_group_id
+        LEFT JOIN public.provider_groups render_provider ON render_provider.id = rendering_pro_contact.provider_group_id
         LEFT JOIN public.cpt_code_provider_level_codes pccplc ON pccplc.cpt_code_id = pcc.id
         LEFT JOIN public.provider_level_codes pplc ON pplc.id = pccplc.provider_level_code_id
         INNER JOIN facilities f on f.id = bc.facility_id
@@ -51,7 +51,7 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
         claim_id AS "Claim ID",
         CASE
             WHEN rpf.display_code !='' THEN
-                COALESCE(rpf.name, '- No Group Assigned -' )
+                COALESCE(rpf.group_name, '- No Group Assigned -' )
             ELSE ''
             END AS "Group Name"
         , COALESCE(rpf.display_code, '─ TOTAL ─'::TEXT ) AS "<%= codeHeader %>"
@@ -67,8 +67,8 @@ const readingProviderFeesDataSetQueryTemplate = _.template(`
         reading_provider_fees rpf
     GROUP BY
     GROUPING SETS (
-        (name),
-        (name,
+        (group_name),
+        (group_name,
          claim_id,
          claim_dt,
          display_code,
