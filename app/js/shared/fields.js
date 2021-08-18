@@ -1822,15 +1822,16 @@ define([ 'backbone', 'immutable', 'moment', 'shared/utils' ], function ( Backbon
                     "custom_name": "Insurance Authorization",
                     "name": "as_authorization",
                     "width": 200,
-                    "sortable": true,
+                    "sortable": false,
                     "search" : true,
                     "stype": "select",
                     "searchoptions": {
                         value: {
                             "": "All",
-                            "noauthorization": "No Authorization Needed",
-                            "needauthorization": "Need Authorization",
-                            "authorized": "Authorized"
+                            "noAuthorization": "No Authorization Needed",
+                            "needAuthorization": "Need Authorization",
+                            "authorized": "Authorized",
+                            "reAuthorization": "Reauthorization Needed"
                         }
                     },
                     formatter: function(cellvalue) {

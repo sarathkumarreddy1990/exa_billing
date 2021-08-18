@@ -202,8 +202,7 @@ const colModel = [
     },
     {
         name: 'as_authorization',
-        searchColumns: ['auth.as_authorization'],
-        searchFlag: '%'
+        searchFlag: 'authStatus'
     },
     {
         name: 'mu_last_updated',
@@ -503,7 +502,6 @@ const api = {
             case 'account_no': return 'patients.account_no';
             case 'modality_room_id': return 'orders.modality_room_id';
             case 'institution': return 'studies.institution';
-            case 'as_authorization': return 'auth.as_authorization';
             case 'facility_name': return 'facilities.facility_name';
             case 'tat_level': return 'tat.level';
             case 'patient_room': return `orders.order_info->'patientRoom'`; //***For EXA-7148 -- Add Room Number colum to Facility Portal***//
@@ -573,7 +571,7 @@ const api = {
     },
     getWLQueryJoin: function (columns) {
         let tables = columns instanceof Object && columns || api.getTables(columns);
-        let imp_orders = tables.vehicles || tables.users || tables.providers || tables.auth || tables.eligibility || tables.icd_codes;
+        let imp_orders = tables.vehicles || tables.users || tables.providers || tables.auth || tables.eligibility || tables.icd_codes || tables.auth;
         let imp_provider_contacts = tables.imagedelivery || tables.providers_ref;
         let imp_facilities = tables.tat;
         let r = '';
@@ -614,12 +612,22 @@ const api = {
 
         if (tables.cpt_codes) {r += ' LEFT JOIN cpt_codes ON studies.procedure_id = cpt_codes.id ';}
 
-        if (tables.auth){
+        if ( tables.auth ) {
             r += `
                 LEFT JOIN LATERAL (
-                    SELECT get_authorization(studies.id,studies.facility_id,studies.modality_id,studies.patient_id,(ARRAY[coalesce(orders.primary_patient_insurance_id,0), coalesce(orders.secondary_patient_insurance_id,0), coalesce(orders.tertiary_patient_insurance_id,0)]),studies.study_dt)::text AS as_authorization
-                ) AS auth ON true
-                `;
+                    SELECT
+                        get_authorization(
+                            studies.id,
+                            studies.facility_id,
+                            studies.modality_id,
+                            ARRAY [
+                                orders.primary_patient_insurance_id,
+                                orders.secondary_patient_insurance_id,
+                                orders.tertiary_patient_insurance_id
+                            ]
+                        ) AS as_authorization
+                ) auth ON TRUE
+            `;
         }
 
         if(tables.study_cpt){
@@ -917,8 +925,7 @@ const api = {
             'approving_provider_ref.full_name AS approving_provider',
             `imagedelivery.image_delivery
                 AS image_delivery`,
-            `auth.as_authorization
-                AS as_authorization`,
+            `auth.as_authorization AS as_authorization`,
             'report_delivery.report_queue_status',
             `has_empty_notes(studies.id, patients.id, orders.id)
                 AS empty_notes_flag`,
