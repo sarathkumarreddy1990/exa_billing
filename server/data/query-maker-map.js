@@ -35,5 +35,6 @@ module.exports = new Map([
     ['status', require('./query-makers/status')],
     ['gt', require('./query-makers/gt')],
     ['lt', require('./query-makers/lt')],
-    ['bw', require('./query-makers/money_range')]
+    ['bw', require('./query-makers/money_range')],
+    ['authStatus', require('./query-makers/auth_status')],
 ]);
