@@ -974,11 +974,11 @@ define('grid', [
             var icon_width = 24;
             colName = colName.concat([
                 ('<input type="checkbox" i18nt="billing.payments.selectAllStudies" id="chkStudyHeader_' + filterID + '" class="chkheader" onclick="commonjs.checkMultiple(event)" />'),
-                '','','','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', '', ''
+                '','','','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'Assigned To', '', ''
             ]);
 
             i18nName = i18nName.concat([
-                '','','','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '','', 'billing.claims.assignedTo', '', ''
+                '','','','','', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '','', '', 'billing.claims.assignedTo', '', ''
             ]);
 
             colModel = colModel.concat([
