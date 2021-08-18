@@ -502,7 +502,6 @@ const api = {
             case 'account_no': return 'patients.account_no';
             case 'modality_room_id': return 'orders.modality_room_id';
             case 'institution': return 'studies.institution';
-            case 'as_authorization': return 'auth.as_authorization';
             case 'facility_name': return 'facilities.facility_name';
             case 'tat_level': return 'tat.level';
             case 'patient_room': return `orders.order_info->'patientRoom'`; //***For EXA-7148 -- Add Room Number colum to Facility Portal***//
