@@ -509,7 +509,7 @@ const api = {
             case 'billed_status': return `(SELECT  CASE WHEN (SELECT 1 FROM billing.charges_studies inner JOIN billing.charges ON charges.id=
                                                 charges_studies.charge_id  WHERE study_id = studies.id LIMIT 1) >0 THEN 'billed'
                                                 ELSE 'unbilled' END)`;
-            case 'study_cpt_id': return 'study_cpt.study_cpt_id';
+            case 'study_cpt_id': return 'study_cpt.study_cpt_id'; // @TODO remove if not needed - looks like it isnt
             case 'ins_provider_type': return 'insurance_providers.provider_types';
             case "eligibility_verified": return `(COALESCE(eligibility.verified, false) OR COALESCE(orders.order_info->'manually_verified', 'false')::BOOLEAN)`;
             case 'icd_description': return `icd_codes.description`;
@@ -631,9 +631,11 @@ const api = {
         }
 
         if(tables.study_cpt){
-            r += `   LEFT JOIN LATERAL (
-                SELECT study_cpt.id as study_cpt_id FROM study_cpt INNER JOIN cpt_codes cpt ON  cpt.id=study_cpt.cpt_code_id    WHERE study_id = studies.id AND NOT study_cpt.has_deleted   AND NOT cpt.has_deleted   LIMIT 1
-            ) AS study_cpt ON true `;
+            r += `
+                LEFT JOIN LATERAL (
+                    SELECT study_cpt.id as study_cpt_id FROM study_cpt INNER JOIN cpt_codes cpt ON  cpt.id=study_cpt.cpt_code_id    WHERE study_id = studies.id AND study_cpt.deleted_dt IS NULL  AND NOT cpt.has_deleted   LIMIT 1
+                ) AS study_cpt ON true
+            `;
         }
 
 
