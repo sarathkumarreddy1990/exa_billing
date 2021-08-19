@@ -147,6 +147,7 @@ define(['jquery',
             showCensusGrid: function () {
                 var self = this;
                 var censusTypeSelect = "";
+                var gridIDPrefix = '#jqgh_tblGridCensus';
 
                 // Defaulting billing type options
                 self.censusType.map(function (data) {
@@ -227,6 +228,15 @@ define(['jquery',
                     disableadd: true,
                     disablereload: true,
                     delayedPagerUpdate: true,
+                    customizeSort: true,
+                    sortable: {
+                        exclude: [
+                            ',',
+                            gridIDPrefix,
+                            '_as_chk'
+
+                        ].join('')
+                    },
                     pagerApiUrl: '/exa_modules/billing/census/count',
                     pager: '#gridPager_census',
                     customargs: {
