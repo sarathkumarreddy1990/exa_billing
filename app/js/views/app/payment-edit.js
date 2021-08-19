@@ -2425,7 +2425,7 @@ define(['jquery',
                         var all_adjustment = $(this).find('.payment__other_adjustment').text() ? $(this).find('.payment__other_adjustment').text() : 0.00;
                         var this_adjustment = $(this).find('.payment__this_adjustment').val() ? $(this).find('.payment__this_adjustment').val() : 0.00;
                         var balance = parseFloat(bill_fee) - (parseFloat(all_payment) + parseFloat(all_adjustment) + parseFloat(this_pay) + parseFloat(this_adjustment)).toFixed(2);
-                        
+
                         _line_item["charge_id"] = chargeRow.attr('data_charge_id_id');
                         _line_item["paymentApplicationId"] = chargeRow.attr('data_payment_application_id');
                         _line_item["adjustmentApplicationId"] = chargeRow.attr('data_payment_adjustment_id');
