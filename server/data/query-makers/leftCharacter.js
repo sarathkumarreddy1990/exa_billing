@@ -4,6 +4,11 @@ const regGenders = /[MFOUmfou]/;
 
 module.exports = (fieldID, fieldValue) => {
     const firstChar = fieldValue.charAt(0);
-    const value = regGenders.test(firstChar) ? firstChar : fieldValue;
-    return ` (${fieldID} ILIKE '${fieldValue}%' OR ${fieldID} ILIKE '${value}')`;
+    const value = fieldID === `patients.gender` && regGenders.test(firstChar)
+        ? firstChar
+        : fieldValue;
+    return ` (
+        ${fieldID} ILIKE '${value}'
+        OR ${fieldID} ILIKE '${value}%' 
+    ) `;
 };
