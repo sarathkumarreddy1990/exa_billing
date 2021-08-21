@@ -403,11 +403,18 @@ const submitClaims = async (callback) => {
 
                         const separatedSubmitResults = separateResults(submitResponse, EDT_SUBMIT, responseCodes.SUCCESS);
                         const successfulSubmitResults = separatedSubmitResults[responseCodes.SUCCESS];
-                        if (submitErr) {
+
+                        // OHIP data error getting in response , so finding that using Eror codes
+                        let err_matches = filter(
+                            ['EEDTS0061'],
+                            (s) => { return JSON.stringify(allSubmitClaimResults).indexOf(s) > -1; }
+                        );
+
+                        if (submitErr || (allSubmitClaimResults.faults && allSubmitClaimResults.faults.length) || err_matches.length || !successfulSubmitResults) {
 
                             await ohipData.updateFileStatus({
                                 files: uploadFiles,
-                                errors: submitErr || [],
+                                errors: JSON.stringify(submitErr) || (allSubmitClaimResults.faults.length && JSON.stringify(allSubmitClaimResults.faults)) || err_matches || JSON.stringify(allSubmitClaimResults),
                                 status: 'failure'
                             });
 
