@@ -93,12 +93,12 @@ function getTableContents(claimData, servicelineList) {
     for (let i = 0; i < 6; i++) {
         if(servicelineList[i] && servicelineList[i].examCpt) {
             let claimDate = claimData.subscriber[0].claim[0].claimDate ? claimData.subscriber[0].claim[0].claimDate.toString() : '';
-            let ndc= ( servicelineList[i].ndccode ?
+            let ndc = ( servicelineList[i].ndccode ?
                 (
-                    "N4"+getSubstring(servicelineList[i].ndccode, 11) + "\t"
-                    + ( servicelineList[i].ndcmeasure ? getSubstring(servicelineList[i].ndcmeasure, 3 ) + "\t" : ' ' )
-                    + ( servicelineList[i].ndcunit ? '('+getSubstring(servicelineList[i].ndcunit, 6)+'UN)\t' : ' ' )
-                    + ( servicelineList[i].studyDescription||'' )
+                    "N4" + getSubstring(servicelineList[i].ndccode, 11) + "\t"
+                    + ( servicelineList[i].ndcmeasure ? getSubstring(servicelineList[i].ndcmeasure, 3) + "\t" : ' ' )
+                    + ( servicelineList[i].ndcunit ? '(' + getSubstring(servicelineList[i].ndcunit, 6) + 'UN)\t' : ' ' )
+                    + ( servicelineList[i].studyDescription || '' )
                 ) : ' '
             );
 
